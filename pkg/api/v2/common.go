@@ -381,6 +381,7 @@ func (u *UntypedDict) UnmarshalJSON(data []byte) error {
 }
 
 type UntypedValue struct {
+	// +k8s:conversion-gen=false
 	raw json.RawMessage
 }
 

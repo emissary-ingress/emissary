@@ -29,10 +29,12 @@ type RateLimitServiceSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
 	// +kubebuilder:validation:Required
-	Service   string        `json:"service,omitempty"`
-	TimeoutMs *int          `json:"timeout_ms,omitempty"`
-	Domain    string        `json:"domain,omitempty"`
-	TLS       *BoolOrString `json:"tls,omitempty"`
+	Service   string `json:"service,omitempty"`
+	TimeoutMs *int   `json:"timeout_ms,omitempty"`
+	Domain    string `json:"domain,omitempty"`
+	// Don't autoconvert -- we have a manual conversion.
+	// +k8s:conversion-gen=false
+	TLS *BoolOrString `json:"tls,omitempty"`
 	// +kubebuilder:validation:Enum={"v2","v3"}
 	ProtocolVersion string `json:"protocol_version,omitempty"`
 }

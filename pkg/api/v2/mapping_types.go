@@ -79,9 +79,11 @@ type MappingSpec struct {
 	ClusterIdleTimeoutMs           *int                    `json:"cluster_idle_timeout_ms,omitempty"`
 	ClusterMaxConnectionLifetimeMs int                     `json:"cluster_max_connection_lifetime_ms,omitempty"`
 	// The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
-	TimeoutMs     *int          `json:"timeout_ms,omitempty"`
-	IdleTimeoutMs *int          `json:"idle_timeout_ms,omitempty"`
-	TLS           *BoolOrString `json:"tls,omitempty"`
+	TimeoutMs     *int `json:"timeout_ms,omitempty"`
+	IdleTimeoutMs *int `json:"idle_timeout_ms,omitempty"`
+	// Don't autoconvert -- we have a manual conversion.
+	// +k8s:conversion-gen=false
+	TLS *BoolOrString `json:"tls,omitempty"`
 
 	// use_websocket is deprecated, and is equivlaent to setting
 	// `allow_upgrade: ["websocket"]`
@@ -118,16 +120,28 @@ type MappingSpec struct {
 	// set on the Ambassador module, if any.
 	// +kubebuilder:validation:MinItems=1
 	ErrorResponseOverrides []ErrorResponseOverride `json:"error_response_overrides,omitempty"`
-	Modules                []UntypedDict           `json:"modules,omitempty"`
-	Host                   string                  `json:"host,omitempty"`
-	HostRegex              *bool                   `json:"host_regex,omitempty"`
-	Headers                map[string]BoolOrString `json:"headers,omitempty"`
-	RegexHeaders           map[string]BoolOrString `json:"regex_headers,omitempty"`
-	Labels                 DomainMap               `json:"labels,omitempty"`
-	EnvoyOverride          *UntypedDict            `json:"envoy_override,omitempty"`
-	LoadBalancer           *LoadBalancer           `json:"load_balancer,omitempty"`
-	QueryParameters        map[string]BoolOrString `json:"query_parameters,omitempty"`
-	RegexQueryParameters   map[string]BoolOrString `json:"regex_query_parameters,omitempty"`
+	// Don't autoconvert -- it's going away.
+	// +k8s:conversion-gen=false
+	Modules   []UntypedDict `json:"modules,omitempty"`
+	Host      string        `json:"host,omitempty"`
+	HostRegex *bool         `json:"host_regex,omitempty"`
+	// Don't autoconvert -- we have a manual conversion.
+	// +k8s:conversion-gen=false
+	Headers map[string]BoolOrString `json:"headers,omitempty"`
+	// Don't autoconvert -- we have a manual conversion.
+	// +k8s:conversion-gen=false
+	RegexHeaders map[string]BoolOrString `json:"regex_headers,omitempty"`
+	Labels       DomainMap               `json:"labels,omitempty"`
+	// Don't autoconvert -- EnvoyOverride is going away.
+	// +k8s:conversion-gen=false
+	EnvoyOverride *UntypedDict  `json:"envoy_override,omitempty"`
+	LoadBalancer  *LoadBalancer `json:"load_balancer,omitempty"`
+	// Don't autoconvert -- we have a manual conversion.
+	// +k8s:conversion-gen=false
+	QueryParameters map[string]BoolOrString `json:"query_parameters,omitempty"`
+	// Don't autoconvert -- we have a manual conversion.
+	// +k8s:conversion-gen=false
+	RegexQueryParameters map[string]BoolOrString `json:"regex_query_parameters,omitempty"`
 }
 
 // DocsInfo provides some extra information about the docs for the Mapping

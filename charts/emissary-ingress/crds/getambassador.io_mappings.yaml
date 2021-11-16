@@ -134,7 +134,7 @@ spec:
               enable_ipv6:
                 type: boolean
               envoy_override:
-                description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
+                description: Don't autoconvert -- EnvoyOverride is going away.
                 type: object
               error_response_overrides:
                 description: Error response overrides for this Mapping. Replaces all of the `error_response_overrides` set on the Ambassador module, if any.
@@ -177,6 +177,7 @@ spec:
               grpc:
                 type: boolean
               headers:
+                description: Don't autoconvert -- we have a manual conversion.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               host:
@@ -246,6 +247,7 @@ spec:
               method_regex:
                 type: boolean
               modules:
+                description: Don't autoconvert -- it's going away.
                 items:
                   description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
                   type: object
@@ -269,6 +271,7 @@ spec:
               priority:
                 type: string
               query_parameters:
+                description: Don't autoconvert -- we have a manual conversion.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               redirect_response_code:
@@ -281,9 +284,11 @@ spec:
                 - 308
                 type: integer
               regex_headers:
+                description: Don't autoconvert -- we have a manual conversion.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               regex_query_parameters:
+                description: Don't autoconvert -- we have a manual conversion.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               regex_redirect:
@@ -493,10 +498,6 @@ spec:
                 type: boolean
               enable_ipv6:
                 type: boolean
-              envoy_override:
-                description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               error_response_overrides:
                 description: Error response overrides for this Mapping. Replaces all of the `error_response_overrides` set on the Ambassador module, if any.
                 items:
@@ -540,6 +541,7 @@ spec:
               headers:
                 additionalProperties:
                   type: string
+                description: Don't autoconvert -- we have a manual conversion.
                 type: object
               host:
                 description: "Exact match for the hostname of a request if HostRegex is false; regex match for the hostname if HostRegex is true. \n Host specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Host will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used. \n DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead."
@@ -697,6 +699,7 @@ spec:
               query_parameters:
                 additionalProperties:
                   type: string
+                description: Don't autoconvert -- we have a manual conversion.
                 type: object
               redirect_response_code:
                 description: The response code to use when generating an HTTP redirect. Defaults to 301. Used with `host_redirect`.
@@ -710,10 +713,12 @@ spec:
               regex_headers:
                 additionalProperties:
                   type: string
+                description: Don't autoconvert -- we have a manual conversion.
                 type: object
               regex_query_parameters:
                 additionalProperties:
                   type: string
+                description: Don't autoconvert -- we have a manual conversion.
                 type: object
               regex_redirect:
                 description: Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
