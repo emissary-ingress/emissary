@@ -20,7 +20,6 @@
 
 	import (
 		"context"
-		"fmt"
 	)
 	EOT
 	emit() {
@@ -31,24 +30,26 @@
 		func ${lvlAlias}(ctx context.Context, args ...interface{}) {
 			l := getLogger(ctx)
 			l.Helper()
-			l.Log(LogLevel${lvlReal}, fmt.Sprint(args...))
+			l.Log(LogLevel${lvlReal}, args...)
 		}
 		func ${lvlAlias}ln(ctx context.Context, args ...interface{}) {
 			l := getLogger(ctx)
 			l.Helper()
-			l.Log(LogLevel${lvlReal}, sprintln(args...))
+			l.Logln(LogLevel${lvlReal}, args...)
 		}
 		func ${lvlAlias}f(ctx context.Context, format string, args ...interface{}) {
 			l := getLogger(ctx)
 			l.Helper()
-			l.Log(LogLevel${lvlReal}, fmt.Sprintf(format, args...))
+			l.Logf(LogLevel${lvlReal}, format, args...)
 		}
 		EOT
 	}
 	for lvl in "${levels[@]}"; do
 		emit "$lvl" "$lvl"
 	done
-	for alvl in "${!aliases[@]}"; do
+    # Sort the keys of aliases so we're sure the methods are always generated in the same order
+    mapfile -d '' sorted < <(printf '%s\0' "${!aliases[@]}" | sort -z)
+	for alvl in "${sorted[@]}"; do
 		emit "$alvl" "${aliases[${alvl}]}"
 	done
 } | gofmt

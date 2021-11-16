@@ -31,8 +31,26 @@ func (w tbWrapper) WithField(key string, value interface{}) Logger {
 	return ret
 }
 
-func (w tbWrapper) Log(level LogLevel, msg string) {
+func sprintln(args ...interface{}) string {
+	// Trim the trailing newline; what we care about is that spaces are added in between
+	// arguments, not that there's a trailing newline.  See also: logrus.Entry.sprintlnn
+	msg := fmt.Sprintln(args...)
+	return msg[:len(msg)-1]
+}
+
+func (w tbWrapper) Logln(level LogLevel, args ...interface{}) {
 	w.Helper()
+	w.Log(level, sprintln(args...))
+}
+
+func (w tbWrapper) Logf(level LogLevel, format string, args ...interface{}) {
+	w.Helper()
+	w.Log(level, fmt.Sprintf(format, args...))
+}
+
+func (w tbWrapper) Log(level LogLevel, args ...interface{}) {
+	w.Helper()
+	msg := fmt.Sprint(args...)
 	fields := make(map[string]interface{}, len(w.fields)+2)
 	for k, v := range w.fields {
 		fields[k] = v

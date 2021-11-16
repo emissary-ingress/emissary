@@ -152,7 +152,7 @@ type testHookContextKey struct{}
 //
 // [2]: https://xkcd.com/1172/
 type ServerConfig struct {
-	// These fields mimic exactly mimic http.Server; see the documentation there.
+	// These fields exactly mimic http.Server; see the documentation there.
 	Handler           http.Handler
 	TLSConfig         *tls.Config
 	ReadTimeout       time.Duration
@@ -198,10 +198,10 @@ type ServerConfig struct {
 
 	// OnShutdown is an array of functions that are each called once when shutdown is initiated.
 	// Use this when hijacking connections; your OnShutdown should notify your hijacking Handler
-	// to that a graceful shutdown has been initiated, and your Handler should respond by
-	// closing any idle connections.  This is used instead of dcontext soft Context cancellation
-	// because the Context should very much still be fully alive for any in-progress requests on
-	// that connection, and not soft-canceled; this is even softer than a dcontext soft cancel.
+	// that a graceful shutdown has been initiated, and your Handler should respond by closing
+	// any idle connections.  This is used instead of dcontext soft Context cancellation because
+	// the Context should very much still be fully alive for any in-progress requests on that
+	// connection, and not soft-canceled; this is even softer than a dcontext soft cancel.
 	//
 	// (This replaces the RegisterOnShutdown method of *http.Server.)
 	OnShutdown []func()
