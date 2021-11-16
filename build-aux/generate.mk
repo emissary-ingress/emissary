@@ -311,11 +311,11 @@ _generate_clean:
 #controller-gen/options/webhook     +=
 #controller-gen/options/schemapatch += manifests=foo
 #controller-gen/options/rbac        += roleName=ambassador
-controller-gen/options/object      += # headerFile=hack/boilerplate.go.txt
+controller-gen/options/object      += headerFile=build-aux/copyright-boilerplate.go.txt
 controller-gen/options/crd         += trivialVersions=false # Requires Kubernetes 1.13+
 controller-gen/options/crd         += crdVersions=v1        # Requires Kubernetes 1.16+
 controller-gen/output/crd           = dir=$@
-$(OSS_HOME)/_generate.tmp/crds: $(tools/controller-gen) FORCE
+$(OSS_HOME)/_generate.tmp/crds: $(tools/controller-gen) build-aux/copyright-boilerplate.go.txt FORCE
 	@printf '  $(CYN)Running controller-gen$(END)\n'
 	rm -rf $@
 	mkdir -p $@
