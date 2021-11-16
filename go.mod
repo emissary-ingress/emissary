@@ -85,6 +85,7 @@ require (
 	k8s.io/apimachinery v0.20.2
 	k8s.io/cli-runtime v0.20.2
 	k8s.io/client-go v0.20.2
+	k8s.io/code-generator v0.20.2
 	k8s.io/klog/v2 v2.10.0
 	k8s.io/kube-openapi v0.0.0-20201113171705-d219536bb9fd
 	k8s.io/kubectl v0.20.2
@@ -163,10 +164,14 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 	k8s.io/apiserver v0.20.2 // indirect
 	k8s.io/component-base v0.20.2 // indirect
+	k8s.io/gengo v0.0.0-20201214224949-b6c5ce23f027 // indirect
 	k8s.io/utils v0.0.0-20201110183641-67b214c5f920 // indirect
 	sigs.k8s.io/kustomize v2.0.3+incompatible // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.0.2 // indirect
 )
+
+// We've got some bug-fixes that we need for conversion-gen.
+replace k8s.io/code-generator v0.20.2 => github.com/datawire/code-generator v0.20.5-rc.0.0.20211127183116-16d402be64a9
 
 // Because we (unfortunately) need to require k8s.io/kubernetes, which
 // is (unfortunately) managed in a way that makes it hostile to being
