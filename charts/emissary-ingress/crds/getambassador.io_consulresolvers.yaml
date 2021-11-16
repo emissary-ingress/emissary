@@ -1,6 +1,6 @@
 # GENERATED FILE: edits made by hand will not be preserved.
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
@@ -20,7 +20,6 @@ spec:
     plural: consulresolvers
     singular: consulresolver
   scope: Namespaced
-  version: v2
   versions:
   - name: v2
     schema:
@@ -40,15 +39,10 @@ spec:
             properties:
               address:
                 type: string
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               datacenter:
                 type: string
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false
