@@ -38,6 +38,7 @@ spec:
             description: AuthServiceSpec defines the desired state of AuthService
             properties:
               add_auth_headers:
+                description: Don't autoconvert -- we have a manual conversion.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               add_linkerd_headers:
@@ -113,6 +114,7 @@ spec:
               add_auth_headers:
                 additionalProperties:
                   type: string
+                description: Don't autoconvert -- we have a manual conversion.
                 type: object
               add_linkerd_headers:
                 type: boolean

@@ -79,4 +79,7 @@ var (
 
 	// AddToScheme adds the types in this group-version to the given scheme.
 	AddToScheme = SchemeBuilder.AddToScheme
+
+	// This is so the generated conversion code will compile.
+	localSchemeBuilder = &SchemeBuilder.SchemeBuilder
 )
