@@ -59,6 +59,7 @@ generate/files      += $(OSS_HOME)/builder/requirements.txt
 generate/precious   += $(OSS_HOME)/builder/requirements.txt
 generate-fast/files += $(OSS_HOME)/CHANGELOG.md
 generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/README.md
+generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion.go
 # Individual files: YAML
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
@@ -323,6 +324,53 @@ $(OSS_HOME)/_generate.tmp/crds: $(tools/controller-gen) build-aux/copyright-boil
 	  $(foreach varname,$(sort $(filter controller-gen/options/%,$(.VARIABLES))), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
 	  $(foreach varname,$(sort $(filter controller-gen/output/%,$(.VARIABLES))), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
 	  paths="./pkg/api/getambassador.io/..."
+
+$(OSS_HOME)/%/zz_generated.conversion.go: $(tools/conversion-gen) build-aux/copyright-boilerplate.go.txt FORCE
+	rm -f $@ $(@D)/*.scaffold.go
+	GOFLAGS=-mod=mod $(tools/conversion-gen) \
+	  --skip-unsafe \
+	  --go-header-file=build-aux/copyright-boilerplate.go.txt \
+	  --input-dirs=./$* \
+	  --output-file-base=zz_generated.conversion
+
+$(OSS_HOME)/%/handwritten.conversion.scaffold.go: $(OSS_HOME)/%/zz_generated.conversion.go
+	{ \
+	  awk ' \
+	    BEGIN { \
+	      print("//+build scaffold"); \
+	      print(""); \
+	      print("package $(notdir $*)"); \
+	      inFunc=0; \
+	      curFunc=""; \
+	    } \
+	    match($$0, /^func auto(Convert_[^(]+)(\(.*)/, m) { \
+	      if (inFunc) { \
+	        print("  return nil"); \
+	        print("}"); \
+	        print(""); \
+	        inFunc=0; \
+	      } \
+	      curFunc=\
+	        "func " m[1] m[2] \
+	        "  if err := auto" m[1] "(in, out, s); err != nil {" \
+	        "    return err" \
+	        "  }"; \
+	    } \
+	    /INFO|WARN/ { \
+	      if (!inFunc) { \
+	        print(curFunc); \
+	        inFunc=1; \
+	      } \
+	      print; \
+	    } \
+	    END { \
+	      if (inFunc) { \
+	        print("  return nil"); \
+	        print("}"); \
+	      } \
+	    }' | \
+	  gofmt; \
+	} <$< >$@
 
 $(OSS_HOME)/charts/emissary-ingress/crds: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	rm -rf $@

@@ -42,10 +42,12 @@
 //////////////////////////////////////////////////////////////////////
 //
 // We use a bunch of magic comments called "+markers" that serve as
-// input to `controller-gen`.  Mostly they annotate a type, or a field
-// within a struct.  Just below here, we do the "global" package-level
-// markers; these package-level markers need to come before the
-// "package" line.
+// input to `controller-gen` and `conversion-gen`.  Note that while
+// `controller-gen` doesn't care about what file these are in, the
+// older `k8s.io/gengo`-based `conversion-gen` specifically looks for
+// `doc.go`.  Mostly they annotate a type, or a field within a struct.
+// Just below here, we do the "global" package-level markers; these
+// package-level markers need to come before the "package" line.
 //
 // The type markers of interest are:
 //
@@ -88,6 +90,10 @@
 // mode is broken and always makes everything optional, even if it's
 // explicitly marked as required):
 // +kubebuilder:validation:Optional
+//
+// Other apiVersions say "+k8s:conversion-gen=…/v3alpha1" to have
+// conversion-gen help write code to convert to/from this apiVersion
+// and that one.
 
 //////////////////////////////////////////////////////////////////////
 // 2. Package documentation //////////////////////////////////////////

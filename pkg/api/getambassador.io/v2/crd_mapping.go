@@ -122,13 +122,15 @@ type MappingSpec struct {
 	Modules                []UntypedDict           `json:"modules,omitempty"`
 	Host                   string                  `json:"host,omitempty"`
 	HostRegex              *bool                   `json:"host_regex,omitempty"`
-	Headers                map[string]BoolOrString `json:"headers,omitempty"`
-	RegexHeaders           map[string]string       `json:"regex_headers,omitempty"`
-	Labels                 DomainMap               `json:"labels,omitempty"`
-	EnvoyOverride          *UntypedDict            `json:"envoy_override,omitempty"`
-	LoadBalancer           *LoadBalancer           `json:"load_balancer,omitempty"`
-	QueryParameters        map[string]BoolOrString `json:"query_parameters,omitempty"`
-	RegexQueryParameters   map[string]string       `json:"regex_query_parameters,omitempty"`
+	// +k8s:conversion-gen=false
+	Headers       map[string]BoolOrString `json:"headers,omitempty"`
+	RegexHeaders  map[string]string       `json:"regex_headers,omitempty"`
+	Labels        DomainMap               `json:"labels,omitempty"`
+	EnvoyOverride *UntypedDict            `json:"envoy_override,omitempty"`
+	LoadBalancer  *LoadBalancer           `json:"load_balancer,omitempty"`
+	// +k8s:conversion-gen=false
+	QueryParameters      map[string]BoolOrString `json:"query_parameters,omitempty"`
+	RegexQueryParameters map[string]string       `json:"regex_query_parameters,omitempty"`
 }
 
 type RegexMap struct {
