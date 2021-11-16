@@ -138,13 +138,20 @@ type MappingSpec struct {
 	//
 	// If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is
 	// used.
-	Hostname             string            `json:"hostname,omitempty"`
-	Headers              map[string]string `json:"headers,omitempty"`
-	RegexHeaders         map[string]string `json:"regex_headers,omitempty"`
-	Labels               DomainMap         `json:"labels,omitempty"`
-	EnvoyOverride        *UntypedDict      `json:"envoy_override,omitempty"`
-	LoadBalancer         *LoadBalancer     `json:"load_balancer,omitempty"`
-	QueryParameters      map[string]string `json:"query_parameters,omitempty"`
+	Hostname string `json:"hostname,omitempty"`
+	// Don't autoconvert -- we have a manual conversion.
+	// +k8s:conversion-gen=false
+	Headers map[string]string `json:"headers,omitempty"`
+	// Don't autoconvert -- we have a manual conversion.
+	// +k8s:conversion-gen=false
+	RegexHeaders map[string]string `json:"regex_headers,omitempty"`
+	Labels       DomainMap         `json:"labels,omitempty"`
+	LoadBalancer *LoadBalancer     `json:"load_balancer,omitempty"`
+	// Don't autoconvert -- we have a manual conversion.
+	// +k8s:conversion-gen=false
+	QueryParameters map[string]string `json:"query_parameters,omitempty"`
+	// Don't autoconvert -- we have a manual conversion.
+	// +k8s:conversion-gen=false
 	RegexQueryParameters map[string]string `json:"regex_query_parameters,omitempty"`
 	StatsName            string            `json:"stats_name,omitempty"`
 }

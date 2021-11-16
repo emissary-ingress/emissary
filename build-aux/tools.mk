@@ -39,6 +39,7 @@ $(tools.bindir)/%: $(tools.srcdir)/%.sh
 #
 tools/chart-doc-gen   = $(tools.bindir)/chart-doc-gen
 tools/controller-gen  = $(tools.bindir)/controller-gen
+tools/conversion-gen  = $(tools.bindir)/conversion-gen
 tools/go-bindata      = $(tools.bindir)/go-bindata
 tools/go-mkopensource = $(tools.bindir)/go-mkopensource
 tools/golangci-lint   = $(tools.bindir)/golangci-lint
@@ -50,6 +51,7 @@ $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(tools.srcdir)/%/go.mod
 # Let these use the main Emissary go.mod instead of having their own go.mod.
 tools.main-gomod += $(tools/protoc-gen-go)   # ensure runtime libraries are consistent
 tools.main-gomod += $(tools/controller-gen)  # ensure runtime libraries are consistent
+tools.main-gomod += $(tools/conversion-gen)  # ensure runtime libraries are consistent
 tools.main-gomod += $(tools/go-mkopensource) # ensure it is consistent with py-mkopensource
 tools.main-gomod += $(tools/kubestatus)      # is actually part of Emissary
 $(tools.main-gomod): $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(OSS_HOME)/go.mod

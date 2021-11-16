@@ -10,6 +10,7 @@
     ],
     "properties": {
         "add_auth_headers": {
+            "description": "Don't autoconvert -- we have a manual conversion.",
             "type": "object",
             "additionalProperties": {
                 "type": "string"
