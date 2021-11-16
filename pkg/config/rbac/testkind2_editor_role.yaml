@@ -1,0 +1,24 @@
+# permissions for end users to edit testkind2s.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: testkind2-editor-role
+rules:
+- apiGroups:
+  - getambassador.io.getambassador.io
+  resources:
+  - testkind2s
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - getambassador.io.getambassador.io
+  resources:
+  - testkind2s/status
+  verbs:
+  - get

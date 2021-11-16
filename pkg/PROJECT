@@ -1,0 +1,230 @@
+domain: getambassador.io
+layout: go.kubebuilder.io/v3
+projectName: emissary
+repo: github.com/emissary-ingress/emissary
+resources:
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: AmbassadorConfig
+  path: github.com/emissary-ingress/emissary/api/v3alpha1
+  version: v3alpha1
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: AuthService
+  path: github.com/emissary-ingress/emissary/api/v3alpha1
+  version: v3alpha1
+- api:  
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: DevPortal
+  path: github.com/emissary-ingress/emissary/api/v3alpha1
+  version: v3alpha1
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: Host
+  path: github.com/emissary-ingress/emissary/api/v3alpha1
+  version: v3alpha1
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: Listener
+  path: github.com/emissary-ingress/emissary/api/v3alpha1
+  version: v3alpha1
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: LogService
+  path: github.com/emissary-ingress/emissary/api/v3alpha1
+  version: v3alpha1
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: Mapping
+  path: github.com/emissary-ingress/emissary/api/v3alpha1
+  version: v3alpha1
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: RateLimitService
+  path: github.com/emissary-ingress/emissary/api/v3alpha1
+  version: v3alpha1
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: KubernetesEndpointResolver
+  path: github.com/emissary-ingress/emissary/api/v3alpha1
+  version: v3alpha1
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: KubernetesServiceResolver
+  path: github.com/emissary-ingress/emissary/api/v3alpha1
+  version: v3alpha1
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: ConsulResolver
+  path: github.com/emissary-ingress/emissary/api/v3alpha1
+  version: v3alpha1
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: TCPMapping
+  path: github.com/emissary-ingress/emissary/api/v3alpha1
+  version: v3alpha1
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: TLSContext
+  path: github.com/emissary-ingress/emissary/api/v3alpha1
+  version: v3alpha1
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: TracingService
+  path: github.com/emissary-ingress/emissary/api/v3alpha1
+  version: v3alpha1
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: AmbassadorConfig
+  path: github.com/emissary-ingress/emissary/api/v2
+  version: v2
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: AuthService
+  path: github.com/emissary-ingress/emissary/api/v2
+  version: v2
+- api:  
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: DevPortal
+  path: github.com/emissary-ingress/emissary/api/v2
+  version: v2
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: Host
+  path: github.com/emissary-ingress/emissary/api/v2
+  version: v2
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: Listener
+  path: github.com/emissary-ingress/emissary/api/v2
+  version: v2
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: LogService
+  path: github.com/emissary-ingress/emissary/api/v2
+  version: v2
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: Mapping
+  path: github.com/emissary-ingress/emissary/api/v2
+  version: v2
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: RateLimitService
+  path: github.com/emissary-ingress/emissary/api/v2
+  version: v2
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: KubernetesEndpointResolver
+  path: github.com/emissary-ingress/emissary/api/v2
+  version: v2
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: KubernetesServiceResolver
+  path: github.com/emissary-ingress/emissary/api/v2
+  version: v2
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: ConsulResolver
+  path: github.com/emissary-ingress/emissary/api/v2
+  version: v2
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: TCPMapping
+  path: github.com/emissary-ingress/emissary/api/v2
+  version: v2
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: TLSContext
+  path: github.com/emissary-ingress/emissary/api/v2
+  version: v2
+- api:
+    crdVersion: v1beta1
+    namespaced: true
+  domain: getambassador.io
+  group: getambassador.io
+  kind: TracingService
+  path: github.com/emissary-ingress/emissary/api/v2
+  version: v2
+version: "3"
