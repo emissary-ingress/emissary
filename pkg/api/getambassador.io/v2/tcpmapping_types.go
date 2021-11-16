@@ -41,7 +41,9 @@ type TCPMappingSpec struct {
 	// FIXME(lukeshu): Surely this should be an 'int'?
 	IdleTimeoutMs string `json:"idle_timeout_ms,omitempty"`
 
-	Resolver   string        `json:"resolver,omitempty"`
+	Resolver string `json:"resolver,omitempty"`
+	// Don't autoconvert -- we have a manual conversion.
+	// +k8s:conversion-gen=false
 	TLS        *BoolOrString `json:"tls,omitempty"`
 	Weight     *int          `json:"weight,omitempty"`
 	ClusterTag string        `json:"cluster_tag,omitempty"`
