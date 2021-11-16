@@ -66,6 +66,8 @@ spec:
                 type: boolean
               service:
                 type: string
+              v3StatsName:
+                type: string
             type: object
             x-kubernetes-preserve-unknown-fields: true
         type: object

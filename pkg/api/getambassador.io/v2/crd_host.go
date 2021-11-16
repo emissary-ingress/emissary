@@ -95,6 +95,8 @@ type HostSpec struct {
 	Hostname string `json:"hostname,omitempty"`
 
 	// Selector by which we can find further configuration. Defaults to hostname=$hostname
+	//
+	// +k8s:conversion-gen:rename=MappingSelector
 	Selector *metav1.LabelSelector `json:"selector,omitempty"`
 
 	// Specifies whether/who to talk ACME with to automatically manage the $tlsSecret.

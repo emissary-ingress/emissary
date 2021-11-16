@@ -526,10 +526,10 @@
                 - xratelimitid:
                       header: "X-Ratelimit-Id"
                       omit_if_not_present: true
-                  xratelimitid2:
+                - xratelimitid2:
                       header: "X-Ratelimit-Id2"
                       omit_if_not_present: false
-                  xratelimitid3:
+                - xratelimitid3:
                       header: "X-Ratelimit-Id3"
       prefix: "/api/[^/]+/projects/[^/]+/a(/.*)?"
       prefix_regex: true
@@ -591,4 +591,41 @@
       retry_policy:
           num_retries: 0
           retry_on: "gateway-error"
+      service: "httpbin.default.svc.cluster.local"
+- apiVersion: "getambassador.io/v2"
+  kind: "Mapping"
+  metadata:
+      creationTimestamp: "2020-08-11T20:54:33Z"
+      name: "rl-dual"
+  spec:
+      labels:
+          ambassador: null
+      prefix: "/backend/"
+      service: "httpbin.default.svc.cluster.local"
+- apiVersion: "getambassador.io/v2"
+  kind: "Mapping"
+  metadata:
+      creationTimestamp: "2020-08-11T20:54:33Z"
+      name: "rl-dual"
+  spec:
+      prefix: "/demo/"
+      headers:
+        x-demo: "frob"
+        user-agent: true
+      regex_headers:
+        user-agent: ".*firefox.*"
+      query_parameters:
+        foo: "frob"
+        bar: true
+      service: "httpbin.default.svc.cluster.local"
+- apiVersion: "getambassador.io/v2"
+  kind: "Mapping"
+  metadata:
+      creationTimestamp: "2020-08-11T20:54:33Z"
+      name: "rl-dual"
+  spec:
+      prefix: "/demo/"
+      headers:
+        x-demo: "frob"
+        user-agent: true
       service: "httpbin.default.svc.cluster.local"

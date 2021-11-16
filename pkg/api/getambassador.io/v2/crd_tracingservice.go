@@ -53,6 +53,9 @@ type TracingServiceSpec struct {
 	Sampling   *TraceSampling `json:"sampling,omitempty"`
 	TagHeaders []string       `json:"tag_headers,omitempty"`
 	Config     *TraceConfig   `json:"config,omitempty"`
+
+	// +k8s:conversion-gen:rename=StatsName
+	V3StatsName string `json:"v3StatsName,omitempty"`
 }
 
 // TracingService is the Schema for the tracingservices API

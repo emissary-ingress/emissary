@@ -25,6 +25,45 @@ import (
 	"time"
 )
 
+// V2ExplicitTLS controls some vanity/stylistic elements when converting
+// from v3alpha1 to v2.  The values in an V2ExplicitTLS should not in any
+// way affect the runtime operation of Emissary; except that it may affect
+// internal names in the Envoy config, which may in turn affect stats
+// names.  But it should not affect any end-user observable behavior.
+type V2ExplicitTLS struct {
+	// TLS controls whether and how to represent the "tls" field when
+	// its value could be implied by the "service" field.  In v2, there
+	// were a lot of different ways to spell an "empty" value, and this
+	// field specifies which way to spell it (and will therefore only
+	// be used if the value will indeed be empty).
+	//
+	//  | Value        | Representation                        | Meaning of representation          |
+	//  |--------------+---------------------------------------+------------------------------------|
+	//  | ""           | omit the field                        | defer to service (no TLSContext)   |
+	//  | "null"       | store an explicit "null" in the field | defer to service (no TLSContext)   |
+	//  | "string"     | store an empty string in the field    | defer to service (no TLSContext)   |
+	//  | "bool:false" | store a Boolean "false" in the field  | defer to service (no TLSContext)   |
+	//  | "bool:true"  | store a Boolean "true" in the field   | originate TLS (no TLSContext)      |
+	//
+	// If the meaning of the representation contradicts anything else
+	// (if a TLSContext is to be used, or in the case of "bool:true" if
+	// TLS is not to be originated), then this field is ignored.
+	//
+	// +kubebuilder:validation:Enum={"","null","bool:true","bool:false","string"}
+	TLS string `json:"tls,omitempty"`
+
+	// ServiceScheme specifies how to spell and capitalize the scheme-part of the
+	// service URL.
+	//
+	// Acceptable values are "http://" (case-insensitive), "https://"
+	// (case-insensitive), or "".  The value is used if it agrees with
+	// whether or not this resource enables TLS origination, or if
+	// something else in the resource overrides the scheme.
+	//
+	// +kubebuilder:validation:Pattern="^([hH][tT][tT][pP][sS]?://)?$"
+	ServiceScheme *string `json:"serviceScheme,omitempty"`
+}
+
 type CircuitBreaker struct {
 	// +kubebuilder:validation:Enum={"default", "high"}
 	Priority           string `json:"priority,omitempty"`

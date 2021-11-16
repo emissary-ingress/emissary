@@ -58,6 +58,11 @@ type AuthServiceSpec struct {
 	StatusOnError               *AuthServiceStatusOnError `json:"status_on_error,omitempty"`
 	// +kubebuilder:validation:Enum={"v2","v3"}
 	ProtocolVersion string `json:"protocol_version,omitempty"`
+
+	// +k8s:conversion-gen:rename=StatsName
+	V3StatsName string `json:"v3StatsName,omitempty"`
+	// +k8s:conversion-gen:rename=CircuitBreakers
+	V3CircuitBreakers []*CircuitBreaker `json:"v3CircuitBreakers,omitempty"`
 }
 
 // AuthService is the Schema for the authservices API

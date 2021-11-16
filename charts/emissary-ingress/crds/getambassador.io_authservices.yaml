@@ -88,6 +88,26 @@ spec:
                 type: object
               timeout_ms:
                 type: integer
+              v3CircuitBreakers:
+                items:
+                  properties:
+                    max_connections:
+                      type: integer
+                    max_pending_requests:
+                      type: integer
+                    max_requests:
+                      type: integer
+                    max_retries:
+                      type: integer
+                    priority:
+                      enum:
+                      - default
+                      - high
+                      type: string
+                  type: object
+                type: array
+              v3StatsName:
+                type: string
             required:
             - auth_service
             type: object
@@ -133,6 +153,7 @@ spec:
                   type: string
                 type: array
               auth_service:
+                description: 'TODO(lukeshu): In v3alpha2, consider renameing `auth_service` to just `service`, for consistency with the other resource types.'
                 type: string
               circuit_breakers:
                 items:
@@ -190,6 +211,23 @@ spec:
                 type: integer
               tls:
                 type: string
+              v2ExplicitTLS:
+                description: V2ExplicitTLS controls some vanity/stylistic elements when converting from v3alpha1 to v2.  The values in an V2ExplicitTLS should not in any way affect the runtime operation of Emissary; except that it may affect internal names in the Envoy config, which may in turn affect stats names.  But it should not affect any end-user observable behavior.
+                properties:
+                  serviceScheme:
+                    description: "ServiceScheme specifies how to spell and capitalize the scheme-part of the service URL. \n Acceptable values are \"http://\" (case-insensitive), \"https://\" (case-insensitive), or \"\".  The value is used if it agrees with whether or not this resource enables TLS origination, or if something else in the resource overrides the scheme."
+                    pattern: ^([hH][tT][tT][pP][sS]?://)?$
+                    type: string
+                  tls:
+                    description: "TLS controls whether and how to represent the \"tls\" field when its value could be implied by the \"service\" field.  In v2, there were a lot of different ways to spell an \"empty\" value, and this field specifies which way to spell it (and will therefore only be used if the value will indeed be empty). \n  | Value        | Representation                        | Meaning of representation          |  |--------------+---------------------------------------+------------------------------------|  | \"\"           | omit the field                        | defer to service (no TLSContext)   |  | \"null\"       | store an explicit \"null\" in the field | defer to service (no TLSContext)   |  | \"string\"     | store an empty string in the field    | defer to service (no TLSContext)   |  | \"bool:false\" | store a Boolean \"false\" in the field  | defer to service (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\" in the field   | originate TLS (no TLSContext)      | \n If the meaning of the representation contradicts anything else (if a TLSContext is to be used, or in the case of \"bool:true\" if TLS is not to be originated), then this field is ignored."
+                    enum:
+                    - ""
+                    - "null"
+                    - bool:true
+                    - bool:false
+                    - string
+                    type: string
+                type: object
             required:
             - auth_service
             type: object

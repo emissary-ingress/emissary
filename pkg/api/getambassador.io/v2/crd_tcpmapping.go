@@ -45,6 +45,9 @@ type TCPMappingSpec struct {
 	TLS        *BoolOrString `json:"tls,omitempty"`
 	Weight     *int          `json:"weight,omitempty"`
 	ClusterTag string        `json:"cluster_tag,omitempty"`
+
+	// +k8s:conversion-gen:rename=StatsName
+	V3StatsName string `json:"v3StatsName,omitempty"`
 }
 
 // TCPMapping is the Schema for the tcpmappings API

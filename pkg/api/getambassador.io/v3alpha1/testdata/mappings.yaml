@@ -562,3 +562,13 @@
           num_retries: 0
           retry_on: "gateway-error"
       service: "httpbin.default.svc.cluster.local"
+- apiVersion: "getambassador.io/v3alpha1"
+  kind: "Mapping"
+  metadata:
+      creationTimestamp: "2020-08-11T20:54:33Z"
+      name: "rl-dual"
+  spec:
+      prefix: "/demo/"
+      host: "example\\.com"
+      host_regex: true
+      service: "httpbin.default.svc.cluster.local"

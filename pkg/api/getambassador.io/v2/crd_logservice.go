@@ -45,6 +45,9 @@ type LogServiceSpec struct {
 	FlushIntervalTime     *int          `json:"flush_interval_time,omitempty"`
 	FlushIntervalByteSize *int          `json:"flush_interval_byte_size,omitempty"`
 	GRPC                  *bool         `json:"grpc,omitempty"`
+
+	// +k8s:conversion-gen:rename=StatsName
+	V3StatsName string `json:"v3StatsName,omitempty"`
 }
 
 // LogService is the Schema for the logservices API

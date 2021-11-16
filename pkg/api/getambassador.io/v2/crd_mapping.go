@@ -86,7 +86,7 @@ type MappingSpec struct {
 
 	// use_websocket is deprecated, and is equivlaent to setting
 	// `allow_upgrade: ["websocket"]`
-	UseWebsocket *bool `json:"use_websocket,omitempty"`
+	DeprecatedUseWebsocket *bool `json:"use_websocket,omitempty"`
 
 	// A case-insensitive list of the non-HTTP protocols to allow
 	// "upgrading" to from HTTP via the "Connection: upgrade"
@@ -120,8 +120,10 @@ type MappingSpec struct {
 	// +kubebuilder:validation:MinItems=1
 	ErrorResponseOverrides []ErrorResponseOverride `json:"error_response_overrides,omitempty"`
 	Modules                []UntypedDict           `json:"modules,omitempty"`
-	Host                   string                  `json:"host,omitempty"`
-	HostRegex              *bool                   `json:"host_regex,omitempty"`
+	// +k8s:conversion-gen:rename=Hostname
+	Host string `json:"host,omitempty"`
+	// +k8s:conversion-gen:rename=DeprecatedHostRegex
+	HostRegex *bool `json:"host_regex,omitempty"`
 	// +k8s:conversion-gen=false
 	Headers       map[string]BoolOrString `json:"headers,omitempty"`
 	RegexHeaders  map[string]string       `json:"regex_headers,omitempty"`
@@ -131,6 +133,9 @@ type MappingSpec struct {
 	// +k8s:conversion-gen=false
 	QueryParameters      map[string]BoolOrString `json:"query_parameters,omitempty"`
 	RegexQueryParameters map[string]string       `json:"regex_query_parameters,omitempty"`
+
+	// +k8s:conversion-gen:rename=StatsName
+	V3StatsName string `json:"v3StatsName,omitempty"`
 }
 
 type RegexMap struct {
@@ -186,9 +191,8 @@ type MappingLabelSpecifier struct {
 // an HTTP header. (If we make this an anonymous struct like the others, it breaks the
 // generation of its deepcopy routine. Sigh.)
 type MappingLabelSpecHeaderStruct struct {
-	Header string `json:"header,omitifempty"`
-	// XXX This is bool rather than *bool because it breaks zz_generated_deepcopy. ???!
-	OmitIfNotPresent *bool `json:"omit_if_not_present,omitempty"`
+	Header           string `json:"header,omitifempty"`
+	OmitIfNotPresent *bool  `json:"omit_if_not_present,omitempty"`
 }
 
 // A MappingLabelSpecHeader is just the aggregate map of MappingLabelSpecHeaderStruct,
@@ -211,6 +215,7 @@ type MappingLabelSpecHeader map[string]MappingLabelSpecHeaderStruct
 // will be included literally in the label.
 type MappingLabelSpecGeneric struct {
 	GenericKey string `json:"generic_key"`
+	V3Key      string `json:"v3Key,omitempty"`
 }
 
 // MarshalJSON is important both so that we generate the proper

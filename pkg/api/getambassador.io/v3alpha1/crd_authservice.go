@@ -42,6 +42,9 @@ type AuthServiceStatusOnError struct {
 type AuthServiceSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
+	// TODO(lukeshu): In v3alpha2, consider renameing `auth_service` to just `service`, for
+	// consistency with the other resource types.
+	//
 	// +kubebuilder:validation:Required
 	AuthService string `json:"auth_service,omitempty"`
 	PathPrefix  string `json:"path_prefix,omitempty"`
@@ -61,6 +64,8 @@ type AuthServiceSpec struct {
 	ProtocolVersion string            `json:"protocol_version,omitempty"`
 	StatsName       string            `json:"stats_name,omitempty"`
 	CircuitBreakers []*CircuitBreaker `json:"circuit_breakers,omitempty"`
+
+	V2ExplicitTLS *V2ExplicitTLS `json:"v2ExplicitTLS,omitempty"`
 }
 
 // AuthService is the Schema for the authservices API

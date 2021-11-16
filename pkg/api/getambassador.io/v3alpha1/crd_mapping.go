@@ -157,6 +157,10 @@ type MappingSpec struct {
 	QueryParameters      map[string]string `json:"query_parameters,omitempty"`
 	RegexQueryParameters map[string]string `json:"regex_query_parameters,omitempty"`
 	StatsName            string            `json:"stats_name,omitempty"`
+
+	V2ExplicitTLS         *V2ExplicitTLS `json:"v2ExplicitTLS,omitempty"`
+	V2BoolHeaders         []string       `json:"v2BoolHeaders,omitempty"`
+	V2BoolQueryParameters []string       `json:"v2BoolQueryParameters,omitempty"`
 }
 
 type RegexMap struct {
@@ -257,11 +261,16 @@ type MappingLabelSpecifier_GenericKey struct {
 
 	// +kubebuilder:validation:Required
 	Value string `json:"value"`
+
+	V2Shorthand bool `json:"v2Shorthand,omitempty"`
 }
 
 type AddedHeader struct {
 	Value  string `json:"value,omitempty"`
 	Append *bool  `json:"append,omitempty"`
+
+	// +kubebuilder:validation:Enum={"","string","null"}
+	V2Representation string `json:"v2Representation,omitempty"`
 }
 
 type KeepAlive struct {
@@ -277,6 +286,8 @@ type CORS struct {
 	Credentials    *bool    `json:"credentials,omitempty"`
 	ExposedHeaders []string `json:"exposed_headers,omitempty"`
 	MaxAge         string   `json:"max_age,omitempty"`
+
+	V2CommaSeparatedOrigins bool `json:"v2CommaSeparatedOrigins,omitempty"`
 }
 
 type RetryPolicy struct {

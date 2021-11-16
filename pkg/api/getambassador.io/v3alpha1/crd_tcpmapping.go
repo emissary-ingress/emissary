@@ -46,6 +46,8 @@ type TCPMappingSpec struct {
 	Weight     *int   `json:"weight,omitempty"`
 	ClusterTag string `json:"cluster_tag,omitempty"`
 	StatsName  string `json:"stats_name,omitempty"`
+
+	V2ExplicitTLS *V2ExplicitTLS `json:"v2ExplicitTLS,omitempty"`
 }
 
 // TCPMapping is the Schema for the tcpmappings API

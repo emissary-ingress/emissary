@@ -171,3 +171,14 @@
           enabled: true
           type: "Path"
   status: {}
+- apiVersion: "getambassador.io/v3alpha1"
+  kind: "Host"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "host-preview-enabled-true"
+  spec:
+      hostname: "host-preview-enabled-true"
+      mappingSelector:
+        matchLabels:
+          app.example.com/name: foo
+  status: {}

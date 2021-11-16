@@ -272,6 +272,11 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*HostSpec)(nil), (*v3alpha1.HostSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v2_HostSpec_To_v3alpha1_HostSpec(a.(*HostSpec), b.(*v3alpha1.HostSpec), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*HostStatus)(nil), (*v3alpha1.HostStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v2_HostStatus_To_v3alpha1_HostStatus(a.(*HostStatus), b.(*v3alpha1.HostStatus), scope)
 	}); err != nil {
@@ -404,6 +409,11 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*LogServiceSpec)(nil), (*v3alpha1.LogServiceSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v2_LogServiceSpec_To_v3alpha1_LogServiceSpec(a.(*LogServiceSpec), b.(*v3alpha1.LogServiceSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*v3alpha1.LogServiceSpec)(nil), (*LogServiceSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v3alpha1_LogServiceSpec_To_v2_LogServiceSpec(a.(*v3alpha1.LogServiceSpec), b.(*LogServiceSpec), scope)
 	}); err != nil {
 		return err
 	}
@@ -642,6 +652,11 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*v3alpha1.TracingServiceSpec)(nil), (*TracingServiceSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v3alpha1_TracingServiceSpec_To_v2_TracingServiceSpec(a.(*v3alpha1.TracingServiceSpec), b.(*TracingServiceSpec), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*UntypedDict)(nil), (*v3alpha1.UntypedDict)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v2_UntypedDict_To_v3alpha1_UntypedDict(a.(*UntypedDict), b.(*v3alpha1.UntypedDict), scope)
 	}); err != nil {
@@ -649,6 +664,11 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*v3alpha1.UntypedDict)(nil), (*UntypedDict)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v3alpha1_UntypedDict_To_v2_UntypedDict(a.(*v3alpha1.UntypedDict), b.(*UntypedDict), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddConversionFunc((*string)(nil), (**BoolOrString)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_string_To_Pointer_v2_BoolOrString(a.(*string), b.(**BoolOrString), scope)
 	}); err != nil {
 		return err
 	}
@@ -669,11 +689,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddConversionFunc((*CORS)(nil), (*v3alpha1.CORS)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v2_CORS_To_v3alpha1_CORS(a.(*CORS), b.(*v3alpha1.CORS), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddConversionFunc((*HostSpec)(nil), (*v3alpha1.HostSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v2_HostSpec_To_v3alpha1_HostSpec(a.(*HostSpec), b.(*v3alpha1.HostSpec), scope)
 	}); err != nil {
 		return err
 	}
@@ -722,11 +737,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.AddConversionFunc((*v3alpha1.LogServiceSpec)(nil), (*LogServiceSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v3alpha1_LogServiceSpec_To_v2_LogServiceSpec(a.(*v3alpha1.LogServiceSpec), b.(*LogServiceSpec), scope)
-	}); err != nil {
-		return err
-	}
 	if err := s.AddConversionFunc((*v3alpha1.MappingLabelGroupsArray)(nil), (*MappingLabelGroupsArray)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v3alpha1_MappingLabelGroupsArray_To_v2_MappingLabelGroupsArray(a.(*v3alpha1.MappingLabelGroupsArray), b.(*MappingLabelGroupsArray), scope)
 	}); err != nil {
@@ -749,11 +759,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddConversionFunc((*v3alpha1.TCPMappingSpec)(nil), (*TCPMappingSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v3alpha1_TCPMappingSpec_To_v2_TCPMappingSpec(a.(*v3alpha1.TCPMappingSpec), b.(*TCPMappingSpec), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddConversionFunc((*v3alpha1.TracingServiceSpec)(nil), (*TracingServiceSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v3alpha1_TracingServiceSpec_To_v2_TracingServiceSpec(a.(*v3alpha1.TracingServiceSpec), b.(*TracingServiceSpec), scope)
 	}); err != nil {
 		return err
 	}
@@ -795,6 +800,7 @@ func autoConvert_v2_AddedHeader_To_v3alpha1_AddedHeader(in *AddedHeader, out *v3
 func autoConvert_v3alpha1_AddedHeader_To_v2_AddedHeader(in *v3alpha1.AddedHeader, out *AddedHeader, s conversion.Scope) error {
 	// WARNING: in.Value requires manual conversion: does not exist in peer-type
 	// WARNING: in.Append requires manual conversion: does not exist in peer-type
+	// WARNING: in.V2Representation requires manual conversion: does not exist in peer-type
 	return nil
 }
 
@@ -948,6 +954,22 @@ func autoConvert_v2_AuthServiceSpec_To_v3alpha1_AuthServiceSpec(in *AuthServiceS
 		out.StatusOnError = nil
 	}
 	out.ProtocolVersion = in.ProtocolVersion
+	out.StatsName = in.V3StatsName
+	if in.V3CircuitBreakers != nil {
+		in, out := &in.V3CircuitBreakers, &out.CircuitBreakers
+		*out = make([]*v3alpha1.CircuitBreaker, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(v3alpha1.CircuitBreaker)
+				**out = v3alpha1.CircuitBreaker(**in)
+			} else {
+				(*in)[i] = nil
+			}
+		}
+	} else {
+		out.CircuitBreakers = nil
+	}
 	return nil
 }
 
@@ -955,7 +977,9 @@ func autoConvert_v3alpha1_AuthServiceSpec_To_v2_AuthServiceSpec(in *v3alpha1.Aut
 	out.AmbassadorID = AmbassadorID(in.AmbassadorID)
 	out.AuthService = in.AuthService
 	out.PathPrefix = in.PathPrefix
-	// WARNING: in.TLS requires manual conversion: inconvertible types (string vs *./pkg/api/getambassador.io/v2.BoolOrString)
+	if err := Convert_string_To_Pointer_v2_BoolOrString(&in.TLS, &out.TLS, s); err != nil {
+		return err
+	}
 	out.Proto = in.Proto
 	if in.Timeout != nil {
 		in, out := &in.Timeout, &out.Timeout
@@ -985,8 +1009,23 @@ func autoConvert_v3alpha1_AuthServiceSpec_To_v2_AuthServiceSpec(in *v3alpha1.Aut
 		out.StatusOnError = nil
 	}
 	out.ProtocolVersion = in.ProtocolVersion
-	// WARNING: in.StatsName requires manual conversion: does not exist in peer-type
-	// WARNING: in.CircuitBreakers requires manual conversion: does not exist in peer-type
+	out.V3StatsName = in.StatsName
+	if in.CircuitBreakers != nil {
+		in, out := &in.CircuitBreakers, &out.V3CircuitBreakers
+		*out = make([]*CircuitBreaker, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(CircuitBreaker)
+				**out = CircuitBreaker(**in)
+			} else {
+				(*in)[i] = nil
+			}
+		}
+	} else {
+		out.V3CircuitBreakers = nil
+	}
+	// WARNING: in.V2ExplicitTLS requires manual conversion: does not exist in peer-type
 	return nil
 }
 
@@ -1027,6 +1066,7 @@ func autoConvert_v3alpha1_CORS_To_v2_CORS(in *v3alpha1.CORS, out *CORS, s conver
 	out.Credentials = in.Credentials
 	out.ExposedHeaders = StringOrStringList(in.ExposedHeaders)
 	out.MaxAge = in.MaxAge
+	// WARNING: in.V2CommaSeparatedOrigins requires manual conversion: does not exist in peer-type
 	return nil
 }
 
@@ -1686,7 +1726,7 @@ func autoConvert_v2_HostSpec_To_v3alpha1_HostSpec(in *HostSpec, out *v3alpha1.Ho
 	out.AmbassadorID = v3alpha1.AmbassadorID(in.AmbassadorID)
 	out.DeprecatedAmbassadorID = v3alpha1.AmbassadorID(in.DeprecatedAmbassadorID)
 	out.Hostname = in.Hostname
-	// WARNING: in.Selector requires manual conversion: does not exist in peer-type
+	out.MappingSelector = in.Selector
 	if in.AcmeProvider != nil {
 		in, out := &in.AcmeProvider, &out.AcmeProvider
 		*out = new(v3alpha1.ACMEProviderSpec)
@@ -1724,12 +1764,17 @@ func autoConvert_v2_HostSpec_To_v3alpha1_HostSpec(in *HostSpec, out *v3alpha1.Ho
 	return nil
 }
 
+// Convert_v2_HostSpec_To_v3alpha1_HostSpec is an autogenerated conversion function.
+func Convert_v2_HostSpec_To_v3alpha1_HostSpec(in *HostSpec, out *v3alpha1.HostSpec, s conversion.Scope) error {
+	return autoConvert_v2_HostSpec_To_v3alpha1_HostSpec(in, out, s)
+}
+
 func autoConvert_v3alpha1_HostSpec_To_v2_HostSpec(in *v3alpha1.HostSpec, out *HostSpec, s conversion.Scope) error {
 	out.AmbassadorID = AmbassadorID(in.AmbassadorID)
 	out.DeprecatedAmbassadorID = AmbassadorID(in.DeprecatedAmbassadorID)
 	out.Hostname = in.Hostname
 	// WARNING: in.DeprecatedSelector requires manual conversion: does not exist in peer-type
-	// WARNING: in.MappingSelector requires manual conversion: does not exist in peer-type
+	out.Selector = in.MappingSelector
 	if in.AcmeProvider != nil {
 		in, out := &in.AcmeProvider, &out.AcmeProvider
 		*out = new(ACMEProviderSpec)
@@ -2167,6 +2212,7 @@ func autoConvert_v2_LogServiceSpec_To_v3alpha1_LogServiceSpec(in *LogServiceSpec
 	out.FlushIntervalTime = in.FlushIntervalTime
 	out.FlushIntervalByteSize = in.FlushIntervalByteSize
 	out.GRPC = in.GRPC
+	out.StatsName = in.V3StatsName
 	return nil
 }
 
@@ -2191,8 +2237,13 @@ func autoConvert_v3alpha1_LogServiceSpec_To_v2_LogServiceSpec(in *v3alpha1.LogSe
 	out.FlushIntervalTime = in.FlushIntervalTime
 	out.FlushIntervalByteSize = in.FlushIntervalByteSize
 	out.GRPC = in.GRPC
-	// WARNING: in.StatsName requires manual conversion: does not exist in peer-type
+	out.V3StatsName = in.StatsName
 	return nil
+}
+
+// Convert_v3alpha1_LogServiceSpec_To_v2_LogServiceSpec is an autogenerated conversion function.
+func Convert_v3alpha1_LogServiceSpec_To_v2_LogServiceSpec(in *v3alpha1.LogServiceSpec, out *LogServiceSpec, s conversion.Scope) error {
+	return autoConvert_v3alpha1_LogServiceSpec_To_v2_LogServiceSpec(in, out, s)
 }
 
 func autoConvert_v2_Mapping_To_v3alpha1_Mapping(in *Mapping, out *v3alpha1.Mapping, s conversion.Scope) error {
@@ -2446,7 +2497,7 @@ func autoConvert_v2_MappingSpec_To_v3alpha1_MappingSpec(in *MappingSpec, out *v3
 		out.IdleTimeout = nil
 	}
 	// WARNING: in.TLS requires manual conversion: inconvertible types (*./pkg/api/getambassador.io/v2.BoolOrString vs string)
-	// WARNING: in.UseWebsocket requires manual conversion: does not exist in peer-type
+	out.DeprecatedUseWebsocket = in.DeprecatedUseWebsocket
 	out.AllowUpgrade = in.AllowUpgrade
 	out.Weight = in.Weight
 	out.BypassAuth = in.BypassAuth
@@ -2472,8 +2523,8 @@ func autoConvert_v2_MappingSpec_To_v3alpha1_MappingSpec(in *MappingSpec, out *v3
 	} else {
 		out.Modules = nil
 	}
-	// WARNING: in.Host requires manual conversion: does not exist in peer-type
-	// WARNING: in.HostRegex requires manual conversion: does not exist in peer-type
+	out.Hostname = in.Host
+	out.DeprecatedHostRegex = in.HostRegex
 	// INFO: in.Headers opted out of conversion generation
 	out.RegexHeaders = in.RegexHeaders
 	if in.Labels != nil {
@@ -2507,6 +2558,7 @@ func autoConvert_v2_MappingSpec_To_v3alpha1_MappingSpec(in *MappingSpec, out *v3
 	}
 	// INFO: in.QueryParameters opted out of conversion generation
 	out.RegexQueryParameters = in.RegexQueryParameters
+	out.StatsName = in.V3StatsName
 	return nil
 }
 
@@ -2662,8 +2714,10 @@ func autoConvert_v3alpha1_MappingSpec_To_v2_MappingSpec(in *v3alpha1.MappingSpec
 	} else {
 		out.IdleTimeout = nil
 	}
-	// WARNING: in.TLS requires manual conversion: inconvertible types (string vs *./pkg/api/getambassador.io/v2.BoolOrString)
-	// WARNING: in.DeprecatedUseWebsocket requires manual conversion: does not exist in peer-type
+	if err := Convert_string_To_Pointer_v2_BoolOrString(&in.TLS, &out.TLS, s); err != nil {
+		return err
+	}
+	out.DeprecatedUseWebsocket = in.DeprecatedUseWebsocket
 	out.AllowUpgrade = in.AllowUpgrade
 	out.Weight = in.Weight
 	out.BypassAuth = in.BypassAuth
@@ -2690,8 +2744,8 @@ func autoConvert_v3alpha1_MappingSpec_To_v2_MappingSpec(in *v3alpha1.MappingSpec
 		out.Modules = nil
 	}
 	// WARNING: in.DeprecatedHost requires manual conversion: does not exist in peer-type
-	// WARNING: in.DeprecatedHostRegex requires manual conversion: does not exist in peer-type
-	// WARNING: in.Hostname requires manual conversion: does not exist in peer-type
+	out.HostRegex = in.DeprecatedHostRegex
+	out.Host = in.Hostname
 	if in.Headers != nil {
 		in, out := &in.Headers, &out.Headers
 		*out = make(map[string]BoolOrString, len(*in))
@@ -2749,7 +2803,10 @@ func autoConvert_v3alpha1_MappingSpec_To_v2_MappingSpec(in *v3alpha1.MappingSpec
 		out.QueryParameters = nil
 	}
 	out.RegexQueryParameters = in.RegexQueryParameters
-	// WARNING: in.StatsName requires manual conversion: does not exist in peer-type
+	out.V3StatsName = in.StatsName
+	// WARNING: in.V2ExplicitTLS requires manual conversion: does not exist in peer-type
+	// WARNING: in.V2BoolHeaders requires manual conversion: does not exist in peer-type
+	// WARNING: in.V2BoolQueryParameters requires manual conversion: does not exist in peer-type
 	return nil
 }
 
@@ -2988,6 +3045,7 @@ func autoConvert_v2_RateLimitServiceSpec_To_v3alpha1_RateLimitServiceSpec(in *Ra
 	out.Domain = in.Domain
 	// WARNING: in.TLS requires manual conversion: inconvertible types (*./pkg/api/getambassador.io/v2.BoolOrString vs string)
 	out.ProtocolVersion = in.ProtocolVersion
+	out.StatsName = in.V3StatsName
 	return nil
 }
 
@@ -3002,9 +3060,12 @@ func autoConvert_v3alpha1_RateLimitServiceSpec_To_v2_RateLimitServiceSpec(in *v3
 		out.Timeout = nil
 	}
 	out.Domain = in.Domain
-	// WARNING: in.TLS requires manual conversion: inconvertible types (string vs *./pkg/api/getambassador.io/v2.BoolOrString)
+	if err := Convert_string_To_Pointer_v2_BoolOrString(&in.TLS, &out.TLS, s); err != nil {
+		return err
+	}
 	out.ProtocolVersion = in.ProtocolVersion
-	// WARNING: in.StatsName requires manual conversion: does not exist in peer-type
+	out.V3StatsName = in.StatsName
+	// WARNING: in.V2ExplicitTLS requires manual conversion: does not exist in peer-type
 	return nil
 }
 
@@ -3164,6 +3225,7 @@ func autoConvert_v2_TCPMappingSpec_To_v3alpha1_TCPMappingSpec(in *TCPMappingSpec
 	// WARNING: in.TLS requires manual conversion: inconvertible types (*./pkg/api/getambassador.io/v2.BoolOrString vs string)
 	out.Weight = in.Weight
 	out.ClusterTag = in.ClusterTag
+	out.StatsName = in.V3StatsName
 	return nil
 }
 
@@ -3186,10 +3248,13 @@ func autoConvert_v3alpha1_TCPMappingSpec_To_v2_TCPMappingSpec(in *v3alpha1.TCPMa
 	}
 	out.IdleTimeoutMs = in.IdleTimeoutMs
 	out.Resolver = in.Resolver
-	// WARNING: in.TLS requires manual conversion: inconvertible types (string vs *./pkg/api/getambassador.io/v2.BoolOrString)
+	if err := Convert_string_To_Pointer_v2_BoolOrString(&in.TLS, &out.TLS, s); err != nil {
+		return err
+	}
 	out.Weight = in.Weight
 	out.ClusterTag = in.ClusterTag
-	// WARNING: in.StatsName requires manual conversion: does not exist in peer-type
+	out.V3StatsName = in.StatsName
+	// WARNING: in.V2ExplicitTLS requires manual conversion: does not exist in peer-type
 	return nil
 }
 
@@ -3498,6 +3563,7 @@ func autoConvert_v2_TracingServiceSpec_To_v3alpha1_TracingServiceSpec(in *Tracin
 	} else {
 		out.Config = nil
 	}
+	out.StatsName = in.V3StatsName
 	return nil
 }
 
@@ -3525,8 +3591,13 @@ func autoConvert_v3alpha1_TracingServiceSpec_To_v2_TracingServiceSpec(in *v3alph
 	} else {
 		out.Config = nil
 	}
-	// WARNING: in.StatsName requires manual conversion: does not exist in peer-type
+	out.V3StatsName = in.StatsName
 	return nil
+}
+
+// Convert_v3alpha1_TracingServiceSpec_To_v2_TracingServiceSpec is an autogenerated conversion function.
+func Convert_v3alpha1_TracingServiceSpec_To_v2_TracingServiceSpec(in *v3alpha1.TracingServiceSpec, out *TracingServiceSpec, s conversion.Scope) error {
+	return autoConvert_v3alpha1_TracingServiceSpec_To_v2_TracingServiceSpec(in, out, s)
 }
 
 func autoConvert_v2_UntypedDict_To_v3alpha1_UntypedDict(in *UntypedDict, out *v3alpha1.UntypedDict, s conversion.Scope) error {
