@@ -164,7 +164,7 @@ else
     # We are not the intercept agent, so leave Envoy's drain time much higher.
     drain_time="${AMBASSADOR_DRAIN_TIME:-600}"
     debug "Using drain_time $drain_time"
-    envoy_flags+=( "--drain-time-s" "$drain_time" )
+    envoy_flags+=( "--drain-time-s" "$drain_time" "--drain-strategy" "immediate")
 fi
 
 # AMBASSADOR_DEBUG is a list of things to enable debugging for,
@@ -276,6 +276,55 @@ diediedie() {
     ambassador_exit 1
 }
 
+shutdown_envoy() {
+    echo "failing envoy healthchecks"
+    curl -v -X POST 'localhost:8001/drain_listeners?graceful'
+}
+
+parse_active_connections() {
+    local connections=0
+
+    metrics=$(sed -En 's/\r$//;s/envoy_http_downstream_cx_active\{[a-z_]+="(ingress_.*)"\} ([0-9]+)$/\1 \2/p;d' <<< "$1")
+
+    while read line
+    do
+        values=(${line})
+        connections=$((connections+${values[1]}))
+    done <<< "$metrics"
+
+    echo $connections
+}
+
+
+clean_shutdown() {
+    trap - CHLD
+
+    min_open_connections=0
+
+    debug "SHUTDOWN: Make envoy start draining connections"
+    shutdown_envoy
+
+    it=0
+    while true; do
+        metrics=$(curl -s localhost:8001/stats/prometheus)
+        connections=$(($(parse_active_connections "$metrics")))
+
+        if (( $connections <= $min_open_connections )); then
+            echo "SHUTDOWN: connections are drained, shutting down"
+            break
+        else
+            echo "($it) Envoy has $connections active connections (need <=$min_open_connections to shut down)"
+        fi
+
+        sleep 1
+        it=$((it+1))
+    done
+
+    debug "SHUTDOWN: Exiting Ambassador"
+
+    ambassador_exit
+}
+
 ################################################################################
 # Set up job management                                                        #
 ################################################################################
@@ -344,6 +393,8 @@ set -m # We need this in order to trap on SIGCHLD
 trap 'handle_chld' CHLD # Notify when a job status changes
 
 trap 'log "Received SIGINT (Control-C?); shutting down"; ambassador_exit 1' INT
+
+trap 'clean_shutdown' TERM
 
 # Check if AMBASSADOR_DIAGD_BIND_ADDRESS is set, and if so, bind diagd server to that address.
 if [[ -n "${AMBASSADOR_DIAGD_BIND_ADDRESS}" ]]; then

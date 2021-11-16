@@ -31,6 +31,13 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 1.14.3
+    date: 'TBD'
+    notes:
+      - title: Active Envoy connections are now drained
+        type: feature
+        body: >-
+          The existing drain-time setting used when restarting Envoy in-situ is now also used when the pod is being shutdown by Kubernetes.
   - version: 1.14.2
     date: '2021-09-29'
     notes:
@@ -65,7 +72,7 @@ items:
         docs: https://groups.google.com/g/envoy-announce/c/5xBpsEZZDfE
 
   - version: 1.14.0
-    date: "2021-08-19"
+    date: '2021-08-19'
     notes:
       - title: Subsecond time resolution in logs
         type: change
@@ -226,5 +233,4 @@ items:
         image: ../images/edge-stack-1.13.4.png
         docs: topics/running/ambassador/#rejecting-client-requests-with-escaped-slashes
         type: bugfix
-
 # Don't go any further back than 1.13.4.
