@@ -1,6 +1,6 @@
 # GENERATED FILE: edits made by hand will not be preserved.
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
@@ -20,7 +20,6 @@ spec:
     plural: tracingservices
     singular: tracingservice
   scope: Namespaced
-  version: v2
   versions:
   - name: v2
     schema:
@@ -38,12 +37,6 @@ spec:
           spec:
             description: TracingServiceSpec defines the desired state of TracingService
             properties:
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               config:
                 properties:
                   access_token_file:
@@ -92,6 +85,7 @@ spec:
             - driver
             - service
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false

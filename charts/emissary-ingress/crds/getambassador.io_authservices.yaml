@@ -1,6 +1,6 @@
 # GENERATED FILE: edits made by hand will not be preserved.
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
@@ -20,7 +20,6 @@ spec:
     plural: authservices
     singular: authservice
   scope: Namespaced
-  version: v2
   versions:
   - name: v2
     schema:
@@ -39,11 +38,8 @@ spec:
             description: AuthServiceSpec defines the desired state of AuthService
             properties:
               add_auth_headers:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 type: object
+                x-kubernetes-preserve-unknown-fields: true
               add_linkerd_headers:
                 type: boolean
               allow_request_body:
@@ -56,12 +52,6 @@ spec:
                 items:
                   type: string
                 type: array
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               auth_service:
                 type: string
               failure_mode_allow:
@@ -97,13 +87,10 @@ spec:
                 type: object
               timeout_ms:
                 type: integer
-              tls:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
             required:
             - auth_service
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false
