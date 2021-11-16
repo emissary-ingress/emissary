@@ -278,7 +278,7 @@ controller-gen/options/object      += # headerFile=hack/boilerplate.go.txt
 controller-gen/options/crd         += trivialVersions=false # Requires Kubernetes 1.13+
 controller-gen/options/crd         += crdVersions=v1        # Requires Kubernetes 1.16+
 controller-gen/output/crd           = dir=$@
-$(OSS_HOME)/charts/emissary-ingress/crds: $(tools/controller-gen) $(tools/fix-crds) FORCE
+$(OSS_HOME)/charts/emissary-ingress/crds: $(tools/controller-gen) $(tools/conversion-gen) $(tools/fix-crds) docs/copyright-boilerplate.go.txt FORCE
 	@printf '  $(CYN)Running controller-gen$(END)\n'
 	rm -rf $@
 	mkdir $@
@@ -286,6 +286,10 @@ $(OSS_HOME)/charts/emissary-ingress/crds: $(tools/controller-gen) $(tools/fix-cr
 	  $(foreach varname,$(sort $(filter controller-gen/options/%,$(.VARIABLES))), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
 	  $(foreach varname,$(sort $(filter controller-gen/output/%,$(.VARIABLES))), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
 	  paths="./pkg/api/getambassador.io/..."
+	cd $(OSS_HOME) && $(tools/conversion-gen) \
+	  --go-header-file "docs/copyright-boilerplate.go.txt" \
+	  --input-dirs ./pkg/api/getambassador.io/v2 \
+	  -O zz_generated_conversion
 	@PS4=; set -ex; for file in $@/*.yaml; do $(tools/fix-crds) helm 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
 
 $(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/charts/emissary-ingress/crds $(tools/fix-crds)
