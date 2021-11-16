@@ -2,6 +2,7 @@ package kubeapply
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,9 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/dlib/derror"
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dlog"
 )
@@ -29,11 +29,11 @@ var errorDeadlineExceeded = errors.New("timeout exceeded")
 func Kubeapply(ctx context.Context, kubeinfo *k8s.KubeInfo, perPhaseTimeout time.Duration, debug, dryRun bool, files ...string) error {
 	collection, err := CollectYAML(files...)
 	if err != nil {
-		return err
+		return fmt.Errorf("CollectYAML: %w", err)
 	}
 
 	if err = collection.ApplyAndWait(ctx, kubeinfo, perPhaseTimeout, debug, dryRun); err != nil {
-		return err
+		return fmt.Errorf("ApplyAndWait: %w", err)
 	}
 
 	return nil
@@ -110,8 +110,8 @@ func (collection YAMLCollection) ApplyAndWait(
 		deadline := time.Now().Add(perPhaseTimeout)
 		err := applyAndWait(ctx, kubeinfo, deadline, debug, dryRun, collection[phaseName])
 		if err != nil {
-			if err == errorDeadlineExceeded {
-				err = errors.Errorf("phase %q not ready after %v", phaseName, perPhaseTimeout)
+			if errors.Is(err, errorDeadlineExceeded) {
+				err = fmt.Errorf("phase %q not ready after %v: %w", phaseName, perPhaseTimeout, err)
 			}
 			return err
 		}
@@ -119,15 +119,15 @@ func (collection YAMLCollection) ApplyAndWait(
 	return nil
 }
 
-func applyAndWait(ctx context.Context, kubeinfo *k8s.KubeInfo, deadline time.Time, debug, dryRun bool, filenames []string) error {
-	expanded, err := expand(ctx, filenames)
+func applyAndWait(ctx context.Context, kubeinfo *k8s.KubeInfo, deadline time.Time, debug, dryRun bool, sourceFilenames []string) error {
+	expandedFilenames, err := expand(ctx, sourceFilenames)
 	if err != nil {
-		return err
+		return fmt.Errorf("expanding YAML: %w", err)
 	}
 
 	cli, err := k8s.NewClient(kubeinfo)
 	if err != nil {
-		return errors.Wrapf(err, "kubeapply: error connecting to cluster %v", kubeinfo)
+		return fmt.Errorf("connecting to cluster %v: %w", kubeinfo, err)
 	}
 	waiter, err := NewWaiter(cli.Watcher())
 	if err != nil {
@@ -135,38 +135,36 @@ func applyAndWait(ctx context.Context, kubeinfo *k8s.KubeInfo, deadline time.Tim
 	}
 
 	valid := make(map[string]bool)
-	var msgs []string
-	for _, n := range expanded {
-		err := waiter.Scan(ctx, n)
-		if err != nil {
-			msgs = append(msgs, fmt.Sprintf("%s: %v\n", n, err))
-			valid[n] = false
-		} else {
-			valid[n] = true
+	var scanErrs derror.MultiError
+	for _, filename := range expandedFilenames {
+		valid[filename] = true
+		if err := waiter.Scan(ctx, filename); err != nil {
+			scanErrs = append(scanErrs, fmt.Errorf("watch %q: %w", filename, err))
+			valid[filename] = false
 		}
 	}
-
-	if len(msgs) == 0 {
-		err = kubectlApply(ctx, kubeinfo, dryRun, expanded)
-	}
-
 	if !debug {
-		for _, n := range expanded {
-			if valid[n] {
-				err := os.Remove(n)
-				if err != nil {
-					dlog.Print(ctx, err)
+		// Unless the debug flag is on, clean up temporary expanded files when we're
+		// finished.
+		defer func() {
+			for _, filename := range expandedFilenames {
+				if valid[filename] {
+					if err := os.Remove(filename); err != nil {
+						// os.Remove returns an *io/fs.PathError that
+						// already includes the filename; no need for us to
+						// explicitly include the filename in the log line.
+						dlog.Error(ctx, err)
+					}
 				}
 			}
-		}
+		}()
+	}
+	if len(scanErrs) > 0 {
+		return fmt.Errorf("waiter: %w", scanErrs)
 	}
 
-	if err != nil {
+	if err := kubectlApply(ctx, kubeinfo, dryRun, expandedFilenames); err != nil {
 		return err
-	}
-
-	if len(msgs) > 0 {
-		return errors.Errorf("errors expanding templates:\n  %s", strings.Join(msgs, "\n  "))
 	}
 
 	finished, err := waiter.Wait(ctx, deadline)

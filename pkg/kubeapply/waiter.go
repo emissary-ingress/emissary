@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
+
 	"github.com/datawire/ambassador/v2/pkg/k8s"
+	kates_internal "github.com/datawire/ambassador/v2/pkg/kates_internal"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -55,15 +58,17 @@ func (w *Waiter) add(resource k8s.Resource) error {
 
 // Scan calls LoadResources(path), and add all resources loaded to the
 // Waiter.
-func (w *Waiter) Scan(ctx context.Context, path string) (err error) {
+func (w *Waiter) Scan(ctx context.Context, path string) error {
 	resources, err := LoadResources(ctx, path)
+	if err != nil {
+		return fmt.Errorf("LoadResources: %w", err)
+	}
 	for _, res := range resources {
-		err = w.add(res)
-		if err != nil {
-			return
+		if err = w.add(res); err != nil {
+			return fmt.Errorf("%s/%s: %w", res.QKind(), res.QName(), err)
 		}
 	}
-	return
+	return nil
 }
 
 func (w *Waiter) remove(kind k8s.ResourceType, name string) {
@@ -87,32 +92,27 @@ func (w *Waiter) isEmpty() bool {
 func (w *Waiter) Wait(ctx context.Context, deadline time.Time) (bool, error) {
 	start := time.Now()
 	printed := make(map[string]bool)
-	err := w.watcher.WatchQuery(k8s.Query{Kind: "events", Namespace: k8s.NamespaceAll}, func(watcher *k8s.Watcher) error {
-		list, err := watcher.List("events")
+	err := w.watcher.WatchQuery(k8s.Query{Kind: "Events.v1.", Namespace: k8s.NamespaceAll}, func(watcher *k8s.Watcher) error {
+		list, err := watcher.List("Events.v1.")
 		if err != nil {
 			return err
 		}
-		for _, r := range list {
-			if lastStr, ok := r["lastTimestamp"].(string); ok {
-				last, err := time.Parse("2006-01-02T15:04:05Z", lastStr)
-				if err != nil {
-					dlog.Println(ctx, err)
-					continue
-				}
-				if last.Before(start) {
-					continue
-				}
+		for _, untypedEvent := range list {
+			var event corev1.Event
+			if err := kates_internal.Convert(untypedEvent, &event); err != nil {
+				dlog.Errorln(ctx, err)
+				continue
 			}
-			if !printed[r.QName()] {
-				var name string
-				if obj, ok := r["involvedObject"].(map[string]interface{}); ok {
-					res := k8s.Resource(obj)
-					name = fmt.Sprintf("%s/%s", res.QKind(), res.QName())
-				} else {
-					name = r.QName()
-				}
-				dlog.Printf(ctx, "event: %s %s\n", name, r["message"])
-				printed[r.QName()] = true
+			if event.LastTimestamp.Time.Before(start) && !event.LastTimestamp.IsZero() {
+				continue
+			}
+			eventQName := fmt.Sprintf("%s.%s", event.Name, event.Namespace)
+			if !printed[eventQName] {
+				involvedQKind := k8s.QKind(event.InvolvedObject.APIVersion, event.InvolvedObject.Kind)
+				involvedQName := fmt.Sprintf("%s.%s", event.InvolvedObject.Name, event.InvolvedObject.Namespace)
+
+				dlog.Printf(ctx, "event: %s/%s: %s\n", involvedQKind, involvedQName, event.Message)
+				printed[eventQName] = true
 			}
 		}
 		return nil
