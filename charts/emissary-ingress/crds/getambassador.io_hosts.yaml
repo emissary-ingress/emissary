@@ -1,6 +1,6 @@
 # GENERATED FILE: edits made by hand will not be preserved.
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
@@ -11,22 +11,6 @@ metadata:
     product: aes
   name: hosts.getambassador.io
 spec:
-  additionalPrinterColumns:
-  - jsonPath: .spec.hostname
-    name: Hostname
-    type: string
-  - jsonPath: .status.state
-    name: State
-    type: string
-  - jsonPath: .status.phaseCompleted
-    name: Phase Completed
-    type: string
-  - jsonPath: .status.phasePending
-    name: Phase Pending
-    type: string
-  - jsonPath: .metadata.creationTimestamp
-    name: Age
-    type: date
   group: getambassador.io
   names:
     categories:
@@ -36,11 +20,24 @@ spec:
     plural: hosts
     singular: host
   scope: Namespaced
-  subresources:
-    status: {}
-  version: v2
   versions:
-  - name: v2
+  - additionalPrinterColumns:
+    - jsonPath: .spec.hostname
+      name: Hostname
+      type: string
+    - jsonPath: .status.state
+      name: State
+      type: string
+    - jsonPath: .status.phaseCompleted
+      name: Phase Completed
+      type: string
+    - jsonPath: .status.phasePending
+      name: Phase Pending
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v2
     schema:
       openAPIV3Schema:
         description: Host is the Schema for the hosts API
@@ -75,18 +72,6 @@ spec:
                     description: This is normally set automatically
                     type: string
                 type: object
-              ambassador_id:
-                description: Common to all Ambassador objects (and optional).
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
-              ambassadorId:
-                description: A compatibility alias for "ambassador_id"; because Host used to be specified with protobuf, and jsonpb allowed either "ambassador_id" or "ambassadorId", and even though we didn't tell people about "ambassadorId" it's what the web policy console generated because of jsonpb.  So Hosts with 'ambassadorId' exist in the wild.
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               hostname:
                 description: Hostname by which the Ambassador can be reached.
                 type: string
@@ -194,6 +179,7 @@ spec:
                     type: string
                 type: object
             type: object
+            x-kubernetes-preserve-unknown-fields: true
           status:
             description: HostStatus defines the observed state of Host
             properties:
@@ -242,7 +228,25 @@ spec:
         type: object
     served: true
     storage: false
-  - name: v3alpha1
+    subresources:
+      status: {}
+  - additionalPrinterColumns:
+    - jsonPath: .spec.hostname
+      name: Hostname
+      type: string
+    - jsonPath: .status.state
+      name: State
+      type: string
+    - jsonPath: .status.phaseCompleted
+      name: Phase Completed
+      type: string
+    - jsonPath: .status.phasePending
+      name: Phase Pending
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v3alpha1
     schema:
       openAPIV3Schema:
         description: Host is the Schema for the hosts API
@@ -472,3 +476,5 @@ spec:
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
