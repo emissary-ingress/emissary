@@ -8,7 +8,15 @@ import (
 	"net/http/pprof"
 	"net/url"
 
+	"k8s.io/apimachinery/pkg/runtime"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/conversion"
+
 	"github.com/datawire/ambassador/v2/pkg/acp"
+	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/debug"
 	"github.com/datawire/dlib/dhttp"
 )
@@ -50,6 +58,16 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) er
 	// We need to do some HTTP stuff by hand to catch the readiness and liveness
 	// checks here, but forward everything else to diagd.
 	sm := http.NewServeMux()
+
+	// Create the webhook server
+	scheme := runtime.NewScheme()
+	utilruntime.Must(v2.AddToScheme(scheme))
+	utilruntime.Must(v3alpha1.AddToScheme(scheme))
+	webhook := &conversion.Webhook{}
+	if err := webhook.InjectScheme(scheme); err != nil {
+		return err
+	}
+	sm.HandleFunc("/crdconvert", webhook.ServeHTTP)
 
 	// Handle the liveness check and the readiness check directly, by handing them
 	// off to our functions.
