@@ -191,7 +191,7 @@ type AmbassadorConfigStatus struct {
 /*
 // AmbassadorConfig is the Schema for the ambassadorconfigs API
 //
-// +kubebuilder:object:root=true
+// + kubebuilder:object:root=true
 type AmbassadorConfig struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -202,7 +202,7 @@ type AmbassadorConfig struct {
 
 // AmbassadorConfigList contains a list of AmbassadorConfigs.
 //
-// +kubebuilder:object:root=true
+// + kubebuilder:object:root=true
 type AmbassadorConfigList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
