@@ -28,6 +28,7 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
 include $(OSS_HOME)/build-aux/tools.mk
 include $(OSS_HOME)/build-aux/ci.mk
+include $(OSS_HOME)/build-aux/check.mk
 include $(OSS_HOME)/builder/builder.mk
 include $(OSS_HOME)/_cxx/envoy.mk
 include $(OSS_HOME)/charts/charts.mk

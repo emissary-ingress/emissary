@@ -538,8 +538,6 @@ pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remot
 		-e KAT_RUN_MODE \
 		-e KAT_VERBOSE \
 		-e PYTEST_ARGS \
-		-e TEST_SERVICE_REGISTRY \
-		-e TEST_SERVICE_VERSION \
 		-e DEV_USE_IMAGEPULLSECRET \
 		-e DEV_REGISTRY \
 		-e DOCKER_BUILD_USERNAME \
