@@ -122,6 +122,10 @@ jobs:
         name: "Collect testing logs"
   pytest-unit:
     runs-on: ubuntu-latest
+    env:
+      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+      DOCKER_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
     strategy:
       matrix:
         # NOTES:

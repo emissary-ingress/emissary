@@ -84,15 +84,25 @@ class TestImage:
     def __init__(self, *args, **kwargs) -> None:
         self.images: Dict[str, str] = {}
 
-        default_registry = os.environ.get('TEST_SERVICE_REGISTRY', 'docker.io/datawire/test_services')
-        default_version = os.environ.get('TEST_SERVICE_VERSION', '0.0.3')
+        svc_names = ['auth', 'ratelimit', 'shadow', 'stats']
 
-        for svc in ['auth', 'auth-tls', 'ratelimit', 'shadow', 'stats']:
-            key = svc.replace('-', '_').upper()
+        try:
+            subprocess.run(['make']+[f'docker/test-{svc}.docker.push.remote' for svc in svc_names],
+                           check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        except subprocess.CalledProcessError as err:
+            raise Exception(f"{err.stdout}{err}") from err
 
-            image = os.environ.get(f'TEST_SERVICE_{key}', f'{default_registry}:test-{svc}-{default_version}')
-
-            self.images[svc] = image
+        for svc in svc_names:
+            with open(f'docker/test-{svc}.docker.push.remote', 'r') as fh:
+                # file contents:
+                #   line 1: image ID
+                #   line 2: tag 1
+                #   line 3: tag 2
+                #   ...
+                #
+                # Set 'image' to one of the tags.
+                image = fh.readlines()[1].strip()
+                self.images[svc] = image
 
     def __getitem__(self, key: str) -> str:
         return self.images[key]
