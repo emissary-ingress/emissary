@@ -10,8 +10,7 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
-
-	getambassadoriov3alpha1 "github.com/emissary-ingress/emissary/api/v3alpha1"
+	"github.com/emissary-ingress/emissary/k8sapi/v3alpha1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -22,6 +21,24 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(getambassadoriov3alpha1.AddToScheme(scheme))
+	utilruntime.Must(v3alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
+}
+
+func launchManager() {
+	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
+
+	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{Scheme: scheme})
+	if err != nil {
+		setupLog.Error(err, "unable to start manager")
+		os.Exit(1)
+	}
+
+	// +kubebuilder:scaffold:builder
+
+	setupLog.Info("starting manager")
+	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+		setupLog.Error(err, "problem running manager")
+		os.Exit(1)
+	}
 }
