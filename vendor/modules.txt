@@ -872,7 +872,10 @@ k8s.io/utils/pointer
 k8s.io/utils/trace
 # sigs.k8s.io/controller-runtime v0.8.0
 ## explicit; go 1.15
+sigs.k8s.io/controller-runtime/pkg/conversion
+sigs.k8s.io/controller-runtime/pkg/log
 sigs.k8s.io/controller-runtime/pkg/scheme
+sigs.k8s.io/controller-runtime/pkg/webhook/conversion
 # sigs.k8s.io/controller-tools v0.5.0
 ## explicit; go 1.15
 sigs.k8s.io/controller-tools/cmd/controller-gen

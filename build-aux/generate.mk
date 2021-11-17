@@ -60,6 +60,8 @@ generate/precious   += $(OSS_HOME)/builder/requirements.txt
 generate-fast/files += $(OSS_HOME)/CHANGELOG.md
 generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/README.md
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion.go
+generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion-spoke.go
+generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v3alpha1/zz_generated.conversion-hub.go
 # Individual files: YAML
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
@@ -371,6 +373,60 @@ $(OSS_HOME)/%/handwritten.conversion.scaffold.go: $(OSS_HOME)/%/zz_generated.con
 	    }' | \
 	  gofmt; \
 	} <$< >$@
+
+$(OSS_HOME)/%/zz_generated.conversion-hub.go: FORCE
+	rm -f $@
+	{ \
+	  awk ' \
+	    BEGIN { \
+	       print("package $(notdir $*)"); \
+	       print(""); \
+	       object=0; \
+	    } \
+	    /\/\/ \+kubebuilder:object:root=true/ { \
+	       object=1; \
+	    } \
+	    /^type \S+ struct/ && object { \
+	        if (!match($$2, /List$$/)) { \
+	          print "func(*" $$2 ") Hub() {}"; \
+	        } \
+	        object=0; \
+	    }' $(sort $(wildcard $(@D)/*.go)) | \
+	  gofmt; \
+	} >$@
+
+$(OSS_HOME)/%/zz_generated.conversion-spoke.go: FORCE
+	rm -f $@
+	{ \
+	  awk ' \
+	    BEGIN { \
+	       print("package $(notdir $*)"); \
+	       print(""); \
+	       print("import ("); \
+	       print("  \"k8s.io/apimachinery/pkg/runtime\""); \
+	       print("  \"sigs.k8s.io/controller-runtime/pkg/conversion\""); \
+	       print(")"); \
+	       print(""); \
+	       print("func convert(src, dst runtime.Object) error {"); \
+	       print("  s, err := SchemeBuilder.Build()"); \
+	       print("  if err != nil { return err }"); \
+	       print("  return s.Convert(src, dst, nil)"); \
+	       print("}"); \
+	       print(""); \
+	       object=0; \
+	    } \
+	    /\/\/ \+kubebuilder:object:root=true/ { \
+	       object=1; \
+	    } \
+	    /^type \S+ struct/ && object { \
+	        if (!match($$2, /List$$/)) { \
+	          print "func(dst *" $$2 ") ConvertFrom(src conversion.Hub) error { return convert(src, dst) }"; \
+	          print "func(src *" $$2 ") ConvertTo(dst conversion.Hub) error { return convert(src, dst) }"; \
+	        } \
+	        object=0; \
+	    }' $(sort $(wildcard $(@D)/*.go)) | \
+	  gofmt; \
+	} >$@
 
 $(OSS_HOME)/charts/emissary-ingress/crds: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	rm -rf $@
