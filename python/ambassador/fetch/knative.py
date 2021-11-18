@@ -38,7 +38,10 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
         # to ignore KnativeIngress iff networking.knative.dev/ingress.class is
         # present in annotation. If it's not there, then we accept all ingress
         # classes.
-        ingress_class = annotations.get('networking.knative.dev/ingress.class', self.INGRESS_CLASS)
+        ingress_class = annotations.get('networking.knative.dev/ingress-class')
+        if ingress_class is None:
+            ingress_class = annotations.get('networking.knative.dev/ingress.class', self.INGRESS_CLASS)
+
         if ingress_class.lower() != self.INGRESS_CLASS:
             self.logger.debug(f'Ignoring Knative {obj.kind} {obj.name}; set networking.knative.dev/ingress.class '
                               f'annotation to {self.INGRESS_CLASS} for ambassador to parse it.')

@@ -28,6 +28,8 @@ from ambassador.fetch.k8sprocessor import (
     CountingKubernetesProcessor,
     DeduplicatingKubernetesProcessor,
 )
+
+from ambassador.fetch.knative import KnativeIngressProcessor
 from ambassador.fetch.ambassador import AmbassadorProcessor
 from ambassador.fetch.service import ServiceProcessor
 from ambassador.utils import parse_yaml
@@ -43,8 +45,50 @@ apiVersion: networking.internal.knative.dev/v1alpha1
 kind: Ingress
 metadata:
   annotations:
-    getambassador.io/ambassador-id: webhook
+    getambassador.io/ambassador-id: default
     networking.knative.dev/ingress.class: ambassador.ingress.networking.knative.dev
+  generation: 2
+  labels:
+    serving.knative.dev/route: helloworld-go
+    serving.knative.dev/routeNamespace: test
+    serving.knative.dev/service: helloworld-go
+  name: helloworld-go
+  namespace: test
+spec:
+  rules:
+  - hosts:
+    - helloworld-go.test.svc.cluster.local
+    http:
+      paths:
+      - retries:
+          attempts: 3
+          perTryTimeout: 10m0s
+        splits:
+        - appendHeaders:
+            Knative-Serving-Namespace: test
+            Knative-Serving-Revision: helloworld-go-qf94m
+          percent: 100
+          serviceName: helloworld-go-qf94m
+          serviceNamespace: test
+          servicePort: 80
+        timeout: 10m0s
+    visibility: ClusterLocal
+  visibility: ExternalIP
+status:
+  loadBalancer:
+    ingress:
+    - domainInternal: ambassador.ambassador-webhook.svc.cluster.local
+  observedGeneration: 2
+''')
+
+valid_knative_ingress_new_annotation = k8s_object_from_yaml('''
+---
+apiVersion: networking.internal.knative.dev/v1alpha1
+kind: Ingress
+metadata:
+  annotations:
+    getambassador.io/ambassador-id: default
+    networking.knative.dev/ingress-class: ambassador.ingress.networking.knative.dev
   generation: 2
   labels:
     serving.knative.dev/route: helloworld-go
@@ -146,7 +190,7 @@ class TestKubernetesObject:
         assert valid_knative_ingress.key == KubernetesObjectKey(valid_knative_ingress.gvk, 'test', 'helloworld-go')
         assert valid_knative_ingress.generation == 2
         assert len(valid_knative_ingress.annotations) == 2
-        assert valid_knative_ingress.ambassador_id == 'webhook'
+        assert valid_knative_ingress.ambassador_id == 'default'
         assert len(valid_knative_ingress.labels) == 3
         assert valid_knative_ingress.spec['rules'][0]['hosts'][0] == 'helloworld-go.test.svc.cluster.local'
         assert valid_knative_ingress.status['observedGeneration'] == 2
@@ -288,6 +332,18 @@ class TestAggregateKubernetesProcessor:
         p.finalize()
         assert fp.finalized, 'Aggregate processor did not call finalizers'
 
+class TestKnativeIngressProcessor:
+    def test_annotations(self):
+        mgr = ResourceManager(logger, Config(), DependencyManager([
+            ServiceDependency(),
+        ]))
+
+        p = KnativeIngressProcessor(mgr)
+        assert p.try_process(valid_knative_ingress)
+        assert p.try_process(valid_knative_ingress_new_annotation)
+
+        p.finalize()
+        assert len(mgr.elements) == 2
 
 class TestDeduplicatingKubernetesProcessor:
 
