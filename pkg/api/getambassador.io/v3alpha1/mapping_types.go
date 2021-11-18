@@ -82,7 +82,9 @@ type MappingSpec struct {
 
 	// use_websocket is deprecated, and is equivlaent to setting
 	// `allow_upgrade: ["websocket"]`
-	UseWebsocket *bool `json:"use_websocket,omitempty"`
+	//
+	// TODO(lukeshu): In v3alpha2, get rid of MappingSpec.DeprecatedUseWebsocket.
+	DeprecatedUseWebsocket *bool `json:"use_websocket,omitempty"`
 
 	// A case-insensitive list of the non-HTTP protocols to allow
 	// "upgrading" to from HTTP via the "Connection: upgrade"
@@ -116,6 +118,7 @@ type MappingSpec struct {
 	// +kubebuilder:validation:MinItems=1
 	ErrorResponseOverrides []ErrorResponseOverride `json:"error_response_overrides,omitempty"`
 	Modules                []UntypedDict           `json:"modules,omitempty"`
+
 	// Exact match for the hostname of a request if HostRegex is false; regex match for the
 	// hostname if HostRegex is true.
 	//
@@ -127,8 +130,14 @@ type MappingSpec struct {
 	// used.
 	//
 	// DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.
+	//
+	// TODO(lukeshu): In v3alpha2, get rid of MappingSpec.host and MappingSpec.host_regex in
+	// favor of a MappingSpec.deprecated_hostname_regex.
 	DeprecatedHost string `json:"host,omitempty"`
 	// DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.
+	//
+	// TODO(lukeshu): In v3alpha2, get rid of MappingSpec.host and MappingSpec.host_regex in
+	// favor of a MappingSpec.deprecated_hostname_regex.
 	DeprecatedHostRegex *bool `json:"host_regex,omitempty"`
 	// Hostname is a DNS glob specifying the hosts to which this Mapping applies.
 	//
@@ -138,7 +147,8 @@ type MappingSpec struct {
 	//
 	// If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is
 	// used.
-	Hostname             string            `json:"hostname,omitempty"`
+	Hostname string `json:"hostname,omitempty"`
+
 	Headers              map[string]string `json:"headers,omitempty"`
 	RegexHeaders         map[string]string `json:"regex_headers,omitempty"`
 	Labels               DomainMap         `json:"labels,omitempty"`

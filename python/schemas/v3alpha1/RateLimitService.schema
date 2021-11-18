@@ -58,6 +58,7 @@
             "type": "string"
         },
         "timeout_ms": {
+            "description": "TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.",
             "type": "integer"
         },
         "tls": {

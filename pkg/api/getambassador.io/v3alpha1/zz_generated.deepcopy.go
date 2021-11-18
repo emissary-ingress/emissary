@@ -971,8 +971,8 @@ func (in *HostSpec) DeepCopyInto(out *HostSpec) {
 		*out = make(AmbassadorID, len(*in))
 		copy(*out, *in)
 	}
-	if in.Selector != nil {
-		in, out := &in.Selector, &out.Selector
+	if in.DeprecatedSelector != nil {
+		in, out := &in.DeprecatedSelector, &out.DeprecatedSelector
 		*out = new(metav1.LabelSelector)
 		(*in).DeepCopyInto(*out)
 	}
@@ -1924,8 +1924,8 @@ func (in *MappingSpec) DeepCopyInto(out *MappingSpec) {
 		*out = new(MillisecondDuration)
 		**out = **in
 	}
-	if in.UseWebsocket != nil {
-		in, out := &in.UseWebsocket, &out.UseWebsocket
+	if in.DeprecatedUseWebsocket != nil {
+		in, out := &in.DeprecatedUseWebsocket, &out.DeprecatedUseWebsocket
 		*out = new(bool)
 		**out = **in
 	}

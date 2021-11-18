@@ -89,13 +89,17 @@ type HostSpec struct {
 	// we didn't tell people about "ambassadorId" it's what the
 	// web policy console generated because of jsonpb.  So Hosts
 	// with 'ambassadorId' exist in the wild.
+	//
+	// TODO(lukeshu): In v3alpha2, remove HostSpec.DeprecatedAmbassadorID.
 	DeprecatedAmbassadorID AmbassadorID `json:"ambassadorId,omitempty"`
 
 	// Hostname by which the Ambassador can be reached.
 	Hostname string `json:"hostname,omitempty"`
 
 	// DEPRECATED: Selector by which we can find further configuration. Use MappingSelector instead.
-	Selector *metav1.LabelSelector `json:"selector,omitempty"`
+	//
+	// TODO(lukeshu): In v3alpha2, figure out how to get rid of HostSpec.DeprecatedSelector.
+	DeprecatedSelector *metav1.LabelSelector `json:"selector,omitempty"`
 
 	// Selector for Mappings we'll associate with this Host. At the moment, Selector and
 	// MappingSelector are synonyms, but that will change soon.

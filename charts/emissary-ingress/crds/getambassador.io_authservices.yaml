@@ -54,7 +54,7 @@ spec:
                   type: string
                 type: array
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -106,12 +106,13 @@ spec:
               stats_name:
                 type: string
               status_on_error:
-                description: Why isn't this just an int??
+                description: 'TODO(lukeshu): In v3alpha2, consider getting rid of this struct type in favor of just using an int (i.e. `statusOnError: 500` instead of the current `statusOnError: { code: 500 }`).'
                 properties:
                   code:
                     type: integer
                 type: object
               timeout_ms:
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               tls:
                 type: string

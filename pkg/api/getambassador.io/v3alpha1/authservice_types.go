@@ -32,7 +32,8 @@ type AuthServiceIncludeBody struct {
 	AllowPartial bool `json:"allow_partial,omitempty"`
 }
 
-// Why isn't this just an int??
+// TODO(lukeshu): In v3alpha2, consider getting rid of this struct type in favor of just using an
+// int (i.e. `statusOnError: 500` instead of the current `statusOnError: { code: 500 }`).
 type AuthServiceStatusOnError struct {
 	Code int `json:"code,omitempty"`
 }
