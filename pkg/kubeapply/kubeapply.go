@@ -1,10 +1,9 @@
 package kubeapply
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -14,6 +13,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/dlib/dexec"
+	"github.com/datawire/dlib/dlog"
 )
 
 // errorDeadlineExceeded is returned from YAMLCollection.applyAndWait
@@ -25,13 +26,13 @@ var errorDeadlineExceeded = errors.New("timeout exceeded")
 // look in the standard default places for cluster configuration.  If
 // any phase takes longer than perPhaseTimeout to become ready, then
 // it returns early with an error.
-func Kubeapply(kubeinfo *k8s.KubeInfo, perPhaseTimeout time.Duration, debug, dryRun bool, files ...string) error {
+func Kubeapply(ctx context.Context, kubeinfo *k8s.KubeInfo, perPhaseTimeout time.Duration, debug, dryRun bool, files ...string) error {
 	collection, err := CollectYAML(files...)
 	if err != nil {
 		return err
 	}
 
-	if err = collection.ApplyAndWait(kubeinfo, perPhaseTimeout, debug, dryRun); err != nil {
+	if err = collection.ApplyAndWait(ctx, kubeinfo, perPhaseTimeout, debug, dryRun); err != nil {
 		return err
 	}
 
@@ -90,6 +91,7 @@ func (collection YAMLCollection) addFile(path string) {
 // than perPhaseTimeout to become ready, then it returns early with an
 // error.
 func (collection YAMLCollection) ApplyAndWait(
+	ctx context.Context,
 	kubeinfo *k8s.KubeInfo,
 	perPhaseTimeout time.Duration,
 	debug, dryRun bool,
@@ -106,7 +108,7 @@ func (collection YAMLCollection) ApplyAndWait(
 
 	for _, phaseName := range phaseNames {
 		deadline := time.Now().Add(perPhaseTimeout)
-		err := applyAndWait(kubeinfo, deadline, debug, dryRun, collection[phaseName])
+		err := applyAndWait(ctx, kubeinfo, deadline, debug, dryRun, collection[phaseName])
 		if err != nil {
 			if err == errorDeadlineExceeded {
 				err = errors.Errorf("phase %q not ready after %v", phaseName, perPhaseTimeout)
@@ -117,8 +119,8 @@ func (collection YAMLCollection) ApplyAndWait(
 	return nil
 }
 
-func applyAndWait(kubeinfo *k8s.KubeInfo, deadline time.Time, debug, dryRun bool, filenames []string) error {
-	expanded, err := expand(filenames)
+func applyAndWait(ctx context.Context, kubeinfo *k8s.KubeInfo, deadline time.Time, debug, dryRun bool, filenames []string) error {
+	expanded, err := expand(ctx, filenames)
 	if err != nil {
 		return err
 	}
@@ -135,7 +137,7 @@ func applyAndWait(kubeinfo *k8s.KubeInfo, deadline time.Time, debug, dryRun bool
 	valid := make(map[string]bool)
 	var msgs []string
 	for _, n := range expanded {
-		err := waiter.Scan(n)
+		err := waiter.Scan(ctx, n)
 		if err != nil {
 			msgs = append(msgs, fmt.Sprintf("%s: %v\n", n, err))
 			valid[n] = false
@@ -145,7 +147,7 @@ func applyAndWait(kubeinfo *k8s.KubeInfo, deadline time.Time, debug, dryRun bool
 	}
 
 	if len(msgs) == 0 {
-		err = kubectlApply(kubeinfo, dryRun, expanded)
+		err = kubectlApply(ctx, kubeinfo, dryRun, expanded)
 	}
 
 	if !debug {
@@ -153,7 +155,7 @@ func applyAndWait(kubeinfo *k8s.KubeInfo, deadline time.Time, debug, dryRun bool
 			if valid[n] {
 				err := os.Remove(n)
 				if err != nil {
-					log.Print(err)
+					dlog.Print(ctx, err)
 				}
 			}
 		}
@@ -167,18 +169,22 @@ func applyAndWait(kubeinfo *k8s.KubeInfo, deadline time.Time, debug, dryRun bool
 		return errors.Errorf("errors expanding templates:\n  %s", strings.Join(msgs, "\n  "))
 	}
 
-	if !waiter.Wait(deadline) {
+	finished, err := waiter.Wait(ctx, deadline)
+	if err != nil {
+		return err
+	}
+	if !finished {
 		return errorDeadlineExceeded
 	}
 
 	return nil
 }
 
-func expand(names []string) ([]string, error) {
-	fmt.Printf("expanding %s\n", strings.Join(names, " "))
+func expand(ctx context.Context, names []string) ([]string, error) {
+	dlog.Printf(ctx, "expanding %s\n", strings.Join(names, " "))
 	var result []string
 	for _, n := range names {
-		resources, err := LoadResources(n)
+		resources, err := LoadResources(ctx, n)
 		if err != nil {
 			return nil, err
 		}
@@ -192,7 +198,7 @@ func expand(names []string) ([]string, error) {
 	return result, nil
 }
 
-func kubectlApply(info *k8s.KubeInfo, dryRun bool, filenames []string) error {
+func kubectlApply(ctx context.Context, info *k8s.KubeInfo, dryRun bool, filenames []string) error {
 	args := []string{"apply"}
 	if dryRun {
 		args = append(args, "--dry-run")
@@ -213,13 +219,9 @@ func kubectlApply(info *k8s.KubeInfo, dryRun bool, filenames []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("kubectl %s\n", strings.Join(kargs, " "))
+	dlog.Printf(ctx, "kubectl %s\n", strings.Join(kargs, " "))
 	/* #nosec */
-	cmd := exec.Command("kubectl", kargs...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
-	if err != nil {
+	if err := dexec.CommandContext(ctx, "kubectl", kargs...).Run(); err != nil {
 		return err
 	}
 

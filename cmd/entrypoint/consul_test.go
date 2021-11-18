@@ -8,15 +8,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/dlib/dlog"
 )
 
 const manifests = `
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: ConsulResolver
 metadata:
   name: consultest-resolver
@@ -26,14 +26,14 @@ spec:
   address: consultest-consul:8500
   datacenter: dc1
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  consultest_k8s_mapping
 prefix: /consultest_k8s/
 service: consultest-http-k8s
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorTCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  consultest_k8s_mapping_tcp
 port: 3099
 service: consultest-http-k8s
@@ -46,8 +46,8 @@ apiVersion: getambassador.io/v1
 kind: KubernetesEndpointResolver
 name: endpoint
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  consultest_consul_mapping
 prefix: /consultest_consul/
 service: consultest-consul-service
@@ -56,22 +56,22 @@ resolver: consultest-resolver
 load_balancer:
   policy: round_robin
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorTCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  consultest_consul_mapping_tcp
 port: 3090
 service: consultest-consul-service-tcp
 resolver: consultest-resolver
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  TLSContext
 name:  consultest-client-context
 secret: consultest-client-cert-secret
 `
 
 func TestReconcile(t *testing.T) {
-	resolvers, mappings, c, tw := setup(t)
-	c.reconcile(resolvers, mappings)
+	ctx, resolvers, mappings, c, tw := setup(t)
+	require.NoError(t, c.reconcile(ctx, resolvers, mappings))
 	tw.Assert(
 		"consultest-resolver.default:consultest-consul-service:watch",
 		"consultest-resolver.default:consultest-consul-service-tcp:watch",
@@ -80,11 +80,11 @@ func TestReconcile(t *testing.T) {
 		Service:  "foo",
 		Resolver: "consultest-resolver",
 	}
-	c.reconcile(resolvers, append(mappings, extra))
+	require.NoError(t, c.reconcile(ctx, resolvers, append(mappings, extra)))
 	tw.Assert(
 		"consultest-resolver.default:foo:watch",
 	)
-	c.reconcile(resolvers, nil)
+	require.NoError(t, c.reconcile(ctx, resolvers, nil))
 	tw.Assert(
 		"consultest-resolver.default:consultest-consul-service-tcp:stop",
 		"consultest-resolver.default:consultest-consul-service:stop",
@@ -93,13 +93,13 @@ func TestReconcile(t *testing.T) {
 }
 
 func TestCleanup(t *testing.T) {
-	resolvers, mappings, c, tw := setup(t)
-	c.reconcile(resolvers, mappings)
+	ctx, resolvers, mappings, c, tw := setup(t)
+	require.NoError(t, c.reconcile(ctx, resolvers, mappings))
 	tw.Assert(
 		"consultest-resolver.default:consultest-consul-service:watch",
 		"consultest-resolver.default:consultest-consul-service-tcp:watch",
 	)
-	c.cleanup()
+	require.NoError(t, c.cleanup(ctx))
 	tw.Assert(
 		"consultest-resolver.default:consultest-consul-service:stop",
 		"consultest-resolver.default:consultest-consul-service-tcp:stop",
@@ -107,9 +107,9 @@ func TestCleanup(t *testing.T) {
 }
 
 func TestBootstrap(t *testing.T) {
-	resolvers, mappings, c, _ := setup(t)
+	ctx, resolvers, mappings, c, _ := setup(t)
 	assert.False(t, c.isBootstrapped())
-	c.reconcile(resolvers, mappings)
+	require.NoError(t, c.reconcile(ctx, resolvers, mappings))
 	assert.False(t, c.isBootstrapped())
 	// XXX: break this (maybe use a chan to replace uncoalesced dirties and passing con around?)
 	//
@@ -120,13 +120,13 @@ func TestBootstrap(t *testing.T) {
 	assert.True(t, c.isBootstrapped())
 }
 
-func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []consulMapping, c *consul, tw *testWatcher) {
+func setup(t *testing.T) (ctx context.Context, resolvers []*amb.ConsulResolver, mappings []consulMapping, c *consul, tw *testWatcher) {
 	objs, err := kates.ParseManifestsToUnstructured(manifests)
 	require.NoError(t, err)
 
 	parent := &kates.Unstructured{}
 	parent.SetNamespace("default")
-	ctx := context.Background()
+	ctx = dlog.NewTestContext(t, false)
 
 	for _, obj := range objs {
 		newobj := convertAnnotation(ctx, parent, obj)
@@ -134,9 +134,9 @@ func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []consulMapp
 		switch o := newobj.(type) {
 		case *amb.ConsulResolver:
 			resolvers = append(resolvers, o)
-		case *v3alpha1.AmbassadorMapping:
+		case *amb.Mapping:
 			mappings = append(mappings, consulMapping{Service: o.Spec.Service, Resolver: o.Spec.Resolver})
-		case *v3alpha1.AmbassadorTCPMapping:
+		case *amb.TCPMapping:
 			mappings = append(mappings, consulMapping{Service: o.Spec.Service, Resolver: o.Spec.Resolver})
 		}
 	}
@@ -145,7 +145,7 @@ func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []consulMapp
 	assert.Equal(t, 4, len(mappings))
 
 	tw = &testWatcher{t: t, events: make(map[string]bool)}
-	c = newConsul(context.TODO(), tw)
+	c = newConsul(ctx, tw)
 	tw.Assert()
 
 	return
@@ -173,10 +173,10 @@ func (tw *testWatcher) Assert(events ...string) {
 	tw.events = make(map[string]bool)
 }
 
-func (tw *testWatcher) Watch(resolver *amb.ConsulResolver, svc string, _ chan consulwatch.Endpoints) Stopper {
+func (tw *testWatcher) Watch(ctx context.Context, resolver *amb.ConsulResolver, svc string, _ chan consulwatch.Endpoints) (Stopper, error) {
 	rname := fmt.Sprintf("%s.%s", resolver.GetName(), resolver.GetNamespace())
 	tw.Logf("%s:%s:watch", rname, svc)
-	return &testStopper{watcher: tw, resolver: rname, service: svc}
+	return &testStopper{watcher: tw, resolver: rname, service: svc}, nil
 }
 
 type testStopper struct {

@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8s_resource_types"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
@@ -14,7 +14,7 @@ import (
 // ReconcileSecrets figures out which secrets we're actually using,
 // since we don't want to send secrets to Ambassador unless we're
 // using them, since any secret we send will be saved to disk.
-func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) {
+func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) error {
 	// Start by building up a list of all the K8s objects that are
 	// allowed to mention secrets. Note that we vet the ambassador_id
 	// for all of these before putting them on the list.
@@ -26,7 +26,7 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 	// here).
 
 	for _, a := range s.Annotations {
-		if include(GetAmbId(a)) {
+		if include(GetAmbId(ctx, a)) {
 			resources = append(resources, a)
 		}
 	}
@@ -107,7 +107,11 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 	// We _always_ have an implicit references to the fallback cert secret...
 	secretRef(GetAmbassadorNamespace(), "fallback-self-signed-cert", false, action)
 
-	if IsEdgeStack() {
+	isEdgeStack, err := IsEdgeStack()
+	if err != nil {
+		return err
+	}
+	if isEdgeStack {
 		// ...and for Edge Stack, we _always_ have an implicit reference to the
 		// license secret.
 		secretRef(GetLicenseSecretNamespace(), GetLicenseSecretName(), false, action)
@@ -142,12 +146,13 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 			s.Secrets = append(s.Secrets, secret)
 		}
 	}
+	return nil
 }
 
 // Find all the secrets a given Ambassador resource references.
 func findSecretRefs(ctx context.Context, resource kates.Object, secretNamespacing bool, action func(snapshotTypes.SecretRef)) {
 	switch r := resource.(type) {
-	case *v3alpha1.AmbassadorHost:
+	case *amb.Host:
 		// The Host resource is a little odd. Host.spec.tls, Host.spec.tlsSecret, and
 		// host.spec.acmeProvider.privateKeySecret can all refer to secrets.
 		if r.Spec == nil {
@@ -216,7 +221,7 @@ func findSecretRefs(ctx context.Context, resource kates.Object, secretNamespacin
 			secretRef(r.GetNamespace(), secs.Client.Secret, secretNamespacing, action)
 		}
 
-	case *kates.Ingress:
+	case *k8s_resource_types.Ingress:
 		// Ingress is pretty straightforward, too, just look in spec.tls.
 		for _, itls := range r.Spec.TLS {
 			if itls.SecretName != "" {

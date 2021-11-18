@@ -1,6 +1,6 @@
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: ambassador-listener-8080
 spec:
@@ -11,8 +11,8 @@ spec:
     namespace:
       from: ALL
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: ambassador-listener-8443
 spec:
@@ -23,8 +23,8 @@ spec:
     namespace:
       from: ALL
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: h1-host
 spec:
@@ -34,12 +34,12 @@ spec:
   requestPolicy:
     insecure:
       action: Route
-  selector:
+  mappingSelector:
     matchLabels:
       h1-host: h1
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: h2-host
 spec:
@@ -49,12 +49,12 @@ spec:
   requestPolicy:
     insecure:
       action: Redirect
-  selector:
+  mappingSelector:
     matchLabels:
       h2-host: h2
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: qotm-mapping-1
   labels:
@@ -64,8 +64,8 @@ spec:
   prefix: /quote/
   service: quote.ambassador
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: qotm-mapping-2
   labels:

@@ -1,21 +1,26 @@
 package main
 
 import (
-	"log"
+	"context"
 	"os"
 	"syscall"
+
+	"github.com/datawire/dlib/dlog"
 )
 
 func main() {
-	log.Println("Starting Envoy with CAP_NET_BIND_SERVICE capability")
+	ctx := context.Background()
+	dlog.Println(ctx, "Starting Envoy with CAP_NET_BIND_SERVICE capability")
 
 	if err := capset(); err != nil {
-		log.Fatal(err)
+		dlog.Error(ctx, err)
+		os.Exit(126)
 	}
 
-	log.Println("Succeeded in setting capabilities")
+	dlog.Println(ctx, "Succeeded in setting capabilities")
 
 	if err := syscall.Exec("/usr/local/bin/envoy", os.Args, os.Environ()); err != nil {
-		log.Fatal(err)
+		dlog.Error(ctx, err)
+		os.Exit(127)
 	}
 }

@@ -56,10 +56,10 @@ class AmbassadorIDTest(AmbassadorTest):
     def config(self) -> Union[str, Tuple[Node, str]]:
         yield self, """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
-config: 
+config:
   use_ambassador_namespace_for_service_resolution: true
 """
         for prefix, amb_id in (("findme", "[{self.ambassador_id}]"),
@@ -69,8 +69,8 @@ config:
                                ("missme-array", "[missme1, missme2]")):
             yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.path.k8s}-{prefix}
 hostname: "*"
 prefix: /{prefix}/
@@ -94,7 +94,7 @@ class InvalidResources(AmbassadorTest):
         self.resource_names = []
 
         self.models = [ """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  AuthService
 metadata:
   name:  {self.path.k8s}-as-bad1-<<WHICH>>
@@ -102,8 +102,8 @@ spec:
   ambassador_id: ["{self.ambassador_id}"]
   service_bad: {self.target.path.fqdn}
 ""","""
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name:  {self.path.k8s}-m-good-<<WHICH>>
 spec:
@@ -112,8 +112,8 @@ spec:
   prefix: /good-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name:  {self.path.k8s}-m-bad-<<WHICH>>
 spec:
@@ -122,7 +122,7 @@ spec:
   prefix_bad: /bad-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 metadata:
   name:  {self.path.k8s}-md-bad-<<WHICH>>
@@ -130,7 +130,7 @@ spec:
   ambassador_id: ["{self.ambassador_id}"]
   config_bad: []
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  RateLimitService
 metadata:
   name:  {self.path.k8s}-r-bad-<<WHICH>>
@@ -138,8 +138,8 @@ spec:
   ambassador_id: ["{self.ambassador_id}"]
   service_bad: {self.target.path.fqdn}
 """, """
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorTCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 metadata:
   name:  {self.path.k8s}-tm-bad1-<<WHICH>>
 spec:
@@ -147,8 +147,8 @@ spec:
   service: {self.target.path.fqdn}
   port_bad: 8888
 """, """
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorTCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 metadata:
   name:  {self.path.k8s}-tm-bad2-<<WHICH>>
 spec:
@@ -156,7 +156,7 @@ spec:
   service_bad: {self.target.path.fqdn}
   port: 8888
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  TracingService
 metadata:
   name:  {self.path.k8s}-ts-bad1-<<WHICH>>
@@ -165,7 +165,7 @@ spec:
   driver_bad: zipkin
   service: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  TracingService
 metadata:
   name:  {self.path.k8s}-ts-bad2-<<WHICH>>
@@ -236,7 +236,7 @@ spec:
 
         for resource, error in errors:
             error_dict[resource] = error.split("\n", 1)[0]
-        
+
         for name in self.resource_names:
             assert name in error_dict, f"no error found for {name}"
 
@@ -260,14 +260,14 @@ class ServerNameTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
   server_name: "test-server"
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.path.k8s}/server-name
 hostname: "*"
 prefix: /server-name
@@ -291,8 +291,8 @@ class SafeRegexMapping(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 prefix: /{self.name}/
 prefix_regex: true
@@ -326,8 +326,8 @@ class UnsafeRegexMapping(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 prefix: /{self.name}/
 prefix_regex: true
@@ -337,7 +337,7 @@ regex_headers:
   X-Foo: "^[a-z].*"
 service: http://{self.target.path.fqdn}
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:

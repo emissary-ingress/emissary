@@ -147,6 +147,8 @@ INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
 INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../manifests/emissary/
 INGRESS_TEST_MANIFS = ambassador-crds.yaml ambassador.yaml
 
+export DOCKER_BUILDKIT := 0
+
 all: help
 .PHONY: all
 
@@ -193,7 +195,7 @@ preflight:
 	      printf '%s\n' $(call quote.shell,$(DOCKER_ERR)))
 .PHONY: preflight
 
-preflight-cluster:
+preflight-cluster: $(tools/kubectl)
 	@test -n "$(DEV_KUBECONFIG)" || (printf "$${KUBECONFIG_ERR}\n"; exit 1)
 	@if [ "$(DEV_KUBECONFIG)" == '-skip-for-release-' ]; then \
 		printf "$(CYN)==> $(RED)Skipping test cluster checks$(END)\n" ;\
@@ -201,17 +203,17 @@ preflight-cluster:
 		printf "$(CYN)==> $(GRN)Checking for test cluster$(END)\n" ;\
 		success=; \
 		for i in {1..5}; do \
-			kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null && success=true && break || sleep 15 ; \
+			$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null && success=true && break || sleep 15 ; \
 		done; \
 		if [ ! "$${success}" ] ; then { printf "$$KUBECTL_ERR\n" ; exit 1; } ; fi; \
 	fi
 .PHONY: preflight-cluster
 
-sync: docker/container.txt
+sync: docker/container.txt $(tools/kubectl)
 	@printf "${CYN}==> ${GRN}Syncing sources in to builder container${END}\n"
 	@$(foreach MODULE,$(MODULES),$(BUILDER) sync $(MODULE) $(SOURCE_$(MODULE)) &&) true
 	@if [ -n "$(DEV_KUBECONFIG)" ] && [ "$(DEV_KUBECONFIG)" != '-skip-for-release-' ]; then \
-		kubectl --kubeconfig $(DEV_KUBECONFIG) config view --flatten | docker exec -i $$(cat $<) sh -c "cat > /buildroot/kubeconfig.yaml" ;\
+		$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) config view --flatten | docker exec -i $$(cat $<) sh -c "cat > /buildroot/kubeconfig.yaml" ;\
 	fi
 	@if [ -e ~/.docker/config.json ]; then \
 		cat ~/.docker/config.json | docker exec -i $$(cat $<) sh -c "mkdir -p /home/dw/.docker && cat > /home/dw/.docker/config.json" ; \
@@ -358,7 +360,7 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			IMAGE_TAG=$${suffix} \
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
-		$(MAKE) update-yaml --always-make; \
+		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests  ; \
 		$(MAKE) clean-manifests ; \
 	}
@@ -429,6 +431,7 @@ pytest: docker/$(LCNAME).docker.push.remote
 pytest: docker/kat-client.docker.push.remote
 pytest: docker/kat-server.docker.push.remote
 pytest: $(tools/kubestatus)
+pytest: $(tools/kubectl)
 	@$(MAKE) setup-diagd
 	@$(MAKE) setup-envoy
 	@$(MAKE) proxy
@@ -601,15 +604,16 @@ setup-diagd: create-venv
 	. $(OSS_HOME)/venv/bin/activate && $(MAKE) setup-venv
 .PHONY: setup-diagd
 
-gotest: setup-diagd
+gotest: setup-diagd $(tools/kubectl)
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
-	. $(OSS_HOME)/venv/bin/activate; \
-		EDGE_STACK=$(GOTEST_AES_ENABLED) \
-		$(OSS_HOME)/builder/builder.sh gotest-local
+	{ . $(OSS_HOME)/venv/bin/activate && \
+	  export PATH=$(tools.bindir):$${PATH} && \
+	  export EDGE_STACK=$(GOTEST_AES_ENABLED) && \
+	  $(OSS_HOME)/builder/builder.sh gotest-local; }
 .PHONY: gotest
 
 # Ingress v1 conformance tests, using KIND and the Ingress Conformance Tests suite.
-ingresstest: | docker/$(LCNAME).docker.push.remote
+ingresstest: $(tools/kubectl) | docker/$(LCNAME).docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)Ingress v1$(GRN) tests$(END)\n"
 	@[ -n "$(INGRESS_TEST_IMAGE)" ] || { printf "$(RED)ERROR: no INGRESS_TEST_IMAGE defined$(END)\n"; exit 1; }
 	@[ -n "$(INGRESS_TEST_MANIF_DIR)" ] || { printf "$(RED)ERROR: no INGRESS_TEST_MANIF_DIR defined$(END)\n"; exit 1; }
@@ -632,23 +636,23 @@ ingresstest: | docker/$(LCNAME).docker.push.remote
 		sed -i -e "s|server: .*|server: https://$$APISERVER_IP:6443|g" $(KIND_KUBECONFIG)
 
 	@printf "$(CYN)==> $(GRN)Showing some cluster info:$(END)\n"
-	@kubectl --kubeconfig=$(KIND_KUBECONFIG) cluster-info || { printf "$(RED)ERROR: kubernetes cluster not ready $(END)\n"; exit 1 ; }
-	@kubectl --kubeconfig=$(KIND_KUBECONFIG) version || { printf "$(RED)ERROR: kubernetes cluster not ready $(END)\n"; exit 1 ; }
+	@$(tools/kubectl) --kubeconfig=$(KIND_KUBECONFIG) cluster-info || { printf "$(RED)ERROR: kubernetes cluster not ready $(END)\n"; exit 1 ; }
+	@$(tools/kubectl) --kubeconfig=$(KIND_KUBECONFIG) version || { printf "$(RED)ERROR: kubernetes cluster not ready $(END)\n"; exit 1 ; }
 
 	@printf "$(CYN)==> $(GRN)Loading Ambassador (from the Ingress conformance tests) with image=$$(sed -n 2p docker/$(LCNAME).docker.push.remote)$(END)\n"
 	@for f in $(INGRESS_TEST_MANIFS) ; do \
 		printf "$(CYN)==> $(GRN)... $$f $(END)\n" ; \
-		cat $(INGRESS_TEST_MANIF_DIR)/$$f | sed -e "s|image:.*ambassador\:.*|image: $$(sed -n 2p docker/$(LCNAME).docker.push.remote)|g" | tee /dev/tty | kubectl apply -f - ; \
+		cat $(INGRESS_TEST_MANIF_DIR)/$$f | sed -e "s|image:.*ambassador\:.*|image: $$(sed -n 2p docker/$(LCNAME).docker.push.remote)|g" | tee /dev/tty | $(tools/kubectl) apply -f - ; \
 	done
 
 	@printf "$(CYN)==> $(GRN)Waiting for Ambassador to be ready$(END)\n"
-	@kubectl --kubeconfig=$(KIND_KUBECONFIG) wait --for=condition=available --timeout=180s deployment/ambassador || { \
+	@$(tools/kubectl) --kubeconfig=$(KIND_KUBECONFIG) wait --for=condition=available --timeout=180s deployment/ambassador || { \
 		printf "$(RED)ERROR: Ambassador was not ready after 3 mins $(END)\n"; \
-		kubectl --kubeconfig=$(KIND_KUBECONFIG) get services --all-namespaces ; \
+		$(tools/kubectl) --kubeconfig=$(KIND_KUBECONFIG) get services --all-namespaces ; \
 		exit 1 ; }
 
 	@printf "$(CYN)==> $(GRN)Exposing Ambassador service$(END)\n"
-	@kubectl --kubeconfig=$(KIND_KUBECONFIG) expose deployment ambassador --type=LoadBalancer --name=ambassador
+	@$(tools/kubectl) --kubeconfig=$(KIND_KUBECONFIG) expose deployment ambassador --type=LoadBalancer --name=ambassador
 
 	@printf "$(CYN)==> $(GRN)Starting the tests container (in the background)$(END)\n"
 	@docker stop -t 3 ingress-tests 2>/dev/null || true && docker rm ingress-tests 2>/dev/null || true
@@ -661,7 +665,7 @@ ingresstest: | docker/$(LCNAME).docker.push.remote
 	@sleep 10
 
 	@printf "$(CYN)==> $(GRN)Forwarding traffic to Ambassador service$(END)\n"
-	@kubectl --kubeconfig=$(KIND_KUBECONFIG) port-forward --address=$(HOST_IP) svc/ambassador \
+	@$(tools/kubectl) --kubeconfig=$(KIND_KUBECONFIG) port-forward --address=$(HOST_IP) svc/ambassador \
 		$(INGRESS_TEST_LOCAL_PLAIN_PORT):8080 $(INGRESS_TEST_LOCAL_TLS_PORT):8443 $(INGRESS_TEST_LOCAL_ADMIN_PORT):8877 &
 	@sleep 10
 
@@ -680,7 +684,7 @@ ingresstest: | docker/$(LCNAME).docker.push.remote
 			--use-secure-host=$(HOST_IP):$(INGRESS_TEST_LOCAL_TLS_PORT)
 
 	@printf "$(CYN)==> $(GRN)Cleaning up...$(END)\n"
-	-@pkill kubectl -9
+	-@pkill $(tools/kubectl) -9
 	@docker stop -t 3 ingress-tests 2>/dev/null || true && docker rm ingress-tests 2>/dev/null || true
 
 	@if [ -n "$(CLEANUP)" ] ; then \
@@ -772,7 +776,7 @@ release/promote-oss/dev-to-rc:
 			IMAGE_TAG=$${veroverride} \
 			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
-		$(MAKE) update-yaml --always-make; \
+		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} push-manifests  ; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} publish-docs-yaml ; \
 		$(MAKE) clean-manifests ; \
@@ -780,7 +784,7 @@ release/promote-oss/dev-to-rc:
 .PHONY: release/promote-oss/dev-to-rc
 
 release/promote-oss/rc-update-apro:
-	$(OSS_HOME)/releng/01-release-rc-update-apro v$(RELEASE_VERSION) v$(VERSIONS_YAML_VERSION)
+	$(OSS_HOME)/releng/01-release-rc-update-apro v$(RELEASE_VERSION) v$(VERSIONS_YAML_VER)
 .PHONY: release/promote-oss/rc-update-apro
 
 release/print-test-artifacts:
@@ -855,7 +859,7 @@ release/promote-oss/to-hotfix:
 			IMAGE_TAG=$${hotfix_tag} \
 			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ;\
-		$(MAKE) update-yaml --always-make ;\
+		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} push-manifests ;\
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} publish-docs-yaml ;\
 		$(MAKE) clean-manifests ;\
@@ -933,9 +937,6 @@ clean:
 clobber:
 	@$(BUILDER) clobber
 .PHONY: clobber
-
-CURRENT_CONTEXT=$(shell kubectl --kubeconfig=$(DEV_KUBECONFIG) config current-context)
-CURRENT_NAMESPACE=$(shell kubectl config view -o=jsonpath="{.contexts[?(@.name==\"$(CURRENT_CONTEXT)\")].context.namespace}")
 
 AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.push.remote 2>/dev/null)
 export AMBASSADOR_DOCKER_IMAGE
@@ -1113,7 +1114,7 @@ define _help.targets
     4. Use the Go CRD definitions in 'pkg/api/getambassador.io/' to generate YAML
        (and a few 'zz_generated.*.go' files).
 
-  $(BLD)$(MAKE) $(BLU)update-yaml$(END) -- like $(BLD)make generate$(END), but skips the slow Envoy stuff.
+  $(BLD)$(MAKE) $(BLU)generate-fast$(END) -- like $(BLD)make generate$(END), but skips the slow Envoy stuff.
 
   $(BLD)$(MAKE) $(BLU)go-mod-tidy$(END) -- 'go mod tidy', but plays nice with 'make generate'
 

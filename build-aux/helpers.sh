@@ -16,6 +16,13 @@ require() {
     fi
 }
 
+kubectl() {
+    if ! test -f tools/bin/kubectl; then
+        make tools/bin/kubectl >&2
+    fi
+    tools/bin/kubectl "$@"
+}
+
 wait_for_ip() ( # use a subshell so the set +x is local to the function
     { set +x; } 2>/dev/null # make the set +x be quiet
     local external_ip=""

@@ -23,7 +23,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 
-	"github.com/google/shlex"
+	"github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
@@ -49,10 +49,7 @@ type KubeInfo struct {
 // NewKubeInfo returns a useable KubeInfo, handling optional
 // kubeconfig, context, and namespace.
 func NewKubeInfo(configfile, context, namespace string) *KubeInfo {
-	// Because we are constructing the args for this flagset
-	// below, it's ok to use pflag.PanicOnError. We should never
-	// supply it with erroneous arguments.
-	flags := pflag.NewFlagSet("KubeInfo", pflag.PanicOnError)
+	flags := pflag.NewFlagSet("KubeInfo", pflag.ContinueOnError)
 	result := NewKubeInfoFromFlags(flags)
 
 	var args []string
@@ -66,8 +63,7 @@ func NewKubeInfo(configfile, context, namespace string) *KubeInfo {
 		args = append(args, "--namespace", namespace)
 	}
 
-	err := flags.Parse(args)
-	if err != nil {
+	if err := flags.Parse(args); err != nil {
 		// Args is constructed by us, we should never get an
 		// error, so it's ok to panic.
 		panic(err)
@@ -138,9 +134,9 @@ func (info *KubeInfo) GetRestConfig() (*rest.Config, error) {
 // GetKubectl returns the arguments for a runnable kubectl command that talks to
 // the same cluster as the associated ClientConfig.
 func (info *KubeInfo) GetKubectl(args string) (string, error) {
-	parts, err := shlex.Split(args)
+	parts, err := shellquote.Split(args)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	kargs, err := info.GetKubectlArray(parts...)
 	if err != nil {
@@ -290,19 +286,19 @@ func mappingFor(resourceOrKindArg string, restMapper meta.RESTMapper) (*meta.RES
 }
 
 // List calls ListNamespace(...) with NamespaceAll.
-func (c *Client) List(resource string) ([]Resource, error) {
-	return c.ListNamespace(NamespaceAll, resource)
+func (c *Client) List(ctx context.Context, resource string) ([]Resource, error) {
+	return c.ListNamespace(ctx, NamespaceAll, resource)
 }
 
 // ListNamespace returns a slice of Resources.
 // If the resource is not namespaced, the namespace must be NamespaceNone.
 // If the resource is namespaced, NamespaceAll lists across all namespaces.
-func (c *Client) ListNamespace(namespace, resource string) ([]Resource, error) {
-	return c.SelectiveList(namespace, resource, "", "")
+func (c *Client) ListNamespace(ctx context.Context, namespace, resource string) ([]Resource, error) {
+	return c.SelectiveList(ctx, namespace, resource, "", "")
 }
 
-func (c *Client) SelectiveList(namespace, resource, fieldSelector, labelSelector string) ([]Resource, error) {
-	return c.ListQuery(Query{
+func (c *Client) SelectiveList(ctx context.Context, namespace, resource, fieldSelector, labelSelector string) ([]Resource, error) {
+	return c.ListQuery(ctx, Query{
 		Kind:          resource,
 		Namespace:     namespace,
 		FieldSelector: fieldSelector,
@@ -342,7 +338,7 @@ func (q *Query) resolve(c *Client) error {
 
 // ListQuery returns all the Kubernetes resources that satisfy the
 // supplied query.
-func (c *Client) ListQuery(query Query) ([]Resource, error) {
+func (c *Client) ListQuery(ctx context.Context, query Query) ([]Resource, error) {
 	err := query.resolve(c)
 	if err != nil {
 		return nil, err
@@ -368,7 +364,7 @@ func (c *Client) ListQuery(query Query) ([]Resource, error) {
 		filtered = cli
 	}
 
-	uns, err := filtered.List(context.TODO(), metav1.ListOptions{
+	uns, err := filtered.List(ctx, metav1.ListOptions{
 		FieldSelector: query.FieldSelector,
 		LabelSelector: query.LabelSelector,
 	})

@@ -89,11 +89,11 @@ def V3HTTPFilter(irfilter: IRFilter, v3config: 'V3Config'):
     if irfilter.kind == 'IRAuth':
         if irfilter.api_version == 'getambassador.io/v0':
             return 'IRAuth_v0'
-        elif irfilter.api_version in ['getambassador.io/v1', 'getambassador.io/v2']:
-            return 'IRAuth_v1-2'
+        elif irfilter.api_version in ['getambassador.io/v1', 'getambassador.io/v2', 'getambassador.io/v3alpha1']:
+            return 'IRAuth_v1-3'
         else:
-            irfilter.post_error('AuthService version %s unknown, treating as v2' % irfilter.api_version)
-            return 'IRAuth_v1-2'
+            irfilter.post_error('AuthService version %s unknown, treating as v3alpha1' % irfilter.api_version)
+            return 'IRAuth_v1-3'
     else:
         return irfilter.kind
 
@@ -249,14 +249,14 @@ def V3HTTPFilter_authv0(auth: IRAuth, v3config: 'V3Config'):
     }
 
 
-@V3HTTPFilter.when("IRAuth_v1-2")
+@V3HTTPFilter.when("IRAuth_v1-3")
 def V3HTTPFilter_authv1(auth: IRAuth, v3config: 'V3Config'):
     del v3config  # silence unused-variable warning
 
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
 
-    if auth.api_version not in ['getambassador.io/v1', 'getambassador.io/v2']:
+    if auth.api_version not in ['getambassador.io/v1', 'getambassador.io/v2', 'getambassador.io/v3alpha1']:
         auth.ir.logger.warning("IRAuth_v1 working on %s, mismatched at %s" % (auth.name, auth.api_version))
 
     assert auth.proto
@@ -293,12 +293,12 @@ def V3HTTPFilter_authv1(auth: IRAuth, v3config: 'V3Config'):
             })
 
         for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
-            allowed_authorization_headers.append({"exact": key})
+            allowed_authorization_headers.append({"exact": key, "ignore_case": True})
 
         allowed_request_headers = []
 
         for key in list(set(auth.allowed_request_headers).union(AllowedRequestHeaders)):
-            allowed_request_headers.append({"exact": key})
+            allowed_request_headers.append({"exact": key, "ignore_case": True})
 
         if auth.get('add_linkerd_headers', False):
             svc = Service(auth.ir.logger, auth_cluster_uri(auth, cluster))

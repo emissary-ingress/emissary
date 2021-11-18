@@ -27,7 +27,7 @@ class IngressStatusTest1(AmbassadorTest):
     def manifests(self) -> str:
         return """
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -39,9 +39,12 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """ + super().manifests()
 
     def queries(self):
@@ -71,7 +74,7 @@ spec:
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here
-        ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
+        ingress_cmd = ["tools/bin/kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
         ingress_out, _ = ingress_run.communicate()
         ingress_json = json.loads(ingress_out)
@@ -93,7 +96,7 @@ class IngressStatusTest2(AmbassadorTest):
     def manifests(self) -> str:
         return """
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -105,9 +108,12 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """ + super().manifests()
 
     def queries(self):
@@ -137,7 +143,7 @@ spec:
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here
-        ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
+        ingress_cmd = ["tools/bin/kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
         ingress_out, _ = ingress_run.communicate()
         ingress_json = json.loads(ingress_out)
@@ -159,7 +165,7 @@ class IngressStatusTestAcrossNamespaces(AmbassadorTest):
     def manifests(self) -> str:
         return namespace_manifest("alt-namespace") + """
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -172,9 +178,12 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """ + super().manifests()
 
     def queries(self):
@@ -204,7 +213,7 @@ spec:
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here
-        ingress_cmd = ["kubectl", "get", "-o", "json", "ingress", self.path.k8s, "-n", "alt-namespace"]
+        ingress_cmd = ["tools/bin/kubectl", "get", "-o", "json", "ingress", self.path.k8s, "-n", "alt-namespace"]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
         ingress_out, _ = ingress_run.communicate()
         ingress_json = json.loads(ingress_out)
@@ -226,19 +235,19 @@ class IngressStatusTestWithAnnotations(AmbassadorTest):
     def manifests(self) -> str:
         return """
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: x.getambassador.io/v3alpha1
-      kind: AmbassadorMapping
+      apiVersion: getambassador.io/v3alpha1
+      kind: Mapping
       name:  {self.name}-nested
       hostname: "*"
       prefix: /{self.name}-nested/
       service: http://{self.target.path.fqdn}
-      ambassador_id: {self.ambassador_id}
+      ambassador_id: [{self.ambassador_id}]
     kubernetes.io/ingress.class: ambassador
     getambassador.io/ambassador-id: {self.ambassador_id}
   name: {self.name.k8s}
@@ -247,9 +256,12 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """ + super().manifests()
 
     def queries(self):
@@ -271,7 +283,7 @@ spec:
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
         # check for Ingress IP here
-        ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
+        ingress_cmd = ["tools/bin/kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
         ingress_out, _ = ingress_run.communicate()
         ingress_json = json.loads(ingress_out)
@@ -295,7 +307,7 @@ class SameIngressMultipleNamespaces(AmbassadorTest):
     def manifests(self) -> str:
         return namespace_manifest("same-ingress-1") + """
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -308,12 +320,15 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}-target1
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}-target1
+            port:
+              number: 80
         path: /{self.name}-target1/
+        pathType: Prefix
 """ + namespace_manifest("same-ingress-2") + """
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -326,9 +341,12 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}-target2
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}-target2
+            port:
+              number: 80
         path: /{self.name}-target2/
+        pathType: Prefix
 """ + super().manifests()
 
     def queries(self):
@@ -354,7 +372,7 @@ spec:
 
         for namespace in ['same-ingress-1', 'same-ingress-2']:
             # check for Ingress IP here
-            ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s, "-n", namespace]
+            ingress_cmd = ["tools/bin/kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s, "-n", namespace]
             ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
             ingress_out, _ = ingress_run.communicate()
             ingress_json = json.loads(ingress_out)
@@ -379,7 +397,7 @@ class IngressStatusTestWithIngressClass(AmbassadorTest):
     def manifests(self) -> str:
         return """
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {self.name.k8s}-ext
@@ -388,7 +406,7 @@ rules:
   resources: ["ingressclasses"]
   verbs: ["get", "list", "watch"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: {self.name.k8s}-ext
@@ -401,7 +419,7 @@ subjects:
   name: {self.path.k8s}
   namespace: {self.namespace}
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: IngressClass
 metadata:
   annotations:
@@ -410,7 +428,7 @@ metadata:
 spec:
   controller: getambassador.io/ingress-controller
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -422,9 +440,12 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """ + super().manifests()
 
     def queries(self):
@@ -454,7 +475,7 @@ spec:
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here
-        ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
+        ingress_cmd = ["tools/bin/kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
         ingress_out, _ = ingress_run.communicate()
         ingress_json = json.loads(ingress_out)

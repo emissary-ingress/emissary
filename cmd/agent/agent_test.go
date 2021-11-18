@@ -33,7 +33,7 @@ import (
 // More complicated business logic tests live in ambassador.git/pkg/agent
 func TestAgentE2E(t *testing.T) {
 	ctx := dlog.NewTestContext(t, false)
-	kubeconfig := dtest.Kubeconfig(ctx)
+	kubeconfig := dtest.KubeVersionConfig(ctx, dtest.Kube22)
 	cli, err := kates.NewClient(kates.ClientConfig{Kubeconfig: kubeconfig})
 	require.NoError(t, err)
 	// applies all k8s yaml to dtest cluter
@@ -67,7 +67,7 @@ func TestAgentE2E(t *testing.T) {
 	assert.Empty(t, ambSnapshot.Kubernetes.ArgoRollouts, "rollouts found in snapshot")
 	assert.Empty(t, ambSnapshot.Kubernetes.ArgoApplications, "applications found in snapshot")
 
-	applyArgoResources(t, kubeconfig, cli)
+	applyArgoResources(t, ctx, kubeconfig, cli)
 	hasArgo = true
 	reportSnapshot, ambSnapshot = getAgentComSnapshots(t, ctx, kubeconfig, cli, hasArgo)
 	assert.NotEmpty(t, ambSnapshot.Kubernetes.ArgoRollouts, "No argo rollouts found in snapshot")
@@ -160,13 +160,13 @@ func snapshotIsSane(ambSnapshot *snapshotTypes.Snapshot, t *testing.T, hasArgo b
 
 	return true
 }
-func applyArgoResources(t *testing.T, kubeconfig string, cli *kates.Client) {
+func applyArgoResources(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Client) {
 	kubeinfo := k8s.NewKubeInfo(kubeconfig, "", "")
-	require.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./testdata/argo-rollouts-crd.yaml"))
-	require.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./testdata/argo-application-crd.yaml"))
+	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/argo-rollouts-crd.yaml"))
+	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/argo-application-crd.yaml"))
 	time.Sleep(3 * time.Second)
-	require.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./testdata/argo-rollouts.yaml"))
-	require.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./testdata/argo-application.yaml"))
+	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/argo-rollouts.yaml"))
+	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/argo-application.yaml"))
 }
 
 func needsDockerBuilds(ctx context.Context, var2file map[string]string) error {
@@ -222,16 +222,16 @@ func setup(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Clie
 	image := os.Getenv("AMBASSADOR_DOCKER_IMAGE")
 	require.NotEmpty(t, image)
 
-	aesReplaced := regexp.MustCompile(`docker\.io/datawire/emissary:\S+`).ReplaceAllString(string(aesDat), image)
+	aesReplaced := regexp.MustCompile(`docker\.io/emissaryingress/emissary:\S+`).ReplaceAllString(string(aesDat), image)
 	newAesFile := filepath.Join(t.TempDir(), "emissary-ingress.yaml")
 
 	require.NoError(t, ioutil.WriteFile(newAesFile, []byte(aesReplaced), 0644))
 	kubeinfo := k8s.NewKubeInfo(kubeconfig, "", "")
 
-	require.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, crdFile))
-	require.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./testdata/namespace.yaml"))
-	require.NoError(t, kubeapply.Kubeapply(kubeinfo, 2*time.Minute, true, false, newAesFile))
-	require.NoError(t, kubeapply.Kubeapply(kubeinfo, 2*time.Minute, true, false, "./testdata/fake-agentcom.yaml"))
+	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, crdFile))
+	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/namespace.yaml"))
+	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, 2*time.Minute, true, false, newAesFile))
+	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, 2*time.Minute, true, false, "./testdata/fake-agentcom.yaml"))
 
 	dep := &kates.Deployment{
 		TypeMeta: kates.TypeMeta{
@@ -266,7 +266,7 @@ func setup(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Clie
 	require.NoError(t, cli.Patch(ctx, dep, kates.StrategicMergePatchType, []byte(patch), dep))
 
 	time.Sleep(3 * time.Second)
-	require.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./testdata/sample-config.yaml"))
+	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/sample-config.yaml"))
 }
 
 func deleteArgoResources(t *testing.T, ctx context.Context, kubeconfig string) {

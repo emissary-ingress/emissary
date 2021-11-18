@@ -24,7 +24,7 @@ def test_reconfig_stats():
     logger.setLevel(logging.DEBUG)
 
     r = ReconfigStats(
-        logger, 
+        logger,
         max_incr_between_checks=5,
         max_time_between_checks=20,
         max_config_between_timers=2,

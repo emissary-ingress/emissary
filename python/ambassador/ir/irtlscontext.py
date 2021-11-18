@@ -65,7 +65,7 @@ class IRTLSContext(IRResource):
                  namespace: Optional[str]=None,
                  metadata_labels: Optional[Dict[str, str]]=None,
                  kind: str="IRTLSContext",
-                 apiVersion: str = "getambassador.io/v2",
+                 apiVersion: str = "getambassador.io/v3alpha1",
                  is_fallback: Optional[bool]=False,
                  **kwargs) -> None:
 

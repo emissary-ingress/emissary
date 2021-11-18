@@ -59,10 +59,10 @@ data:
         # be annotated on the Ambassador itself.
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: tls
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 config:
   server:
     enabled: True
@@ -72,8 +72,8 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tls_target_mapping
 hostname: "*"
 prefix: /tls-target/
@@ -92,7 +92,7 @@ service: {self.target.path.fqdn}
 
     def check(self):
         # For query 0, check the redirection target.
-        assert len(self.results[0].headers['Location']) > 0 
+        assert len(self.results[0].headers['Location']) > 0
         assert self.results[0].headers['Location'][0].find('/tls-target/') > 0
 
         # For query 1, we require no errors.
@@ -115,7 +115,7 @@ class RedirectTestsWithProxyProto(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -125,8 +125,8 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tls_target_mapping
 hostname: "*"
 prefix: /tls-target/
@@ -177,10 +177,10 @@ class RedirectTestsInvalidSecret(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: tls
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 config:
   server:
     enabled: True
@@ -190,8 +190,8 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tls_target_mapping
 hostname: "*"
 prefix: /tls-target/
@@ -232,12 +232,12 @@ class XFPRedirect(AmbassadorTest):
     def manifests(self):
         return self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: ambassador-listener-8080
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   port: 8080
   protocol: HTTP
   securityModel: XFP
@@ -246,12 +246,12 @@ spec:
     namespace:
       from: ALL
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: weird-xfp-test-host
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   requestPolicy:
     insecure:
       action: Redirect
@@ -265,8 +265,8 @@ name: ambassador
 config:
   use_remote_address: false
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
@@ -303,4 +303,3 @@ service: {self.target.path.fqdn}
         # We're replacing super()'s requirements deliberately here: we need the XFP header or they can't work.
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"X-Forwarded-Proto": "https"}))
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"X-Forwarded-Proto": "https"}))
-

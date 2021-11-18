@@ -18,6 +18,7 @@ class IRHost(IRResource):
     AllowedKeys = {
         'acmeProvider',
         'hostname',
+        'mappingSelector',
         'metadata_labels',
         'requestPolicy',
         'selector',
@@ -25,7 +26,7 @@ class IRHost(IRResource):
         'tlsContext',
         'tls',
     }
-    
+
     hostname: str
     secure_action: str
     insecure_action: str
@@ -37,7 +38,7 @@ class IRHost(IRResource):
                  location: str,  # REQUIRED
                  namespace: Optional[str]=None,
                  kind: str="IRHost",
-                 apiVersion: str="x.getambassador.io/v3alpha1",   # Not a typo! See below.
+                 apiVersion: str="getambassador.io/v3alpha1",   # Not a typo! See below.
                  **kwargs) -> None:
 
         new_args = {
@@ -71,6 +72,16 @@ class IRHost(IRResource):
         insecure_policy = request_policy.get('insecure', {})
         self.insecure_action = insecure_policy.get('action', 'Redirect')
         self.insecure_addl_port: Optional[int] = insecure_policy.get('additionalPort', None)
+
+        # If we have no mappingSelector, check for selector.
+        mapsel = self.get('mappingSelector', None)
+
+        if not mapsel:
+            mapsel = self.get('selector', None)
+
+            if mapsel:
+                self.mappingSelector = mapsel
+                del self['selector']
 
         if self.get('tlsSecret', None):
             tls_secret = self.tlsSecret
@@ -165,11 +176,17 @@ class IRHost(IRResource):
 
                         tls_config_context = IRTLSContext(ir, aconf, **tls_context_init, **host_tls_config)
 
-                        # XXX This seems kind of pointless -- nothing looks at the context's labels?
-                        match_labels = self.get('selector', {}).get('matchLabels')
+                        # This code was here because, while 'selector' was controlling things to be watched
+                        # for, we figured we should update the labels on this generated TLSContext so that
+                        # it would actually match the 'selector'. Nothing was actually using that, though, so
+                        # we're not doing that any more.
+                        #
+                        #-----------------------------------------------------------------------------------
+                        # # XXX This seems kind of pointless -- nothing looks at the context's labels?
+                        # match_labels = self.get('selector', {}).get('matchLabels')
 
-                        if match_labels:
-                            tls_config_context['metadata_labels'] = match_labels
+                        # if match_labels:
+                        #     tls_config_context['metadata_labels'] = match_labels
 
                         if tls_config_context.is_active():
                             self.context = tls_config_context
@@ -244,7 +261,7 @@ class IRHost(IRResource):
                         # Override noisily, since they tried to explicitly disable it.
                         self.post_error("ACME requires insecure.additionalPort to function; forcing to 8080")
                         override_insecure = True
-                    
+
                     if override_insecure:
                         # Force self.insecure_addl_port...
                         self.insecure_addl_port = 8080
@@ -294,14 +311,14 @@ class IRHost(IRResource):
             assert(secret_name)     # For mypy -- if has_secret() is true, secret_name() will be there.
 
             # This is a little weird. Basically we're going to resolve the secret (which should just
-            # be a cache lookup here) so that we can use SavedSecret.__str__() as a serializer to 
+            # be a cache lookup here) so that we can use SavedSecret.__str__() as a serializer to
             # compare the configurations.
             context_ss = self.resolve(ir, secret_name)
 
             self.logger.debug(f"Host {self.name}, ctx {ctx.name}, secret {secret_name}, resolved {context_ss}")
 
             if str(context_ss) != str(tls_ss):
-                self.post_error("Secret info mismatch between Host %s (secret: %s) and TLSContext %s: (secret: %s)" % 
+                self.post_error("Secret info mismatch between Host %s (secret: %s) and TLSContext %s: (secret: %s)" %
                                 (self.name, tls_name, ctx_name, secret_name))
                 return False
         else:
@@ -321,7 +338,7 @@ class IRHost(IRResource):
         if context_hosts:
             is_valid_hosts = False
 
-            # XXX Should we be doing a glob check here? 
+            # XXX Should we be doing a glob check here?
             for host_tc in context_hosts:
                 if host_tc in host_hosts:
                     is_valid_hosts = True
@@ -346,11 +363,11 @@ class IRHost(IRResource):
         Make sure a given IRHTTPMappingGroup is a match for this Host, meaning
         that at least one of the following is true:
 
-        - The Host specifies matchLabels, and the group has matching labels
+        - The Host specifies mappingSelector.matchLabels, and the group has matching labels
         - The group specifies a host glob, and the Host has a matching domain.
 
-        A Mapping that specifies no host can never match a Host that specifies
-        no selectors.
+        A Mapping that specifies no host can never match a Host that specifies no
+        mappingSelector.
         """
 
         host_match = False
@@ -363,18 +380,20 @@ class IRHost(IRResource):
             host_match = True
             self.logger.debug("-- hostname %s group regex => %s", self.hostname, host_match)
         else:
-            group_glob = group.get('host') or None
+            # It is NOT A TYPO that we use group.get("host") here -- whether the Mapping supplies
+            # "hostname" or "host", the Mapping code normalizes to "host" internally.
+            group_glob = group.get('host') or None  # NOT A TYPO: see above.
 
             if group_glob:
                 host_match = hostglob_matches(self.hostname, group_glob)
                 self.logger.debug("-- hostname %s group glob %s => %s", self.hostname, group_glob, host_match)
 
-        selector = self.get('selector')
+        mapsel = self.get('mappingSelector')
 
-        if selector:
-            sel_match = selector_matches(self.logger, selector, group.get('metadata_labels', {}))
-            self.logger.debug("-- host sel %s group labels %s => %s", 
-                             dump_json(selector), dump_json(group.get('metadata_labels')), sel_match)
+        if mapsel:
+            sel_match = selector_matches(self.logger, mapsel, group.get('metadata_labels', {}))
+            self.logger.debug("-- host sel %s group labels %s => %s",
+                             dump_json(mapsel), dump_json(group.get('metadata_labels')), sel_match)
 
         return host_match or sel_match
 
@@ -448,14 +467,14 @@ class HostFactory:
             if found_termination_context:
                 ir.post_error("No Hosts defined, but TLSContexts exist that terminate TLS. The TLSContexts are being ignored.")
 
-            # If we don't have a fallback secret, don't try to use it. 
+            # If we don't have a fallback secret, don't try to use it.
             #
-            # We use the Ambassador's namespace here because we'll be creating the 
+            # We use the Ambassador's namespace here because we'll be creating the
             # fallback Host in the Ambassador's namespace.
             fallback_ss = ir.resolve_secret(ir.ambassador_module, "fallback-self-signed-cert", ir.ambassador_namespace)
 
             host: IRHost
-        
+
             if not fallback_ss:
                 ir.aconf.post_notice("No TLS termination and no fallback cert -- defaulting to cleartext-only.")
                 ir.logger.debug("HostFactory: creating cleartext-only default host")

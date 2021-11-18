@@ -1,15 +1,21 @@
 package testutils
 
 import (
+	// standard library
 	"fmt"
 	"sort"
 	"strings"
 
-	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
-	http "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	// envoy api v3
+	apiv3_bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
+	apiv3_httpman "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+
+	// envoy control plane
+	ecp_v3_resource "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
+	ecp_wellknown "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+
+	// first-party libraries
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
@@ -92,7 +98,7 @@ type RenderedListener struct {
 	ChainList []*RenderedChain          `json:"chains"`
 }
 
-func (rl *RenderedListener) AddChain(rchain *RenderedChain) {
+func (rl *RenderedListener) AddChain(rchain *RenderedChain) error {
 	hostname := "*"
 
 	if len(rchain.ServerNames) > 0 {
@@ -104,12 +110,13 @@ func (rl *RenderedListener) AddChain(rchain *RenderedChain) {
 	extant := rl.GetChain(hostname, xport)
 
 	if extant != nil {
-		panic(fmt.Errorf("chain for %s, %s already exists in %s", hostname, xport, rl.Name))
+		return fmt.Errorf("chain for %s, %s already exists in %s", hostname, xport, rl.Name)
 	}
 
 	key := fmt.Sprintf("%s-%s", hostname, xport)
 
 	rl.Chains[key] = rchain
+	return nil
 }
 
 func (rl *RenderedListener) GetChain(hostname string, xport string) *RenderedChain {
@@ -127,7 +134,7 @@ func NewRenderedListener(name string, port uint32) RenderedListener {
 	}
 }
 
-func NewAmbassadorListener(port uint32) RenderedListener {
+func NewListener(port uint32) RenderedListener {
 	return RenderedListener{
 		Name:   fmt.Sprintf("ambassador-listener-0.0.0.0-%d", port),
 		Port:   port,
@@ -135,18 +142,18 @@ func NewAmbassadorListener(port uint32) RenderedListener {
 	}
 }
 
-func NewAmbassadorMapping(name string, pfx string) v3alpha1.AmbassadorMapping {
-	return v3alpha1.AmbassadorMapping{
+func NewMapping(name string, pfx string) v3alpha1.Mapping {
+	return v3alpha1.Mapping{
 		TypeMeta:   kates.TypeMeta{Kind: "Mapping"},
 		ObjectMeta: kates.ObjectMeta{Namespace: "default", Name: name},
-		Spec: v3alpha1.AmbassadorMappingSpec{
+		Spec: v3alpha1.MappingSpec{
 			Prefix:  pfx,
 			Service: "127.0.0.1:8877",
 		},
 	}
 }
 
-func JSONifyRenderedListeners(renderedListeners []RenderedListener) string {
+func JSONifyRenderedListeners(renderedListeners []RenderedListener) (string, error) {
 	// Why is this needed? JSONifying renderedListeners directly always
 	// shows empty listeners -- kinda feels like something's getting copied
 	// in a way I'm not awake enough to follow right now.
@@ -218,7 +225,7 @@ type Candidate struct {
 	ActionArg string
 }
 
-func RenderEnvoyConfig(envoyConfig *bootstrap.Bootstrap) []RenderedListener {
+func RenderEnvoyConfig(envoyConfig *apiv3_bootstrap.Bootstrap) ([]RenderedListener, error) {
 	renderedListeners := make([]RenderedListener, 0, 2)
 
 	for _, l := range envoyConfig.StaticResources.Listeners {
@@ -233,7 +240,7 @@ func RenderEnvoyConfig(envoyConfig *bootstrap.Bootstrap) []RenderedListener {
 			rchain := NewRenderedChain(chain.FilterChainMatch.ServerNames, chain.FilterChainMatch.TransportProtocol)
 
 			for _, filter := range chain.Filters {
-				if filter.Name != wellknown.HTTPConnectionManager {
+				if filter.Name != ecp_wellknown.HTTPConnectionManager {
 					// We only know how to create an rds listener for HttpConnectionManager
 					// listeners. We must ignore all other listeners.
 					continue
@@ -241,14 +248,14 @@ func RenderEnvoyConfig(envoyConfig *bootstrap.Bootstrap) []RenderedListener {
 
 				// Note that the hcm configuration is stored in a protobuf any, so make
 				// sure that GetHTTPConnectionManager is actually returning an unmarshalled copy.
-				hcm := resource.GetHTTPConnectionManager(filter)
+				hcm := ecp_v3_resource.GetHTTPConnectionManager(filter)
 				if hcm == nil {
 					continue
 				}
 
 				// RouteSpecifier is a protobuf oneof that corresponds to the rds, route_config, and
 				// scoped_routes fields. Only one of those may be set at a time.
-				rs, ok := hcm.RouteSpecifier.(*http.HttpConnectionManager_RouteConfig)
+				rs, ok := hcm.RouteSpecifier.(*apiv3_httpman.HttpConnectionManager_RouteConfig)
 				if !ok {
 					continue
 				}
@@ -358,11 +365,13 @@ func RenderEnvoyConfig(envoyConfig *bootstrap.Bootstrap) []RenderedListener {
 				}
 			}
 
-			rlistener.AddChain(&rchain)
+			if err := rlistener.AddChain(&rchain); err != nil {
+				return nil, err
+			}
 		}
 
 		renderedListeners = append(renderedListeners, rlistener)
 	}
 
-	return renderedListeners
+	return renderedListeners, nil
 }

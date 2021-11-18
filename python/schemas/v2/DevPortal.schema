@@ -1,58 +1,118 @@
 {
-    "$schema": "http://json-schema.org/schema#",
     "id": "https://getambassador.io/schemas/devportal.json",
-
+    "$schema": "http://json-schema.org/schema#",
     "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name"
+    ],
     "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v2" ] },
-        "generation": { "type": "integer" },
-        "kind": { "type": "string" },
-        "name": { "type": "string" },
-        "namespace": { "type": "string" },
-        "metadata_labels": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
-        },
         "ambassador_id": {
             "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
             ]
         },
-        "default": { "type": "boolean" },
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v2"
+            ]
+        },
+        "content": {
+            "type": "object",
+            "properties": {
+                "branch": {
+                    "type": "string"
+                },
+                "dir": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "default": {
+            "type": "boolean"
+        },
         "docs": {
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
-                    "url": { "type": "string" },
-                    "service": { "type": "string" }
+                    "service": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    }
                 },
                 "additionalProperties": false
             },
             "additionalProperties": false
         },
-        "content": {
+        "generation": {
+            "type": "integer"
+        },
+        "kind": {
+            "type": "string"
+        },
+        "metadata_labels": {
             "type": "object",
-            "properties": {
-                "url": { "type": "string" },
-                "branch": { "type": "string" },
-                "dir": { "type": "string" }
-            },
-            "additionalProperties": false
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "preserve_servers": {
+            "type": "boolean"
         },
         "selector": {
             "type": "object",
             "properties": {
-                "matchNamespaces": { "type": "array", "items": { "type": "string" } },
                 "matchLabels": {
                     "type": "object",
-                    "additionalProperties": { "type": [ "string", "object" ] }
+                    "additionalProperties": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "object"
+                            }
+                        ]
+                    }
+                },
+                "matchNamespaces": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             },
             "additionalProperties": false
         }
     },
-    "required": [ "apiVersion", "kind", "name" ],
     "additionalProperties": false
 }

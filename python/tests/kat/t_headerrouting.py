@@ -24,8 +24,8 @@ class HeaderRoutingTest(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target1
 hostname: "*"
 prefix: /{self.name}/
@@ -33,8 +33,8 @@ service: http://{self.target.path.fqdn}
 """)
         yield self.target2, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target2
 hostname: "*"
 prefix: /{self.name}/
@@ -115,7 +115,7 @@ class AuthenticationHeaderRouting(AmbassadorTest):
 
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -129,8 +129,8 @@ allowed_authorization_headers:
 """)
         yield self.target1, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target1
 hostname: "*"
 prefix: /target/
@@ -138,8 +138,8 @@ service: http://{self.target1.path.fqdn}
 """)
         yield self.target2, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target2
 hostname: "*"
 prefix: /target/

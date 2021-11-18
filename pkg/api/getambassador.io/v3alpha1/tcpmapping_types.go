@@ -13,7 +13,7 @@
 // limitations under the License.
 
 ///////////////////////////////////////////////////////////////////////////
-// Important: Run "make update-yaml" to regenerate code after modifying
+// Important: Run "make generate-fast" to regenerate code after modifying
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
@@ -21,13 +21,11 @@ package v3alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	ambv2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 )
 
-// AmbassadorTCPMappingSpec defines the desired state of AmbassadorTCPMapping
-type AmbassadorTCPMappingSpec struct {
-	AmbassadorID ambv2.AmbassadorID `json:"ambassador_id,omitempty"`
+// TCPMappingSpec defines the desired state of TCPMapping
+type TCPMappingSpec struct {
+	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
 	// Port isn't a pointer because it's required.
 	// +kubebuilder:validation:Required
@@ -35,40 +33,41 @@ type AmbassadorTCPMappingSpec struct {
 	Host    string `json:"host,omitempty"`
 	Address string `json:"address,omitempty"`
 	// +kubebuilder:validation:Required
-	Service         string                 `json:"service,omitempty"`
-	EnableIPv4      *bool                  `json:"enable_ipv4,omitempty"`
-	EnableIPv6      *bool                  `json:"enable_ipv6,omitempty"`
-	CircuitBreakers []ambv2.CircuitBreaker `json:"circuit_breakers,omitempty"`
+	Service         string           `json:"service,omitempty"`
+	EnableIPv4      *bool            `json:"enable_ipv4,omitempty"`
+	EnableIPv6      *bool            `json:"enable_ipv6,omitempty"`
+	CircuitBreakers []CircuitBreaker `json:"circuit_breakers,omitempty"`
 
 	// FIXME(lukeshu): Surely this should be an 'int'?
 	IdleTimeoutMs string `json:"idle_timeout_ms,omitempty"`
 
-	Resolver   string              `json:"resolver,omitempty"`
-	TLS        *ambv2.BoolOrString `json:"tls,omitempty"`
-	Weight     *int                `json:"weight,omitempty"`
-	ClusterTag string              `json:"cluster_tag,omitempty"`
-	StatsName  string              `json:"stats_name,omitempty"`
+	Resolver   string `json:"resolver,omitempty"`
+	TLS        string `json:"tls,omitempty"`
+	Weight     *int   `json:"weight,omitempty"`
+	ClusterTag string `json:"cluster_tag,omitempty"`
+	StatsName  string `json:"stats_name,omitempty"`
 }
 
-// AmbassadorTCPMapping is the Schema for the tcpmappings API
+// TCPMapping is the Schema for the tcpmappings API
 //
 // +kubebuilder:object:root=true
-type AmbassadorTCPMapping struct {
+// +kubebuilder:storageversion
+type TCPMapping struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec AmbassadorTCPMappingSpec `json:"spec,omitempty"`
+	Spec TCPMappingSpec `json:"spec,omitempty"`
 }
 
-// AmbassadorTCPMappingList contains a list of AmbassadorTCPMappings.
+// TCPMappingList contains a list of TCPMappings.
 //
 // +kubebuilder:object:root=true
-type AmbassadorTCPMappingList struct {
+type TCPMappingList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []AmbassadorTCPMapping `json:"items"`
+	Items           []TCPMapping `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&AmbassadorTCPMapping{}, &AmbassadorTCPMappingList{})
+	SchemeBuilder.Register(&TCPMapping{}, &TCPMappingList{})
 }

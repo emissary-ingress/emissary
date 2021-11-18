@@ -1,10 +1,5 @@
 package v3alpha1
 
-// Note that getambassador.io/v2 contains many more CRDs than does
-// getambassador.io/v3alpha1. This test only covers the CRDs that are
-// only in v3alpha1 -- v2 resources are tested by their own roundtrip
-// test.
-
 import (
 	"encoding/json"
 	"io/ioutil"
@@ -13,18 +8,57 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"sigs.k8s.io/yaml"
 )
 
-// Need AmbassadorListener and AmbassadorHost too...
+func TestAuthSvcRoundTrip(t *testing.T) {
+	var a []AuthService
+	checkRoundtrip(t, "authsvc.yaml", &a)
+}
+
+func TestDevPortalRoundTrip(t *testing.T) {
+	var d []DevPortal
+	checkRoundtrip(t, "devportals.yaml", &d)
+}
+
+func TestHostRoundTrip(t *testing.T) {
+	var h []Host
+	checkRoundtrip(t, "hosts.yaml", &h)
+}
+
+func TestLogSvcRoundTrip(t *testing.T) {
+	var l []LogService
+	checkRoundtrip(t, "logsvc.yaml", &l)
+}
 
 func TestMappingRoundTrip(t *testing.T) {
-	var m []AmbassadorMapping
-	checkRoundtrip(t, "mappings.json", &m)
+	var m []Mapping
+	checkRoundtrip(t, "mappings.yaml", &m)
+}
+
+func TestModuleRoundTrip(t *testing.T) {
+	var m []Module
+	checkRoundtrip(t, "modules.yaml", &m)
+}
+
+func TestRateLimitSvcRoundTrip(t *testing.T) {
+	var r []RateLimitService
+	checkRoundtrip(t, "ratelimitsvc.yaml", &r)
 }
 
 func TestTCPMappingRoundTrip(t *testing.T) {
-	var tm []AmbassadorTCPMapping
-	checkRoundtrip(t, "tcpmappings.json", &tm)
+	var tm []TCPMapping
+	checkRoundtrip(t, "tcpmappings.yaml", &tm)
+}
+
+func TestTLSContextRoundTrip(t *testing.T) {
+	var tc []TLSContext
+	checkRoundtrip(t, "tlscontexts.yaml", &tc)
+}
+
+func TestTracingSvcRoundTrip(t *testing.T) {
+	var tr []TracingService
+	checkRoundtrip(t, "tracingsvc.yaml", &tr)
 }
 
 func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
@@ -33,7 +67,7 @@ func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
 
 	canonical := func() string {
 		var untyped interface{}
-		err = json.Unmarshal(bytes, &untyped)
+		err = yaml.Unmarshal(bytes, &untyped)
 		require.NoError(t, err)
 		canonical, err := json.MarshalIndent(untyped, "", "\t")
 		require.NoError(t, err)
@@ -44,7 +78,7 @@ func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
 		// Round-trip twice, to get map field ordering, instead of struct field ordering.
 
 		// first
-		err = json.Unmarshal(bytes, ptr)
+		err = yaml.UnmarshalStrict(bytes, ptr)
 		require.NoError(t, err)
 		first, err := json.Marshal(ptr)
 		require.NoError(t, err)

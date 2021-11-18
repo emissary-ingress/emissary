@@ -13,7 +13,7 @@
 // limitations under the License.
 
 ///////////////////////////////////////////////////////////////////////////
-// Important: Run "make update-yaml" to regenerate code after modifying
+// Important: Run "make generate-fast" to regenerate code after modifying
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
@@ -22,14 +22,12 @@ package v3alpha1
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	ambv2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 )
 
 type ACMEProviderSpec struct {
 	// Specifies who to talk ACME with to get certs. Defaults to Let's
 	// Encrypt; if "none" (case-insensitive), do not try to do ACME for
-	// this AmbassadorHost.
+	// this Host.
 	Authority string `json:"authority,omitempty"`
 	Email     string `json:"email,omitempty"`
 
@@ -81,24 +79,35 @@ type PreviewURLSpec struct {
 // +kubebuilder:validation:Enum={"Path"}
 type PreviewURLType string
 
-// AmbassadorHostSpec defines the desired state of AmbassadorHost
-type AmbassadorHostSpec struct {
+// HostSpec defines the desired state of Host
+type HostSpec struct {
 	// Common to all Ambassador objects (and optional).
-	AmbassadorID ambv2.AmbassadorID `json:"ambassador_id,omitempty"`
+	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
+	// A compatibility alias for "ambassador_id"; because Host
+	// used to be specified with protobuf, and jsonpb allowed
+	// either "ambassador_id" or "ambassadorId", and even though
+	// we didn't tell people about "ambassadorId" it's what the
+	// web policy console generated because of jsonpb.  So Hosts
+	// with 'ambassadorId' exist in the wild.
+	DeprecatedAmbassadorID AmbassadorID `json:"ambassadorId,omitempty"`
 
 	// Hostname by which the Ambassador can be reached.
 	Hostname string `json:"hostname,omitempty"`
 
-	// Selector by which we can find further configuration.
+	// DEPRECATED: Selector by which we can find further configuration. Use MappingSelector instead.
 	Selector *metav1.LabelSelector `json:"selector,omitempty"`
 
+	// Selector for Mappings we'll associate with this Host. At the moment, Selector and
+	// MappingSelector are synonyms, but that will change soon.
+	MappingSelector *metav1.LabelSelector `json:"mappingSelector,omitempty"`
+
 	// Specifies whether/who to talk ACME with to automatically manage the $tlsSecret.
-	AcmeProvider *ambv2.ACMEProviderSpec `json:"acmeProvider,omitempty"`
+	AcmeProvider *ACMEProviderSpec `json:"acmeProvider,omitempty"`
 
 	// Name of the Kubernetes secret into which to save generated
 	// certificates.  If ACME is enabled (see $acmeProvider), then the
 	// default is $hostname; otherwise the default is "".  If the value
-	// is "", then we do not do TLS for this AmbassadorHost.
+	// is "", then we do not do TLS for this Host.
 	//
 	// Note that this is a native-Kubernetes-style core.v1.LocalObjectReference, not
 	// an Ambassador-style `{name}.{namespace}` string.  Because we're opinionated, it
@@ -115,7 +124,7 @@ type AmbassadorHostSpec struct {
 	// Configuration for the Preview URL feature of Service Preview. Defaults to preview URLs not enabled.
 	PreviewUrl *PreviewURLSpec `json:"previewUrl,omitempty"`
 
-	// Name of the TLSContext the AmbassadorHost resource is linked with.
+	// Name of the TLSContext the Host resource is linked with.
 	// It is not valid to specify both `tlsContext` and `tls`.
 	//
 	// Note that this is a native-Kubernetes-style core.v1.LocalObjectReference, not
@@ -129,7 +138,22 @@ type AmbassadorHostSpec struct {
 
 	// TLS configuration.  It is not valid to specify both
 	// `tlsContext` and `tls`.
-	TLS *ambv2.TLSConfig `json:"tls,omitempty"`
+	TLS *TLSConfig `json:"tls,omitempty"`
+}
+
+type TLSConfig struct {
+	CertChainFile         string   `json:"cert_chain_file,omitempty"`
+	PrivateKeyFile        string   `json:"private_key_file,omitempty"`
+	CASecret              string   `json:"ca_secret,omitempty"`
+	CAcertChainFile       string   `json:"cacert_chain_file,omitempty"`
+	AlpnProtocols         string   `json:"alpn_protocols,omitempty"`
+	CertRequired          *bool    `json:"cert_required,omitempty"`
+	MinTLSVersion         string   `json:"min_tls_version,omitempty"`
+	MaxTLSVersion         string   `json:"max_tls_version,omitempty"`
+	CipherSuites          []string `json:"cipher_suites,omitempty"`
+	ECDHCurves            []string `json:"ecdh_curves,omitempty"`
+	RedirectCleartextFrom *int     `json:"redirect_cleartext_from,omitempty"`
+	SNI                   string   `json:"sni,omitempty"`
 }
 
 // The first value listed in the Enum marker becomes the "zero" value,
@@ -141,24 +165,24 @@ type AmbassadorHostSpec struct {
 //
 // +kubebuilder:validation:Type=string
 // +kubebuilder:validation:Enum={"Initial","Pending","Ready","Error"}
-type AmbassadorHostState int
+type HostState int
 
 // +kubebuilder:validation:Type=string
 // +kubebuilder:validation:Enum={"NA","DefaultsFilled","ACMEUserPrivateKeyCreated","ACMEUserRegistered","ACMECertificateChallenge"}
-type AmbassadorHostPhase int
+type HostPhase int
 
-// AmbassadorHostStatus defines the observed state of AmbassadorHost
-type AmbassadorHostStatus struct {
-	TLSCertificateSource AmbassadorHostTLSCertificateSource `json:"tlsCertificateSource,omitempty"`
+// HostStatus defines the observed state of Host
+type HostStatus struct {
+	TLSCertificateSource HostTLSCertificateSource `json:"tlsCertificateSource,omitempty"`
 
-	State AmbassadorHostState `json:"state,omitempty"`
+	State HostState `json:"state,omitempty"`
 
 	// phaseCompleted and phasePending are valid when state==Pending or
 	// state==Error.
-	PhaseCompleted AmbassadorHostPhase `json:"phaseCompleted,omitempty"`
+	PhaseCompleted HostPhase `json:"phaseCompleted,omitempty"`
 	// phaseCompleted and phasePending are valid when state==Pending or
 	// state==Error.
-	PhasePending AmbassadorHostPhase `json:"phasePending,omitempty"`
+	PhasePending HostPhase `json:"phasePending,omitempty"`
 
 	// errorReason, errorTimestamp, and errorBackoff are valid when state==Error.
 	ErrorReason    string           `json:"errorReason,omitempty"`
@@ -167,9 +191,9 @@ type AmbassadorHostStatus struct {
 }
 
 // +kubebuilder:validation:Enum={"Unknown","None","Other","ACME"}
-type AmbassadorHostTLSCertificateSource string
+type HostTLSCertificateSource string
 
-// AmbassadorHost is the Schema for the hosts API
+// Host is the Schema for the hosts API
 //
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
@@ -178,23 +202,24 @@ type AmbassadorHostTLSCertificateSource string
 // +kubebuilder:printcolumn:name="Phase Completed",type=string,JSONPath=`.status.phaseCompleted`
 // +kubebuilder:printcolumn:name="Phase Pending",type=string,JSONPath=`.status.phasePending`
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
-type AmbassadorHost struct {
+// +kubebuilder:storageversion
+type Host struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   *AmbassadorHostSpec  `json:"spec,omitempty"`
-	Status AmbassadorHostStatus `json:"status,omitempty"`
+	Spec   *HostSpec  `json:"spec,omitempty"`
+	Status HostStatus `json:"status,omitempty"`
 }
 
-// AmbassadorHostList contains a list of AmbassadorHosts.
+// HostList contains a list of Hosts.
 //
 // +kubebuilder:object:root=true
-type AmbassadorHostList struct {
+type HostList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []AmbassadorHost `json:"items"`
+	Items           []Host `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&AmbassadorHost{}, &AmbassadorHostList{})
+	SchemeBuilder.Register(&Host{}, &HostList{})
 }

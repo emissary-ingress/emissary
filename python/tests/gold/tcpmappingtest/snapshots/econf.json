@@ -41,6 +41,76 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "tcpmappingtest_http_target2_other_namespace_443",
+        "connect_timeout": "3.000s",
+        "dns_lookup_family": "V4_ONLY",
+        "lb_policy": "ROUND_ROBIN",
+        "load_assignment": {
+          "cluster_name": "cluster_https___tcpmappingtest_http_targ-0",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "tcpmappingtest-http-target2.other-namespace",
+                        "port_value": 443,
+                        "protocol": "TCP"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "cluster_https___tcpmappingtest_http_targ-0",
+        "transport_socket": {
+          "name": "envoy.transport_sockets.tls",
+          "typed_config": {
+            "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
+            "common_tls_context": {}
+          }
+        },
+        "type": "STRICT_DNS"
+      },
+      {
+        "alt_stat_name": "tcpmappingtest_http_target3_tcp_namespace",
+        "connect_timeout": "3.000s",
+        "dns_lookup_family": "V4_ONLY",
+        "lb_policy": "ROUND_ROBIN",
+        "load_assignment": {
+          "cluster_name": "cluster_https___tcpmappingtest_http_targ-1",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "tcpmappingtest-http-target3.tcp-namespace",
+                        "port_value": 443,
+                        "protocol": "TCP"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "cluster_https___tcpmappingtest_http_targ-1",
+        "transport_socket": {
+          "name": "envoy.transport_sockets.tls",
+          "typed_config": {
+            "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
+            "common_tls_context": {}
+          }
+        },
+        "type": "STRICT_DNS"
+      },
+      {
         "alt_stat_name": "tcpmappingtest_http_target1_tcp_namespace_443",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
@@ -97,7 +167,7 @@
         "type": "STRICT_DNS"
       },
       {
-        "alt_stat_name": "tcpmappingtest_http_target2_other_namespace_443",
+        "alt_stat_name": "tcpmappingtest_http_target2_other_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -126,41 +196,6 @@
           "name": "envoy.transport_sockets.tls",
           "typed_config": {
             "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
-            "common_tls_context": {}
-          }
-        },
-        "type": "STRICT_DNS"
-      },
-      {
-        "alt_stat_name": "tcpmappingtest_http_target2_other_namespace",
-        "connect_timeout": "3.000s",
-        "dns_lookup_family": "V4_ONLY",
-        "lb_policy": "ROUND_ROBIN",
-        "load_assignment": {
-          "cluster_name": "cluster_tcpmappingtest_http_target2_othe-1",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "tcpmappingtest-http-target2.other-namespace",
-                        "port_value": 443,
-                        "protocol": "TCP"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "cluster_tcpmappingtest_http_target2_othe-1",
-        "transport_socket": {
-          "name": "envoy.transport_sockets.tls",
-          "typed_config": {
-            "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
             "common_tls_context": {
               "tls_certificates": [
                 {
@@ -173,41 +208,6 @@
                 }
               ]
             }
-          }
-        },
-        "type": "STRICT_DNS"
-      },
-      {
-        "alt_stat_name": "tcpmappingtest_http_target3_tcp_namespace",
-        "connect_timeout": "3.000s",
-        "dns_lookup_family": "V4_ONLY",
-        "lb_policy": "ROUND_ROBIN",
-        "load_assignment": {
-          "cluster_name": "cluster_tcpmappingtest_http_target3_tcp_-0",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "tcpmappingtest-http-target3.tcp-namespace",
-                        "port_value": 443,
-                        "protocol": "TCP"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "cluster_tcpmappingtest_http_target3_tcp_-0",
-        "transport_socket": {
-          "name": "envoy.transport_sockets.tls",
-          "typed_config": {
-            "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
-            "common_tls_context": {}
           }
         },
         "type": "STRICT_DNS"
@@ -240,7 +240,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/dev/fd/1"
                       }
                     }
@@ -347,8 +351,7 @@
                   },
                   "server_name": "envoy",
                   "stat_prefix": "ingress_https",
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ],
@@ -383,7 +386,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/dev/fd/1"
                       }
                     }
@@ -656,8 +663,7 @@
                   },
                   "server_name": "envoy",
                   "stat_prefix": "ingress_https",
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ]
@@ -679,7 +685,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/dev/fd/1"
                       }
                     }
@@ -786,8 +796,7 @@
                   },
                   "server_name": "envoy",
                   "stat_prefix": "ingress_https",
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ],
@@ -827,7 +836,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/dev/fd/1"
                       }
                     }
@@ -934,8 +947,7 @@
                   },
                   "server_name": "envoy",
                   "stat_prefix": "ingress_https",
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ],
@@ -992,7 +1004,7 @@
                   "weighted_clusters": {
                     "clusters": [
                       {
-                        "name": "cluster_tcpmappingtest_http_target3_tcp_-0",
+                        "name": "cluster_https___tcpmappingtest_http_targ-1",
                         "weight": 100
                       }
                     ]
@@ -1035,7 +1047,7 @@
                   "weighted_clusters": {
                     "clusters": [
                       {
-                        "name": "cluster_tcpmappingtest_http_target2_othe-1",
+                        "name": "cluster_tcpmappingtest_http_target2_othe-0",
                         "weight": 100
                       }
                     ]
@@ -1134,7 +1146,7 @@
                   "weighted_clusters": {
                     "clusters": [
                       {
-                        "name": "cluster_tcpmappingtest_http_target2_othe-0",
+                        "name": "cluster_https___tcpmappingtest_http_targ-0",
                         "weight": 100
                       }
                     ]

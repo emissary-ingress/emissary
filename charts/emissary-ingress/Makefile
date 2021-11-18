@@ -1,24 +1,42 @@
 HELM_TEST_IMAGE = quay.io/helmpack/chart-testing:v3.0.0-rc.1
-K3D_CLUSTER_NAME = helm-chart-test-cluster
+HELM_TEST_VALUES ?=
 CHART_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 CHART_KUBECONFIG := /tmp/kubeconfig/k3dconfig
-CT_EXEC = docker run --rm -v $(CHART_KUBECONFIG):/root/.kube/config -v $(CHART_DIR):/charts --network host $(HELM_TEST_IMAGE) ct
 K3D_EXEC := KUBECONFIG=$(CHART_KUBECONFIG) k3d
 
+K3S_VERSION      = 1.22.2+k3s1
+K3D_CLUSTER_NAME = helm-chart-test-cluster
+K3D_ARGS         = --k3s-server-arg=--no-deploy=traefik
+
 test-chart: lint-chart preflight-chart-test chart-create-cluster
-	$(CT_EXEC) install --config /charts/ct.yaml && \
-		$(MAKE) chart-delete-cluster
+	rm -rf $(CHART_DIR)/ci.tmp
+	cp -a $(CHART_DIR)/ci $(CHART_DIR)/ci.tmp
+	$(if $(HELM_TEST_VALUES),for file in $(CHART_DIR)/ci.tmp/*-values.yaml; do cat $(HELM_TEST_VALUES) >> "$$file"; done)
+	{ docker run --rm \
+	  --network=host \
+	  --volume=$(CHART_KUBECONFIG):/root/.kube/config \
+	  --volume=$(CHART_DIR):/charts \
+	  --volume=$(CHART_DIR)/ci.tmp:/charts/ci \
+	  $(HELM_TEST_IMAGE) \
+	  ct install --config=/charts/ct.yaml; }
+	$(MAKE) chart-delete-cluster
 .PHONY: test-chart
 
 lint-chart: preflight-kubeconfig
-	$(CT_EXEC) lint --config /charts/ct.yaml
+# This does NOT have the extra ci.tmp volume that the chart-test rule has.
+	{ docker run --rm \
+	  --network=host \
+	  --volume=$(CHART_KUBECONFIG):/root/.kube/config \
+	  --volume=$(CHART_DIR):/charts \
+	  $(HELM_TEST_IMAGE) \
+	  ct lint --config /charts/ct.yaml; }
 .PHONY: lint-chart
 
 preflight-chart-test: preflight-kubeconfig
 	# check if k3d is installed
 	@if ! command -v k3d 2> /dev/null ; then \
-		printf 'k3d not installed, plz do that'; \
-	    false; \
+	  echo 'k3d not installed, plz do that'; \
+	  false; \
 	fi
 .PHONY: preflight-chart-test
 
@@ -29,7 +47,7 @@ preflight-kubeconfig:
 
 chart-create-cluster: preflight-kubeconfig
 	$(MAKE) chart-delete-cluster || true
-	$(K3D_EXEC) cluster create $(K3D_CLUSTER_NAME) --k3s-server-arg "--no-deploy=traefik"
+	$(K3D_EXEC) cluster create $(K3D_CLUSTER_NAME) --image=docker.io/rancher/k3s:v$(subst +,-,$(K3S_VERSION)) $(K3D_ARGS)
 .PHONY: chart-create-cluster
 
 chart-delete-cluster:

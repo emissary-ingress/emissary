@@ -14,8 +14,8 @@ runs:
       name: "Configure system file and inotify maximums (1600000/4096)"
     - uses: actions/setup-python@v2
       with:
-        python-version: '^3.9.5'
-      name: "Install Python (^3.9.5)"
+        python-version: '~3.9.5'
+      name: "Install Python (~3.9.5)"
     - run: python --version
       shell: bash
       name: "Check python installed"
@@ -36,7 +36,7 @@ runs:
           export AMBASSADOR_LEGACY_MODE=${{ matrix.pytest-settings.legacy-mode }}
           export AMBASSADOR_FAST_RECONFIGURE=${{ matrix.pytest-settings.fast-reconfigure }}
           export TEST_XML_DIR=/tmp/test-logs/xml/
-          export DEV_KUBECONFIG=~/.kube/kubeception.yaml
+          export DEV_KUBECONFIG=~/.kube/config
           mkdir -p ${TEST_XML_DIR}
           make pytest-${{ matrix.test }}
     - uses: ./.github/actions/git-dirty-check

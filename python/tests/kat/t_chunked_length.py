@@ -11,14 +11,14 @@ class AllowChunkedLengthTestTrue(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: ambassador
 kind:  Module
 name:  ambassador
 config:
   allow_chunked_length: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind:  AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind:  Mapping
 name:  {self.target.path.k8s}-foo
 prefix: /foo/
 hostname: "*"

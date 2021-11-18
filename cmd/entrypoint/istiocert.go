@@ -34,7 +34,7 @@ func newIstioCertSource() IstioCertSource {
 // Watch sets up to watch for an Istio cert on the filesystem, if need be. This
 // is the production implementation, which returns an istioCertWatcher to implement
 // the IstioCertWatcher interface.
-func (src *istioCertSource) Watch(ctx context.Context) IstioCertWatcher {
+func (src *istioCertSource) Watch(ctx context.Context) (IstioCertWatcher, error) {
 	// We can watch the filesystem for Istio mTLS certificates. Here, we fire
 	// up the stuff we need to do that -- specifically, we need an FSWatcher
 	// to watch the filesystem, an IstioCert to manage the cert, and an update
@@ -57,10 +57,8 @@ func (src *istioCertSource) Watch(ctx context.Context) IstioCertWatcher {
 
 		// Next up, fire up the FSWatcher...
 		fsw, err := NewFSWatcher(ctx)
-
 		if err != nil {
-			// Really, this should never, ever happen.
-			panic(err)
+			return nil, err
 		}
 
 		// ...then tell the FSWatcher to watch the Istio cert directory,
@@ -69,7 +67,7 @@ func (src *istioCertSource) Watch(ctx context.Context) IstioCertWatcher {
 		//
 		// XXX This handler function is really just an impedance matcher.
 		// Maybe IstioCert should just have a "HandleFSWEvent"...
-		fsw.WatchDir(ctx, secretDir,
+		err = fsw.WatchDir(ctx, secretDir,
 			func(ctx context.Context, event FSWEvent) {
 				// Is this a deletion?
 				deleted := (event.Op == FSWDelete)
@@ -78,11 +76,15 @@ func (src *istioCertSource) Watch(ctx context.Context) IstioCertWatcher {
 				icert.HandleEvent(ctx, event.Path, deleted)
 			},
 		)
+		if err != nil {
+			dlog.Errorf(ctx, "FileSystemWatcher.WatchDir(ctx, %q, fn) => %v",
+				secretDir, err)
+		}
 	}
 
 	return &istioCertWatcher{
 		updateChannel: istioCertUpdateChannel,
-	}
+	}, nil
 }
 
 // Changed returns the channel where Istio certificates will appear.

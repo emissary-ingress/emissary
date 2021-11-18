@@ -9,8 +9,8 @@ runs:
       name: Set Unique Test prefix (gotests-legacy-mode.${{ matrix.gotest-settings.legacy-mode }}-fast-reconfigure.${{ matrix.gotest-settings.fast-reconfigure }})
     - uses: actions/setup-python@v2
       with:
-        python-version: '^3.9.5'
-      name: "Install Python (^3.9.5)"
+        python-version: '~3.9.5'
+      name: "Install Python (~3.9.5)"
     - run: python --version
       shell: bash
       name: "Check python installed"
@@ -20,11 +20,6 @@ runs:
           awscli
           packaging
       name: "Install Python requirements with pip"
-    - uses: azure/setup-kubectl@v1
-      id: install
-      with:
-        version: 'v1.19.12'
-      name: "Install kubectl (v1.19.12)" # maybe not?
     - uses: actions/setup-go@v2
       with:
         go-version: '^1.15.0' # The Go version to download (if necessary) and use.

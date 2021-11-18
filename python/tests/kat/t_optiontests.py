@@ -1,7 +1,7 @@
 import json
 import pytest
 
-from typing import ClassVar, Dict, Sequence, Any
+from typing import Any, ClassVar, Dict, Sequence, Union
 
 from kat.harness import Query, Test
 
@@ -14,9 +14,9 @@ class AddRequestHeaders(OptionTest):
 
     parent: Test
 
-    VALUES: ClassVar[Sequence[Dict[str, Any]]] = (
-        { "foo": "bar" },
-        { "moo": "arf" },
+    VALUES: ClassVar[Sequence[Dict[str, Dict[str, Union[str, bool]]]]] = (
+        { "foo": { "value": "bar" } },
+        { "moo": { "value": "arf" } },
         { "zoo": {
             "append": True,
             "value": "bar"
@@ -47,9 +47,9 @@ class AddResponseHeaders(OptionTest):
 
     parent: Test
 
-    VALUES: ClassVar[Sequence[Dict[str, str]]] = (
-        { "foo": "bar" },
-        { "moo": "arf" },
+    VALUES: ClassVar[Sequence[Dict[str, Dict[str, Union[str, bool]]]]] = (
+        { "foo": { "value": "bar" } },
+        { "moo": { "value": "arf" } },
         { "zoo": {
             "append": True,
             "value": "bar"
@@ -95,7 +95,7 @@ class CORS(OptionTest):
     parent: MappingTest
 
     def config(self):
-        yield 'cors: { origins: "*" }'
+        yield 'cors: { origins: ["*"] }'
 
     def queries(self):
         for q in self.parent.queries():
@@ -172,7 +172,7 @@ class RemoveResponseHeaders(OptionTest):
     parent: Test
 
     def config(self):
-        yield "remove_response_headers: x-envoy-upstream-service-time"
+        yield "remove_response_headers: [x-envoy-upstream-service-time]"
 
     def check(self):
         for r in self.parent.results:

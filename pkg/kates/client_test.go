@@ -17,16 +17,17 @@ import (
 	dtest_k3s "github.com/datawire/dtest"
 )
 
-func testClient(t *testing.T) *Client {
-	ctx := dlog.NewTestContext(t, false)
-	cli, err := NewClient(ClientConfig{Kubeconfig: dtest_k3s.Kubeconfig(ctx)})
+func testClient(t *testing.T, ctx context.Context) (context.Context, *Client) {
+	if ctx == nil {
+		ctx = dlog.NewTestContext(t, false)
+	}
+	cli, err := NewClient(ClientConfig{Kubeconfig: dtest_k3s.KubeVersionConfig(ctx, dtest_k3s.Kube22)})
 	require.NoError(t, err)
-	return cli
+	return ctx, cli
 }
 
 func TestCRUD(t *testing.T) {
-	ctx := context.TODO()
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
 
 	cm := &ConfigMap{
 		TypeMeta: TypeMeta{
@@ -71,8 +72,7 @@ func TestCRUD(t *testing.T) {
 }
 
 func TestUpsert(t *testing.T) {
-	ctx := context.TODO()
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
 
 	cm := &ConfigMap{
 		TypeMeta: TypeMeta{
@@ -87,7 +87,7 @@ func TestUpsert(t *testing.T) {
 	}
 
 	defer func() {
-		cli.Delete(ctx, cm, nil)
+		assert.NoError(t, cli.Delete(ctx, cm, nil))
 	}()
 
 	err := cli.Upsert(ctx, cm, cm, cm)
@@ -112,8 +112,7 @@ func TestUpsert(t *testing.T) {
 }
 
 func TestPatch(t *testing.T) {
-	ctx := context.TODO()
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
 
 	cm := &ConfigMap{
 		TypeMeta: TypeMeta{
@@ -131,7 +130,7 @@ func TestPatch(t *testing.T) {
 	assert.NoError(t, err)
 
 	defer func() {
-		cli.Delete(ctx, cm, nil)
+		assert.NoError(t, cli.Delete(ctx, cm, nil))
 	}()
 
 	err = cli.Patch(ctx, cm, StrategicMergePatchType, []byte(`{"metadata": {"annotations": {"moo": "arf"}}}`), cm)
@@ -140,8 +139,7 @@ func TestPatch(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	ctx := context.TODO()
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
 
 	namespaces := make([]*Namespace, 0)
 
@@ -164,8 +162,7 @@ func TestList(t *testing.T) {
 }
 
 func TestListSelector(t *testing.T) {
-	ctx := context.TODO()
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
 
 	myns := &Namespace{
 		TypeMeta: TypeMeta{
@@ -198,8 +195,7 @@ func TestListSelector(t *testing.T) {
 }
 
 func TestShortcut(t *testing.T) {
-	ctx := context.TODO()
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
 
 	cm := &ConfigMap{
 		TypeMeta: TypeMeta{
@@ -228,8 +224,9 @@ type TestSnapshot struct {
 // implementation to allow for more mocks, this could be made into a pure unit test and not be
 // probabilistic at all.
 func TestCoherence(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	// This simulates an api server that is very slow at notifying its watch clients of updates to
 	// config maps, but notifies of other resources at normal speeds. This can really happen.
@@ -267,7 +264,8 @@ func TestCoherence(t *testing.T) {
 	}
 
 	defer func() {
-		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
 		err := cli.Delete(ctx, cm, nil)
 		if err != nil {
 			t.Log(err)
@@ -292,9 +290,10 @@ func TestCoherence(t *testing.T) {
 		return
 	}
 
-	acc := cli.Watch(ctx,
+	acc, err := cli.Watch(ctx,
 		Query{Name: "ConfigMaps", Kind: "ConfigMap"},
 		Query{Name: "Secrets", Kind: "Secret"})
+	require.NoError(t, err)
 	snap := &TestSnapshot{}
 
 	COUNT := 25
@@ -317,7 +316,9 @@ func TestCoherence(t *testing.T) {
 			select {
 			case <-acc.Changed():
 				mutex.Lock()
-				if !acc.UpdateWithDeltas(snap, &deltas) {
+				updated, err := acc.UpdateWithDeltas(ctx, snap, &deltas)
+				assert.NoError(t, err)
+				if !updated {
 					mutex.Unlock()
 					continue
 				}
@@ -418,36 +419,48 @@ func TestDeltasWithRemoteDelay(t *testing.T) {
 }
 
 func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstructured, *Unstructured)) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	_ctx, cli := testClient(t, nil)
+	var (
+		_cm1 = &ConfigMap{
+			TypeMeta: TypeMeta{
+				Kind: "ConfigMap",
+			},
+			ObjectMeta: ObjectMeta{
+				Name:   "test-deltas-1",
+				Labels: map[string]string{},
+			},
+		}
+		_cm2 = &ConfigMap{
+			TypeMeta: TypeMeta{
+				Kind: "ConfigMap",
+			},
+			ObjectMeta: ObjectMeta{
+				Name:   "test-deltas-2",
+				Labels: map[string]string{},
+			},
+		}
+	)
+	t.Cleanup(func() {
+		if err := cli.Delete(_ctx, _cm1, nil); err != nil && !IsNotFound(err) {
+			t.Error(err)
+		}
+		if err := cli.Delete(_ctx, _cm2, nil); err != nil && !IsNotFound(err) {
+			t.Error(err)
+		}
+	})
 
-	cli := testClient(t)
+	ctx, cancel := context.WithTimeout(_ctx, 30*time.Second)
+	defer cancel()
 
 	cli.watchAdded = watchHook
 	cli.watchUpdated = watchHook
 	cli.watchDeleted = watchHook
 
-	cm1 := &ConfigMap{
-		TypeMeta: TypeMeta{
-			Kind: "ConfigMap",
-		},
-		ObjectMeta: ObjectMeta{
-			Name:   "test-deltas-1",
-			Labels: map[string]string{},
-		},
-	}
-
-	cm2 := &ConfigMap{
-		TypeMeta: TypeMeta{
-			Kind: "ConfigMap",
-		},
-		ObjectMeta: ObjectMeta{
-			Name:   "test-deltas-2",
-			Labels: map[string]string{},
-		},
-	}
+	cm1, cm2 := _cm1, _cm2
 
 	defer func() {
-		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
 		if cm1 != nil {
 			err := cli.Delete(ctx, cm1, nil)
 			if err != nil {
@@ -474,7 +487,8 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 		return
 	}
 
-	acc := cli.Watch(ctx, Query{Name: "ConfigMaps", Kind: "ConfigMap"})
+	acc, err := cli.Watch(ctx, Query{Name: "ConfigMaps", Kind: "ConfigMap"})
+	require.NoError(t, err)
 	snap := &TestSnapshot{}
 
 	err = cli.Upsert(ctx, cm1, cm1, nil)
@@ -487,7 +501,9 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 	for {
 		<-acc.Changed()
 		var deltas []*Delta
-		if !acc.UpdateWithDeltas(snap, &deltas) {
+		updated, err := acc.UpdateWithDeltas(ctx, snap, &deltas)
+		require.NoError(t, err)
+		if !updated {
 			continue
 		}
 
@@ -503,7 +519,9 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 	for {
 		<-acc.Changed()
 		var deltas []*Delta
-		if !acc.UpdateWithDeltas(snap, &deltas) {
+		updated, err := acc.UpdateWithDeltas(ctx, snap, &deltas)
+		require.NoError(t, err)
+		if !updated {
 			continue
 		}
 
@@ -521,7 +539,9 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 	for {
 		<-acc.Changed()
 		var deltas []*Delta
-		if !acc.UpdateWithDeltas(snap, &deltas) {
+		updated, err := acc.UpdateWithDeltas(ctx, snap, &deltas)
+		require.NoError(t, err)
+		if !updated {
 			continue
 		}
 

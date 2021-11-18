@@ -26,7 +26,7 @@ class Scout:
         :param id_plugin_args: Optional arguments to id_plugin. See below.
         :param kwargs: Any other keyword arguments will be merged into Scout's metadata.
 
-        If an id_plugin is present, it is called with the following parameters: 
+        If an id_plugin is present, it is called with the following parameters:
 
         - this Scout instance
         - the passed-in app name
@@ -46,7 +46,7 @@ class Scout:
         ID.
 
         See also Scout.configmap_install_id_plugin, which is an id_plugin that knows how
-        to use a Kubernetes configmap (scout.config.$app) to store the install ID. 
+        to use a Kubernetes configmap (scout.config.$app) to store the install ID.
 
         Scout logs to the datawire.scout logger. It assumes that the logging system is
         configured to a sane default level, but you can change Scout's debug level with e.g.
@@ -271,7 +271,7 @@ class Scout:
                         scout.logger.debug("Scout: got install_id %s from map" % install_id)
                         plugin_response = { "install_id": install_id }
         except OSError as e:
-            scout.logger.debug("Scout: could not read configmap (map %s, namespace %s): %s" % 
+            scout.logger.debug("Scout: could not read configmap (map %s, namespace %s): %s" %
                                (map_name, namespace, e))
 
         if not install_id:
@@ -307,7 +307,7 @@ class Scout:
                 else:
                     scout.logger.error("Scout: could not save install_id: {0}, {1}".format(r.status_code, r.text))
             except OSError as e:
-                logging.debug("Scout: could not write configmap (map %s, namespace %s): %s" % 
+                logging.debug("Scout: could not write configmap (map %s, namespace %s): %s" %
                               (map_name, namespace, e))
 
         scout.logger.debug("Scout: plugin_response %s" % json.dumps(plugin_response))

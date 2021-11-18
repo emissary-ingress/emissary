@@ -80,7 +80,7 @@ status:
 ''')
 
 valid_ingress_class = k8s_object_from_yaml('''
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: IngressClass
 metadata:
   name: external-lb
@@ -90,8 +90,8 @@ spec:
 
 valid_mapping = k8s_object_from_yaml('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: test
   namespace: default
@@ -103,8 +103,8 @@ spec:
 
 valid_mapping_v1 = k8s_object_from_yaml('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: test
   namespace: default
@@ -127,13 +127,13 @@ class TestKubernetesGVK:
         assert gvk.domain == 'service'
 
     def test_group(self):
-        gvk = KubernetesGVK.for_ambassador('AmbassadorMapping', version='v3alpha1')
+        gvk = KubernetesGVK.for_ambassador('Mapping', version='v3alpha1')
 
-        assert gvk.api_version == 'x.getambassador.io/v3alpha1'
-        assert gvk.kind == 'AmbassadorMapping'
-        assert gvk.api_group == 'x.getambassador.io'
+        assert gvk.api_version == 'getambassador.io/v3alpha1'
+        assert gvk.kind == 'Mapping'
+        assert gvk.api_group == 'getambassador.io'
         assert gvk.version == 'v3alpha1'
-        assert gvk.domain == 'ambassadormapping.x.getambassador.io'
+        assert gvk.domain == 'mapping.getambassador.io'
 
 
 class TestKubernetesObject:
@@ -360,8 +360,8 @@ class TestServiceAnnotations:
                 'name': 'test',
                 'namespace': 'default',
                 'annotations': {
-                    'getambassador.io/config': """apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+                    'getambassador.io/config': """apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: test_mapping
 hostname: "*"
 prefix: /test/
@@ -373,8 +373,8 @@ service: test:9999""",
         assert len(self.manager.elements) == 1
 
         expected = {
-            'apiVersion': 'x.getambassador.io/v3alpha1',
-            'kind': 'AmbassadorMapping',
+            'apiVersion': 'getambassador.io/v3alpha1',
+            'kind': 'Mapping',
             'name': 'test_mapping',
             'hostname': "*",
             'prefix': '/test/',

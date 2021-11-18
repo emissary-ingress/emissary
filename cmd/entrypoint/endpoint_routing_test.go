@@ -3,34 +3,38 @@ package entrypoint_test
 import (
 	"fmt"
 	"net"
-	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/datawire/ambassador/v2/cmd/ambex"
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	v3cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
-	v2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func TestEndpointRouting(t *testing.T) {
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 	// Create Mapping, Service, and Endpoints resources to start.
-	f.Upsert(makeMapping("default", "foo", "/foo", "foo", "endpoint"))
-	f.Upsert(makeService("default", "foo"))
-	f.Upsert(makeEndpoints("default", "foo", makeSubset(8080, "1.2.3.4")))
+	assert.NoError(t, f.Upsert(makeMapping("default", "foo", "/foo", "foo", "endpoint")))
+	assert.NoError(t, f.Upsert(makeService("default", "foo")))
+	subset, err := makeSubset(8080, "1.2.3.4")
+	require.NoError(t, err)
+	assert.NoError(t, f.Upsert(makeEndpoints("default", "foo", subset)))
 	f.Flush()
-	snap := f.GetSnapshot(HasMapping("default", "foo"))
+	snap, err := f.GetSnapshot(HasMapping("default", "foo"))
+	require.NoError(t, err)
 	assert.NotNil(t, snap)
 
 	// Check that the endpoints resource we created at the start was properly propagated.
-	endpoints := f.GetEndpoints(HasEndpoints("k8s/default/foo"))
+	endpoints, err := f.GetEndpoints(HasEndpoints("k8s/default/foo"))
+	require.NoError(t, err)
 	assert.Equal(t, "1.2.3.4", endpoints.Entries["k8s/default/foo"][0].Ip)
 	assert.Equal(t, uint32(8080), endpoints.Entries["k8s/default/foo"][0].Port)
 	assert.Contains(t, endpoints.Entries, "k8s/default/foo/80")
@@ -45,21 +49,25 @@ func TestEndpointRoutingMappingAnnotations(t *testing.T) {
 	svc.ObjectMeta.Annotations = map[string]string{
 		"getambassador.io/config": `
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: foo
 prefix: /foo
 service: foo
 resolver: endpoint`,
 	}
-	f.Upsert(svc)
-	f.Upsert(makeEndpoints("default", "foo", makeSubset(8080, "1.2.3.4")))
+	assert.NoError(t, f.Upsert(svc))
+	subset, err := makeSubset(8080, "1.2.3.4")
+	require.NoError(t, err)
+	assert.NoError(t, f.Upsert(makeEndpoints("default", "foo", subset)))
 	f.Flush()
-	snap := f.GetSnapshot(HasService("default", "foo"))
+	snap, err := f.GetSnapshot(HasService("default", "foo"))
+	require.NoError(t, err)
 	assert.NotNil(t, snap)
 
 	// Check that the endpoints resource we created at the start was properly propagated.
-	endpoints := f.GetEndpoints(HasEndpoints("k8s/default/foo"))
+	endpoints, err := f.GetEndpoints(HasEndpoints("k8s/default/foo"))
+	require.NoError(t, err)
 	assert.Equal(t, "1.2.3.4", endpoints.Entries["k8s/default/foo"][0].Ip)
 	assert.Equal(t, uint32(8080), endpoints.Entries["k8s/default/foo"][0].Port)
 	assert.Contains(t, endpoints.Entries, "k8s/default/foo/80")
@@ -70,8 +78,8 @@ resolver: endpoint`,
 func TestEndpointRoutingMultiplePorts(t *testing.T) {
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 	// Create Mapping, Service, and Endpoints, except this time the Service has multiple ports.
-	f.Upsert(makeMapping("default", "foo", "/foo", "foo", "endpoint"))
-	f.Upsert(&kates.Service{
+	assert.NoError(t, f.Upsert(makeMapping("default", "foo", "/foo", "foo", "endpoint")))
+	assert.NoError(t, f.Upsert(&kates.Service{
 		TypeMeta:   kates.TypeMeta{Kind: "Service"},
 		ObjectMeta: kates.ObjectMeta{Namespace: "default", Name: "foo"},
 		Spec: kates.ServiceSpec{
@@ -88,14 +96,18 @@ func TestEndpointRoutingMultiplePorts(t *testing.T) {
 				},
 			},
 		},
-	})
-	f.Upsert(makeEndpoints("default", "foo", makeSubset("cleartext", 8080, "encrypted", 8443, "1.2.3.4")))
+	}))
+	subset, err := makeSubset("cleartext", 8080, "encrypted", 8443, "1.2.3.4")
+	require.NoError(t, err)
+	assert.NoError(t, f.Upsert(makeEndpoints("default", "foo", subset)))
 	f.Flush()
-	snap := f.GetSnapshot(HasMapping("default", "foo"))
+	snap, err := f.GetSnapshot(HasMapping("default", "foo"))
+	require.NoError(t, err)
 	assert.NotNil(t, snap)
 
 	// Check that the endpoints resource we created at the start was properly propagated.
-	endpoints := f.GetEndpoints(HasEndpoints("k8s/default/foo/80"))
+	endpoints, err := f.GetEndpoints(HasEndpoints("k8s/default/foo/80"))
+	require.NoError(t, err)
 	assert.Contains(t, endpoints.Entries, "k8s/default/foo/80")
 	assert.Contains(t, endpoints.Entries, "k8s/default/foo/443")
 	assert.Contains(t, endpoints.Entries, "k8s/default/foo/cleartext")
@@ -119,13 +131,14 @@ func TestEndpointRoutingMultiplePorts(t *testing.T) {
 func TestEndpointRoutingIP(t *testing.T) {
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 	// Create a Mapping that points straight at an IP address.
-	f.Upsert(makeMapping("default", "foo", "/foo", "4.3.2.1", "endpoint"))
+	assert.NoError(t, f.Upsert(makeMapping("default", "foo", "/foo", "4.3.2.1", "endpoint")))
 	f.Flush()
 
 	// Check that the envoy config embeds the IP address directly in the cluster config.
-	config := f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
+	config, err := f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
 		return FindCluster(config, ClusterNameContains("4_3_2_1")) != nil
 	})
+	require.NoError(t, err)
 	cluster := FindCluster(config, ClusterNameContains("4_3_2_1"))
 	require.NotNil(t, cluster)
 	require.NotNil(t, cluster.LoadAssignment)
@@ -141,14 +154,16 @@ func TestEndpointRoutingIP(t *testing.T) {
 // endpoints.
 func TestEndpointRoutingMappingCreation(t *testing.T) {
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{}, nil)
-	f.Upsert(makeService("default", "foo"))
-	f.Upsert(makeEndpoints("default", "foo", makeSubset(8080, "1.2.3.4")))
+	assert.NoError(t, f.Upsert(makeService("default", "foo")))
+	subset, err := makeSubset(8080, "1.2.3.4")
+	require.NoError(t, err)
+	assert.NoError(t, f.Upsert(makeEndpoints("default", "foo", subset)))
 	f.Flush()
 	f.AssertEndpointsEmpty(timeout)
-	f.UpsertYAML(`
+	assert.NoError(t, f.UpsertYAML(`
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: foo
   namespace: default
@@ -156,11 +171,12 @@ spec:
   prefix: /foo
   resolver: endpoint
   service: foo.default
-`)
+`))
 	f.Flush()
 	// Check that endpoints get sent even though we did not do actually update endpoints between
 	// this flush and the previous one.
-	endpoints := f.GetEndpoints(HasEndpoints("k8s/default/foo/80"))
+	endpoints, err := f.GetEndpoints(HasEndpoints("k8s/default/foo/80"))
+	require.NoError(t, err)
 	assert.Equal(t, "1.2.3.4", endpoints.Entries["k8s/default/foo/80"][0].Ip)
 }
 
@@ -199,11 +215,11 @@ func HasEndpoints(path string) func(endpoints *ambex.Endpoints) bool {
 	}
 }
 
-func makeMapping(namespace, name, prefix, service, resolver string) *v2.Mapping {
-	return &v2.Mapping{
-		TypeMeta:   kates.TypeMeta{Kind: "AmbassadorMapping"},
+func makeMapping(namespace, name, prefix, service, resolver string) *amb.Mapping {
+	return &amb.Mapping{
+		TypeMeta:   kates.TypeMeta{Kind: "Mapping"},
 		ObjectMeta: kates.ObjectMeta{Namespace: namespace, Name: name},
-		Spec: v2.MappingSpec{
+		Spec: amb.MappingSpec{
 			Prefix:   prefix,
 			Service:  service,
 			Resolver: resolver,
@@ -237,7 +253,7 @@ func makeEndpoints(namespace, name string, subsets ...kates.EndpointSubset) *kat
 // makeSubset provides a convenient way to kubernetes EndpointSubset resources. Any int args are
 // ports, any ip address strings are addresses, and no ip address strings are used as the port name
 // for any ports that follow them in the arg list.
-func makeSubset(args ...interface{}) kates.EndpointSubset {
+func makeSubset(args ...interface{}) (kates.EndpointSubset, error) {
 	portName := ""
 	var ports []kates.EndpointPort
 	var addrs []kates.EndpointAddress
@@ -253,9 +269,9 @@ func makeSubset(args ...interface{}) kates.EndpointSubset {
 				addrs = append(addrs, kates.EndpointAddress{IP: v})
 			}
 		default:
-			panic(fmt.Sprintf("unrecognized type: %v", reflect.TypeOf(v)))
+			return kates.EndpointSubset{}, fmt.Errorf("unrecognized type: %T", v)
 		}
 	}
 
-	return kates.EndpointSubset{Addresses: addrs, Ports: ports}
+	return kates.EndpointSubset{Addresses: addrs, Ports: ports}, nil
 }

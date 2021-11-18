@@ -13,16 +13,13 @@
 // limitations under the License.
 
 ///////////////////////////////////////////////////////////////////////////
-// Important: Run "make update-yaml" to regenerate code after modifying
+// Important: Run "make generate-fast" to regenerate code after modifying
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
 package v3alpha1
 
-import (
-	ambv2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
+import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 // ProtocolStackElement defines specific layers that may be combined in a protocol
 // stack for processing connections to a port.
@@ -103,15 +100,15 @@ const (
 type NamespaceFromType string
 
 const (
-	// SELFNamespaceFromType specifies that an AmbassadorListener should consider Hosts only in the
-	// AmbassadorListener's namespaces.
+	// SELFNamespaceFromType specifies that an Listener should consider Hosts only in the
+	// Listener's namespaces.
 	SELFNamespaceFromType NamespaceFromType = "SELF"
 
-	// ALLNamespaceFromType specifies that an AmbassadorListener should consider Hosts in ALL
-	// namespaces. This is the simplest way to build an AmbassadorListener that matches all Hosts.
+	// ALLNamespaceFromType specifies that an Listener should consider Hosts in ALL
+	// namespaces. This is the simplest way to build an Listener that matches all Hosts.
 	ALLNamespaceFromType NamespaceFromType = "ALL"
 
-	// XXX We can't support from=SELECTOR until we're doing AmbassadorListener handling in
+	// XXX We can't support from=SELECTOR until we're doing Listener handling in
 	// XXX Golang: the Python side of Emissary doesn't have access to namespace selectors.
 	//
 	// // SELECTORNamespaceFromType specifies to use the NamespaceBinding selector to
@@ -123,23 +120,23 @@ const (
 type NamespaceBindingType struct {
 	From NamespaceFromType `json:"from,omitempty"`
 
-	// XXX We can't support from=SELECTOR until we're doing AmbassadorListener handling in
+	// XXX We can't support from=SELECTOR until we're doing Listener handling in
 	// XXX Golang: the Python side of Emissary doesn't have access to namespace selectors.
 	//
 	// Selector *metav1.LabelSelector `json:"hostSelector,omitempty"`
 }
 
-// HostBindingType defines how we specify Hosts to bind to this AmbassadorListener.
+// HostBindingType defines how we specify Hosts to bind to this Listener.
 type HostBindingType struct {
 	Namespace NamespaceBindingType  `json:"namespace"`
 	Selector  *metav1.LabelSelector `json:"selector,omitempty"`
 }
 
-// AmbassadorListenerSpec defines the desired state of this Port
-type AmbassadorListenerSpec struct {
-	AmbassadorID ambv2.AmbassadorID `json:"ambassador_id,omitempty"`
+// ListenerSpec defines the desired state of this Port
+type ListenerSpec struct {
+	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
-	// Port is the network port. Only one AmbassadorListener can use a given port.
+	// Port is the network port. Only one Listener can use a given port.
 	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:validation:Maximum=65535
 	// +kubebuilder:validation:Required
@@ -159,7 +156,7 @@ type AmbassadorListenerSpec struct {
 	SecurityModel SecurityModelType `json:"securityModel"`
 
 	// StatsPrefix specifies the prefix for statistics sent by Envoy about this
-	// AmbassadorListener. The default depends on the protocol: "ingress-http",
+	// Listener. The default depends on the protocol: "ingress-http",
 	// "ingress-https", "ingress-tls-$port", or "ingress-$port".
 	StatsPrefix string `json:"statsPrefix,omitempty"`
 
@@ -167,12 +164,12 @@ type AmbassadorListenerSpec struct {
 	// the network.
 	L7Depth int32 `json:"l7Depth,omitempty"`
 
-	// HostBinding allows restricting which Hosts will be used for this AmbassadorListener.
+	// HostBinding allows restricting which Hosts will be used for this Listener.
 	// +kubebuilder:validation:Required
 	HostBinding HostBindingType `json:"hostBinding"`
 }
 
-// AmbassadorListener is the Schema for the hosts API
+// Listener is the Schema for the hosts API
 //
 // +kubebuilder:object:root=true
 // +kubebuilder:printcolumn:name="Port",type=string,JSONPath=`.spec.port`
@@ -181,22 +178,23 @@ type AmbassadorListenerSpec struct {
 // +kubebuilder:printcolumn:name="StatsPrefix",type=string,JSONPath=`.spec.statsPrefix`
 // +kubebuilder:printcolumn:name="Security",type=string,JSONPath=`.spec.securityModel`
 // +kubebuilder:printcolumn:name="L7Depth",type=string,JSONPath=`.spec.l7Depth`
-type AmbassadorListener struct {
+// +kubebuilder:storageversion
+type Listener struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec *AmbassadorListenerSpec `json:"spec,omitempty"`
+	Spec *ListenerSpec `json:"spec,omitempty"`
 }
 
-// AmbassadorListenerList contains a list of AmbassadorListener.
+// ListenerList contains a list of Listener.
 //
 // +kubebuilder:object:root=true
-type AmbassadorListenerList struct {
+type ListenerList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []AmbassadorListener `json:"items"`
+	Items           []Listener `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&AmbassadorListener{}, &AmbassadorListenerList{})
+	SchemeBuilder.Register(&Listener{}, &ListenerList{})
 }

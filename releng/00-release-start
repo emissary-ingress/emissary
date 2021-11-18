@@ -24,8 +24,6 @@ All commits that are going out in {next_ver} release **must** be on {pr_branch}.
 This will allow the appropriate CI to run.
 
 Reviewers, please review the changelog and commits in this branch to make sure everything that needs to go out in the release is on this branch.
-
-Each push to this branch will generate a new RC tag.
 """
 
 
@@ -70,17 +68,20 @@ def main(next_ver: str, commit: bool = True) -> int:
 
     workbranch = current_release_branch
     base_branch = release_branch
-    if branch_exists('origin/' + current_release_branch):
-        with check(f"Checking out {current_release_branch} and making it up to date with {release_branch}"):
+    if branch_exists(current_release_branch):
+        with check(f"Checking out {current_release_branch}"):
             run(["git", "checkout", current_release_branch])
-            run(["git", "pull", "origin", current_release_branch])
+
+        if branch_exists("origin/" + current_release_branch):
+            with check(f"Bringing our branch it up to date with origin/{release_branch}"):
+                run(["git", "pull", "origin", current_release_branch])
     else:
         with check(f"Creating {current_release_branch}"):
             run(["git", "checkout", "-b", current_release_branch])
     if not checker.ok:
         return 1
     run(["git", "merge", f"origin/{release_branch}"])
-    with check(f"Checking if there are conflicts in merge"):
+    with check(f"Checking for clean branch with no conflicts..."):
         out = run_capture(["git", "status", "--porcelain"])
         if out:
             raise AssertionError(f"Merge conflicts on {current_release_branch}. Resolve these, then rerun this scrip")
@@ -98,6 +99,11 @@ def main(next_ver: str, commit: bool = True) -> int:
         print('not committing')
         return 0
 
+    out = run_capture(["git", "status", "--porcelain"])
+    if not out:
+        print("No changes needed, all good.")
+        return 0
+    
     with check(f"Committing changes..."):
         gitdir = run_capture(['git', 'rev-parse', '--git-dir'])
         with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:

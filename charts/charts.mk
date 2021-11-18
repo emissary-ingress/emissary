@@ -16,12 +16,6 @@ define _set_tag
 		--values-file $(1) --tag $(2)
 endef
 
-define _docgen
-	if [[ -f $(1)/doc.yaml ]] ; then \
-		$(tools/chart-doc-gen) -d $(1)/doc.yaml -t $(1)/readme.tpl -v $(1)/values.yaml > $(1)/README.md ; \
-	fi
-endef
-
 push-preflight: create-venv $(tools/yq)
 	@$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
 .PHONY: push-preflight
@@ -42,7 +36,10 @@ release/promote-chart-passed:
 .PHONY: release/promote-chart-passed
 
 chart-push-ci: push-preflight
-	@([ $(IS_PRIVATE) ] && (echo "Private repo, not pushing chart" && exit 1)) || true
+	if [ ! -z $(IS_PRIVATE) ]; then \
+		echo "Private repo, not pushing chart" ;\
+		exit 1 ;\
+	fi;
 	@echo ">>> This will dirty your local tree and should only be run in CI"
 	@echo ">>> If running locally, you'll probably want to run make chart-clean after running this"
 	@[ -n "${CHART_VERSION_SUFFIX}" ] || (echo "CHART_VERSION_SUFFIX must be set for non-GA pushes" && exit 1)
@@ -85,14 +82,8 @@ release/chart/update-images: $(tools/yq) $(tools/chart-doc-gen)
 		$(tools/yq) w -i $$chart/Chart.yaml 'appVersion' ${IMAGE_TAG} ; \
 		IMAGE_TAG="${IMAGE_TAG}" CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/image_tag_changelog_update.sh ; \
 		CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/update_chart_changelog.sh ; \
-		$(call _docgen,$$chart) ; \
+		$(MAKE) $$chart/README.md; \
 	done ;
-
-chart/docgen: $(tools/chart-doc-gen)
-	for chart in $(EMISSARY_CHART) ; do \
-		$(call _docgen,$$chart) ; \
-	done ;
-.PHONY: chart/docgen
 
 # Both charts should have same versions for now. Just makes things a bit easier if we publish them together for now
 release/chart-bump/revision:
@@ -109,8 +100,9 @@ release/chart-bump/minor:
 
 # This is pretty Draconian. Use with care.
 chart-clean:
-	@for chart in $(EMISSARY_CHART) ; do \
-		git restore $$chart/Chart.yaml $$chart/values.yaml && \
-			rm -f $$chart/*.tgz $$chart/index.yaml $$chart/tmp.yaml; \
-	done ;
+	@PS4=; set -ex; for chart in $(EMISSARY_CHART); do \
+		git restore $$chart/Chart.yaml $$chart/values.yaml; \
+		$(MAKE) $$chart/README.md; \
+		rm -f $$chart/*.tgz $$chart/index.yaml $$chart/tmp.yaml; \
+	done
 .PHONY: chart-clean

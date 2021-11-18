@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+	"k8s.io/klog/v2"
+
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	"github.com/datawire/ambassador/v2/pkg/agent"
 	"github.com/datawire/ambassador/v2/pkg/busy"
 	"github.com/datawire/ambassador/v2/pkg/logutil"
 	"github.com/datawire/dlib/dlog"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"k8s.io/klog/v2"
 )
 
 // internal k8s service
@@ -32,7 +32,7 @@ func run(cmd *cobra.Command, args []string) error {
 	// list secrets initially.
 	klogLevel := 3
 	if logLevel != "" {
-		logrusLevel, err := logrus.ParseLevel(logLevel)
+		logrusLevel, err := logutil.ParseLogLevel(logLevel)
 		if err != nil {
 			dlog.Errorf(ctx, "error parsing log level, running with default level: %+v", err)
 		} else {
@@ -40,15 +40,19 @@ func run(cmd *cobra.Command, args []string) error {
 		}
 		klogLevel = logutil.LogrusToKLogLevel(logrusLevel)
 	}
-	klogFlags := flag.NewFlagSet(os.Args[0], flag.PanicOnError)
+	klogFlags := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	klog.InitFlags(klogFlags)
-	klogFlags.Parse([]string{fmt.Sprintf("-stderrthreshold=%d", klogLevel), "-v=2", "-logtostderr=false"})
+	if err := klogFlags.Parse([]string{fmt.Sprintf("-stderrthreshold=%d", klogLevel), "-v=2", "-logtostderr=false"}); err != nil {
+		return err
+	}
 	snapshotURL := os.Getenv("AES_SNAPSHOT_URL")
 	if snapshotURL == "" {
 		snapshotURL = fmt.Sprintf(DefaultSnapshotURLFmt, entrypoint.ExternalSnapshotPort)
 	}
 
-	ambAgent.Watch(ctx, snapshotURL)
+	if err := ambAgent.Watch(ctx, snapshotURL); err != nil {
+		return err
+	}
 
 	return nil
 }

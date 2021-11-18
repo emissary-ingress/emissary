@@ -259,7 +259,7 @@ class AmbassadorTest(Test):
         else:
             nsp = getattr(self, 'namespace', None) or 'default'
 
-            cmd = ShellCommand("kubectl", "get", "-n", nsp, "-o", "yaml", "secret", self.path.k8s)
+            cmd = ShellCommand("tools/bin/kubectl", "get", "-n", nsp, "-o", "yaml", "secret", self.path.k8s)
 
             if not cmd.check(f'fetch secret for {self.path.k8s}'):
                 pytest.exit(f'could not fetch secret for {self.path.k8s}')

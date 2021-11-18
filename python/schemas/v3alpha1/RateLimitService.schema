@@ -1,0 +1,67 @@
+{
+    "id": "https://getambassador.io/schemas/ratelimitservice.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "service"
+    ],
+    "properties": {
+        "ambassador_id": {
+            "description": "Common to all Ambassador objects.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v3alpha1"
+            ]
+        },
+        "domain": {
+            "type": "string"
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "kind": {
+            "enum": [
+                "RateLimitService"
+            ]
+        },
+        "metadata_labels": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "protocol_version": {
+            "type": "string",
+            "enum": [
+                "v2",
+                "v3"
+            ]
+        },
+        "service": {
+            "type": "string"
+        },
+        "stats_name": {
+            "type": "string"
+        },
+        "timeout_ms": {
+            "type": "integer"
+        },
+        "tls": {
+            "type": "string"
+        }
+    }
+}

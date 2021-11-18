@@ -107,7 +107,7 @@ func main() {
 			Use:   "up",
 			Short: "Initialize the registry, and create a port-forward to it",
 			Args:  cobra.ExactArgs(0),
-			RunE: func(_ *cobra.Command, _ []string) error {
+			RunE: func(cobraCmd *cobra.Command, _ []string) error {
 				var kpfTarget string
 				switch argStorage {
 				case "pvc":
@@ -140,11 +140,12 @@ func main() {
 					return err
 				}
 				err = kubeapply.Kubeapply(
-					kubeinfo,        // kubeinfo
-					time.Minute,     // perPhaseTimeout
-					false,           // debug
-					false,           // dryRun
-					yamlFile.Name(), // files
+					cobraCmd.Context(), // context
+					kubeinfo,           // kubeinfo
+					time.Minute,        // perPhaseTimeout
+					false,              // debug
+					false,              // dryRun
+					yamlFile.Name(),    // files
 				)
 				if err != nil {
 					return err

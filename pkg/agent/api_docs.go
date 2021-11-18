@@ -9,16 +9,14 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/pkg/errors"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
@@ -88,8 +86,8 @@ func (a *APIDocsStore) StateOfWorld() []*snapshotTypes.APIDoc {
 	return toAPIDocs(a.store.getAll())
 }
 
-func getProcessableMappingsFromSnapshot(snapshot *snapshotTypes.Snapshot) []*v3alpha1.AmbassadorMapping {
-	processableMappings := []*v3alpha1.AmbassadorMapping{}
+func getProcessableMappingsFromSnapshot(snapshot *snapshotTypes.Snapshot) []*amb.Mapping {
+	processableMappings := []*amb.Mapping{}
 	if snapshot == nil || snapshot.Kubernetes == nil {
 		return processableMappings
 	}
@@ -108,14 +106,14 @@ func getProcessableMappingsFromSnapshot(snapshot *snapshotTypes.Snapshot) []*v3a
 }
 
 // scrape will take care of fetching OpenAPI documentation from each of the
-// AmbassadorMappings resources as we process a snapshot.
+// Mappings resources as we process a snapshot.
 //
 // Be careful as there is a very similar implementation of this logic in the DevPortal which
 // uses the ambassador diag representation to retrieve OpenAPI documentation from
 // Mapping resources.
 // Since both the DevPortal and the agent make use of this `docs` property, evolutions
 // made here should be considered for DevPortal too.
-func (a *APIDocsStore) scrape(ctx context.Context, mappings []*v3alpha1.AmbassadorMapping) {
+func (a *APIDocsStore) scrape(ctx context.Context, mappings []*amb.Mapping) {
 	defer func() {
 		// Once we are finished retrieving mapping docs, delete anything we
 		// don't need anymore
@@ -135,7 +133,7 @@ func (a *APIDocsStore) scrape(ctx context.Context, mappings []*v3alpha1.Ambassad
 		// Lookup the Hostname first since it is more restrictive, otherwise fallback on the Host attribute
 		mappingHostname := mapping.Spec.Hostname
 		if mappingHostname == "" || mappingHostname == "*" {
-			mappingHostname = mapping.Spec.Host
+			mappingHostname = mapping.Spec.DeprecatedHost
 		}
 
 		dm := &docMappingRef{
@@ -176,7 +174,7 @@ func (a *APIDocsStore) scrape(ctx context.Context, mappings []*v3alpha1.Ambassad
 	}
 }
 
-func extractQueryableDocsURL(mapping *v3alpha1.AmbassadorMapping) (*url.URL, error) {
+func extractQueryableDocsURL(mapping *amb.Mapping) (*url.URL, error) {
 	mappingDocsPath := mapping.Spec.Docs.Path
 	mappingRewrite := "/"
 	if mapping.Spec.Rewrite != nil {
@@ -301,19 +299,12 @@ func newOpenAPI(ctx context.Context, docBytes []byte, baseURL string, prefix str
 	}
 }
 
-func buildMappingRequestHeaders(mappingHeaders map[string]amb.BoolOrString) []Header {
+func buildMappingRequestHeaders(mappingHeaders map[string]string) []Header {
 	headers := []Header{}
 
-	for key, headerValue := range mappingHeaders {
+	for key, value := range mappingHeaders {
 		if key == ":authority" {
 			continue
-		}
-		value := ""
-		if headerValue.String != nil {
-			value = *headerValue.String
-		}
-		if headerValue.Bool != nil {
-			value = strconv.FormatBool(*headerValue.Bool)
 		}
 		headers = append(headers, Header{Name: key, Value: value})
 	}

@@ -244,6 +244,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                                 service=mapping.service,
                                 resolver=mapping.resolver,
                                 ctx_name=mapping.get('tls', None),
+                                dns_type=mapping.get('dns_type', 'strict_dns'),
                                 host_rewrite=mapping.get('host_rewrite', False),
                                 enable_ipv4=mapping.get('enable_ipv4', None),
                                 enable_ipv6=mapping.get('enable_ipv6', None),
@@ -254,7 +255,9 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                                 cluster_idle_timeout_ms=mapping.get('cluster_idle_timeout_ms', None),
                                 cluster_max_connection_lifetime_ms=mapping.get('cluster_max_connection_lifetime_ms', None),
                                 circuit_breakers=mapping.get('circuit_breakers', None),
-                                marker=marker, stats_name=mapping.get('stats_name'))
+                                marker=marker,
+                                stats_name=mapping.get('stats_name'),
+                                respect_dns_ttl=mapping.get('respect_dns_ttl', False))
 
         # Make sure that the cluster is actually in our IR...
         stored = self.ir.add_cluster(cluster)

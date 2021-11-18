@@ -3,13 +3,11 @@ package entrypoint
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"strings"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/dlib/dexec"
-	"github.com/datawire/dlib/dlog"
 )
 
 func envbool(name string) bool {
@@ -25,32 +23,20 @@ func env(name, defaultValue string) string {
 	}
 }
 
-func ensureDir(dirname string) {
-	if !fileExists(dirname) {
-		err := os.MkdirAll(dirname, 0700)
-		if err != nil {
-			panic(err)
-		}
+func ensureDir(dirname string) error {
+	err := os.MkdirAll(dirname, 0700)
+	if err != nil && os.IsExist(err) {
+		err = nil
 	}
+	return err
 }
 
-func fileExists(filename string) bool {
-	info, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
+func cidsForLabel(ctx context.Context, label string) ([]string, error) {
+	bs, err := dexec.CommandContext(ctx, "docker", "ps", "-q", "-f", "label="+label).CombinedOutput()
+	if err != nil {
+		return nil, err
 	}
-	return !info.IsDir()
-}
-
-func sh(ctx context.Context, command string, args ...string) string {
-	cmd := dexec.CommandContext(ctx, command, args...)
-	out, err := cmd.CombinedOutput()
-	panicExecError(fmt.Sprintf("error executing command %s %v", command, args), err)
-	return string(out)
-}
-
-func cidsForLabel(ctx context.Context, label string) []string {
-	return strings.Fields(sh(ctx, "docker", "ps", "-q", "-f", fmt.Sprintf("label=%s", label)))
+	return strings.Fields(string(bs)), nil
 }
 
 func subcommand(ctx context.Context, command string, args ...string) *dexec.Cmd {
@@ -59,39 +45,6 @@ func subcommand(ctx context.Context, command string, args ...string) *dexec.Cmd 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd
-}
-
-func panicExecError(prefix string, err error) {
-	if err == nil {
-		return
-	}
-
-	msg := fmt.Sprintf("%s: %v", prefix, err)
-	if exerr, ok := err.(*dexec.ExitError); ok {
-		if exerr.Success() {
-			return
-		}
-		msg = fmt.Sprintf("%s\n%s", msg, string(exerr.Stderr))
-	}
-	panic(msg)
-}
-
-func logExecError(ctx context.Context, prefix string, err error) {
-	if err == nil {
-		return
-	}
-
-	msg := fmt.Sprintf("%s: %v", prefix, err)
-	if exerr, ok := err.(*dexec.ExitError); ok {
-		if exerr.Success() {
-			return
-		}
-		dlog.Errorf(ctx, "%s\n%s", msg, string(exerr.Stderr))
-	} else {
-		// This means we didn't even start the subcommand, so this is a programming error, not a
-		// runtime error and we want to panic in this case.
-		panic(msg)
-	}
 }
 
 func convert(in interface{}, out interface{}) error {

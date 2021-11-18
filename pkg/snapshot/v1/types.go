@@ -6,8 +6,7 @@ import (
 	"reflect"
 	"strings"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
-	ambv3alpha1 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/watt"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
@@ -56,18 +55,18 @@ type AmbassadorMetaInfo struct {
 
 type KubernetesSnapshot struct {
 	// k8s resources
-	IngressClasses []*kates.IngressClass `json:"ingressclasses"`
-	Ingresses      []*kates.Ingress      `json:"ingresses"`
-	Services       []*kates.Service      `json:"service"`
-	Endpoints      []*kates.Endpoints    `json:"Endpoints"`
+	IngressClasses []*IngressClass    `json:"ingressclasses"`
+	Ingresses      []*Ingress         `json:"ingresses"`
+	Services       []*kates.Service   `json:"service"`
+	Endpoints      []*kates.Endpoints `json:"Endpoints"`
 
 	// ambassador resources
-	Listeners   []*ambv3alpha1.AmbassadorListener   `json:"Listener"`
-	Hosts       []*ambv3alpha1.AmbassadorHost       `json:"Host"`
-	Mappings    []*ambv3alpha1.AmbassadorMapping    `json:"Mapping"`
-	TCPMappings []*ambv3alpha1.AmbassadorTCPMapping `json:"TCPMapping"`
-	Modules     []*amb.Module                       `json:"Module"`
-	TLSContexts []*amb.TLSContext                   `json:"TLSContext"`
+	Listeners   []*amb.Listener   `json:"Listener"`
+	Hosts       []*amb.Host       `json:"Host"`
+	Mappings    []*amb.Mapping    `json:"Mapping"`
+	TCPMappings []*amb.TCPMapping `json:"TCPMapping"`
+	Modules     []*amb.Module     `json:"Module"`
+	TLSContexts []*amb.TLSContext `json:"TLSContext"`
 
 	// plugin services
 	AuthServices      []*amb.AuthService      `json:"AuthService"`
@@ -134,10 +133,10 @@ type APIDoc struct {
 // into the correct fields in KubernetesSnapshot
 func (a *KubernetesSnapshot) UnmarshalJSON(data []byte) error {
 	legacyK8sTranslator := struct {
-		LegacyModeListeners   []*ambv3alpha1.AmbassadorListener   `json:"AmbassadorListener"`
-		LegacyModeHosts       []*ambv3alpha1.AmbassadorHost       `json:"AmbassadorHost"`
-		LegacyModeMappings    []*ambv3alpha1.AmbassadorMapping    `json:"AmbassadorMapping"`
-		LegacyModeTCPMappings []*ambv3alpha1.AmbassadorTCPMapping `json:"AmbassadorTCPMapping"`
+		LegacyModeListeners   []*amb.Listener   `json:"Listener"`
+		LegacyModeHosts       []*amb.Host       `json:"Host"`
+		LegacyModeMappings    []*amb.Mapping    `json:"Mapping"`
+		LegacyModeTCPMappings []*amb.TCPMapping `json:"TCPMapping"`
 	}{}
 
 	if err := json.Unmarshal(data, &legacyK8sTranslator); err != nil {

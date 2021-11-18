@@ -134,9 +134,9 @@ security:
 
 image:
   # Emissary Ingress docker repo
-  repository: docker.io/datawire/emissary
+  repository: docker.io/emissaryingress/emissary
   # Emissary Ingress docker tag
-  tag: 2.0.2-ea
+  tag: 2.0.5
   # Pod container image pull policy
   pullPolicy: IfNotPresent
 

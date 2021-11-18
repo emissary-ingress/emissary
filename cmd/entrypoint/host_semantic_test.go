@@ -8,31 +8,30 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/ambassador/v2/pkg/testutils"
-	"github.com/stretchr/testify/require"
 )
 
-func getExpected(expectedFile string, inputObjects []kates.Object) ([]testutils.RenderedListener, []v3alpha1.AmbassadorMapping, []string) {
+func getExpected(expectedFile string, inputObjects []kates.Object) ([]testutils.RenderedListener, []v3alpha1.Mapping, []string, error) {
 	// Figure out all the mappings and clusters we'll need.
 	neededClusters := []string{}
-	neededMappings := []v3alpha1.AmbassadorMapping{}
+	neededMappings := []v3alpha1.Mapping{}
 
 	// Read the expected rendering from a file.
 	content, err := ioutil.ReadFile(expectedFile)
 	if err != nil {
-		panic(err)
+		return nil, nil, nil, err
 	}
 
 	var expectedListeners []testutils.RenderedListener
-	err = json.Unmarshal(content, &expectedListeners)
-
-	if err != nil {
-		panic(err)
+	if err := json.Unmarshal(content, &expectedListeners); err != nil {
+		return nil, nil, nil, err
 	}
 
 	// Build the set of expected mappings and clusters from our objects.
@@ -40,7 +39,7 @@ func getExpected(expectedFile string, inputObjects []kates.Object) ([]testutils.
 
 	for _, obj := range inputObjects {
 		// Skip things that aren't Mappings.
-		mapping, ok := obj.(*v3alpha1.AmbassadorMapping)
+		mapping, ok := obj.(*v3alpha1.Mapping)
 
 		if !ok {
 			continue
@@ -57,23 +56,26 @@ func getExpected(expectedFile string, inputObjects []kates.Object) ([]testutils.
 		neededClusters = append(neededClusters, clusterName)
 	}
 
-	return expectedListeners, neededMappings, neededClusters
+	return expectedListeners, neededMappings, neededClusters, nil
 }
 
 func testSemanticSet(t *testing.T, inputFile string, expectedFile string) {
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true, DiagdDebug: false}, nil)
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true, DiagdDebug: true}, nil)
 
-	inputObjects := testutils.LoadYAML(inputFile)
+	inputObjects, err := testutils.LoadYAML(inputFile)
+	require.NoError(t, err)
 
 	// expectedListeners is what we think we're going to get.
-	expectedListeners, neededMappings, neededClusters := getExpected(expectedFile, inputObjects)
-	expectedJSON := testutils.JSONifyRenderedListeners(expectedListeners)
+	expectedListeners, neededMappings, neededClusters, err := getExpected(expectedFile, inputObjects)
+	require.NoError(t, err)
+	expectedJSON, err := testutils.JSONifyRenderedListeners(expectedListeners)
+	require.NoError(t, err)
 
 	// Now, what did we _actually_ get?
-	f.UpsertFile(inputFile)
+	require.NoError(t, f.UpsertFile(inputFile))
 	f.Flush()
 
-	snap := f.GetSnapshot(func(snapshot *snapshot.Snapshot) bool {
+	snap, err := f.GetSnapshot(func(snapshot *snapshot.Snapshot) bool {
 		// XXX Ew. Switch to a dict, FFS.
 		for _, mapping := range neededMappings {
 			mappingNamespace := mapping.Namespace
@@ -101,10 +103,10 @@ func testSemanticSet(t *testing.T, inputFile string, expectedFile string) {
 
 		return true
 	})
-
+	require.NoError(t, err)
 	require.NotNil(t, snap)
 
-	envoyConfig := f.GetEnvoyConfig(func(config *bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(config *bootstrap.Bootstrap) bool {
 		for _, cluster := range neededClusters {
 			if FindCluster(config, ClusterNameContains(cluster)) == nil {
 				return false
@@ -113,27 +115,25 @@ func testSemanticSet(t *testing.T, inputFile string, expectedFile string) {
 
 		return true
 	})
-
+	require.NoError(t, err)
 	require.NotNil(t, envoyConfig)
 
-	actualListeners := testutils.RenderEnvoyConfig(envoyConfig)
-	actualJSON := testutils.JSONifyRenderedListeners(actualListeners)
+	actualListeners, err := testutils.RenderEnvoyConfig(envoyConfig)
+	require.NoError(t, err)
+	actualJSON, err := testutils.JSONifyRenderedListeners(actualListeners)
+	require.NoError(t, err)
 
-	err := ioutil.WriteFile("/tmp/host-semantics-expected.json", []byte(expectedJSON), 0644)
+	err = ioutil.WriteFile("/tmp/host-semantics-expected.json", []byte(expectedJSON), 0644)
 	if err == io.EOF {
 		err = nil
 	}
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 
 	err = ioutil.WriteFile("/tmp/host-semantics-actual.json", []byte(actualJSON), 0644)
 	if err == io.EOF {
 		err = nil
 	}
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 
 	require.Equal(t, expectedJSON, actualJSON, "Mismatch!")
 }

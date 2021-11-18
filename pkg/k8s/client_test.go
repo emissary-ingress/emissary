@@ -14,7 +14,7 @@ func TestMain(m *testing.M) {
 	// we get the lock to make sure we are the only thing running
 	// because the nat tests interfere with docker functionality
 	dtest.WithMachineLock(context.TODO(), func(ctx context.Context) {
-		dtest.K8sApply(ctx, "00-custom-crd.yaml", "custom.yaml")
+		dtest.K8sApply(ctx, dtest.Kube22, "00-custom-crd.yaml", "custom.yaml")
 
 		os.Exit(m.Run())
 	})
@@ -28,7 +28,7 @@ func TestList(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	svcs, err := c.List("svc")
+	svcs, err := c.List(ctx, "svc")
 	if err != nil {
 		t.Error(err)
 	}
@@ -42,7 +42,7 @@ func TestList(t *testing.T) {
 		t.Errorf("did not find kubernetes service")
 	}
 
-	customs, err := c.List("customs")
+	customs, err := c.List(ctx, "customs")
 	if err != nil {
 		t.Error(err)
 	}

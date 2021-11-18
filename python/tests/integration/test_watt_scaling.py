@@ -19,8 +19,8 @@ class WattTesting:
     def create_listeners(self, namespace):
         manifest = f"""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: listener-8080
 spec:
@@ -36,7 +36,7 @@ spec:
 
     def apply_qotm_endpoint_manifests(self, namespace):
         qotm_resolver = f"""
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: KubernetesEndpointResolver
 metadata:
   name: qotm-resolver
@@ -49,8 +49,8 @@ metadata:
     def create_qotm_mapping(self, namespace):
         qotm_mapping = f"""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name:  qotm-mapping
   namespace: {namespace}
@@ -68,8 +68,8 @@ spec:
     def delete_qotm_mapping(self, namespace):
         qotm_mapping = f"""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name:  qotm-mapping
   namespace: {namespace}
@@ -100,8 +100,8 @@ spec:
         self.apply_qotm_endpoint_manifests(namespace=namespace)
 
         # Now let's wait for ambassador and QOTM pods to become ready
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=qotm', '-n', namespace])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=qotm', '-n', namespace])
 
         # Assume we can reach Ambassador through telepresence
         qotm_host = "ambassador." + namespace

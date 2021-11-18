@@ -1,13 +1,14 @@
 package ambex
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/datawire/dlib/dlog"
 )
 
 type harness struct {
@@ -28,7 +29,9 @@ var drainTime = 10 * time.Minute
 func newHarness(t *testing.T) *harness {
 	C := make(chan time.Time)
 	h := &harness{t, C, 0, make(chan Update), make(chan int, 10000), 1, sync.Mutex{}, 0, time.Now()}
-	go updaterWithTicker(context.Background(), h.updates, h.getUsage, drainTime, &time.Ticker{C: C}, h.time)
+	go func() {
+		assert.NoError(t, updaterWithTicker(dlog.NewTestContext(t, false), h.updates, h.getUsage, drainTime, &time.Ticker{C: C}, h.time))
+	}()
 	return h
 }
 

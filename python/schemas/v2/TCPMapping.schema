@@ -1,57 +1,126 @@
 {
-    "$schema": "http://json-schema.org/schema#",
     "id": "https://getambassador.io/schemas/mapping.json",
-
+    "$schema": "http://json-schema.org/schema#",
     "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "service",
+        "port"
+    ],
     "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v2" ] },
-        "generation": { "type": "integer" },
-        "kind": { "type": "string" },
-        "name": { "type": "string" },
-        "namespace": { "type": "string" },
-        "metadata_labels": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
+        "address": {
+            "type": "string"
         },
         "ambassador_id": {
             "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
             ]
         },
-
-        "port": { "type": "integer" },
-        "host": { "type": "string" },
-        "address": { "type": "string" },
-        "idle_timeout_ms": { "type": "string" },
-        "weight": { "type": "integer" },
-        "enable_ipv4": { "type": "boolean" },
-        "enable_ipv6": { "type": "boolean" },
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v2"
+            ]
+        },
         "circuit_breakers": {
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
+                    "max_connections": {
+                        "type": "integer"
+                    },
+                    "max_pending_requests": {
+                        "type": "integer"
+                    },
+                    "max_requests": {
+                        "type": "integer"
+                    },
+                    "max_retries": {
+                        "type": "integer"
+                    },
                     "priority": {
                         "type": "string",
-                        "enum": ["default", "high"]
-                    },
-                    "max_connections": { "type": "integer" },
-                    "max_pending_requests": { "type": "integer" },
-                    "max_requests": { "type": "integer" },
-                    "max_retries": { "type": "integer" }
+                        "enum": [
+                            "default",
+                            "high"
+                        ]
+                    }
                 },
                 "additionalProperties": false
             }
         },
-        "resolver": { "type": "string" },
-        "tls": { "type": [ "string", "boolean" ] },
-        "cluster_tag": { "type": "string" },
-
-        "service": { "type": "string" },
-        "stats_name": { "type": "string" }
+        "cluster_tag": {
+            "type": "string"
+        },
+        "enable_ipv4": {
+            "type": "boolean"
+        },
+        "enable_ipv6": {
+            "type": "boolean"
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "host": {
+            "type": "string"
+        },
+        "idle_timeout_ms": {
+            "type": "string"
+        },
+        "kind": {
+            "type": "string"
+        },
+        "metadata_labels": {
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "port": {
+            "type": "integer"
+        },
+        "resolver": {
+            "type": "string"
+        },
+        "service": {
+            "type": "string"
+        },
+        "tls": {
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "boolean"
+                }
+            ]
+        },
+        "weight": {
+            "type": "integer"
+        }
     },
-
-    "required": [ "apiVersion", "kind", "name", "service", "port" ],
     "additionalProperties": false
 }

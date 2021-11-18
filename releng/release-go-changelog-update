@@ -32,10 +32,10 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             # edit 'line' as appropriate
             sys.stdout.write(line)
         git_add("FILENAME")
-    blocks.  However, the block to edit the CHANGELOG.md file is unfortunately a
-    touch more complex, because it has to deal with parsing the file in to
-    sections and buffering the sections... maybe line-oriented processing wasn't
-    the best choice for that file.
+    blocks.  However, the block to edit the releaseNotes.yml file is unfortunately
+    more complex, given the structuring of YAML... maybe line-oriented processing
+    wasn't the best choice for that file, but parsing and reconstructing at as YAML
+    probably isn't great either. Hmmmm.
     """
 
     if not quiet:
@@ -66,7 +66,6 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
     @contextmanager
     def check(name: str) -> Generator[CheckResult, None, None]:
         with checker.check(name) as subcheck:
-            # time.sleep(1)  # it's stupid, but honestly the delay makes the output more readable
             yield subcheck
 
     if not getenv("GIT_TOKEN"):
@@ -100,19 +99,37 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
     if not checker.ok:
         return 1
 
-    with check(f"Updating CHANGELOG.md with date for {next_ver}..."):
-        found = False
-        for line in fileinput.FileInput("CHANGELOG.md", inplace=True):
-            if not found and line.startswith(f"## [{next_ver}]"):
-                line = f"## [{next_ver}] {today.strftime('%B %d, %Y')}\n"
-                found = True
+    with check(f"Updating releaseNotes.yml with date for {next_ver}..."):
+        state = 0
 
+        for line in fileinput.FileInput("docs/releaseNotes.yml", inplace=True):
+            if state == 0:
+                if line.strip() == f"- version: {next_ver}":
+                    state = 1
+            elif state == 1:
+                if m := re.match(r"(\s+date:)\s+.*$", line):
+                    line = f"{m.group(1)} '{today.strftime('%Y-%m-%d')}'\n"
+                    state = 2
+            
             sys.stdout.write(line)
 
-        if not found:
-            raise Exception(f"Changelog entry for {next_ver} not found. Was releng/start-update-version run?")
+        if state != 2:
+            # Something didn't go right.
+            sadness = f"""
+ ==> ERROR: could not find the date for version '{next_ver}' in 
+     docs/releaseNotes.yml. Make sure that the block for that release
+     starts with
 
-        git_add("CHANGELOG.md")
+     - version: {next_ver}
+       date: ....
+
+     as the start of the block."""
+
+            raise Exception(sadness)
+
+    # Once this is done, update the CHANGELOG from the release notes.
+    with check(f"Updating CHANGELOG.md from releaseNotes.yml..."):
+        run([ "make", f"{os.getcwd()}/CHANGELOG.md" ])
 
     if checker.ok and commit:
         with check(f"Committing changes..."):

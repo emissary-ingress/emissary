@@ -1,10 +1,10 @@
 # GENERATED FILE: edits made by hand will not be preserved.
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.4.1
+    controller-gen.kubebuilder.io/version: v0.5.0
     helm.sh/hook: crd-install
   labels:
     app.kubernetes.io/name: ambassador
@@ -20,90 +20,93 @@ spec:
     plural: devportals
     singular: devportal
   scope: Namespaced
-  validation:
-    openAPIV3Schema:
-      description: "DevPortal is the Schema for the DevPortals API \n DevPortal resources specify the `what` and `how` is shown in a DevPortal: \n * `what` is in a DevPortal can be controlled with   - a `selector`, that can be used for filtering `Mappings`.   - a `docs` listing of (services, url) * `how` is a pointer to some `contents` (a checkout of a Git repository   with go-templates/markdown/css). \n Multiple `DevPortal`s can exist in the cluster, and the Dev Portal server will show them at different endpoints. A `DevPortal` resource with a special name, `ambassador`, will be used for configuring the default Dev Portal (served at `/docs/` by default)."
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: DevPortalSpec defines the desired state of DevPortal
-          properties:
-            ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-              items:
-                type: string
-              oneOf:
-              - type: string
-              - type: array
-            content:
-              description: Content specifies where the content shown in the DevPortal come from
-              properties:
-                branch:
+  versions:
+  - name: v3alpha1
+    schema:
+      openAPIV3Schema:
+        description: "DevPortal is the Schema for the DevPortals API \n DevPortal resources specify the `what` and `how` is shown in a DevPortal: \n * `what` is in a DevPortal can be controlled with   - a `selector`, that can be used for filtering `Mappings`.   - a `docs` listing of (services, url) * `how` is a pointer to some `contents` (a checkout of a Git repository   with go-templates/markdown/css). \n Multiple `DevPortal`s can exist in the cluster, and the Dev Portal server will show them at different endpoints. A `DevPortal` resource with a special name, `ambassador`, will be used for configuring the default Dev Portal (served at `/docs/` by default)."
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: DevPortalSpec defines the desired state of DevPortal
+            properties:
+              ambassador_id:
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                items:
                   type: string
-                dir:
-                  type: string
-                url:
-                  type: string
-              type: object
-            default:
-              description: Default must be true when this is the default DevPortal
-              type: boolean
-            docs:
-              description: Docs is a static docs definition
-              items:
-                description: 'DevPortalDocsSpec is a static documentation definition: instead of using a Selector for finding documentation for services, users can provide a static list of <service>:<URL> tuples. These services will be shown in the Dev Portal with the documentation obtained from this URL.'
+                type: array
+              content:
+                description: Content specifies where the content shown in the DevPortal come from
                 properties:
-                  service:
-                    description: Service is the service being documented
+                  branch:
+                    type: string
+                  dir:
                     type: string
                   url:
-                    description: URL is the URL used for obtaining docs
                     type: string
                 type: object
-              type: array
-            naming_scheme:
-              description: Describes how to display "services" in the DevPortal. Default namespace.name
-              enum:
-              - namespace.name
-              - name.prefix
-              type: string
-            search:
-              description: DevPortalSearchSpec allows configuration over search functionality for the DevPortal
-              properties:
-                enabled:
-                  type: boolean
-                type:
-                  description: 'Type of search. "title-only" does a fuzzy search over openapi and page titles "all-content" will fuzzy search over all openapi and page content. "title-only" is the default. warning:  using all-content may incur a larger memory footprint'
-                  enum:
-                  - title-only
-                  - all-content
-                  type: string
-              type: object
-            selector:
-              description: Selector is used for choosing what is shown in the DevPortal
-              properties:
-                matchLabels:
-                  additionalProperties:
-                    type: string
-                  description: MatchLabels specifies the list of labels that must be present in Mappings for being present in this DevPortal.
+              default:
+                description: Default must be true when this is the default DevPortal
+                type: boolean
+              docs:
+                description: Docs is a static docs definition
+                items:
+                  description: 'DevPortalDocsSpec is a static documentation definition: instead of using a Selector for finding documentation for services, users can provide a static list of <service>:<URL> tuples. These services will be shown in the Dev Portal with the documentation obtained from this URL.'
+                  properties:
+                    service:
+                      description: Service is the service being documented
+                      type: string
+                    timeout_ms:
+                      description: Timeout specifies the amount of time devportal will wait for the downstream service to report an openapi spec back
+                      type: integer
+                    url:
+                      description: URL is the URL used for obtaining docs
+                      type: string
                   type: object
-                matchNamespaces:
-                  description: MatchNamespaces is a list of namespaces that will be included in this DevPortal.
-                  items:
+                type: array
+              naming_scheme:
+                description: Describes how to display "services" in the DevPortal. Default namespace.name
+                enum:
+                - namespace.name
+                - name.prefix
+                type: string
+              preserve_servers:
+                description: Configures this DevPortal to use server definitions from the openAPI doc instead of rewriting them based on the url used for the connection.
+                type: boolean
+              search:
+                description: DevPortalSearchSpec allows configuration over search functionality for the DevPortal
+                properties:
+                  enabled:
+                    type: boolean
+                  type:
+                    description: 'Type of search. "title-only" does a fuzzy search over openapi and page titles "all-content" will fuzzy search over all openapi and page content. "title-only" is the default. warning:  using all-content may incur a larger memory footprint'
+                    enum:
+                    - title-only
+                    - all-content
                     type: string
-                  type: array
-              type: object
-          type: object
-      type: object
-  version: v2
-  versions:
-  - name: v2
+                type: object
+              selector:
+                description: Selector is used for choosing what is shown in the DevPortal
+                properties:
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: MatchLabels specifies the list of labels that must be present in Mappings for being present in this DevPortal.
+                    type: object
+                  matchNamespaces:
+                    description: MatchNamespaces is a list of namespaces that will be included in this DevPortal.
+                    items:
+                      type: string
+                    type: array
+                type: object
+            type: object
+        type: object
     served: true
     storage: true
