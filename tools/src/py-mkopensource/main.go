@@ -12,6 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/datawire/dlib/derror"
 	. "github.com/datawire/go-mkopensource/pkg/detectlicense"
 )
 
@@ -27,20 +28,6 @@ var (
 	LGPL21      = License{Name: "GNU Lesser General Public License Version 2.1", WeakCopyleft: true}
 	GPL3        = License{Name: "GNU General Public License Version 3", StrongCopyleft: true}
 )
-
-type errset []error
-
-func (e errset) Error() string {
-	if len(e) == 1 {
-		return e[0].Error()
-	}
-	var buf strings.Builder
-	fmt.Fprintf(&buf, "%d errors:", len(e))
-	for i, err := range e {
-		fmt.Fprintf(&buf, "\n %d. %v", i+1, err)
-	}
-	return buf.String()
-}
 
 func parseLicenses(name, version, license string) map[License]struct{} {
 	override, ok := map[tuple][]License{
@@ -161,7 +148,7 @@ func Main() error {
 	table := tabwriter.NewWriter(os.Stdout, 0, 8, 2, ' ', 0)
 	_, _ = io.WriteString(table, "  \tName\tVersion\tLicense(s)\n")
 	_, _ = io.WriteString(table, "  \t----\t-------\t----------\n")
-	var errs errset
+	var errs derror.MultiError
 	for _, distribName := range distribNames {
 		distrib := distribs[distribName]
 		distribVersion := distrib.Get("Version")

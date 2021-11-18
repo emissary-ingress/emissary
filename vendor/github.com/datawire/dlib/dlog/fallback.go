@@ -12,20 +12,25 @@ import (
 // mimics the logrus defaults.  This function may go away if we change the default fallback logger.
 func DefaultFieldSort(fieldNames []string) {
 	sort.Slice(fieldNames, func(i, j int) bool {
-		// This matches the default behavior of logrus.TextFormatter, except that it also
-		// includes "dexec.XXX" (in addition to the usual logrus.FieldXXX fields) in the
-		// fixed-ordering.
+		// The order that log fields are printed in; fields not explicitly in this list are
+		// at position "0".  This is similar to the order of the default behavior of
+		// logrus.TextFormatter, except that:
+		//
+		//  - it also includes special ordering for the dexec fields
+		//  - it also includes special ordering for the dgroup fields
+		//  - it puts the caller information after any unknown fields, rather than before
 		orders := map[string]int{
-			logrus.FieldKeyTime:        -10,
-			logrus.FieldKeyLevel:       -9,
-			"dexec.pid":                -8,
-			"dexec.stream":             -7,
-			"dexec.data":               -6,
-			"dexec.err":                -5,
-			logrus.FieldKeyMsg:         -4,
-			logrus.FieldKeyLogrusError: -3,
-			logrus.FieldKeyFunc:        -2,
-			logrus.FieldKeyFile:        -1,
+			logrus.FieldKeyTime:        -9,
+			logrus.FieldKeyLevel:       -8,
+			"THREAD":                   -7, // dgroup
+			"dexec.pid":                -6,
+			"dexec.stream":             -5,
+			"dexec.data":               -4,
+			"dexec.err":                -3,
+			logrus.FieldKeyMsg:         -2,
+			logrus.FieldKeyLogrusError: -1,
+			logrus.FieldKeyFunc:        1,
+			logrus.FieldKeyFile:        2,
 		}
 		iOrd := orders[fieldNames[i]]
 		jOrd := orders[fieldNames[j]]

@@ -1,4 +1,4 @@
-package internal
+package kates_internal
 
 import (
 	"encoding/json"

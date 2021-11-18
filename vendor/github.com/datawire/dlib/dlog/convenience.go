@@ -4,111 +4,110 @@ package dlog
 
 import (
 	"context"
-	"fmt"
 )
 
 func Error(ctx context.Context, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelError, fmt.Sprint(args...))
+	l.Log(LogLevelError, args...)
 }
 func Errorln(ctx context.Context, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelError, sprintln(args...))
+	l.Logln(LogLevelError, args...)
 }
 func Errorf(ctx context.Context, format string, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelError, fmt.Sprintf(format, args...))
+	l.Logf(LogLevelError, format, args...)
 }
 func Warn(ctx context.Context, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelWarn, fmt.Sprint(args...))
+	l.Log(LogLevelWarn, args...)
 }
 func Warnln(ctx context.Context, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelWarn, sprintln(args...))
+	l.Logln(LogLevelWarn, args...)
 }
 func Warnf(ctx context.Context, format string, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelWarn, fmt.Sprintf(format, args...))
+	l.Logf(LogLevelWarn, format, args...)
 }
 func Info(ctx context.Context, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelInfo, fmt.Sprint(args...))
+	l.Log(LogLevelInfo, args...)
 }
 func Infoln(ctx context.Context, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelInfo, sprintln(args...))
+	l.Logln(LogLevelInfo, args...)
 }
 func Infof(ctx context.Context, format string, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelInfo, fmt.Sprintf(format, args...))
+	l.Logf(LogLevelInfo, format, args...)
 }
 func Debug(ctx context.Context, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelDebug, fmt.Sprint(args...))
+	l.Log(LogLevelDebug, args...)
 }
 func Debugln(ctx context.Context, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelDebug, sprintln(args...))
+	l.Logln(LogLevelDebug, args...)
 }
 func Debugf(ctx context.Context, format string, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelDebug, fmt.Sprintf(format, args...))
+	l.Logf(LogLevelDebug, format, args...)
 }
 func Trace(ctx context.Context, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelTrace, fmt.Sprint(args...))
+	l.Log(LogLevelTrace, args...)
 }
 func Traceln(ctx context.Context, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelTrace, sprintln(args...))
+	l.Logln(LogLevelTrace, args...)
 }
 func Tracef(ctx context.Context, format string, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelTrace, fmt.Sprintf(format, args...))
+	l.Logf(LogLevelTrace, format, args...)
 }
 func Print(ctx context.Context, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelInfo, fmt.Sprint(args...))
+	l.Log(LogLevelInfo, args...)
 }
 func Println(ctx context.Context, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelInfo, sprintln(args...))
+	l.Logln(LogLevelInfo, args...)
 }
 func Printf(ctx context.Context, format string, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelInfo, fmt.Sprintf(format, args...))
+	l.Logf(LogLevelInfo, format, args...)
 }
 func Warning(ctx context.Context, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelWarn, fmt.Sprint(args...))
+	l.Log(LogLevelWarn, args...)
 }
 func Warningln(ctx context.Context, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelWarn, sprintln(args...))
+	l.Logln(LogLevelWarn, args...)
 }
 func Warningf(ctx context.Context, format string, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(LogLevelWarn, fmt.Sprintf(format, args...))
+	l.Logf(LogLevelWarn, format, args...)
 }

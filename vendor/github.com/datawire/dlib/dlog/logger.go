@@ -47,7 +47,13 @@ type Logger interface {
 	StdLogger(LogLevel) *log.Logger
 
 	// Log actually logs a message.
-	Log(level LogLevel, msg string)
+	Log(level LogLevel, args ...interface{})
+
+	// Logf logs a formatted message
+	Logf(level LogLevel, format string, args ...interface{})
+
+	// Logln logs the arguments given with a space in between each
+	Logln(level LogLevel, args ...interface{})
 }
 
 // LogLevel is an abstracted common log-level type for Logger.StdLogger().

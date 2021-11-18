@@ -25,7 +25,7 @@ following Free and Open Source software:
     github.com/census-instrumentation/opencensus-proto       v0.2.1                                     Apache License 2.0
     github.com/cespare/xxhash/v2                             v2.1.1                                     MIT license
     github.com/cncf/udpa/go                                  v0.0.0-20210322005330-6414d713912e         Apache License 2.0
-    github.com/datawire/dlib                                 v1.2.4-0.20210629021142-e221f3b9c3b8       Apache License 2.0
+    github.com/datawire/dlib                                 v1.2.5-0.20211116212847-0316f8d7af2b       Apache License 2.0
     github.com/datawire/dtest                                v0.0.0-20210927191556-2cccf1a938b0         Apache License 2.0
     github.com/datawire/go-mkopensource                      v0.0.0-20211110205306-9a3f29b7c373         Apache License 2.0
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license

@@ -90,12 +90,9 @@ func (r Resource) Kind() string {
 	return Map(r).GetString("kind")
 }
 
-// QKind returns a fully qualified resource kind with the following
-// format: <kind>.<version>.<group>
-func (r Resource) QKind() string {
-	gv := Map(r).GetString("apiVersion")
-	k := Map(r).GetString("kind")
-
+// Given a "group/version" string (i.g. from ".apiVersion") and a "kind" string, return a qualified
+// "kind.version.group" string.
+func QKind(gv, k string) string {
 	var g, v string
 	if slash := strings.IndexByte(gv, '/'); slash < 0 {
 		g = ""
@@ -104,8 +101,14 @@ func (r Resource) QKind() string {
 		g = gv[:slash]
 		v = gv[slash+1:]
 	}
-
 	return strings.Join([]string{k, v, g}, ".")
+}
+
+// QKind returns a fully qualified resource kind with the following format: <kind>.<version>.<group>
+func (r Resource) QKind() string {
+	gv := Map(r).GetString("apiVersion")
+	k := Map(r).GetString("kind")
+	return QKind(gv, k)
 }
 
 func (r Resource) Empty() bool {

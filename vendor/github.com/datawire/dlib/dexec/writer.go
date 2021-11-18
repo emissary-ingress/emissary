@@ -30,9 +30,7 @@ type loggingWriter struct {
 }
 
 func (l *loggingWriter) Write(p []byte) (n int, err error) {
-	n, err = l.writer.Write(p)
-
-	toLog := p[:n]
+	toLog := p
 	for len(toLog) > 0 {
 		nl := bytes.IndexByte(toLog, '\n')
 		var line []byte
@@ -46,9 +44,9 @@ func (l *loggingWriter) Write(p []byte) (n int, err error) {
 		l.log(nil, line)
 	}
 
+	n, err = l.writer.Write(p)
 	if err != nil {
 		l.log(err, nil)
 	}
-
 	return n, err
 }

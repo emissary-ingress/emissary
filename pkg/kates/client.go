@@ -37,7 +37,7 @@ import (
 	// k8s plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	kates_internal "github.com/datawire/ambassador/v2/pkg/kates/internal"
+	kates_internal "github.com/datawire/ambassador/v2/pkg/kates_internal"
 	"github.com/datawire/dlib/dlog"
 )
 

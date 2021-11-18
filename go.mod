@@ -52,7 +52,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cncf/udpa/go v0.0.0-20210322005330-6414d713912e
-	github.com/datawire/dlib v1.2.4-0.20210629021142-e221f3b9c3b8
+	github.com/datawire/dlib v1.2.5-0.20211116212847-0316f8d7af2b
 	github.com/datawire/dtest v0.0.0-20210927191556-2cccf1a938b0
 	github.com/datawire/go-mkopensource v0.0.0-20211110205306-9a3f29b7c373
 	github.com/envoyproxy/protoc-gen-validate v0.3.0-java.0.20200609174644-bd816e4522c1
