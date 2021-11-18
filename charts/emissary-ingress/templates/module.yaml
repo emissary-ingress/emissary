@@ -1,4 +1,4 @@
-{{- if .Values.module }}
+{{- if or .Values.module (hasKey .Values.env "AMBASSADOR_ID") }}
 apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
