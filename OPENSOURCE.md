@@ -3,7 +3,7 @@ following Free and Open Source software:
 
     Name                                                     Version                                    License(s)
     ----                                                     -------                                    ----------
-    the Go language standard library ("std")                 v1.15                                      3-clause BSD license
+    the Go language standard library ("std")                 v1.17.1                                    3-clause BSD license
     cloud.google.com/go                                      v0.54.0                                    Apache License 2.0
     github.com/Azure/go-ansiterm                             v0.0.0-20170929234023-d6e3b3328b78         MIT license
     github.com/Azure/go-autorest                             v14.2.0+incompatible                       Apache License 2.0
@@ -27,7 +27,7 @@ following Free and Open Source software:
     github.com/cncf/udpa/go                                  v0.0.0-20210322005330-6414d713912e         Apache License 2.0
     github.com/datawire/dlib                                 v1.2.4-0.20210629021142-e221f3b9c3b8       Apache License 2.0
     github.com/datawire/dtest                                v0.0.0-20210927191556-2cccf1a938b0         Apache License 2.0
-    github.com/datawire/go-mkopensource                      v0.0.0-20211026180000-06f43d9d3384         Apache License 2.0
+    github.com/datawire/go-mkopensource                      v0.0.0-20211110205306-9a3f29b7c373         Apache License 2.0
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license
     github.com/docker/distribution                           v2.7.1+incompatible                        Apache License 2.0
     github.com/docker/spdystream                             v0.0.0-20160310174837-449fdfce4d96         Apache License 2.0

@@ -1,3 +1,6 @@
+# The `test-stats` image gets built by `build-aux/check.mk` for use by
+# `python/kat/harness.py:TestImage`.
+
 # Copyright 2018 Datawire. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,4 +60,3 @@ COPY entrypoint.sh .
 RUN chmod 755 entrypoint.sh
 
 ENTRYPOINT /application/entrypoint.sh
-

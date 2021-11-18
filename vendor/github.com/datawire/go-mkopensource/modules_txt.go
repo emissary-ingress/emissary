@@ -30,12 +30,17 @@ func VendorList() ([]golist.Package, error) {
 
 	file, err := os.Open("vendor/modules.txt")
 	if err != nil {
+		if os.IsNotExist(err) {
+			// If there are no dependencies outside of stdlib.
+			return nil, nil
+		}
 		return nil, err
 	}
 	defer file.Close()
 
 	var pkgs []golist.Package
-	var curModule *golist.Module
+	var curModuleName string
+	var curModule *golist.Module // lazily populated from curModuleName
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -64,16 +69,23 @@ func VendorList() ([]golist.Package, error) {
 			default:
 				return nil, fmt.Errorf("malformed line in vendor/modules.txt: %q", line)
 			}
-			modname := parts[1]
-			modules, err := golist.GoListModules([]string{"-mod=vendor"}, []string{modname})
-			if err != nil {
-				return nil, err
-			}
-			if len(modules) != 1 {
-				return nil, errors.New("unexpected output from go list")
-			}
-			curModule = &modules[0]
+			// Defer looking up curModule from curModuleName until we actually need it;
+			// a non-used replaced module might not be present in `vendor/`.  We could
+			// instead download it by using `-mod=readonly` instead of `-mod=vendor`,
+			// but what would the point in that be?
+			curModuleName = parts[1]
+			curModule = nil
 		} else {
+			if curModule == nil && curModuleName != "" {
+				modules, err := golist.GoListModules([]string{"-mod=vendor"}, []string{curModuleName})
+				if err != nil {
+					return nil, err
+				}
+				if len(modules) != 1 {
+					return nil, errors.New("unexpected output from go list")
+				}
+				curModule = &modules[0]
+			}
 			pkgname := line
 			pkgs = append(pkgs, golist.Package{
 				Dir:        "vendor/" + pkgname,

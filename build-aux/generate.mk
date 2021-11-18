@@ -12,15 +12,14 @@
 # This `go mod tidy` business only belongs in generate.mk because for the moment we're checking
 # 'vendor/' in to Git.
 
-go-mod-tidy/oss:
-	rm -f $(OSS_HOME)/go.sum
-	cd $(OSS_HOME) && GOFLAGS=-mod=mod go mod tidy
-	cd $(OSS_HOME) && GOFLAGS=-mod=mod go mod vendor # make sure go.mod is complete, and re-gen go.sum
-	$(MAKE) go-mod-tidy/oss-evaluate
-go-mod-tidy/oss-evaluate:
-	@echo '# evaluate $$(proto_path)'; # $(proto_path) # cause Make to call `go list STUFF`, which will maybe edit go.mod or go.sum
-go-mod-tidy: go-mod-tidy/oss
-.PHONY: go-mod-tidy/oss go-mod-tidy
+go-mod-tidy:
+.PHONY: go-mod-tidy
+
+go-mod-tidy: go-mod-tidy/main
+go-mod-tidy/main:
+	rm -f go.sum
+	GOFLAGS=-mod=mod go mod tidy
+.PHONY: go-mod-tidy/main
 
 #
 # The main `make generate` entrypoints and listings
@@ -53,18 +52,29 @@ generate/files      += $(OSS_HOME)/pkg/api/pb/
 generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/
 generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/crds/
 generate-fast/files += $(OSS_HOME)/python/schemas/v3alpha1/
-# Individual files
+# Individual files: Misc
 generate/files      += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 generate/files      += $(OSS_HOME)/OPENSOURCE.md
 generate/files      += $(OSS_HOME)/builder/requirements.txt
 generate/precious   += $(OSS_HOME)/builder/requirements.txt
 generate-fast/files += $(OSS_HOME)/CHANGELOG.md
 generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/README.md
+# Individual files: YAML
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
 generate-fast/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
+# Individual files: Test TLS Certificates
+generate-fast/files += $(OSS_HOME)/builder/server.crt
+generate-fast/files += $(OSS_HOME)/builder/server.key
+generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.crt
+generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.key
+generate-fast/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.crt
+generate-fast/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.key
+generate-fast/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.crt
+generate-fast/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.key
+generate-fast/files += $(OSS_HOME)/python/tests/selfsigned.py
 
 generate: ## Update generated sources that get committed to Git
 generate:
@@ -104,7 +114,7 @@ joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(wo
 
 comma=,
 
-gomoddir = $(shell cd $(OSS_HOME); go list $1/... >/dev/null 2>/dev/null; go list -m -f='{{.Dir}}' $1)
+gomoddir = $(shell cd $(OSS_HOME); go list -mod=readonly $1/... >/dev/null 2>/dev/null; go list -mod=readonly -m -f='{{.Dir}}' $1)
 
 #
 # Rules for downloading ("vendoring") sources from elsewhere
@@ -159,6 +169,32 @@ $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto:
 	  echo; \
 	  curl --fail -L "$$url"; \
 	} > $@
+
+#
+# `make generate` certificate generation
+
+$(OSS_HOME)/builder/server.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=kat-server.test.getambassador.io
+$(OSS_HOME)/builder/server.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=kat-server.test.getambassador.io
+
+$(OSS_HOME)/docker/test-auth/authsvc.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=authsvc.datawire.io
+$(OSS_HOME)/docker/test-auth/authsvc.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=authsvc.datawire.io
+
+$(OSS_HOME)/docker/test-ratelimit/ratelimit.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=ratelimit.datawire.io
+$(OSS_HOME)/docker/test-ratelimit/ratelimit.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=ratelimit.datawire.io
+
+$(OSS_HOME)/docker/test-shadow/shadowsvc.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=demosvc.datawire.io
+$(OSS_HOME)/docker/test-shadow/shadowsvc.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=demosvc.datawire.io
+
+$(OSS_HOME)/python/tests/selfsigned.py: %: %.gen $(tools/testcert-gen)
+	$@.gen $(tools/testcert-gen) >$@
 
 #
 # `make generate` protobuf rules
@@ -328,26 +364,26 @@ $(OSS_HOME)/manifests/emissary/ambassador.yaml: $(OSS_HOME)/k8s-config/create_ya
 #
 # Generate report on dependencies
 
-$(OSS_HOME)/build-aux-local/pip-show.txt: sync
+$(OSS_HOME)/build-aux/pip-show.txt: sync
 	docker exec $$($(BUILDER)) sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
 
 $(OSS_HOME)/builder/requirements.txt: %.txt: %.in FORCE
 	$(BUILDER) pip-compile
 .PRECIOUS: $(OSS_HOME)/builder/requirements.txt
 
-$(OSS_HOME)/build-aux-local/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
+$(OSS_HOME)/build-aux/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
 	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
 
 $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
 
-$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux-local/go-version.txt $(OSS_HOME)/build-aux-local/pip-show.txt
-	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz
+$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
+	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
 		cd $(OSS_HOME); \
-		$(tools/go-mkopensource) --output-format=txt --package=mod --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz; \
+		$(tools/go-mkopensource) --output-format=txt --package=mod --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz; \
 		echo; \
-		{ sed 's/^---$$//' $(OSS_HOME)/build-aux-local/pip-show.txt; echo; } | $(tools/py-mkopensource); \
+		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource); \
 	} > $@
 
 #

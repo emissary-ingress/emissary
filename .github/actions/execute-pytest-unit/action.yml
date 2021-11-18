@@ -12,6 +12,8 @@ runs:
         sudo sysctl -w fs.inotify.max_user_instances=4096
       shell: bash
       name: "Configure system file and inotify maximums (1600000/4096)"
+    - name: Install Go
+      uses: ./.github/actions/setup-go
     - uses: actions/setup-python@v2
       with:
         python-version: '~3.9.5'
@@ -25,6 +27,11 @@ runs:
           awscli
           packaging
       name: "Install Python requirements with pip"
+    - name: "Docker Login"
+      uses: docker/login-action@v1
+      with:
+        username: ${{ env.DOCKER_USERNAME }}
+        password: ${{ env.DOCKER_PASSWORD }}
     - name: make pytest-${{ matrix.test }} (legacy-mode:${{ matrix.pytest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.pytest-settings.fast-reconfigure }} )
       uses: nick-invision/retry@v2.4.0
       with:
@@ -37,6 +44,7 @@ runs:
           export AMBASSADOR_FAST_RECONFIGURE=${{ matrix.pytest-settings.fast-reconfigure }}
           export TEST_XML_DIR=/tmp/test-logs/xml/
           export DEV_KUBECONFIG=~/.kube/config
+          export DEV_REGISTRY=${{ env.DEV_REGISTRY }}
           mkdir -p ${TEST_XML_DIR}
           make pytest-${{ matrix.test }}
     - uses: ./.github/actions/git-dirty-check

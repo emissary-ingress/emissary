@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -111,13 +110,13 @@ func loadGoTar(goTarFilename string) (version string, license []byte, err error)
 		}
 		switch header.Name {
 		case "go/VERSION":
-			fc, err := ioutil.ReadAll(goTar)
+			fc, err := io.ReadAll(goTar)
 			if err != nil {
 				return "", nil, err
 			}
 			version = "v" + strings.TrimPrefix(strings.TrimSpace(string(fc)), "go")
 		case "go/LICENSE":
-			fc, err := ioutil.ReadAll(goTar)
+			fc, err := io.ReadAll(goTar)
 			if err != nil {
 				return "", nil, err
 			}
@@ -157,6 +156,15 @@ func licenseIsStrongCopyleft(licenses map[detectlicense.License]struct{}) bool {
 		}
 	}
 	return false
+}
+
+func licenseString(licenseSet map[detectlicense.License]struct{}) string {
+	licenseList := make([]string, 0, len(licenseSet))
+	for license := range licenseSet {
+		licenseList = append(licenseList, license.Name)
+	}
+	sort.Strings(licenseList)
+	return strings.Join(licenseList, ", ")
 }
 
 func Main(args *CLIArgs) error {
@@ -205,6 +213,7 @@ func Main(args *CLIArgs) error {
 	}
 
 	// `go mod vendor`
+	fs := newFSCache()
 	pkgFiles := make(map[string]map[string][]byte)
 	for _, pkg := range listPkgs {
 		vendor := make(map[string][]byte)
@@ -217,11 +226,11 @@ func Main(args *CLIArgs) error {
 				continue
 			}
 			if args.Package == "mod" {
-				if err := collectVendoredPkg(vendor, pkg); err != nil {
+				if err := fs.collectVendoredPkg(vendor, pkg); err != nil {
 					return err
 				}
 			} else {
-				if err := collectPkg(vendor, pkg); err != nil {
+				if err := fs.collectPkg(vendor, pkg); err != nil {
 					return err
 				}
 			}
@@ -241,23 +250,20 @@ func Main(args *CLIArgs) error {
 	}
 	sort.Strings(pkgNames)
 	pkgLicenses := make(map[string]map[detectlicense.License]struct{})
+	licErrs := []error(nil)
 	for _, pkgName := range pkgNames {
 		pkgLicenses[pkgName], err = detectlicense.DetectLicenses(pkgFiles[pkgName])
+		if err == nil && licenseIsStrongCopyleft(pkgLicenses[pkgName]) {
+			err = fmt.Errorf("has an unacceptable license for use by Ambassador Labs (%s)",
+				licenseString(pkgLicenses[pkgName]))
+		}
 		if err != nil {
-			return fmt.Errorf(`%w
-    This probably means that you added or upgraded a dependency, and the
-    automated opensource-license-checker can't confidently detect what
-    the license is.  (This is a good thing, because it is reminding you
-    to check the license of libraries before using them.)
-
-    You need to update the "github.com/datawire/go-mkopensource/pkg/detectlicense/licenses.go"
-    file to correctly detect the license.`,
-				fmt.Errorf("package %q: %w", pkgName, err))
+			err = fmt.Errorf(`package %q: %w`, pkgName, err)
+			licErrs = append(licErrs, err)
 		}
-		if licenseIsStrongCopyleft(pkgLicenses[pkgName]) {
-			return fmt.Errorf(`package %q: %w`, pkgName,
-				errors.New("has an unacceptable license for use by Ambassador Labs"))
-		}
+	}
+	if len(licErrs) > 0 {
+		return ExplainErrors(licErrs)
 	}
 
 	// Group packages by module & collect module info
@@ -316,22 +322,22 @@ func Main(args *CLIArgs) error {
 			modnames = append(modnames, modname)
 		}
 		if len(mainMods) == 1 {
-			readme.WriteString(wordwrap(75, fmt.Sprintf("The Go module %q incorporates the following Free and Open Source software:", modnames[0])))
+			readme.WriteString(wordwrap(0, 75, fmt.Sprintf("The Go module %q incorporates the following Free and Open Source software:", modnames[0])) + "\n")
 		} else {
 			sort.Strings(modnames)
-			readme.WriteString(wordwrap(75, fmt.Sprintf("The Go modules %q incorporate the following Free and Open Source software:", modnames)))
+			readme.WriteString(wordwrap(0, 75, fmt.Sprintf("The Go modules %q incorporate the following Free and Open Source software:", modnames)) + "\n")
 		}
 	} else if len(mainLibPkgs) == 0 {
 		if len(mainCmdPkgs) == 1 {
-			readme.WriteString(wordwrap(75, fmt.Sprintf("The program %q incorporates the following Free and Open Source software:", path.Base(mainCmdPkgs[0]))))
+			readme.WriteString(wordwrap(0, 75, fmt.Sprintf("The program %q incorporates the following Free and Open Source software:", path.Base(mainCmdPkgs[0]))) + "\n")
 		} else {
-			readme.WriteString(wordwrap(75, fmt.Sprintf("The programs %q incorporate the following Free and Open Source software:", args.Package)))
+			readme.WriteString(wordwrap(0, 75, fmt.Sprintf("The programs %q incorporate the following Free and Open Source software:", args.Package)) + "\n")
 		}
 	} else {
 		if len(mainLibPkgs) == 1 {
-			readme.WriteString(wordwrap(75, fmt.Sprintf("The Go package %q incorporates the following Free and Open Source software:", mainLibPkgs[0])))
+			readme.WriteString(wordwrap(0, 75, fmt.Sprintf("The Go package %q incorporates the following Free and Open Source software:", mainLibPkgs[0])) + "\n")
 		} else {
-			readme.WriteString(wordwrap(75, fmt.Sprintf("The Go packages %q incorporate the following Free and Open Source software:", args.Package)))
+			readme.WriteString(wordwrap(0, 75, fmt.Sprintf("The Go packages %q incorporate the following Free and Open Source software:", args.Package)) + "\n")
 		}
 	}
 	readme.WriteString("\n")
@@ -366,12 +372,7 @@ func Main(args *CLIArgs) error {
 			}
 		}
 
-		licenseList := make([]string, 0, len(modLicenses[modKey]))
-		for license := range modLicenses[modKey] {
-			licenseList = append(licenseList, license.Name)
-		}
-		sort.Strings(licenseList)
-		depLicenses = strings.Join(licenseList, ", ")
+		depLicenses = licenseString(modLicenses[modKey])
 		if depLicenses == "" {
 			panic(fmt.Errorf("this should not happen: empty license string for %q", depName))
 		}
@@ -380,7 +381,7 @@ func Main(args *CLIArgs) error {
 	table.Flush()
 	if args.OutputFormat == "tar" {
 		readme.WriteString("\n")
-		readme.WriteString(wordwrap(75, "The appropriate license notices and source code are in correspondingly named directories."))
+		readme.WriteString(wordwrap(0, 75, "The appropriate license notices and source code are in correspondingly named directories.") + "\n")
 	}
 
 	switch args.OutputFormat {

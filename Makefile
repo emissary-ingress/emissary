@@ -28,6 +28,7 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
 include $(OSS_HOME)/build-aux/tools.mk
 include $(OSS_HOME)/build-aux/ci.mk
+include $(OSS_HOME)/build-aux/check.mk
 include $(OSS_HOME)/builder/builder.mk
 include $(OSS_HOME)/_cxx/envoy.mk
 include $(OSS_HOME)/charts/charts.mk
@@ -36,10 +37,14 @@ include $(OSS_HOME)/releng/release.mk
 
 $(call module,ambassador,$(OSS_HOME))
 
-include $(OSS_HOME)/build-aux-local/generate.mk
-include $(OSS_HOME)/build-aux-local/lint.mk
+include $(OSS_HOME)/build-aux/generate.mk
+include $(OSS_HOME)/build-aux/lint.mk
 
 include $(OSS_HOME)/docs/yaml.mk
+
+ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
+$(_prelude.go.ensure)
+endif
 
 test-chart-values.yaml: docker/$(LCNAME).docker.push.remote
 	{ \

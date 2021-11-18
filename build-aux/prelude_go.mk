@@ -80,5 +80,5 @@ _prelude.go.VERSION.HAVE = $(if $(_prelude.go.HAVE),$(call _prelude.go.VERSION.g
 #
 # Building Go programs for use by build-aux
 
-_prelude.go.error_unsupported = $(error This Makefile requires Go '1.11.4' or newer; you $(if $(_prelude.go.HAVE),have '$(_prelude.go.VERSION)',do not seem to have Go))
-_prelude.go.ensure = $(if $(call _prelude.go.VERSION.HAVE,1.11.4),,$(_prelude.go.error_unsupported))
+_prelude.go.error_unsupported = $(error This Makefile requires Go '1.17' or newer; you $(if $(_prelude.go.HAVE),have '$(_prelude.go.VERSION)',do not seem to have Go))
+_prelude.go.ensure = $(if $(call _prelude.go.VERSION.HAVE,1.17),,$(_prelude.go.error_unsupported))
