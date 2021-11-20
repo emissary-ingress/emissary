@@ -59,6 +59,87 @@ func TestFake(t *testing.T) {
 
 }
 
+func TestWeightWithCache(t *testing.T) {
+	get_envoy_config := func(f *entrypoint.Fake, want_foo bool, want_bar bool) (*v3bootstrap.Bootstrap, error) {
+		return f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
+			c_foo := FindCluster(config, ClusterNameContains("cluster_foo_"))
+			c_bar := FindCluster(config, ClusterNameContains("cluster_bar_"))
+
+			has_foo := c_foo != nil
+			has_bar := c_bar != nil
+
+			return (has_foo == want_foo) && (has_bar == want_bar)
+		})
+	}
+
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
+	assert.NoError(t, f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-foo
+  namespace: default
+spec:
+  prefix: /foo/
+  service: foo.default
+`))
+
+	f.Flush()
+
+	// We need an Envoy config that has a foo cluster, but not a bar cluster.
+	envoyConfig, err := get_envoy_config(f, true, false)
+	require.NoError(t, err)
+	assert.NotNil(t, envoyConfig)
+
+	// Now add a bar mapping.
+	assert.NoError(t, f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-bar
+  namespace: default
+spec:
+  prefix: /foo/
+  service: bar.default
+`))
+
+	f.Flush()
+
+	// We need an Envoy config that has a foo cluster and a bar cluster.
+	envoyConfig, err = get_envoy_config(f, true, true)
+	require.NoError(t, err)
+	assert.NotNil(t, envoyConfig)
+
+	assert.NoError(t, f.Delete("Mapping", "default", "mapping-bar"))
+	f.Flush()
+
+	// We need an Envoy config that has a foo cluster, but not a bar cluster.
+	envoyConfig, err = get_envoy_config(f, true, false)
+	require.NoError(t, err)
+	assert.NotNil(t, envoyConfig)
+	// Now add a bar mapping.
+	assert.NoError(t, f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-bar
+  namespace: default
+spec:
+  prefix: /foo/
+  service: bar.default
+`))
+
+	f.Flush()
+
+	// We need an Envoy config that has a foo cluster and a bar cluster.
+	envoyConfig, err = get_envoy_config(f, true, true)
+	require.NoError(t, err)
+	assert.NotNil(t, envoyConfig)
+}
+
 func LogJSON(t testing.TB, obj interface{}) {
 	t.Helper()
 	bytes, err := json.MarshalIndent(obj, "", "  ")
