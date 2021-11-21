@@ -206,6 +206,8 @@ type Host struct {
 	Status HostStatus `json:"status,omitempty"`
 }
 
+func (*Host) Hub() {}
+
 // HostList contains a list of Hosts.
 //
 // +kubebuilder:object:root=true
@@ -214,6 +216,8 @@ type HostList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Host `json:"items"`
 }
+
+func (*HostList) Hub() {}
 
 func init() {
 	SchemeBuilder.Register(&Host{}, &HostList{})

@@ -41,8 +41,6 @@ type KubernetesServiceResolver struct {
 	Spec KubernetesServiceResolverSpec `json:"spec,omitempty"`
 }
 
-func (*KubernetesServiceResolver) Hub() {}
-
 // KubernetesServiceResolverList contains a list of KubernetesServiceResolvers.
 //
 // +kubebuilder:object:root=true
@@ -52,8 +50,6 @@ type KubernetesServiceResolverList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []KubernetesServiceResolver `json:"items"`
 }
-
-func (*KubernetesServiceResolverList) Hub() {}
 
 // KubernetesEndpointResolver tells Ambassador to use Kubernetes Endpoints
 // resources to resolve services. It actually has no spec other than the
@@ -73,8 +69,6 @@ type KubernetesEndpointResolver struct {
 	Spec KubernetesEndpointResolverSpec `json:"spec,omitempty"`
 }
 
-func (*KubernetesEndpointResolver) Hub() {}
-
 // KubernetesEndpointResolverList contains a list of KubernetesEndpointResolvers.
 //
 // +kubebuilder:object:root=true
@@ -84,8 +78,6 @@ type KubernetesEndpointResolverList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []KubernetesEndpointResolver `json:"items"`
 }
-
-func (*KubernetesEndpointResolverList) Hub() {}
 
 // ConsulResolver tells Ambassador to use Consul to resolve services. In addition
 // to the AmbassadorID, it needs information about which Consul server and DC to
@@ -108,8 +100,6 @@ type ConsulResolver struct {
 	Spec ConsulResolverSpec `json:"spec,omitempty"`
 }
 
-func (*ConsulResolver) Hub() {}
-
 // ConsulResolverList contains a list of ConsulResolvers.
 //
 // +kubebuilder:object:root=true
@@ -119,8 +109,6 @@ type ConsulResolverList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []ConsulResolver `json:"items"`
 }
-
-func (*ConsulResolverList) Hub() {}
 
 func init() {
 	SchemeBuilder.Register(&KubernetesServiceResolver{}, &KubernetesServiceResolverList{})
