@@ -167,3 +167,15 @@ func (in *TLSContext) ConvertFrom(hub conv.Hub) error {
 func (in *TLSContext) ConvertTo(hub conv.Hub) error {
 	return errors.New("will not convert from v3alpha1 TLSContext back to v2 TLSContext")
 }
+
+func (in *TracingService) ConvertFrom(hub conv.Hub) error {
+	s, err := SchemeBuilder.Build()
+	if err != nil {
+		return err
+	}
+	return s.Convert(hub.(*v2.TracingService), in, nil)
+}
+
+func (in *TracingService) ConvertTo(hub conv.Hub) error {
+	return errors.New("will not convert from v3alpha1 TracingService back to v2 TracingService")
+}
