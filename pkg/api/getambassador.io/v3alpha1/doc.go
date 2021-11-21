@@ -17,6 +17,6 @@
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
-package v2
+package v3alpha1
 
-// +k8s:conversion-gen=github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1
+// +k8s:conversion-gen=github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2
