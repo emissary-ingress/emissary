@@ -59,8 +59,6 @@ type TCPMapping struct {
 	Spec TCPMappingSpec `json:"spec,omitempty"`
 }
 
-func (*TCPMapping) Hub() {}
-
 // TCPMappingList contains a list of TCPMappings.
 //
 // +kubebuilder:object:root=true
@@ -70,8 +68,6 @@ type TCPMappingList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []TCPMapping `json:"items"`
 }
-
-func (*TCPMappingList) Hub() {}
 
 func init() {
 	SchemeBuilder.Register(&TCPMapping{}, &TCPMappingList{})

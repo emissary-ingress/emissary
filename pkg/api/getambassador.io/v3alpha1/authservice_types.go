@@ -74,8 +74,6 @@ type AuthService struct {
 	Spec AuthServiceSpec `json:"spec,omitempty"`
 }
 
-func (*AuthService) Hub() {}
-
 // AuthServiceList contains a list of AuthServices.
 //
 // +kubebuilder:object:root=true
@@ -85,8 +83,6 @@ type AuthServiceList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []AuthService `json:"items"`
 }
-
-func (*AuthServiceList) Hub() {}
 
 func init() {
 	SchemeBuilder.Register(&AuthService{}, &AuthServiceList{})

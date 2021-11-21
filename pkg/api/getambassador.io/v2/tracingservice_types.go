@@ -65,6 +65,8 @@ type TracingService struct {
 	Spec TracingServiceSpec `json:"spec,omitempty"`
 }
 
+func (*TracingService) Hub() {}
+
 // TracingServiceList contains a list of TracingServices.
 //
 // +kubebuilder:object:root=true
@@ -73,6 +75,8 @@ type TracingServiceList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []TracingService `json:"items"`
 }
+
+func (*TracingServiceList) Hub() {}
 
 func init() {
 	SchemeBuilder.Register(&TracingService{}, &TracingServiceList{})

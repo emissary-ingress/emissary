@@ -126,6 +126,8 @@ type DevPortal struct {
 	Spec DevPortalSpec `json:"spec,omitempty"`
 }
 
+func (*DevPortal) Hub() {}
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // DevPortalList contains a list of DevPortals.
@@ -136,6 +138,8 @@ type DevPortalList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []DevPortal `json:"items"`
 }
+
+func (*DevPortalList) Hub() {}
 
 func init() {
 	SchemeBuilder.Register(&DevPortal{}, &DevPortalList{})

@@ -49,6 +49,8 @@ type RateLimitService struct {
 	Spec RateLimitServiceSpec `json:"spec,omitempty"`
 }
 
+func (*RateLimitService) Hub() {}
+
 // RateLimitServiceList contains a list of RateLimitServices.
 //
 // +kubebuilder:object:root=true
@@ -57,6 +59,8 @@ type RateLimitServiceList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []RateLimitService `json:"items"`
 }
+
+func (*RateLimitServiceList) Hub() {}
 
 func init() {
 	SchemeBuilder.Register(&RateLimitService{}, &RateLimitServiceList{})

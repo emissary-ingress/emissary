@@ -25,7 +25,7 @@ func TestAuthService(t *testing.T) {
 	for _, v2authsvc := range v2AuthServices {
 		var v3authsvc v3alpha1.AuthService
 
-		err := v2authsvc.ConvertTo(&v3authsvc)
+		err := v3authsvc.ConvertFrom(&v2authsvc)
 		require.NoError(t, err)
 
 		v2bytes, _ := json.MarshalIndent(v2authsvc, "", "  ")
