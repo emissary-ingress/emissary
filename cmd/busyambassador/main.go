@@ -17,6 +17,7 @@ import (
 
 	amb_agent "github.com/datawire/ambassador/v2/cmd/agent"
 	"github.com/datawire/ambassador/v2/cmd/ambex"
+	"github.com/datawire/ambassador/v2/cmd/apiext"
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	"github.com/datawire/ambassador/v2/cmd/kubestatus"
 	"github.com/datawire/ambassador/v2/cmd/reproducer"
@@ -110,5 +111,6 @@ func main() {
 		"reproducer": {Setup: noop, Run: reproducer.Main},
 		"agent":      {Setup: environment.EnvironmentSetupEntrypoint, Run: amb_agent.Main},
 		"version":    {Setup: noop, Run: showVersion},
+		"apiext":     {Setup: noop, Run: apiext.Main},
 	})
 }

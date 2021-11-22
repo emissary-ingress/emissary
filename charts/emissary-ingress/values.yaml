@@ -407,3 +407,22 @@ createNamespace: false
 # - HTTP on port 8080
 # - HTTPS on port 8443
 createDefaultListeners: false
+
+apiext:
+  # Whether to enable the apiext CRD manager.  Emissary requires this
+  # in order to work correctly, but there should only be one per
+  # cluster.  If you have multiple instances of Emissary installed in
+  # a your cluster, only one of them should have apiext.enabled=true.
+  enabled: true
+
+  deployment:
+    replicas: 3
+  pod:
+    nodeSelector: null
+    affinity: null
+    tolerations: null
+    topologySpreadConstraints: null
+    livenessProbe: # +doc-gen:break
+      initialDelaySeconds: 5
+      periodSeconds: 3
+      failureThreshold: 3
