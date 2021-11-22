@@ -193,6 +193,10 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		})
 	}
 
+	group.Go("webhook", func(ctx context.Context) error {
+		return handleWebhooks()
+	})
+
 	// Finally, fire up the health check handler.
 	group.Go("healthchecks", func(ctx context.Context) error {
 		return healthCheckHandler(ctx, ambwatch)
