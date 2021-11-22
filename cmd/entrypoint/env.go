@@ -152,6 +152,10 @@ func isDebug(name string) bool {
 	return strings.Contains(GetAmbassadorDebug(), name)
 }
 
+func GetAdminService() string {
+	return env("AMBASSADOR_ADMIN_SVC", "")
+}
+
 func GetEnvoyFlags() []string {
 	result := []string{"-c", GetEnvoyBootstrapFile(), "--base-id", GetEnvoyBaseId()}
 	svc := GetAgentService()

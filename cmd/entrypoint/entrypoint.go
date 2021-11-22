@@ -24,6 +24,8 @@ import (
 	"github.com/datawire/dlib/dlog"
 )
 
+const webhookServerPort = 8006
+
 // This is the main ambassador entrypoint. It launches and manages two other
 // processes:
 //
@@ -128,6 +130,12 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		return err
 	}
 
+	scheme := GetEmissaryScheme()
+	webhookCA, err := InitializeCRDs(ctx, webhookServerPort, scheme)
+	if err != nil {
+		return err
+	}
+
 	// We use this to wait until the bootstrap config has been written before starting envoy.
 	envoyHUP := make(chan os.Signal, 1)
 	signal.Notify(envoyHUP, syscall.SIGHUP)
@@ -192,6 +200,10 @@ func Main(ctx context.Context, Version string, args ...string) error {
 			return watcher(ctx, ambwatch, snapshot, fastpathCh, clusterID, Version)
 		})
 	}
+
+	group.Go("webhook", func(ctx context.Context) error {
+		return ServeWebhooks(ctx, webhookCA, webhookServerPort, scheme)
+	})
 
 	// Finally, fire up the health check handler.
 	group.Go("healthchecks", func(ctx context.Context) error {

@@ -31,6 +31,10 @@ spec:
     targetPort: 8005
     protocol: TCP
     name: ambassador-snapshot
+  - port: 8006
+    targetPort: 8006
+    protocol: TCP
+    name: ambassador-webhook
   selector:
     service: ambassador
 ---
@@ -89,7 +93,28 @@ metadata:
   name: ambassador-nonamespace
   labels:
     product: aes
-rules: []
+rules:
+- apiGroups: [apiextensions.k8s.io]
+  resources: [customresourcedefinitions]
+  verbs: [list]
+- apiGroups: [apiextensions.k8s.io]
+  resources: [customresourcedefinitions]
+  resourceNames:
+  - authservices.getambassador.io
+  - consulresolvers.getambassador.io
+  - devportals.getambassador.io
+  - hosts.getambassador.io
+  - kubernetesendpointresolvers.getambassador.io
+  - kubernetesserviceresolvers.getambassador.io
+  - listeners.getambassador.io
+  - logservices.getambassador.io
+  - mappings.getambassador.io
+  - modules.getambassador.io
+  - ratelimitservices.getambassador.io
+  - tcpmappings.getambassador.io
+  - tlscontexts.getambassador.io
+  - tracingservices.getambassador.io
+  verbs: [update]
 ---
 # Source: emissary-ingress/templates/rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -181,7 +206,16 @@ metadata:
   namespace: default
   labels:
     product: aes
-rules: []
+rules:
+  # 'resourceNames' cannot be used together with the 'create' verb.
+  # https://github.com/kubernetes/kubernetes/issues/80295
+- apiGroups: ['']
+  resources: [secrets]
+  verbs: [create]
+- apiGroups: ['']
+  resources: [secrets]
+  resourceNames: [emissary-ingress-webhook-ca]
+  verbs: [update]
 ---
 # Source: emissary-ingress/templates/rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -252,6 +286,8 @@ spec:
         - name: admin
           containerPort: 8877
         env:
+        - name: AMBASSADOR_ADMIN_SVC
+          value: ambassador-admin
         - name: HOST_IP
           valueFrom:
             fieldRef:
