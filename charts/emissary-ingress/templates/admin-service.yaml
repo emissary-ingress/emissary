@@ -45,6 +45,10 @@ spec:
       targetPort: 8005
       protocol: TCP
       name: ambassador-snapshot
+    - port: {{ .Values.adminService.webhookPort }}
+      targetPort: 8006
+      protocol: TCP
+      name: ambassador-webhook
   selector:
     {{- if .Values.service.selector }}
     {{ toYaml .Values.service.selector | nindent 6 }}
