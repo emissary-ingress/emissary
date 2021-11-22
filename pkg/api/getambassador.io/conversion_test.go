@@ -2,159 +2,135 @@ package v2
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"path"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"sigs.k8s.io/yaml"
 
 	v2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 	v3alpha1 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 )
 
 func TestConvertAuthService(t *testing.T) {
-	bytes, err := ioutil.ReadFile(path.Join("v2/testdata", "authsvc.json"))
-	require.NoError(t, err)
+	var v2 []v2.AuthService
+	var v3 []v3alpha1.AuthService
 
-	var v2AuthServices []v2.AuthService
+	testConvert(t, "authsvc", &v2, &v3, func() interface{} {
+		testObjects := make([]v3alpha1.AuthService, 0, len(v2))
 
-	err = json.Unmarshal(bytes, &v2AuthServices)
-	require.NoError(t, err)
+		for _, v2obj := range v2 {
+			var v3obj v3alpha1.AuthService
+			require.NoError(t, v3obj.ConvertFrom(&v2obj))
 
-	for _, v2authsvc := range v2AuthServices {
-		var v3authsvc v3alpha1.AuthService
+			v3obj.APIVersion = "getambassador.io/v3alpha1"
+			v3obj.Kind = v2obj.Kind
+			testObjects = append(testObjects, v3obj)
+		}
 
-		err := v3authsvc.ConvertFrom(&v2authsvc)
-		require.NoError(t, err)
-
-		v2bytes, _ := json.MarshalIndent(v2authsvc, "", "  ")
-		v3bytes, err := json.MarshalIndent(v3authsvc, "", "  ")
-		require.NoError(t, err)
-
-		fmt.Printf("V2: %s\n", string(v2bytes))
-		fmt.Printf("V3: %s\n", string(v3bytes))
-	}
+		return testObjects
+	})
 }
 
 func TestConvertDevPortal(t *testing.T) {
-	bytes, err := ioutil.ReadFile(path.Join("v2/testdata", "devportals.json"))
-	require.NoError(t, err)
+	var v2 []v2.DevPortal
+	var v3 []v3alpha1.DevPortal
 
-	var v2DevPortals []v2.DevPortal
+	testConvert(t, "devportals", &v2, &v3, func() interface{} {
+		testObjects := make([]v3alpha1.DevPortal, 0, len(v2))
 
-	err = json.Unmarshal(bytes, &v2DevPortals)
-	require.NoError(t, err)
+		for _, v2obj := range v2 {
+			var v3obj v3alpha1.DevPortal
+			require.NoError(t, v3obj.ConvertFrom(&v2obj))
 
-	for _, v2devportal := range v2DevPortals {
-		var v3devportal v3alpha1.DevPortal
+			v3obj.APIVersion = "getambassador.io/v3alpha1"
+			v3obj.Kind = v2obj.Kind
+			testObjects = append(testObjects, v3obj)
+		}
 
-		err := v3devportal.ConvertFrom(&v2devportal)
-		require.NoError(t, err)
-
-		v2bytes, _ := json.MarshalIndent(v2devportal, "", "  ")
-		v3bytes, err := json.MarshalIndent(v3devportal, "", "  ")
-		require.NoError(t, err)
-
-		fmt.Printf("V2: %s\n", string(v2bytes))
-		fmt.Printf("V3: %s\n", string(v3bytes))
-	}
+		return testObjects
+	})
 }
 
 func TestConvertHost(t *testing.T) {
-	bytes, err := ioutil.ReadFile(path.Join("v2/testdata", "hosts.json"))
-	require.NoError(t, err)
+	var v2 []v2.Host
+	var v3 []v3alpha1.Host
 
-	var v2Hosts []v2.Host
+	testConvert(t, "host", &v2, &v3, func() interface{} {
+		testObjects := make([]v3alpha1.Host, 0, len(v2))
 
-	err = json.Unmarshal(bytes, &v2Hosts)
-	require.NoError(t, err)
+		for _, v2obj := range v2 {
+			var v3obj v3alpha1.Host
+			require.NoError(t, v3obj.ConvertFrom(&v2obj))
 
-	for _, v2host := range v2Hosts {
-		var v3host v3alpha1.Host
+			v3obj.APIVersion = "getambassador.io/v3alpha1"
+			v3obj.Kind = v2obj.Kind
+			testObjects = append(testObjects, v3obj)
+		}
 
-		err := v3host.ConvertFrom(&v2host)
-		require.NoError(t, err)
-
-		v2bytes, _ := json.MarshalIndent(v2host, "", "  ")
-		v3bytes, err := json.MarshalIndent(v3host, "", "  ")
-		require.NoError(t, err)
-
-		fmt.Printf("V2: %s\n", string(v2bytes))
-		fmt.Printf("V3: %s\n", string(v3bytes))
-	}
+		return testObjects
+	})
 }
 
 func TestConvertLogService(t *testing.T) {
-	bytes, err := ioutil.ReadFile(path.Join("v2/testdata", "logsvc.json"))
-	require.NoError(t, err)
+	var v2 []v2.LogService
+	var v3 []v3alpha1.LogService
 
-	var v2LogServices []v2.LogService
+	testConvert(t, "logsvc", &v2, &v3, func() interface{} {
+		testObjects := make([]v3alpha1.LogService, 0, len(v2))
 
-	err = json.Unmarshal(bytes, &v2LogServices)
-	require.NoError(t, err)
+		for _, v2obj := range v2 {
+			var v3obj v3alpha1.LogService
+			require.NoError(t, v3obj.ConvertFrom(&v2obj))
 
-	for _, v2logservice := range v2LogServices {
-		var v3logservice v3alpha1.LogService
+			v3obj.APIVersion = "getambassador.io/v3alpha1"
+			v3obj.Kind = v2obj.Kind
+			testObjects = append(testObjects, v3obj)
+		}
 
-		err := v3logservice.ConvertFrom(&v2logservice)
-		require.NoError(t, err)
-
-		v2bytes, _ := json.MarshalIndent(v2logservice, "", "  ")
-		v3bytes, err := json.MarshalIndent(v3logservice, "", "  ")
-		require.NoError(t, err)
-
-		fmt.Printf("V2: %s\n", string(v2bytes))
-		fmt.Printf("V3: %s\n", string(v3bytes))
-	}
+		return testObjects
+	})
 }
 
 func TestConvertMapping(t *testing.T) {
-	bytes, err := ioutil.ReadFile(path.Join("v2/testdata", "mappings.json"))
-	require.NoError(t, err)
+	var v2 []v2.Mapping
+	var v3 []v3alpha1.Mapping
 
-	var v2Mappings []v2.Mapping
+	testConvert(t, "mappings", &v2, &v3, func() interface{} {
+		testObjects := make([]v3alpha1.Mapping, 0, len(v2))
 
-	err = json.Unmarshal(bytes, &v2Mappings)
-	require.NoError(t, err)
+		for _, v2obj := range v2 {
+			var v3obj v3alpha1.Mapping
+			require.NoError(t, v3obj.ConvertFrom(&v2obj))
 
-	for _, v2mapping := range v2Mappings {
-		var v3mapping v3alpha1.Mapping
+			v3obj.APIVersion = "getambassador.io/v3alpha1"
+			v3obj.Kind = v2obj.Kind
+			testObjects = append(testObjects, v3obj)
+		}
 
-		err := v3mapping.ConvertFrom(&v2mapping)
-		require.NoError(t, err)
-
-		v2bytes, _ := json.MarshalIndent(v2mapping, "", "  ")
-		v3bytes, err := json.MarshalIndent(v3mapping, "", "  ")
-		require.NoError(t, err)
-
-		fmt.Printf("V2: %s\n", string(v2bytes))
-		fmt.Printf("V3: %s\n", string(v3bytes))
-	}
+		return testObjects
+	})
 }
 
 func TestConvertRateLimitService(t *testing.T) {
-	bytes, err := ioutil.ReadFile(path.Join("v2/testdata", "ratelimitsvc.json"))
-	require.NoError(t, err)
+	var v2 []v2.RateLimitService
+	var v3 []v3alpha1.RateLimitService
 
-	var v2RateLimitServices []v2.RateLimitService
+	testConvert(t, "ratelimitsvc", &v2, &v3, func() interface{} {
+		testObjects := make([]v3alpha1.RateLimitService, 0, len(v2))
 
-	err = json.Unmarshal(bytes, &v2RateLimitServices)
-	require.NoError(t, err)
+		for _, v2obj := range v2 {
+			var v3obj v3alpha1.RateLimitService
+			require.NoError(t, v3obj.ConvertFrom(&v2obj))
 
-	for _, v2ratelimitservice := range v2RateLimitServices {
-		var v3ratelimitservice v3alpha1.RateLimitService
+			v3obj.APIVersion = "getambassador.io/v3alpha1"
+			v3obj.Kind = v2obj.Kind
+			testObjects = append(testObjects, v3obj)
+		}
 
-		err := v3ratelimitservice.ConvertFrom(&v2ratelimitservice)
-		require.NoError(t, err)
-
-		v2bytes, _ := json.MarshalIndent(v2ratelimitservice, "", "  ")
-		v3bytes, err := json.MarshalIndent(v3ratelimitservice, "", "  ")
-		require.NoError(t, err)
-
-		fmt.Printf("V2: %s\n", string(v2bytes))
-		fmt.Printf("V3: %s\n", string(v3bytes))
-	}
+		return testObjects
+	})
 }
 
 // func TestConvertKubernetesEndpointResolver(t *testing.T) {
@@ -230,73 +206,102 @@ func TestConvertRateLimitService(t *testing.T) {
 // }
 
 func TestConvertTCPMapping(t *testing.T) {
-	bytes, err := ioutil.ReadFile(path.Join("v2/testdata", "tcpmappings.json"))
-	require.NoError(t, err)
+	var v2 []v2.TCPMapping
+	var v3 []v3alpha1.TCPMapping
 
-	var v2TCPMappings []v2.TCPMapping
+	testConvert(t, "tcpmappings", &v2, &v3, func() interface{} {
+		testObjects := make([]v3alpha1.TCPMapping, 0, len(v2))
+		for _, v2obj := range v2 {
+			var v3obj v3alpha1.TCPMapping
 
-	err = json.Unmarshal(bytes, &v2TCPMappings)
-	require.NoError(t, err)
+			require.NoError(t, v3obj.ConvertFrom(&v2obj))
 
-	for _, v2tcpmapping := range v2TCPMappings {
-		var v3tcpmapping v3alpha1.TCPMapping
+			v3obj.APIVersion = "getambassador.io/v3alpha1"
+			v3obj.Kind = v2obj.Kind
+			testObjects = append(testObjects, v3obj)
+		}
 
-		err := v3tcpmapping.ConvertFrom(&v2tcpmapping)
-		require.NoError(t, err)
-
-		v2bytes, _ := json.MarshalIndent(v2tcpmapping, "", "  ")
-		v3bytes, err := json.MarshalIndent(v3tcpmapping, "", "  ")
-		require.NoError(t, err)
-
-		fmt.Printf("V2: %s\n", string(v2bytes))
-		fmt.Printf("V3: %s\n", string(v3bytes))
-	}
+		return testObjects
+	})
 }
 
 func TestConvertTLSContext(t *testing.T) {
-	bytes, err := ioutil.ReadFile(path.Join("v2/testdata", "tlscontexts.json"))
-	require.NoError(t, err)
+	var v2 []v2.TLSContext
+	var v3 []v3alpha1.TLSContext
 
-	var v2TLSContexts []v2.TLSContext
+	testConvert(t, "tlscontexts", &v2, &v3, func() interface{} {
+		testObjects := make([]v3alpha1.TLSContext, 0, len(v2))
 
-	err = json.Unmarshal(bytes, &v2TLSContexts)
-	require.NoError(t, err)
+		for _, v2obj := range v2 {
+			var v3obj v3alpha1.TLSContext
+			require.NoError(t, v3obj.ConvertFrom(&v2obj))
 
-	for _, v2tlscontext := range v2TLSContexts {
-		var v3tlscontext v3alpha1.TLSContext
+			v3obj.APIVersion = "getambassador.io/v3alpha1"
+			v3obj.Kind = v2obj.Kind
+			testObjects = append(testObjects, v3obj)
+		}
 
-		err := v3tlscontext.ConvertFrom(&v2tlscontext)
-		require.NoError(t, err)
-
-		v2bytes, _ := json.MarshalIndent(v2tlscontext, "", "  ")
-		v3bytes, err := json.MarshalIndent(v3tlscontext, "", "  ")
-		require.NoError(t, err)
-
-		fmt.Printf("V2: %s\n", string(v2bytes))
-		fmt.Printf("V3: %s\n", string(v3bytes))
-	}
+		return testObjects
+	})
 }
 
 func TestConvertTracingService(t *testing.T) {
-	bytes, err := ioutil.ReadFile(path.Join("v2/testdata", "tracingsvc.json"))
+	var v2 []v2.TracingService
+	var v3 []v3alpha1.TracingService
+
+	testConvert(t, "tracingsvc", &v2, &v3, func() interface{} {
+		testObjects := make([]v3alpha1.TracingService, 0, len(v2))
+
+		for _, v2obj := range v2 {
+			var v3obj v3alpha1.TracingService
+			require.NoError(t, v3obj.ConvertFrom(&v2obj))
+
+			v3obj.APIVersion = "getambassador.io/v3alpha1"
+			v3obj.Kind = v2obj.Kind
+			testObjects = append(testObjects, v3obj)
+		}
+
+		return testObjects
+	})
+}
+
+func reserialized(t *testing.T, obj interface{}) []byte {
+	yamlbytes, err := yaml.Marshal(obj)
 	require.NoError(t, err)
 
-	var v2TracingServices []v2.TracingService
-
-	err = json.Unmarshal(bytes, &v2TracingServices)
+	var untyped interface{}
+	err = yaml.Unmarshal(yamlbytes, &untyped)
 	require.NoError(t, err)
 
-	for _, v2tracingservice := range v2TracingServices {
-		var v3tracingservice v3alpha1.TracingService
+	canonical, err := json.MarshalIndent(untyped, "", "\t")
+	require.NoError(t, err)
 
-		err := v3tracingservice.ConvertFrom(&v2tracingservice)
-		require.NoError(t, err)
+	return canonical
+}
 
-		v2bytes, _ := json.MarshalIndent(v2tracingservice, "", "  ")
-		v3bytes, err := json.MarshalIndent(v3tracingservice, "", "  ")
-		require.NoError(t, err)
+func testConvert(t *testing.T, base string, v2list interface{}, v3list interface{}, getObjects func() interface{}) {
+	v2jsonbytes, err := ioutil.ReadFile(path.Join("v2/testdata", base+".json"))
+	require.NoError(t, err)
 
-		fmt.Printf("V2: %s\n", string(v2bytes))
-		fmt.Printf("V3: %s\n", string(v3bytes))
+	v3yamlbytes, err := ioutil.ReadFile(path.Join("v3alpha1/testdata", base+".yaml"))
+	require.NoError(t, err)
+
+	err = json.Unmarshal(v2jsonbytes, v2list)
+	require.NoError(t, err)
+
+	// v3list is _not an untyped thing here_ -- we're just using interface{} to
+	// dodge the type checking.
+	err = yaml.Unmarshal(v3yamlbytes, v3list)
+	require.NoError(t, err)
+
+	v3jsonbytes := reserialized(t, v3list)
+	v3checkbytes := reserialized(t, getObjects())
+
+	if string(v3jsonbytes) != string(v3checkbytes) {
+		t.Logf("v2bytes:\n%s\n", string(v2jsonbytes))
+		t.Logf("v3bytes:\n%s\n", string(v3jsonbytes))
+		t.Logf("v3check:\n%s\n", string(v3checkbytes))
 	}
+
+	require.Equal(t, string(v3jsonbytes), string(v3checkbytes))
 }
