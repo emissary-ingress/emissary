@@ -197,6 +197,8 @@ adminService:
   loadBalancerIP:
   # Passed to cloud provider load balancer if created (e.g: AWS ELB)
   loadBalancerSourceRanges:
+  # The port number to be used for apiserver webhooks.
+  webhookPort: 8006
 
 rbac:
   # Specifies whether RBAC resources should be created

@@ -31,6 +31,10 @@ spec:
     targetPort: 8005
     protocol: TCP
     name: ambassador-snapshot
+  - port: 8006
+    targetPort: 8006
+    protocol: TCP
+    name: ambassador-webhook
   selector:
     service: ambassador
 ---
@@ -133,9 +137,14 @@ rules:
   resources:
   - namespaces
   - services
-  - secrets
   - endpoints
   verbs: [get, list, watch]
+
+- apiGroups: ['']
+  resources:
+  - secrets
+  - customresourcedefinitions
+  verbs: [get, list, watch, update, patch, create, delete]
 
 - apiGroups: [getambassador.io]
   resources: ['*']
@@ -164,6 +173,10 @@ rules:
 - apiGroups: [extensions, networking.k8s.io]
   resources: [ingresses/status]
   verbs: [update]
+
+- apiGroups: [apiextensions.k8s.io]
+  resources: ['*']
+  verbs: [get, list, watch, update, patch, create, delete]
 ---
 # Source: emissary-ingress/templates/deployment.yaml
 apiVersion: apps/v1
@@ -217,6 +230,8 @@ spec:
         - name: admin
           containerPort: 8877
         env:
+        - name: AMBASSADOR_ADMIN_SVC
+          value: emissary-ingress-admin
         - name: HOST_IP
           valueFrom:
             fieldRef:

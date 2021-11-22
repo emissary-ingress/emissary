@@ -176,6 +176,8 @@ spec:
             - name: admin
               containerPort: {{ .Values.adminService.port }}
           env:
+            - name: AMBASSADOR_ADMIN_SVC
+              value: {{ include "ambassador.name" . }}-admin
             - name: HOST_IP
               valueFrom:
                 fieldRef:

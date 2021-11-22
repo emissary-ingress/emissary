@@ -78,9 +78,14 @@ rules:
     resources:
     - namespaces
     - services
-    - secrets
     - endpoints
     verbs: ["get", "list", "watch"]
+
+  - apiGroups: [""]
+    resources:
+    - secrets
+    - customresourcedefinitions
+    verbs: ["get", "list", "watch", "update", "patch", "create", "delete" ]
 
   - apiGroups: [ "getambassador.io" ]
     resources: [ "*" ]
@@ -110,6 +115,10 @@ rules:
     resources: [ "ingresses/status" ]
     verbs: ["update"]
 
+  - apiGroups: [ "apiextensions.k8s.io" ]
+    resources: [ "*" ]
+    verbs: ["get", "list", "watch", "update", "patch", "create", "delete" ]
+    
   {{- if or .Values.rbac.podSecurityPolicies .Values.security.podSecurityPolicy }}
 
   - apiGroups: ['policy']
