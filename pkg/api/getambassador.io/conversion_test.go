@@ -145,4 +145,48 @@ func TestConvert(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("To", func(t *testing.T) {
+		t.Parallel()
+		for typename := range testcases {
+			typename := typename
+			t.Run(typename, func(t *testing.T) {
+				t.Parallel()
+				for fromAPIVersion := range testcases[typename] {
+					for toAPIVersion := range testcases[typename] {
+						if fromAPIVersion == toAPIVersion {
+							continue
+						}
+						fromAPIVersion := fromAPIVersion
+						toAPIVersion := toAPIVersion
+						testname := path.Base(fromAPIVersion) + "_to_" + path.Base(toAPIVersion)
+						t.Run(testname, func(t *testing.T) {
+							t.Parallel()
+							inBytes, err := ioutil.ReadFile(filepath.Join(path.Base(fromAPIVersion), "testdata", typename+".yaml"))
+							require.NoError(t, err)
+							inListPtr := reflect.New(reflect.SliceOf(reflect.TypeOf(testcases[typename][fromAPIVersion])))
+							require.NoError(t, yaml.Unmarshal(inBytes, inListPtr.Interface()))
+							inList := inListPtr.Elem()
+							listLen := inList.Len()
+
+							expBytes, err := ioutil.ReadFile(filepath.Join(path.Base(toAPIVersion), "testdata", typename+".yaml"))
+							require.NoError(t, err)
+							expListPtr := reflect.New(reflect.SliceOf(reflect.TypeOf(testcases[typename][toAPIVersion])))
+							require.NoError(t, yaml.Unmarshal(expBytes, expListPtr.Interface()))
+							expList := expListPtr.Elem()
+
+							actList := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(testcases[typename][toAPIVersion])), listLen, listLen)
+							for i := 0; i < listLen; i++ {
+								require.NoError(t, scheme.Convert(inList.Index(i).Addr().Interface(), actList.Index(i).Addr().Interface(), nil))
+								actList.Index(i).FieldByName("TypeMeta").FieldByName("APIVersion").Set(reflect.ValueOf(toAPIVersion))
+								actList.Index(i).FieldByName("TypeMeta").FieldByName("Kind").Set(inList.Index(i).FieldByName("TypeMeta").FieldByName("Kind"))
+							}
+
+							requireEqualNormalized(t, expList.Interface(), actList.Interface())
+						})
+					}
+				}
+			})
+		}
+	})
 }

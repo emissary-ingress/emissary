@@ -17,6 +17,26 @@
       auth_service: "authservice"
       proto: "grpc"
       timeout_ms: 5000
+- apiVersion: "ambassador/v1"
+  kind: "AuthService"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "authsvc-timeout"
+      namespace: "default"
+  spec:
+      auth_service: "authservice"
+      proto: "grpc"
+      tls: true
+  apiVersion: "ambassador/v1"
+  kind: "AuthService"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "authsvc-timeout"
+      namespace: "default"
+  spec:
+      auth_service: "authservice"
+      proto: "grpc"
+      tls: "context-goes-here"
 - apiVersion: "getambassador.io/v2"
   kind: "AuthService"
   metadata:
