@@ -59,18 +59,22 @@ def install_ambassador(namespace, single_namespace=True, envs=None, debug=None):
     # Create namespace to install Ambassador
     create_namespace(namespace)
 
-    # Create Ambassador CRDs
-    apply_kube_artifacts(namespace=namespace, artifacts=load_manifest('crds'))
-
-    # Proceed to install Ambassador now
-    final_yaml = []
-
     serviceAccountExtra = ''
     if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
         serviceAccountExtra = """
 imagePullSecrets:
 - name: dev-image-pull-secret
 """
+
+    # Create Ambassador CRDs
+    apply_kube_artifacts(namespace='default', artifacts=load_manifest('crds'))
+    apply_kube_artifacts(namespace='default', artifacts=load_manifest('apiext').format(
+        image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
+        serviceAccountExtra=serviceAccountExtra,
+    ))
+
+    # Proceed to install Ambassador now
+    final_yaml = []
 
     rbac_manifest_name = 'rbac_namespace_scope' if single_namespace else 'rbac_cluster_scope'
 

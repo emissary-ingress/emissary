@@ -246,7 +246,14 @@ spec:
             # stuff, the empty config we pass in our bad Module turns into None. Python
             # validation still catches it, but the error message is different.
 
-            if error != "not a valid Module: None is not of type 'object'":
+            # Don't be too picky about the serialization
+            expected_error = [
+                # if .spec.config is omitted because it's empty
+                "not a valid Module: None is not of type 'object'",
+                # if .spec.config is present-but-null
+                'spec.config in body must be of type object: "null"'
+            ]
+            if error not in expected_error:
                 assert 'required' in error, f"error for {name} should talk about required properties: {error}"
 
 
