@@ -86,9 +86,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ### Emissary-ingress and Ambassador Edge Stack
 
 - Feature: The ambassador-admin service now hosts a webhook server that enables the user to
-  seamlessly request CRs in whatever API version is desired. The webhook server leverages its own CA
-  to perform the TLS connections required of it. The CA certificate and private key are stored in a
-  k8s secret.
+  seamlessly request CRs in whatever API version is desired.  The webhook server leverages its own
+  CA to perform the TLS connections required of it.  The CA certificate and private key are stored
+  in a Kubernetes Secret.
 
 - Bugfix: The incremental reconfiguration cache could miss some updates when multiple `Mapping`s had
   the same `prefix` ("canary"ing multiple `Mapping`s together). This has been corrected, so that all

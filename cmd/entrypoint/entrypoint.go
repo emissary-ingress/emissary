@@ -130,6 +130,12 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		return err
 	}
 
+	scheme := GetEmissaryScheme()
+	webhookCA, err := InitializeCRDs(ctx, webhookServerPort, scheme)
+	if err != nil {
+		return err
+	}
+
 	// We use this to wait until the bootstrap config has been written before starting envoy.
 	envoyHUP := make(chan os.Signal, 1)
 	signal.Notify(envoyHUP, syscall.SIGHUP)
@@ -196,7 +202,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	}
 
 	group.Go("webhook", func(ctx context.Context) error {
-		return HandleWebhooks(ctx, webhookServerPort, GetEmissaryScheme())
+		return ServeWebhooks(ctx, webhookCA, webhookServerPort, scheme)
 	})
 
 	// Finally, fire up the health check handler.
