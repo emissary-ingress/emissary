@@ -79,7 +79,7 @@ spec:
                   type: string
                 type: array
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -115,12 +115,15 @@ spec:
                   type: object
                 type: array
               cluster_idle_timeout_ms:
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               cluster_max_connection_lifetime_ms:
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               cluster_tag:
                 type: string
               connect_timeout_ms:
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               cors:
                 properties:
@@ -157,6 +160,7 @@ spec:
                   path:
                     type: string
                   timeout_ms:
+                    description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
                     type: integer
                   url:
                     type: string
@@ -214,12 +218,12 @@ spec:
                   type: string
                 type: object
               host:
-                description: "Exact match for the hostname of a request if HostRegex is false; regex match for the hostname if HostRegex is true. \n Host specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Host will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used. \n DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead."
+                description: "Exact match for the hostname of a request if HostRegex is false; regex match for the hostname if HostRegex is true. \n Host specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Host will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used. \n DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead. \n TODO(lukeshu): In v3alpha2, get rid of MappingSpec.host and MappingSpec.host_regex in favor of a MappingSpec.deprecated_hostname_regex."
                 type: string
               host_redirect:
                 type: boolean
               host_regex:
-                description: 'DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.'
+                description: "DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead. \n TODO(lukeshu): In v3alpha2, get rid of MappingSpec.host and MappingSpec.host_regex in favor of a MappingSpec.deprecated_hostname_regex."
                 type: boolean
               host_rewrite:
                 type: string
@@ -227,6 +231,7 @@ spec:
                 description: "Hostname is a DNS glob specifying the hosts to which this Mapping applies. \n Hostname specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Hostname will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used."
                 type: string
               idle_timeout_ms:
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               keepalive:
                 properties:
@@ -444,7 +449,7 @@ spec:
               tls:
                 type: string
               use_websocket:
-                description: 'use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: ["websocket"]`'
+                description: "use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: [\"websocket\"]` \n TODO(lukeshu): In v3alpha2, get rid of MappingSpec.DeprecatedUseWebsocket."
                 type: boolean
               weight:
                 type: integer

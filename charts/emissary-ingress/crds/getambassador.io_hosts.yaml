@@ -78,7 +78,7 @@ spec:
                   type: string
                 type: array
               ambassadorId:
-                description: A compatibility alias for "ambassador_id"; because Host used to be specified with protobuf, and jsonpb allowed either "ambassador_id" or "ambassadorId", and even though we didn't tell people about "ambassadorId" it's what the web policy console generated because of jsonpb.  So Hosts with 'ambassadorId' exist in the wild.
+                description: "A compatibility alias for \"ambassador_id\"; because Host used to be specified with protobuf, and jsonpb allowed either \"ambassador_id\" or \"ambassadorId\", and even though we didn't tell people about \"ambassadorId\" it's what the web policy console generated because of jsonpb.  So Hosts with 'ambassadorId' exist in the wild. \n TODO(lukeshu): In v3alpha2, remove HostSpec.DeprecatedAmbassadorID."
                 items:
                   type: string
                 type: array
@@ -143,7 +143,7 @@ spec:
                     type: object
                 type: object
               selector:
-                description: 'DEPRECATED: Selector by which we can find further configuration. Use MappingSelector instead.'
+                description: "DEPRECATED: Selector by which we can find further configuration. Use MappingSelector instead. \n TODO(lukeshu): In v3alpha2, figure out how to get rid of HostSpec.DeprecatedSelector."
                 properties:
                   matchExpressions:
                     description: matchExpressions is a list of label selector requirements. The requirements are ANDed.

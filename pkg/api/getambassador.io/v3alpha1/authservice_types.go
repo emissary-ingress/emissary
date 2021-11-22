@@ -32,9 +32,10 @@ type AuthServiceIncludeBody struct {
 	AllowPartial bool `json:"allow_partial,omitempty"`
 }
 
-// Why isn't this just an int??
+// TODO(lukeshu): In v3alpha2, consider getting rid of this struct type in favor of just using an
+// int (i.e. `statusOnError: 500` instead of the current `statusOnError: { code: 500 }`).
 type AuthServiceStatusOnError struct {
-	Code *int `json:"code,omitempty"`
+	Code int `json:"code,omitempty"`
 }
 
 // AuthServiceSpec defines the desired state of AuthService
@@ -47,7 +48,7 @@ type AuthServiceSpec struct {
 	TLS         string `json:"tls,omitempty"`
 	// +kubebuilder:validation:Enum={"http","grpc"}
 	Proto                       string                    `json:"proto,omitempty"`
-	TimeoutMs                   *int                      `json:"timeout_ms,omitempty"`
+	Timeout                     *MillisecondDuration      `json:"timeout_ms,omitempty"`
 	AllowedRequestHeaders       []string                  `json:"allowed_request_headers,omitempty"`
 	AllowedAuthorizationHeaders []string                  `json:"allowed_authorization_headers,omitempty"`
 	AddAuthHeaders              map[string]string         `json:"add_auth_headers,omitempty"`

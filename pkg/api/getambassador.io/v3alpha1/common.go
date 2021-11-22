@@ -102,6 +102,7 @@ package v3alpha1
 
 import (
 	"encoding/json"
+	"time"
 )
 
 type CircuitBreaker struct {
@@ -157,7 +158,48 @@ type ErrorResponseOverride struct {
 //
 //    ambassador_id:
 //    - "default"
+//
+// TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to
+// `ambassador_ids` (plural).
 type AmbassadorID []string
+
+func (aid AmbassadorID) Matches(envVar string) bool {
+	if len(aid) == 0 {
+		aid = []string{"default"}
+	}
+	for _, item := range aid {
+		if item == envVar {
+			return true
+		}
+	}
+	return false
+}
+
+// TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to
+// `{foo}`/`metav1.Duration`.
+//
+// +kubebuilder:validation:Type="integer"
+type MillisecondDuration struct {
+	time.Duration `json:"-"`
+}
+
+func (d *MillisecondDuration) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		d.Duration = 0
+		return nil
+	}
+
+	var intval int64
+	if err := json.Unmarshal(data, &intval); err != nil {
+		return err
+	}
+	d.Duration = time.Duration(intval) * time.Millisecond
+	return nil
+}
+
+func (d *MillisecondDuration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d.Milliseconds())
+}
 
 // UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable
 // way.

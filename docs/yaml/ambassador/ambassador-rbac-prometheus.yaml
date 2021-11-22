@@ -117,7 +117,7 @@ spec:
                   type: string
                 type: array
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -169,12 +169,13 @@ spec:
               stats_name:
                 type: string
               status_on_error:
-                description: Why isn't this just an int??
+                description: 'TODO(lukeshu): In v3alpha2, consider getting rid of this struct type in favor of just using an int (i.e. `statusOnError: 500` instead of the current `statusOnError: { code: 500 }`).'
                 properties:
                   code:
                     type: integer
                 type: object
               timeout_ms:
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               tls:
                 type: string
@@ -224,7 +225,7 @@ spec:
               address:
                 type: string
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -272,7 +273,7 @@ spec:
             description: DevPortalSpec defines the desired state of DevPortal
             properties:
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -422,7 +423,7 @@ spec:
                   type: string
                 type: array
               ambassadorId:
-                description: A compatibility alias for "ambassador_id"; because Host used to be specified with protobuf, and jsonpb allowed either "ambassador_id" or "ambassadorId", and even though we didn't tell people about "ambassadorId" it's what the web policy console generated because of jsonpb.  So Hosts with 'ambassadorId' exist in the wild.
+                description: "A compatibility alias for \"ambassador_id\"; because Host used to be specified with protobuf, and jsonpb allowed either \"ambassador_id\" or \"ambassadorId\", and even though we didn't tell people about \"ambassadorId\" it's what the web policy console generated because of jsonpb.  So Hosts with 'ambassadorId' exist in the wild. \n TODO(lukeshu): In v3alpha2, remove HostSpec.DeprecatedAmbassadorID."
                 items:
                   type: string
                 type: array
@@ -487,7 +488,7 @@ spec:
                     type: object
                 type: object
               selector:
-                description: 'DEPRECATED: Selector by which we can find further configuration. Use MappingSelector instead.'
+                description: "DEPRECATED: Selector by which we can find further configuration. Use MappingSelector instead. \n TODO(lukeshu): In v3alpha2, figure out how to get rid of HostSpec.DeprecatedSelector."
                 properties:
                   matchExpressions:
                     description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
@@ -651,7 +652,7 @@ spec:
             description: KubernetesEndpointResolver tells Ambassador to use Kubernetes Endpoints resources to resolve services. It actually has no spec other than the AmbassadorID.
             properties:
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -697,7 +698,7 @@ spec:
             description: KubernetesServiceResolver tells Ambassador to use Kubernetes Service resources to resolve services. It actually has no spec other than the AmbassadorID.
             properties:
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -762,7 +763,7 @@ spec:
             description: ListenerSpec defines the desired state of this Port
             properties:
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -901,7 +902,7 @@ spec:
             description: LogServiceSpec defines the desired state of LogService
             properties:
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -1019,7 +1020,7 @@ spec:
                   type: string
                 type: array
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -1055,12 +1056,15 @@ spec:
                   type: object
                 type: array
               cluster_idle_timeout_ms:
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               cluster_max_connection_lifetime_ms:
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               cluster_tag:
                 type: string
               connect_timeout_ms:
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               cors:
                 properties:
@@ -1097,6 +1101,7 @@ spec:
                   path:
                     type: string
                   timeout_ms:
+                    description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
                     type: integer
                   url:
                     type: string
@@ -1154,12 +1159,12 @@ spec:
                   type: string
                 type: object
               host:
-                description: "Exact match for the hostname of a request if HostRegex is false; regex match for the hostname if HostRegex is true. \n Host specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Host will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used. \n DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead."
+                description: "Exact match for the hostname of a request if HostRegex is false; regex match for the hostname if HostRegex is true. \n Host specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Host will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used. \n DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead. \n TODO(lukeshu): In v3alpha2, get rid of MappingSpec.host and MappingSpec.host_regex in favor of a MappingSpec.deprecated_hostname_regex."
                 type: string
               host_redirect:
                 type: boolean
               host_regex:
-                description: 'DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.'
+                description: "DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead. \n TODO(lukeshu): In v3alpha2, get rid of MappingSpec.host and MappingSpec.host_regex in favor of a MappingSpec.deprecated_hostname_regex."
                 type: boolean
               host_rewrite:
                 type: string
@@ -1167,6 +1172,7 @@ spec:
                 description: "Hostname is a DNS glob specifying the hosts to which this Mapping applies. \n Hostname specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Hostname will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used."
                 type: string
               idle_timeout_ms:
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               keepalive:
                 properties:
@@ -1384,7 +1390,7 @@ spec:
               tls:
                 type: string
               use_websocket:
-                description: 'use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: ["websocket"]`'
+                description: "use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: [\"websocket\"]` \n TODO(lukeshu): In v3alpha2, get rid of MappingSpec.DeprecatedUseWebsocket."
                 type: boolean
               weight:
                 type: integer
@@ -1446,7 +1452,7 @@ spec:
           spec:
             properties:
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -1514,6 +1520,7 @@ spec:
               stats_name:
                 type: string
               timeout_ms:
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               tls:
                 type: string
@@ -1563,7 +1570,7 @@ spec:
               address:
                 type: string
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -1656,7 +1663,7 @@ spec:
               alpn_protocols:
                 type: string
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -1746,7 +1753,7 @@ spec:
             description: TracingServiceSpec defines the desired state of TracingService
             properties:
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
