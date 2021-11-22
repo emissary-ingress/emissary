@@ -37,11 +37,11 @@ items:
       - title: CRD conversion webhooks
         type: feature
         body: >-
-          The ambassador-admin service now hosts a webhook server that enables the
-          user to seamlessly request CRs in whatever API version is desired. The
-          webhook server leverages its own CA to perform the TLS connections required
-          of it. The CA certificate and private key are stored in a k8s secret.
-      
+          The ambassador-admin service now hosts a webhook server that enables the user to
+          seamlessly request CRs in whatever API version is desired.  The webhook server leverages
+          its own CA to perform the TLS connections required of it.  The CA certificate and private
+          key are stored in a Kubernetes Secret.
+
       - title: Correctly handle all changing canary configurations
         type: bugfix
         body: >-
@@ -61,7 +61,7 @@ items:
           ACME client does), an error would always be logged about the Secret not being
           present, even though it was present, and everything was working correctly.
           This error is no longer logged.
-      
+
       - title: Update to busybox 1.34.1
         type: security
         body: >-
