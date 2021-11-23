@@ -1,7 +1,7 @@
 package entrypoint
 
 import (
-	"crypto/ed25519"
+	"crypto/rsa"
 	"crypto/x509"
 	"crypto/rand"
 	"crypto/tls"
@@ -21,7 +21,11 @@ import (
 )
 
 const WEBHOOK_PORT int = 8043
-const WEBHOOK_HOST string = "emissary-ingress.emissary.svc"
+// TODO: probably a better way to do this
+var WEBHOOK_HOSTS = []string{
+	"ambassador.ambassador.svc",
+	"emissary-ingress.emissary-ingress.svc",
+}
 // TODO: automatic cert regeneration
 const CERT_VALID_DAYS int = 365
 
@@ -65,7 +69,7 @@ func getCert() (*tls.Certificate, error) {
 	notBefore := time.Now()
 	notAfter := notBefore.Add(time.Duration(CERT_VALID_DAYS*24)*time.Hour)
 
-	pubkey, privkey, err := ed25519.GenerateKey(rand.Reader)
+	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		return nil, err
 	}
@@ -81,15 +85,15 @@ func getCert() (*tls.Certificate, error) {
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
-		DNSNames: []string{WEBHOOK_HOST},
+		DNSNames: WEBHOOK_HOSTS,
 	}
 
 	certRaw, err := x509.CreateCertificate(
 		rand.Reader,
 		&template,
 		&template,
-		&pubkey,
-		privkey,
+		priv.Public(),
+		priv,
 	)
 	if err != nil {
 		return nil, err
@@ -97,6 +101,6 @@ func getCert() (*tls.Certificate, error) {
 
 	var cert tls.Certificate
 	cert.Certificate = append(cert.Certificate, certRaw)
-	cert.PrivateKey = privkey
+	cert.PrivateKey = priv
 	return &cert, nil
 }
