@@ -721,12 +721,15 @@ class IR:
 
         for secret_key, aconf_secret in aconf_secrets.items():
             # Ignore anything that doesn't at least have a public half.
-            if aconf_secret.get('tls_crt') or aconf_secret.get('cert-chain_pem'):
+            #
+            # (We include 'user_key' here because ACME private keys use that, and they
+            # should not generate errors.)
+            if aconf_secret.get('tls_crt') or aconf_secret.get('cert-chain_pem') or aconf_secret.get('user_key'):
                 secret_info = SecretInfo.from_aconf_secret(aconf_secret)
                 secret_name = secret_info.name
                 secret_namespace = secret_info.namespace
 
-                self.logger.debug(f'saving {secret_name}.{secret_namespace} (from {secret_key}) in secret_info')
+                self.logger.debug('saving "%s.%s" (from %s) in secret_info', secret_name, secret_namespace, secret_key)
                 self.secret_info[f'{secret_name}.{secret_namespace}'] = secret_info
 
     def save_tls_context(self, ctx: IRTLSContext) -> None:
