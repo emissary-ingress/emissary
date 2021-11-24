@@ -58,6 +58,8 @@ generate/files      += $(OSS_HOME)/OPENSOURCE.md
 generate/files      += $(OSS_HOME)/builder/requirements.txt
 generate/precious   += $(OSS_HOME)/builder/requirements.txt
 generate-fast/files += $(OSS_HOME)/CHANGELOG.md
+generate-fast/files += $(OSS_HOME)/pkg/k8scerts/cert.pem
+generate-fast/files += $(OSS_HOME)/pkg/k8scerts/cert.key
 generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/README.md
 # Individual files: YAML
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
@@ -389,6 +391,13 @@ $(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(O
 		echo; \
 		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource); \
 	} > $@
+
+awfulcerts += $(OSS_HOME)/pkg/k8scerts/cert.key
+awfulcerts += $(OSS_HOME)/pkg/k8scerts/cert.pem
+$(awfulcerts): $(tools/testcert-gen)
+	$(tools/testcert-gen) --hosts=emissary-ca.local --is-ca=true \
+		--out-cert=$(OSS_HOME)/pkg/k8scerts/cert.pem \
+		--out-key=$(OSS_HOME)/pkg/k8scerts/cert.key
 
 #
 # Misc. other `make generate` rules

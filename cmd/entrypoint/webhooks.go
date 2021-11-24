@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509/pkix"
+	"encoding/pem"
 	"math/big"
 	"net/http"
 	"time"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/k8scerts"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -21,11 +23,6 @@ import (
 )
 
 const WEBHOOK_PORT int = 8043
-// TODO: probably a better way to do this
-var WEBHOOK_HOSTS = []string{
-	"ambassador.ambassador.svc",
-	"emissary-ingress.emissary-ingress.svc",
-}
 // TODO: automatic cert regeneration
 const CERT_VALID_DAYS int = 365
 
@@ -42,9 +39,32 @@ func handleWebhooks() error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/crdconvert", webhook.ServeHTTP)
 
-	cert, err := getCert()
+	// try to get a CA Cert out of the k8scerts stored PEM
+	certBlock, rest := pem.Decode(k8scerts.K8sCert)
+	if rest != "" || block.Type != "CERTIFICATE" {
+		return fmt.Errorf("Bad cert loaded in k8scerts")
+	}
+	caCert, err := x509.ParseCertificate(certBlock.Bytes)
 	if err != nil {
 		return err
+	}
+
+	// Try to parse a Private Key out of the k8scerts stored PEM
+	var caKey crypto.PrivateKey
+	keyBlock, _ := pem.Decode(k8scerts.K8sKey)
+	if key, err := x509.ParsePKCS1PrivateKey(keyBlock); err == nil {
+		caKey = key
+	} else if key, err := x509.ParsePKCS8PrivateKey(keyBlock); err == nil {
+		switch key := key.(type) {
+		case *rsa.PrivateKey, *ecdsa.PrivateKey:
+			caKey = key
+		default:
+			return fmt.Errorf("Found unknown private key type in PKCS#8 wrapping")
+		}
+	} else if key, err := x509.ParseECPrivateKey(keyBlock); err == nil {
+		caKey = key
+	} else {
+		return fmt.Errorf("Bad key loaded in k8scerts")
 	}
 
 	addr := fmt.Sprintf(":%d", WEBHOOK_PORT)
@@ -52,14 +72,16 @@ func handleWebhooks() error {
 		Addr: addr,
 		Handler: mux,
 		TLSConfig: &tls.Config {
-			Certificates: []tls.Certificate{*cert},
+			GetCertificate: func(clientHello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+				return getCert(clientHello.ServerName, caCert, caKey)
+			},
 		},
 	}
 
 	return srv.ListenAndServeTLS("", "")
 }
 
-func getCert() (*tls.Certificate, error) {
+func getCert(hostname string, rootCert x509.Certificate, rootKey *rsa.PrivateKey) (*tls.Certificate, error) {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
@@ -85,15 +107,15 @@ func getCert() (*tls.Certificate, error) {
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
-		DNSNames: WEBHOOK_HOSTS,
+		DNSNames: []string{hostname},
 	}
 
 	certRaw, err := x509.CreateCertificate(
 		rand.Reader,
 		&template,
-		&template,
+		&rootCert,
 		priv.Public(),
-		priv,
+		rootKey,
 	)
 	if err != nil {
 		return nil, err

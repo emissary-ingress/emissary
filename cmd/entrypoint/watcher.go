@@ -34,7 +34,7 @@ func watcher(
 		return err
 	}
 
-	serverTypeList, err := client.ServerPreferredResources()
+	serverTypeList, err := client.ServerResources()
 	if err != nil {
 		// It's possible that an error prevented listing some apigroups, but not all; so
 		// process the output even if there is an error.
