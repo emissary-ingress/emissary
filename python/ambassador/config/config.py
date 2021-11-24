@@ -136,9 +136,8 @@ class Config:
     # resource is invalid, but Python says it's OK.
     fast_validation_disagreements: Dict[str, List[str]]
 
-    def __init__(self, schema_dir_path: Optional[str]=None) -> None:
-
-        self.logger = logging.getLogger("ambassador.config")
+    def __init__(self, logger:logging.Logger=None, schema_dir_path: Optional[str]=None) -> None:
+        self.logger = logger or logging.getLogger("ambassador.config")
 
         if not schema_dir_path:
             # Note that this "resource_filename" has to do with setuptool packages, not
