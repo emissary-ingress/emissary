@@ -4,18 +4,15 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 
-	"github.com/Masterminds/semver"
-	"github.com/pkg/errors"
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/yaml"
 
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
-
-type Product string
 
 func inArray(needle string, haystack []string) bool {
 	for _, straw := range haystack {
@@ -27,34 +24,23 @@ func inArray(needle string, haystack []string) bool {
 }
 
 type Args struct {
-	Product     Product
-	KubeVersion *semver.Version
-	InputFiles  []*os.File
+	Target     string
+	InputFiles []*os.File
 }
 
 func ParseArgs(strs ...string) (Args, error) {
-	if len(strs) < 2 {
-		return Args{}, errors.Errorf("requires at least 2 arguments, got %d", len(strs))
+	if len(strs) < 1 {
+		return Args{}, fmt.Errorf("requires at least 1 argument, got %d", len(strs))
 	}
 
 	args := Args{}
 
-	for _, straw := range Products {
-		if strs[0] == string(straw) {
-			args.Product = straw
-		}
-	}
-	if args.Product == "" {
-		return Args{}, errors.Errorf("invalid product: %q not in %q", strs[0], Products)
+	args.Target = strs[0]
+	if !inArray(args.Target, Targets) {
+		return Args{}, fmt.Errorf("invalid TARGET %q, valid values are %q", args.Target, Targets)
 	}
 
-	var err error
-	args.KubeVersion, err = semver.NewVersion(strs[1])
-	if err != nil {
-		return Args{}, errors.Wrap(err, "invalid kubeversion")
-	}
-
-	for _, path := range strs[2:] {
+	for _, path := range strs[1:] {
 		file, err := os.Open(path)
 		if err != nil {
 			return Args{}, err
@@ -109,7 +95,7 @@ func Main(args Args, output io.Writer) error {
 				if err == io.EOF {
 					break
 				}
-				return errors.Wrapf(err, "reading file %q", file.Name())
+				return fmt.Errorf("reading file %q: %w", file.Name(), err)
 			}
 
 			empty := true
@@ -125,7 +111,7 @@ func Main(args Args, output io.Writer) error {
 
 			var crd CRD
 			if err := yaml.Unmarshal(yamlbytes, &crd); err != nil {
-				return errors.Wrapf(err, "parsing file %q", file.Name())
+				return fmt.Errorf("parsing file %q: %w", file.Name(), err)
 			}
 			crds = append(crds, crd)
 		}
@@ -154,10 +140,6 @@ func Main(args Args, output io.Writer) error {
 	}
 
 	return nil
-}
-
-func (args Args) HaveKubeversion(requiredVersion string) bool {
-	return args.KubeVersion.Compare(semver.MustParse(requiredVersion)) >= 0
 }
 
 func VisitAllSchemaProps(crd *CRD, callback func(*apiext.JSONSchemaProps)) {

@@ -322,15 +322,15 @@ $(OSS_HOME)/charts/emissary-ingress/crds: $(tools/controller-gen) $(tools/fix-cr
 	  $(foreach varname,$(sort $(filter controller-gen/options/%,$(.VARIABLES))), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
 	  $(foreach varname,$(sort $(filter controller-gen/output/%,$(.VARIABLES))), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
 	  paths="./pkg/api/getambassador.io/..."
-	@PS4=; set -ex; for file in $@/*.yaml; do $(tools/fix-crds) helm 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
+	@PS4=; set -ex; for file in $@/*.yaml; do $(tools/fix-crds) apiserver-helm "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
 
 $(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/charts/emissary-ingress/crds $(tools/fix-crds)
 	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $</*.yaml)) > $@
+	$(tools/fix-crds) apiserver-kubectl $(sort $(wildcard $</*.yaml)) > $@
 
 $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml: $(OSS_HOME)/charts/emissary-ingress/crds $(tools/fix-crds)
 	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $</*.yaml)) > $@
+	$(tools/fix-crds) apiserver-kubectl $(sort $(wildcard $</*.yaml)) > $@
 
 $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml: %: %.m4 $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
 	@printf '  $(CYN)$@$(END)\n'
