@@ -54,6 +54,18 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) er
 	// checks here, but forward everything else to diagd.
 	sm := http.NewServeMux()
 
+	scheme := runtime.NewScheme()
+
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(v2.AddToScheme(scheme))
+	utilruntime.Must(v3alpha1.AddToScheme(scheme))
+
+	// Create the webhook server
+	webhook := &conversion.Webhook{}
+	webhook.InjectScheme(scheme)
+
+	sm.HandleFunc("/crdconvert", webhook.ServeHTTP)
+
 	// Handle the liveness check and the readiness check directly, by handing them
 	// off to our functions.
 
