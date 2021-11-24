@@ -21,6 +21,70 @@ spec:
     singular: tcpmapping
   scope: Namespaced
   versions:
+  - name: v2
+    schema:
+      openAPIV3Schema:
+        description: TCPMapping is the Schema for the tcpmappings API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: TCPMappingSpec defines the desired state of TCPMapping
+            properties:
+              address:
+                type: string
+              circuit_breakers:
+                items:
+                  properties:
+                    max_connections:
+                      type: integer
+                    max_pending_requests:
+                      type: integer
+                    max_requests:
+                      type: integer
+                    max_retries:
+                      type: integer
+                    priority:
+                      enum:
+                      - default
+                      - high
+                      type: string
+                  type: object
+                type: array
+              cluster_tag:
+                type: string
+              enable_ipv4:
+                type: boolean
+              enable_ipv6:
+                type: boolean
+              host:
+                type: string
+              idle_timeout_ms:
+                description: 'FIXME(lukeshu): Surely this should be an ''int''?'
+                type: string
+              port:
+                description: Port isn't a pointer because it's required.
+                type: integer
+              resolver:
+                type: string
+              service:
+                type: string
+              weight:
+                type: integer
+            required:
+            - port
+            - service
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        type: object
+    served: true
+    storage: false
   - name: v3alpha1
     schema:
       openAPIV3Schema:
