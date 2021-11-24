@@ -382,6 +382,7 @@ type MappingStatus struct {
 // Mapping is the Schema for the mappings API
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Source Host",type=string,JSONPath=`.spec.host`
 // +kubebuilder:printcolumn:name="Source Prefix",type=string,JSONPath=`.spec.prefix`

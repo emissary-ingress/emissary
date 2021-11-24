@@ -66,7 +66,6 @@ type AuthServiceSpec struct {
 // AuthService is the Schema for the authservices API
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type AuthService struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

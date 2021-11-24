@@ -49,6 +49,7 @@ type TLSContextSpec struct {
 // TLSContext is the Schema for the tlscontexts API
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 type TLSContext struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

@@ -156,7 +156,7 @@ spec:
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
-    storage: false
+    storage: true
   - name: v3alpha1
     schema:
       openAPIV3Schema:
@@ -257,7 +257,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -303,7 +303,7 @@ spec:
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
-    storage: false
+    storage: true
   - name: v3alpha1
     schema:
       openAPIV3Schema:
@@ -332,7 +332,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -438,7 +438,7 @@ spec:
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
-    storage: false
+    storage: true
   - name: v3alpha1
     schema:
       openAPIV3Schema:
@@ -527,7 +527,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -755,7 +755,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: false
+    storage: true
     subresources:
       status: {}
   - additionalPrinterColumns:
@@ -1003,7 +1003,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
     subresources:
       status: {}
 ---
@@ -1046,7 +1046,7 @@ spec:
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
-    storage: false
+    storage: true
   - name: v3alpha1
     schema:
       openAPIV3Schema:
@@ -1071,7 +1071,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -1112,7 +1112,7 @@ spec:
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
-    storage: false
+    storage: true
   - name: v3alpha1
     schema:
       openAPIV3Schema:
@@ -1137,7 +1137,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -1366,7 +1366,7 @@ spec:
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
-    storage: false
+    storage: true
   - name: v3alpha1
     schema:
       openAPIV3Schema:
@@ -1422,7 +1422,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -1763,7 +1763,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: false
+    storage: true
     subresources:
       status: {}
   - additionalPrinterColumns:
@@ -2216,7 +2216,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
     subresources:
       status: {}
 ---
@@ -2262,7 +2262,7 @@ spec:
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
-    storage: false
+    storage: true
   - name: v3alpha1
     schema:
       openAPIV3Schema:
@@ -2292,7 +2292,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -2347,7 +2347,7 @@ spec:
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
-    storage: false
+    storage: true
   - name: v3alpha1
     schema:
       openAPIV3Schema:
@@ -2390,7 +2390,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -2475,7 +2475,7 @@ spec:
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
-    storage: false
+    storage: true
   - name: v3alpha1
     schema:
       openAPIV3Schema:
@@ -2547,7 +2547,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -2635,7 +2635,7 @@ spec:
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
-    storage: false
+    storage: true
   - name: v3alpha1
     schema:
       openAPIV3Schema:
@@ -2706,7 +2706,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -2795,7 +2795,7 @@ spec:
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
-    storage: false
+    storage: true
   - name: v3alpha1
     schema:
       openAPIV3Schema:
@@ -2869,7 +2869,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
 
 ---
 apiVersion: v1

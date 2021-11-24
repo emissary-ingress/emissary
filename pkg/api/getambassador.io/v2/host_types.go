@@ -192,6 +192,7 @@ type HostTLSCertificateSource string
 // Host is the Schema for the hosts API
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Hostname",type=string,JSONPath=`.spec.hostname`
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`

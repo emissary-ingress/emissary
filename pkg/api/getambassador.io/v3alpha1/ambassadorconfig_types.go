@@ -38,7 +38,6 @@ type ModuleSpec struct {
 // https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tls-module-deprecated
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type Module struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -193,7 +192,6 @@ type AmbassadorConfigStatus struct {
 // AmbassadorConfig is the Schema for the ambassadorconfigs API
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type AmbassadorConfig struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

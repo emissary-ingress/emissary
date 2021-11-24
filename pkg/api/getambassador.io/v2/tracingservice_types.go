@@ -58,6 +58,7 @@ type TracingServiceSpec struct {
 // TracingService is the Schema for the tracingservices API
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 type TracingService struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

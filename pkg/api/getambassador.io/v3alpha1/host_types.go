@@ -206,7 +206,6 @@ type HostTLSCertificateSource string
 // +kubebuilder:printcolumn:name="Phase Completed",type=string,JSONPath=`.status.phaseCompleted`
 // +kubebuilder:printcolumn:name="Phase Pending",type=string,JSONPath=`.status.phasePending`
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
-// +kubebuilder:storageversion
 type Host struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

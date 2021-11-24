@@ -40,6 +40,7 @@ type RateLimitServiceSpec struct {
 // RateLimitService is the Schema for the ratelimitservices API
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 type RateLimitService struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

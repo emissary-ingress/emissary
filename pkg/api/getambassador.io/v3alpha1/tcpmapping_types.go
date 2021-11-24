@@ -51,7 +51,6 @@ type TCPMappingSpec struct {
 // TCPMapping is the Schema for the tcpmappings API
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type TCPMapping struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

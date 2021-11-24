@@ -119,7 +119,6 @@ type DevPortalSpec struct {
 //
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=devportals,scope=Namespaced
-// +kubebuilder:storageversion
 type DevPortal struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

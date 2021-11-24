@@ -50,6 +50,7 @@ type LogServiceSpec struct {
 // LogService is the Schema for the logservices API
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 type LogService struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

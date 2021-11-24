@@ -33,6 +33,7 @@ type KubernetesServiceResolverSpec struct {
 // KubernetesServiceResolver is the Schema for the kubernetesserviceresolver API
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 type KubernetesServiceResolver struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -59,6 +60,7 @@ type KubernetesEndpointResolverSpec struct {
 // KubernetesEndpointResolver is the Schema for the kubernetesendpointresolver API
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 type KubernetesEndpointResolver struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -88,6 +90,7 @@ type ConsulResolverSpec struct {
 // ConsulResolver is the Schema for the ConsulResolver API
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 type ConsulResolver struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

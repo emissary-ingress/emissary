@@ -118,6 +118,7 @@ type DevPortalSpec struct {
 // (served at `/docs/` by default).
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 // +kubebuilder:resource:path=devportals,scope=Namespaced
 type DevPortal struct {
 	metav1.TypeMeta   `json:""`
