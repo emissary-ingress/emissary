@@ -46,6 +46,14 @@ items:
           link: https://github.com/emissary-ingress/emissary/issues/3945
         docs: https://github.com/emissary-ingress/emissary/issues/3945
 
+      - title: Secrets used for ACME private keys will not log errors
+        type: bugfix
+        body: >-
+          When using Kubernetes Secrets to store ACME private keys (as the Edge Stack
+          ACME client does), an error would always be logged about the Secret not being
+          present, even though it was present, and everything was working correctly.
+          This error is no longer logged.
+
   - version: 2.0.5
     date: '2021-11-08'
     notes:

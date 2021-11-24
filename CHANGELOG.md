@@ -89,6 +89,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   the same `prefix` ("canary"ing multiple `Mapping`s together). This has been corrected, so that all
   such updates correctly take effect. ([3945])
 
+- Bugfix: When using Kubernetes Secrets to store ACME private keys (as the Edge Stack ACME client
+  does), an error would always be logged about the Secret not being present, even though it was
+  present, and everything was working correctly. This error is no longer logged.
+
 [3945]: https://github.com/emissary-ingress/emissary/issues/3945
 
 ## [2.0.5] November 08, 2021
