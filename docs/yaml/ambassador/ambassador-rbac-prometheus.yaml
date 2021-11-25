@@ -101,8 +101,9 @@ spec:
             description: AuthServiceSpec defines the desired state of AuthService
             properties:
               add_auth_headers:
+                additionalProperties:
+                  type: string
                 type: object
-                x-kubernetes-preserve-unknown-fields: true
               add_linkerd_headers:
                 type: boolean
               allow_request_body:
@@ -1698,18 +1699,28 @@ spec:
                 - 308
                 type: integer
               regex_headers:
+                additionalProperties:
+                  type: string
                 type: object
-                x-kubernetes-preserve-unknown-fields: true
               regex_query_parameters:
+                additionalProperties:
+                  type: string
                 type: object
-                x-kubernetes-preserve-unknown-fields: true
               regex_redirect:
                 description: Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+                properties:
+                  pattern:
+                    type: string
+                  substitution:
+                    type: string
                 type: object
-                x-kubernetes-preserve-unknown-fields: true
               regex_rewrite:
+                properties:
+                  pattern:
+                    type: string
+                  substitution:
+                    type: string
                 type: object
-                x-kubernetes-preserve-unknown-fields: true
               resolver:
                 type: string
               respect_dns_ttl:

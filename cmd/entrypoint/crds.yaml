@@ -38,10 +38,7 @@ spec:
             properties:
               add_auth_headers:
                 additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  oneOf:
-                  - type: string
-                  - type: boolean
+                  type: string
                 type: object
               add_linkerd_headers:
                 type: boolean
@@ -1478,14 +1475,12 @@ spec:
                 additionalProperties:
                   oneOf:
                   - type: string
-                  - type: boolean
                   - type: object
                 type: object
               add_response_headers:
                 additionalProperties:
                   oneOf:
                   - type: string
-                  - type: boolean
                   - type: object
                 type: object
               allow_upgrade:
@@ -1750,32 +1745,26 @@ spec:
                 type: integer
               regex_headers:
                 additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  oneOf:
-                  - type: string
-                  - type: boolean
+                  type: string
                 type: object
               regex_query_parameters:
                 additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  oneOf:
-                  - type: string
-                  - type: boolean
+                  type: string
                 type: object
               regex_redirect:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  oneOf:
-                  - type: string
-                  - type: boolean
                 description: Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+                properties:
+                  pattern:
+                    type: string
+                  substitution:
+                    type: string
                 type: object
               regex_rewrite:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  oneOf:
-                  - type: string
-                  - type: boolean
+                properties:
+                  pattern:
+                    type: string
+                  substitution:
+                    type: string
                 type: object
               remove_request_headers:
                 description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.

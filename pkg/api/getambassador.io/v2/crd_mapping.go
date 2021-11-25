@@ -61,23 +61,23 @@ type MappingSpec struct {
 	// Prefix rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
 	PrefixRedirect string `json:"prefix_redirect,omitempty"`
 	// Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
-	RegexRedirect map[string]BoolOrString `json:"regex_redirect,omitempty"`
+	RegexRedirect *RegexMap `json:"regex_redirect,omitempty"`
 	// The response code to use when generating an HTTP redirect. Defaults to 301. Used with
 	// `host_redirect`.
 	// +kubebuilder:validation:Enum={301,302,303,307,308}
-	RedirectResponseCode           *int                    `json:"redirect_response_code,omitempty"`
-	Priority                       string                  `json:"priority,omitempty"`
-	Precedence                     *int                    `json:"precedence,omitempty"`
-	ClusterTag                     string                  `json:"cluster_tag,omitempty"`
-	RemoveRequestHeaders           StringOrStringList      `json:"remove_request_headers,omitempty"`
-	RemoveResponseHeaders          StringOrStringList      `json:"remove_response_headers,omitempty"`
-	Resolver                       string                  `json:"resolver,omitempty"`
-	Rewrite                        *string                 `json:"rewrite,omitempty"`
-	RegexRewrite                   map[string]BoolOrString `json:"regex_rewrite,omitempty"`
-	Shadow                         *bool                   `json:"shadow,omitempty"`
-	ConnectTimeoutMs               *int                    `json:"connect_timeout_ms,omitempty"`
-	ClusterIdleTimeoutMs           *int                    `json:"cluster_idle_timeout_ms,omitempty"`
-	ClusterMaxConnectionLifetimeMs int                     `json:"cluster_max_connection_lifetime_ms,omitempty"`
+	RedirectResponseCode           *int               `json:"redirect_response_code,omitempty"`
+	Priority                       string             `json:"priority,omitempty"`
+	Precedence                     *int               `json:"precedence,omitempty"`
+	ClusterTag                     string             `json:"cluster_tag,omitempty"`
+	RemoveRequestHeaders           StringOrStringList `json:"remove_request_headers,omitempty"`
+	RemoveResponseHeaders          StringOrStringList `json:"remove_response_headers,omitempty"`
+	Resolver                       string             `json:"resolver,omitempty"`
+	Rewrite                        *string            `json:"rewrite,omitempty"`
+	RegexRewrite                   *RegexMap          `json:"regex_rewrite,omitempty"`
+	Shadow                         *bool              `json:"shadow,omitempty"`
+	ConnectTimeoutMs               *int               `json:"connect_timeout_ms,omitempty"`
+	ClusterIdleTimeoutMs           *int               `json:"cluster_idle_timeout_ms,omitempty"`
+	ClusterMaxConnectionLifetimeMs int                `json:"cluster_max_connection_lifetime_ms,omitempty"`
 	// The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
 	TimeoutMs     *int          `json:"timeout_ms,omitempty"`
 	IdleTimeoutMs *int          `json:"idle_timeout_ms,omitempty"`
@@ -122,12 +122,17 @@ type MappingSpec struct {
 	Host                   string                  `json:"host,omitempty"`
 	HostRegex              *bool                   `json:"host_regex,omitempty"`
 	Headers                map[string]BoolOrString `json:"headers,omitempty"`
-	RegexHeaders           map[string]BoolOrString `json:"regex_headers,omitempty"`
+	RegexHeaders           map[string]string       `json:"regex_headers,omitempty"`
 	Labels                 DomainMap               `json:"labels,omitempty"`
 	EnvoyOverride          *UntypedDict            `json:"envoy_override,omitempty"`
 	LoadBalancer           *LoadBalancer           `json:"load_balancer,omitempty"`
 	QueryParameters        map[string]BoolOrString `json:"query_parameters,omitempty"`
-	RegexQueryParameters   map[string]BoolOrString `json:"regex_query_parameters,omitempty"`
+	RegexQueryParameters   map[string]string       `json:"regex_query_parameters,omitempty"`
+}
+
+type RegexMap struct {
+	Pattern      string `json:"pattern,omitempty"`
+	Substitution string `json:"substitution,omitempty"`
 }
 
 // DocsInfo provides some extra information about the docs for the Mapping
@@ -280,11 +285,15 @@ func (o *MappingLabelSpecifier) UnmarshalJSON(data []byte) error {
 	return errors.New("could not unmarshal MappingLabelSpecifier: invalid input")
 }
 
-// +kubebuilder:validation:Type="d6e-union:string,boolean,object"
+// +kubebuilder:validation:Type="d6e-union:string,object"
 type AddedHeader struct {
-	String *string      `json:"-"`
-	Bool   *bool        `json:"-"`
-	Object *UntypedDict `json:"-"`
+	Shorthand *string          `json:"-"`
+	Full      *AddedHeaderFull `json:"-"`
+}
+
+type AddedHeaderFull struct {
+	Value  string `json:"value,omitempty"`
+	Append *bool  `json:"append,omitempty"`
 }
 
 // MarshalJSON is important both so that we generate the proper
@@ -293,12 +302,10 @@ type AddedHeader struct {
 // https://github.com/kubernetes-sigs/controller-tools/pull/427
 func (o AddedHeader) MarshalJSON() ([]byte, error) {
 	switch {
-	case o.String != nil:
-		return json.Marshal(*o.String)
-	case o.Bool != nil:
-		return json.Marshal(*o.Bool)
-	case o.Object != nil:
-		return json.Marshal(*o.Object)
+	case o.Shorthand != nil:
+		return json.Marshal(*o.Shorthand)
+	case o.Full != nil:
+		return json.Marshal(*o.Full)
 	default:
 		return json.Marshal(nil)
 	}
@@ -314,19 +321,13 @@ func (o *AddedHeader) UnmarshalJSON(data []byte) error {
 
 	var str string
 	if err = json.Unmarshal(data, &str); err == nil {
-		*o = AddedHeader{String: &str}
+		*o = AddedHeader{Shorthand: &str}
 		return nil
 	}
 
-	var b bool
-	if err = json.Unmarshal(data, &b); err == nil {
-		*o = AddedHeader{Bool: &b}
-		return nil
-	}
-
-	var obj UntypedDict
+	var obj AddedHeaderFull
 	if err = json.Unmarshal(data, &obj); err == nil {
-		*o = AddedHeader{Object: &obj}
+		*o = AddedHeader{Full: &obj}
 		return nil
 	}
 

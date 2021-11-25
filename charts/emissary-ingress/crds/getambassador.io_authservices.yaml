@@ -38,8 +38,9 @@ spec:
             description: AuthServiceSpec defines the desired state of AuthService
             properties:
               add_auth_headers:
+                additionalProperties:
+                  type: string
                 type: object
-                x-kubernetes-preserve-unknown-fields: true
               add_linkerd_headers:
                 type: boolean
               allow_request_body:
