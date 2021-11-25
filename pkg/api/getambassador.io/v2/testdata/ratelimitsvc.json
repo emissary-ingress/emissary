@@ -1,6 +1,6 @@
 [
     {
-        "apiVersion": "ambassador/v2",
+        "apiVersion": "getambassador.io/v2",
         "kind": "RateLimitService",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -12,7 +12,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v2",
+        "apiVersion": "getambassador.io/v2",
         "kind": "RateLimitService",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -25,7 +25,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v2",
+        "apiVersion": "getambassador.io/v2",
         "kind": "RateLimitService",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
