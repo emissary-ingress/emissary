@@ -1,8 +1,10 @@
+// -*- fill-column: 75 -*-
+
 // Copyright 2020 Datawire.  All rights reserved
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Licensed under the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.  You may obtain
+// a copy of the License at
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
@@ -12,91 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-///////////////////////////////////////////////////////////////////////////
-// Important: Run "make generate-fast" to regenerate code after modifying
-// this file.
-///////////////////////////////////////////////////////////////////////////
-
-// I'm not sure where a better place to put this is, so I'm putting it here:
-//
-// # API design guidelines
-//
-// Ambassador's API has inconsistencies because it has historical
-// baggage.  Not all of Ambassador's existing API (or even most of
-// it!?) follow these guidelines, but new additions to the API should.
-// If/when we advance to getambassador.io/v3 and we can break
-// compatibility, these are things that we should apply everywhere.
-//
-// - Prefer `camelCase` to `snake_case`
-//   * Exception: Except for consistency with existing fields in the
-//     same resource, or symmetry with identical fields in another
-//     resource.
-//   * Justification: Kubernetes style is to use camelCase. But
-//     historically Ambassador used snake_case for everything.
-//
-// - Give _every_ field a `json:""` struct tag.
-//   * Justification: Marshaling and unmarshaling are key to what we
-//     do, and it's critical to carefully define how it happens.
-//   * Notes: This is not optional. Do it for _every field_. (It's OK
-//     if the tag is literally `json:""` for fields that must never be
-//     exposed during marshaling.)
-//
-// - Prefer `*int`, and `*bool`; rather than just `int`, `bool`.
-//   * Justification: The Ambassador API is rooted in Python, where it
-//     is always possible to tell if a given element was present in in
-//     a CRD, or left unset.  This is at odds with Go's `omitempty`
-//     specifier, which really means "omit if empty _or if set to the
-//     default (zero) value_".  For int in particular, this results in
-//     a value of 0 being omitted, and for many Ambassador fields, 0
-//     is not the correct default value.
-//
-//     This resulted in a lot of bugs in the 1.10 timeframe, so be
-//     careful going forward.
-//
-// - Prefer for object references to not support namespacing
-//   * Exception: If there's a real use-case for it.
-//   * Justification: Most native Kubernetes resources don't support
-//     referencing things in a different namespace.  We should be
-//     opinionated and not support it either, unless there's a good
-//     reason to in a specific case.
-//
-// - Prefer to use `corev1.LocalObjectReference` or
-//   `corev1.SecretReference` references instead of
-//   `{name}.{namespace}` strings.
-//   * Justification: The `{name}.{namespace}` thing evolved "an
-//     opaque DNS name" in the `service` field of Mappings, and that
-//     was generalized to other things.  Outside of the context of
-//     "this is usable as a DNS name to make a request to", it's just
-//     confusing and introduces needless ambiguity.  Nothing other
-//     than Ambassador uses that notation.
-//   * Notes: For things that don't support cross-namespace references
-//     (see above), use LocalObjectReference; if you really must
-//     support cross-namespace references, then use SecretReference.
-//
-// - Prefer to use `metav1.Duration` fields instead of "_s" or "_ms"
-//   numeric fields.
-//
-// - Don't have Ambassador populate anything in the `.spec` or
-//   `.metadata` of something a user might edit, only let Ambassador
-//   set things in the `.status`.
-//   * Exception: If Ambassador 100% owns the resource and a user will
-//     never edit it.
-//   * Notes: I didn't write "Prefer" on this one.  Don't violate it.
-//     Just don't do it.  Ever.  Designing the Host resource in
-//     violation of this was a HUGE mistake and one that I regret very
-//     much.  Learn from my mistakes.
-//   * Justification: Having Ambassador-set things in a subresource
-//     from user-set things:
-//     1. avoids races between the user updating the spec and us
-//        updating the status
-//     2. allows watt/whatever to only pay attention to
-//        .metadata.generation instead of .metadata.resourceVersion;
-//        avoiding pointless reconfigures.
-//     3. allows the RBAC to be simpler
-//     4. avoids the whole class of bugs where we need to make sure
-//        that everything round-trips correctly
-//     5. provides clarity on which things a user is expected to know
-//        how to fill in
+// This file deals with common things that are shared between multiple
+// CRDs, but are ultimately used by individual CRDs (rather than by the
+// apiVersion as a whole).
 
 package v3alpha1
 
