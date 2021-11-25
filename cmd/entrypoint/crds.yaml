@@ -1562,7 +1562,7 @@ spec:
                     - type: string
                     - type: array
                   origins:
-                    description: StringLiteralOrStringList is mostly like StringOrStringList, but instead of always forcing a list of strings, it will marshal a string literal as a string.
+                    description: OriginList is a list of origin strings, either as a `[]string` or as a comma-separated `string`.
                     oneOf:
                     - type: string
                     - type: array

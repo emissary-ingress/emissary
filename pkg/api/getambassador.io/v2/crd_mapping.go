@@ -22,6 +22,7 @@ package v2
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -341,12 +342,55 @@ type KeepAlive struct {
 }
 
 type CORS struct {
-	Origins        *StringLiteralOrStringList `json:"origins,omitempty"`
-	Methods        StringOrStringList         `json:"methods,omitempty"`
-	Headers        StringOrStringList         `json:"headers,omitempty"`
-	Credentials    *bool                      `json:"credentials,omitempty"`
-	ExposedHeaders StringOrStringList         `json:"exposed_headers,omitempty"`
-	MaxAge         string                     `json:"max_age,omitempty"`
+	Origins        *OriginList        `json:"origins,omitempty"`
+	Methods        StringOrStringList `json:"methods,omitempty"`
+	Headers        StringOrStringList `json:"headers,omitempty"`
+	Credentials    *bool              `json:"credentials,omitempty"`
+	ExposedHeaders StringOrStringList `json:"exposed_headers,omitempty"`
+	MaxAge         string             `json:"max_age,omitempty"`
+}
+
+// OriginList is a list of origin strings, either as a `[]string` or as a comma-separated `string`.
+//
+// +kubebuilder:validation:Type="d6e-union:string,array"
+type OriginList struct {
+	CommaSeparated bool     `json:"-"`
+	Values         []string `json:"-"`
+}
+
+func (l *OriginList) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		*l = OriginList{}
+		return nil
+	}
+
+	var err error
+	var list []string
+	var single string
+
+	if err := json.Unmarshal(data, &single); err == nil {
+		*l = OriginList{
+			CommaSeparated: true,
+			Values:         strings.Split(single, ","),
+		}
+		return nil
+	}
+
+	if err = json.Unmarshal(data, &list); err == nil {
+		*l = OriginList{
+			Values: list,
+		}
+		return nil
+	}
+
+	return err
+}
+
+func (l *OriginList) MarshalJSON() ([]byte, error) {
+	if l.CommaSeparated {
+		return json.Marshal(strings.Join(l.Values, ","))
+	}
+	return json.Marshal(l.Values)
 }
 
 type RetryPolicy struct {
