@@ -1627,6 +1627,8 @@ spec:
                   description: A MappingLabelGroupsArray is an array of MappingLabelGroups. I know, complex.
                   items:
                     description: 'A MappingLabelGroup is a single element of a MappingLabelGroupsArray: a second map, where the key is a human-readable name that identifies the group.'
+                    maxProperties: 1
+                    minProperties: 1
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   type: array

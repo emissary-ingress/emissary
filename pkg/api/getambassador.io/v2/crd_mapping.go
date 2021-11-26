@@ -159,6 +159,9 @@ type MappingLabelGroupsArray []MappingLabelGroup
 
 // A MappingLabelGroup is a single element of a MappingLabelGroupsArray: a second
 // map, where the key is a human-readable name that identifies the group.
+//
+// +kubebuilder:validation:MinProperties=1
+// +kubebuilder:validation:MaxProperties=1
 type MappingLabelGroup map[string]MappingLabelsArray
 
 // A MappingLabelsArray is the value in the MappingLabelGroup: an array of label

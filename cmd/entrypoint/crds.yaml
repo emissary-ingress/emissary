@@ -1669,6 +1669,8 @@ spec:
                         - type: object
                       type: array
                     description: 'A MappingLabelGroup is a single element of a MappingLabelGroupsArray: a second map, where the key is a human-readable name that identifies the group.'
+                    maxProperties: 1
+                    minProperties: 1
                     type: object
                   type: array
                 description: A DomainMap is the overall Mapping.spec.Labels type. It maps domains (kind of like namespaces for Mapping labels) to arrays of label groups.
