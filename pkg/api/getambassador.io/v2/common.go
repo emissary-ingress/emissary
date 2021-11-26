@@ -300,14 +300,14 @@ func (u *UntypedDict) UnmarshalJSON(data []byte) error {
 }
 
 type UntypedValue struct {
-	raw json.RawMessage
+	Raw json.RawMessage `json:"-"`
 }
 
 func (u UntypedValue) MarshalJSON() ([]byte, error) {
-	return json.Marshal(u.raw)
+	return json.Marshal(u.Raw)
 }
 
 func (u *UntypedValue) UnmarshalJSON(data []byte) error {
-	*u = UntypedValue{raw: json.RawMessage(data)}
+	*u = UntypedValue{Raw: json.RawMessage(data)}
 	return nil
 }
