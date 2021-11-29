@@ -22,6 +22,7 @@ package v2
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 )
 
@@ -197,17 +198,24 @@ type BoolOrString struct {
 // jsonschema for our sub-fields:
 // https://github.com/kubernetes-sigs/controller-tools/pull/427
 func (o BoolOrString) MarshalJSON() ([]byte, error) {
-	switch {
-	case o.String == nil && o.Bool == nil:
-		return json.Marshal(nil)
-	case o.String == nil && o.Bool != nil:
-		return json.Marshal(o.Bool)
-	case o.String != nil && o.Bool == nil:
-		return json.Marshal(o.String)
-	case o.String != nil && o.Bool != nil:
-		panic("invalid BoolOrString")
+	nonNil := 0
+	if o.String != nil {
+		nonNil++
 	}
-	panic("not reached")
+	if o.Bool != nil {
+		nonNil++
+	}
+	if nonNil > 1 {
+		return nil, errors.New("invalid BoolOrString")
+	}
+	switch {
+	case o.String != nil:
+		return json.Marshal(o.String)
+	case o.Bool != nil:
+		return json.Marshal(o.Bool)
+	default:
+		return json.Marshal(nil)
+	}
 }
 
 func (o *BoolOrString) UnmarshalJSON(data []byte) error {
@@ -252,15 +260,21 @@ func (d *MillisecondDuration) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (d *MillisecondDuration) MarshalJSON() ([]byte, error) {
+func (d MillisecondDuration) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.Milliseconds())
 }
 
-// UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable
-// way.
+// UntypedDict is relatively opaque as a Go type, but it preserves its
+// contents in a roundtrippable way.
+//
 // +kubebuilder:validation:Type="object"
+// +kubebuilder:pruning:PreserveUnknownFields
 type UntypedDict struct {
-	Values map[string]UntypedValue `json:"-"`
+	// We have to hide this from controller-gen inside of a struct
+	// (instead of just `type UntypedDict map[string]json.RawMessage`)
+	// so that controller-gen doesn't generate an `items` field in the
+	// schema.
+	Values map[string]json.RawMessage `json:"-"`
 }
 
 func (u UntypedDict) MarshalJSON() ([]byte, error) {
@@ -268,24 +282,5 @@ func (u UntypedDict) MarshalJSON() ([]byte, error) {
 }
 
 func (u *UntypedDict) UnmarshalJSON(data []byte) error {
-	var values map[string]UntypedValue
-	err := json.Unmarshal(data, &values)
-	if err != nil {
-		return err
-	}
-	*u = UntypedDict{Values: values}
-	return nil
-}
-
-type UntypedValue struct {
-	Raw json.RawMessage `json:"-"`
-}
-
-func (u UntypedValue) MarshalJSON() ([]byte, error) {
-	return json.Marshal(u.Raw)
-}
-
-func (u *UntypedValue) UnmarshalJSON(data []byte) error {
-	*u = UntypedValue{Raw: json.RawMessage(data)}
-	return nil
+	return json.Unmarshal(data, &u.Values)
 }

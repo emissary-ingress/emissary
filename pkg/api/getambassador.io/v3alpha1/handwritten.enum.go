@@ -23,7 +23,7 @@ package v3alpha1
 // controller-gen doesn't generate this.
 //
 // FIXME(lukeshu): Either patch (and PR) controller-gen to generate
-// this, or createa separate code-gen tool to genrate it.
+// this, or create a separate code-gen tool to generate it.
 //
 //  - Constants for the values of the enum
 //

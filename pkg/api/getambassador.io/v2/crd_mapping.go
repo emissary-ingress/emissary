@@ -217,7 +217,6 @@ type MappingLabelSpecGeneric struct {
 // https://github.com/kubernetes-sigs/controller-tools/pull/427
 func (o MappingLabelSpecifier) MarshalJSON() ([]byte, error) {
 	nonNil := 0
-
 	if o.String != nil {
 		nonNil++
 	}
@@ -227,31 +226,20 @@ func (o MappingLabelSpecifier) MarshalJSON() ([]byte, error) {
 	if o.Generic != nil {
 		nonNil++
 	}
+	if nonNil > 1 {
+		return nil, errors.New("invalid MappingLabelSpecifier")
+	}
 
-	// If there's nothing set at all...
-	if nonNil == 0 {
-		// ...return nil.
+	switch {
+	case o.String != nil:
+		return json.Marshal(o.String)
+	case o.Header != nil:
+		return json.Marshal(o.Header)
+	case o.Generic != nil:
+		return json.Marshal(o.Generic)
+	default:
 		return json.Marshal(nil)
 	}
-
-	// OK, something is set -- is more than one thing?
-	if nonNil > 1 {
-		// Bzzzt.
-		panic("invalid MappingLabelSpecifier")
-	}
-
-	// OK, exactly one thing is set. Marshal it.
-	if o.String != nil {
-		return json.Marshal(o.String)
-	}
-	if o.Header != nil {
-		return json.Marshal(o.Header)
-	}
-	if o.Generic != nil {
-		return json.Marshal(o.Generic)
-	}
-
-	panic("not reached")
 }
 
 // UnmarshalJSON is MarshalJSON's other half.
@@ -389,7 +377,7 @@ func (l *OriginList) UnmarshalJSON(data []byte) error {
 	return err
 }
 
-func (l *OriginList) MarshalJSON() ([]byte, error) {
+func (l OriginList) MarshalJSON() ([]byte, error) {
 	if l.CommaSeparated {
 		return json.Marshal(strings.Join(l.Values, ","))
 	}

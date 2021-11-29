@@ -136,6 +136,7 @@ spec:
               envoy_override:
                 description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
                 type: object
+                x-kubernetes-preserve-unknown-fields: true
               error_response_overrides:
                 description: Error response overrides for this Mapping. Replaces all of the `error_response_overrides` set on the Ambassador module, if any.
                 items:
@@ -245,6 +246,7 @@ spec:
                 items:
                   description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
                   type: object
+                  x-kubernetes-preserve-unknown-fields: true
                 type: array
               outlier_detection:
                 type: string

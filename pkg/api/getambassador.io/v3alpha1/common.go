@@ -117,16 +117,21 @@ func (d *MillisecondDuration) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (d *MillisecondDuration) MarshalJSON() ([]byte, error) {
+func (d MillisecondDuration) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.Milliseconds())
 }
 
-// UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable
-// way.
+// UntypedDict is relatively opaque as a Go type, but it preserves its
+// contents in a roundtrippable way.
+//
 // +kubebuilder:validation:Type="object"
 // +kubebuilder:pruning:PreserveUnknownFields
 type UntypedDict struct {
-	Values map[string]UntypedValue `json:"-"`
+	// We have to hide this from controller-gen inside of a struct
+	// (instead of just `type UntypedDict map[string]json.RawMessage`)
+	// so that controller-gen doesn't generate an `items` field in the
+	// schema.
+	Values map[string]json.RawMessage `json:"-"`
 }
 
 func (u UntypedDict) MarshalJSON() ([]byte, error) {
@@ -134,24 +139,5 @@ func (u UntypedDict) MarshalJSON() ([]byte, error) {
 }
 
 func (u *UntypedDict) UnmarshalJSON(data []byte) error {
-	var values map[string]UntypedValue
-	err := json.Unmarshal(data, &values)
-	if err != nil {
-		return err
-	}
-	*u = UntypedDict{Values: values}
-	return nil
-}
-
-type UntypedValue struct {
-	Raw json.RawMessage `json:"-"`
-}
-
-func (u UntypedValue) MarshalJSON() ([]byte, error) {
-	return json.Marshal(u.Raw)
-}
-
-func (u *UntypedValue) UnmarshalJSON(data []byte) error {
-	*u = UntypedValue{Raw: json.RawMessage(data)}
-	return nil
+	return json.Unmarshal(data, &u.Values)
 }

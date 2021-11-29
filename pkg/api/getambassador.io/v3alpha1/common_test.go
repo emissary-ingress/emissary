@@ -1,4 +1,4 @@
-package v2_test
+package v3alpha1_test
 
 import (
 	"encoding/json"
@@ -8,160 +8,31 @@ import (
 	"github.com/stretchr/testify/assert"
 	"sigs.k8s.io/yaml"
 
-	crds "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	crds "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 )
 
-func boolPtr(b bool) *bool {
-	return &b
-}
-
-func stringPtr(s string) *string {
-	return &s
-}
-
-func TestStringOrStringList(t *testing.T) {
+func TestAmbassadorID(t *testing.T) {
 	t.Parallel()
-	type TestResource struct {
-		Field crds.StringOrStringList `json:"field,omitempty"`
-	}
 	type subtest struct {
-		inputYAML      string
-		expectedStruct TestResource
-		expectedJSON   string
-		expectedErr    string
+		inputResource crds.AmbassadorID
+		inputEnvVar   string
+		expected      bool
 	}
 	subtests := map[string]subtest{
-		"empty":         {`{}`, TestResource{}, `{}`, ``},
-		"explicitEmpty": {`field:`, TestResource{}, `{}`, ``},
-		"explicitnull":  {`field: null`, TestResource{}, `{}`, ``},
-		"explicitNull":  {`field: Null`, TestResource{}, `{}`, ``},
-		"explicitNULL":  {`field: NULL`, TestResource{}, `{}`, ``},
-		"explicitTilde": {`field: ~`, TestResource{}, `{}`, ``},
-		"single":        {`field: "single"`, TestResource{crds.StringOrStringList{"single"}}, `{"field":["single"]}`, ``},
-		"singleEmpty":   {`field: ""`, TestResource{crds.StringOrStringList{""}}, `{"field":[""]}`, ``},
-		"listSingle":    {`field: ["single"]`, TestResource{crds.StringOrStringList{"single"}}, `{"field":["single"]}`, ``},
-		"listEmpty":     {`field: []`, TestResource{crds.StringOrStringList{}}, `{}`, ``},
-		"double":        {`field: ["first", "second"]`, TestResource{crds.StringOrStringList{"first", "second"}}, `{"field":["first","second"]}`, ``},
-		"number":        {`field: 12`, TestResource{}, `{}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal number into Go struct field TestResource.field of type []string"},
+		"nil-d":   {crds.AmbassadorID(nil), "default", true},
+		"nil-c":   {crds.AmbassadorID(nil), "custom", false},
+		"empty-d": {crds.AmbassadorID{}, "default", true},
+		"empty-c": {crds.AmbassadorID{}, "custom", false},
+		"one-d":   {crds.AmbassadorID{"default"}, "default", true},
+		"one-c":   {crds.AmbassadorID{"default"}, "custom", false},
+		"one-c2":  {crds.AmbassadorID{"custom"}, "custom", true},
+		"multi":   {crds.AmbassadorID{"default", "custom"}, "custom", true},
 	}
 	for name, info := range subtests {
 		info := info // capture loop variable
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			var parsed TestResource
-			err := yaml.Unmarshal([]byte(info.inputYAML), &parsed)
-			if info.expectedErr == `` {
-				assert.NoError(t, err)
-			} else {
-				assert.EqualError(t, err, info.expectedErr)
-			}
-			assert.Equal(t, info.expectedStruct, parsed)
-			jsonbytes, err := json.Marshal(parsed)
-			assert.NoError(t, err)
-			assert.Equal(t, info.expectedJSON, string(jsonbytes))
-		})
-	}
-}
-
-func TestBoolOrString(t *testing.T) {
-	t.Parallel()
-	type TestResource struct {
-		Field crds.BoolOrString `json:"field,omitempty"`
-	}
-	type subtest struct {
-		inputYAML      string
-		expectedStruct TestResource
-		expectedJSON   string
-		expectedErr    string
-	}
-	subtests := map[string]subtest{
-		"empty":         {`{}`, TestResource{}, `{"field":null}`, ``},
-		"explicitEmpty": {`field:`, TestResource{}, `{"field":null}`, ``},
-		"explicitnull":  {`field: null`, TestResource{}, `{"field":null}`, ``},
-		"explicitNull":  {`field: Null`, TestResource{}, `{"field":null}`, ``},
-		"explicitNULL":  {`field: NULL`, TestResource{}, `{"field":null}`, ``},
-		"explicitTilde": {`field: ~`, TestResource{}, `{"field":null}`, ``},
-		"true":          {`field: true`, TestResource{crds.BoolOrString{Bool: boolPtr(true)}}, `{"field":true}`, ``},
-		"True":          {`field: True`, TestResource{crds.BoolOrString{Bool: boolPtr(true)}}, `{"field":true}`, ``},
-		"TRUE":          {`field: TRUE`, TestResource{crds.BoolOrString{Bool: boolPtr(true)}}, `{"field":true}`, ``},
-		"false":         {`field: false`, TestResource{crds.BoolOrString{Bool: boolPtr(false)}}, `{"field":false}`, ``},
-		"False":         {`field: False`, TestResource{crds.BoolOrString{Bool: boolPtr(false)}}, `{"field":false}`, ``},
-		"FALSE":         {`field: FALSE`, TestResource{crds.BoolOrString{Bool: boolPtr(false)}}, `{"field":false}`, ``},
-		"strTrue":       {`field: "true"`, TestResource{crds.BoolOrString{String: stringPtr("true")}}, `{"field":"true"}`, ``}, // quoted
-		"strTRue":       {`field: TRue`, TestResource{crds.BoolOrString{String: stringPtr("TRue")}}, `{"field":"TRue"}`, ``},   // capitalized wrong
-		"strBare":       {`field: bare`, TestResource{crds.BoolOrString{String: stringPtr("bare")}}, `{"field":"bare"}`, ``},
-		"number":        {`field: 12`, TestResource{}, `{"field":null}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal number into Go struct field TestResource.field of type string"},
-		"invalid":       {``, TestResource{crds.BoolOrString{Bool: boolPtr(true), String: stringPtr("foo")}}, ``, "json: error calling MarshalJSON for type v2.BoolOrString: invalid BoolOrString"},
-	}
-	for name, info := range subtests {
-		info := info // capture loop variable
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-			if info.inputYAML == `` {
-				jsonbytes, err := json.Marshal(info.expectedStruct)
-				assert.Equal(t, info.expectedJSON, string(jsonbytes))
-				assert.EqualError(t, err, info.expectedErr)
-			} else {
-				var parsed TestResource
-				err := yaml.Unmarshal([]byte(info.inputYAML), &parsed)
-				if info.expectedErr == `` {
-					assert.NoError(t, err)
-				} else {
-					assert.EqualError(t, err, info.expectedErr)
-				}
-				assert.Equal(t, info.expectedStruct, parsed)
-				jsonbytes, err := json.Marshal(parsed)
-				assert.NoError(t, err)
-				assert.Equal(t, info.expectedJSON, string(jsonbytes))
-			}
-		})
-	}
-}
-
-func TestBoolOrStringPtr(t *testing.T) {
-	t.Parallel()
-	type TestResource struct {
-		Field *crds.BoolOrString `json:"field,omitempty"`
-	}
-	type subtest struct {
-		inputYAML      string
-		expectedStruct TestResource
-		expectedJSON   string
-		expectedErr    string
-	}
-	subtests := map[string]subtest{
-		"empty":         {`{}`, TestResource{}, `{}`, ``},
-		"explicitEmpty": {`field:`, TestResource{}, `{}`, ``},
-		"explicitnull":  {`field: null`, TestResource{}, `{}`, ``},
-		"explicitNull":  {`field: Null`, TestResource{}, `{}`, ``},
-		"explicitNULL":  {`field: NULL`, TestResource{}, `{}`, ``},
-		"explicitTilde": {`field: ~`, TestResource{}, `{}`, ``},
-		"true":          {`field: true`, TestResource{&crds.BoolOrString{Bool: boolPtr(true)}}, `{"field":true}`, ``},
-		"True":          {`field: True`, TestResource{&crds.BoolOrString{Bool: boolPtr(true)}}, `{"field":true}`, ``},
-		"TRUE":          {`field: TRUE`, TestResource{&crds.BoolOrString{Bool: boolPtr(true)}}, `{"field":true}`, ``},
-		"false":         {`field: false`, TestResource{&crds.BoolOrString{Bool: boolPtr(false)}}, `{"field":false}`, ``},
-		"False":         {`field: False`, TestResource{&crds.BoolOrString{Bool: boolPtr(false)}}, `{"field":false}`, ``},
-		"FALSE":         {`field: FALSE`, TestResource{&crds.BoolOrString{Bool: boolPtr(false)}}, `{"field":false}`, ``},
-		"strTrue":       {`field: "true"`, TestResource{&crds.BoolOrString{String: stringPtr("true")}}, `{"field":"true"}`, ``}, // quoted
-		"strTRue":       {`field: TRue`, TestResource{&crds.BoolOrString{String: stringPtr("TRue")}}, `{"field":"TRue"}`, ``},   // capitalized wrong
-		"strBare":       {`field: bare`, TestResource{&crds.BoolOrString{String: stringPtr("bare")}}, `{"field":"bare"}`, ``},
-		"number":        {`field: 12`, TestResource{&crds.BoolOrString{}}, `{"field":null}`, "error unmarshaling JSON: while decoding JSON: json: cannot unmarshal number into Go struct field TestResource.field of type string"},
-	}
-	for name, info := range subtests {
-		info := info // capture loop variable
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-			var parsed TestResource
-			err := yaml.Unmarshal([]byte(info.inputYAML), &parsed)
-			if info.expectedErr == `` {
-				assert.NoError(t, err)
-			} else {
-				assert.EqualError(t, err, info.expectedErr)
-			}
-			assert.Equal(t, info.expectedStruct, parsed)
-			jsonbytes, err := json.Marshal(parsed)
-			assert.NoError(t, err)
-			assert.Equal(t, info.expectedJSON, string(jsonbytes))
+			assert.Equal(t, info.expected, info.inputResource.Matches(info.inputEnvVar))
 		})
 	}
 }

@@ -510,6 +510,14 @@
   spec:
       add_response_headers:
           Strict-Transport-Security: "max-age=31536000"
+          X-Full:
+            value: "max-age=31536000"
+          X-Append:
+            value: "max-age=31536000"
+            append: true
+          X-No-Append:
+            value: "max-age=31536000"
+            append: false
       ambassador_id: [ "consultest" ]
       labels:
           ambassador:
@@ -531,6 +539,36 @@
       rewrite: ""
       service: "https://a"
       timeout_ms: 10000
+- apiVersion: "getambassador.io/v2"
+  kind: "Mapping"
+  metadata:
+      name: "a"
+      creationTimestamp: "2021-01-07T20:27:54Z"
+  spec:
+      ambassador_id: [ "consultest" ]
+      labels:
+          ambassador:
+              - mydomain:
+                - generic_key: "a"
+                - null
+      prefix: "/api/[^/]+/projects/[^/]+/a(/.*)?"
+      service: "https://a"
+- apiVersion: "getambassador.io/v2"
+  kind: "Mapping"
+  metadata:
+      creationTimestamp: "2021-01-07T20:27:54Z"
+      generation: 2
+      labels:
+          kat-ambassador-id: "consultest"
+      name: "a"
+      namespace: "default"
+      resourceVersion: "9298"
+      uid: "caf33312-1f60-4aed-9d8d-7a9f37b68da0"
+  spec:
+      add_response_headers:
+          Strict-Transport-Security: null
+      prefix: "/api/[^/]+/projects/[^/]+/a(/.*)?"
+      service: "https://a"
 - apiVersion: "getambassador.io/v2"
   kind: "Mapping"
   metadata:

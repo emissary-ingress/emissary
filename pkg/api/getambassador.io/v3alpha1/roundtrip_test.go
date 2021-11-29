@@ -67,8 +67,7 @@ func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
 
 	canonical := func() string {
 		var untyped interface{}
-		err = yaml.Unmarshal(bytes, &untyped)
-		require.NoError(t, err)
+		require.NoError(t, yaml.Unmarshal(bytes, &untyped))
 		canonical, err := json.MarshalIndent(untyped, "", "\t")
 		require.NoError(t, err)
 		return string(canonical)
@@ -78,15 +77,13 @@ func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
 		// Round-trip twice, to get map field ordering, instead of struct field ordering.
 
 		// first
-		err = yaml.UnmarshalStrict(bytes, ptr)
-		require.NoError(t, err)
+		require.NoError(t, yaml.UnmarshalStrict(bytes, ptr))
 		first, err := json.Marshal(ptr)
 		require.NoError(t, err)
 
 		// second
 		var untyped interface{}
-		err = json.Unmarshal(first, &untyped)
-		require.NoError(t, err)
+		require.NoError(t, json.Unmarshal(first, &untyped))
 		second, err := json.MarshalIndent(untyped, "", "\t")
 		require.NoError(t, err)
 
