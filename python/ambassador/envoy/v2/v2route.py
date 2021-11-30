@@ -626,6 +626,7 @@ class V2Route(Cacheable):
 
             config.cache.add(route)
             config.cache.link(irgroup, route)
+            config.cache.dump("V2Route synth %s: %s", cache_key, v2prettyroute(route))
         else:
             # Cache hit. We know a priori that it's a V2Route, but let's assert that
             # before casting.

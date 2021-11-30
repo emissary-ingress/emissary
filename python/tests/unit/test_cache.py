@@ -1,22 +1,24 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Optional, OrderedDict, Set, Tuple
 
 import difflib
 import json
 import logging
 import os
 import random
+import re
 import sys
 import yaml
 
 import pytest
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s test %(levelname)s: %(message)s",
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
 logger = logging.getLogger("ambassador")
+logger.setLevel(logging.DEBUG)
 
 from ambassador import Cache, Config, IR, EnvoyConfig
 from ambassador.ir.ir import IRFileChecker
@@ -27,6 +29,8 @@ from ambassador.utils import SecretHandler, NullSecretHandler, Timer
 class Builder:
     def __init__(self, logger: logging.Logger, yaml_file: str,
                  enable_cache=True) -> None:
+        self.logger = logger
+        
         self.test_dir = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "test_cache_data"
@@ -42,6 +46,7 @@ class Builder:
         # The reason is that it's kind of the only way we can apply deltas in
         # a meaningful way.
         self.resources: Dict[str, Any] = {}
+        self.deltas: Dict[str, Any] = {}
 
         # Load the initial YAML.
         self.apply_yaml(yaml_file, allow_updates=False)
@@ -50,9 +55,15 @@ class Builder:
         # Save builds to make this simpler to call.
         self.builds: List[Tuple[IR, EnvoyConfig]] = []
 
+    def current_yaml(self) -> str:
+        return yaml.safe_dump_all(self.resources.values())
+
     def apply_yaml(self, yaml_file: str, allow_updates=True) -> None:
         yaml_data = open(os.path.join(self.test_dir, yaml_file), "r").read()
 
+        self.apply_yaml_string(yaml_data, allow_updates)
+
+    def apply_yaml_string(self, yaml_data: str, allow_updates=True) -> None:
         for rsrc in yaml.safe_load_all(yaml_data):
             # We require kind, metadata.name, and metadata.namespace here.
             kind = rsrc['kind']
@@ -62,19 +73,36 @@ class Builder:
 
             key = f"{kind}-v2-{name}-{namespace}"
 
+            dtype = "add"
+
             if key in self.resources:
                 # This is an attempted update.
                 if not allow_updates:
                     raise RuntimeError(f"Cannot update {key}")
 
-                if self.cache is not None:
-                    self.cache.invalidate(key)
+                dtype = "update"
+
+                # if self.cache is not None:
+                #     self.cache.invalidate(key)
 
             self.resources[key] = rsrc
+            self.deltas[key] = {
+                "kind": kind,
+                "apiVersion": rsrc["apiVersion"],
+                "metadata": {
+                    "name": name,
+                    "namespace": namespace,
+                    "creationTimestamp": metadata.get("creationTimestamp", "2021-11-19T15:11:45Z")
+                },
+                "deltaType": dtype
+            }
 
     def delete_yaml(self, yaml_file: str) -> None:
         yaml_data = open(os.path.join(self.test_dir, yaml_file), "r").read()
 
+        self.delete_yaml_string(yaml_data)
+
+    def delete_yaml_string(self, yaml_data: str) -> None:
         for rsrc in yaml.safe_load_all(yaml_data):
             # We require kind, metadata.name, and metadata.namespace here.
             kind = rsrc['kind']
@@ -87,22 +115,76 @@ class Builder:
             if key in self.resources:
                 del(self.resources[key])
 
-                if self.cache is not None:
-                    self.cache.invalidate(key)
+                # if self.cache is not None:
+                #     self.cache.invalidate(key)
+
+                self.deltas[key] = {
+                    "kind": kind,
+                    "apiVersion": rsrc["apiVersion"],
+                    "metadata": {
+                        "name": name,
+                        "namespace": namespace,
+                        "creationTimestamp": metadata.get("creationTimestamp", "2021-11-19T15:11:45Z")
+                    },
+                    "deltaType": "delete"
+                }
 
     def build(self, version='V2') -> Tuple[IR, EnvoyConfig]:
         # Do a build, return IR & econf, but also stash them in self.builds.
 
-        yaml_data = yaml.safe_dump_all(self.resources.values())
+        watt: Dict[str, Any] = {
+            "Kubernetes": {},
+            "Deltas": list(self.deltas.values())
+        }
 
+        # Clear deltas for the next build.
+        self.deltas = {}
+
+        # The Ambassador resource types are all valid keys in the Kubernetes dict.
+        # Other things (e.g. if this test gets expanded to cover Ingress or Secrets)
+        # may not be.
+
+        for rsrc in self.resources.values():
+            kind = rsrc['kind']
+
+            if kind not in watt['Kubernetes']:
+                watt['Kubernetes'][kind] = []
+            
+            watt['Kubernetes'][kind].append(rsrc)
+
+        watt_json = json.dumps(watt, sort_keys=True, indent=4)
+
+        self.logger.debug(f"Watt JSON:\n{watt_json}")
+
+        # OK, we have the WATT-formatted JSON. This next bit of code largely duplicates
+        # _load_ir from diagd.
+        #
+        # XXX That obviously means that it should be factored out for reuse.
+
+        # Grab a new aconf, and use a new ResourceFetcher to load it up.
         aconf = Config()
 
-        fetcher = ResourceFetcher(logger, aconf)
-        fetcher.parse_yaml(yaml_data, k8s=True)
+        fetcher = ResourceFetcher(self.logger, aconf)
+        fetcher.parse_watt(watt_json)
 
         aconf.load_all(fetcher.sorted())
 
-        ir = IR(aconf, cache=self.cache,
+        # Next up: What kind of reconfiguration are we doing?
+        config_type, reset_cache, invalidate_groups_for = IR.check_deltas(self.logger, fetcher, self.cache)
+
+        # For the tests in this file, we should see cache resets and full reconfigurations
+        # IFF we have no cache.
+
+        if self.cache is None:
+            assert config_type == "complete", "check_deltas wants an incremental reconfiguration with no cache, which it shouldn't"
+            assert reset_cache, "check_deltas with no cache does not want to reset the cache, but it should"
+        else:
+            assert config_type == "incremental", "check_deltas with a cache wants a complete reconfiguration, which it shouldn't"
+            assert not reset_cache, "check_deltas with a cache wants to reset the cache, which it shouldn't"
+
+        # Once that's done, compile the IR.
+        ir = IR(aconf, logger=self.logger,
+                cache=self.cache, invalidate_groups_for=invalidate_groups_for,
                 file_checker=lambda path: True,
                 secret_handler=self.secret_handler)
 
@@ -122,7 +204,7 @@ class Builder:
         self.cache.invalidate(key)
 
     def check(self, what: str, b1: Tuple[IR, EnvoyConfig], b2: Tuple[IR, EnvoyConfig],
-              strip_cache_keys=False) -> None:
+              strip_cache_keys=False) -> bool:
         for kind, idx in [ ( "IR", 0 ), ( "econf", 1 ) ]:
             if strip_cache_keys and (idx == 0):
                 x1 = self.strip_cache_keys(b1[idx].as_dict())
@@ -153,6 +235,7 @@ class Builder:
                     output += "\n"
 
             assert match, output
+            return match
 
     def check_last(self, what: str) -> None:
         build_count = len(self.builds)
@@ -377,6 +460,215 @@ def test_long_cluster_1():
     builder1.check("after apply", b1, b2, strip_cache_keys=True)
 
     print("test_long_cluster_1 done")
+
+MadnessVerifier = Callable[[Tuple[IR, EnvoyConfig]], bool]
+
+
+class MadnessMapping:
+    name: str
+    pfx: str
+    service: str
+
+    def __init__(self, name, pfx, svc) -> None:
+        self.name = name
+        self.pfx = pfx
+        self.service = svc
+
+        # This is only OK for service names without any weirdnesses.
+        self.cluster = "cluster_" + re.sub(r'[^0-9A-Za-z_]', '_', self.service) + "_default"
+    
+    def __str__(self) -> str:
+        return f"MadnessMapping {self.name}: {self.pfx} => {self.service}"
+
+    def yaml(self) -> str:
+        return f"""
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+    name: {self.name}
+    namespace: default
+spec:
+    prefix: {self.pfx}
+    service: {self.service}
+"""
+
+
+class MadnessOp:
+    name: str
+    op: str
+    mapping: MadnessMapping
+    verifiers: List[MadnessVerifier]
+
+    def __init__(self, name: str, op: str, mapping: MadnessMapping, verifiers: List[MadnessVerifier]) -> None:
+        self.name = name
+        self.op = op
+        self.mapping = mapping
+        self.verifiers = verifiers
+    
+    def __str__(self) -> str:
+        return self.name
+
+    def exec(self, builder1: Builder, builder2: Builder, dumpfile: Optional[str]=None) -> bool:
+        verifiers: List[MadnessVerifier] = []
+
+        if self.op == "apply":
+            builder1.apply_yaml_string(self.mapping.yaml())
+            builder2.apply_yaml_string(self.mapping.yaml())
+
+            verifiers.append(self._cluster_present)
+        elif self.op == "delete":
+            builder1.delete_yaml_string(self.mapping.yaml())
+            builder2.delete_yaml_string(self.mapping.yaml())
+
+            verifiers.append(self._cluster_absent)
+        else:
+            raise Exception(f"Unknown op {self.op}")
+        
+        logger.info("======== builder1:")
+        logger.info("INPUT: %s" % builder1.current_yaml())
+
+        b1 = builder1.build()
+
+        logger.info("IR: %s" % json.dumps(b1[0].as_dict(), indent=2, sort_keys=True))
+
+        logger.info("======== builder2:")
+        logger.info("INPUT: %s" % builder2.current_yaml())
+
+        b2 = builder2.build()
+
+        logger.info("IR: %s" % json.dumps(b2[0].as_dict(), indent=2, sort_keys=True))
+
+        if dumpfile:
+            json.dump(b1[0].as_dict(), open(f"/tmp/{dumpfile}-1.json", "w"), indent=2, sort_keys=True)
+            json.dump(b2[0].as_dict(), open(f"/tmp/{dumpfile}-2.json", "w"), indent=2, sort_keys=True)
+
+        if not builder1.check(self.name, b1, b2, strip_cache_keys=True):
+            return False
+
+        verifiers += self.verifiers
+
+        for v in verifiers:
+            # for b in [ b1 ]:
+            for b in [ b1, b2 ]:
+                # The verifiers are meant to do assertions. The return value is
+                # about short-circuiting the loop, not logging the errors.
+                if not v(b):
+                    return False
+
+        return True
+
+    def _cluster_present(self, b: Tuple[IR, EnvoyConfig]) -> bool:
+        ir, econf = b
+
+        ir_has_cluster = ir.has_cluster(self.mapping.cluster)
+        assert ir_has_cluster, f"{self.name}: needed IR cluster {self.mapping.cluster}, have only {', '.join(ir.clusters.keys())}"
+
+        return ir_has_cluster
+
+    def _cluster_absent(self, b: Tuple[IR, EnvoyConfig]) -> bool:
+        ir, econf = b
+
+        ir_has_cluster = ir.has_cluster(self.mapping.cluster) 
+        assert not ir_has_cluster, f"{self.name}: needed no IR cluster {self.mapping.cluster}, but found it"
+
+        return not ir_has_cluster
+
+    def check_group(self, b: Tuple[IR, EnvoyConfig], current_mappings: Set[MadnessMapping]) -> bool:
+        ir, econf = b
+        match = False
+
+        group = ir.groups.get("3644d75eb336f323bec43e48d4cfd8a950157607", None)
+
+        if current_mappings:
+            # There are some active mappings. Make sure that the group exists, that it has the
+            # correct mappings, and that the mappings have sane weights.
+            assert group, f"{self.name}: needed group 3644d75eb336f323bec43e48d4cfd8a950157607, but none found"
+
+            # We expect the mappings to be sorted in the group, because every change to the
+            # mappings that are part of the group should result in the whole group being torn
+            # down and recreated.
+            wanted_services = sorted([ m.service for m in current_mappings.keys() ])
+            found_services = [ m.service for m in group.mappings ]
+
+            match1 = (wanted_services == found_services)
+            assert match1, f"{self.name}: wanted services {wanted_services}, but found {found_services}"
+
+            weight_delta = 100 // len(current_mappings)
+            wanted_weights: List[int] = [ (i + 1) * weight_delta for i in range(len(current_mappings)) ]
+            wanted_weights[-1] = 100
+
+            found_weights: List[int] = [ m._weight for m in group.mappings ]
+
+            match2 = (wanted_weights == found_weights)
+            assert match2, f"{self.name}: wanted weights {wanted_weights}, but found {found_weights}"
+
+            return match1 and match2
+        else:
+            # There are no active mappings, so make sure that the group doesn't exist.
+            assert not group, f"{self.name}: needed no group 3644d75eb336f323bec43e48d4cfd8a950157607, but found one"
+            match = True
+
+        return match
+
+
+def test_cache_madness():
+    builder1 = Builder(logger, "/dev/null")
+    builder2 = Builder(logger, "/dev/null", enable_cache=False)
+
+    logger.info("======== builder1:")
+    logger.info("INPUT: %s" % builder1.current_yaml())
+
+    b1 = builder1.build()
+
+    logger.info("IR: %s" % json.dumps(b1[0].as_dict(), indent=2, sort_keys=True))
+
+    logger.info("======== builder2:")
+    logger.info("INPUT: %s" % builder2.current_yaml())
+
+    b2 = builder2.build()
+
+    logger.info("IR: %s" % json.dumps(b2[0].as_dict(), indent=2, sort_keys=True))
+
+    builder1.check("baseline", b1, b2, strip_cache_keys=True)
+
+    # We're going to mix and match some changes to the config,
+    # in a random order.
+
+    all_mappings = [
+        MadnessMapping("mapping1", "/foo/", "service1"),
+        MadnessMapping("mapping2", "/foo/", "service2"),
+        MadnessMapping("mapping3", "/foo/", "service3"),
+        MadnessMapping("mapping4", "/foo/", "service4"),
+        MadnessMapping("mapping5", "/foo/", "service5"),
+    ]
+
+    current_mappings: OrderedDict[MadnessMapping, bool] = {}
+
+    # grunge = [ all_mappings[i] for i in [ 0, 3, 2 ] ]
+
+    # for i in range(len(grunge)):
+    #     mapping = grunge[i]
+
+    for i in range(0, 100):
+        mapping = random.choice(all_mappings)
+        op: MadnessOp
+
+        if mapping in current_mappings:
+            del(current_mappings[mapping])
+            op = MadnessOp(name=f"delete {mapping.pfx} -> {mapping.service}", op="delete", mapping=mapping, 
+                           verifiers=[ lambda b: op.check_group(b, current_mappings) ])
+        else:
+            current_mappings[mapping] = True
+            op = MadnessOp(name=f"apply {mapping.pfx} -> {mapping.service}", op="apply", mapping=mapping,
+                           verifiers=[ lambda b: op.check_group(b, current_mappings) ])
+
+        print("==== EXEC %d: %s => %s" % (i, op, sorted([ m.service for m in current_mappings.keys() ])))
+        logger.info("======== EXEC %d: %s", i, op)
+
+        # if not op.exec(builder1, None, dumpfile=f"ir{i}"):
+        if not op.exec(builder1, builder2, dumpfile=f"ir{i}"):
+            break
+        
 
 if __name__ == '__main__':
     pytest.main(sys.argv)

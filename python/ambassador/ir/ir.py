@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-from typing import Any, Callable, Dict, Iterable, List, Optional, Union, ValuesView
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, ValuesView
 from typing import cast as typecast
 
 import json
@@ -25,6 +25,7 @@ from ..constants import Constants
 from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo, dump_json, parse_bool
 from ..cache import Cache, NullCache
 from ..config import Config
+from ..fetch import ResourceFetcher
 
 from .irresource import IRResource
 from .irambassador import IRAmbassador
@@ -88,6 +89,7 @@ class IR:
     groups: Dict[str, IRBaseMappingGroup]
     grpc_services: Dict[str, IRCluster]
     hosts: Dict[str, IRHost]
+    invalidate_groups_for: List[str]
     # The key for listeners is "{bindaddr}-{port}" (see IRListener.bind_to())
     listeners: Dict[str, IRListener]
     log_services: Dict[str, IRLogService]
@@ -104,10 +106,105 @@ class IR:
     tls_module: Optional[IRAmbassadorTLS]
     tracing: Optional[IRTracing]
 
+    @classmethod
+    def check_deltas(cls, logger: logging.Logger, fetcher: 'ResourceFetcher', cache: Optional[Cache]=None) -> Tuple[str, bool, List[str]]:
+        # Assume that this should be marked as a complete reconfigure, and that we'll be
+        # resetting the cache.
+        config_type = "complete"
+        reset_cache = True
+
+        # to_invalidate is the list of things we can invalidate right now. If we're
+        # running with a cache, every valid Delta will get its cache key added into
+        # to_invalidate; after we finish looking at all the deltas, we'll invalidate
+        # all the entries in this list.
+        #
+        # Mapping deltas, though, are more complex: not only must we invalidate the
+        # Mapping, but we _also_ need to invalidate any cached Group that contains
+        # the Mapping (otherwise, adding a new Mapping to a cached Group won't work).
+        # This is messy, because the Delta doesn't have the information we need to
+        # compute the Group's cache key.
+        #
+        # We deal with this by adding the cache keys of any Mapping deltas to the
+        # invalidate_groups_for list, and then handing that to the IR so that the
+        # MappingFactory can use it to do the right thing.
+        #
+        # "But wait," I hear you cry, "you're only checking Mappings and TCPMappings
+        # right now anyway, so why bother separating these things?" That's because
+        # we expect the use of the cache to broaden, so we'll just go ahead and do
+        # this.
+        to_invalidate: List[str] = []
+        invalidate_groups_for: List[str] = []
+        
+        # OK. If we don't have a cache, just skip all this crap.
+        if cache is not None:
+            # We have a cache. Start by assuming that we'll need to reset it,
+            # unless there are no deltas at all.
+            reset_cache = len(fetcher.deltas) > 0
+
+            # Next up: are there any deltas?
+            if fetcher.deltas:
+                # Yes. We're going to walk over them all and assemble a list
+                # of things to delete and a count of errors while processing our
+                # list.
+
+                delta_errors = 0
+
+                for delta in fetcher.deltas:
+                    logger.debug(f"Delta: {delta}")
+
+                    # The "kind" of a Delta must be a string; assert that to make
+                    # mypy happy.
+
+                    delta_kind = delta['kind']
+                    assert(isinstance(delta_kind, str))
+
+                    # Only worry about Mappings and TCPMappings right now.
+                    if (delta_kind == 'Mapping') or (delta_kind == 'TCPMapping'):
+                        # XXX C'mon, mypy, is this cast really necessary?
+                        metadata = typecast(Dict[str, str], delta.get("metadata", {}))
+                        name = metadata.get("name", "")
+                        namespace = metadata.get("namespace", "")
+
+                        if not name or not namespace:
+                            # This is an error.
+                            delta_errors += 1
+
+                            logger.error(f"Delta object needs name and namespace: {delta}")
+                        else:
+                            key = IRBaseMapping.make_cache_key(delta_kind, name, namespace)
+                            to_invalidate.append(key)
+
+                            # If we're invalidating the Mapping, we need to invalidate its Group.
+                            invalidate_groups_for.append(key)
+
+                # OK. If we have things to invalidate, and we have NO ERRORS...
+                if to_invalidate and not delta_errors:
+                    # ...then we can invalidate all those things instead of clearing the cache.
+                    reset_cache = False
+
+                    for key in to_invalidate:
+                        logger.debug(f"Delta: invalidating {key}")
+                        cache.invalidate(key)
+
+            # When all is said and done, it's an incremental if we don't need to reset
+            # the cache.
+            if not reset_cache:
+                config_type = "incremental"
+
+                # This is _not_ an incremental reconfigure. Reset the cache...
+            else:
+                # OK, we're doing an incremental reconfigure.
+                config_type = "incremental"
+
+            cache.dump("Checking incoming deltas (reset_cache %s)", reset_cache)
+
+        return (config_type, reset_cache, invalidate_groups_for)
+
     def __init__(self, aconf: Config,
                  secret_handler: SecretHandler,
                  file_checker: Optional[IRFileChecker]=None,
                  logger: Optional[logging.Logger]=None,
+                 invalidate_groups_for: Optional[List[str]]=None,
                  cache: Optional[Cache]=None,
                  watch_only=False) -> None:
         # Initialize the basics...
@@ -121,6 +218,9 @@ class IR:
 
         # ...then make sure we have a cache (which might be a NullCache).
         self.cache = cache or NullCache(self.logger)
+        self.invalidate_groups_for = invalidate_groups_for or []
+
+        self.cache.dump("Fetcher")
 
         # We're using setattr since since mypy complains about assigning directly to a method.
         secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
@@ -167,6 +267,7 @@ class IR:
         self.groups = {}
         self.grpc_services = {}
         self.hosts = {}
+        # self.invalidate_groups_for is handled above.
         # self.k8s_status_updates is handled below.
         self.listeners = {}
         self.log_services = {}
@@ -377,6 +478,7 @@ class IR:
                 # v2cluster.py and v3cluster.py.
                 self.cache.invalidate(f"V2-{cluster.cache_key}")
                 self.cache.invalidate(f"V3-{cluster.cache_key}")
+                self.cache.dump("Invalidate clusters V2-%s, V3-%s", cluster.cache_key, cluster.cache_key)
 
                 # OK. Finally, we can update the envoy_name.
                 cluster['envoy_name'] = mangled_name
@@ -791,10 +893,6 @@ class IR:
                                         name=group_name,
                                         mapping=mapping)
 
-                    self.cache_add(mapping)
-                    self.cache_add(group)
-                    self.cache_link(mapping, group)
-
                 # There's no way group can be anything but a non-None IRBaseMappingGroup
                 # here. assert() that so that mypy understands it.
                 assert(isinstance(group, IRBaseMappingGroup))   # for mypy
@@ -803,6 +901,10 @@ class IR:
                 self.logger.debug(f"IR: already have group for {mapping.name}")
                 group = self.groups[mapping.group_id]
                 group.add_mapping(aconf, mapping)
+
+            self.cache_add(mapping)
+            self.cache_add(group)
+            self.cache_link(mapping, group)
 
             return group
         else:
@@ -825,8 +927,9 @@ class IR:
             if cluster.is_edge_stack_sidecar():
                 # self.logger.debug(f"IR: cluster {cluster.name} is the sidecar")
                 self.sidecar_cluster_name = cluster.name
+        else:
+            self.logger.debug("IR: add_cluster: extant cluster %s (%s)" % (cluster.name, cluster.get("envoy_name", "-")))
 
-        self.logger.debug("IR: add_cluster: extant cluster %s (%s)" % (cluster.name, cluster.get("envoy_name", "-")))
         return self.clusters[cluster.name]
 
     def merge_cluster(self, cluster: IRCluster) -> bool:
