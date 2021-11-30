@@ -62,10 +62,18 @@ class MappingFactory:
             ir.logger.debug(f"IR: adding Mapping for {config.name}")
             ir.add_mapping(aconf, mapping)
 
+        ir.cache.dump("MappingFactory")
+
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:
         # OK. We've created whatever IRMappings we need. Time to create the clusters
         # they need.
 
+        ir.logger.debug("IR: MappingFactory finalizing")
+
         for group in ir.groups.values():
+            ir.logger.debug("IR: MappingFactory finalizing group %s", group.group_id)
             group.finalize(ir, aconf)
+            ir.logger.debug("IR: MappingFactory finalized group %s", group.group_id)
+
+        ir.logger.debug("IR: MappingFactory finalized")

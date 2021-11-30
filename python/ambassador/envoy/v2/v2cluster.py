@@ -271,6 +271,7 @@ class V2Cluster(Cacheable):
                 if cached_ircluster is not None:
                     config.cache.add(cluster)
                     config.cache.link(ircluster, cluster)
+                    config.cache.dump("V2Cluster synth %s", cache_key)
             else:
                 # Cache hit. We know a priori that it's a V2Cluster, but let's assert
                 # that rather than casting.

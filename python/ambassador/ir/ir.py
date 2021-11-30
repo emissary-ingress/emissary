@@ -122,6 +122,8 @@ class IR:
         # ...then make sure we have a cache (which might be a NullCache).
         self.cache = cache or NullCache(self.logger)
 
+        self.cache.dump("Fetcher")
+
         # We're using setattr since since mypy complains about assigning directly to a method.
         secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
 
@@ -377,6 +379,7 @@ class IR:
                 # v2cluster.py and v3cluster.py.
                 self.cache.invalidate(f"V2-{cluster.cache_key}")
                 self.cache.invalidate(f"V3-{cluster.cache_key}")
+                self.cache.dump("Invalidate clusters V2-%s, V3-%s", cluster.cache_key, cluster.cache_key)
 
                 # OK. Finally, we can update the envoy_name.
                 cluster['envoy_name'] = mangled_name
@@ -825,8 +828,9 @@ class IR:
             if cluster.is_edge_stack_sidecar():
                 # self.logger.debug(f"IR: cluster {cluster.name} is the sidecar")
                 self.sidecar_cluster_name = cluster.name
+        else:
+            self.logger.debug("IR: add_cluster: extant cluster %s (%s)" % (cluster.name, cluster.get("envoy_name", "-")))
 
-        self.logger.debug("IR: add_cluster: extant cluster %s (%s)" % (cluster.name, cluster.get("envoy_name", "-")))
         return self.clusters[cluster.name]
 
     def merge_cluster(self, cluster: IRCluster) -> bool:
