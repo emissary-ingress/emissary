@@ -39,7 +39,13 @@
           cert_required: true
       tlsSecret:
           name: "hostcrdclientcertsamenamespace.server"
-  status: {}
+  status:
+    errorBackoff: 5m0s
+    errorReason: tlsSecret does not exist
+    errorTimestamp: "2021-11-29T19:51:04Z"
+    phaseCompleted: DefaultsFilled
+    state: Error
+    tlsCertificateSource: Other
 - apiVersion: "getambassador.io/v3alpha1"
   kind: "Host"
   metadata:
@@ -164,4 +170,15 @@
       previewUrl:
           enabled: true
           type: "Path"
+  status: {}
+- apiVersion: "getambassador.io/v3alpha1"
+  kind: "Host"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "host-preview-enabled-true"
+  spec:
+      hostname: "host-preview-enabled-true"
+      mappingSelector:
+        matchLabels:
+          app.example.com/name: foo
   status: {}

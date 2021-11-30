@@ -1,46 +1,23 @@
 package main
 
 import (
+	"fmt"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 const (
-	ProductAES  = Product("aes")
-	ProductOSS  = Product("oss")
-	ProductHelm = Product("helm")
+	TargetAPIServerHelm     = "apiserver-helm"
+	TargetAPIServerKubectl  = "apiserver-kubectl"
+	TargetInternalValidator = "internal-validator"
 )
 
-var Products = []Product{
-	ProductAES,
-	ProductOSS,
-	ProductHelm,
+var Targets = []string{
+	TargetAPIServerHelm,
+	TargetAPIServerKubectl,
+	TargetInternalValidator,
 }
-
-var (
-// old_pro_crds = []string{
-// 	"Filter",
-// 	"FilterPolicy",
-// 	"RateLimit",
-// }
-
-// old_oss_crds = []string{
-// 	"AuthService",
-// 	"ConsulResolver",
-// 	"KubernetesEndpointResolver",
-// 	"KubernetesServiceResolver",
-// 	"LogService",
-// 	"Mapping",
-// 	"Module",
-// 	"RateLimitService",
-// 	"TCPMapping",
-// 	"TLSContext",
-// 	"TracingService",
-// }
-)
 
 // Like apiext.CustomResourceDefinition, but we have a little more
 // control over serialization.
@@ -72,13 +49,19 @@ type CRD struct {
 func FixCRD(args Args, crd *CRD) error {
 	// sanity check
 	if crd.Kind != "CustomResourceDefinition" || !strings.HasPrefix(crd.APIVersion, "apiextensions.k8s.io/") {
-		return errors.Errorf("not a CRD: %#v", crd)
+		return fmt.Errorf("not a CRD: %#v", crd)
 	}
 
-	// hack around limitations in `controller-gen`; see the comments in
+	// hack around non-structural schemas; see the comments in
 	// `pkg/api/getambassdor.io/v2/common.go`.
-	VisitAllSchemaProps(crd, func(node *apiext.JSONSchemaProps) {
+	if err := VisitAllSchemaProps(crd, func(version string, node *apiext.JSONSchemaProps) error {
 		if strings.HasPrefix(node.Type, "d6e-union:") {
+			if strings.HasPrefix(version, "v3") {
+				return fmt.Errorf("v3 schemas should not contain d6e-union types")
+			}
+			if args.Target != TargetInternalValidator {
+				return ErrExcludeFromSchema
+			}
 			types := strings.Split(strings.TrimPrefix(node.Type, "d6e-union:"), ",")
 			node.Type = ""
 			node.OneOf = nil
@@ -88,7 +71,10 @@ func FixCRD(args Args, crd *CRD) error {
 				})
 			}
 		}
-	})
+		return nil
+	}); err != nil {
+		return err
+	}
 
 	// fix labels
 	if crd.Metadata.Labels == nil {
@@ -101,7 +87,7 @@ func FixCRD(args Args, crd *CRD) error {
 	if crd.Metadata.Annotations == nil {
 		crd.Metadata.Annotations = make(map[string]string)
 	}
-	if args.Product == ProductHelm {
+	if args.Target == TargetAPIServerHelm {
 		crd.Metadata.Annotations["helm.sh/hook"] = "crd-install"
 	} else {
 		delete(crd.Metadata.Annotations, "helm.sh/hook")
@@ -109,7 +95,6 @@ func FixCRD(args Args, crd *CRD) error {
 
 	// fix categories
 	if !inArray("ambassador-crds", crd.Spec.Names.Categories) {
-		//fmt.Fprintf(os.Stderr, "CRD %q missing ambassador-crds category\n", crd.Metadata.Name)
 		crd.Spec.Names.Categories = append(crd.Spec.Names.Categories, "ambassador-crds")
 	}
 

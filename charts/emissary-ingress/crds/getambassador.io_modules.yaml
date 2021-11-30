@@ -21,6 +21,30 @@ spec:
     singular: module
   scope: Namespaced
   versions:
+  - name: v2
+    schema:
+      openAPIV3Schema:
+        description: "A Module defines system-wide configuration.  The type of module is controlled by the .metadata.name; valid names are \"ambassador\" or \"tls\". \n https://www.getambassador.io/docs/edge-stack/latest/topics/running/ambassador/#the-ambassador-module https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tls-module-deprecated"
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              config:
+                description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        type: object
+    served: true
+    storage: true
   - name: v3alpha1
     schema:
       openAPIV3Schema:
@@ -50,4 +74,4 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false

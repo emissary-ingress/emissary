@@ -37,6 +37,344 @@ spec:
     - jsonPath: .status.reason
       name: Reason
       type: string
+    name: v2
+    schema:
+      openAPIV3Schema:
+        description: Mapping is the Schema for the mappings API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: MappingSpec defines the desired state of Mapping
+            properties:
+              add_linkerd_headers:
+                type: boolean
+              add_request_headers:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              add_response_headers:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              allow_upgrade:
+                description: "A case-insensitive list of the non-HTTP protocols to allow \"upgrading\" to from HTTP via the \"Connection: upgrade\" mechanism[1].  After the upgrade, Ambassador does not interpret the traffic, and behaves similarly to how it does for TCPMappings. \n [1]: https://tools.ietf.org/html/rfc7230#section-6.7 \n For example, if your upstream service supports WebSockets, you would write \n    allow_upgrade:    - websocket \n Or if your upstream service supports upgrading from HTTP to SPDY (as the Kubernetes apiserver does for `kubectl exec` functionality), you would write \n    allow_upgrade:    - spdy/3.1"
+                items:
+                  type: string
+                type: array
+              auth_context_extensions:
+                additionalProperties:
+                  type: string
+                type: object
+              auto_host_rewrite:
+                type: boolean
+              bypass_auth:
+                type: boolean
+              bypass_error_response_overrides:
+                description: If true, bypasses any `error_response_overrides` set on the Ambassador module.
+                type: boolean
+              case_sensitive:
+                type: boolean
+              circuit_breakers:
+                items:
+                  properties:
+                    max_connections:
+                      type: integer
+                    max_pending_requests:
+                      type: integer
+                    max_requests:
+                      type: integer
+                    max_retries:
+                      type: integer
+                    priority:
+                      enum:
+                      - default
+                      - high
+                      type: string
+                  type: object
+                type: array
+              cluster_idle_timeout_ms:
+                type: integer
+              cluster_max_connection_lifetime_ms:
+                type: integer
+              cluster_tag:
+                type: string
+              connect_timeout_ms:
+                type: integer
+              cors:
+                properties:
+                  credentials:
+                    type: boolean
+                  max_age:
+                    type: string
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              dns_type:
+                type: string
+              docs:
+                description: DocsInfo provides some extra information about the docs for the Mapping (used by the Dev Portal)
+                properties:
+                  display_name:
+                    type: string
+                  ignored:
+                    type: boolean
+                  path:
+                    type: string
+                  timeout_ms:
+                    type: integer
+                  url:
+                    type: string
+                type: object
+              enable_ipv4:
+                type: boolean
+              enable_ipv6:
+                type: boolean
+              envoy_override:
+                description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              error_response_overrides:
+                description: Error response overrides for this Mapping. Replaces all of the `error_response_overrides` set on the Ambassador module, if any.
+                items:
+                  description: A response rewrite for an HTTP error response
+                  properties:
+                    body:
+                      description: The new response body
+                      properties:
+                        content_type:
+                          description: The content type to set on the error response body when using text_format or text_format_source. Defaults to 'text/plain'.
+                          type: string
+                        json_format:
+                          additionalProperties:
+                            type: string
+                          description: 'A JSON response with content-type: application/json. The values can contain format text like in text_format.'
+                          type: object
+                        text_format:
+                          description: A format string representing a text response body. Content-Type can be set using the `content_type` field below.
+                          type: string
+                        text_format_source:
+                          description: A format string sourced from a file on the Ambassador container. Useful for larger response bodies that should not be placed inline in configuration.
+                          properties:
+                            filename:
+                              description: The name of a file on the Ambassador pod that contains a format text string.
+                              type: string
+                          type: object
+                      type: object
+                    on_status_code:
+                      description: The status code to match on -- not a pointer because it's required.
+                      maximum: 599
+                      minimum: 400
+                      type: integer
+                  required:
+                  - body
+                  - on_status_code
+                  type: object
+                minItems: 1
+                type: array
+              grpc:
+                type: boolean
+              headers:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              host:
+                type: string
+              host_redirect:
+                type: boolean
+              host_regex:
+                type: boolean
+              host_rewrite:
+                type: string
+              idle_timeout_ms:
+                type: integer
+              keepalive:
+                properties:
+                  idle_time:
+                    type: integer
+                  interval:
+                    type: integer
+                  probes:
+                    type: integer
+                type: object
+              labels:
+                additionalProperties:
+                  description: A MappingLabelGroupsArray is an array of MappingLabelGroups. I know, complex.
+                  items:
+                    description: 'A MappingLabelGroup is a single element of a MappingLabelGroupsArray: a second map, where the key is a human-readable name that identifies the group.'
+                    maxProperties: 1
+                    minProperties: 1
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  type: array
+                description: A DomainMap is the overall Mapping.spec.Labels type. It maps domains (kind of like namespaces for Mapping labels) to arrays of label groups.
+                type: object
+              load_balancer:
+                properties:
+                  cookie:
+                    properties:
+                      name:
+                        type: string
+                      path:
+                        type: string
+                      ttl:
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  header:
+                    type: string
+                  policy:
+                    enum:
+                    - round_robin
+                    - ring_hash
+                    - maglev
+                    - least_request
+                    type: string
+                  source_ip:
+                    type: boolean
+                required:
+                - policy
+                type: object
+              method:
+                type: string
+              method_regex:
+                type: boolean
+              modules:
+                items:
+                  description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                type: array
+              outlier_detection:
+                type: string
+              path_redirect:
+                description: Path replacement to use when generating an HTTP redirect. Used with `host_redirect`.
+                type: string
+              precedence:
+                type: integer
+              prefix:
+                type: string
+              prefix_exact:
+                type: boolean
+              prefix_redirect:
+                description: Prefix rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+                type: string
+              prefix_regex:
+                type: boolean
+              priority:
+                type: string
+              query_parameters:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              redirect_response_code:
+                description: The response code to use when generating an HTTP redirect. Defaults to 301. Used with `host_redirect`.
+                enum:
+                - 301
+                - 302
+                - 303
+                - 307
+                - 308
+                type: integer
+              regex_headers:
+                additionalProperties:
+                  type: string
+                type: object
+              regex_query_parameters:
+                additionalProperties:
+                  type: string
+                type: object
+              regex_redirect:
+                description: Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+                properties:
+                  pattern:
+                    type: string
+                  substitution:
+                    type: string
+                type: object
+              regex_rewrite:
+                properties:
+                  pattern:
+                    type: string
+                  substitution:
+                    type: string
+                type: object
+              resolver:
+                type: string
+              respect_dns_ttl:
+                type: boolean
+              retry_policy:
+                properties:
+                  num_retries:
+                    type: integer
+                  per_try_timeout:
+                    type: string
+                  retry_on:
+                    enum:
+                    - 5xx
+                    - gateway-error
+                    - connect-failure
+                    - retriable-4xx
+                    - refused-stream
+                    - retriable-status-codes
+                    type: string
+                type: object
+              rewrite:
+                type: string
+              service:
+                type: string
+              shadow:
+                type: boolean
+              timeout_ms:
+                description: The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
+                type: integer
+              use_websocket:
+                description: 'use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: ["websocket"]`'
+                type: boolean
+              v3StatsName:
+                type: string
+              weight:
+                type: integer
+            required:
+            - prefix
+            - service
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            description: MappingStatus defines the observed state of Mapping
+            properties:
+              reason:
+                type: string
+              state:
+                enum:
+                - ""
+                - Inactive
+                - Running
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+  - additionalPrinterColumns:
+    - jsonPath: .spec.host
+      name: Source Host
+      type: string
+    - jsonPath: .spec.prefix
+      name: Source Prefix
+      type: string
+    - jsonPath: .spec.service
+      name: Dest Service
+      type: string
+    - jsonPath: .status.state
+      name: State
+      type: string
+    - jsonPath: .status.reason
+      name: Reason
+      type: string
     name: v3alpha1
     schema:
       openAPIV3Schema:
@@ -60,6 +398,12 @@ spec:
                   properties:
                     append:
                       type: boolean
+                    v2Representation:
+                      enum:
+                      - ""
+                      - string
+                      - "null"
+                      type: string
                     value:
                       type: string
                   type: object
@@ -69,6 +413,12 @@ spec:
                   properties:
                     append:
                       type: boolean
+                    v2Representation:
+                      enum:
+                      - ""
+                      - string
+                      - "null"
+                      type: string
                     value:
                       type: string
                   type: object
@@ -147,6 +497,8 @@ spec:
                     items:
                       type: string
                     type: array
+                  v2CommaSeparatedOrigins:
+                    type: boolean
                 type: object
               dns_type:
                 type: string
@@ -269,6 +621,8 @@ spec:
                               key:
                                 description: The default is "generic_key".
                                 type: string
+                              v2Shorthand:
+                                type: boolean
                               value:
                                 type: string
                             required:
@@ -451,6 +805,31 @@ spec:
               use_websocket:
                 description: "use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: [\"websocket\"]` \n TODO(lukeshu): In v3alpha2, get rid of MappingSpec.DeprecatedUseWebsocket."
                 type: boolean
+              v2BoolHeaders:
+                items:
+                  type: string
+                type: array
+              v2BoolQueryParameters:
+                items:
+                  type: string
+                type: array
+              v2ExplicitTLS:
+                description: V2ExplicitTLS controls some vanity/stylistic elements when converting from v3alpha1 to v2.  The values in an V2ExplicitTLS should not in any way affect the runtime operation of Emissary; except that it may affect internal names in the Envoy config, which may in turn affect stats names.  But it should not affect any end-user observable behavior.
+                properties:
+                  serviceScheme:
+                    description: "ServiceScheme specifies how to spell and capitalize the scheme-part of the service URL. \n Acceptable values are \"http://\" (case-insensitive), \"https://\" (case-insensitive), or \"\".  The value is used if it agrees with whether or not this resource enables TLS origination, or if something else in the resource overrides the scheme."
+                    pattern: ^([hH][tT][tT][pP][sS]?://)?$
+                    type: string
+                  tls:
+                    description: "TLS controls whether and how to represent the \"tls\" field when its value could be implied by the \"service\" field.  In v2, there were a lot of different ways to spell an \"empty\" value, and this field specifies which way to spell it (and will therefore only be used if the value will indeed be empty). \n  | Value        | Representation                        | Meaning of representation          |  |--------------+---------------------------------------+------------------------------------|  | \"\"           | omit the field                        | defer to service (no TLSContext)   |  | \"null\"       | store an explicit \"null\" in the field | defer to service (no TLSContext)   |  | \"string\"     | store an empty string in the field    | defer to service (no TLSContext)   |  | \"bool:false\" | store a Boolean \"false\" in the field  | defer to service (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\" in the field   | originate TLS (no TLSContext)      | \n If the meaning of the representation contradicts anything else (if a TLSContext is to be used, or in the case of \"bool:true\" if TLS is not to be originated), then this field is ignored."
+                    enum:
+                    - ""
+                    - "null"
+                    - bool:true
+                    - bool:false
+                    - string
+                    type: string
+                type: object
               weight:
                 type: integer
             required:
@@ -471,6 +850,6 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
     subresources:
       status: {}
