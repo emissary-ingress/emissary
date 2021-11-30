@@ -580,7 +580,7 @@ class V3Listener(dict):
                 # First up, which clusters do we need to talk to?
                 clusters = [{
                     'name': mapping.cluster.envoy_name,
-                    'weight': mapping._weight or 0  # It's not actually possible for _weight to be unset
+                    'weight': mapping._weight
                 } for mapping in irgroup.mappings]
 
                 # From that, we can sort out a basic tcp_proxy filter config.
