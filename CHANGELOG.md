@@ -80,6 +80,17 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.1.0] TBD
+[2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: The incremental reconfiguration cache could miss some updates when multiple `Mapping`s had
+  the same `prefix` ("canary"ing multiple `Mapping`s together). This has been corrected, so that all
+  such updates correctly take effect. ([3945])
+
+[3945]: https://github.com/emissary-ingress/emissary/issues/3945
+
 ## [2.0.5] November 08, 2021
 [2.0.5]: https://github.com/emissary-ingress/emissary/compare/v2.0.4...v2.0.5
 

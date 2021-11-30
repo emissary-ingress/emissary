@@ -31,6 +31,21 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 2.1.0
+    date: 'TBD'
+    notes:
+      - title: Correctly handle all changing canary configurations
+        type: bugfix
+        body: >-
+          The incremental reconfiguration cache could miss some updates when multiple
+          <code>Mapping</code>s had the same <code>prefix</code> ("canary"ing multiple
+          <code>Mapping</code>s together). This has been corrected, so that all such
+          updates correctly take effect.
+        github:
+        - title: 3945
+          link: https://github.com/emissary-ingress/emissary/issues/3945
+        docs: https://github.com/emissary-ingress/emissary/issues/3945
+
   - version: 2.0.5
     date: '2021-11-08'
     notes:
