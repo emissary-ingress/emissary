@@ -40,8 +40,10 @@ class MappingFactory:
 
         assert(len(config_info) > 0)    # really rank paranoia on my part...
 
+        live_mappings: List[IRBaseMapping] = []
+
         for config in config_info.values():
-            # ir.logger.debug("creating mapping for %s" % repr(config))
+            ir.logger.debug("IR: MappingFactory checking %s" % repr(config))
 
             # Is this mapping already in the cache?
             key = IRBaseMapping.make_cache_key(kind, config.name, config.namespace)
@@ -59,7 +61,22 @@ class MappingFactory:
                 assert(isinstance(cached_mapping, IRBaseMapping))
                 mapping = cached_mapping
 
-            ir.logger.debug(f"IR: adding Mapping for {config.name}")
+            if mapping:
+                ir.logger.debug(f"IR: live Mapping for {config.name}")
+                live_mappings.append(mapping)
+
+        ir.logger.debug("IR: MappingFactory checking invalidations")
+
+        for mapping in live_mappings:
+            if mapping.cache_key in ir.invalidate_groups_for:
+                group_key = mapping.group_class().key_for_id(mapping.group_id)
+                ir.logger.debug("IR: MappingFactory invalidating %s for %s", group_key, mapping.name)
+                ir.cache.invalidate(group_key)
+
+        ir.logger.debug("IR: MappingFactory adding live mappings")
+
+        for mapping in live_mappings:
+            ir.logger.debug("IR: MappingFactory adding %s" % mapping.name)
             ir.add_mapping(aconf, mapping)
 
         ir.cache.dump("MappingFactory")
