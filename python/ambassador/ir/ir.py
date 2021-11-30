@@ -893,10 +893,6 @@ class IR:
                                         name=group_name,
                                         mapping=mapping)
 
-                    self.cache_add(mapping)
-                    self.cache_add(group)
-                    self.cache_link(mapping, group)
-
                 # There's no way group can be anything but a non-None IRBaseMappingGroup
                 # here. assert() that so that mypy understands it.
                 assert(isinstance(group, IRBaseMappingGroup))   # for mypy
@@ -905,6 +901,10 @@ class IR:
                 self.logger.debug(f"IR: already have group for {mapping.name}")
                 group = self.groups[mapping.group_id]
                 group.add_mapping(aconf, mapping)
+
+            self.cache_add(mapping)
+            self.cache_add(group)
+            self.cache_link(mapping, group)
 
             return group
         else:
