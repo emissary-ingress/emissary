@@ -82,6 +82,7 @@ class IRBaseMapping (IRResource):
     cached_status: Optional[Dict[str, str]]
     status_update: Optional[Dict[str, str]]
     cluster_key: Optional[str]
+    _weight: Optional[int]
 
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str,      # REQUIRED
@@ -100,6 +101,9 @@ class IRBaseMapping (IRResource):
 
         # Start by assuming that we don't know the cluster key for this Mapping.
         self.cluster_key = None
+
+        # ...and that we don't know the calculated weight.
+        self._weight = None
 
         # Init the superclass...
         super().__init__(
