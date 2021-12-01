@@ -288,7 +288,8 @@ class IRHost(IRResource):
                     pkey_ss = self.resolve(ir, pkey_name)
 
                     if not pkey_ss:
-                        ir.logger.error(f"Host {self.name}: continuing with invalid private key secret {pkey_name}")
+                        ir.logger.error(f"Host {self.name}: continuing with invalid private key secret {pkey_name}; ACME will not be able to renew this certificate")
+                        self.post_error(f"continuing with invalid ACME private key secret {pkey_name}; ACME will not be able to renew this certificate")
 
         ir.logger.debug(f"Host setup OK: {self}")
         return True
