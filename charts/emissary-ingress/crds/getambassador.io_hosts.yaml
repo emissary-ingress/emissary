@@ -11,6 +11,16 @@ metadata:
     product: aes
   name: hosts.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: '{{ include "ambassador.fullname" . }}-apiext'
+          namespace: '{{ include "ambassador.namespace" . }}'
+          path: /webhooks/crd-convert
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:

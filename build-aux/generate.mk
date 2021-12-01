@@ -445,11 +445,11 @@ $(OSS_HOME)/charts/emissary-ingress/crds: $(OSS_HOME)/_generate.tmp/crds $(tools
 
 $(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) apiserver-kubectl $(sort $(wildcard $</*.yaml)) > $@
+	$(tools/fix-crds) apiserver-kubectl-emissary $(sort $(wildcard $</*.yaml)) > $@
 
 $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) apiserver-kubectl $(sort $(wildcard $</*.yaml)) > $@
+	$(tools/fix-crds) apiserver-kubectl-ambassador $(sort $(wildcard $</*.yaml)) > $@
 
 $(OSS_HOME)/cmd/entrypoint/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) internal-validator $(sort $(wildcard $</*.yaml)) > $@

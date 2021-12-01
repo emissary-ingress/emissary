@@ -8,14 +8,16 @@ import (
 )
 
 const (
-	TargetAPIServerHelm     = "apiserver-helm"
-	TargetAPIServerKubectl  = "apiserver-kubectl"
-	TargetInternalValidator = "internal-validator"
+	TargetAPIServerHelm              = "apiserver-helm"
+	TargetAPIServerKubectlEmissary   = "apiserver-kubectl-emissary"
+	TargetAPIServerKubectlAmbassador = "apiserver-kubectl-ambassador"
+	TargetInternalValidator          = "internal-validator"
 )
 
 var Targets = []string{
 	TargetAPIServerHelm,
-	TargetAPIServerKubectl,
+	TargetAPIServerKubectlEmissary,
+	TargetAPIServerKubectlAmbassador,
 	TargetInternalValidator,
 }
 
@@ -99,6 +101,44 @@ func FixCRD(args Args, crd *CRD) error {
 	// fix categories
 	if !inArray("ambassador-crds", crd.Spec.Names.Categories) {
 		crd.Spec.Names.Categories = append(crd.Spec.Names.Categories, "ambassador-crds")
+	}
+
+	// fix conversion
+	var apiextName, apiextNamespace string
+	switch args.Target {
+	case TargetAPIServerHelm:
+		apiextName = `{{ include "ambassador.fullname" . }}-apiext`
+		apiextNamespace = `{{ include "ambassador.namespace" . }}`
+	case TargetAPIServerKubectlEmissary:
+		apiextName = "emissary-ingress-apiext"
+		apiextNamespace = "emissary"
+	case TargetAPIServerKubectlAmbassador:
+		apiextName = "ambassador-apiext"
+		apiextNamespace = "default"
+	}
+	if apiextName != "" {
+		apiextPath := "/webhooks/crd-convert"
+		crd.Spec.Conversion = &apiext.CustomResourceConversion{
+			Strategy: apiext.WebhookConverter,
+			Webhook: &apiext.WebhookConversion{
+				ClientConfig: &apiext.WebhookClientConfig{
+					Service: &apiext.ServiceReference{
+						Name:      apiextName,
+						Namespace: apiextNamespace,
+						Path:      &apiextPath,
+					},
+					// 'CABundle' is left empty to be filled in by Emissary's
+					// apiext controller.  It's tempting to set it to a bogus
+					// value, but that would cause trouble at the next upgrade
+					// for `kubectl apply` users.
+				},
+				// Which versions of the conversion API our webhook supports.  Since
+				// we use sigs.k8s.io/controller-runtime/pkg/webhook/conversion to
+				// implement the webhook this list should be kept in-sync with what
+				// that package supports.
+				ConversionReviewVersions: []string{"v1beta1"},
+			},
+		}
 	}
 
 	return nil
