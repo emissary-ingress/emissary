@@ -101,5 +101,27 @@ func FixCRD(args Args, crd *CRD) error {
 		crd.Spec.Names.Categories = append(crd.Spec.Names.Categories, "ambassador-crds")
 	}
 
+	// fix conversion
+	if len(crd.Spec.Versions) > 1 {
+		crd.Spec.Conversion = &apiext.CustomResourceConversion{
+			Strategy: apiext.WebhookConverter,
+			Webhook: &apiext.WebhookConversion{
+				// 'ClientConfig' will get overwritten by Emissary's 'apiext'
+				// controller.
+				ClientConfig: &apiext.WebhookClientConfig{
+					Service: &apiext.ServiceReference{
+						Name:      "bogus-emissary-apiext",
+						Namespace: "bogus-emissary",
+					},
+				},
+				// Which versions of the conversion API our webhook supports.  Since
+				// we use sigs.k8s.io/controller-runtime/pkg/webhook/conversion to
+				// implement the webhook this list should be kept in-sync with what
+				// that package supports.
+				ConversionReviewVersions: []string{"v1beta1"},
+			},
+		}
+	}
+
 	return nil
 }

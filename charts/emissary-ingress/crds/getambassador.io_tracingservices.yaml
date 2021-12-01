@@ -11,6 +11,15 @@ metadata:
     product: aes
   name: tracingservices.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: bogus-emissary-apiext
+          namespace: bogus-emissary
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:
