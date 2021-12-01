@@ -1,0 +1,171 @@
+# GENERATED FILE: edits made by hand will not be preserved.
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.5.0
+    helm.sh/hook: crd-install
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
+  name: listeners.getambassador.io
+spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUQ3ekNDQXRlZ0F3SUJBZ0lRSG80OEFLOU9YR0NGWGJxaFRCdE0rVEFOQmdrcWhraUc5dzBCQVFzRkFEQjMKTVFzd0NRWURWUVFHRXdKVlV6RUxNQWtHQTFVRUNCTUNUVUV4RHpBTkJnTlZCQWNUQmtKdmMzUnZiakVZTUJZRwpBMVVFQ2hNUFFXMWlZWE56WVdSdmNpQk1ZV0p6TVJRd0VnWURWUVFMRXd0RmJtZHBibVZsY21sdVp6RWFNQmdHCkExVUVBeE1SWlcxcGMzTmhjbmt0WTJFdWJHOWpZV3d3SUJjTk1qRXhNVEV3TVRNeE1qQXdXaGdQTWpBNU9URXgKTVRBeE16RXlNREJhTUhjeEN6QUpCZ05WQkFZVEFsVlRNUXN3Q1FZRFZRUUlFd0pOUVRFUE1BMEdBMVVFQnhNRwpRbTl6ZEc5dU1SZ3dGZ1lEVlFRS0V3OUJiV0poYzNOaFpHOXlJRXhoWW5NeEZEQVNCZ05WQkFzVEMwVnVaMmx1ClpXVnlhVzVuTVJvd0dBWURWUVFERXhGbGJXbHpjMkZ5ZVMxallTNXNiMk5oYkRDQ0FTSXdEUVlKS29aSWh2Y04KQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCQUxWWHJrNUMxSTh5ZElQNmwrRFB0anhYeDR2MUo5dy80cDRXUmNrVgpaVmdteGhQTlZwSENNbnI0MGptb0djRWlVSWs1bDRqOTBjVW5XWVU5cnVOQTY2cHQxVnhRc3M1YXJnZjM3ZVVYCmJkL3RtdFNmYStIYzBabEswSktMM3Z2S1BmQTJYNEVoZEtZUVljZ2FDa1g2SURuVWtQZFY1YzN1TDMyUDV5VkIKTW5zQ28wY0h2R3Y1OEZ4Y1Njdm43VWFoYlNnZ0hJZkpSZVMxenFocjhwVFhIcG55QjIxZ0M1ck83YlFFcm52Zwp6Yy83c1BYelRoMG9MeTVBenFGTG9tUnVneUtCQjc0MnpBams5MjlMYi9PY1RJcW94czJPSkNrTnhkQ3N4WEF0ClFXQTFvNFBpMUZDc09JcHlWckF2R2ZvU2VkRXVmMXRTU2ZEdGl5cCtyR3hBaDhVQ0F3RUFBYU4xTUhNd0RnWUQKVlIwUEFRSC9CQVFEQWdLa01CTUdBMVVkSlFRTU1Bb0dDQ3NHQVFVRkJ3TUJNQThHQTFVZEV3RUIvd1FGTUFNQgpBZjh3SFFZRFZSME9CQllFRkcrazVLMzlKMlhtRzlxODN3UTY5ajlnRnc2Vk1Cd0dBMVVkRVFRVk1CT0NFV1Z0CmFYTnpZWEo1TFdOaExteHZZMkZzTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFDQkExdm0yUlBUVEdKeHBGdTQKMFVad205Skp6OTlaWkdYYkF0d3kyTmxNL0xYYklVaEtZMHlsNVlhRlhmNmJubXJhd2FvcldiRHZXS2JTZlZVcwptSnVYbmJBeXNlOTl3VlpsbGllQkNjZUlsM0xsZ214TGRrOG8zNmt0QVhnNk9Fd0dHRnJta3ZOZHVQOS9iczF0CjRrbTlVVExMUGVzV3ZyZmx0aDQ3MGRQOURDVjJQVVI1c1JFUGl1VkNnbzRIVnlROGdVRlh0RnpVU29DSUFNY1MKTlBxWXV6RUxYRWxmeTA0MlhtRjNjUHBmaEY4MUw0T3QrMEFGQU1qdWptcXVFbUlSS29ycVo0OUpxTytwZ1hDbAo3U0JaVTR3YmlIMytJb0ZLazlSdUZjNUtTU3o2YU95WjRoSnlURk8vVkZzK2lDb091djlKbWV5cjBhWHdvL1pMCjRzQ2oKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+        service:
+          name: emissary-ingress
+          namespace: emissary
+          path: /crdconvert
+      conversionReviewVersions:
+      - v1
+  group: getambassador.io
+  names:
+    categories:
+    - ambassador-crds
+    kind: Listener
+    listKind: ListenerList
+    plural: listeners
+    singular: listener
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.port
+      name: Port
+      type: string
+    - jsonPath: .spec.protocol
+      name: Protocol
+      type: string
+    - jsonPath: .spec.protocolStack
+      name: Stack
+      type: string
+    - jsonPath: .spec.statsPrefix
+      name: StatsPrefix
+      type: string
+    - jsonPath: .spec.securityModel
+      name: Security
+      type: string
+    - jsonPath: .spec.l7Depth
+      name: L7Depth
+      type: string
+    name: v3alpha1
+    schema:
+      openAPIV3Schema:
+        description: Listener is the Schema for the hosts API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ListenerSpec defines the desired state of this Port
+            properties:
+              ambassador_id:
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
+                items:
+                  type: string
+                type: array
+              hostBinding:
+                description: HostBinding allows restricting which Hosts will be used for this Listener.
+                properties:
+                  namespace:
+                    description: NamespaceBindingType defines we we specify which namespaces to look for Hosts in.
+                    properties:
+                      from:
+                        description: NamespaceFromType defines how we evaluate a NamespaceBindingType.
+                        enum:
+                        - SELF
+                        - ALL
+                        - SELECTOR
+                        type: string
+                    type: object
+                  selector:
+                    description: A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+                    properties:
+                      matchExpressions:
+                        description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                        items:
+                          description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                          properties:
+                            key:
+                              description: key is the label key that the selector applies to.
+                              type: string
+                            operator:
+                              description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                              type: string
+                            values:
+                              description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                              items:
+                                type: string
+                              type: array
+                          required:
+                          - key
+                          - operator
+                          type: object
+                        type: array
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                        type: object
+                    type: object
+                type: object
+              l7Depth:
+                description: L7Depth specifies how many layer 7 load balancers are between us and the edge of the network.
+                format: int32
+                type: integer
+              port:
+                description: Port is the network port. Only one Listener can use a given port.
+                format: int32
+                maximum: 65535
+                minimum: 1
+                type: integer
+              protocol:
+                description: Protocol is a shorthand for certain predefined stacks. Exactly one of Protocol or ProtocolStack must be supplied.
+                enum:
+                - HTTP
+                - HTTPS
+                - HTTPPROXY
+                - HTTPSPROXY
+                - TCP
+                - TLS
+                - UDP
+                type: string
+              protocolStack:
+                description: ProtocolStack explicitly specifies the protocol stack to set up. Exactly one of Protocol or ProtocolStack must be supplied.
+                items:
+                  description: ProtocolStackElement defines specific layers that may be combined in a protocol stack for processing connections to a port.
+                  enum:
+                  - HTTP
+                  - PROXY
+                  - TLS
+                  - TCP
+                  - UDP
+                  type: string
+                type: array
+              securityModel:
+                description: SecurityModel specifies how to determine whether connections to this port are secure or insecure.
+                enum:
+                - XFP
+                - SECURE
+                - INSECURE
+                type: string
+              statsPrefix:
+                description: 'StatsPrefix specifies the prefix for statistics sent by Envoy about this Listener. The default depends on the protocol: "ingress-http", "ingress-https", "ingress-tls-$port", or "ingress-$port".'
+                type: string
+            required:
+            - hostBinding
+            - port
+            - securityModel
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources: {}
