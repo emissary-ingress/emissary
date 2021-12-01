@@ -1,0 +1,172 @@
+# GENERATED FILE: edits made by hand will not be preserved.
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.5.0
+    helm.sh/hook: crd-install
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
+  name: tlscontexts.getambassador.io
+spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUQ3ekNDQXRlZ0F3SUJBZ0lRSG80OEFLOU9YR0NGWGJxaFRCdE0rVEFOQmdrcWhraUc5dzBCQVFzRkFEQjMKTVFzd0NRWURWUVFHRXdKVlV6RUxNQWtHQTFVRUNCTUNUVUV4RHpBTkJnTlZCQWNUQmtKdmMzUnZiakVZTUJZRwpBMVVFQ2hNUFFXMWlZWE56WVdSdmNpQk1ZV0p6TVJRd0VnWURWUVFMRXd0RmJtZHBibVZsY21sdVp6RWFNQmdHCkExVUVBeE1SWlcxcGMzTmhjbmt0WTJFdWJHOWpZV3d3SUJjTk1qRXhNVEV3TVRNeE1qQXdXaGdQTWpBNU9URXgKTVRBeE16RXlNREJhTUhjeEN6QUpCZ05WQkFZVEFsVlRNUXN3Q1FZRFZRUUlFd0pOUVRFUE1BMEdBMVVFQnhNRwpRbTl6ZEc5dU1SZ3dGZ1lEVlFRS0V3OUJiV0poYzNOaFpHOXlJRXhoWW5NeEZEQVNCZ05WQkFzVEMwVnVaMmx1ClpXVnlhVzVuTVJvd0dBWURWUVFERXhGbGJXbHpjMkZ5ZVMxallTNXNiMk5oYkRDQ0FTSXdEUVlKS29aSWh2Y04KQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCQUxWWHJrNUMxSTh5ZElQNmwrRFB0anhYeDR2MUo5dy80cDRXUmNrVgpaVmdteGhQTlZwSENNbnI0MGptb0djRWlVSWs1bDRqOTBjVW5XWVU5cnVOQTY2cHQxVnhRc3M1YXJnZjM3ZVVYCmJkL3RtdFNmYStIYzBabEswSktMM3Z2S1BmQTJYNEVoZEtZUVljZ2FDa1g2SURuVWtQZFY1YzN1TDMyUDV5VkIKTW5zQ28wY0h2R3Y1OEZ4Y1Njdm43VWFoYlNnZ0hJZkpSZVMxenFocjhwVFhIcG55QjIxZ0M1ck83YlFFcm52Zwp6Yy83c1BYelRoMG9MeTVBenFGTG9tUnVneUtCQjc0MnpBams5MjlMYi9PY1RJcW94czJPSkNrTnhkQ3N4WEF0ClFXQTFvNFBpMUZDc09JcHlWckF2R2ZvU2VkRXVmMXRTU2ZEdGl5cCtyR3hBaDhVQ0F3RUFBYU4xTUhNd0RnWUQKVlIwUEFRSC9CQVFEQWdLa01CTUdBMVVkSlFRTU1Bb0dDQ3NHQVFVRkJ3TUJNQThHQTFVZEV3RUIvd1FGTUFNQgpBZjh3SFFZRFZSME9CQllFRkcrazVLMzlKMlhtRzlxODN3UTY5ajlnRnc2Vk1Cd0dBMVVkRVFRVk1CT0NFV1Z0CmFYTnpZWEo1TFdOaExteHZZMkZzTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFDQkExdm0yUlBUVEdKeHBGdTQKMFVad205Skp6OTlaWkdYYkF0d3kyTmxNL0xYYklVaEtZMHlsNVlhRlhmNmJubXJhd2FvcldiRHZXS2JTZlZVcwptSnVYbmJBeXNlOTl3VlpsbGllQkNjZUlsM0xsZ214TGRrOG8zNmt0QVhnNk9Fd0dHRnJta3ZOZHVQOS9iczF0CjRrbTlVVExMUGVzV3ZyZmx0aDQ3MGRQOURDVjJQVVI1c1JFUGl1VkNnbzRIVnlROGdVRlh0RnpVU29DSUFNY1MKTlBxWXV6RUxYRWxmeTA0MlhtRjNjUHBmaEY4MUw0T3QrMEFGQU1qdWptcXVFbUlSS29ycVo0OUpxTytwZ1hDbAo3U0JaVTR3YmlIMytJb0ZLazlSdUZjNUtTU3o2YU95WjRoSnlURk8vVkZzK2lDb091djlKbWV5cjBhWHdvL1pMCjRzQ2oKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+        service:
+          name: emissary-ingress
+          namespace: emissary
+          path: /crdconvert
+      conversionReviewVersions:
+      - v1
+  group: getambassador.io
+  names:
+    categories:
+    - ambassador-crds
+    kind: TLSContext
+    listKind: TLSContextList
+    plural: tlscontexts
+    singular: tlscontext
+  scope: Namespaced
+  versions:
+  - name: v2
+    schema:
+      openAPIV3Schema:
+        description: TLSContext is the Schema for the tlscontexts API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: TLSContextSpec defines the desired state of TLSContext
+            properties:
+              alpn_protocols:
+                type: string
+              ca_secret:
+                type: string
+              cacert_chain_file:
+                type: string
+              cert_chain_file:
+                type: string
+              cert_required:
+                type: boolean
+              cipher_suites:
+                items:
+                  type: string
+                type: array
+              ecdh_curves:
+                items:
+                  type: string
+                type: array
+              hosts:
+                items:
+                  type: string
+                type: array
+              max_tls_version:
+                enum:
+                - v1.0
+                - v1.1
+                - v1.2
+                - v1.3
+                type: string
+              min_tls_version:
+                enum:
+                - v1.0
+                - v1.1
+                - v1.2
+                - v1.3
+                type: string
+              private_key_file:
+                type: string
+              redirect_cleartext_from:
+                type: integer
+              secret:
+                type: string
+              secret_namespacing:
+                type: boolean
+              sni:
+                type: string
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        type: object
+    served: true
+    storage: true
+  - name: v3alpha1
+    schema:
+      openAPIV3Schema:
+        description: TLSContext is the Schema for the tlscontexts API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: TLSContextSpec defines the desired state of TLSContext
+            properties:
+              alpn_protocols:
+                type: string
+              ambassador_id:
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
+                items:
+                  type: string
+                type: array
+              ca_secret:
+                type: string
+              cacert_chain_file:
+                type: string
+              cert_chain_file:
+                type: string
+              cert_required:
+                type: boolean
+              cipher_suites:
+                items:
+                  type: string
+                type: array
+              ecdh_curves:
+                items:
+                  type: string
+                type: array
+              hosts:
+                items:
+                  type: string
+                type: array
+              max_tls_version:
+                enum:
+                - v1.0
+                - v1.1
+                - v1.2
+                - v1.3
+                type: string
+              min_tls_version:
+                enum:
+                - v1.0
+                - v1.1
+                - v1.2
+                - v1.3
+                type: string
+              private_key_file:
+                type: string
+              redirect_cleartext_from:
+                type: integer
+              secret:
+                type: string
+              secret_namespacing:
+                type: boolean
+              sni:
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: false
