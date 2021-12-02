@@ -380,7 +380,7 @@ $(OSS_HOME)/%/handwritten.conversion.scaffold.go: $(OSS_HOME)/%/zz_generated.con
 $(OSS_HOME)/%/zz_generated.conversion-hub.go: FORCE
 	rm -f $@
 	{ \
-	  awk ' \
+	  gawk ' \
 	    BEGIN { \
 	       print("package $(notdir $*)"); \
 	       print(""); \
@@ -401,7 +401,7 @@ $(OSS_HOME)/%/zz_generated.conversion-hub.go: FORCE
 $(OSS_HOME)/%/zz_generated.conversion-spoke.go: FORCE
 	rm -f $@
 	{ \
-	  awk ' \
+	  gawk ' \
 	    BEGIN { \
 	       print("package $(notdir $*)"); \
 	       print(""); \
