@@ -19,6 +19,7 @@ spec:
     listKind: RateLimitServiceList
     plural: ratelimitservices
     singular: ratelimitservice
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2

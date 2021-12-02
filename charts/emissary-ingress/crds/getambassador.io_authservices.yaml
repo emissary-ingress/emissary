@@ -19,6 +19,7 @@ spec:
     listKind: AuthServiceList
     plural: authservices
     singular: authservice
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2

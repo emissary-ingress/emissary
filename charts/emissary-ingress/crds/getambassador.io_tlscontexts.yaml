@@ -19,6 +19,7 @@ spec:
     listKind: TLSContextList
     plural: tlscontexts
     singular: tlscontext
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
