@@ -26,15 +26,16 @@ Ambassador comprises several different components:
 
 Ambassador uses several TCP ports while running. All but one of them are in the range 8000-8499, and any future assignments for Ambassador ports should come from this range.
 
-| Port | Process              | Function                                                                                                           |
-| :--- | :------              | :-------                                                                                                           |
-| 8001 | `envoy`              | Internal stats, logging, etc.; not exposed outside pod                                                             |
-| 8002 | `entrypoint/watcher` | Internal `watt` snapshot access; not exposed outside pod                                                           |
-| 8003 | `entrypoint/ambex`   | Internal `ambex` snapshot access; not exposed outside pod                                                          |
-| 8004 | `diagd`              | Internal `diagd` access when `AMBASSADOR_FAST_RECONFIGURE` is set; not exposed outside pod                         |
-| 8080 | `envoy`              | Default HTTP service port                                                                                          |
-| 8443 | `envoy`              | Default HTTPS service port                                                                                         |
-| 8877 | `diagd`              | Direct access to diagnostics UI; provided by `busyambassador entrypoint` when `AMBASSADOR_FAST_RECONFIGURE` is set |
+| Port | Process                               | Function                                                                                                           |
+| :--- | :------                               | :-------                                                                                                           |
+| 8001 | `envoy`                               | Internal stats, logging, etc.; not exposed outside pod                                                             |
+| 8002 | `entrypoint/watcher`                  | Internal `watt` snapshot access; not exposed outside pod                                                           |
+| 8003 | `entrypoint/ambex`                    | Internal `ambex` snapshot access; not exposed outside pod                                                          |
+| 8004 | `diagd`                               | Internal `diagd` access when `AMBASSADOR_FAST_RECONFIGURE` is set; not exposed outside pod                         |
+| 8005 | `entrypoint/external_snapshot_server` | Exposes configuration snapshots for integration with other tools, such as the Ambassador Agent                     |
+| 8080 | `envoy`                               | Default HTTP service port                                                                                          |
+| 8443 | `envoy`                               | Default HTTPS service port                                                                                         |
+| 8877 | `diagd`                               | Direct access to diagnostics UI; provided by `busyambassador entrypoint` when `AMBASSADOR_FAST_RECONFIGURE` is set |
 
 ### The Ambassador Configuration
 
