@@ -19,6 +19,7 @@ spec:
     listKind: HostList
     plural: hosts
     singular: host
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - additionalPrinterColumns:

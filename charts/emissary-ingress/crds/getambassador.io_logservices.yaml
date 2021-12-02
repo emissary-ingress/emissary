@@ -19,6 +19,7 @@ spec:
     listKind: LogServiceList
     plural: logservices
     singular: logservice
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2

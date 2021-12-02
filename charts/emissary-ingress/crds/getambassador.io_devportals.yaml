@@ -19,6 +19,7 @@ spec:
     listKind: DevPortalList
     plural: devportals
     singular: devportal
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2

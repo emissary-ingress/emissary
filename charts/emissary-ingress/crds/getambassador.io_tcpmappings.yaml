@@ -19,6 +19,7 @@ spec:
     listKind: TCPMappingList
     plural: tcpmappings
     singular: tcpmapping
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2

@@ -18,6 +18,7 @@ spec:
     listKind: AuthServiceList
     plural: authservices
     singular: authservice
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -252,6 +253,7 @@ spec:
     listKind: ConsulResolverList
     plural: consulresolvers
     singular: consulresolver
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -327,6 +329,7 @@ spec:
     listKind: DevPortalList
     plural: devportals
     singular: devportal
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -522,6 +525,7 @@ spec:
     listKind: HostList
     plural: hosts
     singular: host
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -1000,6 +1004,7 @@ spec:
     listKind: KubernetesEndpointResolverList
     plural: kubernetesendpointresolvers
     singular: kubernetesendpointresolver
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -1066,6 +1071,7 @@ spec:
     listKind: KubernetesServiceResolverList
     plural: kubernetesserviceresolvers
     singular: kubernetesserviceresolver
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -1132,6 +1138,7 @@ spec:
     listKind: ListenerList
     plural: listeners
     singular: listener
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -1290,6 +1297,7 @@ spec:
     listKind: LogServiceList
     plural: logservices
     singular: logservice
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -1419,6 +1427,7 @@ spec:
     listKind: MappingList
     plural: mappings
     singular: mapping
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -2272,6 +2281,7 @@ spec:
     listKind: ModuleList
     plural: modules
     singular: module
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -2347,6 +2357,7 @@ spec:
     listKind: RateLimitServiceList
     plural: ratelimitservices
     singular: ratelimitservice
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -2464,6 +2475,7 @@ spec:
     listKind: TCPMappingList
     plural: tcpmappings
     singular: tcpmapping
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -2640,6 +2652,7 @@ spec:
     listKind: TLSContextList
     plural: tlscontexts
     singular: tlscontext
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -2799,6 +2812,7 @@ spec:
     listKind: TracingServiceList
     plural: tracingservices
     singular: tracingservice
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2

@@ -19,6 +19,7 @@ spec:
     listKind: ListenerList
     plural: listeners
     singular: listener
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
