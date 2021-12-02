@@ -42,7 +42,7 @@ spec:
       nodePort: {{ int .Values.adminService.nodePort }}
       {{- end }}
     - port: {{ .Values.adminService.snapshotPort }}
-      targetPort: {{ .Values.adminService.snapshotPort }}
+      targetPort: 8005
       protocol: TCP
       name: ambassador-snapshot
   selector:
