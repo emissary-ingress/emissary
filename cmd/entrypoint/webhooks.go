@@ -28,13 +28,14 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/dlib/derror"
 	"github.com/datawire/dlib/dhttp"
 )
 
 const (
-	webhookPath = "/crdconvert"
+	webhookPath   = "/crdconvert"
 	certValidDays = 365
-	caSecretName = "emissary-ingress-webhook-ca"
+	caSecretName  = "emissary-ingress-webhook-ca"
 )
 
 // TODO: automatic cert regeneration
@@ -143,7 +144,7 @@ func HandleWebhooks(ctx context.Context, webhookPort int, scheme *runtime.Scheme
 			Type: k8sTypesCoreV1.SecretTypeTLS,
 			Data: map[string][]byte{
 				k8sTypesCoreV1.TLSPrivateKeyKey: caPrivKeyPEM.Bytes(),
-				k8sTypesCoreV1.TLSCertKey: caPEM.Bytes(),
+				k8sTypesCoreV1.TLSCertKey:       caPEM.Bytes(),
 			},
 		}, k8sTypesMetaV1.CreateOptions{})
 		if err != nil {
@@ -161,7 +162,7 @@ func HandleWebhooks(ctx context.Context, webhookPort int, scheme *runtime.Scheme
 	// CA Secret already exists, so load data from it
 	if caPEM == nil || caTemplate == nil || caPrivKey == nil {
 		if caSecret == nil {
-			return fmt.Errorf("Couldnt get or generate CA secret")
+			return fmt.Errorf("couldnt get or generate CA secret")
 		}
 
 		// Parse CA Key
@@ -171,10 +172,10 @@ func HandleWebhooks(ctx context.Context, webhookPort int, scheme *runtime.Scheme
 			if key, err := x509.ParsePKCS1PrivateKey(keyBlock.Bytes); err == nil {
 				caPrivKey = key
 			} else {
-				return fmt.Errorf("Bad key loaded in CA secret: %s", err.Error())
+				return fmt.Errorf("bad key loaded in CA secret: %s", err.Error())
 			}
 		} else {
-			return fmt.Errorf("No key found in CA secret!")
+			return fmt.Errorf("no key found in CA secret!")
 		}
 
 		// parse ca cert
@@ -184,14 +185,14 @@ func HandleWebhooks(ctx context.Context, webhookPort int, scheme *runtime.Scheme
 			caPEM = b.NewBuffer(caPEMBytes)
 			certBlock, rest := pem.Decode(caPEMBytes)
 			if string(rest) != "" || certBlock.Type != "CERTIFICATE" {
-				return fmt.Errorf("Bad cert loaded in CA secret")
+				return fmt.Errorf("bad cert loaded in CA secret")
 			}
 			caTemplate, err = x509.ParseCertificate(certBlock.Bytes)
 			if err != nil {
 				return err
 			}
 		} else {
-			return fmt.Errorf("No cert found in CA secret!")
+			return fmt.Errorf("no cert found in CA secret!")
 		}
 	}
 
@@ -224,7 +225,7 @@ func HandleWebhooks(ctx context.Context, webhookPort int, scheme *runtime.Scheme
 		return err
 	}
 	var count int
-	var etext string
+	var errs derror.MultiError
 	for _, crd := range crds.Items {
 		if len(crd.Spec.Versions) < 1 || !scheme.Recognizes(schema.GroupVersionKind{
 			Group: crd.Spec.Group,
@@ -232,7 +233,7 @@ func HandleWebhooks(ctx context.Context, webhookPort int, scheme *runtime.Scheme
 			// to have at least 1 value. Regardless, we
 			// protect against len=0 in the conditional
 			Version: crd.Spec.Versions[0].Name,
-			Kind: crd.Spec.Names.Kind,
+			Kind:    crd.Spec.Names.Kind,
 		}) {
 			continue
 		}
@@ -241,14 +242,14 @@ func HandleWebhooks(ctx context.Context, webhookPort int, scheme *runtime.Scheme
 		crd.Spec.Conversion = &webhookConfig
 		_, err := crdInterface.Update(ctx, &crd, k8sTypesMetaV1.UpdateOptions{})
 		if err != nil {
-			etext += err.Error() + "\n"
+			errs = append(errs, err)
 		}
 	}
 	if count == 0 {
-		return fmt.Errorf("Found no CRD types to add webhooks to!")
+		return fmt.Errorf("found no CRD types to add webhooks to!")
 	}
-	if len(etext) > 0 {
-		return fmt.Errorf(etext)
+	if len(errs) > 0 {
+		return errs
 	}
 
 	// finally, put up that webhook server
