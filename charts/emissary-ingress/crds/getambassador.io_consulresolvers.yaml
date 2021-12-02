@@ -19,6 +19,7 @@ spec:
     listKind: ConsulResolverList
     plural: consulresolvers
     singular: consulresolver
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2

@@ -42,7 +42,7 @@ type CRD struct {
 		Versions                 []apiext.CustomResourceDefinitionVersion `json:"versions,omitempty"`
 		AdditionalPrinterColumns []apiext.CustomResourceColumnDefinition  `json:"additionalPrinterColumns,omitempty"`
 		Conversion               *apiext.CustomResourceConversion         `json:"conversion,omitempty"`
-		PreserveUnknownFields    *bool                                    `json:"preserveUnknownFields,omitempty"`
+		PreserveUnknownFields    bool                                     `json:"preserveUnknownFields"`
 	} `json:"spec"`
 }
 
