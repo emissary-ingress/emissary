@@ -19,6 +19,7 @@ spec:
     listKind: ModuleList
     plural: modules
     singular: module
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2

@@ -19,6 +19,7 @@ spec:
     listKind: KubernetesServiceResolverList
     plural: kubernetesserviceresolvers
     singular: kubernetesserviceresolver
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2

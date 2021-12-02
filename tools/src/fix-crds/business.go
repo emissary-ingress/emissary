@@ -42,7 +42,10 @@ type CRD struct {
 		Versions                 []apiext.CustomResourceDefinitionVersion `json:"versions,omitempty"`
 		AdditionalPrinterColumns []apiext.CustomResourceColumnDefinition  `json:"additionalPrinterColumns,omitempty"`
 		Conversion               *apiext.CustomResourceConversion         `json:"conversion,omitempty"`
-		PreserveUnknownFields    *bool                                    `json:"preserveUnknownFields,omitempty"`
+		// Explicitly setting 'preserveUnknownFields: false' is important even though that's
+		// the default; it's important when upgrading from CRDv1beta1 to CRDv1; the default
+		// was true in v1beta1, but we need it to be false.
+		PreserveUnknownFields bool `json:"preserveUnknownFields"`
 	} `json:"spec"`
 }
 
