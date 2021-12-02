@@ -20,8 +20,8 @@ import (
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/conversion"
 
@@ -32,29 +32,31 @@ import (
 )
 
 const (
-	webhookPort = 8006
 	webhookPath = "/crdconvert"
+	certValidDays = 365
+	caSecretName = "emissary-ingress-webhook-ca"
 )
 
 // TODO: automatic cert regeneration
-const CERT_VALID_DAYS int = 365
-const CA_SECRET_NAME string = "emissary-ingress-webhook-ca"
 
-func stringPtr(x string) *string {
+func constStringPtr(x string) *string {
 	return &x
 }
 
-func int32Ptr(x int32) *int32 {
-	return &x
+func int32Ptr(x int) *int32 {
+	y := int32(x)
+	return &y
 }
 
-func handleWebhooks(ctx context.Context) error {
+func GetEmissaryScheme() *runtime.Scheme {
 	scheme := runtime.NewScheme()
 
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(v2.AddToScheme(scheme))
 	utilruntime.Must(v3alpha1.AddToScheme(scheme))
+	return scheme
+}
 
+func HandleWebhooks(ctx context.Context, webhookPort int, scheme *runtime.Scheme) error {
 	// Create the webhook server
 	webhook := &conversion.Webhook{}
 	if err := webhook.InjectScheme(scheme); err != nil {
@@ -76,7 +78,7 @@ func handleWebhooks(ctx context.Context) error {
 
 	// get CA secret
 	secrets := coreClient.Secrets(GetAmbassadorNamespace())
-	caSecret, err := secrets.Get(ctx, CA_SECRET_NAME, k8sTypesMetaV1.GetOptions{})
+	caSecret, err := secrets.Get(ctx, caSecretName, k8sTypesMetaV1.GetOptions{})
 	var caPEM *b.Buffer
 	var caTemplate *x509.Certificate
 	var caPrivKey *rsa.PrivateKey
@@ -89,7 +91,7 @@ func handleWebhooks(ctx context.Context) error {
 
 		// Generate CA Certificate and key...
 		notBefore := time.Now()
-		notAfter := notBefore.Add(time.Duration(CERT_VALID_DAYS*24) * time.Hour)
+		notAfter := notBefore.Add(time.Duration(certValidDays*24) * time.Hour)
 		serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 		serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 		if err != nil {
@@ -135,18 +137,18 @@ func handleWebhooks(ctx context.Context) error {
 		// Create and write the secret
 		_, err = secrets.Create(ctx, &k8sTypesCoreV1.Secret{
 			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-				Name:      CA_SECRET_NAME,
+				Name:      caSecretName,
 				Namespace: GetAmbassadorNamespace(),
 			},
 			Type: k8sTypesCoreV1.SecretTypeTLS,
 			Data: map[string][]byte{
-				"tls.key": caPrivKeyPEM.Bytes(),
-				"tls.crt": caPEM.Bytes(),
+				k8sTypesCoreV1.TLSPrivateKeyKey: caPrivKeyPEM.Bytes(),
+				k8sTypesCoreV1.TLSCertKey: caPEM.Bytes(),
 			},
 		}, k8sTypesMetaV1.CreateOptions{})
 		if err != nil {
 			if k8sErrors.IsAlreadyExists(err) {
-				caSecret, err = secrets.Get(ctx, CA_SECRET_NAME, k8sTypesMetaV1.GetOptions{})
+				caSecret, err = secrets.Get(ctx, caSecretName, k8sTypesMetaV1.GetOptions{})
 				if err != nil {
 					return err
 				}
@@ -163,7 +165,7 @@ func handleWebhooks(ctx context.Context) error {
 		}
 
 		// Parse CA Key
-		caPrivKeyPEMBytes, ok := caSecret.Data["tls.key"]
+		caPrivKeyPEMBytes, ok := caSecret.Data[k8sTypesCoreV1.TLSPrivateKeyKey]
 		if ok {
 			keyBlock, _ := pem.Decode(caPrivKeyPEMBytes)
 			if key, err := x509.ParsePKCS1PrivateKey(keyBlock.Bytes); err == nil {
@@ -176,7 +178,7 @@ func handleWebhooks(ctx context.Context) error {
 		}
 
 		// parse ca cert
-		caPEMBytes, ok := caSecret.Data["tls.crt"]
+		caPEMBytes, ok := caSecret.Data[k8sTypesCoreV1.TLSCertKey]
 		if ok {
 			// we need the PEM and the parsed cert
 			caPEM = b.NewBuffer(caPEMBytes)
@@ -200,14 +202,18 @@ func handleWebhooks(ctx context.Context) error {
 			Service: &k8sApiExtTypes.ServiceReference{
 				Namespace: GetAmbassadorNamespace(),
 				Name:      GetAdminService(),
-				Path:      stringPtr(webhookPath),
+				Path:      constStringPtr(webhookPath),
 				Port:      int32Ptr(webhookPort),
 			},
 			CABundle: caPEM.Bytes(),
 		},
 	}
 
-	// get list of CRDs
+	//	// get list of CRDs
+	//	types := scheme.KnownTypes(schema.GroupVersion{
+	//		Group: "getambassador.io",
+	//		Version: "v2",
+	//	})
 	apiExtClient, err := k8sApiExtClient.NewForConfig(restConfig)
 	if err != nil {
 		return err
@@ -217,13 +223,29 @@ func handleWebhooks(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	var count int
 	var etext string
 	for _, crd := range crds.Items {
+		if len(crd.Spec.Versions) < 1 || !scheme.Recognizes(schema.GroupVersionKind{
+			Group: crd.Spec.Group,
+			// Versions is a mandatory field we can rely on
+			// to have at least 1 value. Regardless, we
+			// protect against len=0 in the conditional
+			Version: crd.Spec.Versions[0].Name,
+			Kind: crd.Spec.Names.Kind,
+		}) {
+			continue
+		}
+
+		count += 1
 		crd.Spec.Conversion = &webhookConfig
 		_, err := crdInterface.Update(ctx, &crd, k8sTypesMetaV1.UpdateOptions{})
 		if err != nil {
 			etext += err.Error() + "\n"
 		}
+	}
+	if count == 0 {
+		return fmt.Errorf("Found no CRD types to add webhooks to!")
 	}
 	if len(etext) > 0 {
 		return fmt.Errorf(etext)
@@ -250,7 +272,7 @@ func getCert(hostname string, rootCert x509.Certificate, rootKey *rsa.PrivateKey
 	}
 
 	notBefore := time.Now()
-	notAfter := notBefore.Add(time.Duration(CERT_VALID_DAYS*24) * time.Hour)
+	notAfter := notBefore.Add(time.Duration(certValidDays*24) * time.Hour)
 
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {

@@ -24,6 +24,8 @@ import (
 	"github.com/datawire/dlib/dlog"
 )
 
+const webhookServerPort = 8006
+
 // This is the main ambassador entrypoint. It launches and manages two other
 // processes:
 //
@@ -194,7 +196,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	}
 
 	group.Go("webhook", func(ctx context.Context) error {
-		return handleWebhooks(ctx)
+		return HandleWebhooks(ctx, webhookServerPort, GetEmissaryScheme())
 	})
 
 	// Finally, fire up the health check handler.
