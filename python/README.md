@@ -6,33 +6,35 @@ Concepts
 
 Ambassador sits between users and an Envoy. The primary job that an Ambassador does is to take an _Ambassador configuration_ and, from that, generate an _Envoy configuration_. This generation happens using an _intermediate representation (IR)_ to manage all the internal logic that Ambassador needs:
 
-```Ambassador config => IR => Envoy config```
+```asciiart
+Ambassador config => IR => Envoy config
+```
 
 ### Ambassador Components and Ports
 
 Ambassador comprises several different components:
 
-| Component                 | Type   | Function.                 |
-| :------------------------ | :----  | :------------------------ |
+| Component                 | Type   | Function.                                                                                                 |
+| :------------------------ | :----  | :------------------------                                                                                 |
 | `diagd`                   | Python | Increasingly-misnamed core of the system; manages changing configurations and provides the diagnostics UI |
-| `ambex`                   | Go     | Envoy `go-control-plane` implementation; supplies Envoy with current configuration |
-| `watt`                    | Go     | Service/secret discovery; interface to Kubernetes and Consul |
-| `envoy`                   | C++    | The actual proxy process |
-| `kubewatch.py`            | Python | Used only to determine the cluster's installation ID; needs to be subsumed by `watt` |
+| `entrypoint/ambex`        | Go     | Envoy `go-control-plane` implementation; supplies Envoy with current configuration                        |
+| `entrypoint/watcher`      | Go     | Service/secret discovery; interface to Kubernetes and Consul                                              |
+| `envoy`                   | C++    | The actual proxy process                                                                                  |
+| `kubewatch.py`            | Python | Used only to determine the cluster's installation ID; needs to be subsumed by `watt`                      |
 
-`diagd`, `ambex`, `watt`, and `envoy` are all long-running daemons. If any of them exit, the pod as a whole will exit.
+`entrypoint`, `diagd`, and `envoy` are all long-running daemons.  If any of them exit, the pod as a whole will exit.
 
 Ambassador uses several TCP ports while running. All but one of them are in the range 8000-8499, and any future assignments for Ambassador ports should come from this range.
 
-| Port | Process | Function |
-| :--- | :------ | :------- |
-| 8001 | `envoy` | Internal stats, logging, etc.; not exposed outside pod |
-| 8002 | `watt`  | Internal `watt` snapshot access; not exposed outside pod |
-| 8003 | `ambex` | Internal `ambex` snapshot access; not exposed outside pod |
-| 8004 | `diagd` | Internal `diagd` access when `AMBASSADOR_FAST_RECONFIGURE` is set; not exposed outside pod |
-| 8080 | `envoy` | Default HTTP service port |
-| 8443 | `envoy` | Default HTTPS service port |
-| 8877 | `diagd` | Direct access to diagnostics UI; provided by `busyambassador entrypoint` when `AMBASSADOR_FAST_RECONFIGURE` is set |
+| Port | Process              | Function                                                                                                           |
+| :--- | :------              | :-------                                                                                                           |
+| 8001 | `envoy`              | Internal stats, logging, etc.; not exposed outside pod                                                             |
+| 8002 | `entrypoint/watcher` | Internal `watt` snapshot access; not exposed outside pod                                                           |
+| 8003 | `entrypoint/ambex`   | Internal `ambex` snapshot access; not exposed outside pod                                                          |
+| 8004 | `diagd`              | Internal `diagd` access when `AMBASSADOR_FAST_RECONFIGURE` is set; not exposed outside pod                         |
+| 8080 | `envoy`              | Default HTTP service port                                                                                          |
+| 8443 | `envoy`              | Default HTTPS service port                                                                                         |
+| 8877 | `diagd`              | Direct access to diagnostics UI; provided by `busyambassador entrypoint` when `AMBASSADOR_FAST_RECONFIGURE` is set |
 
 ### The Ambassador Configuration
 
@@ -53,8 +55,8 @@ The `ambassador.Config` class is relatively unsophisticated: for the most part, 
 
     Fetches all the configuration information the `Config` has for the type tagged as `key`, e.g. `aconf.get_config("mappings")` will fetch all the `Mapping`s that the `Config` has stored.
 
-    Current keys include: 
-    
+    Current keys include:
+
     - `auth_configs`: information from `AuthService` definitions
     - `mappings`: information from `Mapping`s
     - `modules`: information from `Module`s, including the `Ambassador` and `TLS` `Module`s
@@ -65,7 +67,7 @@ The `ambassador.Config` class is relatively unsophisticated: for the most part, 
 
     Fetches the `Module` with a given name (e.g. `aconf.get_module("ambassador")` will fetch information about the `Ambassador` `Module`). Returns `None` if no `Module` with the given name is found.
 
-* `module_lookup(self, module_name: str, key: str, default: Any=None) -> Any` 
+* `module_lookup(self, module_name: str, key: str, default: Any=None) -> Any`
 
     Looks up a specific `key` in a specific `Module`. e.g.
 
@@ -117,7 +119,7 @@ There can be multiple instances of some `IRResource` objects: for example, a sin
 
 1. `load_all` is called early in the instantiation process, and is responsible for creating as many individual resources as needed and saving them (usually in the `IR` itself).
 
-2. `finalize` is called only after all the factories have had `load_all` called and all other single-instance resources have had `add_mappings` called, and is responsible for any normalization or other initialization that depends on global knowledge (for example, `MappingFactory.finalize` does the normalization of weights across `Mapping` groups).  
+2. `finalize` is called only after all the factories have had `load_all` called and all other single-instance resources have had `add_mappings` called, and is responsible for any normalization or other initialization that depends on global knowledge (for example, `MappingFactory.finalize` does the normalization of weights across `Mapping` groups).
 
 #### The Full Sequence
 
@@ -141,7 +143,7 @@ The full IR instantiation sequence can be found in `ambassador.ir.IR.__init__`:
 
 ### The Envoy V1 Configuration
 
-Finally, an Envoy V1 configuration is represented by `ambassador.envoy.V1Config`. A V1 config is built from an IR, again with most of the logic to do so contained in classes that mirror the structure of the V1 config. As we support later Envoy configuration versions, they will have their own classes. 
+Finally, an Envoy V1 configuration is represented by `ambassador.envoy.V1Config`. A V1 config is built from an IR, again with most of the logic to do so contained in classes that mirror the structure of the V1 config. As we support later Envoy configuration versions, they will have their own classes.
 
 The root of the Envoy V1 configuration is `ambassador.envoy.v1.V1Config`.
 
@@ -151,30 +153,30 @@ Overall Life Cycle
 0. Construct a collection of `ACResource` objects (from disk, from K8s, whatever).
 
     This will mostly involve `ACResource.from_dict` or `ACResource.from_yaml`.
-    
+
 1. Instantiate an `ambassador.Config`. Use its `load_all()` method to load up the collection of `ACResource` objects.
 
 2. Instantiate an `ambassador.IR` from the `ambassador.Config`.
 
-3. Instantiate an `ambassador.envoy.V1Config` from the `ambassador.IR`.  
+3. Instantiate an `ambassador.envoy.V1Config` from the `ambassador.IR`.
 
 Developing in Ambassador
 ------------------------
 
-In all cases, understanding the class hierarchy and the lifecycle around the IR will be important. Both of these are discussed below. 
+In all cases, understanding the class hierarchy and the lifecycle around the IR will be important. Both of these are discussed below.
 
 ### Adding Features
 
 Adding a feature will start with the Ambassador configuration resources:
- 
+
 - The simple case will involve modifying a schema file and possibly modifying an `ACResource` class.
 - The less simple case will involve adding a new schema and a new `ACResource` subclass.
    - Unless the new class needs complex logic (it shouldn't), you can just let the existing `Config` code save your new resource.
    - If it does need complex logic, you'll need to add a handler method to `Config`.
-   
+
 Once the Ambassador config is dealt with, you'll add or modify the IR to cope. Most of what you do here should involve the `IRResource` subclasses, _not_ the `IR` class itself (although if you're adding something completely new, you'll need to add code to `IR.__init__` to call your new class).
 
-Once the IR is dealt with, you'll need to add or modify the `V1Config` to cope with the IR changes. 
+Once the IR is dealt with, you'll need to add or modify the `V1Config` to cope with the IR changes.
 
 ### Handling Bugs
 
@@ -209,7 +211,7 @@ Class Hierarchy
 (This diagram is mostly about the way the classes are used, rather than strictly reflecting implementation. For example, the `Config` class is actually `ambassador.config.config.Config` but is imported into `ambassador` to make usage easier.)
 
 The `Resource` Class
--------------------- 
+--------------------
 
 `IRResource` and `ACResource` are subclasses of `ambassador.Resource`, although they are shown in the packages where they are logically used. A `Resource` is a kind of `dict` that can keep track of where it came from, what makes use of it, and any errors associated with it.
 
@@ -237,7 +239,7 @@ All of these should be passed as keyword arguments (although it is possible to p
 
 * `rsrc.is_referenced_by(rkey: str) -> Optional[Resource]` returns `None` if the given `rkey` is not associated with a `Resource` that references this `Resource`, or the referencing `Resource` if it is.
 
-* `rsrc.as_dict() -> dict` returns a raw-dictionary form of just the data fields of the `Resource`. Things like the location and the references table are removed. 
+* `rsrc.as_dict() -> dict` returns a raw-dictionary form of just the data fields of the `Resource`. Things like the location and the references table are removed.
 
 * Class method `Resource.from_dict(rkey: str, location: str, serialization: Optional[str], attrs: dict)` creates a new `Resource` or subclass from a dictionary. The `kind` passed in the dictionary determines the actual class of the object returned (see below for more).
 
@@ -260,4 +262,3 @@ The `IRResource` class
 ----------------------
 
 `IRResource` is a subclass of `Resource` which specifically refers to IR resources. `IRResource` doesn't add any new fields (and, in fact, many `IRResource` subclasses default some fields) but several new behaviors are added.
-
