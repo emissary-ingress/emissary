@@ -171,7 +171,7 @@ require (
 )
 
 // We've got some bug-fixes that we need for conversion-gen.
-replace k8s.io/code-generator v0.20.2 => github.com/datawire/code-generator v0.20.5-rc.0.0.20211127183116-16d402be64a9
+replace k8s.io/code-generator v0.20.2 => github.com/datawire/code-generator v0.20.5-rc.0.0.20211202225009-42280fcbc4f0
 
 // Because we (unfortunately) need to require k8s.io/kubernetes, which
 // is (unfortunately) managed in a way that makes it hostile to being
