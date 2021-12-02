@@ -327,7 +327,7 @@ $(OSS_HOME)/_generate.tmp/crds: $(tools/controller-gen) build-aux/copyright-boil
 
 $(OSS_HOME)/%/zz_generated.conversion.go: $(tools/conversion-gen) build-aux/copyright-boilerplate.go.txt FORCE
 	rm -f $@ $(@D)/*.scaffold.go
-	GOFLAGS=-mod=mod $(tools/conversion-gen) \
+	GOPATH= GOFLAGS=-mod=mod $(tools/conversion-gen) \
 	  --skip-unsafe \
 	  --go-header-file=build-aux/copyright-boilerplate.go.txt \
 	  --input-dirs=./$* \
@@ -335,7 +335,7 @@ $(OSS_HOME)/%/zz_generated.conversion.go: $(tools/conversion-gen) build-aux/copy
 
 $(OSS_HOME)/%/handwritten.conversion.scaffold.go: $(OSS_HOME)/%/zz_generated.conversion.go
 	{ \
-	  awk ' \
+	  gawk ' \
 	    BEGIN { \
 	      print("//+build scaffold"); \
 	      print(""); \

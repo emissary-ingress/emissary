@@ -43,7 +43,10 @@ include $(OSS_HOME)/build-aux/lint.mk
 include $(OSS_HOME)/docs/yaml.mk
 
 ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
-$(_prelude.go.ensure)
+  $(_prelude.go.ensure)
+  ifeq ($(shell go env GOPATH),$(shell go env GOROOT))
+    $(error Your $$GOPATH (where *your* Go stuff goes) and $$GOROOT (where Go *itself* is installed) are both set to the same directory ($(shell go env GOROOT)); it is remarkable that it has not blown up catastrophically before now)
+  endif
 endif
 
 test-chart-values.yaml: docker/$(LCNAME).docker.push.remote
