@@ -203,16 +203,17 @@ class Cache():
         Dump the cache to the logger.
         """
 
-        self.logger.info("CACHE DUMP AFTER " + what, *args)
+        if self.logger.isEnabledFor(logging.DEBUG):
+            self.logger.debug("CACHE DUMP AFTER " + what, *args)
 
-        for k in sorted(self.cache.keys()):
-            rsrc, on_delete = self.cache[k]
+            for k in sorted(self.cache.keys()):
+                rsrc, on_delete = self.cache[k]
 
-            self.logger.info(f"CACHE DUMP: {k}, on_delete {self.fn_name(on_delete)}:")
+                self.logger.debug(f"CACHE DUMP: {k}, on_delete {self.fn_name(on_delete)}:")
 
-            if k in self.links:
-                for owned in sorted(self.links[k]):
-                    self.logger.info(f"CACHE DUMP:   -> {owned}")
+                if k in self.links:
+                    for owned in sorted(self.links[k]):
+                        self.logger.debug(f"CACHE DUMP:   -> {owned}")
 
     def dump_stats(self) -> None:
         total = self.hits + self.misses
