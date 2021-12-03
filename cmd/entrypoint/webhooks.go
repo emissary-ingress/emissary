@@ -227,7 +227,7 @@ func InitializeCRDs(ctx context.Context, webhookPort int32, scheme *runtime.Sche
 					Path:      stringPtr(webhookPath),
 					Port:      int32Ptr(webhookPort),
 				},
-				CABundle: caSecret.Data[k8sTypesCoreV1.TLSPrivateKeyKey],
+				CABundle: caSecret.Data[k8sTypesCoreV1.TLSCertKey],
 			},
 			// Which versions of the conversion API our webhook supports.  Since we use
 			// sigs.k8s.io/controller-runtime/pkg/webhook/conversion to implement the
