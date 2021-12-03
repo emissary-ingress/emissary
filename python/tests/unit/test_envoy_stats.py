@@ -22,8 +22,12 @@ from ambassador.diagnostics import EnvoyStatsMgr, EnvoyStats
 
 class EnvoyStatsMocker:
     def __init__(self) -> None:
+        current_test = os.environ.get('PYTEST_CURRENT_TEST')
+
+        assert current_test is not None, "PYTEST_CURRENT_TEST is not set??"
+
         self.test_dir = os.path.join(
-            os.path.dirname(os.environ.get('PYTEST_CURRENT_TEST').split("::")[0]),
+            os.path.dirname(current_test.split("::")[0]),
             "test_envoy_stats_data"
         )
 

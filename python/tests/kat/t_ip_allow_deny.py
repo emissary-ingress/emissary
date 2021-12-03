@@ -1,9 +1,8 @@
-import json
+from typing import Generator, Tuple, Union
 
 from kat.harness import Query
-from kat.utils import ShellCommand
 
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 
 
 ################
@@ -85,7 +84,7 @@ spec:
   service: 127.0.0.1:8080       # See NOTE above
 ''') + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format('''
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -170,7 +169,7 @@ spec:
   service: 127.0.0.1:8080       # See NOTE above
 ''') + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format('''
 ---
 apiVersion: getambassador.io/v3alpha1

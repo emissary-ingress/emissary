@@ -1,5 +1,7 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 import json
 
 # tests that using logical_dns does not impact requests
@@ -10,7 +12,7 @@ class LogicalDnsType(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -36,7 +38,7 @@ class LogicalDnsTypeEndpoint(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -63,7 +65,7 @@ class DnsTtl(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -89,7 +91,7 @@ class DnsTtlEndpoint(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -116,7 +118,7 @@ class DnsTtlDnsType(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

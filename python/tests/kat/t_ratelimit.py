@@ -1,7 +1,8 @@
-from kat.harness import Query
-import os
+from typing import Generator, Tuple, Union
 
-from abstract_tests import AmbassadorTest, HTTP, ServiceType, RLSGRPC
+from kat.harness import Query
+
+from abstract_tests import AmbassadorTest, HTTP, ServiceType, RLSGRPC, Node
 from tests.selfsigned import TLSCerts
 
 from ambassador import Config
@@ -16,7 +17,7 @@ class RateLimitV0Test(AmbassadorTest):
         self.target = HTTP()
         self.rls = RLSGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
         # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
@@ -117,7 +118,7 @@ class RateLimitV1Test(AmbassadorTest):
         self.target = HTTP()
         self.rls = RLSGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
         yield self.target, self.format("""
@@ -200,7 +201,7 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
         yield self.target, self.format("""
@@ -276,7 +277,7 @@ class RateLimitV2Test(AmbassadorTest):
         self.target = HTTP()
         self.rls = RLSGRPC(protocol_version="v2")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
         yield self.target, self.format("""
@@ -350,7 +351,7 @@ class RateLimitV3Test(AmbassadorTest):
         self.target = HTTP()
         self.rls = RLSGRPC(protocol_version="v3")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
         yield self.target, self.format("""

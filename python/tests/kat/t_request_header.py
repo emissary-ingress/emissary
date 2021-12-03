@@ -1,5 +1,8 @@
-from kat.harness import variants, Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from typing import Generator, Tuple, Union
+
+from kat.harness import Query
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
+
 
 class XRequestIdHeaderPreserveTest(AmbassadorTest):
     target: ServiceType
@@ -7,7 +10,7 @@ class XRequestIdHeaderPreserveTest(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -37,7 +40,7 @@ class XRequestIdHeaderDefaultTest(AmbassadorTest):
         self.xfail = "Need to figure out passing header through external connections from KAT"
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -67,7 +70,7 @@ class EnvoyHeadersTest(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -99,7 +102,7 @@ class SuppressEnvoyHeadersTest(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

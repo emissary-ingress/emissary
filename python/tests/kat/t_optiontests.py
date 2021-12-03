@@ -1,11 +1,11 @@
+from typing import ClassVar, Dict, Generator, Sequence, Tuple, Union
+
 import json
 import pytest
 
-from typing import Any, ClassVar, Dict, Sequence, Union
-
 from kat.harness import Query, Test
 
-from abstract_tests import MappingTest, OptionTest
+from abstract_tests import MappingTest, OptionTest, Node
 
 # This is the place to add new OptionTests.
 
@@ -14,7 +14,7 @@ class AddRequestHeaders(OptionTest):
 
     parent: Test
 
-    VALUES: ClassVar[Sequence[Dict[str, Dict[str, Union[str, bool]]]]] = (
+    VALUES: ClassVar[Sequence[Dict[str, Dict[str, Union[str, bool]]]]] = [
         { "foo": { "value": "bar" } },
         { "moo": { "value": "arf" } },
         { "zoo": {
@@ -28,9 +28,9 @@ class AddRequestHeaders(OptionTest):
         { "aoo": {
             "value": "tyu"
         }}
-    )
+    ]
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield "add_request_headers: %s" % json.dumps(self.value)
 
     def check(self):
@@ -47,7 +47,7 @@ class AddResponseHeaders(OptionTest):
 
     parent: Test
 
-    VALUES: ClassVar[Sequence[Dict[str, Dict[str, Union[str, bool]]]]] = (
+    VALUES: ClassVar[Sequence[Dict[str, Dict[str, Union[str, bool]]]]] = [
         { "foo": { "value": "bar" } },
         { "moo": { "value": "arf" } },
         { "zoo": {
@@ -61,9 +61,9 @@ class AddResponseHeaders(OptionTest):
         { "aoo": {
             "value": "tyu"
         }}
-    )
+    ]
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield "add_response_headers: %s" % json.dumps(self.value)
 
     def check(self):
@@ -82,7 +82,7 @@ class AddResponseHeaders(OptionTest):
 class UseWebsocket(OptionTest):
     # TODO: add a check with a websocket client as soon as we have backend support for it
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield 'use_websocket: true'
 
 
@@ -94,7 +94,7 @@ class CORS(OptionTest):
 
     parent: MappingTest
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield 'cors: { origins: ["*"] }'
 
     def queries(self):
@@ -117,7 +117,7 @@ class CaseSensitive(OptionTest):
 
     parent: MappingTest
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield "case_sensitive: false"
 
     def queries(self):
@@ -132,7 +132,7 @@ class AutoHostRewrite(OptionTest):
 
     parent: MappingTest
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield "auto_host_rewrite: true"
 
     def check(self):
@@ -149,7 +149,7 @@ class Rewrite(OptionTest):
 
     VALUES = ("/foo", "foo")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.format("rewrite: {self.value}")
 
     def queries(self):
@@ -171,7 +171,7 @@ class RemoveResponseHeaders(OptionTest):
 
     parent: Test
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield "remove_response_headers: [x-envoy-upstream-service-time]"
 
     def check(self):

@@ -1,6 +1,8 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 from tests.selfsigned import TLSCerts
 
 SECRETS="""
@@ -110,7 +112,7 @@ spec:
     policy: round_robin
 """ + SECRETS)
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.k8s_target, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

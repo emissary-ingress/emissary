@@ -95,7 +95,7 @@ service: beepboop
 
 @pytest.mark.compilertest
 @httpretty.activate
-def test_statsd_default():
+def test_statsd_other():
     httpretty.register_uri(
         httpretty.GET,
         "other-statsd-sink",

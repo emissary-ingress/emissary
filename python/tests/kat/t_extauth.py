@@ -1,10 +1,12 @@
+from typing import Generator, Tuple, Union
+
 import json
 import pytest
 import os
 
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, AHTTP, AGRPC
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, AHTTP, AGRPC, Node
 from tests.selfsigned import TLSCerts
 
 from ambassador import Config
@@ -36,7 +38,7 @@ spec:
     data: "auth-data"
 ''') + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -176,7 +178,7 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -271,7 +273,7 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -414,7 +416,7 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -477,7 +479,7 @@ class AuthenticationTestV1(AmbassadorTest):
         self.auth2 = AHTTP(name="auth2")
         self.backend_counts = {}
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -695,7 +697,7 @@ class AuthenticationTest(AmbassadorTest):
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -830,7 +832,7 @@ class AuthenticationWebsocketTest(AmbassadorTest):
     def init(self):
         self.auth = HTTP(name="auth")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -873,7 +875,7 @@ class AuthenticationGRPCV2Test(AmbassadorTest):
         self.target = HTTP()
         self.auth = AGRPC(name="auth", protocol_version="v2")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -968,7 +970,7 @@ class AuthenticationGRPCV3Test(AmbassadorTest):
         self.target = HTTP()
         self.auth = AGRPC(name="auth", protocol_version="v3")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

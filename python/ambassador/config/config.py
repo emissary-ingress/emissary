@@ -113,6 +113,7 @@ class Config:
     # INSTANCE VARIABLES
     ambassador_nodename: str = "ambassador"     # overridden in Config.reset
 
+    schema_dir_path: str                        # where to look for JSONSchema files
     current_resource: Optional[ACResource] = None
     helm_chart: Optional[str]
 
@@ -143,6 +144,10 @@ class Config:
             # Note that this "resource_filename" has to do with setuptool packages, not
             # with our ACResource class.
             schema_dir_path = resource_filename(Requirement.parse("ambassador"), "schemas")
+
+        # Once here, we know that schema_dir_path cannot be None. assert that, for mypy's
+        # benefit.
+        assert schema_dir_path is not None
 
         self.statsd: Dict[str, Any] = {
             'enabled': (os.environ.get('STATSD_ENABLED', '').lower() == 'true'),

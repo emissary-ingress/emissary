@@ -1,10 +1,9 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query, EDGE_STACK
 from kat.utils import namespace_manifest
 
-import pytest
-import os
-
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 from tests.selfsigned import TLSCerts
 
 from ambassador import Config
@@ -1323,7 +1322,7 @@ class HostCRDRootRedirectECMARegexMapping(AmbassadorTest):
             self.skip_node = True
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

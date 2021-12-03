@@ -1,8 +1,8 @@
-import json
+from typing import Generator, Tuple, Union
 
-from kat.harness import Query, Test, variants
+from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 from tests.selfsigned import TLSCerts
 from kat.utils import namespace_manifest
 
@@ -131,7 +131,7 @@ spec:
     # config() must _yield_ tuples of Node, Ambassador-YAML where the
     # Ambassador-YAML will be annotated onto the Node.
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

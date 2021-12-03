@@ -1,12 +1,14 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, EGRPC
+from abstract_tests import AmbassadorTest, EGRPC, Node
 
 class AcceptanceGrpcStatsTest(AmbassadorTest):
     def init(self):
         self.target = EGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -101,7 +103,7 @@ class GrpcStatsTestOnlySelectedServices(AmbassadorTest):
     def init(self):
         self.target = EGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -194,7 +196,7 @@ class GrpcStatsTestNoUpstreamAllMethodsFalseInvalidKeys(AmbassadorTest):
     def init(self):
         self.target = EGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

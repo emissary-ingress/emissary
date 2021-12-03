@@ -1,16 +1,17 @@
+from typing import Optional
+
 import os
 import sys
 
 import pexpect
 import pytest
 import requests
-import subprocess
 import time
 
 DOCKER_IMAGE = os.environ.get("AMBASSADOR_DOCKER_IMAGE", "")
 
-child = None           # see docker_start()
-ambassador_host = None # see docker_start()
+child: Optional[pexpect.spawnbase.SpawnBase] = None           # see docker_start()
+ambassador_host: Optional[str] = None # see docker_start()
 
 def docker_start(logfile) -> bool:
     # Use a global here so that the child process doesn't get killed

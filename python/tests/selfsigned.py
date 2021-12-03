@@ -572,4 +572,4 @@ _TLSCerts: List[Cert] = [
         ),
 ]
 
-TLSCerts: Dict[str, Cert] = dict([k,v] for v in _TLSCerts for k in v.names)
+TLSCerts: Dict[str, Cert] = { k: v for v in _TLSCerts for k in v.names }

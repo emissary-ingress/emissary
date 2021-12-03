@@ -1,5 +1,7 @@
-from kat.harness import variants, Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from typing import Generator, Tuple, Union
+
+from kat.harness import Query
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 
 class QueryParameterRoutingTest(AmbassadorTest):
     target1: ServiceType
@@ -9,7 +11,7 @@ class QueryParameterRoutingTest(AmbassadorTest):
         self.target1 = HTTP(name="target1")
         self.target2 = HTTP(name="target2")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target1, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -45,7 +47,7 @@ class QueryParameterRoutingWithRegexTest(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -74,7 +76,7 @@ class QueryParameterPresentRoutingTest(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

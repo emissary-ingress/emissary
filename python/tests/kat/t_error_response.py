@@ -1,4 +1,6 @@
-from abstract_tests import AmbassadorTest, HTTP
+from typing import Generator, Tuple, Union
+
+from abstract_tests import AmbassadorTest, HTTP, Node
 
 from kat.harness import Query
 
@@ -10,7 +12,7 @@ class ErrorResponseOnStatusCode(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -314,7 +316,7 @@ class ErrorResponseReturnBodyFormattedText(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -381,7 +383,7 @@ class ErrorResponseReturnBodyFormattedJson(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -449,7 +451,7 @@ class ErrorResponseReturnBodyTextSource(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -519,7 +521,7 @@ class ErrorResponseMappingBypass(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -660,7 +662,7 @@ class ErrorResponseMappingBypassAlternate(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -732,7 +734,7 @@ class ErrorResponseMapping404Body(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -812,7 +814,7 @@ class ErrorResponseMappingOverride(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v3alpha1

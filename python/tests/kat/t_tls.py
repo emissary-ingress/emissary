@@ -1,10 +1,8 @@
-from typing import List
-
-import pytest
+from typing import List, Generator, Tuple, Union
 
 from kat.harness import Query, EDGE_STACK
 
-from abstract_tests import AmbassadorTest, HTTP, ServiceType
+from abstract_tests import AmbassadorTest, HTTP, ServiceType, Node
 from tests.selfsigned import TLSCerts
 from kat.utils import namespace_manifest
 
@@ -40,7 +38,7 @@ kind: Secret
 type: Opaque
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -103,7 +101,7 @@ data:
   tls.key: {TLSCerts["ambassador.example.com"].k8s_key}
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -232,7 +230,7 @@ spec:
   cert_required: True
 """) + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -296,7 +294,7 @@ data:
   tls.key: {TLSCerts["localhost"].k8s_key}
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -388,7 +386,7 @@ spec:
       action: Reject
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
 #         # Use self here, not self.target, because we want the TLS module to
 #         # be annotated on the Ambassador itself.
 #         yield self, self.format("""
@@ -435,7 +433,7 @@ class TLSInvalidSecret(AmbassadorTest):
         self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -540,7 +538,7 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -865,7 +863,7 @@ spec:
         pathType: Prefix
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -1031,7 +1029,7 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -1150,7 +1148,7 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -1249,7 +1247,7 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -1349,7 +1347,7 @@ metadata:
 type: istio.io/key-and-cert
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -1401,7 +1399,7 @@ kind: Secret
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
@@ -1447,7 +1445,7 @@ class TLSInheritFromModule(AmbassadorTest):
         self.edge_stack_cleartext_host = False
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # These are annotations instead of resources because the name matters.
         yield self, self.format('''
 ---
