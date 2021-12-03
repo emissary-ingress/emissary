@@ -107,7 +107,7 @@ following Free and Open Source software:
     k8s.io/apiserver                                                          v0.20.2                                     Apache License 2.0
     k8s.io/cli-runtime                                                        v0.20.2                                     Apache License 2.0
     k8s.io/client-go                                                          v0.20.2                                     Apache License 2.0
-    github.com/datawire/code-generator (modified from k8s.io/code-generator)  v0.20.5-rc.0.0.20211127183116-16d402be64a9  Apache License 2.0
+    github.com/datawire/code-generator (modified from k8s.io/code-generator)  v0.20.5-rc.0.0.20211202225009-42280fcbc4f0  Apache License 2.0
     k8s.io/component-base                                                     v0.20.2                                     Apache License 2.0
     k8s.io/gengo                                                              v0.0.0-20201214224949-b6c5ce23f027          Apache License 2.0
     k8s.io/klog/v2                                                            v2.10.0                                     Apache License 2.0

@@ -47,7 +47,6 @@ $(tools.bindir)/%: $(tools.srcdir)/%.sh
 tools/chart-doc-gen   = $(tools.bindir)/chart-doc-gen
 tools/controller-gen  = $(tools.bindir)/controller-gen
 tools/conversion-gen  = $(tools.bindir)/conversion-gen
-tools/go-bindata      = $(tools.bindir)/go-bindata
 tools/go-mkopensource = $(tools.bindir)/go-mkopensource
 tools/golangci-lint   = $(tools.bindir)/golangci-lint
 tools/kubestatus      = $(tools.bindir)/kubestatus

@@ -87,7 +87,11 @@ const (
 	//   <peer-name>.  This applies in both directions; e.g. setting this
 	//   marker on a field in pkg1.Foo will affect both
 	//   "Convert_pkg1_Foo_To_pkg2_Foo" and "Convert_pkg2_Foo_To_pkg1_Foo";
-	//   it is not necessary to set in both packages.
+	//   it is not necessary to set in both packages.  This will not prevent
+	//   a field from pairing with an identically named field; it does not
+	//   mask the original name, it adds to it.  As such, it may be given
+	//   multiple times, in order to facilitate generating conversions with
+	//   many different peer packages.
 	renameTagName = "k8s:conversion-gen:rename"
 )
 
@@ -113,12 +117,8 @@ func isDrop(comments []string) bool {
 	return len(values) == 1 && values[0] == "drop"
 }
 
-func extractRenameTag(comments []string) string {
-	values := types.ExtractCommentTags("+", comments)[renameTagName]
-	if len(values) < 1 {
-		return ""
-	}
-	return values[0]
+func extractRenameTags(comments []string) []string {
+	return types.ExtractCommentTags("+", comments)[renameTagName]
 }
 
 // TODO: This is created only to reduce number of changes in a single PR.
@@ -479,19 +479,20 @@ func (e equalMemoryTypes) equal(a, b *types.Type, alreadyVisitedTypes map[*types
 	return false
 }
 
-func findMember(t *types.Type, origName, renamedName string) (types.Member, bool) {
+func findMember(t *types.Type, names ...string) (types.Member, bool) {
 	if t.Kind != types.Struct {
 		return types.Member{}, false
 	}
-	if renamedName == "" {
-		renamedName = origName
-	}
 	for _, member := range t.Members {
-		if member.Name == renamedName {
-			return member, true
-		}
-		if extractRenameTag(member.CommentLines) == origName {
-			return member, true
+		for _, name := range names {
+			if member.Name == name {
+				return member, true
+			}
+			for _, memberName := range extractRenameTags(member.CommentLines) {
+				if memberName == name {
+					return member, true
+				}
+			}
 		}
 	}
 	return types.Member{}, false
@@ -975,7 +976,7 @@ func (g *genConversion) doStruct(inType, outType *types.Type, sw *generator.Snip
 			sw.Do("// INFO: in."+inMember.Name+" opted out of conversion generation\n", nil)
 			continue
 		}
-		outMember, found := findMember(outType, inMember.Name, extractRenameTag(inMember.CommentLines))
+		outMember, found := findMember(outType, append([]string{inMember.Name}, extractRenameTags(inMember.CommentLines)...)...)
 		if !found {
 			// This field doesn't exist in the peer.
 			sw.Do("// WARNING: in."+inMember.Name+" requires manual conversion: does not exist in peer-type\n", nil)
