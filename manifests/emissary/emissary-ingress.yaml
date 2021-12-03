@@ -132,7 +132,7 @@ metadata:
 rules:
 - apiGroups: [apiextensions.k8s.io]
   resources: [customresourcedefinitions]
-  verbs: [get, list, watch, delete]
+  verbs: [get, list, watch, delete, update]
 ---
 # Source: emissary-ingress/templates/rbac.yaml
 ######################################################################
@@ -184,10 +184,6 @@ rules:
 - apiGroups: [extensions, networking.k8s.io]
   resources: [ingresses/status]
   verbs: [update]
-
-- apiGroups: [apiextensions.k8s.io]
-  resources: [customresourcedefinitions, '*']
-  verbs: [list, update, patch]
 ---
 # Source: emissary-ingress/templates/deployment.yaml
 apiVersion: apps/v1
