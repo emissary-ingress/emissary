@@ -631,15 +631,6 @@ case "${cmd}" in
         done
         ;;
 
-    pip-compile)
-        build_builder_base --stage1-only
-        printf "${GRN}Running pip-compile to update ${BLU}requirements.txt${END}\n"
-        docker run --rm -i "$builder_base_image" sh -c 'tar xf - && pip-compile --allow-unsafe -q >&2 && cat requirements.txt' \
-               < <(cd "$DIR" && tar cf - requirements.in requirements.txt) \
-               > "$DIR/requirements.txt.tmp"
-        mv -f "$DIR/requirements.txt.tmp" "$DIR/requirements.txt"
-        ;;
-
     pytest-local)
         fail=""
         mkdir -p ${TEST_DATA_DIR}
