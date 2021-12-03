@@ -12,18 +12,7 @@ jsonschema==3.2.0
 k8s-proto==0.0.3
 kubernetes==9.0.0
 prometheus_client==0.9.0
+python-json-logger==2.0.1
 pyyaml==5.4.1
 requests==2.25.1
 semantic-version==2.8.5
-python-json-logger
-
-# Dev requirements
-dpath
-gitpython
-mypy
-pexpect
-pytest
-pytest-cov
-retry
-httpretty
-pytest-rerunfailures

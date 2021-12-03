@@ -594,6 +594,7 @@ setup-venv:
 			pip install orjson==3.6.0; \
 		fi; \
 		pip install -r $(OSS_HOME)/builder/requirements.txt; \
+		pip install -r $(OSS_HOME)/builder/requirements-dev.txt; \
 		pip install -e $(OSS_HOME)/python; \
 	}
 .PHONY: setup-orjson

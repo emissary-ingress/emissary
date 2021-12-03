@@ -1,0 +1,10 @@
+# Dev requirements
+dpath
+gitpython
+mypy
+pexpect
+pytest
+pytest-cov
+retry
+httpretty
+pytest-rerunfailures
