@@ -56,7 +56,7 @@ class Builder:
         self.builds: List[Tuple[IR, EnvoyConfig]] = []
 
     def current_yaml(self) -> str:
-        return yaml.safe_dump_all(self.resources.values())
+        return yaml.safe_dump_all(list(self.resources.values()))
 
     def apply_yaml(self, yaml_file: str, allow_updates=True) -> None:
         yaml_data = open(os.path.join(self.test_dir, yaml_file), "r").read()

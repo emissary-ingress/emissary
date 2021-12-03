@@ -10,12 +10,14 @@ import shutil
 import subprocess
 import yaml
 
-yaml_loader = yaml.SafeLoader
-yaml_dumper = yaml.SafeDumper
+# These type: ignores are because, weirdly, the yaml.CSafe* variants don't share
+# a type with their non-C variants. No clue why not.
+yaml_loader = yaml.SafeLoader # type: ignore
+yaml_dumper = yaml.SafeDumper # type: ignore
 
 try:
-    yaml_loader = yaml.CSafeLoader
-    yaml_dumper = yaml.CSafeDumper
+    yaml_loader = yaml.CSafeLoader # type: ignore
+    yaml_dumper = yaml.CSafeDumper # type: ignore
 except AttributeError:
     pass
 

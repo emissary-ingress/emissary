@@ -285,7 +285,14 @@ $(OSS_HOME)/_generate.tmp/%_grpc_web_pb.js: $(OSS_HOME)/api/%.proto $(tools/prot
 
 $(OSS_HOME)/python/ambassador/proto/%.py: $(OSS_HOME)/_generate.tmp/getambassador.io/%.py
 	mkdir -p $(@D)
-	cp $< $@
+	# This madness is to because Host_pb2.py won't pass mypy without it (we have no stubs for
+	# google.protobuf, so we have to ignore missing stubs for it, so we can't tell that really
+	# _TIMESTAMP and _DURATION are OK). A better fix may be to switch to using 
+	# https://github.com/dropbox/mypy-protobuf.
+	sed \
+		-e 's/= google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP/= google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP # type: ignore[attr-defined]/' \
+		-e 's/= google_dot_protobuf_dot_duration__pb2._DURATION/= google_dot_protobuf_dot_duration__pb2._DURATION # type: ignore[attr-defined]/' \
+		$< >$@
 
 $(OSS_HOME)/tools/sandbox/grpc_web/%.js: $(OSS_HOME)/_generate.tmp/kat/%.js
 	cp $< $@

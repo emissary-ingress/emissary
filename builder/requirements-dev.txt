@@ -9,3 +9,11 @@ pytest-cov
 retry
 httpretty
 pytest-rerunfailures
+
+# Type stubs
+types-requests
+types-orjson
+types-setuptools
+types-protobuf
+types-pyyaml
+types-retry
