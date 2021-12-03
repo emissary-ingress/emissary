@@ -44,6 +44,7 @@ metadata:
     sidecar.istio.io/inject: "false"
   labels:
     service: {self.path.k8s}
+  namespace: {self.namespace}
 spec:
   securityContext:
     runAsUser: 8888
