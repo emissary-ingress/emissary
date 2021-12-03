@@ -10,6 +10,8 @@ numbering uses [semantic versioning](http://semver.org).
 - Bugfix: When setting `adminService.snapshotPort`, it now points at the correct
   port on the Pod.
 
+- Bugfix: Unnecessary RBAC permissions have been removed.
+
 - Change: The names of the RBAC resources have changed; there are now 3 pairs:
   the "{basename}-nonamespace" ClusterRole/ClusterRoleBinding, the
   "{basename}-onenamespace" Role/RoleBinding, and the "{basename}-allnamespaces"
