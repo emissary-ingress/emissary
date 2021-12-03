@@ -62,6 +62,18 @@ items:
           CVE-2021-42378, CVE-2021-42379, CVE-2021-42380, CVE-2021-42381, CVE-2021-42382,
           CVE-2021-42383, CVE-2021-42384, CVE-2021-42385, and CVE-2021-42386.
 
+      - title: Update Python dependencies
+        type: security
+        body: >-
+          Update Python dependencies to resolve CVE-2020-28493 (jinja2), CVE-2021-28363
+          (urllib3), and CVE-2021-33503 (urllib3).
+
+      - title: Remove test-only code from the built image
+        type: security
+        body: >-
+          Previous built images included some Python packages used only for test. These
+          have now been removed, resolving CVE-2020-29651.
+
   - version: 2.0.5
     date: '2021-11-08'
     notes:
