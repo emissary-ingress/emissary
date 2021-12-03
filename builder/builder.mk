@@ -555,16 +555,24 @@ pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remot
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
-mypy-server-stop: sync
-	test -t 1 && USE_TTY="-t"; docker exec -i ${USE_TTY} $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal stop
-.PHONY: mypy
+mypy-server-stop: setup-diagd
+	@printf "${CYN}==> ${GRN}Stopping mypy server${END}"
+	{ . $(OSS_HOME)/venv/bin/activate && dmypy stop; }
+.PHONY: mypy-server-stop
 
-mypy-server: sync
-	 test -t 1 && USE_TTY="-t"; docker exec -i ${USE_TTY} $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal start
-.PHONY: mypy
+mypy-server: setup-diagd
+	{ . $(OSS_HOME)/venv/bin/activate && \
+	  if ! dmypy status >/dev/null; then \
+	    dmypy start -- --use-fine-grained-cache --follow-imports=skip --ignore-missing-imports ;\
+	    printf "${CYN}==> ${GRN}Started mypy server${END}\n" ;\
+	  else \
+		printf "${CYN}==> ${GRN}mypy server already running${END}\n" ;\
+	  fi }
+.PHONY: mypy-server
 
 mypy: mypy-server
-	test -t 1 && USE_TTY="-t"; docker exec -i ${USE_TTY} $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal check
+	@printf "${CYN}==> ${GRN}Running mypy${END}\n"
+	{ . $(OSS_HOME)/venv/bin/activate && time dmypy check python; }
 .PHONY: mypy
 
 GOTEST_PKGS = github.com/datawire/ambassador/v2/...
