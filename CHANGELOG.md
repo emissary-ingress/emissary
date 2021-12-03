@@ -93,6 +93,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   does), an error would always be logged about the Secret not being present, even though it was
   present, and everything was working correctly. This error is no longer logged.
 
+- Security: Update to busybox 1.34.1 to fix multiple CVE-2021-28831, CVE-2021-42381, CVE-2021-42382,
+  CVE-2021-42383, CVE-2021-42384, CVE-2021-42385, CVE-2021-42386, CVE-2021-42378, CVE-2021-42379,
+  CVE-2021-42380, CVE-2021-42381, CVE-2021-42382, CVE-2021-42383, CVE-2021-42384, CVE-2021-42385,
+  and CVE-2021-42386.
+
 [3945]: https://github.com/emissary-ingress/emissary/issues/3945
 
 ## [2.0.5] November 08, 2021

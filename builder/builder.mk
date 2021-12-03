@@ -147,7 +147,7 @@ INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
 INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../manifests/emissary/
 INGRESS_TEST_MANIFS = ambassador-crds.yaml ambassador.yaml
 
-export DOCKER_BUILDKIT := 0
+# export DOCKER_BUILDKIT := 0
 
 all: help
 .PHONY: all
@@ -274,8 +274,8 @@ docker/base-envoy.docker.stamp: FORCE
 	    TIMEFORMAT="     (docker pull took %1R seconds)"; \
 	    time docker pull $(ENVOY_DOCKER_TAG); \
 	    unset TIMEFORMAT; \
-	    docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@; \
 	  fi; \
+	  echo $(ENVOY_DOCKER_TAG) >$@; \
 	}
 docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile $(tools/dsum) FORCE
 	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"

@@ -58,6 +58,17 @@ RUN apk --no-cache add \
     yaml-dev \
     && ln -s /usr/bin/python3 /usr/bin/python \
     && chmod u+s $(which docker)
+
+RUN mkdir /tmp/busybox \
+    && cd /tmp/busybox \
+    && curl -O https://busybox.net/downloads/busybox-1.34.1.tar.bz2 \
+    && tar -xjf busybox-1.34.1.tar.bz2 \
+    && cd busybox-1.34.1 \
+    && make defconfig \
+    && make busybox \
+    && ls -l /bin \
+    && mv busybox /bin/busybox
+
 # We _must_ pin pip to a version before 20.3 because orjson appears to only have
 # PEP513 compatible wheels, which are supported before 20.3 but (apparently)
 # not in 20.3. We can only upgrade pip to 20.3 after we verify that orjson has
