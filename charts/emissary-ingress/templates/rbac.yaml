@@ -46,7 +46,7 @@ metadata:
 rules:
   - apiGroups: [ "apiextensions.k8s.io" ]
     resources: [ "customresourcedefinitions" ]
-    verbs: ["get", "list", "watch", "delete"]
+    verbs: ["get", "list", "watch", "delete", "update"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 {{- if .Values.scope.singleNamespace }}
@@ -113,10 +113,6 @@ rules:
     resources: [ "ingresses/status" ]
     verbs: ["update"]
 
-  - apiGroups: [ "apiextensions.k8s.io" ]
-    resources: [ "customresourcedefinitions", '*' ]
-    verbs: [ "list", "update", "patch" ]
-    
   {{- if or .Values.rbac.podSecurityPolicies .Values.security.podSecurityPolicy }}
 
   - apiGroups: ['policy']
