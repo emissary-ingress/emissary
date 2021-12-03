@@ -66,6 +66,10 @@ spec:
     targetPort: 8005
     protocol: TCP
     name: ambassador-snapshot
+  - port: 8006
+    targetPort: 8006
+    protocol: TCP
+    name: ambassador-webhook
   selector:
     app.kubernetes.io/name: kat-ambassador
     app.kubernetes.io/instance: kat-ambassador
@@ -109,6 +113,8 @@ spec:
     - name: admin
       containerPort: 8877
     env:
+    - name: AMBASSADOR_ADMIN_SVC
+      value: kat-ambassador-admin
     - name: HOST_IP
       valueFrom:
         fieldRef:

@@ -62,7 +62,10 @@ metadata:
 rules:
 - apiGroups: [apiextensions.k8s.io]
   resources: [customresourcedefinitions]
-  verbs: [get, list, watch, delete]
+  verbs: [get, list, watch, delete, update]
+- apiGroups: ['']
+  resources: [secrets]
+  verbs: [get, update, patch, create]
 ---
 # Source: emissary-ingress/templates/rbac.yaml
 ######################################################################
@@ -81,9 +84,12 @@ rules:
   resources:
   - namespaces
   - services
-  - secrets
   - endpoints
   verbs: [get, list, watch]
+
+- apiGroups: ['']
+  resources: [secrets]
+  verbs: [get, update, patch, create]
 
 - apiGroups: [getambassador.io]
   resources: ['*']
