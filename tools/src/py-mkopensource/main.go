@@ -49,8 +49,9 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"gitdb", "4.0.5", "BSD License"}:              {BSD3},
 		{"idna", "2.7", "BSD-like"}:                    {BSD3, PSF, Unicode2015},
 		{"idna", "2.8", "BSD-like"}:                    {BSD3, PSF, Unicode2015},
+		{"importlib-resources", "5.4.0", "UNKNOWN"}:    {Apache2},
 		{"itsdangerous", "1.1.0", "BSD"}:               {BSD3},
-		{"jsonpatch", "1.30", "Modified BSD License"}:  {BSD3},
+		{"jsonpatch", "1.32", "Modified BSD License"}:  {BSD3},
 		{"jsonpointer", "2.0", "Modified BSD License"}: {BSD3},
 		{"jsonschema", "3.2.0", "UNKNOWN"}:             {MIT},
 		{"lockfile", "0.12.2", "UNKNOWN"}:              {MIT},
@@ -61,16 +62,16 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"pyasn1", "0.4.8", "BSD"}:                     {BSD2},
 		{"pycparser", "2.20", "BSD"}:                   {BSD3},
 		{"python-dateutil", "2.8.1", "Dual License"}:   {BSD3, Apache2},
-		{"python-json-logger", "2.0.1", "BSD"}:         {BSD2},
+		{"python-json-logger", "2.0.2", "BSD"}:         {BSD2},
 		{"semantic-version", "2.8.5", "BSD"}:           {BSD2},
 		{"smmap", "3.0.4", "BSD"}:                      {BSD3},
 		{"webencodings", "0.5.1", "BSD"}:               {BSD3},
 		{"websocket-client", "0.57.0", "BSD"}:          {BSD3},
-		{"zipp", "3.4.0", "UNKNOWN"}:                   {MIT},
+		{"zipp", "3.6.0", "UNKNOWN"}:                   {MIT},
 
 		// These are packages with non-trivial strings to parse, and
 		// it's easier to just hard-code it.
-		{"docutils", "0.15.2", "public domain, Python, 2-Clause BSD, GPL 3 (see COPYING.txt)"}: {PublicDomain, PSF, BSD2, GPL3},
+		{"docutils", "0.17.1", "public domain, Python, 2-Clause BSD, GPL 3 (see COPYING.txt)"}: {PublicDomain, PSF, BSD2, GPL3},
 		{"orjson", "3.3.1", "Apache-2.0 OR MIT"}:                                               {Apache2, MIT},
 		{"packaging", "20.4", "BSD-2-Clause or Apache-2.0"}:                                    {BSD2, Apache2},
 	}[tuple{name, version, license}]
