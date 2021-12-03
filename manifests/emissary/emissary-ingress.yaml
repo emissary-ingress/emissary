@@ -67,25 +67,6 @@ spec:
     service: ambassador
     profile: main
 ---
-# Source: emissary-ingress/templates/rbac.yaml
-######################################################################
-# Aggregate                                                          #
-######################################################################
-# This ClusterRole has an empty `rules` and instead sets
-# `aggregationRule` in order to aggregate several other ClusterRoles
-# together, to avoid the need for multiple ClusterRoleBindings.
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: emissary-ingress
-  labels:
-    product: aes
-aggregationRule:
-  clusterRoleSelectors:
-  - matchLabels:
-      rbac.getambassador.io/role-group: emissary-ingress
-rules: []
----
 # Source: emissary-ingress/templates/serviceaccount.yaml
 apiVersion: v1
 kind: ServiceAccount
@@ -96,39 +77,38 @@ metadata:
     product: aes
 ---
 # Source: emissary-ingress/templates/rbac.yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: emissary-ingress
-  labels:
-    product: aes
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: emissary-ingress
-subjects:
-- name: emissary-ingress
-  namespace: emissary
-  kind: ServiceAccount
----
-# Source: emissary-ingress/templates/rbac.yaml
 ######################################################################
 # No namespace                                                       #
 ######################################################################
-# These ClusterRoles should be limited to resource types that are
+# This ClusterRole should be limited to resource types that are
 # non-namespaced, and therefore cannot be put in a Role, even if
 # Emissary is in single-namespace mode.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: emissary-ingress-crd
+  name: emissary-ingress-nonamespace
   labels:
     product: aes
-    rbac.getambassador.io/role-group: emissary-ingress
 rules:
 - apiGroups: [apiextensions.k8s.io]
   resources: [customresourcedefinitions]
   verbs: [get, list, watch, delete]
+---
+# Source: emissary-ingress/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: emissary-ingress-nonamespace
+  labels:
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: emissary-ingress-nonamespace
+subjects:
+- name: emissary-ingress
+  namespace: emissary
+  kind: ServiceAccount
 ---
 # Source: emissary-ingress/templates/rbac.yaml
 ######################################################################
@@ -137,10 +117,9 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: emissary-ingress-watch
+  name: emissary-ingress-allnamespaces
   labels:
     product: aes
-    rbac.getambassador.io/role-group: emissary-ingress
 rules:
 - apiGroups: ['']
   resources:
@@ -177,6 +156,52 @@ rules:
 - apiGroups: [extensions, networking.k8s.io]
   resources: [ingresses/status]
   verbs: [update]
+---
+# Source: emissary-ingress/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: emissary-ingress-allnamespaces
+  labels:
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: emissary-ingress-allnamespaces
+subjects:
+- name: emissary-ingress
+  namespace: emissary
+  kind: ServiceAccount
+---
+# Source: emissary-ingress/templates/rbac.yaml
+######################################################################
+# One namespace                                                      #
+######################################################################
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: emissary-ingress-onenamespace
+  namespace: emissary
+  labels:
+    product: aes
+rules: []
+---
+# Source: emissary-ingress/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: emissary-ingress-onenamespace
+  namespace: emissary
+  labels:
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: emissary-ingress-onenamespace
+subjects:
+- name: emissary-ingress
+  namespace: emissary
+  kind: ServiceAccount
 ---
 # Source: emissary-ingress/templates/deployment.yaml
 apiVersion: apps/v1

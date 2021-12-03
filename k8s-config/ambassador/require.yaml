@@ -1,12 +1,18 @@
 resources:
+# Services
   - { kind: Service,            name: ambassador-admin,              namespace: default }
   - { kind: Service,            name: ambassador,                    namespace: default }
-  - { kind: ClusterRole,        name: ambassador                                        }
+# RBAC
   - { kind: ServiceAccount,     name: ambassador,                    namespace: default }
-  - { kind: ClusterRoleBinding, name: ambassador                                        }
-  - { kind: ClusterRole,        name: ambassador-crd                                    }
-  - { kind: ClusterRole,        name: ambassador-watch                                  }
+  - { kind: ClusterRole,        name: ambassador-nonamespace                            }
+  - { kind: ClusterRoleBinding, name: ambassador-nonamespace                            }
+  - { kind: ClusterRole,        name: ambassador-allnamespaces                          }
+  - { kind: ClusterRoleBinding, name: ambassador-allnamespaces                          }
+  - { kind: Role,               name: ambassador-onenamespace,       namespace: default }
+  - { kind: RoleBinding,        name: ambassador-onenamespace,       namespace: default }
+# Deployment
   - { kind: Deployment,         name: ambassador,                    namespace: default }
+# Agent
   - { kind: ServiceAccount,     name: ambassador-agent,              namespace: default }
   - { kind: ClusterRoleBinding, name: ambassador-agent                                  }
   - { kind: ClusterRole,        name: ambassador-agent                                  }

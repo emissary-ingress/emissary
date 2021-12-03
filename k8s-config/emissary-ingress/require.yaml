@@ -1,12 +1,18 @@
 resources:
+# Services
   - { kind: Service,            name: emissary-ingress-admin,              namespace: emissary }
   - { kind: Service,            name: emissary-ingress,                    namespace: emissary }
-  - { kind: ClusterRole,        name: emissary-ingress                                         }
+# RBAC
   - { kind: ServiceAccount,     name: emissary-ingress,                    namespace: emissary }
-  - { kind: ClusterRoleBinding, name: emissary-ingress                                         }
-  - { kind: ClusterRole,        name: emissary-ingress-crd                                     }
-  - { kind: ClusterRole,        name: emissary-ingress-watch                                   }
+  - { kind: ClusterRole,        name: emissary-ingress-nonamespace                             }
+  - { kind: ClusterRoleBinding, name: emissary-ingress-nonamespace                             }
+  - { kind: ClusterRole,        name: emissary-ingress-allnamespaces                           }
+  - { kind: ClusterRoleBinding, name: emissary-ingress-allnamespaces                           }
+  - { kind: Role,               name: emissary-ingress-onenamespace,       namespace: emissary }
+  - { kind: RoleBinding,        name: emissary-ingress-onenamespace,       namespace: emissary }
+# Deployment
   - { kind: Deployment,         name: emissary-ingress,                    namespace: emissary }
+# Agent
   - { kind: ServiceAccount,     name: emissary-ingress-agent,              namespace: emissary }
   - { kind: ClusterRoleBinding, name: emissary-ingress-agent                                   }
   - { kind: ClusterRole,        name: emissary-ingress-agent                                   }

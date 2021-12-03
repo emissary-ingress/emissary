@@ -1,3 +1,5 @@
+<!-- -*- fill-column: 80 -*- -->
+
 # Change Log
 
 This file documents all notable changes to Ambassador Helm Chart. The release
@@ -5,7 +7,14 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
-- Bugfix: When setting `adminService.snapshotPort`, it now points at the correct port on the Pod.
+- Bugfix: When setting `adminService.snapshotPort`, it now points at the correct
+  port on the Pod.
+
+- Change: The names of the RBAC resources have changed; there are now 3 pairs:
+  the "{basename}-nonamespace" ClusterRole/ClusterRoleBinding, the
+  "{basename}-onenamespace" Role/RoleBinding, and the "{basename}-allnamespaces"
+  pair that is either Role/RoleBinding or ClusterRole/ClusterRoleBinding
+  depending on whether Emissary is installed in single-namespace mode or not.
 
 ## v7.1.10
 

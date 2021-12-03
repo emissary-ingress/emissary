@@ -2,15 +2,15 @@
 
 ---
 ######################################################################
-# Aggregate                                                          #
+# No namespace                                                       #
 ######################################################################
-# This ClusterRole has an empty `rules` and instead sets
-# `aggregationRule` in order to aggregate several other ClusterRoles
-# together, to avoid the need for multiple ClusterRoleBindings.
+# This ClusterRole should be limited to resource types that are
+# non-namespaced, and therefore cannot be put in a Role, even if
+# Emissary is in single-namespace mode.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "ambassador.rbacName" . }}
+  name: {{ include "ambassador.rbacName" . }}-nonamespace
   labels:
     {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
@@ -24,16 +24,15 @@ metadata:
     {{- end }}
     {{- end }}
     product: aes
-aggregationRule:
-  clusterRoleSelectors:
-  - matchLabels:
-      rbac.getambassador.io/role-group: {{ include "ambassador.rbacName" . }}
-rules: []
+rules:
+  - apiGroups: [ "apiextensions.k8s.io" ]
+    resources: [ "customresourcedefinitions" ]
+    verbs: ["get", "list", "watch", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "ambassador.rbacName" . }}
+  name: {{ include "ambassador.rbacName" . }}-nonamespace
   labels:
     {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
@@ -50,7 +49,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ include "ambassador.rbacName" . }}
+  name: {{ include "ambassador.rbacName" . }}-nonamespace
 subjects:
   - name: {{ include "ambassador.serviceAccountName" . }}
     namespace: {{ include "ambassador.namespace" . }}
@@ -58,48 +57,14 @@ subjects:
 
 ---
 ######################################################################
-# No namespace                                                       #
-######################################################################
-# These ClusterRoles should be limited to resource types that are
-# non-namespaced, and therefore cannot be put in a Role, even if
-# Emissary is in single-namespace mode.
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: {{ include "ambassador.rbacName" . }}-crd
-  labels:
-    {{- if ne .Values.deploymentTool "getambassador.io" }}
-    app.kubernetes.io/name: {{ include "ambassador.name" . }}
-    app.kubernetes.io/part-of: {{ .Release.Name }}
-    helm.sh/chart: {{ include "ambassador.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if .Values.deploymentTool }}
-    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
-    {{- else }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- end }}
-    {{- end }}
-    product: aes
-    rbac.getambassador.io/role-group: {{ include "ambassador.rbacName" . }}
-rules:
-  - apiGroups: [ "apiextensions.k8s.io" ]
-    resources: [ "customresourcedefinitions" ]
-    verbs: ["get", "list", "watch", "delete"]
-
----
-######################################################################
 # All namespaces                                                     #
 ######################################################################
 apiVersion: rbac.authorization.k8s.io/v1
+kind: {{ if not .Values.scope.singleNamespace }}Cluster{{ end }}Role
+metadata:
+  name: {{ include "ambassador.rbacName" . }}-allnamespaces
 {{- if .Values.scope.singleNamespace }}
-kind: Role
-metadata:
-  name: {{ include "ambassador.rbacName" . }}
   namespace: {{ include "ambassador.namespace" . }}
-{{- else }}
-kind: ClusterRole
-metadata:
-  name: {{ include "ambassador.rbacName" . }}-watch
 {{- end }}
   labels:
     {{- if ne .Values.deploymentTool "getambassador.io" }}
@@ -114,7 +79,6 @@ metadata:
     {{- end }}
     {{- end }}
     product: aes
-    rbac.getambassador.io/role-group: {{ include "ambassador.rbacName" . }}
 rules:
   - apiGroups: [""]
     resources:
@@ -165,15 +129,64 @@ rules:
     - {{ include "ambassador.fullname" . }}
     {{- end }}
   {{- end }}
-{{- if .Values.scope.singleNamespace }}
 ---
-# This RoleBinding is only needed if single
-# .Values.scope.singleNamespace because otherwise the ClusterRole will
-# be aggregated in to the master ClusterRole via aggregationRule.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: {{ if not .Values.scope.singleNamespace }}Cluster{{ end }}RoleBinding
+metadata:
+  name: {{ include "ambassador.rbacName" . }}-allnamespaces
+{{- if .Values.scope.singleNamespace }}
+  namespace: {{ include "ambassador.namespace" . }}
+{{- end }}
+  labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    {{- end }}
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: {{ if not .Values.scope.singleNamespace }}Cluster{{ end }}Role
+  name: {{ include "ambassador.rbacName" . }}-allnamespaces
+subjects:
+  - name: {{ include "ambassador.serviceAccountName" . }}
+    namespace: {{ include "ambassador.namespace" . }}
+    kind: ServiceAccount
+
+---
+######################################################################
+# One namespace                                                      #
+######################################################################
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "ambassador.rbacName" . }}-onenamespace
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    {{- end }}
+    product: aes
+rules: []
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "ambassador.rbacName" . }}
+  name: {{ include "ambassador.rbacName" . }}-onenamespace
   namespace: {{ include "ambassador.namespace" . }}
   labels:
     {{- if ne .Values.deploymentTool "getambassador.io" }}
@@ -191,11 +204,10 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ include "ambassador.rbacName" . }}
+  name: {{ include "ambassador.rbacName" . }}-onenamespace
 subjects:
   - name: {{ include "ambassador.serviceAccountName" . }}
     namespace: {{ include "ambassador.namespace" . }}
     kind: ServiceAccount
-{{- end }}
 
 {{- end -}}
