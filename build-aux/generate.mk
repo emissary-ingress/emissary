@@ -67,6 +67,9 @@ generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
 generate-fast/files += $(OSS_HOME)/cmd/entrypoint/crds.yaml
 generate-fast/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
+generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml
+generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml
+generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml
 # Individual files: Test TLS Certificates
 generate-fast/files += $(OSS_HOME)/builder/server.crt
 generate-fast/files += $(OSS_HOME)/builder/server.key
@@ -334,7 +337,7 @@ $(OSS_HOME)/_generate.tmp/crds: $(tools/controller-gen) build-aux/copyright-boil
 
 $(OSS_HOME)/%/zz_generated.conversion.go: $(tools/conversion-gen) build-aux/copyright-boilerplate.go.txt FORCE
 	rm -f $@ $(@D)/*.scaffold.go
-	GOFLAGS=-mod=mod $(tools/conversion-gen) \
+	GOPATH= GOFLAGS=-mod=mod $(tools/conversion-gen) \
 	  --skip-unsafe \
 	  --go-header-file=build-aux/copyright-boilerplate.go.txt \
 	  --input-dirs=./$* \
@@ -342,7 +345,7 @@ $(OSS_HOME)/%/zz_generated.conversion.go: $(tools/conversion-gen) build-aux/copy
 
 $(OSS_HOME)/%/handwritten.conversion.scaffold.go: $(OSS_HOME)/%/zz_generated.conversion.go
 	{ \
-	  awk ' \
+	  gawk ' \
 	    BEGIN { \
 	      print("//+build scaffold"); \
 	      print(""); \
@@ -407,22 +410,28 @@ python-setup: create-venv
 	$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
 .PHONY: python-setup
 
-define generate_emissary_yaml_from_helm
-	mkdir -p $(OSS_HOME)/build/yaml/$(1) && \
-		helm template $(4) -n $(2) \
-		-f $(OSS_HOME)/k8s-config/$(1)/values.yaml \
-		$(OSS_HOME)/charts/emissary-ingress > $(OSS_HOME)/build/yaml/$(1)/helm-expanded.yaml
-	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/k8s-config/create_yaml.py \
-		$(OSS_HOME)/build/yaml/$(1)/helm-expanded.yaml $(OSS_HOME)/k8s-config/$(1)/require.yaml > $(3)
-endef
-
-$(OSS_HOME)/manifests/emissary/emissary-ingress.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/emissary-ingress/require.yaml $(OSS_HOME)/k8s-config/emissary-ingress/values.yaml $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml $(OSS_HOME)/charts/emissary-ingress/values.yaml python-setup
-	@printf '  $(CYN)$@$(END)\n'
-	$(call generate_emissary_yaml_from_helm,emissary-ingress,emissary,$@,emissary-ingress)
-
-$(OSS_HOME)/manifests/emissary/ambassador.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/ambassador/require.yaml $(OSS_HOME)/k8s-config/ambassador/values.yaml $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml $(OSS_HOME)/charts/emissary-ingress/values.yaml python-setup
-	@printf '  $(CYN)$@$(END)\n'
-	$(call generate_emissary_yaml_from_helm,ambassador,default,$@,ambassador)
+helm-namespace.emissary-ingress = emissary
+helm-namespace.ambassador       = default
+$(OSS_HOME)/k8s-config/%/helm-expanded.yaml: \
+  $(OSS_HOME)/k8s-config/%/values.yaml \
+  $(OSS_HOME)/charts/emissary-ingress/templates $(wildcard $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml) \
+  $(OSS_HOME)/charts/emissary-ingress/values.yaml \
+  FORCE
+	helm template --namespace=$(helm-namespace.$*) --values=$(@D)/values.yaml $* $(OSS_HOME)/charts/emissary-ingress >$@
+$(OSS_HOME)/k8s-config/%/output.yaml: \
+  $(OSS_HOME)/k8s-config/%/helm-expanded.yaml \
+  $(OSS_HOME)/k8s-config/%/require.yaml \
+  $(OSS_HOME)/k8s-config/create_yaml.py \
+  python-setup
+	. $(OSS_HOME)/venv/bin/activate && $(filter %.py,$^) $(filter %/helm-expanded.yaml,$^) $(filter %/require.yaml,$^) >$@
+$(OSS_HOME)/manifests/emissary/%.yaml: $(OSS_HOME)/k8s-config/%/output.yaml
+	cp $< $@
+$(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml: $(OSS_HOME)/k8s-config/kat-ambassador/output.yaml
+	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
+$(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml: $(OSS_HOME)/k8s-config/kat-rbac-multinamespace/output.yaml
+	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
+$(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_HOME)/k8s-config/kat-rbac-singlenamespace/output.yaml
+	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
 
 #
 # Generate report on dependencies

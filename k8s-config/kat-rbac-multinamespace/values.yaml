@@ -1,0 +1,5 @@
+fullnameOverride: «self.path.k8s»
+namespaceOverride: «self.namespace»
+deploymentTool: kat
+serviceAccount:
+  extra: "«serviceAccountExtra»♯: null"

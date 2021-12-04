@@ -5,7 +5,7 @@ metadata:
   name: {{ include "ambassador.fullname" . }}-admin
   namespace: {{ include "ambassador.namespace" . }}
   labels:
-    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    {{- if and (ne .Values.deploymentTool "getambassador.io") (ne .Values.deploymentTool "kat") }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}

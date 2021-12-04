@@ -9,6 +9,9 @@ namespaceOverride: ''
 replicaCount: 3
 # If true, Create a DaemonSet. By default Deployment controller will be created
 daemonSet: false
+# If true, Create a bare Pod instead of a Deployment or DaemonSet; for
+# test purposes.
+barePod: false
 
 test:
   # If true, Create test Pod to verify the Ambassador service works correctly (Only created on helm test)
@@ -168,6 +171,8 @@ service:
       # targetPort: 2222
       # protocol: TCP
       # nodePort: 30222
+  # For test purposes, do not use.
+  portsRaw: ""
 
   externalTrafficPolicy:
 
@@ -219,6 +224,8 @@ serviceAccount:
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name:
+  # Extra YAML to include at the end of the ServiceAccount
+  extra: ""
 
 deploymentStrategy:
   type: RollingUpdate
