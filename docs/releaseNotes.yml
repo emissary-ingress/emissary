@@ -54,6 +54,17 @@ items:
           present, even though it was present, and everything was working correctly.
           This error is no longer logged.
       
+      - title: When using gzip, upstreams will no longer recieve encoded data
+        type: bugfix
+        body: >-
+          When using gzip compression upstream services will no longer recieve encoded
+          data. This bug was introduced in 1.14.0. The fix restores the default behavior of 
+          not sending encoded data to upstream services.
+        github:
+        - title: 3945
+          link: https://github.com/emissary-ingress/emissary/issues/3818
+        docs: https://github.com/emissary-ingress/emissary/issues/3818
+
       - title: Update to busybox 1.34.1
         type: security
         body: >-
