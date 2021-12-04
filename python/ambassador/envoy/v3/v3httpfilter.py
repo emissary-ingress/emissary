@@ -131,9 +131,6 @@ def V3HTTPFilter_gzip(gzip: IRGzip, v3config: 'V3Config'):
                     'window_bits': gzip.window_bits,
                 }
             },
-            'request_direction_config': {
-                'common_config': common_config,
-            },
             'response_direction_config': {
                 'disable_on_etag_header': gzip.disable_on_etag_header,
                 'remove_accept_encoding_header': gzip.remove_accept_encoding_header,
