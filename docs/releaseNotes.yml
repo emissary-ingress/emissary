@@ -54,7 +54,7 @@ items:
           present, even though it was present, and everything was working correctly.
           This error is no longer logged.
       
-      - title: When using gzip, upstreams will no longer recieve encoded data
+      - title: When using gzip, upstreams will no longer receive encoded data
         type: bugfix
         body: >-
           When using gzip compression, upstream services will no longer receive compressed
