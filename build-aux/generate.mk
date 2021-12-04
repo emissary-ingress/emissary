@@ -67,6 +67,9 @@ generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
 generate-fast/files += $(OSS_HOME)/cmd/entrypoint/crds.yaml
 generate-fast/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
+generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml
+generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml
+generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml
 # Individual files: Test TLS Certificates
 generate-fast/files += $(OSS_HOME)/builder/server.crt
 generate-fast/files += $(OSS_HOME)/builder/server.key
@@ -423,6 +426,12 @@ $(OSS_HOME)/k8s-config/%/output.yaml: \
 	. $(OSS_HOME)/venv/bin/activate && $(filter %.py,$^) $(filter %/helm-expanded.yaml,$^) $(filter %/require.yaml,$^) >$@
 $(OSS_HOME)/manifests/emissary/%.yaml: $(OSS_HOME)/k8s-config/%/output.yaml
 	cp $< $@
+$(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml: $(OSS_HOME)/k8s-config/kat-ambassador/output.yaml
+	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
+$(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml: $(OSS_HOME)/k8s-config/kat-rbac-multinamespace/output.yaml
+	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
+$(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_HOME)/k8s-config/kat-rbac-singlenamespace/output.yaml
+	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
 
 #
 # Generate report on dependencies

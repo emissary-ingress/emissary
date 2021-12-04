@@ -12,7 +12,7 @@ kind: ClusterRole
 metadata:
   name: {{ include "ambassador.rbacName" . }}
   labels:
-    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    {{- if and (ne .Values.deploymentTool "getambassador.io") (ne .Values.deploymentTool "kat") }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -35,7 +35,7 @@ kind: ClusterRoleBinding
 metadata:
   name: {{ include "ambassador.rbacName" . }}
   labels:
-    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    {{- if and (ne .Values.deploymentTool "getambassador.io") (ne .Values.deploymentTool "kat") }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -68,7 +68,7 @@ kind: ClusterRole
 metadata:
   name: {{ include "ambassador.rbacName" . }}-crd
   labels:
-    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    {{- if and (ne .Values.deploymentTool "getambassador.io") (ne .Values.deploymentTool "kat") }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -102,7 +102,7 @@ metadata:
   name: {{ include "ambassador.rbacName" . }}-watch
 {{- end }}
   labels:
-    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    {{- if and (ne .Values.deploymentTool "getambassador.io") (ne .Values.deploymentTool "kat") }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -176,7 +176,7 @@ metadata:
   name: {{ include "ambassador.rbacName" . }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
-    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    {{- if and (ne .Values.deploymentTool "getambassador.io") (ne .Values.deploymentTool "kat") }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
