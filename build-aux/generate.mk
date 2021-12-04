@@ -285,7 +285,14 @@ $(OSS_HOME)/_generate.tmp/%_grpc_web_pb.js: $(OSS_HOME)/api/%.proto $(tools/prot
 
 $(OSS_HOME)/python/ambassador/proto/%.py: $(OSS_HOME)/_generate.tmp/getambassador.io/%.py
 	mkdir -p $(@D)
-	cp $< $@
+	# This madness is to because Host_pb2.py won't pass mypy without it (we have no stubs for
+	# google.protobuf, so we have to ignore missing stubs for it, so we can't tell that really
+	# _TIMESTAMP and _DURATION are OK). A better fix may be to switch to using 
+	# https://github.com/dropbox/mypy-protobuf.
+	sed \
+		-e 's/= google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP/= google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP # type: ignore[attr-defined]/' \
+		-e 's/= google_dot_protobuf_dot_duration__pb2._DURATION/= google_dot_protobuf_dot_duration__pb2._DURATION # type: ignore[attr-defined]/' \
+		$< >$@
 
 $(OSS_HOME)/tools/sandbox/grpc_web/%.js: $(OSS_HOME)/_generate.tmp/kat/%.js
 	cp $< $@
@@ -422,9 +429,8 @@ $(OSS_HOME)/manifests/emissary/ambassador.yaml: $(OSS_HOME)/k8s-config/create_ya
 
 $(OSS_HOME)/build-aux/pip-show.txt: sync
 	docker exec $$($(BUILDER)) sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
-
-$(OSS_HOME)/builder/requirements.txt: %.txt: %.in FORCE
-	$(BUILDER) pip-compile
+$(OSS_HOME)/builder/requirements.txt: $(OSS_HOME)/builder/requirements.in setup-diagd FORCE
+	source venv/bin/activate && cd "$(OSS_HOME)" && pip-compile -q --no-allow-unsafe -o builder/requirements.txt builder/requirements.in
 .PRECIOUS: $(OSS_HOME)/builder/requirements.txt
 
 $(OSS_HOME)/build-aux/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base

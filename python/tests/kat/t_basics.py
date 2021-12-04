@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Generator, Tuple, Union
 
 import yaml
 
@@ -18,13 +18,13 @@ class Empty(AmbassadorTest):
             self.xfail = "XFailing for now"
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         yield cls()
 
     def manifests(self) -> str:
         return namespace_manifest("empty-namespace") + super().manifests()
 
-    def config(self) -> Union[str, Tuple[Node, str]]:
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield from ()
 
     def queries(self):
@@ -53,7 +53,7 @@ class AmbassadorIDTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self) -> Union[str, Tuple[Node, str]]:
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -177,7 +177,7 @@ spec:
         ]
 
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         counter = 0
 
         for m_yaml in self.models:
@@ -257,7 +257,7 @@ class ServerNameTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -288,7 +288,7 @@ class SafeRegexMapping(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -323,7 +323,7 @@ class UnsafeRegexMapping(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

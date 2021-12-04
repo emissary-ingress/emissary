@@ -1,29 +1,19 @@
 # Runtime requirements
 # Keep these sorted for the sake of everyone's sanity.
 
-click==7.1.2
-clize==4.1.1
+click==8.0.3
+clize==4.2.1
 durationpy==0.5
 expiringdict==1.2.1
-flask==1.1.2
-gunicorn==20.0.4
-jsonpatch==1.30
-jsonschema==3.2.0
+flask==2.0.2
+gunicorn==20.1.0
+jsonpatch==1.32
+jsonschema==4.2.1
 k8s-proto==0.0.3
-kubernetes==9.0.0
-prometheus_client==0.9.0
+kubernetes==20.13.0
+prometheus_client==0.12.0
+python-json-logger==2.0.2
 pyyaml==5.4.1
-requests==2.25.1
+requests==2.26.0
 semantic-version==2.8.5
-python-json-logger
-
-# Dev requirements
-dpath
-gitpython
-mypy
-pexpect
-pytest
-pytest-cov
-retry
-httpretty
-pytest-rerunfailures
+urllib3==1.26.5

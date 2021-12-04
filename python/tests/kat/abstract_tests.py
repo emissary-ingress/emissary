@@ -1,3 +1,6 @@
+from typing import Any, ClassVar, Generator, List, Optional, Sequence, Tuple, Union
+from typing import cast as typecast
+
 import sys
 
 import base64
@@ -7,17 +10,16 @@ import shutil
 import subprocess
 import yaml
 
-yaml_loader = yaml.SafeLoader
-yaml_dumper = yaml.SafeDumper
+# These type: ignores are because, weirdly, the yaml.CSafe* variants don't share
+# a type with their non-C variants. No clue why not.
+yaml_loader = yaml.SafeLoader # type: ignore
+yaml_dumper = yaml.SafeDumper # type: ignore
 
 try:
-    yaml_loader = yaml.CSafeLoader
-    yaml_dumper = yaml.CSafeDumper
+    yaml_loader = yaml.CSafeLoader # type: ignore
+    yaml_dumper = yaml.CSafeDumper # type: ignore
 except AttributeError:
     pass
-
-from typing import Any, ClassVar, Dict, List, Optional, Sequence
-from typing import cast as typecast
 
 from kat.harness import abstract_test, sanitize, Name, Node, Test, Query, load_manifest
 from kat.utils import ShellCommand
@@ -97,10 +99,9 @@ class AmbassadorTest(Test):
     is_ambassador = True
     allow_edge_stack_redirect = False
     edge_stack_cleartext_host = True
-    envoy_api_version = None
+    envoy_api_version: Optional[str] = None
 
-
-    env = []
+    env: List[str] = []
 
     def manifests(self) -> str:
         rbac = RBAC_CLUSTER_SCOPE
@@ -189,17 +190,17 @@ class AmbassadorTest(Test):
             return self.format(rbac + AMBASSADOR,
                                image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=self.manifest_envs, extra_ports=eports, capabilities_block = "")
 
-    # Will tear this out of the harness shortly
-    @property
-    def ambassador_id(self) -> str:
-        if self._ambassador_id is None:
-            return self.name.k8s
-        else:
-            return typecast(str, self._ambassador_id)
+    # # Will tear this out of the harness shortly
+    # @property
+    # def ambassador_id(self) -> str:
+    #     if self._ambassador_id is None:
+    #         return self.name.k8s
+    #     else:
+    #         return typecast(str, self._ambassador_id)
 
-    @ambassador_id.setter
-    def ambassador_id(self, val: str) -> None:
-        self._ambassador_id = val
+    # @ambassador_id.setter
+    # def ambassador_id(self, val: str) -> None:
+    #     self._ambassador_id = val
 
     @property
     def index(self) -> int:
@@ -394,7 +395,7 @@ class ServiceType(Node):
         if self._manifests:
             self.use_superpod = False
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield from ()
 
     def manifests(self):
@@ -420,7 +421,7 @@ class ServiceTypeGrpc(Node):
         super().__init__(*args, **kwargs)
         self._manifests = service_manifests or BACKEND
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield from ()
 
     def manifests(self):
@@ -442,7 +443,9 @@ class EGRPC(ServiceType):
     skip_variant: ClassVar[bool] = True
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, service_manifests=GRPC_ECHO_BACKEND, **kwargs)
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = GRPC_ECHO_BACKEND
+        super().__init__(*args, **kwargs)
 
     def requirements(self):
         yield ("url", Query("http://%s/echo.EchoService/Echo" % self.path.fqdn,
@@ -455,7 +458,9 @@ class AHTTP(ServiceType):
     skip_variant: ClassVar[bool] = True
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, service_manifests=AUTH_BACKEND, **kwargs)
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = AUTH_BACKEND
+        super().__init__(*args, **kwargs)
 
 
 class AGRPC(ServiceType):
@@ -464,7 +469,9 @@ class AGRPC(ServiceType):
     def __init__(self, protocol_version: str="v2", *args, **kwargs) -> None:
         self.protocol_version = protocol_version
 
-        super().__init__(*args, service_manifests=GRPC_AUTH_BACKEND, **kwargs)
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = GRPC_AUTH_BACKEND
+        super().__init__(*args, **kwargs)
 
     def requirements(self):
         yield ("pod", self.path.k8s)
@@ -474,7 +481,10 @@ class RLSGRPC(ServiceType):
 
     def __init__(self, protocol_version: str="v2", *args, **kwargs) -> None:
         self.protocol_version = protocol_version
-        super().__init__(*args, service_manifests=GRPC_RLS_BACKEND, **kwargs)
+
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = GRPC_RLS_BACKEND
+        super().__init__(*args, **kwargs)
 
     def requirements(self):
         yield ("pod", self.path.k8s)
@@ -505,7 +515,7 @@ class OptionTest(Test):
     skip_local_instead_of_xfail = "Plain (OptionTests)"
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         if cls.VALUES is None:
             yield cls()
         else:

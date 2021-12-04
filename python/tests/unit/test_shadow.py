@@ -1,11 +1,7 @@
-import json
-import logging
-import time
-import sys
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
+import logging
 import pytest
-import requests
 
 from tests.selfsigned import TLSCerts
 from tests.utils import assert_valid_envoy_config
@@ -19,10 +15,12 @@ logging.basicConfig(
 logger = logging.getLogger("ambassador")
 
 from ambassador import Config, IR
-from ambassador.ir.irerrorresponse import IRErrorResponse
 from ambassador.envoy import EnvoyConfig
 from ambassador.fetch import ResourceFetcher
-from ambassador.utils import NullSecretHandler, SecretHandler, SecretInfo
+from ambassador.utils import SecretHandler, SecretInfo
+
+if TYPE_CHECKING:
+    from ambassador.ir.irresource import IRResource # pragma: no cover
 
 class MockSecretHandler(SecretHandler):
     def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:

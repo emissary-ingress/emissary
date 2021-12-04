@@ -1,5 +1,7 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 import json
 
 class BufferLimitBytesTest(AmbassadorTest):
@@ -9,7 +11,7 @@ class BufferLimitBytesTest(AmbassadorTest):
         self.target = HTTP(name="target")
 
     # Test generating config with an increased buffer and that the lua body() funciton runs to buffer the request body
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

@@ -589,56 +589,6 @@ case "${cmd}" in
         done
         rm -f go.dirty  # Do this after _all_ the Go code is built
         ;;
-    mypy-internal)
-        # This runs inside the builder image
-        shift
-        op="$1"
-
-        # This runs inside the builder image
-        if [[ $(find-modules) != /buildroot/ambassador* ]]; then
-            echo "Error: ambassador must be the first module to build things correctly"
-            echo "Modules are: $(find-modules)"
-            exit 1
-        fi
-
-        for MODDIR in $(find-modules); do
-            module=$(basename ${MODDIR})
-
-            if [ -e "${MODDIR}/python" ]; then
-                cd "${MODDIR}"
-
-                case "$op" in
-                    start)
-                        if ! dmypy status >/dev/null; then
-                            dmypy start -- --use-fine-grained-cache --follow-imports=skip --ignore-missing-imports
-                            printf "${CYN}==> ${GRN}Started mypy server for ${BLU}$module${GRN} Python code${END}\n"
-                        else
-                            printf "${CYN}==> ${GRN}mypy server already running for ${BLU}$module${GRN} Python code${END}\n"
-                        fi
-                        ;;
-
-                    stop)
-                        printf "${CYN}==> ${GRN}Stopping mypy server for ${BLU}$module${GRN} Python code${END}"
-                        dmypy stop
-                        ;;
-
-                    check)
-                        printf "${CYN}==> ${GRN}Running mypy over ${BLU}$module${GRN} Python code${END}\n"
-                        time dmypy check python
-                        ;;
-                esac
-            fi
-        done
-        ;;
-
-    pip-compile)
-        build_builder_base --stage1-only
-        printf "${GRN}Running pip-compile to update ${BLU}requirements.txt${END}\n"
-        docker run --rm -i "$builder_base_image" sh -c 'tar xf - && pip-compile --allow-unsafe -q >&2 && cat requirements.txt' \
-               < <(cd "$DIR" && tar cf - requirements.in requirements.txt) \
-               > "$DIR/requirements.txt.tmp"
-        mv -f "$DIR/requirements.txt.tmp" "$DIR/requirements.txt"
-        ;;
 
     pytest-local)
         fail=""

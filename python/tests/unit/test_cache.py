@@ -56,7 +56,7 @@ class Builder:
         self.builds: List[Tuple[IR, EnvoyConfig]] = []
 
     def current_yaml(self) -> str:
-        return yaml.safe_dump_all(self.resources.values())
+        return yaml.safe_dump_all(list(self.resources.values()))
 
     def apply_yaml(self, yaml_file: str, allow_updates=True) -> None:
         yaml_data = open(os.path.join(self.test_dir, yaml_file), "r").read()
@@ -199,9 +199,10 @@ class Builder:
         return ir, econf
 
     def invalidate(self, key) -> None:
-        assert self.cache[key] is not None, f"key {key} is not cached"
+        if self.cache is not None:
+            assert self.cache[key] is not None, f"key {key} is not cached"
 
-        self.cache.invalidate(key)
+            self.cache.invalidate(key)
 
     def check(self, what: str, b1: Tuple[IR, EnvoyConfig], b2: Tuple[IR, EnvoyConfig],
               strip_cache_keys=False) -> bool:
@@ -235,7 +236,8 @@ class Builder:
                     output += "\n"
 
             assert match, output
-            return match
+
+        return match
 
     def check_last(self, what: str) -> None:
         build_count = len(self.builds)
@@ -245,7 +247,7 @@ class Builder:
 
         self.check(what, b1, b2)
 
-    def strip_cache_keys(self, node: Any) -> None:
+    def strip_cache_keys(self, node: Any) -> Any:
         if isinstance(node, dict):
             output = {}
             for k, v in node.items():
@@ -257,8 +259,8 @@ class Builder:
             return output
         elif isinstance(node, list):
             return [ self.strip_cache_keys(x) for x in node ]
-        else:
-            return node
+
+        return node
 
 
 def test_circular_link():
@@ -573,7 +575,7 @@ class MadnessOp:
 
         return not ir_has_cluster
 
-    def check_group(self, b: Tuple[IR, EnvoyConfig], current_mappings: Set[MadnessMapping]) -> bool:
+    def check_group(self, b: Tuple[IR, EnvoyConfig], current_mappings: Dict[MadnessMapping, bool]) -> bool:
         ir, econf = b
         match = False
 

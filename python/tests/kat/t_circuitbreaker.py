@@ -1,8 +1,10 @@
+from typing import Generator, Tuple, Union
+
 import os
 
 import pytest
 
-from abstract_tests import AmbassadorTest, HTTP, ServiceType
+from abstract_tests import AmbassadorTest, HTTP, ServiceType, Node
 from kat.harness import Query, load_manifest
 
 AMBASSADOR = load_manifest("ambassador")
@@ -102,7 +104,7 @@ spec:
                                       target=self.__class__.TARGET_CLUSTER)
 
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -216,7 +218,7 @@ class GlobalCircuitBreakingTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -322,7 +324,7 @@ class CircuitBreakingTCPTest(AmbassadorTest):
     # config() must _yield_ tuples of Node, Ambassador-YAML where the
     # Ambassador-YAML will be annotated onto the Node.
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target1, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

@@ -1,9 +1,10 @@
+from typing import Generator, Tuple, Union
+
 import os
-import re
 
 from kat.harness import Query, load_manifest
 
-from abstract_tests import DEV, AmbassadorTest, HTTP
+from abstract_tests import DEV, AmbassadorTest, HTTP, Node
 
 AMBASSADOR = load_manifest("ambassador")
 RBAC_CLUSTER_SCOPE = load_manifest("rbac_cluster_scope")
@@ -120,7 +121,7 @@ class StatsdTest(AmbassadorTest):
                            envs=envs, extra_ports="", capabilities_block="") + \
                GRAPHITE_CONFIG.format('statsd-sink', self.test_image['stats'], f"{STATSD_TEST_CLUSTER}:{ALT_STATSD_TEST_CLUSTER}")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -232,7 +233,7 @@ class DogstatsdTest(AmbassadorTest):
                            envs=envs, extra_ports="", capabilities_block="") + \
                DOGSTATSD_CONFIG.format('dogstatsd-sink', self.test_image['stats'], DOGSTATSD_TEST_CLUSTER)
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

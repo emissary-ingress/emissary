@@ -1,9 +1,11 @@
-from kat.harness import Query, EDGE_STACK
+from typing import Generator, Tuple, Union
 
-from abstract_tests import AmbassadorTest, HTTP
-from abstract_tests import ServiceType
-from tests.selfsigned import TLSCerts
+from kat.harness import Query, EDGE_STACK
 from kat.utils import namespace_manifest
+
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
+
+from tests.selfsigned import TLSCerts
 
 
 #####
@@ -54,7 +56,7 @@ data:
   tls.key: {TLSCerts["localhost"].k8s_key}
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self here, not self.target, because we want the TLS module to
         # be annotated on the Ambassador itself.
         yield self, self.format("""
@@ -112,7 +114,7 @@ class RedirectTestsWithProxyProto(AmbassadorTest):
         # only check https urls since test readiness will only end up barfing on redirect
         yield from (r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("https"))
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -174,7 +176,7 @@ class RedirectTestsInvalidSecret(AmbassadorTest):
         # only check https urls since test readiness will only end up barfing on redirect
         yield from (r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("https"))
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -258,7 +260,7 @@ spec:
 ''') + super().manifests()
 
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 kind: Module
 name: ambassador

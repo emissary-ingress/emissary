@@ -1,9 +1,11 @@
+from typing import Generator, Tuple, Union
+
 import pytest, re
 
 from kat.harness import EDGE_STACK
 
 from kat.utils import ShellCommand
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 
 
 class EnvoyLogTest(AmbassadorTest):
@@ -18,7 +20,7 @@ class EnvoyLogTest(AmbassadorTest):
         self.log_path = '/tmp/ambassador/ambassador.log'
         self.log_format = 'MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"'
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -49,7 +51,7 @@ class EnvoyLogJSONTest(AmbassadorTest):
         self.target = HTTP()
         self.log_path = '/tmp/ambassador/ambassador.log'
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

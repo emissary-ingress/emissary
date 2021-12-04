@@ -97,6 +97,12 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   CVE-2021-42380, CVE-2021-42381, CVE-2021-42382, CVE-2021-42383, CVE-2021-42384, CVE-2021-42385,
   and CVE-2021-42386.
 
+- Security: Update Python dependencies to resolve CVE-2020-28493 (jinja2), CVE-2021-28363 (urllib3),
+  and CVE-2021-33503 (urllib3).
+
+- Security: Previous built images included some Python packages used only for test. These have now
+  been removed, resolving CVE-2020-29651.
+
 [3945]: https://github.com/emissary-ingress/emissary/issues/3945
 
 ## [2.0.5] November 08, 2021

@@ -1,6 +1,7 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
-import json
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 
 class AllowHeadersWithUnderscoresTest(AmbassadorTest):
     target: ServiceType
@@ -8,7 +9,7 @@ class AllowHeadersWithUnderscoresTest(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -32,7 +33,7 @@ class RejectHeadersWithUnderscoresTest(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

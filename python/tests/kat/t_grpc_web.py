@@ -1,8 +1,10 @@
+from typing import Generator, Tuple, Union
+
 import json
 
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, ServiceType, EGRPC
+from abstract_tests import AmbassadorTest, ServiceType, EGRPC, Node
 
 class AcceptanceGrpcWebTest(AmbassadorTest):
 
@@ -11,7 +13,7 @@ class AcceptanceGrpcWebTest(AmbassadorTest):
     def init(self):
         self.target = EGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
