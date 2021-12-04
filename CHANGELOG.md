@@ -93,9 +93,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   does), an error would always be logged about the Secret not being present, even though it was
   present, and everything was working correctly. This error is no longer logged.
 
-- Bugfix: When using gzip compression upstream services will no longer recieve encoded data. This
-  bug was introduced in 1.14.0. The fix restores the default behavior of  not sending encoded data
-  to upstream services. ([3945])
+- Bugfix: When using gzip compression, upstream services will no longer receive compressed data.
+  This bug was introduced in 1.14.0. The fix restores the default behavior of  not sending
+  compressed data to upstream services. ([3818])
 
 - Security: Update to busybox 1.34.1 to resolve CVE-2021-28831, CVE-2021-42378, CVE-2021-42379,
   CVE-2021-42380, CVE-2021-42381, CVE-2021-42382, CVE-2021-42383, CVE-2021-42384, CVE-2021-42385,
@@ -108,7 +108,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   been removed, resolving CVE-2020-29651.
 
 [3945]: https://github.com/emissary-ingress/emissary/issues/3945
-[3945]: https://github.com/emissary-ingress/emissary/issues/3818
+[3818]: https://github.com/emissary-ingress/emissary/issues/3818
 
 ## [2.0.5] November 08, 2021
 [2.0.5]: https://github.com/emissary-ingress/emissary/compare/v2.0.4...v2.0.5
