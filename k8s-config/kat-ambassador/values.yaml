@@ -1,0 +1,21 @@
+fullnameOverride: «self.path.k8s»
+namespaceOverride: «self.namespace»
+deploymentTool: kat
+barePod: true
+image:
+  fullImageOverride: «image»
+service:
+  type: ClusterIP
+  portsRaw: "- ←«extra_ports»"
+containerNameOverride: ambassador
+restartPolicy: Always
+env:
+  AMBASSADOR_ID: «self.path.k8s»
+  AMBASSADOR_SNAPSHOT_COUNT: "0"
+  AMBASSADOR_CONFIG_BASE_DIR: "/tmp/ambassador"
+envRaw: "- ←«envs»"
+security:
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    «capabilities_block»♯: null

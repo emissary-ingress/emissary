@@ -1,47 +1,134 @@
-
+# GENERATED FILE: edits made by hand will not be preserved.
 ---
+# Source: emissary-ingress/templates/rbac.yaml
+######################################################################
+# Aggregate                                                          #
+######################################################################
+# This ClusterRole has an empty `rules` and instead sets
+# `aggregationRule` in order to aggregate several other ClusterRoles
+# together, to avoid the need for multiple ClusterRoleBindings.
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: {self.path.k8s}
-rules:
-- apiGroups: [""]
-  resources: [ "services", "secrets", "namespaces", "endpoints" ]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [ "apiextensions.k8s.io" ]
-  resources: [ "customresourcedefinitions" ]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [ "getambassador.io" ]
-  resources: [ "*" ]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [ "networking.internal.knative.dev" ]
-  resources: [ "clusteringresses", "ingresses" ]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [ "networking.internal.knative.dev" ]
-  resources: [ "ingresses/status", "clusteringresses/status" ]
-  verbs: ["update"]
-- apiGroups: [ "extensions", "networking.k8s.io" ]
-  resources: [ "ingresses", "ingressclasses" ]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [ "extensions" ]
-  resources: [ "ingresses/status" ]
-  verbs: ["update"]
+  labels:
+    product: aes
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.getambassador.io/role-group: {self.path.k8s}
+rules: []
 ---
+# Source: emissary-ingress/templates/serviceaccount.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: {self.path.k8s}
+  namespace: {self.namespace}
+  labels:
+    product: aes
 {serviceAccountExtra}
 ---
+# Source: emissary-ingress/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {self.path.k8s}
+  labels:
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {self.path.k8s}
+subjects:
+- name: {self.path.k8s}
+  namespace: {self.namespace}
+  kind: ServiceAccount
+---
+# Source: emissary-ingress/templates/rbac.yaml
+######################################################################
+# No namespace                                                       #
+######################################################################
+# These ClusterRoles should be limited to resource types that are
+# non-namespaced, and therefore cannot be put in a Role, even if
+# Emissary is in single-namespace mode.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {self.path.k8s}-crd
+  labels:
+    product: aes
+    rbac.getambassador.io/role-group: {self.path.k8s}
+rules:
+- apiGroups: [apiextensions.k8s.io]
+  resources: [customresourcedefinitions]
+  verbs: [get, list, watch, delete]
+---
+# Source: emissary-ingress/templates/rbac.yaml
+######################################################################
+# All namespaces                                                     #
+######################################################################
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {self.path.k8s}
+  namespace: {self.namespace}
+  labels:
+    product: aes
+    rbac.getambassador.io/role-group: {self.path.k8s}
+rules:
+- apiGroups: ['']
+  resources:
+  - namespaces
+  - services
+  - secrets
+  - endpoints
+  verbs: [get, list, watch]
+
+- apiGroups: [getambassador.io]
+  resources: ['*']
+  verbs: [get, list, watch, update, patch, create, delete]
+
+- apiGroups: [getambassador.io]
+  resources: [mappings/status]
+  verbs: [update]
+
+- apiGroups: [networking.internal.knative.dev]
+  resources: [clusteringresses, ingresses]
+  verbs: [get, list, watch]
+
+- apiGroups: [networking.x-k8s.io]
+  resources: ['*']
+  verbs: [get, list, watch]
+
+- apiGroups: [networking.internal.knative.dev]
+  resources: [ingresses/status, clusteringresses/status]
+  verbs: [update]
+
+- apiGroups: [extensions, networking.k8s.io]
+  resources: [ingresses, ingressclasses]
+  verbs: [get, list, watch]
+
+- apiGroups: [extensions, networking.k8s.io]
+  resources: [ingresses/status]
+  verbs: [update]
+---
+# Source: emissary-ingress/templates/rbac.yaml
+# This RoleBinding is only needed if single
+# .Values.scope.singleNamespace because otherwise the ClusterRole will
+# be aggregated in to the master ClusterRole via aggregationRule.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {self.path.k8s}
+  namespace: {self.namespace}
+  labels:
+    product: aes
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: {self.path.k8s}
 subjects:
-- kind: ServiceAccount
-  name: {self.path.k8s}
+- name: {self.path.k8s}
   namespace: {self.namespace}
+  kind: ServiceAccount

@@ -8,7 +8,7 @@ metadata:
   {{- end }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
-    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    {{- if and (ne .Values.deploymentTool "getambassador.io") (ne .Values.deploymentTool "kat") }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -64,6 +64,9 @@ spec:
       protocol: {{ .protocol }}
       {{- end }}
     {{- end}}
+    {{- if ne .Values.service.portsRaw "" }}
+    {{ .Values.service.portsRaw }}
+    {{- end }}
   selector:
     {{- if .Values.service.selector }}
     {{ toYaml .Values.service.selector | nindent 4 }}
