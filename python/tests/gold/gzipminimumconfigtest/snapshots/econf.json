@@ -117,12 +117,6 @@
                             "window_bits": null
                           }
                         },
-                        "request_direction_config": {
-                          "common_config": {
-                            "content_type": [],
-                            "min_content_length": null
-                          }
-                        },
                         "response_direction_config": {
                           "common_config": {
                             "content_type": [],
@@ -374,12 +368,6 @@
                             "compression_strategy": null,
                             "memory_level": null,
                             "window_bits": null
-                          }
-                        },
-                        "request_direction_config": {
-                          "common_config": {
-                            "content_type": [],
-                            "min_content_length": null
                           }
                         },
                         "response_direction_config": {
@@ -655,12 +643,6 @@
                             "window_bits": null
                           }
                         },
-                        "request_direction_config": {
-                          "common_config": {
-                            "content_type": [],
-                            "min_content_length": null
-                          }
-                        },
                         "response_direction_config": {
                           "common_config": {
                             "content_type": [],
@@ -912,12 +894,6 @@
                             "compression_strategy": null,
                             "memory_level": null,
                             "window_bits": null
-                          }
-                        },
-                        "request_direction_config": {
-                          "common_config": {
-                            "content_type": [],
-                            "min_content_length": null
                           }
                         },
                         "response_direction_config": {
