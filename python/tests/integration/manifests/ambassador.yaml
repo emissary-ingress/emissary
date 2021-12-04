@@ -27,12 +27,16 @@ metadata:
   labels:
     service: {self.path.k8s}-admin
   name: {self.path.k8s}-admin
+  namespace: {self.namespace}
 spec:
   type: ClusterIP
   ports:
   - name: {self.path.k8s}-admin
     port: 8877
     targetPort: 8877
+  - name: webhookport
+    port: 8006
+    targetPort: 8006
   selector:
     service: {self.path.k8s}
 ---
@@ -72,6 +76,8 @@ spec:
           fieldPath: metadata.namespace
     - name: AMBASSADOR_ID
       value: {self.path.k8s}
+    - name: AMBASSADOR_ADMIN_SVC
+      value: {self.path.k8s}-admin
     - name: AMBASSADOR_SNAPSHOT_COUNT
       value: "0"
     - name: AMBASSADOR_CONFIG_BASE_DIR

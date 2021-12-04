@@ -290,6 +290,7 @@ class AmbassadorTest(Test):
 
         envs = [ "KUBERNETES_SERVICE_HOST=kubernetes",
                  "KUBERNETES_SERVICE_PORT=443",
+                 "AMBASSADOR_ADMIN_SERVICE=%s" % self.path.k8s,
                  "AMBASSADOR_SNAPSHOT_COUNT=1",
                  "AMBASSADOR_CONFIG_BASE_DIR=/tmp/ambassador",
                  "POLL_EVERY_SECS=0",
