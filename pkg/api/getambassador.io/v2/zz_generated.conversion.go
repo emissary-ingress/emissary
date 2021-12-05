@@ -682,6 +682,11 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddConversionFunc((*AmbassadorID)(nil), (*v3alpha1.AmbassadorID)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(a.(*AmbassadorID), b.(*v3alpha1.AmbassadorID), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddConversionFunc((*AuthServiceSpec)(nil), (*v3alpha1.AuthServiceSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v2_AuthServiceSpec_To_v3alpha1_AuthServiceSpec(a.(*AuthServiceSpec), b.(*v3alpha1.AuthServiceSpec), scope)
 	}); err != nil {
@@ -719,6 +724,11 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddConversionFunc((*v3alpha1.AddedHeader)(nil), (*AddedHeader)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v3alpha1_AddedHeader_To_v2_AddedHeader(a.(*v3alpha1.AddedHeader), b.(*AddedHeader), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddConversionFunc((*v3alpha1.AmbassadorID)(nil), (*AmbassadorID)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(a.(*v3alpha1.AmbassadorID), b.(*AmbassadorID), scope)
 	}); err != nil {
 		return err
 	}
@@ -921,7 +931,9 @@ func Convert_v3alpha1_AuthServiceList_To_v2_AuthServiceList(in *v3alpha1.AuthSer
 }
 
 func autoConvert_v2_AuthServiceSpec_To_v3alpha1_AuthServiceSpec(in *AuthServiceSpec, out *v3alpha1.AuthServiceSpec, s conversion.Scope) error {
-	out.AmbassadorID = v3alpha1.AmbassadorID(in.AmbassadorID)
+	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.AuthService = in.AuthService
 	out.PathPrefix = in.PathPrefix
 	// WARNING: in.TLS requires manual conversion: inconvertible types (*./pkg/api/getambassador.io/v2.BoolOrString vs string)
@@ -974,7 +986,9 @@ func autoConvert_v2_AuthServiceSpec_To_v3alpha1_AuthServiceSpec(in *AuthServiceS
 }
 
 func autoConvert_v3alpha1_AuthServiceSpec_To_v2_AuthServiceSpec(in *v3alpha1.AuthServiceSpec, out *AuthServiceSpec, s conversion.Scope) error {
-	out.AmbassadorID = AmbassadorID(in.AmbassadorID)
+	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.AuthService = in.AuthService
 	out.PathPrefix = in.PathPrefix
 	if err := Convert_string_To_Pointer_v2_BoolOrString(&in.TLS, &out.TLS, s); err != nil {
@@ -1167,7 +1181,9 @@ func Convert_v3alpha1_ConsulResolverList_To_v2_ConsulResolverList(in *v3alpha1.C
 }
 
 func autoConvert_v2_ConsulResolverSpec_To_v3alpha1_ConsulResolverSpec(in *ConsulResolverSpec, out *v3alpha1.ConsulResolverSpec, s conversion.Scope) error {
-	out.AmbassadorID = v3alpha1.AmbassadorID(in.AmbassadorID)
+	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Address = in.Address
 	out.Datacenter = in.Datacenter
 	return nil
@@ -1179,7 +1195,9 @@ func Convert_v2_ConsulResolverSpec_To_v3alpha1_ConsulResolverSpec(in *ConsulReso
 }
 
 func autoConvert_v3alpha1_ConsulResolverSpec_To_v2_ConsulResolverSpec(in *v3alpha1.ConsulResolverSpec, out *ConsulResolverSpec, s conversion.Scope) error {
-	out.AmbassadorID = AmbassadorID(in.AmbassadorID)
+	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Address = in.Address
 	out.Datacenter = in.Datacenter
 	return nil
@@ -1363,7 +1381,9 @@ func Convert_v3alpha1_DevPortalSelectorSpec_To_v2_DevPortalSelectorSpec(in *v3al
 }
 
 func autoConvert_v2_DevPortalSpec_To_v3alpha1_DevPortalSpec(in *DevPortalSpec, out *v3alpha1.DevPortalSpec, s conversion.Scope) error {
-	out.AmbassadorID = v3alpha1.AmbassadorID(in.AmbassadorID)
+	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Default = in.Default
 	if in.Content != nil {
 		in, out := &in.Content, &out.Content
@@ -1414,7 +1434,9 @@ func Convert_v2_DevPortalSpec_To_v3alpha1_DevPortalSpec(in *DevPortalSpec, out *
 }
 
 func autoConvert_v3alpha1_DevPortalSpec_To_v2_DevPortalSpec(in *v3alpha1.DevPortalSpec, out *DevPortalSpec, s conversion.Scope) error {
-	out.AmbassadorID = AmbassadorID(in.AmbassadorID)
+	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Default = in.Default
 	if in.Content != nil {
 		in, out := &in.Content, &out.Content
@@ -1723,8 +1745,12 @@ func Convert_v3alpha1_HostList_To_v2_HostList(in *v3alpha1.HostList, out *HostLi
 }
 
 func autoConvert_v2_HostSpec_To_v3alpha1_HostSpec(in *HostSpec, out *v3alpha1.HostSpec, s conversion.Scope) error {
-	out.AmbassadorID = v3alpha1.AmbassadorID(in.AmbassadorID)
-	out.DeprecatedAmbassadorID = v3alpha1.AmbassadorID(in.DeprecatedAmbassadorID)
+	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
+	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.DeprecatedAmbassadorID, &out.DeprecatedAmbassadorID, s); err != nil {
+		return err
+	}
 	out.Hostname = in.Hostname
 	out.MappingSelector = in.Selector
 	if in.AcmeProvider != nil {
@@ -1770,8 +1796,12 @@ func Convert_v2_HostSpec_To_v3alpha1_HostSpec(in *HostSpec, out *v3alpha1.HostSp
 }
 
 func autoConvert_v3alpha1_HostSpec_To_v2_HostSpec(in *v3alpha1.HostSpec, out *HostSpec, s conversion.Scope) error {
-	out.AmbassadorID = AmbassadorID(in.AmbassadorID)
-	out.DeprecatedAmbassadorID = AmbassadorID(in.DeprecatedAmbassadorID)
+	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
+	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.DeprecatedAmbassadorID, &out.DeprecatedAmbassadorID, s); err != nil {
+		return err
+	}
 	out.Hostname = in.Hostname
 	// WARNING: in.DeprecatedSelector requires manual conversion: does not exist in peer-type
 	out.Selector = in.MappingSelector
@@ -1959,7 +1989,9 @@ func Convert_v3alpha1_KubernetesEndpointResolverList_To_v2_KubernetesEndpointRes
 }
 
 func autoConvert_v2_KubernetesEndpointResolverSpec_To_v3alpha1_KubernetesEndpointResolverSpec(in *KubernetesEndpointResolverSpec, out *v3alpha1.KubernetesEndpointResolverSpec, s conversion.Scope) error {
-	out.AmbassadorID = v3alpha1.AmbassadorID(in.AmbassadorID)
+	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -1969,7 +2001,9 @@ func Convert_v2_KubernetesEndpointResolverSpec_To_v3alpha1_KubernetesEndpointRes
 }
 
 func autoConvert_v3alpha1_KubernetesEndpointResolverSpec_To_v2_KubernetesEndpointResolverSpec(in *v3alpha1.KubernetesEndpointResolverSpec, out *KubernetesEndpointResolverSpec, s conversion.Scope) error {
-	out.AmbassadorID = AmbassadorID(in.AmbassadorID)
+	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -2047,7 +2081,9 @@ func Convert_v3alpha1_KubernetesServiceResolverList_To_v2_KubernetesServiceResol
 }
 
 func autoConvert_v2_KubernetesServiceResolverSpec_To_v3alpha1_KubernetesServiceResolverSpec(in *KubernetesServiceResolverSpec, out *v3alpha1.KubernetesServiceResolverSpec, s conversion.Scope) error {
-	out.AmbassadorID = v3alpha1.AmbassadorID(in.AmbassadorID)
+	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -2057,7 +2093,9 @@ func Convert_v2_KubernetesServiceResolverSpec_To_v3alpha1_KubernetesServiceResol
 }
 
 func autoConvert_v3alpha1_KubernetesServiceResolverSpec_To_v2_KubernetesServiceResolverSpec(in *v3alpha1.KubernetesServiceResolverSpec, out *KubernetesServiceResolverSpec, s conversion.Scope) error {
-	out.AmbassadorID = AmbassadorID(in.AmbassadorID)
+	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -2197,7 +2235,9 @@ func Convert_v3alpha1_LogServiceList_To_v2_LogServiceList(in *v3alpha1.LogServic
 }
 
 func autoConvert_v2_LogServiceSpec_To_v3alpha1_LogServiceSpec(in *LogServiceSpec, out *v3alpha1.LogServiceSpec, s conversion.Scope) error {
-	out.AmbassadorID = v3alpha1.AmbassadorID(in.AmbassadorID)
+	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Service = in.Service
 	out.Driver = in.Driver
 	if in.DriverConfig != nil {
@@ -2222,7 +2262,9 @@ func Convert_v2_LogServiceSpec_To_v3alpha1_LogServiceSpec(in *LogServiceSpec, ou
 }
 
 func autoConvert_v3alpha1_LogServiceSpec_To_v2_LogServiceSpec(in *v3alpha1.LogServiceSpec, out *LogServiceSpec, s conversion.Scope) error {
-	out.AmbassadorID = AmbassadorID(in.AmbassadorID)
+	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Service = in.Service
 	out.Driver = in.Driver
 	if in.DriverConfig != nil {
@@ -2345,7 +2387,9 @@ func Convert_v3alpha1_MappingList_To_v2_MappingList(in *v3alpha1.MappingList, ou
 }
 
 func autoConvert_v2_MappingSpec_To_v3alpha1_MappingSpec(in *MappingSpec, out *v3alpha1.MappingSpec, s conversion.Scope) error {
-	out.AmbassadorID = v3alpha1.AmbassadorID(in.AmbassadorID)
+	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Prefix = in.Prefix
 	out.PrefixRegex = in.PrefixRegex
 	out.PrefixExact = in.PrefixExact
@@ -2563,7 +2607,9 @@ func autoConvert_v2_MappingSpec_To_v3alpha1_MappingSpec(in *MappingSpec, out *v3
 }
 
 func autoConvert_v3alpha1_MappingSpec_To_v2_MappingSpec(in *v3alpha1.MappingSpec, out *MappingSpec, s conversion.Scope) error {
-	out.AmbassadorID = AmbassadorID(in.AmbassadorID)
+	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Prefix = in.Prefix
 	out.PrefixRegex = in.PrefixRegex
 	out.PrefixExact = in.PrefixExact
@@ -2921,7 +2967,9 @@ func Convert_v3alpha1_ModuleList_To_v2_ModuleList(in *v3alpha1.ModuleList, out *
 }
 
 func autoConvert_v2_ModuleSpec_To_v3alpha1_ModuleSpec(in *ModuleSpec, out *v3alpha1.ModuleSpec, s conversion.Scope) error {
-	out.AmbassadorID = v3alpha1.AmbassadorID(in.AmbassadorID)
+	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Config = v3alpha1.UntypedDict(in.Config)
 	return nil
 }
@@ -2932,7 +2980,9 @@ func Convert_v2_ModuleSpec_To_v3alpha1_ModuleSpec(in *ModuleSpec, out *v3alpha1.
 }
 
 func autoConvert_v3alpha1_ModuleSpec_To_v2_ModuleSpec(in *v3alpha1.ModuleSpec, out *ModuleSpec, s conversion.Scope) error {
-	out.AmbassadorID = AmbassadorID(in.AmbassadorID)
+	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Config = UntypedDict(in.Config)
 	return nil
 }
@@ -3033,7 +3083,9 @@ func Convert_v3alpha1_RateLimitServiceList_To_v2_RateLimitServiceList(in *v3alph
 }
 
 func autoConvert_v2_RateLimitServiceSpec_To_v3alpha1_RateLimitServiceSpec(in *RateLimitServiceSpec, out *v3alpha1.RateLimitServiceSpec, s conversion.Scope) error {
-	out.AmbassadorID = v3alpha1.AmbassadorID(in.AmbassadorID)
+	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Service = in.Service
 	if in.Timeout != nil {
 		in, out := &in.Timeout, &out.Timeout
@@ -3050,7 +3102,9 @@ func autoConvert_v2_RateLimitServiceSpec_To_v3alpha1_RateLimitServiceSpec(in *Ra
 }
 
 func autoConvert_v3alpha1_RateLimitServiceSpec_To_v2_RateLimitServiceSpec(in *v3alpha1.RateLimitServiceSpec, out *RateLimitServiceSpec, s conversion.Scope) error {
-	out.AmbassadorID = AmbassadorID(in.AmbassadorID)
+	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Service = in.Service
 	if in.Timeout != nil {
 		in, out := &in.Timeout, &out.Timeout
@@ -3204,7 +3258,9 @@ func Convert_v3alpha1_TCPMappingList_To_v2_TCPMappingList(in *v3alpha1.TCPMappin
 }
 
 func autoConvert_v2_TCPMappingSpec_To_v3alpha1_TCPMappingSpec(in *TCPMappingSpec, out *v3alpha1.TCPMappingSpec, s conversion.Scope) error {
-	out.AmbassadorID = v3alpha1.AmbassadorID(in.AmbassadorID)
+	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Port = in.Port
 	out.Host = in.Host
 	out.Address = in.Address
@@ -3230,7 +3286,9 @@ func autoConvert_v2_TCPMappingSpec_To_v3alpha1_TCPMappingSpec(in *TCPMappingSpec
 }
 
 func autoConvert_v3alpha1_TCPMappingSpec_To_v2_TCPMappingSpec(in *v3alpha1.TCPMappingSpec, out *TCPMappingSpec, s conversion.Scope) error {
-	out.AmbassadorID = AmbassadorID(in.AmbassadorID)
+	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Port = in.Port
 	out.Host = in.Host
 	out.Address = in.Address
@@ -3369,7 +3427,9 @@ func Convert_v3alpha1_TLSContextList_To_v2_TLSContextList(in *v3alpha1.TLSContex
 }
 
 func autoConvert_v2_TLSContextSpec_To_v3alpha1_TLSContextSpec(in *TLSContextSpec, out *v3alpha1.TLSContextSpec, s conversion.Scope) error {
-	out.AmbassadorID = v3alpha1.AmbassadorID(in.AmbassadorID)
+	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Hosts = in.Hosts
 	out.Secret = in.Secret
 	out.CertChainFile = in.CertChainFile
@@ -3394,7 +3454,9 @@ func Convert_v2_TLSContextSpec_To_v3alpha1_TLSContextSpec(in *TLSContextSpec, ou
 }
 
 func autoConvert_v3alpha1_TLSContextSpec_To_v2_TLSContextSpec(in *v3alpha1.TLSContextSpec, out *TLSContextSpec, s conversion.Scope) error {
-	out.AmbassadorID = AmbassadorID(in.AmbassadorID)
+	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Hosts = in.Hosts
 	out.Secret = in.Secret
 	out.CertChainFile = in.CertChainFile
@@ -3545,7 +3607,9 @@ func Convert_v3alpha1_TracingServiceList_To_v2_TracingServiceList(in *v3alpha1.T
 }
 
 func autoConvert_v2_TracingServiceSpec_To_v3alpha1_TracingServiceSpec(in *TracingServiceSpec, out *v3alpha1.TracingServiceSpec, s conversion.Scope) error {
-	out.AmbassadorID = v3alpha1.AmbassadorID(in.AmbassadorID)
+	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Driver = in.Driver
 	out.Service = in.Service
 	if in.Sampling != nil {
@@ -3573,7 +3637,9 @@ func Convert_v2_TracingServiceSpec_To_v3alpha1_TracingServiceSpec(in *TracingSer
 }
 
 func autoConvert_v3alpha1_TracingServiceSpec_To_v2_TracingServiceSpec(in *v3alpha1.TracingServiceSpec, out *TracingServiceSpec, s conversion.Scope) error {
-	out.AmbassadorID = AmbassadorID(in.AmbassadorID)
+	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
+		return err
+	}
 	out.Driver = in.Driver
 	out.Service = in.Service
 	if in.Sampling != nil {

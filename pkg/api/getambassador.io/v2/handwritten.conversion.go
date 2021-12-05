@@ -186,6 +186,53 @@ func Convert_string_To_v2_BoolOrString(in *string, out *BoolOrString, s conversi
 	return nil
 }
 
+const ambassadorIDMangle = "--apiVersion-v3alpha1-only--"
+
+func Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in *AmbassadorID, out *v3alpha1.AmbassadorID, s conversion.Scope) error {
+	if *in == nil {
+		*out = nil
+		return nil
+	}
+	list := make(v3alpha1.AmbassadorID, 0, len(*in))
+	for _, item := range *in {
+		list = append(list, strings.TrimPrefix(item, ambassadorIDMangle))
+	}
+	*out = list
+	return nil
+}
+
+// Pass DisableManglingAmbassadorID as the context to scheme.Convert() to disable mangling
+// ambassador_id when converting from v3alpha1 to v2.
+type DisableManglingAmbassadorID struct{}
+
+func Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in *v3alpha1.AmbassadorID, out *AmbassadorID, s conversion.Scope) error {
+	mangle := true
+	if meta := s.Meta(); meta != nil {
+		if _, disable := meta.Context.(DisableManglingAmbassadorID); disable {
+			mangle = false
+		}
+	}
+
+	if *in == nil {
+		if mangle {
+			in = &v3alpha1.AmbassadorID{"default"}
+		} else {
+			*out = nil
+			return nil
+		}
+	}
+	list := make(AmbassadorID, 0, len(*in))
+	for _, item := range *in {
+		item = strings.TrimPrefix(item, ambassadorIDMangle)
+		if mangle {
+			item = ambassadorIDMangle + item
+		}
+		list = append(list, item)
+	}
+	*out = list
+	return nil
+}
+
 func Convert_string_To_Pointer_v2_BoolOrString(in *string, out **BoolOrString, s conversion.Scope) error {
 	if *in != "" {
 		*out = &BoolOrString{
