@@ -180,7 +180,7 @@ spec:
               containerPort: 8443
           livenessProbe:
             httpGet:
-              scheme: HTTPS
+              scheme: HTTP
               path: /probes/live
               port: 8080
             {{- toYaml .Values.apiext.pod.livenessProbe | nindent 12 }}
