@@ -133,12 +133,12 @@ func TestConvert(t *testing.T) {
 
 							midList := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(testcases[typename][throughAPIVersion])), listLen, listLen)
 							for i := 0; i < listLen; i++ {
-								require.NoError(t, scheme.Convert(inList.Index(i).Addr().Interface(), midList.Index(i).Addr().Interface(), nil))
+								require.NoError(t, scheme.Convert(inList.Index(i).Addr().Interface(), midList.Index(i).Addr().Interface(), v2.DisableManglingAmbassadorID{}))
 							}
 
 							outList := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(testcases[typename][mainAPIVersion])), listLen, listLen)
 							for i := 0; i < listLen; i++ {
-								require.NoError(t, scheme.Convert(midList.Index(i).Addr().Interface(), outList.Index(i).Addr().Interface(), nil))
+								require.NoError(t, scheme.Convert(midList.Index(i).Addr().Interface(), outList.Index(i).Addr().Interface(), v2.DisableManglingAmbassadorID{}))
 								outList.Index(i).FieldByName("TypeMeta").Set(inList.Index(i).FieldByName("TypeMeta"))
 							}
 
