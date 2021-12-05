@@ -15,7 +15,8 @@ const (
 	ambassadorClusterIdEnvVar     = "AMBASSADOR_CLUSTER_ID"
 )
 
-// EnvironmentSetupEntrypoint replicates the entrypoint.sh environment bootstrapping if the docker entrypoint was changed
+// EnvironmentSetupEntrypoint replicates the old entrypoint.sh environment bootstrapping if the
+// Docker entrypoint was changed.
 func EnvironmentSetupEntrypoint(ctx context.Context) {
 	if os.Getenv(ambassadorClusterIdEnvVar) != "" {
 		return

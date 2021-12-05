@@ -180,7 +180,7 @@ ENV HOME=/tmp/ambassador
 
 COPY --from=artifacts /bin/busybox /bin/busybox
 
-ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]
+ENTRYPOINT [ "entrypoint" ]
 
 ########################################
 

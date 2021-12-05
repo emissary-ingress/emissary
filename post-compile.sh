@@ -3,7 +3,7 @@ set -e
 
 busyprograms=(
     ambex
-    #entrypoint
+    entrypoint
     kubestatus
     watt
     agent
@@ -19,7 +19,8 @@ for busyprogram in "${busyprograms[@]}"; do
     sudo ln -sf /opt/ambassador/bin/busyambassador /opt/ambassador/bin/"$busyprogram"
 done
 
-sudo install /buildroot/bin/capabilities_wrapper /opt/ambassador/bin/wrapper
+sudo install /buildroot/ambassador/dev-magic-entrypoint /opt/ambassador/bin/
+sudo install /buildroot/bin/capabilities_wrapper        /opt/ambassador/bin/wrapper
 
 # Copy installer support into /opt/image-build to be run at docker build for the
 # production image. Then run the installers for the builder container.

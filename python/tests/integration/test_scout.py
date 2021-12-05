@@ -52,7 +52,7 @@ def docker_start(logfile) -> bool:
 
     global diagd_host
 
-    cmd = f'docker run --name {child_name} --rm -p 9999:9999 {DOCKER_IMAGE} --dev-magic'
+    cmd = f'docker run --name {child_name} --rm --entrypoint=dev-magic-entrypoint -p 9999:9999 {DOCKER_IMAGE}'
     diagd_host = 'localhost:9999'
 
     child = pexpect.spawn(cmd, encoding='utf-8')

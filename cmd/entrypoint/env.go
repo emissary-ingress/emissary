@@ -78,7 +78,7 @@ func GetAppDir() string {
 // GetConfigDir returns the path to the directory we should check for
 // filesystem config.
 func GetConfigDir(demoMode bool) string {
-	// XXX There was no way to override the config dir via the environment in
+	// XXX There was no way to override the config dir via the environment in the old
 	// entrypoint.sh.
 	configDir := env("AMBASSADOR_CONFIG_DIR", path.Join(GetAmbassadorConfigBaseDir(), "ambassador-config"))
 
@@ -213,7 +213,7 @@ func GetDiagdFlags(ctx context.Context, demoMode bool) []string {
 		result = append(result, "--host", diagdBind)
 	}
 
-	// XXX: this was not in entrypoint.sh
+	// XXX: this was not in the old entrypoint.sh
 	result = append(result, "--port", GetDiagdBindPort())
 
 	cdir := GetConfigDir(demoMode)
@@ -226,7 +226,7 @@ func GetDiagdFlags(ctx context.Context, demoMode bool) []string {
 		result = append(result, "--no-checks", "--no-envoy")
 	} else {
 		result = append(result, "--kick", fmt.Sprintf("kill -HUP %d", os.Getpid()))
-		// XXX: this was not in entrypoint.sh
+		// XXX: this was not in the old entrypoint.sh
 		if !IsEnvoyAvailable() {
 			result = append(result, "--no-envoy")
 		}

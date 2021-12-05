@@ -198,8 +198,8 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		return healthCheckHandler(ctx, ambwatch)
 	})
 
-	// Launch every file in the sidecar directory. Note that this is "bug compatible" with
-	// entrypoint.sh for now, e.g. we don't check execute bits or anything like that.
+	// Launch every file in the sidecar directory. Note that this is "bug compatible" with the
+	// old entrypoint.sh for now, e.g. we don't check execute bits or anything like that.
 	sidecarDir := "/ambassador/sidecars"
 	sidecars, err := ioutil.ReadDir(sidecarDir)
 	if err != nil && !os.IsNotExist(err) {
