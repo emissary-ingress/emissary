@@ -1,5 +1,5 @@
 // This file is ultimately authored by a human, you can ask the build system to generate the
-// nescessary signatures for you by running (in the project root)
+// necessary signatures for you by running (in the project root)
 //
 //    make $PWD/pkg/api/getambassador.io/v2/handwritten.conversion.scaffold.go
 //
