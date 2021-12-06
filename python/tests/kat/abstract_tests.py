@@ -27,6 +27,7 @@ from kat.utils import ShellCommand
 RBAC_CLUSTER_SCOPE = load_manifest("rbac_cluster_scope")
 RBAC_NAMESPACE_SCOPE = load_manifest("rbac_namespace_scope")
 AMBASSADOR = load_manifest("ambassador")
+APIEXT = load_manifest("apiext")
 BACKEND = load_manifest("backend")
 GRPC_ECHO_BACKEND = load_manifest("grpc_echo_backend")
 AUTH_BACKEND = load_manifest("auth_backend")
@@ -185,9 +186,9 @@ class AmbassadorTest(Test):
 """
 
         if DEV:
-            return self.format(rbac + AMBASSADOR_LOCAL, extra_ports=eports)
+            return self.format(rbac + APIEXT + AMBASSADOR_LOCAL, extra_ports=eports)
         else:
-            return self.format(rbac + AMBASSADOR,
+            return self.format(rbac + APIEXT + AMBASSADOR,
                                image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=self.manifest_envs, extra_ports=eports, capabilities_block = "")
 
     # # Will tear this out of the harness shortly

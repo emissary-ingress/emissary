@@ -1,0 +1,5 @@
+deploymentTool: kat
+fullnameOverride: emissary-ingress
+namespaceOverride: default
+serviceAccount:
+  extra: "«serviceAccountExtra»♯: null"
