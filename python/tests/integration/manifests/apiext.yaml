@@ -143,7 +143,7 @@ spec:
       app.kubernetes.io/name: emissary-ingress-apiext
       app.kubernetes.io/part-of: kat-apiext
       app.kubernetes.io/instance: kat-apiext
-  replicas: 3
+  replicas: 1
   template:
     metadata:
       labels:
