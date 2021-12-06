@@ -85,6 +85,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Feature: It is now possible to use both the `getambassador.io/v2` and `getambassador.io/v3alpha1`
+  apiVersions.  This is accomplished with the addition of an `emissary-ingress-apiext` Service and
+  Deployment that handles converting between the two versions for the apiserver.  This allows the
+  user to semlessly request and author resources in whichever API version is desired, and
+  facilitates easier migration from Emissary 1.x to 2.x.  Resources authored in v3alpha1 will not be
+  visible to Emissary 1.x; resources authored in v2 will be visible to both Emissary 1.x and 2.x.
+
 - Bugfix: The incremental reconfiguration cache could miss some updates when multiple `Mapping`s had
   the same `prefix` ("canary"ing multiple `Mapping`s together). This has been corrected, so that all
   such updates correctly take effect. ([3945])
@@ -94,8 +101,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   present, and everything was working correctly. This error is no longer logged.
 
 - Bugfix: When using gzip compression, upstream services will no longer receive compressed data.
-  This bug was introduced in 1.14.0. The fix restores the default behavior of  not sending
-  compressed data to upstream services. ([3818])
+  This bug was introduced in 1.14.0. The fix restores the default behavior of not sending compressed
+  data to upstream services. ([3818])
 
 - Security: Update to busybox 1.34.1 to resolve CVE-2021-28831, CVE-2021-42378, CVE-2021-42379,
   CVE-2021-42380, CVE-2021-42381, CVE-2021-42382, CVE-2021-42383, CVE-2021-42384, CVE-2021-42385,

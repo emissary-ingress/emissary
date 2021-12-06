@@ -34,6 +34,17 @@ items:
   - version: 2.1.0
     date: 'TBD'
     notes:
+      - title: CRD conversions
+        type: feature
+        body: >-
+          It is now possible to use both the <code>getambassador.io/v2</code> and
+          <code>getambassador.io/v3alpha1</code> apiVersions.  This is accomplished with the
+          addition of an <code>emissary-ingress-apiext</code> Service and Deployment that handles
+          converting between the two versions for the apiserver.  This allows the user to semlessly
+          request and author resources in whichever API version is desired, and facilitates easier
+          migration from Emissary 1.x to 2.x.  Resources authored in v3alpha1 will not be visible to
+          Emissary 1.x; resources authored in v2 will be visible to both Emissary 1.x and 2.x.
+
       - title: Correctly handle all changing canary configurations
         type: bugfix
         body: >-
@@ -53,12 +64,12 @@ items:
           ACME client does), an error would always be logged about the Secret not being
           present, even though it was present, and everything was working correctly.
           This error is no longer logged.
-      
+
       - title: When using gzip, upstreams will no longer receive encoded data
         type: bugfix
         body: >-
           When using gzip compression, upstream services will no longer receive compressed
-          data. This bug was introduced in 1.14.0. The fix restores the default behavior of 
+          data. This bug was introduced in 1.14.0. The fix restores the default behavior of
           not sending compressed data to upstream services.
         github:
         - title: 3818
