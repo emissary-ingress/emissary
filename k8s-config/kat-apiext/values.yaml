@@ -1,0 +1,12 @@
+deploymentTool: kat
+fullnameOverride: emissary-ingress
+namespaceOverride: default
+
+image:
+  fullImageOverride: «image»
+serviceAccount:
+  extra: "«serviceAccountExtra»♯: null"
+
+apiext:
+  deployment:
+    replicas: 1

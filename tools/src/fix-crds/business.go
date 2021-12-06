@@ -10,12 +10,14 @@ import (
 const (
 	TargetAPIServerHelm     = "apiserver-helm"
 	TargetAPIServerKubectl  = "apiserver-kubectl"
+	TargetAPIServerKAT      = "apiserver-kat"
 	TargetInternalValidator = "internal-validator"
 )
 
 var Targets = []string{
 	TargetAPIServerHelm,
 	TargetAPIServerKubectl,
+	TargetAPIServerKAT,
 	TargetInternalValidator,
 }
 
@@ -42,7 +44,10 @@ type CRD struct {
 		Versions                 []apiext.CustomResourceDefinitionVersion `json:"versions,omitempty"`
 		AdditionalPrinterColumns []apiext.CustomResourceColumnDefinition  `json:"additionalPrinterColumns,omitempty"`
 		Conversion               *apiext.CustomResourceConversion         `json:"conversion,omitempty"`
-		PreserveUnknownFields    *bool                                    `json:"preserveUnknownFields,omitempty"`
+		// Explicitly setting 'preserveUnknownFields: false' is important even though that's
+		// the default; it's important when upgrading from CRDv1beta1 to CRDv1; the default
+		// was true in v1beta1, but we need it to be false.
+		PreserveUnknownFields bool `json:"preserveUnknownFields"`
 	} `json:"spec"`
 }
 
@@ -96,6 +101,34 @@ func FixCRD(args Args, crd *CRD) error {
 	// fix categories
 	if !inArray("ambassador-crds", crd.Spec.Names.Categories) {
 		crd.Spec.Names.Categories = append(crd.Spec.Names.Categories, "ambassador-crds")
+	}
+
+	// fix conversion
+	if len(crd.Spec.Versions) > 1 {
+		name := "bogus-emissary-apiext"
+		namespace := "bogus-emissary"
+		if args.Target == TargetAPIServerKAT {
+			name = "emissary-ingress-apiext"
+			namespace = "default"
+		}
+		crd.Spec.Conversion = &apiext.CustomResourceConversion{
+			Strategy: apiext.WebhookConverter,
+			Webhook: &apiext.WebhookConversion{
+				// 'ClientConfig' will get overwritten by Emissary's 'apiext'
+				// controller.
+				ClientConfig: &apiext.WebhookClientConfig{
+					Service: &apiext.ServiceReference{
+						Name:      name,
+						Namespace: namespace,
+					},
+				},
+				// Which versions of the conversion API our webhook supports.  Since
+				// we use sigs.k8s.io/controller-runtime/pkg/webhook/conversion to
+				// implement the webhook this list should be kept in-sync with what
+				// that package supports.
+				ConversionReviewVersions: []string{"v1beta1"},
+			},
+		}
 	}
 
 	return nil

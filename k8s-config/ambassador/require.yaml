@@ -1,4 +1,11 @@
 resources:
+  - { kind: ServiceAccount,     name: ambassador-apiext,             namespace: default }
+  - { kind: ClusterRole,        name: ambassador-apiext                                 }
+  - { kind: ClusterRoleBinding, name: ambassador-apiext                                 }
+  - { kind: Role,               name: ambassador-apiext,             namespace: default }
+  - { kind: RoleBinding,        name: ambassador-apiext,             namespace: default }
+  - { kind: Service,            name: ambassador-apiext,             namespace: default }
+  - { kind: Deployment,         name: ambassador-apiext,             namespace: default }
   - { kind: Service,            name: ambassador-admin,              namespace: default }
   - { kind: Service,            name: ambassador,                    namespace: default }
   - { kind: ClusterRole,        name: ambassador                                        }

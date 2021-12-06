@@ -60,6 +60,8 @@ generate/precious   += $(OSS_HOME)/builder/requirements.txt
 generate-fast/files += $(OSS_HOME)/CHANGELOG.md
 generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/README.md
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion.go
+generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion-spoke.go
+generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v3alpha1/zz_generated.conversion-hub.go
 # Individual files: YAML
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
@@ -68,6 +70,8 @@ generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
 generate-fast/files += $(OSS_HOME)/cmd/entrypoint/crds.yaml
 generate-fast/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml
+generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/apiext.yaml
+generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml
 # Individual files: Test TLS Certificates
@@ -382,6 +386,60 @@ $(OSS_HOME)/%/handwritten.conversion.scaffold.go: $(OSS_HOME)/%/zz_generated.con
 	  gofmt; \
 	} <$< >$@
 
+$(OSS_HOME)/%/zz_generated.conversion-hub.go: FORCE
+	rm -f $@
+	{ \
+	  gawk ' \
+	    BEGIN { \
+	       print("package $(notdir $*)"); \
+	       print(""); \
+	       object=0; \
+	    } \
+	    /\/\/ \+kubebuilder:object:root=true/ { \
+	       object=1; \
+	    } \
+	    /^type \S+ struct/ && object { \
+	        if (!match($$2, /List$$/)) { \
+	          print "func(*" $$2 ") Hub() {}"; \
+	        } \
+	        object=0; \
+	    }' $(sort $(wildcard $(@D)/*.go)) | \
+	  gofmt; \
+	} >$@
+
+$(OSS_HOME)/%/zz_generated.conversion-spoke.go: FORCE
+	rm -f $@
+	{ \
+	  gawk ' \
+	    BEGIN { \
+	       print("package $(notdir $*)"); \
+	       print(""); \
+	       print("import ("); \
+	       print("  \"k8s.io/apimachinery/pkg/runtime\""); \
+	       print("  \"sigs.k8s.io/controller-runtime/pkg/conversion\""); \
+	       print(")"); \
+	       print(""); \
+	       print("func convert(src, dst runtime.Object) error {"); \
+	       print("  s, err := SchemeBuilder.Build()"); \
+	       print("  if err != nil { return err }"); \
+	       print("  return s.Convert(src, dst, nil)"); \
+	       print("}"); \
+	       print(""); \
+	       object=0; \
+	    } \
+	    /\/\/ \+kubebuilder:object:root=true/ { \
+	       object=1; \
+	    } \
+	    /^type \S+ struct/ && object { \
+	        if (!match($$2, /List$$/)) { \
+	          print "func(dst *" $$2 ") ConvertFrom(src conversion.Hub) error { return convert(src, dst) }"; \
+	          print "func(src *" $$2 ") ConvertTo(dst conversion.Hub) error { return convert(src, dst) }"; \
+	        } \
+	        object=0; \
+	    }' $(sort $(wildcard $(@D)/*.go)) | \
+	  gofmt; \
+	} >$@
+
 $(OSS_HOME)/charts/emissary-ingress/crds: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	rm -rf $@
 	mkdir $@
@@ -394,6 +452,9 @@ $(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/_generate.tmp/crd
 $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	@printf '  $(CYN)$@$(END)\n'
 	$(tools/fix-crds) apiserver-kubectl $(sort $(wildcard $</*.yaml)) > $@
+
+$(OSS_HOME)/python/tests/integration/manifests/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
+	$(tools/fix-crds) apiserver-kat $(sort $(wildcard $</*.yaml)) > $@
 
 $(OSS_HOME)/cmd/entrypoint/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) internal-validator $(sort $(wildcard $</*.yaml)) > $@
@@ -426,7 +487,7 @@ $(OSS_HOME)/k8s-config/%/output.yaml: \
 	. $(OSS_HOME)/venv/bin/activate && $(filter %.py,$^) $(filter %/helm-expanded.yaml,$^) $(filter %/require.yaml,$^) >$@
 $(OSS_HOME)/manifests/emissary/%.yaml: $(OSS_HOME)/k8s-config/%/output.yaml
 	cp $< $@
-$(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml: $(OSS_HOME)/k8s-config/kat-ambassador/output.yaml
+$(OSS_HOME)/python/tests/integration/manifests/%.yaml: $(OSS_HOME)/k8s-config/kat-%/output.yaml
 	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
 $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml: $(OSS_HOME)/k8s-config/kat-rbac-multinamespace/output.yaml
 	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@

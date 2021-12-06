@@ -8,6 +8,9 @@ import (
 	"net/http/pprof"
 	"net/url"
 
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+
 	"github.com/datawire/ambassador/v2/pkg/acp"
 	"github.com/datawire/ambassador/v2/pkg/debug"
 	"github.com/datawire/dlib/dhttp"

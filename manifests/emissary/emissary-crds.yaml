@@ -10,6 +10,15 @@ metadata:
     product: aes
   name: authservices.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: bogus-emissary-apiext
+          namespace: bogus-emissary
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:
@@ -18,6 +27,7 @@ spec:
     listKind: AuthServiceList
     plural: authservices
     singular: authservice
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -244,6 +254,15 @@ metadata:
     product: aes
   name: consulresolvers.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: bogus-emissary-apiext
+          namespace: bogus-emissary
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:
@@ -252,6 +271,7 @@ spec:
     listKind: ConsulResolverList
     plural: consulresolvers
     singular: consulresolver
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -319,6 +339,15 @@ metadata:
     product: aes
   name: devportals.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: bogus-emissary-apiext
+          namespace: bogus-emissary
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:
@@ -327,6 +356,7 @@ spec:
     listKind: DevPortalList
     plural: devportals
     singular: devportal
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -514,6 +544,15 @@ metadata:
     product: aes
   name: hosts.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: bogus-emissary-apiext
+          namespace: bogus-emissary
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:
@@ -522,6 +561,7 @@ spec:
     listKind: HostList
     plural: hosts
     singular: host
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -789,11 +829,6 @@ spec:
                 items:
                   type: string
                 type: array
-              ambassadorId:
-                description: "A compatibility alias for \"ambassador_id\"; because Host used to be specified with protobuf, and jsonpb allowed either \"ambassador_id\" or \"ambassadorId\", and even though we didn't tell people about \"ambassadorId\" it's what the web policy console generated because of jsonpb.  So Hosts with 'ambassadorId' exist in the wild. \n TODO(lukeshu): In v3alpha2, remove HostSpec.DeprecatedAmbassadorID."
-                items:
-                  type: string
-                type: array
               hostname:
                 description: Hostname by which the Ambassador can be reached.
                 type: string
@@ -992,6 +1027,15 @@ metadata:
     product: aes
   name: kubernetesendpointresolvers.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: bogus-emissary-apiext
+          namespace: bogus-emissary
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:
@@ -1000,6 +1044,7 @@ spec:
     listKind: KubernetesEndpointResolverList
     plural: kubernetesendpointresolvers
     singular: kubernetesendpointresolver
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -1058,6 +1103,15 @@ metadata:
     product: aes
   name: kubernetesserviceresolvers.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: bogus-emissary-apiext
+          namespace: bogus-emissary
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:
@@ -1066,6 +1120,7 @@ spec:
     listKind: KubernetesServiceResolverList
     plural: kubernetesserviceresolvers
     singular: kubernetesserviceresolver
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -1132,6 +1187,7 @@ spec:
     listKind: ListenerList
     plural: listeners
     singular: listener
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -1282,6 +1338,15 @@ metadata:
     product: aes
   name: logservices.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: bogus-emissary-apiext
+          namespace: bogus-emissary
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:
@@ -1290,6 +1355,7 @@ spec:
     listKind: LogServiceList
     plural: logservices
     singular: logservice
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -1411,6 +1477,15 @@ metadata:
     product: aes
   name: mappings.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: bogus-emissary-apiext
+          namespace: bogus-emissary
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:
@@ -1419,6 +1494,7 @@ spec:
     listKind: MappingList
     plural: mappings
     singular: mapping
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -2264,6 +2340,15 @@ metadata:
     product: aes
   name: modules.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: bogus-emissary-apiext
+          namespace: bogus-emissary
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:
@@ -2272,6 +2357,7 @@ spec:
     listKind: ModuleList
     plural: modules
     singular: module
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -2339,6 +2425,15 @@ metadata:
     product: aes
   name: ratelimitservices.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: bogus-emissary-apiext
+          namespace: bogus-emissary
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:
@@ -2347,6 +2442,7 @@ spec:
     listKind: RateLimitServiceList
     plural: ratelimitservices
     singular: ratelimitservice
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -2456,6 +2552,15 @@ metadata:
     product: aes
   name: tcpmappings.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: bogus-emissary-apiext
+          namespace: bogus-emissary
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:
@@ -2464,6 +2569,7 @@ spec:
     listKind: TCPMappingList
     plural: tcpmappings
     singular: tcpmapping
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -2632,6 +2738,15 @@ metadata:
     product: aes
   name: tlscontexts.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: bogus-emissary-apiext
+          namespace: bogus-emissary
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:
@@ -2640,6 +2755,7 @@ spec:
     listKind: TLSContextList
     plural: tlscontexts
     singular: tlscontext
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2
@@ -2791,6 +2907,15 @@ metadata:
     product: aes
   name: tracingservices.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: bogus-emissary-apiext
+          namespace: bogus-emissary
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:
@@ -2799,6 +2924,7 @@ spec:
     listKind: TracingServiceList
     plural: tracingservices
     singular: tracingservice
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2

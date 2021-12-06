@@ -11,6 +11,15 @@ metadata:
     product: aes
   name: modules.getambassador.io
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: bogus-emissary-apiext
+          namespace: bogus-emissary
+      conversionReviewVersions:
+      - v1beta1
   group: getambassador.io
   names:
     categories:
@@ -19,6 +28,7 @@ spec:
     listKind: ModuleList
     plural: modules
     singular: module
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v2

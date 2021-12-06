@@ -83,15 +83,6 @@ type PreviewURLType string
 type HostSpec struct {
 	// Common to all Ambassador objects (and optional).
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
-	// A compatibility alias for "ambassador_id"; because Host
-	// used to be specified with protobuf, and jsonpb allowed
-	// either "ambassador_id" or "ambassadorId", and even though
-	// we didn't tell people about "ambassadorId" it's what the
-	// web policy console generated because of jsonpb.  So Hosts
-	// with 'ambassadorId' exist in the wild.
-	//
-	// TODO(lukeshu): In v3alpha2, remove HostSpec.DeprecatedAmbassadorID.
-	DeprecatedAmbassadorID AmbassadorID `json:"ambassadorId,omitempty"`
 
 	// Hostname by which the Ambassador can be reached.
 	Hostname string `json:"hostname,omitempty"`
