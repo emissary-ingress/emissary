@@ -1619,7 +1619,7 @@ imagePullSecrets:
         apiext = load_manifest('apiext').format(
             image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
             serviceAccountExtra=serviceAccountExtra,
-        ))
+        )
         changed, reason = has_changed(apiext, "/tmp/k8s-kat-apiext.yaml")
         if changed:
             print(f'apiext definition changed ({reason}), applying')
