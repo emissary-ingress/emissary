@@ -186,7 +186,7 @@ class AmbassadorTest(Test):
 """
 
         if DEV:
-            return self.format(rbac + APIEXT + AMBASSADOR_LOCAL, extra_ports=eports)
+            return self.format(rbac + AMBASSADOR_LOCAL, extra_ports=eports)
         else:
             return self.format(rbac + APIEXT + AMBASSADOR,
                                image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=self.manifest_envs, extra_ports=eports, capabilities_block = "")

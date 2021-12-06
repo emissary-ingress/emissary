@@ -171,7 +171,7 @@ spec:
       serviceAccountName: emissary-ingress-apiext
       containers:
       - name: emissary-ingress-apiext
-        image: docker.io/emissaryingress/emissary:2.0.5
+        image: {image}
         imagePullPolicy: IfNotPresent
         command: [apiext, emissary-ingress-apiext]
         ports:
