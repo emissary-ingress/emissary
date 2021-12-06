@@ -1609,6 +1609,28 @@ class Runner:
         else:
             print(f'CRDS unchanged {reason}, skipping apply.')
 
+        # Next up: Install apiext
+        serviceAccountExtra = ''
+        if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
+            serviceAccountExtra = """
+imagePullSecrets:
+- name: dev-image-pull-secret
+"""
+        apiext = load_manifest('apiext').format(
+            image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
+            serviceAccountExtra=serviceAccountExtra,
+        ))
+        changed, reason = has_changed(apiext, "/tmp/k8s-kat-apiext.yaml")
+        if changed:
+            print(f'apiext definition changed ({reason}), applying')
+            if not ShellCommand.run_with_retry(
+                    'Apply apiext',
+                    'tools/bin/kubectl', 'apply', '-f', '/tmp/k8s-kat-apiext.yaml',
+                    retries=5, sleep_seconds=10):
+                raise RuntimeError("Failed applying CRDs")
+        else:
+            print(f'apiext definition unchanged {reason}, skipping apply')
+
         # Next up: the KAT pod.
         KAT_CLIENT_POD = load_manifest("kat_client_pod")
         if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
