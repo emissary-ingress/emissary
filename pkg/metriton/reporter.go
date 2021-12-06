@@ -44,7 +44,7 @@ func getenvDefault(varname, def string) string {
 }
 
 func endpointFromEnv() string {
-	host := getenvDefault("SCOUT_HOST", "kubernaut.io")
+	host := getenvDefault("SCOUT_HOST", "metriton.datawire.io")
 	useHTTPS, _ := strconv.ParseBool(getenvDefault("SCOUT_HTTPS", "1"))
 	ret := &url.URL{
 		Scheme: "http",
