@@ -985,11 +985,6 @@ func (in *HostSpec) DeepCopyInto(out *HostSpec) {
 		*out = make(AmbassadorID, len(*in))
 		copy(*out, *in)
 	}
-	if in.DeprecatedAmbassadorID != nil {
-		in, out := &in.DeprecatedAmbassadorID, &out.DeprecatedAmbassadorID
-		*out = make(AmbassadorID, len(*in))
-		copy(*out, *in)
-	}
 	if in.DeprecatedSelector != nil {
 		in, out := &in.DeprecatedSelector, &out.DeprecatedSelector
 		*out = new(metav1.LabelSelector)

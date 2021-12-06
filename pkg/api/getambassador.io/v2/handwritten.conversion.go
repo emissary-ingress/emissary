@@ -410,6 +410,19 @@ func Convert_v3alpha1_CORS_To_v2_CORS(in *v3alpha1.CORS, out *CORS, s conversion
 	return nil
 }
 
+func Convert_v2_HostSpec_To_v3alpha1_HostSpec(in *HostSpec, out *v3alpha1.HostSpec, s conversion.Scope) error {
+	if err := autoConvert_v2_HostSpec_To_v3alpha1_HostSpec(in, out, s); err != nil {
+		return err
+	}
+
+	// WARNING: in.DeprecatedAmbassadorID requires manual conversion: does not exist in peer-type
+	if len(in.DeprecatedAmbassadorID) > 0 {
+		out.AmbassadorID = append(out.AmbassadorID, in.DeprecatedAmbassadorID...)
+	}
+
+	return nil
+}
+
 func Convert_v3alpha1_HostSpec_To_v2_HostSpec(in *v3alpha1.HostSpec, out *HostSpec, s conversion.Scope) error {
 	if err := autoConvert_v3alpha1_HostSpec_To_v2_HostSpec(in, out, s); err != nil {
 		return err
