@@ -71,6 +71,7 @@ generate-fast/files += $(OSS_HOME)/cmd/entrypoint/crds.yaml
 generate-fast/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/apiext.yaml
+generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml
 # Individual files: Test TLS Certificates
@@ -451,6 +452,9 @@ $(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/_generate.tmp/crd
 $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	@printf '  $(CYN)$@$(END)\n'
 	$(tools/fix-crds) apiserver-kubectl $(sort $(wildcard $</*.yaml)) > $@
+
+$(OSS_HOME)/python/tests/integration/manifests/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
+	$(tools/fix-crds) apiserver-kat $(sort $(wildcard $</*.yaml)) > $@
 
 $(OSS_HOME)/cmd/entrypoint/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) internal-validator $(sort $(wildcard $</*.yaml)) > $@

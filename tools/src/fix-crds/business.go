@@ -10,12 +10,14 @@ import (
 const (
 	TargetAPIServerHelm     = "apiserver-helm"
 	TargetAPIServerKubectl  = "apiserver-kubectl"
+	TargetAPIServerKAT      = "apiserver-kat"
 	TargetInternalValidator = "internal-validator"
 )
 
 var Targets = []string{
 	TargetAPIServerHelm,
 	TargetAPIServerKubectl,
+	TargetAPIServerKAT,
 	TargetInternalValidator,
 }
 
@@ -103,6 +105,12 @@ func FixCRD(args Args, crd *CRD) error {
 
 	// fix conversion
 	if len(crd.Spec.Versions) > 1 {
+		name := "bogus-emissary-apiext"
+		namespace := "bogus-emissary"
+		if args.Target == TargetAPIServerKAT {
+			name = "emissary-ingress-apiext"
+			namespace = "default"
+		}
 		crd.Spec.Conversion = &apiext.CustomResourceConversion{
 			Strategy: apiext.WebhookConverter,
 			Webhook: &apiext.WebhookConversion{
@@ -110,8 +118,8 @@ func FixCRD(args Args, crd *CRD) error {
 				// controller.
 				ClientConfig: &apiext.WebhookClientConfig{
 					Service: &apiext.ServiceReference{
-						Name:      "bogus-emissary-apiext",
-						Namespace: "bogus-emissary",
+						Name:      name,
+						Namespace: namespace,
 					},
 				},
 				// Which versions of the conversion API our webhook supports.  Since
