@@ -81,6 +81,8 @@ func ConfigureCRDs(
 		return errs
 	}
 
+	// Watching for further changes is important so that re-applications of crds.yaml don't
+	// break things.
 	dlog.Infoln(ctx, "Initial configuration complete, now watching for further changes...")
 
 	crdWatch, err := crdsClient.Watch(ctx, k8sTypesMetaV1.ListOptions{
