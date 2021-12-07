@@ -2,7 +2,7 @@ apiVersion: v1
 appVersion: 2.1.0-rc.1
 description: A Helm chart for Emissary Ingress
 name: emissary-ingress
-version: 7.2.1
+version: 7.2.0
 icon: https://www.getambassador.io/images/logo.png
 home: https://www.getambassador.io/
 sources:
