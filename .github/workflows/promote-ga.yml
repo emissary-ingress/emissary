@@ -29,6 +29,8 @@ jobs:
         with:
           username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
           password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
+      - name: "Install Go"
+        uses: ./.github/actions/setup-go
       - name: "make release/promote-oss/to-ga"
         if: steps.check-tag.outputs.match == 'true'
         run: |
