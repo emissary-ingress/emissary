@@ -5,6 +5,14 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+(no changes yet)
+
+## v7.2.1
+
+- Update Ambassador chart image to version v2.1.0-rc.1: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
+## v7.2.0
+
 - Bugfix: When setting `adminService.snapshotPort`, it now points at the correct port on the Pod.
 
 ## v7.1.10

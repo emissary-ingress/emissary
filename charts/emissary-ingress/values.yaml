@@ -139,7 +139,7 @@ image:
   # Emissary Ingress docker repo
   repository: docker.io/emissaryingress/emissary
   # Emissary Ingress docker tag
-  tag: 2.0.5
+  tag: 2.1.0-rc.1
   # Pod container image pull policy
   pullPolicy: IfNotPresent
 
@@ -172,7 +172,7 @@ service:
       # protocol: TCP
       # nodePort: 30222
   # For test purposes, do not use.
-  portsRaw: ""
+  portsRaw: ''
 
   externalTrafficPolicy:
 
@@ -225,7 +225,7 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name:
   # Extra YAML to include at the end of the ServiceAccount
-  extra: ""
+  extra: ''
 
 deploymentStrategy:
   type: RollingUpdate
@@ -418,10 +418,10 @@ apiext:
   deployment:
     replicas: 3
   pod:
-    nodeSelector: null
-    affinity: null
-    tolerations: null
-    topologySpreadConstraints: null
+    nodeSelector:
+    affinity:
+    tolerations:
+    topologySpreadConstraints:
     livenessProbe: # +doc-gen:break
       initialDelaySeconds: 5
       periodSeconds: 3
