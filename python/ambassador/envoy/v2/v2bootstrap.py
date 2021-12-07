@@ -8,6 +8,8 @@ from ...ir.irlogservice import IRLogService
 from ...ir.irratelimit import IRRateLimit
 from ...ir.irtracing import IRTracing
 
+from ...utils import SystemInfo
+
 from .v2cluster import V2Cluster
 
 if TYPE_CHECKING:
@@ -19,7 +21,7 @@ class V2Bootstrap(dict):
         super().__init__(**{
             "node": {
                 "cluster": config.ir.ambassador_nodename,
-                "id": "test-id"         # MUST BE test-id, see below
+                "id": SystemInfo.MyHostName,
             },
             "static_resources": {},     # Filled in later
             "dynamic_resources": {
