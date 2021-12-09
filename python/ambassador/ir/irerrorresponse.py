@@ -278,19 +278,23 @@ class IRErrorResponse (IRFilter):
 
                 body_format_override["content_type"] = ir_content_type
 
-            # search the body for command tokens
-            # TODO: remove this code when envoy supports escaping "%"
-            token_finder = re.compile(ENVOY_FMT_TOKEN_REGEX)
-            matches = token_finder.findall(format_body)
+            token_checker = re.compile(ENVOY_FMT_TOKEN_REGEX)
+            bad = False
+            for i in range(len(format_body)):
+                if format_body[i] == '%':
+                    potential = token_checker.match(format_body, pos=i)
+                    if potential is not None:
+                        if potential.group(1) not in ALLOWED_ENVOY_FMT_TOKENS:
+                            self.post_error(f"IRErrorResponse: Invalid Envoy command token: {i[0]}")
+                            bad = True
+                            break
 
-            bad_token = False
-            for i in matches:
-                # i[0] is first group in regex match which will contain the command operator name
-                if not i[0] in ALLOWED_ENVOY_FMT_TOKENS:
-                    self.post_error(f"IRErrorResponse: Invalid Envoy command token: {i[0]}")
-                    bad_token = True
+                    else:
+                        self.post_error(f"IRErrorResponse: Cannot use custom format tokens in format body.... yet")
+                        bad = True
+                        break
 
-            if bad_token:
+            if bad:
                 continue
 
             # The mapper config now has a `filter` (the rule) and a `body_format_override` (the action)
