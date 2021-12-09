@@ -155,7 +155,7 @@ spec:
       serviceAccountName: emissary-ingress-apiext
       containers:
       - name: emissary-ingress-apiext
-        image: docker.io/emissaryingress/emissary:2.1.0-rc.1
+        image: docker.io/emissaryingress/emissary:2.1.0-rc.2
         imagePullPolicy: IfNotPresent
         command: [apiext, emissary-ingress-apiext]
         ports:
@@ -392,7 +392,7 @@ spec:
             path: labels
       containers:
       - name: ambassador
-        image: docker.io/emissaryingress/emissary:2.1.0-rc.1
+        image: docker.io/emissaryingress/emissary:2.1.0-rc.2
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
@@ -620,7 +620,7 @@ spec:
       serviceAccountName: emissary-ingress-agent
       containers:
       - name: agent
-        image: docker.io/emissaryingress/emissary:2.1.0-rc.1
+        image: docker.io/emissaryingress/emissary:2.1.0-rc.2
         imagePullPolicy: IfNotPresent
         command: [agent]
         env:
