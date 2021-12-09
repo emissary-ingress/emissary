@@ -11,7 +11,9 @@ import (
 
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/busy"
 	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/logutil"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
 )
@@ -55,6 +57,11 @@ func Main(ctx context.Context, version string, args ...string) error {
 // Run runs the Emissary apiext server process, but takes enough arguments that you should be able
 // to reuse it to implement your own apiext server.
 func Run(ctx context.Context, namespace, svcname string, httpPort, httpsPort int, scheme *k8sRuntime.Scheme) error {
+	if lvl, err := logutil.ParseLogLevel(os.Getenv("APIEXT_LOGLEVEL")); err == nil {
+		busy.SetLogLevel(lvl)
+	}
+	dlog.Infof(ctx, "APIEXT_LOGLEVEL=%v", busy.GetLogLevel())
+
 	kubeinfo := k8s.NewKubeInfo("", "", "")
 	restConfig, err := kubeinfo.GetRestConfig()
 	if err != nil {
