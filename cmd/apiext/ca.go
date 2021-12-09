@@ -11,6 +11,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/big"
+	"sync"
 	"time"
 
 	// k8s types
@@ -29,14 +30,17 @@ import (
 )
 
 const (
-	certValidDays = 365
-	caSecretName  = "emissary-ingress-webhook-ca"
+	certValidDuration = 365 * 24 * time.Hour
+	caSecretName      = "emissary-ingress-webhook-ca"
 )
 
 // CA is a Certificat Authority that can mint new TLS certificates.
 type CA struct {
 	Cert *x509.Certificate
 	Key  *rsa.PrivateKey
+
+	cacheMu sync.Mutex
+	cache   map[string]*tls.Certificate
 }
 
 // EnsureCA ensures that a Kubernetes Secret named "emissary-ingress-webhook-ca" exists in the given
@@ -140,7 +144,7 @@ func genKey() (*rsa.PrivateKey, []byte, error) {
 func genCACert(key *rsa.PrivateKey) ([]byte, error) {
 	// Generate CA Certificate and key...
 	notBefore := time.Now()
-	notAfter := notBefore.Add(time.Duration(certValidDays*24) * time.Hour)
+	notAfter := notBefore.Add(certValidDuration)
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
@@ -196,7 +200,22 @@ func genCASecret(namespace string) (*k8sTypesCoreV1.Secret, error) {
 }
 
 func (ca *CA) GenServerCert(ctx context.Context, hostname string) (*tls.Certificate, error) {
-	dlog.Infof(ctx, "GenServerCert(ctx, %q)", hostname)
+	dlog.Debugf(ctx, "GenServerCert(ctx, %q)", hostname)
+	ca.cacheMu.Lock()
+	defer ca.cacheMu.Unlock()
+	if ca.cache == nil {
+		ca.cache = make(map[string]*tls.Certificate)
+	}
+	now := time.Now()
+	if cached, ok := ca.cache[hostname]; ok && cached != nil && cached.Leaf != nil {
+		if age, lifespan := now.Sub(cached.Leaf.NotBefore), cached.Leaf.NotAfter.Sub(cached.Leaf.NotBefore); age < 2*lifespan/3 {
+			dlog.Debugf(ctx, "GenServerCert(ctx, %q) => from cache (age=%v lifespan=%v)", hostname, age, lifespan)
+			return cached, nil
+		} else {
+			dlog.Debugf(ctx, "GenServerCert(ctx, %q) => cache entry too old (age=%v lifespan=%v)", hostname, age, lifespan)
+		}
+	}
+	dlog.Infof(ctx, "GenServerCert(ctx, %q) => generating new cert", hostname)
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
@@ -204,31 +223,28 @@ func (ca *CA) GenServerCert(ctx context.Context, hostname string) (*tls.Certific
 		return nil, err
 	}
 
-	notBefore := time.Now()
-	notAfter := notBefore.Add(time.Duration(certValidDays*24) * time.Hour)
-
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		return nil, err
 	}
 
-	template := &x509.Certificate{
+	cert := &x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			Organization: []string{"Ambassador Labs"},
 			CommonName:   "Webhook API",
 		},
-		NotBefore:             notBefore,
-		NotAfter:              notAfter,
+		NotBefore:             now,
+		NotAfter:              now.Add(certValidDuration),
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
 		DNSNames:              []string{hostname},
 	}
 
-	certRaw, err := x509.CreateCertificate(
+	certPEMBytes, err := x509.CreateCertificate(
 		rand.Reader,
-		template,
+		cert,
 		ca.Cert,
 		priv.Public(),
 		ca.Key,
@@ -237,8 +253,12 @@ func (ca *CA) GenServerCert(ctx context.Context, hostname string) (*tls.Certific
 		return nil, err
 	}
 
-	var cert tls.Certificate
-	cert.Certificate = append(cert.Certificate, certRaw)
-	cert.PrivateKey = priv
-	return &cert, nil
+	certChain := &tls.Certificate{
+		Certificate: [][]byte{certPEMBytes},
+		PrivateKey:  priv,
+		Leaf:        cert,
+	}
+
+	ca.cache[hostname] = certChain
+	return certChain, nil
 }
