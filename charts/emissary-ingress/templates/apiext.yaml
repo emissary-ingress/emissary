@@ -25,6 +25,8 @@ app.kubernetes.io/part-of: {{ .Release.Name }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
+{{- $apiextServiceName := .Values.apiext.service.nameOverride | default (include "ambassador.fullname" . | printf "%s-apiext") }}
+
 {{- /************************************************************************/}}
 {{- /* Main                                                                 */}}
 {{- /************************************************************************/}}
@@ -137,7 +139,7 @@ subjects:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "ambassador.fullname" . }}-apiext
+  name: {{ $apiextServiceName }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
     {{- include "ambassador.apiext.labels" . | nindent 4 }}
@@ -172,7 +174,7 @@ spec:
         - name: {{ include "ambassador.fullname" . }}-apiext
           image: {{ include "ambassador.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command: [ "apiext", {{ include "ambassador.fullname" . }}-apiext ]
+          command: [ "apiext", {{ $apiextServiceName }} ]
           ports:
             - name: http
               containerPort: 8080

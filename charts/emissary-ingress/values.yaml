@@ -415,6 +415,8 @@ apiext:
   # a your cluster, only one of them should have apiext.enabled=true.
   enabled: true
 
+  service:
+    nameOverride: ''
   deployment:
     replicas: 3
   pod:
