@@ -1,8 +1,8 @@
-# Override the generated chart name. Defaults to .Chart.Name.
+# Override the chart name.  Defaults to .Chart.Name.
 nameOverride: ''
-# Override the generated release name. Defaults to .Release.Name.
+# Override the release (instance) name.  Defaults to .Release.Name.
 fullnameOverride: ''
-# Override the generated release namespace. Defaults to .Release.Namespace.
+# Override the namespace.  Dcontefaults to .Release.Namespace.
 namespaceOverride: ''
 
 # Number of Ambassador replicas
