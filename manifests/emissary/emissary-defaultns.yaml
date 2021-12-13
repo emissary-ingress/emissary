@@ -217,7 +217,8 @@ spec:
     protocol: TCP
     name: ambassador-snapshot
   selector:
-    service: ambassador
+    app.kubernetes.io/name: ambassador
+    app.kubernetes.io/instance: ambassador
 ---
 # Source: emissary-ingress/templates/service.yaml
 apiVersion: v1
@@ -254,7 +255,8 @@ spec:
     port: 443
     targetPort: 8443
   selector:
-    service: ambassador
+    app.kubernetes.io/name: ambassador
+    app.kubernetes.io/instance: ambassador
     profile: main
 ---
 # Source: emissary-ingress/templates/rbac.yaml
@@ -410,7 +412,8 @@ spec:
   replicas: 3
   selector:
     matchLabels:
-      service: ambassador
+      app.kubernetes.io/name: ambassador
+      app.kubernetes.io/instance: ambassador
   strategy:
     type: RollingUpdate
 
@@ -419,7 +422,6 @@ spec:
   template:
     metadata:
       labels:
-        service: ambassador
         app.kubernetes.io/name: ambassador
 
         app.kubernetes.io/instance: ambassador
