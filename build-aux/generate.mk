@@ -462,7 +462,7 @@ python-setup: create-venv
 .PHONY: python-setup
 
 helm.name.emissary-emissaryns = emissary-ingress
-helm.name.emissary-defaultns = ambassador
+helm.name.emissary-defaultns = emissary-ingress
 helm.namespace.emissary-emissaryns = emissary
 helm.namespace.emissary-defaultns = default
 $(OSS_HOME)/k8s-config/%/helm-expanded.yaml: \
