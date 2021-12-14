@@ -68,7 +68,6 @@ generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
 generate-fast/files += $(OSS_HOME)/cmd/entrypoint/crds.yaml
-generate-fast/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/apiext.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
@@ -458,10 +457,6 @@ $(OSS_HOME)/python/tests/integration/manifests/crds.yaml: $(OSS_HOME)/_generate.
 
 $(OSS_HOME)/cmd/entrypoint/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) internal-validator $(sort $(wildcard $</*.yaml)) > $@
-
-$(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml: %: %.m4 $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
-	@printf '  $(CYN)$@$(END)\n'
-	cd $(@D) && m4 < $(<F) > $(@F)
 
 $(OSS_HOME)/python/schemas/v3alpha1: $(OSS_HOME)/cmd/entrypoint/crds.yaml $(tools/crds2schemas)
 	rm -rf $@
