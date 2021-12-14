@@ -1532,8 +1532,20 @@ class Runner:
         manifest_changed, manifest_reason = has_changed(yaml, fname)
 
         # First up: CRDs.
-        CRDS = load_manifest("crds")
-        input_crds = CRDS
+        serviceAccountExtra = ''
+        if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
+            serviceAccountExtra = """
+imagePullSecrets:
+- name: dev-image-pull-secret
+"""
+
+        # Use .replace instead of .format because there are other '{word}' things in 'description'
+        # fields that would cause KeyErrors when .format erroneously tries to evaluate them.
+        input_crds = (
+            load_manifest("crds")
+            .replace('{image}', os.environ["AMBASSADOR_DOCKER_IMAGE"])
+            .replace('{serviceAccountExtra}', serviceAccountExtra)
+        )
 
         if is_knative_compatible():
             KNATIVE_SERVING_CRDS = load_manifest("knative_serving_crds")
@@ -1579,7 +1591,7 @@ class Runner:
                                 },
                             },
                         }
-            else:
+            elif crd["apiVersion"] == "apiextensions.k8s.io/v1beta1":
                 crd["spec"].pop("validation", None)
                 for version in crd["spec"]["versions"]:
                     version.pop("schema", None)
@@ -1608,28 +1620,6 @@ class Runner:
                 time.sleep(5)
         else:
             print(f'CRDS unchanged {reason}, skipping apply.')
-
-        # Next up: Install apiext
-        serviceAccountExtra = ''
-        if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
-            serviceAccountExtra = """
-imagePullSecrets:
-- name: dev-image-pull-secret
-"""
-        apiext = load_manifest('apiext').format(
-            image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-            serviceAccountExtra=serviceAccountExtra,
-        )
-        changed, reason = has_changed(apiext, "/tmp/k8s-kat-apiext.yaml")
-        if changed:
-            print(f'apiext definition changed ({reason}), applying')
-            if not ShellCommand.run_with_retry(
-                    'Apply apiext',
-                    'tools/bin/kubectl', 'apply', '-f', '/tmp/k8s-kat-apiext.yaml',
-                    retries=5, sleep_seconds=10):
-                raise RuntimeError("Failed applying CRDs")
-        else:
-            print(f'apiext definition unchanged {reason}, skipping apply')
 
         # Next up: the KAT pod.
         KAT_CLIENT_POD = load_manifest("kat_client_pod")

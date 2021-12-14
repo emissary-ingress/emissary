@@ -6,8 +6,10 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
   labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
   name: authservices.getambassador.io
 spec:
   conversion:
@@ -15,8 +17,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: emissary-ingress-apiext
-          namespace: default
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -250,8 +252,10 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
   labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
   name: consulresolvers.getambassador.io
 spec:
   conversion:
@@ -259,8 +263,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: emissary-ingress-apiext
-          namespace: default
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -335,8 +339,10 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
   labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
   name: devportals.getambassador.io
 spec:
   conversion:
@@ -344,8 +350,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: emissary-ingress-apiext
-          namespace: default
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -540,8 +546,10 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
   labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
   name: hosts.getambassador.io
 spec:
   conversion:
@@ -549,8 +557,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: emissary-ingress-apiext
-          namespace: default
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -1023,8 +1031,10 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
   labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
   name: kubernetesendpointresolvers.getambassador.io
 spec:
   conversion:
@@ -1032,8 +1042,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: emissary-ingress-apiext
-          namespace: default
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -1099,8 +1109,10 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
   labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
   name: kubernetesserviceresolvers.getambassador.io
 spec:
   conversion:
@@ -1108,8 +1120,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: emissary-ingress-apiext
-          namespace: default
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -1175,8 +1187,10 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
   labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
   name: listeners.getambassador.io
 spec:
   group: getambassador.io
@@ -1334,8 +1348,10 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
   labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
   name: logservices.getambassador.io
 spec:
   conversion:
@@ -1343,8 +1359,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: emissary-ingress-apiext
-          namespace: default
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -1473,8 +1489,10 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
   labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
   name: mappings.getambassador.io
 spec:
   conversion:
@@ -1482,8 +1500,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: emissary-ingress-apiext
-          namespace: default
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -2336,8 +2354,10 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
   labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
   name: modules.getambassador.io
 spec:
   conversion:
@@ -2345,8 +2365,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: emissary-ingress-apiext
-          namespace: default
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -2421,8 +2441,10 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
   labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
   name: ratelimitservices.getambassador.io
 spec:
   conversion:
@@ -2430,8 +2452,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: emissary-ingress-apiext
-          namespace: default
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -2548,8 +2570,10 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
   labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
   name: tcpmappings.getambassador.io
 spec:
   conversion:
@@ -2557,8 +2581,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: emissary-ingress-apiext
-          namespace: default
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -2734,8 +2758,10 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
   labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
   name: tlscontexts.getambassador.io
 spec:
   conversion:
@@ -2743,8 +2769,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: emissary-ingress-apiext
-          namespace: default
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -2903,8 +2929,10 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
   labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
   name: tracingservices.getambassador.io
 spec:
   conversion:
@@ -2912,8 +2940,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: emissary-ingress-apiext
-          namespace: default
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -3071,3 +3099,194 @@ spec:
         type: object
     served: true
     storage: false
+---
+################################################################################
+# Namespace                                                                    #
+################################################################################
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: emissary-system
+---
+################################################################################
+# ServiceAccount                                                               #
+################################################################################
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: emissary-apiext
+  namespace: emissary-system
+  labels:
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
+{serviceAccountExtra}
+---
+################################################################################
+# Cluster permissions                                                          #
+################################################################################
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: emissary-apiext
+  labels:
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
+rules:
+  - apiGroups: [ "apiextensions.k8s.io" ]
+    resources: [ "customresourcedefinitions" ]
+    verbs: [ "list", "watch" ]
+  - apiGroups: [ "apiextensions.k8s.io" ]
+    resources: [ "customresourcedefinitions" ]
+    resourceNames:
+      - authservices.getambassador.io
+      - consulresolvers.getambassador.io
+      - devportals.getambassador.io
+      - hosts.getambassador.io
+      - kubernetesendpointresolvers.getambassador.io
+      - kubernetesserviceresolvers.getambassador.io
+      - listeners.getambassador.io
+      - logservices.getambassador.io
+      - mappings.getambassador.io
+      - modules.getambassador.io
+      - ratelimitservices.getambassador.io
+      - tcpmappings.getambassador.io
+      - tlscontexts.getambassador.io
+      - tracingservices.getambassador.io
+    verbs: [ "update" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: emissary-apiext
+  labels:
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: emissary-apiext
+subjects:
+  - kind: ServiceAccount
+    namespace: emissary-system
+    name: emissary-apiext
+---
+################################################################################
+# Namespaced permissions                                                       #
+################################################################################
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: emissary-apiext
+  namespace: emissary-system
+  labels:
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["emissary-ingress-webhook-ca"]
+    verbs: ["get", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: emissary-apiext
+  namespace: emissary-system
+  labels:
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: emissary-apiext
+subjects:
+- kind: ServiceAccount
+  namespace: emissary-system
+  name: emissary-apiext
+---
+################################################################################
+# Main                                                                         #
+################################################################################
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: emissary-apiext
+  namespace: emissary-system
+  labels:
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
+spec:
+  type: ClusterIP
+  ports:
+    - name: https
+      port: 443
+      targetPort: https
+  selector:
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emissary-apiext
+  namespace: emissary-system
+  labels:
+    app.kubernetes.io/instance: emissary-apiext
+    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+    app.kubernetes.io/name: emissary-apiext
+    app.kubernetes.io/part-of: emissary-apiext
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: emissary-apiext
+      app.kubernetes.io/name: emissary-apiext
+      app.kubernetes.io/part-of: emissary-apiext
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: emissary-apiext
+        app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
+        app.kubernetes.io/name: emissary-apiext
+        app.kubernetes.io/part-of: emissary-apiext
+    spec:
+      serviceAccountName: emissary-apiext
+      containers:
+        - name: emissary-apiext
+          image: {image}
+          imagePullPolicy: IfNotPresent
+          command: [ "apiext", "emissary-apiext" ]
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: https
+              containerPort: 8443
+          livenessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /probes/live
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 3
+            failureThreshold: 3

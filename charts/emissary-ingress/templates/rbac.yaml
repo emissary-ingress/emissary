@@ -12,17 +12,8 @@ kind: ClusterRole
 metadata:
   name: {{ include "ambassador.rbacName" . }}
   labels:
-    {{- if and (ne .Values.deploymentTool "getambassador.io") (ne .Values.deploymentTool "kat") }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
-    app.kubernetes.io/part-of: {{ .Release.Name }}
-    helm.sh/chart: {{ include "ambassador.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if .Values.deploymentTool }}
-    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
-    {{- else }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- end }}
-    {{- end }}
+    {{- include "ambassador.labels" . | nindent 4 }}
     product: aes
 aggregationRule:
   clusterRoleSelectors:
@@ -35,17 +26,8 @@ kind: ClusterRoleBinding
 metadata:
   name: {{ include "ambassador.rbacName" . }}
   labels:
-    {{- if and (ne .Values.deploymentTool "getambassador.io") (ne .Values.deploymentTool "kat") }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
-    app.kubernetes.io/part-of: {{ .Release.Name }}
-    helm.sh/chart: {{ include "ambassador.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if .Values.deploymentTool }}
-    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
-    {{- else }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- end }}
-    {{- end }}
+    {{- include "ambassador.labels" . | nindent 4 }}
     product: aes
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -68,17 +50,8 @@ kind: ClusterRole
 metadata:
   name: {{ include "ambassador.rbacName" . }}-crd
   labels:
-    {{- if and (ne .Values.deploymentTool "getambassador.io") (ne .Values.deploymentTool "kat") }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
-    app.kubernetes.io/part-of: {{ .Release.Name }}
-    helm.sh/chart: {{ include "ambassador.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if .Values.deploymentTool }}
-    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
-    {{- else }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- end }}
-    {{- end }}
+    {{- include "ambassador.labels" . | nindent 4 }}
     product: aes
     rbac.getambassador.io/role-group: {{ include "ambassador.rbacName" . }}
 rules:
@@ -102,17 +75,8 @@ metadata:
   name: {{ include "ambassador.rbacName" . }}-watch
 {{- end }}
   labels:
-    {{- if and (ne .Values.deploymentTool "getambassador.io") (ne .Values.deploymentTool "kat") }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
-    app.kubernetes.io/part-of: {{ .Release.Name }}
-    helm.sh/chart: {{ include "ambassador.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if .Values.deploymentTool }}
-    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
-    {{- else }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- end }}
-    {{- end }}
+    {{- include "ambassador.labels" . | nindent 4 }}
     product: aes
     rbac.getambassador.io/role-group: {{ include "ambassador.rbacName" . }}
 rules:
@@ -176,17 +140,8 @@ metadata:
   name: {{ include "ambassador.rbacName" . }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
-    {{- if and (ne .Values.deploymentTool "getambassador.io") (ne .Values.deploymentTool "kat") }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
-    app.kubernetes.io/part-of: {{ .Release.Name }}
-    helm.sh/chart: {{ include "ambassador.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if .Values.deploymentTool }}
-    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
-    {{- else }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- end }}
-    {{- end }}
+    {{- include "ambassador.labels" . | nindent 4 }}
     product: aes
 roleRef:
   apiGroup: rbac.authorization.k8s.io

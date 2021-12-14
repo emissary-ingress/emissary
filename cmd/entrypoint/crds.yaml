@@ -5,9 +5,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
   name: authservices.getambassador.io
 spec:
   conversion:
@@ -15,8 +12,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: bogus-emissary-apiext
-          namespace: bogus-emissary
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -260,9 +257,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
   name: consulresolvers.getambassador.io
 spec:
   conversion:
@@ -270,8 +264,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: bogus-emissary-apiext
-          namespace: bogus-emissary
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -351,9 +345,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
   name: devportals.getambassador.io
 spec:
   conversion:
@@ -361,8 +352,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: bogus-emissary-apiext
-          namespace: bogus-emissary
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -562,9 +553,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
   name: hosts.getambassador.io
 spec:
   conversion:
@@ -572,8 +560,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: bogus-emissary-apiext
-          namespace: bogus-emissary
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -1058,9 +1046,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
   name: kubernetesendpointresolvers.getambassador.io
 spec:
   conversion:
@@ -1068,8 +1053,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: bogus-emissary-apiext
-          namespace: bogus-emissary
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -1141,9 +1126,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
   name: kubernetesserviceresolvers.getambassador.io
 spec:
   conversion:
@@ -1151,8 +1133,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: bogus-emissary-apiext
-          namespace: bogus-emissary
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -1224,9 +1206,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
   name: listeners.getambassador.io
 spec:
   group: getambassador.io
@@ -1383,9 +1362,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
   name: logservices.getambassador.io
 spec:
   conversion:
@@ -1393,8 +1369,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: bogus-emissary-apiext
-          namespace: bogus-emissary
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -1528,9 +1504,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
   name: mappings.getambassador.io
 spec:
   conversion:
@@ -1538,8 +1511,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: bogus-emissary-apiext
-          namespace: bogus-emissary
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -2462,9 +2435,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
   name: modules.getambassador.io
 spec:
   conversion:
@@ -2472,8 +2442,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: bogus-emissary-apiext
-          namespace: bogus-emissary
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -2553,9 +2523,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
   name: ratelimitservices.getambassador.io
 spec:
   conversion:
@@ -2563,8 +2530,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: bogus-emissary-apiext
-          namespace: bogus-emissary
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -2691,9 +2658,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
   name: tcpmappings.getambassador.io
 spec:
   conversion:
@@ -2701,8 +2665,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: bogus-emissary-apiext
-          namespace: bogus-emissary
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -2888,9 +2852,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
   name: tlscontexts.getambassador.io
 spec:
   conversion:
@@ -2898,8 +2859,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: bogus-emissary-apiext
-          namespace: bogus-emissary
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io
@@ -3063,9 +3024,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
   name: tracingservices.getambassador.io
 spec:
   conversion:
@@ -3073,8 +3031,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: bogus-emissary-apiext
-          namespace: bogus-emissary
+          name: emissary-apiext
+          namespace: emissary-system
       conversionReviewVersions:
       - v1beta1
   group: getambassador.io

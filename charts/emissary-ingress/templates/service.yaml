@@ -8,17 +8,8 @@ metadata:
   {{- end }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
-    {{- if and (ne .Values.deploymentTool "getambassador.io") (ne .Values.deploymentTool "kat") }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
-    app.kubernetes.io/part-of: {{ .Release.Name }}
-    helm.sh/chart: {{ include "ambassador.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if .Values.deploymentTool }}
-    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
-    {{- else }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- end }}
-    {{- end }}
+    {{- include "ambassador.labels" . | nindent 4 }}
     app.kubernetes.io/component: ambassador-service
     product: aes
   annotations:
@@ -68,20 +59,14 @@ spec:
     {{ .Values.service.portsRaw }}
     {{- end }}
   selector:
-    {{- if .Values.service.selector }}
-    {{ toYaml .Values.service.selector | nindent 4 }}
+    {{- with .Values.service.selector }}
+      {{- toYaml . | nindent 4 }}
     {{- else }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     {{- end }}
-    {{- if  .Values.canary}}
-    {{- if or (not (hasKey .Values.canary "mixPods")) (eq .Values.canary.mixPods false) }}
-    {{- if .Values.service.selector -}}
-    {{- nindent 4 "profile: main" -}}
-    {{- else }}
+    {{- if and .Values.canary (or (not (hasKey .Values.canary "mixPods")) (eq .Values.canary.mixPods false)) }}
     profile: main
-    {{- end }}
-    {{- end }}
     {{- end }}
   {{- with .Values.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:

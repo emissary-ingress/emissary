@@ -31,6 +31,19 @@ If release name contains chart name it will be used as a full name.
 {{- end -}}
 
 {{/*
+The base set of labels for all resources.
+*/}}
+{{- define "ambassador.labels" -}}
+{{- $deploymentTool := .Values.deploymentTool | default .Release.Service }}
+{{- if eq $deploymentTool "Helm" -}}
+helm.sh/chart: {{ include "ambassador.chart" . }}
+{{- end }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/part-of: {{ .Release.Name }}
+app.kubernetes.io/managed-by: {{ $deploymentTool }}
+{{- end -}}
+
+{{/*
 Set the image that should be used for ambassador.
 Use fullImageOverride if present,
 Then if the image repository is explicitly set, use "repository:image"

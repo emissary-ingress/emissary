@@ -50,7 +50,6 @@ generate/files      += $(OSS_HOME)/api/pb/
 generate/files      += $(OSS_HOME)/pkg/api/envoy/
 generate/files      += $(OSS_HOME)/pkg/api/pb/
 generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/
-generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/crds/
 generate-fast/files += $(OSS_HOME)/python/schemas/v3alpha1/
 # Individual files: Misc
 generate/files      += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
@@ -64,13 +63,10 @@ generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conv
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v3alpha1/zz_generated.conversion-hub.go
 # Individual files: YAML
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
-generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador.yaml
-generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns.yaml
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns.yaml
 generate-fast/files += $(OSS_HOME)/cmd/entrypoint/crds.yaml
-generate-fast/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml
-generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/apiext.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml
@@ -440,28 +436,15 @@ $(OSS_HOME)/%/zz_generated.conversion-spoke.go: FORCE
 	  gofmt; \
 	} >$@
 
-$(OSS_HOME)/charts/emissary-ingress/crds: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
-	rm -rf $@
-	mkdir $@
-	@PS4=; set -ex; for file in $</*.yaml; do $(tools/fix-crds) apiserver-helm "$${file}" >$@/"$${file##*/}"; done
-
-$(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
+$(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds) $(tools/yq) $(OSS_HOME)/charts/emissary-ingress/values.yaml
 	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) apiserver-kubectl $(sort $(wildcard $</*.yaml)) > $@
-
-$(OSS_HOME)/manifests/emissary/ambassador-crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
-	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) apiserver-kubectl $(sort $(wildcard $</*.yaml)) > $@
+	$(tools/fix-crds) --target=apiserver-kubectl --image-version=$$($(tools/yq) read $(filter %/values.yaml,$^) image.tag) $(sort $(wildcard $</*.yaml)) >$@
 
 $(OSS_HOME)/python/tests/integration/manifests/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
-	$(tools/fix-crds) apiserver-kat $(sort $(wildcard $</*.yaml)) > $@
+	$(tools/fix-crds) --target=apiserver-kat $(sort $(wildcard $</*.yaml)) >$@
 
 $(OSS_HOME)/cmd/entrypoint/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
-	$(tools/fix-crds) internal-validator $(sort $(wildcard $</*.yaml)) > $@
-
-$(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml: %: %.m4 $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
-	@printf '  $(CYN)$@$(END)\n'
-	cd $(@D) && m4 < $(<F) > $(@F)
+	$(tools/fix-crds) --target=internal-validator $(sort $(wildcard $</*.yaml)) >$@
 
 $(OSS_HOME)/python/schemas/v3alpha1: $(OSS_HOME)/cmd/entrypoint/crds.yaml $(tools/crds2schemas)
 	rm -rf $@
@@ -471,14 +454,16 @@ python-setup: create-venv
 	$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
 .PHONY: python-setup
 
-helm-namespace.emissary-ingress = emissary
-helm-namespace.ambassador       = default
+helm.name.emissary-emissaryns = emissary-ingress
+helm.name.emissary-defaultns = emissary-ingress
+helm.namespace.emissary-emissaryns = emissary
+helm.namespace.emissary-defaultns = default
 $(OSS_HOME)/k8s-config/%/helm-expanded.yaml: \
   $(OSS_HOME)/k8s-config/%/values.yaml \
   $(OSS_HOME)/charts/emissary-ingress/templates $(wildcard $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml) \
   $(OSS_HOME)/charts/emissary-ingress/values.yaml \
   FORCE
-	helm template --namespace=$(helm-namespace.$*) --values=$(@D)/values.yaml $* $(OSS_HOME)/charts/emissary-ingress >$@
+	helm template --namespace=$(helm.namespace.$*) --values=$(@D)/values.yaml $(or $(helm.name.$*),$*) $(OSS_HOME)/charts/emissary-ingress >$@
 $(OSS_HOME)/k8s-config/%/output.yaml: \
   $(OSS_HOME)/k8s-config/%/helm-expanded.yaml \
   $(OSS_HOME)/k8s-config/%/require.yaml \

@@ -45,9 +45,15 @@ preflight-kubeconfig:
 	touch $(CHART_KUBECONFIG)
 .PHONY: preflight-kubeconfig
 
+# TODO(lukeshu): De-duplicate chart-create-cluster with
+# build-aux/ci.mk's `ci/setup-k3d` target.
 chart-create-cluster: preflight-kubeconfig
 	$(MAKE) chart-delete-cluster || true
 	$(K3D_EXEC) cluster create $(K3D_CLUSTER_NAME) --image=docker.io/rancher/k3s:v$(subst +,-,$(K3S_VERSION)) $(K3D_ARGS)
+	while ! kubectl --kubeconfig=$(CHART_KUBECONFIG) get serviceaccount default >/dev/null; do sleep 1; done
+	kubectl --kubeconfig=$(CHART_KUBECONFIG) version
+	kubectl --kubeconfig=$(CHART_KUBECONFIG) apply -f ../../manifests/emissary/emissary-crds.yaml
+	kubectl --kubeconfig=$(CHART_KUBECONFIG) --namespace=emissary-system wait --timeout=90s --for=condition=available Deployments/emissary-apiext
 .PHONY: chart-create-cluster
 
 chart-delete-cluster:

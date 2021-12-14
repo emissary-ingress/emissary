@@ -19,6 +19,7 @@ from kat.utils import namespace_manifest
 from kat.harness import load_manifest
 from tests.manifests import cleartext_host_manifest
 from tests.kubeutils import apply_kube_artifacts
+from tests.runutils import run_and_assert
 
 logger = logging.getLogger("ambassador")
 
@@ -67,11 +68,16 @@ imagePullSecrets:
 """
 
     # Create Ambassador CRDs
-    apply_kube_artifacts(namespace='default', artifacts=load_manifest('crds'))
-    apply_kube_artifacts(namespace='default', artifacts=load_manifest('apiext').format(
-        image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-        serviceAccountExtra=serviceAccountExtra,
+    apply_kube_artifacts(namespace='emissary-system', artifacts=(
+        # Use .replace instead of .format because there are other '{word}' things in 'description'
+        # fields that would cause KeyErrors when .format erroneously tries to evaluate them.
+        load_manifest("crds")
+        .replace('{image}', os.environ["AMBASSADOR_DOCKER_IMAGE"])
+        .replace('{serviceAccountExtra}', serviceAccountExtra)
     ))
+
+    print("Wait for apiext to be running...")
+    run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=available', 'deploy', 'emissary-apiext', '-n', 'emissary-system'])
 
     # Proceed to install Ambassador now
     final_yaml = []
