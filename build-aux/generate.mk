@@ -50,7 +50,6 @@ generate/files      += $(OSS_HOME)/api/pb/
 generate/files      += $(OSS_HOME)/pkg/api/envoy/
 generate/files      += $(OSS_HOME)/pkg/api/pb/
 generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/
-generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/crds/
 generate-fast/files += $(OSS_HOME)/python/schemas/v3alpha1/
 # Individual files: Misc
 generate/files      += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
@@ -68,7 +67,6 @@ generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns.yaml
 generate-fast/files += $(OSS_HOME)/cmd/entrypoint/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml
-generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/apiext.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml
@@ -438,20 +436,15 @@ $(OSS_HOME)/%/zz_generated.conversion-spoke.go: FORCE
 	  gofmt; \
 	} >$@
 
-$(OSS_HOME)/charts/emissary-ingress/crds: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
-	rm -rf $@
-	mkdir $@
-	@PS4=; set -ex; for file in $</*.yaml; do $(tools/fix-crds) apiserver-helm "$${file}" >$@/"$${file##*/}"; done
-
-$(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
+$(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds) $(tools/yq) $(OSS_HOME)/charts/emissary-ingress/values.yaml
 	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) apiserver-kubectl $(sort $(wildcard $</*.yaml)) > $@
+	$(tools/fix-crds) --target=apiserver-kubectl --image-version=$$($(tools/yq) read $(filter %/values.yaml,$^) image.tag) $(sort $(wildcard $</*.yaml)) >$@
 
 $(OSS_HOME)/python/tests/integration/manifests/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
-	$(tools/fix-crds) apiserver-kat $(sort $(wildcard $</*.yaml)) > $@
+	$(tools/fix-crds) --target=apiserver-kat $(sort $(wildcard $</*.yaml)) >$@
 
 $(OSS_HOME)/cmd/entrypoint/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
-	$(tools/fix-crds) internal-validator $(sort $(wildcard $</*.yaml)) > $@
+	$(tools/fix-crds) --target=internal-validator $(sort $(wildcard $</*.yaml)) >$@
 
 $(OSS_HOME)/python/schemas/v3alpha1: $(OSS_HOME)/cmd/entrypoint/crds.yaml $(tools/crds2schemas)
 	rm -rf $@

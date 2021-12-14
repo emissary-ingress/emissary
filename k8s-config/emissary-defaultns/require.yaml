@@ -1,13 +1,6 @@
 _anchors:
   _namespace: &namespace default
 resources:
-  - { kind: ServiceAccount,     name: emissary-ingress-apiext,             namespace: *namespace }
-  - { kind: ClusterRole,        name: emissary-ingress-apiext                                    }
-  - { kind: ClusterRoleBinding, name: emissary-ingress-apiext                                    }
-  - { kind: Role,               name: emissary-ingress-apiext,             namespace: *namespace }
-  - { kind: RoleBinding,        name: emissary-ingress-apiext,             namespace: *namespace }
-  - { kind: Service,            name: emissary-ingress-apiext,             namespace: *namespace }
-  - { kind: Deployment,         name: emissary-ingress-apiext,             namespace: *namespace }
   - { kind: Service,            name: emissary-ingress-admin,              namespace: *namespace }
   - { kind: Service,            name: emissary-ingress,                    namespace: *namespace }
   - { kind: ClusterRole,        name: emissary-ingress                                           }

@@ -9,10 +9,10 @@ import (
 	"io"
 	"os"
 
+	"github.com/spf13/pflag"
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/yaml"
-
-	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 func inArray(needle string, haystack []string) bool {
@@ -25,23 +25,38 @@ func inArray(needle string, haystack []string) bool {
 }
 
 type Args struct {
-	Target     string
-	InputFiles []*os.File
+	Target       string
+	ImageVersion string
+	InputFiles   []*os.File
 }
 
 func ParseArgs(strs ...string) (Args, error) {
-	if len(strs) < 1 {
-		return Args{}, fmt.Errorf("requires at least 1 argument, got %d", len(strs))
+	var args Args
+
+	flagset := pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
+	var help bool
+	flagset.StringVar(&args.Target, "target", "", fmt.Sprintf("What will be consuming the YAML; one of %q", Targets))
+	flagset.StringVar(&args.ImageVersion, "image-version", "", "The image version to use for apiext; only used by some targets")
+	flagset.BoolVarP(&help, "help", "h", false, "Display this help text")
+	err := flagset.Parse(strs)
+	if help {
+		fmt.Printf("Usage: %s [FLAGS] --target=TARGET [INPUT_FILES...]\n", os.Args[0])
+		fmt.Println()
+		fmt.Println("If no INPUT_FILES are given, input is read from stdin.")
+		fmt.Println()
+		fmt.Println("FLAGS:")
+		fmt.Println(flagset.FlagUsagesWrapped(70))
+		os.Exit(0)
+	}
+	if err != nil {
+		return Args{}, err
 	}
 
-	args := Args{}
-
-	args.Target = strs[0]
 	if !inArray(args.Target, Targets) {
-		return Args{}, fmt.Errorf("invalid TARGET %q, valid values are %q", args.Target, Targets)
+		return Args{}, fmt.Errorf("invalid --target=%q, valid values are %q", args.Target, Targets)
 	}
 
-	for _, path := range strs[1:] {
+	for _, path := range flagset.Args() {
 		file, err := os.Open(path)
 		if err != nil {
 			return Args{}, err
@@ -118,10 +133,12 @@ func Main(args Args, output io.Writer) error {
 		}
 	}
 
+	var crdNames []string
 	for i := range crds {
 		if err := FixCRD(args, &(crds[i])); err != nil {
 			return err
 		}
+		crdNames = append(crdNames, crds[i].Metadata.Name)
 	}
 
 	if _, err := io.WriteString(output, "# GENERATED FILE: edits made by hand will not be preserved.\n"); err != nil {
@@ -138,6 +155,9 @@ func Main(args Args, output io.Writer) error {
 		if _, err := output.Write(yamlbytes); err != nil {
 			return err
 		}
+	}
+	if err := writeAPIExt(output, args, crdNames); err != nil {
+		return err
 	}
 
 	return nil
