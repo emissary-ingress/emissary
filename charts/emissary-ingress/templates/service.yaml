@@ -68,20 +68,14 @@ spec:
     {{ .Values.service.portsRaw }}
     {{- end }}
   selector:
-    {{- if .Values.service.selector }}
-    {{ toYaml .Values.service.selector | nindent 4 }}
+    {{- with .Values.service.selector }}
+      {{- toYaml . | nindent 4 }}
     {{- else }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     {{- end }}
-    {{- if  .Values.canary}}
-    {{- if or (not (hasKey .Values.canary "mixPods")) (eq .Values.canary.mixPods false) }}
-    {{- if .Values.service.selector -}}
-    {{- nindent 4 "profile: main" -}}
-    {{- else }}
+    {{- if and .Values.canary (or (not (hasKey .Values.canary "mixPods")) (eq .Values.canary.mixPods false)) }}
     profile: main
-    {{- end }}
-    {{- end }}
     {{- end }}
   {{- with .Values.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
