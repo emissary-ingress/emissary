@@ -6,9 +6,9 @@ import sys
 import pytest
 import requests
 
-from tests.utils import install_ambassador, get_code_with_retry, create_httpbin_mapping
-from tests.kubeutils import apply_kube_artifacts, delete_kube_artifacts
-from tests.runutils import run_with_retry, run_and_assert
+from tests.utils import install_ambassador, create_httpbin_mapping
+from tests.kubeutils import apply_kube_artifacts
+from tests.runutils import run_and_assert
 from tests.manifests import httpbin_manifests
 
 logging.basicConfig(
