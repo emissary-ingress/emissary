@@ -9,8 +9,9 @@ metadata:
   labels:
     product: aes
     app.kubernetes.io/name: emissary-ingress-apiext
-    app.kubernetes.io/part-of: emissary-ingress
     app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
 ---
 # Source: emissary-ingress/templates/apiext.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -20,8 +21,9 @@ metadata:
   labels:
     product: aes
     app.kubernetes.io/name: emissary-ingress-apiext
-    app.kubernetes.io/part-of: emissary-ingress
     app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
 rules:
 - apiGroups: [apiextensions.k8s.io]
   resources: [customresourcedefinitions]
@@ -53,8 +55,9 @@ metadata:
   labels:
     product: aes
     app.kubernetes.io/name: emissary-ingress-apiext
-    app.kubernetes.io/part-of: emissary-ingress
     app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -73,8 +76,9 @@ metadata:
   labels:
     product: aes
     app.kubernetes.io/name: emissary-ingress-apiext
-    app.kubernetes.io/part-of: emissary-ingress
     app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
 rules:
 - apiGroups: ['']
   resources: [secrets]
@@ -93,8 +97,9 @@ metadata:
   labels:
     product: aes
     app.kubernetes.io/name: emissary-ingress-apiext
-    app.kubernetes.io/part-of: emissary-ingress
     app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -113,8 +118,9 @@ metadata:
   labels:
     product: aes
     app.kubernetes.io/name: emissary-ingress-apiext
-    app.kubernetes.io/part-of: emissary-ingress
     app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
 spec:
   type: ClusterIP
   ports:
@@ -135,8 +141,9 @@ metadata:
   labels:
     product: aes
     app.kubernetes.io/name: emissary-ingress-apiext
-    app.kubernetes.io/part-of: emissary-ingress
     app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
 spec:
   selector:
     matchLabels:
@@ -149,8 +156,9 @@ spec:
       labels:
         product: aes
         app.kubernetes.io/name: emissary-ingress-apiext
-        app.kubernetes.io/part-of: emissary-ingress
         app.kubernetes.io/instance: emissary-ingress
+        app.kubernetes.io/part-of: emissary-ingress
+        app.kubernetes.io/managed-by: getambassador.io
     spec:
       serviceAccountName: emissary-ingress-apiext
       containers:
@@ -179,6 +187,11 @@ metadata:
   name: emissary-ingress-admin
   namespace: emissary
   labels:
+    app.kubernetes.io/name: emissary-ingress
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     # Hard-coded label for Prometheus Operator ServiceMonitor
     service: ambassador-admin
     product: aes
@@ -213,6 +226,11 @@ metadata:
   name: emissary-ingress
   namespace: emissary
   labels:
+    app.kubernetes.io/name: emissary-ingress
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     app.kubernetes.io/component: ambassador-service
     product: aes
   annotations:
@@ -251,6 +269,11 @@ kind: ClusterRole
 metadata:
   name: emissary-ingress
   labels:
+    app.kubernetes.io/name: emissary-ingress
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
 aggregationRule:
   clusterRoleSelectors:
@@ -265,6 +288,11 @@ metadata:
   name: emissary-ingress
   namespace: emissary
   labels:
+    app.kubernetes.io/name: emissary-ingress
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
 ---
 # Source: emissary-ingress/templates/rbac.yaml
@@ -273,6 +301,11 @@ kind: ClusterRoleBinding
 metadata:
   name: emissary-ingress
   labels:
+    app.kubernetes.io/name: emissary-ingress
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -295,6 +328,11 @@ kind: ClusterRole
 metadata:
   name: emissary-ingress-crd
   labels:
+    app.kubernetes.io/name: emissary-ingress
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
     rbac.getambassador.io/role-group: emissary-ingress
 rules:
@@ -311,6 +349,11 @@ kind: ClusterRole
 metadata:
   name: emissary-ingress-watch
   labels:
+    app.kubernetes.io/name: emissary-ingress
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
     rbac.getambassador.io/role-group: emissary-ingress
 rules:
@@ -357,6 +400,11 @@ metadata:
   name: emissary-ingress
   namespace: emissary
   labels:
+    app.kubernetes.io/name: emissary-ingress
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
 spec:
   replicas: 3
@@ -372,7 +420,12 @@ spec:
     metadata:
       labels:
         service: ambassador
+        app.kubernetes.io/name: emissary-ingress
+
+        app.kubernetes.io/instance: emissary-ingress
+        app.kubernetes.io/part-of: emissary-ingress
         app.kubernetes.io/managed-by: getambassador.io
+        product: aes
         profile: main
       annotations:
         consul.hashicorp.com/connect-inject: 'false'
@@ -457,6 +510,11 @@ metadata:
   name: emissary-ingress-agent
   namespace: emissary
   labels:
+    app.kubernetes.io/name: emissary-ingress-agent
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
 ---
 # Source: emissary-ingress/templates/ambassador-agent.yaml
@@ -465,6 +523,11 @@ kind: ClusterRoleBinding
 metadata:
   name: emissary-ingress-agent
   labels:
+    app.kubernetes.io/name: emissary-ingress-agent
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -481,6 +544,11 @@ kind: ClusterRole
 metadata:
   name: emissary-ingress-agent
   labels:
+    app.kubernetes.io/name: emissary-ingress-agent
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
 aggregationRule:
   clusterRoleSelectors:
@@ -495,6 +563,11 @@ metadata:
   name: emissary-ingress-agent-pods
   labels:
     rbac.getambassador.io/role-group: emissary-ingress-agent
+    app.kubernetes.io/name: emissary-ingress-agent
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
 rules:
 - apiGroups: ['']
@@ -508,6 +581,11 @@ metadata:
   name: emissary-ingress-agent-rollouts
   labels:
     rbac.getambassador.io/role-group: emissary-ingress-agent
+    app.kubernetes.io/name: emissary-ingress-agent
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
 rules:
 - apiGroups: [argoproj.io]
@@ -521,6 +599,11 @@ metadata:
   name: emissary-ingress-agent-applications
   labels:
     rbac.getambassador.io/role-group: emissary-ingress-agent
+    app.kubernetes.io/name: emissary-ingress-agent
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
 rules:
 - apiGroups: [argoproj.io]
@@ -534,6 +617,11 @@ metadata:
   name: emissary-ingress-agent-deployments
   labels:
     rbac.getambassador.io/role-group: emissary-ingress-agent
+    app.kubernetes.io/name: emissary-ingress-agent
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
 rules:
 - apiGroups: [apps, extensions]
@@ -547,6 +635,11 @@ metadata:
   name: emissary-ingress-agent-endpoints
   labels:
     rbac.getambassador.io/role-group: emissary-ingress-agent
+    app.kubernetes.io/name: emissary-ingress-agent
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
 rules:
 - apiGroups: ['']
@@ -560,6 +653,11 @@ metadata:
   name: emissary-ingress-agent-configmaps
   labels:
     rbac.getambassador.io/role-group: emissary-ingress-agent
+    app.kubernetes.io/name: emissary-ingress-agent
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
 rules:
 - apiGroups: ['']
@@ -573,6 +671,11 @@ metadata:
   name: emissary-ingress-agent-config
   namespace: emissary
   labels:
+    app.kubernetes.io/name: emissary-ingress-agent
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
 rules:
 - apiGroups: ['']
@@ -586,6 +689,11 @@ metadata:
   name: emissary-ingress-agent-config
   namespace: emissary
   labels:
+    app.kubernetes.io/name: emissary-ingress-agent
+
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
     product: aes
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -604,7 +712,11 @@ metadata:
   namespace: emissary
   labels:
     app.kubernetes.io/name: emissary-ingress-agent
+
     app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
+    product: aes
 spec:
   replicas: 1
   selector:
@@ -615,7 +727,11 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: emissary-ingress-agent
+
         app.kubernetes.io/instance: emissary-ingress
+        app.kubernetes.io/part-of: emissary-ingress
+        app.kubernetes.io/managed-by: getambassador.io
+        product: aes
     spec:
       serviceAccountName: emissary-ingress-agent
       containers:

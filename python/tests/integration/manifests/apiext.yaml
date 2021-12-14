@@ -9,8 +9,9 @@ metadata:
   labels:
     product: aes
     app.kubernetes.io/name: emissary-ingress-apiext
-    app.kubernetes.io/part-of: kat-apiext
     app.kubernetes.io/instance: kat-apiext
+    app.kubernetes.io/part-of: kat-apiext
+    app.kubernetes.io/managed-by: kat
 ---
 # Source: emissary-ingress/templates/apiext.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -20,8 +21,9 @@ metadata:
   labels:
     product: aes
     app.kubernetes.io/name: emissary-ingress-apiext
-    app.kubernetes.io/part-of: kat-apiext
     app.kubernetes.io/instance: kat-apiext
+    app.kubernetes.io/part-of: kat-apiext
+    app.kubernetes.io/managed-by: kat
 rules:
 - apiGroups: [apiextensions.k8s.io]
   resources: [customresourcedefinitions]
@@ -53,8 +55,9 @@ metadata:
   labels:
     product: aes
     app.kubernetes.io/name: emissary-ingress-apiext
-    app.kubernetes.io/part-of: kat-apiext
     app.kubernetes.io/instance: kat-apiext
+    app.kubernetes.io/part-of: kat-apiext
+    app.kubernetes.io/managed-by: kat
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -73,8 +76,9 @@ metadata:
   labels:
     product: aes
     app.kubernetes.io/name: emissary-ingress-apiext
-    app.kubernetes.io/part-of: kat-apiext
     app.kubernetes.io/instance: kat-apiext
+    app.kubernetes.io/part-of: kat-apiext
+    app.kubernetes.io/managed-by: kat
 rules:
 - apiGroups: ['']
   resources: [secrets]
@@ -93,8 +97,9 @@ metadata:
   labels:
     product: aes
     app.kubernetes.io/name: emissary-ingress-apiext
-    app.kubernetes.io/part-of: kat-apiext
     app.kubernetes.io/instance: kat-apiext
+    app.kubernetes.io/part-of: kat-apiext
+    app.kubernetes.io/managed-by: kat
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -113,8 +118,9 @@ metadata:
   labels:
     product: aes
     app.kubernetes.io/name: emissary-ingress-apiext
-    app.kubernetes.io/part-of: kat-apiext
     app.kubernetes.io/instance: kat-apiext
+    app.kubernetes.io/part-of: kat-apiext
+    app.kubernetes.io/managed-by: kat
 spec:
   type: ClusterIP
   ports:
@@ -135,8 +141,9 @@ metadata:
   labels:
     product: aes
     app.kubernetes.io/name: emissary-ingress-apiext
-    app.kubernetes.io/part-of: kat-apiext
     app.kubernetes.io/instance: kat-apiext
+    app.kubernetes.io/part-of: kat-apiext
+    app.kubernetes.io/managed-by: kat
 spec:
   selector:
     matchLabels:
@@ -149,8 +156,9 @@ spec:
       labels:
         product: aes
         app.kubernetes.io/name: emissary-ingress-apiext
-        app.kubernetes.io/part-of: kat-apiext
         app.kubernetes.io/instance: kat-apiext
+        app.kubernetes.io/part-of: kat-apiext
+        app.kubernetes.io/managed-by: kat
     spec:
       serviceAccountName: emissary-ingress-apiext
       containers:

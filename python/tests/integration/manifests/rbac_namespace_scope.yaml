@@ -12,6 +12,11 @@ kind: ClusterRole
 metadata:
   name: {self.path.k8s}
   labels:
+    app.kubernetes.io/name: emissary-ingress
+
+    app.kubernetes.io/instance: kat-rbac-singlenamespace
+    app.kubernetes.io/part-of: kat-rbac-singlenamespace
+    app.kubernetes.io/managed-by: kat
     product: aes
 aggregationRule:
   clusterRoleSelectors:
@@ -26,6 +31,11 @@ metadata:
   name: {self.path.k8s}
   namespace: {self.namespace}
   labels:
+    app.kubernetes.io/name: emissary-ingress
+
+    app.kubernetes.io/instance: kat-rbac-singlenamespace
+    app.kubernetes.io/part-of: kat-rbac-singlenamespace
+    app.kubernetes.io/managed-by: kat
     product: aes
 {serviceAccountExtra}
 ---
@@ -35,6 +45,11 @@ kind: ClusterRoleBinding
 metadata:
   name: {self.path.k8s}
   labels:
+    app.kubernetes.io/name: emissary-ingress
+
+    app.kubernetes.io/instance: kat-rbac-singlenamespace
+    app.kubernetes.io/part-of: kat-rbac-singlenamespace
+    app.kubernetes.io/managed-by: kat
     product: aes
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -57,6 +72,11 @@ kind: ClusterRole
 metadata:
   name: {self.path.k8s}-crd
   labels:
+    app.kubernetes.io/name: emissary-ingress
+
+    app.kubernetes.io/instance: kat-rbac-singlenamespace
+    app.kubernetes.io/part-of: kat-rbac-singlenamespace
+    app.kubernetes.io/managed-by: kat
     product: aes
     rbac.getambassador.io/role-group: {self.path.k8s}
 rules:
@@ -74,6 +94,11 @@ metadata:
   name: {self.path.k8s}
   namespace: {self.namespace}
   labels:
+    app.kubernetes.io/name: emissary-ingress
+
+    app.kubernetes.io/instance: kat-rbac-singlenamespace
+    app.kubernetes.io/part-of: kat-rbac-singlenamespace
+    app.kubernetes.io/managed-by: kat
     product: aes
     rbac.getambassador.io/role-group: {self.path.k8s}
 rules:
@@ -123,6 +148,11 @@ metadata:
   name: {self.path.k8s}
   namespace: {self.namespace}
   labels:
+    app.kubernetes.io/name: emissary-ingress
+
+    app.kubernetes.io/instance: kat-rbac-singlenamespace
+    app.kubernetes.io/part-of: kat-rbac-singlenamespace
+    app.kubernetes.io/managed-by: kat
     product: aes
 roleRef:
   apiGroup: rbac.authorization.k8s.io
