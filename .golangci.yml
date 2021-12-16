@@ -3,14 +3,12 @@
 linters:
   disable-all: true
   enable:
+    - depguard
+    - errcheck
     - gofmt
     - govet
-    - depguard
     - unused
-    - errcheck
 linters-settings:
-  gofmt:
-    simplify: true
   depguard:
     list-type: blacklist
     include-go-root: true
@@ -22,13 +20,15 @@ linters-settings:
       - github.com/golang/protobuf:     "Use `google.golang.org/protobuf` instead of `github.com/golang/protobuf`"
       - github.com/google/shlex:        "Use `github.com/kballard/go-shellquote` instead of `github.com/google/shlex`"
       - golang.org/x/net/http2/h2c:     "Use `github.com/datawire/dlib/dhttp` instead of `golang.org/x/net/http2/h2c`"
+  errcheck:
+    exclude-functions:
+      - "(net/http.ResponseWriter).Write"
+  gofmt:
+    simplify: true
   unused:
     # treat code as a program (not a library) and report unused
     # exported identifiers
     check-exported: true
-  errcheck:
-    exclude-functions:
-      - "(net/http.ResponseWriter).Write"
 issues:
   exclude-rules:
     - linters: [govet, errcheck]
@@ -41,7 +41,7 @@ issues:
     - linters: [govet]
       text: "^tests: .* should return nothing$"
 run:
-  timeout: 9m # CircleCI is slow?
+  timeout: 9m
 
 # I don't know of a linter that lets you blacklist specific functions
 # and variables within a package, but if one exists, I would like to
