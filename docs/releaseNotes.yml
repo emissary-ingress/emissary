@@ -32,7 +32,7 @@
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
   - version: 2.1.0
-    date: 'TBD'
+    date: '2021-12-16'
     notes:
       - title: CRD conversions
         type: feature

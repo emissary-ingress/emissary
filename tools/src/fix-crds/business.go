@@ -8,14 +8,12 @@ import (
 )
 
 const (
-	TargetAPIServerHelm     = "apiserver-helm"
 	TargetAPIServerKubectl  = "apiserver-kubectl"
 	TargetAPIServerKAT      = "apiserver-kat"
 	TargetInternalValidator = "internal-validator"
 )
 
 var Targets = []string{
-	TargetAPIServerHelm,
 	TargetAPIServerKubectl,
 	TargetAPIServerKAT,
 	TargetInternalValidator,
@@ -82,21 +80,20 @@ func FixCRD(args Args, crd *CRD) error {
 	}
 
 	// fix labels
-	if crd.Metadata.Labels == nil {
-		crd.Metadata.Labels = make(map[string]string)
+	if args.Target != TargetInternalValidator {
+		if crd.Metadata.Labels == nil {
+			crd.Metadata.Labels = make(map[string]string)
+		}
+		for k, v := range globalLabels {
+			crd.Metadata.Labels[k] = v
+		}
 	}
-	crd.Metadata.Labels["product"] = "aes"
-	crd.Metadata.Labels["app.kubernetes.io/name"] = "ambassador"
 
 	// fix annotations
 	if crd.Metadata.Annotations == nil {
 		crd.Metadata.Annotations = make(map[string]string)
 	}
-	if args.Target == TargetAPIServerHelm {
-		crd.Metadata.Annotations["helm.sh/hook"] = "crd-install"
-	} else {
-		delete(crd.Metadata.Annotations, "helm.sh/hook")
-	}
+	delete(crd.Metadata.Annotations, "helm.sh/hook")
 
 	// fix categories
 	if !inArray("ambassador-crds", crd.Spec.Names.Categories) {
@@ -105,12 +102,6 @@ func FixCRD(args Args, crd *CRD) error {
 
 	// fix conversion
 	if len(crd.Spec.Versions) > 1 {
-		name := "bogus-emissary-apiext"
-		namespace := "bogus-emissary"
-		if args.Target == TargetAPIServerKAT {
-			name = "emissary-ingress-apiext"
-			namespace = "default"
-		}
 		crd.Spec.Conversion = &apiext.CustomResourceConversion{
 			Strategy: apiext.WebhookConverter,
 			Webhook: &apiext.WebhookConversion{
@@ -118,7 +109,7 @@ func FixCRD(args Args, crd *CRD) error {
 				// controller.
 				ClientConfig: &apiext.WebhookClientConfig{
 					Service: &apiext.ServiceReference{
-						Name:      name,
+						Name:      apiextSvcName,
 						Namespace: namespace,
 					},
 				},

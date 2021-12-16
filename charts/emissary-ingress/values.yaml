@@ -139,7 +139,7 @@ image:
   # Emissary Ingress docker repo
   repository: docker.io/emissaryingress/emissary
   # Emissary Ingress docker tag
-  tag: 2.0.5
+  tag: 2.1.0
   # Pod container image pull policy
   pullPolicy: IfNotPresent
 
@@ -172,7 +172,7 @@ service:
       # protocol: TCP
       # nodePort: 30222
   # For test purposes, do not use.
-  portsRaw: ""
+  portsRaw: ''
 
   externalTrafficPolicy:
 
@@ -225,7 +225,7 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name:
   # Extra YAML to include at the end of the ServiceAccount
-  extra: ""
+  extra: ''
 
 deploymentStrategy:
   type: RollingUpdate
@@ -305,14 +305,6 @@ topologySpreadConstraints: []
 
 # Config thats mounted to `/ambassador/ambassador-config`
 ambassadorConfig: ''
-
-crds:
-  # If `true`, enables CRD resources for the installation.
-  enabled: true
-  # If true, Creates CRD resources
-  create: true
-  # If true, if the ambassador CRDs should be kept when the chart is deleted
-  keep: true
 
 # Prometheus Operator ServiceMonitor configuration
 # See documentation: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitor
@@ -407,22 +399,3 @@ createNamespace: false
 # - HTTP on port 8080
 # - HTTPS on port 8443
 createDefaultListeners: false
-
-apiext:
-  # Whether to enable the apiext CRD manager.  Emissary requires this
-  # in order to work correctly, but there should only be one per
-  # cluster.  If you have multiple instances of Emissary installed in
-  # a your cluster, only one of them should have apiext.enabled=true.
-  enabled: true
-
-  deployment:
-    replicas: 3
-  pod:
-    nodeSelector: null
-    affinity: null
-    tolerations: null
-    topologySpreadConstraints: null
-    livenessProbe: # +doc-gen:break
-      initialDelaySeconds: 5
-      periodSeconds: 3
-      failureThreshold: 3

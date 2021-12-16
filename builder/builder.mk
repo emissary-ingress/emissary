@@ -145,7 +145,7 @@ INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
 # directory with the manifests for loading Ambassador for running the Ingress Conformance tests
 # NOTE: these manifests can be slightly different to the regular ones asd they include
 INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../manifests/emissary/
-INGRESS_TEST_MANIFS = ambassador-crds.yaml ambassador.yaml
+INGRESS_TEST_MANIFS = emissary-crds.yaml emissary-emissaryns.yaml
 
 # export DOCKER_BUILDKIT := 0
 

@@ -37,7 +37,7 @@ def main(rc_ver: str, docker_image: str, helm_ver: str, s3_bucket: str, s3_key: 
         if not found:
             raise AssertionError("Image not found in chart")
     with check(f"checking s3 yaml files"):
-        s3_url = f"https://s3.amazonaws.com/{s3_bucket}/yaml/emissary/{rc_ver}/emissary-ingress.yaml"
+        s3_url = f"https://s3.amazonaws.com/{s3_bucket}/yaml/emissary/{rc_ver}/emissary-emissaryns.yaml"
         info = check_artifacts.http_cat(s3_url).decode('utf-8')
         found = False
         for line in info.split("\n"):

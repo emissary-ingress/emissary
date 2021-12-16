@@ -6,14 +6,7 @@ metadata:
   namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
-    app.kubernetes.io/part-of: {{ .Release.Name }}
-    helm.sh/chart: {{ include "ambassador.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if .Values.deploymentTool }}
-    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
-    {{- else }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- end }}
+    {{- include "ambassador.labels" . | nindent 4 }}
 data:
   exporterConfiguration:
 {{- if .Values.prometheusExporter.configuration }} |

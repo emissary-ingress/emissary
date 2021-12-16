@@ -181,10 +181,11 @@ class Resource (Cacheable):
         # the correct type.
         ambassador = sys.modules['ambassador']
 
-        resource_class: Type[R] = getattr(ambassador, attrs['kind'], None)
+        resource_class: Optional[Type[R]] = getattr(ambassador, attrs['kind'], None)
 
         if not resource_class:
             resource_class = getattr(ambassador, 'AC' + attrs[ 'kind' ], cls)
+        assert resource_class
 
         # print("%s.from_dict: %s => %s" % (cls, attrs['kind'], resource_class))
 

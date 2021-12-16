@@ -1,8 +1,0 @@
-resources:
-  - { kind: ServiceAccount,     name: emissary-ingress-apiext,             namespace: default }
-  - { kind: ClusterRole,        name: emissary-ingress-apiext                                 }
-  - { kind: ClusterRoleBinding, name: emissary-ingress-apiext                                 }
-  - { kind: Role,               name: emissary-ingress-apiext,             namespace: default }
-  - { kind: RoleBinding,        name: emissary-ingress-apiext,             namespace: default }
-  - { kind: Service,            name: emissary-ingress-apiext,             namespace: default }
-  - { kind: Deployment,         name: emissary-ingress-apiext,             namespace: default }

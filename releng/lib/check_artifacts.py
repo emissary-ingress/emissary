@@ -168,7 +168,7 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
         check.result = 'TODO'
         raise NotImplementedError()
     with checker.check(name='Website YAML') as check:
-        yaml_str = http_cat('https://app.getambassador.io/yaml/emissary/latest/emissary-ingress.yaml').decode('utf-8')
+        yaml_str = http_cat('https://app.getambassador.io/yaml/emissary/latest/emissary-emissaryns.yaml').decode('utf-8')
         images = [
             line.strip()[len('image:'):].strip() for line in yaml_str.split("\n")
             if line.strip().startswith('image:')

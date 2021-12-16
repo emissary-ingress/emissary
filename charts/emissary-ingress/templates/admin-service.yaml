@@ -5,17 +5,8 @@ metadata:
   name: {{ include "ambassador.fullname" . }}-admin
   namespace: {{ include "ambassador.namespace" . }}
   labels:
-    {{- if and (ne .Values.deploymentTool "getambassador.io") (ne .Values.deploymentTool "kat") }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
-    helm.sh/chart: {{ include "ambassador.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/part-of: {{ .Release.Name }}
-    {{- if .Values.deploymentTool }}
-    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
-    {{- else }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- end }}
-    {{- end }}
+    {{- include "ambassador.labels" . | nindent 4 }}
     # Hard-coded label for Prometheus Operator ServiceMonitor
     service: ambassador-admin
     product: aes
@@ -46,8 +37,8 @@ spec:
       protocol: TCP
       name: ambassador-snapshot
   selector:
-    {{- if .Values.service.selector }}
-    {{ toYaml .Values.service.selector | nindent 6 }}
+    {{- with .Values.service.selector }}
+      {{- toYaml . | nindent 4 }}
     {{- else }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}

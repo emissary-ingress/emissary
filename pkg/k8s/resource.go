@@ -1,13 +1,11 @@
 package k8s
 
 import (
-	"bytes"
+	"encoding/json"
 	"fmt"
-	"io"
 	"strings"
 
-	ms "github.com/mitchellh/mapstructure"
-	"gopkg.in/yaml.v2"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
 // Map is a YAML/JSON-ish map with some convenience methods on it.
@@ -161,10 +159,6 @@ func (m Metadata) QName() string {
 
 func (r Resource) QName() string { return r.Metadata().QName() }
 
-func (r Resource) Decode(output interface{}) error {
-	return ms.Decode(r, output)
-}
-
 // This fixes objects parsed by yaml to objects that are compatible
 // with json by converting any map[interface{}]interface{} to
 // map[string]interface{}
@@ -205,19 +199,16 @@ func NewResourceFromYaml(yaml map[interface{}]interface{}) Resource {
 }
 
 func ParseResources(name, input string) (result []Resource, err error) {
-	d := yaml.NewDecoder(bytes.NewReader([]byte(input)))
-	for {
-		var uns map[interface{}]interface{}
-		err = d.Decode(&uns)
-		if err != nil {
-			if err == io.EOF {
-				err = nil
-			} else {
-				err = fmt.Errorf("%s: %v", name, err)
-			}
-			return
-		}
-		res := NewResourceFromYaml(uns)
-		result = append(result, res)
+	resultWrongType, err := kates.ParseManifestsToUnstructured(input)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", name, err)
 	}
+	bs, err := json.Marshal(resultWrongType)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", name, err)
+	}
+	if err := json.Unmarshal(bs, &result); err != nil {
+		return nil, fmt.Errorf("%s: %w", name, err)
+	}
+	return result, nil
 }

@@ -7,11 +7,6 @@ restartPolicy: Always
 terminationGracePeriodSeconds: "0"
 service:
   type: LoadBalancer
-
-  # Note that target http ports need to match your ambassador configurations service_port
-  # https://www.getambassador.io/reference/modules/#the-ambassador-module
-  selector:
-    service: ambassador
 replicaCount: 3
 affinity:
   podAntiAffinity:
