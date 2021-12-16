@@ -139,7 +139,7 @@ image:
   # Emissary Ingress docker repo
   repository: docker.io/emissaryingress/emissary
   # Emissary Ingress docker tag
-  tag: 2.1.0-rc.2
+  tag: 2.1.0
   # Pod container image pull policy
   pullPolicy: IfNotPresent
 
