@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -26,6 +25,7 @@ type HTTP struct {
 	Cert          string
 	Key           string
 	TLSVersion    string
+	AddExtAuth    bool
 }
 
 func getTLSVersion(state *tls.ConnectionState) string {
@@ -176,12 +176,11 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 		w.Header()[http.CanonicalHeaderKey("Location")] = location
 	}
 
-	addExtauthEnv := os.Getenv("INCLUDE_EXTAUTH_HEADER")
 	// KAT tests that sent really big request headers might 503 if we send the request headers
 	// in the response. Enable tests to override the env var
 	addExtAuthOverride := r.URL.Query().Get("override_extauth_header")
 
-	if len(addExtauthEnv) > 0 && len(addExtAuthOverride) == 0 {
+	if h.AddExtAuth && len(addExtAuthOverride) == 0 {
 		extauth := make(map[string]interface{})
 		extauth["request"] = request
 		extauth["resp_headers"] = lower(w.Header())

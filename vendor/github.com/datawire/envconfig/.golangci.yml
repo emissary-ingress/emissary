@@ -1,0 +1,50 @@
+linters: # which linters to run
+  enable-all: true
+  disable:
+    # deprecated
+    - golint     # deprecated, replaced by 'revive'
+    - interfacer # deprecated
+    - maligned   # deprecated, replaced by 'govet fieldalignement'
+    - scopelint  # deprecated, replaced by 'exportloopref'
+
+    # correcness
+    - paralleltest # global env prevents parallelism
+
+    # complexity
+    - cyclop   # complexity: reflection and parsing are complicated, deal with it
+    - funlen   # complexity: reflection and parsing are complicated, deal with it
+    - gocognit # complexity: reflection and parsing are complicated, deal with it
+    - nestif   # complexity: reflection and parsing are complicated, deal with it
+
+    # style
+    - lll      # style: some lines are long and wrapping would make it worse
+    - nlreturn # style: overly nit-picky whitespace linter
+    - wsl      # style: overly nit-picky whitespace linter
+linters-settings: # what settings to run those linters with
+  goimports:
+    # A comma-separated list
+    local-prefixes: github.com/datawire
+  gomnd:
+    settings:
+      mnd:
+        ignored-numbers: 0,1,2,10,32,64
+  nolintlint:
+    allow-unused: false
+    allow-leading-space: false
+    require-explanation: true
+    require-specific: true
+  stylecheck:
+    checks:
+      - "all"
+      - "-ST1023" # disable ST1023; dealing with reflection is complex enough that the type names can help humans
+  varnamelen:
+    ignore-names:
+      - i
+      - u
+      - tc
+issues:
+  exclude-use-default: false
+  exclude-rules:
+    # same as ST1023 above
+    - linters: [revive]
+      text: "omit type .* from declaration of var fieldInfo; it will be inferred from the right-hand side"

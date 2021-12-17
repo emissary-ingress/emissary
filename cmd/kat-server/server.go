@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"reflect"
 
 	srv "github.com/datawire/ambassador/v2/cmd/kat-server/services"
 	"github.com/datawire/dlib/dlog"
+	"github.com/datawire/envconfig"
 )
 
 const (
@@ -20,26 +22,58 @@ const (
 	SSLPort int16 = 8443
 )
 
+type EnvConfig struct {
+	Type             string `env:"KAT_BACKEND_TYPE  ,parser=nonempty-string        ,default=http"`
+	Backend          string `env:"BACKEND           ,parser=possibly-empty-string  ,default="`
+
+	// services/http.go
+	AddExtAuth bool `env:"INCLUDE_EXTAUTH_HEADER ,parser=empty-nonempty ,default="`
+
+	// services/grpc-agent.go
+	GRPCMaxRecvMsgSize int `env:"KAT_GRPC_MAX_RECV_MESSAGE_SIZE  ,parser=strconv.ParseInt  ,default=0"`
+
+	AuthProtocolVersion string `env:"GRPC_AUTH_PROTOCOL_VERSION  ,parser=nonempty-string  ,default=v2"`
+	RLSProtocolVersion  string `env:"GRPC_RLS_PROTOCOL_VERSION   ,parser=nonempty-string  ,default=v2"`
+}
+
+func ConfigFromEnv() (cfg EnvConfig, warn []error, fatal []error) {
+	parser, err := envconfig.GenerateParser(reflect.TypeOf(EnvConfig{}), nil)
+	if err != nil {
+		// panic, because it means that the definition of
+		// 'Config' is invalid, which is a bug, not a
+		// runtime error.
+		panic(err)
+	}
+	warn, fatal = parser.ParseFromEnv(&cfg)
+	return
+}
+
 func main() {
 	ctx := context.Background() // first line in main()
+
+	cfg, warn, fatal := ConfigFromEnv()
+	for _, err := range warn {
+		dlog.Warnln(ctx, "config error:", err)
+	}
+	for _, err := range fatal {
+		dlog.Errorln(ctx, "config error:", err)
+	}
+	if len(fatal) > 0 {
+		os.Exit(1)
+	}
+
 	listeners := make([]srv.Service, 0)
 	var s srv.Service
 
-	t := os.Getenv("KAT_BACKEND_TYPE")
+	dlog.Printf(ctx, "Running as type %s", cfg.Type)
 
-	if len(t) <= 0 {
-		t = "http"
-	}
-
-	dlog.Printf(ctx, "Running as type %s", t)
-
-	switch t {
+	switch cfg.Type {
 	case "grpc_echo":
 		s = &srv.GRPC{
 			Port:          Port,
-			Backend:       os.Getenv("BACKEND"),
+			Backend:       cfg.Backend,
 			SecurePort:    SSLPort,
-			SecureBackend: os.Getenv("BACKEND"),
+			SecureBackend: cfg.Backend,
 			Cert:          Crt,
 			Key:           Key,
 		}
@@ -47,61 +81,66 @@ func main() {
 		listeners = append(listeners, s)
 
 	case "grpc_auth":
-		protocolVersion := os.Getenv("GRPC_AUTH_PROTOCOL_VERSION")
-		if protocolVersion == "v3" {
+		switch cfg.AuthProtocolVersion {
+		case "v3":
 			s = &srv.GRPCAUTHV3{
 				Port:            Port,
-				Backend:         os.Getenv("BACKEND"),
+				Backend:         cfg.Backend,
 				SecurePort:      SSLPort,
-				SecureBackend:   os.Getenv("BACKEND"),
+				SecureBackend:   cfg.Backend,
 				Cert:            Crt,
 				Key:             Key,
-				ProtocolVersion: protocolVersion,
+				ProtocolVersion: cfg.AuthProtocolVersion,
 			}
-		} else {
+		case "v2":
 			s = &srv.GRPCAUTH{
 				Port:            Port,
-				Backend:         os.Getenv("BACKEND"),
+				Backend:         cfg.Backend,
 				SecurePort:      SSLPort,
-				SecureBackend:   os.Getenv("BACKEND"),
+				SecureBackend:   cfg.Backend,
 				Cert:            Crt,
 				Key:             Key,
-				ProtocolVersion: protocolVersion,
+				ProtocolVersion: cfg.AuthProtocolVersion,
 			}
+		default:
+			dlog.Errorf(ctx, "invalid auth protocol version: %q", cfg.AuthProtocolVersion)
+			os.Exit(1)
 		}
 
 		listeners = append(listeners, s)
 
 	case "grpc_rls":
-		protocolVersion := os.Getenv("GRPC_RLS_PROTOCOL_VERSION")
-		if protocolVersion == "v3" {
+		switch cfg.RLSProtocolVersion {
+		case "v3":
 			s = &srv.GRPCRLSV3{
 				Port:            Port,
-				Backend:         os.Getenv("BACKEND"),
+				Backend:         cfg.Backend,
 				SecurePort:      SSLPort,
-				SecureBackend:   os.Getenv("BACKEND"),
+				SecureBackend:   cfg.Backend,
 				Cert:            Crt,
 				Key:             Key,
-				ProtocolVersion: protocolVersion,
+				ProtocolVersion: cfg.RLSProtocolVersion,
 			}
-
-		} else {
+		case "v2":
 			s = &srv.GRPCRLS{
 				Port:            Port,
-				Backend:         os.Getenv("BACKEND"),
+				Backend:         cfg.Backend,
 				SecurePort:      SSLPort,
-				SecureBackend:   os.Getenv("BACKEND"),
+				SecureBackend:   cfg.Backend,
 				Cert:            Crt,
 				Key:             Key,
-				ProtocolVersion: protocolVersion,
+				ProtocolVersion: cfg.RLSProtocolVersion,
 			}
-
+		default:
+			dlog.Errorf(ctx, "invalid rls protocol version: %q", cfg.RLSProtocolVersion)
+			os.Exit(1)
 		}
 
 		listeners = append(listeners, s)
 	case "grpc_agent":
 		s = &srv.GRPCAgent{
-			Port: Port,
+			Port:               Port,
+			GRPCMaxRecvMsgSize: cfg.GRPCMaxRecvMsgSize,
 		}
 		listeners = append(listeners, s)
 
@@ -118,7 +157,7 @@ func main() {
 			if len(clearBackend) <= 0 {
 				if port == 8080 {
 					// Default for backwards compatibility.
-					clearBackend = os.Getenv("BACKEND")
+					clearBackend = cfg.Backend
 
 					dlog.Printf(ctx, "clear: fallback to BACKEND -- %s", clearBackend)
 				}
@@ -137,7 +176,7 @@ func main() {
 			if len(secureBackend) <= 0 {
 				if securePort == 8443 {
 					// Default for backwards compatibility.
-					secureBackend = os.Getenv("BACKEND")
+					secureBackend = cfg.Backend
 
 					dlog.Printf(ctx, "secure: fallback to BACKEND -- %s", clearBackend)
 				}
@@ -160,6 +199,7 @@ func main() {
 					SecureBackend: secureBackend,
 					Cert:          Crt,
 					Key:           Key,
+					AddExtAuth:    cfg.AddExtAuth,
 				}
 
 				listeners = append(listeners, s)

@@ -81,6 +81,9 @@ github.com/datawire/dlib/internal/sigint
 # github.com/datawire/dtest v0.0.0-20210928162311-722b199c4c2f
 ## explicit; go 1.16
 github.com/datawire/dtest
+# github.com/datawire/envconfig v0.0.0-20211216082313-2ee48214e6ce
+## explicit; go 1.17
+github.com/datawire/envconfig
 # github.com/datawire/go-mkopensource v0.0.0-20220203013436-a8068abfaa8b
 ## explicit; go 1.17
 github.com/datawire/go-mkopensource

@@ -5,6 +5,7 @@ linters:
   enable:
     - depguard
     - errcheck
+    - forbidigo
     - gofmt
     - govet
     - unused
@@ -23,6 +24,10 @@ linters-settings:
   errcheck:
     exclude-functions:
       - "(net/http.ResponseWriter).Write"
+  forbidigo:
+    forbid:
+      - '^os\.(Getenv|LookupEnv|Environ)$' # Use github.com/datawire/envconfig instead
+    exclude_godoc_examples: false
   gofmt:
     simplify: true
   unused:

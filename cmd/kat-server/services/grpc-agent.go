@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"sync"
 	"syscall"
 	"time"
@@ -25,18 +24,16 @@ import (
 )
 
 type GRPCAgent struct {
-	Port int16
+	Port               int16
+	GRPCMaxRecvMsgSize int
 }
 
 func (a *GRPCAgent) Start(ctx context.Context) <-chan bool {
 	wg := &sync.WaitGroup{}
 	var opts []grpc.ServerOption
-	if sizeStr := os.Getenv("KAT_GRPC_MAX_RECV_MSG_SIZE"); sizeStr != "" {
-		size, err := strconv.Atoi(sizeStr)
-		if err == nil {
-			dlog.Printf(ctx, "setting gRPC MaxRecvMsgSize to %d bytes", size)
-			opts = append(opts, grpc.MaxRecvMsgSize(size))
-		}
+	if a.GRPCMaxRecvMsgSize != 0 {
+		dlog.Printf(ctx, "setting gRPC MaxRecvMsgSize to %d bytes", a.GRPCMaxRecvMsgSize)
+		opts = append(opts, grpc.MaxRecvMsgSize(a.GRPCMaxRecvMsgSize))
 	}
 	grpcHandler := grpc.NewServer(opts...)
 	dir := &director{}
