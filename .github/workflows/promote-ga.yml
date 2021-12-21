@@ -34,7 +34,7 @@ jobs:
       - name: "make release/promote-oss/to-ga"
         if: steps.check-tag.outputs.match == 'true'
         run: |
-          make release/promote-oss/to-ga
+          make release/promote-oss/to-ga VERSION=${GITHUB_REF#refs/*/}
       # TODO: need to get dev mirror to test
       #- name: "make release/ga-mirror"
         #run: |
@@ -76,13 +76,13 @@ jobs:
           echo "${GIT_TOKEN}" | gh auth login --with-token
       - name: "Make changelog changes"
         run: |
-          make release/ga/changelog-update
+          make release/ga/changelog-update VERSION=${GITHUB_REF#refs/*/}
       - name: Extract branch name
         shell: bash
         run: echo "PR_URL=$(gh pr view --json url --jq .url)" >> $GITHUB_ENV
       - name: Create github release
         run: |
-          make release/ga/create-gh-release
+          make release/ga/create-gh-release VERSION=${GITHUB_REF#refs/*/}
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
@@ -120,7 +120,7 @@ jobs:
           echo "${GIT_TOKEN}" | gh auth login --with-token
       - name: "Make changelog changes"
         run: |
-          make release/ga/manifest-update
+          make release/ga/manifest-update VERSION=${GITHUB_REF#refs/*/}
       - name: Extract PR URL
         shell: bash
         run: echo "PR_URL=$(gh pr view --json url --jq .url)" >> $GITHUB_ENV
