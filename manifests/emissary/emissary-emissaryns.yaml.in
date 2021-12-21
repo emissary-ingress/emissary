@@ -5,7 +5,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: emissary-ingress-admin
-  namespace: default
+  namespace: emissary
   labels:
     app.kubernetes.io/name: emissary-ingress
 
@@ -45,7 +45,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: emissary-ingress
-  namespace: default
+  namespace: emissary
   labels:
     app.kubernetes.io/name: emissary-ingress
 
@@ -64,7 +64,7 @@ metadata:
     a8r.io/chat: http://a8r.io/Slack
     a8r.io/bugs: https://github.com/datawire/ambassador/issues
     a8r.io/support: https://www.getambassador.io/about-us/support/
-    a8r.io/dependencies: emissary-ingress-redis.default
+    a8r.io/dependencies: emissary-ingress-redis.emissary
 spec:
   type: LoadBalancer
   ports:
@@ -108,7 +108,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: emissary-ingress
-  namespace: default
+  namespace: emissary
   labels:
     app.kubernetes.io/name: emissary-ingress
 
@@ -135,7 +135,7 @@ roleRef:
   name: emissary-ingress
 subjects:
 - name: emissary-ingress
-  namespace: default
+  namespace: emissary
   kind: ServiceAccount
 ---
 # Source: emissary-ingress/templates/rbac.yaml
@@ -220,7 +220,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: emissary-ingress
-  namespace: default
+  namespace: emissary
   labels:
     app.kubernetes.io/name: emissary-ingress
 
@@ -267,7 +267,7 @@ spec:
             path: labels
       containers:
       - name: ambassador
-        image: docker.io/emissaryingress/emissary:2.1.0
+        image: $imageRepo$:$version$
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
@@ -330,7 +330,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: emissary-ingress-agent
-  namespace: default
+  namespace: emissary
   labels:
     app.kubernetes.io/name: emissary-ingress-agent
 
@@ -358,7 +358,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: emissary-ingress-agent
-  namespace: default
+  namespace: emissary
 ---
 # Source: emissary-ingress/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -491,7 +491,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: emissary-ingress-agent-config
-  namespace: default
+  namespace: emissary
   labels:
     app.kubernetes.io/name: emissary-ingress-agent
 
@@ -509,7 +509,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: emissary-ingress-agent-config
-  namespace: default
+  namespace: emissary
   labels:
     app.kubernetes.io/name: emissary-ingress-agent
 
@@ -524,14 +524,14 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: emissary-ingress-agent
-  namespace: default
+  namespace: emissary
 ---
 # Source: emissary-ingress/templates/ambassador-agent.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: emissary-ingress-agent
-  namespace: default
+  namespace: emissary
   labels:
     app.kubernetes.io/name: emissary-ingress-agent
 
@@ -558,7 +558,7 @@ spec:
       serviceAccountName: emissary-ingress-agent
       containers:
       - name: agent
-        image: docker.io/emissaryingress/emissary:2.1.0
+        image: $imageRepo$:$version$
         imagePullPolicy: IfNotPresent
         command: [agent]
         env:
@@ -571,5 +571,5 @@ spec:
         - name: RPC_CONNECTION_ADDRESS
           value: https://app.getambassador.io/
         - name: AES_SNAPSHOT_URL
-          value: http://emissary-ingress-admin.default:8005/snapshot-external
+          value: http://emissary-ingress-admin.emissary:8005/snapshot-external
   progressDeadlineSeconds: 600

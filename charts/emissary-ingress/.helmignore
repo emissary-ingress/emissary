@@ -16,3 +16,4 @@
 # stuff specific to the Emissary chart directory
 .gitignore
 OWNERS
+*.in

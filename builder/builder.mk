@@ -100,7 +100,7 @@ include $(OSS_HOME)/build-aux/prelude.mk
 include $(OSS_HOME)/build-aux/colors.mk
 
 docker.tag.local = $(BUILDER_NAME).local/$(*F)
-docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTRY)/$(*F):$(shell docker image inspect --format='{{slice (index (split .Id ":") 1) 0 12}}' $$(cat $<))
+docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTRY)/$(*F):$(patsubst v%,%,$(VERSION))
 include $(OSS_HOME)/build-aux/docker.mk
 
 include $(OSS_HOME)/build-aux/teleproxy.mk
@@ -333,8 +333,7 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			echo "push-dev: tree must be clean" >&2 ;\
 			exit 1 ;\
 		fi; \
-		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
-		if [ $$check -lt 1 ]; then \
+		if [[ '$(VERSION)' != *-* ]]; then \
 			printf "$(RED)push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2 ;\
 			exit 1 ;\
 		fi ;\
@@ -360,7 +359,6 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			chart-push-ci ; \
 		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests  ; \
-		$(MAKE) clean-manifests ; \
 	}
 .PHONY: push-dev
 
@@ -784,7 +782,6 @@ release/promote-oss/dev-to-rc:
 		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} push-manifests  ; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} publish-docs-yaml ; \
-		$(MAKE) clean-manifests ; \
 	}
 .PHONY: release/promote-oss/dev-to-rc
 
@@ -863,7 +860,6 @@ release/promote-oss/to-hotfix:
 		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} push-manifests ;\
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} publish-docs-yaml ;\
-		$(MAKE) clean-manifests ;\
 		docker logout ;\
 	}
 .PHONY: release/promote-oss/to-hotfix
