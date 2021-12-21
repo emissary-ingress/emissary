@@ -11,6 +11,23 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
   ifeq ($(shell go env GOPATH),$(shell go env GOROOT))
     $(error Your $$GOPATH (where *your* Go stuff goes) and $$GOROOT (where Go *itself* is installed) are both set to the same directory ($(shell go env GOROOT)); it is remarkable that it has not blown up catastrophically before now)
   endif
+
+  VERSION := $(or $(VERSION),$(shell go run ./tools/src/goversion))
+  $(if $(filter v2.%,$(VERSION)),\
+    ,$(error VERSION variable is invalid: It must be a v2.* string, but is '$(VERSION)'))
+  $(if $(findstring +,$(VERSION)),\
+    $(error VERSION variable is invalid: It must not contain + characters, but is '$(VERSION)'),)
+  export VERSION
+
+  CHART_VERSION := $(or $(CHART_VERSION),$(shell go run ./tools/src/goversion --dir-prefix=chart))
+  $(if $(filter v7.%,$(CHART_VERSION)),\
+    ,$(error CHART_VERSION variable is invalid: It must be a v7.* string, but is '$(CHART_VERSION)'))
+  export CHART_VERSION
+
+  include build-aux/version-hack.mk
+
+  $(info [make] VERSION=$(VERSION))
+  $(info [make] CHART_VERSION=$(CHART_VERSION))
 endif
 
 # Everything else...

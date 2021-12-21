@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from typing import Generator
 
 from lib import re_ga, get_gh_repo, re_ea
-from lib.uiutil import Checker, CheckResult, run
+from lib.uiutil import Checker, CheckResult, run, run_txtcapture
 
 
 RELEASE_TITLE_FORMAT = "Emissary Ingress {release_version}"
@@ -81,13 +81,19 @@ def main(release_version: str) -> int:
             "--notes", RELEASE_BODY_FORMAT.format(release_version=release_version, release_notes=buf)])
     if not checker.ok:
         return 1
+
+    url = run_txtcapture([
+        "gh", "release", "view",
+        "--json=url",
+        "--jq=.url",
+        "--repo="+get_gh_repo(),
+        "v"+release_version])
+    print(f'::set-output name=url::{url}')
     if os.getenv("AMBASSADOR_RELENG_NO_GUI") == '':
         print('Release info from github:')
-        run(["gh", "release", "view", "--repo", get_gh_repo(), f"v{release_version}"])
-    if checker.ok:
-        return 0
-    else:
-        return 1
+        run(["gh", "release", "view", "--repo="+get_gh_repo(), f"v{release_version}"])
+
+    return 0
 
 
 if __name__ == '__main__':

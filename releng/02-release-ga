@@ -27,7 +27,6 @@ ${CURR_DIR}/release-wait-for-ga-image --ga-tag $ga_ver --release-registry $RELEA
 ${CURR_DIR}/release-mirror-images --ga-version ${ga_ver} --source-registry $RELEASE_REGISTRY
 
 git checkout v$ga_ver
-${CURR_DIR}/release-manifest-image-update --oss-version ${ga_ver}
 
 make release/chart/tag
 

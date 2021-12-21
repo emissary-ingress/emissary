@@ -146,7 +146,7 @@ create_chart_release() {
     tag="chart/v${1}"
     chart_version=${1}
     chart_dir=$2
-    export CHART_VERSION=$1
+    export chart_version_no_v=$1
     title=`envsubst < ${chart_dir}/RELEASE_TITLE.tpl`
     repo_full_name="emissary-ingress/emissary"
     token="${GH_RELEASE_TOKEN}"
