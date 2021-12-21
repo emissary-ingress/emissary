@@ -31,15 +31,6 @@ chart-push-ci: push-preflight
 	CHART_NAME=$(notdir $(EMISSARY_CHART)) $(OSS_HOME)/charts/scripts/push_chart.sh
 .PHONY: chart-push-ci
 
-release/chart/tag:
-	[[ -z "$(IS_DIRTY)" ]] || (echo "release/chart/tag: tree must be clean" >&2; exit 1)
-	set -e; {
-	  chart_ver=`grep 'version:' $(EMISSARY_CHART)/Chart.yaml | awk ' { print $$2 }'`; \
-	  chart_ver=chart/v$${chart_ver}; \
-	  git tag -m "Tagging $${chart_ver}" -a $${chart_ver}; \
-	  git push origin $${chart_ver}; \
-	}
-
 release/changelog:
 	CHART_NAME=$(notdir $(EMISSARY_CHART)) $(OSS_HOME)/charts/scripts/update_chart_changelog.sh
 .PHONY: release/changelog
