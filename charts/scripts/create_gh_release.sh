@@ -23,7 +23,10 @@ if ! command -v gh 2> /dev/null ; then
     info "gh doesn't exist, install before continuing"
     exit 1
 fi
-thisversion=$(grep version ${chart_dir}/Chart.yaml | awk '{ print $2 }')
+if [[ ${CHART_VERSION:-} != v7.* ]]; then
+    abort "CHART_VERSION must be set to a 'v7.*' string"
+fi
+thisversion=${CHART_VERSION#v}
 chart_version=chart/v${thisversion}
 git fetch
 

@@ -135,10 +135,6 @@ cleanup () {
   rm -rf "$VALUES_DIR"
 }
 
-get_chart_version () {
-    grep version ${1}/Chart.yaml | awk ' { print $2 }'
-}
-
 create_chart_release() {
     if [[ -z "${GH_TOKEN}" ]] ; then
         gh auth login
