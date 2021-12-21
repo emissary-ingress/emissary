@@ -326,6 +326,7 @@ push: docker/kat-client.docker.push.remote
 push: docker/kat-server.docker.push.remote
 .PHONY: push
 
+# `make push-dev` is meant to be run by CI.
 push-dev: docker/$(LCNAME).docker.tag.local
 	@set -e; { \
 		if [ -n "$(IS_DIRTY)" ]; then \
@@ -357,7 +358,7 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
 		$(MAKE) generate-fast --always-make; \
-		$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests  ; \
+		$(MAKE) push-manifests  ; \
 	}
 .PHONY: push-dev
 
@@ -778,8 +779,8 @@ release/promote-oss/dev-to-rc:
 			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
 		$(MAKE) generate-fast --always-make; \
-		$(MAKE) VERSION_OVERRIDE=$${veroverride} push-manifests  ; \
-		$(MAKE) VERSION_OVERRIDE=$${veroverride} publish-docs-yaml ; \
+		$(MAKE) push-manifests  ; \
+		$(MAKE) publish-docs-yaml ; \
 	}
 .PHONY: release/promote-oss/dev-to-rc
 
@@ -856,8 +857,8 @@ release/promote-oss/to-hotfix:
 			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ;\
 		$(MAKE) generate-fast --always-make; \
-		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} push-manifests ;\
-		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} publish-docs-yaml ;\
+		$(MAKE) push-manifests ;\
+		$(MAKE) publish-docs-yaml ;\
 		docker logout ;\
 	}
 .PHONY: release/promote-oss/to-hotfix
@@ -885,40 +886,46 @@ release/promote-oss/to-ga:
 	}
 .PHONY: release/promote-oss/to-ga
 
-VERSIONS_YAML_VER := $(shell grep 'version:' $(OSS_HOME)/docs/yaml/versions.yml | awk '{ print $$2 }')
-VERSIONS_YAML_VER_STRIPPED := $(subst -ea,,$(VERSIONS_YAML_VER))
-RC_NUMBER ?= 0
-
-# `make release/go` is meant to be run by the human maintainer who is
-# preparing to promote an RC to GA.  It will create and push a v2.Y.Z
-# Git tag.
+# `make release/go VERSION=v2.Y.Z` is meant to be run by the human
+# maintainer who is preparing to promote an RC to GA.  It will create
+# and push a v2.Y.Z Git tag.
 release/go:
-	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
-	@test -n "$${RC_NUMBER}" || (printf "RC_NUMBER must be set.\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@[[ -z "$(IS_DIRTY)" ]] || (printf '$(RED)ERROR: tree must be clean\n'; exit 1)
-	@RELEASE_REGISTRY=$(RELEASE_REGISTRY) IMAGE_NAME=$(LCNAME) $(OSS_HOME)/releng/02-release-ga $(VERSIONS_YAML_VER) $(patsubst v%,%,$(CHART_VERSION))
+	@[[ -n "$(RELEASE_REGISTRY)"                      || (printf '$(RED)ERROR: RELEASE_REGISTRY must be set$(END)\n'; exit 1)
+	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION must be set to a GA "v2.Y.Z" value; it is set to "%s"$(END)\n' "$(VERSION)"; exit 1)
+	@[[ -z "$(IS_DIRTY)" ]]                           || (printf '$(RED)ERROR: tree must be clean$(END)\n'; exit 1)
+	{ \
+	  export RELEASE_REGISTRY=$(RELEASE_REGISTRY); \
+	  export IMAGE_NAME=$(LCNAME); \
+	  $(OSS_HOME)/releng/02-release-ga $(patsubst v%,%,$(VERSION)) $(patsubst v%,%,$(CHART_VERSION)); \
+	}
 .PHONY: release/go
 
 # `make release/repatriate` is meant to be run by the human maintainer
 # after GA images have been pushed.
 release/repatriate:
-	@$(OSS_HOME)/releng/release-repatriate $(VERSIONS_YAML_VER)
+	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION must be set to a GA "v2.Y.Z" value; it is set to "%s"$(END)\n' "$(VERSION)"; exit 1)
+	$(OSS_HOME)/releng/release-repatriate $(patsubst v%,%,$(VERSION))
 .PHONY: release/repatriate
 
 # `make release/ga-mirror` aught to be run by CI, but because
 # credentials are a nightmare it currently has to be run by a human
 # maintainer.
 release/ga-mirror:
-	@test -n "$(VERSIONS_YAML_VER)" || (printf "$(RED)ERROR: version not found in versions.yml\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@test -n "$(RELEASE_REGISTRY)" || (printf "$(RED)ERROR: RELEASE_REGISTRY not set\n"; exit 1)
-	@$(OSS_HOME)/releng/release-mirror-images --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME) --repo-list $(GCR_RELEASE_REGISTRY)
+	@[[ -n "$(RELEASE_REGISTRY)"                      || (printf '$(RED)ERROR: RELEASE_REGISTRY must be set$(END)\n'; exit 1)
+	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION must be set to a GA "v2.Y.Z" value; it is set to "%s"$(END)\n' "$(VERSION)"; exit 1)
+	{ $(OSS_HOME)/releng/release-mirror-images \
+	  --ga-version=$(patsubst v%,%,$(VERSION)) \
+	  --source-registry=$(RELEASE_REGISTRY) \
+	  --image-name=$(LCNAME) \
+	  --repo-list=$(GCR_RELEASE_REGISTRY); }
 
 # `make release/ga-check` is meant to be run by a human maintainer to
 # check that CI did all the right things.
 release/ga-check:
-	@$(OSS_HOME)/releng/release-ga-check --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME)
+	{ $(OSS_HOME)/releng/release-ga-check \
+	  --ga-version=$(patsubst v%,%,$(VERSION)) \
+	  --source-registry=$(RELEASE_REGISTRY) \
+	  --image-name=$(LCNAME); }
 
 clean:
 	@$(BUILDER) clean

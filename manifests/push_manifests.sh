@@ -15,14 +15,10 @@ abort() {
   exit 1
 }
 
-TOP_DIR=${CURR_DIR}/../
-version=
-if [[ -n "${VERSION_OVERRIDE}" ]] ; then
-    version=${VERSION_OVERRIDE}
-else
-    version=$(grep version ${TOP_DIR}docs/yaml/versions.yml | awk '{ print $2 }')
+if [[ ${VERSION:-} != v2.* ]]; then
+    abort "VERSION must be set to a 'v2.*' string"
 fi
-[ -n ${version} ] || abort "could not read version from docs/yaml/versions.yml"
+version=${VERSION#v}
 log "Publishing manifest version ${version}"
 
 if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] ; then
