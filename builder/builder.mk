@@ -710,7 +710,7 @@ shell: docker/container.txt
 
 export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
 
-VERSION ?= $($(OSS_HOME)/versioner)
+VERSION ?= $(shell go run $(OSS_HOME)/tools/src/git-godescribe)
 IS_DIRTY=$$($(BUILDER) is-dirty)
 AMB_IMAGE_RC=$(RELEASE_REGISTRY)/$(REPO):$(VERSION)
 AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(VERSION)
