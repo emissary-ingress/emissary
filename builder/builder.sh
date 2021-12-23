@@ -412,7 +412,7 @@ case "${cmd}" in
         ;;
     compile-internal)
         # This runs inside the builder image
-        if [[ $(find-modules) != /buildroot/ambassador* ]]; thenx
+        if [[ $(find-modules) != /buildroot/ambassador* ]]; then
             echo "Error: ambassador must be the first module to build things correctly"
             echo "Modules are: $(find-modules)"
             exit 1
