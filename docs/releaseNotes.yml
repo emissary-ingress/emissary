@@ -31,6 +31,22 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 2.2.0
+    date: 'TBD'
+    notes:
+      - title: Support a log-level metric
+        type: feature
+        body: >-
+          Emissary now supports the metric <code>ambassador_log_level{label="debug"}</code>
+          which will be set to 1 if debug logging is enabled for the running Emissary
+          instance, or to 0 if not. This can help to be sure that a running production
+          instance was not actually left doing debugging logging, for example.
+          (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!)
+        github:
+        - title: 3906
+          link: https://github.com/emissary-ingress/emissary/issues/3906
+        docs: https://www.getambassador.io/docs/edge-stack/latest/topics/running/statistics/8877-metrics/
+ 
   - version: 2.1.0
     date: '2021-12-16'
     notes:

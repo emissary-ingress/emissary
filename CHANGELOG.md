@@ -80,6 +80,18 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.2.0] TBD
+[2.2.0]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.2.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Feature: Emissary now supports the metric `ambassador_log_level{label="debug"}` which will be set
+  to 1 if debug logging is enabled for the running Emissary instance, or to 0 if not. This can help
+  to be sure that a running production instance was not actually left doing debugging logging, for
+  example. (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!) ([3906])
+
+[3906]: https://github.com/emissary-ingress/emissary/issues/3906
+
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
 
