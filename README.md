@@ -4,7 +4,7 @@ Emissary-ingress
 <!-- Links are (mostly) at the end of this document, for legibility. -->
 
 <!-- [![Build Status][build-status]][build-pages] -->
-[![Docker Repository][version-endpoint]][docker-repo] 
+[![Docker Repository][version-endpoint]][docker-repo]
 ![Docker Pulls][docker-pulls]
 [![Join Slack][slack-join]][slack-url] <br/>
 [![CII Best Practices][cii-badge]][cii-status]
@@ -12,14 +12,14 @@ Emissary-ingress
 ----
 
 [Emissary-Ingress](https://www.getambassador.io) is an open-source Kubernetes-native API Gateway +
-Layer 7 load balancer + Kubernetes Ingress built on [Envoy Proxy](https://www.envoyproxy.io). 
+Layer 7 load balancer + Kubernetes Ingress built on [Envoy Proxy](https://www.envoyproxy.io).
 Emissary-ingress is an CNCF incubation project (and was formerly known as Ambassador API Gateway.)
 
 Emissary-ingress enables its users to:
 * Manage ingress traffic with [load balancing], support for multiple protocols ([gRPC and HTTP/2], [TCP], and [web sockets]), and Kubernetes integration
 * Manage changes to routing with an easy to use declarative policy engine and [self-service configuration], via Kubernetes [CRDs] or annotations
 * Secure microservices with [authentication], [rate limiting], and [TLS]
-* Ensure high availability with [sticky sessions], [rate limiting], and [circuit breaking]
+* Ensure high availability with [sticky sessions], [rate limiting], and [circuit breaking]v3httpfilter.py
 * Leverage observability with integrations with [Grafana], [Prometheus], and [Datadog], and comprehensive [metrics] support
 * Enable progressive delivery with [canary releases]
 * Connect service meshes including [Consul], [Linkerd], and [Istio]
