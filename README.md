@@ -4,7 +4,7 @@ Emissary-ingress
 <!-- Links are (mostly) at the end of this document, for legibility. -->
 
 <!-- [![Build Status][build-status]][build-pages] -->
-[![Docker Repository][version-endpoint]][docker-repo]
+[![Docker Repository][version-endpoint]][docker-repo] 
 ![Docker Pulls][docker-pulls]
 [![Join Slack][slack-join]][slack-url] <br/>
 [![CII Best Practices][cii-badge]][cii-status]
