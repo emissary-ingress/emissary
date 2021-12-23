@@ -20,7 +20,7 @@ class V3Bootstrap(dict):
         super().__init__(**{
             "node": {
                 "cluster": config.ir.ambassador_nodename,
-                "id": "test-id"         # MUST BE test-id, see below
+                "id": config.ir.ambassador_nodename
             },
             "static_resources": {},     # Filled in later
             "dynamic_resources": {
