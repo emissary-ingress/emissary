@@ -33,9 +33,6 @@ A few sentences describing what testing you've done, e.g., manual tests, automat
  - [ ] My change is adequately tested.
  
    Remember when considering testing:
-    + LEGACY MODE TESTS DO NOT RUN FOR EVERY PR. If your change is affected by legacy mode, you need
-      to run legacy-mode tests manually (set `AMBASSADOR_LEGACY_MODE=true` and run the tests).
-      (This will be fixed soon.)
     + Your change needs to be specifically covered by tests.
        + Tests need to cover all the states where your change is relevant: for example, if you add a behavior that can be enabled or disabled, you'll need tests that cover the enabled case and tests that cover the disabled case. It's not sufficient just to test with the behavior enabled.
     + You also need to make sure that the _entire area being changed_ has adequate test coverage.

@@ -51,28 +51,7 @@ jobs:
       - run: make check-envoy-version
   go-tests:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # NOTES:
-        # legacy mode does not do fast reconfigure - never test state true, true
-        # on master/release branch (legacy + reconfigure testing)
-        #   - legacy + no reconfigure (true, false)
-        #   -  no legacy + reconfigure (false, true)
-        #   - no legacy + no reconfigure (false, false)
-        # other branches (no legacy testing)
-        #   - no legacy + no reconfigure (false, true)
-        #   - no legacy + reconfigure (false, false)
-        gotest-settings:
-          - {legacy-mode: true, fast-reconfigure: false}
-          - {legacy-mode: false, fast-reconfigure: true}
-          - {legacy-mode: false, fast-reconfigure: false}
-        isMasterOrRelease:
-          # is this close enough to release branch being /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/ ?
-          - ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/rel/v') }}
-        exclude:
-          - isMasterOrRelease: false # if we are not master/release then we exclude legacy mode
-            gotest-settings: {legacy-mode: true, fast-reconfigure: false}
-    name: gotest-legacy-mode:${{ matrix.gotest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.gotest-settings.fast-reconfigure }}
+    name: gotest
     steps:
       - uses: actions/checkout@v2
         with:
@@ -91,27 +70,8 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
     strategy:
       matrix:
-        # NOTES:
-        # legacy mode does not do fast reconfigure - never test state true, true
-        # on master/release branch (legacy + reconfigure testing)
-        #   - legacy + no reconfigure (true, false)
-        #   -  no legacy + reconfigure (false, true)
-        #   - no legacy + no reconfigure (false, false)
-        # other branches (no legacy testing)
-        #   - no legacy + no reconfigure (false, true)
-        #   - no legacy + reconfigure (false, false)
-        pytest-settings:
-          - {legacy-mode: true, fast-reconfigure: false}
-          - {legacy-mode: false, fast-reconfigure: true}
-          - {legacy-mode: false, fast-reconfigure: false}
         test: [envoy-ah, envoy-v2-ah, envoy-ip, envoy-v2-ip, envoy-qz, envoy-v2-qz, kat, integration]
-        isMasterOrRelease:
-          # is this close enough to release branch being /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/ ?
-          - ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/rel/v') }}
-        exclude:
-          - isMasterOrRelease: false # if we are not master/release then we exclude legacy mode
-            pytest-settings: {legacy-mode: true, fast-reconfigure: false}
-    name: pytest-${{ matrix.test }} (legacy-mode:${{ matrix.pytest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.pytest-settings.fast-reconfigure }})
+    name: pytest-${{ matrix.test }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -123,6 +83,8 @@ jobs:
         if: always()
         name: "Collect testing logs"
   pytest-unit:
+    # pytest-unit is separate from pytests (above) because we know for certain that no cluster is needed.
+    # XXX This is pretty much a crock.
     runs-on: ubuntu-latest
     env:
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
@@ -130,28 +92,9 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
     strategy:
       matrix:
-        # NOTES:
-        # legacy mode does not do fast reconfigure - never test state true, true
-        # on master/release branch (legacy + reconfigure testing)
-        #   - legacy + no reconfigure (true, false)
-        #   -  no legacy + reconfigure (false, true)
-        #   - no legacy + no reconfigure (false, false)
-        # other branches (no legacy testing)
-        #   - no legacy + no reconfigure (false, true)
-        #   - no legacy + reconfigure (false, false)
-        pytest-settings:
-          - {legacy-mode: true, fast-reconfigure: false}
-          - {legacy-mode: false, fast-reconfigure: true}
-          - {legacy-mode: false, fast-reconfigure: false}
         test:
           - unit
-        isMasterOrRelease:
-          # is this close enough to release branch being /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/ ?
-          - ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/rel/v') }}
-        exclude:
-          - isMasterOrRelease: false # if we are not master/release then we exclude legacy mode
-            pytest-settings: {legacy-mode: true, fast-reconfigure: false}
-    name: pytest-${{ matrix.test }} (legacy-mode:${{ matrix.pytest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.pytest-settings.fast-reconfigure }})
+    name: pytest-${{ matrix.test }}
     steps:
       - uses: actions/checkout@v2
         with:

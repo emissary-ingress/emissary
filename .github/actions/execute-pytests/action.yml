@@ -4,7 +4,7 @@ description: "execute emissary pytests"
 runs:
   using: "composite"
   steps:
-    - run: echo "PREFIX=pytest-${{ matrix.test }}-legacy-mode.${{ matrix.pytest-settings.legacy-mode }}-fast-reconfigure.${{ matrix.pytest-settings.fast-reconfigure }}" >> $GITHUB_ENV
+    - run: echo "PREFIX=pytest-${{ matrix.test }}" >> $GITHUB_ENV
       name: Set Unique Test prefix ${{ env.PREFIX }}
       shell: bash
     - run: echo "USE_LOCAL_K3S_CLUSTER=1" >> $GITHUB_ENV
@@ -39,7 +39,7 @@ runs:
       with:
         username: ${{ env.DOCKER_USERNAME }}
         password: ${{ env.DOCKER_PASSWORD }}
-    - name: make pytest-${{ matrix.test }} (legacy-mode:${{ matrix.pytest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.pytest-settings.fast-reconfigure }} )
+    - name: make pytest-${{ matrix.test }}
       uses: nick-invision/retry@v2.4.0
       with:
         max_attempts: 3
@@ -47,8 +47,6 @@ runs:
         command: |
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
-          export AMBASSADOR_LEGACY_MODE=${{ matrix.pytest-settings.legacy-mode }}
-          export AMBASSADOR_FAST_RECONFIGURE=${{ matrix.pytest-settings.fast-reconfigure }}
           export TEST_XML_DIR=/tmp/test-logs/xml/
           export DEV_KUBECONFIG=~/.kube/config
           export DEV_REGISTRY=${{ env.DEV_REGISTRY }}
