@@ -31,6 +31,16 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 2.2.0
+    date: 'TBD'
+    notes:
+      - title: Pass Emissary hostname through to Envoy config
+        type: feature
+        body: >-
+          Emissary hostname is now passed as `node.id` to the Envoy configuration.
+          The `node.id` tag in trace spans will now contain the hostname instead of the hardcoded
+          `test-id` string (thanks, <a href="https://github.com/psalaberria002">Paul Salaberria</a>!).
+
   - version: 2.1.0
     date: '2021-12-16'
     notes:

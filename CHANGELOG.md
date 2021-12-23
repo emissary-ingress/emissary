@@ -80,6 +80,15 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.2.0] TBD
+[2.2.0]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.2.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Feature: Emissary hostname is now passed as `node.id` to the Envoy configuration. The `node.id`
+  tag in trace spans will now contain the hostname instead of the hardcoded `test-id` string
+  (thanks, <a href="https://github.com/psalaberria002">Paul Salaberria</a>!).
+
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
 
