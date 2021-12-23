@@ -289,39 +289,6 @@ bootstrap() {
     fi
 }
 
-module_version() {
-    echo MODULE="\"$1\""
-
-    # The _next_ tag, plus a prerelease, like 'v1.13.4-0.20220105223751-ccb74f744397'.
-    local version
-    version=$(go run ./tools/src/goversion)
-
-    local git_commit
-    git_commit=$(git rev-parse --short HEAD)
-
-    local git_branch
-    git_branch=$(git rev-parse --abbrev-ref HEAD)
-
-    local git_dirty  # empty=false, nonempty=true
-    git_dirty=
-    if test -n "$(git status -s)"; then
-        git_dirty=dirty
-    fi
-
-    # The _previous_ tag, plus a Git postrelease, like 'v1.13.3-117-gccb74f744397'.
-    # Don't allow hotfix tags to appear here, though!
-    local git_description
-    git_description=$(git describe --tags --match 'v*' --exclude '*-hf.*')
-
-    # This output must be both valid Python and valid Bash.
-    echo "BUILD_VERSION=\"${version#v}\""
-    echo "RELEASE_VERSION=\"${version#v}\""
-    echo "GIT_COMMIT=\"${git_commit}\""
-    echo "GIT_BRANCH=\"${git_branch}\""
-    echo "GIT_DIRTY=\"${git_dirty}\""
-    echo "GIT_DESCRIPTION=\"${git_description}\""
-}
-
 sync() {
     name=$1
     sourcedir=$2
@@ -435,16 +402,6 @@ case "${cmd}" in
     sync)
         shift
         sync $1 $2 $(builder)
-        ;;
-    release-version)
-        shift
-        eval $(module_version ${BUILDER_NAME})
-        echo "${RELEASE_VERSION}"
-        ;;
-    version)
-        shift
-        eval $(module_version ${BUILDER_NAME})
-        echo "${BUILD_VERSION}"
         ;;
     compile)
         shift

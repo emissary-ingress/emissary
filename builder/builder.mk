@@ -333,10 +333,10 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			exit 1 ;\
 		fi; \
 		if [[ '$(VERSION)' != *-* ]]; then \
-			printf "$(RED)push-dev: BUILD_VERSION $(patsubst v%,%,$(VERSION)) is not a dev version$(END)\n" >&2 ;\
+			printf "$(RED)push-dev: VERSION=$(VERSION) is not a pre-release version$(END)\n" >&2 ;\
 			exit 1 ;\
 		fi ;\
-		suffix=$$(echo $(patsubst v%,%,$(VERSION)) | sed -e 's/\+/-/') ;\
+		suffix=$(patsubst v%,%,$(VERSION)); \
 		chartsuffix=$${suffix#*-} ; \
 		for image in $(LCNAME) ; do \
 			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
@@ -708,11 +708,8 @@ AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(patsubst v%,%,$(VERSION))
 
 export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
 
-RELEASE_VERSION=$$($(BUILDER) release-version)
-BUILD_VERSION=$$($(BUILDER) version)
-
 release/promote-oss/.main: $(tools/docker-promote)
-	@[[ "$(patsubst v%,%,$(VERSION))"      =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET RELEASE_VERSION"; exit 1)
+	@[[ "$(VERSION)"              =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "Must set VERSION to a vSEMVER value"; exit 1)
 	@[[ -n "$(PROMOTE_FROM_VERSION)" ]] || (echo "MUST SET PROMOTE_FROM_VERSION"; exit 1)
 	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET PROMOTE_TO_VERSION" ; exit 1)
 	@set -e; { \
@@ -743,8 +740,8 @@ release/promote-oss/.main: $(tools/docker-promote)
 
 release/promote-oss/dev-to-rc:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ ( "$(patsubst v%,%,$(VERSION))" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ) || \
-	    ( "$(patsubst v%,%,$(VERSION))" =~ ^[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$$ ) ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(patsubst v%,%,$(VERSION))"; exit 1)
+	@[[ ( "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ) || \
+	    ( "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$$ ) ]] || (printf '$(RED)ERROR: VERSION=%s does not look like an RC tag\n' "$(VERSION)"; exit 1)
 	@set -e; { \
 		if [ -n "$$(git status -s)" ]; then \
 			echo "release/promote-oss/dev-to-rc: tree must be clean" >&2 ;\
@@ -759,7 +756,7 @@ release/promote-oss/dev-to-rc:
 		fi ;\
 		printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
 		veroverride=$(patsubst v%,%,$(VERSION)) ; \
-		tag=$$(echo $(patsubst v%,%,$(VERSION)) | tr '+' '-') ; \
+		tag=$$veroverride ; \
 		$(MAKE) release/promote-oss/.main \
 			PROMOTE_FROM_VERSION="$$dev_version" \
 			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
@@ -865,19 +862,19 @@ release/promote-oss/to-hotfix:
 # This is normally run from CI by creating the GA tag.
 release/promote-oss/to-ga:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(patsubst v%,%,$(VERSION))" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(patsubst v%,%,$(VERSION))"; exit 1)
+	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: VERSION=%s does not look like a GA tag\n' "$(VERSION)"; exit 1)
 	@set -e; { \
-      commit=$$(git rev-parse HEAD) ;\
+	  commit=$$(git rev-parse HEAD) ;\
 	  $(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key passed-builds ; \
 	  dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/passed-builds/$$commit -) ;\
 	  if [ -z "$$dev_version" ]; then \
-		  printf "$(RED)==> found no passed dev version for $$commit in S3...$(END)\n" ;\
-		  exit 1 ;\
-      fi ;\
+	    printf "$(RED)==> found no passed dev version for $$commit in S3...$(END)\n" ;\
+	    exit 1 ;\
+	  fi ;\
 	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
 	  $(MAKE) release/promote-oss/.main \
 	    PROMOTE_FROM_VERSION="$$dev_version" \
-		PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
+	    PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
 	    PROMOTE_TO_VERSION="$(patsubst v%,%,$(VERSION))" \
 	    PROMOTE_CHANNEL= \
 	    ; \
