@@ -12,8 +12,7 @@ import semantic_version
 from .scout import Scout
 from .utils import parse_json, dump_json, parse_bool
 
-# Import version stuff directly from ambassador.VERSION to avoid a circular import.
-from .VERSION import Version, Build, BuildInfo
+from .VERSION import Version, Commit
 
 ScoutNotice = Dict[str, str]
 
@@ -97,7 +96,7 @@ class AmbScout:
         self.logger = logging.getLogger("ambassador.scout")
         # self.logger.setLevel(logging.DEBUG)
 
-        self.logger.debug("Ambassador version %s built from %s on %s" % (Version, Build.git.commit, Build.git.branch))
+        self.logger.debug("Ambassador version %s built from %s" % (Version, Commit))
         self.logger.debug("Scout version      %s%s" % (self.version, " - BAD SEMVER" if not self.semver else ""))
         self.logger.debug("Runtime            %s" % self.runtime)
         self.logger.debug("Namespace          %s" % self.namespace)
@@ -168,10 +167,7 @@ class AmbScout:
                 kwargs['runtime'] = self.runtime
 
             if 'commit' not in kwargs:
-                kwargs['commit'] = Build.git.commit
-
-            if 'branch' not in kwargs:
-                kwargs['branch'] = Build.git.branch
+                kwargs['commit'] = Commit
 
             # How long since the last Scout update? If it's been more than an hour,
             # check Scout again.

@@ -329,6 +329,8 @@ sync() {
 
     real=$(cd ${sourcedir}; pwd)
 
+    make python/ambassador.version
+
     dexec mkdir -p /buildroot/${name}
     if [[ $name == apro ]]; then
         # Don't let 'deleting ambassador' cause the sync to be marked dirty
@@ -340,19 +342,24 @@ sync() {
         # BusyBox `ln` 1.30.1's `-T` flag is broken, and doesn't have a `-t` flag.
         dexec sh -c 'if ! test -L apro/ambassador; then rm -rf apro/ambassador && ln -s ../ambassador apro; fi'
     fi
-    (cd ${sourcedir} && module_version ${name} ) | dexec sh -c "cat > /buildroot/${name}.version && cp ${name}.version ambassador/python/"
 }
 
 summarize-sync() {
     name=$1
     shift
     lines=("$@")
-    if [ "${#lines[@]}" != 0 ]; then
-        dexec touch ${name}.dirty image.dirty
-    fi
+    local pydirty=false
+    local godirty=false
     for line in "${lines[@]}"; do
-        if [[ $line = *.go ]]; then
+        if [[ $line != *.version ]] && ! $pydirty; then
+            dexec touch ${name}.dirty image.dirty
+            pydirty=true
+        fi
+        if [[ $line = *.go ]] && ! $godirty; then
             dexec touch go.dirty
+            godirty=true
+        fi
+        if $pydirty && $godirty; then
             break
         fi
     done
@@ -433,10 +440,6 @@ case "${cmd}" in
         shift
         eval $(module_version ${BUILDER_NAME})
         echo "${RELEASE_VERSION}"
-        ;;
-    raw-version)
-        shift
-        module_version ${BUILDER_NAME}
         ;;
     version)
         shift

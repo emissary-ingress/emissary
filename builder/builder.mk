@@ -227,12 +227,11 @@ version:
 	@$(BUILDER) version
 .PHONY: version
 
-raw-version:
-	@$(BUILDER) raw-version
-.PHONY: raw-version
-
 python/ambassador.version: $(tools/write-ifchanged) FORCE
-	set -o pipefail; $(BUILDER) raw-version | $(tools/write-ifchanged) python/ambassador.version
+	set -e -o pipefail; { \
+	  echo $(patsubst v%,%,$(VERSION)); \
+	  git rev-parse HEAD; \
+	} | $(tools/write-ifchanged) $@
 
 compile: sync
 	@$(BUILDER) compile

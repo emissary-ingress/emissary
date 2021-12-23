@@ -1,4 +1,3 @@
-*.version
 *.tmp
 *.log
 *.stamp
