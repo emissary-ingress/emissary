@@ -233,7 +233,7 @@ version:
 .PHONY: version
 
 python/ambassador.version: $(tools/write-ifchanged) $(tools/git-godescribe) FORCE
-	set -o pipefail; $(tools/git-godescribe) | $(tools/write-ifchanged) python/ambassador.version
+	set -o pipefail; ($(tools/git-godescribe); git rev-parse HEAD) | $(tools/write-ifchanged) python/ambassador.version
 
 compile: sync
 	@$(BUILDER) compile

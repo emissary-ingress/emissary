@@ -13,41 +13,23 @@
 # limitations under the License
 
 import os
-from typing import NamedTuple
+
+Version = "dirty"
+Commit = "HEAD"
 
 try:
     with open(os.path.join(os.path.dirname(__file__), "..", "ambassador.version")) as version:
-        exec(version.read())
+        info = version.read().split('\n')
+        if len(info) < 2:
+            info.append("MISSING")
+            if len(info) < 1:
+                info.append("MISSING")
+
+        Version = info[0]
+        Commit = info[1]
+
 except FileNotFoundError:
-    BUILD_VERSION = "dirty"
-    GIT_COMMIT = "dirty"
-    GIT_BRANCH = "master"
-    GIT_DIRTY = True
-    GIT_DESCRIPTION = "dirty"
-
-class GitInfo(NamedTuple):
-    commit: str
-    branch: str
-    dirty: bool
-    description: str
-
-
-class BuildInfo(NamedTuple):
-    version: str
-    git: GitInfo
-
-
-Version = BUILD_VERSION
-
-Build = BuildInfo(
-    version=Version,
-    git=GitInfo(
-        commit=GIT_COMMIT,
-        branch=GIT_BRANCH,
-        dirty=bool(GIT_DIRTY),
-        description=GIT_DESCRIPTION,
-    )
-)
+    pass
 
 if __name__ == "__main__":
     import sys

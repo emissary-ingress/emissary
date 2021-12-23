@@ -307,7 +307,7 @@ sync() {
         # BusyBox `ln` 1.30.1's `-T` flag is broken, and doesn't have a `-t` flag.
         dexec sh -c 'if ! test -L apro/ambassador; then rm -rf apro/ambassador && ln -s ../ambassador apro; fi'
     fi
-    (cd ${sourcedir} && module_version ${name} ) | dexec sh -c "cat > /buildroot/${name}.version && cp ${name}.version ambassador/python/"
+    #(cd ${sourcedir} && module_version ${name} ) | dexec sh -c "cat > /buildroot/${name}.version && cp ${name}.version ambassador/python/"
 }
 
 summarize-sync() {
