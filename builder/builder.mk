@@ -232,12 +232,8 @@ version:
 	@$(BUILDER) version
 .PHONY: version
 
-raw-version:
-	@$(BUILDER) raw-version
-.PHONY: raw-version
-
-python/ambassador.version: $(tools/write-ifchanged) FORCE
-	set -o pipefail; $(BUILDER) raw-version | $(tools/write-ifchanged) python/ambassador.version
+python/ambassador.version: $(tools/write-ifchanged) $(tools/git-godescribe) FORCE
+	set -o pipefail; $(tools/git-godescribe) | $(tools/write-ifchanged) python/ambassador.version
 
 compile: sync
 	@$(BUILDER) compile
