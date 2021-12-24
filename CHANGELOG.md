@@ -85,9 +85,16 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Feature: Emissary now supports the metric `ambassador_log_level{label="debug"}` which will be set
+  to 1 if debug logging is enabled for the running Emissary instance, or to 0 if not. This can help
+  to be sure that a running production instance was not actually left doing debugging logging, for
+  example. (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!) ([3906])
+
 - Feature: Emissary hostname is now passed as `node.id` to the Envoy configuration. The `node.id`
   tag in trace spans will now contain the hostname instead of the hardcoded `test-id` string
   (thanks, <a href="https://github.com/psalaberria002">Paul Salaberria</a>!).
+
+[3906]: https://github.com/emissary-ingress/emissary/issues/3906
 
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0

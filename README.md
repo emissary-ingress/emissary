@@ -1,18 +1,27 @@
 Emissary-ingress
 ================
 
-<!-- Links are (mostly) at the end of this document, for legibility. -->
+<!-- [![Alt Text][image-url]][link-url] -->
+[![Version][badge-version-img]][badge-version-link]
+[![Docker Repository][badge-docker-img]][badge-docker-link]
+[![Join Slack][badge-slack-img]][badge-slack-link]
+[![Core Infrastructure Initiative: Best Practices][badge-cii-img]][badge-cii-link]
 
-<!-- [![Build Status][build-status]][build-pages] -->
-[![Docker Repository][version-endpoint]][docker-repo] 
-![Docker Pulls][docker-pulls]
-[![Join Slack][slack-join]][slack-url] <br/>
-[![CII Best Practices][cii-badge]][cii-status]
+[badge-version-img]: https://img.shields.io/docker/v/emissaryingress/emissary?sort=semver
+[badge-version-link]: https://github.com/emissary-ingress/emissary/releases
+[badge-docker-img]: https://img.shields.io/docker/pulls/emissaryingress/emissary
+[badge-docker-link]: https://hub.docker.com/r/emissaryingress/emissary
+[badge-slack-img]: https://img.shields.io/badge/slack-join-orange.svg
+[badge-slack-link]: https://a8r.io/slack
+[badge-cii-img]: https://bestpractices.coreinfrastructure.org/projects/1852/badge
+[badge-cii-link]: https://bestpractices.coreinfrastructure.org/projects/1852
+
+<!-- Links are (mostly) at the end of this document, for legibility. -->
 
 ----
 
 [Emissary-Ingress](https://www.getambassador.io) is an open-source Kubernetes-native API Gateway +
-Layer 7 load balancer + Kubernetes Ingress built on [Envoy Proxy](https://www.envoyproxy.io). 
+Layer 7 load balancer + Kubernetes Ingress built on [Envoy Proxy](https://www.envoyproxy.io).
 Emissary-ingress is an CNCF incubation project (and was formerly known as Ambassador API Gateway.)
 
 Emissary-ingress enables its users to:
@@ -61,19 +70,6 @@ If you're interested in contributing, here are some ways:
 * Add [more tests](https://github.com/emissary-ingress/emissary/tree/master/ambassador/tests)
 
 The Ambassador Edge Stack is a superset of Emissary-ingress that provides additional functionality including OAuth/OpenID Connect, advanced rate limiting, Swagger/OpenAPI support, integrated ACME support for automatic TLS certificate management, and a cloud-based UI. For more information, visit https://www.getambassador.io/editions/.
-
-<!--
-  ![example branch parameter](https://github.com/github/docs/actions/workflows/main.yml/badge.svg?branch=feature-1)
-  [build-pages]:   https://travis-ci.org/emissary-ingress/emissary
-  [build-status]:  https://github.com/emissary-ingress/emissary/actions/workflows/promote-ga.yml/badge.svg?branch=release/v2.0
--->
-[cii-badge]:        https://bestpractices.coreinfrastructure.org/projects/1852/badge
-[cii-status]:       https://bestpractices.coreinfrastructure.org/projects/1852
-[docker-repo]:      https://hub.docker.com/repository/docker/datawire/emissary
-[version-endpoint]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/kflynn/emissary/flynn/dev/readme/docs/shield.json
-[docker-pulls]:     https://img.shields.io/docker/pulls/datawire/emissary
-[slack-url]:        https://a8r.io/slack
-[slack-join]:       https://img.shields.io/badge/slack-join-orange.svg
 
 <!-- Please keep this list sorted. -->
 [authentication]: https://www.getambassador.io/docs/emissary/latest/topics/running/services/auth-service/
