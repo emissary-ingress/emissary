@@ -41,21 +41,10 @@ if __name__ == "__main__":
 
     if (cmd == '--version') or (cmd == '-V'):
         print(Version)
-    elif cmd == '--desc':
-        print(Build.git.description)
-    elif cmd == '--branch':
-        print(Build.git.branch)
     elif cmd == '--commit':
-        print(Build.git.commit)
-    elif cmd == '--dirty':
-        print(Build.git.dirty)
+        print(Commit)
     elif cmd == '--all':
         print("version:         %s" % Version)
-        print("git.branch:      %s" % Build.git.branch)
-        print("git.commit:      %s" % Build.git.commit)
-        print("git.dirty:       %s" % Build.git.dirty)
-        print("git.description: %s" % Build.git.description)
+        print("git.commit:      %s" % Commit)
     else:   # compact
-        print("%s (%s at %s on %s%s)" %
-              (Version, Build.git.description, Build.git.commit, Build.git.branch,
-               " - dirty" if Build.git.dirty else ""))
+        print("%s via %s" % (Version, Commit))
