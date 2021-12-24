@@ -147,6 +147,9 @@ INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
 INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../manifests/emissary/
 INGRESS_TEST_MANIFS = emissary-crds.yaml emissary-emissaryns.yaml
 
+VERSION ?= $(shell go run $(OSS_HOME)/tools/src/git-godescribe)
+IS_DIRTY=$(shell git status --porcelain)
+
 # export DOCKER_BUILDKIT := 0
 
 all: help
@@ -331,12 +334,8 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			echo "push-dev: tree must be clean" >&2 ;\
 			exit 1 ;\
 		fi; \
-		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
-		if [ $$check -lt 1 ]; then \
-			printf "$(RED)push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2 ;\
-			exit 1 ;\
-		fi ;\
-		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/\+/-/') ;\
+		check=$$(echo $(VERSION) | grep -c -e -dev || true) ;\
+		suffix=$$(echo $(VERSION) | sed -e 's/\+/-/') ;\
 		chartsuffix=$${suffix#*-} ; \
 		for image in $(LCNAME) ; do \
 			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
@@ -706,8 +705,6 @@ shell: docker/container.txt
 
 export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
 
-VERSION ?= $(shell go run $(OSS_HOME)/tools/src/git-godescribe)
-IS_DIRTY=$$($(BUILDER) is-dirty)
 AMB_IMAGE_RC=$(RELEASE_REGISTRY)/$(REPO):$(VERSION)
 AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(VERSION)
 

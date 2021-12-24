@@ -396,16 +396,6 @@ case "${cmd}" in
         shift
         sync $1 $2 $(builder)
         ;;
-    release-version)
-        shift
-        eval $(module_version ${BUILDER_NAME})
-        echo "${RELEASE_VERSION}"
-        ;;
-    is-dirty)
-        shift
-        eval $(module_version ${BUILDER_NAME})
-        echo "${GIT_DIRTY}"
-        ;;
     compile)
         shift
         dexec /buildroot/builder.sh compile-internal
