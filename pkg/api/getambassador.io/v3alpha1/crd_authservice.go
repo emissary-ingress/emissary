@@ -30,6 +30,7 @@ type AuthServiceIncludeBody struct {
 
 	// +kubebuilder:validation:Required
 	AllowPartial bool `json:"allow_partial,omitempty"`
+	BodyAsRawBytes bool `json:"body_raw_bytes,omitempty"`
 }
 
 // TODO(lukeshu): In v3alpha2, consider getting rid of this struct type in favor of just using an

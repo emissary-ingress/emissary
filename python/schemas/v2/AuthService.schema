@@ -79,6 +79,9 @@
                 },
                 "max_bytes": {
                     "type": "integer"
+                },
+                "body_raw_bytes": {
+                    "type": "boolean"
                 }
             },
             "additionalProperties": false

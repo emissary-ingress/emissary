@@ -72,6 +72,8 @@ spec:
                 properties:
                   allow_partial:
                     type: boolean
+                  body_raw_bytes:
+                    type: boolean
                   max_bytes:
                     description: These aren't pointer types because they are required.
                     type: integer
@@ -189,6 +191,8 @@ spec:
               include_body:
                 properties:
                   allow_partial:
+                    type: boolean
+                  body_raw_bytes:
                     type: boolean
                   max_bytes:
                     description: These aren't pointer types because they are required.

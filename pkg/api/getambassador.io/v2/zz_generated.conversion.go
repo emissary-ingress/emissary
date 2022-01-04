@@ -869,6 +869,7 @@ func Convert_v3alpha1_AuthService_To_v2_AuthService(in *v3alpha1.AuthService, ou
 func autoConvert_v2_AuthServiceIncludeBody_To_v3alpha1_AuthServiceIncludeBody(in *AuthServiceIncludeBody, out *v3alpha1.AuthServiceIncludeBody, s conversion.Scope) error {
 	out.MaxBytes = in.MaxBytes
 	out.AllowPartial = in.AllowPartial
+	out.BodyAsRawBytes = in.BodyAsRawBytes
 	return nil
 }
 
@@ -880,6 +881,7 @@ func Convert_v2_AuthServiceIncludeBody_To_v3alpha1_AuthServiceIncludeBody(in *Au
 func autoConvert_v3alpha1_AuthServiceIncludeBody_To_v2_AuthServiceIncludeBody(in *v3alpha1.AuthServiceIncludeBody, out *AuthServiceIncludeBody, s conversion.Scope) error {
 	out.MaxBytes = in.MaxBytes
 	out.AllowPartial = in.AllowPartial
+	out.BodyAsRawBytes = in.BodyAsRawBytes
 	return nil
 }
 
