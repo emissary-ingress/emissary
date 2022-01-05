@@ -329,7 +329,7 @@ push: docker/kat-server.docker.push.remote
 # `make push-dev` is meant to be run by CI.
 push-dev: docker/$(LCNAME).docker.tag.local
 	@set -e; { \
-		if [ -n "$(IS_DIRTY)" ]; then \
+		if [ -n "$$(git status -s)" ]; then \
 			echo "push-dev: tree must be clean" >&2 ;\
 			exit 1 ;\
 		fi; \
@@ -711,7 +711,6 @@ export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/en
 
 RELEASE_VERSION=$$($(BUILDER) release-version)
 BUILD_VERSION=$$($(BUILDER) version)
-IS_DIRTY=$$($(BUILDER) is-dirty)
 
 release/promote-oss/.main: $(tools/docker-promote)
 	@[[ "$(RELEASE_VERSION)"      =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET RELEASE_VERSION"; exit 1)
@@ -748,7 +747,7 @@ release/promote-oss/dev-to-rc:
 	@[[ ( "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ) || \
 	    ( "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$$ ) ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
 	@set -e; { \
-		if [ -n "$(IS_DIRTY)" ]; then \
+		if [ -n "$$(git status -s)" ]; then \
 			echo "release/promote-oss/dev-to-rc: tree must be clean" >&2 ;\
 			exit 1 ;\
 		fi; \
@@ -892,7 +891,7 @@ release/promote-oss/to-ga:
 release/go:
 	@[[ -n "$(RELEASE_REGISTRY)"                      || (printf '$(RED)ERROR: RELEASE_REGISTRY must be set$(END)\n'; exit 1)
 	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION must be set to a GA "v2.Y.Z" value; it is set to "%s"$(END)\n' "$(VERSION)"; exit 1)
-	@[[ -z "$(IS_DIRTY)" ]]                           || (printf '$(RED)ERROR: tree must be clean$(END)\n'; exit 1)
+	@[[ -z "$$(git status -s)" ]]                     || (printf '$(RED)ERROR: tree must be clean$(END)\n'; exit 1)
 	{ \
 	  export RELEASE_REGISTRY=$(RELEASE_REGISTRY); \
 	  export IMAGE_NAME=$(LCNAME); \

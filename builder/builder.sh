@@ -434,11 +434,6 @@ case "${cmd}" in
         eval $(module_version ${BUILDER_NAME})
         echo "${RELEASE_VERSION}"
         ;;
-    is-dirty)
-        shift
-        eval $(module_version ${BUILDER_NAME})
-        echo "${GIT_DIRTY}"
-        ;;
     raw-version)
         shift
         module_version ${BUILDER_NAME}
