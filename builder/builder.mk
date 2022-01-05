@@ -709,7 +709,6 @@ AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(BUILD_VERSION)
 
 export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
 
-RELEASE_TYPE=$$($(BUILDER) release-type)
 RELEASE_VERSION=$$($(BUILDER) release-version)
 BUILD_VERSION=$$($(BUILDER) version)
 IS_DIRTY=$$($(BUILDER) is-dirty)

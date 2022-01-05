@@ -429,22 +429,6 @@ case "${cmd}" in
         shift
         sync $1 $2 $(builder)
         ;;
-    release-type)
-        shift
-        RELVER="$1"
-        if [ -z "${RELVER}" ]; then
-            source <(module_version ${BUILDER_NAME})
-            RELVER="${RELEASE_VERSION}"
-        fi
-
-        if [[ "${RELVER}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo release
-        elif [[ "${RELVER}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]*$ ]]; then
-            echo rc
-        else
-            echo other
-        fi
-        ;;
     release-version)
         shift
         eval $(module_version ${BUILDER_NAME})
