@@ -277,7 +277,7 @@ docker/base-envoy.docker.stamp: FORCE
 	  fi; \
 	  echo $(ENVOY_DOCKER_TAG) >$@; \
 	}
-docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile $(tools/dsum) FORCE
+docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
 	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
 	@printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"
 	@printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"
@@ -286,6 +286,7 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	    --build-arg=version="$(BUILD_VERSION)" \
+	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
 	    --target=ambassador \
 	    --iidfile=$@; }
 
@@ -295,20 +296,22 @@ docker/$(LCNAME)-ea.docker.stamp: %/$(LCNAME)-ea.docker.stamp: %/$(LCNAME).docke
 	  cat docker/$(LCNAME).docker > $@; \
 	}
 
-docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile $(tools/dsum) FORCE
+docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
 	@printf "${CYN}==> ${GRN}Building image ${BLU}kat-client${END}\n"
 	{ $(tools/dsum) 'kat-client build' 3s \
 	  docker build -f ${BUILDER_HOME}/Dockerfile . \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
 	    --target=kat-client \
 	    --iidfile=$@; }
-docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile $(tools/dsum) FORCE
+docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
 	@printf "${CYN}==> ${GRN}Building image ${BLU}kat-server${END}\n"
 	{ $(tools/dsum) 'kat-server build' 3s \
 	  docker build -f ${BUILDER_HOME}/Dockerfile . \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
 	    --target=kat-server \
 	    --iidfile=$@; }
 
