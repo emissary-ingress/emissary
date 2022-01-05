@@ -900,6 +900,9 @@ VERSIONS_YAML_VER := $(shell grep 'version:' $(OSS_HOME)/docs/yaml/versions.yml 
 VERSIONS_YAML_VER_STRIPPED := $(subst -ea,,$(VERSIONS_YAML_VER))
 RC_NUMBER ?= 0
 
+# `make release/prep-rc RC_NUMBER=N` is meant to be run by the human
+# maintainer who is preparing to do a release.  It will create and
+# push a v2.Y.Z-rc.N Git tag.
 release/prep-rc:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
 	@test -n "$(RELEASE_REGISTRY)" || (printf "RELEASE_REGISTRY must be set\n"; exit 1)
@@ -909,6 +912,9 @@ release/prep-rc:
 		$(OSS_HOME)/releng/01-release-prep-rc $(VERSIONS_YAML_VER_STRIPPED)-rc.$(RC_NUMBER)
 .PHONY: release/prep-rc
 
+# `make release/go` is meant to be run by the human maintainer who is
+# preparing to promote an RC to GA.  It will create and push a v2.Y.Z
+# Git tag.
 release/go:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
 	@test -n "$${RC_NUMBER}" || (printf "RC_NUMBER must be set.\n"; exit 1)
@@ -917,22 +923,23 @@ release/go:
 	@RELEASE_REGISTRY=$(RELEASE_REGISTRY) IMAGE_NAME=$(LCNAME) $(OSS_HOME)/releng/02-release-ga $(VERSIONS_YAML_VER)
 .PHONY: release/go
 
-release/manifests:
-	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@$(OSS_HOME)/releng/release-manifest-image-update --oss-version $(VERSIONS_YAML_VER) --aes-version "$(AES_VERSION)"
-.PHONY: release/manifests
-
+# `make release/repatriate` is meant to be run by the human maintainer
+# after GA images have been pushed.
 release/repatriate:
 	@$(OSS_HOME)/releng/release-repatriate $(VERSIONS_YAML_VER)
 .PHONY: release/repatriate
 
+# `make release/ga-mirror` aught to be run by CI, but because
+# credentials are a nightmare it currently has to be run by a human
+# maintainer.
 release/ga-mirror:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "$(RED)ERROR: version not found in versions.yml\n"; exit 1)
 	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$(RED)ERROR: RELEASE_REGISTRY not set\n"; exit 1)
 	@$(OSS_HOME)/releng/release-mirror-images --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME) --repo-list $(GCR_RELEASE_REGISTRY)
 
+# `make release/ga-check` is meant to be run by a human maintainer to
+# check that CI did all the right things.
 release/ga-check:
 	@$(OSS_HOME)/releng/release-ga-check --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME)
 
