@@ -16,8 +16,8 @@ jobs:
       PUBLISH_GIT_RELEASE: true
     steps:
       - uses: actions/checkout@v2
-      - name: "Install Go"
-        uses: ./.github/actions/setup-go
+      - name: "Install Deps"
+        uses: ./.github/actions/setup-deps
       - name: make release/ga/chart-push
         run: |
           make release/ga/chart-push

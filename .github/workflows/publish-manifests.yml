@@ -15,8 +15,8 @@ jobs:
       BUMP_STABLE: true
     steps:
       - uses: actions/checkout@v2
-      - name: "Install Go"
-        uses: ./.github/actions/setup-go
+      - name: "Install Deps"
+        uses: ./.github/actions/setup-deps
       - name: make push-manifests
         run: |
           make push-manifests

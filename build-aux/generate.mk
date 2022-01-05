@@ -484,12 +484,15 @@ $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_
 
 $(OSS_HOME)/build-aux/pip-show.txt: sync
 	docker exec $$($(BUILDER)) sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
-$(OSS_HOME)/builder/requirements.txt: $(OSS_HOME)/builder/requirements.in setup-diagd FORCE
-	source venv/bin/activate && cd "$(OSS_HOME)" && pip-compile -q --no-allow-unsafe -o builder/requirements.txt builder/requirements.in
+
+$(OSS_HOME)/builder/requirements.txt: %.txt: %.in FORCE
+	$(BUILDER) pip-compile
 .PRECIOUS: $(OSS_HOME)/builder/requirements.txt
 
 $(OSS_HOME)/build-aux/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
 	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
+$(OSS_HOME)/build-aux/py-version.txt: $(OSS_HOME)/builder/Dockerfile.base
+	{ grep -o 'python3=\S*' | cut -d= -f2; } < $< > $@
 
 $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
