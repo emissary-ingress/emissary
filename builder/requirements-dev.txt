@@ -3,7 +3,6 @@ dpath
 gitpython
 mypy
 pexpect
-pip-tools
 pytest
 pytest-cov
 retry
