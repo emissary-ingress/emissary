@@ -90,7 +90,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   to be sure that a running production instance was not actually left doing debugging logging, for
   example. (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!) ([3906])
 
+- Feature: Emissary is now leveraging a new Envoy Proxy patch that allows Envoy to accept escaped
+  '%' characters in its configuration. This means that error_response_overrides and other custom
+  user content can now contain '%' symbols escaped as '%%' ([DW Envoy: 74]) ([Upstream Envoy: 19383])
+
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
+[DW Envoy: 74]: https://github.com/datawire/envoy/pull/74
+[Upstream Envoy: 19383]: https://github.com/envoyproxy/envoy/pull/19383
 
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
