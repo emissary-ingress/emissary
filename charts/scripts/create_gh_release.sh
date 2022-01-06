@@ -24,7 +24,7 @@ if ! command -v gh 2> /dev/null ; then
     exit 1
 fi
 thisversion=$(grep version ${chart_dir}/Chart.yaml | awk '{ print $2 }')
-chart_version=chart-v${thisversion}
+chart_version=chart/v${thisversion}
 git fetch
 
 if ! git rev-parse ${chart_version} >/dev/null 2>&1 ; then
