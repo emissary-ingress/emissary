@@ -143,7 +143,7 @@ create_chart_release() {
     if [[ -z "${GH_TOKEN}" ]] ; then
         gh auth login
     fi
-    tag="chart-v${1}"
+    tag="chart/v${1}"
     chart_version=${1}
     chart_dir=$2
     export CHART_VERSION=$1

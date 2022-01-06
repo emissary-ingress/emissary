@@ -2,7 +2,7 @@ name: manifest-publish
 on:
   push:
     tags:
-      - 'chart-v*'
+      - 'chart/v*'
 jobs:
   manifest-publish:
     runs-on: ubuntu-latest
