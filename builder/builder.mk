@@ -333,10 +333,10 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			exit 1 ;\
 		fi; \
 		if [[ '$(VERSION)' != *-* ]]; then \
-			printf "$(RED)push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2 ;\
+			printf "$(RED)push-dev: BUILD_VERSION $(patsubst v%,%,$(VERSION)) is not a dev version$(END)\n" >&2 ;\
 			exit 1 ;\
 		fi ;\
-		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/\+/-/') ;\
+		suffix=$$(echo $(patsubst v%,%,$(VERSION)) | sed -e 's/\+/-/') ;\
 		chartsuffix=$${suffix#*-} ; \
 		for image in $(LCNAME) ; do \
 			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
@@ -703,8 +703,8 @@ shell: docker/container.txt
 	@$(BUILDER) shell
 .PHONY: shell
 
-AMB_IMAGE_RC=$(RELEASE_REGISTRY)/$(REPO):$(RELEASE_VERSION)
-AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(BUILD_VERSION)
+AMB_IMAGE_RC=$(RELEASE_REGISTRY)/$(REPO):$(patsubst v%,%,$(VERSION))
+AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(patsubst v%,%,$(VERSION))
 
 export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
 
@@ -712,7 +712,7 @@ RELEASE_VERSION=$$($(BUILDER) release-version)
 BUILD_VERSION=$$($(BUILDER) version)
 
 release/promote-oss/.main: $(tools/docker-promote)
-	@[[ "$(RELEASE_VERSION)"      =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET RELEASE_VERSION"; exit 1)
+	@[[ "$(patsubst v%,%,$(VERSION))"      =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET RELEASE_VERSION"; exit 1)
 	@[[ -n "$(PROMOTE_FROM_VERSION)" ]] || (echo "MUST SET PROMOTE_FROM_VERSION"; exit 1)
 	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET PROMOTE_TO_VERSION" ; exit 1)
 	@set -e; { \
@@ -735,16 +735,16 @@ release/promote-oss/.main: $(tools/docker-promote)
 	}
 
 	@printf '  $(CYN)https://s3.amazonaws.com/$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
-	printf '%s' "$(RELEASE_VERSION)" | aws s3 cp - s3://$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
+	printf '%s' "$(patsubst v%,%,$(VERSION))" | aws s3 cp - s3://$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
 
 	@printf '  $(CYN)s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json$(END)\n'
-	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(RELEASE_VERSION)" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
+	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(patsubst v%,%,$(VERSION))" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
 .PHONY: release/promote-oss/.main
 
 release/promote-oss/dev-to-rc:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ ( "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ) || \
-	    ( "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$$ ) ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@[[ ( "$(patsubst v%,%,$(VERSION))" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ) || \
+	    ( "$(patsubst v%,%,$(VERSION))" =~ ^[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$$ ) ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(patsubst v%,%,$(VERSION))"; exit 1)
 	@set -e; { \
 		if [ -n "$$(git status -s)" ]; then \
 			echo "release/promote-oss/dev-to-rc: tree must be clean" >&2 ;\
@@ -758,8 +758,8 @@ release/promote-oss/dev-to-rc:
 			exit 1 ;\
 		fi ;\
 		printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
-		veroverride=$(RELEASE_VERSION) ; \
-		tag=$$(echo $(RELEASE_VERSION) | tr '+' '-') ; \
+		veroverride=$(patsubst v%,%,$(VERSION)) ; \
+		tag=$$(echo $(patsubst v%,%,$(VERSION)) | tr '+' '-') ; \
 		$(MAKE) release/promote-oss/.main \
 			PROMOTE_FROM_VERSION="$$dev_version" \
 			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
@@ -769,7 +769,7 @@ release/promote-oss/dev-to-rc:
 			echo "Not publishing charts or manifests because in a private repo" ;\
 			exit 0 ; \
 		fi ; \
-		chartsuffix=$(RELEASE_VERSION) ; \
+		chartsuffix=$(patsubst v%,%,$(VERSION)) ; \
 		chartsuffix=$${chartsuffix#*-} ; \
 		$(MAKE) \
 			CHART_VERSION_SUFFIX=-$$chartsuffix \
@@ -784,7 +784,7 @@ release/promote-oss/dev-to-rc:
 
 release/print-test-artifacts:
 	@set -e; { \
-		manifest_ver=$(RELEASE_VERSION) ; \
+		manifest_ver=$(patsubst v%,%,$(VERSION)) ; \
 		manifest_ver=$${manifest_ver%"-dirty"} ; \
 		echo "export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/$$manifest_ver" ; \
 		echo "export HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/emissary-ingress/Chart.yaml | awk '{ print $$2 }'`" ; \
@@ -865,7 +865,7 @@ release/promote-oss/to-hotfix:
 # This is normally run from CI by creating the GA tag.
 release/promote-oss/to-ga:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@[[ "$(patsubst v%,%,$(VERSION))" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(patsubst v%,%,$(VERSION))"; exit 1)
 	@set -e; { \
       commit=$$(git rev-parse HEAD) ;\
 	  $(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key passed-builds ; \
@@ -878,7 +878,7 @@ release/promote-oss/to-ga:
 	  $(MAKE) release/promote-oss/.main \
 	    PROMOTE_FROM_VERSION="$$dev_version" \
 		PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-	    PROMOTE_TO_VERSION="$(RELEASE_VERSION)" \
+	    PROMOTE_TO_VERSION="$(patsubst v%,%,$(VERSION))" \
 	    PROMOTE_CHANNEL= \
 	    ; \
 	}

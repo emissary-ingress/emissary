@@ -26,7 +26,7 @@ release/ga/changelog-update:
 
 release/rc/print-test-artifacts:
 	@set -e; { \
-		manifest_ver=$(RELEASE_VERSION) ; \
+		manifest_ver=$(patsubst v%,%,$(VERSION)) ; \
 		manifest_ver=$${manifest_ver%"-dirty"} ; \
 		echo "RC_TAG=v$$manifest_ver" ; \
 		echo "AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/$$manifest_ver" ; \
