@@ -20,6 +20,7 @@
 # generate.mk
 /go1*.src.tar.gz
 /go-version.txt
+/py-version.txt
 /pip-show.txt
 
 # var.mk
