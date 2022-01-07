@@ -1,32 +1,24 @@
-# Sanitize the environment a bit.
-unexport ENV      # bad configuration mechanism
-unexport BASH_ENV # bad configuration mechanism, but CircleCI insists on it
-unexport CDPATH   # should not be exported, but some people do
-unexport IFS      # should not be exported, but some people do
+# Real early setup
+OSS_HOME := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))# Do this *before* 'include'ing anything else
+include build-aux/init-sanitize-env.mk
+include build-aux/init-configure-make-itself.mk
+include build-aux/prelude.mk # In Haskell, "Prelude" is what they call the stdlib builtins that get get imported by default before anything else
+include build-aux/tools.mk
 
-# In the days before Bash 2.05 (April 2001), Bash had a hack in it
-# where it would load the interactive-shell configuration when run
-# from sshd, I guess to work around buggy sshd implementations that
-# didn't run the shell as login or interactive or something like that.
-# But that hack was removed in Bash 2.05 in 2001.  And the changelog
-# indicates that the heuristics it used to decide whether to do that
-# were buggy to begin with, and it would often trigger when it
-# shouldn't.  BUT DEBIAN PATCHES BASH TO ADD THAT HACK BACK IN!  And,
-# more importantly, Ubuntu 20.04 (which our CircleCI uses) inherits
-# that patch from Debian.  And the heuristic that Bash uses
-# incorrectly triggers inside of Make in our CircleCI jobs!  So, unset
-# SSH_CLIENT and SSH2_CLIENT to disable that.
-unexport SSH_CLIENT
-unexport SSH2_CLIENT
+# Bootstrapping the build env
+ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
+  $(_prelude.go.ensure)
+  ifeq ($(shell go env GOPATH),$(shell go env GOROOT))
+    $(error Your $$GOPATH (where *your* Go stuff goes) and $$GOROOT (where Go *itself* is installed) are both set to the same directory ($(shell go env GOROOT)); it is remarkable that it has not blown up catastrophically before now)
+  endif
+endif
+
+# Everything else...
 
 NAME ?= emissary
-
-OSS_HOME := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
-
 _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
 IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
-include $(OSS_HOME)/build-aux/tools.mk
 include $(OSS_HOME)/build-aux/ci.mk
 include $(OSS_HOME)/build-aux/check.mk
 include $(OSS_HOME)/builder/builder.mk
@@ -42,13 +34,6 @@ include $(OSS_HOME)/build-aux/lint.mk
 
 include $(OSS_HOME)/docs/yaml.mk
 
-ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
-  $(_prelude.go.ensure)
-  ifeq ($(shell go env GOPATH),$(shell go env GOROOT))
-    $(error Your $$GOPATH (where *your* Go stuff goes) and $$GOROOT (where Go *itself* is installed) are both set to the same directory ($(shell go env GOROOT)); it is remarkable that it has not blown up catastrophically before now)
-  endif
-endif
-
 test-chart-values.yaml: docker/$(LCNAME).docker.push.remote
 	{ \
 	  echo 'image:'; \
@@ -63,12 +48,6 @@ test-chart: $(tools/k3d) $(tools/kubectl) test-chart-values.yaml
 lint-chart:
 	$(MAKE) -C charts/emissary-ingress $@
 .PHONY: lint-chart
-
-# Configure GNU Make itself
-SHELL = bash
-.SECONDARY:
-.DELETE_ON_ERROR:
-.PHONY: FORCE
 
 .git/hooks/prepare-commit-msg:
 	ln -s $(OSS_HOME)/tools/hooks/prepare-commit-msg $(OSS_HOME)/.git/hooks/prepare-commit-msg
