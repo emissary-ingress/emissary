@@ -17,6 +17,8 @@ jobs:
       GCLOUD_SA_KEY: ${{ secrets.GCLOUD_SA_KEY }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: "Docker Login"
         uses: docker/login-action@v1
         with:
