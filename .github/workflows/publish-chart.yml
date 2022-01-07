@@ -16,6 +16,8 @@ jobs:
       PUBLISH_GIT_RELEASE: true
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: "Install Deps"
         uses: ./.github/actions/setup-deps
       - name: make release/ga/chart-push
