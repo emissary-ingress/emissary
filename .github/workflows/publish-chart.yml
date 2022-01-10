@@ -2,7 +2,7 @@ name: chart-publish
 on:
   push:
     tags:
-      - 'chart-v**'
+      - 'chart-v*'
 jobs:
   chart-publish:
     runs-on: ubuntu-latest
