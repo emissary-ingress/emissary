@@ -49,3 +49,7 @@ release/rc/check:
 release/ga/create-gh-release:
 	@$(OSS_HOME)/releng/release-create-github $(VERSIONS_YAML_VER)
 .PHONY: release/ga/create-gh-release
+
+release/chart-create-gh-release:
+	$(OSS_HOME)/releng/chart-create-gh-release
+.PHONY: release/chart-create-gh-release
