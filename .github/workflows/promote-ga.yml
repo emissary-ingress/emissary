@@ -77,9 +77,9 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
-          success_text: 'GitHub release was created: ${{ steps.step-create-gh-release.url }}'
-          failure_text: 'GitHub release failed'
-          cancelled_text: 'GitHub release was was cancelled'
+          success_text: 'Emissary GitHub release was created: ${{ steps.step-create-gh-release.url }}'
+          failure_text: 'Emissary GitHub release failed'
+          cancelled_text: 'Emissary GitHub release was was cancelled'
           fields: |
             [{ "title": "Repository", "value": "${env.GITHUB_REPOSITORY}", "short": true },
              { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true },

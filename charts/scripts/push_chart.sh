@@ -79,47 +79,4 @@ if [[ `basename ${chart_dir}` != emissary-ingress ]] ; then
     exit 0
 fi
 
-if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] && [[ -n "${PUBLISH_GIT_RELEASE}" ]]; then
-    if [[ -z "${GH_GITHUB_API_KEY}" ]] ; then
-        echo "GH_GITHUB_API_KEY not set"
-        exit 1
-    fi
-    tag="chart/v${thisversion}"
-    export chart_version_no_v=${thisversion}
-    title=`envsubst < ${chart_dir}/RELEASE_TITLE.tpl`
-    repo_full_name="emissary-ingress/emissary"
-    token="${GH_GITHUB_API_KEY}"
-    description=`envsubst < ${chart_dir}/RELEASE.tpl | awk '{printf "%s\\\n", $0}'`
-    in_changelog=false
-    while IFS= read -r line ; do
-        if ${in_changelog} ; then
-            if [[ "${line}" =~ "## v" ]] ; then
-                break
-            fi
-            if [[ -n "${line}" ]] ; then
-                description="${description}\\n${line}"
-            fi
-        fi
-        if [[ "${line}" =~ "## v${chart_version}" ]] ; then
-            in_changelog=true
-        fi
-
-    done < ${chart_dir}/CHANGELOG.md
-
-    generate_post_data()
-    {
-        cat <<EOF
-{
-  "tag_name": "$tag",
-  "name": "$title",
-  "body": "${description}",
-  "draft": false,
-  "prerelease": false,
-  "target_commitish": "${GITHUB_REF}"
-}
-EOF
-    }
-    curl --fail -H "Authorization: token ${token}" --data "$(generate_post_data)" "https://api.github.com/repos/$repo_full_name/releases"
-fi
-
 exit 0
