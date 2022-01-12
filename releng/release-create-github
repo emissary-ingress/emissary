@@ -50,19 +50,22 @@ def main(release_version: str) -> int:
 
     buf = ""
     with check(f"Creating release notes for {release_version}"):
-        found = False
-        buffering = False
+        # TODO: Rewrite this to use `docs/releaseNotes.yml` instead of
+        # `CHANGELOG.md`.
+        in_changelog = False
         for line in fileinput.FileInput("CHANGELOG.md"):
-            if not found and line.startswith(f"## [{release_version}]"):
-                found = True
-            elif found and not buffering and line.startswith("### Emissary Ingress"):
-                buffering = True
-            elif buffering and line.startswith("## ["):
-                break
-            elif buffering:
+            if in_changelog:
+                if line.startswith("## ") or line == "### Ambassador Edge Stack only\n":
+                    break
+                if line.startswith(f"[{release_version}]: https://github.com/"):
+                    continue
+                if line == "### Emissary-ingress and Ambassador Edge Stack\n":
+                    continue
                 buf += line
-
-        if not found:
+            if line.startswith(f"## [{release_version}] "):
+                in_changelog = True
+        buf = buf.strip()
+        if buf == "":
             raise Exception(f"Changelog entry for {release_version} not found. Are you sure you're trying to release that?")
 
     print(f"Generated release notes:")
