@@ -10,6 +10,8 @@ Maintainers are listed in alphabetical order.
 | Maintainer | GitHub ID | Affiliation |
 | ---------- | --------- | ----------- |
 | Aidan Hahn | [aidanhahn](https://github.com/aidanhahn) | [Ambassador Labs](https://www.github.com/datawire/) |
+| Alex Gervais | [alexgervais](https://github.com/alexgervais) | [Ambassador Labs](https://www.github.com/datawire/) |
+| Alice Wasko | [aliceproxy](https://github.com/aliceproxy) | [Ambassador Labs](https://www.github.com/datawire/) |
 | Flynn | [kflynn](https://github.com/kflynn) | [Ambassador Labs](https://www.github.com/datawire/) |
 | Luke Shumaker | [lukeshu](https://github.com/lukeshu) | [Ambassador Labs](https://www.github.com/datawire/) |
 | Rafael Schloming | [rhs](https://github.com/rhs) | [Ambassador Labs](https://www.github.com/datawire/) |
@@ -19,16 +21,14 @@ of the following (also listed in alphabetical order):
 
 | Releaser | GitHub ID | Affiliation |
 | -------- | --------- | ----------- |
-| Alice Wasko | [aliceproxy](https://github.com/aliceproxy) | [Ambassador Labs](https://www.github.com/datawire/) |
-| Noah Krause | [nbkrause](https://github.com/nbkrause) | [Ambassador Labs](https://www.github.com/datawire/) |
 | Will Hardin | [w-h37](https://github.com/w-h37) | [Ambassador Labs](https://www.github.com/datawire/) |
 
 ## Maintainers Emeriti
 
-* Alex Gervais ([alexgervais](https://github.com/alexgervais))
 * Alix Cook  ([acookin](https://github.com/acookin))
 * John Esmet ([esmet](https://github.com/esmet))
 
+## Releasers Emeriti
 
-
+* Noah Krause ([iNoahNothing](https://github.com/iNoahNothing))
 
