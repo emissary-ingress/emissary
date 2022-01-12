@@ -21,7 +21,7 @@ RELEASE_BODY_FORMAT= """
 #### Emissary Ingress is an open source, Kubernetes-native microservices API gateway built on the Envoy Proxy.
 
 Upgrade Emissary - https://www.getambassador.io/reference/upgrading.html
-View changelog - https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md
+View changelog - https://github.com/emissary-ingress/emissary/blob/{git_tag}/CHANGELOG.md
 Get started with Emissary on Kubernetes - https://www.getambassador.io/user-guide/getting-started
 
 {release_notes}
@@ -78,7 +78,11 @@ def main(release_version: str) -> int:
             f"v{release_version}",
             "--repo", get_gh_repo(),
             "--title", RELEASE_TITLE_FORMAT.format(release_version=release_version),
-            "--notes", RELEASE_BODY_FORMAT.format(release_version=release_version, release_notes=buf)])
+            "--notes", RELEASE_BODY_FORMAT.format(
+                release_version=release_version,
+                release_notes=buf,
+                git_tag="v"+release_version,
+            )])
     if not checker.ok:
         return 1
 
