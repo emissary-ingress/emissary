@@ -509,7 +509,14 @@ class V3Route(Cacheable):
             cors = cors.dup()
             cors.set_id(group.group_id)
 
-            route['cors'] = cors.as_dict()
+            route['cors'] = {
+                'origins': cors.origins,
+                'methods': cors.methods,
+                'headers': cors.headers,
+                'credentials': cors.credentials,
+                'exposed_headers': cors.exposed_headers,
+                'max_age': cors.max_age,
+            }
 
         retry_policy = None
 
