@@ -1,0 +1,18 @@
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {self.path.k8s}
+spec:
+  selector:
+    backend: {self.path.k8s}
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8443
