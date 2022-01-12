@@ -31,6 +31,17 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 2.1.2
+    date: 'TBD'
+    notes:
+      - title: Fix support for for v2 Mappings with CORS
+        type: bugfix
+        body: >-
+          Emissary-ingress 2.1.0 generated invalid Envoy configuration for
+          <code>getambassador.io/v2</code> <code>Mappings</code> that set
+          <code>spec.cors.origins</code> to a string rather than a list of strings; this has been
+          fixed, and these <code>Mappings<code> should once again function correctly.
+
   - version: 2.1.0
     date: '2021-12-16'
     notes:
