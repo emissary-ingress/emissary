@@ -1,4 +1,4 @@
-from typing import ClassVar, Dict, Generator, Sequence, Tuple, Union
+from typing import Any, ClassVar, Dict, Generator, Sequence, Tuple, Union
 
 import json
 import pytest
