@@ -2,9 +2,9 @@ package entrypoint
 
 import (
 	"context"
-	_ "embed"
 	"fmt"
 
+	getambassadorio "github.com/datawire/ambassador/v2/pkg/api/getambassador.io"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
@@ -13,21 +13,9 @@ type resourceValidator struct {
 	katesValidator *kates.Validator
 }
 
-//go:embed crds.yaml
-var crdYAML string
-
 func newResourceValidator() (*resourceValidator, error) {
-	crdObjs, err := kates.ParseManifests(crdYAML)
-	if err != nil {
-		return nil, err
-	}
-	katesValidator, err := kates.NewValidator(nil, crdObjs)
-	if err != nil {
-		return nil, err
-	}
-
 	return &resourceValidator{
-		katesValidator: katesValidator,
+		katesValidator: getambassadorio.NewValidator(),
 		invalid:        map[string]*kates.Unstructured{},
 	}, nil
 }
