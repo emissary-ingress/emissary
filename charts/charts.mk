@@ -40,8 +40,6 @@ chart-push-ci: push-preflight
 		echo "Private repo, not pushing chart" ;\
 		exit 1 ;\
 	fi;
-	@echo ">>> This will dirty your local tree and should only be run in CI"
-	@echo ">>> If running locally, you'll probably want to run make chart-clean after running this"
 	@[ -n "${CHART_VERSION_SUFFIX}" ] || (echo "CHART_VERSION_SUFFIX must be set for non-GA pushes" && exit 1)
 	@[ -n "${IMAGE_TAG}" ] || (echo "IMAGE_TAG must be set" && exit 1)
 	@[ -n "${IMAGE_REPO}" ] || (echo "IMAGE_REPO must be set" && exit 1)
@@ -62,7 +60,7 @@ release/chart/tag:
 			exit 1 ;\
 		fi; \
 		chart_ver=`grep 'version:' $(EMISSARY_CHART)/Chart.yaml | awk ' { print $$2 }'` ; \
-		chart_ver=chart-v$${chart_ver} ; \
+		chart_ver=chart/v$${chart_ver} ; \
 		git tag -m "Tagging $${chart_ver}" -a $${chart_ver} ; \
 		git push origin $${chart_ver} ; \
 	}
@@ -97,12 +95,3 @@ release/chart-bump/minor:
 		$(OSS_HOME)/charts/scripts/bump_chart_version.sh minor $$chart/Chart.yaml ; \
 	done ;
 .PHONY: release/chart-bump/minor
-
-# This is pretty Draconian. Use with care.
-chart-clean:
-	@PS4=; set -ex; for chart in $(EMISSARY_CHART); do \
-		git restore $$chart/Chart.yaml $$chart/values.yaml; \
-		$(MAKE) $$chart/README.md; \
-		rm -f $$chart/*.tgz $$chart/index.yaml $$chart/tmp.yaml; \
-	done
-.PHONY: chart-clean
