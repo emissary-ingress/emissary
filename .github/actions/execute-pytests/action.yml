@@ -32,7 +32,7 @@ runs:
       with:
         username: ${{ env.DOCKER_USERNAME }}
         password: ${{ env.DOCKER_PASSWORD }}
-    - name: make pytest-${{ matrix.test }}
+    - name: make PYTESTS_DIR=python/tests-${{ matrix.crd_version }} pytest-${{ matrix.test }}
       uses: nick-invision/retry@v2.4.0
       with:
         max_attempts: 3

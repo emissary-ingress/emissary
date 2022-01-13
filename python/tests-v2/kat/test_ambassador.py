@@ -62,6 +62,8 @@ if letter_range in ["all","qz"]:
     import t_tls
     import t_tracing
 
+import t_v2_crds
+
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
 #

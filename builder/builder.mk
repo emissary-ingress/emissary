@@ -371,7 +371,8 @@ test-ready: push preflight-cluster
 PYTEST_ARGS ?=
 export PYTEST_ARGS
 
-PYTEST_GOLD_DIR ?= $(abspath python/tests/gold)
+PYTESTS_DIR ?= python/tests
+PYTEST_GOLD_DIR ?= $(abspath $(PYTESTS_DIR)/gold)
 
 # Internal target for running a bash shell.
 _bash:
@@ -447,17 +448,17 @@ pytest-unit:
 	@$(MAKE) setup-envoy
 	@$(MAKE) setup-diagd
 	. $(OSS_HOME)/venv/bin/activate; \
-		PYTEST_ARGS="$$PYTEST_ARGS python/tests/unit" $(OSS_HOME)/builder/builder.sh pytest-local-unit
+		PYTEST_ARGS="$$PYTEST_ARGS $(PYTESTS_DIR)/unit" $(OSS_HOME)/builder/builder.sh pytest-local-unit
 .PHONY: pytest-unit
 
 pytest-integration:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) integration tests$(END)\n"
-	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/integration"
+	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS $(PYTESTS_DIR)/integration"
 .PHONY: pytest-integration
 
 pytest-kat:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) kat tests$(END)\n"
-	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
+	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS $(PYTESTS_DIR)/kat"
 .PHONY: pytest-kat
 
 extract-bin-envoy: docker/base-envoy.docker.tag.local
@@ -476,22 +477,22 @@ pytest-builder: test-ready
 
 pytest-envoy-ah:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy$(GRN) kat tests (ah) $(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range ah python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range ah $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy-ah
 
 pytest-envoy-ip:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy$(GRN) kat tests (ip)$(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range ip python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range ip $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy-ip
 
 pytest-envoy-qz:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy$(GRN) kat tests (qz)$(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range qz python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range qz $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy-qz
 
 
 pytest-envoy:
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy
 
 pytest-envoy-builder:
@@ -500,21 +501,21 @@ pytest-envoy-builder:
 
 pytest-envoy-v2-ah:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy v2$(GRN) kat tests (ah)$(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range ah python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range ah $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy-ah
 
 pytest-envoy-v2-ip:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy v2$(GRN) kat tests (ip)$(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range ip python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range ip $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy-v2-ip
 
 pytest-envoy-v2-qz:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy v2$(GRN) kat tests (qz)$(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range qz python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range qz $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy-v2-qz
 
 pytest-envoy-v2:
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy-v2
 
 pytest-envoy-v2-builder:
