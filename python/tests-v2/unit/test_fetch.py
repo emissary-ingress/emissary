@@ -246,6 +246,7 @@ class TestAmbassadorProcessor:
 
         assert AmbassadorProcessor(mgr).try_process(valid_mapping_v1)
         assert len(mgr.elements) == 1
+        print(f"mgr.elements[0]={mgr.elements[0].apiVersion}")
 
         aconf.load_all(mgr.elements)
         assert len(aconf.errors) == 0

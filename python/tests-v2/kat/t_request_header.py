@@ -1,5 +1,8 @@
-from kat.harness import variants, Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from typing import Generator, Tuple, Union
+
+from kat.harness import Query
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
+
 
 class XRequestIdHeaderPreserveTest(AmbassadorTest):
     target: ServiceType
@@ -7,7 +10,7 @@ class XRequestIdHeaderPreserveTest(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -17,7 +20,7 @@ config:
   preserve_external_request_id: true
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-target
 prefix: /target/
 service: http://{self.target.path.fqdn}
@@ -36,7 +39,7 @@ class XRequestIdHeaderDefaultTest(AmbassadorTest):
         self.xfail = "Need to figure out passing header through external connections from KAT"
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -45,7 +48,7 @@ name:  ambassador
 
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-target
 prefix: /target/
 service: http://{self.target.path.fqdn}
@@ -65,11 +68,11 @@ class EnvoyHeadersTest(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-target
 prefix: /target/
 rewrite: /rewrite/
@@ -96,7 +99,7 @@ class SuppressEnvoyHeadersTest(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -106,7 +109,7 @@ config:
   suppress_envoy_headers: true
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-target
 prefix: /target/
 rewrite: /rewrite/

@@ -1,16 +1,20 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query, EDGE_STACK
 from kat.utils import namespace_manifest
 
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
-from selfsigned import TLSCerts
-import os
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
+from tests.selfsigned import TLSCerts
+
+from ambassador import Config
+
 
 # STILL TO ADD:
 # Host referencing a Secret in another namespace?
 # Mappings without host attributes (infer via Host resource)
 # Host where a TLSContext with the inferred name already exists
 
-bug_single_insecure_action = True  # Do all Hosts have to have the same insecure.action?
+bug_single_insecure_action = False  # Do all Hosts have to have the same insecure.action?
 bug_forced_star = True             # Do we erroneously send replies in cleartext instead of TLS for unknown hosts?
 bug_404_routes = True              # Do we erroneously send 404 responses directly instead of redirect-to-tls first?
 bug_clientcert_reset = True        # Do we sometimes just close the connection instead of sending back tls certificate_required?
@@ -87,6 +91,8 @@ class HostCRDNo8080(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -102,6 +108,21 @@ type: kubernetes.io/tls
 data:
   tls.crt: '''+TLSCerts["localhost"].k8s_crt+'''
   tls.key: '''+TLSCerts["localhost"].k8s_key+'''
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: {self.name.k8s}-listener
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  port: 8443
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -140,18 +161,13 @@ spec:
 
     def queries(self):
         yield Query(self.url("target/"), insecure=True)
-
-        if EDGE_STACK:
-            yield Query(self.url("target/", scheme="http"), expected=404)
-        else:
-            yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
+        yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
 
 
 class HostCRDManualContext(AmbassadorTest):
     """
     A single Host with a manually-specified TLS secret and a manually-specified TLSContext,
-    too. Since the Host is _not_ handling the TLSContext, we do _not_ expect automatic redirection
-    on port 8080.
+    too.
     """
     target: ServiceType
 
@@ -221,19 +237,16 @@ spec:
         return "https"
 
     def queries(self):
-        yield Query(self.url("target/"), insecure=True,
+        yield Query(self.url("target/tls-1.2-1.3"), insecure=True,
                     minTLSv="v1.2", maxTLSv="v1.3")
 
-        yield Query(self.url("target/"), insecure=True,
+        yield Query(self.url("target/tls-1.0-1.0"), insecure=True,
                     minTLSv="v1.0",  maxTLSv="v1.0",
                     error=["tls: server selected unsupported protocol version 303",
                            "tls: no supported versions satisfy MinVersion and MaxVersion",
                            "tls: protocol version not supported"])
 
-        if EDGE_STACK:
-            yield Query(self.url("target/", scheme="http"), expected=404)
-        else:
-            yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
+        yield Query(self.url("target/cleartext", scheme="http"), expected=301)
 
 
 class HostCRDSeparateTLSContext(AmbassadorTest):
@@ -390,6 +403,11 @@ class HostCRDClearText(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
+
+        # Only add the default HTTP listener (we're mimicking the no-TLS case here.)
+        self.add_default_http_listener = True
+        self.add_default_https_listener = False
+
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -436,9 +454,13 @@ spec:
 
 class HostCRDDouble(AmbassadorTest):
     """
-    HostCRDDouble: two Hosts with manually-configured TLS secrets, and Mappings specifying host matches.
-    Since the Hosts are handling TLSContexts, we expect both OSS and Edge Stack to redirect cleartext
-    from 8080 to 8443 here.
+    HostCRDDouble: "double" is actually a misnomer. We have multiple Hosts, each with a
+    manually-configured TLS secrets, and varying insecure actions:
+    - tls-context-host-1: Route
+    - tls-context-host-2: Redirect
+    - tls-context-host-3: Reject
+
+    We also have Mappings that specify Host matches, and we test the various combinations.
 
     XXX In the future, the hostname matches should be unnecessary, as it should use
     metadata.labels.hostname.
@@ -666,13 +688,13 @@ spec:
                     expected=404)
         # 16-20: Host #2 - cleartext (action: Redirect)
         yield Query(self.url("target-1/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=(404 if bug_single_insecure_action else 301))
+                    expected=404)
         yield Query(self.url("target-2/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=(200 if bug_single_insecure_action else 301))
+                    expected=301)
         yield Query(self.url("target-3/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=(404 if bug_single_insecure_action else 301))
+                    expected=404)
         yield Query(self.url("target-shared/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=(200 if bug_single_insecure_action else 301))
+                    expected=301)
         yield Query(self.url(".well-known/acme-challenge/foo", scheme="http"), headers={"Host": "tls-context-host-2"},
                     expected=404)
 
@@ -693,9 +715,9 @@ spec:
         yield Query(self.url("target-2/", scheme="http"), headers={"Host": "ambassador.example.com"},
                     expected=404)
         yield Query(self.url("target-3/", scheme="http"), headers={"Host": "ambassador.example.com"},
-                    expected=(200 if bug_single_insecure_action else 404))
+                    expected=404)
         yield Query(self.url("target-shared/", scheme="http"), headers={"Host": "ambassador.example.com"},
-                    expected=(200 if bug_single_insecure_action else 404))
+                    expected=404)
         yield Query(self.url(".well-known/acme-challenge/foo", scheme="http"), headers={"Host": "ambassador.example.com"},
                     expected=200)
 
@@ -733,6 +755,7 @@ class HostCRDWildcards(AmbassadorTest):
     target: ServiceType
 
     def init(self):
+        self.xfail = "IHA FIXME (swap glob)"
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -811,28 +834,30 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  prefix: /foo
+  prefix: /foo/
   service: {self.target.path.fqdn}
 ''') + super().manifests()
 
-    def queries(self):
-        insecure_base = {
-            'url': self.url('foo', scheme='http'),
+    def insecure(self, suffix):
+        return {
+            'url': self.url('foo/%s' % suffix, scheme='http'),
         }
-        secure_base = {
-            'url': self.url('foo', scheme='https'),
+
+    def secure(self, suffix):
+        return {
+            'url': self.url('foo/%s' % suffix, scheme='https'),
             'ca_cert': TLSCerts["*.domain.com"].pubcert,
             'sni': True,
         }
 
-        yield Query(**secure_base, headers={'Host': 'a.domain.com'}, expected=200)  # Host=a.domain.com
-        yield Query(**secure_base, headers={'Host': 'wc.domain.com'}, expected=200) # Host=*.domain.com
-        yield Query(**secure_base, headers={'Host': '127.0.0.1'}, expected=200)     # Host=*
+    def queries(self):
+        yield Query(**self.secure("0-200"), headers={'Host': 'a.domain.com'}, expected=200)  # Host=a.domain.com
+        yield Query(**self.secure("1-200"), headers={'Host': 'wc.domain.com'}, expected=200) # Host=*.domain.com
+        yield Query(**self.secure("2-200"), headers={'Host': '127.0.0.1'}, expected=200)     # Host=*
 
-        yield Query(**insecure_base, headers={'Host': 'a.domain.com'}, expected=301)  # Host=a.domain.com
-        yield Query(**insecure_base, headers={'Host': 'wc.domain.com'},               # Host=*.domain.com
-                    expected=(301 if bug_single_insecure_action else 200))
-        yield Query(**insecure_base, headers={'Host': '127.0.0.1'}, expected=301)     # Host=*
+        yield Query(**self.insecure("3-301"), headers={'Host': 'a.domain.com'}, expected=301)  # Host=a.domain.com
+        yield Query(**self.insecure("4-200"), headers={'Host': 'wc.domain.com'}, expected=200) # Host=*.domain.com
+        yield Query(**self.insecure("5-301"), headers={'Host': '127.0.0.1'}, expected=301)     # Host=*
 
     def scheme(self) -> str:
         return "https"
@@ -960,6 +985,8 @@ class HostCRDClientCertSameNamespace(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
 
     def manifests(self) -> str:
         # Same as HostCRDClientCertCrossNamespace, all of the things
@@ -1283,11 +1310,11 @@ class HostCRDRootRedirectECMARegexMapping(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        if os.environ.get('KAT_USE_ENVOY_V2', '') == '':
+        if Config.envoy_api_version == 'V3':
             self.skip_node = True
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v2
@@ -1374,7 +1401,6 @@ spec:
 class HostCRDForcedStar(AmbassadorTest):
     """This test verifies that Ambassador responds properly if we try
     talking to it on a hostname that it doesn't recognize.
-
     """
     target: ServiceType
 
@@ -1447,7 +1473,7 @@ metadata:
   name: {self.name.k8s}-target-mapping
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  prefix: /foo
+  prefix: /foo/
   service: {self.target.path.fqdn}
 ''') + super().manifests()
 
@@ -1459,28 +1485,28 @@ spec:
         # sanity check, and then we'll try the same query for an unrecongized hostname
         # ("nonmatching-host") to make sure that it is handled the same way.
 
-        # 0-1: cleartext 200
-        yield Query(self.url("foo", scheme="http"), headers={"Host": "tls-context-host-1"},
+        # 0-1: cleartext 200/301
+        yield Query(self.url("foo/0-200", scheme="http"), headers={"Host": "tls-context-host-1"},
                     expected=200)
-        yield Query(self.url("foo", scheme="http"), headers={"Host": "nonmatching-hostname"},
-                    expected=(200 if bug_single_insecure_action else 301))
+        yield Query(self.url("foo/1-301", scheme="http"), headers={"Host": "nonmatching-hostname"},
+                    expected=301)
 
         # 2-3: cleartext 404
-        yield Query(self.url("bar", scheme="http"), headers={"Host": "tls-context-host-1"},
+        yield Query(self.url("bar/2-404", scheme="http"), headers={"Host": "tls-context-host-1"},
                     expected=404)
-        yield Query(self.url("bar", scheme="http"), headers={"Host": "nonmatching-hostname"},
-                    expected=(404 if bug_single_insecure_action else 301))
+        yield Query(self.url("bar/3-301-or-404", scheme="http"), headers={"Host": "nonmatching-hostname"},
+                    expected=404 if bug_404_routes else 301)
 
         # 4-5: TLS 200
-        yield Query(self.url("foo", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+        yield Query(self.url("foo/4-200", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
                     expected=200)
-        yield Query(self.url("foo", scheme="https"), headers={"Host": "nonmatching-hostname"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True, insecure=True,
+        yield Query(self.url("foo/5-200", scheme="https"), headers={"Host": "nonmatching-hostname"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True, insecure=True,
                     expected=200, error=("http: server gave HTTP response to HTTPS client" if bug_forced_star else None))
 
         # 6-7: TLS 404
-        yield Query(self.url("bar", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+        yield Query(self.url("bar/6-404", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
                     expected=404)
-        yield Query(self.url("bar", scheme="https"), headers={"Host": "nonmatching-hostname"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True, insecure=True,
+        yield Query(self.url("bar/7-404", scheme="https"), headers={"Host": "nonmatching-hostname"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True, insecure=True,
                     expected=404, error=("http: server gave HTTP response to HTTPS client" if bug_forced_star else None))
 
     def requirements(self):

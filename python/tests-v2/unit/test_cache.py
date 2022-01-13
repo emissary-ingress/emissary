@@ -1,22 +1,24 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Optional, OrderedDict, Set, Tuple
 
 import difflib
 import json
 import logging
 import os
 import random
+import re
 import sys
 import yaml
 
 import pytest
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s test %(levelname)s: %(message)s",
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
 logger = logging.getLogger("ambassador")
+logger.setLevel(logging.DEBUG)
 
 from ambassador import Cache, Config, IR, EnvoyConfig
 from ambassador.ir.ir import IRFileChecker
@@ -27,6 +29,8 @@ from ambassador.utils import SecretHandler, NullSecretHandler, Timer
 class Builder:
     def __init__(self, logger: logging.Logger, yaml_file: str,
                  enable_cache=True) -> None:
+        self.logger = logger
+        
         self.test_dir = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "test_cache_data"
@@ -42,6 +46,7 @@ class Builder:
         # The reason is that it's kind of the only way we can apply deltas in
         # a meaningful way.
         self.resources: Dict[str, Any] = {}
+        self.deltas: Dict[str, Any] = {}
 
         # Load the initial YAML.
         self.apply_yaml(yaml_file, allow_updates=False)
@@ -50,9 +55,15 @@ class Builder:
         # Save builds to make this simpler to call.
         self.builds: List[Tuple[IR, EnvoyConfig]] = []
 
+    def current_yaml(self) -> str:
+        return yaml.safe_dump_all(list(self.resources.values()))
+
     def apply_yaml(self, yaml_file: str, allow_updates=True) -> None:
         yaml_data = open(os.path.join(self.test_dir, yaml_file), "r").read()
 
+        self.apply_yaml_string(yaml_data, allow_updates)
+
+    def apply_yaml_string(self, yaml_data: str, allow_updates=True) -> None:
         for rsrc in yaml.safe_load_all(yaml_data):
             # We require kind, metadata.name, and metadata.namespace here.
             kind = rsrc['kind']
@@ -62,19 +73,36 @@ class Builder:
 
             key = f"{kind}-v2-{name}-{namespace}"
 
+            dtype = "add"
+
             if key in self.resources:
                 # This is an attempted update.
                 if not allow_updates:
                     raise RuntimeError(f"Cannot update {key}")
 
-                if self.cache is not None:
-                    self.cache.invalidate(key)
+                dtype = "update"
+
+                # if self.cache is not None:
+                #     self.cache.invalidate(key)
 
             self.resources[key] = rsrc
+            self.deltas[key] = {
+                "kind": kind,
+                "apiVersion": rsrc["apiVersion"],
+                "metadata": {
+                    "name": name,
+                    "namespace": namespace,
+                    "creationTimestamp": metadata.get("creationTimestamp", "2021-11-19T15:11:45Z")
+                },
+                "deltaType": dtype
+            }
 
     def delete_yaml(self, yaml_file: str) -> None:
         yaml_data = open(os.path.join(self.test_dir, yaml_file), "r").read()
 
+        self.delete_yaml_string(yaml_data)
+
+    def delete_yaml_string(self, yaml_data: str) -> None:
         for rsrc in yaml.safe_load_all(yaml_data):
             # We require kind, metadata.name, and metadata.namespace here.
             kind = rsrc['kind']
@@ -87,22 +115,76 @@ class Builder:
             if key in self.resources:
                 del(self.resources[key])
 
-                if self.cache is not None:
-                    self.cache.invalidate(key)
+                # if self.cache is not None:
+                #     self.cache.invalidate(key)
+
+                self.deltas[key] = {
+                    "kind": kind,
+                    "apiVersion": rsrc["apiVersion"],
+                    "metadata": {
+                        "name": name,
+                        "namespace": namespace,
+                        "creationTimestamp": metadata.get("creationTimestamp", "2021-11-19T15:11:45Z")
+                    },
+                    "deltaType": "delete"
+                }
 
     def build(self, version='V2') -> Tuple[IR, EnvoyConfig]:
         # Do a build, return IR & econf, but also stash them in self.builds.
 
-        yaml_data = yaml.safe_dump_all(self.resources.values())
+        watt: Dict[str, Any] = {
+            "Kubernetes": {},
+            "Deltas": list(self.deltas.values())
+        }
 
+        # Clear deltas for the next build.
+        self.deltas = {}
+
+        # The Ambassador resource types are all valid keys in the Kubernetes dict.
+        # Other things (e.g. if this test gets expanded to cover Ingress or Secrets)
+        # may not be.
+
+        for rsrc in self.resources.values():
+            kind = rsrc['kind']
+
+            if kind not in watt['Kubernetes']:
+                watt['Kubernetes'][kind] = []
+            
+            watt['Kubernetes'][kind].append(rsrc)
+
+        watt_json = json.dumps(watt, sort_keys=True, indent=4)
+
+        self.logger.debug(f"Watt JSON:\n{watt_json}")
+
+        # OK, we have the WATT-formatted JSON. This next bit of code largely duplicates
+        # _load_ir from diagd.
+        #
+        # XXX That obviously means that it should be factored out for reuse.
+
+        # Grab a new aconf, and use a new ResourceFetcher to load it up.
         aconf = Config()
 
-        fetcher = ResourceFetcher(logger, aconf)
-        fetcher.parse_yaml(yaml_data, k8s=True)
+        fetcher = ResourceFetcher(self.logger, aconf)
+        fetcher.parse_watt(watt_json)
 
         aconf.load_all(fetcher.sorted())
 
-        ir = IR(aconf, cache=self.cache,
+        # Next up: What kind of reconfiguration are we doing?
+        config_type, reset_cache, invalidate_groups_for = IR.check_deltas(self.logger, fetcher, self.cache)
+
+        # For the tests in this file, we should see cache resets and full reconfigurations
+        # IFF we have no cache.
+
+        if self.cache is None:
+            assert config_type == "complete", "check_deltas wants an incremental reconfiguration with no cache, which it shouldn't"
+            assert reset_cache, "check_deltas with no cache does not want to reset the cache, but it should"
+        else:
+            assert config_type == "incremental", "check_deltas with a cache wants a complete reconfiguration, which it shouldn't"
+            assert not reset_cache, "check_deltas with a cache wants to reset the cache, which it shouldn't"
+
+        # Once that's done, compile the IR.
+        ir = IR(aconf, logger=self.logger,
+                cache=self.cache, invalidate_groups_for=invalidate_groups_for,
                 file_checker=lambda path: True,
                 secret_handler=self.secret_handler)
 
@@ -117,12 +199,13 @@ class Builder:
         return ir, econf
 
     def invalidate(self, key) -> None:
-        assert self.cache[key] is not None, f"key {key} is not cached"
+        if self.cache is not None:
+            assert self.cache[key] is not None, f"key {key} is not cached"
 
-        self.cache.invalidate(key)
+            self.cache.invalidate(key)
 
     def check(self, what: str, b1: Tuple[IR, EnvoyConfig], b2: Tuple[IR, EnvoyConfig],
-              strip_cache_keys=False) -> None:
+              strip_cache_keys=False) -> bool:
         for kind, idx in [ ( "IR", 0 ), ( "econf", 1 ) ]:
             if strip_cache_keys and (idx == 0):
                 x1 = self.strip_cache_keys(b1[idx].as_dict())
@@ -154,6 +237,8 @@ class Builder:
 
             assert match, output
 
+        return match
+
     def check_last(self, what: str) -> None:
         build_count = len(self.builds)
 
@@ -162,7 +247,7 @@ class Builder:
 
         self.check(what, b1, b2)
 
-    def strip_cache_keys(self, node: Any) -> None:
+    def strip_cache_keys(self, node: Any) -> Any:
         if isinstance(node, dict):
             output = {}
             for k, v in node.items():
@@ -174,8 +259,8 @@ class Builder:
             return output
         elif isinstance(node, list):
             return [ self.strip_cache_keys(x) for x in node ]
-        else:
-            return node
+
+        return node
 
 
 def test_circular_link():

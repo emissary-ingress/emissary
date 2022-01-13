@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Generator, Tuple, Union
 
 import yaml
 
@@ -18,13 +18,13 @@ class Empty(AmbassadorTest):
             self.xfail = "XFailing for now"
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         yield cls()
 
     def manifests(self) -> str:
         return namespace_manifest("empty-namespace") + super().manifests()
 
-    def config(self) -> Union[str, Tuple[Node, str]]:
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield from ()
 
     def queries(self):
@@ -53,7 +53,7 @@ class AmbassadorIDTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self) -> Union[str, Tuple[Node, str]]:
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, """
 ---
 apiVersion: ambassador/v0
@@ -70,7 +70,7 @@ config:
             yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
-kind:  Mapping
+kind: Mapping
 name:  {self.path.k8s}-{prefix}
 prefix: /{prefix}/
 service: {self.target.path.fqdn}
@@ -102,7 +102,7 @@ spec:
   service_bad: {self.target.path.fqdn}
 ""","""
 apiVersion: getambassador.io/v2
-kind:  Mapping
+kind: Mapping
 metadata:
   name:  {self.path.k8s}-m-good-<<WHICH>>
 spec:
@@ -111,7 +111,7 @@ spec:
   service: {self.target.path.fqdn}
 """, """
 apiVersion: getambassador.io/v2
-kind:  Mapping
+kind: Mapping
 metadata:
   name:  {self.path.k8s}-m-bad-<<WHICH>>
 spec:
@@ -136,7 +136,7 @@ spec:
   service_bad: {self.target.path.fqdn}
 """, """
 apiVersion: getambassador.io/v2
-kind:  TCPMapping
+kind: TCPMapping
 metadata:
   name:  {self.path.k8s}-tm-bad1-<<WHICH>>
 spec:
@@ -174,7 +174,7 @@ spec:
         ]
 
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         counter = 0
 
         for m_yaml in self.models:
@@ -243,7 +243,14 @@ spec:
             # stuff, the empty config we pass in our bad Module turns into None. Python
             # validation still catches it, but the error message is different.
 
-            if error != "not a valid Module: None is not of type 'object'":
+            # Don't be too picky about the serialization
+            expected_error = [
+                # if .spec.config is omitted because it's empty
+                "not a valid Module: None is not of type 'object'",
+                # if .spec.config is present-but-null
+                'spec.config in body must be of type object: "null"'
+            ]
+            if error not in expected_error:
                 assert 'required' in error, f"error for {name} should talk about required properties: {error}"
 
 
@@ -254,7 +261,7 @@ class ServerNameTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -264,7 +271,7 @@ config:
   server_name: "test-server"
 ---
 apiVersion: ambassador/v0
-kind:  Mapping
+kind: Mapping
 name:  {self.path.k8s}/server-name
 prefix: /server-name
 service: {self.target.path.fqdn}
@@ -284,11 +291,11 @@ class SafeRegexMapping(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}
 prefix: /{self.name}/
 prefix_regex: true
@@ -319,11 +326,11 @@ class UnsafeRegexMapping(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.name}
 prefix: /{self.name}/
 prefix_regex: true

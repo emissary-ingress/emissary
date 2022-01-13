@@ -1,9 +1,10 @@
+from typing import Generator, Tuple, Union
+
 import os
 
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, HTTP
-from abstract_tests import ServiceType
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 
 
 LOADBALANCER_POD = """
@@ -34,17 +35,17 @@ class LoadBalancerTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-0
 prefix: /{self.name}-0/
 service: {self.target.path.fqdn}
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-1
 prefix: /{self.name}-1/
 service: {self.target.path.fqdn}
@@ -53,7 +54,7 @@ load_balancer:
   policy: round_robin
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-2
 prefix: /{self.name}-2/
 service: {self.target.path.fqdn}
@@ -63,7 +64,7 @@ load_balancer:
   header: test-header
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-3
 prefix: /{self.name}-3/
 service: {self.target.path.fqdn}
@@ -73,7 +74,7 @@ load_balancer:
   source_ip: True
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-4
 prefix: /{self.name}-4/
 service: {self.target.path.fqdn}
@@ -84,7 +85,7 @@ load_balancer:
     name: test-cookie
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-5
 prefix: /{self.name}-5/
 service: {self.target.path.fqdn}
@@ -96,7 +97,7 @@ load_balancer:
   header: test-header
   source_ip: True
 ---
-apiVersion: ambassador/v1
+apiVesion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-6
 prefix: /{self.name}-6/
@@ -108,7 +109,7 @@ load_balancer:
     name: test-cookie
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-7
 prefix: /{self.name}-7/
 service: {self.target.path.fqdn}
@@ -117,7 +118,7 @@ load_balancer:
   policy: rr
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-8
 prefix: /{self.name}-8/
 service: {self.target.path.fqdn}
@@ -126,7 +127,7 @@ load_balancer:
   policy: least_request
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-9
 prefix: /{self.name}-9/
 service: {self.target.path.fqdn}
@@ -179,7 +180,7 @@ spec:
 """.format(backend=backend) + \
     super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 apiVersion: ambassador/v0
 kind:  Module
@@ -191,7 +192,7 @@ config:
     header: LB-HEADER
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-header
 prefix: /{self.name}-header/
 service: globalloadbalancing-service
@@ -201,7 +202,7 @@ load_balancer:
     name: lb-cookie
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-generic
 prefix: /{self.name}-generic/
 service: globalloadbalancing-service
@@ -326,13 +327,13 @@ spec:
 """.format(backend=backend) + \
     super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         for policy in ['ring_hash', 'maglev']:
             self.policy = policy
             yield self, self.format("""
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-header-{self.policy}
 prefix: /{self.name}-header-{self.policy}/
 service: permappingloadbalancing-service
@@ -342,7 +343,7 @@ load_balancer:
   header: LB-HEADER
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-sourceip-{self.policy}
 prefix: /{self.name}-sourceip-{self.policy}/
 service: permappingloadbalancing-service
@@ -352,7 +353,7 @@ load_balancer:
   source_ip: true
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-cookie-{self.policy}
 prefix: /{self.name}-cookie-{self.policy}/
 service: permappingloadbalancing-service
@@ -365,7 +366,7 @@ load_balancer:
     path: /foo
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-cookie-no-ttl-{self.policy}
 prefix: /{self.name}-cookie-no-ttl-{self.policy}/
 service: permappingloadbalancing-service

@@ -11,10 +11,13 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger("ambassador")
+# logger.setLevel(logging.DEBUG)
 
 from ambassador import Config, IR, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
+
+from tests.utils import default_listener_manifests
 
 SERVICE_NAME = 'coolsvcname'
 
@@ -32,7 +35,7 @@ def _get_rl_config(yaml):
 def _get_envoy_config(yaml, version='V2'):
     aconf = Config()
     fetcher = ResourceFetcher(logger, aconf)
-    fetcher.parse_yaml(yaml)
+    fetcher.parse_yaml(default_listener_manifests() + yaml)
 
     aconf.load_all(fetcher.sorted())
 

@@ -1,9 +1,11 @@
-from kat.harness import Query, EDGE_STACK
+from typing import Generator, Tuple, Union
 
-from abstract_tests import AmbassadorTest, HTTP
-from abstract_tests import ServiceType
-from selfsigned import TLSCerts
+from kat.harness import Query, EDGE_STACK
 from kat.utils import namespace_manifest
+
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
+
+from tests.selfsigned import TLSCerts
 
 
 #####
@@ -22,6 +24,8 @@ class RedirectTests(AmbassadorTest):
     def init(self):
         if EDGE_STACK:
             self.xfail = "Not yet supported in Edge Stack"
+
+        self.xfail = "FIXME: IHA"
 
         self.target = HTTP()
 
@@ -52,7 +56,7 @@ data:
   tls.key: {TLSCerts["localhost"].k8s_key}
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self here, not self.target, because we want the TLS module to
         # be annotated on the Ambassador itself.
         yield self, self.format("""
@@ -71,7 +75,7 @@ config:
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  tls_target_mapping
 prefix: /tls-target/
 service: {self.target.path.fqdn}
@@ -102,13 +106,14 @@ class RedirectTestsWithProxyProto(AmbassadorTest):
     target: ServiceType
 
     def init(self):
+        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def requirements(self):
         # only check https urls since test readiness will only end up barfing on redirect
         yield from (r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("https"))
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v1
@@ -122,7 +127,7 @@ config:
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  tls_target_mapping
 prefix: /tls-target/
 service: {self.target.path.fqdn}
@@ -162,13 +167,14 @@ class RedirectTestsInvalidSecret(AmbassadorTest):
         if EDGE_STACK:
             self.xfail = "Not yet supported in Edge Stack"
 
+        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def requirements(self):
         # only check https urls since test readiness will only end up barfing on redirect
         yield from (r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("https"))
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v1
@@ -185,7 +191,7 @@ config:
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  tls_target_mapping
 prefix: /tls-target/
 service: {self.target.path.fqdn}
@@ -219,8 +225,39 @@ class XFPRedirect(AmbassadorTest):
             self.xfail = "Not yet supported in Edge Stack"
 
         self.target = HTTP()
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
 
-    def config(self):
+    def manifests(self):
+        return self.format('''
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: ambassador-listener-8080
+spec:
+  ambassador_id: [{self.ambassador_id}]
+  port: 8080
+  protocol: HTTP
+  securityModel: XFP
+  l7Depth: 1
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: weird-xfp-test-host
+spec:
+  ambassador_id: [{self.ambassador_id}]
+  requestPolicy:
+    insecure:
+      action: Redirect
+''') + super().manifests()
+
+
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v1
@@ -231,7 +268,7 @@ config:
   use_remote_address: false
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
@@ -267,4 +304,3 @@ service: {self.target.path.fqdn}
         # We're replacing super()'s requirements deliberately here: we need the XFP header or they can't work.
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"X-Forwarded-Proto": "https"}))
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"X-Forwarded-Proto": "https"}))
-
