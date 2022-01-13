@@ -268,6 +268,15 @@ class IRHTTPMapping (IRBaseMapping):
             # Finally, if our host isn't a regex, save it in self.host.
             if not host_regex:
                 self.host = host
+        else:
+            # We have no host. Is this a v2 Mapping?
+            if apiVersion == "getambassador.io/v2":
+                # Yes, it is. Force our internal sense of the host to "*": v2 Mappings with no
+                # host should associate with any Host.
+                #
+                # But wait! I hear you cry. Kubernetes will force the version to v3 anyway!
+                # Ah, but that's only true for CRDs: annotations will arrive as v2 resources.
+                self.host = "*"
 
         if 'method' in kwargs:
             hdrs.append(KeyValueDecorator(":method", kwargs['method'], kwargs.get('method_regex', False)))

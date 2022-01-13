@@ -85,7 +85,7 @@ following Free and Open Source software:
     github.com/spf13/pflag                                                    v1.0.5                                      3-clause BSD license
     github.com/stretchr/testify                                               v1.7.0                                      MIT license
     golang.org/x/crypto                                                       v0.0.0-20201221181555-eec23a3978ad          3-clause BSD license
-    golang.org/x/mod                                                          v0.3.0                                      3-clause BSD license
+    golang.org/x/mod                                                          v0.5.1                                      3-clause BSD license
     golang.org/x/net                                                          v0.0.0-20210226172049-e18ecbb05110          3-clause BSD license
     golang.org/x/oauth2                                                       v0.0.0-20200107190931-bf48bf16ab8d          3-clause BSD license
     golang.org/x/sys                                                          v0.0.0-20210630005230-0f9fa26af87c          3-clause BSD license

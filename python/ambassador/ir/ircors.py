@@ -20,34 +20,43 @@ class IRCORS (IRResource):
                  **kwargs) -> None:
         # print("IRCORS __init__ (%s %s %s)" % (kind, name, kwargs))
 
-        super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
-            **kwargs
-        )
+        # Convert our incoming kwargs into the things that Envoy actually wants.
+        # Note that we have to treat 'origins' specially here, so that comes after
+        # this renaming loop.
 
-    def setup(self, ir: 'IR', aconf: Config) -> bool:
-        # 'origins' cannot be treated like other keys, because if it's a
-        # list, then it remains as is, but if it's a string, then it's
-        # converted to a list.  It has already been validated by the
-        # JSON schema to either be a string or a list of strings.
-        origins = self.pop('origins', None)
-
-        if origins is not None:
-            if type(origins) is not list:
-                origins = origins.split(',')
-
-            self.allow_origin_string_match = [{'exact': origin} for origin in origins]
+        new_kwargs: Dict[str, Any] = {}
 
         for from_key, to_key in [ ( 'max_age', 'max_age' ),
                                   ( 'credentials', 'allow_credentials' ),
                                   ( 'methods', 'allow_methods' ),
                                   ( 'headers', 'allow_headers' ),
                                   ( 'exposed_headers', 'expose_headers' ) ]:
-            value = self.pop(from_key, None)
+            value = kwargs.get(from_key, None)
 
             if value:
-                self[to_key] = self._cors_normalize(value)
+                new_kwargs[to_key] = self._cors_normalize(value)
 
+        # 'origins' cannot be treated like other keys, because if it's a
+        # list, then it remains as is, but if it's a string, then it's
+        # converted to a list.  It has already been validated by the fetcher
+        # to either be a string or a list of strings.
+        #
+        # (In fact in v3alpha1 it _must_ be a list of strings, but if the
+        # resource was in an annotation, it might be a string.)
+        origins = kwargs.get('origins', None)
+
+        if origins is not None:
+            if type(origins) is not list:
+                origins = origins.split(',')
+
+            new_kwargs['allow_origin_string_match'] = [{'exact': origin} for origin in origins]
+
+        super().__init__(
+            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
+            **new_kwargs
+        )
+
+    def setup(self, ir: 'IR', aconf: Config) -> bool:
         # This IRCORS has not been finalized with an ID, so leave with an 'unset' ID so far.
         self.set_id('unset')
 

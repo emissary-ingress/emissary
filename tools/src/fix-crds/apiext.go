@@ -36,9 +36,14 @@ func writeAPIExt(output io.Writer, args Args, crdNames []string) error {
 		"app.kubernetes.io/part-of":  "emissary-apiext",
 	}
 
-	image := "{image}"
-	if args.Target != TargetAPIServerKAT {
-		image = fmt.Sprintf("docker.io/emissaryingress/emissary:%s", args.ImageVersion)
+	var image string
+	switch args.Target {
+	case TargetAPIServerKAT:
+		image = "{image}"
+	case TargetAPIServerKubectl:
+		image = "$imageRepo$:$version$"
+	default:
+		return fmt.Errorf("unsure which image to use for args.Target=%q", args.Target)
 	}
 
 	data := map[string]interface{}{

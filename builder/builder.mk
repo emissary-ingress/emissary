@@ -96,12 +96,11 @@ BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 LCNAME := $(shell echo $(NAME) | tr '[:upper:]' '[:lower:]')
 BUILDER_NAME ?= $(LCNAME)
 
-.DEFAULT_GOAL = all
 include $(OSS_HOME)/build-aux/prelude.mk
 include $(OSS_HOME)/build-aux/colors.mk
 
 docker.tag.local = $(BUILDER_NAME).local/$(*F)
-docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTRY)/$(*F):$(shell docker image inspect --format='{{slice (index (split .Id ":") 1) 0 12}}' $$(cat $<))
+docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTRY)/$(*F):$(patsubst v%,%,$(VERSION))
 include $(OSS_HOME)/build-aux/docker.mk
 
 include $(OSS_HOME)/build-aux/teleproxy.mk
@@ -170,10 +169,6 @@ else
   $(error I do not know how to get the host IP on this system; it has neither 'ipconfig' (macOS) nor 'ip' (modern GNU/Linux))
   # ...and I (lukeshu) couldn't figure out a good way to do it on old (net-tools) GNU/Linux.
 endif
-
-noop:
-	@true
-.PHONY: noop
 
 RSYNC_ERR  = $(RED)ERROR: please update to a version of rsync with the --info option$(END)
 GO_ERR     = $(RED)ERROR: please update to go 1.13 or newer$(END)
@@ -338,8 +333,7 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			echo "push-dev: tree must be clean" >&2 ;\
 			exit 1 ;\
 		fi; \
-		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
-		if [ $$check -lt 1 ]; then \
+		if [[ '$(VERSION)' != *-* ]]; then \
 			printf "$(RED)push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2 ;\
 			exit 1 ;\
 		fi ;\
@@ -365,7 +359,6 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			chart-push-ci ; \
 		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests  ; \
-		$(MAKE) clean-manifests ; \
 	}
 .PHONY: push-dev
 
@@ -378,7 +371,8 @@ test-ready: push preflight-cluster
 PYTEST_ARGS ?=
 export PYTEST_ARGS
 
-PYTEST_GOLD_DIR ?= $(abspath python/tests/gold)
+PYTESTS_DIR ?= python/tests
+PYTEST_GOLD_DIR ?= $(abspath $(PYTESTS_DIR)/gold)
 
 # Internal target for running a bash shell.
 _bash:
@@ -454,17 +448,17 @@ pytest-unit:
 	@$(MAKE) setup-envoy
 	@$(MAKE) setup-diagd
 	. $(OSS_HOME)/venv/bin/activate; \
-		PYTEST_ARGS="$$PYTEST_ARGS python/tests/unit" $(OSS_HOME)/builder/builder.sh pytest-local-unit
+		PYTEST_ARGS="$$PYTEST_ARGS $(PYTESTS_DIR)/unit" $(OSS_HOME)/builder/builder.sh pytest-local-unit
 .PHONY: pytest-unit
 
 pytest-integration:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) integration tests$(END)\n"
-	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/integration"
+	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS $(PYTESTS_DIR)/integration"
 .PHONY: pytest-integration
 
 pytest-kat:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) kat tests$(END)\n"
-	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
+	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS $(PYTESTS_DIR)/kat"
 .PHONY: pytest-kat
 
 extract-bin-envoy: docker/base-envoy.docker.tag.local
@@ -483,22 +477,22 @@ pytest-builder: test-ready
 
 pytest-envoy-ah:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy$(GRN) kat tests (ah) $(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range ah python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range ah $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy-ah
 
 pytest-envoy-ip:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy$(GRN) kat tests (ip)$(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range ip python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range ip $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy-ip
 
 pytest-envoy-qz:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy$(GRN) kat tests (qz)$(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range qz python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range qz $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy-qz
 
 
 pytest-envoy:
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy
 
 pytest-envoy-builder:
@@ -507,21 +501,21 @@ pytest-envoy-builder:
 
 pytest-envoy-v2-ah:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy v2$(GRN) kat tests (ah)$(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range ah python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range ah $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy-ah
 
 pytest-envoy-v2-ip:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy v2$(GRN) kat tests (ip)$(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range ip python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range ip $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy-v2-ip
 
 pytest-envoy-v2-qz:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy v2$(GRN) kat tests (qz)$(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range qz python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range qz $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy-v2-qz
 
 pytest-envoy-v2:
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS $(PYTESTS_DIR)/kat"
 .PHONY: pytest-envoy-v2
 
 pytest-envoy-v2-builder:
@@ -789,13 +783,8 @@ release/promote-oss/dev-to-rc:
 		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} push-manifests  ; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} publish-docs-yaml ; \
-		$(MAKE) clean-manifests ; \
 	}
 .PHONY: release/promote-oss/dev-to-rc
-
-release/promote-oss/rc-update-apro:
-	$(OSS_HOME)/releng/01-release-rc-update-apro v$(RELEASE_VERSION) v$(VERSIONS_YAML_VER)
-.PHONY: release/promote-oss/rc-update-apro
 
 release/print-test-artifacts:
 	@set -e; { \
@@ -872,7 +861,6 @@ release/promote-oss/to-hotfix:
 		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} push-manifests ;\
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} publish-docs-yaml ;\
-		$(MAKE) clean-manifests ;\
 		docker logout ;\
 	}
 .PHONY: release/promote-oss/to-hotfix
@@ -904,15 +892,9 @@ VERSIONS_YAML_VER := $(shell grep 'version:' $(OSS_HOME)/docs/yaml/versions.yml 
 VERSIONS_YAML_VER_STRIPPED := $(subst -ea,,$(VERSIONS_YAML_VER))
 RC_NUMBER ?= 0
 
-release/prep-rc:
-	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
-	@test -n "$(RELEASE_REGISTRY)" || (printf "RELEASE_REGISTRY must be set\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: Version in versions.yml %s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@[[ -z "$(IS_DIRTY)" ]] || (printf '$(RED)ERROR: tree must be clean\n'; exit 1)
-	@AWS_S3_BUCKET=$(AWS_S3_BUCKET) RELEASE_REGISTRY=$(RELEASE_REGISTRY) IMAGE_NAME=$(LCNAME) \
-		$(OSS_HOME)/releng/01-release-prep-rc $(VERSIONS_YAML_VER_STRIPPED)-rc.$(RC_NUMBER)
-.PHONY: release/prep-rc
-
+# `make release/go` is meant to be run by the human maintainer who is
+# preparing to promote an RC to GA.  It will create and push a v2.Y.Z
+# Git tag.
 release/go:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
 	@test -n "$${RC_NUMBER}" || (printf "RC_NUMBER must be set.\n"; exit 1)
@@ -921,22 +903,23 @@ release/go:
 	@RELEASE_REGISTRY=$(RELEASE_REGISTRY) IMAGE_NAME=$(LCNAME) $(OSS_HOME)/releng/02-release-ga $(VERSIONS_YAML_VER)
 .PHONY: release/go
 
-release/manifests:
-	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@$(OSS_HOME)/releng/release-manifest-image-update --oss-version $(VERSIONS_YAML_VER) --aes-version "$(AES_VERSION)"
-.PHONY: release/manifests
-
+# `make release/repatriate` is meant to be run by the human maintainer
+# after GA images have been pushed.
 release/repatriate:
 	@$(OSS_HOME)/releng/release-repatriate $(VERSIONS_YAML_VER)
 .PHONY: release/repatriate
 
+# `make release/ga-mirror` aught to be run by CI, but because
+# credentials are a nightmare it currently has to be run by a human
+# maintainer.
 release/ga-mirror:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "$(RED)ERROR: version not found in versions.yml\n"; exit 1)
 	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$(RED)ERROR: RELEASE_REGISTRY not set\n"; exit 1)
 	@$(OSS_HOME)/releng/release-mirror-images --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME) --repo-list $(GCR_RELEASE_REGISTRY)
 
+# `make release/ga-mirror` is meant to be run by a human maintainer to
+# check that CI did all the right things.
 release/ga-check:
 	@$(OSS_HOME)/releng/release-ga-check --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME)
 

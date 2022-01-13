@@ -46,6 +46,9 @@ RUN_MODE = os.environ.get('KAT_RUN_MODE', 'all').lower()
 # We may have a SOURCE_ROOT override from the environment
 SOURCE_ROOT = os.environ.get('SOURCE_ROOT', '')
 
+# We may have a GOLD_ROOT override from the environment
+GOLD_ROOT = os.environ.get('GOLD_ROOT', '')
+
 # Figure out if we're running in Edge Stack or what.
 if os.path.exists("/buildroot/apro.version"):
     # We let /buildroot/apro.version remain a source of truth to minimize the
@@ -64,7 +67,10 @@ if EDGE_STACK:
     # running in a build shell and we should look for sources in the usual location.
     if not SOURCE_ROOT:
         SOURCE_ROOT = "/buildroot/apro"
-    GOLD_ROOT = os.path.join(SOURCE_ROOT, "tests/pytest/gold")
+
+    if not GOLD_ROOT:
+        GOLD_ROOT = os.path.join(SOURCE_ROOT, "tests/pytest/gold")
+
     MANIFEST_ROOT = os.path.join(SOURCE_ROOT, "tests/pytest/manifests")
 else:
     # We're either not running in Edge Stack or we're not sure, so just assume OSS.
@@ -73,7 +79,10 @@ else:
     # running in a build shell and we should look for sources in the usual location.
     if not SOURCE_ROOT:
         SOURCE_ROOT = "/buildroot/ambassador"
-    GOLD_ROOT = os.path.join(SOURCE_ROOT, "python/tests/gold")
+
+    if not GOLD_ROOT:
+        GOLD_ROOT = os.path.join(SOURCE_ROOT, "python/tests/gold")
+
     MANIFEST_ROOT = os.path.join(SOURCE_ROOT, "python/tests/integration/manifests")
 
 def load_manifest(manifest_name: str) -> str:

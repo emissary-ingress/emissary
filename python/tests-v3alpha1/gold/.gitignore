@@ -1,0 +1,10 @@
+*
+!.gitignore
+!*/
+
+# Keep the following list in-sync with mockery.py
+!diag.json
+!econf.json
+!bootstrap-ads.json
+!ir.json
+!aconf.json

@@ -32,14 +32,14 @@ runs:
       with:
         username: ${{ env.DOCKER_USERNAME }}
         password: ${{ env.DOCKER_PASSWORD }}
-    - name: make pytest-${{ matrix.test }}
+    - name: make PYTESTS_DIR=python/tests-${{ matrix.crd_version }} GOLD_DIR=python/tests-${{ matrix.crd_version }}/gold pytest-${{ matrix.test }}
       uses: nick-invision/retry@v2.4.0
       with:
         max_attempts: 3
         timeout_minutes: 20
         command: |
           export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=900
+          export KAT_REQ_LIMIT=120
           export TEST_XML_DIR=/tmp/test-logs/xml/
           export DEV_KUBECONFIG=~/.kube/config
           export DEV_REGISTRY=${{ env.DEV_REGISTRY }}
