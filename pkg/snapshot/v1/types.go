@@ -2,9 +2,6 @@ package snapshot
 
 import (
 	"encoding/json"
-	"fmt"
-	"reflect"
-	"strings"
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
@@ -125,41 +122,4 @@ type APIDoc struct {
 	Metadata  *kates.ObjectMeta      `json:"metadata,omitempty"`
 	TargetRef *kates.ObjectReference `json:"targetRef,omitempty"`
 	Data      []byte                 `json:"data,omitempty"`
-}
-
-// Custom Unmarshaller for the kubernetes snapshot
-// TODO: This should be REMOVED once LEGACY_MODE is removed.
-// This unmarshall will take a snapshot that comes from watt, and translate the mis-named fields
-// into the correct fields in KubernetesSnapshot
-func (a *KubernetesSnapshot) UnmarshalJSON(data []byte) error {
-	legacyK8sTranslator := struct {
-		LegacyModeListeners   []*amb.Listener   `json:"Listener"`
-		LegacyModeHosts       []*amb.Host       `json:"Host"`
-		LegacyModeMappings    []*amb.Mapping    `json:"Mapping"`
-		LegacyModeTCPMappings []*amb.TCPMapping `json:"TCPMapping"`
-	}{}
-
-	if err := json.Unmarshal(data, &legacyK8sTranslator); err != nil {
-		return err
-	}
-	type k8ssnap2 KubernetesSnapshot
-	if err := json.Unmarshal(data, (*k8ssnap2)(a)); err != nil {
-		return err
-	}
-	a.Listeners = append(a.Listeners, legacyK8sTranslator.LegacyModeListeners...)
-	a.Hosts = append(a.Hosts, legacyK8sTranslator.LegacyModeHosts...)
-	a.Mappings = append(a.Mappings, legacyK8sTranslator.LegacyModeMappings...)
-	a.TCPMappings = append(a.TCPMappings, legacyK8sTranslator.LegacyModeTCPMappings...)
-	return nil
-}
-
-func (a *KubernetesSnapshot) Render() string {
-	result := &strings.Builder{}
-	v := reflect.ValueOf(a)
-	t := v.Type().Elem()
-	for i := 0; i < t.NumField(); i++ {
-		f := t.Field(i)
-		result.WriteString(fmt.Sprintf("%s: %d\n", f.Name, reflect.Indirect(v).Field(i).Len()))
-	}
-	return result.String()
 }
