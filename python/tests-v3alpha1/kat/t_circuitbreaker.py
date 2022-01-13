@@ -59,6 +59,10 @@ class CircuitBreakingTest(AmbassadorTest):
     TARGET_CLUSTER='cluster_circuitbreakingtest_http_cbdc1p1'
 
     def init(self):
+        # Don't try to use self.debug_diagd here: instead, if you need debugging,
+        # add it directly to the envs in manifests().
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -94,6 +98,7 @@ metadata:
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
+  hostname: "*"
   ambassador_id: [ {self.ambassador_id} ]
   requestPolicy:
     insecure:

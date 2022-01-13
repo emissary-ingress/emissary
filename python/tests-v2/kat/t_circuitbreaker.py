@@ -59,6 +59,10 @@ class CircuitBreakingTest(AmbassadorTest):
     TARGET_CLUSTER='cluster_circuitbreakingtest_http_cbdc1p1'
 
     def init(self):
+        # Don't try to use self.debug_diagd here: instead, if you need debugging,
+        # add it directly to the envs in manifests().
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -94,6 +98,7 @@ metadata:
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
+  hostname: "*"
   ambassador_id: [ {self.ambassador_id} ]
   requestPolicy:
     insecure:
@@ -107,7 +112,7 @@ spec:
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name:  {self.target.path.k8s}-pr
 prefix: /{self.name}-pr/
@@ -117,7 +122,7 @@ circuit_breakers:
   max_pending_requests: 1
   max_connections: 1
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: {self.name}-reset
 case_sensitive: false
@@ -125,7 +130,7 @@ prefix: /reset/
 rewrite: /RESET/
 service: cbstatsd-sink
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: {self.name}-dump
 case_sensitive: false
@@ -228,7 +233,7 @@ requestPolicy:
   insecure:
     action: Route
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name:  {self.target.path.k8s}-pr
 prefix: /{self.name}-pr/
@@ -238,13 +243,13 @@ circuit_breakers:
   max_pending_requests: 1024
   max_connections: 1024
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name:  {self.target.path.k8s}-normal
 prefix: /{self.name}-normal/
 service: {self.target.path.fqdn}
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
