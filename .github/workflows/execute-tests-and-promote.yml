@@ -71,6 +71,7 @@ jobs:
     strategy:
       matrix:
         test: [envoy-ah, envoy-v2-ah, envoy-ip, envoy-v2-ip, envoy-qz, envoy-v2-qz, kat, integration]
+        crd_version: [v2, v3alpha1]
     name: pytest-${{ matrix.test }}
     steps:
       - uses: actions/checkout@v2
