@@ -92,7 +92,8 @@ type KubernetesSnapshot struct {
 	FSSecrets  map[SecretRef]*kates.Secret `json:"-"`      // Secrets from the filesystem
 	Secrets    []*kates.Secret             `json:"secret"` // Secrets we'll feed to Ambassador
 
-	Annotations []kates.Object `json:"-"`
+	// [kind/name.namespace]AnnotationList
+	Annotations map[string]AnnotationList `json:"-"`
 
 	// Pods, Deployments and ConfigMaps were added to be used by Ambassador Agent so it can
 	// report to AgentCom in Ambassador Cloud.
@@ -113,6 +114,11 @@ type KubernetesSnapshot struct {
 	// ArgoApplications represents the argo-rollout CRD state of the world that may or may not be present
 	// in the client's cluster. For reasons why this is defined as unstructured see ArgoRollouts attribute.
 	ArgoApplications []*kates.Unstructured `json:"ArgoApplications,omitempty"`
+}
+
+type AnnotationList struct {
+	Valid   []kates.Object        `json:"valid,omitempty"`
+	Invalid []*kates.Unstructured `json:"invalid,omitempty"`
 }
 
 // The APIDoc type is custom object built in the style of a Kubernetes resource (name, type, version)
