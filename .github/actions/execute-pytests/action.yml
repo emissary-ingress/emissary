@@ -39,7 +39,7 @@ runs:
         timeout_minutes: 20
         command: |
           export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=900
+          export KAT_REQ_LIMIT=120
           export TEST_XML_DIR=/tmp/test-logs/xml/
           export DEV_KUBECONFIG=~/.kube/config
           export DEV_REGISTRY=${{ env.DEV_REGISTRY }}
