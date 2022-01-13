@@ -14,18 +14,22 @@ from ambassador import Config, IR, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
 
+from tests.utils import default_listener_manifests
 
 def _get_envoy_config(yaml, version='V3'):
     aconf = Config()
     fetcher = ResourceFetcher(logger, aconf)
-    fetcher.parse_yaml(yaml)
+    fetcher.parse_yaml(default_listener_manifests() + yaml)
     aconf.load_all(fetcher.sorted())
     secret_handler = NullSecretHandler(logger, None, None, "0")
     ir = IR(aconf, file_checker=lambda path: True, secret_handler=secret_handler)
 
     assert ir
 
-    return EnvoyConfig.generate(ir, version)
+    econf = EnvoyConfig.generate(ir, version)
+    assert econf, "could not create an econf"
+
+    return econf
 
 
 @pytest.mark.compilertest
@@ -132,3 +136,4 @@ service: test:9999
         per_connection_buffer_limit_bytes = listener.get('per_connection_buffer_limit_bytes', None)
         assert per_connection_buffer_limit_bytes is None, \
             f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener.name}"
+

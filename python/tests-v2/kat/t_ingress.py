@@ -45,7 +45,7 @@ spec:
 """ + super().manifests()
 
     def queries(self):
-        if sys.platform != 'darwin':
+        if True or sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
             update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
@@ -62,7 +62,7 @@ spec:
         if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
-        if sys.platform == 'darwin':
+        if False and sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
         for r in self.results:
@@ -71,7 +71,7 @@ spec:
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here
-        ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
+        ingress_cmd = ["tools/bin/kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
         ingress_out, _ = ingress_run.communicate()
         ingress_json = json.loads(ingress_out)
@@ -111,7 +111,7 @@ spec:
 """ + super().manifests()
 
     def queries(self):
-        if sys.platform != 'darwin':
+        if True or sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
             update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
@@ -128,7 +128,7 @@ spec:
         if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
-        if sys.platform == 'darwin':
+        if False and sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
         for r in self.results:
@@ -137,7 +137,7 @@ spec:
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here
-        ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
+        ingress_cmd = ["tools/bin/kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
         ingress_out, _ = ingress_run.communicate()
         ingress_json = json.loads(ingress_out)
@@ -178,7 +178,7 @@ spec:
 """ + super().manifests()
 
     def queries(self):
-        if sys.platform != 'darwin':
+        if True or sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
             update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
@@ -195,7 +195,7 @@ spec:
         if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
-        if sys.platform == 'darwin':
+        if False and sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
         for r in self.results:
@@ -204,7 +204,7 @@ spec:
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here
-        ingress_cmd = ["kubectl", "get", "-o", "json", "ingress", self.path.k8s, "-n", "alt-namespace"]
+        ingress_cmd = ["tools/bin/kubectl", "get", "-o", "json", "ingress", self.path.k8s, "-n", "alt-namespace"]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
         ingress_out, _ = ingress_run.communicate()
         ingress_json = json.loads(ingress_out)
@@ -270,7 +270,7 @@ spec:
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
         # check for Ingress IP here
-        ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
+        ingress_cmd = ["tools/bin/kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
         ingress_out, _ = ingress_run.communicate()
         ingress_json = json.loads(ingress_out)
@@ -331,7 +331,7 @@ spec:
 """ + super().manifests()
 
     def queries(self):
-        if sys.platform != 'darwin':
+        if True or sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
             update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
@@ -348,12 +348,12 @@ spec:
         if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
-        if sys.platform == 'darwin':
+        if False and sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
         for namespace in ['same-ingress-1', 'same-ingress-2']:
             # check for Ingress IP here
-            ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s, "-n", namespace]
+            ingress_cmd = ["tools/bin/kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s, "-n", namespace]
             ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
             ingress_out, _ = ingress_run.communicate()
             ingress_json = json.loads(ingress_out)
@@ -427,7 +427,7 @@ spec:
 """ + super().manifests()
 
     def queries(self):
-        if sys.platform != 'darwin':
+        if True or sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
             update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
@@ -444,7 +444,7 @@ spec:
         if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
-        if sys.platform == 'darwin':
+        if False and sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
         for r in self.results:
@@ -453,7 +453,7 @@ spec:
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here
-        ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
+        ingress_cmd = ["tools/bin/kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
         ingress_out, _ = ingress_run.communicate()
         ingress_json = json.loads(ingress_out)

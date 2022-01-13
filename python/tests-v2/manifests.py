@@ -109,3 +109,49 @@ spec:
       - name: websocket-echo-server
         image: docker.io/johnesmet/go-websocket-echo-server:latest
 """
+
+
+# This is a little weird -- you need to fill in the '%s' with the namespace
+# you want before you use 'format' to fill in other things from 'self'.
+cleartext_host_manifest = """
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: cleartext-host-{self.path.k8s}
+  labels:
+    scope: AmbassadorTest
+  namespace: %s
+spec:
+  ambassador_id: [ "{self.ambassador_id}" ]
+  hostname: "*"
+  selector:
+    matchLabels:
+      hostname: {self.path.k8s}
+  acmeProvider:
+    authority: none
+  requestPolicy:
+    insecure:
+      action: Route
+"""
+
+# This is a little weird -- there are several things to fill in before you
+# use 'format' to fill in other things from 'self'.
+default_listener_manifest = """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: listener-%(port)s-{self.path.k8s}
+  labels:
+    scope: AmbassadorTest
+  namespace: %(namespace)s
+spec:
+  ambassador_id: [ "{self.ambassador_id}" ]
+  port: %(port)d
+  protocol: %(protocol)s
+  securityModel: %(securityModel)s
+  hostBinding:
+    namespace:
+      from: ALL
+"""

@@ -1,5 +1,7 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 import json
 
 class ListenerIdleTimeout(AmbassadorTest):
@@ -8,7 +10,7 @@ class ListenerIdleTimeout(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v1
@@ -21,7 +23,7 @@ config:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v0
-kind:  Mapping
+kind: Mapping
 name:  config__dump
 prefix: /config_dump
 rewrite: /config_dump

@@ -1,10 +1,12 @@
-from typing import Tuple, Union
+from typing import Generator, Tuple, Union
 
 from kat.harness import variants, Query, EDGE_STACK
 
-from abstract_tests import AmbassadorTest, assert_default_errors
-from abstract_tests import MappingTest, Node
+from abstract_tests import AmbassadorTest, MappingTest, Node
 from kat.utils import namespace_manifest
+
+import t_mappingtests_plain
+import t_optiontests
 
 # Plain is the place that all the MappingTests get pulled in.
 
@@ -14,7 +16,7 @@ class Plain(AmbassadorTest):
     namespace = "plain-namespace"
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         yield cls(variants(MappingTest))
 
     def manifests(self) -> str:
@@ -110,7 +112,7 @@ spec:
 
         return m + super().manifests()
 
-    def config(self) -> Union[str, Tuple[Node, str]]:
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, """
 ---
 apiVersion: ambassador/v0

@@ -36,4 +36,3 @@ spec:
         yield(Query(self.url("ambassador/v0/diag/"), expected=404))
         yield(Query(self.url("edge_stack/admin/"), expected=404))
         yield Query(self.url("ambassador/v0/diag/", scheme="http", port=8877), expected=404)
-

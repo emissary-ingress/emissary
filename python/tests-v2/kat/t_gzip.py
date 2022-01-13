@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Generator, Tuple, Union
 
 from kat.harness import Query
 
@@ -11,7 +11,7 @@ class GzipMinimumConfigTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -24,7 +24,7 @@ config:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v0
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}
 prefix: /target/
 service: {self.target.path.fqdn}
@@ -43,7 +43,7 @@ class GzipTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -59,7 +59,7 @@ config:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v0
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}
 prefix: /target/
 service: {self.target.path.fqdn}
@@ -78,7 +78,7 @@ class GzipNotSupportedContentTypeTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -93,7 +93,7 @@ config:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v0
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}
 prefix: /target/
 service: {self.target.path.fqdn}

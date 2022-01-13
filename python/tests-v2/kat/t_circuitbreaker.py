@@ -1,8 +1,10 @@
+from typing import Generator, Tuple, Union
+
 import os
 
 import pytest
 
-from abstract_tests import AmbassadorTest, HTTP, ServiceType
+from abstract_tests import AmbassadorTest, HTTP, ServiceType, Node
 from kat.harness import Query, load_manifest
 
 AMBASSADOR = load_manifest("ambassador")
@@ -67,17 +69,46 @@ class CircuitBreakingTest(AmbassadorTest):
       value: 'cbstatsd-sink'
 """
 
-        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
+        return """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: cleartext-listener
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  port: 8080
+  protocol: HTTP
+  securityModel: INSECURE
+  hostBinding:
+    selector:
+      matchLabels:
+        kat-ambassador-id: {self.ambassador_id}
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: cleartext-host
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  requestPolicy:
+    insecure:
+      action: Route
+""" + self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
                            envs=envs, extra_ports="", capabilities_block="") + \
                STATSD_MANIFEST.format(name='cbstatsd-sink', image=self.test_image['stats'],
                                       target=self.__class__.TARGET_CLUSTER)
 
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}-pr
 prefix: /{self.name}-pr/
 service: {self.target.path.fqdn}
@@ -175,7 +206,8 @@ service: cbstatsd-sink
                 failures.append(f'Expected {pending_overloaded} rq_pending_overflow, got {rq_pending_overflow}')
 
         if failures:
-            pytest.xfail("failed:\n  %s" % "\n  ".join(failures))
+            print("%s FAILED:\n  %s" % (self.name, "\n  ".join(failures)))
+            pytest.xfail(f"FFS {self.name}")
 
 class GlobalCircuitBreakingTest(AmbassadorTest):
     target: ServiceType
@@ -183,11 +215,21 @@ class GlobalCircuitBreakingTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+name: cleartext-host
+port: 8080
+protocol: HTTP
+securityModel: INSECURE
+requestPolicy:
+  insecure:
+    action: Route
+---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}-pr
 prefix: /{self.name}-pr/
 service: {self.target.path.fqdn}
@@ -197,7 +239,7 @@ circuit_breakers:
   max_connections: 1024
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}-normal
 prefix: /{self.name}-normal/
 service: {self.target.path.fqdn}
@@ -261,7 +303,8 @@ config:
                 failures.append(f'[GCF] expected 100-200 normal_overloaded, got {normal_overloaded}')
 
         if failures:
-            pytest.xfail("failed:\n  %s" % "\n  ".join(failures))
+            print("%s FAILED:\n  %s" % (self.name, "\n  ".join(failures)))
+            pytest.xfail(f"FFS {self.name}")
 
 class CircuitBreakingTCPTest(AmbassadorTest):
     extra_ports = [ 6789, 6790 ]
@@ -276,11 +319,11 @@ class CircuitBreakingTCPTest(AmbassadorTest):
     # config() must _yield_ tuples of Node, Ambassador-YAML where the
     # Ambassador-YAML will be annotated onto the Node.
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target1, self.format("""
 ---
 apiVersion: ambassador/v2
-kind:  TCPMapping
+kind: TCPMapping
 name:  {self.name}-1
 port: 6789
 service: {self.target1.path.fqdn}:80
@@ -288,7 +331,7 @@ service: {self.target1.path.fqdn}:80
         yield self.target2, self.format("""
 ---
 apiVersion: ambassador/v2
-kind:  TCPMapping
+kind: TCPMapping
 name:  {self.name}-2
 port: 6790
 service: {self.target2.path.fqdn}:80
@@ -322,7 +365,7 @@ circuit_breakers:
                     default_limit_failure += 1
 
             if default_limit_failure != 0:
-              failures.append(f'expected no failure with default limit, got {normal_overloaded}')
+              failures.append(f'expected no failure with default limit, got {default_limit_failure}')
 
             low_limit_failure = 0
 
@@ -331,7 +374,8 @@ circuit_breakers:
                     low_limit_failure += 1
 
             if not 100 < low_limit_failure < 200:
-                failures.append(f'expected 100-200 failure with low limit, got {low_overloaded}')
+                failures.append(f'expected 100-200 failure with low limit, got {low_limit_failure}')
 
         if failures:
-            pytest.xfail("failed:\n  %s" % "\n  ".join(failures))
+            print("%s FAILED:\n  %s" % (self.name, "\n  ".join(failures)))
+            pytest.xfail(f"FFS {self.name}")

@@ -1,4 +1,4 @@
-from utils import econf_compile, econf_foreach_cluster, module_and_mapping_manifests, SUPPORTED_ENVOY_VERSIONS
+from tests.utils import econf_compile, econf_foreach_cluster, module_and_mapping_manifests, SUPPORTED_ENVOY_VERSIONS
 
 import os
 import pytest
@@ -58,7 +58,7 @@ def test_dns_type_wrong():
     yaml = module_and_mapping_manifests(None, ["dns_type: something_new"])
     for v in SUPPORTED_ENVOY_VERSIONS:
         # The dns type is listed as just "type"
-        _test_cluster_setting(yaml, setting="type", 
+        _test_cluster_setting(yaml, setting="type",
             expected="STRICT_DNS", exists=True, envoy_version=v)
 
 @pytest.mark.compilertest
@@ -76,19 +76,19 @@ def test_logical_dns_type_endpoints():
             expected="EDS", exists=True, envoy_version=v)
 
 @pytest.mark.compilertest
-def test_dns_ttl():
+def test_dns_ttl_module():
     # Test configuring the respect_dns_ttl generates an Envoy config
     yaml = module_and_mapping_manifests(None, ["respect_dns_ttl: true"])
     for v in SUPPORTED_ENVOY_VERSIONS:
         # The dns type is listed as just "type"
-        _test_cluster_setting(yaml, setting="respect_dns_ttl", 
-            expected="true", exists=True, envoy_version=v)
+        _test_cluster_setting(yaml, setting="respect_dns_ttl",
+            expected=True, exists=True, envoy_version=v)
 
 @pytest.mark.compilertest
-def test_dns_ttl():
+def test_dns_ttl_mapping():
     # Test dns_ttl is not configured when not applied in the Mapping
     yaml = module_and_mapping_manifests(None, None)
     for v in SUPPORTED_ENVOY_VERSIONS:
         # The dns type is listed as just "type"
-        _test_cluster_setting(yaml, setting="respect_dns_ttl", 
-            expected="false", exists=False, envoy_version=v)
+        _test_cluster_setting(yaml, setting="respect_dns_ttl",
+            expected=False, exists=False, envoy_version=v)

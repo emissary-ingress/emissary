@@ -1,12 +1,8 @@
-import json
-import pytest
+from typing import Generator, Tuple, Union
 
-from typing import ClassVar, Dict, List, Sequence, Tuple, Union
+from kat.harness import Query
 
-from kat.harness import sanitize, variants, Query, Runner
-
-from abstract_tests import AmbassadorTest, HTTP
-from abstract_tests import assert_default_errors, MappingTest, OptionTest, ServiceType, Node, Test
+from abstract_tests import AmbassadorTest, MappingTest, HTTP, ServiceType, Node
 
 
 class ShadowTestCANFLAKE(MappingTest):
@@ -14,9 +10,13 @@ class ShadowTestCANFLAKE(MappingTest):
     target: ServiceType
     shadow: ServiceType
 
-    def init(self) -> None:
+    # XXX This type: ignore is here because we're deliberately overriding the 
+    # parent's init to have a different signature... but it's also intimately
+    # (nay, incestuously) related to the variant()'s yield() above, and I really
+    # don't want to deal with that right now. So. We'll deal with it later.
+    def init(self) -> None: # type: ignore
         self.target = HTTP(name="target")
-        self.options = None
+        self.options = []
 
     def manifests(self) -> str:
         return """
@@ -58,25 +58,25 @@ spec:
           containerPort: 3000
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-target
 prefix: /{self.name}/mark/
 rewrite: /mark/
 service: https://{self.target.path.fqdn}
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-weighted-target
 prefix: /{self.name}/weighted-mark/
 rewrite: /mark/
 service: https://{self.target.path.fqdn}
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-shadow
 prefix: /{self.name}/mark/
 rewrite: /mark/
@@ -84,7 +84,7 @@ service: shadow.plain-namespace
 shadow: true
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-weighted-shadow
 prefix: /{self.name}/weighted-mark/
 rewrite: /mark/
@@ -93,7 +93,7 @@ weight: 10
 shadow: true
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
+kind: Mapping
 name:  {self.name}-checkshadow
 prefix: /{self.name}/check/
 rewrite: /check/

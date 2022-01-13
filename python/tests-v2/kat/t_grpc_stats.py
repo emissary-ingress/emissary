@@ -1,12 +1,14 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, EGRPC
+from abstract_tests import AmbassadorTest, EGRPC, Node
 
 class AcceptanceGrpcStatsTest(AmbassadorTest):
     def init(self):
         self.target = EGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v2
@@ -21,7 +23,7 @@ config:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v2
-kind:  Mapping
+kind: Mapping
 grpc: True
 prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
@@ -31,7 +33,7 @@ service: {self.target.path.k8s}
 
         yield self, self.format("""
 apiVersion: getambassador.io/v2
-kind:  Mapping
+kind: Mapping
 name:  metrics
 prefix: /metrics
 rewrite: /metrics
@@ -99,7 +101,7 @@ class GrpcStatsTestOnlySelectedServices(AmbassadorTest):
     def init(self):
         self.target = EGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v2
@@ -117,7 +119,7 @@ config:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v2
-kind:  Mapping
+kind: Mapping
 grpc: True
 prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
@@ -127,7 +129,7 @@ service: {self.target.path.k8s}
 
         yield self, self.format("""
 apiVersion: getambassador.io/v2
-kind:  Mapping
+kind: Mapping
 name:  metrics
 prefix: /metrics
 rewrite: /metrics
@@ -190,7 +192,7 @@ class GrpcStatsTestNoUpstreamAllMethodsFalseInvalidKeys(AmbassadorTest):
     def init(self):
         self.target = EGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v2
@@ -206,7 +208,7 @@ config:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v2
-kind:  Mapping
+kind: Mapping
 grpc: True
 prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
@@ -216,7 +218,7 @@ service: {self.target.path.k8s}
 
         yield self, self.format("""
 apiVersion: getambassador.io/v2
-kind:  Mapping
+kind: Mapping
 name:  metrics
 prefix: /metrics
 rewrite: /metrics

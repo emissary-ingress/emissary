@@ -115,6 +115,20 @@ def _test_headercaseoverrides(yaml, expectations, expect_norules=False, version=
 
     yaml = yaml + '''
 ---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: ambassador-listener-8080
+  namespace: default
+spec:
+  port: 8080
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
+
+---
 apiVersion: getambassador.io/v2
 kind: Mapping
 name: httpbin-mapping
@@ -167,6 +181,7 @@ prefix: /httpbin/
                     rule = rules[hdr]
                     assert rule == e, f"unexpected rule {rule} in {rules}"
                 found_module_rules = True
+
     for cluster in conf['static_resources']['clusters']:
         if 'httpbin' not in cluster['name']:
             continue
@@ -288,6 +303,24 @@ spec:
 
         apply_kube_artifacts(namespace=namespace, artifacts=manifest)
 
+    def create_listeners(self, namespace):
+        manifest = f"""
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: listener-8080
+spec:
+  port: 8080
+  protocol: HTTP
+  securityModel: INSECURE
+  hostBinding:
+    namespace:
+      from: SELF
+"""
+
+        apply_kube_artifacts(namespace=namespace, artifacts=manifest)
+
     def test_header_case_overrides(self):
         # Is there any reason not to use the default namespace?
         namespace = 'header-case-overrides'
@@ -301,6 +334,9 @@ spec:
         # Install headerecho
         apply_kube_artifacts(namespace=namespace, artifacts=headerecho_manifests)
 
+        # Install listeners.
+        self.create_listeners(namespace)
+
         # Install module
         self.create_module(namespace)
 
@@ -311,8 +347,8 @@ spec:
         create_headerecho_mapping(namespace=namespace)
 
         # Now let's wait for ambassador and httpbin pods to become ready
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=httpbin', '-n', namespace])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=httpbin', '-n', namespace])
 
         # Assume we can reach Ambassador through telepresence
         ambassador_host = "ambassador." + namespace

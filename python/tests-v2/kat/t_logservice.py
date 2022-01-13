@@ -1,12 +1,10 @@
+from typing import Generator, Tuple, Union
+
 import json
-import pytest
 
-from typing import ClassVar, Dict, List, Sequence, Tuple, Union
+from kat.harness import Query
 
-from kat.harness import sanitize, variants, Query, Runner
-
-from abstract_tests import AmbassadorTest, HTTP, AHTTP
-from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
+from abstract_tests import AmbassadorTest, HTTP, AHTTP, Node
 
 
 class LogServiceTest(AmbassadorTest):
@@ -57,7 +55,7 @@ spec:
           containerPort: 25565
 """) + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v1
@@ -83,7 +81,7 @@ flush_interval_byte_size: 1
         yield self, self.format("""
 ---
 apiVersion: ambassador/v0
-kind:  Mapping
+kind: Mapping
 name:  config__dump
 prefix: /config_dump
 rewrite: /config_dump
@@ -195,7 +193,7 @@ spec:
           containerPort: 25565
 """) + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v1
@@ -221,7 +219,7 @@ flush_interval_byte_size: 1
         yield self, self.format("""
 ---
 apiVersion: ambassador/v0
-kind:  Mapping
+kind: Mapping
 name:  config__dump-longservicename
 prefix: /config_dump
 rewrite: /config_dump

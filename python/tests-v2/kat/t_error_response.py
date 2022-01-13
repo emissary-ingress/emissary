@@ -1,4 +1,6 @@
-from abstract_tests import AmbassadorTest, HTTP
+from typing import Generator, Tuple, Union
+
+from abstract_tests import AmbassadorTest, HTTP, Node
 
 from kat.harness import Query
 
@@ -10,7 +12,7 @@ class ErrorResponseOnStatusCode(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v1
@@ -46,21 +48,21 @@ config:
       content_type: 'apology'
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}
 ambassador_id: {self.ambassador_id}
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}-invalidservice
 ambassador_id: {self.ambassador_id}
 prefix: /target/invalidservice
 service: {self.target.path.fqdn}-invalidservice
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}-invalidservice-empty
 ambassador_id: {self.ambassador_id}
 prefix: /target/invalidservice/empty
@@ -308,7 +310,7 @@ class ErrorResponseReturnBodyFormattedText(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v1
@@ -374,7 +376,7 @@ class ErrorResponseReturnBodyFormattedJson(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v1
@@ -400,7 +402,7 @@ config:
         code: 'code was %RESPONSE_CODE%'
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}
 ambassador_id: {self.ambassador_id}
 prefix: /target/
@@ -441,7 +443,7 @@ class ErrorResponseReturnBodyTextSource(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v1
@@ -466,7 +468,7 @@ config:
         filename: '/etc/shells'
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}
 ambassador_id: {self.ambassador_id}
 prefix: /target/
@@ -510,7 +512,7 @@ class ErrorResponseMappingBypass(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v1
@@ -531,21 +533,21 @@ config:
       text_format: 'the upstream is not happy'
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}
 ambassador_id: {self.ambassador_id}
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}-invalidservice
 ambassador_id: {self.ambassador_id}
 prefix: /target/invalidservice
 service: {self.target.path.fqdn}-invalidservice
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}-bypass
 ambassador_id: {self.ambassador_id}
 prefix: /bypass/
@@ -553,7 +555,7 @@ service: {self.target.path.fqdn}
 bypass_error_response_overrides: true
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}-target-bypass
 ambassador_id: {self.ambassador_id}
 prefix: /target/bypass/
@@ -561,7 +563,7 @@ service: {self.target.path.fqdn}
 bypass_error_response_overrides: true
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}-bypass-invalidservice
 ambassador_id: {self.ambassador_id}
 prefix: /bypass/invalidservice
@@ -646,7 +648,7 @@ class ErrorResponseMappingBypassAlternate(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v1
@@ -661,21 +663,21 @@ config:
       content_type: 'text/custom'
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}
 ambassador_id: {self.ambassador_id}
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}-invalidservice
 ambassador_id: {self.ambassador_id}
 prefix: /target/invalidservice
 service: {self.target.path.fqdn}-invalidservice
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}-bypass
 ambassador_id: {self.ambassador_id}
 prefix: /bypass/
@@ -715,7 +717,7 @@ class ErrorResponseMapping404Body(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v1
@@ -730,14 +732,14 @@ config:
       content_type: 'text/custom'
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}
 ambassador_id: {self.ambassador_id}
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}-bypass
 ambassador_id: {self.ambassador_id}
 prefix: /bypass/
@@ -745,7 +747,7 @@ service: {self.target.path.fqdn}
 bypass_error_response_overrides: true
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}-overrides
 ambassador_id: {self.ambassador_id}
 prefix: /overrides/
@@ -792,7 +794,7 @@ class ErrorResponseMappingOverride(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f'''
 ---
 apiVersion: getambassador.io/v1
@@ -813,14 +815,14 @@ config:
       text_format: 'the upstream took a really long time'
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}
 ambassador_id: {self.ambassador_id}
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}-override-401
 ambassador_id: {self.ambassador_id}
 prefix: /override/401/
@@ -833,7 +835,7 @@ error_response_overrides:
       status: '%RESPONSE_CODE%'
 ---
 apiVersion: ambassador/v2
-kind:  Mapping
+kind: Mapping
 name:  {self.target.path.k8s}-override-503
 ambassador_id: {self.ambassador_id}
 prefix: /override/503/
