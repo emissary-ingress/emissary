@@ -126,10 +126,10 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 	return nil
 }
 
-func Main() error {
+func Main(r io.Reader, w io.Writer) error {
 	distribs := make(map[string]textproto.MIMEHeader)
 
-	input := textproto.NewReader(bufio.NewReader(os.Stdin))
+	input := textproto.NewReader(bufio.NewReader(r))
 	for {
 		distrib, err := input.ReadMIMEHeader()
 		if err != nil {
@@ -147,7 +147,7 @@ func Main() error {
 	}
 	sort.Strings(distribNames)
 
-	table := tabwriter.NewWriter(os.Stdout, 0, 8, 2, ' ', 0)
+	table := tabwriter.NewWriter(w, 0, 8, 2, ' ', 0)
 	_, _ = io.WriteString(table, "  \tName\tVersion\tLicense(s)\n")
 	_, _ = io.WriteString(table, "  \t----\t-------\t----------\n")
 	var errs derror.MultiError
@@ -181,14 +181,14 @@ func Main() error {
     file to correctly detect the license.`,
 			err)
 	}
-	fmt.Printf("The Ambassador Python code makes use of the following Free and Open Source\nlibraries:\n\n")
+	fmt.Fprintf(w, "The Ambassador Python code makes use of the following Free and Open Source\nlibraries:\n\n")
 	table.Flush()
 
 	return nil
 }
 
 func main() {
-	if err := Main(); err != nil {
+	if err := Main(os.Stdin, os.Stdout); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
