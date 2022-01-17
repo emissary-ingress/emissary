@@ -52,6 +52,7 @@ ever find anything missing from this list.
  - kubectl
  - a kubernetes cluster
  - a Docker registry
+ - bsdtar (Provided by libarchive-tools on Ubuntu 19.10 and newer)
 
 ### Configuration:
 
