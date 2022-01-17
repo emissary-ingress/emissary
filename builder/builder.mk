@@ -280,7 +280,6 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag
 	  docker build -f ${BUILDER_HOME}/Dockerfile . \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	    --build-arg=version="$(BUILD_VERSION)" \
 	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
 	    --target=ambassador \
 	    --iidfile=$@; }

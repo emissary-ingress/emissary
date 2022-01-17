@@ -16,6 +16,7 @@ import os
 from typing import NamedTuple
 
 try:
+    # Keep this in-sync with cmd/busyambassador/main.go.
     with open(os.path.join(os.path.dirname(__file__), "..", "ambassador.version")) as version:
         exec(version.read())
 except FileNotFoundError:
