@@ -16,9 +16,14 @@ import os
 from typing import NamedTuple
 
 try:
+    # Keep this in-sync with cmd/busyambassador/main.go.
     with open(os.path.join(os.path.dirname(__file__), "..", "ambassador.version")) as version:
         exec(version.read())
 except FileNotFoundError:
+    # We don't report or log errors here, we just silently fall back to some static values.  This is
+    # in-part because the code here is running pretty early, and logging setup hasn't happened yet.
+    # Also because any errors will be evident when the version number gets logged and it's this
+    # static string.
     BUILD_VERSION = "dirty"
     GIT_COMMIT = "dirty"
     GIT_BRANCH = "master"
