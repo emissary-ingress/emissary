@@ -478,7 +478,6 @@ case "${cmd}" in
 
         for MODDIR in $(find-modules); do
             module=$(basename ${MODDIR})
-            eval "$(grep BUILD_VERSION apro.version 2>/dev/null)" # this will `eval ''` for OSS-only builds, leaving BUILD_VERSION unset; dont embed the version-number in OSS Go binaries
 
             if [ -e ${module}.dirty ] || ([ "$module" != ambassador ] && [ -e go.dirty ]) ; then
                 if [ -e "${MODDIR}/go.mod" ]; then
@@ -486,7 +485,7 @@ case "${cmd}" in
                     echo_on
                     mkdir -p /buildroot/bin
                     TIMEFORMAT="     (go build took %1R seconds)"
-                    (cd ${MODDIR} && time go build -trimpath ${BUILD_VERSION:+ -ldflags "-X main.Version=$BUILD_VERSION" } -o /buildroot/bin ./cmd/...) || exit 1
+                    (cd ${MODDIR} && time go build -trimpath -o /buildroot/bin ./cmd/...) || exit 1
                     TIMEFORMAT="     (${MODDIR}/post-compile took %1R seconds)"
                     if [ -e ${MODDIR}/post-compile.sh ]; then (cd ${MODDIR} && time bash post-compile.sh); fi
                     unset TIMEFORMAT
