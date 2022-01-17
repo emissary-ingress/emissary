@@ -17,7 +17,7 @@ func TestGold(t *testing.T) {
 	require.NoError(t, pipeErr)
 
 	// Act
-	err = Main(pipDependencies, w)
+	err = Main(markdownOutputType, pipDependencies, w)
 	require.NoError(t, err)
 
 	// Assert

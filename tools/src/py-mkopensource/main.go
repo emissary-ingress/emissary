@@ -126,7 +126,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 	return nil
 }
 
-func Main(r io.Reader, w io.Writer) error {
+func Main(outputType OutputType, r io.Reader, w io.Writer) error {
 	distribs := make(map[string]textproto.MIMEHeader)
 
 	input := textproto.NewReader(bufio.NewReader(r))
@@ -147,6 +147,15 @@ func Main(r io.Reader, w io.Writer) error {
 	}
 	sort.Strings(distribNames)
 
+	err := MarkdownOutput(w, distribNames, distribs)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func MarkdownOutput(w io.Writer, distribNames []string, distribs map[string]textproto.MIMEHeader) error {
 	table := tabwriter.NewWriter(w, 0, 8, 2, ' ', 0)
 	_, _ = io.WriteString(table, "  \tName\tVersion\tLicense(s)\n")
 	_, _ = io.WriteString(table, "  \t----\t-------\t----------\n")
@@ -183,13 +192,18 @@ func Main(r io.Reader, w io.Writer) error {
 	}
 	fmt.Fprintf(w, "The Ambassador Python code makes use of the following Free and Open Source\nlibraries:\n\n")
 	table.Flush()
-
 	return nil
 }
 
 func main() {
-	if err := Main(os.Stdin, os.Stdout); err != nil {
+	cliArgs, err := parseArgs()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %v\nTry '%s --help' for more information.\n", os.Args[0], err, os.Args[0])
+		os.Exit(int(InvalidArgumentsError))
+	}
+
+	if err := Main(cliArgs.outputType, os.Stdin, os.Stdout); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
+		os.Exit(int(DependencyGenerationError))
 	}
 }
