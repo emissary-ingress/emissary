@@ -8,31 +8,51 @@ import (
 )
 
 func TestGold(t *testing.T) {
-	//Arrange
-	pipDependencies, err := os.Open("./testdata/pipDependencies.txt")
-	require.NoError(t, err)
-	defer func() { _ = pipDependencies.Close() }()
+	testCases := []struct {
+		testName       string
+		outputTypeFlag OutputType
+		expectedOutput string
+	}{
+		{
+			"Markdown output",
+			markdownOutputType,
+			"./testdata/successful-generation/expected_markdown.txt",
+		},
+		{
+			"Json output",
+			jsonOutputType,
+			"./testdata/successful-generation/expected_json.json",
+		},
+	}
 
-	r, w, pipeErr := os.Pipe()
-	require.NoError(t, pipeErr)
+	for _, testCase := range testCases {
+		t.Run(testCase.testName, func(t *testing.T) {
+			//Arrange
+			pipDependencies, err := os.Open("./testdata/successful-generation/dependency_list.txt")
+			require.NoError(t, err)
+			defer func() { _ = pipDependencies.Close() }()
 
-	// Act
-	err = Main(markdownOutputType, pipDependencies, w)
-	require.NoError(t, err)
+			r, w, pipeErr := os.Pipe()
+			require.NoError(t, pipeErr)
 
-	// Assert
-	_ = w.Close()
-	programOutput, readErr := io.ReadAll(r)
-	require.NoError(t, readErr)
+			// Act
+			err = Main(testCase.outputTypeFlag, pipDependencies, w)
+			require.NoError(t, err)
 
-	expectedOutput := getFileContents(t, "./testdata/expectedMarkdownOutput.txt")
-	require.Equal(t, string(expectedOutput), string(programOutput))
+			// Assert
+			_ = w.Close()
+			programOutput, readErr := io.ReadAll(r)
+			require.NoError(t, readErr)
 
+			expectedOutput := getFileContents(t, testCase.expectedOutput)
+			require.Equal(t, string(expectedOutput), string(programOutput))
+		})
+	}
 }
 
 func getFileContents(t *testing.T, path string) []byte {
 	expErr, err := os.ReadFile(path)
-	if err != nil && !os.IsNotExist(err) {
+	if err != nil && err != io.EOF {
 		require.NoError(t, err)
 	}
 	return expErr
