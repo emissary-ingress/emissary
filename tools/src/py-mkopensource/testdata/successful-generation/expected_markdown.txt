@@ -1,4 +1,4 @@
-The Ambassador Python code makes use of the following Free and Open Source
+The Emissary-ingress Python code makes use of the following Free and Open Source
 libraries:
 
     Name          Version  License(s)

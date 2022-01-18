@@ -217,7 +217,7 @@ func markdownOutput(w io.Writer, distribNames []string, distribs map[string]text
 			err)
 	}
 
-	if _, err := fmt.Fprintf(w, "The Ambassador Python code makes use of the following Free and Open Source\nlibraries:\n\n"); err != nil {
+	if _, err := fmt.Fprintf(w, "The Emissary-ingress Python code makes use of the following Free and Open Source\nlibraries:\n\n"); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Could not write Markdown output: %v\n", err)
 		os.Exit(int(WriteError))
 	}
