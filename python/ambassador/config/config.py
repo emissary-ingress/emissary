@@ -75,7 +75,6 @@ class Config:
     single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_SINGLE_NAMESPACE'))
     certs_single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_CERTS_SINGLE_NAMESPACE', os.environ.get('AMBASSADOR_SINGLE_NAMESPACE')))
     enable_endpoints: ClassVar[bool] = not bool(os.environ.get('AMBASSADOR_DISABLE_ENDPOINTS'))
-    legacy_mode: ClassVar[bool] = parse_bool(os.environ.get('AMBASSADOR_LEGACY_MODE'))
     log_resources: ClassVar[bool] = parse_bool(os.environ.get('AMBASSADOR_LOG_RESOURCES'))
     envoy_api_version: ClassVar[str] = envoy_api_version()
     envoy_bind_address: ClassVar[str] = os.environ.get('AMBASSADOR_ENVOY_BIND_ADDRESS', "0.0.0.0")
@@ -133,10 +132,6 @@ class Config:
     notices: Dict[str, List[str]]           # notices to post to the UI
     fatal_errors: int
     object_errors: int
-
-    # fast_validation_disagreements tracks places where entrypoint.go says a
-    # resource is invalid, but Python says it's OK.
-    fast_validation_disagreements: Dict[str, List[str]]
 
     def __init__(self, logger:logging.Logger=None, schema_dir_path: Optional[str]=None) -> None:
         self.logger = logger or logging.getLogger("ambassador.config")
@@ -203,8 +198,6 @@ class Config:
         self.fatal_errors = 0
         self.object_errors = 0
 
-        self.fast_validation_disagreements = {}
-
         # Build up the Ambassador node name.
         #
         # XXX This should be overrideable by the Ambassador module.
@@ -228,7 +221,6 @@ class Config:
         od: Dict[str, Any] = {
             '_errors': self.errors,
             '_notices': self.notices,
-            '_fast_validation_disagreements': self.fast_validation_disagreements,
             '_sources': {}
         }
 
@@ -311,7 +303,7 @@ class Config:
         the set of ACResources to be sorted in some way that makes sense.
         """
 
-        self.logger.debug(f"Loading config; legacy mode is {'enabled' if Config.legacy_mode else 'disabled'}")
+        self.logger.debug(f"Loading config")
 
         rcount = 0
 
@@ -506,21 +498,17 @@ class Config:
 
         need_validation = True
 
-        # If we're not running in legacy mode, though...
-        if not Config.legacy_mode:
-            # ...then entrypoint.go will have already done validation, and we'll
-            # trust that its validation is good _UNLESS THIS IS A MODULE_. Why?
-            # Well, at present entrypoint.go can't actually validate Modules _at all_
-            # (because Module.spec.config is just a dict of anything, pretty much),
-            # and that means it can't check for Modules with missing configs, and
-            # Modules with missing configs will crash Ambassador.
+        # entrypoint.go has already done most of the validation, and we'll
+        # trust that its validation is good _UNLESS THIS IS A MODULE_. Why?
+        # Well, at present entrypoint.go can't actually validate Modules _at all_
+        # (because Module.spec.config is just a dict of anything, pretty much),
+        # and that means it can't check for Modules with missing configs, and
+        # Modules with missing configs will crash Ambassador.
+        if resource.kind.lower() != "module":
+            need_validation = False
 
-            if resource.kind.lower() != "module":
-                need_validation = False
-
-        # Did entrypoint.go flag errors here? (This can only happen if we're not in
-        # legacy mode -- in a later version we'll short-circuit earlier, but for now
-        # we're going to re-validate as a sanity check.)
+        # Did entrypoint.go flag errors here? (in a later version we'll short-circuit earlier, but
+        # for now we're going to re-validate as a sanity check.)
         #
         # (It's still called watt_errors because our other docs talk about "watt
         # snapshots", and I'm OK with retaining that name for the format.)
@@ -546,8 +534,8 @@ class Config:
 
         # ...then, let's see whether reality matches our assumption.
         if need_validation:
-            # Aha, we need to do validation -- either we're in legacy mode, or
-            # entrypoint.go reported errors. So if we can do validation, do it.
+            # Aha, we need to do validation -- entrypoint.go reported errors. So if we can do
+            # validation, do it.
 
             # Do we have a validator that can work on this object?
             validator = self.get_validator(apiVersion, resource.kind)
@@ -558,22 +546,8 @@ class Config:
                 # No validator, so, uh, call it good.
                 rc = RichStatus.OK(msg=f"no validator for {apiVersion} {resource.kind} {name} so calling it good")
 
-            if watt_errors:
-                # entrypoint.go reported errors. Did we find errors or not?
-
-                if rc:
-                    # We did not. Post this into fast_validation_disagreements
-                    fvd = self.fast_validation_disagreements.setdefault(resource.rkey, [])
-                    fvd.append(watt_errors)
-                    self.logger.debug(f"validation disagreement: good {resource.kind} {name} has watt errors {watt_errors}")
-
-                    # Note that we override entrypoint.go here by returning the successful
-                    # result from our validator. That's intentional for now.
-                else:
-                    # We don't like it either. Stick with the entrypoint.go errors (since we
-                    # know, a priori, that fast validation is enabled, so the incoming error
-                    # makes more sense to report).
-                    rc = RichStatus.fromError(watt_errors)
+            if watt_errors and not rc:
+                rc = RichStatus.fromError(watt_errors)
 
         # One way or the other, we're done here. Finally.
         self.logger.debug(f"validation {rc}")
