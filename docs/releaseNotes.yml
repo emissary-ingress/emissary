@@ -97,6 +97,13 @@ items:
           resources.
         docs: topics/running/custom-error-responses/
 
+      - title: Annotation conversion and validation
+        type: bugfix
+        body: >-
+          Resources that exist as <code>getambassador.io/config</code> annotations rather than as
+          native Kubernetes resources are now validated and internally converted to v3alpha1 and,
+          the same as native Kubernetes resources.
+
       # next changelog item here
 
   - version: 2.1.1

@@ -112,6 +112,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   an empty string or `body.json_format` to an empty dict.  Previously, this was possible for
   annotations but not for native Kubernetes resources.
 
+- Bugfix: Resources that exist as `getambassador.io/config` annotations rather than as native
+  Kubernetes resources are now validated and internally converted to v3alpha1 and, the same as
+  native Kubernetes resources.
+
 [3709]: https://github.com/emissary-ingress/emissary/issues/3709
 
 ## 2.1.1 not issued
