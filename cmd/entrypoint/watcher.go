@@ -381,8 +381,8 @@ func (sh *SnapshotHolder) K8sUpdate(
 		// bite us). So we'll look through deltas for changing ConsulResolvers, and then only
 		// interpolate the ones that've changed.
 		//
-		// Also note that legacy mode supports interpolation literally anywhere in the input, but
-		// let's not do that here.
+		// Also note that legacy mode supported interpolation literally anywhere in the
+		// input, but let's not do that here.
 		for _, delta := range deltas {
 			if (delta.Kind == "ConsulResolver") && (delta.DeltaType != kates.ObjectDelete) {
 				// Oh, look, a ConsulResolver changed, and it wasn't deleted. Go find the object

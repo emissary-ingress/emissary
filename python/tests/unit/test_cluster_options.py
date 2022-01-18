@@ -64,11 +64,6 @@ def test_dns_type_wrong():
 @pytest.mark.compilertest
 def test_logical_dns_type_endpoints():
     # Ensure we use endpoint discovery instead of this value when using the endpoint resolver.
-    # This test only makes sense in non-legacy mode.
-    if os.environ.get('AMBASSADOR_LEGACY_MODE', 'false').lower() == 'true':
-        pytest.xfail("Not supported in legacy mode")
-        return
-
     yaml = module_and_mapping_manifests(None, ["dns_type: logical_dns", "resolver: endpoint"])
     for v in SUPPORTED_ENVOY_VERSIONS:
         # The dns type is listed as just "type"

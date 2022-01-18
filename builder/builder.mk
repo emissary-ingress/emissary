@@ -539,7 +539,6 @@ pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remot
 		-e DOCKER_BUILD_USERNAME \
 		-e DOCKER_BUILD_PASSWORD \
 		-e AMBASSADOR_ENVOY_API_VERSION \
-		-e AMBASSADOR_LEGACY_MODE \
 		-e AMBASSADOR_FAST_RECONFIGURE \
 		-e AWS_SECRET_ACCESS_KEY \
 		-e AWS_ACCESS_KEY_ID \

@@ -134,7 +134,7 @@ class IR:
         # this.
         to_invalidate: List[str] = []
         invalidate_groups_for: List[str] = []
-        
+
         # OK. If we don't have a cache, just skip all this crap.
         if cache is not None:
             # We have a cache. Start by assuming that we'll need to reset it,
@@ -1290,11 +1290,6 @@ class IR:
 
         od['listener_count'] = len(self.listeners)
         od['host_count'] = len(self.hosts)
-
-        od['legacy_mode'] = Config.legacy_mode
-        # Preserve the 'fast_validation' feature for the moment to make analytics easier
-        od['fast_validation'] = not Config.legacy_mode
-        od['fast_validation_disagreements'] = len(self.aconf.fast_validation_disagreements.keys())
 
         # Fast reconfiguration information is supplied in check_scout in diagd.py.
 
