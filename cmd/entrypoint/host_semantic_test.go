@@ -15,10 +15,9 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
-	"github.com/datawire/ambassador/v2/pkg/testutils"
 )
 
-func getExpected(expectedFile string, inputObjects []kates.Object) ([]testutils.RenderedListener, []v3alpha1.Mapping, []string, error) {
+func getExpected(expectedFile string, inputObjects []kates.Object) ([]RenderedListener, []v3alpha1.Mapping, []string, error) {
 	// Figure out all the mappings and clusters we'll need.
 	neededClusters := []string{}
 	neededMappings := []v3alpha1.Mapping{}
@@ -29,7 +28,7 @@ func getExpected(expectedFile string, inputObjects []kates.Object) ([]testutils.
 		return nil, nil, nil, err
 	}
 
-	var expectedListeners []testutils.RenderedListener
+	var expectedListeners []RenderedListener
 	if err := json.Unmarshal(content, &expectedListeners); err != nil {
 		return nil, nil, nil, err
 	}
@@ -48,7 +47,7 @@ func getExpected(expectedFile string, inputObjects []kates.Object) ([]testutils.
 		// We need to see this Mapping in our snapshot.
 		neededMappings = append(neededMappings, *mapping)
 
-		// fmt.Printf("CHECK Mapping %s\n%s\n", mapping.Name, testutils.JSONify(mapping))
+		// fmt.Printf("CHECK Mapping %s\n%s\n", mapping.Name, JSONify(mapping))
 
 		// Grab the cluster name, and remember it for later.
 		mangledService := clusterRE.ReplaceAll([]byte(mapping.Spec.Service), []byte("_"))
@@ -62,13 +61,13 @@ func getExpected(expectedFile string, inputObjects []kates.Object) ([]testutils.
 func testSemanticSet(t *testing.T, inputFile string, expectedFile string) {
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true, DiagdDebug: true}, nil)
 
-	inputObjects, err := testutils.LoadYAML(inputFile)
+	inputObjects, err := LoadYAML(inputFile)
 	require.NoError(t, err)
 
 	// expectedListeners is what we think we're going to get.
 	expectedListeners, neededMappings, neededClusters, err := getExpected(expectedFile, inputObjects)
 	require.NoError(t, err)
-	expectedJSON, err := testutils.JSONifyRenderedListeners(expectedListeners)
+	expectedJSON, err := JSONifyRenderedListeners(expectedListeners)
 	require.NoError(t, err)
 
 	// Now, what did we _actually_ get?
@@ -118,9 +117,9 @@ func testSemanticSet(t *testing.T, inputFile string, expectedFile string) {
 	require.NoError(t, err)
 	require.NotNil(t, envoyConfig)
 
-	actualListeners, err := testutils.RenderEnvoyConfig(envoyConfig)
+	actualListeners, err := RenderEnvoyConfig(envoyConfig)
 	require.NoError(t, err)
-	actualJSON, err := testutils.JSONifyRenderedListeners(actualListeners)
+	actualJSON, err := JSONifyRenderedListeners(actualListeners)
 	require.NoError(t, err)
 
 	err = ioutil.WriteFile("/tmp/host-semantics-expected.json", []byte(expectedJSON), 0644)

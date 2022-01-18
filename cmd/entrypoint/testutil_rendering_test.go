@@ -1,8 +1,10 @@
-package testutils
+package entrypoint_test
 
 import (
 	// standard library
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"sort"
 	"strings"
 
@@ -18,6 +20,29 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 )
+
+func JSONify(obj interface{}) (string, error) {
+	bytes, err := json.MarshalIndent(obj, "", "  ")
+	if err != nil {
+		return "", err
+	}
+
+	return string(bytes), nil
+}
+
+func LoadYAML(path string) ([]kates.Object, error) {
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	objs, err := kates.ParseManifests(string(content))
+	if err != nil {
+		return nil, err
+	}
+
+	return objs, nil
+}
 
 type RenderedRoute struct {
 	Scheme         string `json:"scheme"`
