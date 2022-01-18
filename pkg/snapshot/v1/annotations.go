@@ -81,6 +81,21 @@ func ValidateAndConvertObject(
 	}
 
 	// Convert it to the correct type+version.
+	out, err = convertAnnotationObject(in)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate it again (after conversion) just to be safe
+	if err := validator.Validate(ctx, out); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+// convertAnnotationObject converts a valid kates.Object to the correct type+version.
+func convertAnnotationObject(in kates.Object) (kates.Object, error) {
 	_out, err := scheme.ConvertToVersion(in, crdCurrent.GroupVersion)
 	if err != nil {
 		return nil, err
@@ -89,12 +104,6 @@ func ValidateAndConvertObject(
 	if !ok {
 		return nil, fmt.Errorf("type %T doesn't implement kates.Object", _out)
 	}
-
-	// Validate it again (after conversion) just to be safe
-	if err := validator.Validate(ctx, out); err != nil {
-		return nil, err
-	}
-
 	return out, nil
 }
 

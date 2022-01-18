@@ -93,7 +93,7 @@ type KubernetesSnapshot struct {
 	Secrets    []*kates.Secret             `json:"secret"` // Secrets we'll feed to Ambassador
 
 	// [kind/name.namespace]AnnotationList
-	Annotations map[string]AnnotationList `json:"-"`
+	Annotations map[string]AnnotationList `json:"annotations"`
 
 	// Pods, Deployments and ConfigMaps were added to be used by Ambassador Agent so it can
 	// report to AgentCom in Ambassador Cloud.
@@ -119,6 +119,38 @@ type KubernetesSnapshot struct {
 type AnnotationList struct {
 	Valid   []kates.Object        `json:"valid,omitempty"`
 	Invalid []*kates.Unstructured `json:"invalid,omitempty"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler, and exists because unmarshalling directly in to an
+// interface (kates.Object) doesn't work.
+func (al *AnnotationList) UnmarshalJSON(bs []byte) error {
+	if string(bs) == "null" {
+		*al = AnnotationList{}
+		return nil
+	}
+	var ul struct {
+		Valid   []*kates.Unstructured `json:"valid,omitempty"`
+		Invalid []*kates.Unstructured `json:"invalid,omitempty"`
+	}
+
+	// Unmarshal as unstructured
+	err := json.Unmarshal(bs, &ul)
+	al.Invalid = ul.Invalid
+	if err != nil {
+		return err
+	}
+
+	// Convert the unstructured ul.Valid to the typed al.Valid.
+	al.Valid = make([]kates.Object, 0, len(ul.Valid))
+	for _, inObj := range ul.Valid {
+		outObj, err := convertAnnotationObject(inObj)
+		if err != nil {
+			return err
+		}
+		al.Valid = append(al.Valid, outObj)
+	}
+
+	return nil
 }
 
 // The APIDoc type is custom object built in the style of a Kubernetes resource (name, type, version)

@@ -268,16 +268,8 @@ spec:
             # Why, you may ask, do we want to dump invalid objects back in to be
             # processed??? It's because they have error information that we need to
             # propagate to the user, and this is the simplest way to do that.
-
-            invalid: List[Dict] = watt_dict.get('Invalid') or []
-
-            for obj in invalid:
-                kind = obj.get('kind', None)
-
-                if not kind:
-                    # Can't work with this at _all_.
-                    self.logger.error(f"skipping invalid object with no kind: {obj}")
-                    continue
+            for obj in watt_dict.get('Invalid') or []:
+                kind = obj['kind']
 
                 # We can't use watt_k8s.setdefault() here because many keys have
                 # explicit null values -- they'll need to be turned into empty lists
@@ -289,6 +281,20 @@ spec:
                     watt_k8s[kind] = watt_list
 
                 watt_list.append(obj)
+
+            # Now we'll do the same thing for unfolded annotations.
+            for parent_key, ann_list in watt_k8s.pop('annotations') or {}:
+                for obj in ann_list.get('valid', []) + ann_list.get('invalid', []):
+                    kind = obj['kind']
+
+                    watt_list = watt_k8s.get(kind)
+
+                    if not watt_list:
+                        watt_list = []
+                        watt_k8s[kind] = watt_list
+
+                    obj['_parent_key'] = parent_key
+                    watt_list.append(obj)
 
             # These objects have to be processed first, in order, as they depend
             # on each other.
@@ -303,7 +309,11 @@ spec:
             for key in dict.fromkeys(watt_k8s_keys):
                 for obj in watt_k8s.get(key) or []:
                     # self.logger.debug(f"Handling Kubernetes {key}...")
-                    self.handle_k8s(obj)
+                    parent_key = obj.pop('_parent_key', None)
+                    if parent_key:
+                        self.handle_annotation(parent_key, obj)
+                    else:
+                        self.handle_k8s(obj)
 
             watt_consul = watt_dict.get('Consul', {})
             consul_endpoints = watt_consul.get('Endpoints', {})
@@ -353,6 +363,19 @@ spec:
         with self.manager.locations.push_reset():
             if not self.k8s_processor.try_process(obj):
                 self.logger.debug(f"{self.location}: skipping K8s {obj.gvk}")
+
+    def handle_annotation(self, parent_key: str, raw_obj: dict) -> None:
+        try:
+            obj = KubernetesObject(raw_obj)
+        except ValueError:
+            # The object doesn't contain a kind, API version, or name, so we
+            # can't process it.
+            return
+
+        with self.manager.locations.push_reset():
+            with self.manager.locations.mark_annotated():
+                rkey = parent_key.split('/', 1)[1]
+                self.manager.emit(NormalizedResource.from_kubernetes_object(obj, rkey=rkey))
 
     # Handler for Consul services
     def handle_consul_service(self,

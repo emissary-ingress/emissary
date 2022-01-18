@@ -266,6 +266,3 @@ class IngressProcessor (ManagedKubernetesProcessor):
 
         # let's make arrangements to update Ingress' status now
         self._update_status(obj)
-
-        # Let's see if our Ingress resource has Ambassador annotations on it
-        self.manager.emit_annotated(NormalizedResource.from_kubernetes_object_annotation(obj))

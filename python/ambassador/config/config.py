@@ -518,13 +518,6 @@ class Config:
             if resource.kind.lower() != "module":
                 need_validation = False
 
-        # Finally, does the resource specifically demand validation? (This is currently
-        # just for resources from annotations, which entrypoint.go doesn't yet validate.)
-        if resource.get('_force_validation', False):
-            # Yup, so we'll honor that.
-            need_validation = True
-            del(resource['_force_validation'])
-
         # Did entrypoint.go flag errors here? (This can only happen if we're not in
         # legacy mode -- in a later version we'll short-circuit earlier, but for now
         # we're going to re-validate as a sanity check.)

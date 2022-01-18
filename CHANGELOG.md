@@ -80,6 +80,15 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.1.2] January 20, 2021
+[2.1.2]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.1.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: Resources that exist as `getambassador.io/config` annotations rather than as native
+  Kubernetes resources are now validated and internally converted to v3alpha1 and, the same as
+  native Kubernetes resources.
+
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
 

@@ -31,6 +31,18 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 2.1.2
+    date: '2021-01-20'
+    notes:
+      - title: Annotation conversion and validation
+        type: bugfix
+        body: >-
+          Resources that exist as <code>getambassador.io/config</code> annotations rather than as
+          native Kubernetes resources are now validated and internally converted to v3alpha1 and,
+          the same as native Kubernetes resources.
+
+  # There was no v2.1.1 release; we skipped to v2.1.2 to keep in-sync with AES.
+
   - version: 2.1.0
     date: '2021-12-16'
     notes:

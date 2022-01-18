@@ -41,7 +41,10 @@ except AttributeError:
 
 # Run mode can be local (don't do any Envoy stuff), envoy (only do Envoy stuff),
 # or all (allow both). Default is all.
-RUN_MODE = os.environ.get('KAT_RUN_MODE', 'all').lower()
+#
+# FIXME(lukeshu): KAT_RUN_MODE=local is disabled because it needs fixed for a world where
+# annotations are already unfolded in the snapshot.
+RUN_MODE = 'envoy' # os.environ.get('KAT_RUN_MODE', 'all').lower()
 
 # We may have a SOURCE_ROOT override from the environment
 SOURCE_ROOT = os.environ.get('SOURCE_ROOT', '')
