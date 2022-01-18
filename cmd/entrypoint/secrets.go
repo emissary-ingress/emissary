@@ -26,7 +26,10 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 	// here).
 
 	for _, list := range s.Annotations {
-		for _, a := range list.Valid {
+		for _, a := range list {
+			if _, isInvalid := a.(*kates.Unstructured); isInvalid {
+				continue
+			}
 			if include(GetAmbId(ctx, a)) {
 				resources = append(resources, a)
 			}

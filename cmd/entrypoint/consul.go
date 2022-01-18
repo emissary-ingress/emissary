@@ -23,7 +23,7 @@ type consulMapping struct {
 func ReconcileConsul(ctx context.Context, consul *consul, s *snapshotTypes.KubernetesSnapshot) error {
 	var mappings []consulMapping
 	for _, list := range s.Annotations {
-		for _, a := range list.Valid {
+		for _, a := range list {
 			switch m := a.(type) {
 			case *amb.Mapping:
 				if include(m.Spec.AmbassadorID) {

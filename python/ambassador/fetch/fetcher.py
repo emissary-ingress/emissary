@@ -290,6 +290,9 @@ spec:
 
                 watt_list.append(obj)
 
+            # Ignore the pre-unfolded+validated annotations in the snapshot, for now.
+            watt_k8s.pop('annotations')
+
             # These objects have to be processed first, in order, as they depend
             # on each other.
             watt_k8s_keys = list(self.manager.deps.sorted_watt_keys())
