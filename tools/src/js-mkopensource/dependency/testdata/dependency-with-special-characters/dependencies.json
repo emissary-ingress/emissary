@@ -1,0 +1,12 @@
+{
+  "@mapbox/node-pre-gyp@1.0.8": {
+    "licenses": "BSD-3-Clause",
+    "repository": "https://github.com/mapbox/node-pre-gyp",
+    "publisher": "Dane Springmeyer",
+    "email": "dane@mapbox.com",
+    "dependencyPath": "/app/node_modules/@mapbox/node-pre-gyp",
+    "path": "/app/node_modules/@mapbox/node-pre-gyp",
+    "licenseFile": "/app/node_modules/@mapbox/node-pre-gyp/LICENSE"
+  }
+}
+

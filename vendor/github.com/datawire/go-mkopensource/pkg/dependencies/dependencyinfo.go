@@ -63,7 +63,7 @@ func (d *DependencyInfo) UpdateLicenseList() error {
 	}
 
 	for k, v := range usedLicenses {
-		d.Licenses[k] = v.URL
+		d.Licenses[k] = v.Url
 	}
 
 	return nil
