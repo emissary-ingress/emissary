@@ -43,6 +43,13 @@ items:
           <code>spec.cors.origins</code> to a string rather than a list of strings; this has been
           fixed, and these <code>Mappings<code> should once again function correctly.
 
+      - title: Correctly handle empty rewrite in a Mapping
+        type: bugfix
+        body: >-
+          Using <code>rewrite: ""</code> in a <code>Mapping</code> is correctly handled
+          to mean "do not rewrite the path at all".
+        docs: topics/using/rewrites
+
       - title: Docker BuildKit always used for builds
         type: change
         body: >-

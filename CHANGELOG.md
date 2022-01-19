@@ -89,6 +89,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   `Mappings` that set `spec.cors.origins` to a string rather than a list of strings; this has been
   fixed, and these `Mappings` should once again function correctly.
 
+- Bugfix: Using `rewrite: ""` in a `Mapping` is correctly handled to mean "do not rewrite the path
+  at all".
+
 - Change: Docker BuildKit is enabled for all Emissary builds. Additionally, the Go build cache is
   fully enabled when building images, speeding up repeated builds.
 
