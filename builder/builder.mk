@@ -450,10 +450,17 @@ pytest-integration:
 	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/integration"
 .PHONY: pytest-integration
 
-pytest-kat:
-	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) kat tests$(END)\n"
+pytest-kat-local:
 	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
-.PHONY: pytest-kat
+pytest-kat-envoy3: # doing this all at once is too much for CI...
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
+pytest-kat-envoy3-%: # ... so we have a separate rule to run things split up
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range $* python/tests/kat"
+pytest-kat-envoy2: # doing this all at once is too much for CI...
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
+pytest-kat-envoy2-%: # ... so we have a separate rule to run things split up
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range $* python/tests/kat"
+.PHONY: pytest-kat-%
 
 extract-bin-envoy: docker/base-envoy.docker.tag.local
 	@mkdir -p $(OSS_HOME)/bin/
@@ -469,52 +476,13 @@ pytest-builder: test-ready
 	$(MAKE) pytest-builder-only
 .PHONY: pytest-builder
 
-pytest-envoy-ah:
-	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy$(GRN) kat tests (ah) $(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range ah python/tests/kat"
-.PHONY: pytest-envoy-ah
-
-pytest-envoy-ip:
-	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy$(GRN) kat tests (ip)$(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range ip python/tests/kat"
-.PHONY: pytest-envoy-ip
-
-pytest-envoy-qz:
-	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy$(GRN) kat tests (qz)$(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range qz python/tests/kat"
-.PHONY: pytest-envoy-qz
-
-
-pytest-envoy:
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
-.PHONY: pytest-envoy
-
-pytest-envoy-builder:
+pytest-envoy3-builder:
 	$(MAKE) pytest-builder KAT_RUN_MODE=envoy
-.PHONY: pytest-envoy-builder
+.PHONY: pytest-envoy3-builder
 
-pytest-envoy-v2-ah:
-	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy v2$(GRN) kat tests (ah)$(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range ah python/tests/kat"
-.PHONY: pytest-envoy-ah
-
-pytest-envoy-v2-ip:
-	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy v2$(GRN) kat tests (ip)$(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range ip python/tests/kat"
-.PHONY: pytest-envoy-v2-ip
-
-pytest-envoy-v2-qz:
-	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy v2$(GRN) kat tests (qz)$(END)\n"
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range qz python/tests/kat"
-.PHONY: pytest-envoy-v2-qz
-
-pytest-envoy-v2:
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
-.PHONY: pytest-envoy-v2
-
-pytest-envoy-v2-builder:
+pytest-envoy2-builder:
 	$(MAKE) pytest-builder KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2
-.PHONY: pytest-envoy-v2-builder
+.PHONY: pytest-envoy2-builder
 
 pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests in builder shell$(END)\n"
