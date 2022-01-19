@@ -14,7 +14,7 @@ def main() -> int:
         sys.stderr.write(f'Usage: CHART_VERSION=v7.Y.Z {os.path.basename(sys.argv[0])}\n')
         return 2
 
-    content_gittag = "chart/{chart_version}"
+    content_gittag = f"chart/{chart_version}"
 
     content_title = f"Emissary Ingress Chart {chart_version[1:]}"
 
@@ -28,7 +28,6 @@ View changelog - https://github.com/emissary-ingress/emissary/blob/master/charts
 """
     in_changelog = False
     for line in fileinput.FileInput("charts/emissary-ingress/CHANGELOG.md"):
-        print(f"line={repr(line)}")
         if in_changelog:
             if line.startswith("## v"):
                 break
