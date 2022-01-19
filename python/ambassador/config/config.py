@@ -45,13 +45,6 @@ from .acmapping import ACMapping
 # StringOrList is either a string or a list of strings.
 StringOrList = Union[str, List[str]]
 
-# Validator is a callable that accepts an ACResource and validates it. The
-# return value is a RichStatus.
-#
-# The assumption here is that Config.get_validator() will return something
-# like a lambda that's tailored to the apiVersion and kind of the resource.
-Validator = Callable[[ACResource], RichStatus]
-
 
 def envoy_api_version():
     """
@@ -107,7 +100,6 @@ class Config:
     current_resource: Optional[ACResource] = None
     helm_chart: Optional[str]
 
-    validators: Dict[str, Validator]
     config: Dict[str, Dict[str, ACResource]]
 
     breakers: Dict[str, ACResource]
@@ -169,7 +161,6 @@ class Config:
         self.current_resource = None
         self.helm_chart = None
 
-        self.validators = {}
         self.config = {}
 
         self.breakers = {}
@@ -477,119 +468,6 @@ class Config:
             if watt_errors:  # check that it's not an empty string
                 return RichStatus.fromError(watt_errors)
 
-        return RichStatus.OK(msg=f"good {resource.kind}")
-
-    def get_validator(self, apiVersion: str, kind: str) -> Validator:
-        schema_key = "%s-%s" % (apiVersion, kind)
-
-        validator = self.validators.get(schema_key, None)
-
-        if not validator:
-            validator = self.get_proto_validator(apiVersion, kind)
-
-        if not validator:
-            validator = self.get_jsonschema_validator(apiVersion, kind)
-
-        if not validator:
-            # Ew. Early binding for Python lambdas is kinda weird.
-            validator = typecast(Validator,
-                                 lambda resource, args=(apiVersion, kind): self.cannot_validate(*args))
-
-        if validator:
-            self.validators[schema_key] = validator
-
-        return validator
-
-    def cannot_validate(self, apiVersion: str, kind: str) -> RichStatus:
-        self.logger.debug(f"Cannot validate getambassador.io/{apiVersion} {kind}")
-
-        return RichStatus.OK(msg=f"Not validating getambassador.io/{apiVersion} {kind}")
-
-    def get_proto_validator(self, apiVersion, kind) -> Optional[Validator]:
-        # See if we can import a protoclass...
-        proto_modname = f"ambassador.proto.{apiVersion}.{kind}_pb2"
-        proto_classname = f"{kind}Spec"
-        m = None
-
-        try:
-            m = importlib.import_module(proto_modname)
-        except ModuleNotFoundError:
-            self.logger.debug(f"no proto in {proto_modname}")
-            return None
-
-        protoclass = getattr(m, proto_classname, None)
-
-        if not protoclass:
-            self.logger.debug(f"no class {proto_classname} in {proto_modname}")
-            return None
-
-        self.logger.debug(f"using validate_with_proto for getambassador.io/{apiVersion} {kind}")
-
-        # Ew. Early binding for Python lambdas is kinda weird.
-        return typecast(Validator,
-                        lambda resource, protoclass=protoclass: self.validate_with_proto(resource, protoclass))
-
-    def validate_with_proto(self, resource: ACResource, protoclass: Any) -> RichStatus:
-        # This is... a little odd.
-        #
-        # First, protobuf works with JSON, not dictionaries. Second, by the time we get here,
-        # the metadata has been folded in, and our *Spec protos (HostSpec, etc) don't include
-        # the metadata (by design).
-        #
-        # So. We make a copy, strip the metadata fields, serialize, and _then_ see if  we can
-        # parse it. Yuck.
-
-        rdict = resource.as_dict()
-        rdict.pop('apiVersion', None)
-        rdict.pop('kind', None)
-
-        name = rdict.pop('name', None)
-        namespace = rdict.pop('namespace', None)
-        metadata_labels = rdict.pop('metadata_labels', None)
-        generation = rdict.pop('generation', None)
-
-        serialized = dump_json(rdict)
-
-        try:
-            json_format.Parse(serialized, protoclass())
-        except json_format.ParseError as e:
-            return RichStatus.fromError(str(e))
-
-        return RichStatus.OK(msg=f"good {resource.kind}")
-
-    def get_jsonschema_validator(self, apiVersion, kind) -> Optional[Validator]:
-        # Do we have a JSONSchema on disk for this?
-        schema_path = os.path.join(self.schema_dir_path, apiVersion, f"{kind}.schema")
-
-        try:
-            schema = json.load(open(schema_path, "r"))
-
-            # Note that we'll never get here if the schema doesn't parse.
-            if schema:
-                self.logger.debug(f"using validate_with_jsonschema for getambassador.io/{apiVersion} {kind}")
-
-                # Ew. Early binding for Python lambdas is kinda weird.
-                return typecast(Validator,
-                                lambda resource, schema=schema: self.validate_with_jsonschema(resource, schema))
-        except OSError:
-            self.logger.debug(f"no schema at {schema_path}, not validating")
-            return None
-        except json.decoder.JSONDecodeError as e:
-            self.logger.warning(f"corrupt schema at {schema_path}, skipping ({e})")
-            return None
-
-        # This can't actually happen -- the only way to get here is to have an uncaught
-        # exception. But it shuts up mypy so WTF.
-        return None
-
-    def validate_with_jsonschema(self, resource: ACResource, schema: dict) -> RichStatus:
-        try:
-            jsonschema.validate(resource.as_dict(), schema)
-        except jsonschema.exceptions.ValidationError as e:
-            # Nope. Bzzzzt.
-            return RichStatus.fromError(f"not a valid {resource.kind}: {e}")
-
-        # All good. Return an OK.
         return RichStatus.OK(msg=f"good {resource.kind}")
 
     def safe_store(self, storage_name: str, resource: ACResource, allow_log: bool=True) -> None:

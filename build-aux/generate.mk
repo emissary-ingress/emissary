@@ -41,7 +41,6 @@ generate/precious    =
 # Whole directories with rules for each individual file in it
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) $(OSS_HOME)/pkg/api/kat/
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto')) $(OSS_HOME)/pkg/api/agent/
-generate/files      += $(patsubst $(OSS_HOME)/api/getambassador.io/%.proto,  $(OSS_HOME)/python/ambassador/proto/%_pb2.py        , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto')) $(OSS_HOME)/python/ambassador/proto/
 generate/files      += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_pb.js          , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) # XXX: There are other files in this dir
 generate/files      += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) # XXX: There are other files in this dir
 # Whole directories with one rule for the whole directory
@@ -50,7 +49,6 @@ generate/files      += $(OSS_HOME)/api/pb/
 generate/files      += $(OSS_HOME)/pkg/api/envoy/
 generate/files      += $(OSS_HOME)/pkg/api/pb/
 generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/
-generate-fast/files += $(OSS_HOME)/python/schemas/v3alpha1/
 # Individual files: Misc
 generate/files      += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 generate/files      += $(OSS_HOME)/OPENSOURCE.md
@@ -268,13 +266,6 @@ $(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/pro
 	$(call protoc,go,$(OSS_HOME)/pkg/api,\
 	    $(tools/protoc-gen-go))
 
-proto_options/python +=
-$(OSS_HOME)/_generate.tmp/%_pb2.py: $(OSS_HOME)/api/%.proto $(tools/protoc)
-	mkdir -p $(OSS_HOME)/_generate.tmp/getambassador.io
-	mkdir -p $(OSS_HOME)/_generate.tmp/getambassador
-	ln -sf ../getambassador.io/ $(OSS_HOME)/_generate.tmp/getambassador/io
-	$(call protoc,python,$(OSS_HOME)/_generate.tmp)
-
 proto_options/js += import_style=commonjs
 $(OSS_HOME)/_generate.tmp/%_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc)
 	$(call protoc,js,$(OSS_HOME)/_generate.tmp)
@@ -284,17 +275,6 @@ proto_options/grpc-web += mode=grpcwebtext
 $(OSS_HOME)/_generate.tmp/%_grpc_web_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-grpc-web)
 	$(call protoc,grpc-web,$(OSS_HOME)/_generate.tmp,\
 	    $(tools/protoc-gen-grpc-web))
-
-$(OSS_HOME)/python/ambassador/proto/%.py: $(OSS_HOME)/_generate.tmp/getambassador.io/%.py
-	mkdir -p $(@D)
-	# This madness is to because Host_pb2.py won't pass mypy without it (we have no stubs for
-	# google.protobuf, so we have to ignore missing stubs for it, so we can't tell that really
-	# _TIMESTAMP and _DURATION are OK). A better fix may be to switch to using 
-	# https://github.com/dropbox/mypy-protobuf.
-	sed \
-		-e 's/= google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP/= google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP # type: ignore[attr-defined]/' \
-		-e 's/= google_dot_protobuf_dot_duration__pb2._DURATION/= google_dot_protobuf_dot_duration__pb2._DURATION # type: ignore[attr-defined]/' \
-		$< >$@
 
 $(OSS_HOME)/tools/sandbox/grpc_web/%.js: $(OSS_HOME)/_generate.tmp/kat/%.js
 	cp $< $@
@@ -443,10 +423,6 @@ $(OSS_HOME)/python/tests/integration/manifests/crds.yaml: $(OSS_HOME)/_generate.
 
 $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) --target=internal-validator $(sort $(wildcard $</*.yaml)) >$@
-
-$(OSS_HOME)/python/schemas/v3alpha1: $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml $(tools/crds2schemas)
-	rm -rf $@
-	$(tools/crds2schemas) $< $@
 
 python-setup: create-venv
 	$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
