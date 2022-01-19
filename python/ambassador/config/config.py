@@ -493,8 +493,6 @@ class Config:
         # (It's still called watt_errors because our other docs talk about "watt
         # snapshots", and I'm OK with retaining that name for the format.)
 
-        watt_errors = None
-
         if 'errors' in resource:
             # Pop the errors out of this resource, since we can't validate in Python
             # while it's present!
@@ -504,10 +502,8 @@ class Config:
             # empty lines.
             watt_errors = '; '.join([error for error in errors if error])
 
-            if watt_errors:
-                # Yup, we really had errors here. Mark as needing re-validation for
-                # now.
-                need_validation = True
+            if watt_errors:  # check that it's not an empty string
+                return RichStatus.fromError(watt_errors)
 
         # OK, assume that we won't be validating so we can just report that...
         rc = RichStatus.OK(msg=f"validation not needed for {apiVersion} {resource.kind} {name} so calling it good")
@@ -525,9 +521,6 @@ class Config:
             else:
                 # No validator, so, uh, call it good.
                 rc = RichStatus.OK(msg=f"no validator for {apiVersion} {resource.kind} {name} so calling it good")
-
-            if watt_errors and not rc:
-                rc = RichStatus.fromError(watt_errors)
 
         # One way or the other, we're done here. Finally.
         self.logger.debug(f"validation {rc}")
