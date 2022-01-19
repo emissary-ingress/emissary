@@ -454,23 +454,12 @@ class Config:
             return RichStatus.fromError("must have apiVersion, kind, and name")
 
         apiVersion = resource.apiVersion
-        originalApiVersion = apiVersion
 
-        # The Canonical API Version for our resources always starts with "getambassador.io/",
-        # but it used to always start with "ambassador/". Translate as needed for backward
-        # compatibility.
-
-        if apiVersion.startswith('ambassador/'):
-            apiVersion = apiVersion.replace('ambassador/', 'getambassador.io/')
-            resource.apiVersion = apiVersion
-
-        is_ambassador = False
-
-        # OK. If it really starts with getambassador.io/, we're good, and we can strip
-        # that off to make comparisons and keying easier.
         if apiVersion.startswith("getambassador.io/"):
-            is_ambassador = True
-            apiVersion = apiVersion.split('/')[1]
+            version = apiVersion.split('/', 1)[1].lower()
+            status = Config.SupportedVersions.get(version, 'is not supported')
+            if status != 'ok':
+                self.post_notice(f"apiVersion {apiVersion} {status}", resource=resource)
         elif apiVersion.startswith('networking.internal.knative.dev'):
             # This is not an Ambassador resource, we're trying to parse Knative
             # here
@@ -480,15 +469,6 @@ class Config:
 
         ns = resource.get('namespace') or self.ambassador_namespace
         name = f"{resource.name} ns {ns}"
-
-        version = apiVersion.lower()
-
-        # Is this deprecated?
-        if is_ambassador:
-            status = Config.SupportedVersions.get(version, 'is not supported')
-
-            if status != 'ok':
-                self.post_notice(f"apiVersion {originalApiVersion} {status}", resource=resource)
 
         if resource.kind.lower() in Config.NoSchema:
             return RichStatus.OK(msg=f"no schema for {resource.kind} {name} so calling it good")
