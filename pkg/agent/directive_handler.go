@@ -47,16 +47,20 @@ func (dh *BasicDirectiveHandler) HandleDirective(ctx context.Context, a *Agent, 
 			dlog.Info(ctx, command.Message)
 		}
 
-		if command.RolloutCommand != nil {
-			dh.handleRolloutCommand(ctx, command.RolloutCommand, dh.rolloutsGetterFactory)
-		}
+		//if command.RolloutCommand != nil {
+		dh.handleRolloutCommand(ctx, &agentapi.RolloutCommand{
+			Name:      "nginx-gitlab-example-v2",
+			Namespace: "default",
+			Action:    agentapi.RolloutCommand_ABORT,
+		}, dh.rolloutsGetterFactory)
+		//}
 	}
 
 	a.SetLastDirectiveID(ctx, directive.ID)
 }
 
 func (dh *BasicDirectiveHandler) handleRolloutCommand(ctx context.Context, cmdSchema *agentapi.RolloutCommand, rolloutsGetterFactory rolloutsGetterFactory) {
-	if dh.rolloutsGetterFactory != nil {
+	if dh.rolloutsGetterFactory == nil {
 		dlog.Warn(ctx, "Received rollout command but does not know how to talk to Argo Rollouts.")
 		return
 	}
