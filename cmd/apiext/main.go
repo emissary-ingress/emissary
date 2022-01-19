@@ -9,7 +9,7 @@ import (
 	k8sRuntime "k8s.io/apimachinery/pkg/runtime"
 	k8sRuntimeUtil "k8s.io/apimachinery/pkg/util/runtime"
 
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	v2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/busy"
 	"github.com/datawire/ambassador/v2/pkg/k8s"
