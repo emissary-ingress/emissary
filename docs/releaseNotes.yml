@@ -56,6 +56,13 @@ items:
           Resource validation errors are now reported more consistently; it was the case that in
           some situations a validation error would not be reported.
 
+      - title: Correctly handle empty rewrite in a Mapping
+        type: bugfix
+        body: >-
+          Using <code>rewrite: ""</code> in a <code>Mapping</code> is correctly handled
+          to mean "do not rewrite the path at all".
+        docs: topics/using/rewrites
+
   - version: 2.1.1
     date: 'N/A'
     notes:

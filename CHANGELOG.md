@@ -96,6 +96,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Resource validation errors are now reported more consistently; it was the case that in
   some situations a validation error would not be reported.
 
+- Bugfix: Using `rewrite: ""` in a `Mapping` is correctly handled to mean "do not rewrite the path
+  at all".
+
 ## 2.1.1 not issued
 
 *Emissary-ingress 2.1.1 was not issued; Ambassador Edge Stack 2.1.1 uses Emissary-ingress 2.1.0.*
