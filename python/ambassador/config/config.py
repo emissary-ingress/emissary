@@ -102,14 +102,6 @@ class Config:
         "v3alpha1": "ok",
     }
 
-    NoSchema: ClassVar = {
-        'secret',
-        'service',
-        'consulresolver',
-        'kubernetesendpointresolver',
-        'kubernetesserviceresolver'
-    }
-
     # INSTANCE VARIABLES
     ambassador_nodename: str = "ambassador"     # overridden in Config.reset
 
@@ -470,29 +462,11 @@ class Config:
         ns = resource.get('namespace') or self.ambassador_namespace
         name = f"{resource.name} ns {ns}"
 
-        if resource.kind.lower() in Config.NoSchema:
-            return RichStatus.OK(msg=f"no schema for {resource.kind} {name} so calling it good")
-
-        # OK, now we need to decide what more we need to do. Start by assuming that we will,
-        # in fact, need to do full schema validation for this object.
-
-        need_validation = True
-
-        # entrypoint.go has already done most of the validation, and we'll
-        # trust that its validation is good _UNLESS THIS IS A MODULE_. Why?
-        # Well, at present entrypoint.go can't actually validate Modules _at all_
-        # (because Module.spec.config is just a dict of anything, pretty much),
-        # and that means it can't check for Modules with missing configs, and
-        # Modules with missing configs will crash Ambassador.
-        if resource.kind.lower() != "module":
-            need_validation = False
-
         # Did entrypoint.go flag errors here? (in a later version we'll short-circuit earlier, but
         # for now we're going to re-validate as a sanity check.)
         #
         # (It's still called watt_errors because our other docs talk about "watt
         # snapshots", and I'm OK with retaining that name for the format.)
-
         if 'errors' in resource:
             # Pop the errors out of this resource, since we can't validate in Python
             # while it's present!
@@ -505,26 +479,7 @@ class Config:
             if watt_errors:  # check that it's not an empty string
                 return RichStatus.fromError(watt_errors)
 
-        # OK, assume that we won't be validating so we can just report that...
-        rc = RichStatus.OK(msg=f"validation not needed for {apiVersion} {resource.kind} {name} so calling it good")
-
-        # ...then, let's see whether reality matches our assumption.
-        if need_validation:
-            # Aha, we need to do validation -- entrypoint.go reported errors. So if we can do
-            # validation, do it.
-
-            # Do we have a validator that can work on this object?
-            validator = self.get_validator(apiVersion, resource.kind)
-
-            if validator:
-                rc = validator(resource)
-            else:
-                # No validator, so, uh, call it good.
-                rc = RichStatus.OK(msg=f"no validator for {apiVersion} {resource.kind} {name} so calling it good")
-
-        # One way or the other, we're done here. Finally.
-        self.logger.debug(f"validation {rc}")
-        return rc
+        return RichStatus.OK(msg=f"good {resource.kind}")
 
     def get_validator(self, apiVersion: str, kind: str) -> Validator:
         schema_key = "%s-%s" % (apiVersion, kind)
