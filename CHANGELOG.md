@@ -92,6 +92,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Using `rewrite: ""` in a `Mapping` is correctly handled to mean "do not rewrite the path
   at all".
 
+## 2.1.1 not issued
+
+*Emissary-ingress 2.1.1 was not issued; Ambassador Edge Stack 2.1.1 uses Emissary-ingress 2.1.0.*
+
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
 

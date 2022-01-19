@@ -32,6 +32,7 @@
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
   - version: 2.1.2
+    prevVersion: 2.1.0
     date: 'TBD'
     notes:
       - title: Fix support for for v2 Mappings with CORS
@@ -48,6 +49,16 @@ items:
           Using <code>rewrite: ""</code> in a <code>Mapping</code> is correctly handled
           to mean "do not rewrite the path at all".
         docs: topics/using/rewrites
+
+  - version: 2.1.1
+    date: 'N/A'
+    notes:
+      - title: Never issued
+        type: change
+        isHeadline: true
+        body: >-
+          <i>Emissary-ingress 2.1.1 was not issued; Ambassador Edge Stack 2.1.1 uses
+          Emissary-ingress 2.1.0.</i>
 
   - version: 2.1.0
     date: '2021-12-16'
