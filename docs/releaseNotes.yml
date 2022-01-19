@@ -55,7 +55,8 @@ items:
           default since Emissary-ingress v1.14.0).
 
   - version: 2.1.2
-    date: '2021-12-16'
+    prevVersion: 2.1.0
+    date: 'TBD'
     notes:
       - title: Correctly use Mappings with host redirects
         type: bugfix
@@ -66,6 +67,16 @@ items:
         - title: 3709
           link: https://github.com/emissary-ingress/emissary/issues/3709
         docs: https://github.com/emissary-ingress/emissary/issues/3709
+
+  - version: 2.1.1
+    date: 'N/A'
+    notes:
+      - title: Never issued
+        type: change
+        isHeadline: true
+        body: >-
+          <i>Emissary-ingress 2.1.1 was not issued; Ambassador Edge Stack 2.1.1 uses
+          Emissary-ingress 2.1.0.</i>
 
   - version: 2.1.0
     date: '2021-12-16'

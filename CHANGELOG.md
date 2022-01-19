@@ -103,7 +103,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
 
-## [2.1.2] December 16, 2021
+## [2.1.2] TBD
 [2.1.2]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.1.2
 
 ### Emissary-ingress and Ambassador Edge Stack
@@ -112,6 +112,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   Thanks  to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix!  ([3709])
 
 [3709]: https://github.com/emissary-ingress/emissary/issues/3709
+
+## 2.1.1 not issued
+
+*Emissary-ingress 2.1.1 was not issued; Ambassador Edge Stack 2.1.1 uses Emissary-ingress 2.1.0.*
 
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
@@ -182,8 +186,8 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 
 - Change: The `x.getambassador.io/v3alpha1` API version has become the `getambassador.io/v3alpha1`
   API version. The `Ambassador-` prefixes from `x.getambassador.io/v3alpha1` resources have been
-  removed for ease of migration. _Note that `getambassador.io/v3alpha1` is the only supported API
-  version for 2.0.4_ &mdash; full support for `getambassador.io/v2` will arrive soon in a later 2.X
+  removed for ease of migration. **Note that `getambassador.io/v3alpha1` is the only supported API
+  version for 2.0.4** &mdash; full support for `getambassador.io/v2` will arrive soon in a later 2.X
   version.
 
 - Feature: The `getambassador.io/v3alpha1` API version and the published chart and manifests have
@@ -213,7 +217,7 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 ## [2.0.3-ea] September 16, 2021
 [2.0.3-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.2-ea...v2.0.3-ea
 
-We're pleased to introduce Emissary-ingress 2.0.3 as a _developer preview_. The 2.X family
+We're pleased to introduce Emissary-ingress 2.0.3 as a **developer preview**. The 2.X family
 introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
 installations, reduce global configuration to better handle multitenant or multiorganizational
 installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a
@@ -237,7 +241,7 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 ## [2.0.2-ea] August 24, 2021
 [2.0.2-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.1-ea...v2.0.2-ea
 
-We're pleased to introduce Emissary-ingress 2.0.2 as a _developer preview_. The 2.X family
+We're pleased to introduce Emissary-ingress 2.0.2 as a **developer preview**. The 2.X family
 introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
 installations, reduce global configuration to better handle multitenant or multiorganizational
 installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a
@@ -258,7 +262,7 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 ## [2.0.1-ea] August 12, 2021
 [2.0.1-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.0-ea...v2.0.1-ea
 
-We're pleased to introduce Emissary-ingress 2.0.1 as a _developer preview_. The 2.X family
+We're pleased to introduce Emissary-ingress 2.0.1 as a **developer preview**. The 2.X family
 introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
 installations, reduce global configuration to better handle multitenant or multiorganizational
 installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a
@@ -289,7 +293,7 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 ## [2.0.0-ea] June 24, 2021
 [2.0.0-ea]: https://github.com/emissary-ingress/emissary/compare/v1.14.2...v2.0.0-ea
 
-We're pleased to introduce Emissary-ingress 2.0.0 as a _developer preview_. The 2.X family
+We're pleased to introduce Emissary-ingress 2.0.0 as a **developer preview**. The 2.X family
 introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
 installations, reduce global configuration to better handle multitenant or multiorganizational
 installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a
@@ -306,9 +310,8 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 
 - Feature: The new `AmbassadorListener` CRD defines where and how to listen for requests from the
   network, and which `AmbassadorHost` definitions should be used to process those requests. Note
-  that the `AmbassadorListener` CRD is _mandatory_ and consolidates <i>all</i> port configuration;
-  see the <a href="../topics/running/listener">`AmbassadorListener` documentation</a> for more
-  details.
+  that the `AmbassadorListener` CRD is **mandatory** and consolidates *all* port configuration; see
+  the <a href="../topics/running/listener">`AmbassadorListener` documentation</a> for more details.
 
 - Feature: Where `AmbassadorMapping`'s `host` field is either an exact match or (with `host_regex`
   set) a regex, the new `hostname` element is always a DNS glob. Use `hostname` instead of `host`
