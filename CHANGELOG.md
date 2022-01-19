@@ -103,6 +103,17 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
 
+## [2.1.2] TBD
+[2.1.2]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.1.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: Any `Mapping` that uses the `host_redirect` field is now properly discovered and used. Thanks 
+  to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix! ([3906]) ([4005])
+
+[3906]: https://github.com/emissary-ingress/emissary/issues/3709
+[4005]: https://github.com/emissary-ingress/emissary/issues/4005
+
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
 
