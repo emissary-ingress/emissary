@@ -96,8 +96,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 {{ .body |
     strings.ReplaceAll "$productName$" "Emissary-ingress" |
-    strings.ReplaceAll "<b>" "_" |
-    strings.ReplaceAll "</b>" "_" |
+    strings.ReplaceAll "<b>" "**" |
+    strings.ReplaceAll "</b>" "**" |
+    strings.ReplaceAll "<i>" "*" |
+    strings.ReplaceAll "</i>" "*" |
     strings.ReplaceAll "<code>" "`" |
     strings.ReplaceAll "</code>" "`" |
     strings.WordWrap 100 }}
@@ -107,8 +109,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 {{ range $release.notes }}{{ if not (index . "isHeadline") }}
 - {{ printf "%s: %s" (.type | strings.Title) .body |
     strings.ReplaceAll "$productName$" "Emissary-ingress" |
-    strings.ReplaceAll "<b>" "_" |
-    strings.ReplaceAll "</b>" "_" |
+    strings.ReplaceAll "<b>" "**" |
+    strings.ReplaceAll "</b>" "**" |
+    strings.ReplaceAll "<i>" "*" |
+    strings.ReplaceAll "</i>" "*" |
     strings.ReplaceAll "<code>" "`" |
     strings.ReplaceAll "</code>" "`" |
     strings.WordWrap 98 |
@@ -121,8 +125,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 {{ range $release.edgeStackNotes }}
 - {{ printf "%s: %s" (.type | strings.Title) .body |
     strings.ReplaceAll "$productName$" "Emissary-ingress" |
-    strings.ReplaceAll "<b>" "_" |
-    strings.ReplaceAll "</b>" "_" |
+    strings.ReplaceAll "<b>" "**" |
+    strings.ReplaceAll "</b>" "**" |
+    strings.ReplaceAll "<i>" "*" |
+    strings.ReplaceAll "</i>" "*" |
     strings.ReplaceAll "<code>" "`" |
     strings.ReplaceAll "</code>" "`" |
     strings.WordWrap 98 |
