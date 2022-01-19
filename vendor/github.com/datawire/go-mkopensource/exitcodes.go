@@ -7,5 +7,4 @@ const (
 	DependencyGenerationError
 	InvalidArgumentsError
 	MarshallJsonError
-	MissingLicenseUrlError
 )

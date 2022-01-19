@@ -1,0 +1,39 @@
+{
+  "agent-base@6.0.2": {
+    "licenses": "MIT",
+    "repository": "https://github.com/TooTallNate/node-agent-base",
+    "publisher": "Nathan Rajlich",
+    "email": "nathan@tootallnate.net",
+    "url": "http://n8.io/",
+    "dependencyPath": "/app/node_modules/agent-base",
+    "path": "/app/node_modules/agent-base",
+    "licenseFile": "/app/node_modules/agent-base/README.md"
+  },
+  "aproba@2.0.0": {
+    "licenses": "ISC",
+    "repository": "https://github.com/iarna/aproba",
+    "publisher": "Rebecca Turner",
+    "email": "me@re-becca.org",
+    "dependencyPath": "/app/node_modules/aproba",
+    "path": "/app/node_modules/aproba",
+    "licenseFile": "/app/node_modules/aproba/LICENSE"
+  },
+  "ascli@1.0.1": {
+    "licenses": "Apache-2.0",
+    "repository": "https://github.com/dcodeIO/ascli",
+    "publisher": "Daniel Wirtz",
+    "dependencyPath": "/app/node_modules/ascli",
+    "path": "/app/node_modules/ascli",
+    "licenseFile": "/app/node_modules/ascli/LICENSE"
+  },
+  "brace-expansion@1.1.11": {
+    "licenses": "MIT",
+    "repository": "https://github.com/juliangruber/brace-expansion",
+    "publisher": "Julian Gruber",
+    "email": "mail@juliangruber.com",
+    "url": "http://juliangruber.com",
+    "dependencyPath": "/app/node_modules/brace-expansion",
+    "path": "/app/node_modules/brace-expansion",
+    "licenseFile": "/app/node_modules/brace-expansion/LICENSE"
+  }
+}

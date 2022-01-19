@@ -1,0 +1,37 @@
+{
+  "dependencies": [
+    {
+      "name": "agent-base",
+      "version": "6.0.2",
+      "licenses": [
+        "MIT license"
+      ]
+    },
+    {
+      "name": "aproba",
+      "version": "2.0.0",
+      "licenses": [
+        "ISC license"
+      ]
+    },
+    {
+      "name": "ascli",
+      "version": "1.0.1",
+      "licenses": [
+        "Apache License 2.0"
+      ]
+    },
+    {
+      "name": "brace-expansion",
+      "version": "1.1.11",
+      "licenses": [
+        "MIT license"
+      ]
+    }
+  ],
+  "licenseInfo": {
+    "Apache License 2.0": "https://opensource.org/licenses/Apache-2.0",
+    "ISC license": "https://opensource.org/licenses/ISC",
+    "MIT license": "https://opensource.org/licenses/MIT"
+  }
+}

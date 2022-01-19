@@ -21,7 +21,7 @@ type License struct {
 var (
 	Proprietary = License{Name: "proprietary"}
 
-	PublicDomain = License{Name: "public domain"}
+	PublicDomain = License{Name: "Public domain"}
 
 	Apache2  = License{Name: "Apache License 2.0", NoticeFile: true, Url: "https://opensource.org/licenses/Apache-2.0"}
 	BSD1     = License{Name: "1-clause BSD license", Url: "https://opensource.org/licenses/BSD-1-Clause"}
@@ -49,15 +49,19 @@ var (
 	// split with "+" to avoid a false-positive on itself
 	spdxTag = []byte("SPDX-License" + "-Identifier:")
 
-	spdxIdentifiers = map[string]License{
-		"Apache-2.0":   Apache2,
-		"BSD-1-Clause": BSD1,
-		"BSD-2-Clause": BSD2,
-		"BSD-3-Clause": BSD3,
-		"ISC":          ISC,
-		"MIT":          MIT,
-		"MPL-2.0":      MPL2,
-		"CC-BY-SA-4.0": CcBySa40,
+	SpdxIdentifiers = map[string]License{
+		"Apache-2.0":        Apache2,
+		"BSD-1-Clause":      BSD1,
+		"BSD-2-Clause":      BSD2,
+		"BSD-3-Clause":      BSD3,
+		"CC-BY-SA-4.0":      CcBySa40,
+		"GPL-3.0-only":      GPL3,
+		"ISC":               ISC,
+		"LGPL-2.1-or-later": LGPL21,
+		"MIT":               MIT,
+		"MPL-2.0":           MPL2,
+		"PSF-2.0":           PSF,
+		"Unicode-DFS-2015":  Unicode2015,
 	}
 )
 
@@ -196,7 +200,7 @@ func IdentifySPDXLicenses(body []byte) (map[License]struct{}, error) {
 		body = body[idEnd:]
 
 		id = strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(id), "*/"))
-		license, licenseOK := spdxIdentifiers[id]
+		license, licenseOK := SpdxIdentifiers[id]
 		if !licenseOK {
 			return nil, fmt.Errorf("unknown SPDX identifier %q", id)
 		}

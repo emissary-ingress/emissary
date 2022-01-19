@@ -1,0 +1,12 @@
+{
+  "agent-base@6.0.2": {
+    "licenses": "Unknown",
+    "repository": "https://github.com/TooTallNate/node-agent-base",
+    "publisher": "Nathan Rajlich",
+    "email": "nathan@tootallnate.net",
+    "url": "http://n8.io/",
+    "dependencyPath": "/app/node_modules/agent-base",
+    "path": "/app/node_modules/agent-base",
+    "licenseFile": "/app/node_modules/agent-base/README.md"
+  }
+}
