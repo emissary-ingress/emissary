@@ -373,9 +373,6 @@ class HostRedirectMapping(MappingTest):
     target: ServiceType
 
     def init(self):
-        # Skip until fixing the hostglob thing.
-        self.skip_node = True
-
         MappingTest.init(self, HTTP())
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:

@@ -88,7 +88,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## RELEASE NOTES
 
 ## [2.2.0] TBD
-[2.2.0]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.2.0
+[2.2.0]: https://github.com/emissary-ingress/emissary/compare/v2.1.2...v2.2.0
 
 ### Emissary-ingress and Ambassador Edge Stack
 
@@ -102,6 +102,16 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   Emissary-ingress v1.14.0).
 
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
+
+## [2.1.2] December 16, 2021
+[2.1.2]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.1.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: Any `Mapping` that uses the `host_redirect` field is now properly discovered and used.
+  Thanks  to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix!  ([3709])
+
+[3709]: https://github.com/emissary-ingress/emissary/issues/3709
 
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
