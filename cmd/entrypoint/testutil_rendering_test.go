@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"sort"
 	"strings"
+	"testing"
 
 	// envoy api v3
 	apiv3_bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
@@ -250,17 +251,17 @@ type Candidate struct {
 	ActionArg string
 }
 
-func RenderEnvoyConfig(envoyConfig *apiv3_bootstrap.Bootstrap) ([]RenderedListener, error) {
+func RenderEnvoyConfig(t *testing.T, envoyConfig *apiv3_bootstrap.Bootstrap) ([]RenderedListener, error) {
 	renderedListeners := make([]RenderedListener, 0, 2)
 
 	for _, l := range envoyConfig.StaticResources.Listeners {
 		port := l.Address.GetSocketAddress().GetPortValue()
 
-		fmt.Printf("LISTENER %s on port %d (chains %d)\n", l.Name, port, len(l.FilterChains))
+		t.Logf("LISTENER %s on port %d (chains %d)", l.Name, port, len(l.FilterChains))
 		rlistener := NewRenderedListener(l.Name, port)
 
 		for _, chain := range l.FilterChains {
-			fmt.Printf("  CHAIN %s\n", chain.FilterChainMatch)
+			t.Logf("  CHAIN %s", chain.FilterChainMatch)
 
 			rchain := NewRenderedChain(chain.FilterChainMatch.ServerNames, chain.FilterChainMatch.TransportProtocol)
 
@@ -288,7 +289,7 @@ func RenderEnvoyConfig(envoyConfig *apiv3_bootstrap.Bootstrap) ([]RenderedListen
 				rc := rs.RouteConfig
 
 				for _, vhost := range rc.VirtualHosts {
-					fmt.Printf("    VHost %s\n", vhost.Name)
+					t.Logf("    VHost %s", vhost.Name)
 
 					rvh := NewRenderedVHost(vhost.Name)
 
@@ -374,10 +375,10 @@ func RenderEnvoyConfig(envoyConfig *apiv3_bootstrap.Bootstrap) ([]RenderedListen
 
 							rvh.AddRoute(rroute)
 
-							fmt.Printf("      %s\n", rroute.String())
+							t.Logf("      %s", rroute.String())
 
 							// if expectedAction != finalAction {
-							// 	fmt.Printf("    !! wanted %s\n", expectedAction)
+							// 	t.Logf("    !! wanted %s", expectedAction)
 							// 	badRoutes++
 							// } else {
 							// 	goodRoutes++

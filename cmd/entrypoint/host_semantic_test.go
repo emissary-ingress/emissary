@@ -47,8 +47,6 @@ func getExpected(expectedFile string, inputObjects []kates.Object) ([]RenderedLi
 		// We need to see this Mapping in our snapshot.
 		neededMappings = append(neededMappings, *mapping)
 
-		// fmt.Printf("CHECK Mapping %s\n%s\n", mapping.Name, JSONify(mapping))
-
 		// Grab the cluster name, and remember it for later.
 		mangledService := clusterRE.ReplaceAll([]byte(mapping.Spec.Service), []byte("_"))
 		clusterName := fmt.Sprintf("cluster_%s_default", mangledService)
@@ -85,7 +83,7 @@ func testSemanticSet(t *testing.T, inputFile string, expectedFile string) {
 
 			mappingName := mapping.Name
 
-			fmt.Printf("GetSnapshot: looking for %s/%s\n", mappingNamespace, mappingName)
+			t.Logf("GetSnapshot: looking for %s/%s", mappingNamespace, mappingName)
 
 			found := false
 			for _, m := range snapshot.Kubernetes.Mappings {
@@ -117,7 +115,7 @@ func testSemanticSet(t *testing.T, inputFile string, expectedFile string) {
 	require.NoError(t, err)
 	require.NotNil(t, envoyConfig)
 
-	actualListeners, err := RenderEnvoyConfig(envoyConfig)
+	actualListeners, err := RenderEnvoyConfig(t, envoyConfig)
 	require.NoError(t, err)
 	actualJSON, err := JSONifyRenderedListeners(actualListeners)
 	require.NoError(t, err)
