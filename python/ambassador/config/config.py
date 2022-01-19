@@ -96,8 +96,6 @@ class Config:
     }
 
     SupportedVersions: ClassVar[Dict[str, str]] = {
-        "v0": "is deprecated, consider upgrading",
-        "v1": "is deprecated, consider upgrading",
         "v2": "is deprecated, consider upgrading",
         "v3alpha1": "ok",
     }
