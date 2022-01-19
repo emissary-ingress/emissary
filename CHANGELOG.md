@@ -92,6 +92,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Resource validation errors are now reported more consistently; it was the case that in
   some situations a validation error would not be reported.
 
+## 2.1.1 not issued
+
+*Emissary-ingress 2.1.1 was not issued; Ambassador Edge Stack 2.1.1 uses Emissary-ingress 2.1.0.*
+
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
 
