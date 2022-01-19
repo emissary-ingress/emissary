@@ -95,6 +95,8 @@ _Emissary-ingress 2.1.1 was not issued; Ambassador Edge Stack 2.1.1 uses  Emissa
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
 
+_Emissary-ingress 2.1.0 is not recommended; upgrade to 2.1.2 instead._
+
 ### Emissary-ingress and Ambassador Edge Stack
 
 - Feature: It is now possible to use both the `getambassador.io/v2` and `getambassador.io/v3alpha1`

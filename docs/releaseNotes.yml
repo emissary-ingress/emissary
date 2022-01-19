@@ -54,6 +54,12 @@ items:
   - version: 2.1.0
     date: '2021-12-16'
     notes:
+      - title: Not recommended; upgrade to 2.1.2 instead
+        type: change
+        isHeadline: true
+        body: >-
+          <i>Emissary-ingress 2.1.0 is not recommended; upgrade to 2.1.2 instead.</i>
+
       - title: CRD conversions
         type: feature
         body: >-
