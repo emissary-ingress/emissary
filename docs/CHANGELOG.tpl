@@ -11,7 +11,7 @@ Ambassador Edge Stack is a comprehensive, self-service solution for exposing,
 securing, and managing the boundary between end users and your Kubernetes services.
 The core of Ambassador Edge Stack is Emissary-ingress.
 
-*Note well:*
+**Note well:**
 
 - Ambassador Edge Stack provides all the capabilities of Emissary-ingress,
   as well as additional capabilities including:
@@ -44,12 +44,12 @@ For Emissary-ingress v2.0.0 - v2.0.3, you must supply an `AmbassadorHost` CRD.
 
 #### `Ingress` Resources and Namespaces
 
-In a future version of Emissary-ingress, *no sooner than Emissary-ingress v2.1.0*, TLS
+In a future version of Emissary-ingress, **no sooner than Emissary-ingress v2.1.0**, TLS
 secrets in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 #### Regex Matching
 
-In a future version of Emissary-ingress, *no sooner than Ambassador v2.1.0*, the `regex_type`
+In a future version of Emissary-ingress, **no sooner than Ambassador v2.1.0**, the `regex_type`
 and `regex_max_size` fields will be removed from the `ambassador` `Module`, and Ambassador Edge
 Stack will support only Envoy `safe_regex` matching. Note that `safe_regex` matching has been
 the default for all 1.X releases of Emissary-ingress.
@@ -66,7 +66,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 #### Zipkin Collector Versions
 
-In a future version of Emissary-ingress, *no sooner than Emissary-ingress v2.1.0*, support
+In a future version of Emissary-ingress, **no sooner than Emissary-ingress v2.1.0**, support
 for the [HTTP_JSON_V1] Zipkin collector version will be removed.
 
 This change is being made because the HTTP_JSON_V1 collector was deprecated in Envoy v1.12.0, then
@@ -96,8 +96,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 {{ .body |
     strings.ReplaceAll "$productName$" "Emissary-ingress" |
-    strings.ReplaceAll "<b>" "*" |
-    strings.ReplaceAll "</b>" "*" |
+    strings.ReplaceAll "<b>" "**" |
+    strings.ReplaceAll "</b>" "**" |
     strings.ReplaceAll "<i>" "_" |
     strings.ReplaceAll "</i>" "_" |
     strings.ReplaceAll "<code>" "`" |
@@ -109,8 +109,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 {{ range $release.notes }}{{ if not (index . "isHeadline") }}
 - {{ printf "%s: %s" (.type | strings.Title) .body |
     strings.ReplaceAll "$productName$" "Emissary-ingress" |
-    strings.ReplaceAll "<b>" "*" |
-    strings.ReplaceAll "</b>" "*" |
+    strings.ReplaceAll "<b>" "**" |
+    strings.ReplaceAll "</b>" "**" |
     strings.ReplaceAll "<i>" "_" |
     strings.ReplaceAll "</i>" "_" |
     strings.ReplaceAll "<code>" "`" |
@@ -125,8 +125,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 {{ range $release.edgeStackNotes }}
 - {{ printf "%s: %s" (.type | strings.Title) .body |
     strings.ReplaceAll "$productName$" "Emissary-ingress" |
-    strings.ReplaceAll "<b>" "*" |
-    strings.ReplaceAll "</b>" "*" |
+    strings.ReplaceAll "<b>" "**" |
+    strings.ReplaceAll "</b>" "**" |
     strings.ReplaceAll "<i>" "_" |
     strings.ReplaceAll "</i>" "_" |
     strings.ReplaceAll "<code>" "`" |
@@ -167,7 +167,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-*Note*: Support for the deprecated `v2alpha` `protocol_version` has been removed from the `AuthService` and `RateLimitService`.
+**Note**: Support for the deprecated `v2alpha` `protocol_version` has been removed from the `AuthService` and `RateLimitService`.
 
 - Feature: Added support for the [Mapping AuthService setting] `auth_context_extensions`, allowing supplying custom per-mapping information to external auth services (thanks, [Giridhar Pathak](https://github.com/gpathak)!).
 - Feature: Added support in ambassador-agent for reporting [Argo Rollouts] and [Argo Applications] to Ambassador Cloud
@@ -523,7 +523,7 @@ update the `Status` of a `Mapping` unless you explicitly set
 tooling that relies on `Mapping` status updates, we do not recommend setting
 `AMBASSADOR_UPDATE_MAPPING_STATUS`.
 
-*In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use
+**In Ambassador 1.7**, TLS secrets in `Ingress` resources will not be able to use
 `.namespace` suffixes to cross namespaces.
 
 ### Ambassador Edge Stack only
