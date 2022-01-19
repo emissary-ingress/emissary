@@ -89,6 +89,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   Kubernetes resources are now validated and internally converted to v3alpha1 and, the same as
   native Kubernetes resources.
 
+- Bugfix: Resource validation errors are now reported more consistently; it was the case that in
+  some situations a validation error would not be reported.
+
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
 

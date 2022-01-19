@@ -41,6 +41,12 @@ items:
           native Kubernetes resources are now validated and internally converted to v3alpha1 and,
           the same as native Kubernetes resources.
 
+      - title: Validation error reporting
+        type: bugfix
+        body: >-
+          Resource validation errors are now reported more consistently; it was the case that in
+          some situations a validation error would not be reported.
+
   # There was no v2.1.1 release; we skipped to v2.1.2 to keep in-sync with AES.
 
   - version: 2.1.0
