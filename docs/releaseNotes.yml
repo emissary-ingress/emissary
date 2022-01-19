@@ -35,6 +35,14 @@ items:
     prevVersion: 2.1.0
     date: '2021-01-20'
     notes:
+      - title: Fix support for for v2 Mappings with CORS
+        type: bugfix
+        body: >-
+          Emissary-ingress 2.1.0 generated invalid Envoy configuration for
+          <code>getambassador.io/v2</code> <code>Mappings</code> that set
+          <code>spec.cors.origins</code> to a string rather than a list of strings; this has been
+          fixed, and these <code>Mappings<code> should once again function correctly.
+
       - title: Annotation conversion and validation
         type: bugfix
         body: >-

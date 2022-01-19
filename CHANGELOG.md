@@ -85,6 +85,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Bugfix: Emissary-ingress 2.1.0 generated invalid Envoy configuration for `getambassador.io/v2`
+  `Mappings` that set `spec.cors.origins` to a string rather than a list of strings; this has been
+  fixed, and these `Mappings` should once again function correctly.
+
 - Bugfix: Resources that exist as `getambassador.io/config` annotations rather than as native
   Kubernetes resources are now validated and internally converted to v3alpha1 and, the same as
   native Kubernetes resources.
