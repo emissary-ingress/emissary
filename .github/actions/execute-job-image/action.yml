@@ -14,10 +14,12 @@ runs:
     - name: "make push"
       shell: bash
       run: |
+        export DOCKER_BUILDKIT=1
         make push
     - name: "make push-dev"
       shell: bash
       run: |
+        export DOCKER_BUILDKIT=1
         make push-dev
     - uses: ./.github/actions/git-dirty-check
       name: "Check git not dirty (from make push + make push-dev)"
