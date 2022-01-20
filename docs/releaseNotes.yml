@@ -43,6 +43,14 @@ items:
           <code>spec.cors.origins</code> to a string rather than a list of strings; this has been
           fixed, and these <code>Mappings<code> should once again function correctly.
 
+      - title: Correctly handle canary Mapping weights when reconfiguring
+        type: bugfix
+        body: >-
+          Changes to the <code>weight</code> of <code>Mapping</code> in a canary group
+          will now always be correctly managed during reconfiguration; such changes could
+          have been missed in earlier releases.
+        docs: topics/using/canary/#the-weight-attribute
+
       - title: Correctly handle empty rewrite in a Mapping
         type: bugfix
         body: >-

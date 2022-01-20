@@ -89,6 +89,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   `Mappings` that set `spec.cors.origins` to a string rather than a list of strings; this has been
   fixed, and these `Mappings` should once again function correctly.
 
+- Bugfix: Changes to the `weight` of `Mapping` in a canary group will now always be correctly
+  managed during reconfiguration; such changes could have been missed in earlier releases.
+
 - Bugfix: Using `rewrite: ""` in a `Mapping` is correctly handled to mean "do not rewrite the path
   at all".
 
