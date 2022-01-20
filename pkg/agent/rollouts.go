@@ -1,14 +1,15 @@
 package agent
 
 import (
-    "context"
+	"context"
+	"fmt"
 
-    argov1alpha1 "github.com/argoproj/argo-rollouts/pkg/client/clientset/versioned/typed/rollouts/v1alpha1"
-    "github.com/datawire/dlib/dlog"
-    metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-    "k8s.io/apimachinery/pkg/types"
-    "k8s.io/client-go/rest"
-    "k8s.io/client-go/tools/clientcmd"
+	argov1alpha1 "github.com/argoproj/argo-rollouts/pkg/client/clientset/versioned/typed/rollouts/v1alpha1"
+	"github.com/datawire/dlib/dlog"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 type rolloutAction string
@@ -25,15 +26,15 @@ type RolloutCommand struct {
 	action      rolloutAction
 }
 
-func (r *RolloutCommand) Run() {
+func (r *RolloutCommand) Run() error {
 	client, err := newRolloutsClient()
 	if err != nil {
-		return
+		return err
 	}
-	r.patchRollout(client)
+	return r.patchRollout(client)
 }
 
-func (r *RolloutCommand) patchRollout(client *argov1alpha1.ArgoprojV1alpha1Client) {
+func (r *RolloutCommand) patchRollout(client *argov1alpha1.ArgoprojV1alpha1Client) error {
 	var patch []byte
 	switch r.action {
 	case rolloutActionResume:
@@ -42,6 +43,15 @@ func (r *RolloutCommand) patchRollout(client *argov1alpha1.ArgoprojV1alpha1Clien
 		patch = []byte(`{"status":{"abort":true}}`)
 	case rolloutActionPause:
 		patch = []byte(`{"spec":{"paused":true}}`)
+	default:
+		err := fmt.Errorf(
+			"tried to perform unknown action '%s' on rollout %s (%s)",
+			r.action,
+			r.rolloutName,
+			r.namespace,
+		)
+		dlog.Errorln(context.TODO(), err)
+		return err
 	}
 	rollout := client.Rollouts(r.namespace)
 	_, err := rollout.Patch(
@@ -52,9 +62,17 @@ func (r *RolloutCommand) patchRollout(client *argov1alpha1.ArgoprojV1alpha1Clien
 		metav1.PatchOptions{},
 	)
 	if err != nil {
-		panic(err)
+		errMsg := fmt.Errorf(
+			"failed to %s rollout %s (%s): %w",
+			r.action,
+			r.rolloutName,
+			r.namespace,
+			err,
+		)
+		dlog.Errorln(context.TODO(), errMsg)
+		return err
 	}
-	dlog.Infof(context.TODO(), "rollout '%s' paused\n", r.rolloutName)
+	return nil
 }
 
 func newRolloutsClient() (*argov1alpha1.ArgoprojV1alpha1Client, error) {
