@@ -49,6 +49,7 @@ require (
 	github.com/Masterminds/semver v1.4.2 // indirect
 	github.com/Masterminds/sprig v2.17.1+incompatible
 	github.com/aokoli/goutils v1.1.1 // indirect
+	github.com/argoproj/argo-rollouts v1.0.7
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cncf/udpa/go v0.0.0-20210322005330-6414d713912e
