@@ -179,13 +179,6 @@ func convert_v3alpha1_TLS_To_v2_TLS(
 	}
 }
 
-func Convert_string_To_v2_BoolOrString(in *string, out *BoolOrString, s conversion.Scope) error {
-	*out = BoolOrString{
-		String: in,
-	}
-	return nil
-}
-
 const ambassadorIDMangle = "--apiVersion-v3alpha1-only--"
 
 func Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in *AmbassadorID, out *v3alpha1.AmbassadorID, s conversion.Scope) error {
@@ -233,67 +226,17 @@ func Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in *v3alpha1.AmbassadorID,
 	return nil
 }
 
-func Convert_string_To_Pointer_v2_BoolOrString(in *string, out **BoolOrString, s conversion.Scope) error {
-	if *in != "" {
-		*out = &BoolOrString{
-			String: in,
-		}
-	} else {
-		*out = nil
+func Convert_string_To_v2_BoolOrString(in *string, out *BoolOrString, s conversion.Scope) error {
+	*out = BoolOrString{
+		String: in,
 	}
 	return nil
 }
 
-func Convert_v2_MappingLabelGroupsArray_To_v3alpha1_MappingLabelGroupsArray(in *MappingLabelGroupsArray, out *v3alpha1.MappingLabelGroupsArray, s conversion.Scope) error {
-	// It's dumb that this isn't auto-generated, but there's a spot in the conversion-gen source
-	// code where it says:
-	//
-	//     // TODO: Consider generating functions for other kinds too.
-	//     if t.Kind != types.Struct {
-	//         return false
-	//     }
-	//
-	// So for now we're writing it by hand.
-	if *in != nil {
-		*out = make(v3alpha1.MappingLabelGroupsArray, len(*in))
-		for i := range *in {
-			(*out)[i] = make(v3alpha1.MappingLabelGroup, len((*in)[i]))
-			for j := range (*in)[i] {
-				(*out)[i][j] = make(v3alpha1.MappingLabelsArray, len((*in)[i][j]))
-				for k := range (*in)[i][j] {
-					if err := Convert_v2_MappingLabelSpecifier_To_v3alpha1_MappingLabelSpecifier(&((*in)[i][j][k]), &((*out)[i][j][k]), s); err != nil {
-						return err
-					}
-				}
-			}
-		}
-	} else {
-		*out = nil
-	}
-	return nil
-}
-func Convert_v3alpha1_MappingLabelGroupsArray_To_v2_MappingLabelGroupsArray(in *v3alpha1.MappingLabelGroupsArray, out *MappingLabelGroupsArray, s conversion.Scope) error {
-	// It's dumb that this isn't auto-generated, but there's a spot in the conversion-gen source
-	// code where it says:
-	//
-	//     // TODO: Consider generating functions for other kinds too.
-	//     if t.Kind != types.Struct {
-	//         return false
-	//     }
-	//
-	// So for now we're writing it by hand.
-	if *in != nil {
-		*out = make(MappingLabelGroupsArray, len(*in))
-		for i := range *in {
-			(*out)[i] = make(MappingLabelGroup, len((*in)[i]))
-			for j := range (*in)[i] {
-				(*out)[i][j] = make(MappingLabelsArray, len((*in)[i][j]))
-				for k := range (*in)[i][j] {
-					if err := Convert_v3alpha1_MappingLabelSpecifier_To_v2_MappingLabelSpecifier(&((*in)[i][j][k]), &((*out)[i][j][k]), s); err != nil {
-						return err
-					}
-				}
-			}
+func Convert_string_To_Pointer_v2_BoolOrString(in *string, out **BoolOrString, s conversion.Scope) error {
+	if *in != "" {
+		*out = &BoolOrString{
+			String: in,
 		}
 	} else {
 		*out = nil
@@ -362,7 +305,7 @@ func Convert_v2_AuthServiceSpec_To_v3alpha1_AuthServiceSpec(in *AuthServiceSpec,
 	if err := autoConvert_v2_AuthServiceSpec_To_v3alpha1_AuthServiceSpec(in, out, s); err != nil {
 		return err
 	}
-	// WARNING: in.TLS requires manual conversion: inconvertible types (*./pkg/api/getambassador.io/v2.BoolOrString vs string)
+	// INFO: in.TLS opted out of conversion generation via +k8s:conversion-gen=false
 	convert_v2_TLS_To_v3alpha1_TLS(
 		in.TLS, in.AuthService,
 		&out.TLS, &out.AuthService, &out.V2ExplicitTLS)
@@ -385,7 +328,7 @@ func Convert_v2_CORS_To_v3alpha1_CORS(in *CORS, out *v3alpha1.CORS, s conversion
 		return err
 	}
 
-	// WARNING: in.Origins requires manual conversion: inconvertible types (*./pkg/api/getambassador.io/v2.OriginList vs []string)
+	// INFO: in.Origins opted out of conversion generation via +k8s:conversion-gen=false
 	if in.Origins != nil {
 		out.Origins = in.Origins.Values
 		out.V2CommaSeparatedOrigins = in.Origins.CommaSeparated
@@ -398,7 +341,7 @@ func Convert_v3alpha1_CORS_To_v2_CORS(in *v3alpha1.CORS, out *CORS, s conversion
 	if err := autoConvert_v3alpha1_CORS_To_v2_CORS(in, out, s); err != nil {
 		return err
 	}
-	// WARNING: in.Origins requires manual conversion: inconvertible types ([]string vs *./pkg/api/getambassador.io/v2.OriginList)
+	// INFO: in.Origins opted out of conversion generation via +k8s:conversion-gen=false
 	// WARNING: in.V2CommaSeparatedOrigins requires manual conversion: does not exist in peer-type
 	if in.Origins != nil {
 		out.Origins = &OriginList{
@@ -411,7 +354,6 @@ func Convert_v3alpha1_CORS_To_v2_CORS(in *v3alpha1.CORS, out *CORS, s conversion
 }
 
 func Convert_v2_HostSpec_To_v3alpha1_HostSpec(in *HostSpec, out *v3alpha1.HostSpec, s conversion.Scope) error {
-	// WARNING: in.DeprecatedAmbassadorID requires manual conversion: does not exist in peer-type
 	if len(in.DeprecatedAmbassadorID) > 0 {
 		in = in.DeepCopy()
 		in.AmbassadorID = append(in.AmbassadorID, in.DeprecatedAmbassadorID...)
@@ -421,6 +363,9 @@ func Convert_v2_HostSpec_To_v3alpha1_HostSpec(in *HostSpec, out *v3alpha1.HostSp
 	if err := autoConvert_v2_HostSpec_To_v3alpha1_HostSpec(in, out, s); err != nil {
 		return err
 	}
+
+	// WARNING: in.DeprecatedAmbassadorID requires manual conversion: does not exist in peer-type
+	// (see above)
 
 	return nil
 }
@@ -521,12 +466,12 @@ func Convert_v2_MappingSpec_To_v3alpha1_MappingSpec(in *MappingSpec, out *v3alph
 		return err
 	}
 
-	// WARNING: in.TLS requires manual conversion: inconvertible types (*./pkg/api/getambassador.io/v2.BoolOrString vs string)
+	// INFO: in.TLS opted out of conversion generation via +k8s:conversion-gen=false
 	convert_v2_TLS_To_v3alpha1_TLS(
 		in.TLS, in.Service,
 		&out.TLS, &out.Service, &out.V2ExplicitTLS)
 
-	// INFO: in.Headers opted out of conversion generation
+	// INFO: in.Headers opted out of conversion generation via +k8s:conversion-gen=false
 	for k, v := range in.Headers {
 		switch {
 		case v.String != nil:
@@ -545,7 +490,7 @@ func Convert_v2_MappingSpec_To_v3alpha1_MappingSpec(in *MappingSpec, out *v3alph
 		}
 	}
 
-	// INFO: in.QueryParameters opted out of conversion generation
+	// INFO: in.QueryParameters opted out of conversion generation via +k8s:conversion-gen=false
 	for k, v := range in.QueryParameters {
 		switch {
 		case v.String != nil:
@@ -648,7 +593,7 @@ func Convert_v2_RateLimitServiceSpec_To_v3alpha1_RateLimitServiceSpec(in *RateLi
 	if err := autoConvert_v2_RateLimitServiceSpec_To_v3alpha1_RateLimitServiceSpec(in, out, s); err != nil {
 		return err
 	}
-	// WARNING: in.TLS requires manual conversion: inconvertible types (*./pkg/api/getambassador.io/v2.BoolOrString vs string)
+	// INFO: in.TLS opted out of conversion generation via +k8s:conversion-gen=false
 	convert_v2_TLS_To_v3alpha1_TLS(
 		in.TLS, in.Service,
 		&out.TLS, &out.Service, &out.V2ExplicitTLS)
@@ -673,7 +618,7 @@ func Convert_v2_TCPMappingSpec_To_v3alpha1_TCPMappingSpec(in *TCPMappingSpec, ou
 		return err
 	}
 
-	// WARNING: in.TLS requires manual conversion: inconvertible types (*./pkg/api/getambassador.io/v2.BoolOrString vs string)
+	// INFO: in.TLS opted out of conversion generation via +k8s:conversion-gen=false
 	convert_v2_TLS_To_v3alpha1_TLS(
 		in.TLS, in.Service,
 		&out.TLS, &out.Service, &out.V2ExplicitTLS)

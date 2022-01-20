@@ -42,9 +42,10 @@ type AuthServiceSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
 	// +kubebuilder:validation:Required
-	AuthService string        `json:"auth_service,omitempty"`
-	PathPrefix  string        `json:"path_prefix,omitempty"`
-	TLS         *BoolOrString `json:"tls,omitempty"`
+	AuthService string `json:"auth_service,omitempty"`
+	PathPrefix  string `json:"path_prefix,omitempty"`
+	// +k8s:conversion-gen=false
+	TLS *BoolOrString `json:"tls,omitempty"`
 	// +kubebuilder:validation:Enum={"http","grpc"}
 	Proto                       string                    `json:"proto,omitempty"`
 	Timeout                     *MillisecondDuration      `json:"timeout_ms,omitempty"`
