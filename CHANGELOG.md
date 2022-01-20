@@ -85,6 +85,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Change: Docker BuildKit is enabled for all Emissary builds. Additionally, the Go build cache is
+  fully enabled when building images, speeding up repeated builds.
+
 ## 2.1.1 not issued
 
 *Emissary-ingress 2.1.1 was not issued; Ambassador Edge Stack 2.1.1 uses Emissary-ingress 2.1.0.*

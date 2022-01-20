@@ -146,7 +146,7 @@ INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
 INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../manifests/emissary/
 INGRESS_TEST_MANIFS = emissary-crds.yaml emissary-emissaryns.yaml
 
-# export DOCKER_BUILDKIT := 0
+export DOCKER_BUILDKIT := 1
 
 all: help
 .PHONY: all
