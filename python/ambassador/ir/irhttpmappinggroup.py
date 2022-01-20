@@ -233,7 +233,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                 assert(isinstance(cached_cluster, IRCluster))
                 cluster = cached_cluster
 
-                self.ir.logger.debug(f"IRHTTPMappingGroup: got Cluster from cache for {mapping.cluster_key}")
+                self.ir.logger.debug(f"IRHTTPMappingGroup: got Cluster from cache for {mapping.cluster_key}")
 
         if not cluster:
             # OK, we have to actually do some work.

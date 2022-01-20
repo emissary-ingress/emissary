@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os/exec"
+	"os"
 	"reflect"
 	"sync"
 	"sync/atomic"
@@ -17,6 +17,7 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
 )
@@ -139,7 +140,7 @@ func RunFake(t *testing.T, config FakeConfig, ambMeta *snapshot.AmbassadorMetaIn
 // processes, you should therefore ensure that you call Teardown whenever you call Setup.
 func (f *Fake) Setup() {
 	if f.config.EnvoyConfig {
-		_, err := exec.LookPath("diagd")
+		_, err := dexec.LookPath("diagd")
 		if err != nil {
 			f.T.Fatal("unable to find diagd, cannot run")
 		}
@@ -149,23 +150,29 @@ func (f *Fake) Setup() {
 		})
 
 		f.group.Go("diagd", func(ctx context.Context) error {
-			cmdArgs := []string{
-				"/tmp", "/tmp/bootstrap-ads.json", "/tmp/envoy.json",
-				"--no-envoy", "--host", "127.0.0.1", "--port", GetDiagdBindPort(),
+			args := []string{
+				"diagd",
+				"/tmp",
+				"/tmp/bootstrap-ads.json",
+				"/tmp/envoy.json",
+				"--no-envoy",
+				"--host", "127.0.0.1",
+				"--port", GetDiagdBindPort(),
 			}
 
 			if f.config.DiagdDebug {
-				cmdArgs = append(cmdArgs, "--debug")
+				args = append(args, "--debug")
 			}
 
-			cmd := subcommand(ctx, "diagd", cmdArgs...)
+			cmd := dexec.CommandContext(ctx, args[0], args[1:]...)
 			if envbool("DEV_SHUTUP_DIAGD") {
-				cmd.Stdout = nil
-				cmd.Stderr = nil
+				devnull, _ := os.OpenFile(os.DevNull, os.O_WRONLY, 0)
+				cmd.Stdout = devnull
+				cmd.Stderr = devnull
 			}
 			err := cmd.Run()
 			if err != nil {
-				exErr, ok := err.(*exec.ExitError)
+				exErr, ok := err.(*dexec.ExitError)
 				if ok {
 					f.T.Logf("diagd exited with error: %+v", exErr)
 					return nil

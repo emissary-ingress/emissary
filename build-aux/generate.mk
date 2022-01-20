@@ -57,15 +57,14 @@ generate/files      += $(OSS_HOME)/OPENSOURCE.md
 generate/files      += $(OSS_HOME)/builder/requirements.txt
 generate/precious   += $(OSS_HOME)/builder/requirements.txt
 generate-fast/files += $(OSS_HOME)/CHANGELOG.md
-generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/README.md
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion.go
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion-spoke.go
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v3alpha1/zz_generated.conversion-hub.go
 # Individual files: YAML
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns.yaml
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns.yaml
-generate-fast/files += $(OSS_HOME)/cmd/entrypoint/crds.yaml
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml.in
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns.yaml.in
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns.yaml.in
+generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml
@@ -333,7 +332,7 @@ $(OSS_HOME)/_generate.tmp/crds: $(tools/controller-gen) build-aux/copyright-boil
 	cd $(OSS_HOME) && $(tools/controller-gen) \
 	  $(foreach varname,$(sort $(filter controller-gen/options/%,$(.VARIABLES))), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
 	  $(foreach varname,$(sort $(filter controller-gen/output/%,$(.VARIABLES))), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
-	  paths="./pkg/api/getambassador.io/..."
+	  $(foreach p,$(wildcard ./pkg/api/getambassador.io/v*/),paths=$p...)
 
 $(OSS_HOME)/%/zz_generated.conversion.go: $(tools/conversion-gen) build-aux/copyright-boilerplate.go.txt FORCE
 	rm -f $@ $(@D)/*.scaffold.go
@@ -436,17 +435,16 @@ $(OSS_HOME)/%/zz_generated.conversion-spoke.go: FORCE
 	  gofmt; \
 	} >$@
 
-$(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds) $(tools/yq) $(OSS_HOME)/charts/emissary-ingress/values.yaml
-	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) --target=apiserver-kubectl --image-version=$$($(tools/yq) read $(filter %/values.yaml,$^) image.tag) $(sort $(wildcard $</*.yaml)) >$@
+$(OSS_HOME)/manifests/emissary/emissary-crds.yaml.in: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
+	$(tools/fix-crds) --target=apiserver-kubectl $(sort $(wildcard $</*.yaml)) >$@
 
 $(OSS_HOME)/python/tests/integration/manifests/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) --target=apiserver-kat $(sort $(wildcard $</*.yaml)) >$@
 
-$(OSS_HOME)/cmd/entrypoint/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
+$(OSS_HOME)/pkg/api/getambassador.io/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) --target=internal-validator $(sort $(wildcard $</*.yaml)) >$@
 
-$(OSS_HOME)/python/schemas/v3alpha1: $(OSS_HOME)/cmd/entrypoint/crds.yaml $(tools/crds2schemas)
+$(OSS_HOME)/python/schemas/v3alpha1: $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml $(tools/crds2schemas)
 	rm -rf $@
 	$(tools/crds2schemas) $< $@
 
@@ -470,7 +468,7 @@ $(OSS_HOME)/k8s-config/%/output.yaml: \
   $(OSS_HOME)/k8s-config/create_yaml.py \
   python-setup
 	. $(OSS_HOME)/venv/bin/activate && $(filter %.py,$^) $(filter %/helm-expanded.yaml,$^) $(filter %/require.yaml,$^) >$@
-$(OSS_HOME)/manifests/emissary/%.yaml: $(OSS_HOME)/k8s-config/%/output.yaml
+$(OSS_HOME)/manifests/emissary/%.yaml.in: $(OSS_HOME)/k8s-config/%/output.yaml
 	cp $< $@
 $(OSS_HOME)/python/tests/integration/manifests/%.yaml: $(OSS_HOME)/k8s-config/kat-%/output.yaml
 	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
@@ -514,6 +512,3 @@ $(OSS_HOME)/CHANGELOG.md: $(OSS_HOME)/docs/CHANGELOG.tpl $(OSS_HOME)/docs/releas
 	  -v $(OSS_HOME)/docs/CHANGELOG.tpl:/tmp/CHANGELOG.tpl \
 	  -v $(OSS_HOME)/docs/releaseNotes.yml:/tmp/releaseNotes.yml \
 	  hairyhenderson/gomplate --verbose --file /tmp/CHANGELOG.tpl --datasource relnotes=/tmp/releaseNotes.yml > CHANGELOG.md
-
-$(OSS_HOME)/charts/emissary-ingress/README.md: %/README.md: %/doc.yaml %/readme.tpl %/values.yaml $(tools/chart-doc-gen)
-	$(tools/chart-doc-gen) -d $*/doc.yaml -t $*/readme.tpl -v $*/values.yaml >$@

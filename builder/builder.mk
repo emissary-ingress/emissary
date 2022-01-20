@@ -96,12 +96,11 @@ BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 LCNAME := $(shell echo $(NAME) | tr '[:upper:]' '[:lower:]')
 BUILDER_NAME ?= $(LCNAME)
 
-.DEFAULT_GOAL = all
 include $(OSS_HOME)/build-aux/prelude.mk
 include $(OSS_HOME)/build-aux/colors.mk
 
 docker.tag.local = $(BUILDER_NAME).local/$(*F)
-docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTRY)/$(*F):$(shell docker image inspect --format='{{slice (index (split .Id ":") 1) 0 12}}' $$(cat $<))
+docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTRY)/$(*F):$(patsubst v%,%,$(VERSION))
 include $(OSS_HOME)/build-aux/docker.mk
 
 include $(OSS_HOME)/build-aux/teleproxy.mk
@@ -147,7 +146,7 @@ INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
 INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../manifests/emissary/
 INGRESS_TEST_MANIFS = emissary-crds.yaml emissary-emissaryns.yaml
 
-# export DOCKER_BUILDKIT := 0
+export DOCKER_BUILDKIT := 1
 
 all: help
 .PHONY: all
@@ -170,10 +169,6 @@ else
   $(error I do not know how to get the host IP on this system; it has neither 'ipconfig' (macOS) nor 'ip' (modern GNU/Linux))
   # ...and I (lukeshu) couldn't figure out a good way to do it on old (net-tools) GNU/Linux.
 endif
-
-noop:
-	@true
-.PHONY: noop
 
 RSYNC_ERR  = $(RED)ERROR: please update to a version of rsync with the --info option$(END)
 GO_ERR     = $(RED)ERROR: please update to go 1.13 or newer$(END)
@@ -285,7 +280,6 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag
 	  docker build -f ${BUILDER_HOME}/Dockerfile . \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	    --build-arg=version="$(BUILD_VERSION)" \
 	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
 	    --target=ambassador \
 	    --iidfile=$@; }
@@ -338,8 +332,7 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			echo "push-dev: tree must be clean" >&2 ;\
 			exit 1 ;\
 		fi; \
-		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
-		if [ $$check -lt 1 ]; then \
+		if [[ '$(VERSION)' != *-* ]]; then \
 			printf "$(RED)push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2 ;\
 			exit 1 ;\
 		fi ;\
@@ -365,7 +358,6 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			chart-push-ci ; \
 		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests  ; \
-		$(MAKE) clean-manifests ; \
 	}
 .PHONY: push-dev
 
@@ -789,13 +781,8 @@ release/promote-oss/dev-to-rc:
 		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} push-manifests  ; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} publish-docs-yaml ; \
-		$(MAKE) clean-manifests ; \
 	}
 .PHONY: release/promote-oss/dev-to-rc
-
-release/promote-oss/rc-update-apro:
-	$(OSS_HOME)/releng/01-release-rc-update-apro v$(RELEASE_VERSION) v$(VERSIONS_YAML_VER)
-.PHONY: release/promote-oss/rc-update-apro
 
 release/print-test-artifacts:
 	@set -e; { \
@@ -872,7 +859,6 @@ release/promote-oss/to-hotfix:
 		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} push-manifests ;\
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} publish-docs-yaml ;\
-		$(MAKE) clean-manifests ;\
 		docker logout ;\
 	}
 .PHONY: release/promote-oss/to-hotfix
@@ -904,15 +890,9 @@ VERSIONS_YAML_VER := $(shell grep 'version:' $(OSS_HOME)/docs/yaml/versions.yml 
 VERSIONS_YAML_VER_STRIPPED := $(subst -ea,,$(VERSIONS_YAML_VER))
 RC_NUMBER ?= 0
 
-release/prep-rc:
-	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
-	@test -n "$(RELEASE_REGISTRY)" || (printf "RELEASE_REGISTRY must be set\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: Version in versions.yml %s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@[[ -z "$(IS_DIRTY)" ]] || (printf '$(RED)ERROR: tree must be clean\n'; exit 1)
-	@AWS_S3_BUCKET=$(AWS_S3_BUCKET) RELEASE_REGISTRY=$(RELEASE_REGISTRY) IMAGE_NAME=$(LCNAME) \
-		$(OSS_HOME)/releng/01-release-prep-rc $(VERSIONS_YAML_VER_STRIPPED)-rc.$(RC_NUMBER)
-.PHONY: release/prep-rc
-
+# `make release/go` is meant to be run by the human maintainer who is
+# preparing to promote an RC to GA.  It will create and push a v2.Y.Z
+# Git tag.
 release/go:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
 	@test -n "$${RC_NUMBER}" || (printf "RC_NUMBER must be set.\n"; exit 1)
@@ -921,22 +901,23 @@ release/go:
 	@RELEASE_REGISTRY=$(RELEASE_REGISTRY) IMAGE_NAME=$(LCNAME) $(OSS_HOME)/releng/02-release-ga $(VERSIONS_YAML_VER)
 .PHONY: release/go
 
-release/manifests:
-	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@$(OSS_HOME)/releng/release-manifest-image-update --oss-version $(VERSIONS_YAML_VER) --aes-version "$(AES_VERSION)"
-.PHONY: release/manifests
-
+# `make release/repatriate` is meant to be run by the human maintainer
+# after GA images have been pushed.
 release/repatriate:
 	@$(OSS_HOME)/releng/release-repatriate $(VERSIONS_YAML_VER)
 .PHONY: release/repatriate
 
+# `make release/ga-mirror` aught to be run by CI, but because
+# credentials are a nightmare it currently has to be run by a human
+# maintainer.
 release/ga-mirror:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "$(RED)ERROR: version not found in versions.yml\n"; exit 1)
 	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$(RED)ERROR: RELEASE_REGISTRY not set\n"; exit 1)
 	@$(OSS_HOME)/releng/release-mirror-images --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME) --repo-list $(GCR_RELEASE_REGISTRY)
 
+# `make release/ga-check` is meant to be run by a human maintainer to
+# check that CI did all the right things.
 release/ga-check:
 	@$(OSS_HOME)/releng/release-ga-check --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME)
 

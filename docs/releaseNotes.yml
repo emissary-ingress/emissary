@@ -31,6 +31,7 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+
   - version: 2.2.0
     date: 'TBD'
     notes:
@@ -68,6 +69,29 @@ items:
           link: https://github.com/emissary-ingress/emissary/issues/3709
         docs: https://github.com/emissary-ingress/emissary/issues/3709
 
+      - title: Fix support for for v2 Mappings with CORS
+        type: bugfix
+        body: >-
+          Emissary-ingress 2.1.0 generated invalid Envoy configuration for
+          <code>getambassador.io/v2</code> <code>Mappings</code> that set
+          <code>spec.cors.origins</code> to a string rather than a list of strings; this has been
+          fixed, and these <code>Mappings<code> should once again function correctly.
+
+      - title: Correctly handle empty rewrite in a Mapping
+        type: bugfix
+        body: >-
+          Using <code>rewrite: ""</code> in a <code>Mapping</code> is correctly handled
+          to mean "do not rewrite the path at all".
+        docs: topics/using/rewrites
+
+      - title: Docker BuildKit always used for builds
+        type: change
+        body: >-
+          Docker BuildKit is enabled for all Emissary builds. Additionally, the Go
+          build cache is fully enabled when building images, speeding up repeated builds.
+        docs: https://docs.docker.com/develop/develop-images/build_enhancements/
+
+
   - version: 2.1.1
     date: 'N/A'
     notes:
@@ -81,6 +105,12 @@ items:
   - version: 2.1.0
     date: '2021-12-16'
     notes:
+      - title: Not recommended; upgrade to 2.1.2 instead
+        type: change
+        isHeadline: true
+        body: >-
+          <i>Emissary-ingress 2.1.0 is not recommended; upgrade to 2.1.2 instead.</i>
+
       - title: CRD conversions
         type: feature
         body: >-

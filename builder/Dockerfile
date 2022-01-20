@@ -1,3 +1,5 @@
+# syntax = docker/dockerfile:1-experimental
+
 ###
 # This dockerfile builds all the source code and docker images for the
 # edge stack.
@@ -66,8 +68,6 @@ ENTRYPOINT [ "/bin/bash" ]
 
 FROM ${builderbase} as golang
 
-ARG version="i-forgot-to-set-build-arg-version"
-
 WORKDIR /go
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
@@ -79,8 +79,11 @@ ADD pkg pkg
 ADD vendor vendor
 ADD go.mod go.mod
 ADD go.sum go.sum
-RUN mkdir -p /go/bin && \
-	time go build -ldflags="-X 'main.Version=${version}'" -mod=vendor -o /go/bin/ ./cmd/...
+
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
+    mkdir -p /go/bin && \
+    time go build -mod=vendor -o /go/bin/ ./cmd/...
 
 ########################################
 # The artifact build stage

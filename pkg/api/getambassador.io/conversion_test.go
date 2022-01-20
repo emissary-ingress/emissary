@@ -1,4 +1,4 @@
-package v2
+package getambassadorio
 
 import (
 	"encoding/json"
@@ -10,8 +10,6 @@ import (
 
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/stretchr/testify/require"
-	"k8s.io/apimachinery/pkg/runtime"
-	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"sigs.k8s.io/yaml"
 
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
@@ -104,9 +102,7 @@ func TestConvert(t *testing.T) {
 		},
 	}
 
-	scheme := runtime.NewScheme()
-	runtimeutil.Must(v2.AddToScheme(scheme))
-	runtimeutil.Must(v3alpha1.AddToScheme(scheme))
+	scheme := BuildScheme()
 
 	t.Run("RoundTrip", func(t *testing.T) {
 		t.Parallel()

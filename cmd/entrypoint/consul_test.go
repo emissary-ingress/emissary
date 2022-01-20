@@ -11,6 +11,7 @@ import (
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -38,11 +39,11 @@ name:  consultest_k8s_mapping_tcp
 port: 3099
 service: consultest-http-k8s
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: KubernetesServiceResolver
 name: kubernetes-service
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: KubernetesEndpointResolver
 name: endpoint
 ---
@@ -121,16 +122,27 @@ func TestBootstrap(t *testing.T) {
 }
 
 func setup(t *testing.T) (ctx context.Context, resolvers []*amb.ConsulResolver, mappings []consulMapping, c *consul, tw *testWatcher) {
-	objs, err := kates.ParseManifestsToUnstructured(manifests)
-	require.NoError(t, err)
-
-	parent := &kates.Unstructured{}
-	parent.SetNamespace("default")
 	ctx = dlog.NewTestContext(t, false)
 
+	parent := &kates.Unstructured{
+		Object: map[string]interface{}{
+			"metadata": map[string]interface{}{
+				"namespace": "default",
+				"annotations": map[string]interface{}{
+					"getambassador.io/config": manifests,
+				},
+			},
+		},
+	}
+
+	objs, err := snapshotTypes.ParseAnnotationResources(parent)
+	require.NoError(t, err)
+
 	for _, obj := range objs {
-		newobj := convertAnnotation(ctx, parent, obj)
-		newobj.SetNamespace("default")
+		newobj, err := snapshotTypes.ValidateAndConvertObject(ctx, obj)
+		if !assert.NoError(t, err) {
+			continue
+		}
 		switch o := newobj.(type) {
 		case *amb.ConsulResolver:
 			resolvers = append(resolvers, o)
