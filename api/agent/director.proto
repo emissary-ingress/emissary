@@ -104,7 +104,7 @@ message Directive {
 message Command {
   // Log this message if present
   string message = 1;
-  optional RolloutCommand rolloutCommand = 2;
+  RolloutCommand rolloutCommand = 2;
 }
 
 message RolloutCommand {
