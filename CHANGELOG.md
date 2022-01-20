@@ -95,6 +95,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Change: Docker BuildKit is enabled for all Emissary builds. Additionally, the Go build cache is
   fully enabled when building images, speeding up repeated builds.
 
+- Bugfix: Any `Mapping` that uses the `host_redirect` field is now properly discovered and used.
+  Thanks  to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix!  ([3709])
+
+[3709]: https://github.com/emissary-ingress/emissary/issues/3709
+
 ## 2.1.1 not issued
 
 *Emissary-ingress 2.1.1 was not issued; Ambassador Edge Stack 2.1.1 uses Emissary-ingress 2.1.0.*
