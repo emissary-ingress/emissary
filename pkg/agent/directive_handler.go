@@ -4,19 +4,19 @@ import (
 	"context"
 	"time"
 
-	"github.com/datawire/ambassador/v2/pkg/api/agent"
+	agentapi "github.com/datawire/ambassador/v2/pkg/api/agent"
 	"github.com/datawire/dlib/dlog"
 )
 
 type DirectiveHandler interface {
-	HandleDirective(context.Context, *Agent, *agent.Directive)
+	HandleDirective(context.Context, *Agent, *agentapi.Directive)
 }
 
 type BasicDirectiveHandler struct {
 	DefaultMinReportPeriod time.Duration
 }
 
-func (dh *BasicDirectiveHandler) HandleDirective(ctx context.Context, a *Agent, directive *agent.Directive) {
+func (dh *BasicDirectiveHandler) HandleDirective(ctx context.Context, a *Agent, directive *agentapi.Directive) {
 	if directive == nil {
 		dlog.Warn(ctx, "Received empty directive, ignoring.")
 		return
@@ -45,7 +45,19 @@ func (dh *BasicDirectiveHandler) HandleDirective(ctx context.Context, a *Agent, 
 		if command.Message != "" {
 			dlog.Info(ctx, command.Message)
 		}
+		if command.RolloutCommand != nil {
+			dh.handleRolloutCommand(command.RolloutCommand)
+		}
 	}
 
 	a.SetLastDirectiveID(ctx, directive.ID)
+}
+
+func (dh *BasicDirectiveHandler) handleRolloutCommand(cmdSchema *agentapi.RolloutCommand) {
+	cmd := &RolloutCommand{
+		rolloutName: cmdSchema.GetName(),
+		namespace:   cmdSchema.GetNamespace(),
+		action:      rolloutAction(cmdSchema.GetAction()),
+	}
+	cmd.Run()
 }
