@@ -59,5 +59,5 @@ func (dh *BasicDirectiveHandler) handleRolloutCommand(cmdSchema *agentapi.Rollou
 		namespace:   cmdSchema.GetNamespace(),
 		action:      rolloutAction(cmdSchema.GetAction()),
 	}
-	cmd.Run()
+	_ = cmd.Run()
 }
