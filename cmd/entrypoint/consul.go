@@ -22,15 +22,18 @@ type consulMapping struct {
 
 func ReconcileConsul(ctx context.Context, consul *consul, s *snapshotTypes.KubernetesSnapshot) error {
 	var mappings []consulMapping
-	for _, a := range s.Annotations {
-		m, ok := a.(*amb.Mapping)
-		if ok && include(m.Spec.AmbassadorID) {
-			mappings = append(mappings, consulMapping{Service: m.Spec.Service, Resolver: m.Spec.Resolver})
-		}
-
-		tm, ok := a.(*amb.TCPMapping)
-		if ok && include(tm.Spec.AmbassadorID) {
-			mappings = append(mappings, consulMapping{Service: tm.Spec.Service, Resolver: tm.Spec.Resolver})
+	for _, list := range s.Annotations {
+		for _, a := range list.Valid {
+			switch m := a.(type) {
+			case *amb.Mapping:
+				if include(m.Spec.AmbassadorID) {
+					mappings = append(mappings, consulMapping{Service: m.Spec.Service, Resolver: m.Spec.Resolver})
+				}
+			case *amb.TCPMapping:
+				if include(m.Spec.AmbassadorID) {
+					mappings = append(mappings, consulMapping{Service: m.Spec.Service, Resolver: m.Spec.Resolver})
+				}
+			}
 		}
 	}
 
