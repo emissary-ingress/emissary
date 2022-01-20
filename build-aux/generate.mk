@@ -499,21 +499,30 @@ $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 $(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
-		cd $(OSS_HOME); \
-		$(tools/go-mkopensource) --output-format=txt --package=mod --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz; \
-		echo; \
-		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource); \
-	} > $@
+		export DESTINATION=$@; \
+		export APPLICATION="Emissary-ingress"; \
+		export OSS_HOME=$(OSS_HOME); \
+		export GO_MKOPENSOURCE="$(tools/go-mkopensource)"; \
+		export PY_MKOPENSOURCE="$(tools/py-mkopensource)"; \
+		export JS_MKOPENSOURCE="$(tools/js-mkopensource)"; \
+		export PIP_SHOW="$(OSS_HOME)/build-aux/pip-show.txt"; \
+		export GO_TAR="$(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz"; \
+		$(OSS_HOME)/build-aux/license-info/gen-opensource.sh; \
+	}
 
-$(OSS_HOME)/LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
+$(OSS_HOME)/LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(tools/js-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
-		cd $(OSS_HOME); \
-		echo -e "Emissary-ingress Go code incorporates Free and Open Source software under the following licenses:\n"; \
-		$(tools/go-mkopensource) --output-format=txt --package=mod --output-type=json --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' | sed -e 's/\[\([^]]*\)]()/\1/'; \
-		echo -e "\n\nEmissary-ingress Python code incorporates Free and Open Source software under the following licenses:\n"; \
-		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource) --output-type=json | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' | sed -e 's/\[\([^]]*\)]()/\1/'; \
-	} > $@
+		export DESTINATION=$@; \
+		export APPLICATION="Emissary-ingress"; \
+		export OSS_HOME=$(OSS_HOME); \
+		export GO_MKOPENSOURCE="$(tools/go-mkopensource)"; \
+		export PY_MKOPENSOURCE="$(tools/py-mkopensource)"; \
+		export JS_MKOPENSOURCE="$(tools/js-mkopensource)"; \
+		export PIP_SHOW="$(OSS_HOME)/build-aux/pip-show.txt"; \
+		export GO_TAR="$(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz"; \
+		$(OSS_HOME)/build-aux/license-info/gen-licenses.sh; \
+	}
 
 #
 # Misc. other `make generate` rules
