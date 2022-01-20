@@ -318,6 +318,22 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 	return a.watch(ctx, snapshotURL, configAcc, coreAcc, rolloutCallback, applicationCallback)
 }
 
+func (a *Agent) ListenForCommands(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(5 * time.Second):
+			command := &RolloutCommand{
+				rolloutName: "nginx-gitlab-example-v2",
+				namespace:   "default",
+				action:      "pause",
+			}
+			command.Run()
+		}
+	}
+}
+
 type accumulator interface {
 	Changed() chan struct{}
 	FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error)
