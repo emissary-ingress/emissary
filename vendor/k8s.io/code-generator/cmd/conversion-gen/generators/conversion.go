@@ -38,61 +38,17 @@ import (
 
 // These are the comment tags that carry parameters for conversion generation.
 const (
-	// In doc.go:
-	//
-	//   "+k8s:conversion-gen=<peer-pkg>" indicates that  <peer-pkg> is the
-	//   import path of the package the peer types are defined in.
-	//
-	// On a type:
-	//
-	//   "+k8s:conversion-gen=false" on type <src> causes conversion-gen to
-	//   not attempt to generate any "Convert_<src>_To_<dst>" functions.  It
-	//   may still generate other functions that call such a function if
-	//   nescessary; in that case it would be the user's responsibility to
-	//   manually write the function.
-	//
-	// On a struct member:
-	//
-	//   "+k8s:conversion-gen=false" on a member within <src> struct causes
-	//   the generated "Convert_<src>_To_<dst>" functions to ignore that
-	//   field, not attempting to set <dst>.<fieldname>.
+	// e.g., "+k8s:conversion-gen=<peer-pkg>" in doc.go, where <peer-pkg> is the
+	// import path of the package the peer types are defined in.
+	// e.g., "+k8s:conversion-gen=false" in a type's comment will let
+	// conversion-gen skip that type.
 	tagName = "k8s:conversion-gen"
-	// On a type:
-	//
-	//   "+k8s:conversion-gen:explicit-from=net/url.Values" results in
-	//   generating conversion from net/url.Values.  This is a special case;
-	//   other types are not supported.
+	// e.g. "+k8s:conversion-gen:explicit-from=net/url.Values" in the type comment
+	// will result in generating conversion from net/url.Values.
 	explicitFromTagName = "k8s:conversion-gen:explicit-from"
-	// In doc.go:
-	//
-	//   "+k8s:conversion-gen-external-types=<type-pkg>" indicates that
-	//   <type-pkg> is the relative path to the package the types are
-	//   defined in.
+	// e.g., "+k8s:conversion-gen-external-types=<type-pkg>" in doc.go, where
+	// <type-pkg> is the relative path to the package the types are defined in.
 	externalTypesTagName = "k8s:conversion-gen-external-types"
-	// On a "Convert_<src>_To_<dst>" function:
-	//
-	//   "+k8s:conversion-fn=copy-only" indicates that the function is
-	//   merely blindly copying data (not doing any higher-level conversion
-	//   logic), and that it is OK to optimize the function away if
-	//   conversion-gen determines the types to be memory-equivalent.
-	//
-	//   "+k8s:conversion-fn=drop" indicates that the conversion done by
-	//   this function should never be performed on struct members; as if
-	//   "+k8s:conversion-gen=false" were added to the source struct member.
-	conversionFnTagName = "k8s:conversion-fn"
-	// On a struct member:
-	//
-	//   "+k8s:conversion-gen:rename=<peer-name>" indicates that the
-	//   equivalent field in the equivalent type in the <peer-pkg> is named
-	//   <peer-name>.  This applies in both directions; e.g. setting this
-	//   marker on a field in pkg1.Foo will affect both
-	//   "Convert_pkg1_Foo_To_pkg2_Foo" and "Convert_pkg2_Foo_To_pkg1_Foo";
-	//   it is not necessary to set in both packages.  This will not prevent
-	//   a field from pairing with an identically named field; it does not
-	//   mask the original name, it adds to it.  As such, it may be given
-	//   multiple times, in order to facilitate generating conversions with
-	//   many different peer packages.
-	renameTagName = "k8s:conversion-gen:rename"
 )
 
 func extractTag(comments []string) []string {
@@ -108,17 +64,13 @@ func extractExternalTypesTag(comments []string) []string {
 }
 
 func isCopyOnly(comments []string) bool {
-	values := types.ExtractCommentTags("+", comments)[conversionFnTagName]
+	values := types.ExtractCommentTags("+", comments)["k8s:conversion-fn"]
 	return len(values) == 1 && values[0] == "copy-only"
 }
 
 func isDrop(comments []string) bool {
-	values := types.ExtractCommentTags("+", comments)[conversionFnTagName]
+	values := types.ExtractCommentTags("+", comments)["k8s:conversion-fn"]
 	return len(values) == 1 && values[0] == "drop"
-}
-
-func extractRenameTags(comments []string) []string {
-	return types.ExtractCommentTags("+", comments)[renameTagName]
 }
 
 // TODO: This is created only to reduce number of changes in a single PR.
@@ -479,20 +431,13 @@ func (e equalMemoryTypes) equal(a, b *types.Type, alreadyVisitedTypes map[*types
 	return false
 }
 
-func findMember(t *types.Type, names ...string) (types.Member, bool) {
+func findMember(t *types.Type, name string) (types.Member, bool) {
 	if t.Kind != types.Struct {
 		return types.Member{}, false
 	}
 	for _, member := range t.Members {
-		for _, name := range names {
-			if member.Name == name {
-				return member, true
-			}
-			for _, memberName := range extractRenameTags(member.CommentLines) {
-				if memberName == name {
-					return member, true
-				}
-			}
+		if member.Name == name {
+			return member, true
 		}
 	}
 	return types.Member{}, false
@@ -575,17 +520,6 @@ func (n *namerPlusImportTracking) Name(t *types.Type) string {
 	return n.delegate.Name(t)
 }
 
-// convertibleOnlyWithinPackage returns whether the conversion between
-// inType and outType is something that we "want" a
-// "Convert_{inType}_To_{outType}" function for, whether that function
-// is able to be generated by conversion-gen or needs to be manually
-// provided.
-//
-// These criteria are:
-//  1. One of the types is in the package that we're generating conversions for, and
-//  2. that type has not opted out of conversion with +k8s:conversion-gen=false, and
-//  3. that type a struct type, and
-//  4. that type is exported.
 func (g *genConversion) convertibleOnlyWithinPackage(inType, outType *types.Type) bool {
 	var t *types.Type
 	var other *types.Type
@@ -867,42 +801,17 @@ func (g *genConversion) doBuiltin(inType, outType *types.Type, sw *generator.Sni
 	}
 }
 
-func (g *genConversion) doCompileErrorOnMissingConversion(inType, outType *types.Type, sw *generator.SnippetWriter) {
-	sw.Do("// FIXME: Provide conversion function to convert $.inType|raw$ to $.outType|raw$;\n",
-		argsFromType(inType, outType))
-	if len(g.manualConversions) == 0 {
-		sw.Do("// no manual conversion functions are currently provided.\n", nil)
-	} else {
-		sw.Do("// the currently provided manual conversion functions are\n", nil)
-		pairs := make([]conversionPair, 0, len(g.manualConversions))
-		for pair := range g.manualConversions {
-			pairs = append(pairs, pair)
-		}
-		sort.Slice(pairs, func(i, j int) bool {
-			return g.manualConversions[pairs[i]].String() < g.manualConversions[pairs[j]].String()
-		})
-		for _, pair := range pairs {
-			sw.Do("//  - $.func|raw$() ($.inType|raw$ to $.outType|raw$)\n", generator.Args{
-				"inType":  pair.inType,
-				"outType": pair.outType,
-				"func":    g.manualConversions[pair],
-			})
-		}
-	}
-	sw.Do("compileErrorOnMissingConversion()\n", nil)
-}
-
 func (g *genConversion) doMap(inType, outType *types.Type, sw *generator.SnippetWriter) {
 	sw.Do("*out = make($.|raw$, len(*in))\n", outType)
-	if isDirectlyConvertible(inType.Key, outType.Key) {
+	if isDirectlyAssignable(inType.Key, outType.Key) {
 		sw.Do("for key, val := range *in {\n", nil)
-		if isDirectlyConvertible(inType.Elem, outType.Elem) {
-			if isDirectlyAssignable(inType.Key, outType.Key) {
+		if isDirectlyAssignable(inType.Elem, outType.Elem) {
+			if inType.Key == outType.Key {
 				sw.Do("(*out)[key] = ", nil)
 			} else {
 				sw.Do("(*out)[$.|raw$(key)] = ", outType.Key)
 			}
-			if isDirectlyAssignable(inType.Elem, outType.Elem) {
+			if inType.Elem == outType.Elem {
 				sw.Do("val\n", nil)
 			} else {
 				sw.Do("$.|raw$(val)\n", outType.Elem)
@@ -916,7 +825,9 @@ func (g *genConversion) doMap(inType, outType *types.Type, sw *generator.Snippet
 				sw.Do("newVal := new($.|raw$)\n", outType.Elem)
 				sw.Do("if err := "+nameTmpl+"(&val, newVal, s); err != nil {\n", argsFromType(inType.Elem, outType.Elem))
 			} else {
-				g.doCompileErrorOnMissingConversion(inType.Elem, outType.Elem, sw)
+				args := argsFromType(inType.Elem, outType.Elem)
+				sw.Do("// FIXME: Provide conversion function to convert $.inType|raw$ to $.outType|raw$\n", args)
+				sw.Do("compileErrorOnMissingConversion()\n", nil)
 				conversionExists = false
 			}
 			if conversionExists {
@@ -944,26 +855,27 @@ func (g *genConversion) doSlice(inType, outType *types.Type, sw *generator.Snipp
 	} else {
 		sw.Do("for i := range *in {\n", nil)
 		if isDirectlyAssignable(inType.Elem, outType.Elem) {
-			sw.Do("(*out)[i] = (*in)[i]\n", nil)
-		} else if isDirectlyConvertible(inType.Elem, outType.Elem) {
-			sw.Do("(*out)[i] = $.|raw$((*in)[i])\n", outType.Elem)
-		} else if function, ok := g.preexists(inType.Elem, outType.Elem); ok {
-			sw.Do("if err := $.|raw$(&(*in)[i], &(*out)[i], s); err != nil {\n", function)
-			sw.Do("return err\n", nil)
-			sw.Do("}\n", nil)
-		} else if g.convertibleOnlyWithinPackage(inType.Elem, outType.Elem) {
-			sw.Do("if err := "+nameTmpl+"(&(*in)[i], &(*out)[i], s); err != nil {\n", argsFromType(inType.Elem, outType.Elem))
-			sw.Do("return err\n", nil)
-			sw.Do("}\n", nil)
-		} else if outType.Elem.Kind == types.Pointer {
-			sw.Do("if (*in)[i] != nil {\n", nil)
-			sw.Do("in, out := &(*in)[i], &(*out)[i]\n", nil)
-			g.generateFor(inType.Elem, outType.Elem, sw)
-			sw.Do("} else {\n", nil)
-			sw.Do("(*in)[i] = nil\n", nil)
-			sw.Do("}\n", nil)
+			if inType.Elem == outType.Elem {
+				sw.Do("(*out)[i] = (*in)[i]\n", nil)
+			} else {
+				sw.Do("(*out)[i] = $.|raw$((*in)[i])\n", outType.Elem)
+			}
 		} else {
-			g.doCompileErrorOnMissingConversion(inType.Elem, outType.Elem, sw)
+			conversionExists := true
+			if function, ok := g.preexists(inType.Elem, outType.Elem); ok {
+				sw.Do("if err := $.|raw$(&(*in)[i], &(*out)[i], s); err != nil {\n", function)
+			} else if g.convertibleOnlyWithinPackage(inType.Elem, outType.Elem) {
+				sw.Do("if err := "+nameTmpl+"(&(*in)[i], &(*out)[i], s); err != nil {\n", argsFromType(inType.Elem, outType.Elem))
+			} else {
+				args := argsFromType(inType.Elem, outType.Elem)
+				sw.Do("// FIXME: Provide conversion function to convert $.inType|raw$ to $.outType|raw$\n", args)
+				sw.Do("compileErrorOnMissingConversion()\n", nil)
+				conversionExists = false
+			}
+			if conversionExists {
+				sw.Do("return err\n", nil)
+				sw.Do("}\n", nil)
+			}
 		}
 		sw.Do("}\n", nil)
 	}
@@ -976,7 +888,7 @@ func (g *genConversion) doStruct(inType, outType *types.Type, sw *generator.Snip
 			sw.Do("// INFO: in."+inMember.Name+" opted out of conversion generation\n", nil)
 			continue
 		}
-		outMember, found := findMember(outType, append([]string{inMember.Name}, extractRenameTags(inMember.CommentLines)...)...)
+		outMember, found := findMember(outType, inMember.Name)
 		if !found {
 			// This field doesn't exist in the peer.
 			sw.Do("// WARNING: in."+inMember.Name+" requires manual conversion: does not exist in peer-type\n", nil)
@@ -998,9 +910,7 @@ func (g *genConversion) doStruct(inType, outType *types.Type, sw *generator.Snip
 			outMemberType = &copied
 		}
 
-		args := argsFromType(inMemberType, outMemberType).
-			With("inName", inMember.Name).
-			With("outName", outMember.Name)
+		args := argsFromType(inMemberType, outMemberType).With("name", inMember.Name)
 
 		// try a direct memory copy for any type that has exactly equivalent values
 		if g.useUnsafe.Equal(inMemberType, outMemberType) {
@@ -1009,13 +919,13 @@ func (g *genConversion) doStruct(inType, outType *types.Type, sw *generator.Snip
 				With("SliceHeader", types.Ref("reflect", "SliceHeader"))
 			switch inMemberType.Kind {
 			case types.Pointer:
-				sw.Do("out.$.outName$ = ($.outType|raw$)($.Pointer|raw$(in.$.inName$))\n", args)
+				sw.Do("out.$.name$ = ($.outType|raw$)($.Pointer|raw$(in.$.name$))\n", args)
 				continue
 			case types.Map:
-				sw.Do("out.$.outName$ = *(*$.outType|raw$)($.Pointer|raw$(&in.$.inName$))\n", args)
+				sw.Do("out.$.name$ = *(*$.outType|raw$)($.Pointer|raw$(&in.$.name$))\n", args)
 				continue
 			case types.Slice:
-				sw.Do("out.$.outName$ = *(*$.outType|raw$)($.Pointer|raw$(&in.$.inName$))\n", args)
+				sw.Do("out.$.name$ = *(*$.outType|raw$)($.Pointer|raw$(&in.$.name$))\n", args)
 				continue
 			}
 		}
@@ -1030,9 +940,9 @@ func (g *genConversion) doStruct(inType, outType *types.Type, sw *generator.Snip
 			// correctly copied between types. These functions are equivalent to a memory assignment,
 			// and are necessary for the reflection path, but should not block memory conversion.
 			// Convert_unversioned_Time_to_unversioned_Time is an example of this logic.
-			if !isCopyOnly(function.CommentLines) || !isDirectlyConvertible(inMember.Type, outMember.Type) {
+			if !isCopyOnly(function.CommentLines) || !g.isFastConversion(inMemberType, outMemberType) {
 				args["function"] = function
-				sw.Do("if err := $.function|raw$(&in.$.inName$, &out.$.outName$, s); err != nil {\n", args)
+				sw.Do("if err := $.function|raw$(&in.$.name$, &out.$.name$, s); err != nil {\n", args)
 				sw.Do("return err\n", nil)
 				sw.Do("}\n", nil)
 				continue
@@ -1048,41 +958,106 @@ func (g *genConversion) doStruct(inType, outType *types.Type, sw *generator.Snip
 			continue
 		}
 
-		if isDirectlyConvertible(inMember.Type, outMember.Type) {
-			if isDirectlyAssignable(inMember.Type, outMember.Type) {
-				sw.Do("out.$.outName$ = in.$.inName$\n", args)
-			} else {
-				sw.Do("out.$.outName$ = $.outType|raw$(in.$.inName$)\n", args)
-			}
-			continue
-		}
-
 		switch inMemberType.Kind {
+		case types.Builtin:
+			if inMemberType == outMemberType {
+				sw.Do("out.$.name$ = in.$.name$\n", args)
+			} else {
+				sw.Do("out.$.name$ = $.outType|raw$(in.$.name$)\n", args)
+			}
 		case types.Map, types.Slice, types.Pointer:
-			sw.Do("if in.$.inName$ != nil {\n", args)
-			sw.Do("in, out := &in.$.inName$, &out.$.outName$\n", args)
+			if g.isDirectlyAssignable(inMemberType, outMemberType) {
+				sw.Do("out.$.name$ = in.$.name$\n", args)
+				continue
+			}
+
+			sw.Do("if in.$.name$ != nil {\n", args)
+			sw.Do("in, out := &in.$.name$, &out.$.name$\n", args)
 			g.generateFor(inMemberType, outMemberType, sw)
 			sw.Do("} else {\n", nil)
-			sw.Do("out.$.outName$ = nil\n", args)
+			sw.Do("out.$.name$ = nil\n", args)
 			sw.Do("}\n", nil)
-		default:
+		case types.Struct:
+			if g.isDirectlyAssignable(inMemberType, outMemberType) {
+				sw.Do("out.$.name$ = in.$.name$\n", args)
+				continue
+			}
+			conversionExists := true
 			if g.convertibleOnlyWithinPackage(inMemberType, outMemberType) {
-				sw.Do("if err := "+nameTmpl+"(&in.$.inName$, &out.$.outName$, s); err != nil {\n", args)
+				sw.Do("if err := "+nameTmpl+"(&in.$.name$, &out.$.name$, s); err != nil {\n", args)
+			} else {
+				args := argsFromType(inMemberType, outMemberType)
+				sw.Do("// FIXME: Provide conversion function to convert $.inType|raw$ to $.outType|raw$\n", args)
+				sw.Do("compileErrorOnMissingConversion()\n", nil)
+				conversionExists = false
+			}
+			if conversionExists {
 				sw.Do("return err\n", nil)
 				sw.Do("}\n", nil)
+			}
+		case types.Alias:
+			if isDirectlyAssignable(inMemberType, outMemberType) {
+				if inMemberType == outMemberType {
+					sw.Do("out.$.name$ = in.$.name$\n", args)
+				} else {
+					sw.Do("out.$.name$ = $.outType|raw$(in.$.name$)\n", args)
+				}
 			} else {
-				g.doCompileErrorOnMissingConversion(inMemberType, outMemberType, sw)
+				conversionExists := true
+				if g.convertibleOnlyWithinPackage(inMemberType, outMemberType) {
+					sw.Do("if err := "+nameTmpl+"(&in.$.name$, &out.$.name$, s); err != nil {\n", args)
+				} else {
+					args := argsFromType(inMemberType, outMemberType)
+					sw.Do("// FIXME: Provide conversion function to convert $.inType|raw$ to $.outType|raw$\n", args)
+					sw.Do("compileErrorOnMissingConversion()\n", nil)
+					conversionExists = false
+				}
+				if conversionExists {
+					sw.Do("return err\n", nil)
+					sw.Do("}\n", nil)
+				}
+			}
+		default:
+			conversionExists := true
+			if g.convertibleOnlyWithinPackage(inMemberType, outMemberType) {
+				sw.Do("if err := "+nameTmpl+"(&in.$.name$, &out.$.name$, s); err != nil {\n", args)
+			} else {
+				args := argsFromType(inMemberType, outMemberType)
+				sw.Do("// FIXME: Provide conversion function to convert $.inType|raw$ to $.outType|raw$\n", args)
+				sw.Do("compileErrorOnMissingConversion()\n", nil)
+				conversionExists = false
+			}
+			if conversionExists {
+				sw.Do("return err\n", nil)
+				sw.Do("}\n", nil)
 			}
 		}
 	}
 }
 
+func (g *genConversion) isFastConversion(inType, outType *types.Type) bool {
+	switch inType.Kind {
+	case types.Builtin:
+		return true
+	case types.Map, types.Slice, types.Pointer, types.Struct, types.Alias:
+		return g.isDirectlyAssignable(inType, outType)
+	default:
+		return false
+	}
+}
+
+func (g *genConversion) isDirectlyAssignable(inType, outType *types.Type) bool {
+	return unwrapAlias(inType) == unwrapAlias(outType)
+}
+
 func (g *genConversion) doPointer(inType, outType *types.Type, sw *generator.SnippetWriter) {
 	sw.Do("*out = new($.Elem|raw$)\n", outType)
 	if isDirectlyAssignable(inType.Elem, outType.Elem) {
-		sw.Do("**out = **in\n", nil)
-	} else if isDirectlyConvertible(inType.Elem, outType.Elem) {
-		sw.Do("**out = $.|raw$(**in)\n", outType.Elem)
+		if inType.Elem == outType.Elem {
+			sw.Do("**out = **in\n", nil)
+		} else {
+			sw.Do("**out = $.|raw$(**in)\n", outType.Elem)
+		}
 	} else {
 		conversionExists := true
 		if function, ok := g.preexists(inType.Elem, outType.Elem); ok {
@@ -1090,7 +1065,9 @@ func (g *genConversion) doPointer(inType, outType *types.Type, sw *generator.Sni
 		} else if g.convertibleOnlyWithinPackage(inType.Elem, outType.Elem) {
 			sw.Do("if err := "+nameTmpl+"(*in, *out, s); err != nil {\n", argsFromType(inType.Elem, outType.Elem))
 		} else {
-			g.doCompileErrorOnMissingConversion(inType.Elem, outType.Elem, sw)
+			args := argsFromType(inType.Elem, outType.Elem)
+			sw.Do("// FIXME: Provide conversion function to convert $.inType|raw$ to $.outType|raw$\n", args)
+			sw.Do("compileErrorOnMissingConversion()\n", nil)
 			conversionExists = false
 		}
 		if conversionExists {
@@ -1232,102 +1209,11 @@ func (g *genConversion) setZeroValue(outMember types.Member, sw *generator.Snipp
 	}
 }
 
-// isDirectlyAssignable mimics stdlib reflect.directlyAssignable.
 func isDirectlyAssignable(inType, outType *types.Type) bool {
-	return outType == inType
-}
-
-// isDirectlyConvertible mimics stdlib `reflect.convertOp(outType, inType) == reflect.cvtDirect`.
-func isDirectlyConvertible(inType, outType *types.Type) bool {
-	return haveIdenticalUnderlyingType(outType, inType, false)
-}
-
-// haveIndenticalType mimics stdlib reflect.haveIdenticalType.
-func haveIdenticalType(outType, inType *types.Type, cmpTags bool) bool {
-	if cmpTags {
-		return outType == inType
-	}
-
-	if outType.Name.Name != inType.Name.Name || outType.Kind != inType.Kind || outType.Name.Package != inType.Name.Package {
-		return false
-	}
-
-	return haveIdenticalUnderlyingType(outType, inType, false)
-}
-
-// haveIndenticalUnderlyingType mimics stdlib reflect.haveIndenticalUnderlyingType.
-func haveIdenticalUnderlyingType(outType, inType *types.Type, cmpTags bool) bool {
-	outType, inType = unwrapAlias(outType), unwrapAlias(inType)
-	if outType == inType {
-		return true
-	}
-	if inType.Kind != outType.Kind {
-		return false
-	}
-	switch inType.Kind {
-	case types.Builtin:
-		return inType.Name == outType.Name
-	case types.Struct:
-		if len(inType.Members) != len(outType.Members) {
-			return false
-		}
-		for i := range inType.Members {
-			if !(inType.Members[i].Name == outType.Members[i].Name &&
-				haveIdenticalType(inType.Members[i].Type, outType.Members[i].Type, cmpTags) &&
-				inType.Members[i].Embedded == outType.Members[i].Embedded) {
-				return false
-			}
-			if cmpTags && inType.Members[i].Tags != outType.Members[i].Tags {
-				return false
-			}
-		}
-		return true
-	case types.Map:
-		return haveIdenticalType(inType.Elem, outType.Elem, cmpTags) &&
-			haveIdenticalType(inType.Key, outType.Key, cmpTags)
-	case types.Slice:
-		return haveIdenticalType(inType.Elem, outType.Elem, cmpTags)
-	case types.Pointer:
-		return haveIdenticalType(inType.Elem, outType.Elem, cmpTags)
-	case types.Interface:
-		// Only consider empty interfaces to be equal; two interfaces might have the same
-		// methods but still need a run time conversion.
-		return len(inType.Methods) == 0 && len(outType.Methods) == 0
-	case types.Func:
-		outParams := outType.Signature.Parameters
-		if outType.Signature.Receiver != nil {
-			outParams = append([]*types.Type{outType.Signature.Receiver}, outParams...)
-		}
-		inParams := inType.Signature.Parameters
-		if inType.Signature.Receiver != nil {
-			inParams = append([]*types.Type{inType.Signature.Receiver}, inParams...)
-		}
-		if len(outParams) != len(inParams) || outType.Signature.Variadic != inType.Signature.Variadic {
-			return false
-		}
-		for i := range outParams {
-			if !haveIdenticalType(outParams[i], inParams[i], cmpTags) {
-				return false
-			}
-		}
-		if len(outType.Signature.Results) != len(inType.Signature.Results) {
-			return false
-		}
-		for i := range outType.Signature.Results {
-			if !haveIdenticalType(outType.Signature.Results[i], inType.Signature.Results[i], cmpTags) {
-				return false
-			}
-		}
-		return true
-	case types.Array:
-		// Not implemented because k8s.io/gengo/types.Type doesn't track array length.
-		return false
-	case types.Chan:
-		// Not implemented because k8s.io/gengo/types.Type doesn't track channel direction.
-		return false
-	default:
-		return false
-	}
+	// TODO: This should maybe check for actual assignability between the two
+	// types, rather than superficial traits that happen to indicate it is
+	// assignable in the ways we currently use this code.
+	return inType.IsAssignable() && (inType.IsPrimitive() || isSamePackage(inType, outType))
 }
 
 func isSamePackage(inType, outType *types.Type) bool {
