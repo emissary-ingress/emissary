@@ -54,7 +54,7 @@ func getDependencyDetails(nodeDependency nodeDependency, dependencyId string) (*
 	name, version := splitDependencyIdentifier(dependencyId)
 	license, ok := detectlicense.SpdxIdentifiers[nodeDependency.Licenses]
 	if !ok {
-		return nil, fmt.Errorf("there is no license information for SPDX Identifier '%s'", nodeDependency.Licenses)
+		return nil, fmt.Errorf("there is no license information for SPDX Identifier '%s' used by %s", nodeDependency.Licenses, dependencyId)
 	}
 
 	dependency := &dependencies.Dependency{
