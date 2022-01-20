@@ -112,6 +112,8 @@ message RolloutCommand {
   string namespace = 2;
   enum Action {
     PAUSE = 0;
+    RESUME = 1;
+    ABORT = 2;
   }
   Action action = 3;
 }
