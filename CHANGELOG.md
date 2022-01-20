@@ -11,7 +11,7 @@ Ambassador Edge Stack is a comprehensive, self-service solution for exposing,
 securing, and managing the boundary between end users and your Kubernetes services.
 The core of Ambassador Edge Stack is Emissary-ingress.
 
-*Note well:*
+**Note well:**
 
 - Ambassador Edge Stack provides all the capabilities of Emissary-ingress,
   as well as additional capabilities including:
@@ -44,12 +44,12 @@ For Emissary-ingress v2.0.0 - v2.0.3, you must supply an `AmbassadorHost` CRD.
 
 #### `Ingress` Resources and Namespaces
 
-In a future version of Emissary-ingress, *no sooner than Emissary-ingress v2.1.0*, TLS
+In a future version of Emissary-ingress, **no sooner than Emissary-ingress v2.1.0**, TLS
 secrets in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 #### Regex Matching
 
-In a future version of Emissary-ingress, *no sooner than Ambassador v2.1.0*, the `regex_type`
+In a future version of Emissary-ingress, **no sooner than Ambassador v2.1.0**, the `regex_type`
 and `regex_max_size` fields will be removed from the `ambassador` `Module`, and Ambassador Edge
 Stack will support only Envoy `safe_regex` matching. Note that `safe_regex` matching has been
 the default for all 1.X releases of Emissary-ingress.
@@ -66,7 +66,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 #### Zipkin Collector Versions
 
-In a future version of Emissary-ingress, *no sooner than Emissary-ingress v2.1.0*, support
+In a future version of Emissary-ingress, **no sooner than Emissary-ingress v2.1.0**, support
 for the [HTTP_JSON_V1] Zipkin collector version will be removed.
 
 This change is being made because the HTTP_JSON_V1 collector was deprecated in Envoy v1.12.0, then
@@ -80,8 +80,19 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.1.2] TBD
+[2.1.2]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.1.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+## 2.1.1 not issued
+
+*Emissary-ingress 2.1.1 was not issued; Ambassador Edge Stack 2.1.1 uses Emissary-ingress 2.1.0.*
+
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
+
+*Emissary-ingress 2.1.0 is not recommended; upgrade to 2.1.2 instead.*
 
 ### Emissary-ingress and Ambassador Edge Stack
 
@@ -149,8 +160,8 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 
 - Change: The `x.getambassador.io/v3alpha1` API version has become the `getambassador.io/v3alpha1`
   API version. The `Ambassador-` prefixes from `x.getambassador.io/v3alpha1` resources have been
-  removed for ease of migration. _Note that `getambassador.io/v3alpha1` is the only supported API
-  version for 2.0.4_ &mdash; full support for `getambassador.io/v2` will arrive soon in a later 2.X
+  removed for ease of migration. **Note that `getambassador.io/v3alpha1` is the only supported API
+  version for 2.0.4** &mdash; full support for `getambassador.io/v2` will arrive soon in a later 2.X
   version.
 
 - Feature: The `getambassador.io/v3alpha1` API version and the published chart and manifests have
@@ -180,7 +191,7 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 ## [2.0.3-ea] September 16, 2021
 [2.0.3-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.2-ea...v2.0.3-ea
 
-We're pleased to introduce Emissary-ingress 2.0.3 as a _developer preview_. The 2.X family
+We're pleased to introduce Emissary-ingress 2.0.3 as a **developer preview**. The 2.X family
 introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
 installations, reduce global configuration to better handle multitenant or multiorganizational
 installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a
@@ -204,7 +215,7 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 ## [2.0.2-ea] August 24, 2021
 [2.0.2-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.1-ea...v2.0.2-ea
 
-We're pleased to introduce Emissary-ingress 2.0.2 as a _developer preview_. The 2.X family
+We're pleased to introduce Emissary-ingress 2.0.2 as a **developer preview**. The 2.X family
 introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
 installations, reduce global configuration to better handle multitenant or multiorganizational
 installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a
@@ -225,7 +236,7 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 ## [2.0.1-ea] August 12, 2021
 [2.0.1-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.0-ea...v2.0.1-ea
 
-We're pleased to introduce Emissary-ingress 2.0.1 as a _developer preview_. The 2.X family
+We're pleased to introduce Emissary-ingress 2.0.1 as a **developer preview**. The 2.X family
 introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
 installations, reduce global configuration to better handle multitenant or multiorganizational
 installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a
@@ -256,7 +267,7 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 ## [2.0.0-ea] June 24, 2021
 [2.0.0-ea]: https://github.com/emissary-ingress/emissary/compare/v1.14.2...v2.0.0-ea
 
-We're pleased to introduce Emissary-ingress 2.0.0 as a _developer preview_. The 2.X family
+We're pleased to introduce Emissary-ingress 2.0.0 as a **developer preview**. The 2.X family
 introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
 installations, reduce global configuration to better handle multitenant or multiorganizational
 installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a
@@ -273,9 +284,8 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 
 - Feature: The new `AmbassadorListener` CRD defines where and how to listen for requests from the
   network, and which `AmbassadorHost` definitions should be used to process those requests. Note
-  that the `AmbassadorListener` CRD is _mandatory_ and consolidates <i>all</i> port configuration;
-  see the <a href="../topics/running/listener">`AmbassadorListener` documentation</a> for more
-  details.
+  that the `AmbassadorListener` CRD is **mandatory** and consolidates *all* port configuration; see
+  the <a href="../topics/running/listener">`AmbassadorListener` documentation</a> for more details.
 
 - Feature: Where `AmbassadorMapping`'s `host` field is either an exact match or (with `host_regex`
   set) a regex, the new `hostname` element is always a DNS glob. Use `hostname` instead of `host`
@@ -495,7 +505,7 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-*Note*: Support for the deprecated `v2alpha` `protocol_version` has been removed from the `AuthService` and `RateLimitService`.
+**Note**: Support for the deprecated `v2alpha` `protocol_version` has been removed from the `AuthService` and `RateLimitService`.
 
 - Feature: Added support for the [Mapping AuthService setting] `auth_context_extensions`, allowing supplying custom per-mapping information to external auth services (thanks, [Giridhar Pathak](https://github.com/gpathak)!).
 - Feature: Added support in ambassador-agent for reporting [Argo Rollouts] and [Argo Applications] to Ambassador Cloud
@@ -851,7 +861,7 @@ update the `Status` of a `Mapping` unless you explicitly set
 tooling that relies on `Mapping` status updates, we do not recommend setting
 `AMBASSADOR_UPDATE_MAPPING_STATUS`.
 
-*In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use
+**In Ambassador 1.7**, TLS secrets in `Ingress` resources will not be able to use
 `.namespace` suffixes to cross namespaces.
 
 ### Ambassador Edge Stack only
