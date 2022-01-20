@@ -1785,16 +1785,24 @@ func (in *MappingSpec) DeepCopyInto(out *MappingSpec) {
 	}
 	if in.AddRequestHeaders != nil {
 		in, out := &in.AddRequestHeaders, &out.AddRequestHeaders
-		*out = make(map[string]AddedHeader, len(*in))
-		for key, val := range *in {
-			(*out)[key] = *val.DeepCopy()
+		*out = new(map[string]AddedHeader)
+		if **in != nil {
+			in, out := *in, *out
+			*out = make(map[string]AddedHeader, len(*in))
+			for key, val := range *in {
+				(*out)[key] = *val.DeepCopy()
+			}
 		}
 	}
 	if in.AddResponseHeaders != nil {
 		in, out := &in.AddResponseHeaders, &out.AddResponseHeaders
-		*out = make(map[string]AddedHeader, len(*in))
-		for key, val := range *in {
-			(*out)[key] = *val.DeepCopy()
+		*out = new(map[string]AddedHeader)
+		if **in != nil {
+			in, out := *in, *out
+			*out = make(map[string]AddedHeader, len(*in))
+			for key, val := range *in {
+				(*out)[key] = *val.DeepCopy()
+			}
 		}
 	}
 	if in.AddLinkerdHeaders != nil {
@@ -1890,13 +1898,21 @@ func (in *MappingSpec) DeepCopyInto(out *MappingSpec) {
 	}
 	if in.RemoveRequestHeaders != nil {
 		in, out := &in.RemoveRequestHeaders, &out.RemoveRequestHeaders
-		*out = make([]string, len(*in))
-		copy(*out, *in)
+		*out = new([]string)
+		if **in != nil {
+			in, out := *in, *out
+			*out = make([]string, len(*in))
+			copy(*out, *in)
+		}
 	}
 	if in.RemoveResponseHeaders != nil {
 		in, out := &in.RemoveResponseHeaders, &out.RemoveResponseHeaders
-		*out = make([]string, len(*in))
-		copy(*out, *in)
+		*out = new([]string)
+		if **in != nil {
+			in, out := *in, *out
+			*out = make([]string, len(*in))
+			copy(*out, *in)
+		}
 	}
 	if in.Rewrite != nil {
 		in, out := &in.Rewrite, &out.Rewrite
