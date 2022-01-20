@@ -27,10 +27,10 @@ jobs:
         run: |
           make push-manifests
       - name: make publish-docs-yaml
+        id: step-publish-yaml
         run: |
           make publish-docs-yaml
-          ver_yaml_version=`grep 'version:' docs/yaml/versions.yml | sed 's/version://g'`
-          echo "RELEASED_VERSION=${ver_yaml_version}" >> $GITHUB_ENV
+          echo "::set-output name=published_version::$(go run ./tools/src/goversion)"
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
@@ -38,7 +38,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
-          success_text: 'Manifests successfully published for ${env.RELEASED_VERSION}'
+          success_text: 'Manifests successfully published for ${{steps.step-publish-yaml.published_version}}'
           failure_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build failed'
           cancelled_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build was cancelled'
           fields: |

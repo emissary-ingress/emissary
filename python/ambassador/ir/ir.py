@@ -46,7 +46,7 @@ from .irtracing import IRTracing
 from .irtlscontext import IRTLSContext, TLSContextFactory
 from .irserviceresolver import IRServiceResolver, IRServiceResolverFactory, SvcEndpointSet
 
-from ..VERSION import Version, Build
+from ..VERSION import Version, Commit
 
 #############################################################################
 ## ir.py -- the Ambassador Intermediate Representation (IR)
@@ -134,7 +134,7 @@ class IR:
         # this.
         to_invalidate: List[str] = []
         invalidate_groups_for: List[str] = []
-        
+
         # OK. If we don't have a cache, just skip all this crap.
         if cache is not None:
             # We have a cache. Start by assuming that we'll need to reset it,
@@ -235,7 +235,7 @@ class IR:
         assert self.secret_handler, "Ambassador.IR requires a SecretHandler at initialization"
 
         self.logger.debug("IR __init__:")
-        self.logger.debug("IR: Version         %s built from %s on %s" % (Version, Build.git.commit, Build.git.branch))
+        self.logger.debug("IR: Version         %s built from commit %s" % (Version, Commit))
         self.logger.debug("IR: AMBASSADOR_ID   %s" % self.ambassador_id)
         self.logger.debug("IR: Namespace       %s" % self.ambassador_namespace)
         self.logger.debug("IR: Nodename        %s" % self.ambassador_nodename)

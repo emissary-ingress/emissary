@@ -28,14 +28,16 @@ main() {
 		errUsage "does not look like a REPO:VERSION pair: ${to}"
 	fi
 	toVersion=${to##*:}
+	if [[ $toVersion == v* ]]; then
+		errUsage "Docker tags should not have a 'v' suffix: ${to}"
+	fi
 
 	tmpdir=$(mktemp -d -t docker-promote.XXXXXXXXXX)
 	trap 'rm -rf "$tmpdir"' EXIT
 	cat >"$tmpdir/Dockerfile" <<-EOF
 		FROM ${from}
 		RUN find / -name ambassador.version -exec sed -i \\
-		    -e 's/^RELEASE_VERSION=.*/RELEASE_VERSION="${toVersion}"/' \\
-		    -e 's/^BUILD_VERSION=.*/BUILD_VERSION="${toVersion}"/' \\
+		    -e '1s/.*/${toVersion}/' \\
 		    -- {} +
 	EOF
 

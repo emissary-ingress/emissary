@@ -62,4 +62,10 @@ build-aux/version-hack.stamp.mk: manifests/emissary/emissary-defaultns.yaml
 build-aux/version-hack.stamp.mk: manifests/emissary/emissary-emissaryns.yaml
 build-aux/version-hack.stamp.mk: $(tools/write-ifchanged)
 	@ls -l $^ | sed 's/^/#/' | $(tools/write-ifchanged) $@
+# The "-include" directive (compared to plain "include") considers it
+# non-fatal if the file can't be included (because it doesn't exist
+# yet).  Then, when Make sees that it doesn't exist yet, it will say
+# "oh, but I know how to create it", and then create it, and then it
+# will restart itself in order to re-parse everything with the newly
+# created file.
 -include build-aux/version-hack.stamp.mk

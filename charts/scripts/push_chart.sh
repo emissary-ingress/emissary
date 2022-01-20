@@ -26,7 +26,10 @@ if ! command -v helm 2> /dev/null ; then
     ./get_helm.sh --version v3.4.1
     rm -f get_helm.sh
 fi
-thisversion=$(get_chart_version ${chart_dir})
+if [[ ${CHART_VERSION:-} != v7.* ]]; then
+    abort "CHART_VERSION must be set to a 'v7.*' string"
+fi
+thisversion=${CHART_VERSION#v}
 
 repo_key=
 if [[ -n "${REPO_KEY}" ]] ; then

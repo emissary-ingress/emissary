@@ -14,7 +14,10 @@ if [[ -z "${CHART_NAME}" ]] ; then
 fi
 CHART_DIR="${TOP_DIR}/${CHART_NAME}"
 
-chart_version=$(get_chart_version ${CHART_DIR})
+if [[ ${CHART_VERSION:-} != v7.* ]]; then
+    abort "CHART_VERSION must be set to a 'v7.*' string"
+fi
+chart_version=${CHART_VERSION#v}
 if [[ $chart_version = *-rc.* ]] ; then
     chart_version=${chart_version%-*}
 fi
