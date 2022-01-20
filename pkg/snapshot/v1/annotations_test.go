@@ -155,7 +155,7 @@ prefix: /blah/`
 						"spec": map[string]interface{}{
 							"prefix": "/blah/",
 						},
-						"errors": "spec.service in body is required\n",
+						"errors": "spec.service in body is required",
 					},
 				},
 			},
