@@ -50,6 +50,7 @@ func run(cmd *cobra.Command, args []string) error {
 		snapshotURL = fmt.Sprintf(DefaultSnapshotURLFmt, entrypoint.ExternalSnapshotPort)
 	}
 
+	go ambAgent.ListenForCommands(ctx)
 	if err := ambAgent.Watch(ctx, snapshotURL); err != nil {
 		return err
 	}

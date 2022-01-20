@@ -104,4 +104,14 @@ message Directive {
 message Command {
   // Log this message if present
   string message = 1;
+  optional RolloutCommand rolloutCommand = 2;
+}
+
+message RolloutCommand {
+  string name = 1;
+  string namespace = 2;
+  enum Action {
+    PAUSE = 0;
+  }
+  Action action = 3;
 }
