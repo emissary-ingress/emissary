@@ -52,11 +52,11 @@ func TestJsonOutput(t *testing.T) {
 }
 
 func getFileContents(t *testing.T, path string) []byte {
-	expErr, err := os.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil && err != io.EOF {
 		require.NoError(t, err)
 	}
-	return expErr
+	return content
 }
 
 func getDependencyInfoFromFile(t *testing.T, path string) *dependencies.DependencyInfo {
