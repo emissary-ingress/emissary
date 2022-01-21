@@ -35,6 +35,29 @@ items:
     prevVersion: 2.1.0
     date: 'TBD'
     notes:
+      - title: Fix support for for v2 Mappings with CORS
+        type: bugfix
+        body: >-
+          Emissary-ingress 2.1.0 generated invalid Envoy configuration for
+          <code>getambassador.io/v2</code> <code>Mappings</code> that set
+          <code>spec.cors.origins</code> to a string rather than a list of strings; this has been
+          fixed, and these <code>Mappings<code> should once again function correctly.
+
+      - title: Correctly handle canary Mapping weights when reconfiguring
+        type: bugfix
+        body: >-
+          Changes to the <code>weight</code> of <code>Mapping</code> in a canary group
+          will now always be correctly managed during reconfiguration; such changes could
+          have been missed in earlier releases.
+        docs: topics/using/canary/#the-weight-attribute
+
+      - title: Correctly handle empty rewrite in a Mapping
+        type: bugfix
+        body: >-
+          Using <code>rewrite: ""</code> in a <code>Mapping</code> is correctly handled
+          to mean "do not rewrite the path at all".
+        docs: topics/using/rewrites
+
       - title: Docker BuildKit always used for builds
         type: change
         body: >-
@@ -51,6 +74,21 @@ items:
         - title: 3709
           link: https://github.com/emissary-ingress/emissary/issues/3709
         docs: https://github.com/emissary-ingress/emissary/issues/3709
+
+      - title: Fix overriding global settings for adding or removing headers
+        type: bugfix
+        body: >-
+          If the <code>ambassador</code> <code>Module</code> sets a global default for
+          <code>add_request_headers</code>, <code>add_response_headers</code>,
+          <code>remove_request_headers</code>, or <code>remove_response_headers</code>, it is often
+          desirable to be able to turn off that setting locally for a specific <code>Mapping</code>.
+          For several releases this has not been possible for <code>Mappings</code> that are native
+          Kubernetes resources (as opposed to annotations), as an empty value ("mask the global
+          default") was erroneously considered to be equivalent to unset ("inherit the global
+          default").  This is now fixed.
+        docs: topics/using/defaults/
+
+      # next changelog item here
 
   - version: 2.1.1
     date: 'N/A'

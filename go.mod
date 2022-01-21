@@ -89,7 +89,7 @@ require (
 	k8s.io/client-go v0.20.2
 	k8s.io/code-generator v0.20.2
 	k8s.io/klog/v2 v2.10.0
-	k8s.io/kube-openapi v0.0.0-20201113171705-d219536bb9fd
+	k8s.io/kube-openapi v0.0.0-20210304212320-e467f52fd9db
 	k8s.io/kubectl v0.20.2
 	k8s.io/kubernetes v1.20.2
 	k8s.io/metrics v0.20.2
@@ -170,8 +170,12 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.0.2 // indirect
 )
 
-// We've got some bug-fixes that we need for conversion-gen.
-replace k8s.io/code-generator v0.20.2 => github.com/datawire/code-generator v0.20.5-rc.0.0.20211202225009-42280fcbc4f0
+// We've got some bug-fixes that we need for conversion-gen and
+// controller-gen.
+replace (
+	k8s.io/code-generator v0.20.2 => github.com/emissary-ingress/code-generator v0.20.5-rc.0.0.20220120231034-6c7797b9220f
+	sigs.k8s.io/controller-tools v0.5.0 => github.com/emissary-ingress/controller-tools v0.5.1-0.20220120234851-b97c2515f1c2
+)
 
 // Because we (unfortunately) need to require k8s.io/kubernetes, which
 // is (unfortunately) managed in a way that makes it hostile to being

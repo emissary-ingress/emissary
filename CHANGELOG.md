@@ -85,11 +85,28 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Bugfix: Emissary-ingress 2.1.0 generated invalid Envoy configuration for `getambassador.io/v2`
+  `Mappings` that set `spec.cors.origins` to a string rather than a list of strings; this has been
+  fixed, and these `Mappings` should once again function correctly.
+
+- Bugfix: Changes to the `weight` of `Mapping` in a canary group will now always be correctly
+  managed during reconfiguration; such changes could have been missed in earlier releases.
+
+- Bugfix: Using `rewrite: ""` in a `Mapping` is correctly handled to mean "do not rewrite the path
+  at all".
+
 - Change: Docker BuildKit is enabled for all Emissary builds. Additionally, the Go build cache is
   fully enabled when building images, speeding up repeated builds.
 
 - Bugfix: Any `Mapping` that uses the `host_redirect` field is now properly discovered and used.
   Thanks  to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix!  ([3709])
+
+- Bugfix: If the `ambassador` `Module` sets a global default for `add_request_headers`,
+  `add_response_headers`, `remove_request_headers`, or `remove_response_headers`, it is often
+  desirable to be able to turn off that setting locally for a specific `Mapping`. For several
+  releases this has not been possible for `Mappings` that are native Kubernetes resources (as
+  opposed to annotations), as an empty value ("mask the global default") was erroneously considered
+  to be equivalent to unset ("inherit the global default").  This is now fixed.
 
 [3709]: https://github.com/emissary-ingress/emissary/issues/3709
 

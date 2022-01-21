@@ -69,6 +69,7 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
     strategy:
+      fail-fast: false
       matrix:
         test: [envoy-ah, envoy-v2-ah, envoy-ip, envoy-v2-ip, envoy-qz, envoy-v2-qz, kat, integration]
     name: pytest-${{ matrix.test }}

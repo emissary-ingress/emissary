@@ -212,6 +212,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*DomainMap)(nil), (*v3alpha1.DomainMap)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v2_DomainMap_To_v3alpha1_DomainMap(a.(*DomainMap), b.(*v3alpha1.DomainMap), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*v3alpha1.DomainMap)(nil), (*DomainMap)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v3alpha1_DomainMap_To_v2_DomainMap(a.(*v3alpha1.DomainMap), b.(*DomainMap), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*DriverConfig)(nil), (*v3alpha1.DriverConfig)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v2_DriverConfig_To_v3alpha1_DriverConfig(a.(*DriverConfig), b.(*v3alpha1.DriverConfig), scope)
 	}); err != nil {
@@ -272,6 +282,26 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*HostPhase)(nil), (*v3alpha1.HostPhase)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v2_HostPhase_To_v3alpha1_HostPhase(a.(*HostPhase), b.(*v3alpha1.HostPhase), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*v3alpha1.HostPhase)(nil), (*HostPhase)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v3alpha1_HostPhase_To_v2_HostPhase(a.(*v3alpha1.HostPhase), b.(*HostPhase), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*HostState)(nil), (*v3alpha1.HostState)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v2_HostState_To_v3alpha1_HostState(a.(*HostState), b.(*v3alpha1.HostState), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*v3alpha1.HostState)(nil), (*HostState)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v3alpha1_HostState_To_v2_HostState(a.(*v3alpha1.HostState), b.(*HostState), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*HostStatus)(nil), (*v3alpha1.HostStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v2_HostStatus_To_v3alpha1_HostStatus(a.(*HostStatus), b.(*v3alpha1.HostStatus), scope)
 	}); err != nil {
@@ -279,6 +309,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*v3alpha1.HostStatus)(nil), (*HostStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v3alpha1_HostStatus_To_v2_HostStatus(a.(*v3alpha1.HostStatus), b.(*HostStatus), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*HostTLSCertificateSource)(nil), (*v3alpha1.HostTLSCertificateSource)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v2_HostTLSCertificateSource_To_v3alpha1_HostTLSCertificateSource(a.(*HostTLSCertificateSource), b.(*v3alpha1.HostTLSCertificateSource), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*v3alpha1.HostTLSCertificateSource)(nil), (*HostTLSCertificateSource)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v3alpha1_HostTLSCertificateSource_To_v2_HostTLSCertificateSource(a.(*v3alpha1.HostTLSCertificateSource), b.(*HostTLSCertificateSource), scope)
 	}); err != nil {
 		return err
 	}
@@ -422,6 +462,36 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*MappingLabelGroup)(nil), (*v3alpha1.MappingLabelGroup)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v2_MappingLabelGroup_To_v3alpha1_MappingLabelGroup(a.(*MappingLabelGroup), b.(*v3alpha1.MappingLabelGroup), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*v3alpha1.MappingLabelGroup)(nil), (*MappingLabelGroup)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v3alpha1_MappingLabelGroup_To_v2_MappingLabelGroup(a.(*v3alpha1.MappingLabelGroup), b.(*MappingLabelGroup), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*MappingLabelGroupsArray)(nil), (*v3alpha1.MappingLabelGroupsArray)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v2_MappingLabelGroupsArray_To_v3alpha1_MappingLabelGroupsArray(a.(*MappingLabelGroupsArray), b.(*v3alpha1.MappingLabelGroupsArray), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*v3alpha1.MappingLabelGroupsArray)(nil), (*MappingLabelGroupsArray)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v3alpha1_MappingLabelGroupsArray_To_v2_MappingLabelGroupsArray(a.(*v3alpha1.MappingLabelGroupsArray), b.(*MappingLabelGroupsArray), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*MappingLabelsArray)(nil), (*v3alpha1.MappingLabelsArray)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v2_MappingLabelsArray_To_v3alpha1_MappingLabelsArray(a.(*MappingLabelsArray), b.(*v3alpha1.MappingLabelsArray), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*v3alpha1.MappingLabelsArray)(nil), (*MappingLabelsArray)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v3alpha1_MappingLabelsArray_To_v2_MappingLabelsArray(a.(*v3alpha1.MappingLabelsArray), b.(*MappingLabelsArray), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*MappingList)(nil), (*v3alpha1.MappingList)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v2_MappingList_To_v3alpha1_MappingList(a.(*MappingList), b.(*v3alpha1.MappingList), scope)
 	}); err != nil {
@@ -489,6 +559,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*v3alpha1.PreviewURLSpec)(nil), (*PreviewURLSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v3alpha1_PreviewURLSpec_To_v2_PreviewURLSpec(a.(*v3alpha1.PreviewURLSpec), b.(*PreviewURLSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*PreviewURLType)(nil), (*v3alpha1.PreviewURLType)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v2_PreviewURLType_To_v3alpha1_PreviewURLType(a.(*PreviewURLType), b.(*v3alpha1.PreviewURLType), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*v3alpha1.PreviewURLType)(nil), (*PreviewURLType)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v3alpha1_PreviewURLType_To_v2_PreviewURLType(a.(*v3alpha1.PreviewURLType), b.(*PreviewURLType), scope)
 	}); err != nil {
 		return err
 	}
@@ -697,11 +777,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.AddConversionFunc((*MappingLabelGroupsArray)(nil), (*v3alpha1.MappingLabelGroupsArray)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v2_MappingLabelGroupsArray_To_v3alpha1_MappingLabelGroupsArray(a.(*MappingLabelGroupsArray), b.(*v3alpha1.MappingLabelGroupsArray), scope)
-	}); err != nil {
-		return err
-	}
 	if err := s.AddConversionFunc((*MappingLabelSpecifier)(nil), (*v3alpha1.MappingLabelSpecifier)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v2_MappingLabelSpecifier_To_v3alpha1_MappingLabelSpecifier(a.(*MappingLabelSpecifier), b.(*v3alpha1.MappingLabelSpecifier), scope)
 	}); err != nil {
@@ -747,11 +822,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.AddConversionFunc((*v3alpha1.MappingLabelGroupsArray)(nil), (*MappingLabelGroupsArray)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v3alpha1_MappingLabelGroupsArray_To_v2_MappingLabelGroupsArray(a.(*v3alpha1.MappingLabelGroupsArray), b.(*MappingLabelGroupsArray), scope)
-	}); err != nil {
-		return err
-	}
 	if err := s.AddConversionFunc((*v3alpha1.MappingLabelSpecifier)(nil), (*MappingLabelSpecifier)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v3alpha1_MappingLabelSpecifier_To_v2_MappingLabelSpecifier(a.(*v3alpha1.MappingLabelSpecifier), b.(*MappingLabelSpecifier), scope)
 	}); err != nil {
@@ -776,10 +846,7 @@ func RegisterConversions(s *runtime.Scheme) error {
 }
 
 func autoConvert_v2_ACMEProviderSpec_To_v3alpha1_ACMEProviderSpec(in *ACMEProviderSpec, out *v3alpha1.ACMEProviderSpec, s conversion.Scope) error {
-	out.Authority = in.Authority
-	out.Email = in.Email
-	out.PrivateKeySecret = in.PrivateKeySecret
-	out.Registration = in.Registration
+	*out = v3alpha1.ACMEProviderSpec(*in)
 	return nil
 }
 
@@ -789,10 +856,7 @@ func Convert_v2_ACMEProviderSpec_To_v3alpha1_ACMEProviderSpec(in *ACMEProviderSp
 }
 
 func autoConvert_v3alpha1_ACMEProviderSpec_To_v2_ACMEProviderSpec(in *v3alpha1.ACMEProviderSpec, out *ACMEProviderSpec, s conversion.Scope) error {
-	out.Authority = in.Authority
-	out.Email = in.Email
-	out.PrivateKeySecret = in.PrivateKeySecret
-	out.Registration = in.Registration
+	*out = ACMEProviderSpec(*in)
 	return nil
 }
 
@@ -815,10 +879,7 @@ func autoConvert_v3alpha1_AddedHeader_To_v2_AddedHeader(in *v3alpha1.AddedHeader
 }
 
 func autoConvert_v2_AdditionalLogHeaders_To_v3alpha1_AdditionalLogHeaders(in *AdditionalLogHeaders, out *v3alpha1.AdditionalLogHeaders, s conversion.Scope) error {
-	out.HeaderName = in.HeaderName
-	out.DuringRequest = in.DuringRequest
-	out.DuringResponse = in.DuringResponse
-	out.DuringTrailer = in.DuringTrailer
+	*out = v3alpha1.AdditionalLogHeaders(*in)
 	return nil
 }
 
@@ -828,10 +889,7 @@ func Convert_v2_AdditionalLogHeaders_To_v3alpha1_AdditionalLogHeaders(in *Additi
 }
 
 func autoConvert_v3alpha1_AdditionalLogHeaders_To_v2_AdditionalLogHeaders(in *v3alpha1.AdditionalLogHeaders, out *AdditionalLogHeaders, s conversion.Scope) error {
-	out.HeaderName = in.HeaderName
-	out.DuringRequest = in.DuringRequest
-	out.DuringResponse = in.DuringResponse
-	out.DuringTrailer = in.DuringTrailer
+	*out = AdditionalLogHeaders(*in)
 	return nil
 }
 
@@ -840,10 +898,26 @@ func Convert_v3alpha1_AdditionalLogHeaders_To_v2_AdditionalLogHeaders(in *v3alph
 	return autoConvert_v3alpha1_AdditionalLogHeaders_To_v2_AdditionalLogHeaders(in, out, s)
 }
 
+func autoConvert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in *AmbassadorID, out *v3alpha1.AmbassadorID, s conversion.Scope) error {
+	*out = v3alpha1.AmbassadorID(*in)
+	return nil
+}
+
+func autoConvert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in *v3alpha1.AmbassadorID, out *AmbassadorID, s conversion.Scope) error {
+	*out = AmbassadorID(*in)
+	return nil
+}
+
 func autoConvert_v2_AuthService_To_v3alpha1_AuthService(in *AuthService, out *v3alpha1.AuthService, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v2_AuthServiceSpec_To_v3alpha1_AuthServiceSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v2_AuthServiceSpec_To_v3alpha1_AuthServiceSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -854,9 +928,15 @@ func Convert_v2_AuthService_To_v3alpha1_AuthService(in *AuthService, out *v3alph
 }
 
 func autoConvert_v3alpha1_AuthService_To_v2_AuthService(in *v3alpha1.AuthService, out *AuthService, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v3alpha1_AuthServiceSpec_To_v2_AuthServiceSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v3alpha1_AuthServiceSpec_To_v2_AuthServiceSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -867,8 +947,7 @@ func Convert_v3alpha1_AuthService_To_v2_AuthService(in *v3alpha1.AuthService, ou
 }
 
 func autoConvert_v2_AuthServiceIncludeBody_To_v3alpha1_AuthServiceIncludeBody(in *AuthServiceIncludeBody, out *v3alpha1.AuthServiceIncludeBody, s conversion.Scope) error {
-	out.MaxBytes = in.MaxBytes
-	out.AllowPartial = in.AllowPartial
+	*out = v3alpha1.AuthServiceIncludeBody(*in)
 	return nil
 }
 
@@ -878,8 +957,7 @@ func Convert_v2_AuthServiceIncludeBody_To_v3alpha1_AuthServiceIncludeBody(in *Au
 }
 
 func autoConvert_v3alpha1_AuthServiceIncludeBody_To_v2_AuthServiceIncludeBody(in *v3alpha1.AuthServiceIncludeBody, out *AuthServiceIncludeBody, s conversion.Scope) error {
-	out.MaxBytes = in.MaxBytes
-	out.AllowPartial = in.AllowPartial
+	*out = AuthServiceIncludeBody(*in)
 	return nil
 }
 
@@ -889,17 +967,23 @@ func Convert_v3alpha1_AuthServiceIncludeBody_To_v2_AuthServiceIncludeBody(in *v3
 }
 
 func autoConvert_v2_AuthServiceList_To_v3alpha1_AuthServiceList(in *AuthServiceList, out *v3alpha1.AuthServiceList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]v3alpha1.AuthService, len(*in))
-		for i := range *in {
-			if err := Convert_v2_AuthService_To_v3alpha1_AuthService(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.AuthService, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_AuthService_To_v3alpha1_AuthService(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -910,17 +994,23 @@ func Convert_v2_AuthServiceList_To_v3alpha1_AuthServiceList(in *AuthServiceList,
 }
 
 func autoConvert_v3alpha1_AuthServiceList_To_v2_AuthServiceList(in *v3alpha1.AuthServiceList, out *AuthServiceList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]AuthService, len(*in))
-		for i := range *in {
-			if err := Convert_v3alpha1_AuthService_To_v2_AuthService(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]AuthService, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_AuthService_To_v2_AuthService(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -931,120 +1021,235 @@ func Convert_v3alpha1_AuthServiceList_To_v2_AuthServiceList(in *v3alpha1.AuthSer
 }
 
 func autoConvert_v2_AuthServiceSpec_To_v3alpha1_AuthServiceSpec(in *AuthServiceSpec, out *v3alpha1.AuthServiceSpec, s conversion.Scope) error {
-	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.AuthService = in.AuthService
-	out.PathPrefix = in.PathPrefix
-	// WARNING: in.TLS requires manual conversion: inconvertible types (*./pkg/api/getambassador.io/v2.BoolOrString vs string)
-	out.Proto = in.Proto
-	if in.Timeout != nil {
+	if true {
+		in, out := &in.AuthService, &out.AuthService
+		*out = *in
+	}
+	if true {
+		in, out := &in.PathPrefix, &out.PathPrefix
+		*out = *in
+	}
+	// INFO: in.TLS opted out of conversion generation via +k8s:conversion-gen=false
+	if true {
+		in, out := &in.Proto, &out.Proto
+		*out = *in
+	}
+	if true {
 		in, out := &in.Timeout, &out.Timeout
-		*out = new(v3alpha1.MillisecondDuration)
-		**out = v3alpha1.MillisecondDuration(**in)
-	} else {
-		out.Timeout = nil
-	}
-	out.AllowedRequestHeaders = in.AllowedRequestHeaders
-	out.AllowedAuthorizationHeaders = in.AllowedAuthorizationHeaders
-	out.AddAuthHeaders = in.AddAuthHeaders
-	out.AllowRequestBody = in.AllowRequestBody
-	out.AddLinkerdHeaders = in.AddLinkerdHeaders
-	out.FailureModeAllow = in.FailureModeAllow
-	if in.IncludeBody != nil {
-		in, out := &in.IncludeBody, &out.IncludeBody
-		*out = new(v3alpha1.AuthServiceIncludeBody)
-		**out = v3alpha1.AuthServiceIncludeBody(**in)
-	} else {
-		out.IncludeBody = nil
-	}
-	if in.StatusOnError != nil {
-		in, out := &in.StatusOnError, &out.StatusOnError
-		*out = new(v3alpha1.AuthServiceStatusOnError)
-		**out = v3alpha1.AuthServiceStatusOnError(**in)
-	} else {
-		out.StatusOnError = nil
-	}
-	out.ProtocolVersion = in.ProtocolVersion
-	out.StatsName = in.V3StatsName
-	if in.V3CircuitBreakers != nil {
-		in, out := &in.V3CircuitBreakers, &out.CircuitBreakers
-		*out = make([]*v3alpha1.CircuitBreaker, len(*in))
-		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(v3alpha1.CircuitBreaker)
-				**out = v3alpha1.CircuitBreaker(**in)
-			} else {
-				(*in)[i] = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v2_MillisecondDuration_To_v3alpha1_MillisecondDuration(in, out, s); err != nil {
+				return err
 			}
 		}
-	} else {
-		out.CircuitBreakers = nil
+	}
+	if true {
+		in, out := &in.AllowedRequestHeaders, &out.AllowedRequestHeaders
+		*out = *in
+	}
+	if true {
+		in, out := &in.AllowedAuthorizationHeaders, &out.AllowedAuthorizationHeaders
+		*out = *in
+	}
+	if true {
+		in, out := &in.AddAuthHeaders, &out.AddAuthHeaders
+		*out = *in
+	}
+	if true {
+		in, out := &in.AllowRequestBody, &out.AllowRequestBody
+		*out = *in
+	}
+	if true {
+		in, out := &in.AddLinkerdHeaders, &out.AddLinkerdHeaders
+		*out = *in
+	}
+	if true {
+		in, out := &in.FailureModeAllow, &out.FailureModeAllow
+		*out = *in
+	}
+	if true {
+		in, out := &in.IncludeBody, &out.IncludeBody
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.AuthServiceIncludeBody)
+			in, out := *in, *out
+			if err := Convert_v2_AuthServiceIncludeBody_To_v3alpha1_AuthServiceIncludeBody(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.StatusOnError, &out.StatusOnError
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.AuthServiceStatusOnError)
+			in, out := *in, *out
+			if err := Convert_v2_AuthServiceStatusOnError_To_v3alpha1_AuthServiceStatusOnError(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.ProtocolVersion, &out.ProtocolVersion
+		*out = *in
+	}
+	if true {
+		in, out := &in.V3StatsName, &out.StatsName
+		*out = *in
+	}
+	if true {
+		in, out := &in.V3CircuitBreakers, &out.CircuitBreakers
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]*v3alpha1.CircuitBreaker, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if *in == nil {
+					*out = nil
+				} else {
+					*out = new(v3alpha1.CircuitBreaker)
+					in, out := *in, *out
+					if err := Convert_v2_CircuitBreaker_To_v3alpha1_CircuitBreaker(in, out, s); err != nil {
+						return err
+					}
+				}
+			}
+		}
 	}
 	return nil
 }
 
 func autoConvert_v3alpha1_AuthServiceSpec_To_v2_AuthServiceSpec(in *v3alpha1.AuthServiceSpec, out *AuthServiceSpec, s conversion.Scope) error {
-	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.AuthService = in.AuthService
-	out.PathPrefix = in.PathPrefix
-	if err := Convert_string_To_Pointer_v2_BoolOrString(&in.TLS, &out.TLS, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AuthService, &out.AuthService
+		*out = *in
 	}
-	out.Proto = in.Proto
-	if in.Timeout != nil {
+	if true {
+		in, out := &in.PathPrefix, &out.PathPrefix
+		*out = *in
+	}
+	if true {
+		in, out := &in.TLS, &out.TLS
+		if err := Convert_string_To_Pointer_v2_BoolOrString(in, out, s); err != nil {
+			return err
+		}
+	}
+	if true {
+		in, out := &in.Proto, &out.Proto
+		*out = *in
+	}
+	if true {
 		in, out := &in.Timeout, &out.Timeout
-		*out = new(MillisecondDuration)
-		**out = MillisecondDuration(**in)
-	} else {
-		out.Timeout = nil
-	}
-	out.AllowedRequestHeaders = in.AllowedRequestHeaders
-	out.AllowedAuthorizationHeaders = in.AllowedAuthorizationHeaders
-	out.AddAuthHeaders = in.AddAuthHeaders
-	out.AllowRequestBody = in.AllowRequestBody
-	out.AddLinkerdHeaders = in.AddLinkerdHeaders
-	out.FailureModeAllow = in.FailureModeAllow
-	if in.IncludeBody != nil {
-		in, out := &in.IncludeBody, &out.IncludeBody
-		*out = new(AuthServiceIncludeBody)
-		**out = AuthServiceIncludeBody(**in)
-	} else {
-		out.IncludeBody = nil
-	}
-	if in.StatusOnError != nil {
-		in, out := &in.StatusOnError, &out.StatusOnError
-		*out = new(AuthServiceStatusOnError)
-		**out = AuthServiceStatusOnError(**in)
-	} else {
-		out.StatusOnError = nil
-	}
-	out.ProtocolVersion = in.ProtocolVersion
-	out.V3StatsName = in.StatsName
-	if in.CircuitBreakers != nil {
-		in, out := &in.CircuitBreakers, &out.V3CircuitBreakers
-		*out = make([]*CircuitBreaker, len(*in))
-		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(CircuitBreaker)
-				**out = CircuitBreaker(**in)
-			} else {
-				(*in)[i] = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_MillisecondDuration_To_v2_MillisecondDuration(in, out, s); err != nil {
+				return err
 			}
 		}
-	} else {
-		out.V3CircuitBreakers = nil
+	}
+	if true {
+		in, out := &in.AllowedRequestHeaders, &out.AllowedRequestHeaders
+		*out = *in
+	}
+	if true {
+		in, out := &in.AllowedAuthorizationHeaders, &out.AllowedAuthorizationHeaders
+		*out = *in
+	}
+	if true {
+		in, out := &in.AddAuthHeaders, &out.AddAuthHeaders
+		*out = *in
+	}
+	if true {
+		in, out := &in.AllowRequestBody, &out.AllowRequestBody
+		*out = *in
+	}
+	if true {
+		in, out := &in.AddLinkerdHeaders, &out.AddLinkerdHeaders
+		*out = *in
+	}
+	if true {
+		in, out := &in.FailureModeAllow, &out.FailureModeAllow
+		*out = *in
+	}
+	if true {
+		in, out := &in.IncludeBody, &out.IncludeBody
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(AuthServiceIncludeBody)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_AuthServiceIncludeBody_To_v2_AuthServiceIncludeBody(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.StatusOnError, &out.StatusOnError
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(AuthServiceStatusOnError)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_AuthServiceStatusOnError_To_v2_AuthServiceStatusOnError(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.ProtocolVersion, &out.ProtocolVersion
+		*out = *in
+	}
+	if true {
+		in, out := &in.StatsName, &out.V3StatsName
+		*out = *in
+	}
+	if true {
+		in, out := &in.CircuitBreakers, &out.V3CircuitBreakers
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]*CircuitBreaker, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if *in == nil {
+					*out = nil
+				} else {
+					*out = new(CircuitBreaker)
+					in, out := *in, *out
+					if err := Convert_v3alpha1_CircuitBreaker_To_v2_CircuitBreaker(in, out, s); err != nil {
+						return err
+					}
+				}
+			}
+		}
 	}
 	// WARNING: in.V2ExplicitTLS requires manual conversion: does not exist in peer-type
 	return nil
 }
 
 func autoConvert_v2_AuthServiceStatusOnError_To_v3alpha1_AuthServiceStatusOnError(in *AuthServiceStatusOnError, out *v3alpha1.AuthServiceStatusOnError, s conversion.Scope) error {
-	out.Code = in.Code
+	*out = v3alpha1.AuthServiceStatusOnError(*in)
 	return nil
 }
 
@@ -1054,7 +1259,7 @@ func Convert_v2_AuthServiceStatusOnError_To_v3alpha1_AuthServiceStatusOnError(in
 }
 
 func autoConvert_v3alpha1_AuthServiceStatusOnError_To_v2_AuthServiceStatusOnError(in *v3alpha1.AuthServiceStatusOnError, out *AuthServiceStatusOnError, s conversion.Scope) error {
-	out.Code = in.Code
+	*out = AuthServiceStatusOnError(*in)
 	return nil
 }
 
@@ -1064,32 +1269,58 @@ func Convert_v3alpha1_AuthServiceStatusOnError_To_v2_AuthServiceStatusOnError(in
 }
 
 func autoConvert_v2_CORS_To_v3alpha1_CORS(in *CORS, out *v3alpha1.CORS, s conversion.Scope) error {
-	// WARNING: in.Origins requires manual conversion: inconvertible types (*./pkg/api/getambassador.io/v2.OriginList vs []string)
-	out.Methods = []string(in.Methods)
-	out.Headers = []string(in.Headers)
-	out.Credentials = in.Credentials
-	out.ExposedHeaders = []string(in.ExposedHeaders)
-	out.MaxAge = in.MaxAge
+	// INFO: in.Origins opted out of conversion generation via +k8s:conversion-gen=false
+	if true {
+		in, out := &in.Methods, &out.Methods
+		*out = []string(*in)
+	}
+	if true {
+		in, out := &in.Headers, &out.Headers
+		*out = []string(*in)
+	}
+	if true {
+		in, out := &in.Credentials, &out.Credentials
+		*out = *in
+	}
+	if true {
+		in, out := &in.ExposedHeaders, &out.ExposedHeaders
+		*out = []string(*in)
+	}
+	if true {
+		in, out := &in.MaxAge, &out.MaxAge
+		*out = *in
+	}
 	return nil
 }
 
 func autoConvert_v3alpha1_CORS_To_v2_CORS(in *v3alpha1.CORS, out *CORS, s conversion.Scope) error {
-	// WARNING: in.Origins requires manual conversion: inconvertible types ([]string vs *./pkg/api/getambassador.io/v2.OriginList)
-	out.Methods = StringOrStringList(in.Methods)
-	out.Headers = StringOrStringList(in.Headers)
-	out.Credentials = in.Credentials
-	out.ExposedHeaders = StringOrStringList(in.ExposedHeaders)
-	out.MaxAge = in.MaxAge
+	// INFO: in.Origins opted out of conversion generation via +k8s:conversion-gen=false
+	if true {
+		in, out := &in.Methods, &out.Methods
+		*out = StringOrStringList(*in)
+	}
+	if true {
+		in, out := &in.Headers, &out.Headers
+		*out = StringOrStringList(*in)
+	}
+	if true {
+		in, out := &in.Credentials, &out.Credentials
+		*out = *in
+	}
+	if true {
+		in, out := &in.ExposedHeaders, &out.ExposedHeaders
+		*out = StringOrStringList(*in)
+	}
+	if true {
+		in, out := &in.MaxAge, &out.MaxAge
+		*out = *in
+	}
 	// WARNING: in.V2CommaSeparatedOrigins requires manual conversion: does not exist in peer-type
 	return nil
 }
 
 func autoConvert_v2_CircuitBreaker_To_v3alpha1_CircuitBreaker(in *CircuitBreaker, out *v3alpha1.CircuitBreaker, s conversion.Scope) error {
-	out.Priority = in.Priority
-	out.MaxConnections = in.MaxConnections
-	out.MaxPendingRequests = in.MaxPendingRequests
-	out.MaxRequests = in.MaxRequests
-	out.MaxRetries = in.MaxRetries
+	*out = v3alpha1.CircuitBreaker(*in)
 	return nil
 }
 
@@ -1099,11 +1330,7 @@ func Convert_v2_CircuitBreaker_To_v3alpha1_CircuitBreaker(in *CircuitBreaker, ou
 }
 
 func autoConvert_v3alpha1_CircuitBreaker_To_v2_CircuitBreaker(in *v3alpha1.CircuitBreaker, out *CircuitBreaker, s conversion.Scope) error {
-	out.Priority = in.Priority
-	out.MaxConnections = in.MaxConnections
-	out.MaxPendingRequests = in.MaxPendingRequests
-	out.MaxRequests = in.MaxRequests
-	out.MaxRetries = in.MaxRetries
+	*out = CircuitBreaker(*in)
 	return nil
 }
 
@@ -1113,9 +1340,15 @@ func Convert_v3alpha1_CircuitBreaker_To_v2_CircuitBreaker(in *v3alpha1.CircuitBr
 }
 
 func autoConvert_v2_ConsulResolver_To_v3alpha1_ConsulResolver(in *ConsulResolver, out *v3alpha1.ConsulResolver, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v2_ConsulResolverSpec_To_v3alpha1_ConsulResolverSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v2_ConsulResolverSpec_To_v3alpha1_ConsulResolverSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1126,9 +1359,15 @@ func Convert_v2_ConsulResolver_To_v3alpha1_ConsulResolver(in *ConsulResolver, ou
 }
 
 func autoConvert_v3alpha1_ConsulResolver_To_v2_ConsulResolver(in *v3alpha1.ConsulResolver, out *ConsulResolver, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v3alpha1_ConsulResolverSpec_To_v2_ConsulResolverSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v3alpha1_ConsulResolverSpec_To_v2_ConsulResolverSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1139,17 +1378,23 @@ func Convert_v3alpha1_ConsulResolver_To_v2_ConsulResolver(in *v3alpha1.ConsulRes
 }
 
 func autoConvert_v2_ConsulResolverList_To_v3alpha1_ConsulResolverList(in *ConsulResolverList, out *v3alpha1.ConsulResolverList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]v3alpha1.ConsulResolver, len(*in))
-		for i := range *in {
-			if err := Convert_v2_ConsulResolver_To_v3alpha1_ConsulResolver(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.ConsulResolver, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_ConsulResolver_To_v3alpha1_ConsulResolver(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -1160,17 +1405,23 @@ func Convert_v2_ConsulResolverList_To_v3alpha1_ConsulResolverList(in *ConsulReso
 }
 
 func autoConvert_v3alpha1_ConsulResolverList_To_v2_ConsulResolverList(in *v3alpha1.ConsulResolverList, out *ConsulResolverList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]ConsulResolver, len(*in))
-		for i := range *in {
-			if err := Convert_v3alpha1_ConsulResolver_To_v2_ConsulResolver(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]ConsulResolver, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_ConsulResolver_To_v2_ConsulResolver(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -1181,11 +1432,20 @@ func Convert_v3alpha1_ConsulResolverList_To_v2_ConsulResolverList(in *v3alpha1.C
 }
 
 func autoConvert_v2_ConsulResolverSpec_To_v3alpha1_ConsulResolverSpec(in *ConsulResolverSpec, out *v3alpha1.ConsulResolverSpec, s conversion.Scope) error {
-	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.Address = in.Address
-	out.Datacenter = in.Datacenter
+	if true {
+		in, out := &in.Address, &out.Address
+		*out = *in
+	}
+	if true {
+		in, out := &in.Datacenter, &out.Datacenter
+		*out = *in
+	}
 	return nil
 }
 
@@ -1195,11 +1455,20 @@ func Convert_v2_ConsulResolverSpec_To_v3alpha1_ConsulResolverSpec(in *ConsulReso
 }
 
 func autoConvert_v3alpha1_ConsulResolverSpec_To_v2_ConsulResolverSpec(in *v3alpha1.ConsulResolverSpec, out *ConsulResolverSpec, s conversion.Scope) error {
-	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.Address = in.Address
-	out.Datacenter = in.Datacenter
+	if true {
+		in, out := &in.Address, &out.Address
+		*out = *in
+	}
+	if true {
+		in, out := &in.Datacenter, &out.Datacenter
+		*out = *in
+	}
 	return nil
 }
 
@@ -1209,9 +1478,15 @@ func Convert_v3alpha1_ConsulResolverSpec_To_v2_ConsulResolverSpec(in *v3alpha1.C
 }
 
 func autoConvert_v2_DevPortal_To_v3alpha1_DevPortal(in *DevPortal, out *v3alpha1.DevPortal, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v2_DevPortalSpec_To_v3alpha1_DevPortalSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v2_DevPortalSpec_To_v3alpha1_DevPortalSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1222,9 +1497,15 @@ func Convert_v2_DevPortal_To_v3alpha1_DevPortal(in *DevPortal, out *v3alpha1.Dev
 }
 
 func autoConvert_v3alpha1_DevPortal_To_v2_DevPortal(in *v3alpha1.DevPortal, out *DevPortal, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v3alpha1_DevPortalSpec_To_v2_DevPortalSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v3alpha1_DevPortalSpec_To_v2_DevPortalSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1235,9 +1516,7 @@ func Convert_v3alpha1_DevPortal_To_v2_DevPortal(in *v3alpha1.DevPortal, out *Dev
 }
 
 func autoConvert_v2_DevPortalContentSpec_To_v3alpha1_DevPortalContentSpec(in *DevPortalContentSpec, out *v3alpha1.DevPortalContentSpec, s conversion.Scope) error {
-	out.URL = in.URL
-	out.Branch = in.Branch
-	out.Dir = in.Dir
+	*out = v3alpha1.DevPortalContentSpec(*in)
 	return nil
 }
 
@@ -1247,9 +1526,7 @@ func Convert_v2_DevPortalContentSpec_To_v3alpha1_DevPortalContentSpec(in *DevPor
 }
 
 func autoConvert_v3alpha1_DevPortalContentSpec_To_v2_DevPortalContentSpec(in *v3alpha1.DevPortalContentSpec, out *DevPortalContentSpec, s conversion.Scope) error {
-	out.URL = in.URL
-	out.Branch = in.Branch
-	out.Dir = in.Dir
+	*out = DevPortalContentSpec(*in)
 	return nil
 }
 
@@ -1259,14 +1536,25 @@ func Convert_v3alpha1_DevPortalContentSpec_To_v2_DevPortalContentSpec(in *v3alph
 }
 
 func autoConvert_v2_DevPortalDocsSpec_To_v3alpha1_DevPortalDocsSpec(in *DevPortalDocsSpec, out *v3alpha1.DevPortalDocsSpec, s conversion.Scope) error {
-	out.Service = in.Service
-	out.URL = in.URL
-	if in.Timeout != nil {
+	if true {
+		in, out := &in.Service, &out.Service
+		*out = *in
+	}
+	if true {
+		in, out := &in.URL, &out.URL
+		*out = *in
+	}
+	if true {
 		in, out := &in.Timeout, &out.Timeout
-		*out = new(v3alpha1.MillisecondDuration)
-		**out = v3alpha1.MillisecondDuration(**in)
-	} else {
-		out.Timeout = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v2_MillisecondDuration_To_v3alpha1_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -1277,14 +1565,25 @@ func Convert_v2_DevPortalDocsSpec_To_v3alpha1_DevPortalDocsSpec(in *DevPortalDoc
 }
 
 func autoConvert_v3alpha1_DevPortalDocsSpec_To_v2_DevPortalDocsSpec(in *v3alpha1.DevPortalDocsSpec, out *DevPortalDocsSpec, s conversion.Scope) error {
-	out.Service = in.Service
-	out.URL = in.URL
-	if in.Timeout != nil {
+	if true {
+		in, out := &in.Service, &out.Service
+		*out = *in
+	}
+	if true {
+		in, out := &in.URL, &out.URL
+		*out = *in
+	}
+	if true {
 		in, out := &in.Timeout, &out.Timeout
-		*out = new(MillisecondDuration)
-		**out = MillisecondDuration(**in)
-	} else {
-		out.Timeout = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_MillisecondDuration_To_v2_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -1295,17 +1594,23 @@ func Convert_v3alpha1_DevPortalDocsSpec_To_v2_DevPortalDocsSpec(in *v3alpha1.Dev
 }
 
 func autoConvert_v2_DevPortalList_To_v3alpha1_DevPortalList(in *DevPortalList, out *v3alpha1.DevPortalList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]v3alpha1.DevPortal, len(*in))
-		for i := range *in {
-			if err := Convert_v2_DevPortal_To_v3alpha1_DevPortal(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.DevPortal, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_DevPortal_To_v3alpha1_DevPortal(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -1316,17 +1621,23 @@ func Convert_v2_DevPortalList_To_v3alpha1_DevPortalList(in *DevPortalList, out *
 }
 
 func autoConvert_v3alpha1_DevPortalList_To_v2_DevPortalList(in *v3alpha1.DevPortalList, out *DevPortalList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]DevPortal, len(*in))
-		for i := range *in {
-			if err := Convert_v3alpha1_DevPortal_To_v2_DevPortal(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]DevPortal, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_DevPortal_To_v2_DevPortal(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -1337,8 +1648,7 @@ func Convert_v3alpha1_DevPortalList_To_v2_DevPortalList(in *v3alpha1.DevPortalLi
 }
 
 func autoConvert_v2_DevPortalSearchSpec_To_v3alpha1_DevPortalSearchSpec(in *DevPortalSearchSpec, out *v3alpha1.DevPortalSearchSpec, s conversion.Scope) error {
-	out.Enabled = in.Enabled
-	out.Type = in.Type
+	*out = v3alpha1.DevPortalSearchSpec(*in)
 	return nil
 }
 
@@ -1348,8 +1658,7 @@ func Convert_v2_DevPortalSearchSpec_To_v3alpha1_DevPortalSearchSpec(in *DevPorta
 }
 
 func autoConvert_v3alpha1_DevPortalSearchSpec_To_v2_DevPortalSearchSpec(in *v3alpha1.DevPortalSearchSpec, out *DevPortalSearchSpec, s conversion.Scope) error {
-	out.Enabled = in.Enabled
-	out.Type = in.Type
+	*out = DevPortalSearchSpec(*in)
 	return nil
 }
 
@@ -1359,8 +1668,7 @@ func Convert_v3alpha1_DevPortalSearchSpec_To_v2_DevPortalSearchSpec(in *v3alpha1
 }
 
 func autoConvert_v2_DevPortalSelectorSpec_To_v3alpha1_DevPortalSelectorSpec(in *DevPortalSelectorSpec, out *v3alpha1.DevPortalSelectorSpec, s conversion.Scope) error {
-	out.MatchNamespaces = in.MatchNamespaces
-	out.MatchLabels = in.MatchLabels
+	*out = v3alpha1.DevPortalSelectorSpec(*in)
 	return nil
 }
 
@@ -1370,8 +1678,7 @@ func Convert_v2_DevPortalSelectorSpec_To_v3alpha1_DevPortalSelectorSpec(in *DevP
 }
 
 func autoConvert_v3alpha1_DevPortalSelectorSpec_To_v2_DevPortalSelectorSpec(in *v3alpha1.DevPortalSelectorSpec, out *DevPortalSelectorSpec, s conversion.Scope) error {
-	out.MatchNamespaces = in.MatchNamespaces
-	out.MatchLabels = in.MatchLabels
+	*out = DevPortalSelectorSpec(*in)
 	return nil
 }
 
@@ -1381,50 +1688,80 @@ func Convert_v3alpha1_DevPortalSelectorSpec_To_v2_DevPortalSelectorSpec(in *v3al
 }
 
 func autoConvert_v2_DevPortalSpec_To_v3alpha1_DevPortalSpec(in *DevPortalSpec, out *v3alpha1.DevPortalSpec, s conversion.Scope) error {
-	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.Default = in.Default
-	if in.Content != nil {
+	if true {
+		in, out := &in.Default, &out.Default
+		*out = *in
+	}
+	if true {
 		in, out := &in.Content, &out.Content
-		*out = new(v3alpha1.DevPortalContentSpec)
-		**out = v3alpha1.DevPortalContentSpec(**in)
-	} else {
-		out.Content = nil
-	}
-	if in.Docs != nil {
-		in, out := &in.Docs, &out.Docs
-		*out = make([]*v3alpha1.DevPortalDocsSpec, len(*in))
-		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(v3alpha1.DevPortalDocsSpec)
-				if err := Convert_v2_DevPortalDocsSpec_To_v3alpha1_DevPortalDocsSpec(*in, *out, s); err != nil {
-					return err
-				}
-			} else {
-				(*in)[i] = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.DevPortalContentSpec)
+			in, out := *in, *out
+			if err := Convert_v2_DevPortalContentSpec_To_v3alpha1_DevPortalContentSpec(in, out, s); err != nil {
+				return err
 			}
 		}
-	} else {
-		out.Docs = nil
 	}
-	if in.Selector != nil {
+	if true {
+		in, out := &in.Docs, &out.Docs
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]*v3alpha1.DevPortalDocsSpec, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if *in == nil {
+					*out = nil
+				} else {
+					*out = new(v3alpha1.DevPortalDocsSpec)
+					in, out := *in, *out
+					if err := Convert_v2_DevPortalDocsSpec_To_v3alpha1_DevPortalDocsSpec(in, out, s); err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+	if true {
 		in, out := &in.Selector, &out.Selector
-		*out = new(v3alpha1.DevPortalSelectorSpec)
-		**out = v3alpha1.DevPortalSelectorSpec(**in)
-	} else {
-		out.Selector = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.DevPortalSelectorSpec)
+			in, out := *in, *out
+			if err := Convert_v2_DevPortalSelectorSpec_To_v3alpha1_DevPortalSelectorSpec(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	out.NamingScheme = in.NamingScheme
-	if in.Search != nil {
+	if true {
+		in, out := &in.NamingScheme, &out.NamingScheme
+		*out = *in
+	}
+	if true {
 		in, out := &in.Search, &out.Search
-		*out = new(v3alpha1.DevPortalSearchSpec)
-		**out = v3alpha1.DevPortalSearchSpec(**in)
-	} else {
-		out.Search = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.DevPortalSearchSpec)
+			in, out := *in, *out
+			if err := Convert_v2_DevPortalSearchSpec_To_v3alpha1_DevPortalSearchSpec(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	out.PreserveServers = in.PreserveServers
+	if true {
+		in, out := &in.PreserveServers, &out.PreserveServers
+		*out = *in
+	}
 	return nil
 }
 
@@ -1434,50 +1771,80 @@ func Convert_v2_DevPortalSpec_To_v3alpha1_DevPortalSpec(in *DevPortalSpec, out *
 }
 
 func autoConvert_v3alpha1_DevPortalSpec_To_v2_DevPortalSpec(in *v3alpha1.DevPortalSpec, out *DevPortalSpec, s conversion.Scope) error {
-	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.Default = in.Default
-	if in.Content != nil {
+	if true {
+		in, out := &in.Default, &out.Default
+		*out = *in
+	}
+	if true {
 		in, out := &in.Content, &out.Content
-		*out = new(DevPortalContentSpec)
-		**out = DevPortalContentSpec(**in)
-	} else {
-		out.Content = nil
-	}
-	if in.Docs != nil {
-		in, out := &in.Docs, &out.Docs
-		*out = make([]*DevPortalDocsSpec, len(*in))
-		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(DevPortalDocsSpec)
-				if err := Convert_v3alpha1_DevPortalDocsSpec_To_v2_DevPortalDocsSpec(*in, *out, s); err != nil {
-					return err
-				}
-			} else {
-				(*in)[i] = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(DevPortalContentSpec)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_DevPortalContentSpec_To_v2_DevPortalContentSpec(in, out, s); err != nil {
+				return err
 			}
 		}
-	} else {
-		out.Docs = nil
 	}
-	if in.Selector != nil {
+	if true {
+		in, out := &in.Docs, &out.Docs
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]*DevPortalDocsSpec, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if *in == nil {
+					*out = nil
+				} else {
+					*out = new(DevPortalDocsSpec)
+					in, out := *in, *out
+					if err := Convert_v3alpha1_DevPortalDocsSpec_To_v2_DevPortalDocsSpec(in, out, s); err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+	if true {
 		in, out := &in.Selector, &out.Selector
-		*out = new(DevPortalSelectorSpec)
-		**out = DevPortalSelectorSpec(**in)
-	} else {
-		out.Selector = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(DevPortalSelectorSpec)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_DevPortalSelectorSpec_To_v2_DevPortalSelectorSpec(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	out.NamingScheme = in.NamingScheme
-	if in.Search != nil {
+	if true {
+		in, out := &in.NamingScheme, &out.NamingScheme
+		*out = *in
+	}
+	if true {
 		in, out := &in.Search, &out.Search
-		*out = new(DevPortalSearchSpec)
-		**out = DevPortalSearchSpec(**in)
-	} else {
-		out.Search = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(DevPortalSearchSpec)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_DevPortalSearchSpec_To_v2_DevPortalSearchSpec(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	out.PreserveServers = in.PreserveServers
+	if true {
+		in, out := &in.PreserveServers, &out.PreserveServers
+		*out = *in
+	}
 	return nil
 }
 
@@ -1487,16 +1854,33 @@ func Convert_v3alpha1_DevPortalSpec_To_v2_DevPortalSpec(in *v3alpha1.DevPortalSp
 }
 
 func autoConvert_v2_DocsInfo_To_v3alpha1_DocsInfo(in *DocsInfo, out *v3alpha1.DocsInfo, s conversion.Scope) error {
-	out.Path = in.Path
-	out.URL = in.URL
-	out.Ignored = in.Ignored
-	out.DisplayName = in.DisplayName
-	if in.Timeout != nil {
+	if true {
+		in, out := &in.Path, &out.Path
+		*out = *in
+	}
+	if true {
+		in, out := &in.URL, &out.URL
+		*out = *in
+	}
+	if true {
+		in, out := &in.Ignored, &out.Ignored
+		*out = *in
+	}
+	if true {
+		in, out := &in.DisplayName, &out.DisplayName
+		*out = *in
+	}
+	if true {
 		in, out := &in.Timeout, &out.Timeout
-		*out = new(v3alpha1.MillisecondDuration)
-		**out = v3alpha1.MillisecondDuration(**in)
-	} else {
-		out.Timeout = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v2_MillisecondDuration_To_v3alpha1_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -1507,16 +1891,33 @@ func Convert_v2_DocsInfo_To_v3alpha1_DocsInfo(in *DocsInfo, out *v3alpha1.DocsIn
 }
 
 func autoConvert_v3alpha1_DocsInfo_To_v2_DocsInfo(in *v3alpha1.DocsInfo, out *DocsInfo, s conversion.Scope) error {
-	out.Path = in.Path
-	out.URL = in.URL
-	out.Ignored = in.Ignored
-	out.DisplayName = in.DisplayName
-	if in.Timeout != nil {
+	if true {
+		in, out := &in.Path, &out.Path
+		*out = *in
+	}
+	if true {
+		in, out := &in.URL, &out.URL
+		*out = *in
+	}
+	if true {
+		in, out := &in.Ignored, &out.Ignored
+		*out = *in
+	}
+	if true {
+		in, out := &in.DisplayName, &out.DisplayName
+		*out = *in
+	}
+	if true {
 		in, out := &in.Timeout, &out.Timeout
-		*out = new(MillisecondDuration)
-		**out = MillisecondDuration(**in)
-	} else {
-		out.Timeout = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_MillisecondDuration_To_v2_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -1526,21 +1927,84 @@ func Convert_v3alpha1_DocsInfo_To_v2_DocsInfo(in *v3alpha1.DocsInfo, out *DocsIn
 	return autoConvert_v3alpha1_DocsInfo_To_v2_DocsInfo(in, out, s)
 }
 
+func autoConvert_v2_DomainMap_To_v3alpha1_DomainMap(in *DomainMap, out *v3alpha1.DomainMap, s conversion.Scope) error {
+	if *in == nil {
+		*out = nil
+	} else {
+		*out = make(v3alpha1.DomainMap, len(*in))
+		for inKey, inVal := range *in {
+			outKey := new(string)
+			if true {
+				in, out := &inKey, outKey
+				*out = *in
+			}
+			outVal := new(v3alpha1.MappingLabelGroupsArray)
+			if true {
+				in, out := &inVal, outVal
+				if err := Convert_v2_MappingLabelGroupsArray_To_v3alpha1_MappingLabelGroupsArray(in, out, s); err != nil {
+					return err
+				}
+			}
+			(*out)[*outKey] = *outVal
+		}
+	}
+	return nil
+}
+
+// Convert_v2_DomainMap_To_v3alpha1_DomainMap is an autogenerated conversion function.
+func Convert_v2_DomainMap_To_v3alpha1_DomainMap(in *DomainMap, out *v3alpha1.DomainMap, s conversion.Scope) error {
+	return autoConvert_v2_DomainMap_To_v3alpha1_DomainMap(in, out, s)
+}
+
+func autoConvert_v3alpha1_DomainMap_To_v2_DomainMap(in *v3alpha1.DomainMap, out *DomainMap, s conversion.Scope) error {
+	if *in == nil {
+		*out = nil
+	} else {
+		*out = make(DomainMap, len(*in))
+		for inKey, inVal := range *in {
+			outKey := new(string)
+			if true {
+				in, out := &inKey, outKey
+				*out = *in
+			}
+			outVal := new(MappingLabelGroupsArray)
+			if true {
+				in, out := &inVal, outVal
+				if err := Convert_v3alpha1_MappingLabelGroupsArray_To_v2_MappingLabelGroupsArray(in, out, s); err != nil {
+					return err
+				}
+			}
+			(*out)[*outKey] = *outVal
+		}
+	}
+	return nil
+}
+
+// Convert_v3alpha1_DomainMap_To_v2_DomainMap is an autogenerated conversion function.
+func Convert_v3alpha1_DomainMap_To_v2_DomainMap(in *v3alpha1.DomainMap, out *DomainMap, s conversion.Scope) error {
+	return autoConvert_v3alpha1_DomainMap_To_v2_DomainMap(in, out, s)
+}
+
 func autoConvert_v2_DriverConfig_To_v3alpha1_DriverConfig(in *DriverConfig, out *v3alpha1.DriverConfig, s conversion.Scope) error {
-	if in.AdditionalLogHeaders != nil {
+	if true {
 		in, out := &in.AdditionalLogHeaders, &out.AdditionalLogHeaders
-		*out = make([]*v3alpha1.AdditionalLogHeaders, len(*in))
-		for i := range *in {
-			if (*in)[i] != nil {
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]*v3alpha1.AdditionalLogHeaders, len(*in))
+			for i := range *in {
 				in, out := &(*in)[i], &(*out)[i]
-				*out = new(v3alpha1.AdditionalLogHeaders)
-				**out = v3alpha1.AdditionalLogHeaders(**in)
-			} else {
-				(*in)[i] = nil
+				if *in == nil {
+					*out = nil
+				} else {
+					*out = new(v3alpha1.AdditionalLogHeaders)
+					in, out := *in, *out
+					if err := Convert_v2_AdditionalLogHeaders_To_v3alpha1_AdditionalLogHeaders(in, out, s); err != nil {
+						return err
+					}
+				}
 			}
 		}
-	} else {
-		out.AdditionalLogHeaders = nil
 	}
 	return nil
 }
@@ -1551,20 +2015,25 @@ func Convert_v2_DriverConfig_To_v3alpha1_DriverConfig(in *DriverConfig, out *v3a
 }
 
 func autoConvert_v3alpha1_DriverConfig_To_v2_DriverConfig(in *v3alpha1.DriverConfig, out *DriverConfig, s conversion.Scope) error {
-	if in.AdditionalLogHeaders != nil {
+	if true {
 		in, out := &in.AdditionalLogHeaders, &out.AdditionalLogHeaders
-		*out = make([]*AdditionalLogHeaders, len(*in))
-		for i := range *in {
-			if (*in)[i] != nil {
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]*AdditionalLogHeaders, len(*in))
+			for i := range *in {
 				in, out := &(*in)[i], &(*out)[i]
-				*out = new(AdditionalLogHeaders)
-				**out = AdditionalLogHeaders(**in)
-			} else {
-				(*in)[i] = nil
+				if *in == nil {
+					*out = nil
+				} else {
+					*out = new(AdditionalLogHeaders)
+					in, out := *in, *out
+					if err := Convert_v3alpha1_AdditionalLogHeaders_To_v2_AdditionalLogHeaders(in, out, s); err != nil {
+						return err
+					}
+				}
 			}
 		}
-	} else {
-		out.AdditionalLogHeaders = nil
 	}
 	return nil
 }
@@ -1575,9 +2044,15 @@ func Convert_v3alpha1_DriverConfig_To_v2_DriverConfig(in *v3alpha1.DriverConfig,
 }
 
 func autoConvert_v2_ErrorResponseOverride_To_v3alpha1_ErrorResponseOverride(in *ErrorResponseOverride, out *v3alpha1.ErrorResponseOverride, s conversion.Scope) error {
-	out.OnStatusCode = in.OnStatusCode
-	if err := Convert_v2_ErrorResponseOverrideBody_To_v3alpha1_ErrorResponseOverrideBody(&in.Body, &out.Body, s); err != nil {
-		return err
+	if true {
+		in, out := &in.OnStatusCode, &out.OnStatusCode
+		*out = *in
+	}
+	if true {
+		in, out := &in.Body, &out.Body
+		if err := Convert_v2_ErrorResponseOverrideBody_To_v3alpha1_ErrorResponseOverrideBody(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1588,9 +2063,15 @@ func Convert_v2_ErrorResponseOverride_To_v3alpha1_ErrorResponseOverride(in *Erro
 }
 
 func autoConvert_v3alpha1_ErrorResponseOverride_To_v2_ErrorResponseOverride(in *v3alpha1.ErrorResponseOverride, out *ErrorResponseOverride, s conversion.Scope) error {
-	out.OnStatusCode = in.OnStatusCode
-	if err := Convert_v3alpha1_ErrorResponseOverrideBody_To_v2_ErrorResponseOverrideBody(&in.Body, &out.Body, s); err != nil {
-		return err
+	if true {
+		in, out := &in.OnStatusCode, &out.OnStatusCode
+		*out = *in
+	}
+	if true {
+		in, out := &in.Body, &out.Body
+		if err := Convert_v3alpha1_ErrorResponseOverrideBody_To_v2_ErrorResponseOverrideBody(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1601,16 +2082,30 @@ func Convert_v3alpha1_ErrorResponseOverride_To_v2_ErrorResponseOverride(in *v3al
 }
 
 func autoConvert_v2_ErrorResponseOverrideBody_To_v3alpha1_ErrorResponseOverrideBody(in *ErrorResponseOverrideBody, out *v3alpha1.ErrorResponseOverrideBody, s conversion.Scope) error {
-	out.ErrorResponseTextFormat = in.ErrorResponseTextFormat
-	out.ErrorResponseJsonFormat = in.ErrorResponseJsonFormat
-	if in.ErrorResponseTextFormatSource != nil {
-		in, out := &in.ErrorResponseTextFormatSource, &out.ErrorResponseTextFormatSource
-		*out = new(v3alpha1.ErrorResponseTextFormatSource)
-		**out = v3alpha1.ErrorResponseTextFormatSource(**in)
-	} else {
-		out.ErrorResponseTextFormatSource = nil
+	if true {
+		in, out := &in.ErrorResponseTextFormat, &out.ErrorResponseTextFormat
+		*out = *in
 	}
-	out.ContentType = in.ContentType
+	if true {
+		in, out := &in.ErrorResponseJsonFormat, &out.ErrorResponseJsonFormat
+		*out = *in
+	}
+	if true {
+		in, out := &in.ErrorResponseTextFormatSource, &out.ErrorResponseTextFormatSource
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.ErrorResponseTextFormatSource)
+			in, out := *in, *out
+			if err := Convert_v2_ErrorResponseTextFormatSource_To_v3alpha1_ErrorResponseTextFormatSource(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.ContentType, &out.ContentType
+		*out = *in
+	}
 	return nil
 }
 
@@ -1620,16 +2115,30 @@ func Convert_v2_ErrorResponseOverrideBody_To_v3alpha1_ErrorResponseOverrideBody(
 }
 
 func autoConvert_v3alpha1_ErrorResponseOverrideBody_To_v2_ErrorResponseOverrideBody(in *v3alpha1.ErrorResponseOverrideBody, out *ErrorResponseOverrideBody, s conversion.Scope) error {
-	out.ErrorResponseTextFormat = in.ErrorResponseTextFormat
-	out.ErrorResponseJsonFormat = in.ErrorResponseJsonFormat
-	if in.ErrorResponseTextFormatSource != nil {
-		in, out := &in.ErrorResponseTextFormatSource, &out.ErrorResponseTextFormatSource
-		*out = new(ErrorResponseTextFormatSource)
-		**out = ErrorResponseTextFormatSource(**in)
-	} else {
-		out.ErrorResponseTextFormatSource = nil
+	if true {
+		in, out := &in.ErrorResponseTextFormat, &out.ErrorResponseTextFormat
+		*out = *in
 	}
-	out.ContentType = in.ContentType
+	if true {
+		in, out := &in.ErrorResponseJsonFormat, &out.ErrorResponseJsonFormat
+		*out = *in
+	}
+	if true {
+		in, out := &in.ErrorResponseTextFormatSource, &out.ErrorResponseTextFormatSource
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(ErrorResponseTextFormatSource)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_ErrorResponseTextFormatSource_To_v2_ErrorResponseTextFormatSource(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.ContentType, &out.ContentType
+		*out = *in
+	}
 	return nil
 }
 
@@ -1639,7 +2148,7 @@ func Convert_v3alpha1_ErrorResponseOverrideBody_To_v2_ErrorResponseOverrideBody(
 }
 
 func autoConvert_v2_ErrorResponseTextFormatSource_To_v3alpha1_ErrorResponseTextFormatSource(in *ErrorResponseTextFormatSource, out *v3alpha1.ErrorResponseTextFormatSource, s conversion.Scope) error {
-	out.Filename = in.Filename
+	*out = v3alpha1.ErrorResponseTextFormatSource(*in)
 	return nil
 }
 
@@ -1649,7 +2158,7 @@ func Convert_v2_ErrorResponseTextFormatSource_To_v3alpha1_ErrorResponseTextForma
 }
 
 func autoConvert_v3alpha1_ErrorResponseTextFormatSource_To_v2_ErrorResponseTextFormatSource(in *v3alpha1.ErrorResponseTextFormatSource, out *ErrorResponseTextFormatSource, s conversion.Scope) error {
-	out.Filename = in.Filename
+	*out = ErrorResponseTextFormatSource(*in)
 	return nil
 }
 
@@ -1659,18 +2168,27 @@ func Convert_v3alpha1_ErrorResponseTextFormatSource_To_v2_ErrorResponseTextForma
 }
 
 func autoConvert_v2_Host_To_v3alpha1_Host(in *Host, out *v3alpha1.Host, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if in.Spec != nil {
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Spec, &out.Spec
-		*out = new(v3alpha1.HostSpec)
-		if err := Convert_v2_HostSpec_To_v3alpha1_HostSpec(*in, *out, s); err != nil {
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.HostSpec)
+			in, out := *in, *out
+			if err := Convert_v2_HostSpec_To_v3alpha1_HostSpec(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.Status, &out.Status
+		if err := Convert_v2_HostStatus_To_v3alpha1_HostStatus(in, out, s); err != nil {
 			return err
 		}
-	} else {
-		out.Spec = nil
-	}
-	if err := Convert_v2_HostStatus_To_v3alpha1_HostStatus(&in.Status, &out.Status, s); err != nil {
-		return err
 	}
 	return nil
 }
@@ -1681,18 +2199,27 @@ func Convert_v2_Host_To_v3alpha1_Host(in *Host, out *v3alpha1.Host, s conversion
 }
 
 func autoConvert_v3alpha1_Host_To_v2_Host(in *v3alpha1.Host, out *Host, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if in.Spec != nil {
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Spec, &out.Spec
-		*out = new(HostSpec)
-		if err := Convert_v3alpha1_HostSpec_To_v2_HostSpec(*in, *out, s); err != nil {
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(HostSpec)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_HostSpec_To_v2_HostSpec(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.Status, &out.Status
+		if err := Convert_v3alpha1_HostStatus_To_v2_HostStatus(in, out, s); err != nil {
 			return err
 		}
-	} else {
-		out.Spec = nil
-	}
-	if err := Convert_v3alpha1_HostStatus_To_v2_HostStatus(&in.Status, &out.Status, s); err != nil {
-		return err
 	}
 	return nil
 }
@@ -1703,17 +2230,23 @@ func Convert_v3alpha1_Host_To_v2_Host(in *v3alpha1.Host, out *Host, s conversion
 }
 
 func autoConvert_v2_HostList_To_v3alpha1_HostList(in *HostList, out *v3alpha1.HostList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]v3alpha1.Host, len(*in))
-		for i := range *in {
-			if err := Convert_v2_Host_To_v3alpha1_Host(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.Host, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_Host_To_v3alpha1_Host(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -1724,17 +2257,23 @@ func Convert_v2_HostList_To_v3alpha1_HostList(in *HostList, out *v3alpha1.HostLi
 }
 
 func autoConvert_v3alpha1_HostList_To_v2_HostList(in *v3alpha1.HostList, out *HostList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]Host, len(*in))
-		for i := range *in {
-			if err := Convert_v3alpha1_Host_To_v2_Host(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]Host, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_Host_To_v2_Host(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -1744,102 +2283,233 @@ func Convert_v3alpha1_HostList_To_v2_HostList(in *v3alpha1.HostList, out *HostLi
 	return autoConvert_v3alpha1_HostList_To_v2_HostList(in, out, s)
 }
 
+func autoConvert_v2_HostPhase_To_v3alpha1_HostPhase(in *HostPhase, out *v3alpha1.HostPhase, s conversion.Scope) error {
+	*out = v3alpha1.HostPhase(*in)
+	return nil
+}
+
+// Convert_v2_HostPhase_To_v3alpha1_HostPhase is an autogenerated conversion function.
+func Convert_v2_HostPhase_To_v3alpha1_HostPhase(in *HostPhase, out *v3alpha1.HostPhase, s conversion.Scope) error {
+	return autoConvert_v2_HostPhase_To_v3alpha1_HostPhase(in, out, s)
+}
+
+func autoConvert_v3alpha1_HostPhase_To_v2_HostPhase(in *v3alpha1.HostPhase, out *HostPhase, s conversion.Scope) error {
+	*out = HostPhase(*in)
+	return nil
+}
+
+// Convert_v3alpha1_HostPhase_To_v2_HostPhase is an autogenerated conversion function.
+func Convert_v3alpha1_HostPhase_To_v2_HostPhase(in *v3alpha1.HostPhase, out *HostPhase, s conversion.Scope) error {
+	return autoConvert_v3alpha1_HostPhase_To_v2_HostPhase(in, out, s)
+}
+
 func autoConvert_v2_HostSpec_To_v3alpha1_HostSpec(in *HostSpec, out *v3alpha1.HostSpec, s conversion.Scope) error {
-	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
 	// WARNING: in.DeprecatedAmbassadorID requires manual conversion: does not exist in peer-type
-	out.Hostname = in.Hostname
-	out.MappingSelector = in.Selector
-	if in.AcmeProvider != nil {
+	if true {
+		in, out := &in.Hostname, &out.Hostname
+		*out = *in
+	}
+	if true {
+		in, out := &in.Selector, &out.MappingSelector
+		*out = *in
+	}
+	if true {
 		in, out := &in.AcmeProvider, &out.AcmeProvider
-		*out = new(v3alpha1.ACMEProviderSpec)
-		**out = v3alpha1.ACMEProviderSpec(**in)
-	} else {
-		out.AcmeProvider = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.ACMEProviderSpec)
+			in, out := *in, *out
+			if err := Convert_v2_ACMEProviderSpec_To_v3alpha1_ACMEProviderSpec(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	out.TLSSecret = in.TLSSecret
-	if in.RequestPolicy != nil {
+	if true {
+		in, out := &in.TLSSecret, &out.TLSSecret
+		*out = *in
+	}
+	if true {
 		in, out := &in.RequestPolicy, &out.RequestPolicy
-		*out = new(v3alpha1.RequestPolicy)
-		if err := Convert_v2_RequestPolicy_To_v3alpha1_RequestPolicy(*in, *out, s); err != nil {
-			return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.RequestPolicy)
+			in, out := *in, *out
+			if err := Convert_v2_RequestPolicy_To_v3alpha1_RequestPolicy(in, out, s); err != nil {
+				return err
+			}
 		}
-	} else {
-		out.RequestPolicy = nil
 	}
-	if in.PreviewUrl != nil {
+	if true {
 		in, out := &in.PreviewUrl, &out.PreviewUrl
-		*out = new(v3alpha1.PreviewURLSpec)
-		if err := Convert_v2_PreviewURLSpec_To_v3alpha1_PreviewURLSpec(*in, *out, s); err != nil {
-			return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.PreviewURLSpec)
+			in, out := *in, *out
+			if err := Convert_v2_PreviewURLSpec_To_v3alpha1_PreviewURLSpec(in, out, s); err != nil {
+				return err
+			}
 		}
-	} else {
-		out.PreviewUrl = nil
 	}
-	out.TLSContext = in.TLSContext
-	if in.TLS != nil {
+	if true {
+		in, out := &in.TLSContext, &out.TLSContext
+		*out = *in
+	}
+	if true {
 		in, out := &in.TLS, &out.TLS
-		*out = new(v3alpha1.TLSConfig)
-		**out = v3alpha1.TLSConfig(**in)
-	} else {
-		out.TLS = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.TLSConfig)
+			in, out := *in, *out
+			if err := Convert_v2_TLSConfig_To_v3alpha1_TLSConfig(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
 
 func autoConvert_v3alpha1_HostSpec_To_v2_HostSpec(in *v3alpha1.HostSpec, out *HostSpec, s conversion.Scope) error {
-	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.Hostname = in.Hostname
+	if true {
+		in, out := &in.Hostname, &out.Hostname
+		*out = *in
+	}
 	// WARNING: in.DeprecatedSelector requires manual conversion: does not exist in peer-type
-	out.Selector = in.MappingSelector
-	if in.AcmeProvider != nil {
+	if true {
+		in, out := &in.MappingSelector, &out.Selector
+		*out = *in
+	}
+	if true {
 		in, out := &in.AcmeProvider, &out.AcmeProvider
-		*out = new(ACMEProviderSpec)
-		**out = ACMEProviderSpec(**in)
-	} else {
-		out.AcmeProvider = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(ACMEProviderSpec)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_ACMEProviderSpec_To_v2_ACMEProviderSpec(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	out.TLSSecret = in.TLSSecret
-	if in.RequestPolicy != nil {
+	if true {
+		in, out := &in.TLSSecret, &out.TLSSecret
+		*out = *in
+	}
+	if true {
 		in, out := &in.RequestPolicy, &out.RequestPolicy
-		*out = new(RequestPolicy)
-		if err := Convert_v3alpha1_RequestPolicy_To_v2_RequestPolicy(*in, *out, s); err != nil {
-			return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(RequestPolicy)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_RequestPolicy_To_v2_RequestPolicy(in, out, s); err != nil {
+				return err
+			}
 		}
-	} else {
-		out.RequestPolicy = nil
 	}
-	if in.PreviewUrl != nil {
+	if true {
 		in, out := &in.PreviewUrl, &out.PreviewUrl
-		*out = new(PreviewURLSpec)
-		if err := Convert_v3alpha1_PreviewURLSpec_To_v2_PreviewURLSpec(*in, *out, s); err != nil {
-			return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(PreviewURLSpec)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_PreviewURLSpec_To_v2_PreviewURLSpec(in, out, s); err != nil {
+				return err
+			}
 		}
-	} else {
-		out.PreviewUrl = nil
 	}
-	out.TLSContext = in.TLSContext
-	if in.TLS != nil {
+	if true {
+		in, out := &in.TLSContext, &out.TLSContext
+		*out = *in
+	}
+	if true {
 		in, out := &in.TLS, &out.TLS
-		*out = new(TLSConfig)
-		**out = TLSConfig(**in)
-	} else {
-		out.TLS = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(TLSConfig)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_TLSConfig_To_v2_TLSConfig(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
 
+func autoConvert_v2_HostState_To_v3alpha1_HostState(in *HostState, out *v3alpha1.HostState, s conversion.Scope) error {
+	*out = v3alpha1.HostState(*in)
+	return nil
+}
+
+// Convert_v2_HostState_To_v3alpha1_HostState is an autogenerated conversion function.
+func Convert_v2_HostState_To_v3alpha1_HostState(in *HostState, out *v3alpha1.HostState, s conversion.Scope) error {
+	return autoConvert_v2_HostState_To_v3alpha1_HostState(in, out, s)
+}
+
+func autoConvert_v3alpha1_HostState_To_v2_HostState(in *v3alpha1.HostState, out *HostState, s conversion.Scope) error {
+	*out = HostState(*in)
+	return nil
+}
+
+// Convert_v3alpha1_HostState_To_v2_HostState is an autogenerated conversion function.
+func Convert_v3alpha1_HostState_To_v2_HostState(in *v3alpha1.HostState, out *HostState, s conversion.Scope) error {
+	return autoConvert_v3alpha1_HostState_To_v2_HostState(in, out, s)
+}
+
 func autoConvert_v2_HostStatus_To_v3alpha1_HostStatus(in *HostStatus, out *v3alpha1.HostStatus, s conversion.Scope) error {
-	out.TLSCertificateSource = v3alpha1.HostTLSCertificateSource(in.TLSCertificateSource)
-	out.State = v3alpha1.HostState(in.State)
-	out.PhaseCompleted = v3alpha1.HostPhase(in.PhaseCompleted)
-	out.PhasePending = v3alpha1.HostPhase(in.PhasePending)
-	out.ErrorReason = in.ErrorReason
-	out.ErrorTimestamp = in.ErrorTimestamp
-	out.ErrorBackoff = in.ErrorBackoff
+	if true {
+		in, out := &in.TLSCertificateSource, &out.TLSCertificateSource
+		if err := Convert_v2_HostTLSCertificateSource_To_v3alpha1_HostTLSCertificateSource(in, out, s); err != nil {
+			return err
+		}
+	}
+	if true {
+		in, out := &in.State, &out.State
+		if err := Convert_v2_HostState_To_v3alpha1_HostState(in, out, s); err != nil {
+			return err
+		}
+	}
+	if true {
+		in, out := &in.PhaseCompleted, &out.PhaseCompleted
+		if err := Convert_v2_HostPhase_To_v3alpha1_HostPhase(in, out, s); err != nil {
+			return err
+		}
+	}
+	if true {
+		in, out := &in.PhasePending, &out.PhasePending
+		if err := Convert_v2_HostPhase_To_v3alpha1_HostPhase(in, out, s); err != nil {
+			return err
+		}
+	}
+	if true {
+		in, out := &in.ErrorReason, &out.ErrorReason
+		*out = *in
+	}
+	if true {
+		in, out := &in.ErrorTimestamp, &out.ErrorTimestamp
+		*out = *in
+	}
+	if true {
+		in, out := &in.ErrorBackoff, &out.ErrorBackoff
+		*out = *in
+	}
 	return nil
 }
 
@@ -1849,13 +2519,42 @@ func Convert_v2_HostStatus_To_v3alpha1_HostStatus(in *HostStatus, out *v3alpha1.
 }
 
 func autoConvert_v3alpha1_HostStatus_To_v2_HostStatus(in *v3alpha1.HostStatus, out *HostStatus, s conversion.Scope) error {
-	out.TLSCertificateSource = HostTLSCertificateSource(in.TLSCertificateSource)
-	out.State = HostState(in.State)
-	out.PhaseCompleted = HostPhase(in.PhaseCompleted)
-	out.PhasePending = HostPhase(in.PhasePending)
-	out.ErrorReason = in.ErrorReason
-	out.ErrorTimestamp = in.ErrorTimestamp
-	out.ErrorBackoff = in.ErrorBackoff
+	if true {
+		in, out := &in.TLSCertificateSource, &out.TLSCertificateSource
+		if err := Convert_v3alpha1_HostTLSCertificateSource_To_v2_HostTLSCertificateSource(in, out, s); err != nil {
+			return err
+		}
+	}
+	if true {
+		in, out := &in.State, &out.State
+		if err := Convert_v3alpha1_HostState_To_v2_HostState(in, out, s); err != nil {
+			return err
+		}
+	}
+	if true {
+		in, out := &in.PhaseCompleted, &out.PhaseCompleted
+		if err := Convert_v3alpha1_HostPhase_To_v2_HostPhase(in, out, s); err != nil {
+			return err
+		}
+	}
+	if true {
+		in, out := &in.PhasePending, &out.PhasePending
+		if err := Convert_v3alpha1_HostPhase_To_v2_HostPhase(in, out, s); err != nil {
+			return err
+		}
+	}
+	if true {
+		in, out := &in.ErrorReason, &out.ErrorReason
+		*out = *in
+	}
+	if true {
+		in, out := &in.ErrorTimestamp, &out.ErrorTimestamp
+		*out = *in
+	}
+	if true {
+		in, out := &in.ErrorBackoff, &out.ErrorBackoff
+		*out = *in
+	}
 	return nil
 }
 
@@ -1864,9 +2563,28 @@ func Convert_v3alpha1_HostStatus_To_v2_HostStatus(in *v3alpha1.HostStatus, out *
 	return autoConvert_v3alpha1_HostStatus_To_v2_HostStatus(in, out, s)
 }
 
+func autoConvert_v2_HostTLSCertificateSource_To_v3alpha1_HostTLSCertificateSource(in *HostTLSCertificateSource, out *v3alpha1.HostTLSCertificateSource, s conversion.Scope) error {
+	*out = v3alpha1.HostTLSCertificateSource(*in)
+	return nil
+}
+
+// Convert_v2_HostTLSCertificateSource_To_v3alpha1_HostTLSCertificateSource is an autogenerated conversion function.
+func Convert_v2_HostTLSCertificateSource_To_v3alpha1_HostTLSCertificateSource(in *HostTLSCertificateSource, out *v3alpha1.HostTLSCertificateSource, s conversion.Scope) error {
+	return autoConvert_v2_HostTLSCertificateSource_To_v3alpha1_HostTLSCertificateSource(in, out, s)
+}
+
+func autoConvert_v3alpha1_HostTLSCertificateSource_To_v2_HostTLSCertificateSource(in *v3alpha1.HostTLSCertificateSource, out *HostTLSCertificateSource, s conversion.Scope) error {
+	*out = HostTLSCertificateSource(*in)
+	return nil
+}
+
+// Convert_v3alpha1_HostTLSCertificateSource_To_v2_HostTLSCertificateSource is an autogenerated conversion function.
+func Convert_v3alpha1_HostTLSCertificateSource_To_v2_HostTLSCertificateSource(in *v3alpha1.HostTLSCertificateSource, out *HostTLSCertificateSource, s conversion.Scope) error {
+	return autoConvert_v3alpha1_HostTLSCertificateSource_To_v2_HostTLSCertificateSource(in, out, s)
+}
+
 func autoConvert_v2_InsecureRequestPolicy_To_v3alpha1_InsecureRequestPolicy(in *InsecureRequestPolicy, out *v3alpha1.InsecureRequestPolicy, s conversion.Scope) error {
-	out.Action = in.Action
-	out.AdditionalPort = in.AdditionalPort
+	*out = v3alpha1.InsecureRequestPolicy(*in)
 	return nil
 }
 
@@ -1876,8 +2594,7 @@ func Convert_v2_InsecureRequestPolicy_To_v3alpha1_InsecureRequestPolicy(in *Inse
 }
 
 func autoConvert_v3alpha1_InsecureRequestPolicy_To_v2_InsecureRequestPolicy(in *v3alpha1.InsecureRequestPolicy, out *InsecureRequestPolicy, s conversion.Scope) error {
-	out.Action = in.Action
-	out.AdditionalPort = in.AdditionalPort
+	*out = InsecureRequestPolicy(*in)
 	return nil
 }
 
@@ -1887,9 +2604,7 @@ func Convert_v3alpha1_InsecureRequestPolicy_To_v2_InsecureRequestPolicy(in *v3al
 }
 
 func autoConvert_v2_KeepAlive_To_v3alpha1_KeepAlive(in *KeepAlive, out *v3alpha1.KeepAlive, s conversion.Scope) error {
-	out.Probes = in.Probes
-	out.IdleTime = in.IdleTime
-	out.Interval = in.Interval
+	*out = v3alpha1.KeepAlive(*in)
 	return nil
 }
 
@@ -1899,9 +2614,7 @@ func Convert_v2_KeepAlive_To_v3alpha1_KeepAlive(in *KeepAlive, out *v3alpha1.Kee
 }
 
 func autoConvert_v3alpha1_KeepAlive_To_v2_KeepAlive(in *v3alpha1.KeepAlive, out *KeepAlive, s conversion.Scope) error {
-	out.Probes = in.Probes
-	out.IdleTime = in.IdleTime
-	out.Interval = in.Interval
+	*out = KeepAlive(*in)
 	return nil
 }
 
@@ -1911,9 +2624,15 @@ func Convert_v3alpha1_KeepAlive_To_v2_KeepAlive(in *v3alpha1.KeepAlive, out *Kee
 }
 
 func autoConvert_v2_KubernetesEndpointResolver_To_v3alpha1_KubernetesEndpointResolver(in *KubernetesEndpointResolver, out *v3alpha1.KubernetesEndpointResolver, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v2_KubernetesEndpointResolverSpec_To_v3alpha1_KubernetesEndpointResolverSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v2_KubernetesEndpointResolverSpec_To_v3alpha1_KubernetesEndpointResolverSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1924,9 +2643,15 @@ func Convert_v2_KubernetesEndpointResolver_To_v3alpha1_KubernetesEndpointResolve
 }
 
 func autoConvert_v3alpha1_KubernetesEndpointResolver_To_v2_KubernetesEndpointResolver(in *v3alpha1.KubernetesEndpointResolver, out *KubernetesEndpointResolver, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v3alpha1_KubernetesEndpointResolverSpec_To_v2_KubernetesEndpointResolverSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v3alpha1_KubernetesEndpointResolverSpec_To_v2_KubernetesEndpointResolverSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1937,17 +2662,23 @@ func Convert_v3alpha1_KubernetesEndpointResolver_To_v2_KubernetesEndpointResolve
 }
 
 func autoConvert_v2_KubernetesEndpointResolverList_To_v3alpha1_KubernetesEndpointResolverList(in *KubernetesEndpointResolverList, out *v3alpha1.KubernetesEndpointResolverList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]v3alpha1.KubernetesEndpointResolver, len(*in))
-		for i := range *in {
-			if err := Convert_v2_KubernetesEndpointResolver_To_v3alpha1_KubernetesEndpointResolver(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.KubernetesEndpointResolver, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_KubernetesEndpointResolver_To_v3alpha1_KubernetesEndpointResolver(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -1958,17 +2689,23 @@ func Convert_v2_KubernetesEndpointResolverList_To_v3alpha1_KubernetesEndpointRes
 }
 
 func autoConvert_v3alpha1_KubernetesEndpointResolverList_To_v2_KubernetesEndpointResolverList(in *v3alpha1.KubernetesEndpointResolverList, out *KubernetesEndpointResolverList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]KubernetesEndpointResolver, len(*in))
-		for i := range *in {
-			if err := Convert_v3alpha1_KubernetesEndpointResolver_To_v2_KubernetesEndpointResolver(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]KubernetesEndpointResolver, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_KubernetesEndpointResolver_To_v2_KubernetesEndpointResolver(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -1979,8 +2716,11 @@ func Convert_v3alpha1_KubernetesEndpointResolverList_To_v2_KubernetesEndpointRes
 }
 
 func autoConvert_v2_KubernetesEndpointResolverSpec_To_v3alpha1_KubernetesEndpointResolverSpec(in *KubernetesEndpointResolverSpec, out *v3alpha1.KubernetesEndpointResolverSpec, s conversion.Scope) error {
-	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1991,8 +2731,11 @@ func Convert_v2_KubernetesEndpointResolverSpec_To_v3alpha1_KubernetesEndpointRes
 }
 
 func autoConvert_v3alpha1_KubernetesEndpointResolverSpec_To_v2_KubernetesEndpointResolverSpec(in *v3alpha1.KubernetesEndpointResolverSpec, out *KubernetesEndpointResolverSpec, s conversion.Scope) error {
-	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -2003,9 +2746,15 @@ func Convert_v3alpha1_KubernetesEndpointResolverSpec_To_v2_KubernetesEndpointRes
 }
 
 func autoConvert_v2_KubernetesServiceResolver_To_v3alpha1_KubernetesServiceResolver(in *KubernetesServiceResolver, out *v3alpha1.KubernetesServiceResolver, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v2_KubernetesServiceResolverSpec_To_v3alpha1_KubernetesServiceResolverSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v2_KubernetesServiceResolverSpec_To_v3alpha1_KubernetesServiceResolverSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -2016,9 +2765,15 @@ func Convert_v2_KubernetesServiceResolver_To_v3alpha1_KubernetesServiceResolver(
 }
 
 func autoConvert_v3alpha1_KubernetesServiceResolver_To_v2_KubernetesServiceResolver(in *v3alpha1.KubernetesServiceResolver, out *KubernetesServiceResolver, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v3alpha1_KubernetesServiceResolverSpec_To_v2_KubernetesServiceResolverSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v3alpha1_KubernetesServiceResolverSpec_To_v2_KubernetesServiceResolverSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -2029,17 +2784,23 @@ func Convert_v3alpha1_KubernetesServiceResolver_To_v2_KubernetesServiceResolver(
 }
 
 func autoConvert_v2_KubernetesServiceResolverList_To_v3alpha1_KubernetesServiceResolverList(in *KubernetesServiceResolverList, out *v3alpha1.KubernetesServiceResolverList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]v3alpha1.KubernetesServiceResolver, len(*in))
-		for i := range *in {
-			if err := Convert_v2_KubernetesServiceResolver_To_v3alpha1_KubernetesServiceResolver(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.KubernetesServiceResolver, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_KubernetesServiceResolver_To_v3alpha1_KubernetesServiceResolver(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -2050,17 +2811,23 @@ func Convert_v2_KubernetesServiceResolverList_To_v3alpha1_KubernetesServiceResol
 }
 
 func autoConvert_v3alpha1_KubernetesServiceResolverList_To_v2_KubernetesServiceResolverList(in *v3alpha1.KubernetesServiceResolverList, out *KubernetesServiceResolverList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]KubernetesServiceResolver, len(*in))
-		for i := range *in {
-			if err := Convert_v3alpha1_KubernetesServiceResolver_To_v2_KubernetesServiceResolver(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]KubernetesServiceResolver, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_KubernetesServiceResolver_To_v2_KubernetesServiceResolver(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -2071,8 +2838,11 @@ func Convert_v3alpha1_KubernetesServiceResolverList_To_v2_KubernetesServiceResol
 }
 
 func autoConvert_v2_KubernetesServiceResolverSpec_To_v3alpha1_KubernetesServiceResolverSpec(in *KubernetesServiceResolverSpec, out *v3alpha1.KubernetesServiceResolverSpec, s conversion.Scope) error {
-	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -2083,8 +2853,11 @@ func Convert_v2_KubernetesServiceResolverSpec_To_v3alpha1_KubernetesServiceResol
 }
 
 func autoConvert_v3alpha1_KubernetesServiceResolverSpec_To_v2_KubernetesServiceResolverSpec(in *v3alpha1.KubernetesServiceResolverSpec, out *KubernetesServiceResolverSpec, s conversion.Scope) error {
-	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -2095,16 +2868,30 @@ func Convert_v3alpha1_KubernetesServiceResolverSpec_To_v2_KubernetesServiceResol
 }
 
 func autoConvert_v2_LoadBalancer_To_v3alpha1_LoadBalancer(in *LoadBalancer, out *v3alpha1.LoadBalancer, s conversion.Scope) error {
-	out.Policy = in.Policy
-	if in.Cookie != nil {
-		in, out := &in.Cookie, &out.Cookie
-		*out = new(v3alpha1.LoadBalancerCookie)
-		**out = v3alpha1.LoadBalancerCookie(**in)
-	} else {
-		out.Cookie = nil
+	if true {
+		in, out := &in.Policy, &out.Policy
+		*out = *in
 	}
-	out.Header = in.Header
-	out.SourceIp = in.SourceIp
+	if true {
+		in, out := &in.Cookie, &out.Cookie
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.LoadBalancerCookie)
+			in, out := *in, *out
+			if err := Convert_v2_LoadBalancerCookie_To_v3alpha1_LoadBalancerCookie(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.Header, &out.Header
+		*out = *in
+	}
+	if true {
+		in, out := &in.SourceIp, &out.SourceIp
+		*out = *in
+	}
 	return nil
 }
 
@@ -2114,16 +2901,30 @@ func Convert_v2_LoadBalancer_To_v3alpha1_LoadBalancer(in *LoadBalancer, out *v3a
 }
 
 func autoConvert_v3alpha1_LoadBalancer_To_v2_LoadBalancer(in *v3alpha1.LoadBalancer, out *LoadBalancer, s conversion.Scope) error {
-	out.Policy = in.Policy
-	if in.Cookie != nil {
-		in, out := &in.Cookie, &out.Cookie
-		*out = new(LoadBalancerCookie)
-		**out = LoadBalancerCookie(**in)
-	} else {
-		out.Cookie = nil
+	if true {
+		in, out := &in.Policy, &out.Policy
+		*out = *in
 	}
-	out.Header = in.Header
-	out.SourceIp = in.SourceIp
+	if true {
+		in, out := &in.Cookie, &out.Cookie
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(LoadBalancerCookie)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_LoadBalancerCookie_To_v2_LoadBalancerCookie(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.Header, &out.Header
+		*out = *in
+	}
+	if true {
+		in, out := &in.SourceIp, &out.SourceIp
+		*out = *in
+	}
 	return nil
 }
 
@@ -2133,9 +2934,7 @@ func Convert_v3alpha1_LoadBalancer_To_v2_LoadBalancer(in *v3alpha1.LoadBalancer,
 }
 
 func autoConvert_v2_LoadBalancerCookie_To_v3alpha1_LoadBalancerCookie(in *LoadBalancerCookie, out *v3alpha1.LoadBalancerCookie, s conversion.Scope) error {
-	out.Name = in.Name
-	out.Path = in.Path
-	out.Ttl = in.Ttl
+	*out = v3alpha1.LoadBalancerCookie(*in)
 	return nil
 }
 
@@ -2145,9 +2944,7 @@ func Convert_v2_LoadBalancerCookie_To_v3alpha1_LoadBalancerCookie(in *LoadBalanc
 }
 
 func autoConvert_v3alpha1_LoadBalancerCookie_To_v2_LoadBalancerCookie(in *v3alpha1.LoadBalancerCookie, out *LoadBalancerCookie, s conversion.Scope) error {
-	out.Name = in.Name
-	out.Path = in.Path
-	out.Ttl = in.Ttl
+	*out = LoadBalancerCookie(*in)
 	return nil
 }
 
@@ -2157,9 +2954,15 @@ func Convert_v3alpha1_LoadBalancerCookie_To_v2_LoadBalancerCookie(in *v3alpha1.L
 }
 
 func autoConvert_v2_LogService_To_v3alpha1_LogService(in *LogService, out *v3alpha1.LogService, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v2_LogServiceSpec_To_v3alpha1_LogServiceSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v2_LogServiceSpec_To_v3alpha1_LogServiceSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -2170,9 +2973,15 @@ func Convert_v2_LogService_To_v3alpha1_LogService(in *LogService, out *v3alpha1.
 }
 
 func autoConvert_v3alpha1_LogService_To_v2_LogService(in *v3alpha1.LogService, out *LogService, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v3alpha1_LogServiceSpec_To_v2_LogServiceSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v3alpha1_LogServiceSpec_To_v2_LogServiceSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -2183,17 +2992,23 @@ func Convert_v3alpha1_LogService_To_v2_LogService(in *v3alpha1.LogService, out *
 }
 
 func autoConvert_v2_LogServiceList_To_v3alpha1_LogServiceList(in *LogServiceList, out *v3alpha1.LogServiceList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]v3alpha1.LogService, len(*in))
-		for i := range *in {
-			if err := Convert_v2_LogService_To_v3alpha1_LogService(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.LogService, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_LogService_To_v3alpha1_LogService(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -2204,17 +3019,23 @@ func Convert_v2_LogServiceList_To_v3alpha1_LogServiceList(in *LogServiceList, ou
 }
 
 func autoConvert_v3alpha1_LogServiceList_To_v2_LogServiceList(in *v3alpha1.LogServiceList, out *LogServiceList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]LogService, len(*in))
-		for i := range *in {
-			if err := Convert_v3alpha1_LogService_To_v2_LogService(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]LogService, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_LogService_To_v2_LogService(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -2225,24 +3046,48 @@ func Convert_v3alpha1_LogServiceList_To_v2_LogServiceList(in *v3alpha1.LogServic
 }
 
 func autoConvert_v2_LogServiceSpec_To_v3alpha1_LogServiceSpec(in *LogServiceSpec, out *v3alpha1.LogServiceSpec, s conversion.Scope) error {
-	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
-	}
-	out.Service = in.Service
-	out.Driver = in.Driver
-	if in.DriverConfig != nil {
-		in, out := &in.DriverConfig, &out.DriverConfig
-		*out = new(v3alpha1.DriverConfig)
-		if err := Convert_v2_DriverConfig_To_v3alpha1_DriverConfig(*in, *out, s); err != nil {
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in, out, s); err != nil {
 			return err
 		}
-	} else {
-		out.DriverConfig = nil
 	}
-	out.FlushIntervalTime = in.FlushIntervalTime
-	out.FlushIntervalByteSize = in.FlushIntervalByteSize
-	out.GRPC = in.GRPC
-	out.StatsName = in.V3StatsName
+	if true {
+		in, out := &in.Service, &out.Service
+		*out = *in
+	}
+	if true {
+		in, out := &in.Driver, &out.Driver
+		*out = *in
+	}
+	if true {
+		in, out := &in.DriverConfig, &out.DriverConfig
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.DriverConfig)
+			in, out := *in, *out
+			if err := Convert_v2_DriverConfig_To_v3alpha1_DriverConfig(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.FlushIntervalTime, &out.FlushIntervalTime
+		*out = *in
+	}
+	if true {
+		in, out := &in.FlushIntervalByteSize, &out.FlushIntervalByteSize
+		*out = *in
+	}
+	if true {
+		in, out := &in.GRPC, &out.GRPC
+		*out = *in
+	}
+	if true {
+		in, out := &in.V3StatsName, &out.StatsName
+		*out = *in
+	}
 	return nil
 }
 
@@ -2252,24 +3097,48 @@ func Convert_v2_LogServiceSpec_To_v3alpha1_LogServiceSpec(in *LogServiceSpec, ou
 }
 
 func autoConvert_v3alpha1_LogServiceSpec_To_v2_LogServiceSpec(in *v3alpha1.LogServiceSpec, out *LogServiceSpec, s conversion.Scope) error {
-	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
-	}
-	out.Service = in.Service
-	out.Driver = in.Driver
-	if in.DriverConfig != nil {
-		in, out := &in.DriverConfig, &out.DriverConfig
-		*out = new(DriverConfig)
-		if err := Convert_v3alpha1_DriverConfig_To_v2_DriverConfig(*in, *out, s); err != nil {
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in, out, s); err != nil {
 			return err
 		}
-	} else {
-		out.DriverConfig = nil
 	}
-	out.FlushIntervalTime = in.FlushIntervalTime
-	out.FlushIntervalByteSize = in.FlushIntervalByteSize
-	out.GRPC = in.GRPC
-	out.V3StatsName = in.StatsName
+	if true {
+		in, out := &in.Service, &out.Service
+		*out = *in
+	}
+	if true {
+		in, out := &in.Driver, &out.Driver
+		*out = *in
+	}
+	if true {
+		in, out := &in.DriverConfig, &out.DriverConfig
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(DriverConfig)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_DriverConfig_To_v2_DriverConfig(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.FlushIntervalTime, &out.FlushIntervalTime
+		*out = *in
+	}
+	if true {
+		in, out := &in.FlushIntervalByteSize, &out.FlushIntervalByteSize
+		*out = *in
+	}
+	if true {
+		in, out := &in.GRPC, &out.GRPC
+		*out = *in
+	}
+	if true {
+		in, out := &in.StatsName, &out.V3StatsName
+		*out = *in
+	}
 	return nil
 }
 
@@ -2279,16 +3148,27 @@ func Convert_v3alpha1_LogServiceSpec_To_v2_LogServiceSpec(in *v3alpha1.LogServic
 }
 
 func autoConvert_v2_Mapping_To_v3alpha1_Mapping(in *Mapping, out *v3alpha1.Mapping, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v2_MappingSpec_To_v3alpha1_MappingSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
 	}
-	if in.Status != nil {
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v2_MappingSpec_To_v3alpha1_MappingSpec(in, out, s); err != nil {
+			return err
+		}
+	}
+	if true {
 		in, out := &in.Status, &out.Status
-		*out = new(v3alpha1.MappingStatus)
-		**out = v3alpha1.MappingStatus(**in)
-	} else {
-		out.Status = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.MappingStatus)
+			in, out := *in, *out
+			if err := Convert_v2_MappingStatus_To_v3alpha1_MappingStatus(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -2299,16 +3179,27 @@ func Convert_v2_Mapping_To_v3alpha1_Mapping(in *Mapping, out *v3alpha1.Mapping, 
 }
 
 func autoConvert_v3alpha1_Mapping_To_v2_Mapping(in *v3alpha1.Mapping, out *Mapping, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v3alpha1_MappingSpec_To_v2_MappingSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
 	}
-	if in.Status != nil {
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v3alpha1_MappingSpec_To_v2_MappingSpec(in, out, s); err != nil {
+			return err
+		}
+	}
+	if true {
 		in, out := &in.Status, &out.Status
-		*out = new(MappingStatus)
-		**out = MappingStatus(**in)
-	} else {
-		out.Status = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(MappingStatus)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_MappingStatus_To_v2_MappingStatus(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -2316,6 +3207,104 @@ func autoConvert_v3alpha1_Mapping_To_v2_Mapping(in *v3alpha1.Mapping, out *Mappi
 // Convert_v3alpha1_Mapping_To_v2_Mapping is an autogenerated conversion function.
 func Convert_v3alpha1_Mapping_To_v2_Mapping(in *v3alpha1.Mapping, out *Mapping, s conversion.Scope) error {
 	return autoConvert_v3alpha1_Mapping_To_v2_Mapping(in, out, s)
+}
+
+func autoConvert_v2_MappingLabelGroup_To_v3alpha1_MappingLabelGroup(in *MappingLabelGroup, out *v3alpha1.MappingLabelGroup, s conversion.Scope) error {
+	if *in == nil {
+		*out = nil
+	} else {
+		*out = make(v3alpha1.MappingLabelGroup, len(*in))
+		for inKey, inVal := range *in {
+			outKey := new(string)
+			if true {
+				in, out := &inKey, outKey
+				*out = *in
+			}
+			outVal := new(v3alpha1.MappingLabelsArray)
+			if true {
+				in, out := &inVal, outVal
+				if err := Convert_v2_MappingLabelsArray_To_v3alpha1_MappingLabelsArray(in, out, s); err != nil {
+					return err
+				}
+			}
+			(*out)[*outKey] = *outVal
+		}
+	}
+	return nil
+}
+
+// Convert_v2_MappingLabelGroup_To_v3alpha1_MappingLabelGroup is an autogenerated conversion function.
+func Convert_v2_MappingLabelGroup_To_v3alpha1_MappingLabelGroup(in *MappingLabelGroup, out *v3alpha1.MappingLabelGroup, s conversion.Scope) error {
+	return autoConvert_v2_MappingLabelGroup_To_v3alpha1_MappingLabelGroup(in, out, s)
+}
+
+func autoConvert_v3alpha1_MappingLabelGroup_To_v2_MappingLabelGroup(in *v3alpha1.MappingLabelGroup, out *MappingLabelGroup, s conversion.Scope) error {
+	if *in == nil {
+		*out = nil
+	} else {
+		*out = make(MappingLabelGroup, len(*in))
+		for inKey, inVal := range *in {
+			outKey := new(string)
+			if true {
+				in, out := &inKey, outKey
+				*out = *in
+			}
+			outVal := new(MappingLabelsArray)
+			if true {
+				in, out := &inVal, outVal
+				if err := Convert_v3alpha1_MappingLabelsArray_To_v2_MappingLabelsArray(in, out, s); err != nil {
+					return err
+				}
+			}
+			(*out)[*outKey] = *outVal
+		}
+	}
+	return nil
+}
+
+// Convert_v3alpha1_MappingLabelGroup_To_v2_MappingLabelGroup is an autogenerated conversion function.
+func Convert_v3alpha1_MappingLabelGroup_To_v2_MappingLabelGroup(in *v3alpha1.MappingLabelGroup, out *MappingLabelGroup, s conversion.Scope) error {
+	return autoConvert_v3alpha1_MappingLabelGroup_To_v2_MappingLabelGroup(in, out, s)
+}
+
+func autoConvert_v2_MappingLabelGroupsArray_To_v3alpha1_MappingLabelGroupsArray(in *MappingLabelGroupsArray, out *v3alpha1.MappingLabelGroupsArray, s conversion.Scope) error {
+	if *in == nil {
+		*out = nil
+	} else {
+		*out = make(v3alpha1.MappingLabelGroupsArray, len(*in))
+		for i := range *in {
+			in, out := &(*in)[i], &(*out)[i]
+			if err := Convert_v2_MappingLabelGroup_To_v3alpha1_MappingLabelGroup(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// Convert_v2_MappingLabelGroupsArray_To_v3alpha1_MappingLabelGroupsArray is an autogenerated conversion function.
+func Convert_v2_MappingLabelGroupsArray_To_v3alpha1_MappingLabelGroupsArray(in *MappingLabelGroupsArray, out *v3alpha1.MappingLabelGroupsArray, s conversion.Scope) error {
+	return autoConvert_v2_MappingLabelGroupsArray_To_v3alpha1_MappingLabelGroupsArray(in, out, s)
+}
+
+func autoConvert_v3alpha1_MappingLabelGroupsArray_To_v2_MappingLabelGroupsArray(in *v3alpha1.MappingLabelGroupsArray, out *MappingLabelGroupsArray, s conversion.Scope) error {
+	if *in == nil {
+		*out = nil
+	} else {
+		*out = make(MappingLabelGroupsArray, len(*in))
+		for i := range *in {
+			in, out := &(*in)[i], &(*out)[i]
+			if err := Convert_v3alpha1_MappingLabelGroup_To_v2_MappingLabelGroup(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// Convert_v3alpha1_MappingLabelGroupsArray_To_v2_MappingLabelGroupsArray is an autogenerated conversion function.
+func Convert_v3alpha1_MappingLabelGroupsArray_To_v2_MappingLabelGroupsArray(in *v3alpha1.MappingLabelGroupsArray, out *MappingLabelGroupsArray, s conversion.Scope) error {
+	return autoConvert_v3alpha1_MappingLabelGroupsArray_To_v2_MappingLabelGroupsArray(in, out, s)
 }
 
 func autoConvert_v2_MappingLabelSpecifier_To_v3alpha1_MappingLabelSpecifier(in *MappingLabelSpecifier, out *v3alpha1.MappingLabelSpecifier, s conversion.Scope) error {
@@ -2334,18 +3323,64 @@ func autoConvert_v3alpha1_MappingLabelSpecifier_To_v2_MappingLabelSpecifier(in *
 	return nil
 }
 
-func autoConvert_v2_MappingList_To_v3alpha1_MappingList(in *MappingList, out *v3alpha1.MappingList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
-		in, out := &in.Items, &out.Items
-		*out = make([]v3alpha1.Mapping, len(*in))
+func autoConvert_v2_MappingLabelsArray_To_v3alpha1_MappingLabelsArray(in *MappingLabelsArray, out *v3alpha1.MappingLabelsArray, s conversion.Scope) error {
+	if *in == nil {
+		*out = nil
+	} else {
+		*out = make(v3alpha1.MappingLabelsArray, len(*in))
 		for i := range *in {
-			if err := Convert_v2_Mapping_To_v3alpha1_Mapping(&(*in)[i], &(*out)[i], s); err != nil {
+			in, out := &(*in)[i], &(*out)[i]
+			if err := Convert_v2_MappingLabelSpecifier_To_v3alpha1_MappingLabelSpecifier(in, out, s); err != nil {
 				return err
 			}
 		}
+	}
+	return nil
+}
+
+// Convert_v2_MappingLabelsArray_To_v3alpha1_MappingLabelsArray is an autogenerated conversion function.
+func Convert_v2_MappingLabelsArray_To_v3alpha1_MappingLabelsArray(in *MappingLabelsArray, out *v3alpha1.MappingLabelsArray, s conversion.Scope) error {
+	return autoConvert_v2_MappingLabelsArray_To_v3alpha1_MappingLabelsArray(in, out, s)
+}
+
+func autoConvert_v3alpha1_MappingLabelsArray_To_v2_MappingLabelsArray(in *v3alpha1.MappingLabelsArray, out *MappingLabelsArray, s conversion.Scope) error {
+	if *in == nil {
+		*out = nil
 	} else {
-		out.Items = nil
+		*out = make(MappingLabelsArray, len(*in))
+		for i := range *in {
+			in, out := &(*in)[i], &(*out)[i]
+			if err := Convert_v3alpha1_MappingLabelSpecifier_To_v2_MappingLabelSpecifier(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// Convert_v3alpha1_MappingLabelsArray_To_v2_MappingLabelsArray is an autogenerated conversion function.
+func Convert_v3alpha1_MappingLabelsArray_To_v2_MappingLabelsArray(in *v3alpha1.MappingLabelsArray, out *MappingLabelsArray, s conversion.Scope) error {
+	return autoConvert_v3alpha1_MappingLabelsArray_To_v2_MappingLabelsArray(in, out, s)
+}
+
+func autoConvert_v2_MappingList_To_v3alpha1_MappingList(in *MappingList, out *v3alpha1.MappingList, s conversion.Scope) error {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Items, &out.Items
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.Mapping, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_Mapping_To_v3alpha1_Mapping(in, out, s); err != nil {
+					return err
+				}
+			}
+		}
 	}
 	return nil
 }
@@ -2356,17 +3391,23 @@ func Convert_v2_MappingList_To_v3alpha1_MappingList(in *MappingList, out *v3alph
 }
 
 func autoConvert_v3alpha1_MappingList_To_v2_MappingList(in *v3alpha1.MappingList, out *MappingList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]Mapping, len(*in))
-		for i := range *in {
-			if err := Convert_v3alpha1_Mapping_To_v2_Mapping(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]Mapping, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_Mapping_To_v2_Mapping(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -2377,469 +3418,950 @@ func Convert_v3alpha1_MappingList_To_v2_MappingList(in *v3alpha1.MappingList, ou
 }
 
 func autoConvert_v2_MappingSpec_To_v3alpha1_MappingSpec(in *MappingSpec, out *v3alpha1.MappingSpec, s conversion.Scope) error {
-	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.Prefix = in.Prefix
-	out.PrefixRegex = in.PrefixRegex
-	out.PrefixExact = in.PrefixExact
-	out.Service = in.Service
-	if in.AddRequestHeaders != nil {
+	if true {
+		in, out := &in.Prefix, &out.Prefix
+		*out = *in
+	}
+	if true {
+		in, out := &in.PrefixRegex, &out.PrefixRegex
+		*out = *in
+	}
+	if true {
+		in, out := &in.PrefixExact, &out.PrefixExact
+		*out = *in
+	}
+	if true {
+		in, out := &in.Service, &out.Service
+		*out = *in
+	}
+	if true {
 		in, out := &in.AddRequestHeaders, &out.AddRequestHeaders
-		*out = make(map[string]v3alpha1.AddedHeader, len(*in))
-		for key, val := range *in {
-			newVal := new(v3alpha1.AddedHeader)
-			if err := Convert_v2_AddedHeader_To_v3alpha1_AddedHeader(&val, newVal, s); err != nil {
-				return err
-			}
-			(*out)[key] = *newVal
-		}
-	} else {
-		out.AddRequestHeaders = nil
-	}
-	if in.AddResponseHeaders != nil {
-		in, out := &in.AddResponseHeaders, &out.AddResponseHeaders
-		*out = make(map[string]v3alpha1.AddedHeader, len(*in))
-		for key, val := range *in {
-			newVal := new(v3alpha1.AddedHeader)
-			if err := Convert_v2_AddedHeader_To_v3alpha1_AddedHeader(&val, newVal, s); err != nil {
-				return err
-			}
-			(*out)[key] = *newVal
-		}
-	} else {
-		out.AddResponseHeaders = nil
-	}
-	out.AddLinkerdHeaders = in.AddLinkerdHeaders
-	out.AutoHostRewrite = in.AutoHostRewrite
-	out.CaseSensitive = in.CaseSensitive
-	if in.Docs != nil {
-		in, out := &in.Docs, &out.Docs
-		*out = new(v3alpha1.DocsInfo)
-		if err := Convert_v2_DocsInfo_To_v3alpha1_DocsInfo(*in, *out, s); err != nil {
-			return err
-		}
-	} else {
-		out.Docs = nil
-	}
-	out.DNSType = in.DNSType
-	out.EnableIPv4 = in.EnableIPv4
-	out.EnableIPv6 = in.EnableIPv6
-	if in.CircuitBreakers != nil {
-		in, out := &in.CircuitBreakers, &out.CircuitBreakers
-		*out = make([]*v3alpha1.CircuitBreaker, len(*in))
-		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(v3alpha1.CircuitBreaker)
-				**out = v3alpha1.CircuitBreaker(**in)
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(map[string]v3alpha1.AddedHeader)
+			in, out := *in, *out
+			if *in == nil {
+				*out = nil
 			} else {
-				(*in)[i] = nil
+				*out = make(map[string]v3alpha1.AddedHeader, len(*in))
+				for inKey, inVal := range *in {
+					outKey := new(string)
+					if true {
+						in, out := &inKey, outKey
+						*out = *in
+					}
+					outVal := new(v3alpha1.AddedHeader)
+					if true {
+						in, out := &inVal, outVal
+						if err := Convert_v2_AddedHeader_To_v3alpha1_AddedHeader(in, out, s); err != nil {
+							return err
+						}
+					}
+					(*out)[*outKey] = *outVal
+				}
 			}
 		}
-	} else {
-		out.CircuitBreakers = nil
 	}
-	if in.KeepAlive != nil {
+	if true {
+		in, out := &in.AddResponseHeaders, &out.AddResponseHeaders
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(map[string]v3alpha1.AddedHeader)
+			in, out := *in, *out
+			if *in == nil {
+				*out = nil
+			} else {
+				*out = make(map[string]v3alpha1.AddedHeader, len(*in))
+				for inKey, inVal := range *in {
+					outKey := new(string)
+					if true {
+						in, out := &inKey, outKey
+						*out = *in
+					}
+					outVal := new(v3alpha1.AddedHeader)
+					if true {
+						in, out := &inVal, outVal
+						if err := Convert_v2_AddedHeader_To_v3alpha1_AddedHeader(in, out, s); err != nil {
+							return err
+						}
+					}
+					(*out)[*outKey] = *outVal
+				}
+			}
+		}
+	}
+	if true {
+		in, out := &in.AddLinkerdHeaders, &out.AddLinkerdHeaders
+		*out = *in
+	}
+	if true {
+		in, out := &in.AutoHostRewrite, &out.AutoHostRewrite
+		*out = *in
+	}
+	if true {
+		in, out := &in.CaseSensitive, &out.CaseSensitive
+		*out = *in
+	}
+	if true {
+		in, out := &in.Docs, &out.Docs
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.DocsInfo)
+			in, out := *in, *out
+			if err := Convert_v2_DocsInfo_To_v3alpha1_DocsInfo(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.DNSType, &out.DNSType
+		*out = *in
+	}
+	if true {
+		in, out := &in.EnableIPv4, &out.EnableIPv4
+		*out = *in
+	}
+	if true {
+		in, out := &in.EnableIPv6, &out.EnableIPv6
+		*out = *in
+	}
+	if true {
+		in, out := &in.CircuitBreakers, &out.CircuitBreakers
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]*v3alpha1.CircuitBreaker, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if *in == nil {
+					*out = nil
+				} else {
+					*out = new(v3alpha1.CircuitBreaker)
+					in, out := *in, *out
+					if err := Convert_v2_CircuitBreaker_To_v3alpha1_CircuitBreaker(in, out, s); err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+	if true {
 		in, out := &in.KeepAlive, &out.KeepAlive
-		*out = new(v3alpha1.KeepAlive)
-		**out = v3alpha1.KeepAlive(**in)
-	} else {
-		out.KeepAlive = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.KeepAlive)
+			in, out := *in, *out
+			if err := Convert_v2_KeepAlive_To_v3alpha1_KeepAlive(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	if in.CORS != nil {
+	if true {
 		in, out := &in.CORS, &out.CORS
-		*out = new(v3alpha1.CORS)
-		if err := Convert_v2_CORS_To_v3alpha1_CORS(*in, *out, s); err != nil {
-			return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.CORS)
+			in, out := *in, *out
+			if err := Convert_v2_CORS_To_v3alpha1_CORS(in, out, s); err != nil {
+				return err
+			}
 		}
-	} else {
-		out.CORS = nil
 	}
-	if in.RetryPolicy != nil {
+	if true {
 		in, out := &in.RetryPolicy, &out.RetryPolicy
-		*out = new(v3alpha1.RetryPolicy)
-		**out = v3alpha1.RetryPolicy(**in)
-	} else {
-		out.RetryPolicy = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.RetryPolicy)
+			in, out := *in, *out
+			if err := Convert_v2_RetryPolicy_To_v3alpha1_RetryPolicy(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	out.RespectDNSTTL = in.RespectDNSTTL
-	out.GRPC = in.GRPC
-	out.HostRedirect = in.HostRedirect
-	out.HostRewrite = in.HostRewrite
-	out.Method = in.Method
-	out.MethodRegex = in.MethodRegex
-	out.OutlierDetection = in.OutlierDetection
-	out.PathRedirect = in.PathRedirect
-	out.PrefixRedirect = in.PrefixRedirect
-	if in.RegexRedirect != nil {
+	if true {
+		in, out := &in.RespectDNSTTL, &out.RespectDNSTTL
+		*out = *in
+	}
+	if true {
+		in, out := &in.GRPC, &out.GRPC
+		*out = *in
+	}
+	if true {
+		in, out := &in.HostRedirect, &out.HostRedirect
+		*out = *in
+	}
+	if true {
+		in, out := &in.HostRewrite, &out.HostRewrite
+		*out = *in
+	}
+	if true {
+		in, out := &in.Method, &out.Method
+		*out = *in
+	}
+	if true {
+		in, out := &in.MethodRegex, &out.MethodRegex
+		*out = *in
+	}
+	if true {
+		in, out := &in.OutlierDetection, &out.OutlierDetection
+		*out = *in
+	}
+	if true {
+		in, out := &in.PathRedirect, &out.PathRedirect
+		*out = *in
+	}
+	if true {
+		in, out := &in.PrefixRedirect, &out.PrefixRedirect
+		*out = *in
+	}
+	if true {
 		in, out := &in.RegexRedirect, &out.RegexRedirect
-		*out = new(v3alpha1.RegexMap)
-		**out = v3alpha1.RegexMap(**in)
-	} else {
-		out.RegexRedirect = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.RegexMap)
+			in, out := *in, *out
+			if err := Convert_v2_RegexMap_To_v3alpha1_RegexMap(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	out.RedirectResponseCode = in.RedirectResponseCode
-	out.Priority = in.Priority
-	out.Precedence = in.Precedence
-	out.ClusterTag = in.ClusterTag
-	out.RemoveRequestHeaders = []string(in.RemoveRequestHeaders)
-	out.RemoveResponseHeaders = []string(in.RemoveResponseHeaders)
-	out.Resolver = in.Resolver
-	out.Rewrite = in.Rewrite
-	if in.RegexRewrite != nil {
+	if true {
+		in, out := &in.RedirectResponseCode, &out.RedirectResponseCode
+		*out = *in
+	}
+	if true {
+		in, out := &in.Priority, &out.Priority
+		*out = *in
+	}
+	if true {
+		in, out := &in.Precedence, &out.Precedence
+		*out = *in
+	}
+	if true {
+		in, out := &in.ClusterTag, &out.ClusterTag
+		*out = *in
+	}
+	if true {
+		in, out := &in.RemoveRequestHeaders, &out.RemoveRequestHeaders
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new([]string)
+			in, out := *in, *out
+			*out = []string(*in)
+		}
+	}
+	if true {
+		in, out := &in.RemoveResponseHeaders, &out.RemoveResponseHeaders
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new([]string)
+			in, out := *in, *out
+			*out = []string(*in)
+		}
+	}
+	if true {
+		in, out := &in.Resolver, &out.Resolver
+		*out = *in
+	}
+	if true {
+		in, out := &in.Rewrite, &out.Rewrite
+		*out = *in
+	}
+	if true {
 		in, out := &in.RegexRewrite, &out.RegexRewrite
-		*out = new(v3alpha1.RegexMap)
-		**out = v3alpha1.RegexMap(**in)
-	} else {
-		out.RegexRewrite = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.RegexMap)
+			in, out := *in, *out
+			if err := Convert_v2_RegexMap_To_v3alpha1_RegexMap(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	out.Shadow = in.Shadow
-	if in.ConnectTimeout != nil {
+	if true {
+		in, out := &in.Shadow, &out.Shadow
+		*out = *in
+	}
+	if true {
 		in, out := &in.ConnectTimeout, &out.ConnectTimeout
-		*out = new(v3alpha1.MillisecondDuration)
-		**out = v3alpha1.MillisecondDuration(**in)
-	} else {
-		out.ConnectTimeout = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v2_MillisecondDuration_To_v3alpha1_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	if in.ClusterIdleTimeout != nil {
+	if true {
 		in, out := &in.ClusterIdleTimeout, &out.ClusterIdleTimeout
-		*out = new(v3alpha1.MillisecondDuration)
-		**out = v3alpha1.MillisecondDuration(**in)
-	} else {
-		out.ClusterIdleTimeout = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v2_MillisecondDuration_To_v3alpha1_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	if in.ClusterMaxConnectionLifetime != nil {
+	if true {
 		in, out := &in.ClusterMaxConnectionLifetime, &out.ClusterMaxConnectionLifetime
-		*out = new(v3alpha1.MillisecondDuration)
-		**out = v3alpha1.MillisecondDuration(**in)
-	} else {
-		out.ClusterMaxConnectionLifetime = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v2_MillisecondDuration_To_v3alpha1_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	if in.Timeout != nil {
+	if true {
 		in, out := &in.Timeout, &out.Timeout
-		*out = new(v3alpha1.MillisecondDuration)
-		**out = v3alpha1.MillisecondDuration(**in)
-	} else {
-		out.Timeout = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v2_MillisecondDuration_To_v3alpha1_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	if in.IdleTimeout != nil {
+	if true {
 		in, out := &in.IdleTimeout, &out.IdleTimeout
-		*out = new(v3alpha1.MillisecondDuration)
-		**out = v3alpha1.MillisecondDuration(**in)
-	} else {
-		out.IdleTimeout = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v2_MillisecondDuration_To_v3alpha1_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	// WARNING: in.TLS requires manual conversion: inconvertible types (*./pkg/api/getambassador.io/v2.BoolOrString vs string)
-	out.DeprecatedUseWebsocket = in.DeprecatedUseWebsocket
-	out.AllowUpgrade = in.AllowUpgrade
-	out.Weight = in.Weight
-	out.BypassAuth = in.BypassAuth
-	out.AuthContextExtensions = in.AuthContextExtensions
-	out.BypassErrorResponseOverrides = in.BypassErrorResponseOverrides
-	if in.ErrorResponseOverrides != nil {
+	// INFO: in.TLS opted out of conversion generation via +k8s:conversion-gen=false
+	if true {
+		in, out := &in.DeprecatedUseWebsocket, &out.DeprecatedUseWebsocket
+		*out = *in
+	}
+	if true {
+		in, out := &in.AllowUpgrade, &out.AllowUpgrade
+		*out = *in
+	}
+	if true {
+		in, out := &in.Weight, &out.Weight
+		*out = *in
+	}
+	if true {
+		in, out := &in.BypassAuth, &out.BypassAuth
+		*out = *in
+	}
+	if true {
+		in, out := &in.AuthContextExtensions, &out.AuthContextExtensions
+		*out = *in
+	}
+	if true {
+		in, out := &in.BypassErrorResponseOverrides, &out.BypassErrorResponseOverrides
+		*out = *in
+	}
+	if true {
 		in, out := &in.ErrorResponseOverrides, &out.ErrorResponseOverrides
-		*out = make([]v3alpha1.ErrorResponseOverride, len(*in))
-		for i := range *in {
-			if err := Convert_v2_ErrorResponseOverride_To_v3alpha1_ErrorResponseOverride(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.ErrorResponseOverride, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_ErrorResponseOverride_To_v3alpha1_ErrorResponseOverride(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.ErrorResponseOverrides = nil
 	}
-	if in.Modules != nil {
+	if true {
 		in, out := &in.Modules, &out.Modules
-		*out = make([]v3alpha1.UntypedDict, len(*in))
-		for i := range *in {
-			(*out)[i] = v3alpha1.UntypedDict((*in)[i])
-		}
-	} else {
-		out.Modules = nil
-	}
-	out.Hostname = in.Host
-	out.DeprecatedHostRegex = in.HostRegex
-	// INFO: in.Headers opted out of conversion generation
-	out.RegexHeaders = in.RegexHeaders
-	if in.Labels != nil {
-		in, out := &in.Labels, &out.Labels
-		*out = make(v3alpha1.DomainMap, len(*in))
-		for key, val := range *in {
-			newVal := new(v3alpha1.MappingLabelGroupsArray)
-			if err := Convert_v2_MappingLabelGroupsArray_To_v3alpha1_MappingLabelGroupsArray(&val, newVal, s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.UntypedDict, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_UntypedDict_To_v3alpha1_UntypedDict(in, out, s); err != nil {
+					return err
+				}
 			}
-			(*out)[key] = *newVal
 		}
-	} else {
-		out.Labels = nil
 	}
-	if in.EnvoyOverride != nil {
-		in, out := &in.EnvoyOverride, &out.EnvoyOverride
-		*out = new(v3alpha1.UntypedDict)
-		**out = v3alpha1.UntypedDict(**in)
-	} else {
-		out.EnvoyOverride = nil
+	if true {
+		in, out := &in.Host, &out.Hostname
+		*out = *in
 	}
-	if in.LoadBalancer != nil {
-		in, out := &in.LoadBalancer, &out.LoadBalancer
-		*out = new(v3alpha1.LoadBalancer)
-		if err := Convert_v2_LoadBalancer_To_v3alpha1_LoadBalancer(*in, *out, s); err != nil {
+	if true {
+		in, out := &in.HostRegex, &out.DeprecatedHostRegex
+		*out = *in
+	}
+	// INFO: in.Headers opted out of conversion generation via +k8s:conversion-gen=false
+	if true {
+		in, out := &in.RegexHeaders, &out.RegexHeaders
+		*out = *in
+	}
+	if true {
+		in, out := &in.Labels, &out.Labels
+		if err := Convert_v2_DomainMap_To_v3alpha1_DomainMap(in, out, s); err != nil {
 			return err
 		}
-	} else {
-		out.LoadBalancer = nil
 	}
-	// INFO: in.QueryParameters opted out of conversion generation
-	out.RegexQueryParameters = in.RegexQueryParameters
-	out.StatsName = in.V3StatsName
+	if true {
+		in, out := &in.EnvoyOverride, &out.EnvoyOverride
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.UntypedDict)
+			in, out := *in, *out
+			if err := Convert_v2_UntypedDict_To_v3alpha1_UntypedDict(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.LoadBalancer, &out.LoadBalancer
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.LoadBalancer)
+			in, out := *in, *out
+			if err := Convert_v2_LoadBalancer_To_v3alpha1_LoadBalancer(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	// INFO: in.QueryParameters opted out of conversion generation via +k8s:conversion-gen=false
+	if true {
+		in, out := &in.RegexQueryParameters, &out.RegexQueryParameters
+		*out = *in
+	}
+	if true {
+		in, out := &in.V3StatsName, &out.StatsName
+		*out = *in
+	}
 	return nil
 }
 
 func autoConvert_v3alpha1_MappingSpec_To_v2_MappingSpec(in *v3alpha1.MappingSpec, out *MappingSpec, s conversion.Scope) error {
-	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.Prefix = in.Prefix
-	out.PrefixRegex = in.PrefixRegex
-	out.PrefixExact = in.PrefixExact
-	out.Service = in.Service
-	if in.AddRequestHeaders != nil {
+	if true {
+		in, out := &in.Prefix, &out.Prefix
+		*out = *in
+	}
+	if true {
+		in, out := &in.PrefixRegex, &out.PrefixRegex
+		*out = *in
+	}
+	if true {
+		in, out := &in.PrefixExact, &out.PrefixExact
+		*out = *in
+	}
+	if true {
+		in, out := &in.Service, &out.Service
+		*out = *in
+	}
+	if true {
 		in, out := &in.AddRequestHeaders, &out.AddRequestHeaders
-		*out = make(map[string]AddedHeader, len(*in))
-		for key, val := range *in {
-			newVal := new(AddedHeader)
-			if err := Convert_v3alpha1_AddedHeader_To_v2_AddedHeader(&val, newVal, s); err != nil {
-				return err
-			}
-			(*out)[key] = *newVal
-		}
-	} else {
-		out.AddRequestHeaders = nil
-	}
-	if in.AddResponseHeaders != nil {
-		in, out := &in.AddResponseHeaders, &out.AddResponseHeaders
-		*out = make(map[string]AddedHeader, len(*in))
-		for key, val := range *in {
-			newVal := new(AddedHeader)
-			if err := Convert_v3alpha1_AddedHeader_To_v2_AddedHeader(&val, newVal, s); err != nil {
-				return err
-			}
-			(*out)[key] = *newVal
-		}
-	} else {
-		out.AddResponseHeaders = nil
-	}
-	out.AddLinkerdHeaders = in.AddLinkerdHeaders
-	out.AutoHostRewrite = in.AutoHostRewrite
-	out.CaseSensitive = in.CaseSensitive
-	out.DNSType = in.DNSType
-	if in.Docs != nil {
-		in, out := &in.Docs, &out.Docs
-		*out = new(DocsInfo)
-		if err := Convert_v3alpha1_DocsInfo_To_v2_DocsInfo(*in, *out, s); err != nil {
-			return err
-		}
-	} else {
-		out.Docs = nil
-	}
-	out.EnableIPv4 = in.EnableIPv4
-	out.EnableIPv6 = in.EnableIPv6
-	if in.CircuitBreakers != nil {
-		in, out := &in.CircuitBreakers, &out.CircuitBreakers
-		*out = make([]*CircuitBreaker, len(*in))
-		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(CircuitBreaker)
-				**out = CircuitBreaker(**in)
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(map[string]AddedHeader)
+			in, out := *in, *out
+			if *in == nil {
+				*out = nil
 			} else {
-				(*in)[i] = nil
+				*out = make(map[string]AddedHeader, len(*in))
+				for inKey, inVal := range *in {
+					outKey := new(string)
+					if true {
+						in, out := &inKey, outKey
+						*out = *in
+					}
+					outVal := new(AddedHeader)
+					if true {
+						in, out := &inVal, outVal
+						if err := Convert_v3alpha1_AddedHeader_To_v2_AddedHeader(in, out, s); err != nil {
+							return err
+						}
+					}
+					(*out)[*outKey] = *outVal
+				}
 			}
 		}
-	} else {
-		out.CircuitBreakers = nil
 	}
-	if in.KeepAlive != nil {
-		in, out := &in.KeepAlive, &out.KeepAlive
-		*out = new(KeepAlive)
-		**out = KeepAlive(**in)
-	} else {
-		out.KeepAlive = nil
-	}
-	if in.CORS != nil {
-		in, out := &in.CORS, &out.CORS
-		*out = new(CORS)
-		if err := Convert_v3alpha1_CORS_To_v2_CORS(*in, *out, s); err != nil {
-			return err
+	if true {
+		in, out := &in.AddResponseHeaders, &out.AddResponseHeaders
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(map[string]AddedHeader)
+			in, out := *in, *out
+			if *in == nil {
+				*out = nil
+			} else {
+				*out = make(map[string]AddedHeader, len(*in))
+				for inKey, inVal := range *in {
+					outKey := new(string)
+					if true {
+						in, out := &inKey, outKey
+						*out = *in
+					}
+					outVal := new(AddedHeader)
+					if true {
+						in, out := &inVal, outVal
+						if err := Convert_v3alpha1_AddedHeader_To_v2_AddedHeader(in, out, s); err != nil {
+							return err
+						}
+					}
+					(*out)[*outKey] = *outVal
+				}
+			}
 		}
-	} else {
-		out.CORS = nil
 	}
-	if in.RetryPolicy != nil {
-		in, out := &in.RetryPolicy, &out.RetryPolicy
-		*out = new(RetryPolicy)
-		**out = RetryPolicy(**in)
-	} else {
-		out.RetryPolicy = nil
+	if true {
+		in, out := &in.AddLinkerdHeaders, &out.AddLinkerdHeaders
+		*out = *in
 	}
-	out.RespectDNSTTL = in.RespectDNSTTL
-	out.GRPC = in.GRPC
-	out.HostRedirect = in.HostRedirect
-	out.HostRewrite = in.HostRewrite
-	out.Method = in.Method
-	out.MethodRegex = in.MethodRegex
-	out.OutlierDetection = in.OutlierDetection
-	out.PathRedirect = in.PathRedirect
-	out.PrefixRedirect = in.PrefixRedirect
-	if in.RegexRedirect != nil {
-		in, out := &in.RegexRedirect, &out.RegexRedirect
-		*out = new(RegexMap)
-		**out = RegexMap(**in)
-	} else {
-		out.RegexRedirect = nil
+	if true {
+		in, out := &in.AutoHostRewrite, &out.AutoHostRewrite
+		*out = *in
 	}
-	out.RedirectResponseCode = in.RedirectResponseCode
-	out.Priority = in.Priority
-	out.Precedence = in.Precedence
-	out.ClusterTag = in.ClusterTag
-	out.RemoveRequestHeaders = StringOrStringList(in.RemoveRequestHeaders)
-	out.RemoveResponseHeaders = StringOrStringList(in.RemoveResponseHeaders)
-	out.Resolver = in.Resolver
-	out.Rewrite = in.Rewrite
-	if in.RegexRewrite != nil {
-		in, out := &in.RegexRewrite, &out.RegexRewrite
-		*out = new(RegexMap)
-		**out = RegexMap(**in)
-	} else {
-		out.RegexRewrite = nil
+	if true {
+		in, out := &in.CaseSensitive, &out.CaseSensitive
+		*out = *in
 	}
-	out.Shadow = in.Shadow
-	if in.ConnectTimeout != nil {
-		in, out := &in.ConnectTimeout, &out.ConnectTimeout
-		*out = new(MillisecondDuration)
-		**out = MillisecondDuration(**in)
-	} else {
-		out.ConnectTimeout = nil
+	if true {
+		in, out := &in.DNSType, &out.DNSType
+		*out = *in
 	}
-	if in.ClusterIdleTimeout != nil {
-		in, out := &in.ClusterIdleTimeout, &out.ClusterIdleTimeout
-		*out = new(MillisecondDuration)
-		**out = MillisecondDuration(**in)
-	} else {
-		out.ClusterIdleTimeout = nil
-	}
-	if in.ClusterMaxConnectionLifetime != nil {
-		in, out := &in.ClusterMaxConnectionLifetime, &out.ClusterMaxConnectionLifetime
-		*out = new(MillisecondDuration)
-		**out = MillisecondDuration(**in)
-	} else {
-		out.ClusterMaxConnectionLifetime = nil
-	}
-	if in.Timeout != nil {
-		in, out := &in.Timeout, &out.Timeout
-		*out = new(MillisecondDuration)
-		**out = MillisecondDuration(**in)
-	} else {
-		out.Timeout = nil
-	}
-	if in.IdleTimeout != nil {
-		in, out := &in.IdleTimeout, &out.IdleTimeout
-		*out = new(MillisecondDuration)
-		**out = MillisecondDuration(**in)
-	} else {
-		out.IdleTimeout = nil
-	}
-	if err := Convert_string_To_Pointer_v2_BoolOrString(&in.TLS, &out.TLS, s); err != nil {
-		return err
-	}
-	out.DeprecatedUseWebsocket = in.DeprecatedUseWebsocket
-	out.AllowUpgrade = in.AllowUpgrade
-	out.Weight = in.Weight
-	out.BypassAuth = in.BypassAuth
-	out.AuthContextExtensions = in.AuthContextExtensions
-	out.BypassErrorResponseOverrides = in.BypassErrorResponseOverrides
-	if in.ErrorResponseOverrides != nil {
-		in, out := &in.ErrorResponseOverrides, &out.ErrorResponseOverrides
-		*out = make([]ErrorResponseOverride, len(*in))
-		for i := range *in {
-			if err := Convert_v3alpha1_ErrorResponseOverride_To_v2_ErrorResponseOverride(&(*in)[i], &(*out)[i], s); err != nil {
+	if true {
+		in, out := &in.Docs, &out.Docs
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(DocsInfo)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_DocsInfo_To_v2_DocsInfo(in, out, s); err != nil {
 				return err
 			}
 		}
-	} else {
-		out.ErrorResponseOverrides = nil
 	}
-	if in.Modules != nil {
-		in, out := &in.Modules, &out.Modules
-		*out = make([]UntypedDict, len(*in))
-		for i := range *in {
-			(*out)[i] = UntypedDict((*in)[i])
+	if true {
+		in, out := &in.EnableIPv4, &out.EnableIPv4
+		*out = *in
+	}
+	if true {
+		in, out := &in.EnableIPv6, &out.EnableIPv6
+		*out = *in
+	}
+	if true {
+		in, out := &in.CircuitBreakers, &out.CircuitBreakers
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]*CircuitBreaker, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if *in == nil {
+					*out = nil
+				} else {
+					*out = new(CircuitBreaker)
+					in, out := *in, *out
+					if err := Convert_v3alpha1_CircuitBreaker_To_v2_CircuitBreaker(in, out, s); err != nil {
+						return err
+					}
+				}
+			}
 		}
-	} else {
-		out.Modules = nil
+	}
+	if true {
+		in, out := &in.KeepAlive, &out.KeepAlive
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(KeepAlive)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_KeepAlive_To_v2_KeepAlive(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.CORS, &out.CORS
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(CORS)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_CORS_To_v2_CORS(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.RetryPolicy, &out.RetryPolicy
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(RetryPolicy)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_RetryPolicy_To_v2_RetryPolicy(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.RespectDNSTTL, &out.RespectDNSTTL
+		*out = *in
+	}
+	if true {
+		in, out := &in.GRPC, &out.GRPC
+		*out = *in
+	}
+	if true {
+		in, out := &in.HostRedirect, &out.HostRedirect
+		*out = *in
+	}
+	if true {
+		in, out := &in.HostRewrite, &out.HostRewrite
+		*out = *in
+	}
+	if true {
+		in, out := &in.Method, &out.Method
+		*out = *in
+	}
+	if true {
+		in, out := &in.MethodRegex, &out.MethodRegex
+		*out = *in
+	}
+	if true {
+		in, out := &in.OutlierDetection, &out.OutlierDetection
+		*out = *in
+	}
+	if true {
+		in, out := &in.PathRedirect, &out.PathRedirect
+		*out = *in
+	}
+	if true {
+		in, out := &in.PrefixRedirect, &out.PrefixRedirect
+		*out = *in
+	}
+	if true {
+		in, out := &in.RegexRedirect, &out.RegexRedirect
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(RegexMap)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_RegexMap_To_v2_RegexMap(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.RedirectResponseCode, &out.RedirectResponseCode
+		*out = *in
+	}
+	if true {
+		in, out := &in.Priority, &out.Priority
+		*out = *in
+	}
+	if true {
+		in, out := &in.Precedence, &out.Precedence
+		*out = *in
+	}
+	if true {
+		in, out := &in.ClusterTag, &out.ClusterTag
+		*out = *in
+	}
+	if true {
+		in, out := &in.RemoveRequestHeaders, &out.RemoveRequestHeaders
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(StringOrStringList)
+			in, out := *in, *out
+			*out = StringOrStringList(*in)
+		}
+	}
+	if true {
+		in, out := &in.RemoveResponseHeaders, &out.RemoveResponseHeaders
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(StringOrStringList)
+			in, out := *in, *out
+			*out = StringOrStringList(*in)
+		}
+	}
+	if true {
+		in, out := &in.Resolver, &out.Resolver
+		*out = *in
+	}
+	if true {
+		in, out := &in.Rewrite, &out.Rewrite
+		*out = *in
+	}
+	if true {
+		in, out := &in.RegexRewrite, &out.RegexRewrite
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(RegexMap)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_RegexMap_To_v2_RegexMap(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.Shadow, &out.Shadow
+		*out = *in
+	}
+	if true {
+		in, out := &in.ConnectTimeout, &out.ConnectTimeout
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_MillisecondDuration_To_v2_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.ClusterIdleTimeout, &out.ClusterIdleTimeout
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_MillisecondDuration_To_v2_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.ClusterMaxConnectionLifetime, &out.ClusterMaxConnectionLifetime
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_MillisecondDuration_To_v2_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.Timeout, &out.Timeout
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_MillisecondDuration_To_v2_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.IdleTimeout, &out.IdleTimeout
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_MillisecondDuration_To_v2_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.TLS, &out.TLS
+		if err := Convert_string_To_Pointer_v2_BoolOrString(in, out, s); err != nil {
+			return err
+		}
+	}
+	if true {
+		in, out := &in.DeprecatedUseWebsocket, &out.DeprecatedUseWebsocket
+		*out = *in
+	}
+	if true {
+		in, out := &in.AllowUpgrade, &out.AllowUpgrade
+		*out = *in
+	}
+	if true {
+		in, out := &in.Weight, &out.Weight
+		*out = *in
+	}
+	if true {
+		in, out := &in.BypassAuth, &out.BypassAuth
+		*out = *in
+	}
+	if true {
+		in, out := &in.AuthContextExtensions, &out.AuthContextExtensions
+		*out = *in
+	}
+	if true {
+		in, out := &in.BypassErrorResponseOverrides, &out.BypassErrorResponseOverrides
+		*out = *in
+	}
+	if true {
+		in, out := &in.ErrorResponseOverrides, &out.ErrorResponseOverrides
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]ErrorResponseOverride, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_ErrorResponseOverride_To_v2_ErrorResponseOverride(in, out, s); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	if true {
+		in, out := &in.Modules, &out.Modules
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]UntypedDict, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_UntypedDict_To_v2_UntypedDict(in, out, s); err != nil {
+					return err
+				}
+			}
+		}
 	}
 	// WARNING: in.DeprecatedHost requires manual conversion: does not exist in peer-type
-	out.HostRegex = in.DeprecatedHostRegex
-	out.Host = in.Hostname
-	if in.Headers != nil {
+	if true {
+		in, out := &in.DeprecatedHostRegex, &out.HostRegex
+		*out = *in
+	}
+	if true {
+		in, out := &in.Hostname, &out.Host
+		*out = *in
+	}
+	if true {
 		in, out := &in.Headers, &out.Headers
-		*out = make(map[string]BoolOrString, len(*in))
-		for key, val := range *in {
-			newVal := new(BoolOrString)
-			if err := Convert_string_To_v2_BoolOrString(&val, newVal, s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make(map[string]BoolOrString, len(*in))
+			for inKey, inVal := range *in {
+				outKey := new(string)
+				if true {
+					in, out := &inKey, outKey
+					*out = *in
+				}
+				outVal := new(BoolOrString)
+				if true {
+					in, out := &inVal, outVal
+					if err := Convert_string_To_v2_BoolOrString(in, out, s); err != nil {
+						return err
+					}
+				}
+				(*out)[*outKey] = *outVal
 			}
-			(*out)[key] = *newVal
 		}
-	} else {
-		out.Headers = nil
 	}
-	out.RegexHeaders = in.RegexHeaders
-	if in.Labels != nil {
+	if true {
+		in, out := &in.RegexHeaders, &out.RegexHeaders
+		*out = *in
+	}
+	if true {
 		in, out := &in.Labels, &out.Labels
-		*out = make(DomainMap, len(*in))
-		for key, val := range *in {
-			newVal := new(MappingLabelGroupsArray)
-			if err := Convert_v3alpha1_MappingLabelGroupsArray_To_v2_MappingLabelGroupsArray(&val, newVal, s); err != nil {
-				return err
-			}
-			(*out)[key] = *newVal
-		}
-	} else {
-		out.Labels = nil
-	}
-	if in.EnvoyOverride != nil {
-		in, out := &in.EnvoyOverride, &out.EnvoyOverride
-		*out = new(UntypedDict)
-		**out = UntypedDict(**in)
-	} else {
-		out.EnvoyOverride = nil
-	}
-	if in.LoadBalancer != nil {
-		in, out := &in.LoadBalancer, &out.LoadBalancer
-		*out = new(LoadBalancer)
-		if err := Convert_v3alpha1_LoadBalancer_To_v2_LoadBalancer(*in, *out, s); err != nil {
+		if err := Convert_v3alpha1_DomainMap_To_v2_DomainMap(in, out, s); err != nil {
 			return err
 		}
-	} else {
-		out.LoadBalancer = nil
 	}
-	if in.QueryParameters != nil {
-		in, out := &in.QueryParameters, &out.QueryParameters
-		*out = make(map[string]BoolOrString, len(*in))
-		for key, val := range *in {
-			newVal := new(BoolOrString)
-			if err := Convert_string_To_v2_BoolOrString(&val, newVal, s); err != nil {
+	if true {
+		in, out := &in.EnvoyOverride, &out.EnvoyOverride
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(UntypedDict)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_UntypedDict_To_v2_UntypedDict(in, out, s); err != nil {
 				return err
 			}
-			(*out)[key] = *newVal
 		}
-	} else {
-		out.QueryParameters = nil
 	}
-	out.RegexQueryParameters = in.RegexQueryParameters
-	out.V3StatsName = in.StatsName
+	if true {
+		in, out := &in.LoadBalancer, &out.LoadBalancer
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(LoadBalancer)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_LoadBalancer_To_v2_LoadBalancer(in, out, s); err != nil {
+				return err
+			}
+		}
+	}
+	if true {
+		in, out := &in.QueryParameters, &out.QueryParameters
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make(map[string]BoolOrString, len(*in))
+			for inKey, inVal := range *in {
+				outKey := new(string)
+				if true {
+					in, out := &inKey, outKey
+					*out = *in
+				}
+				outVal := new(BoolOrString)
+				if true {
+					in, out := &inVal, outVal
+					if err := Convert_string_To_v2_BoolOrString(in, out, s); err != nil {
+						return err
+					}
+				}
+				(*out)[*outKey] = *outVal
+			}
+		}
+	}
+	if true {
+		in, out := &in.RegexQueryParameters, &out.RegexQueryParameters
+		*out = *in
+	}
+	if true {
+		in, out := &in.StatsName, &out.V3StatsName
+		*out = *in
+	}
 	// WARNING: in.V2ExplicitTLS requires manual conversion: does not exist in peer-type
 	// WARNING: in.V2BoolHeaders requires manual conversion: does not exist in peer-type
 	// WARNING: in.V2BoolQueryParameters requires manual conversion: does not exist in peer-type
@@ -2847,8 +4369,7 @@ func autoConvert_v3alpha1_MappingSpec_To_v2_MappingSpec(in *v3alpha1.MappingSpec
 }
 
 func autoConvert_v2_MappingStatus_To_v3alpha1_MappingStatus(in *MappingStatus, out *v3alpha1.MappingStatus, s conversion.Scope) error {
-	out.State = in.State
-	out.Reason = in.Reason
+	*out = v3alpha1.MappingStatus(*in)
 	return nil
 }
 
@@ -2858,8 +4379,7 @@ func Convert_v2_MappingStatus_To_v3alpha1_MappingStatus(in *MappingStatus, out *
 }
 
 func autoConvert_v3alpha1_MappingStatus_To_v2_MappingStatus(in *v3alpha1.MappingStatus, out *MappingStatus, s conversion.Scope) error {
-	out.State = in.State
-	out.Reason = in.Reason
+	*out = MappingStatus(*in)
 	return nil
 }
 
@@ -2869,7 +4389,7 @@ func Convert_v3alpha1_MappingStatus_To_v2_MappingStatus(in *v3alpha1.MappingStat
 }
 
 func autoConvert_v2_MillisecondDuration_To_v3alpha1_MillisecondDuration(in *MillisecondDuration, out *v3alpha1.MillisecondDuration, s conversion.Scope) error {
-	out.Duration = in.Duration
+	*out = v3alpha1.MillisecondDuration(*in)
 	return nil
 }
 
@@ -2879,7 +4399,7 @@ func Convert_v2_MillisecondDuration_To_v3alpha1_MillisecondDuration(in *Millisec
 }
 
 func autoConvert_v3alpha1_MillisecondDuration_To_v2_MillisecondDuration(in *v3alpha1.MillisecondDuration, out *MillisecondDuration, s conversion.Scope) error {
-	out.Duration = in.Duration
+	*out = MillisecondDuration(*in)
 	return nil
 }
 
@@ -2889,9 +4409,15 @@ func Convert_v3alpha1_MillisecondDuration_To_v2_MillisecondDuration(in *v3alpha1
 }
 
 func autoConvert_v2_Module_To_v3alpha1_Module(in *Module, out *v3alpha1.Module, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v2_ModuleSpec_To_v3alpha1_ModuleSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v2_ModuleSpec_To_v3alpha1_ModuleSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -2902,9 +4428,15 @@ func Convert_v2_Module_To_v3alpha1_Module(in *Module, out *v3alpha1.Module, s co
 }
 
 func autoConvert_v3alpha1_Module_To_v2_Module(in *v3alpha1.Module, out *Module, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v3alpha1_ModuleSpec_To_v2_ModuleSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v3alpha1_ModuleSpec_To_v2_ModuleSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -2915,17 +4447,23 @@ func Convert_v3alpha1_Module_To_v2_Module(in *v3alpha1.Module, out *Module, s co
 }
 
 func autoConvert_v2_ModuleList_To_v3alpha1_ModuleList(in *ModuleList, out *v3alpha1.ModuleList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]v3alpha1.Module, len(*in))
-		for i := range *in {
-			if err := Convert_v2_Module_To_v3alpha1_Module(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.Module, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_Module_To_v3alpha1_Module(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -2936,17 +4474,23 @@ func Convert_v2_ModuleList_To_v3alpha1_ModuleList(in *ModuleList, out *v3alpha1.
 }
 
 func autoConvert_v3alpha1_ModuleList_To_v2_ModuleList(in *v3alpha1.ModuleList, out *ModuleList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]Module, len(*in))
-		for i := range *in {
-			if err := Convert_v3alpha1_Module_To_v2_Module(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]Module, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_Module_To_v2_Module(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -2957,10 +4501,18 @@ func Convert_v3alpha1_ModuleList_To_v2_ModuleList(in *v3alpha1.ModuleList, out *
 }
 
 func autoConvert_v2_ModuleSpec_To_v3alpha1_ModuleSpec(in *ModuleSpec, out *v3alpha1.ModuleSpec, s conversion.Scope) error {
-	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.Config = v3alpha1.UntypedDict(in.Config)
+	if true {
+		in, out := &in.Config, &out.Config
+		if err := Convert_v2_UntypedDict_To_v3alpha1_UntypedDict(in, out, s); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -2970,10 +4522,18 @@ func Convert_v2_ModuleSpec_To_v3alpha1_ModuleSpec(in *ModuleSpec, out *v3alpha1.
 }
 
 func autoConvert_v3alpha1_ModuleSpec_To_v2_ModuleSpec(in *v3alpha1.ModuleSpec, out *ModuleSpec, s conversion.Scope) error {
-	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.Config = UntypedDict(in.Config)
+	if true {
+		in, out := &in.Config, &out.Config
+		if err := Convert_v3alpha1_UntypedDict_To_v2_UntypedDict(in, out, s); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -2983,8 +4543,16 @@ func Convert_v3alpha1_ModuleSpec_To_v2_ModuleSpec(in *v3alpha1.ModuleSpec, out *
 }
 
 func autoConvert_v2_PreviewURLSpec_To_v3alpha1_PreviewURLSpec(in *PreviewURLSpec, out *v3alpha1.PreviewURLSpec, s conversion.Scope) error {
-	out.Enabled = in.Enabled
-	out.Type = v3alpha1.PreviewURLType(in.Type)
+	if true {
+		in, out := &in.Enabled, &out.Enabled
+		*out = *in
+	}
+	if true {
+		in, out := &in.Type, &out.Type
+		if err := Convert_v2_PreviewURLType_To_v3alpha1_PreviewURLType(in, out, s); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -2994,8 +4562,16 @@ func Convert_v2_PreviewURLSpec_To_v3alpha1_PreviewURLSpec(in *PreviewURLSpec, ou
 }
 
 func autoConvert_v3alpha1_PreviewURLSpec_To_v2_PreviewURLSpec(in *v3alpha1.PreviewURLSpec, out *PreviewURLSpec, s conversion.Scope) error {
-	out.Enabled = in.Enabled
-	out.Type = PreviewURLType(in.Type)
+	if true {
+		in, out := &in.Enabled, &out.Enabled
+		*out = *in
+	}
+	if true {
+		in, out := &in.Type, &out.Type
+		if err := Convert_v3alpha1_PreviewURLType_To_v2_PreviewURLType(in, out, s); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -3004,10 +4580,36 @@ func Convert_v3alpha1_PreviewURLSpec_To_v2_PreviewURLSpec(in *v3alpha1.PreviewUR
 	return autoConvert_v3alpha1_PreviewURLSpec_To_v2_PreviewURLSpec(in, out, s)
 }
 
+func autoConvert_v2_PreviewURLType_To_v3alpha1_PreviewURLType(in *PreviewURLType, out *v3alpha1.PreviewURLType, s conversion.Scope) error {
+	*out = v3alpha1.PreviewURLType(*in)
+	return nil
+}
+
+// Convert_v2_PreviewURLType_To_v3alpha1_PreviewURLType is an autogenerated conversion function.
+func Convert_v2_PreviewURLType_To_v3alpha1_PreviewURLType(in *PreviewURLType, out *v3alpha1.PreviewURLType, s conversion.Scope) error {
+	return autoConvert_v2_PreviewURLType_To_v3alpha1_PreviewURLType(in, out, s)
+}
+
+func autoConvert_v3alpha1_PreviewURLType_To_v2_PreviewURLType(in *v3alpha1.PreviewURLType, out *PreviewURLType, s conversion.Scope) error {
+	*out = PreviewURLType(*in)
+	return nil
+}
+
+// Convert_v3alpha1_PreviewURLType_To_v2_PreviewURLType is an autogenerated conversion function.
+func Convert_v3alpha1_PreviewURLType_To_v2_PreviewURLType(in *v3alpha1.PreviewURLType, out *PreviewURLType, s conversion.Scope) error {
+	return autoConvert_v3alpha1_PreviewURLType_To_v2_PreviewURLType(in, out, s)
+}
+
 func autoConvert_v2_RateLimitService_To_v3alpha1_RateLimitService(in *RateLimitService, out *v3alpha1.RateLimitService, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v2_RateLimitServiceSpec_To_v3alpha1_RateLimitServiceSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v2_RateLimitServiceSpec_To_v3alpha1_RateLimitServiceSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -3018,9 +4620,15 @@ func Convert_v2_RateLimitService_To_v3alpha1_RateLimitService(in *RateLimitServi
 }
 
 func autoConvert_v3alpha1_RateLimitService_To_v2_RateLimitService(in *v3alpha1.RateLimitService, out *RateLimitService, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v3alpha1_RateLimitServiceSpec_To_v2_RateLimitServiceSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v3alpha1_RateLimitServiceSpec_To_v2_RateLimitServiceSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -3031,17 +4639,23 @@ func Convert_v3alpha1_RateLimitService_To_v2_RateLimitService(in *v3alpha1.RateL
 }
 
 func autoConvert_v2_RateLimitServiceList_To_v3alpha1_RateLimitServiceList(in *RateLimitServiceList, out *v3alpha1.RateLimitServiceList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]v3alpha1.RateLimitService, len(*in))
-		for i := range *in {
-			if err := Convert_v2_RateLimitService_To_v3alpha1_RateLimitService(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.RateLimitService, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_RateLimitService_To_v3alpha1_RateLimitService(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -3052,17 +4666,23 @@ func Convert_v2_RateLimitServiceList_To_v3alpha1_RateLimitServiceList(in *RateLi
 }
 
 func autoConvert_v3alpha1_RateLimitServiceList_To_v2_RateLimitServiceList(in *v3alpha1.RateLimitServiceList, out *RateLimitServiceList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]RateLimitService, len(*in))
-		for i := range *in {
-			if err := Convert_v3alpha1_RateLimitService_To_v2_RateLimitService(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]RateLimitService, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_RateLimitService_To_v2_RateLimitService(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -3073,49 +4693,91 @@ func Convert_v3alpha1_RateLimitServiceList_To_v2_RateLimitServiceList(in *v3alph
 }
 
 func autoConvert_v2_RateLimitServiceSpec_To_v3alpha1_RateLimitServiceSpec(in *RateLimitServiceSpec, out *v3alpha1.RateLimitServiceSpec, s conversion.Scope) error {
-	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.Service = in.Service
-	if in.Timeout != nil {
+	if true {
+		in, out := &in.Service, &out.Service
+		*out = *in
+	}
+	if true {
 		in, out := &in.Timeout, &out.Timeout
-		*out = new(v3alpha1.MillisecondDuration)
-		**out = v3alpha1.MillisecondDuration(**in)
-	} else {
-		out.Timeout = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v2_MillisecondDuration_To_v3alpha1_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	out.Domain = in.Domain
-	// WARNING: in.TLS requires manual conversion: inconvertible types (*./pkg/api/getambassador.io/v2.BoolOrString vs string)
-	out.ProtocolVersion = in.ProtocolVersion
-	out.StatsName = in.V3StatsName
+	if true {
+		in, out := &in.Domain, &out.Domain
+		*out = *in
+	}
+	// INFO: in.TLS opted out of conversion generation via +k8s:conversion-gen=false
+	if true {
+		in, out := &in.ProtocolVersion, &out.ProtocolVersion
+		*out = *in
+	}
+	if true {
+		in, out := &in.V3StatsName, &out.StatsName
+		*out = *in
+	}
 	return nil
 }
 
 func autoConvert_v3alpha1_RateLimitServiceSpec_To_v2_RateLimitServiceSpec(in *v3alpha1.RateLimitServiceSpec, out *RateLimitServiceSpec, s conversion.Scope) error {
-	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.Service = in.Service
-	if in.Timeout != nil {
+	if true {
+		in, out := &in.Service, &out.Service
+		*out = *in
+	}
+	if true {
 		in, out := &in.Timeout, &out.Timeout
-		*out = new(MillisecondDuration)
-		**out = MillisecondDuration(**in)
-	} else {
-		out.Timeout = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(MillisecondDuration)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_MillisecondDuration_To_v2_MillisecondDuration(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	out.Domain = in.Domain
-	if err := Convert_string_To_Pointer_v2_BoolOrString(&in.TLS, &out.TLS, s); err != nil {
-		return err
+	if true {
+		in, out := &in.Domain, &out.Domain
+		*out = *in
 	}
-	out.ProtocolVersion = in.ProtocolVersion
-	out.V3StatsName = in.StatsName
+	if true {
+		in, out := &in.TLS, &out.TLS
+		if err := Convert_string_To_Pointer_v2_BoolOrString(in, out, s); err != nil {
+			return err
+		}
+	}
+	if true {
+		in, out := &in.ProtocolVersion, &out.ProtocolVersion
+		*out = *in
+	}
+	if true {
+		in, out := &in.StatsName, &out.V3StatsName
+		*out = *in
+	}
 	// WARNING: in.V2ExplicitTLS requires manual conversion: does not exist in peer-type
 	return nil
 }
 
 func autoConvert_v2_RegexMap_To_v3alpha1_RegexMap(in *RegexMap, out *v3alpha1.RegexMap, s conversion.Scope) error {
-	out.Pattern = in.Pattern
-	out.Substitution = in.Substitution
+	*out = v3alpha1.RegexMap(*in)
 	return nil
 }
 
@@ -3125,8 +4787,7 @@ func Convert_v2_RegexMap_To_v3alpha1_RegexMap(in *RegexMap, out *v3alpha1.RegexM
 }
 
 func autoConvert_v3alpha1_RegexMap_To_v2_RegexMap(in *v3alpha1.RegexMap, out *RegexMap, s conversion.Scope) error {
-	out.Pattern = in.Pattern
-	out.Substitution = in.Substitution
+	*out = RegexMap(*in)
 	return nil
 }
 
@@ -3136,7 +4797,12 @@ func Convert_v3alpha1_RegexMap_To_v2_RegexMap(in *v3alpha1.RegexMap, out *RegexM
 }
 
 func autoConvert_v2_RequestPolicy_To_v3alpha1_RequestPolicy(in *RequestPolicy, out *v3alpha1.RequestPolicy, s conversion.Scope) error {
-	out.Insecure = v3alpha1.InsecureRequestPolicy(in.Insecure)
+	if true {
+		in, out := &in.Insecure, &out.Insecure
+		if err := Convert_v2_InsecureRequestPolicy_To_v3alpha1_InsecureRequestPolicy(in, out, s); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -3146,7 +4812,12 @@ func Convert_v2_RequestPolicy_To_v3alpha1_RequestPolicy(in *RequestPolicy, out *
 }
 
 func autoConvert_v3alpha1_RequestPolicy_To_v2_RequestPolicy(in *v3alpha1.RequestPolicy, out *RequestPolicy, s conversion.Scope) error {
-	out.Insecure = InsecureRequestPolicy(in.Insecure)
+	if true {
+		in, out := &in.Insecure, &out.Insecure
+		if err := Convert_v3alpha1_InsecureRequestPolicy_To_v2_InsecureRequestPolicy(in, out, s); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -3156,9 +4827,7 @@ func Convert_v3alpha1_RequestPolicy_To_v2_RequestPolicy(in *v3alpha1.RequestPoli
 }
 
 func autoConvert_v2_RetryPolicy_To_v3alpha1_RetryPolicy(in *RetryPolicy, out *v3alpha1.RetryPolicy, s conversion.Scope) error {
-	out.RetryOn = in.RetryOn
-	out.NumRetries = in.NumRetries
-	out.PerTryTimeout = in.PerTryTimeout
+	*out = v3alpha1.RetryPolicy(*in)
 	return nil
 }
 
@@ -3168,9 +4837,7 @@ func Convert_v2_RetryPolicy_To_v3alpha1_RetryPolicy(in *RetryPolicy, out *v3alph
 }
 
 func autoConvert_v3alpha1_RetryPolicy_To_v2_RetryPolicy(in *v3alpha1.RetryPolicy, out *RetryPolicy, s conversion.Scope) error {
-	out.RetryOn = in.RetryOn
-	out.NumRetries = in.NumRetries
-	out.PerTryTimeout = in.PerTryTimeout
+	*out = RetryPolicy(*in)
 	return nil
 }
 
@@ -3180,9 +4847,15 @@ func Convert_v3alpha1_RetryPolicy_To_v2_RetryPolicy(in *v3alpha1.RetryPolicy, ou
 }
 
 func autoConvert_v2_TCPMapping_To_v3alpha1_TCPMapping(in *TCPMapping, out *v3alpha1.TCPMapping, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v2_TCPMappingSpec_To_v3alpha1_TCPMappingSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v2_TCPMappingSpec_To_v3alpha1_TCPMappingSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -3193,9 +4866,15 @@ func Convert_v2_TCPMapping_To_v3alpha1_TCPMapping(in *TCPMapping, out *v3alpha1.
 }
 
 func autoConvert_v3alpha1_TCPMapping_To_v2_TCPMapping(in *v3alpha1.TCPMapping, out *TCPMapping, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v3alpha1_TCPMappingSpec_To_v2_TCPMappingSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v3alpha1_TCPMappingSpec_To_v2_TCPMappingSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -3206,17 +4885,23 @@ func Convert_v3alpha1_TCPMapping_To_v2_TCPMapping(in *v3alpha1.TCPMapping, out *
 }
 
 func autoConvert_v2_TCPMappingList_To_v3alpha1_TCPMappingList(in *TCPMappingList, out *v3alpha1.TCPMappingList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]v3alpha1.TCPMapping, len(*in))
-		for i := range *in {
-			if err := Convert_v2_TCPMapping_To_v3alpha1_TCPMapping(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.TCPMapping, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_TCPMapping_To_v3alpha1_TCPMapping(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -3227,17 +4912,23 @@ func Convert_v2_TCPMappingList_To_v3alpha1_TCPMappingList(in *TCPMappingList, ou
 }
 
 func autoConvert_v3alpha1_TCPMappingList_To_v2_TCPMappingList(in *v3alpha1.TCPMappingList, out *TCPMappingList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]TCPMapping, len(*in))
-		for i := range *in {
-			if err := Convert_v3alpha1_TCPMapping_To_v2_TCPMapping(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]TCPMapping, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_TCPMapping_To_v2_TCPMapping(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -3248,77 +4939,151 @@ func Convert_v3alpha1_TCPMappingList_To_v2_TCPMappingList(in *v3alpha1.TCPMappin
 }
 
 func autoConvert_v2_TCPMappingSpec_To_v3alpha1_TCPMappingSpec(in *TCPMappingSpec, out *v3alpha1.TCPMappingSpec, s conversion.Scope) error {
-	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
-	}
-	out.Port = in.Port
-	out.Host = in.Host
-	out.Address = in.Address
-	out.Service = in.Service
-	out.EnableIPv4 = in.EnableIPv4
-	out.EnableIPv6 = in.EnableIPv6
-	if in.CircuitBreakers != nil {
-		in, out := &in.CircuitBreakers, &out.CircuitBreakers
-		*out = make([]v3alpha1.CircuitBreaker, len(*in))
-		for i := range *in {
-			(*out)[i] = v3alpha1.CircuitBreaker((*in)[i])
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in, out, s); err != nil {
+			return err
 		}
-	} else {
-		out.CircuitBreakers = nil
 	}
-	out.IdleTimeoutMs = in.IdleTimeoutMs
-	out.Resolver = in.Resolver
-	// WARNING: in.TLS requires manual conversion: inconvertible types (*./pkg/api/getambassador.io/v2.BoolOrString vs string)
-	out.Weight = in.Weight
-	out.ClusterTag = in.ClusterTag
-	out.StatsName = in.V3StatsName
+	if true {
+		in, out := &in.Port, &out.Port
+		*out = *in
+	}
+	if true {
+		in, out := &in.Host, &out.Host
+		*out = *in
+	}
+	if true {
+		in, out := &in.Address, &out.Address
+		*out = *in
+	}
+	if true {
+		in, out := &in.Service, &out.Service
+		*out = *in
+	}
+	if true {
+		in, out := &in.EnableIPv4, &out.EnableIPv4
+		*out = *in
+	}
+	if true {
+		in, out := &in.EnableIPv6, &out.EnableIPv6
+		*out = *in
+	}
+	if true {
+		in, out := &in.CircuitBreakers, &out.CircuitBreakers
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.CircuitBreaker, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_CircuitBreaker_To_v3alpha1_CircuitBreaker(in, out, s); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	if true {
+		in, out := &in.IdleTimeoutMs, &out.IdleTimeoutMs
+		*out = *in
+	}
+	if true {
+		in, out := &in.Resolver, &out.Resolver
+		*out = *in
+	}
+	// INFO: in.TLS opted out of conversion generation via +k8s:conversion-gen=false
+	if true {
+		in, out := &in.Weight, &out.Weight
+		*out = *in
+	}
+	if true {
+		in, out := &in.ClusterTag, &out.ClusterTag
+		*out = *in
+	}
+	if true {
+		in, out := &in.V3StatsName, &out.StatsName
+		*out = *in
+	}
 	return nil
 }
 
 func autoConvert_v3alpha1_TCPMappingSpec_To_v2_TCPMappingSpec(in *v3alpha1.TCPMappingSpec, out *TCPMappingSpec, s conversion.Scope) error {
-	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
-	}
-	out.Port = in.Port
-	out.Host = in.Host
-	out.Address = in.Address
-	out.Service = in.Service
-	out.EnableIPv4 = in.EnableIPv4
-	out.EnableIPv6 = in.EnableIPv6
-	if in.CircuitBreakers != nil {
-		in, out := &in.CircuitBreakers, &out.CircuitBreakers
-		*out = make([]CircuitBreaker, len(*in))
-		for i := range *in {
-			(*out)[i] = CircuitBreaker((*in)[i])
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in, out, s); err != nil {
+			return err
 		}
-	} else {
-		out.CircuitBreakers = nil
 	}
-	out.IdleTimeoutMs = in.IdleTimeoutMs
-	out.Resolver = in.Resolver
-	if err := Convert_string_To_Pointer_v2_BoolOrString(&in.TLS, &out.TLS, s); err != nil {
-		return err
+	if true {
+		in, out := &in.Port, &out.Port
+		*out = *in
 	}
-	out.Weight = in.Weight
-	out.ClusterTag = in.ClusterTag
-	out.V3StatsName = in.StatsName
+	if true {
+		in, out := &in.Host, &out.Host
+		*out = *in
+	}
+	if true {
+		in, out := &in.Address, &out.Address
+		*out = *in
+	}
+	if true {
+		in, out := &in.Service, &out.Service
+		*out = *in
+	}
+	if true {
+		in, out := &in.EnableIPv4, &out.EnableIPv4
+		*out = *in
+	}
+	if true {
+		in, out := &in.EnableIPv6, &out.EnableIPv6
+		*out = *in
+	}
+	if true {
+		in, out := &in.CircuitBreakers, &out.CircuitBreakers
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]CircuitBreaker, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_CircuitBreaker_To_v2_CircuitBreaker(in, out, s); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	if true {
+		in, out := &in.IdleTimeoutMs, &out.IdleTimeoutMs
+		*out = *in
+	}
+	if true {
+		in, out := &in.Resolver, &out.Resolver
+		*out = *in
+	}
+	if true {
+		in, out := &in.TLS, &out.TLS
+		if err := Convert_string_To_Pointer_v2_BoolOrString(in, out, s); err != nil {
+			return err
+		}
+	}
+	if true {
+		in, out := &in.Weight, &out.Weight
+		*out = *in
+	}
+	if true {
+		in, out := &in.ClusterTag, &out.ClusterTag
+		*out = *in
+	}
+	if true {
+		in, out := &in.StatsName, &out.V3StatsName
+		*out = *in
+	}
 	// WARNING: in.V2ExplicitTLS requires manual conversion: does not exist in peer-type
 	return nil
 }
 
 func autoConvert_v2_TLSConfig_To_v3alpha1_TLSConfig(in *TLSConfig, out *v3alpha1.TLSConfig, s conversion.Scope) error {
-	out.CertChainFile = in.CertChainFile
-	out.PrivateKeyFile = in.PrivateKeyFile
-	out.CASecret = in.CASecret
-	out.CAcertChainFile = in.CAcertChainFile
-	out.AlpnProtocols = in.AlpnProtocols
-	out.CertRequired = in.CertRequired
-	out.MinTLSVersion = in.MinTLSVersion
-	out.MaxTLSVersion = in.MaxTLSVersion
-	out.CipherSuites = in.CipherSuites
-	out.ECDHCurves = in.ECDHCurves
-	out.RedirectCleartextFrom = in.RedirectCleartextFrom
-	out.SNI = in.SNI
+	*out = v3alpha1.TLSConfig(*in)
 	return nil
 }
 
@@ -3328,18 +5093,7 @@ func Convert_v2_TLSConfig_To_v3alpha1_TLSConfig(in *TLSConfig, out *v3alpha1.TLS
 }
 
 func autoConvert_v3alpha1_TLSConfig_To_v2_TLSConfig(in *v3alpha1.TLSConfig, out *TLSConfig, s conversion.Scope) error {
-	out.CertChainFile = in.CertChainFile
-	out.PrivateKeyFile = in.PrivateKeyFile
-	out.CASecret = in.CASecret
-	out.CAcertChainFile = in.CAcertChainFile
-	out.AlpnProtocols = in.AlpnProtocols
-	out.CertRequired = in.CertRequired
-	out.MinTLSVersion = in.MinTLSVersion
-	out.MaxTLSVersion = in.MaxTLSVersion
-	out.CipherSuites = in.CipherSuites
-	out.ECDHCurves = in.ECDHCurves
-	out.RedirectCleartextFrom = in.RedirectCleartextFrom
-	out.SNI = in.SNI
+	*out = TLSConfig(*in)
 	return nil
 }
 
@@ -3349,9 +5103,15 @@ func Convert_v3alpha1_TLSConfig_To_v2_TLSConfig(in *v3alpha1.TLSConfig, out *TLS
 }
 
 func autoConvert_v2_TLSContext_To_v3alpha1_TLSContext(in *TLSContext, out *v3alpha1.TLSContext, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v2_TLSContextSpec_To_v3alpha1_TLSContextSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v2_TLSContextSpec_To_v3alpha1_TLSContextSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -3362,9 +5122,15 @@ func Convert_v2_TLSContext_To_v3alpha1_TLSContext(in *TLSContext, out *v3alpha1.
 }
 
 func autoConvert_v3alpha1_TLSContext_To_v2_TLSContext(in *v3alpha1.TLSContext, out *TLSContext, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v3alpha1_TLSContextSpec_To_v2_TLSContextSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v3alpha1_TLSContextSpec_To_v2_TLSContextSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -3375,17 +5141,23 @@ func Convert_v3alpha1_TLSContext_To_v2_TLSContext(in *v3alpha1.TLSContext, out *
 }
 
 func autoConvert_v2_TLSContextList_To_v3alpha1_TLSContextList(in *TLSContextList, out *v3alpha1.TLSContextList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]v3alpha1.TLSContext, len(*in))
-		for i := range *in {
-			if err := Convert_v2_TLSContext_To_v3alpha1_TLSContext(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.TLSContext, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_TLSContext_To_v3alpha1_TLSContext(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -3396,17 +5168,23 @@ func Convert_v2_TLSContextList_To_v3alpha1_TLSContextList(in *TLSContextList, ou
 }
 
 func autoConvert_v3alpha1_TLSContextList_To_v2_TLSContextList(in *v3alpha1.TLSContextList, out *TLSContextList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]TLSContext, len(*in))
-		for i := range *in {
-			if err := Convert_v3alpha1_TLSContext_To_v2_TLSContext(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]TLSContext, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_TLSContext_To_v2_TLSContext(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -3417,24 +5195,72 @@ func Convert_v3alpha1_TLSContextList_To_v2_TLSContextList(in *v3alpha1.TLSContex
 }
 
 func autoConvert_v2_TLSContextSpec_To_v3alpha1_TLSContextSpec(in *TLSContextSpec, out *v3alpha1.TLSContextSpec, s conversion.Scope) error {
-	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.Hosts = in.Hosts
-	out.Secret = in.Secret
-	out.CertChainFile = in.CertChainFile
-	out.PrivateKeyFile = in.PrivateKeyFile
-	out.CASecret = in.CASecret
-	out.CACertChainFile = in.CACertChainFile
-	out.ALPNProtocols = in.ALPNProtocols
-	out.CertRequired = in.CertRequired
-	out.MinTLSVersion = in.MinTLSVersion
-	out.MaxTLSVersion = in.MaxTLSVersion
-	out.CipherSuites = in.CipherSuites
-	out.ECDHCurves = in.ECDHCurves
-	out.SecretNamespacing = in.SecretNamespacing
-	out.RedirectCleartextFrom = in.RedirectCleartextFrom
-	out.SNI = in.SNI
+	if true {
+		in, out := &in.Hosts, &out.Hosts
+		*out = *in
+	}
+	if true {
+		in, out := &in.Secret, &out.Secret
+		*out = *in
+	}
+	if true {
+		in, out := &in.CertChainFile, &out.CertChainFile
+		*out = *in
+	}
+	if true {
+		in, out := &in.PrivateKeyFile, &out.PrivateKeyFile
+		*out = *in
+	}
+	if true {
+		in, out := &in.CASecret, &out.CASecret
+		*out = *in
+	}
+	if true {
+		in, out := &in.CACertChainFile, &out.CACertChainFile
+		*out = *in
+	}
+	if true {
+		in, out := &in.ALPNProtocols, &out.ALPNProtocols
+		*out = *in
+	}
+	if true {
+		in, out := &in.CertRequired, &out.CertRequired
+		*out = *in
+	}
+	if true {
+		in, out := &in.MinTLSVersion, &out.MinTLSVersion
+		*out = *in
+	}
+	if true {
+		in, out := &in.MaxTLSVersion, &out.MaxTLSVersion
+		*out = *in
+	}
+	if true {
+		in, out := &in.CipherSuites, &out.CipherSuites
+		*out = *in
+	}
+	if true {
+		in, out := &in.ECDHCurves, &out.ECDHCurves
+		*out = *in
+	}
+	if true {
+		in, out := &in.SecretNamespacing, &out.SecretNamespacing
+		*out = *in
+	}
+	if true {
+		in, out := &in.RedirectCleartextFrom, &out.RedirectCleartextFrom
+		*out = *in
+	}
+	if true {
+		in, out := &in.SNI, &out.SNI
+		*out = *in
+	}
 	return nil
 }
 
@@ -3444,24 +5270,72 @@ func Convert_v2_TLSContextSpec_To_v3alpha1_TLSContextSpec(in *TLSContextSpec, ou
 }
 
 func autoConvert_v3alpha1_TLSContextSpec_To_v2_TLSContextSpec(in *v3alpha1.TLSContextSpec, out *TLSContextSpec, s conversion.Scope) error {
-	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.Hosts = in.Hosts
-	out.Secret = in.Secret
-	out.CertChainFile = in.CertChainFile
-	out.PrivateKeyFile = in.PrivateKeyFile
-	out.CASecret = in.CASecret
-	out.CACertChainFile = in.CACertChainFile
-	out.ALPNProtocols = in.ALPNProtocols
-	out.CertRequired = in.CertRequired
-	out.MinTLSVersion = in.MinTLSVersion
-	out.MaxTLSVersion = in.MaxTLSVersion
-	out.CipherSuites = in.CipherSuites
-	out.ECDHCurves = in.ECDHCurves
-	out.SecretNamespacing = in.SecretNamespacing
-	out.RedirectCleartextFrom = in.RedirectCleartextFrom
-	out.SNI = in.SNI
+	if true {
+		in, out := &in.Hosts, &out.Hosts
+		*out = *in
+	}
+	if true {
+		in, out := &in.Secret, &out.Secret
+		*out = *in
+	}
+	if true {
+		in, out := &in.CertChainFile, &out.CertChainFile
+		*out = *in
+	}
+	if true {
+		in, out := &in.PrivateKeyFile, &out.PrivateKeyFile
+		*out = *in
+	}
+	if true {
+		in, out := &in.CASecret, &out.CASecret
+		*out = *in
+	}
+	if true {
+		in, out := &in.CACertChainFile, &out.CACertChainFile
+		*out = *in
+	}
+	if true {
+		in, out := &in.ALPNProtocols, &out.ALPNProtocols
+		*out = *in
+	}
+	if true {
+		in, out := &in.CertRequired, &out.CertRequired
+		*out = *in
+	}
+	if true {
+		in, out := &in.MinTLSVersion, &out.MinTLSVersion
+		*out = *in
+	}
+	if true {
+		in, out := &in.MaxTLSVersion, &out.MaxTLSVersion
+		*out = *in
+	}
+	if true {
+		in, out := &in.CipherSuites, &out.CipherSuites
+		*out = *in
+	}
+	if true {
+		in, out := &in.ECDHCurves, &out.ECDHCurves
+		*out = *in
+	}
+	if true {
+		in, out := &in.SecretNamespacing, &out.SecretNamespacing
+		*out = *in
+	}
+	if true {
+		in, out := &in.RedirectCleartextFrom, &out.RedirectCleartextFrom
+		*out = *in
+	}
+	if true {
+		in, out := &in.SNI, &out.SNI
+		*out = *in
+	}
 	return nil
 }
 
@@ -3471,14 +5345,7 @@ func Convert_v3alpha1_TLSContextSpec_To_v2_TLSContextSpec(in *v3alpha1.TLSContex
 }
 
 func autoConvert_v2_TraceConfig_To_v3alpha1_TraceConfig(in *TraceConfig, out *v3alpha1.TraceConfig, s conversion.Scope) error {
-	out.AccessTokenFile = in.AccessTokenFile
-	out.CollectorCluster = in.CollectorCluster
-	out.CollectorEndpoint = in.CollectorEndpoint
-	out.CollectorEndpointVersion = in.CollectorEndpointVersion
-	out.CollectorHostname = in.CollectorHostname
-	out.TraceID128Bit = in.TraceID128Bit
-	out.SharedSpanContext = in.SharedSpanContext
-	out.ServiceName = in.ServiceName
+	*out = v3alpha1.TraceConfig(*in)
 	return nil
 }
 
@@ -3488,14 +5355,7 @@ func Convert_v2_TraceConfig_To_v3alpha1_TraceConfig(in *TraceConfig, out *v3alph
 }
 
 func autoConvert_v3alpha1_TraceConfig_To_v2_TraceConfig(in *v3alpha1.TraceConfig, out *TraceConfig, s conversion.Scope) error {
-	out.AccessTokenFile = in.AccessTokenFile
-	out.CollectorCluster = in.CollectorCluster
-	out.CollectorEndpoint = in.CollectorEndpoint
-	out.CollectorEndpointVersion = in.CollectorEndpointVersion
-	out.CollectorHostname = in.CollectorHostname
-	out.TraceID128Bit = in.TraceID128Bit
-	out.SharedSpanContext = in.SharedSpanContext
-	out.ServiceName = in.ServiceName
+	*out = TraceConfig(*in)
 	return nil
 }
 
@@ -3505,9 +5365,7 @@ func Convert_v3alpha1_TraceConfig_To_v2_TraceConfig(in *v3alpha1.TraceConfig, ou
 }
 
 func autoConvert_v2_TraceSampling_To_v3alpha1_TraceSampling(in *TraceSampling, out *v3alpha1.TraceSampling, s conversion.Scope) error {
-	out.Client = in.Client
-	out.Random = in.Random
-	out.Overall = in.Overall
+	*out = v3alpha1.TraceSampling(*in)
 	return nil
 }
 
@@ -3517,9 +5375,7 @@ func Convert_v2_TraceSampling_To_v3alpha1_TraceSampling(in *TraceSampling, out *
 }
 
 func autoConvert_v3alpha1_TraceSampling_To_v2_TraceSampling(in *v3alpha1.TraceSampling, out *TraceSampling, s conversion.Scope) error {
-	out.Client = in.Client
-	out.Random = in.Random
-	out.Overall = in.Overall
+	*out = TraceSampling(*in)
 	return nil
 }
 
@@ -3529,9 +5385,15 @@ func Convert_v3alpha1_TraceSampling_To_v2_TraceSampling(in *v3alpha1.TraceSampli
 }
 
 func autoConvert_v2_TracingService_To_v3alpha1_TracingService(in *TracingService, out *v3alpha1.TracingService, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v2_TracingServiceSpec_To_v3alpha1_TracingServiceSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v2_TracingServiceSpec_To_v3alpha1_TracingServiceSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -3542,9 +5404,15 @@ func Convert_v2_TracingService_To_v3alpha1_TracingService(in *TracingService, ou
 }
 
 func autoConvert_v3alpha1_TracingService_To_v2_TracingService(in *v3alpha1.TracingService, out *TracingService, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v3alpha1_TracingServiceSpec_To_v2_TracingServiceSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
+	if true {
+		in, out := &in.ObjectMeta, &out.ObjectMeta
+		*out = *in
+	}
+	if true {
+		in, out := &in.Spec, &out.Spec
+		if err := Convert_v3alpha1_TracingServiceSpec_To_v2_TracingServiceSpec(in, out, s); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -3555,17 +5423,23 @@ func Convert_v3alpha1_TracingService_To_v2_TracingService(in *v3alpha1.TracingSe
 }
 
 func autoConvert_v2_TracingServiceList_To_v3alpha1_TracingServiceList(in *TracingServiceList, out *v3alpha1.TracingServiceList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]v3alpha1.TracingService, len(*in))
-		for i := range *in {
-			if err := Convert_v2_TracingService_To_v3alpha1_TracingService(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]v3alpha1.TracingService, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v2_TracingService_To_v3alpha1_TracingService(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -3576,17 +5450,23 @@ func Convert_v2_TracingServiceList_To_v3alpha1_TracingServiceList(in *TracingSer
 }
 
 func autoConvert_v3alpha1_TracingServiceList_To_v2_TracingServiceList(in *v3alpha1.TracingServiceList, out *TracingServiceList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
+	if true {
+		in, out := &in.ListMeta, &out.ListMeta
+		*out = *in
+	}
+	if true {
 		in, out := &in.Items, &out.Items
-		*out = make([]TracingService, len(*in))
-		for i := range *in {
-			if err := Convert_v3alpha1_TracingService_To_v2_TracingService(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = make([]TracingService, len(*in))
+			for i := range *in {
+				in, out := &(*in)[i], &(*out)[i]
+				if err := Convert_v3alpha1_TracingService_To_v2_TracingService(in, out, s); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		out.Items = nil
 	}
 	return nil
 }
@@ -3597,27 +5477,52 @@ func Convert_v3alpha1_TracingServiceList_To_v2_TracingServiceList(in *v3alpha1.T
 }
 
 func autoConvert_v2_TracingServiceSpec_To_v3alpha1_TracingServiceSpec(in *TracingServiceSpec, out *v3alpha1.TracingServiceSpec, s conversion.Scope) error {
-	if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v2_AmbassadorID_To_v3alpha1_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.Driver = in.Driver
-	out.Service = in.Service
-	if in.Sampling != nil {
+	if true {
+		in, out := &in.Driver, &out.Driver
+		*out = *in
+	}
+	if true {
+		in, out := &in.Service, &out.Service
+		*out = *in
+	}
+	if true {
 		in, out := &in.Sampling, &out.Sampling
-		*out = new(v3alpha1.TraceSampling)
-		**out = v3alpha1.TraceSampling(**in)
-	} else {
-		out.Sampling = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.TraceSampling)
+			in, out := *in, *out
+			if err := Convert_v2_TraceSampling_To_v3alpha1_TraceSampling(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	out.TagHeaders = in.TagHeaders
-	if in.Config != nil {
+	if true {
+		in, out := &in.TagHeaders, &out.TagHeaders
+		*out = *in
+	}
+	if true {
 		in, out := &in.Config, &out.Config
-		*out = new(v3alpha1.TraceConfig)
-		**out = v3alpha1.TraceConfig(**in)
-	} else {
-		out.Config = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.TraceConfig)
+			in, out := *in, *out
+			if err := Convert_v2_TraceConfig_To_v3alpha1_TraceConfig(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	out.StatsName = in.V3StatsName
+	if true {
+		in, out := &in.V3StatsName, &out.StatsName
+		*out = *in
+	}
 	return nil
 }
 
@@ -3627,27 +5532,52 @@ func Convert_v2_TracingServiceSpec_To_v3alpha1_TracingServiceSpec(in *TracingSer
 }
 
 func autoConvert_v3alpha1_TracingServiceSpec_To_v2_TracingServiceSpec(in *v3alpha1.TracingServiceSpec, out *TracingServiceSpec, s conversion.Scope) error {
-	if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(&in.AmbassadorID, &out.AmbassadorID, s); err != nil {
-		return err
+	if true {
+		in, out := &in.AmbassadorID, &out.AmbassadorID
+		if err := Convert_v3alpha1_AmbassadorID_To_v2_AmbassadorID(in, out, s); err != nil {
+			return err
+		}
 	}
-	out.Driver = in.Driver
-	out.Service = in.Service
-	if in.Sampling != nil {
+	if true {
+		in, out := &in.Driver, &out.Driver
+		*out = *in
+	}
+	if true {
+		in, out := &in.Service, &out.Service
+		*out = *in
+	}
+	if true {
 		in, out := &in.Sampling, &out.Sampling
-		*out = new(TraceSampling)
-		**out = TraceSampling(**in)
-	} else {
-		out.Sampling = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(TraceSampling)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_TraceSampling_To_v2_TraceSampling(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	out.TagHeaders = in.TagHeaders
-	if in.Config != nil {
+	if true {
+		in, out := &in.TagHeaders, &out.TagHeaders
+		*out = *in
+	}
+	if true {
 		in, out := &in.Config, &out.Config
-		*out = new(TraceConfig)
-		**out = TraceConfig(**in)
-	} else {
-		out.Config = nil
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(TraceConfig)
+			in, out := *in, *out
+			if err := Convert_v3alpha1_TraceConfig_To_v2_TraceConfig(in, out, s); err != nil {
+				return err
+			}
+		}
 	}
-	out.V3StatsName = in.StatsName
+	if true {
+		in, out := &in.StatsName, &out.V3StatsName
+		*out = *in
+	}
 	return nil
 }
 
@@ -3657,7 +5587,7 @@ func Convert_v3alpha1_TracingServiceSpec_To_v2_TracingServiceSpec(in *v3alpha1.T
 }
 
 func autoConvert_v2_UntypedDict_To_v3alpha1_UntypedDict(in *UntypedDict, out *v3alpha1.UntypedDict, s conversion.Scope) error {
-	out.Values = in.Values
+	*out = v3alpha1.UntypedDict(*in)
 	return nil
 }
 
@@ -3667,7 +5597,7 @@ func Convert_v2_UntypedDict_To_v3alpha1_UntypedDict(in *UntypedDict, out *v3alph
 }
 
 func autoConvert_v3alpha1_UntypedDict_To_v2_UntypedDict(in *v3alpha1.UntypedDict, out *UntypedDict, s conversion.Scope) error {
-	out.Values = in.Values
+	*out = UntypedDict(*in)
 	return nil
 }
 

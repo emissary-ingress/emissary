@@ -629,3 +629,13 @@
         x-demo: "frob"
         user-agent: true
       service: "httpbin.default.svc.cluster.local"
+- apiVersion: getambassador.io/v2
+  kind: Mapping
+  metadata:
+    creationTimestamp: null
+    name: linkerdheadermapping-http-addlinkerdonly
+  spec:
+    prefix: /target_add_linkerd_header_only/
+    service: linkerdheadermapping-http-addlinkerdonly
+    add_request_headers: {}
+    remove_request_headers: []
