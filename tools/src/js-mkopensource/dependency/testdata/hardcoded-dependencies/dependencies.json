@@ -1,0 +1,15 @@
+{
+  "cyclist@0.2.2": {
+    "licenses": "MIT*",
+    "repository": "https://github.com/mafintosh/cyclist",
+    "publisher": "Mathias Buus Madsen",
+    "email": "mathiasbuus@gmail.com",
+    "name": "cyclist",
+    "version": "0.2.2",
+    "description": "Cyclist is an efficient cyclic list implemention.",
+    "licenseFile": "/app/node_modules/cyclist/README.md",
+    "licenseText": "# Cyclist\n\nCyclist is an efficient [cyclic list](http://en.wikipedia.org/wiki/Circular_buffer) implemention for Javascript.\nIt is available through npm\n\n\tnpm install cyclist\n\n## What?\n\nCyclist allows you to create a list of fixed size that is cyclic.\nIn a cyclist list the element following the last one is the first one.\nThis property can be really useful when for example trying to order data\npackets that can arrive out of order over a network stream.\n\n## Usage\n\n``` js\nvar cyclist = require('cyclist');\nvar list = cyclist(4); // if size (4) is not a power of 2 it will be the follwing power of 2\n                       // this buffer can now hold 4 elements in total\n\nlist.put(42, 'hello 42'); // store something and index 42\nlist.put(43, 'hello 43'); // store something and index 43\n\nconsole.log(list.get(42)); // prints hello 42\nconsole.log(list.get(46)); // prints hello 42 again since 46 - 42 == list.size\n```\n\n## API\n\n* `cyclist(size)` creates a new buffer\n* `cyclist#get(index)` get an object stored in the buffer\n* `cyclist#put(index,value)` insert an object into the buffer\n* `cyclist#del(index)` delete an object from an index\n* `cyclist#size` property containing current size of buffer\n\n## License\n\nMIT",
+    "licenseModified": "",
+    "path": "/app/node_modules/cyclist"
+  }
+}

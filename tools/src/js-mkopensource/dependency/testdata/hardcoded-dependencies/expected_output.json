@@ -1,0 +1,14 @@
+{
+  "dependencies": [
+    {
+      "name": "cyclist",
+      "version": "0.2.2",
+      "licenses": [
+        "MIT license"
+      ]
+    }
+  ],
+  "licenseInfo": {
+    "MIT license": "https://opensource.org/licenses/MIT"
+  }
+}

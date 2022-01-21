@@ -27,6 +27,10 @@ func TestSuccessfulGeneration(t *testing.T) {
 			"One dependency with multiple licenses",
 			"./testdata/dependencies-with-two-licenses",
 		},
+		{
+			"Hardcoded dependencies are properly parsed",
+			"./testdata/hardcoded-dependencies",
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -53,22 +57,26 @@ func TestErrorScenarios(t *testing.T) {
 	}{
 		{
 			"Invalid Json input",
-			"./testdata/invalid-json/dependencies.json",
+			"./testdata/invalid-json",
 		},
 		{
 			"Unknown license identifier",
-			"./testdata/unknown-license/dependencies.json",
+			"./testdata/unknown-license",
 		},
 		{
 			"Missing license",
-			"./testdata/missing-license/dependencies.json",
+			"./testdata/missing-license",
+		},
+		{
+			"Hardcode dependency with different version is rejected",
+			"./testdata/hardcoded-dependencies-but-different-version",
 		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.testName, func(t *testing.T) {
 			//Arrange
-			nodeDependencies := getNodeDependencies(t, testCase.input)
+			nodeDependencies := getNodeDependencies(t, path.Join(testCase.input, "dependencies.json"))
 			defer func() { _ = nodeDependencies.Close() }()
 
 			// Act

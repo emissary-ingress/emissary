@@ -17,6 +17,8 @@ type nodeDependency struct {
 	Licenses       string `json:"licenses"`
 	Repository     string `json:"repository"`
 	DependencyPath string `json:"dependencyPath"`
+	Name           string `json:"name"`
+	Version        string `json:"version"`
 	Path           string `json:"path"`
 	Url            string `json:"url"`
 	LicenseFile    string `json:"licenseFile"`
@@ -66,7 +68,7 @@ func getDependencyDetails(nodeDependency nodeDependency, dependencyId string) (*
 		Licenses: []string{},
 	}
 
-	allLicenses, err := getNodeDependencyLicenses(nodeDependency)
+	allLicenses, err := getDependencyLicenses(dependencyId, nodeDependency)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +77,7 @@ func getDependencyDetails(nodeDependency nodeDependency, dependencyId string) (*
 	return dependency, nil
 }
 
-func getNodeDependencyLicenses(nodeDependency nodeDependency) ([]string, error) {
+func getDependencyLicenses(dependencyId string, nodeDependency nodeDependency) ([]string, error) {
 	parenthesisRe, err := regexp.Compile(`^\(|\)$`)
 	if err != nil {
 		return nil, err
@@ -91,12 +93,22 @@ func getNodeDependencyLicenses(nodeDependency nodeDependency) ([]string, error) 
 	allLicenses := []string{}
 	for _, spdxId := range licenses {
 		license, ok := detectlicense.SpdxIdentifiers[spdxId]
-		if !ok {
-			return nil, fmt.Errorf("there is no license information for SPDX Identifier '%s'.\n"+
-				"License text:\n\n%#v\n", nodeDependency.Licenses, nodeDependency.LicenseText)
+		if ok {
+			allLicenses = append(allLicenses, license.Name)
+			continue
 		}
 
-		allLicenses = append(allLicenses, license.Name)
+		licenses, ok := hardcodedDependencies[dependencyId]
+		if ok {
+			allLicenses = licenses
+			break
+		}
+
+		return nil, fmt.Errorf("\nFound an unknown SPDX Identifier '%s'.\n"+
+			"Dependecy name: %s@%s\n"+
+			"Dependecy Url: %s\n"+
+			"License text:\n%#v\n", nodeDependency.Licenses, nodeDependency.Name, nodeDependency.Version,
+			nodeDependency.Url, nodeDependency.LicenseText)
 	}
 
 	sort.Strings(allLicenses)
