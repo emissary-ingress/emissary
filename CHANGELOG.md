@@ -98,12 +98,17 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Change: Docker BuildKit is enabled for all Emissary builds. Additionally, the Go build cache is
   fully enabled when building images, speeding up repeated builds.
 
+- Bugfix: Any `Mapping` that uses the `host_redirect` field is now properly discovered and used.
+  Thanks  to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix!  ([3709])
+
 - Bugfix: If the `ambassador` `Module` sets a global default for `add_request_headers`,
   `add_response_headers`, `remove_request_headers`, or `remove_response_headers`, it is often
   desirable to be able to turn off that setting locally for a specific `Mapping`. For several
   releases this has not been possible for `Mappings` that are native Kubernetes resources (as
   opposed to annotations), as an empty value ("mask the global default") was erroneously considered
   to be equivalent to unset ("inherit the global default").  This is now fixed.
+
+[3709]: https://github.com/emissary-ingress/emissary/issues/3709
 
 ## 2.1.1 not issued
 

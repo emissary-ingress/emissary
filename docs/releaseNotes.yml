@@ -65,6 +65,16 @@ items:
           build cache is fully enabled when building images, speeding up repeated builds.
         docs: https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md
 
+      - title: Correctly use Mappings with host redirects
+        type: bugfix
+        body: >-
+          Any <code>Mapping</code> that uses the <code>host_redirect</code> field is now properly discovered and used. Thanks 
+          to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix! 
+        github:
+        - title: 3709
+          link: https://github.com/emissary-ingress/emissary/issues/3709
+        docs: https://github.com/emissary-ingress/emissary/issues/3709
+
       - title: Fix overriding global settings for adding or removing headers
         type: bugfix
         body: >-

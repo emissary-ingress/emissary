@@ -383,7 +383,12 @@ class IRHost(IRResource):
         else:
             # It is NOT A TYPO that we use group.get("host") here -- whether the Mapping supplies
             # "hostname" or "host", the Mapping code normalizes to "host" internally.
-            group_glob = group.get('host') or None  # NOT A TYPO: see above.
+
+            # It's possible for group.host_redirect to be None instead of missing, and it's also
+            # conceivably possible for group.host_redirect.host to be "", which we'd rather be 
+            # None. Hence we do this two-line dance to massage the various cases.
+            host_redirecct = (group.get('host_redirect') or {}).get('host')
+            group_glob = group.get('host') or host_redirecct  # NOT A TYPO: see above.
 
             if group_glob:
                 host_match = hostglob_matches(self.hostname, group_glob)
