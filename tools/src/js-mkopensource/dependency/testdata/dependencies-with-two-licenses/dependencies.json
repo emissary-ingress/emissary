@@ -1,0 +1,20 @@
+{
+  "@mapbox/node-pre-gyp@1.0.8": {
+    "licenses": "BSD-3-Clause AND ISC",
+    "repository": "https://github.com/mapbox/node-pre-gyp",
+    "publisher": "Dane Springmeyer",
+    "email": "dane@mapbox.com",
+    "dependencyPath": "/app/node_modules/@mapbox/node-pre-gyp",
+    "path": "/app/node_modules/@mapbox/node-pre-gyp",
+    "licenseFile": "/app/node_modules/@mapbox/node-pre-gyp/LICENSE"
+  },
+  "atob@2.1.2": {
+    "licenses": "(MIT OR Apache-2.0)",
+    "repository": "git://git.coolaj86.com/coolaj86/atob.js",
+    "publisher": "AJ ONeal",
+    "email": "coolaj86@gmail.com",
+    "url": "https://coolaj86.com",
+    "path": "/app/node_modules/atob",
+    "licenseFile": "/app/node_modules/atob/LICENSE"
+  }
+}
