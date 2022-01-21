@@ -51,6 +51,14 @@ items:
           have been missed in earlier releases.
         docs: topics/using/canary/#the-weight-attribute
 
+      - title: Correctly handle solitary Mappings with explicit weights
+        type: bugfix
+        body: >-
+          A <code>Mapping</code> that is not part of a canary group, but that has a
+          <code>weight</code> less than 100, will be correctly configured to receive all
+          traffic as if the <code>weight</code> were 100.
+        docs: topics/using/canary/#the-weight-attribute
+
       - title: Correctly handle empty rewrite in a Mapping
         type: bugfix
         body: >-
