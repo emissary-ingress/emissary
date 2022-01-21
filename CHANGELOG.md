@@ -85,6 +85,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Change: Docker BuildKit is enabled for all Emissary builds. Additionally, the Go build cache is
+  fully enabled when building images, speeding up repeated builds.
+
 - Bugfix: If the `ambassador` `Module` sets a global default for `add_request_headers`,
   `add_response_headers`, `remove_request_headers`, or `remove_response_headers`, it is often
   desirable to be able to turn off that setting locally for a specific `Mapping`. For several
