@@ -111,7 +111,7 @@ following Free and Open Source software:
     k8s.io/component-base                                                     v0.20.2                                     Apache License 2.0
     k8s.io/gengo                                                              v0.0.0-20201214224949-b6c5ce23f027          Apache License 2.0
     k8s.io/klog/v2                                                            v2.10.0                                     Apache License 2.0
-    k8s.io/kube-openapi                                                       v0.0.0-20201113171705-d219536bb9fd          Apache License 2.0
+    k8s.io/kube-openapi                                                       v0.0.0-20210304212320-e467f52fd9db          Apache License 2.0
     k8s.io/kubectl                                                            v0.20.2                                     Apache License 2.0
     k8s.io/kubernetes                                                         v1.20.2                                     Apache License 2.0
     k8s.io/metrics                                                            v0.20.2                                     Apache License 2.0

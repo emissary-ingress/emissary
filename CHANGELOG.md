@@ -85,6 +85,16 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Bugfix: Emissary-ingress 2.1.0 generated invalid Envoy configuration for `getambassador.io/v2`
+  `Mappings` that set `spec.cors.origins` to a string rather than a list of strings; this has been
+  fixed, and these `Mappings` should once again function correctly.
+
+- Bugfix: Changes to the `weight` of `Mapping` in a canary group will now always be correctly
+  managed during reconfiguration; such changes could have been missed in earlier releases.
+
+- Bugfix: Using `rewrite: ""` in a `Mapping` is correctly handled to mean "do not rewrite the path
+  at all".
+
 - Change: Docker BuildKit is enabled for all Emissary builds. Additionally, the Go build cache is
   fully enabled when building images, speeding up repeated builds.
 

@@ -2,8 +2,9 @@ package kates
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"path"
-	"strings"
 	"sync"
 
 	apiextVInternal "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
@@ -12,7 +13,7 @@ import (
 	"k8s.io/apiextensions-apiserver/pkg/apiserver/validation"
 	"k8s.io/kube-openapi/pkg/validation/validate"
 
-	"github.com/pkg/errors"
+	"github.com/datawire/dlib/derror"
 )
 
 // A Validator may be used in concert with a Client to perform
@@ -41,23 +42,24 @@ func NewValidator(client *Client, staticCRDs []Object) (*Validator, error) {
 		case apiextV1beta1.SchemeGroupVersion.WithKind("CustomResourceDefinition"):
 			var crdV1beta1 apiextV1beta1.CustomResourceDefinition
 			if err := convert(untypedCRD, &crdV1beta1); err != nil {
-				return nil, errors.Wrapf(err, "staticCRDs[%d]", i)
+				return nil, fmt.Errorf("staticCRDs[%d]: %w", i, err)
 			}
 			apiextV1beta1.SetDefaults_CustomResourceDefinition(&crdV1beta1)
 			if err := apiextV1beta1.Convert_v1beta1_CustomResourceDefinition_To_apiextensions_CustomResourceDefinition(&crdV1beta1, &crd, nil); err != nil {
-				return nil, errors.Wrapf(err, "staticCRDs[%d]", i)
+				return nil, fmt.Errorf("staticCRDs[%d]: %w", i, err)
 			}
 		case apiextV1.SchemeGroupVersion.WithKind("CustomResourceDefinition"):
 			var crdV1 apiextV1.CustomResourceDefinition
 			if err := convert(untypedCRD, &crdV1); err != nil {
-				return nil, errors.Wrapf(err, "staticCRDs[%d]", i)
+				return nil, fmt.Errorf("staticCRDs[%d]: %w", i, err)
 			}
 			apiextV1.SetDefaults_CustomResourceDefinition(&crdV1)
 			if err := apiextV1.Convert_v1_CustomResourceDefinition_To_apiextensions_CustomResourceDefinition(&crdV1, &crd, nil); err != nil {
-				return nil, errors.Wrapf(err, "staticCRDs[%d]", i)
+				return nil, fmt.Errorf("staticCRDs[%d]: %w", i, err)
 			}
 		default:
-			return nil, errors.Wrapf(errors.Errorf("unrecognized CRD GroupVersionKind: %v", untypedCRD.GetObjectKind().GroupVersionKind()), "staticCRDs[%d]", i)
+			err := fmt.Errorf("unrecognized CRD GroupVersionKind: %v", untypedCRD.GetObjectKind().GroupVersionKind())
+			return nil, fmt.Errorf("staticCRDs[%d]: %w", i, err)
 		}
 		for _, version := range crd.Spec.Versions {
 			static[TypeMeta{
@@ -178,7 +180,7 @@ func (v *Validator) Validate(ctx context.Context, resource interface{}) error {
 
 	result := validator.Validate(resource)
 
-	var errs []error
+	var errs derror.MultiError
 	for _, e := range result.Errors {
 		errs = append(errs, e)
 	}
@@ -188,11 +190,7 @@ func (v *Validator) Validate(ctx context.Context, resource interface{}) error {
 	}
 
 	if len(errs) > 0 {
-		msg := strings.Builder{}
-		for _, e := range errs {
-			msg.WriteString(e.Error() + "\n")
-		}
-		return errors.New(msg.String())
+		return errs
 	}
 
 	return nil
