@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/watt"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
 
@@ -27,7 +27,7 @@ type Snapshot struct {
 	Kubernetes *KubernetesSnapshot
 	// The Consul field contains endpoint data for any mappings setup to use a
 	// consul resolver.
-	Consul *watt.ConsulSnapshot
+	Consul *ConsulSnapshot
 	// The Deltas field contains a list of deltas to indicate what has changed
 	// since the prior snapshot. This is only computed for the Kubernetes
 	// portion of the snapshot. Changes in the Consul endpoint data are not
@@ -48,6 +48,10 @@ type AmbassadorMetaInfo struct {
 	AmbassadorVersion string          `json:"ambassador_version"`
 	KubeVersion       string          `json:"kube_version"`
 	Sidecar           json.RawMessage `json:"sidecar"`
+}
+
+type ConsulSnapshot struct {
+	Endpoints map[string]consulwatch.Endpoints `json:",omitempty"`
 }
 
 type KubernetesSnapshot struct {

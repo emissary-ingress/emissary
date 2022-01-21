@@ -17,7 +17,6 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/gateway"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
-	"github.com/datawire/ambassador/v2/pkg/watt"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -286,7 +285,7 @@ type SnapshotHolder struct {
 	// plus additional fields that are computed based on the raw data. These are cumulative values,
 	// they always represent the entire state of their respective worlds.
 	k8sSnapshot    *snapshot.KubernetesSnapshot
-	consulSnapshot *watt.ConsulSnapshot
+	consulSnapshot *snapshot.ConsulSnapshot
 	// XXX: you would expect there to be an analogous snapshot for istio secrets, however the istio
 	// source works by directly munging the k8sSnapshot.
 
@@ -330,7 +329,7 @@ func NewSnapshotHolder(ambassadorMeta *snapshot.AmbassadorMetaInfo) (*SnapshotHo
 		validator:           validator,
 		ambassadorMeta:      ambassadorMeta,
 		k8sSnapshot:         NewKubernetesSnapshot(),
-		consulSnapshot:      &watt.ConsulSnapshot{},
+		consulSnapshot:      &snapshot.ConsulSnapshot{},
 		endpointRoutingInfo: newEndpointRoutingInfo(),
 		dispatcher:          disp,
 		firstReconfig:       true,

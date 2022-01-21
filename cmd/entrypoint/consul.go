@@ -10,7 +10,6 @@ import (
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
-	"github.com/datawire/ambassador/v2/pkg/watt"
 )
 
 // consulMapping contains the necessary subset of Ambassador Mapping and TCPMapping
@@ -129,7 +128,7 @@ func (c *consul) changed() chan struct{} {
 	return c.coalescedDirty
 }
 
-func (c *consul) update(snap *watt.ConsulSnapshot) {
+func (c *consul) update(snap *snapshotTypes.ConsulSnapshot) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	snap.Endpoints = make(map[string]consulwatch.Endpoints, len(c.endpoints))
