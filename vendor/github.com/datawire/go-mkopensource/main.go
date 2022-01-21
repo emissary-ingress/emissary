@@ -517,7 +517,7 @@ func jsonOutput(readme *bytes.Buffer, modNames []string, modLicenses map[string]
 	}
 
 	if err := jsonOutput.UpdateLicenseList(); err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Could not generate list of license Urls: %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "Could not generate list of license URLs: %v\n", err)
 		os.Exit(int(DependencyGenerationError))
 	}
 
