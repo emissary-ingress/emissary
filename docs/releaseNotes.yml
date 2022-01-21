@@ -68,8 +68,8 @@ items:
       - title: Correctly use Mappings with host redirects
         type: bugfix
         body: >-
-          Any <code>Mapping</code> that uses the <code>host_redirect</code> field is now properly discovered and used. Thanks 
-          to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix! 
+          Any <code>Mapping</code> that uses the <code>host_redirect</code> field is now properly discovered and used. Thanks
+          to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix!
         github:
         - title: 3709
           link: https://github.com/emissary-ingress/emissary/issues/3709
@@ -87,6 +87,15 @@ items:
           default") was erroneously considered to be equivalent to unset ("inherit the global
           default").  This is now fixed.
         docs: topics/using/defaults/
+
+      - title: Fix empty error_response_override bodies
+        type: bugfix
+        body: >-
+          It is now possible to set a <code>Mapping</code>spec.error_response_overrides</code>
+          <code>body.text_format</code> to an empty string or <code>body.json_format</code> to an
+          empty dict.  Previously, this was possible for annotations but not for native Kubernetes
+          resources.
+        docs: topics/running/custom-error-responses/
 
       # next changelog item here
 

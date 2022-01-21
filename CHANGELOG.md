@@ -99,7 +99,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   fully enabled when building images, speeding up repeated builds.
 
 - Bugfix: Any `Mapping` that uses the `host_redirect` field is now properly discovered and used.
-  Thanks  to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix!  ([3709])
+  Thanks to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix! ([3709])
 
 - Bugfix: If the `ambassador` `Module` sets a global default for `add_request_headers`,
   `add_response_headers`, `remove_request_headers`, or `remove_response_headers`, it is often
@@ -107,6 +107,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   releases this has not been possible for `Mappings` that are native Kubernetes resources (as
   opposed to annotations), as an empty value ("mask the global default") was erroneously considered
   to be equivalent to unset ("inherit the global default").  This is now fixed.
+
+- Bugfix: It is now possible to set a `Mapping`spec.error_response_overrides` `body.text_format` to
+  an empty string or `body.json_format` to an empty dict.  Previously, this was possible for
+  annotations but not for native Kubernetes resources.
 
 [3709]: https://github.com/emissary-ingress/emissary/issues/3709
 
