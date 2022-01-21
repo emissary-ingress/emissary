@@ -20,7 +20,7 @@ type nodeDependency struct {
 	Name           string `json:"name"`
 	Version        string `json:"version"`
 	Path           string `json:"path"`
-	Url            string `json:"url"`
+	URL            string `json:"url"`
 	LicenseFile    string `json:"licenseFile"`
 	LicenseText    string `json:"licenseText"`
 }
@@ -106,9 +106,9 @@ func getDependencyLicenses(dependencyId string, nodeDependency nodeDependency) (
 
 		return nil, fmt.Errorf("\nFound an unknown SPDX Identifier '%s'.\n"+
 			"Dependecy name: %s@%s\n"+
-			"Dependecy Url: %s\n"+
+			"Dependecy URL: %s\n"+
 			"License text:\n%#v\n", nodeDependency.Licenses, nodeDependency.Name, nodeDependency.Version,
-			nodeDependency.Url, nodeDependency.LicenseText)
+			nodeDependency.URL, nodeDependency.LicenseText)
 	}
 
 	sort.Strings(allLicenses)
