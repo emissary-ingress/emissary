@@ -41,6 +41,8 @@ func mustFindListenerByName(t *testing.T, envoyConfig *bootstrap.Bootstrap, name
 	return listener
 }
 
+// findRoutes finds all the routes within a given listener that match a
+// given predicate. If no matching routes are found, an empty list is returned.
 func findRoutes(listener *v3listener.Listener, predicate func(*route.Route) bool) []*route.Route {
 	routes := make([]*route.Route, 0)
 
@@ -77,6 +79,30 @@ func findRoutes(listener *v3listener.Listener, predicate func(*route.Route) bool
 	return routes
 }
 
+// findRoutesToCluster finds all the routes in a listener that route to a given cluster.
+func findRoutesToCluster(l *v3listener.Listener, cluster_name string) []*route.Route {
+	return findRoutes(l, func(r *route.Route) bool {
+		routeAction, ok := r.Action.(*route.Route_Route)
+
+		if !ok {
+			return false
+		}
+
+		return routeAction.Route.GetCluster() == cluster_name
+	})
+}
+
+// mustFindRoutesToCluster uses findRoutesToCluster to find all the routes that route to
+// a given cluster, and asserts that some must be present.
+func mustFindRoutesToCluster(t *testing.T, listener *v3listener.Listener, cluster_name string) []*route.Route {
+	routes := findRoutesToCluster(listener, cluster_name)
+	assert.NotEmpty(t, routes)
+	return routes
+}
+
+// findRouteAction finds uses findVirtualHostRoute to find a route whose action
+// is Route, and matches a given predicate. The RouteAction is returned if found; otherwise,
+// nil is returned.
 func findRouteAction(listener *v3listener.Listener, predicate func(*route.RouteAction) bool) *route.RouteAction {
 	routes := findRoutes(listener, func(r *route.Route) bool {
 		routeAction, ok := r.Action.(*route.Route_Route)
@@ -93,4 +119,21 @@ func findRouteAction(listener *v3listener.Listener, predicate func(*route.RouteA
 	}
 
 	return routes[0].Action.(*route.Route_Route).Route
+}
+
+// mustFindRouteAction wraps findVirtualHostRouteAction, and asserts that a
+// match is found.
+func mustFindRouteAction(t *testing.T, listener *v3listener.Listener, predicate func(*route.RouteAction) bool) *route.RouteAction {
+	routeAction := findRouteAction(listener, predicate)
+	assert.NotNil(t, routeAction)
+	return routeAction
+}
+
+// mustFindRouteActionToCluster uses mustFindVirtualHostRouteAction to find a
+// route whose action routes to a given cluster name, and asserts that a match is found.
+func mustFindRouteActionToCluster(t *testing.T, listener *v3listener.Listener, clusterName string) *route.RouteAction {
+	routeAction := mustFindRouteAction(t, listener, func(ra *route.RouteAction) bool {
+		return ra.GetCluster() == clusterName
+	})
+	return routeAction
 }
