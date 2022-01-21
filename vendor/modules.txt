@@ -70,7 +70,7 @@ github.com/datawire/dlib/internal/sigint
 # github.com/datawire/dtest v0.0.0-20210927191556-2cccf1a938b0
 ## explicit; go 1.16
 github.com/datawire/dtest
-# github.com/datawire/go-mkopensource v0.0.0-20220120170647-92f18c36d29e
+# github.com/datawire/go-mkopensource v0.0.0-20220121154707-b0476e7f8255
 ## explicit; go 1.17
 github.com/datawire/go-mkopensource
 github.com/datawire/go-mkopensource/pkg/dependencies
