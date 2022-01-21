@@ -65,6 +65,21 @@ items:
           build cache is fully enabled when building images, speeding up repeated builds.
         docs: https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md
 
+      - title: Fix overriding global settings for adding or removing headers
+        type: bugfix
+        body: >-
+          If the <code>ambassador</code> <code>Module</code> sets a global default for
+          <code>add_request_headers</code>, <code>add_response_headers</code>,
+          <code>remove_request_headers</code>, or <code>remove_response_headers</code>, it is often
+          desirable to be able to turn off that setting locally for a specific <code>Mapping</code>.
+          For several releases this has not been possible for <code>Mappings</code> that are native
+          Kubernetes resources (as opposed to annotations), as an empty value ("mask the global
+          default") was erroneously considered to be equivalent to unset ("inherit the global
+          default").  This is now fixed.
+        docs: topics/using/defaults/
+
+      # next changelog item here
+
   - version: 2.1.1
     date: 'N/A'
     notes:
