@@ -71,7 +71,7 @@ spec:
 	listener := mustFindListenerByName(t, config, "ambassador-listener-8080")
 
 	// Here we're looking for a route whose _action_ is to route to the cluster we want.
-	routeAction := findVirtualHostRouteAction(listener, func(r *route.RouteAction) bool {
+	routeAction := findRouteAction(listener, func(r *route.RouteAction) bool {
 		return r.GetCluster() == "cluster_foo_default_default"
 	})
 	assert.NotNil(t, routeAction)

@@ -41,10 +41,10 @@ func mustFindListenerByName(t *testing.T, envoyConfig *bootstrap.Bootstrap, name
 	return listener
 }
 
-func findVirtualHostRoute(listener *v3listener.Listener, predicate func(*route.Route) bool) []*route.Route {
+func findRoutes(listener *v3listener.Listener, predicate func(*route.Route) bool) []*route.Route {
 	routes := make([]*route.Route, 0)
 
-	// fmt.Printf("---- findVirtualHostRoute\n")
+	// fmt.Printf("---- findRoutes\n")
 
 	for _, chain := range listener.FilterChains {
 		for _, filter := range chain.Filters {
@@ -77,8 +77,8 @@ func findVirtualHostRoute(listener *v3listener.Listener, predicate func(*route.R
 	return routes
 }
 
-func findVirtualHostRouteAction(listener *v3listener.Listener, predicate func(*route.RouteAction) bool) *route.RouteAction {
-	routes := findVirtualHostRoute(listener, func(r *route.Route) bool {
+func findRouteAction(listener *v3listener.Listener, predicate func(*route.RouteAction) bool) *route.RouteAction {
+	routes := findRoutes(listener, func(r *route.Route) bool {
 		routeAction, ok := r.Action.(*route.Route_Route)
 
 		if ok {
