@@ -6,6 +6,7 @@ import (
 	"github.com/datawire/go-mkopensource/pkg/dependencies"
 	"github.com/datawire/go-mkopensource/pkg/detectlicense"
 	"io"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -13,7 +14,13 @@ import (
 type NodeDependencies map[string]nodeDependency
 
 type nodeDependency struct {
-	Licenses string `json:"licenses"`
+	Licenses       string `json:"licenses"`
+	Repository     string `json:"repository"`
+	DependencyPath string `json:"dependencyPath"`
+	Path           string `json:"path"`
+	Url            string `json:"url"`
+	LicenseFile    string `json:"licenseFile"`
+	LicenseText    string `json:"licenseText"`
 }
 
 func GetDependencyInformation(r io.Reader) (dependencyInfo dependencies.DependencyInfo, err error) {
@@ -52,18 +59,48 @@ func GetDependencyInformation(r io.Reader) (dependencyInfo dependencies.Dependen
 
 func getDependencyDetails(nodeDependency nodeDependency, dependencyId string) (*dependencies.Dependency, error) {
 	name, version := splitDependencyIdentifier(dependencyId)
-	license, ok := detectlicense.SpdxIdentifiers[nodeDependency.Licenses]
-	if !ok {
-		return nil, fmt.Errorf("there is no license information for SPDX Identifier '%s' used by %s", nodeDependency.Licenses, dependencyId)
-	}
 
 	dependency := &dependencies.Dependency{
 		Name:     name,
 		Version:  version,
-		Licenses: []string{license.Name},
+		Licenses: []string{},
 	}
 
+	allLicenses, err := getNodeDependencyLicenses(nodeDependency)
+	if err != nil {
+		return nil, err
+	}
+	dependency.Licenses = allLicenses
+
 	return dependency, nil
+}
+
+func getNodeDependencyLicenses(nodeDependency nodeDependency) ([]string, error) {
+	parenthesisRe, err := regexp.Compile(`^\(|\)$`)
+	if err != nil {
+		return nil, err
+	}
+	licenseString := parenthesisRe.ReplaceAllString(nodeDependency.Licenses, "")
+
+	separatorRe, err := regexp.Compile(` OR | AND `)
+	if err != nil {
+		return nil, err
+	}
+	licenses := separatorRe.Split(licenseString, -1)
+
+	allLicenses := []string{}
+	for _, spdxId := range licenses {
+		license, ok := detectlicense.SpdxIdentifiers[spdxId]
+		if !ok {
+			return nil, fmt.Errorf("there is no license information for SPDX Identifier '%s'.\n"+
+				"License text:\n\n%#v\n", nodeDependency.Licenses, nodeDependency.LicenseText)
+		}
+
+		allLicenses = append(allLicenses, license.Name)
+	}
+
+	sort.Strings(allLicenses)
+	return allLicenses, nil
 }
 
 func getSortedDependencies(nodeDependencies *NodeDependencies) []string {

@@ -6,31 +6,33 @@ import (
 	"github.com/stretchr/testify/require"
 	"io"
 	"os"
+	"path"
 	"testing"
 )
 
 func TestSuccessfulGeneration(t *testing.T) {
 	testCases := []struct {
-		testName       string
-		input          string
-		expectedOutput string
+		testName string
+		input    string
 	}{
 		{
 			"Dependency identifier in the format @name@version",
-			"./testdata/dependency-with-special-characters/dependencies.json",
-			"./testdata/dependency-with-special-characters/expected_output.json",
+			"./testdata/dependency-with-special-characters",
 		},
 		{
 			"Multiple dependencies",
-			"./testdata/multiple-licenses/dependencies.json",
-			"./testdata/multiple-licenses/expected_output.json",
+			"./testdata/multiple-licenses",
+		},
+		{
+			"One dependency with multiple licenses",
+			"./testdata/dependencies-with-two-licenses",
 		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.testName, func(t *testing.T) {
 			//Arrange
-			nodeDependencies := getNodeDependencies(t, testCase.input)
+			nodeDependencies := getNodeDependencies(t, path.Join(testCase.input, "dependencies.json"))
 			defer func() { _ = nodeDependencies.Close() }()
 
 			// Act
@@ -38,7 +40,7 @@ func TestSuccessfulGeneration(t *testing.T) {
 			require.NoError(t, err)
 
 			// Assert
-			expectedJson := getDependencyInfoFromFile(t, testCase.expectedOutput)
+			expectedJson := getDependencyInfoFromFile(t, path.Join(testCase.input, "expected_output.json"))
 			require.Equal(t, *expectedJson, dependencyInformation)
 		})
 	}
