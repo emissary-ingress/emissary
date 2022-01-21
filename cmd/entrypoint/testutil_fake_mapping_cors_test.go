@@ -5,7 +5,6 @@ import (
 
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
-	v3listener "github.com/datawire/ambassador/v2/pkg/api/envoy/config/listener/v3"
 	route "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v3"
 
 	"github.com/stretchr/testify/assert"
@@ -69,11 +68,7 @@ spec:
 
 	assert.NoError(t, err)
 
-	listener := findListener(config, func(l *v3listener.Listener) bool {
-		return l.Name == "ambassador-listener-8080"
-	})
-
-	assert.NotNil(t, listener)
+	listener := mustFindListenerByName(t, config, "ambassador-listener-8080")
 
 	// Here we're looking for a route whose _action_ is to route to the cluster we want.
 	routeAction := findVirtualHostRouteAction(listener, func(r *route.RouteAction) bool {
