@@ -147,7 +147,9 @@ INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
 INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../manifests/emissary/
 INGRESS_TEST_MANIFS = emissary-crds.yaml emissary-emissaryns.yaml
 
-# export DOCKER_BUILDKIT := 0
+# DOCKER_BUILDKIT is _required_ by our Dockerfile, since we use Dockerfile extensions for the
+# Go build cache. See https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md.
+export DOCKER_BUILDKIT := 1
 
 all: help
 .PHONY: all
