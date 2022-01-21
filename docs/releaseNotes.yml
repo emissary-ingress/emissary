@@ -73,7 +73,7 @@ items:
           <code>remove_request_headers</code>, or <code>remove_response_headers</code>, it is often
           desirable to be able to turn off that setting locally for a specific <code>Mapping</code>.
           For several releases this has not been possible for <code>Mappings</code> that are native
-          Kubernetes resources (as opposed to annotations), as an emtpy value ("mask the global
+          Kubernetes resources (as opposed to annotations), as an empty value ("mask the global
           default") was erroneously considered to be equivalent to unset ("inherit the global
           default").  This is now fixed.
         docs: topics/using/defaults/

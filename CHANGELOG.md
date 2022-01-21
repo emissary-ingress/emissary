@@ -102,7 +102,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   `add_response_headers`, `remove_request_headers`, or `remove_response_headers`, it is often
   desirable to be able to turn off that setting locally for a specific `Mapping`. For several
   releases this has not been possible for `Mappings` that are native Kubernetes resources (as
-  opposed to annotations), as an emtpy value ("mask the global default") was erroneously considered
+  opposed to annotations), as an empty value ("mask the global default") was erroneously considered
   to be equivalent to unset ("inherit the global default").  This is now fixed.
 
 ## 2.1.1 not issued
