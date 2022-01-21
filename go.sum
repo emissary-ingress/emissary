@@ -1117,6 +1117,8 @@ k8s.io/kube-controller-manager v0.20.2/go.mod h1:tEuBoNyKDqoHClDyLePZCs38XuVv5jC
 k8s.io/kube-openapi v0.0.0-20200121204235-bf4fb3bd569c/go.mod h1:GRQhZsXIAJ1xR0C9bd8UpWHZ5plfAS9fzPjJuQ6JL3E=
 k8s.io/kube-openapi v0.0.0-20201113171705-d219536bb9fd h1:sOHNzJIkytDF6qadMNKhhDRpc6ODik8lVC6nOur7B2c=
 k8s.io/kube-openapi v0.0.0-20201113171705-d219536bb9fd/go.mod h1:WOJ3KddDSol4tAGcJo0Tvi+dK12EcqSLqcWsryKMpfM=
+k8s.io/kube-openapi v0.0.0-20210304212320-e467f52fd9db h1:6eSQzsKNEqxmpqbul2YVDt5O4MPA+Q6RljtpWb536bE=
+k8s.io/kube-openapi v0.0.0-20210304212320-e467f52fd9db/go.mod h1:wXW5VT87nVfh/iLV8FpR2uDvrFyomxbtb1KivDbvPTE=
 k8s.io/kube-proxy v0.20.2/go.mod h1:l75PYLoA+hI6WAfT/2cFPUcWy8XWMFGvsyw8UXCNuJc=
 k8s.io/kube-scheduler v0.20.2/go.mod h1:H21kpnQN7U3jRz/MwMxdGPC66UBuTibbq5LEy5AztBg=
 k8s.io/kubectl v0.20.2 h1:mXExF6N4eQUYmlfXJmfWIheCBLF6/n4VnwQKbQki5iE=
