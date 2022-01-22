@@ -10,7 +10,6 @@ import (
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
-	"github.com/datawire/ambassador/v2/pkg/watt"
 )
 
 // consulMapping contains the necessary subset of Ambassador Mapping and TCPMapping
@@ -23,7 +22,7 @@ type consulMapping struct {
 func ReconcileConsul(ctx context.Context, consul *consul, s *snapshotTypes.KubernetesSnapshot) error {
 	var mappings []consulMapping
 	for _, list := range s.Annotations {
-		for _, a := range list.Valid {
+		for _, a := range list {
 			switch m := a.(type) {
 			case *amb.Mapping:
 				if include(m.Spec.AmbassadorID) {
@@ -129,7 +128,7 @@ func (c *consul) changed() chan struct{} {
 	return c.coalescedDirty
 }
 
-func (c *consul) update(snap *watt.ConsulSnapshot) {
+func (c *consul) update(snap *snapshotTypes.ConsulSnapshot) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	snap.Endpoints = make(map[string]consulwatch.Endpoints, len(c.endpoints))

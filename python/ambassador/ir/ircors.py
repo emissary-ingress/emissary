@@ -36,19 +36,10 @@ class IRCORS (IRResource):
             if value:
                 new_kwargs[to_key] = self._cors_normalize(value)
 
-        # 'origins' cannot be treated like other keys, because if it's a
-        # list, then it remains as is, but if it's a string, then it's
-        # converted to a list.  It has already been validated by the fetcher
-        # to either be a string or a list of strings.
-        #
-        # (In fact in v3alpha1 it _must_ be a list of strings, but if the
-        # resource was in an annotation, it might be a string.)
+        # 'origins' cannot be treated like other keys, because we have to transform it; Envoy wants
+        # it in a different shape than it is in the CRD.
         origins = kwargs.get('origins', None)
-
         if origins is not None:
-            if type(origins) is not list:
-                origins = origins.split(',')
-
             new_kwargs['allow_origin_string_match'] = [{'exact': origin} for origin in origins]
 
         super().__init__(

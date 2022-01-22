@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/watt"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
 
@@ -27,7 +27,7 @@ type Snapshot struct {
 	Kubernetes *KubernetesSnapshot
 	// The Consul field contains endpoint data for any mappings setup to use a
 	// consul resolver.
-	Consul *watt.ConsulSnapshot
+	Consul *ConsulSnapshot
 	// The Deltas field contains a list of deltas to indicate what has changed
 	// since the prior snapshot. This is only computed for the Kubernetes
 	// portion of the snapshot. Changes in the Consul endpoint data are not
@@ -48,6 +48,10 @@ type AmbassadorMetaInfo struct {
 	AmbassadorVersion string          `json:"ambassador_version"`
 	KubeVersion       string          `json:"kube_version"`
 	Sidecar           json.RawMessage `json:"sidecar"`
+}
+
+type ConsulSnapshot struct {
+	Endpoints map[string]consulwatch.Endpoints `json:",omitempty"`
 }
 
 type KubernetesSnapshot struct {
@@ -92,8 +96,8 @@ type KubernetesSnapshot struct {
 	FSSecrets  map[SecretRef]*kates.Secret `json:"-"`      // Secrets from the filesystem
 	Secrets    []*kates.Secret             `json:"secret"` // Secrets we'll feed to Ambassador
 
-	// [kind/name.namespace]AnnotationList
-	Annotations map[string]AnnotationList `json:"-"`
+	// [kind/name.namespace][]kates.Object
+	Annotations map[string]AnnotationList `json:"annotations"`
 
 	// Pods, Deployments and ConfigMaps were added to be used by Ambassador Agent so it can
 	// report to AgentCom in Ambassador Cloud.
@@ -116,9 +120,43 @@ type KubernetesSnapshot struct {
 	ArgoApplications []*kates.Unstructured `json:"ArgoApplications,omitempty"`
 }
 
-type AnnotationList struct {
-	Valid   []kates.Object        `json:"valid,omitempty"`
-	Invalid []*kates.Unstructured `json:"invalid,omitempty"`
+// AnnotationList is a []kates.Object that round-trips through JSON (kates.Object is an interface,
+// and you can't normally unmarshal in to an interface).
+//
+// The kates.Object will be the appropriate struct(-pointer) type for valid resources, and a
+// *kates.Unstructured for invalid resources.
+type AnnotationList []kates.Object
+
+// UnmarshalJSON implements json.Unmarshaler, and exists because unmarshalling directly in to an
+// interface (kates.Object) doesn't work.
+func (al *AnnotationList) UnmarshalJSON(bs []byte) error {
+	if string(bs) == "null" {
+		*al = AnnotationList{}
+		return nil
+	}
+	var untyped []*kates.Unstructured
+
+	// Unmarshal as unstructured
+	err := json.Unmarshal(bs, &untyped)
+	if err != nil {
+		return err
+	}
+
+	typed := make(AnnotationList, len(untyped))
+	for i, inObj := range untyped {
+		if _, isInvalid := inObj.Object["errors"]; isInvalid {
+			typed[i] = inObj
+		} else {
+			outObj, err := convertAnnotationObject(inObj)
+			if err != nil {
+				return err
+			}
+			typed[i] = outObj
+		}
+	}
+
+	*al = typed
+	return nil
 }
 
 // The APIDoc type is custom object built in the style of a Kubernetes resource (name, type, version)

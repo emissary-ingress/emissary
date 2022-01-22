@@ -125,65 +125,59 @@ prefix: /blah/`
 	assert.NoError(t, err)
 	assert.Equal(t, map[string]snapshotTypes.AnnotationList{
 		"Service/svc.ambassador": {
-			Valid: []kates.Object{
-				&amb.Mapping{
-					TypeMeta: metav1.TypeMeta{
-						Kind:       "Mapping",
-						APIVersion: "getambassador.io/v3alpha1",
-					},
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "quote-backend",
-						Namespace: "ambassador",
-					},
-					Spec: amb.MappingSpec{
-						Prefix:  "/backend/",
-						Service: "quote:80",
-					},
+			&amb.Mapping{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Mapping",
+					APIVersion: "getambassador.io/v3alpha1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "quote-backend",
+					Namespace: "ambassador",
+				},
+				Spec: amb.MappingSpec{
+					Prefix:  "/backend/",
+					Service: "quote:80",
 				},
 			},
 		},
 		"Ingress/ingress.somens": {
-			Invalid: []*kates.Unstructured{
-				{
-					Object: map[string]interface{}{
-						"apiVersion": "getambassador.io/v3alpha1",
-						"kind":       "Mapping",
-						"metadata": map[string]interface{}{
-							"name":      "cool-mapping",
-							"namespace": "somens",
-						},
-						"spec": map[string]interface{}{
-							"prefix": "/blah/",
-						},
-						"errors": "spec.service in body is required",
+			&kates.Unstructured{
+				Object: map[string]interface{}{
+					"apiVersion": "getambassador.io/v3alpha1",
+					"kind":       "Mapping",
+					"metadata": map[string]interface{}{
+						"name":      "cool-mapping",
+						"namespace": "somens",
 					},
+					"spec": map[string]interface{}{
+						"prefix": "/blah/",
+					},
+					"errors": "spec.service in body is required",
 				},
 			},
 		},
 		"Service/ambassador.ambassador": {
-			Valid: []kates.Object{
-				&amb.Module{
-					TypeMeta: metav1.TypeMeta{
-						Kind:       "Module",
-						APIVersion: "getambassador.io/v3alpha1",
-					},
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "ambassador",
-						Namespace: "ambassador",
-					},
-					Spec: amb.ModuleSpec{
-						Config: getModuleSpec(t, `{"diagnostics":{"enabled":true}}`),
-					},
+			&amb.Module{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Module",
+					APIVersion: "getambassador.io/v3alpha1",
 				},
-				&amb.KubernetesEndpointResolver{
-					TypeMeta: metav1.TypeMeta{
-						Kind:       "KubernetesEndpointResolver",
-						APIVersion: "getambassador.io/v3alpha1",
-					},
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "endpoint",
-						Namespace: "ambassador",
-					},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "ambassador",
+					Namespace: "ambassador",
+				},
+				Spec: amb.ModuleSpec{
+					Config: getModuleSpec(t, `{"diagnostics":{"enabled":true}}`),
+				},
+			},
+			&amb.KubernetesEndpointResolver{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "KubernetesEndpointResolver",
+					APIVersion: "getambassador.io/v3alpha1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "endpoint",
+					Namespace: "ambassador",
 				},
 			},
 		},

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -160,11 +159,6 @@ func deltaSummary(snap *snapshot.Snapshot) []string {
 // the same as supplying kubernetes resources, however it uses the ConsulEndpoint() method to
 // provide consul data.
 func TestFakeHelloConsul(t *testing.T) {
-	// This test will not pass in legacy mode because diagd will not emit EDS clusters in legacy mode.
-	if legacy, err := strconv.ParseBool(os.Getenv("AMBASSADOR_LEGACY_MODE")); err == nil && legacy {
-		return
-	}
-
 	os.Setenv("CONSULPORT", "8500")
 	os.Setenv("CONSULHOST", "consul-1")
 

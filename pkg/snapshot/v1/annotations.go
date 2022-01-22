@@ -35,23 +35,23 @@ func (s *KubernetesSnapshot) PopulateAnnotations(ctx context.Context) error {
 	s.Annotations = make(map[string]AnnotationList)
 	var errs derror.MultiError
 	for _, r := range annotatable {
-		var annotations AnnotationList
 		key := annotationKey(r)
 		objs, err := ParseAnnotationResources(r)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", key, err))
 			continue
 		}
-		for _, untypedObj := range objs {
+		annotations := make(AnnotationList, len(objs))
+		for i, untypedObj := range objs {
 			typedObj, err := ValidateAndConvertObject(ctx, untypedObj)
 			if err != nil {
 				untypedObj.Object["errors"] = err.Error()
-				annotations.Invalid = append(annotations.Invalid, untypedObj)
+				annotations[i] = untypedObj
 			} else {
-				annotations.Valid = append(annotations.Valid, typedObj)
+				annotations[i] = typedObj
 			}
 		}
-		if annotations.Valid != nil || annotations.Invalid != nil {
+		if len(annotations) > 0 {
 			s.Annotations[key] = annotations
 		}
 	}
@@ -81,6 +81,21 @@ func ValidateAndConvertObject(
 	}
 
 	// Convert it to the correct type+version.
+	out, err = convertAnnotationObject(in)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate it again (after conversion) just to be safe
+	if err := validator.Validate(ctx, out); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+// convertAnnotationObject converts a valid kates.Object to the correct type+version.
+func convertAnnotationObject(in kates.Object) (kates.Object, error) {
 	_out, err := scheme.ConvertToVersion(in, crdCurrent.GroupVersion)
 	if err != nil {
 		return nil, err
@@ -89,12 +104,6 @@ func ValidateAndConvertObject(
 	if !ok {
 		return nil, fmt.Errorf("type %T doesn't implement kates.Object", _out)
 	}
-
-	// Validate it again (after conversion) just to be safe
-	if err := validator.Validate(ctx, out); err != nil {
-		return nil, err
-	}
-
 	return out, nil
 }
 

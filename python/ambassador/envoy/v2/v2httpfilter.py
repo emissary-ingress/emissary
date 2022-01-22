@@ -86,16 +86,7 @@ def header_pattern_key(x: Dict[str, str]) -> List[Tuple[str, str]]:
 def V2HTTPFilter(irfilter: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
-    if irfilter.kind == 'IRAuth':
-        if irfilter.api_version == 'getambassador.io/v0':
-            return 'IRAuth_v0'
-        elif irfilter.api_version in ['getambassador.io/v1', 'getambassador.io/v2', 'getambassador.io/v3alpha1']:
-            return 'IRAuth_v1-3'
-        else:
-            irfilter.post_error('AuthService version %s unknown, treating as v3alpha1' % irfilter.api_version)
-            return 'IRAuth_v1-3'
-    else:
-        return irfilter.kind
+    return irfilter.kind
 
 @V2HTTPFilter.when("IRBuffer")
 def V2HTTPFilter_buffer(buffer: IRBuffer, v2config: 'V2Config'):
@@ -171,75 +162,12 @@ def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
 
     return server_uri
 
-@V2HTTPFilter.when("IRAuth_v0")
-def V2HTTPFilter_authv0(auth: IRAuth, v2config: 'V2Config'):
-    del v2config  # silence unused-variable warning
-
-    assert auth.cluster
-    cluster = typecast(IRCluster, auth.cluster)
-
-    assert auth.api_version == "getambassador.io/v0"
-
-    # This preserves almost exactly the same logic prior to ambassador/v1 implementation.
-    request_headers = dict(ExtAuthRequestHeaders)
-
-    for hdr in auth.allowed_headers:
-        request_headers[hdr] = True
-
-    # Always allow the default set, above. This may be a slight behavior change from the
-    # v0 config, but it seems to aid usability.
-
-    hdrs = set(auth.allowed_headers or [])      # turn list into a set
-    hdrs.update(AllowedAuthorizationHeaders)    # merge in a frozenset
-
-    allowed_authorization_headers = []
-
-    for key in sorted(hdrs):
-        allowed_authorization_headers.append({"exact": key, "ignore_case": True})
-
-    allowed_request_headers = []
-
-    for key in sorted(request_headers.keys()):
-        allowed_request_headers.append({"exact": key, "ignore_case": True})
-
-    return {
-        'name': 'envoy.filters.http.ext_authz',
-        'typed_config': {
-            '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthz',
-            'http_service': {
-                'server_uri': {
-                    'uri': auth_cluster_uri(auth, cluster),
-                    'cluster': cluster.envoy_name,
-                    'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
-                },
-                'path_prefix': auth.path_prefix,
-                'authorization_request': {
-                    'allowed_headers': {
-                        'patterns': sorted(allowed_request_headers, key=header_pattern_key)
-                    }
-                },
-                'authorization_response' : {
-                    'allowed_upstream_headers': {
-                        'patterns': sorted(allowed_authorization_headers, key=header_pattern_key)
-                    },
-                    'allowed_client_headers': {
-                        'patterns': sorted(allowed_authorization_headers, key=header_pattern_key)
-                    }
-                }
-            }
-        }
-    }
-
-
-@V2HTTPFilter.when("IRAuth_v1-3")
+@V2HTTPFilter.when("IRAuth")
 def V2HTTPFilter_authv1(auth: IRAuth, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
-
-    if auth.api_version not in ['getambassador.io/v1', 'getambassador.io/v2', 'getambassador.io/v3alpha1']:
-        auth.ir.logger.warning("IRAuth_v1 working on %s, mismatched at %s" % (auth.name, auth.api_version))
 
     assert auth.proto
 
