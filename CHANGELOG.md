@@ -108,8 +108,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   opposed to annotations), as an empty value ("mask the global default") was erroneously considered
   to be equivalent to unset ("inherit the global default").  This is now fixed.
 
-- Bugfix: It is now possible to set a `Mapping`spec.error_response_overrides` `body.text_format` to
-  an empty string or `body.json_format` to an empty dict.  Previously, this was possible for
+- Bugfix: It is now possible to set a `Mapping` `spec.error_response_overrides` `body.text_format`
+  to an empty string or `body.json_format` to an empty dict.  Previously, this was possible for
   annotations but not for native Kubernetes resources.
 
 - Bugfix: Resources that exist as `getambassador.io/config` annotations rather than as native
