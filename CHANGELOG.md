@@ -92,6 +92,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Changes to the `weight` of `Mapping` in a canary group will now always be correctly
   managed during reconfiguration; such changes could have been missed in earlier releases.
 
+- Bugfix: A `Mapping` that is not part of a canary group, but that has a `weight` less than 100,
+  will be correctly configured to receive all traffic as if the `weight` were 100.
+
 - Bugfix: Using `rewrite: ""` in a `Mapping` is correctly handled to mean "do not rewrite the path
   at all".
 
