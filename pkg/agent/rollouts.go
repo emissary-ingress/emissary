@@ -20,25 +20,27 @@ const (
 	rolloutActionAbort  = rolloutAction("abort")
 )
 
-type RolloutCommand struct {
+type rolloutsGetterFactory func() (argov1alpha1.RolloutsGetter, error)
+
+type rolloutCommand struct {
 	namespace   string
 	rolloutName string
 	action      rolloutAction
 }
 
-func (r *RolloutCommand) RunWithClient(client argov1alpha1.RolloutsGetter) error {
-	return r.patchRollout(client)
+func (r *rolloutCommand) String() string {
+	return fmt.Sprintf("<rollout=%s namespace=%s action=%s>", r.rolloutName, r.namespace, r.action)
 }
 
-func (r *RolloutCommand) RunWithDefaultClient() error {
-	client, err := newRolloutsClient()
+func (r *rolloutCommand) RunWithClientFactory(rolloutsClientFactory rolloutsGetterFactory) error {
+	client, err := rolloutsClientFactory()
 	if err != nil {
 		return err
 	}
 	return r.patchRollout(client)
 }
 
-func (r *RolloutCommand) patchRollout(client argov1alpha1.RolloutsGetter) error {
+func (r *rolloutCommand) patchRollout(client argov1alpha1.RolloutsGetter) error {
 	var patch []byte
 	switch r.action {
 	case rolloutActionResume:
@@ -79,7 +81,7 @@ func (r *RolloutCommand) patchRollout(client argov1alpha1.RolloutsGetter) error 
 	return nil
 }
 
-func newRolloutsClient() (*argov1alpha1.ArgoprojV1alpha1Client, error) {
+func NewArgoRolloutsGetter() (argov1alpha1.RolloutsGetter, error) {
 	kubeConfig, err := newConfig()
 	if err != nil {
 		return nil, err

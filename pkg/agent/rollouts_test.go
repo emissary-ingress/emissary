@@ -121,12 +121,16 @@ func TestRolloutCommand_RunWithClient(t *testing.T) {
 			mockRolloutInterface := &mockRolloutInterface{}
 			mockRolloutsGetter := &mockRolloutsGetter{mockRolloutInterface: mockRolloutInterface}
 
-			r := &RolloutCommand{
+			mockRolloutsFactory := rolloutsGetterFactory(func() (v1alpha1.RolloutsGetter, error) {
+				return mockRolloutsGetter, nil
+			})
+
+			r := &rolloutCommand{
 				namespace:   tt.fields.namespace,
 				rolloutName: tt.fields.rolloutName,
 				action:      tt.fields.action,
 			}
-			err := r.RunWithClient(mockRolloutsGetter)
+			err := r.RunWithClientFactory(mockRolloutsFactory)
 
 			assert.NoError(t, err)
 			assert.Equal(t, tt.fields.namespace, mockRolloutsGetter.latestNamespace)

@@ -14,6 +14,7 @@ type DirectiveHandler interface {
 
 type BasicDirectiveHandler struct {
 	DefaultMinReportPeriod time.Duration
+	rolloutsGetterFactory  rolloutsGetterFactory
 }
 
 func (dh *BasicDirectiveHandler) HandleDirective(ctx context.Context, a *Agent, directive *agentapi.Directive) {
@@ -45,19 +46,42 @@ func (dh *BasicDirectiveHandler) HandleDirective(ctx context.Context, a *Agent, 
 		if command.Message != "" {
 			dlog.Info(ctx, command.Message)
 		}
+
 		if command.RolloutCommand != nil {
-			dh.handleRolloutCommand(command.RolloutCommand)
+			dh.handleRolloutCommand(ctx, command.RolloutCommand, dh.rolloutsGetterFactory)
 		}
 	}
 
 	a.SetLastDirectiveID(ctx, directive.ID)
 }
 
-func (dh *BasicDirectiveHandler) handleRolloutCommand(cmdSchema *agentapi.RolloutCommand) {
-	cmd := &RolloutCommand{
-		rolloutName: cmdSchema.GetName(),
-		namespace:   cmdSchema.GetNamespace(),
-		action:      rolloutAction(cmdSchema.GetAction()),
+func (dh *BasicDirectiveHandler) handleRolloutCommand(ctx context.Context, cmdSchema *agentapi.RolloutCommand, rolloutsGetterFactory rolloutsGetterFactory) {
+	if dh.rolloutsGetterFactory == nil {
+		dlog.Warn(ctx, "Received rollout command but does not know how to talk to Argo Rollouts.")
+		return
 	}
-	_ = cmd.RunWithDefaultClient()
+
+	rolloutName := cmdSchema.GetName()
+	namespace := cmdSchema.GetNamespace()
+	action := cmdSchema.GetAction()
+
+	if rolloutName == "" {
+		dlog.Warn(ctx, "Rollout command received without a rollout name.")
+		return
+	}
+
+	if namespace == "" {
+		dlog.Warn(ctx, "Rollout command received without a namespace.")
+		return
+	}
+
+	cmd := &rolloutCommand{
+		rolloutName: rolloutName,
+		namespace:   namespace,
+		action:      rolloutAction(action),
+	}
+	err := cmd.RunWithClientFactory(rolloutsGetterFactory)
+	if err != nil {
+		dlog.Errorf(ctx, "error running rollout command %s: %s", cmd, err)
+	}
 }
