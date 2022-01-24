@@ -12,16 +12,22 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+// rolloutAction indicates the action to be performed on a Rollout object
 type rolloutAction string
 
 const (
+	// rolloutActionPause represents the "pause" action on a Rollout
 	rolloutActionPause  = rolloutAction("pause")
+	// rolloutActionResume represents the "resume" action on a Rollout
 	rolloutActionResume = rolloutAction("resume")
+	// rolloutActionAbort represents the "abort" action on a Rollout
 	rolloutActionAbort  = rolloutAction("abort")
 )
 
+// rolloutsGetterFactory is a factory for creating RolloutsGetter.
 type rolloutsGetterFactory func() (argov1alpha1.RolloutsGetter, error)
 
+// rolloutCommand holds a reference to a Rollout command to be ran.
 type rolloutCommand struct {
 	namespace   string
 	rolloutName string
@@ -32,6 +38,7 @@ func (r *rolloutCommand) String() string {
 	return fmt.Sprintf("<rollout=%s namespace=%s action=%s>", r.rolloutName, r.namespace, r.action)
 }
 
+// RunWithClientFactory runs the given Rollout command using rolloutsClientFactory to get a RolloutsGetter.
 func (r *rolloutCommand) RunWithClientFactory(rolloutsClientFactory rolloutsGetterFactory) error {
 	client, err := rolloutsClientFactory()
 	if err != nil {
@@ -81,8 +88,9 @@ func (r *rolloutCommand) patchRollout(client argov1alpha1.RolloutsGetter) error 
 	return nil
 }
 
+// NewArgoRolloutsGetter creates a RolloutsGetter from Argo's v1alpha1 API.
 func NewArgoRolloutsGetter() (argov1alpha1.RolloutsGetter, error) {
-	kubeConfig, err := newConfig()
+	kubeConfig, err := newK8sRestClient()
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +103,7 @@ func NewArgoRolloutsGetter() (argov1alpha1.RolloutsGetter, error) {
 	return argoClient, nil
 }
 
-func newConfig() (*rest.Config, error) {
+func newK8sRestClient() (*rest.Config, error) {
 	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		clientcmd.NewDefaultClientConfigLoadingRules(),
 		&clientcmd.ConfigOverrides{},
