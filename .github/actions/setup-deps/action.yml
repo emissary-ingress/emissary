@@ -4,6 +4,11 @@ description: "Install Go and Python"
 runs:
   using: "composite"
   steps:
+    - name: "Install bsdtar (libarchive-tools)"
+      shell: bash
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y libarchive-tools
     # Go: Do this first because `Makefile` checks that the `go` version is correct.
     - name: "Get Go version from builder container"
       id: step-detect-go
