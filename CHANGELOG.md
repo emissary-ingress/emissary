@@ -98,6 +98,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Using `rewrite: ""` in a `Mapping` is correctly handled to mean "do not rewrite the path
   at all".
 
+- Bugfix: `Mapping`s with DNS wildcard `hostname` will now be correctly matched with `Host`s.
+  Previously, the case where both the `Host` and the `Mapping` use DNS wildcards for their hostnames
+  could sometimes  not correctly match when they should have.
+
 - Change: Docker BuildKit is enabled for all Emissary builds. Additionally, the Go build cache is
   fully enabled when building images, speeding up repeated builds.
 
