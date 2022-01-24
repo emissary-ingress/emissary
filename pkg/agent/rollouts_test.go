@@ -121,7 +121,7 @@ func TestRolloutCommand_RunWithClient(t *testing.T) {
 			mockRolloutInterface := &mockRolloutInterface{}
 			mockRolloutsGetter := &mockRolloutsGetter{mockRolloutInterface: mockRolloutInterface}
 
-			r := &RolloutCommand{
+			r := &rolloutCommand{
 				namespace:   tt.fields.namespace,
 				rolloutName: tt.fields.rolloutName,
 				action:      tt.fields.action,
