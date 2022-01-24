@@ -26,7 +26,11 @@ type RolloutCommand struct {
 	action      rolloutAction
 }
 
-func (r *RolloutCommand) Run() error {
+func (r *RolloutCommand) RunWithClient(client argov1alpha1.RolloutsGetter) error {
+	return r.patchRollout(client)
+}
+
+func (r *RolloutCommand) RunWithDefaultClient() error {
 	client, err := newRolloutsClient()
 	if err != nil {
 		return err
@@ -34,7 +38,7 @@ func (r *RolloutCommand) Run() error {
 	return r.patchRollout(client)
 }
 
-func (r *RolloutCommand) patchRollout(client *argov1alpha1.ArgoprojV1alpha1Client) error {
+func (r *RolloutCommand) patchRollout(client argov1alpha1.RolloutsGetter) error {
 	var patch []byte
 	switch r.action {
 	case rolloutActionResume:
