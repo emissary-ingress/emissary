@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package echo;
 
+option go_package = "github.com/datawire/ambassador/v2/pkg/api/kat;kat";
+
 service EchoService {
     rpc Echo(EchoRequest) returns (EchoResponse) {}
 }
