@@ -387,8 +387,8 @@ class IRHost(IRResource):
             # It's possible for group.host_redirect to be None instead of missing, and it's also
             # conceivably possible for group.host_redirect.host to be "", which we'd rather be 
             # None. Hence we do this two-line dance to massage the various cases.
-            host_redirecct = (group.get('host_redirect') or {}).get('host')
-            group_glob = group.get('host') or host_redirecct  # NOT A TYPO: see above.
+            host_redirect = (group.get('host_redirect') or {}).get('host')
+            group_glob = group.get('host') or host_redirect  # NOT A TYPO: see above.
 
             if group_glob:
                 host_match = hostglob_matches(self.hostname, group_glob)
