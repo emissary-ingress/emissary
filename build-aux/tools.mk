@@ -66,14 +66,12 @@ $(tools.main-gomod): $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(OSS_HOME)/go.
 # Local Go sources
 # ================
 #
-tools/crds2schemas    = $(tools.bindir)/crds2schemas
 tools/dsum            = $(tools.bindir)/dsum
 tools/fix-crds        = $(tools.bindir)/fix-crds
 tools/flock           = $(tools.bindir)/flock
 tools/gotest2tap      = $(tools.bindir)/gotest2tap
 tools/goversion       = $(tools.bindir)/goversion
 tools/py-mkopensource = $(tools.bindir)/py-mkopensource
-tools/schema-fmt      = $(tools.bindir)/schema-fmt
 tools/testcert-gen    = $(tools.bindir)/testcert-gen
 $(tools.bindir)/.%.stamp: $(tools.srcdir)/%/main.go FORCE
 # If we build with `-mod=vendor` (which is the default if

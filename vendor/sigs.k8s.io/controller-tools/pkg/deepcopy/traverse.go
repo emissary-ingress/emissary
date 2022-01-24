@@ -539,10 +539,10 @@ func (c *copyMethodMaker) genPointerDeepCopy(_ *namingInfo, pointerType *types.P
 
 	// pass-by-reference types get delegated to the main switch
 	if passesByReference(underlyingElem) {
-		c.Linef("*out = new(%s)", (&namingInfo{typeInfo: underlyingElem}).Syntax(c.pkg, c.importsList))
+		c.Linef("*out = new(%s)", (&namingInfo{typeInfo: pointerType.Elem()}).Syntax(c.pkg, c.importsList))
 		c.If("**in != nil", func() {
 			c.Line("in, out := *in, *out")
-			c.genDeepCopyIntoBlock(&namingInfo{typeInfo: underlyingElem}, eventualUnderlyingType(underlyingElem))
+			c.genDeepCopyIntoBlock(&namingInfo{typeInfo: pointerType.Elem()}, eventualUnderlyingType(underlyingElem))
 		})
 		return
 	}

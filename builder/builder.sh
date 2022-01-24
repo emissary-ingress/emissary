@@ -289,45 +289,14 @@ bootstrap() {
     fi
 }
 
-module_version() {
-    echo MODULE="\"$1\""
-
-    # The _next_ tag, plus a prerelease, like 'v1.13.4-0.20220105223751-ccb74f744397'.
-    local version
-    version=$(go run ./tools/src/goversion)
-
-    local git_commit
-    git_commit=$(git rev-parse --short HEAD)
-
-    local git_branch
-    git_branch=$(git rev-parse --abbrev-ref HEAD)
-
-    local git_dirty  # empty=false, nonempty=true
-    git_dirty=
-    if test -n "$(git status -s)"; then
-        git_dirty=dirty
-    fi
-
-    # The _previous_ tag, plus a Git postrelease, like 'v1.13.3-117-gccb74f744397'.
-    # Don't allow hotfix tags to appear here, though!
-    local git_description
-    git_description=$(git describe --tags --match 'v*' --exclude '*-hf.*')
-
-    # This output must be both valid Python and valid Bash.
-    echo "BUILD_VERSION=\"${version#v}\""
-    echo "RELEASE_VERSION=\"${version#v}\""
-    echo "GIT_COMMIT=\"${git_commit}\""
-    echo "GIT_BRANCH=\"${git_branch}\""
-    echo "GIT_DIRTY=\"${git_dirty}\""
-    echo "GIT_DESCRIPTION=\"${git_description}\""
-}
-
 sync() {
     name=$1
     sourcedir=$2
     container=$3
 
     real=$(cd ${sourcedir}; pwd)
+
+    make python/ambassador.version
 
     dexec mkdir -p /buildroot/${name}
     if [[ $name == apro ]]; then
@@ -340,19 +309,24 @@ sync() {
         # BusyBox `ln` 1.30.1's `-T` flag is broken, and doesn't have a `-t` flag.
         dexec sh -c 'if ! test -L apro/ambassador; then rm -rf apro/ambassador && ln -s ../ambassador apro; fi'
     fi
-    (cd ${sourcedir} && module_version ${name} ) | dexec sh -c "cat > /buildroot/${name}.version && cp ${name}.version ambassador/python/"
 }
 
 summarize-sync() {
     name=$1
     shift
     lines=("$@")
-    if [ "${#lines[@]}" != 0 ]; then
-        dexec touch ${name}.dirty image.dirty
-    fi
+    local pydirty=false
+    local godirty=false
     for line in "${lines[@]}"; do
-        if [[ $line = *.go ]]; then
+        if [[ $line != *.version ]] && ! $pydirty; then
+            dexec touch ${name}.dirty image.dirty
+            pydirty=true
+        fi
+        if [[ $line = *.go ]] && ! $godirty; then
             dexec touch go.dirty
+            godirty=true
+        fi
+        if $pydirty && $godirty; then
             break
         fi
     done
@@ -429,41 +403,6 @@ case "${cmd}" in
         shift
         sync $1 $2 $(builder)
         ;;
-    release-type)
-        shift
-        RELVER="$1"
-        if [ -z "${RELVER}" ]; then
-            source <(module_version ${BUILDER_NAME})
-            RELVER="${RELEASE_VERSION}"
-        fi
-
-        if [[ "${RELVER}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo release
-        elif [[ "${RELVER}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]*$ ]]; then
-            echo rc
-        else
-            echo other
-        fi
-        ;;
-    release-version)
-        shift
-        eval $(module_version ${BUILDER_NAME})
-        echo "${RELEASE_VERSION}"
-        ;;
-    is-dirty)
-        shift
-        eval $(module_version ${BUILDER_NAME})
-        echo "${GIT_DIRTY}"
-        ;;
-    raw-version)
-        shift
-        module_version ${BUILDER_NAME}
-        ;;
-    version)
-        shift
-        eval $(module_version ${BUILDER_NAME})
-        echo "${BUILD_VERSION}"
-        ;;
     compile)
         shift
         dexec /buildroot/builder.sh compile-internal
@@ -478,7 +417,6 @@ case "${cmd}" in
 
         for MODDIR in $(find-modules); do
             module=$(basename ${MODDIR})
-            eval "$(grep BUILD_VERSION apro.version 2>/dev/null)" # this will `eval ''` for OSS-only builds, leaving BUILD_VERSION unset; dont embed the version-number in OSS Go binaries
 
             if [ -e ${module}.dirty ] || ([ "$module" != ambassador ] && [ -e go.dirty ]) ; then
                 if [ -e "${MODDIR}/go.mod" ]; then
@@ -486,7 +424,7 @@ case "${cmd}" in
                     echo_on
                     mkdir -p /buildroot/bin
                     TIMEFORMAT="     (go build took %1R seconds)"
-                    (cd ${MODDIR} && time go build -trimpath ${BUILD_VERSION:+ -ldflags "-X main.Version=$BUILD_VERSION" } -o /buildroot/bin ./cmd/...) || exit 1
+                    (cd ${MODDIR} && time go build -trimpath -o /buildroot/bin ./cmd/...) || exit 1
                     TIMEFORMAT="     (${MODDIR}/post-compile took %1R seconds)"
                     if [ -e ${MODDIR}/post-compile.sh ]; then (cd ${MODDIR} && time bash post-compile.sh); fi
                     unset TIMEFORMAT

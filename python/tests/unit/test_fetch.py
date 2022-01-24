@@ -380,7 +380,6 @@ service: test:9999""",
             'prefix': '/test/',
             'service': 'test:9999',
             'namespace': 'default',
-            '_force_validation': True,
         }
         for key, value in expected.items():
             assert self.manager.elements[0].get(key) == value

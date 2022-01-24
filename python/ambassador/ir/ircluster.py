@@ -345,20 +345,10 @@ class IRCluster (IRResource):
         # Resolve our actual targets.
         targets = ir.resolve_targets(self, self._resolver, self._hostname, self._namespace, self._port)
 
-        if targets or not Config.legacy_mode:
-            # Great.
-            self.targets = targets
+        self.targets = targets
 
-            if not targets:
-                self.ir.logger.debug("accepting cluster with no endpoints: %s" % self.name)
-        else:
-            self.post_error("no endpoints found, disabling cluster")
-
-            # This is a legit error. If we can't find _anything_ to route to, something is
-            # badly broken. (Note that the KubernetesServiceResolver will return a single
-            # endpoint with the DNS name of the service as the address, so it's not a special
-            # case here.)
-            return False
+        if not targets:
+            self.ir.logger.debug("accepting cluster with no endpoints: %s" % self.name)
 
         return True
 

@@ -867,7 +867,7 @@ error_response_overrides:
 - on_status_code: 503
   body:
     json_format:
-      y: "2"
+      "y": "2"
       status: '%RESPONSE_CODE%'
 '''
 

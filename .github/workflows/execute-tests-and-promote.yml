@@ -69,8 +69,21 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
     strategy:
+      fail-fast: false
       matrix:
-        test: [envoy-ah, envoy-v2-ah, envoy-ip, envoy-v2-ip, envoy-qz, envoy-v2-qz, kat, integration]
+        test:
+          - integration
+          - kat-envoy2-ah
+          - kat-envoy2-ip
+          - kat-envoy2-qz
+          - kat-envoy3-ah
+          - kat-envoy3-ip
+          - kat-envoy3-qz
+          # FIXME(lukeshu): KAT_RUN_MODE=local is disabled because it
+          # needs fixed for a world where annotations are already
+          # unfolded in the snapshot.
+          #
+          #- kat-local
     name: pytest-${{ matrix.test }}
     steps:
       - uses: actions/checkout@v2

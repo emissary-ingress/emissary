@@ -73,9 +73,14 @@ func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s 
 	// Phase one processes all the configuration stuff that Mappings depend on. Right now this
 	// includes Modules and Resolvers. When we are done with Phase one we have processed enough
 	// resources to correctly interpret Mappings.
-	for _, a := range s.Annotations {
-		if include(GetAmbId(ctx, a)) {
-			eri.checkResourcePhase1(ctx, a, "annotation")
+	for _, list := range s.Annotations {
+		for _, a := range list {
+			if _, isInvalid := a.(*kates.Unstructured); isInvalid {
+				continue
+			}
+			if include(GetAmbId(ctx, a)) {
+				eri.checkResourcePhase1(ctx, a, "annotation")
+			}
 		}
 	}
 
@@ -118,9 +123,14 @@ func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s 
 		}
 	}
 
-	for _, a := range s.Annotations {
-		if include(GetAmbId(ctx, a)) {
-			eri.checkResourcePhase2(ctx, a, "annotation")
+	for _, list := range s.Annotations {
+		for _, a := range list {
+			if _, isInvalid := a.(*kates.Unstructured); isInvalid {
+				continue
+			}
+			if include(GetAmbId(ctx, a)) {
+				eri.checkResourcePhase2(ctx, a, "annotation")
+			}
 		}
 	}
 
