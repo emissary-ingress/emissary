@@ -239,29 +239,20 @@ compile: sync
 	@$(BUILDER) compile
 .PHONY: compile
 
-# For files that should only-maybe update when the rule runs, put ".stamp" on
-# the left-side of the ":", and just go ahead and update it within the rule.
-#
-# ".stamp" should NEVER appear in a dependency list (that is, it
-# should never be on the right-side of the ":"), save for in this rule
-# itself.
-%: %.stamp $(tools/copy-ifchanged)
-	@$(tools/copy-ifchanged) $< $@
-
 # Give Make a hint about which pattern rules to apply.  Honestly, I'm
 # not sure why Make isn't figuring it out on its own, but it isn't.
 _images = builder-base base-envoy $(LCNAME) kat-client kat-server
 $(foreach i,$(_images), docker/$i.docker.tag.local  ): docker/%.docker.tag.local : docker/%.docker
 $(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remote: docker/%.docker
 
-docker/builder-base.docker.stamp: FORCE preflight
+docker/.builder-base.docker.stamp: FORCE preflight
 	@printf "${CYN}==> ${GRN}Bootstrapping builder base image${END}\n"
 	@$(BUILDER) build-builder-base >$@
-docker/container.txt.stamp: %/container.txt.stamp: %/builder-base.docker.tag.local %/base-envoy.docker.tag.local FORCE
+docker/.container.txt.stamp: %/.container.txt.stamp: %/builder-base.docker.tag.local %/base-envoy.docker.tag.local FORCE
 	@printf "${CYN}==> ${GRN}Bootstrapping builder container${END}\n"
 	@($(BOOTSTRAP_EXTRAS) $(BUILDER) bootstrap > $@)
 
-docker/base-envoy.docker.stamp: FORCE
+docker/.base-envoy.docker.stamp: FORCE
 	@set -e; { \
 	  if docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@ 2>/dev/null; then \
 	    printf "${CYN}==> ${GRN}Base Envoy image is already pulled${END}\n"; \
@@ -273,7 +264,7 @@ docker/base-envoy.docker.stamp: FORCE
 	  fi; \
 	  echo $(ENVOY_DOCKER_TAG) >$@; \
 	}
-docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
+docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
 	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
 	@printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"
 	@printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"
@@ -283,25 +274,6 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag
 	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
 	    --target=ambassador \
-	    --iidfile=$@; }
-
-docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
-	@printf "${CYN}==> ${GRN}Building image ${BLU}kat-client${END}\n"
-	{ $(tools/dsum) 'kat-client build' 3s \
-	  docker build -f ${BUILDER_HOME}/Dockerfile . \
-	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
-	    --target=kat-client \
-	    --iidfile=$@; }
-docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
-	@printf "${CYN}==> ${GRN}Building image ${BLU}kat-server${END}\n"
-	{ $(tools/dsum) 'kat-server build' 3s \
-	  docker build -f ${BUILDER_HOME}/Dockerfile . \
-	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
-	    --target=kat-server \
 	    --iidfile=$@; }
 
 REPO=$(BUILDER_NAME)

@@ -33,6 +33,14 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
   $(info [make] CHART_VERSION=$(CHART_VERSION))
 endif
 
+ifeq ($(SOURCE_DATE_EPOCH)$(shell git status --porcelain),)
+  SOURCE_DATE_EPOCH := $(shell git log -1 --pretty=%ct)
+endif
+ifneq ($(SOURCE_DATE_EPOCH),)
+  export SOURCE_DATE_EPOCH
+  $(info [make] SOURCE_DATE_EPOCH=$(SOURCE_DATE_EPOCH))
+endif
+
 # Everything else...
 
 NAME ?= emissary
@@ -42,6 +50,7 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 include $(OSS_HOME)/build-aux/ci.mk
 include $(OSS_HOME)/build-aux/check.mk
 include $(OSS_HOME)/builder/builder.mk
+include $(OSS_HOME)/build-aux/main.mk
 include $(OSS_HOME)/_cxx/envoy.mk
 include $(OSS_HOME)/charts/charts.mk
 include $(OSS_HOME)/manifests/manifests.mk

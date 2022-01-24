@@ -47,9 +47,11 @@ $(tools.bindir)/%: $(tools.srcdir)/%.sh
 tools/chart-doc-gen   = $(tools.bindir)/chart-doc-gen
 tools/controller-gen  = $(tools.bindir)/controller-gen
 tools/conversion-gen  = $(tools.bindir)/conversion-gen
+tools/crane           = $(tools.bindir)/crane
 tools/go-mkopensource = $(tools.bindir)/go-mkopensource
 tools/golangci-lint   = $(tools.bindir)/golangci-lint
 tools/kubestatus      = $(tools.bindir)/kubestatus
+tools/ocibuild        = $(tools.bindir)/ocibuild
 tools/protoc-gen-go   = $(tools.bindir)/protoc-gen-go
 tools/yq              = $(tools.bindir)/yq
 $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(tools.srcdir)/%/go.mod

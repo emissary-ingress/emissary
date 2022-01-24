@@ -69,8 +69,6 @@ generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml
 # Individual files: Test TLS Certificates
-generate-fast/files += $(OSS_HOME)/builder/server.crt
-generate-fast/files += $(OSS_HOME)/builder/server.key
 generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.crt
 generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.key
 generate-fast/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.crt
@@ -175,11 +173,6 @@ $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto:
 
 #
 # `make generate` certificate generation
-
-$(OSS_HOME)/builder/server.crt: $(tools/testcert-gen)
-	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=kat-server.test.getambassador.io
-$(OSS_HOME)/builder/server.key: $(tools/testcert-gen)
-	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=kat-server.test.getambassador.io
 
 $(OSS_HOME)/docker/test-auth/authsvc.crt: $(tools/testcert-gen)
 	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=authsvc.datawire.io

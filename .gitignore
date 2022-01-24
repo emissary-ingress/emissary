@@ -1,5 +1,8 @@
-# Docker build pin files
-docker/*.pin
+*.img.tar
+*.layer.tar
+.*.stamp
+/docker/kat-server/server.crt
+/docker/kat-server/server.key
 
 *.pyc
 *~
