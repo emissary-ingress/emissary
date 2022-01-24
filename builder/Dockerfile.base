@@ -105,6 +105,10 @@ RUN mkdir /tmp/pyyaml && \
   cd pyyaml-5.4.1.1 && \
   python3 setup.py --with-libyaml install
 
+# Installing `requests` pulls in both `chardet` and `charset_normalizer`. Only one of these is
+# needed, so we'll uninstall `chardet` since it's GPL-licensed.
+RUN pip3 uninstall -y chardet
+
 FROM ${builderbase_stage1} as builderbase-stage2
 
 # orjson is also special. It relies on glibc, so we need to temporarily convince
