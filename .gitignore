@@ -34,10 +34,6 @@ charts/yq
 
 vendor_bootstrap_hack.go
 
-/tools/sandbox/grpc_auth/docker-compose.yml
-/tools/sandbox/grpc_web/docker-compose.yaml
-/tools/sandbox/http_auth/docker-compose.yml
-
 /docker/images.sh
 /docker/images.tar
 /docker/volume.tar
@@ -114,37 +110,3 @@ ambassador-secrets-deployment.yaml
 /cxx/envoy-build-image.txt
 /cxx/envoy-build-container.txt
 /cxx/go-control-plane/
-# 2019-10-13
-/build/kat/client/kat_client
-/build/kat/client/teleproxy
-/build/kat/server/kat-server
-# 2019-10-13
-/.docker_port_forward
-# 2019-10-13
-/cluster.yaml
-/kubernaut-claim.txt
-# 2019-10-13
-/ambex
-/kubestatus
-/watt
-/cmd/ambex/ambex
-# 2019-10-11
-/envoy-src/
-/envoy-bin/
-/envoy-build-image.txt
-/envoy-build-container.txt
-# 2019-10-08
-/kat-sandbox/grpc_auth/docker-compose.yml
-/kat-sandbox/grpc_web/*_pb.js
-/kat-sandbox/grpc_web/docker-compose.yaml
-/kat-sandbox/http_auth/docker-compose.yml
-/kat-server-docker-image/kat-server
-/kat/docs/**/_build
-/unused-e2e/**/ambassador-deployment-mounts.yaml
-/unused-e2e/**/ambassador-deployment.yaml
-/unused-e2e/**/kubernaut
-/unused-e2e/*/k8s/ambassador-deployment*.yaml
-# 2019-06-14
-/envoy/
-# 2019-04-05 0388efe75c16540c71223320596accbbe3fe6ac2
-/kat/kat/client

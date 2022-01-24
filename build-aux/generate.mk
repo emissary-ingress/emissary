@@ -41,8 +41,6 @@ generate/precious    =
 # Whole directories with rules for each individual file in it
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) $(OSS_HOME)/pkg/api/kat/
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto')) $(OSS_HOME)/pkg/api/agent/
-generate/files      += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_pb.js          , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) # XXX: There are other files in this dir
-generate/files      += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) # XXX: There are other files in this dir
 # Whole directories with one rule for the whole directory
 generate/files      += $(OSS_HOME)/api/envoy/
 generate/files      += $(OSS_HOME)/api/pb/
@@ -93,7 +91,6 @@ _generate:
 
 generate-clean: ## Delete generated sources that get committed to Git
 	rm -rf $(filter-out $(generate/precious),$(generate/files))
-	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js # This corresponds to the "# XXX: There are other files in this dir" comments above
 	find $(OSS_HOME)/pkg/api/getambassador.io -name 'zz_generated.*.go' -print -delete # generated as a side-effect of other files
 .PHONY: generate-clean
 
@@ -266,19 +263,6 @@ proto_options/go += plugins=grpc
 $(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go)
 	$(call protoc,go,$(OSS_HOME)/pkg/api,\
 	    $(tools/protoc-gen-go))
-
-proto_options/js += import_style=commonjs
-$(OSS_HOME)/_generate.tmp/%_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc)
-	$(call protoc,js,$(OSS_HOME)/_generate.tmp)
-
-proto_options/grpc-web += import_style=commonjs
-proto_options/grpc-web += mode=grpcwebtext
-$(OSS_HOME)/_generate.tmp/%_grpc_web_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-grpc-web)
-	$(call protoc,grpc-web,$(OSS_HOME)/_generate.tmp,\
-	    $(tools/protoc-gen-grpc-web))
-
-$(OSS_HOME)/tools/sandbox/grpc_web/%.js: $(OSS_HOME)/_generate.tmp/kat/%.js
-	cp $< $@
 
 clean: _generate_clean
 _generate_clean:
