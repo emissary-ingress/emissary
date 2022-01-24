@@ -66,6 +66,15 @@ items:
           to mean "do not rewrite the path at all".
         docs: topics/using/rewrites
 
+      - title: Correctly handle DNS wildcards when associating Hosts and Mappings
+        type: bugfix
+        body: >-
+          <code>Mapping</code>s with DNS wildcard <code>hostname</code> will now be correctly
+          matched with <code>Host</code>s. Previously, the case where both the <code>Host</code>
+          and the <code>Mapping</code> use DNS wildcards for their hostnames could sometimes 
+          not correctly match when they should have.
+        docs: howtos/configure-communications/
+
       - title: Docker BuildKit always used for builds
         type: change
         body: >-

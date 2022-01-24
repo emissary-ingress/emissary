@@ -8,7 +8,6 @@ from ..config import Config
 from ..utils import dump_json
 
 from .irresource import IRResource
-from .irutils import hostglob_matches
 
 if TYPE_CHECKING:
     from .ir import IR # pragma: no cover
