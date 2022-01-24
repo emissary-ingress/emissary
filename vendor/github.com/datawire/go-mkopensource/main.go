@@ -489,8 +489,6 @@ func markdownOutput(readme *bytes.Buffer, modNames []string, modLicenses map[str
 }
 
 func jsonOutput(readme *bytes.Buffer, modNames []string, modLicenses map[string]map[detectlicense.License]struct{}, modInfos map[string]*golist.Module, goVersion string) error {
-	allLicenses := map[detectlicense.License]struct{}{}
-
 	jsonOutput := dependencies.NewDependencyInfo()
 
 	for _, modKey := range modNames {
@@ -512,19 +510,15 @@ func jsonOutput(readme *bytes.Buffer, modNames []string, modLicenses map[string]
 
 		for license := range modLicenses[modKey] {
 			dependencyDetails.Licenses = append(dependencyDetails.Licenses, license.Name)
-			allLicenses[license] = struct{}{}
 		}
 		sort.Strings(dependencyDetails.Licenses)
 
 		jsonOutput.Dependencies = append(jsonOutput.Dependencies, dependencyDetails)
 	}
 
-	for license := range allLicenses {
-		if license.Url == "" {
-			_, _ = fmt.Fprintf(os.Stderr, "Could not find Url for license '%s'", license.Name)
-			os.Exit(int(MissingLicenseUrlError))
-		}
-		jsonOutput.Licenses[license.Name] = license.Url
+	if err := jsonOutput.UpdateLicenseList(); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Could not generate list of license URLs: %v\n", err)
+		os.Exit(int(DependencyGenerationError))
 	}
 
 	jsonString, err := json.Marshal(jsonOutput)

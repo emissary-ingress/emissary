@@ -273,7 +273,7 @@ func getDependencies(distribNames []string, distribs map[string]textproto.MIMEHe
 	}
 
 	for license := range allLicenses {
-		jsonOutput.Licenses[license.Name] = license.Url
+		jsonOutput.Licenses[license.Name] = license.URL
 	}
 
 	return jsonOutput, nil
