@@ -17,11 +17,11 @@ type rolloutAction string
 
 const (
 	// rolloutActionPause represents the "pause" action on a Rollout
-	rolloutActionPause  = rolloutAction("pause")
+	rolloutActionPause = rolloutAction("pause")
 	// rolloutActionResume represents the "resume" action on a Rollout
 	rolloutActionResume = rolloutAction("resume")
 	// rolloutActionAbort represents the "abort" action on a Rollout
-	rolloutActionAbort  = rolloutAction("abort")
+	rolloutActionAbort = rolloutAction("abort")
 )
 
 // rolloutsGetterFactory is a factory for creating RolloutsGetter.

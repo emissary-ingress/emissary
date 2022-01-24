@@ -13,7 +13,7 @@ import (
 
 type mockRolloutsGetter struct {
 	mockRolloutInterface *mockRolloutInterface
-	latestNamespace string
+	latestNamespace      string
 }
 
 var _ v1alpha1.RolloutsGetter = &mockRolloutsGetter{}
@@ -24,10 +24,10 @@ func (m *mockRolloutsGetter) Rollouts(namespace string) v1alpha1.RolloutInterfac
 }
 
 type mockRolloutInterface struct {
-	latestName string
+	latestName      string
 	latestPatchType types.PatchType
-	latestOptions metav1.PatchOptions
-	latestPatch []byte
+	latestOptions   metav1.PatchOptions
+	latestPatch     []byte
 }
 
 var _ v1alpha1.RolloutInterface = &mockRolloutInterface{}
@@ -79,40 +79,40 @@ func TestRolloutCommand_RunWithClient(t *testing.T) {
 		action      rolloutAction
 	}
 	tests := []struct {
-		name    string
-		fields  fields
+		name      string
+		fields    fields
 		wantPatch string
-		wantErr assert.ErrorAssertionFunc
+		wantErr   assert.ErrorAssertionFunc
 	}{
 		{
 			name: "Pausing a rollout",
 			fields: fields{
 				namespace:   "default",
 				rolloutName: "my-rollout",
-				action: rolloutActionPause,
+				action:      rolloutActionPause,
 			},
 			wantPatch: `{"spec":{"paused":true}}`,
-			wantErr: nil,
+			wantErr:   nil,
 		},
 		{
 			name: "Aborting a rollout",
 			fields: fields{
 				namespace:   "default",
 				rolloutName: "my-rollout",
-				action: rolloutActionAbort,
+				action:      rolloutActionAbort,
 			},
 			wantPatch: `{"status":{"abort":true}}`,
-			wantErr: nil,
+			wantErr:   nil,
 		},
 		{
 			name: "Resume a rollout",
 			fields: fields{
 				namespace:   "default",
 				rolloutName: "my-rollout",
-				action: rolloutActionResume,
+				action:      rolloutActionResume,
 			},
 			wantPatch: `{"spec":{"paused":false}}`,
-			wantErr: nil,
+			wantErr:   nil,
 		},
 	}
 
