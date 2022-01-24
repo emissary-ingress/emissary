@@ -472,43 +472,6 @@ extract-bin-envoy: docker/base-envoy.docker.tag.local
 	@chmod +x $(OSS_HOME)/bin/envoy
 .PHONY: extract-bin-envoy
 
-pytest-builder: test-ready
-	$(MAKE) pytest-builder-only
-.PHONY: pytest-builder
-
-pytest-envoy3-builder:
-	$(MAKE) pytest-builder KAT_RUN_MODE=envoy
-.PHONY: pytest-envoy3-builder
-
-pytest-envoy2-builder:
-	$(MAKE) pytest-builder KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2
-.PHONY: pytest-envoy2-builder
-
-pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
-	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests in builder shell$(END)\n"
-	docker exec \
-		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) \
-		-e KAT_CLIENT_DOCKER_IMAGE=$$(sed -n 2p docker/kat-client.docker.push.remote) \
-		-e KAT_SERVER_DOCKER_IMAGE=$$(sed -n 2p docker/kat-server.docker.push.remote) \
-		-e KAT_IMAGE_PULL_POLICY=Always \
-		-e DOCKER_NETWORK=$(DOCKER_NETWORK) \
-		-e KAT_REQ_LIMIT \
-		-e KAT_RUN_MODE \
-		-e KAT_VERBOSE \
-		-e PYTEST_ARGS \
-		-e DEV_USE_IMAGEPULLSECRET \
-		-e DEV_REGISTRY \
-		-e DOCKER_BUILD_USERNAME \
-		-e DOCKER_BUILD_PASSWORD \
-		-e AMBASSADOR_ENVOY_API_VERSION \
-		-e AMBASSADOR_FAST_RECONFIGURE \
-		-e AWS_SECRET_ACCESS_KEY \
-		-e AWS_ACCESS_KEY_ID \
-		-e AWS_SESSION_TOKEN \
-		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal ; test_exit=$$? ; \
-		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-data/pytest.xml $(TEST_XML_DIR) ; exit $$test_exit
-.PHONY: pytest-builder-only
-
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
