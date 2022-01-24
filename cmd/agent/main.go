@@ -21,7 +21,7 @@ const DefaultSnapshotURLFmt = "http://ambassador-admin:%d/snapshot-external"
 
 func run(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
-	ambAgent := agent.NewAgent(nil)
+	ambAgent := agent.NewAgent(nil, agent.NewArgoRolloutsGetter)
 
 	// all log things need to happen here because we still allow the agent to run in amb-sidecar
 	// and amb-sidecar should control all the logging if it's kicking off the agent.
