@@ -10,7 +10,7 @@ import "google/protobuf/timestamp.proto";
 
 package agent;
 
-option go_package = "github.com/datawire/ambassador/v2/pkg/api/agent;agent";
+option go_package = "./agent";
 
 service Director {
   // Report a consistent Snapshot of information to the CEPC.  This

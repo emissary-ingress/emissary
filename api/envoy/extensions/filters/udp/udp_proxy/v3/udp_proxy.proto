@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package envoy.extensions.filters.udp.udp_proxy.v3;
 
+import "envoy/config/core/v3/udp_socket_config.proto";
+
 import "google/protobuf/duration.proto";
 
 import "udpa/annotations/status.proto";
@@ -11,6 +13,7 @@ import "validate/validate.proto";
 option java_package = "io.envoyproxy.envoy.extensions.filters.udp.udp_proxy.v3";
 option java_outer_classname = "UdpProxyProto";
 option java_multiple_files = true;
+option go_package = "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/udp/udp_proxy/v3;udp_proxyv3";
 option (udpa.annotations.file_status).package_version_status = ACTIVE;
 
 // [#protodoc-title: UDP proxy]
@@ -18,7 +21,7 @@ option (udpa.annotations.file_status).package_version_status = ACTIVE;
 // [#extension: envoy.filters.udp_listener.udp_proxy]
 
 // Configuration for the UDP proxy filter.
-// [#next-free-field: 6]
+// [#next-free-field: 8]
 message UdpProxyConfig {
   option (udpa.annotations.versioning).previous_message_type =
       "envoy.config.filter.udp.udp_proxy.v2alpha.UdpProxyConfig";
@@ -31,6 +34,13 @@ message UdpProxyConfig {
 
       // The source IP will be used to compute the hash used by hash-based load balancing algorithms.
       bool source_ip = 1 [(validate.rules).bool = {const: true}];
+
+      // A given key will be used to compute the hash used by hash-based load balancing algorithms.
+      // In certain cases there is a need to direct different UDP streams jointly towards the selected set of endpoints.
+      // A possible use-case is VoIP telephony, where media (RTP) and its corresponding control (RTCP) belong to the same logical session,
+      // although they travel in separate streams. To ensure that these pair of streams are load-balanced on session level
+      // (instead of individual stream level), dynamically created listeners can use the same hash key for each stream in the session.
+      string key = 2 [(validate.rules).string = {min_len: 1}];
     }
   }
 
@@ -68,4 +78,14 @@ message UdpProxyConfig {
   // load balancing algorithms will select a host randomly. Currently the number of hash policies is
   // limited to 1.
   repeated HashPolicy hash_policies = 5 [(validate.rules).repeated = {max_items: 1}];
+
+  // UDP socket configuration for upstream sockets. The default for
+  // :ref:`prefer_gro <envoy_v3_api_field_config.core.v3.UdpSocketConfig.prefer_gro>` is true for upstream
+  // sockets as the assumption is datagrams will be received from a single source.
+  config.core.v3.UdpSocketConfig upstream_socket_config = 6;
+
+  // Perform per packet load balancing (upstream host selection) on each received data chunk.
+  // The default if not specified is false, that means each data chunk is forwarded
+  // to upstream host selected on first chunk receival for that "session" (identified by source IP/port and local IP/port).
+  bool use_per_packet_load_balancing = 7;
 }

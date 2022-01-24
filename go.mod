@@ -51,14 +51,14 @@ require (
 	github.com/aokoli/goutils v1.1.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.2.1
-	github.com/cncf/udpa/go v0.0.0-20210322005330-6414d713912e
+	github.com/cncf/udpa/go v0.0.0-20210930031921-04548b0d99d4
 	github.com/datawire/dlib v1.2.5-0.20211116212847-0316f8d7af2b
 	github.com/datawire/dtest v0.0.0-20210927191556-2cccf1a938b0
 	github.com/datawire/go-mkopensource v0.0.0-20220121154707-b0476e7f8255
 	github.com/envoyproxy/protoc-gen-validate v0.3.0-java.0.20200609174644-bd816e4522c1
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/getkin/kin-openapi v0.66.0
-	github.com/golang/protobuf v1.4.3
+	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.5
 	github.com/google/uuid v1.1.2
 	github.com/gorilla/websocket v1.4.2
@@ -79,8 +79,8 @@ require (
 	golang.org/x/mod v0.5.1
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
 	google.golang.org/genproto v0.0.0-20201110150050-8816d57aaa9a
-	google.golang.org/grpc v1.34.0
-	google.golang.org/protobuf v1.25.0
+	google.golang.org/grpc v1.43.0
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.3.0
 	k8s.io/api v0.20.4
 	k8s.io/apiextensions-apiserver v0.20.4
@@ -97,6 +97,11 @@ require (
 	sigs.k8s.io/controller-tools v0.5.0
 	sigs.k8s.io/gateway-api v0.2.0
 	sigs.k8s.io/yaml v1.2.0
+)
+
+require (
+	github.com/cncf/xds/go v0.0.0-20220121163655-4a2b9fdd466b
+	go.opentelemetry.io/proto/otlp v0.12.0
 )
 
 require (
