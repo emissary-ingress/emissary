@@ -1,13 +1,9 @@
+import os
 from typing import Generator, Tuple, Union
 
-import os
-
-from kat.harness import Query, load_manifest
-
+import tests.integration.manifests as integration_manifests
 from abstract_tests import DEV, AmbassadorTest, HTTP, Node
-
-AMBASSADOR = load_manifest("ambassador")
-RBAC_CLUSTER_SCOPE = load_manifest("rbac_cluster_scope")
+from kat.harness import Query
 
 STATSD_TEST_CLUSTER = "statsdtest_http"
 ALT_STATSD_TEST_CLUSTER = "short-stats-name"
@@ -117,9 +113,14 @@ class StatsdTest(AmbassadorTest):
       value: 'true'
 """
 
-        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="", capabilities_block="") + \
-               GRAPHITE_CONFIG.format('statsd-sink', self.test_image['stats'], f"{STATSD_TEST_CLUSTER}:{ALT_STATSD_TEST_CLUSTER}")
+        return self.format(integration_manifests.load("rbac_cluster_scope") + integration_manifests.load("ambassador"),
+                           envs=envs,
+                           extra_ports="",
+                           capabilities_block="") + \
+               GRAPHITE_CONFIG.format(
+                   'statsd-sink',
+                   integration_manifests.images['test-stats'],
+                   f"{STATSD_TEST_CLUSTER}:{ALT_STATSD_TEST_CLUSTER}")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
@@ -229,9 +230,14 @@ class DogstatsdTest(AmbassadorTest):
       value: 'true'
 """
 
-        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="", capabilities_block="") + \
-               DOGSTATSD_CONFIG.format('dogstatsd-sink', self.test_image['stats'], DOGSTATSD_TEST_CLUSTER)
+        return self.format(integration_manifests.load("rbac_cluster_scope") + integration_manifests.load('ambassador'),
+                           envs=envs,
+                           extra_ports="",
+                           capabilities_block="") + \
+               DOGSTATSD_CONFIG.format(
+                   'dogstatsd-sink',
+                   integration_manifests.images['test-stats'],
+                   DOGSTATSD_TEST_CLUSTER)
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""

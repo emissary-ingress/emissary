@@ -1,6 +1,6 @@
 include build-aux/tools.mk
 
-# These are triggered by `python/kat/harness.py:TestImage`.
+# These are triggered by `python/tests/integration/manifests.py`.
 test_svcs = auth ratelimit shadow stats
 $(foreach svc,$(test_svcs),docker/.test-$(svc).docker.stamp): docker/.%.docker.stamp: docker/%/Dockerfile FORCE
 	docker build --iidfile=$@ $(<D)

@@ -15,8 +15,9 @@ import yaml
 from ambassador import Cache, IR
 from ambassador.compile import Compile
 from ambassador.utils import NullSecretHandler
+
+import tests.integration.manifests as integration_manifests
 from kat.utils import namespace_manifest
-from kat.harness import load_manifest
 from tests.manifests import cleartext_host_manifest
 from tests.kubeutils import apply_kube_artifacts
 from tests.runutils import run_and_assert
@@ -60,21 +61,8 @@ def install_ambassador(namespace, single_namespace=True, envs=None, debug=None):
     # Create namespace to install Ambassador
     create_namespace(namespace)
 
-    serviceAccountExtra = ''
-    if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
-        serviceAccountExtra = """
-imagePullSecrets:
-- name: dev-image-pull-secret
-"""
-
     # Create Ambassador CRDs
-    apply_kube_artifacts(namespace='emissary-system', artifacts=(
-        # Use .replace instead of .format because there are other '{word}' things in 'description'
-        # fields that would cause KeyErrors when .format erroneously tries to evaluate them.
-        load_manifest("crds")
-        .replace('{image}', os.environ["AMBASSADOR_DOCKER_IMAGE"])
-        .replace('{serviceAccountExtra}', serviceAccountExtra)
-    ))
+    apply_kube_artifacts(namespace='emissary-system', artifacts=integration_manifests.CRDmanifests)
 
     print("Wait for apiext to be running...")
     run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=available', 'deploy', 'emissary-apiext', '-n', 'emissary-system'])
@@ -89,21 +77,21 @@ imagePullSecrets:
     fakeNode = namedtuple('fakeNode', [ 'namespace', 'path', 'ambassador_id' ])
     fakePath = namedtuple('fakePath', [ 'k8s' ])
 
-    ambassador_yaml = list(yaml.safe_load_all((
-        load_manifest(rbac_manifest_name) +
-        load_manifest('ambassador') +
-        (cleartext_host_manifest % namespace)
-    ).format(
-        capabilities_block="",
-        envs="",
-        extra_ports="",
-        serviceAccountExtra=serviceAccountExtra,
-        image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-        self=fakeNode(
-            namespace=namespace,
-            ambassador_id='default',
-            path=fakePath(k8s='ambassador')
-        )
+    ambassador_yaml = list(yaml.safe_load_all(
+        integration_manifests.format(
+            "\n".join([
+                integration_manifests.load(rbac_manifest_name),
+                integration_manifests.load('ambassador'),
+                (cleartext_host_manifest % namespace),
+            ]),
+            capabilities_block="",
+            envs="",
+            extra_ports="",
+            self=fakeNode(
+                namespace=namespace,
+                ambassador_id='default',
+                path=fakePath(k8s='ambassador')
+            ),
     )))
 
     for manifest in ambassador_yaml:

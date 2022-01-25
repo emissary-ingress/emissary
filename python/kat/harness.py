@@ -23,6 +23,7 @@ from ambassador.utils import parse_bool
 
 from yaml.scanner import ScannerError as YAMLScanError
 
+import tests.integration.manifests as integration_manifests
 from multi import multi
 from .parser import dump, load, Tag
 from tests.manifests import httpbin_manifests, websocket_echo_server_manifests, cleartext_host_manifest, default_listener_manifest
@@ -65,7 +66,6 @@ if EDGE_STACK:
     if not SOURCE_ROOT:
         SOURCE_ROOT = "/buildroot/apro"
     GOLD_ROOT = os.path.join(SOURCE_ROOT, "tests/pytest/gold")
-    MANIFEST_ROOT = os.path.join(SOURCE_ROOT, "tests/pytest/manifests")
 else:
     # We're either not running in Edge Stack or we're not sure, so just assume OSS.
     print("RUNNING IN OSS")
@@ -74,41 +74,7 @@ else:
     if not SOURCE_ROOT:
         SOURCE_ROOT = "/buildroot/ambassador"
     GOLD_ROOT = os.path.join(SOURCE_ROOT, "python/tests/gold")
-    MANIFEST_ROOT = os.path.join(SOURCE_ROOT, "python/tests/integration/manifests")
 
-def load_manifest(manifest_name: str) -> str:
-    return open(os.path.join(MANIFEST_ROOT, f"{manifest_name.lower()}.yaml"), "r").read()
-
-
-class TestImage:
-    def __init__(self, *args, **kwargs) -> None:
-        self.images: Dict[str, str] = {}
-
-        svc_names = ['auth', 'ratelimit', 'shadow', 'stats']
-
-        try:
-            subprocess.run(['make']+[f'docker/test-{svc}.docker.push.remote' for svc in svc_names],
-                           check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        except subprocess.CalledProcessError as err:
-            raise Exception(f"{err.stdout}{err}") from err
-
-        for svc in svc_names:
-            with open(f'docker/test-{svc}.docker.push.remote', 'r') as fh:
-                # file contents:
-                #   line 1: image ID
-                #   line 2: tag 1
-                #   line 3: tag 2
-                #   ...
-                #
-                # Set 'image' to one of the tags.
-                image = fh.readlines()[1].strip()
-                self.images[svc] = image
-
-    def __getitem__(self, key: str) -> str:
-        return self.images[key]
-
-
-GLOBAL_TEST_IMAGE = TestImage()
 
 def run(cmd):
     status = os.system(cmd)
@@ -372,8 +338,6 @@ class Node(ABC):
         self.skip_node = False
         self.xfail = None
 
-        self.test_image = GLOBAL_TEST_IMAGE
-
         name = kwargs.pop("name", None)
 
         if 'namespace' in kwargs:
@@ -609,13 +573,7 @@ class Node(ABC):
             return self.parent.depth + 1
 
     def format(self, st, **kwargs):
-        serviceAccountExtra = ''
-        if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
-            serviceAccountExtra = """
-imagePullSecrets:
-- name: dev-image-pull-secret
-"""
-        return st.format(self=self, environ=os.environ, serviceAccountExtra=serviceAccountExtra, **kwargs)
+        return integration_manifests.format(st, self=self, **kwargs)
 
     def get_fqdn(self, name: str) -> str:
         if self.namespace and (self.namespace != 'default'):
@@ -1113,8 +1071,7 @@ class Superpod:
         return ports
 
     def get_manifest_list(self) -> List[Dict[str, Any]]:
-        SUPERPOD_POD = load_manifest("superpod_pod")
-        manifest = load('superpod', SUPERPOD_POD.format(environ=os.environ), Tag.MAPPING)
+        manifest = load('superpod', integration_manifests.format(integration_manifests.load("superpod_pod")), Tag.MAPPING)
 
         assert len(manifest) == 1, "SUPERPOD manifest must have exactly one object"
 
@@ -1276,12 +1233,11 @@ class Runner:
 
                 # print(f'superpodifying {n.name}')
 
-                # Next up: use the BACKEND_SERVICE manifest as a template...
-                BACKEND_SERVICE = load_manifest("backend_service")
-                yaml = n.format(BACKEND_SERVICE)
+                # Next up: use the backend_service.yaml manifest as a template...
+                yaml = n.format(integration_manifests.load("backend_service"))
                 manifest = load(n.path, yaml, Tag.MAPPING)
 
-                assert len(manifest) == 1, "BACKEND_SERVICE manifest must have exactly one object"
+                assert len(manifest) == 1, "backend_service.yaml manifest must have exactly one object"
 
                 m = manifest[0]
 
@@ -1532,24 +1488,9 @@ class Runner:
         manifest_changed, manifest_reason = has_changed(yaml, fname)
 
         # First up: CRDs.
-        serviceAccountExtra = ''
-        if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
-            serviceAccountExtra = """
-imagePullSecrets:
-- name: dev-image-pull-secret
-"""
-
-        # Use .replace instead of .format because there are other '{word}' things in 'description'
-        # fields that would cause KeyErrors when .format erroneously tries to evaluate them.
-        input_crds = (
-            load_manifest("crds")
-            .replace('{image}', os.environ["AMBASSADOR_DOCKER_IMAGE"])
-            .replace('{serviceAccountExtra}', serviceAccountExtra)
-        )
-
+        input_crds = integration_manifests.CRDmanifests
         if is_knative_compatible():
-            KNATIVE_SERVING_CRDS = load_manifest("knative_serving_crds")
-            input_crds += KNATIVE_SERVING_CRDS
+            input_crds += integration_manifests.load("knative_serving_crds")
 
         # Strip out all of the schema validation, so that we can test with broken CRDs.
         # (KAT isn't really in the business of testing to be sure that Kubernetes can
@@ -1622,10 +1563,10 @@ imagePullSecrets:
             print(f'CRDS unchanged {reason}, skipping apply.')
 
         # Next up: the KAT pod.
-        KAT_CLIENT_POD = load_manifest("kat_client_pod")
+        kat_client_manifests = integration_manifests.load("kat_client_pod")
         if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
-            KAT_CLIENT_POD = namespace_manifest("default") + KAT_CLIENT_POD
-        changed, reason = has_changed(KAT_CLIENT_POD.format(environ=os.environ), "/tmp/k8s-kat-pod.yaml")
+            kat_client_manifests = namespace_manifest("default") + kat_client_manifests
+        changed, reason = has_changed(integration_manifests.format(kat_client_manifests), "/tmp/k8s-kat-pod.yaml")
 
         if changed:
             print(f'KAT pod definition changed ({reason}), applying')
@@ -1655,10 +1596,10 @@ imagePullSecrets:
 
         # Use a dummy pod to get around the !*@&#$!*@&# DockerHub rate limit.
         # XXX Better: switch to GCR.
-        dummy_pod = load_manifest("dummy_pod")
+        dummy_pod = integration_manifests.load("dummy_pod")
         if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
             dummy_pod = namespace_manifest("default") + dummy_pod
-        changed, reason = has_changed(dummy_pod.format(environ=os.environ), "/tmp/k8s-dummy-pod.yaml")
+        changed, reason = has_changed(integration_manifests.format(), "/tmp/k8s-dummy-pod.yaml")
 
         if changed:
             print(f'Dummy pod definition changed ({reason}), applying')
