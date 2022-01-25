@@ -68,7 +68,6 @@ jobs:
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
           export TEST_XML_DIR=/tmp/test-logs/xml/
-          export GOTEST_ARGS='-timeout 30m'
           mkdir -p ${TEST_XML_DIR}
           make gotest
       - uses: ./.github/actions/git-dirty-check

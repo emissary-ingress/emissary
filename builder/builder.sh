@@ -48,9 +48,6 @@ BUILDER_DOCKER_RUN=${BUILDER_DOCKER_RUN:-docker run}
 # note: this is necessary for connecting the builder to a local k3d/microk8s/kind network (ie, for running tests)
 BUILDER_DOCKER_NETWORK=${BUILDER_DOCKER_NETWORK:-${BUILDER_NAME}}
 
-# Do this with `eval` so that we properly interpret quotes.
-eval "pytest_args=(${PYTEST_ARGS:-})"
-
 msg() {
     printf "${CYN}==> ${GRN}%s${END}\n" "$*" >&2
 }
@@ -462,103 +459,6 @@ case "${cmd}" in
         mv -f "$DIR/requirements.txt.tmp" "$DIR/requirements.txt"
         ;;
 
-    pytest-local)
-        fail=""
-        mkdir -p ${TEST_DATA_DIR}
-
-        if [ -z "$SOURCE_ROOT" ] ; then
-            export SOURCE_ROOT="$PWD"
-        fi
-
-        if [ -z "$MODDIR" ] ; then
-            export MODDIR="$PWD"
-        fi
-
-        if [ -z "$ENVOY_PATH" ] ; then
-            export ENVOY_PATH="${MODDIR}/bin/envoy"
-        fi
-        if [ ! -f "$ENVOY_PATH" ] ; then
-            echo "Envoy not found at ENVOY_PATH=$ENVOY_PATH"
-            exit 1
-        fi
-
-        if [ -z "$KUBESTATUS_PATH" ] ; then
-            export KUBESTATUS_PATH="${MODDIR}/tools/bin/kubestatus"
-        fi
-        if [ ! -f "$KUBESTATUS_PATH" ] ; then
-            echo "Kubestatus not found at $KUBESTATUS_PATH"
-            exit 1
-        fi
-
-        echo "$0: EDGE_STACK=$EDGE_STACK"
-        echo "$0: SOURCE_ROOT=$SOURCE_ROOT"
-        echo "$0: MODDIR=$MODDIR"
-        echo "$0: ENVOY_PATH=$ENVOY_PATH"
-        echo "$0: KUBESTATUS_PATH=$KUBESTATUS_PATH"
-        if ! (cd ${MODDIR} && pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=${TEST_DATA_DIR}/pytest.xml --tb=short -rP "${pytest_args[@]}") then
-            fail="yes"
-        fi
-
-        if [ "${fail}" = yes ]; then
-            exit 1
-        fi
-        ;;
-
-    pytest-local-unit)
-        fail=""
-        mkdir -p ${TEST_DATA_DIR}
-
-        if [ -z "$SOURCE_ROOT" ] ; then
-            export SOURCE_ROOT="$PWD"
-        fi
-
-        if [ -z "$MODDIR" ] ; then
-            export MODDIR="$PWD"
-        fi
-
-        if [ -z "$ENVOY_PATH" ] ; then
-            export ENVOY_PATH="${MODDIR}/bin/envoy"
-        fi
-        if [ ! -f "$ENVOY_PATH" ] ; then
-            echo "Envoy not found at ENVOY_PATH=$ENVOY_PATH"
-            exit 1
-        fi
-
-        echo "$0: SOURCE_ROOT=$SOURCE_ROOT"
-        echo "$0: MODDIR=$MODDIR"
-        echo "$0: ENVOY_PATH=$ENVOY_PATH"
-        if ! (cd ${MODDIR} && pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=${TEST_DATA_DIR}/pytest.xml --tb=short -rP "${pytest_args[@]}") then
-            fail="yes"
-        fi
-
-        if [ "${fail}" = yes ]; then
-            exit 1
-        fi
-        ;;
-
-    gotest-local)
-        [ -n "${TEST_XML_DIR}" ] && mkdir -p ${TEST_XML_DIR}
-        fail=""
-        for MODDIR in ${GOTEST_MODDIRS} ; do
-            if [ -e "${MODDIR}/go.mod" ]; then
-                pkgs=$(cd ${MODDIR} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
-                if [ -n "${pkgs}" ]; then
-                    modname=`basename ${MODDIR}`
-                    junitarg=
-                    if [[ -n "${TEST_XML_DIR}" ]] ; then
-                        junitarg="--junitfile ${TEST_XML_DIR}/${modname}-gotest.xml"
-                    fi
-                    if ! (cd ${MODDIR} && gotestsum ${junitarg} --rerun-fails=3 --format=testname --packages="${pkgs}" -- -v ${GOTEST_ARGS}) ; then
-                       fail="yes"
-                    fi
-                fi
-            fi
-        done
-
-        if [ "${fail}" = yes ]; then
-            exit 1
-        fi
-        ;;
     build-builder-base)
         build_builder_base >&2
         echo "${builder_base_image}"

@@ -419,24 +419,33 @@ setup-envoy: extract-bin-envoy
 pytest: push-pytest-images
 pytest: $(tools/kubestatus)
 pytest: $(tools/kubectl)
-	@$(MAKE) setup-diagd
-	@$(MAKE) setup-envoy
-	@$(MAKE) proxy
+pytest: setup-diagd
+pytest: setup-envoy
+pytest: proxy
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
 	@echo "DEV_KUBECONFIG=$$DEV_KUBECONFIG"
 	@echo "KAT_RUN_MODE=$$KAT_RUN_MODE"
 	@echo "PYTEST_ARGS=$$PYTEST_ARGS"
-	. $(OSS_HOME)/venv/bin/activate; \
-		$(OSS_HOME)/builder/builder.sh pytest-local
+	mkdir -p $(or $(TEST_XML_DIR),/tmp/test-data)
+	set -e; { \
+	  . $(OSS_HOME)/venv/bin/activate; \
+	  export SOURCE_ROOT=$(CURDIR); \
+	  export ENVOY_PATH=$(CURDIR)/bin/envoy; \
+	  export KUBESTATUS_PATH=$(CURDIR)/tools/bin/kubestatus; \
+	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=$(or $(TEST_XML_DIR),/tmp/test-data)/pytest.xml --tb=short -rP $(PYTEST_ARGS); \
+	}
 .PHONY: pytest
 
-pytest-unit:
+pytest-unit: setup-envoy setup-diagd
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
-	@$(MAKE) setup-envoy
-	@$(MAKE) setup-diagd
-	. $(OSS_HOME)/venv/bin/activate; \
-		PYTEST_ARGS="$$PYTEST_ARGS python/tests/unit" $(OSS_HOME)/builder/builder.sh pytest-local-unit
+	mkdir -p $(or $(TEST_XML_DIR),/tmp/test-data)
+	set -e; { \
+	  . $(OSS_HOME)/venv/bin/activate; \
+	  export SOURCE_ROOT=$(CURDIR); \
+	  export ENVOY_PATH=$(CURDIR)/bin/envoy; \
+	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=$(or $(TEST_XML_DIR),/tmp/test-data)/pytest.xml --tb=short -rP $(PYTEST_ARGS) python/tests/unit; \
+	}
 .PHONY: pytest-unit
 
 pytest-integration: push-pytest-images
@@ -489,14 +498,6 @@ mypy: mypy-server
 	{ . $(OSS_HOME)/venv/bin/activate && time dmypy check python; }
 .PHONY: mypy
 
-GOTEST_PKGS = github.com/datawire/ambassador/v2/...
-GOTEST_MODDIRS = $(OSS_HOME)
-export GOTEST_PKGS
-export GOTEST_MODDIRS
-
-GOTEST_ARGS ?= -race -count=1
-export GOTEST_ARGS
-
 create-venv:
 	[[ -d $(OSS_HOME)/venv ]] || python3 -m venv $(OSS_HOME)/venv
 .PHONY: create-venv
@@ -525,12 +526,14 @@ setup-diagd: create-venv
 	. $(OSS_HOME)/venv/bin/activate && $(MAKE) setup-venv
 .PHONY: setup-diagd
 
+GOTEST_ARGS ?= -race -count=1 -timeout 30m
+GOTEST_PKGS ?= ./...
 gotest: setup-diagd $(tools/kubectl)
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
 	{ . $(OSS_HOME)/venv/bin/activate && \
 	  export PATH=$(tools.bindir):$${PATH} && \
 	  export EDGE_STACK=$(GOTEST_AES_ENABLED) && \
-	  $(OSS_HOME)/builder/builder.sh gotest-local; }
+	  go test $(GOTEST_ARGS) $(GOTEST_PKGS); }
 .PHONY: gotest
 
 # Ingress v1 conformance tests, using KIND and the Ingress Conformance Tests suite.

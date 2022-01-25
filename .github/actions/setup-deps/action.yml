@@ -37,7 +37,3 @@ runs:
       uses: actions/setup-python@v2
       with:
         python-version: "${{ steps.step-detect-py.outputs.py_version }}"
-    - name: "Install gotestsum (latest)"
-      shell: bash
-      run: |
-        go install gotest.tools/gotestsum@latest
