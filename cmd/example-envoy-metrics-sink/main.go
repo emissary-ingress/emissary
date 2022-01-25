@@ -1,14 +1,12 @@
-package main
+package example_envoy_metrics_sink
 
 import (
 	"context"
-	"io"
-	"os"
-
 	"github.com/datawire/dlib/dhttp"
 	"github.com/datawire/dlib/dlog"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/encoding/protojson"
+	"io"
 
 	v2_metrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v2"
 )
@@ -17,9 +15,7 @@ type server struct{}
 
 var _ v2_metrics.MetricsServiceServer = &server{}
 
-func main() {
-	ctx := context.Background()
-
+func Main(ctx context.Context, version string, args ...string) error {
 	grpcMux := grpc.NewServer()
 	v2_metrics.RegisterMetricsServiceServer(grpcMux, &server{})
 
@@ -31,10 +27,11 @@ func main() {
 
 	if err := sc.ListenAndServe(ctx, ":8123"); err != nil {
 		dlog.Errorf(ctx, "shut down with error: %v", err)
-		os.Exit(1)
+		return err
 	}
 
 	dlog.Print(ctx, "shut down without error")
+	return nil
 }
 
 func (s *server) StreamMetrics(stream v2_metrics.MetricsService_StreamMetricsServer) error {

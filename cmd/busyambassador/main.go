@@ -19,6 +19,7 @@ import (
 	"github.com/datawire/ambassador/v2/cmd/ambex"
 	"github.com/datawire/ambassador/v2/cmd/apiext"
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
+	metricssink "github.com/datawire/ambassador/v2/cmd/example-envoy-metrics-sink"
 	"github.com/datawire/ambassador/v2/cmd/kubestatus"
 	"github.com/datawire/ambassador/v2/cmd/reproducer"
 )
@@ -105,12 +106,13 @@ func main() {
 	}()
 
 	busy.Main("busyambassador", "Ambassador", Version, map[string]busy.Command{
-		"ambex":      {Setup: environment.EnvironmentSetupEntrypoint, Run: ambex.Main},
-		"kubestatus": {Setup: environment.EnvironmentSetupEntrypoint, Run: kubestatus.Main},
-		"entrypoint": {Setup: noop, Run: entrypoint.Main},
-		"reproducer": {Setup: noop, Run: reproducer.Main},
-		"agent":      {Setup: environment.EnvironmentSetupEntrypoint, Run: amb_agent.Main},
-		"version":    {Setup: noop, Run: showVersion},
-		"apiext":     {Setup: noop, Run: apiext.Main},
+		"ambex":       {Setup: environment.EnvironmentSetupEntrypoint, Run: ambex.Main},
+		"kubestatus":  {Setup: environment.EnvironmentSetupEntrypoint, Run: kubestatus.Main},
+		"entrypoint":  {Setup: noop, Run: entrypoint.Main},
+		"reproducer":  {Setup: noop, Run: reproducer.Main},
+		"agent":       {Setup: environment.EnvironmentSetupEntrypoint, Run: amb_agent.Main},
+		"metricssink": {Setup: environment.EnvironmentSetupEntrypoint, Run: metricssink.Main},
+		"version":     {Setup: noop, Run: showVersion},
+		"apiext":      {Setup: noop, Run: apiext.Main},
 	})
 }
