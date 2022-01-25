@@ -101,7 +101,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   have been removed. Only the Envoy V3 API is supported (this has been the default since
   Emissary-ingress v1.14.0).
 
+- Feature: The Emissary agent now receive commands to manipulate Rollouts (pause, continue, and
+  abort are currently supported) via directives and executes them in the cluster. ([4040])
+
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
+[4040]: https://github.com/emissary-ingress/emissary/pull/4040
 
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
