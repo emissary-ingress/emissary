@@ -41,6 +41,14 @@ $(tools.bindir)/%: $(tools.srcdir)/%.sh
 	mkdir -p $(@D)
 	install $< $@
 
+# Python scripts
+# ==============
+#
+tools/py-list-deps = $(tools.bindir)/py-list-deps
+$(tools.bindir)/%: $(tools.srcdir)/%.py
+	mkdir -p $(@D)
+	install $< $@
+
 # `go get`-able things
 # ====================
 #
