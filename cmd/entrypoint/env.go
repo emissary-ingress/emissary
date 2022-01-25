@@ -140,10 +140,6 @@ func GetEnvoyConfigFile() string {
 	return env("envoy_config_file", path.Join(GetEnvoyDir(), "envoy.json"))
 }
 
-func GetEnvoyAPIVersion() string {
-	return env("AMBASSADOR_ENVOY_API_VERSION", "V3")
-}
-
 func GetAmbassadorDebug() string {
 	return env("AMBASSADOR_DEBUG", "")
 }

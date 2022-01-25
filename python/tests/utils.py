@@ -24,7 +24,7 @@ logger = logging.getLogger("ambassador")
 
 ENVOY_PATH = os.environ.get('ENVOY_PATH', '/usr/local/bin/envoy')
 
-SUPPORTED_ENVOY_VERSIONS = ["V2", "V3"]
+SUPPORTED_ENVOY_VERSIONS = ["V3"]
 
 def zipkin_tracing_service_manifest():
     return """
@@ -136,10 +136,6 @@ def compile_with_cachecheck(yaml, envoy_version="V3", errors_ok=False):
 EnvoyFilterInfo = namedtuple('EnvoyFilterInfo', [ 'name', 'type' ])
 
 EnvoyHCMInfo = {
-    "V2": EnvoyFilterInfo(
-        name="envoy.filters.network.http_connection_manager",
-        type="type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager"
-    ),
     "V3": EnvoyFilterInfo(
         name="envoy.filters.network.http_connection_manager",
         type="type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
@@ -147,17 +143,13 @@ EnvoyHCMInfo = {
 }
 
 EnvoyTCPInfo = {
-    "V2": EnvoyFilterInfo(
-        name="envoy.filters.network.tcp_proxy",
-        type="type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy"
-    ),
     "V3": EnvoyFilterInfo(
         name="envoy.filters.network.tcp_proxy",
         type="type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy"
     ),
 }
 
-def econf_compile(yaml, envoy_version="V2"):
+def econf_compile(yaml, envoy_version="V3"):
     compiled = compile_with_cachecheck(yaml, envoy_version=envoy_version)
     return compiled[envoy_version.lower()].as_dict()
 
@@ -221,14 +213,12 @@ def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):
             break
     assert found_cluster
 
-def assert_valid_envoy_config(config_dict, v2=False):
+def assert_valid_envoy_config(config_dict):
     with tempfile.NamedTemporaryFile() as temp:
         temp.write(bytes(json.dumps(config_dict), encoding = 'utf-8'))
         temp.flush()
         f_name = temp.name
         cmd = [ENVOY_PATH, '--config-path', f_name, '--mode', 'validate']
-        if v2:
-            cmd.append('--bootstrap-version 2')
         p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if p.returncode != 0:
             print(p.stdout)

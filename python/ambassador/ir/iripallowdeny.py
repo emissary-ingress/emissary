@@ -2,7 +2,7 @@ from typing import ClassVar, Dict, List, Optional, Tuple, TYPE_CHECKING
 from typing import cast as typecast
 
 from ..config import Config
-from ..envoy.v2.v2cidrrange import CIDRRange
+from ..envoy.v3.v3cidrrange import CIDRRange
 
 from .irresource import IRResource
 from .irfilter import IRFilter

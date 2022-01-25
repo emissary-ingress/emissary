@@ -79,24 +79,6 @@ class IRLogService(IRResource):
 
         self.cluster.referenced_by(self)
 
-    def get_common_config(self) -> dict:
-        # get_common_config isn't allowed to be called before add_mappings
-        # is called (by ir.walk_saved_resources). So we can assert that
-        # self.cluster isn't None here, both to make mypy happier and out
-        # of paranoia.
-        assert(self.cluster)
-
-        return {
-            "log_name": self.name,
-            "grpc_service": {
-                "envoy_grpc": {
-                    "cluster_name": self.cluster.envoy_name
-                }
-            },
-            "buffer_flush_interval": "%ds" % self.flush_interval_time,
-            "buffer_size_bytes": self.flush_interval_byte_size,
-        }
-
     def get_additional_headers(self) -> list:
         if 'additional_log_headers' in self.driver_config:
             return self.driver_config.get('additional_log_headers', [])

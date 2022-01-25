@@ -131,9 +131,6 @@ jobs:
       matrix:
         test:
           - integration
-          - kat-envoy2-g1
-          - kat-envoy2-g2
-          - kat-envoy2-g3
           - kat-envoy3-g1
           - kat-envoy3-g2
           - kat-envoy3-g3

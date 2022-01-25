@@ -50,7 +50,6 @@ class V3Bootstrap(dict):
                     {
                         'name': 'static_layer',
                         'static_layer': {
-                            'envoy.reloadable_features.enable_deprecated_v2_api': True,
                             're2.max_program_size.error_level': 200,
                         }
                     }

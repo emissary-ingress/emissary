@@ -2005,8 +2005,6 @@ class AmbassadorEventWatcher(threading.Thread):
             output.write(config_json)
 
         command = ['envoy', '--service-node', 'test-id', '--service-cluster', ir.ambassador_nodename, '--config-path', econf_validation_path, '--mode', 'validate']
-        if Config.envoy_api_version == "V2":
-            command.extend(["--bootstrap-version", "2"])
 
         v_exit = 0
         v_encoded = ''.encode('utf-8')
