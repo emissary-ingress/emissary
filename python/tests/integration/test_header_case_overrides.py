@@ -243,7 +243,7 @@ def _test_headercaseoverrides_rules(rules, expected=None, expect_norules=False, 
 @pytest.mark.compilertest
 def test_testsanity():
     failed = False
-    for version in ['V2', 'V3']:
+    for version in ['V3']:
         try:
             _test_headercaseoverrides_rules(['X-ABC'], expected=['X-Wrong'], version=version)
         except AssertionError as e:
@@ -260,7 +260,7 @@ def test_testsanity():
 # Test that we can parse a variety of header case override arrays.
 @pytest.mark.compilertest
 def test_headercaseoverrides_basic():
-    for version in ['V2', 'V3']:
+    for version in ['V3']:
         _test_headercaseoverrides_rules([], expect_norules=True, version=version)
         _test_headercaseoverrides_rules([{}], expect_norules=True, version=version)
         _test_headercaseoverrides_rules([5], expect_norules=True, version=version)
@@ -273,7 +273,7 @@ def test_headercaseoverrides_basic():
 # Test that we always omit header case overrides if proper case is set
 @pytest.mark.compilertest
 def test_headercaseoverrides_propercasefail():
-    for version in ['V2', 'V3']:
+    for version in ['V3']:
         _test_headercaseoverrides(
             _ambassador_module_header_case_overrides(['My-OPINIONATED-CASING'], proper_case=True),
             [],

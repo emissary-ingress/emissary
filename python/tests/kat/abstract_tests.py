@@ -455,7 +455,7 @@ class AHTTP(ServiceType):
 class AGRPC(ServiceType):
     skip_variant: ClassVar[bool] = True
 
-    def __init__(self, protocol_version: str="v2", *args, **kwargs) -> None:
+    def __init__(self, protocol_version: str="v3", *args, **kwargs) -> None:
         self.protocol_version = protocol_version
 
         # Do this unconditionally, because that's the point of this class.
@@ -468,7 +468,7 @@ class AGRPC(ServiceType):
 class RLSGRPC(ServiceType):
     skip_variant: ClassVar[bool] = True
 
-    def __init__(self, protocol_version: str="v2", *args, **kwargs) -> None:
+    def __init__(self, protocol_version: str="v3", *args, **kwargs) -> None:
         self.protocol_version = protocol_version
 
         # Do this unconditionally, because that's the point of this class.

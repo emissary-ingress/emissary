@@ -46,31 +46,7 @@ def _get_envoy_config(yaml, version='V3'):
 
 
 @pytest.mark.compilertest
-def test_irauth_grpcservice_version_v2():
-    yaml = """
----
-apiVersion: getambassador.io/v3alpha1
-kind: AuthService
-metadata:
-  name:  mycoolauthservice
-  namespace: default
-spec:
-  auth_service: someservice
-  protocol_version: "v2"
-  proto: grpc
-"""
-    econf = _get_envoy_config(yaml, version='V2')
-
-    conf = econf.as_dict()
-    ext_auth_config = _get_ext_auth_config(conf)
-
-    assert ext_auth_config
-
-    assert ext_auth_config['typed_config']['grpc_service']['envoy_grpc']['cluster_name'] == 'cluster_extauth_someservice_default'
-
-
-@pytest.mark.compilertest
-def test_irauth_grpcservice_version_v3():
+def test_irauth_grpcservice_version():
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -107,29 +83,6 @@ spec:
   auth_service: someservice
   proto: grpc
 """
-    econf = _get_envoy_config(yaml, version='V2')
-
-    conf = econf.as_dict()
-    ext_auth_config = _get_ext_auth_config(conf)
-
-    assert ext_auth_config
-
-    assert ext_auth_config['typed_config']['grpc_service']['envoy_grpc']['cluster_name'] == 'cluster_extauth_someservice_default'
-
-
-@pytest.mark.compilertest
-def test_irauth_grpcservice_version_default_v3():
-    yaml = """
----
-apiVersion: getambassador.io/v3alpha1
-kind: AuthService
-metadata:
-  name:  mycoolauthservice
-  namespace: default
-spec:
-  auth_service: someservice
-  proto: grpc
-"""
     econf = _get_envoy_config(yaml, version='V3')
 
     conf = econf.as_dict()
@@ -138,4 +91,4 @@ spec:
     assert ext_auth_config
 
     assert ext_auth_config['typed_config']['grpc_service']['envoy_grpc']['cluster_name'] == 'cluster_extauth_someservice_default'
-    assert ext_auth_config['typed_config']['transport_api_version'] == 'V2'
+    assert ext_auth_config['typed_config']['transport_api_version'] == 'V3'

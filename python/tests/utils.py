@@ -136,10 +136,6 @@ def compile_with_cachecheck(yaml, envoy_version="V3", errors_ok=False):
 EnvoyFilterInfo = namedtuple('EnvoyFilterInfo', [ 'name', 'type' ])
 
 EnvoyHCMInfo = {
-    "V2": EnvoyFilterInfo(
-        name="envoy.filters.network.http_connection_manager",
-        type="type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager"
-    ),
     "V3": EnvoyFilterInfo(
         name="envoy.filters.network.http_connection_manager",
         type="type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
@@ -147,17 +143,13 @@ EnvoyHCMInfo = {
 }
 
 EnvoyTCPInfo = {
-    "V2": EnvoyFilterInfo(
-        name="envoy.filters.network.tcp_proxy",
-        type="type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy"
-    ),
     "V3": EnvoyFilterInfo(
         name="envoy.filters.network.tcp_proxy",
         type="type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy"
     ),
 }
 
-def econf_compile(yaml, envoy_version="V2"):
+def econf_compile(yaml, envoy_version="V3"):
     compiled = compile_with_cachecheck(yaml, envoy_version=envoy_version)
     return compiled[envoy_version.lower()].as_dict()
 
