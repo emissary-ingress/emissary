@@ -12,7 +12,7 @@ from ambassador.utils import NullSecretHandler, parse_bool
 
 import tests.integration.manifests as integration_manifests
 from kat.harness import is_knative_compatible
-from tests.utils import install_ambassador, get_code_with_retry, create_qotm_mapping
+from tests.integration.utils import install_ambassador, get_code_with_retry, create_qotm_mapping
 from tests.kubeutils import apply_kube_artifacts, delete_kube_artifacts
 from tests.runutils import run_with_retry, run_and_assert
 from tests.manifests import qotm_manifests
