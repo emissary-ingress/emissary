@@ -419,24 +419,33 @@ setup-envoy: extract-bin-envoy
 pytest: push-pytest-images
 pytest: $(tools/kubestatus)
 pytest: $(tools/kubectl)
-	@$(MAKE) setup-diagd
-	@$(MAKE) setup-envoy
-	@$(MAKE) proxy
+pytest: setup-diagd
+pytest: setup-envoy
+pytest: proxy
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
 	@echo "DEV_KUBECONFIG=$$DEV_KUBECONFIG"
 	@echo "KAT_RUN_MODE=$$KAT_RUN_MODE"
 	@echo "PYTEST_ARGS=$$PYTEST_ARGS"
-	. $(OSS_HOME)/venv/bin/activate; \
-		$(OSS_HOME)/builder/builder.sh pytest-local
+	mkdir -p $(or $(TEST_XML_DIR),/tmp/test-data)
+	set -e; { \
+	  . $(OSS_HOME)/venv/bin/activate; \
+	  export SOURCE_ROOT=$(CURDIR); \
+	  export ENVOY_PATH=$(CURDIR)/bin/envoy; \
+	  export KUBESTATUS_PATH=$(CURDIR)/tools/bin/kubestatus; \
+	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=$(or $(TEST_XML_DIR),/tmp/test-data)/pytest.xml --tb=short -rP $(PYTEST_ARGS); \
+	}
 .PHONY: pytest
 
-pytest-unit:
+pytest-unit: setup-envoy setup-diagd
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
-	@$(MAKE) setup-envoy
-	@$(MAKE) setup-diagd
-	. $(OSS_HOME)/venv/bin/activate; \
-		PYTEST_ARGS="$$PYTEST_ARGS python/tests/unit" $(OSS_HOME)/builder/builder.sh pytest-local-unit
+	mkdir -p $(or $(TEST_XML_DIR),/tmp/test-data)
+	set -e; { \
+	  . $(OSS_HOME)/venv/bin/activate; \
+	  export SOURCE_ROOT=$(CURDIR); \
+	  export ENVOY_PATH=$(CURDIR)/bin/envoy; \
+	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=$(or $(TEST_XML_DIR),/tmp/test-data)/pytest.xml --tb=short -rP $(PYTEST_ARGS) python/tests/unit; \
+	}
 .PHONY: pytest-unit
 
 pytest-integration: push-pytest-images
