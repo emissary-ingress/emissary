@@ -9,7 +9,7 @@ import time
 from kat.harness import Query, is_ingress_class_compatible
 from abstract_tests import AmbassadorTest, HTTP, ServiceType
 from kat.utils import namespace_manifest
-from tests.utils import KUBESTATUS_PATH
+from tests.integration.utils import KUBESTATUS_PATH
 from ambassador.utils import parse_bool
 
 class IngressStatusTest1(AmbassadorTest):
