@@ -489,14 +489,6 @@ mypy: mypy-server
 	{ . $(OSS_HOME)/venv/bin/activate && time dmypy check python; }
 .PHONY: mypy
 
-GOTEST_PKGS = github.com/datawire/ambassador/v2/...
-GOTEST_MODDIRS = $(OSS_HOME)
-export GOTEST_PKGS
-export GOTEST_MODDIRS
-
-GOTEST_ARGS ?= -race -count=1
-export GOTEST_ARGS
-
 create-venv:
 	[[ -d $(OSS_HOME)/venv ]] || python3 -m venv $(OSS_HOME)/venv
 .PHONY: create-venv
@@ -525,12 +517,14 @@ setup-diagd: create-venv
 	. $(OSS_HOME)/venv/bin/activate && $(MAKE) setup-venv
 .PHONY: setup-diagd
 
+GOTEST_ARGS ?= -race -count=1 -timeout 30m
+GOTEST_PKGS ?= ./...
 gotest: setup-diagd $(tools/kubectl)
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
 	{ . $(OSS_HOME)/venv/bin/activate && \
 	  export PATH=$(tools.bindir):$${PATH} && \
 	  export EDGE_STACK=$(GOTEST_AES_ENABLED) && \
-	  $(OSS_HOME)/builder/builder.sh gotest-local; }
+	  go test $(GOTEST_ARGS) $(GOTEST_PKGS); }
 .PHONY: gotest
 
 # Ingress v1 conformance tests, using KIND and the Ingress Conformance Tests suite.
