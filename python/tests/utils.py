@@ -24,7 +24,7 @@ logger = logging.getLogger("ambassador")
 
 ENVOY_PATH = os.environ.get('ENVOY_PATH', '/usr/local/bin/envoy')
 
-SUPPORTED_ENVOY_VERSIONS = ["V2", "V3"]
+SUPPORTED_ENVOY_VERSIONS = ["V3"]
 
 def zipkin_tracing_service_manifest():
     return """
@@ -221,14 +221,12 @@ def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):
             break
     assert found_cluster
 
-def assert_valid_envoy_config(config_dict, v2=False):
+def assert_valid_envoy_config(config_dict):
     with tempfile.NamedTemporaryFile() as temp:
         temp.write(bytes(json.dumps(config_dict), encoding = 'utf-8'))
         temp.flush()
         f_name = temp.name
         cmd = [ENVOY_PATH, '--config-path', f_name, '--mode', 'validate']
-        if v2:
-            cmd.append('--bootstrap-version 2')
         p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if p.returncode != 0:
             print(p.stdout)

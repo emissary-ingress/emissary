@@ -38,7 +38,7 @@ from clize import Parameter
 
 from ambassador import Scout, Config, IR, Diagnostics, Version
 from ambassador.fetch import ResourceFetcher
-from ambassador.envoy import EnvoyConfig, V2Config, V3Config
+from ambassador.envoy import EnvoyConfig, V3Config
 
 from ambassador.utils import RichStatus, SecretHandler, SecretInfo, NullSecretHandler, Timer, parse_json, dump_json
 
@@ -252,12 +252,6 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
             if dump_ir:
                 od['ir'] = ir.as_dict()
 
-        v2_timer = Timer("v2")
-        with v2_timer:
-            if dump_v2:
-                v2config = V2Config(ir)
-                diagconfig = v2config
-                od['v2'] = v2config.as_dict()
         v3_timer = Timer("v3")
         with v3_timer:
             if dump_v3:
@@ -268,16 +262,11 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         with diag_timer:
             if dump_diag:
                 if not diagconfig:
-                    diagconfig = V2Config(ir)
                     diagconfigv3 = V3Config(ir)
-                econf = typecast(EnvoyConfig, diagconfig)
                 econfv3 = typecast(EnvoyConfig, diagconfigv3)
-                diag = Diagnostics(ir, econf)
                 diagv3 = Diagnostics(ir, econfv3)
-                od['diag'] = diag.as_dict()
-                od['elements'] = econf.elements
-                od['diagv3'] = diagv3.as_dict()
-                od['elementsv3'] = econfv3.elements
+                od['diag'] = diagv3.as_dict()
+                od['elements'] = econfv3.elements
 
         features_timer = Timer("features")
         with features_timer:
@@ -310,7 +299,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         vhost_count = 0
         filter_chain_count = 0
         filter_count = 0
-        apiversion = 'v2' if v2 else 'v3'
+        apiversion = 'v3'
         if apiversion in od:
             for listener in od[apiversion]['static_resources']['listeners']:
                 for fc in listener['filter_chains']:
@@ -334,7 +323,6 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
             sys.stderr.write("  load resources:   %.3fs\n" % load_timer.average)
             sys.stderr.write("  ir generation:    %.3fs\n" % irgen_timer.average)
             sys.stderr.write("  aconf:            %.3fs\n" % aconf_timer.average)
-            sys.stderr.write("  envoy v2:         %.3fs\n" % v2_timer.average)
             sys.stderr.write("  diag:             %.3fs\n" % diag_timer.average)
             sys.stderr.write("  features:         %.3fs\n" % features_timer.average)
             sys.stderr.write("  dump json:        %.3fs\n" % dump_timer.average)
@@ -451,13 +439,13 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
             # resulting in the logic below.
             # https://clize.readthedocs.io/en/stable/basics.html#accepting-flags
 
-            logger.info("Writing envoy V2 configuration")
-            v2config = V2Config(ir)
-            rc = RichStatus.OK(msg="huh_v2")
+            logger.info("Writing envoy V3 configuration")
+            v3config = V3Config(ir)
+            rc = RichStatus.OK(msg="huh_v3")
 
             if rc:
                 with open(output_json_path, "w") as output:
-                    output.write(v2config.as_json())
+                    output.write(v3config.as_json())
                     output.write("\n")
             else:
                 logger.error("Could not generate new Envoy configuration: %s" % rc.error)
