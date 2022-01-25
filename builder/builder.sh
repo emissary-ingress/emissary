@@ -536,22 +536,6 @@ case "${cmd}" in
         fi
         ;;
 
-    pytest-internal)
-        # This runs inside the builder image
-        fail=""
-        mkdir -p ${TEST_DATA_DIR}
-        for MODDIR in $(find-modules); do
-            if [ -e "${MODDIR}/python" ]; then
-                if ! (cd ${MODDIR} && pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=${TEST_DATA_DIR}/pytest.xml --tb=short -ra "${pytest_args[@]}") then
-                   fail="yes"
-                fi
-            fi
-        done
-
-        if [ "${fail}" = yes ]; then
-            exit 1
-        fi
-        ;;
     gotest-local)
         [ -n "${TEST_XML_DIR}" ] && mkdir -p ${TEST_XML_DIR}
         fail=""
