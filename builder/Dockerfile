@@ -41,9 +41,6 @@ WORKDIR /buildroot
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
 
-# Some of the tests need redis-server to run
-RUN apk add redis
-
 COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
 
 ENV KUBECONFIG=/buildroot/kubeconfig.yaml
