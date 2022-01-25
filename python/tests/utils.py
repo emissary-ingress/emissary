@@ -25,8 +25,6 @@ from tests.runutils import run_and_assert
 
 logger = logging.getLogger("ambassador")
 
-SUPPORTED_ENVOY_VERSIONS = ["V2", "V3"]
-
 def zipkin_tracing_service_manifest():
     return """
 ---
@@ -114,22 +112,20 @@ def _secret_handler():
     cache_dir = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-cache")
     return NullSecretHandler(logger, source_root.name, cache_dir.name, "fake")
 
-def compile_with_cachecheck(yaml, envoy_version="V3", errors_ok=False):
+def compile_with_cachecheck(yaml, errors_ok=False):
     # Compile with and without a cache. Neither should produce errors.
     cache = Cache(logger)
     secret_handler = _secret_handler()
-    r1 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, envoy_version=envoy_version)
-    r2 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, cache=cache,
-            envoy_version=envoy_version)
+    r1 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler)
+    r2 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, cache=cache)
 
     if not errors_ok:
         _require_no_errors(r1["ir"])
         _require_no_errors(r2["ir"])
 
     # Both should produce equal Envoy config as sorted json.
-    ev_key = cast(Literal["v2", "v3"], envoy_version.lower())
-    r1j = json.dumps(r1[ev_key].as_dict(), sort_keys=True, indent=2)
-    r2j = json.dumps(r2[ev_key].as_dict(), sort_keys=True, indent=2)
+    r1j = json.dumps(r1['xds'].as_dict(), sort_keys=True, indent=2)
+    r2j = json.dumps(r2['xds'].as_dict(), sort_keys=True, indent=2)
     assert r1j == r2j
 
     # All good.
@@ -147,18 +143,18 @@ EnvoyTCPInfo = EnvoyFilterInfo(
     type="type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy"
 )
 
-def econf_compile(yaml, envoy_version="V2"):
-    compiled = compile_with_cachecheck(yaml, envoy_version=envoy_version)
-    return compiled[envoy_version.lower()].as_dict()
+def econf_compile(yaml):
+    compiled = compile_with_cachecheck(yaml)
+    return compiled['xds'].as_dict()
 
-def econf_foreach_listener(econf, fn, envoy_version='V3', listener_count=1):
+def econf_foreach_listener(econf, fn, listener_count=1):
     listeners = econf['static_resources']['listeners']
 
     wanted_plural = "" if (listener_count == 1) else "s"
     assert len(listeners) == listener_count, f"Expected {listener_count} listener{wanted_plural}, got {len(listeners)}"
 
     for listener in listeners:
-        fn(listener, envoy_version)
+        fn(listener)
 
 def econf_foreach_listener_chain(listener, fn, chain_count=2, need_name=None, need_type=None, dump_info=None):
     # We need a specific number of filter chains. Normally it's 2,
@@ -192,7 +188,7 @@ def econf_foreach_listener_chain(listener, fn, chain_count=2, need_name=None, ne
 
         fn(typed_config)
 
-def econf_foreach_hcm(econf, fn, envoy_version='V3', chain_count=2):
+def econf_foreach_hcm(econf, fn, chain_count=2):
     for listener in econf['static_resources']['listeners']:
         hcm_info = EnvoyHCMInfo
 
@@ -211,7 +207,7 @@ def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):
             break
     assert found_cluster
 
-def assert_valid_envoy_config(config_dict, extra_dirs=[], v2=False):
+def assert_valid_envoy_config(config_dict, extra_dirs=[]):
     with tempfile.TemporaryDirectory() as tmpdir:
         econf = open(os.path.join(tmpdir, 'econf.json'), 'xt')
         econf.write(json.dumps(config_dict))

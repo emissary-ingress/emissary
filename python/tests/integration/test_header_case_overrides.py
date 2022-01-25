@@ -114,7 +114,7 @@ def _ambassador_module_header_case_overrides(overrides, proper_case=False):
 '''
     return mod
 
-def _test_headercaseoverrides(yaml, expectations, expect_norules=False, version='V3'):
+def _test_headercaseoverrides(yaml, expectations, expect_norules=False):
     aconf = Config()
 
     yaml = yaml + '''
@@ -154,7 +154,7 @@ spec:
     ir = IR(aconf, file_checker=lambda path: True, secret_handler=secret_handler)
     assert ir
 
-    econf = EnvoyConfig.generate(ir, version)
+    econf = EnvoyConfig.generate(ir)
     assert econf, "could not create an econf"
 
     found_module_rules = False
@@ -229,69 +229,62 @@ spec:
         assert found_module_rules
         assert found_cluster_rules
 
-def _test_headercaseoverrides_rules(rules, expected=None, expect_norules=False, version='V3'):
+def _test_headercaseoverrides_rules(rules, expected=None, expect_norules=False):
     if not expected:
         expected = rules
     _test_headercaseoverrides(
         _ambassador_module_header_case_overrides(rules),
         expected,
         expect_norules=expect_norules,
-        version=version
     )
 
 # Test that we throw assertions for obviously wrong cases
 @pytest.mark.compilertest
 def test_testsanity():
     failed = False
-    for version in ['V2', 'V3']:
-        try:
-            _test_headercaseoverrides_rules(['X-ABC'], expected=['X-Wrong'], version=version)
-        except AssertionError as e:
-            failed = True
-        assert failed
+    try:
+        _test_headercaseoverrides_rules(['X-ABC'], expected=['X-Wrong'])
+    except AssertionError as e:
+        failed = True
+    assert failed
 
-        failed = False
-        try:
-            _test_headercaseoverrides_rules([], expected=['X-Wrong'], version=version)
-        except AssertionError as e:
-            failed = True
+    failed = False
+    try:
+        _test_headercaseoverrides_rules([], expected=['X-Wrong'])
+    except AssertionError as e:
+        failed = True
     assert failed
 
 # Test that we can parse a variety of header case override arrays.
 @pytest.mark.compilertest
 def test_headercaseoverrides_basic():
-    for version in ['V2', 'V3']:
-        _test_headercaseoverrides_rules([], expect_norules=True, version=version)
-        _test_headercaseoverrides_rules([{}], expect_norules=True, version=version)
-        _test_headercaseoverrides_rules([5], expect_norules=True, version=version)
-        _test_headercaseoverrides_rules(['X-ABC'], version=version)
-        _test_headercaseoverrides_rules(['X-foo', 'X-ABC-Baz'], version=version)
-        _test_headercaseoverrides_rules(['x-goOd', 'X-alSo-good', 'Authorization'], version=version)
-        _test_headercaseoverrides_rules(['x-good', ['hello']], expected=['x-good'], version=version)
-        _test_headercaseoverrides_rules(['X-ABC', 'x-foo', 5, {}], expected=['X-ABC', 'x-foo'], version=version)
+    _test_headercaseoverrides_rules([], expect_norules=True)
+    _test_headercaseoverrides_rules([{}], expect_norules=True)
+    _test_headercaseoverrides_rules([5], expect_norules=True)
+    _test_headercaseoverrides_rules(['X-ABC'])
+    _test_headercaseoverrides_rules(['X-foo', 'X-ABC-Baz'])
+    _test_headercaseoverrides_rules(['x-goOd', 'X-alSo-good', 'Authorization'])
+    _test_headercaseoverrides_rules(['x-good', ['hello']], expected=['x-good'])
+    _test_headercaseoverrides_rules(['X-ABC', 'x-foo', 5, {}], expected=['X-ABC', 'x-foo'])
 
 # Test that we always omit header case overrides if proper case is set
 @pytest.mark.compilertest
 def test_headercaseoverrides_propercasefail():
-    for version in ['V2', 'V3']:
-        _test_headercaseoverrides(
-            _ambassador_module_header_case_overrides(['My-OPINIONATED-CASING'], proper_case=True),
-            [],
-            expect_norules=True,
-            version=version
-        )
-        _test_headercaseoverrides(
-            _ambassador_module_header_case_overrides([], proper_case=True),
-            [],
-            expect_norules=True,
-            version=version
-        )
-        _test_headercaseoverrides(
-            _ambassador_module_header_case_overrides([{"invalid": "true"}, "X-COOL"], proper_case=True),
-            [],
-            expect_norules=True,
-            version=version
-        )
+    _test_headercaseoverrides(
+        _ambassador_module_header_case_overrides(['My-OPINIONATED-CASING'], proper_case=True),
+        [],
+        expect_norules=True,
+    )
+    _test_headercaseoverrides(
+        _ambassador_module_header_case_overrides([], proper_case=True),
+        [],
+        expect_norules=True,
+    )
+    _test_headercaseoverrides(
+        _ambassador_module_header_case_overrides([{"invalid": "true"}, "X-COOL"], proper_case=True),
+        [],
+        expect_norules=True,
+    )
 
 
 class HeaderCaseOverridesTesting:

@@ -1,4 +1,4 @@
-from tests.utils import econf_compile, econf_foreach_listener, econf_foreach_listener_chain, EnvoyHCMInfo, EnvoyTCPInfo, SUPPORTED_ENVOY_VERSIONS
+from tests.utils import econf_compile, econf_foreach_listener, econf_foreach_listener_chain, EnvoyHCMInfo, EnvoyTCPInfo
 
 import pytest
 import json
@@ -128,7 +128,7 @@ def check_filter(abbrev, typed_config, expected_stat_prefix):
 
     assert stat_prefix == expected_stat_prefix, f"wanted stat_prefix {expected_stat_prefix}, got {stat_prefix}"
 
-def check_listener(listener, envoy_version):
+def check_listener(listener):
     port = listener["address"]["socket_address"]["port_value"]
 
     got_count = len(listener["filter_chains"])
@@ -161,12 +161,8 @@ def check_listener(listener, envoy_version):
 
 @pytest.mark.compilertest
 def listener_stats_prefix():
-    # For each Envoy version we support...
-    for v in SUPPORTED_ENVOY_VERSIONS:
-        print(f"\n-- Envoy {v}:")
+    # ...compile an Envoy config...
+    econf = econf_compile(manifests)
 
-        # ...compile an Envoy config...
-        econf = econf_compile(manifests, envoy_version=v)
-
-        # ...and make sure everything looks good.
-        econf_foreach_listener(econf, check_listener, envoy_version=v, listener_count=5)
+    # ...and make sure everything looks good.
+    econf_foreach_listener(econf, check_listener, listener_count=5)

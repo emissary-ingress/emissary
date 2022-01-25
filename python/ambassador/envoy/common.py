@@ -85,7 +85,7 @@ class EnvoyConfig:
         return dump_json(sanitize_pre_json(self.as_dict()), pretty=True)
 
     @classmethod
-    def generate(cls, ir: 'IR', version: str="V3", cache: Optional[Cache]=None) -> 'EnvoyConfig':
+    def generate(cls, ir: 'IR', cache: Optional[Cache]=None) -> 'EnvoyConfig':
         from . import V3Config
         return V3Config(ir, cache=cache)
 

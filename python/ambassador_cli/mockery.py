@@ -465,7 +465,7 @@ def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update:
 
     open("/tmp/ambassador/snapshots/ir.json", "w", encoding="utf-8").write(ir.as_json())
 
-    econf = EnvoyConfig.generate(ir, Config.envoy_api_version)
+    econf = EnvoyConfig.generate(ir)
     bootstrap_config, ads_config, clustermap = econf.split_config()
 
     ads_config.pop('@type', None)

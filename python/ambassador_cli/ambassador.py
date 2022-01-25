@@ -152,15 +152,14 @@ class CLISecretHandler(SecretHandler):
 @click.option('--nopretty',    is_flag=True, help="If set, do not pretty print the dumped JSON")
 @click.option('--aconf',       is_flag=True, help="If set, dump the Ambassador config")
 @click.option('--ir',          is_flag=True, help="If set, dump the IR")
-@click.option('--v2',          is_flag=True, help="If set, dump the Envoy V2 config")
-@click.option('--v3',          is_flag=True, help="If set, dump the Envoy V3 config")
+@click.option('--xds',         is_flag=True, help="If set, dump the Envoy config")
 @click.option('--diag',        is_flag=True, help="If set, dump the Diagnostics overview")
 @click.option('--everything',  is_flag=True, help="If set, dump everything")
 @click.option('--features',    is_flag=True, help="If set, dump the feature set")
 @click.option('--profile',     is_flag=True, help="If set, profile with the cProfile module")
 def dump(config_dir_path: str, *,
          secret_dir_path=None, watt=False, debug=False, debug_scout=False, k8s=False, recurse=False,
-         stats=False, nopretty=False, everything=False, aconf=False, ir=False, v2=False, v3=False, diag=False,
+         stats=False, nopretty=False, everything=False, aconf=False, ir=False, xds=False, diag=False,
          features=False, profile=False):
     """
     Dump various forms of an Ambassador configuration for debugging
@@ -186,22 +185,19 @@ def dump(config_dir_path: str, *,
     if everything:
         aconf = True
         ir = True
-        v2 = True
-        v3 = True
+        xds = True
         diag = True
         features = True
-    elif not (aconf or ir or v2 or v3 or diag or features):
+    elif not (aconf or ir or xds or diag or features):
         aconf = True
         ir = True
-        v2 = True
-        v3 = False
+        xds = True
         diag = False
         features = False
 
     dump_aconf = aconf
     dump_ir = ir
-    dump_v2 = v2
-    dump_v3 = v3
+    dump_xds = xds
     dump_diag = diag
     dump_features = features
 
@@ -253,12 +249,12 @@ def dump(config_dir_path: str, *,
             if dump_ir:
                 od['ir'] = ir.as_dict()
 
-        v3_timer = Timer("v3")
-        with v3_timer:
-            if dump_v3:
-                v3config = V3Config(ir)
-                diagconfig = v3config
-                od['v3'] = v3config.as_dict()
+        xds_timer = Timer("xds")
+        with xds_timer:
+            if dump_xds:
+                config = V3Config(ir)
+                diagconfig = config
+                od['xds'] = config.as_dict()
         diag_timer = Timer("diag")
         with diag_timer:
             if dump_diag:
@@ -300,9 +296,8 @@ def dump(config_dir_path: str, *,
         vhost_count = 0
         filter_chain_count = 0
         filter_count = 0
-        apiversion = 'v2' if v2 else 'v3'
-        if apiversion in od:
-            for listener in od[apiversion]['static_resources']['listeners']:
+        if 'xds' in od:
+            for listener in od['xds']['static_resources']['listeners']:
                 for fc in listener['filter_chains']:
                     filter_chain_count += 1
                     for f in fc['filters']:
@@ -324,7 +319,7 @@ def dump(config_dir_path: str, *,
             sys.stderr.write("  load resources:   %.3fs\n" % load_timer.average)
             sys.stderr.write("  ir generation:    %.3fs\n" % irgen_timer.average)
             sys.stderr.write("  aconf:            %.3fs\n" % aconf_timer.average)
-            sys.stderr.write("  envoy:            %.3fs\n" % v3_timer.average)
+            sys.stderr.write("  envoy:            %.3fs\n" % xds_timer.average)
             sys.stderr.write("  diag:             %.3fs\n" % diag_timer.average)
             sys.stderr.write("  features:         %.3fs\n" % features_timer.average)
             sys.stderr.write("  dump json:        %.3fs\n" % dump_timer.average)
@@ -443,13 +438,13 @@ def config(config_dir_path: str, output_json_path: str, *,
                     output.write(ir.as_json())
                     output.write("\n")
 
-            logger.info("Writing envoy V3 configuration")
-            v2config = V3Config(ir)
-            rc = RichStatus.OK(msg="huh_v3")
+            logger.info("Writing envoy configuration")
+            config = V3Config(ir)
+            rc = RichStatus.OK(msg="huh_xds")
 
             if rc:
                 with open(output_json_path, "w") as output:
-                    output.write(v2config.as_json())
+                    output.write(config.as_json())
                     output.write("\n")
             else:
                 logger.error("Could not generate new Envoy configuration: %s" % rc.error)

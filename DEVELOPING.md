@@ -430,7 +430,7 @@ formats:
 Given an input source, running
 
 ```bash
-ambassador dump --ir --v2 [$input_flags] $input > test.json
+ambassador dump --ir --xds [$input_flags] $input > test.json
 ```
 
 will dump the Ambassador IR and v2 Envoy configuration into `test.json`. Here

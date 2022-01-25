@@ -20,7 +20,7 @@ from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
 
 
-def _get_envoy_config(yaml, version='V3'):
+def _get_envoy_config(yaml):
     aconf = Config()
     fetcher = ResourceFetcher(logger, aconf)
     fetcher.parse_yaml(yaml)
@@ -32,7 +32,7 @@ def _get_envoy_config(yaml, version='V3'):
     ir = IR(aconf, file_checker=lambda path: True, secret_handler=secret_handler)
 
     assert ir
-    return EnvoyConfig.generate(ir, version)
+    return EnvoyConfig.generate(ir)
 
 
 def del_env(env_key):
@@ -80,7 +80,7 @@ service: beepboop
      }
 
     os.environ['STATSD_ENABLED'] = 'true'
-    econf = _get_envoy_config(yaml, version='V3')
+    econf = _get_envoy_config(yaml)
 
     assert econf
 
@@ -128,7 +128,7 @@ service: beepboop
 
     os.environ['STATSD_ENABLED'] = 'true'
     os.environ['STATSD_HOST'] = 'other-statsd-sink'
-    econf = _get_envoy_config(yaml, version='V3')
+    econf = _get_envoy_config(yaml)
 
     assert econf
 
@@ -177,7 +177,7 @@ service: beepboop
 
     os.environ['STATSD_ENABLED'] = 'true'
     os.environ['DOGSTATSD'] = 'true'
-    econf = _get_envoy_config(yaml, version='V3')
+    econf = _get_envoy_config(yaml)
 
     assert econf
 
