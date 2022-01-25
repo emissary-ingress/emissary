@@ -398,8 +398,6 @@ docker/run/%: docker/builder-base.docker
 		-e INTERACTIVE_GROUP=$$(id -g -n) \
 		-e PYTEST_ARGS="$$PYTEST_ARGS" \
 		-e AMBASSADOR_DOCKER_IMAGE="$$AMBASSADOR_DOCKER_IMAGE" \
-		-e KAT_CLIENT_DOCKER_IMAGE="$$KAT_CLIENT_DOCKER_IMAGE" \
-		-e KAT_SERVER_DOCKER_IMAGE="$$KAT_SERVER_DOCKER_IMAGE" \
 		-e DEV_KUBECONFIG="$$DEV_KUBECONFIG" \
 		-v /etc/resolv.conf:/etc/resolv.conf \
 		-v /var/run/docker.sock:/var/run/docker.sock \
@@ -428,8 +426,6 @@ pytest: $(tools/kubectl)
 	@$(MAKE) proxy
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
-	@echo "KAT_CLIENT_DOCKER_IMAGE=$$KAT_CLIENT_DOCKER_IMAGE"
-	@echo "KAT_SERVER_DOCKER_IMAGE=$$KAT_SERVER_DOCKER_IMAGE"
 	@echo "DEV_KUBECONFIG=$$DEV_KUBECONFIG"
 	@echo "KAT_RUN_MODE=$$KAT_RUN_MODE"
 	@echo "PYTEST_ARGS=$$PYTEST_ARGS"
@@ -851,18 +847,12 @@ clobber:
 
 AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.push.remote 2>/dev/null)
 export AMBASSADOR_DOCKER_IMAGE
-KAT_CLIENT_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-client.docker.push.remote 2>/dev/null)
-export KAT_CLIENT_DOCKER_IMAGE
-KAT_SERVER_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-server.docker.push.remote 2>/dev/null)
-export KAT_SERVER_DOCKER_IMAGE
 
 _user-vars  = BUILDER_NAME
 _user-vars += DEV_KUBECONFIG
 _user-vars += DEV_REGISTRY
 _user-vars += RELEASE_REGISTRY
 _user-vars += AMBASSADOR_DOCKER_IMAGE
-_user-vars += KAT_CLIENT_DOCKER_IMAGE
-_user-vars += KAT_SERVER_DOCKER_IMAGE
 env:
 	@printf '$(BLD)%s$(END)=$(BLU)%s$(END)\n' $(foreach v,$(_user-vars), $v $(call quote.shell,$(call quote.shell,$($v))) )
 .PHONY: env
