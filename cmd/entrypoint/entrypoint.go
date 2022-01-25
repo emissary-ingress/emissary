@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/datawire/ambassador/v2/cmd/ambex"
+	metricssink "github.com/datawire/ambassador/v2/cmd/example-envoy-metrics-sink"
 	"github.com/datawire/ambassador/v2/pkg/acp"
 	"github.com/datawire/ambassador/v2/pkg/busy"
 	"github.com/datawire/ambassador/v2/pkg/kates"
@@ -170,6 +171,14 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		return ambex.Main2(ctx, Version, usage.PercentUsed, fastpathCh, "--ads-listen-address",
 			"127.0.0.1:8003", GetEnvoyDir())
 	})
+
+	// We start up the example metrics sink server if this environment variable is present. Its presence also
+	// generates the metrics sink configuration in the Envoy config file.
+	if envbool("AMBASSADOR_GRPC_METRICS_SINK") {
+		group.Go("example-envoy-metrics-sink", func(ctx context.Context) error {
+			return metricssink.Main(ctx, Version)
+		})
+	}
 
 	group.Go("envoy", func(ctx context.Context) error {
 		return runEnvoy(ctx, envoyHUP)
