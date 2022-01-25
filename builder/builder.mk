@@ -416,9 +416,7 @@ docker/run/shell:
 
 setup-envoy: extract-bin-envoy
 
-pytest: docker/$(LCNAME).docker.push.remote
-pytest: docker/kat-client.docker.push.remote
-pytest: docker/kat-server.docker.push.remote
+pytest: push-pytest-images
 pytest: $(tools/kubestatus)
 pytest: $(tools/kubectl)
 	@$(MAKE) setup-diagd
@@ -441,20 +439,20 @@ pytest-unit:
 		PYTEST_ARGS="$$PYTEST_ARGS python/tests/unit" $(OSS_HOME)/builder/builder.sh pytest-local-unit
 .PHONY: pytest-unit
 
-pytest-integration:
+pytest-integration: push-pytest-images
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) integration tests$(END)\n"
 	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/integration"
 .PHONY: pytest-integration
 
-pytest-kat-local:
+pytest-kat-local: push-pytest-images
 	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
-pytest-kat-envoy3: # doing this all at once is too much for CI...
+pytest-kat-envoy3: push-pytest-images # doing this all at once is too much for CI...
 	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
-pytest-kat-envoy3-%: # ... so we have a separate rule to run things split up
+pytest-kat-envoy3-%: push-pytest-images # ... so we have a separate rule to run things split up
 	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range $* python/tests/kat"
-pytest-kat-envoy2: # doing this all at once is too much for CI...
+pytest-kat-envoy2: push-pytest-images # doing this all at once is too much for CI...
 	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
-pytest-kat-envoy2-%: # ... so we have a separate rule to run things split up
+pytest-kat-envoy2-%: push-pytest-images # ... so we have a separate rule to run things split up
 	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range $* python/tests/kat"
 .PHONY: pytest-kat-%
 
