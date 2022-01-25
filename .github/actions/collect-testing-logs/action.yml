@@ -21,6 +21,9 @@ runs:
             ~/.cache/telepresence/logs \
             /tmp/test-logs/telepresence-logs
         fi
+        if test -e docker/kat-client.go.layer.tar && test -e docker/.tmp.kat-client.go.layer.tar.tmp; then
+          cp docker/kat-client.go.layer.tar docker/.tmp.kat-client.go.layer.tar.tmp /tmp/test-logs
+        fi
         if [ -f docker/container.txt ] && docker inspect $(cat docker/container.txt) >/dev/null; then
           docker exec $(cat docker/container.txt) /bin/bash -c 'mkdir -p /tmp/build-container-logs && (cp -r /tmp/*.txt /tmp/*.json /tmp/*.log /tmp/*.yaml /tmp/build-container-logs || true) && ((test -d ~/.cache/telepresence/logs && cp -r ~/.cache/telepresence/logs /tmp/build-container-logs/telepresence-logs) || true)'
           docker cp $(cat docker/container.txt):/tmp/build-container-logs /tmp/test-logs/build-container-logs || true
