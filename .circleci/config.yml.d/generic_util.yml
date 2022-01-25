@@ -5,12 +5,6 @@
 version: 2.1
 
 commands:
-  "install-gotestsum":
-    steps:
-    - run:
-        name: "Install gotestsum"
-        command: |
-          go get gotest.tools/gotestsum
   "install-redis":
     steps:
     - run:
