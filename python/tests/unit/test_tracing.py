@@ -105,7 +105,7 @@ def test_tracing_config_v2(tmp_path: Path):
         "http": {
             "name": "envoy.lightstep",
             "typed_config": {
-                "@type": "type.googleapis.com/envoy.config.trace.v2.LightstepConfig",
+                "@type": "type.googleapis.com/envoy.config.trace.v3.LightstepConfig",
                 "access_token_file": "/lightstep-credentials/access-token",
                 "collector_cluster": "cluster_tracing_lightstep_80_ambassador",
                 "propagation_modes": ["ENVOY", "TRACE_CONTEXT"]

@@ -167,8 +167,9 @@ spec:
     ads_config.pop('@type', None)
 
     mirrored_config = get_mirrored_config(ads_config)
-    assert 'request_mirror_policy' in mirrored_config['route']
-    mirror_policy = mirrored_config['route']['request_mirror_policy']
+    assert 'request_mirror_policies' in mirrored_config['route']
+    assert len(mirrored_config['route']['request_mirror_policies']) == 1
+    mirror_policy = mirrored_config['route']['request_mirror_policies'][0]
     assert mirror_policy['cluster'] == 'cluster_shadow_httpbin_shadow_default'
     assert mirror_policy['runtime_fraction']['default_value']['numerator'] == 10
     assert mirror_policy['runtime_fraction']['default_value']['denominator'] == 'HUNDRED'

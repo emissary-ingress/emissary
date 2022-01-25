@@ -45,10 +45,6 @@ def v3prettyroute(route: DictifiedV3Route) -> str:
         value = match.get("safe_regex", {}).get("regex", None)
 
     if not value:
-        key = "!!URX!!"
-        value = match.get("unsafe_regex", None)
-
-    if not value:
         key = "???"
         value = "-none-"
 

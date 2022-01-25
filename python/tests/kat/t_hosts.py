@@ -258,8 +258,6 @@ class HostCRDManualContextCRL(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        if Config.envoy_api_version == "V2":
-            self.skip_node = True
         self.add_default_http_listener = False
         self.add_default_https_listener = False
 
@@ -1236,8 +1234,6 @@ class HostCRDClientCertCRLEmptyList(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        if Config.envoy_api_version == "V2":
-            self.skip_node = True
         self.target = HTTP()
         self.add_default_http_listener = False
         self.add_default_https_listener = False
@@ -1356,8 +1352,6 @@ class HostCRDClientCertCRLRevokeList(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        if Config.envoy_api_version == "V2":
-            self.skip_node = True
         self.target = HTTP()
         self.add_default_http_listener = False
         self.add_default_https_listener = False
@@ -1657,98 +1651,6 @@ metadata:
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   prefix: "/[[:word:]]*" # :word: is in RE2 but not ECMAScript RegExp or Python 're'
-  prefix_regex: true
-  service: {self.target.path.fqdn}
-''') + super().manifests()
-
-    def scheme(self) -> str:
-        return "https"
-
-    def queries(self):
-        yield Query(self.url("", scheme="http"), headers={"Host": "tls-context-host-1"},
-                    expected=301)
-        yield Query(self.url("other", scheme="http"), headers={"Host": "tls-context-host-1"},
-                    expected=301)
-        yield Query(self.url("-other", scheme="http"), headers={"Host": "tls-context-host-1"},
-                    expected=(404 if bug_404_routes else 301))
-
-        yield Query(self.url("", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
-                    expected=200)
-        yield Query(self.url("other", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
-                    expected=200)
-        yield Query(self.url("-other", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
-                    expected=404)
-
-    def requirements(self):
-        for r in super().requirements():
-            query = r[1]
-            query.headers={"Host": "tls-context-host-1"}
-            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
-            query.ca_cert = TLSCerts["tls-context-host-1"].pubcert
-            yield (r[0], query)
-
-
-class HostCRDRootRedirectECMARegexMapping(AmbassadorTest):
-    target: ServiceType
-
-    def init(self):
-        if Config.envoy_api_version == 'V3':
-            self.skip_node = True
-        self.target = HTTP()
-
-    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
----
-apiVersion: getambassador.io/v3alpha1
-kind: Module
-name: ambassador
-config:
-  regex_type: unsafe
-""")
-
-    def manifests(self) -> str:
-        return self.format('''
----
-apiVersion: getambassador.io/v3alpha1
-kind: Host
-metadata:
-  name: {self.path.k8s}
-  labels:
-    kat-ambassador-id: {self.ambassador_id}
-spec:
-  ambassador_id: [ {self.ambassador_id} ]
-  hostname: tls-context-host-1
-  acmeProvider:
-    authority: none
-  mappingSelector:
-    matchLabels:
-      hostname: {self.path.fqdn}
-  tlsSecret:
-    name: {self.path.k8s}-test-tlscontext-secret-1
-  requestPolicy:
-    insecure:
-      action: Redirect
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {self.path.k8s}-test-tlscontext-secret-1
-  labels:
-    kat-ambassador-id: {self.ambassador_id}
-type: kubernetes.io/tls
-data:
-  tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
-  tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
----
-apiVersion: getambassador.io/v3alpha1
-kind: Mapping
-metadata:
-  name: {self.name.k8s}-target-mapping
-  labels:
-    hostname: {self.path.fqdn}
-spec:
-  ambassador_id: [ {self.ambassador_id} ]
-  prefix: "/(?!-).*" # (?!re) is valid ECMAScript RegExp but not RE2... unfortunately it's also valid Python 're'
   prefix_regex: true
   service: {self.target.path.fqdn}
 ''') + super().manifests()

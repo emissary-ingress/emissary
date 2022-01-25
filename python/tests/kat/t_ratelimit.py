@@ -283,8 +283,6 @@ class RateLimitVerTest(AmbassadorTest):
         self.target = HTTP()
         self.specified_protocol_version = protocol_version
         self.expected_protocol_version = "v2" if protocol_version == "default" else protocol_version
-        if Config.envoy_api_version == "V2" and self.expected_protocol_version == "v3":
-            self.skip_node = True
         self.rls = RLSGRPC(protocol_version=self.expected_protocol_version)
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:

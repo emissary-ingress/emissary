@@ -45,13 +45,6 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
    adjust their service implementations to understand the v3 protocols, and then update Emissary
    resources to say `protocol_version` before upgrading to Emissary-ingress 3.0.0.
 
- - **No `regex_type: unsafe`**: The `regex_type` field will be removed from the `ambassador`
-   `Module`, meaning that it will not be possible to instruct Envoy to use the [ECMAScript Regex][]
-   engine rather than the default [RE2][] engine.
-
-   Users who rely on the specific ECMAScript Regex syntax will need to rewrite their regular
-   expressions with RE2 syntax before upgrading to Emissary-ingress 3.0.0.
-
  - **No Zipkin `collector_endpoint_version: HTTP_JSON_V1`**: Support for specifying
    `collector_endpoint_version: HTTP_JSON_V1` for a Zipkin `TracingService` will be removed.  The
    `HTTP_JSON_V1` value corresponds to Zipkin's old API-v1, while the `HTTP_JSON` value corresponds
@@ -72,15 +65,32 @@ With the removal of `regex_type: unsafe` and `collector_endpoint_version: HTTP_J
 be no more user-visible effects of the `AMBASSADOR_ENVOY_API_VERSION` environment variable, and so
 it will be removed; but as it won't be user-visible this isn't considered a breaking change.
 
-[ECMASCript Regex]: https://en.cppreference.com/w/cpp/regex/ecmascript
-[RE2]: https://github.com/google/re2
-
 ### Emissary 3.0.0 or later
 
  - In a future version of Emissary-ingress, **no sooner than Emissary-ingress v3.0.0**, TLS secrets
    in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 ## RELEASE NOTES
+
+## [3.0.0] TBD
+[3.0.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v3.0.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: Emissary-ingress can no longer be made to configure Envoy using the v2 xDS configuration
+  API; it now always uses the v3 xDS API to configure Envoy.  This change should be mostly invisible
+  to users, with one notable exception: It removes support for `regex_type: unsafe`.
+  The
+  `regex_type` field will is removed from the `ambassador` `Module`, meaning that it is not be
+  possible to instruct Envoy to use the <a
+  href="https://en.cppreference.com/w/cpp/regex/ecmascript">ECMAScript Regex</a> engine rather than
+  the default <a href="https://github.com/google/re2">RE2</a> engine.
+  Users who rely on the specific
+  ECMAScript Regex syntax will need to rewrite their regular expressions with RE2 syntax before
+  upgrading to Emissary-ingress 3.0.0.
+  Note that the `AMBASSADOR_ENVOY_API_VERSION` environment
+  variable is now a misnomer, as it no longer configures which xDS API version is used, but it still
+  affects what the default protocol used for a `TracingService` that points at Zipkin.
 
 ## [2.3.1] June 09, 2022
 [2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1

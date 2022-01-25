@@ -64,22 +64,6 @@ def _get_ratelimit_default_conf_v3():
     }
 
 
-def _get_ratelimit_default_conf_v2():
-    return {
-        '@type': 'type.googleapis.com/envoy.config.filter.http.rate_limit.v2.RateLimit',
-        'domain': 'ambassador',
-        'request_type': 'both',
-        'timeout': '0.020s',
-        'rate_limit_service': {
-            'grpc_service': {
-                'envoy_grpc': {
-                    'cluster_name': 'cluster_{}_default'.format(SERVICE_NAME)
-                }
-            }
-        }
-    }
-
-
 @pytest.mark.compilertest
 def test_irratelimit_defaultsv3():
     default_config = _get_ratelimit_default_conf_v3()
@@ -104,7 +88,7 @@ spec:
 
 @pytest.mark.compilertest
 def test_irratelimit_defaults():
-    default_config = _get_ratelimit_default_conf_v2()
+    default_config = _get_ratelimit_default_conf_v3()
 
     # Test all defaults
     yaml = """
@@ -163,7 +147,7 @@ spec:
   service: {}
   protocol_version: "v2"
 """.format(SERVICE_NAME)
-    config = _get_ratelimit_default_conf_v2()
+    config = _get_ratelimit_default_conf_v3()
     econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
 
@@ -212,7 +196,7 @@ spec: {}
 def test_irratelimit_overrides():
 
     # Test all other overrides
-    config = _get_ratelimit_default_conf_v2()
+    config = _get_ratelimit_default_conf_v3()
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1

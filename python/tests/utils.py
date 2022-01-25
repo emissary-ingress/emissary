@@ -137,27 +137,15 @@ def compile_with_cachecheck(yaml, envoy_version="V3", errors_ok=False):
 
 EnvoyFilterInfo = namedtuple('EnvoyFilterInfo', [ 'name', 'type' ])
 
-EnvoyHCMInfo = {
-    "V2": EnvoyFilterInfo(
-        name="envoy.filters.network.http_connection_manager",
-        type="type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager"
-    ),
-    "V3": EnvoyFilterInfo(
-        name="envoy.filters.network.http_connection_manager",
-        type="type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
-    ),
-}
+EnvoyHCMInfo = EnvoyFilterInfo(
+    name="envoy.filters.network.http_connection_manager",
+    type="type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
+)
 
-EnvoyTCPInfo = {
-    "V2": EnvoyFilterInfo(
-        name="envoy.filters.network.tcp_proxy",
-        type="type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy"
-    ),
-    "V3": EnvoyFilterInfo(
-        name="envoy.filters.network.tcp_proxy",
-        type="type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy"
-    ),
-}
+EnvoyTCPInfo = EnvoyFilterInfo(
+    name="envoy.filters.network.tcp_proxy",
+    type="type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy"
+)
 
 def econf_compile(yaml, envoy_version="V2"):
     compiled = compile_with_cachecheck(yaml, envoy_version=envoy_version)
@@ -200,13 +188,13 @@ def econf_foreach_listener_chain(listener, fn, chain_count=2, need_name=None, ne
         typed_config = filter['typed_config']
 
         if need_type:
-            assert typed_config['@type'] == need_type, f"bad type: {typed_config['@type']}"
+            assert typed_config['@type'] == need_type, f"bad type: got {repr(typed_config['@type'])} but expected {repr(need_type)}"
 
         fn(typed_config)
 
 def econf_foreach_hcm(econf, fn, envoy_version='V3', chain_count=2):
     for listener in econf['static_resources']['listeners']:
-        hcm_info = EnvoyHCMInfo[envoy_version]
+        hcm_info = EnvoyHCMInfo
 
         econf_foreach_listener_chain(
             listener, fn, chain_count=chain_count,
@@ -240,8 +228,6 @@ def assert_valid_envoy_config(config_dict, extra_dirs=[], v2=False):
             '--config-path', '/ambassador/econf.json',
             '--mode', 'validate',
         ]
-        if v2:
-            cmd.append('--bootstrap-version 2')
         p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if p.returncode != 0:
             print(p.stdout.decode())

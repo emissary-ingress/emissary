@@ -156,8 +156,8 @@ def check_listener(listener, envoy_version):
 
     econf_foreach_listener_chain(
         listener, checker, chain_count=chain_count,
-        need_name=filter_info[envoy_version].name,
-        need_type=filter_info[envoy_version].type)
+        need_name=filter_info.name,
+        need_type=filter_info.type)
 
 @pytest.mark.compilertest
 def listener_stats_prefix():

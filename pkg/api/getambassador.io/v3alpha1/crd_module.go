@@ -176,6 +176,8 @@ type AmbassadorConfigSpec struct {
 	// connections may never close.
 	ClusterMaxConnectionLifetime *MillisecondDuration `json:"cluster_max_connection_lifetime_ms,omitempty"`
 
+	// RegexType did something in Emissary 1.x and 2.x, but does nothing in 3.x.
+	//
 	// +kubebuilder:validation:Enum={"safe", "unsafe"}
 	RegexType string `json:"regex_type,omitempty"`
 
