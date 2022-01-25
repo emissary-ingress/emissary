@@ -1,7 +1,7 @@
 alias echo_on="{ set -x; }"
 alias echo_off="{ set +x; } 2>/dev/null"
 
-# Choose colors carefully. If they don't work on both a black 
+# Choose colors carefully. If they don't work on both a black
 # background and a white background, pick other colors (so white,
 # yellow, and black are poor choices).
 RED='\033[1;31m'
@@ -11,17 +11,12 @@ CYN='\033[1;36m'
 END='\033[0m'
 
 source /etc/profile.d/bash_completion.sh
-source /usr/local/bin/kube-ps1.sh
 
 alias k=kubectl
 complete -F __start_kubectl k
 
-# These are already accomodated by the kubectx/kubens completions.
-alias kctx=kubectx
-alias kns=kubens
-
 __prompt_info () {
-	PS1="$(kube_ps1) ${BUILDER_NAME}:\w $ "
+	PS1="${BUILDER_NAME}:\w $ "
 }
 
 old=""
@@ -31,4 +26,3 @@ if [ -n "$PROMPT_COMMAND" ]; then
 fi
 
 PROMPT_COMMAND="__prompt_info;$old"
-
