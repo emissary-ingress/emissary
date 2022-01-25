@@ -99,6 +99,16 @@ func (g *GRPCAUTHV3) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckRe
 		rheader["body"] = rbody
 	}
 
+	rContextExtensions := r.GetAttributes().GetContextExtensions()
+	if rContextExtensions != nil {
+		val, err := json.Marshal(rContextExtensions)
+		if err != nil {
+			val = []byte(fmt.Sprintf("Error: %v", err))
+		}
+
+		rs.AddHeader(false, "x-request-context-extensions", string(val))
+	}
+
 	// Sets requested HTTP status.
 	rs.SetStatus(ctx, rheader["requested-status"])
 

@@ -22,10 +22,7 @@ def _test_router(yaml, expectations={}):
 
                 assert 'typed_config' in http_filter
                 typed_config = http_filter['typed_config']
-                if v == 'V2':
-                    assert typed_config['@type'] == 'type.googleapis.com/envoy.config.filter.http.router.v2.Router'
-                else:
-                    assert typed_config['@type'] == 'type.googleapis.com/envoy.extensions.filters.http.router.v3.Router'
+                assert typed_config['@type'] == 'type.googleapis.com/envoy.extensions.filters.http.router.v3.Router'
                 for key, expected in expectations.items():
                     print("checking key %s" % key)
                     assert key in typed_config

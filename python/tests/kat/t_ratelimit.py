@@ -178,7 +178,7 @@ timeout_ms: 500
         assert self.results[2].headers["Hello"] == [ "Foo" ]
         assert self.results[2].headers["Hi"] == [ "Baz" ]
         assert self.results[2].headers["Content-Type"] == [ "application/json" ]
-        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v2" ]
+        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v3" ]
 
 class RateLimitV1WithTLSTest(AmbassadorTest):
     # debug = True
