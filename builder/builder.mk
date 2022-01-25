@@ -404,23 +404,9 @@ mypy: mypy-server
 	{ . $(OSS_HOME)/venv/bin/activate && time dmypy check python; }
 .PHONY: mypy
 
-# If we're setting up within Alpine linux, make sure to pin pip and pip-tools
-# to something that is still PEP517 compatible. This allows us to set _manylinux.py
-# and convince pip to install prebuilt wheels. We do this because there's no good
-# rust toolchain to build orjson within Alpine itself.
 $(OSS_HOME)/venv: builder/requirements.txt builder/requirements-dev.txt
 	rm -rf $@
 	python3 -m venv $@
-	{ \
-	  if grep "Alpine Linux" /etc/issue &>/dev/null; then \
-	    $@/bin/pip3 install -U pip==20.2.4 pip-tools==5.3.1; \
-	    echo 'manylinux1_compatible = True' > $@/lib/python3.8/site-packages/_manylinux.py; \
-	    $@/bin/pip3 install orjson==3.3.1; \
-	    rm -f venv/lib/python3.8/site-packages/_manylinux.py; \
-	  else \
-	    $@/bin/pip3 install orjson==3.6.0; \
-	  fi; \
-	}
 	$@/bin/pip3 install -r builder/requirements.txt
 	$@/bin/pip3 install -r builder/requirements-dev.txt
 	$@/bin/pip3 install -e $(OSS_HOME)/python

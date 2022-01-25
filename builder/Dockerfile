@@ -137,7 +137,7 @@ COPY --from=artifacts /opt/image-build /opt/image-build
 RUN /opt/image-build/install.sh
 
 # External Python packages we use
-COPY --from=artifacts /usr/lib/python3.8/site-packages /usr/lib/python3.8/site-packages
+COPY --from=artifacts /usr/lib/python3.9/site-packages /usr/lib/python3.9/site-packages
 
 # Our envoy. The capabilities here grant the wrapper the ability to use the
 # cap_net_bind_service cap and for Envoy to inherit it.
@@ -176,7 +176,5 @@ WORKDIR /ambassador
 # well in the face of situations like KAT volume-mounting /tmp/ambassador or
 # the like.
 ENV HOME=/tmp/ambassador
-
-COPY --from=artifacts /bin/busybox /bin/busybox
 
 ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]

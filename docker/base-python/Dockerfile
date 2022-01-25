@@ -18,7 +18,7 @@
 # Third-party code
 ########################################
 
-FROM docker.io/frolvlad/alpine-glibc:alpine-3.12_glibc-2.32
+FROM docker.io/frolvlad/alpine-glibc:alpine-3.15
 
 WORKDIR /buildroot
 
@@ -40,31 +40,24 @@ RUN apk --no-cache add \
     libffi-dev \
     ncurses \
     openssl-dev \
-    py3-pip \
-    python3=~3.8.10 \
+    py3-pip=~20.3.4 \
+    python3=~3.9.7 \
     python3-dev \
+    rust \
+    cargo \
+    patchelf \
     rsync \
     sudo \
     yaml-dev \
     && ln -s /usr/bin/python3 /usr/bin/python \
     && chmod u+s $(which docker)
 
-RUN mkdir /tmp/busybox \
-    && cd /tmp/busybox \
-    && curl -O https://busybox.net/downloads/busybox-1.34.1.tar.bz2 \
-    && tar -xjf busybox-1.34.1.tar.bz2 \
-    && cd busybox-1.34.1 \
-    && make defconfig \
-    && make busybox \
-    && ls -l /bin \
-    && mv busybox /bin/busybox
+# Consult
+# https://github.com/jazzband/pip-tools/#versions-and-compatibility to
+# select a pip-tools version that corresponds to the 'py3-pip' and
+# 'python3' versions above.
+RUN pip3 install pip-tools==6.3.1
 
-# We _must_ pin pip to a version before 20.3 because orjson appears to only have
-# PEP513 compatible wheels, which are supported before 20.3 but (apparently)
-# not in 20.3. We can only upgrade pip to 20.3 after we verify that orjson has
-# PEP600 compatible wheels for our linux platform, or we start building orjson
-# from source using a rust toolchain.
-RUN pip3 install -U pip==20.2.4 pip-tools==5.3.1
 RUN curl --fail -L https://dl.google.com/go/go1.17.1.linux-amd64.tar.gz | tar -C /usr/local -xzf -
 
 RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.22.2/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
@@ -72,7 +65,7 @@ RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.
 
 # The YAML parser is... special. To get the C version, we need to install Cython and libyaml, then
 # build it locally -- just using pip won't work.
-
+#
 # Download, build, and install PyYAML.
 RUN mkdir /tmp/pyyaml && \
   cd /tmp/pyyaml && \
@@ -81,17 +74,6 @@ RUN mkdir /tmp/pyyaml && \
   cd pyyaml-5.4.1.1 && \
   python3 setup.py --with-libyaml install
 
-# Installing `requests` pulls in both `chardet` and `charset_normalizer`. Only one of these is
-# needed, so we'll uninstall `chardet` since it's GPL-licensed.
-RUN pip3 uninstall -y chardet
-
-# orjson is also special. It relies on glibc, so we need to temporarily convince
-# python that our linux is 'manylinux1_compatible' so it will fetch a prebuilt
-# binary instead of unsucessfully attempting to build using a rust toolchain.
-#
-# We can't leave this trick in place for the entire pip install, because other
-# packages we depend on (eg: protobuf) have binary packages that do _not_ work
-# on our linux.
-RUN echo 'manylinux1_compatible = True' > /usr/lib/python3.8/_manylinux.py && \
-	pip3 install orjson==3.3.1 && \
-	rm -f /usr/lib/python3.8/_manylinux.py
+# orjson is also special.  The wheels on PyPI rely on glibc, so we
+# need to use cargo/rustc/patchelf to build a musl-compatible version.
+RUN pip3 install orjson==3.6.6

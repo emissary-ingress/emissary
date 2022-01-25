@@ -73,6 +73,12 @@ items:
           components (and not only the Ambassador Agent) to authenticate requests to
           Ambassador Cloud.
 
+      - title: Update to Alpine 3.15
+        type: security
+        body: >-
+          Emissary has been upgraded from Alpine 3.12 to Alpine 3.15, which incorporates numerous
+          security patches.
+
   - version: 2.1.2
     prevVersion: 2.1.0
     date: '2022-01-25'
