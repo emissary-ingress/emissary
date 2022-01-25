@@ -15,7 +15,7 @@ class HeaderRoutingTest(MappingTest):
         for v in variants(ServiceType):
             yield cls(v, v.clone("target2"), name="{self.target.name}")
 
-    # XXX This type: ignore is here because we're deliberately overriding the 
+    # XXX This type: ignore is here because we're deliberately overriding the
     # parent's init to have a different signature... but it's also intimately
     # (nay, incestuously) related to the variant()'s yield() above, and I really
     # don't want to deal with that right now. So. We'll deal with it later.
@@ -86,7 +86,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: {self.test_image[auth]}
+    image: {images[test-auth]}
     ports:
     - containerPort: 80
     env:
