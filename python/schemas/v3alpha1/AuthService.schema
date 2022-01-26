@@ -1,0 +1,180 @@
+{
+    "id": "https://getambassador.io/schemas/authservice.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "auth_service"
+    ],
+    "properties": {
+        "add_auth_headers": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "add_linkerd_headers": {
+            "type": "boolean"
+        },
+        "allow_request_body": {
+            "type": "boolean"
+        },
+        "allowed_authorization_headers": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "allowed_request_headers": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ambassador_id": {
+            "description": "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural).",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v3alpha1"
+            ]
+        },
+        "auth_service": {
+            "description": "TODO(lukeshu): In v3alpha2, consider renameing `auth_service` to just `service`, for consistency with the other resource types.",
+            "type": "string"
+        },
+        "circuit_breakers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "max_connections": {
+                        "type": "integer"
+                    },
+                    "max_pending_requests": {
+                        "type": "integer"
+                    },
+                    "max_requests": {
+                        "type": "integer"
+                    },
+                    "max_retries": {
+                        "type": "integer"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "enum": [
+                            "default",
+                            "high"
+                        ]
+                    }
+                }
+            }
+        },
+        "failure_mode_allow": {
+            "type": "boolean"
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "include_body": {
+            "type": "object",
+            "required": [
+                "allow_partial",
+                "max_bytes"
+            ],
+            "properties": {
+                "allow_partial": {
+                    "type": "boolean"
+                },
+                "body_raw_bytes": {
+                    "type": "boolean"
+                },
+                "max_bytes": {
+                    "description": "These aren't pointer types because they are required.",
+                    "type": "integer"
+                }
+            }
+        },
+        "kind": {
+            "enum": [
+                "AuthService"
+            ]
+        },
+        "metadata_labels": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "path_prefix": {
+            "type": "string"
+        },
+        "proto": {
+            "type": "string",
+            "enum": [
+                "http",
+                "grpc"
+            ]
+        },
+        "protocol_version": {
+            "type": "string",
+            "enum": [
+                "v2",
+                "v3"
+            ]
+        },
+        "stats_name": {
+            "type": "string"
+        },
+        "status_on_error": {
+            "description": "TODO(lukeshu): In v3alpha2, consider getting rid of this struct type in favor of just using an int (i.e. `statusOnError: 500` instead of the current `statusOnError: { code: 500 }`).",
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                }
+            }
+        },
+        "timeout_ms": {
+            "description": "TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.",
+            "type": "integer"
+        },
+        "tls": {
+            "type": "string"
+        },
+        "v2ExplicitTLS": {
+            "description": "V2ExplicitTLS controls some vanity/stylistic elements when converting from v3alpha1 to v2.  The values in an V2ExplicitTLS should not in any way affect the runtime operation of Emissary; except that it may affect internal names in the Envoy config, which may in turn affect stats names.  But it should not affect any end-user observable behavior.",
+            "type": "object",
+            "properties": {
+                "serviceScheme": {
+                    "description": "ServiceScheme specifies how to spell and capitalize the scheme-part of the service URL. \n Acceptable values are \"http://\" (case-insensitive), \"https://\" (case-insensitive), or \"\".  The value is used if it agrees with whether or not this resource enables TLS origination, or if something else in the resource overrides the scheme.",
+                    "type": "string",
+                    "pattern": "^([hH][tT][tT][pP][sS]?://)?$"
+                },
+                "tls": {
+                    "description": "TLS controls whether and how to represent the \"tls\" field when its value could be implied by the \"service\" field.  In v2, there were a lot of different ways to spell an \"empty\" value, and this field specifies which way to spell it (and will therefore only be used if the value will indeed be empty). \n  | Value        | Representation                        | Meaning of representation          |  |--------------+---------------------------------------+------------------------------------|  | \"\"           | omit the field                        | defer to service (no TLSContext)   |  | \"null\"       | store an explicit \"null\" in the field | defer to service (no TLSContext)   |  | \"string\"     | store an empty string in the field    | defer to service (no TLSContext)   |  | \"bool:false\" | store a Boolean \"false\" in the field  | defer to service (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\" in the field   | originate TLS (no TLSContext)      | \n If the meaning of the representation contradicts anything else (if a TLSContext is to be used, or in the case of \"bool:true\" if TLS is not to be originated), then this field is ignored.",
+                    "type": "string",
+                    "enum": [
+                        "",
+                        "null",
+                        "bool:true",
+                        "bool:false",
+                        "string"
+                    ]
+                }
+            }
+        }
+    }
+}

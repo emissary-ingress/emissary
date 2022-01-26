@@ -205,6 +205,9 @@ def V3HTTPFilter_authv1(auth: IRAuth, v3config: 'V3Config'):
         if 'allow_partial' in raw_body_info:
             body_info['allow_partial_message'] = raw_body_info['allow_partial']
 
+        if raw_body_info.get('body_raw_bytes', False):
+            body_info['pack_as_bytes'] = raw_body_info['body_raw_bytes']
+
     auth_info: Dict[str, Any] = {}
 
     if auth.proto == "http":

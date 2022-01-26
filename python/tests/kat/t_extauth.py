@@ -3,6 +3,7 @@ from typing import Generator, Tuple, Union
 import json
 import pytest
 import os
+import random
 
 from kat.harness import Query
 
@@ -1052,3 +1053,63 @@ service: {self.target.path.fqdn}
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
         assert self.results[3].backend.request.headers['x-grpc-service-protocol-version'] == ['v3']
+
+class AuthenticationRawBodyTest(AmbassadorTest):
+    target: ServiceType
+    auth: ServiceType
+
+    def init(self):
+        if Config.envoy_api_version != "V3":
+            self.skip_node = True
+        self.target = HTTP()
+        self.auth = AGRPC(name="auth", protocol_version="v3")
+
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
+        yield self, self.format("""
+---
+apiVersion: getambassador.io/v3alpha1
+kind: AuthService
+name:  {self.auth.path.k8s}
+auth_service: "{self.auth.path.fqdn}"
+timeout_ms: 5000
+protocol_version: "v3"
+proto: grpc
+include_body:
+  max_bytes: 4096
+  allow_partial: true
+  body_raw_bytes: true
+""")
+        yield self, self.format("""
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+name:  {self.target.path.k8s}
+hostname: "*"
+prefix: /bodyPackBytes/
+service: {self.target.path.fqdn}
+""")
+
+    def queries(self):
+        # generate some random data to upload
+        dummy_data = bytes(random.getrandbits(8) for _ in range(1000))
+        # [0]
+        yield Query(self.url("bodyPackBytes/"), headers={"Requested-Status": "200"}, expected=200)
+        yield Query(self.url("bodyPackBytes/"), method="POST", headers={"Requested-Status": "200"}, expected=200)
+        yield Query(self.url("bodyPackBytes/"), method="POST", headers={"Requested-Status": "200"}, body="message_body", expected=200)
+
+    def check(self):
+        # test that GET requests still succeed when pack_as_bytes is set for the AuthService
+        assert self.results[0].backend.request.headers["requested-status"] == ["200"]
+        assert self.results[0].status == 200
+        assert self.results[0].headers["Server"] == ["envoy"]
+
+        # test that POST request still suceed when pack_as_bytes is set for the AuthService
+        assert self.results[1].backend.request.headers["requested-status"] == ["200"]
+        assert self.results[1].status == 200
+        assert self.results[1].headers["Server"] == ["envoy"]
+
+        # test that the body of the request can still be send to the AuthService successfully
+        # uploading a file as form-data would be a beter test, but it doesnt seem that harness.py supports it
+        assert self.results[2].backend.request.headers["requested-status"] == ["200"]
+        assert self.results[2].status == 200
+        assert self.results[2].headers["Server"] == ["envoy"]

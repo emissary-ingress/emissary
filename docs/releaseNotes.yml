@@ -250,6 +250,13 @@ items:
           <i>Emissary-ingress 2.1.1 was not issued; Ambassador Edge Stack 2.1.1 uses
           Emissary-ingress 2.1.0.</i>
 
+      - title: Support for including request bodies with binary data on requests to AuthService
+        type: feature
+        body: >-
+          A new field <code>body_raw_bytes</code> has been added to <code>AuthService.spec.include_body</code> to allow
+          sending request bodies containing binary data to an <code>AuthService</code>.
+        docs: https://www.getambassador.io/docs/edge-stack/latest/topics/using/authservice/#authservice-settings
+
   - version: 2.1.0
     date: '2021-12-16'
     notes:

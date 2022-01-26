@@ -30,6 +30,8 @@ type AuthServiceIncludeBody struct {
 
 	// +kubebuilder:validation:Required
 	AllowPartial bool `json:"allow_partial,omitempty"`
+
+	BodyAsRawBytes *bool `json:"body_raw_bytes,omitempty"`
 }
 
 // Why isn't this just an int??
