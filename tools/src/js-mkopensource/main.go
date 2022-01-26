@@ -16,12 +16,12 @@ func main() {
 
 	jsonString, marshalErr := json.Marshal(dependencyInfo)
 	if marshalErr != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Could not generate JSON output: %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "could not generate JSON output: %v\n", err)
 		os.Exit(int(MarshallJsonError))
 	}
 
 	if _, err := os.Stdout.Write(jsonString); err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Could not write JSON output: %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "could not write JSON output: %v\n", err)
 		os.Exit(int(WriteError))
 	}
 
