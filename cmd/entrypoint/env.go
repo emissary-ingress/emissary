@@ -272,6 +272,14 @@ func GetLicenseSecretNamespace() string {
 	return env("AMBASSADOR_AES_SECRET_NAMESPACE", GetAmbassadorNamespace())
 }
 
+func GetCloudConnectTokenResourceName() string {
+	return env("AGENT_CONFIG_RESOURCE_NAME", "ambassador-agent-cloud-token")
+}
+
+func GetCloudConnectTokenResourceNamespace() string {
+	return env("AGENT_NAMESPACE", GetAmbassadorNamespace())
+}
+
 func GetEventHost() string {
 	return env("DEV_AMBASSADOR_EVENT_HOST", fmt.Sprintf("http://localhost:%s", GetDiagdBindPort()))
 }

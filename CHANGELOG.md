@@ -101,6 +101,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   have been removed. Only the Envoy V3 API is supported (this has been the default since
   Emissary-ingress v1.14.0).
 
+- Change: Emissary will now watch for ConfigMap or Secret resources specified by the
+  `AGENT_CONFIG_RESOURCE_NAME` environment variable in order to allow all components (and not only
+  the Ambassador Agent) to authenticate requests to Ambassador Cloud.
+
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
 
 ## [2.1.0] December 16, 2021
