@@ -2,7 +2,7 @@ package agent
 
 import (
 	"context"
-	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v2"
+	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v3"
 	"github.com/datawire/dlib/dlog"
 	"google.golang.org/grpc"
 	"io"
@@ -39,7 +39,7 @@ func (s *metricsServer) StartServer(ctx context.Context) error {
 }
 
 // StreamMetrics implements the StreamMetrics rpc call by calling the stream handler on each
-// message received.
+// message received. It's invoked whenever metrics arrive from Envoy.
 func (s *metricsServer) StreamMetrics(stream envoyMetrics.MetricsService_StreamMetricsServer) error {
 	ctx := stream.Context()
 	dlog.Debug(ctx, "started stream")

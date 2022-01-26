@@ -8,6 +8,8 @@ syntax = "proto3";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
+import "prometheus/metrics.proto";
+
 package agent;
 
 service Director {
@@ -19,6 +21,9 @@ service Director {
 
   // Report a consistent Snapshot of information to the CEPC.
   rpc ReportStream(stream RawSnapshotChunk) returns (SnapshotResponse) {}
+
+  // Stream metrics to the CEPC.
+  rpc StreamMetrics(stream StreamMetricsMessage) returns (StreamMetricsResponse) {}
 
   // Retrieve Directives from the CEPC
   rpc Retrieve(Identity) returns (stream Directive) {}
@@ -104,4 +109,15 @@ message Directive {
 message Command {
   // Log this message if present
   string message = 1;
+}
+
+message StreamMetricsMessage {
+  Identity identity = 1;
+
+  // A list of metric entries
+  repeated io.prometheus.client.MetricFamily envoy_metrics = 2;
+}
+
+message StreamMetricsResponse {
+
 }

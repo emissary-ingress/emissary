@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v2"
+	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v3"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -28,6 +28,7 @@ type Comm interface {
 	Close() error
 	Report(context.Context, *agent.Snapshot, string) error
 	Directives() <-chan *agent.Directive
+	StreamMetrics(context.Context, *agent.StreamMetricsMessage, string) error
 }
 
 type atomicBool struct {
