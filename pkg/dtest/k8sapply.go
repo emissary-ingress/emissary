@@ -1,36 +1,34 @@
 package dtest
 
 import (
-	"fmt"
+	"context"
 	"os"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/k8s"
-	"github.com/datawire/ambassador/pkg/kubeapply"
-	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/kubeapply"
+	"github.com/datawire/dlib/dexec"
+	"github.com/datawire/dlib/dlog"
 )
-
-const prefix = "DTEST"
 
 // K8sApply applies the supplied manifests to the cluster indicated by
 // the supplied kubeconfig.
-func K8sApply(files ...string) {
+func K8sApply(ctx context.Context, ver KubeVersion, files ...string) {
 	if os.Getenv("DOCKER_REGISTRY") == "" {
-		os.Setenv("DOCKER_REGISTRY", DockerRegistry())
+		os.Setenv("DOCKER_REGISTRY", DockerRegistry(ctx))
 	}
-	kubeconfig := Kubeconfig()
-	err := kubeapply.Kubeapply(k8s.NewKubeInfo(kubeconfig, "", ""), 300*time.Second, false, false, files...)
+	kubeconfig := KubeVersionConfig(ctx, ver)
+	err := kubeapply.Kubeapply(ctx, k8s.NewKubeInfo(kubeconfig, "", ""), 300*time.Second, false, false, files...)
 	if err != nil {
-		fmt.Println()
-		fmt.Println(err)
-		fmt.Printf(`
-  Please note, if this is a timeout, then your kubernetes cluster may not
-  exist or may be unreachable. Check access to your cluster with "kubectl --kubeconfig %s".
-
-`, kubeconfig)
-		fmt.Println()
-		cmd := supervisor.Command(
-			prefix, "kubectl", "--kubeconfig", kubeconfig,
+		dlog.Println(ctx)
+		dlog.Println(ctx, err)
+		dlog.Printf(ctx,
+			"Please note, if this is a timeout, then your kubernetes cluster may not "+
+				"exist or may be unreachable. Check access to your cluster with \"kubectl --kubeconfig %s\".",
+			kubeconfig)
+		dlog.Println(ctx)
+		cmd := dexec.CommandContext(ctx,
+			"kubectl", "--kubeconfig", kubeconfig,
 			"get", "--all-namespaces", "ns,svc,deploy,po",
 		)
 		_ = cmd.Run() // Command output and any error will be logged

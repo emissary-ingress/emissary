@@ -1,4 +1,7 @@
 // Package busy implements a dispatcher for BusyBox-style multi-call binaries.
+//
+// BUG(lukeshu): Global state is bad, but this package has global state in the form of the global
+// log level.
 package busy
 
 import (
@@ -9,68 +12,62 @@ import (
 	"sort"
 	"strconv"
 
+	//nolint:depguard // This is one of the few places where it is approrpiate to not go through
+	// to initialize dlog.
 	"github.com/sirupsen/logrus"
 
 	"github.com/datawire/dlib/dlog"
 )
 
 type Command struct {
-	Setup func()
+	Setup func(ctx context.Context)
 	Run   func(ctx context.Context, version string, args ...string) error
 }
 
+// logrusLogger is a global (rather than simply being a variable within the Main() function) for the
+// sole purpose of allowing the global program-wide log level to be fussed with at runtime.
+//
+// If you find yourself adding any other access to this blob of global state:
+//
+//     Stop.  You don't want more global state.  I (LukeShu) promise you there's a better way to do
+//     whatever you're attempting, and that adding more global state is not what you really want.
 var logrusLogger *logrus.Logger
-var logrusFormatter logrus.Formatter
 
-func jsonLoggingEnabled() bool {
-	if v, err := strconv.ParseBool(os.Getenv("AMBASSADOR_JSON_LOGGING")); err == nil && v {
-		return true
-	}
-
-	return false
-}
-
-// The golang `init` function here just calls the exported Init function below.
 func init() {
-	Init()
+	testInit()
 }
 
-// Init initializes our logger. We expose this function for tests.
-func Init() {
+// testInit is separate from init() so that it can be explicitly called from the tests.
+func testInit() {
 	logrusLogger = logrus.New()
-	if jsonLoggingEnabled() {
-		logrusFormatter = &logrus.JSONFormatter{
-			TimestampFormat: "2006-01-02 15:04:05",
-		}
-		logrusLogger.SetFormatter(logrusFormatter)
+	if useJSON, _ := strconv.ParseBool(os.Getenv("AMBASSADOR_JSON_LOGGING")); useJSON {
+		logrusLogger.SetFormatter(&logrus.JSONFormatter{
+			TimestampFormat: "2006-01-02 15:04:05.0000",
+		})
 	} else {
-		logrusFormatter = &logrus.TextFormatter{
-			TimestampFormat: "2006-01-02 15:04:05",
+		logrusLogger.SetFormatter(&logrus.TextFormatter{
+			TimestampFormat: "2006-01-02 15:04:05.0000",
 			FullTimestamp:   true,
-		}
-		logrusLogger.SetFormatter(logrusFormatter)
+		})
 	}
 	logrusLogger.SetReportCaller(true)
 }
 
+// SetLogLevel sets the global program-wide log level.
+//
+// BUG(lukeshu): SetLogLevel mutates global state, and global state is bad.
 func SetLogLevel(lvl logrus.Level) {
 	logrusLogger.SetLevel(lvl)
 }
 
+// GetLogLevel gets the global program-wide log level.
+//
+// BUG(lukeshu): GetLogLevel accesses global state, and global state is bad.
 func GetLogLevel() logrus.Level {
 	return logrusLogger.GetLevel()
 }
 
-var rootLogger dlog.Logger
-
-func GetRootLogger() dlog.Logger {
-	return rootLogger
-}
-
-func GetLogrusFormatter() logrus.Formatter {
-	return logrusFormatter
-}
-
+// Main should be called from your actual main() function.
 func Main(binName, humanName string, version string, cmds map[string]Command) {
 	name := filepath.Base(os.Args[0])
 	if name == binName && len(os.Args) > 1 {
@@ -78,18 +75,14 @@ func Main(binName, humanName string, version string, cmds map[string]Command) {
 		os.Args = os.Args[1:]
 	}
 
-	cmd, cmdOk := cmds[name]
-	if cmdOk {
-		cmd.Setup()
-	}
-
-	rootLogger = dlog.WrapLogrus(logrusLogger).
+	logger := dlog.WrapLogrus(logrusLogger).
 		WithField("PID", os.Getpid()).
 		WithField("CMD", name)
-	ctx := dlog.WithLogger(context.Background(), rootLogger)
-	dlog.SetFallbackLogger(rootLogger.WithField("oops-i-did-not-pass-context-correctly", true))
+	ctx := dlog.WithLogger(context.Background(), logger) // early in Main()
+	dlog.SetFallbackLogger(logger.WithField("oops-i-did-not-pass-context-correctly", "THIS IS A BUG"))
 
-	if cmdOk {
+	if cmd, cmdOk := cmds[name]; cmdOk {
+		cmd.Setup(ctx)
 		if err := cmd.Run(ctx, version, os.Args[1:]...); err != nil {
 			dlog.Errorf(ctx, "shut down with error error: %v", err)
 			os.Exit(1)

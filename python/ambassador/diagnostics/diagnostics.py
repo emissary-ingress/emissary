@@ -486,7 +486,7 @@ class Diagnostics:
 
                 element_dict = self.envoy_elements.setdefault(fqkey, {})
                 element_list = element_dict.setdefault(kind, [])
-                element_list.append(envoy_element)
+                element_list.append({ k: v for k, v in envoy_element.items() if k[0] != '_' })
 
         # Always generate the full group set so that we can look up groups.
         self.groups = { 'grp-%s' % group.group_id: group for group in self.ir.groups.values()

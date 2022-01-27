@@ -175,7 +175,7 @@ func (w *AmbassadorWatcher) IsAlive() bool {
 		// typed as awState to catch someone trying to assign a random integer to
 		// it. However, I guess someone could conceivably assign something new to
 		// it without updating this code, so we test for it.
-		panic(fmt.Sprintf("AmbassadorWatcher.state has unknown value %d", w.state))
+		panic(fmt.Sprintf("AmbassadorWatcher.state enum has unknown value %d", w.state))
 	}
 }
 

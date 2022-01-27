@@ -1,8 +1,10 @@
+#!/usr/bin/env python
+
 # This script is to help generate any flat yaml files from the ambassador helm chart.
 #
 # This script takes two arguments:
 #   1. A multi-doc yaml file generated from running:
-#       `helm template ambassador -f [VALUES_FILE.yaml] -n [NAMESPACE] ./charts/ambassador`
+#       `helm template ambassador -f [VALUES_FILE.yaml] -n [NAMESPACE] ./charts/emissary-ingress`
 #   2. A yaml file listing the required kubernetes resources from the generated helm template to
 #   output to stdout. See ../aes/require.yaml for an example
 #
@@ -29,52 +31,27 @@ def get_requirement_key(req):
     return '{}.{}.{}'.format(req['kind'], req['name'], ns)
 
 
-# ensure that the yaml docs are sorted in the same way as in the requirements.
-# order actually matters here. for example, we need the namespace show up before any
-# namespaced resources.
-# Also this ensures that all the "required" resources make it into the final yaml
-def same_sort(requirements, yaml_docs):
-    sorted_resources = []
-    for req in requirements.get('resources'):
-        req_key = get_requirement_key(req)
-        if req_key not in yaml_docs:
-            raise Exception('Resource %s not found in generated yaml' % req_key)
-        sorted_resources.append(yaml_docs[req_key])
-    return sorted_resources
-
-
-class RequirementChecker():
-
-    def __init__(self, requirements):
-        self.requirements = {}
-        for req in requirements:
-            key = get_requirement_key(req)
-            self.requirements[key] = True
-
-
-    def is_required(self, resource):
-        key = get_resource_key(resource)
-        return key in self.requirements
-
-
 def main(templated_helm_file, require_file):
     yaml = ruamel.yaml.YAML()
     yaml.indent(mapping=2)
     with open(templated_helm_file, 'r') as f:
-        templated_helm = yaml.load_all(f.read())
+        templated_helm = {}
+        for yaml_doc in yaml.load_all(f.read()):
+            if yaml_doc is None:
+                continue
+            templated_helm[get_resource_key(yaml_doc)] = yaml_doc
     with open(require_file, 'r') as f:
         requirements = yaml.load(f.read())
-    checker = RequirementChecker(requirements.get('resources'))
 
-    new_doc = {}
-    for yaml_doc in templated_helm:
-        if yaml_doc is None:
-            continue
-        if checker.is_required(yaml_doc):
-            new_doc[get_resource_key(yaml_doc)] = yaml_doc
     print('# GENERATED FILE: edits made by hand will not be preserved.')
-    print('---')
-    yaml.dump_all(same_sort(requirements, new_doc), sys.stdout)
+    # Print out required resources in the order they appear in require_file.  Order actually matters
+    # here, for example, we need the namespace show up before any namespaced resources.
+    for requirement in requirements.get('resources'):
+        print('---')
+        key = get_requirement_key(requirement)
+        if key not in templated_helm:
+            raise Exception(f'Resource {key} not found in generated yaml (known resources are: {templated_helm.keys()})')
+        yaml.dump(templated_helm[key], sys.stdout)
 
 
 if __name__ == '__main__':

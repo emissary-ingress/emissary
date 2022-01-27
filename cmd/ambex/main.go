@@ -8,7 +8,7 @@ package ambex
  * go-control-plane, several different classes manage this stuff:
  *
  * - The root of the world is a SnapshotCache.
- *   - import github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2, then refer
+ *   - import github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2, then refer
  *     to cache.SnapshotCache.
  *   - A collection of internally consistent configuration objects is a
  *     Snapshot (cache.Snapshot).
@@ -19,7 +19,7 @@ package ambex
  * - The SnapshotCache can only hold go-control-plane configuration objects,
  *   so you have to build these up to hand to the SnapshotCache.
  * - The gRPC stuff is handled by a Server.
- *   - import github.com/datawire/ambassador/pkg/envoy-control-plane/server, then refer
+ *   - import github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server, then refer
  *     to server.Server.
  *   - Our runManagementServer (largely ripped off from the go-control-plane
  *     tests) gets this running. It takes a SnapshotCache (cleverly called a
@@ -39,6 +39,7 @@ package ambex
  */
 
 import (
+	// standard library
 	"context"
 	"encoding/json"
 	"flag"
@@ -47,86 +48,84 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"path"
 	"path/filepath"
-	"reflect"
+	"strconv"
 	"strings"
 	"syscall"
 
+	// third-party libraries
 	"github.com/fsnotify/fsnotify"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
-
-	// protobuf library
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/encoding/prototext"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	// envoy control plane
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
-	ctypes "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
-	v2cache "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2"
-	v3cache "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v3"
-	v2server "github.com/datawire/ambassador/pkg/envoy-control-plane/server/v2"
-	v3server "github.com/datawire/ambassador/pkg/envoy-control-plane/server/v3"
-	"github.com/datawire/ambassador/pkg/memory"
+	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
+	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
+	ecp_v3_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
+	ecp_log "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/log"
+	ecp_v2_server "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v2"
+	ecp_v3_server "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v3"
 
-	// envoy protobuf v2 -- Be sure to import the package of any types that the Python emits a
-	// "@type" of in the generated config, even if that package is otherwise not used by ambex.
-	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/api/v2/auth"
-	v2core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/config/accesslog/v2"
-	v2bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/buffer/v2"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/ext_authz/v2"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/gzip/v2"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/lua/v2"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/rate_limit/v2"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/rbac/v2"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/router/v2"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/tcp_proxy/v2"
-	v2discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v2"
+	// Envoy API v2
+	// Be sure to import the package of any types that're referenced with "@type" in our
+	// generated Envoy config, even if that package is otherwise not used by ambex.
+	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/auth"
+	v2core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/accesslog/v2"
+	v2bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v2"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/buffer/v2"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/ext_authz/v2"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/gzip/v2"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/lua/v2"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/rate_limit/v2"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/rbac/v2"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/router/v2"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/tcp_proxy/v2"
+	v2discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
 
 	// Envoy API v3
-	//
-	// XXX TODO Is this actually true and necessary?
-	// yes it is true and necessary. need to import all types so they can be decoded by `decode`
-	// Be sure to import the package of any types that the Python
-	// emits a "@type" of in the generated config, even if that package is otherwise
-	// not used by ambex.
-	_ "github.com/datawire/ambassador/pkg/api/envoy/config/accesslog/v3"
-	v3bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v3"
-	v3clusterconfig "github.com/datawire/ambassador/pkg/api/envoy/config/cluster/v3"
-	v3core "github.com/datawire/ambassador/pkg/api/envoy/config/core/v3"
-	v3endpointconfig "github.com/datawire/ambassador/pkg/api/envoy/config/endpoint/v3"
-	v3listenerconfig "github.com/datawire/ambassador/pkg/api/envoy/config/listener/v3"
-	v3routeconfig "github.com/datawire/ambassador/pkg/api/envoy/config/route/v3"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/access_loggers/file/v3"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/access_loggers/grpc/v3"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/buffer/v3"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/ext_authz/v3"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/grpc_stats/v3"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/gzip/v3"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/lua/v3"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/ratelimit/v3"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/rbac/v3"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/router/v3"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/network/tcp_proxy/v3"
-	v3cluster "github.com/datawire/ambassador/pkg/api/envoy/service/cluster/v3"
-	v3discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v3"
-	v3endpoint "github.com/datawire/ambassador/pkg/api/envoy/service/endpoint/v3"
-	v3listener "github.com/datawire/ambassador/pkg/api/envoy/service/listener/v3"
-	v3route "github.com/datawire/ambassador/pkg/api/envoy/service/route/v3"
-	v3runtime "github.com/datawire/ambassador/pkg/api/envoy/service/runtime/v3"
-
-	// envoy protobuf v3 -- likewise
-	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/response_map/v3"
+	// Be sure to import the package of any types that're referenced with "@type" in our
+	// generated Envoy config, even if that package is otherwise not used by ambex.
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/accesslog/v3"
+	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
+	v3clusterconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
+	v3core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
+	v3endpointconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/endpoint/v3"
+	v3listenerconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/listener/v3"
+	v3routeconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/access_loggers/file/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/access_loggers/grpc/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/compression/gzip/compressor/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/buffer/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/compressor/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/ext_authz/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/grpc_stats/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/gzip/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/lua/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/ratelimit/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/rbac/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/response_map/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/router/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/tcp_proxy/v3"
+	v3cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/service/cluster/v3"
+	v3discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
+	v3endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/service/endpoint/v3"
+	v3listener "github.com/datawire/ambassador/v2/pkg/api/envoy/service/listener/v3"
+	v3route "github.com/datawire/ambassador/v2/pkg/api/envoy/service/route/v3"
+	v3runtime "github.com/datawire/ambassador/v2/pkg/api/envoy/service/runtime/v3"
 
 	// first-party libraries
+	"github.com/datawire/ambassador/v2/pkg/busy"
+	"github.com/datawire/ambassador/v2/pkg/memory"
 	"github.com/datawire/dlib/dhttp"
+	"github.com/datawire/dlib/dlog"
 )
 
 type Args struct {
@@ -195,31 +194,14 @@ func (h HasherV3) ID(node *v3core.Node) string {
 
 // end Hasher stuff
 
-// This feels kinda dumb.
-type loggerv2 struct {
-	*logrus.Logger
-}
-
-var log = &loggerv2{
-	Logger: logrus.StandardLogger(),
-}
-
-type loggerv3 struct {
-	*logrus.Logger
-}
-
-var logv3 = &loggerv3{
-	Logger: logrus.StandardLogger(),
-}
-
 // run stuff
 // RunManagementServer starts an xDS server at the given port.
-func runManagementServer(ctx context.Context, server v2server.Server, serverv3 v3server.Server, adsNetwork, adsAddress string) {
+func runManagementServer(ctx context.Context, server ecp_v2_server.Server, serverv3 ecp_v3_server.Server, adsNetwork, adsAddress string) error {
 	grpcServer := grpc.NewServer()
 
 	lis, err := net.Listen(adsNetwork, adsAddress)
 	if err != nil {
-		log.WithError(err).Panic("failed to listen")
+		return fmt.Errorf("failed to listen: %w", err)
 	}
 
 	// register services
@@ -235,21 +217,22 @@ func runManagementServer(ctx context.Context, server v2server.Server, serverv3 v
 	v3route.RegisterRouteDiscoveryServiceServer(grpcServer, serverv3)
 	v3listener.RegisterListenerDiscoveryServiceServer(grpcServer, serverv3)
 
-	log.WithFields(logrus.Fields{"addr": adsNetwork + ":" + adsAddress}).Info("Listening")
+	dlog.Infof(ctx, "Listening on %s:%s", adsNetwork, adsAddress)
 	go func() {
 		sc := &dhttp.ServerConfig{
 			Handler: grpcServer,
 		}
 		if err := sc.Serve(ctx, lis); err != nil {
-			log.WithFields(logrus.Fields{"error": err}).Error("Management server exited")
+			dlog.Errorf(ctx, "Management server exited: %v", err)
 		}
 	}()
+	return nil
 }
 
 // Decoders for unmarshalling our config
-var decoders = map[string](func(string, proto.Message) error){
-	".json": jsonpb.UnmarshalString,
-	".pb":   proto.UnmarshalText,
+var decoders = map[string](func([]byte, proto.Message) error){
+	".json": protojson.Unmarshal,
+	".pb":   prototext.Unmarshal,
 }
 
 func isDecodable(name string) bool {
@@ -269,8 +252,8 @@ type Validatable interface {
 	Validate() error
 }
 
-func Decode(name string) (proto.Message, error) {
-	any := &any.Any{}
+func Decode(ctx context.Context, name string) (proto.Message, error) {
+	any := &anypb.Any{}
 	contents, err := ioutil.ReadFile(name)
 	if err != nil {
 		return nil, err
@@ -278,66 +261,160 @@ func Decode(name string) (proto.Message, error) {
 
 	ext := filepath.Ext(name)
 	decoder := decoders[ext]
-	err = decoder(string(contents), any)
+	err = decoder(contents, any)
 	if err != nil {
 		return nil, err
 	}
 
-	var m ptypes.DynamicAny
-	err = ptypes.UnmarshalAny(any, &m)
+	m, err := any.UnmarshalNew()
 	if err != nil {
 		return nil, err
 	}
 
-	var v = m.Message.(Validatable)
+	v := m.(Validatable)
 
-	err = v.Validate()
-	if err != nil {
+	if err := v.Validate(); err != nil {
 		return nil, err
 	}
-	log.Infof("Loaded file %s", name)
+	dlog.Infof(ctx, "Loaded file %s", name)
 	return v, nil
 }
 
-func Merge(to, from proto.Message) {
-	str, err := (&jsonpb.Marshaler{}).MarshalToString(from)
-	if err != nil {
-		panic(err)
-	}
-	err = jsonpb.UnmarshalString(str, to)
-	if err != nil {
-		panic(err)
+// Observability:
+//
+// These "expanded" snapshots make the snapshots we log easier to read: basically,
+// instead of just indexing by Golang types, make the JSON marshal with real names.
+type v2ExpandedSnapshot struct {
+	Endpoints ecp_v2_cache.Resources `json:"endpoints"`
+	Clusters  ecp_v2_cache.Resources `json:"clusters"`
+	Routes    ecp_v2_cache.Resources `json:"routes"`
+	Listeners ecp_v2_cache.Resources `json:"listeners"`
+	Runtimes  ecp_v2_cache.Resources `json:"runtimes"`
+}
+
+func NewV2ExpandedSnapshot(v2snap *ecp_v2_cache.Snapshot) v2ExpandedSnapshot {
+	return v2ExpandedSnapshot{
+		Endpoints: v2snap.Resources[ecp_cache_types.Endpoint],
+		Clusters:  v2snap.Resources[ecp_cache_types.Cluster],
+		Routes:    v2snap.Resources[ecp_cache_types.Route],
+		Listeners: v2snap.Resources[ecp_cache_types.Listener],
+		Runtimes:  v2snap.Resources[ecp_cache_types.Runtime],
 	}
 }
 
-func Clone(src proto.Message) proto.Message {
-	in := reflect.ValueOf(src)
-	if in.IsNil() {
-		return src
-	}
-	out := reflect.New(in.Type().Elem())
-	dst := out.Interface().(proto.Message)
-	Merge(dst, src)
-	return dst
+type v3ExpandedSnapshot struct {
+	Endpoints ecp_v3_cache.Resources `json:"endpoints"`
+	Clusters  ecp_v3_cache.Resources `json:"clusters"`
+	Routes    ecp_v3_cache.Resources `json:"routes"`
+	Listeners ecp_v3_cache.Resources `json:"listeners"`
+	Runtimes  ecp_v3_cache.Resources `json:"runtimes"`
 }
 
-func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.SnapshotCache, generation *int, dirs []string, edsEndpoints map[string]*v2.ClusterLoadAssignment, edsEndpointsV3 map[string]*v3endpointconfig.ClusterLoadAssignment, fastpathSnapshot *FastpathSnapshot, updates chan<- Update) {
-	clusters := []ctypes.Resource{}  // v2.Cluster
-	routes := []ctypes.Resource{}    // v2.RouteConfiguration
-	listeners := []ctypes.Resource{} // v2.Listener
-	runtimes := []ctypes.Resource{}  // discovery.Runtime
+func NewV3ExpandedSnapshot(v3snap *ecp_v3_cache.Snapshot) v3ExpandedSnapshot {
+	return v3ExpandedSnapshot{
+		Endpoints: v3snap.Resources[ecp_cache_types.Endpoint],
+		Clusters:  v3snap.Resources[ecp_cache_types.Cluster],
+		Routes:    v3snap.Resources[ecp_cache_types.Route],
+		Listeners: v3snap.Resources[ecp_cache_types.Listener],
+		Runtimes:  v3snap.Resources[ecp_cache_types.Runtime],
+	}
+}
 
-	clustersv3 := []ctypes.Resource{}  // v3.Cluster
-	routesv3 := []ctypes.Resource{}    // v3.RouteConfiguration
-	listenersv3 := []ctypes.Resource{} // v3.Listener
-	runtimesv3 := []ctypes.Resource{}  // v3.Runtime
+// A combinedSnapshot has both a V2 and V3 snapshot, for logging.
+type combinedSnapshot struct {
+	Version string             `json:"version"`
+	V2      v2ExpandedSnapshot `json:"v2"`
+	V3      v3ExpandedSnapshot `json:"v3"`
+}
+
+// csDump creates a combinedSnapshot from a V2 snapshot and a V3 snapshot, then
+// dumps the combinedSnapshot to disk. Only numsnaps snapshots are kept: ambex-1.json
+// is the newest, then ambex-2.json, etc., so ambex-$numsnaps.json is the oldest.
+// Every time we write a new one, we rename all the older ones, ditching the oldest
+// after we've written numsnaps snapshots.
+func csDump(ctx context.Context, snapdirPath string, numsnaps int, generation int, v2snap *ecp_v2_cache.Snapshot, v3snap *ecp_v3_cache.Snapshot) {
+	if numsnaps <= 0 {
+		// Don't do snapshotting at all.
+		return
+	}
+
+	// OK, they want snapshots. Make a proper version string...
+	version := fmt.Sprintf("v%d", generation)
+
+	// ...and a combinedSnapshot.
+	cs := combinedSnapshot{
+		Version: version,
+		V2:      NewV2ExpandedSnapshot(v2snap),
+		V3:      NewV3ExpandedSnapshot(v3snap),
+	}
+
+	// Next up, marshal as JSON and write to ambex-0.json. Note that we
+	// didn't say anything about a -0 file; that's because it's about to
+	// be renamed.
+
+	bs, err := json.MarshalIndent(cs, "", "  ")
+
+	if err != nil {
+		dlog.Errorf(ctx, "CSNAP: marshal failure: %s", err)
+		return
+	}
+
+	csPath := path.Join(snapdirPath, "ambex-0.json")
+
+	err = ioutil.WriteFile(csPath, bs, 0644)
+
+	if err != nil {
+		dlog.Errorf(ctx, "CSNAP: write failure: %s", err)
+	} else {
+		dlog.Infof(ctx, "Saved snapshot %s", version)
+	}
+
+	// Rotate everything one file down. This includes renaming the just-written
+	// ambex-0 to ambex-1.
+	for i := numsnaps; i > 0; i-- {
+		previous := i - 1
+
+		fromPath := path.Join(snapdirPath, fmt.Sprintf("ambex-%d.json", previous))
+		toPath := path.Join(snapdirPath, fmt.Sprintf("ambex-%d.json", i))
+
+		err := os.Rename(fromPath, toPath)
+
+		if (err != nil) && !os.IsNotExist(err) {
+			dlog.Infof(ctx, "CSNAP: could not rename %s -> %s: %#v", fromPath, toPath, err)
+		}
+	}
+}
+
+// Get an updated snapshot going.
+func update(
+	ctx context.Context,
+	snapdirPath string,
+	numsnaps int,
+	config ecp_v2_cache.SnapshotCache,
+	configv3 ecp_v3_cache.SnapshotCache,
+	generation *int,
+	dirs []string,
+	edsEndpoints map[string]*v2.ClusterLoadAssignment,
+	edsEndpointsV3 map[string]*v3endpointconfig.ClusterLoadAssignment,
+	fastpathSnapshot *FastpathSnapshot,
+	updates chan<- Update,
+) error {
+	clusters := []ecp_cache_types.Resource{}  // v2.Cluster
+	routes := []ecp_cache_types.Resource{}    // v2.RouteConfiguration
+	listeners := []ecp_cache_types.Resource{} // v2.Listener
+	runtimes := []ecp_cache_types.Resource{}  // discovery.Runtime
+
+	clustersv3 := []ecp_cache_types.Resource{}  // v3.Cluster
+	routesv3 := []ecp_cache_types.Resource{}    // v3.RouteConfiguration
+	listenersv3 := []ecp_cache_types.Resource{} // v3.Listener
+	runtimesv3 := []ecp_cache_types.Resource{}  // v3.Runtime
 
 	var filenames []string
 
 	for _, dir := range dirs {
 		files, err := ioutil.ReadDir(dir)
 		if err != nil {
-			log.WithError(err).Warnf("Error listing %v", dir)
+			dlog.Warnf(ctx, "Error listing %q: %v", dir, err)
 			continue
 		}
 		for _, file := range files {
@@ -349,12 +426,12 @@ func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.
 	}
 
 	for _, name := range filenames {
-		m, e := Decode(name)
+		m, e := Decode(ctx, name)
 		if e != nil {
-			log.Warnf("%s: %v", name, e)
+			dlog.Warnf(ctx, "%s: %v", name, e)
 			continue
 		}
-		var dst *[]ctypes.Resource
+		var dst *[]ecp_cache_types.Resource
 		switch m.(type) {
 		case *v2.Cluster:
 			dst = &clusters
@@ -377,8 +454,8 @@ func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.
 				// process and disrupt in-flight requests.
 				rdsListener, routeConfigs, err := ListenerToRdsListener(lst)
 				if err != nil {
-					log.Errorf("Error converting listener to RDS: %+v", err)
-					listeners = append(listeners, Clone(lst).(ctypes.Resource))
+					dlog.Errorf(ctx, "Error converting listener to RDS: %+v", err)
+					listeners = append(listeners, proto.Clone(lst).(ecp_cache_types.Resource))
 					continue
 				}
 				listeners = append(listeners, rdsListener)
@@ -388,7 +465,7 @@ func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.
 				}
 			}
 			for _, cls := range sr.Clusters {
-				clusters = append(clusters, Clone(cls).(ctypes.Resource))
+				clusters = append(clusters, proto.Clone(cls).(ecp_cache_types.Resource))
 			}
 			continue
 		case *v3clusterconfig.Cluster:
@@ -412,8 +489,8 @@ func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.
 				// process and disrupt in-flight requests.
 				rdsListener, routeConfigs, err := V3ListenerToRdsListener(lst)
 				if err != nil {
-					log.Errorf("Error converting listener to RDS: %+v", err)
-					listenersv3 = append(listenersv3, Clone(lst).(ctypes.Resource))
+					dlog.Errorf(ctx, "Error converting listener to RDS: %+v", err)
+					listenersv3 = append(listenersv3, proto.Clone(lst).(ecp_cache_types.Resource))
 					continue
 				}
 				listenersv3 = append(listenersv3, rdsListener)
@@ -423,24 +500,24 @@ func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.
 				}
 			}
 			for _, cls := range sr.Clusters {
-				clustersv3 = append(clustersv3, Clone(cls).(ctypes.Resource))
+				clustersv3 = append(clustersv3, proto.Clone(cls).(ecp_cache_types.Resource))
 			}
 			continue
 		default:
-			log.Warnf("Unrecognized resource %s: %v", name, e)
+			dlog.Warnf(ctx, "Unrecognized resource %s: %v", name, e)
 			continue
 		}
-		*dst = append(*dst, m.(ctypes.Resource))
+		*dst = append(*dst, m.(ecp_cache_types.Resource))
 	}
 
 	if fastpathSnapshot != nil && fastpathSnapshot.Snapshot != nil {
-		for _, lst := range fastpathSnapshot.Snapshot.Resources[types.Listener].Items {
+		for _, lst := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Listener].Items {
 			listeners = append(listeners, lst)
 		}
-		for _, route := range fastpathSnapshot.Snapshot.Resources[types.Route].Items {
+		for _, route := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Route].Items {
 			routes = append(routes, route)
 		}
-		for _, clu := range fastpathSnapshot.Snapshot.Resources[types.Cluster].Items {
+		for _, clu := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Cluster].Items {
 			clusters = append(clusters, clu)
 		}
 		// We intentionally omit endpoints since those are carried separately.
@@ -473,9 +550,11 @@ func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.
 	endpointsv3 := JoinEdsClustersV3(ctx, clustersv3, edsEndpointsV3)
 
 	// Create a new configuration snapshot from everything we have just loaded from disk.
-	version := fmt.Sprintf("v%d", *generation)
+	curgen := *generation
 	*generation++
-	snapshot := v2cache.NewSnapshot(
+
+	version := fmt.Sprintf("v%d", curgen)
+	snapshot := ecp_v2_cache.NewSnapshot(
 		version,
 		endpoints,
 		clusters,
@@ -485,11 +564,11 @@ func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.
 
 	if err := snapshot.Consistent(); err != nil {
 		bs, _ := json.Marshal(snapshot)
-		log.Errorf("V2 Snapshot inconsistency: %v: %s", err, bs)
-		return
+		dlog.Errorf(ctx, "V2 Snapshot inconsistency: %v: %s", err, bs)
+		return nil // TODO: should we return the error, rather than just logging it?
 	}
 
-	snapshotv3 := v3cache.NewSnapshot(
+	snapshotv3 := ecp_v3_cache.NewSnapshot(
 		version,
 		endpointsv3,
 		clustersv3,
@@ -499,19 +578,20 @@ func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.
 
 	if err := snapshotv3.Consistent(); err != nil {
 		bs, _ := json.Marshal(snapshotv3)
-		log.Errorf("V3 Snapshot inconsistency: %v: %s", err, bs)
-		return
+		dlog.Errorf(ctx, "V3 Snapshot inconsistency: %v: %s", err, bs)
+		return nil // TODO: should we return the error, rather than just logging it?
 	}
 
 	// This used to just directly update envoy. Since we want ratelimiting, we now send an
 	// Update object down the channel with a function that knows how to do the update if/when
 	// the ratelimiting logic decides.
-	//
-	// We also need to pay attention to contexts here so we can shutdown properly. If we didn't
-	// have the context portion, the ratelimit goroutine could shutdown first and we could end
-	// up blocking here and never shutting down.
-	select {
-	case updates <- Update{version, func() error {
+
+	dlog.Debugf(ctx, "Created snapshot %s", version)
+	csDump(ctx, snapdirPath, numsnaps, curgen, &snapshot, &snapshotv3)
+
+	update := Update{version, func() error {
+		dlog.Debugf(ctx, "Accepting snapshot %s", version)
+
 		err := config.SetSnapshot("test-id", snapshot)
 		if err != nil {
 			return fmt.Errorf("V2 Snapshot error %q for %+v", err, snapshot)
@@ -523,114 +603,197 @@ func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.
 		}
 
 		return nil
-	}}:
+	}}
+
+	// We also need to pay attention to contexts here so we can shutdown properly. If we didn't
+	// have the context portion, the ratelimit goroutine could shutdown first and we could end
+	// up blocking here and never shutting down.
+	select {
+	case updates <- update:
 	case <-ctx.Done():
 	}
+	return nil
 }
 
-func warn(err error) bool {
+func warn(ctx context.Context, err error) bool {
 	if err != nil {
-		log.Warn(err)
+		dlog.Warn(ctx, err)
 		return true
 	} else {
 		return false
 	}
 }
 
-// OnStreamOpen is called once an xDS stream is open with a stream ID and the type URL (or "" for ADS).
-func (l loggerv2) OnStreamOpen(_ context.Context, sid int64, stype string) error {
-	l.Infof("V2 Stream open[%v]: %v", sid, stype)
+type logAdapterBase struct {
+	prefix string
+}
+
+type logAdapterV2 struct {
+	logAdapterBase
+}
+
+var _ ecp_v2_server.Callbacks = logAdapterV2{}
+var _ ecp_log.Logger = logAdapterV2{}
+
+type logAdapterV3 struct {
+	logAdapterBase
+}
+
+var _ ecp_v3_server.Callbacks = logAdapterV3{}
+var _ ecp_log.Logger = logAdapterV3{}
+
+// Debugf implements ecp_log.Logger.
+func (l logAdapterBase) Debugf(format string, args ...interface{}) {
+	dlog.Debugf(context.TODO(), format, args...)
+}
+
+// Infof implements ecp_log.Logger.
+func (l logAdapterBase) Infof(format string, args ...interface{}) {
+	dlog.Infof(context.TODO(), format, args...)
+}
+
+// Warnf implements ecp_log.Logger.
+func (l logAdapterBase) Warnf(format string, args ...interface{}) {
+	dlog.Warnf(context.TODO(), format, args...)
+}
+
+// Errorf implements ecp_log.Logger.
+func (l logAdapterBase) Errorf(format string, args ...interface{}) {
+	dlog.Errorf(context.TODO(), format, args...)
+}
+
+// OnStreamOpen implements ecp_v2_server.Callbacks and ecp_v3_server.Callbacks.
+func (l logAdapterBase) OnStreamOpen(ctx context.Context, sid int64, stype string) error {
+	dlog.Debugf(ctx, "%v Stream open[%v]: %v", l.prefix, sid, stype)
 	return nil
 }
 
-func (l loggerv3) OnStreamOpen(_ context.Context, sid int64, stype string) error {
-	l.Infof("V3 Stream open[%v]: %v", sid, stype)
+// OnStreamClosed implements ecp_v2_server.Callbacks and ecp_v3_server.Callbacks.
+func (l logAdapterBase) OnStreamClosed(sid int64) {
+	dlog.Debugf(context.TODO(), "%v Stream closed[%v]", l.prefix, sid)
+}
+
+// OnStreamRequest implements ecp_v2_server.Callbacks.
+func (l logAdapterV2) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) error {
+	dlog.Debugf(context.TODO(), "V2 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
+	dlog.Debugf(context.TODO(), "V2 Stream request[%v] dump: %v", sid, req)
 	return nil
 }
 
-// OnStreamClosed is called immediately prior to closing an xDS stream with a stream ID.
-func (l loggerv2) OnStreamClosed(sid int64) {
-	l.Infof("V2 Stream closed[%v]", sid)
-}
-
-func (l loggerv3) OnStreamClosed(sid int64) {
-	l.Infof("V3 Stream closed[%v]", sid)
-}
-
-// OnStreamRequest is called once a request is received on a stream.
-func (l loggerv2) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) error {
-	l.Infof("V2 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
-	l.Debugf("V2 Stream request[%v] dump: %v", sid, req)
+// OnStreamRequest implements ecp_v3_server.Callbacks.
+func (l logAdapterV3) OnStreamRequest(sid int64, req *v3discovery.DiscoveryRequest) error {
+	dlog.Debugf(context.TODO(), "V3 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
+	dlog.Debugf(context.TODO(), "V3 Stream request[%v] dump: %v", sid, req)
 	return nil
 }
 
-func (l loggerv3) OnStreamRequest(sid int64, req *v3discovery.DiscoveryRequest) error {
-	l.Infof("V3 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
-	l.Debugf("V3 Stream request[%v] dump: %v", sid, req)
+// OnStreamResponse implements ecp_v2_server.Callbacks.
+func (l logAdapterV2) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
+	dlog.Debugf(context.TODO(), "V2 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
+	dlog.Debugf(context.TODO(), "V2 Stream dump response[%v]: %v -> %v", sid, req, res)
+}
+
+// OnStreamResponse implements ecp_v3_server.Callbacks.
+func (l logAdapterV3) OnStreamResponse(sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
+	dlog.Debugf(context.TODO(), "V3 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
+	dlog.Debugf(context.TODO(), "V3 Stream dump response[%v]: %v -> %v", sid, req, res)
+}
+
+// OnFetchRequest implements ecp_v2_server.Callbacks.
+func (l logAdapterV2) OnFetchRequest(ctx context.Context, r *v2.DiscoveryRequest) error {
+	dlog.Debugf(ctx, "V2 Fetch request: %v", r)
 	return nil
 }
 
-// OnStreamResponse is called immediately prior to sending a response on a stream.
-func (l loggerv2) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
-	l.Infof("V2 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
-	l.Debugf("V2 Stream dump response[%v]: %v -> %v", sid, req, res)
-}
-
-func (l loggerv3) OnStreamResponse(sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
-	l.Infof("V3 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
-	l.Debugf("V3 Stream dump response[%v]: %v -> %v", sid, req, res)
-}
-
-// OnFetchRequest is called for each Fetch request
-func (l loggerv2) OnFetchRequest(_ context.Context, r *v2.DiscoveryRequest) error {
-	l.Infof("V2 Fetch request: %v", r)
+// OnFetchRequest implements ecp_v3_server.Callbacks.
+func (l logAdapterV3) OnFetchRequest(ctx context.Context, r *v3discovery.DiscoveryRequest) error {
+	dlog.Debugf(ctx, "V3 Fetch request: %v", r)
 	return nil
 }
 
-func (l loggerv3) OnFetchRequest(_ context.Context, r *v3discovery.DiscoveryRequest) error {
-	l.Infof("V3 Fetch request: %v", r)
-	return nil
+// OnFetchResponse implements ecp_v2_server.Callbacks.
+func (l logAdapterV2) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
+	dlog.Debugf(context.TODO(), "V2 Fetch response: %v -> %v", req, res)
 }
 
-// OnFetchResponse is called immediately prior to sending a response.
-func (l loggerv2) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
-	l.Infof("V2 Fetch response: %v -> %v", req, res)
+// OnFetchResponse implements ecp_v3_server.Callbacks.
+func (l logAdapterV3) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
+	dlog.Debugf(context.TODO(), "V3 Fetch response: %v -> %v", req, res)
 }
 
-func (l loggerv3) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
-	l.Infof("V3 Fetch response: %v -> %v", req, res)
-}
-
+// NOTE WELL: this Main() does NOT RUN from entrypoint! This one is only relevant if you
+// explicitly run Ambex by hand.
 func Main(ctx context.Context, Version string, rawArgs ...string) error {
-	usage := memory.GetMemoryUsage()
+	usage := memory.GetMemoryUsage(ctx)
 	go usage.Watch(ctx)
 	return Main2(ctx, Version, usage.PercentUsed, make(chan *FastpathSnapshot), rawArgs...)
 }
 
-func Main2(ctx context.Context, Version string, getUsage MemoryGetter, fastpathCh <-chan *FastpathSnapshot,
-	rawArgs ...string) error {
+func Main2(
+	ctx context.Context,
+	Version string,
+	getUsage MemoryGetter,
+	fastpathCh <-chan *FastpathSnapshot,
+	rawArgs ...string,
+) error {
 	args, err := parseArgs(rawArgs...)
 	if err != nil {
 		return err
 	}
 
 	if args.debug {
-		log.SetLevel(logrus.DebugLevel)
+		busy.SetLogLevel(logrusDebugLevel)
 	} else {
-		log.SetLevel(logrus.WarnLevel)
+		busy.SetLogLevel(logrusInfoLevel)
 	}
 
-	log.Infof("Ambex %s starting...", Version)
+	// ambex logs its own snapshots, separately from the ones provided by the Python
+	// side of the world, in $rootdir/snapshots/ambex-#.json, where rootdir is taken
+	// from $AMBASSADOR_CONFIG_BASE_DIR if set, else $ambassador_root if set, else
+	// whatever, set rootdir to /ambassador.
+
+	snapdirPath := os.Getenv("AMBASSADOR_CONFIG_BASE_DIR")
+
+	if snapdirPath == "" {
+		snapdirPath = os.Getenv("ambassador_root")
+	}
+
+	if snapdirPath == "" {
+		snapdirPath = "/ambassador"
+	}
+
+	snapdirPath = path.Join(snapdirPath, "snapshots")
+
+	// We'll keep $AMBASSADOR_AMBEX_SNAPSHOT_COUNT snapshots. If unset, or set to
+	// something we can't treat as an int, use 30 (which Flynn just made up, so don't
+	// be afraid to change it if need be).
+
+	numsnapStr := os.Getenv("AMBASSADOR_AMBEX_SNAPSHOT_COUNT")
+
+	if numsnapStr == "" {
+		numsnapStr = "30"
+	}
+
+	numsnaps, err := strconv.Atoi(numsnapStr)
+
+	if (err != nil) || (numsnaps < 0) {
+		numsnaps = 30
+		dlog.Errorf(ctx, "Invalid AMBASSADOR_AMBEX_SNAPSHOT_COUNT: %s, using %d", numsnapStr, numsnaps)
+	}
+
+	dlog.Infof(ctx, "Ambex %s starting, snapdirPath %s", Version, snapdirPath)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.WithError(err).Panic()
+		return err
 	}
 	defer watcher.Close()
 
 	if args.watch {
 		for _, d := range args.dirs {
-			watcher.Add(d)
+			if err := watcher.Add(d); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -648,28 +811,29 @@ func Main2(ctx context.Context, Version string, getUsage MemoryGetter, fastpathC
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	config := v2cache.NewSnapshotCache(true, HasherV2{}, log)
-	configv3 := v3cache.NewSnapshotCache(true, HasherV3{}, logv3)
-	server := v2server.NewServer(ctx, config, log)
-	serverv3 := v3server.NewServer(ctx, configv3, logv3)
+	config := ecp_v2_cache.NewSnapshotCache(true, HasherV2{}, logAdapterV2{logAdapterBase{"V2"}})
+	configv3 := ecp_v3_cache.NewSnapshotCache(true, HasherV3{}, logAdapterV3{logAdapterBase{"V3"}})
+	server := ecp_v2_server.NewServer(ctx, config, logAdapterV2{logAdapterBase{"V2"}})
+	serverv3 := ecp_v3_server.NewServer(ctx, configv3, logAdapterV3{logAdapterBase{"V3"}})
 
-	runManagementServer(ctx, server, serverv3, args.adsNetwork, args.adsAddress)
+	if err := runManagementServer(ctx, server, serverv3, args.adsNetwork, args.adsAddress); err != nil {
+		return err
+	}
 
 	pid := os.Getpid()
 	file := "ambex.pid"
-	if !warn(ioutil.WriteFile(file, []byte(fmt.Sprintf("%v", pid)), 0644)) {
-		log.WithFields(logrus.Fields{"pid": pid, "file": file}).Info("Wrote PID")
+	if !warn(ctx, ioutil.WriteFile(file, []byte(fmt.Sprintf("%v", pid)), 0644)) {
+		ctx := dlog.WithField(ctx, "pid", pid)
+		ctx = dlog.WithField(ctx, "file", file)
+		dlog.Info(ctx, "Wrote PID")
 	}
 
 	updates := make(chan Update)
 	envoyUpdaterDone := make(chan struct{})
 	go func() {
 		defer close(envoyUpdaterDone)
-		err := Updater(ctx, updates, getUsage)
-		if err != nil {
-			// Panic will get reported more usefully by entrypoint.go's exit code than logging the
-			// error.
-			panic(err)
+		if err := Updater(ctx, updates, getUsage); err != nil {
+			panic(err) // TODO: Find a better way of reporting errors from goroutines.
 		}
 	}()
 
@@ -677,30 +841,103 @@ func Main2(ctx context.Context, Version string, getUsage MemoryGetter, fastpathC
 	var fastpathSnapshot *FastpathSnapshot
 	edsEndpoints := map[string]*v2.ClusterLoadAssignment{}
 	edsEndpointsV3 := map[string]*v3endpointconfig.ClusterLoadAssignment{}
-	update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
 
+	// We always start by updating with a totally empty snapshot.
+	//
+	// XXX This seems questionable: why do we do this? Envoy isn't currently started until
+	// we have a real configuration...
+	err = update(
+		ctx,
+		snapdirPath,
+		numsnaps,
+		config,
+		configv3,
+		&generation,
+		args.dirs,
+		edsEndpoints,
+		edsEndpointsV3,
+		fastpathSnapshot,
+		updates,
+	)
+	if err != nil {
+		return err
+	}
+
+	// This is the main loop where the magic happens. The fact that it uses a label
+	// depresses me, though.
 OUTER:
 	for {
 
 		select {
 		case sig := <-ch:
+			// Signal handling: reconfigure on HUP, bail on INT or TERM.
+			//
+			// XXX Y'know, redoing this with if would let us ditch that silly label.
 			switch sig {
 			case syscall.SIGHUP:
-				update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
+				err := update(
+					ctx,
+					snapdirPath,
+					numsnaps,
+					config,
+					configv3,
+					&generation,
+					args.dirs,
+					edsEndpoints,
+					edsEndpointsV3,
+					fastpathSnapshot,
+					updates,
+				)
+				if err != nil {
+					return err
+				}
 			case os.Interrupt, syscall.SIGTERM:
 				break OUTER
 			}
 		case fpSnap := <-fastpathCh:
+			// Fastpath update. Grab new endpoints and update.
 			if fpSnap.Endpoints != nil {
 				edsEndpoints = fpSnap.Endpoints.ToMap_v2()
 				edsEndpointsV3 = fpSnap.Endpoints.ToMap_v3()
 			}
 			fastpathSnapshot = fpSnap
-			update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
+			err := update(
+				ctx,
+				snapdirPath,
+				numsnaps,
+				config,
+				configv3,
+				&generation,
+				args.dirs,
+				edsEndpoints,
+				edsEndpointsV3,
+				fastpathSnapshot,
+				updates,
+			)
+			if err != nil {
+				return err
+			}
 		case <-watcher.Events:
-			update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
+			// Non-fastpath update. Just update.
+			err := update(
+				ctx,
+				snapdirPath,
+				numsnaps,
+				config,
+				configv3,
+				&generation,
+				args.dirs,
+				edsEndpoints,
+				edsEndpointsV3,
+				fastpathSnapshot,
+				updates,
+			)
+			if err != nil {
+				return err
+			}
 		case err := <-watcher.Errors:
-			log.WithError(err).Warn("Watcher error")
+			// Something went wrong, so scream about that.
+			dlog.Warnf(ctx, "Watcher error: %v", err)
 		case <-ctx.Done():
 			break OUTER
 		}
@@ -708,6 +945,6 @@ OUTER:
 	}
 
 	<-envoyUpdaterDone
-	log.Info("Done")
+	dlog.Info(ctx, "Done")
 	return nil
 }

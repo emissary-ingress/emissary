@@ -24,7 +24,7 @@ from ..utils import dump_json
 if TYPE_CHECKING:
     from ..ir import IR, IRResource # pragma: no cover
     from ..ir.irhttpmappinggroup import IRHTTPMappingGroup # pragma: no cover
-    from ...ir.irserviceresolver import ClustermapEntry # pragma: no cover
+    from ..ir.irserviceresolver import ClustermapEntry # pragma: no cover
 
 def sanitize_pre_json(input):
     # Removes all potential null values
@@ -70,6 +70,10 @@ class EnvoyConfig:
         return obj
 
     @abstractmethod
+    def has_listeners(self) -> bool:
+        pass
+
+    @abstractmethod
     def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, 'ClustermapEntry']]:
         pass
 
@@ -81,14 +85,14 @@ class EnvoyConfig:
         return dump_json(sanitize_pre_json(self.as_dict()), pretty=True)
 
     @classmethod
-    def generate(cls, ir: 'IR', version: str="V2", cache: Optional[Cache]=None) -> 'EnvoyConfig':
+    def generate(cls, ir: 'IR', version: str="V3", cache: Optional[Cache]=None) -> 'EnvoyConfig':
         assert version in ["V2", "V3"]
 
         if version == "V3":
             from . import V3Config
             return V3Config(ir, cache=cache)
 
-        from . import V2Config, V3Config
+        from . import V2Config
         return V2Config(ir, cache=cache)
 
 

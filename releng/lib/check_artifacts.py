@@ -9,6 +9,7 @@ from typing import Dict, Generator, Optional, Tuple, cast
 from urllib.error import HTTPError
 from urllib.request import urlopen
 import fileinput
+import subprocess
 
 from . import ansiterm, assert_eq, build_version, get_is_private
 from .uiutil import Checker, CheckResult, run, run_bincapture, run_txtcapture
@@ -69,7 +70,7 @@ def do_check_s3(checker: Checker,
 
 
 def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = True,
-        release_channel: str = "", source_registry: str ="docker.io/datawire", image_append: str = "") -> int:
+        release_channel: str = "", source_registry: str ="docker.io/datawire", image_append: str = "", image_name: str = "emissary", s3_bucket: str = "datawire-static-files") -> int:
     warning = """
  ==> Warning: FIXME: While this script is handy in the things that it
      does check, there's still quite a bit that it doesn't check;
@@ -94,7 +95,7 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
                 if is_private:
                     images = [f'quay.io/datawire-private/ambassador:{tag}']
                 else:
-                    images = get_images(source_registry, "ambassador", tag, image_append)
+                    images = get_images(source_registry, image_name, tag, image_append)
                 for image in images:
                     with check.subcheck(name=image) as subcheck:
                         iid = docker_pull(image)
@@ -108,37 +109,37 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
                     if b != a:
                         subcheck.ok = False
 
-    def do_check_binary(checker: Checker, name: str, txt: bool, private: bool) -> None:
-        with checker.check(name=f'Executable: {name}', clear_on_success=False) as checker:
-            for platform in ['linux/amd64/{}', 'darwin/amd64/{}', 'windows/amd64/{}.exe']:
-                rc_body: Optional[bytes] = None
-                with do_check_s3(checker, f'{name}/{rc_ver}/{platform.format(name)}',
-                                 private=private) as (subcheck, body):
-                    if body is not None:
-                        rc_body = body
-                        # TODO: Validate the binary somehow
-                if ga:
-                    with do_check_s3(checker, f'{name}/{ga_ver}/{platform.format(name)}',
-                                     private=private) as (subcheck, body):
-                        if body is not None:
-                            assert body == rc_body
-            if txt:
-                if include_latest:
-                    with do_check_s3(checker, f'{name}/latest.txt', private=private) as (subcheck, body):
-                        if body is not None:
-                            subcheck.result = body.decode('UTF-8').strip()
-                            if is_private:
-                                assert subcheck.result != rc_ver
-                            else:
-                                assert_eq(subcheck.result, rc_ver)
-                if ga or is_private:
-                    with do_check_s3(checker, f'{name}/stable.txt', private=private) as (subcheck, body):
-                        if body is not None:
-                            subcheck.result = body.decode('UTF-8').strip()
-                            if is_private:
-                                assert subcheck.result != ga_ver
-                            else:
-                                assert_eq(subcheck.result, ga_ver)
+    # def do_check_binary(checker: Checker, name: str, txt: bool, private: bool) -> None:
+    #     with checker.check(name=f'Executable: {name}', clear_on_success=False) as checker:
+    #         for platform in ['linux/amd64/{}', 'darwin/amd64/{}', 'windows/amd64/{}.exe']:
+    #             rc_body: Optional[bytes] = None
+    #             with do_check_s3(checker, f'{name}/{rc_ver}/{platform.format(name)}',
+    #                              private=private, bucket=s3_bucket) as (subcheck, body):
+    #                 if body is not None:
+    #                     rc_body = body
+    #                     # TODO: Validate the binary somehow
+    #             if ga:
+    #                 with do_check_s3(checker, f'{name}/{ga_ver}/{platform.format(name)}',
+    #                                  private=private, bucket=s3_bucket) as (subcheck, body):
+    #                     if body is not None:
+    #                         assert body == rc_body
+    #         if txt:
+    #             if include_latest:
+    #                 with do_check_s3(checker, f'{name}/latest.txt', private=private, bucket=s3_bucket) as (subcheck, body):
+    #                     if body is not None:
+    #                         subcheck.result = body.decode('UTF-8').strip()
+    #                         if is_private:
+    #                             assert subcheck.result != rc_ver
+    #                         else:
+    #                             assert_eq(subcheck.result, rc_ver)
+    #             if ga or is_private:
+    #                 with do_check_s3(checker, f'{name}/stable.txt', private=private, bucket=s3_bucket) as (subcheck, body):
+    #                     if body is not None:
+    #                         subcheck.result = body.decode('UTF-8').strip()
+    #                         if is_private:
+    #                             assert subcheck.result != ga_ver
+    #                         else:
+    #                             assert_eq(subcheck.result, ga_ver)
 
     s3_login()
 
@@ -147,7 +148,7 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
     if include_docker:
         do_check_docker(checker, 'ambassador')
         with checker.check('Ambassador S3 files', clear_on_success=False) as checker:
-            with do_check_s3(checker, name=f'emissary-ingress/{release_channel}stable.txt') as (subcheck, body):
+            with do_check_s3(checker, name=f'emissary-ingress/{release_channel}stable.txt', bucket=s3_bucket) as (subcheck, body):
                 if body is not None:
                     subcheck.result = body.decode('UTF-8').strip()
                     if is_private:
@@ -167,7 +168,7 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
         check.result = 'TODO'
         raise NotImplementedError()
     with checker.check(name='Website YAML') as check:
-        yaml_str = http_cat('https://app.getambassador.io/yaml/ambassador/latest/ambassador.yaml').decode('utf-8')
+        yaml_str = http_cat('https://app.getambassador.io/yaml/emissary/latest/emissary-emissaryns.yaml').decode('utf-8')
         images = [
             line.strip()[len('image:'):].strip() for line in yaml_str.split("\n")
             if line.strip().startswith('image:')
@@ -181,19 +182,17 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
             assert '/ambassador:' in image
             check.result = image.split(':', 1)[1]
             assert_eq(check.result, check_tag)
-    with checker.check(name='Adding Helm Chart') as check:
-        run(['helm', 'repo', 'add', 'emissary',
-            'https://s3.amazonaws.com/datawire-static-files/emissary-ingress'])
-    if not checker.ok:
-        with checker.check(name="Updating helm repo"):
-            run(['helm', 'repo', 'update'])
-        checker.ok = True
+    subprocess.run(['helm', 'repo', 'rm', 'emissary'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    subprocess.run(['helm', 'repo', 'add', 'emissary',
+            'https://s3.amazonaws.com/{}/charts'.format(s3_bucket)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    with checker.check(name="Updating helm repo"):
+        run(['helm', 'repo', 'update'])
     chart_version = ""
-    for line in fileinput.FileInput("charts/ambassador/Chart.yaml"):
+    for line in fileinput.FileInput("charts/emissary-ingress/Chart.yaml"):
         if line.startswith("version:"):
             chart_version = line.replace('version:', '').strip()
     with checker.check(name="Check Helm Chart"):
-        yaml_str = run_txtcapture(['helm', 'show', 'chart', '--version', chart_version, 'emissary/ambassador'])
+        yaml_str = run_txtcapture(['helm', 'show', 'chart', '--version', chart_version, 'emissary/emissary-ingress'])
         versions = [
             line[len('appVersion:'):].strip() for line in yaml_str.split("\n") if line.startswith('appVersion:')
         ]

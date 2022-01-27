@@ -11,11 +11,19 @@ import "google/protobuf/timestamp.proto";
 package agent;
 
 service Director {
-  // Report a consistent Snapshot of information to the CEPC
-  rpc Report(Snapshot) returns (SnapshotResponse) {}
+  // Report a consistent Snapshot of information to the CEPC.  This
+  // method is deprecated, you should call ReportStream instead.
+  rpc Report(Snapshot) returns (SnapshotResponse) {
+    option deprecated = true;
+  }
+
+  // Report a consistent Snapshot of information to the CEPC.
+  rpc ReportStream(stream RawSnapshotChunk) returns (SnapshotResponse) {}
 
   // Retrieve Directives from the CEPC
   rpc Retrieve(Identity) returns (stream Directive) {}
+
+  rpc RetrieveSnapshot(Identity) returns (stream RawSnapshotChunk) {}
 }
 
 // How Ambassador's Agent identifies itself to the CEPC
@@ -54,6 +62,12 @@ message Snapshot {
   // api version of RawSnapshot
   string api_version = 6;
   google.protobuf.Timestamp snapshot_ts = 7;
+}
+
+// RawSnapshotChunk is a fragment of a JSON serialization of a
+// Snapshot protobuf object.
+message RawSnapshotChunk {
+    bytes chunk = 1;
 }
 
 message Service {

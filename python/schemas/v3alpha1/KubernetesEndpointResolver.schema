@@ -1,0 +1,44 @@
+{
+    "id": "https://getambassador.io/schemas/kubernetesendpointresolver.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name"
+    ],
+    "properties": {
+        "ambassador_id": {
+            "description": "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural).",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v3alpha1"
+            ]
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "kind": {
+            "enum": [
+                "KubernetesEndpointResolver"
+            ]
+        },
+        "metadata_labels": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        }
+    }
+}

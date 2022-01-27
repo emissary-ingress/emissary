@@ -1,0 +1,33 @@
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: ambassador-listener-8080
+spec:
+  port: 8080
+  protocol: HTTP
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
+
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: test-host
+spec:
+  mappingSelector:
+    matchLabels:
+      host: minimal
+    
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: test-mapping
+  labels:
+    host: minimal
+spec:
+  prefix: /test-mapping/
+  service: test-service

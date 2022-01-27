@@ -1,10 +1,12 @@
 package environment
 
 import (
-	"log"
+	"context"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/datawire/dlib/dlog"
 )
 
 const (
@@ -14,7 +16,7 @@ const (
 )
 
 // EnvironmentSetupEntrypoint replicates the entrypoint.sh environment bootstrapping if the docker entrypoint was changed
-func EnvironmentSetupEntrypoint() {
+func EnvironmentSetupEntrypoint(ctx context.Context) {
 	if os.Getenv(ambassadorClusterIdEnvVar) != "" {
 		return
 	}
@@ -40,11 +42,11 @@ func EnvironmentSetupEntrypoint() {
 	// execute and read output
 	out, err := cmd.Output()
 	if err != nil {
-		log.Printf("%s failed with %s\n%s\n", cmd.String(), err, string(out))
+		dlog.Printf(ctx, "%s failed with %s\n%s\n", cmd.String(), err, string(out))
 		return
 	}
 
 	// set the AMBASSADOR_CLUSTER_ID
 	os.Setenv(ambassadorClusterIdEnvVar, strings.TrimSpace(string(out)))
-	log.Printf("%s=%s", ambassadorClusterIdEnvVar, os.Getenv(ambassadorClusterIdEnvVar))
+	dlog.Printf(ctx, "%s=%s", ambassadorClusterIdEnvVar, os.Getenv(ambassadorClusterIdEnvVar))
 }

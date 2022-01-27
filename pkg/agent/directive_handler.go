@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/api/agent"
+	"github.com/datawire/ambassador/v2/pkg/api/agent"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -18,7 +18,7 @@ type BasicDirectiveHandler struct {
 
 func (dh *BasicDirectiveHandler) HandleDirective(ctx context.Context, a *Agent, directive *agent.Directive) {
 	if directive == nil {
-		dlog.Warn(ctx, "Recieved empty directive, ignoring.")
+		dlog.Warn(ctx, "Received empty directive, ignoring.")
 		return
 	}
 	ctx = dlog.WithField(ctx, "directive", directive.ID)

@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: IngressClass
+metadata:
+  annotations:
+    getambassador.io/ambassador-id: ingressstatustestwithingressclass
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"networking.k8s.io/v1beta1","kind":"IngressClass","metadata":{"annotations":{"getambassador.io/ambassador-id":"ingressstatustestwithingressclass"},"labels":{"kat-ambassador-id":"ingressstatustestwithingressclass","scope":"AmbassadorTest"},"name":"ingressstatustestwithingressclass"},"spec":{"controller":"getambassador.io/ingress-controller"}}
+  creationTimestamp: "2021-10-05T20:02:03Z"
+  generation: 1
+  labels:
+    kat-ambassador-id: ingressstatustestwithingressclass
+    scope: AmbassadorTest
+  name: ingressstatustestwithingressclass
+  resourceVersion: "2014"
+  uid: e2d530b6-c86d-410f-a6ec-44ccb60af5cc
+spec:
+  controller: getambassador.io/ingress-controller
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  annotations:
+    getambassador.io/ambassador-id: ingressstatustestwithingressclass
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"networking.k8s.io/v1beta1","kind":"IngressClass","metadata":{"annotations":{"getambassador.io/ambassador-id":"ingressstatustestwithingressclass"},"labels":{"kat-ambassador-id":"ingressstatustestwithingressclass","scope":"AmbassadorTest"},"name":"ingressstatustestwithingressclass"},"spec":{"controller":"getambassador.io/ingress-controller"}}
+  creationTimestamp: "2021-10-05T20:02:03Z"
+  generation: 1
+  labels:
+    kat-ambassador-id: ingressstatustestwithingressclass
+    scope: AmbassadorTest
+  name: ingressstatustestwithingressclass
+  resourceVersion: "2014"
+  uid: e2d530b6-c86d-410f-a6ec-44ccb60af5cc
+spec:
+  controller: getambassador.io/ingress-controller

@@ -1,8 +1,12 @@
-from kat.harness import Query
-import os
+from typing import Generator, Tuple, Union
 
-from abstract_tests import AmbassadorTest, HTTP, ServiceType, RLSGRPC
-from selfsigned import TLSCerts
+from kat.harness import Query
+
+from abstract_tests import AmbassadorTest, HTTP, ServiceType, RLSGRPC, Node
+from tests.selfsigned import TLSCerts
+
+from ambassador import Config
+
 
 class RateLimitV0Test(AmbassadorTest):
     # debug = True
@@ -13,48 +17,59 @@ class RateLimitV0Test(AmbassadorTest):
         self.target = HTTP()
         self.rls = RLSGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
         # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  ratelimit_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
-rate_limits:
-- descriptor: A test case
-  headers:
-  - "x-ambassador-test-allow"
-  - "x-ambassador-test-headers-append"
+labels:
+  ambassador:
+    - request_label_group:
+      - request_headers:
+          key: x-ambassador-test-allow
+          header_name: "x-ambassador-test-allow"
+          omit_if_not_present: true
+      - request_headers:
+          key: x-ambassador-test-headers-append
+          header_name: "x-ambassador-test-headers-append"
+          omit_if_not_present: true
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  ratelimit_label_mapping
+hostname: "*"
 prefix: /labels/
 service: {self.target.path.fqdn}
 labels:
   ambassador:
     - host_and_user:
-      - custom-label:
-          header: ":authority"
+      - request_headers:
+          key: custom-label
+          header_name: ":authority"
           omit_if_not_present: true
-      - user:
-          header: "x-user"
+      - request_headers:
+          key: user
+          header_name: "x-user"
           omit_if_not_present: true
 
     - omg_header:
-      - custom-label:
-          header: "x-omg"
+      - request_headers:
+          key: custom-label
+          header_name: "x-omg"
           default: "OMFG!"
 """)
 
         # For self.with_tracing, we want to configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"
@@ -103,30 +118,33 @@ class RateLimitV1Test(AmbassadorTest):
         self.target = HTTP()
         self.rls = RLSGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  ratelimit_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:
   ambassador:
     - request_label_group:
-      - x-ambassador-test-allow:
-          header: "x-ambassador-test-allow"
+      - request_headers:
+          key: x-ambassador-test-allow
+          header_name: "x-ambassador-test-allow"
           omit_if_not_present: true
-      - x-ambassador-test-headers-append:
-          header: "x-ambassador-test-headers-append"
+      - request_headers:
+          key: x-ambassador-test-headers-append
+          header_name: "x-ambassador-test-headers-append"
           omit_if_not_present: true
 """)
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"
@@ -183,36 +201,39 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: ratelimit-tls-context
 secret: ratelimit-tls-secret
 alpn_protocols: h2
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  ratelimit_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:
   ambassador:
     - request_label_group:
-      - x-ambassador-test-allow:
-          header: "x-ambassador-test-allow"
+      - request_headers:
+          key: x-ambassador-test-allow
+          header_name: "x-ambassador-test-allow"
           omit_if_not_present: true
-      - x-ambassador-test-headers-append:
-          header: "x-ambassador-test-headers-append"
+      - request_headers:
+          key: x-ambassador-test-headers-append
+          header_name: "x-ambassador-test-headers-append"
           omit_if_not_present: true
 """)
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"
@@ -251,35 +272,38 @@ class RateLimitV2Test(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        if os.environ.get('KAT_USE_ENVOY_V3', '') != '':
+        if Config.envoy_api_version == "V3":
             self.skip_node = True
         self.target = HTTP()
         self.rls = RLSGRPC(protocol_version="v2")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  ratelimit_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:
   ambassador:
     - request_label_group:
-      - x-ambassador-test-allow:
-          header: "x-ambassador-test-allow"
+      - request_headers:
+          key: x-ambassador-test-allow
+          header_name: "x-ambassador-test-allow"
           omit_if_not_present: true
-      - x-ambassador-test-headers-append:
-          header: "x-ambassador-test-headers-append"
+      - request_headers:
+          key: x-ambassador-test-headers-append
+          header_name: "x-ambassador-test-headers-append"
           omit_if_not_present: true
 """)
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"
@@ -322,35 +346,38 @@ class RateLimitV3Test(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        if os.environ.get('KAT_USE_ENVOY_V3', '') == '':
+        if Config.envoy_api_version != "V3":
             self.skip_node = True
         self.target = HTTP()
         self.rls = RLSGRPC(protocol_version="v3")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  ratelimit_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:
   ambassador:
     - request_label_group:
-      - x-ambassador-test-allow:
-          header: "x-ambassador-test-allow"
+      - request_headers:
+          key: x-ambassador-test-allow
+          header_name: "x-ambassador-test-allow"
           omit_if_not_present: true
-      - x-ambassador-test-headers-append:
-          header: "x-ambassador-test-headers-append"
+      - request_headers:
+          key: x-ambassador-test-headers-append
+          header_name: "x-ambassador-test-headers-append"
           omit_if_not_present: true
 """)
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"

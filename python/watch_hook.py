@@ -160,10 +160,15 @@ class WatchHook:
             sel = host.get('selector') or {}
             match_labels = sel.get('matchLabels') or {}
 
-            label_selector = None
+            label_selectors: List[str] = []
+
+            if global_label_selector:
+                label_selectors.append(global_label_selector)
 
             if match_labels:
-                label_selector = ','.join([f"{l}={v}" for l, v in match_labels.items()])
+                label_selectors += [ f"{l}={v}" for l, v in match_labels.items() ]
+
+            label_selector = ','.join(label_selectors) if label_selectors else None
 
             for wanted_kind in ['service', 'secret']:
                 self.add_kube_watch(f"Host {host.name}", wanted_kind, host.namespace,
@@ -225,6 +230,7 @@ class WatchHook:
             self.logger.debug(f'need secret {secret_info.name}.{secret_info.namespace}')
 
             self.add_kube_watch(f"needed secret", "secret", secret_info.namespace,
+                                label_selector=global_label_selector,
                                 field_selector=f"metadata.name={secret_info.name}")
 
         if self.fake.edge_stack_allowed:

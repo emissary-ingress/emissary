@@ -352,7 +352,7 @@ def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update:
     if not source:
         source = [
             "Host", "service", "ingresses",
-            "AuthService", "LogService", "Mapping", "Module", "RateLimitService",
+            "AuthService", "Listener", "LogService", "Mapping", "Module", "RateLimitService",
             "TCPMapping", "TLSContext", "TracingService",
             "ConsulResolver", "KubernetesEndpointResolver", "KubernetesServiceResolver"
         ]
@@ -379,6 +379,7 @@ def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update:
             labels.append(kat_amb_id_label)
 
         os.environ['AMBASSADOR_ID'] = kat_name
+        os.environ['AMBASSADOR_LABEL_SELECTOR'] = kat_amb_id_label
 
         # Forcibly override the cached ambassador_id.
         Config.ambassador_id = kat_name
@@ -428,10 +429,10 @@ def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update:
         logger.info(f"WATT_K8S: {w.snapshot}")
 
         hook_ok, any_changes = w.run_hook()
-        
+
         if not hook_ok:
             raise Exception("hook failed")
-            
+
         if any_changes:
             logger.info(f"======== END ITERATION {iteration}: watches changed!")
         else:
@@ -464,11 +465,14 @@ def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update:
 
     open("/tmp/ambassador/snapshots/ir.json", "w", encoding="utf-8").write(ir.as_json())
 
-    econf = EnvoyConfig.generate(ir, "V2")
+    econf = EnvoyConfig.generate(ir, Config.envoy_api_version)
     bootstrap_config, ads_config, clustermap = econf.split_config()
 
     ads_config.pop('@type', None)
     with open("/tmp/ambassador/snapshots/econf.json", "w", encoding="utf-8") as outfile:
+        outfile.write(dump_json(ads_config, pretty=True))
+
+    with open(f"/tmp/ambassador/snapshots/econf-{Config.ambassador_id}.json", "w", encoding="utf-8") as outfile:
         outfile.write(dump_json(ads_config, pretty=True))
 
     with open("/tmp/ambassador/snapshots/bootstrap.json", "w", encoding="utf-8") as outfile:

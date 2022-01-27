@@ -51,6 +51,11 @@ class V3Cluster(Cacheable):
         cmap_entry = cluster.clustermap_entry()
         if Config.legacy_mode or (cmap_entry['kind'] == 'KubernetesServiceResolver'):
             ctype = cluster.type.upper()
+            # For now we are only allowing Logical_dns for the cluster since it is similar enough to strict_dns that we dont need any other config changes
+            # It should be easy to add the other dns_types here in the future if we decide to support them
+            if ctype not in [ "STRICT_DNS", "LOGICAL_DNS" ]:
+                cluster.ir.logger.warning("dns_type %s, is an invalid type. Options are STRICT_DNS or LOGICAL_DNS. Using default of STRICT_DNS" % (ctype))
+                ctype = "STRICT_DNS"
         else:
             ctype = 'EDS'
 
@@ -61,6 +66,12 @@ class V3Cluster(Cacheable):
             'connect_timeout':"%0.3fs" % (float(cluster.connect_timeout_ms) / 1000.0),
             'dns_lookup_family': dns_lookup_family
         }
+
+        if cluster.get('stats_name', ''):
+            fields['alt_stat_name'] = cluster.stats_name
+
+        if cluster.respect_dns_ttl:
+            fields['respect_dns_ttl'] = cluster.respect_dns_ttl
 
         if ctype == 'EDS':
             fields['eds_cluster_config'] = {
@@ -262,6 +273,7 @@ class V3Cluster(Cacheable):
                 if cached_ircluster is not None:
                     config.cache.add(cluster)
                     config.cache.link(ircluster, cluster)
+                    config.cache.dump("V2Cluster synth %s", cache_key)
             else:
                 # Cache hit. We know a priori that it's a V3Cluster, but let's assert
                 # that rather than casting.

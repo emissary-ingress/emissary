@@ -1,0 +1,12 @@
+name: lint-test-action
+description: "Execute emissary lint tests"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Deps
+      uses: ./.github/actions/setup-deps
+    - name: make lint
+      shell: bash
+      run: |
+        make lint

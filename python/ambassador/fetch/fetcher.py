@@ -109,7 +109,7 @@ class ResourceFetcher:
                 # run outside of a container with this environment variable set.
                 automatic_manifests.append('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: ambassador-edge-stack
@@ -118,6 +118,7 @@ metadata:
     product: aes
     ambassador_diag_class: private
 spec:
+  hostname: "*"
   ambassador_id: [ "_automatic_" ]
   prefix: /.ambassador/
   rewrite: ""

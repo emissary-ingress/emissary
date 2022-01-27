@@ -1,5 +1,6 @@
 #!/hint/python3
 
+import os
 import shlex
 import subprocess
 from contextlib import contextmanager
@@ -16,8 +17,10 @@ def run(args: List[str]) -> None:
 
 @contextmanager
 def gcr_login() -> Generator[None, None, None]:
-    key = run_txtcapture(
-        ['keybase', 'fs', 'read', '/keybase/team/datawireio/secrets/googlecloud.gcr-ci-robot.datawire.json.key'])
+    key = os.getenv('GCLOUD_SA_KEY')
+    if key == '':
+        key = run_txtcapture(
+            ['keybase', 'fs', 'read', '/keybase/team/datawireio/secrets/googlecloud.gcr-ci-robot.datawire.json.key'])
 
     subprocess.run(
         ['gcloud', 'auth', 'activate-service-account', '--key-file=-'],
@@ -29,9 +32,9 @@ def gcr_login() -> Generator[None, None, None]:
     subprocess.run(['docker', 'logout', 'https://gcr.io'], check=True)
 
 
-def get_images(source_registry: str, repo: str, tag: str, image_append: str = ''):
+def get_images(source_registry: str, repo: str, tag: str, image_append: str = '', registries: List[str] = ['gcr.io/datawire']):
     images = [f"{source_registry}/{repo}:{tag}",]
-    for registry in ['quay.io/datawire', 'gcr.io/datawire']:
+    for registry in registries:
         dst = f'{registry}/{repo}:{tag}'
         if image_append != '':
             dst = f'{registry}/{repo}-{image_append}:{tag}'
@@ -41,7 +44,7 @@ def get_images(source_registry: str, repo: str, tag: str, image_append: str = ''
 
 def main(tags: List[str],
          source_registry: str = 'docker.io/datawire',
-         repos: List[str] = ['ambassador',],
+         repos: List[str] = ['emissary',],
          image_append: str = '') -> None:
     print('Note: This script can be rerun.')
     print('If pushes to registries fail, you can rerun the command in your terminal to debug.')

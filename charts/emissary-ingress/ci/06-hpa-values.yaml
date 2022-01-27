@@ -6,3 +6,4 @@ service:
 
 autoscaling:
   enabled: true
+createDefaultListeners: true

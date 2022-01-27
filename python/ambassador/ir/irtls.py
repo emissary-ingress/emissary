@@ -94,24 +94,9 @@ class TLSModuleFactory:
 
             amod_tls = amod.get('tls', None)
 
+            # Check for an Ambassador module tls field so that we can warn the user that this field is deprecated!
             if amod_tls:
-                # XXX What a hack. IRAmbassadorTLS.from_resource() should be able to make
-                # this painless.
-                new_args = dict(amod_tls)
-                new_rkey = new_args.pop('rkey', amod.rkey)
-                new_kind = new_args.pop('kind', 'Module')
-                new_name = new_args.pop('name', 'tls-from-ambassador-module')
-                new_location = new_args.pop('location', amod.location)
-
-                # Overwrite any existing TLS module.
-                ir.tls_module = IRAmbassadorTLS(ir, aconf,
-                                                rkey=new_rkey,
-                                                kind=new_kind,
-                                                name=new_name,
-                                                location=new_location,
-                                                **new_args)
-
-                ir.logger.debug("TLSModuleFactory saving TLS module from Ambassador module: %s" % ir.tls_module.as_json())
+                ir.post_error("The 'tls' field on the Ambassador module is deprecated! Please use a TLSContext instead https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tlscontext")
 
         # Finally, if we have a TLS Module, turn it into a TLSContext.
         if ir.tls_module:

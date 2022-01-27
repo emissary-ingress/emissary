@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _rate_limit_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on RateLimit with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *RateLimit) Validate() error {
@@ -43,10 +40,10 @@ func (m *RateLimit) Validate() error {
 		return nil
 	}
 
-	if len(m.GetDomain()) < 1 {
+	if utf8.RuneCountInString(m.GetDomain()) < 1 {
 		return RateLimitValidationError{
 			field:  "Domain",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 

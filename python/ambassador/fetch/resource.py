@@ -1,12 +1,12 @@
 from __future__ import annotations
-from typing import Any, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 
 import dataclasses
-import json
 import logging
+import os
 
 from ..config import ACResource, Config
-from ..utils import dump_yaml, parse_yaml, dump_json
+from ..utils import dump_yaml, parse_yaml, parse_bool, dump_json
 
 from .dependency import DependencyManager
 from .k8sobject import KubernetesObjectScope, KubernetesObject
@@ -21,10 +21,12 @@ class NormalizedResource:
 
     object: dict
     rkey: Optional[str] = None
+    log_resources: ClassVar[bool] = parse_bool(os.environ.get('AMBASSADOR_LOG_RESOURCES'))
 
     @classmethod
     def from_data(cls, kind: str, name: str, namespace: Optional[str] = None,
-                  generation: Optional[int] = None, version: str = 'v2',
+                  generation: Optional[int] = None, version: str = 'v3alpha1',
+                  api_group = 'getambassador.io',
                   labels: Optional[Dict[str, Any]] = None,
                   spec: Dict[str, Any] = None, errors: Optional[str] = None,
                   rkey: Optional[str] = None) -> NormalizedResource:
@@ -35,7 +37,7 @@ class NormalizedResource:
         if spec:
             ir_obj.update(spec)
 
-        ir_obj['apiVersion'] = f'getambassador.io/{version}'
+        ir_obj['apiVersion'] = f'{api_group}/{version}'
         ir_obj['kind'] = kind
         ir_obj['name'] = name
 
@@ -54,7 +56,7 @@ class NormalizedResource:
 
     @classmethod
     def from_kubernetes_object(cls, obj: KubernetesObject) -> NormalizedResource:
-        if obj.gvk.api_group != 'getambassador.io':
+        if obj.gvk.api_group not in ('getambassador.io', 'getambassador.io'):
             raise ValueError(f'Cannot construct resource from non-Ambassador Kubernetes object with API version {obj.gvk.api_version}')
         if obj.namespace is None:
             raise ValueError(f'Cannot construct resource from Kubernetes object {obj.key} without namespace')
@@ -73,6 +75,7 @@ class NormalizedResource:
             namespace=obj.namespace,
             generation=obj.generation,
             version=obj.gvk.version,
+            api_group=obj.gvk.api_group,
             labels=labels,
             spec=obj.spec,
         )
@@ -171,7 +174,8 @@ class ResourceManager:
         except Exception as e:
             self.aconf.post_error(e.args[0])
 
-        self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
+        if NormalizedResource.log_resources:
+            self.logger.debug("%s PROCESS %s save %s: %s", self.location, obj['kind'], rkey, serialization)
 
         return True
 

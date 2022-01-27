@@ -15,6 +15,9 @@ fi
 CHART_DIR="${TOP_DIR}/${CHART_NAME}"
 
 chart_version=$(get_chart_version ${CHART_DIR})
+if [[ $chart_version = *-rc.* ]] ; then
+    chart_version=${chart_version%-*}
+fi
 
 if ! grep "## v${chart_version}" ${CHART_DIR}/CHANGELOG.md > /dev/null 2>&1  ; then
     echo "Current chart version does not appear in the changelog."

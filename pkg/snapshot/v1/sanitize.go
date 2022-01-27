@@ -1,7 +1,7 @@
 package snapshot
 
 import (
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -20,15 +20,13 @@ func NewKubernetesSnapshot() *snapshotTypes.KubernetesSnapshot {
 }
 
 // GetAmbId extracts the AmbassadorId from the kubernetes resource.
-func GetAmbId(resource kates.Object) amb.AmbassadorID {
+func GetAmbId(ctx context.Context, resource kates.Object) amb.AmbassadorID {
 	switch r := resource.(type) {
 	case *amb.Host:
 		var id amb.AmbassadorID
 		if r.Spec != nil {
 			if len(r.Spec.AmbassadorID) > 0 {
 				id = r.Spec.AmbassadorID
-			} else {
-				id = r.Spec.DeprecatedAmbassadorID
 			}
 		}
 		return id
@@ -65,7 +63,7 @@ func GetAmbId(resource kates.Object) amb.AmbassadorID {
 		var id amb.AmbassadorID
 		err := json.Unmarshal([]byte(idstr), &id)
 		if err != nil {
-			dlog.Errorf(context.TODO(), "%s: error parsing ambassador-id '%s'", location(resource), idstr)
+			dlog.Errorf(ctx, "%s: error parsing ambassador-id '%s'", location(resource), idstr)
 		} else {
 			return id
 		}

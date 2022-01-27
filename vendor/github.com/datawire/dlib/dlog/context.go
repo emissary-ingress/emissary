@@ -4,7 +4,6 @@ package dlog
 
 import (
 	"context"
-	"fmt"
 	"log"
 )
 
@@ -54,7 +53,7 @@ func WithField(ctx context.Context, key string, value interface{}) context.Conte
 // StdLogger returns a stdlib *log.Logger that uses the Logger
 // associated with ctx and logs at the specified loglevel.
 //
-// Avoid using this functions if at all possible; prefer to use the
+// Avoid using this function if at all possible; prefer to use the
 // {Trace,Debug,Info,Print,Warn,Error}{f,ln,}() functions.  You should
 // only use this for working with external libraries that demand a
 // stdlib *log.Logger.
@@ -62,29 +61,22 @@ func StdLogger(ctx context.Context, level LogLevel) *log.Logger {
 	return getLogger(ctx).StdLogger(level)
 }
 
-func sprintln(args ...interface{}) string {
-	// Trim the trailing newline; what we care about is that spaces are added in between
-	// arguments, not that there's a trailing newline.  See also: logrus.Entry.sprintlnn
-	msg := fmt.Sprintln(args...)
-	return msg[:len(msg)-1]
-}
-
 // If you change any of these, you should also change convenience.go.gen and run `make generate`.
 
 func Log(ctx context.Context, lvl LogLevel, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(lvl, fmt.Sprint(args...))
+	l.Log(lvl, args...)
 }
 
 func Logln(ctx context.Context, lvl LogLevel, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(lvl, sprintln(args...))
+	l.Logln(lvl, args...)
 }
 
 func Logf(ctx context.Context, lvl LogLevel, format string, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(lvl, fmt.Sprintf(format, args...))
+	l.Logf(lvl, format, args...)
 }

@@ -1,6 +1,7 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
-import json
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 
 class MaxRequestHeaderKBTest(AmbassadorTest):
     target: ServiceType
@@ -8,21 +9,22 @@ class MaxRequestHeaderKBTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 config:
   max_request_headers_kb: 30
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
+hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)
@@ -45,21 +47,22 @@ class MaxRequestHeaderKBMaxTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 config:
   max_request_headers_kb: 96
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
+hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)

@@ -58,16 +58,6 @@ type watch struct {
 	runner   func()
 }
 
-// MustNewWatcher returns a Kubernetes watcher for the specified
-// cluster or panics.
-func MustNewWatcher(info *KubeInfo) *Watcher {
-	w, err := NewWatcher(info)
-	if err != nil {
-		panic(err)
-	}
-	return w
-}
-
 // NewWatcher returns a Kubernetes watcher for the specified cluster.
 func NewWatcher(info *KubeInfo) (*Watcher, error) {
 	cli, err := NewClient(info)
@@ -90,7 +80,7 @@ func (c *Client) Watcher() *Watcher {
 
 // WatchQuery watches the set of resources identified by the supplied
 // query and invokes the supplied listener whenever they change.
-func (w *Watcher) WatchQuery(query Query, listener func(*Watcher)) error {
+func (w *Watcher) WatchQuery(query Query, listener func(*Watcher) error) error {
 	err := query.resolve(w.Client)
 	if err != nil {
 		return err
@@ -118,7 +108,9 @@ func (w *Watcher) WatchQuery(query Query, listener func(*Watcher)) error {
 	invoke := func() {
 		w.mutex.Lock()
 		defer w.mutex.Unlock()
-		listener(w)
+		if err := listener(w); err != nil {
+			panic(fmt.Errorf("I'm sorry, the pkg/k8s API really painted us in to a hole and I couldn't handle this error properly: %w", err))
+		}
 	}
 
 	store, controller := cache.NewInformer(
@@ -175,17 +167,19 @@ func (w *Watcher) WatchQuery(query Query, listener func(*Watcher)) error {
 }
 
 // Start starts the watcher
-func (w *Watcher) Start() {
+func (w *Watcher) Start(ctx context.Context) error {
 	w.mutex.Lock()
 	if w.started {
 		w.mutex.Unlock()
-		return
+		return nil
 	} else {
 		w.started = true
 		w.mutex.Unlock()
 	}
 	for kind := range w.watches {
-		w.sync(kind)
+		if err := w.sync(ctx, kind); err != nil {
+			return err
+		}
 	}
 
 	for _, watch := range w.watches {
@@ -196,29 +190,31 @@ func (w *Watcher) Start() {
 	for _, watch := range w.watches {
 		go watch.runner()
 	}
+	return nil
 }
 
-func (w *Watcher) sync(kind ResourceType) {
+func (w *Watcher) sync(ctx context.Context, kind ResourceType) error {
 	watch := w.watches[kind]
-	resources, err := w.Client.ListQuery(watch.query)
+	resources, err := w.Client.ListQuery(ctx, watch.query)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	for _, rsrc := range resources {
 		var uns unstructured.Unstructured
 		uns.SetUnstructuredContent(rsrc)
 		err = watch.store.Update(&uns)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
+	return nil
 }
 
 // List lists all the resources with kind `kind`
-func (w *Watcher) List(kind string) []Resource {
+func (w *Watcher) List(kind string) ([]Resource, error) {
 	ri, err := w.Client.ResolveResourceType(kind)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	watch, ok := w.watches[ri]
 	if ok {
@@ -227,14 +223,13 @@ func (w *Watcher) List(kind string) []Resource {
 		for idx, obj := range objs {
 			result[idx] = obj.(*unstructured.Unstructured).UnstructuredContent()
 		}
-		return result
-	} else {
-		return nil
+		return result, nil
 	}
+	return nil, nil
 }
 
 // UpdateStatus updates the status of the `resource` provided
-func (w *Watcher) UpdateStatus(resource Resource) (Resource, error) {
+func (w *Watcher) UpdateStatus(ctx context.Context, resource Resource) (Resource, error) {
 	ri, err := w.Client.ResolveResourceType(resource.QKind())
 	if err != nil {
 		return nil, err
@@ -254,29 +249,37 @@ func (w *Watcher) UpdateStatus(resource Resource) (Resource, error) {
 		cli = watch.resource
 	}
 
-	result, err := cli.UpdateStatus(context.TODO(), &uns, v1.UpdateOptions{})
+	result, err := cli.UpdateStatus(ctx, &uns, v1.UpdateOptions{})
 	if err != nil {
 		return nil, err
-	} else {
-		watch.store.Update(result)
-		return result.UnstructuredContent(), nil
 	}
+	if err := watch.store.Update(result); err != nil {
+		return nil, err
+	}
+	return result.UnstructuredContent(), nil
 }
 
 // Get gets the `qname` resource (of kind `kind`)
-func (w *Watcher) Get(kind, qname string) Resource {
-	resources := w.List(kind)
+func (w *Watcher) Get(kind, qname string) (Resource, error) {
+	resources, err := w.List(kind)
+	if err != nil {
+		return Resource{}, err
+	}
 	for _, res := range resources {
 		if strings.EqualFold(res.QName(), qname) {
-			return res
+			return res, nil
 		}
 	}
-	return Resource{}
+	return Resource{}, nil
 }
 
 // Exists returns true if the `qname` resource (of kind `kind`) exists
-func (w *Watcher) Exists(kind, qname string) bool {
-	return w.Get(kind, qname).Name() != ""
+func (w *Watcher) Exists(kind, qname string) (bool, error) {
+	resource, err := w.Get(kind, qname)
+	if err != nil {
+		return false, err
+	}
+	return resource.Name() != "", nil
 }
 
 // Stop stops a watch. It is safe to call Stop from multiple
@@ -296,7 +299,10 @@ func (w *Watcher) Stop() {
 	}
 }
 
-func (w *Watcher) Wait() {
-	w.Start()
+func (w *Watcher) Wait(ctx context.Context) error {
+	if err := w.Start(ctx); err != nil {
+		return err
+	}
 	w.wg.Wait()
+	return nil
 }

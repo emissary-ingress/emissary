@@ -92,8 +92,19 @@ if parse_bool(os.environ.get("AMBASSADOR_JSON_LOGGING", "false")):
     else:
         print("Could not find a logging manager. Some logging may not be properly JSON formatted!")
 else:
+    # Default log level
+    level = logging.INFO
+
+    # Check for env var log level
+    if level_name := os.getenv("AES_LOG_LEVEL"):
+        level_number = logging.getLevelName(level_name.upper())
+
+        if isinstance(level_number, int):
+            level = level_number
+
+    # Set defauts for all loggers
     logging.basicConfig(
-        level=logging.INFO,
+        level=level,
         format="%%(asctime)s diagd %s [P%%(process)dT%%(threadName)s] %%(levelname)s: %%(message)s" % __version__,
         datefmt="%Y-%m-%d %H:%M:%S"
     )
@@ -118,14 +129,6 @@ ambassador_targets = {
 
 def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
-
-
-def envoy_api_version():
-    env_version = os.environ.get('AMBASSADOR_ENVOY_API_VERSION', 'V2')
-    version = env_version.upper()
-    if version == 'V2' or env_version == 'V3':
-        return version
-    return 'V2'
 
 
 class DiagApp (Flask):
@@ -196,9 +199,8 @@ class DiagApp (Flask):
         self.enable_fast_reconfigure = enable_fast_reconfigure
         self.legacy_mode = legacy_mode
 
-        # This feels like overkill.
+        # Init logger, inherits settings from default
         self.logger = logging.getLogger("ambassador.diagd")
-        self.logger.setLevel(logging.INFO)
 
         # Initialize the Envoy stats manager...
         self.estatsmgr = EnvoyStatsMgr(self.logger)
@@ -231,10 +233,17 @@ class DiagApp (Flask):
                                  namespace='ambassador', registry=self.metrics_registry)
         self.diag_notices = Gauge(f'diagnostics_notices', f'Number of configuration notices',
                                  namespace='ambassador', registry=self.metrics_registry)
+        self.diag_log_level = Gauge(f'log_level', f'Debug log level enabled or not',
+                                 ["level"],
+                                 namespace='ambassador', registry=self.metrics_registry)
 
         if debug:
             self.logger.setLevel(logging.DEBUG)
+            self.diag_log_level.labels('debug').set(1)
             logging.getLogger('ambassador').setLevel(logging.DEBUG)
+        else:
+            self.diag_log_level.labels('debug').set(0)
+
 
         # Assume that we will NOT update Mapping status.
         ksclass: Type[KubeStatus] = KubeStatusNoMappings
@@ -468,7 +477,7 @@ class DiagApp (Flask):
         cache = Cache(self.logger)
         scc = SecretHandler(app.logger, "check_cache", app.snapshot_path, "check")
         ir = IR(self.aconf, secret_handler=scc, cache=cache)
-        econf = EnvoyConfig.generate(ir, envoy_api_version(), cache=cache)
+        econf = EnvoyConfig.generate(ir, Config.envoy_api_version, cache=cache)
 
         # This is testing code.
         # name = list(ir.clusters.keys())[0]
@@ -1017,6 +1026,7 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 
     if loglevel:
         app.logger.debug("%s %s -- requesting loglevel %s" % (what, reqid, loglevel))
+        app.diag_log_level.labels('debug').set(1 if loglevel == 'debug' else 0)
 
         if not app.estatsmgr.update_log_levels(time.time(), level=loglevel):
             notice = { 'level': 'WARNING', 'message': "Could not update log level!" }
@@ -1525,92 +1535,60 @@ class AmbassadorEventWatcher(threading.Thread):
         aconf_path = os.path.join(app.snapshot_path, "aconf-tmp.json")
         open(aconf_path, "w").write(aconf.as_json())
 
-        # Assume that this should be marked as a complete reconfigure.
-        config_type = "complete"
+        # OK. What kind of reconfiguration are we doing?
+        config_type, reset_cache, invalidate_groups_for = IR.check_deltas(self.logger, fetcher, self.app.cache)
 
-        # OK. If we have a cache...
-        if self.app.cache is not None:
-            # ...then we'll start by assuming that we'll need to reset it.
-            reset_cache = True
-
-            # Next up: are there any deltas?
-            if fetcher.deltas:
-                # Yes. We're going to walk over them all and assemble a list
-                # of things to delete and a count of errors while processing our
-                # list.
-
-                delta_errors = 0
-                to_invalidate: List[str] = []
-
-                for delta in fetcher.deltas:
-                    self.logger.debug(f"Delta: {delta}")
-
-                    # The "kind" of a Delta must be a string; assert that to make
-                    # mypy happy.
-
-                    delta_kind = delta['kind']
-                    assert(isinstance(delta_kind, str))
-
-                    # Only worry about Mappings and TCPMappings right now.
-                    if (delta_kind == 'Mapping') or (delta_kind == 'TCPMapping'):
-                        # XXX C'mon, mypy, is this cast really necessary?
-                        metadata = typecast(Dict[str, str], delta.get("metadata", {}))
-                        name = metadata.get("name", "")
-                        namespace = metadata.get("namespace", "")
-
-                        if not name or not namespace:
-                            # This is an error.
-                            delta_errors += 1
-
-                            self.logger.error(f"Delta object needs name and namespace: {delta}")
-                        else:
-                            key = IRBaseMapping.make_cache_key(delta_kind, name, namespace)
-                            to_invalidate.append(key)
-
-                # OK. If we have things to invalidate, and we have NO ERRORS...
-                if to_invalidate and not delta_errors:
-                    # ...then we can invalidate all those things instead of clearing the cache.
-                    reset_cache = False
-
-                    for key in to_invalidate:
-                        self.logger.debug(f"Delta: invalidating {key}")
-                        self.app.cache.invalidate(key)
-
-            # When all is said and done, reset the cache if necessary.
-            if reset_cache:
-                # This is _not_ an incremental reconfigure. Reset the cache...
-                self.logger.debug("RESETTING CACHE")
-                self.app.cache = Cache(self.logger)
-            else:
-                # OK, we're doing an incremental reconfigure.
-                config_type = "incremental"
+        if reset_cache:
+            self.logger.debug("RESETTING CACHE")
+            self.app.cache = Cache(self.logger)
 
         with self.app.ir_timer:
-            ir = IR(aconf, secret_handler=secret_handler, cache=self.app.cache)
+            ir = IR(aconf, secret_handler=secret_handler,
+                    invalidate_groups_for=invalidate_groups_for, cache=self.app.cache)
 
         ir_path = os.path.join(app.snapshot_path, "ir-tmp.json")
         open(ir_path, "w").write(ir.as_json())
 
         with self.app.econf_timer:
-            econf_api_version = envoy_api_version()
-            self.logger.debug("generating envoy configuration with api version %s" % econf_api_version)
-            econf = EnvoyConfig.generate(ir, econf_api_version, cache=self.app.cache)
+            self.logger.debug("generating envoy configuration with api version %s" % Config.envoy_api_version)
+            econf = EnvoyConfig.generate(ir, Config.envoy_api_version, cache=self.app.cache)
 
         # DON'T generate the Diagnostics here, because that turns out to be expensive.
         # Instead, we'll just reset app.diag to None, then generate it on-demand when
         # we need it.
-
+        #
+        # DO go ahead and split the Envoy config into its components for later, though.
         bootstrap_config, ads_config, clustermap = econf.split_config()
 
-        if not self.validate_envoy_config(ir, config=ads_config, retries=self.app.validation_retries):
-            self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
+        # OK. Assume that the Envoy config is valid...
+        econf_is_valid = True
+        econf_bad_reason = ""
+
+        # ...then look for reasons it's not valid.
+        if not econf.has_listeners():
+            # No listeners == something in the Ambassador config is totally horked.
+            # Probably this is the user not defining any Hosts that match
+            # the Listeners in the system.
+            #
+            # As it happens, Envoy is OK running a config with no listeners, and it'll
+            # answer on port 8001 for readiness checks, so... log a notice, but run with it.
+            self.logger.warning("No active listeners at all; check your Listener and Host configuration")
+        elif not self.validate_envoy_config(ir, config=ads_config, retries=self.app.validation_retries):
+            # Invalid Envoy config probably indicates a bug in Emissary itself. Sigh.
+            econf_is_valid = False
+            econf_bad_reason = "invalid envoy configuration generated"
+
+        # OK. Is the config invalid?
+        if not econf_is_valid:
+            # BZzzt. Don't post this update.
+            self.logger.info("no update performed (%s), continuing with current configuration..." % econf_bad_reason)
 
             # Don't use app.check_scout; it will deadlock.
             self.check_scout("attempted bad update")
 
             # DO stop the reconfiguration timer before leaving.
             self.app.config_timer.stop()
-            self._respond(rqueue, 500, 'ignoring: invalid Envoy configuration in snapshot %s' % snapshot)
+            self._respond(rqueue, 500, 'ignoring (%s) in snapshot %s' % (econf_bad_reason, snapshot))
             return
 
         snapcount = int(os.environ.get('AMBASSADOR_SNAPSHOT_COUNT', "4"))
@@ -2016,6 +1994,8 @@ class AmbassadorEventWatcher(threading.Thread):
             output.write(config_json)
 
         command = ['envoy', '--service-node', 'test-id', '--service-cluster', ir.ambassador_nodename, '--config-path', econf_validation_path, '--mode', 'validate']
+        if Config.envoy_api_version == "V2":
+            command.extend(["--bootstrap-version", "2"])
 
         v_exit = 0
         v_encoded = ''.encode('utf-8')
@@ -2136,7 +2116,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     :param report_action_keys: Report action keys when chiming
     """
 
-    enable_fast_reconfigure = parse_bool(os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "false"))
+    enable_fast_reconfigure = parse_bool(os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "true"))
     legacy_mode = parse_bool(os.environ.get("AMBASSADOR_LEGACY_MODE", "false"))
 
     if port < 0:

@@ -66,6 +66,8 @@ ENTRYPOINT [ "/bin/bash" ]
 
 FROM ${builderbase} as golang
 
+ARG version="i-forgot-to-set-build-arg-version"
+
 WORKDIR /go
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
@@ -73,13 +75,12 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local
 # Build the golang binaries
 ADD api api
 ADD cmd cmd
-ADD internal internal
 ADD pkg pkg
 ADD vendor vendor
 ADD go.mod go.mod
 ADD go.sum go.sum
 RUN mkdir -p /go/bin && \
-	time go build -mod=vendor -o /go/bin/ ./cmd/...
+	time go build -ldflags="-X 'main.Version=${version}'" -mod=vendor -o /go/bin/ ./cmd/...
 
 ########################################
 # The artifact build stage
@@ -99,7 +100,7 @@ ADD python python
 RUN time pip install --no-deps -e python
 
 # Run post-compile.sh
-ADD build-aux-local build-aux-local
+ADD build-aux build-aux
 ADD post-compile.sh post-compile.sh
 RUN bash post-compile.sh
 
@@ -111,7 +112,7 @@ RUN mkdir -p /ambassador/sidecars && \
 
 # These will be extracted into the optimized image later
 ADD demo demo
-ADD docs/yaml/ambassador/ambassador-crds.yaml docs/yaml/ambassador/ambassador-crds.yaml
+ADD manifests/emissary/emissary-crds.yaml manifests/emissary/emissary-crds.yaml
 
 ########################################
 # The optimized images
@@ -121,12 +122,14 @@ FROM artifact-stage as artifacts
 
 FROM ${base} as ambassador
 
+ARG py_version="i-forgot-to-set-build-arg-py-version"
+
 # Always have an "ambassador" user as UID 8888. This is what we recommend
 # people run as. (Note that the "-D" actually leaves the password locked.)
 RUN adduser ambassador -u 8888 -G root -D -H -s /bin/false
 
 # External stuff that should change infrequently
-RUN apk --no-cache add bash curl python3 libcap htop
+RUN apk --no-cache add bash curl python3=${py_version} libcap htop
 RUN apk upgrade --no-cache
 RUN ln -s /usr/bin/python3 /usr/bin/python
 COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
@@ -159,7 +162,6 @@ RUN cd /buildroot/ambassador/python && python setup.py install
 COPY --from=artifacts /ambassador /ambassador
 COPY --from=artifacts /buildroot/ambassador/demo/config /ambassador/ambassador-demo-config
 COPY --from=artifacts /buildroot/ambassador/demo/services /ambassador/demo-services
-COPY --from=artifacts /buildroot/ambassador/docs/yaml/ambassador/ambassador-crds.yaml /opt/ambassador/etc/crds.yaml
 
 # Fix permissions to allow correctly running as a non root user
 # XXX: We could combine everything into one tree in the builder, fix permissions
@@ -177,6 +179,8 @@ WORKDIR /ambassador
 # well in the face of situations like KAT volume-mounting /tmp/ambassador or
 # the like.
 ENV HOME=/tmp/ambassador
+
+COPY --from=artifacts /bin/busybox /bin/busybox
 
 ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]
 

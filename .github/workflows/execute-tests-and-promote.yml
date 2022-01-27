@@ -1,0 +1,151 @@
+name: job-promote-to-passed
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - 'releng/**'
+      - 'charts/**'
+      - 'manifests/**'
+      - 'k8s-config/**'
+      - 'docs/**'
+      - '*.md$'
+  pull_request:
+    paths-ignore:
+      - 'releng/**'
+      - 'charts/**'
+      - 'manifests/**'
+      - 'k8s-config/**'
+      - 'docs/**'
+      - '*.md$'
+
+jobs:
+  lint-test:
+    name: "lint-test"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/execute-lint-test
+        name: "execute lint-test action"
+  generate:
+    name: "generate"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/execute-generate
+        name: "execute generate action"
+  check-envoy-version:
+    name: "check-envoy-version"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+      - run: make check-envoy-version
+  go-tests:
+    runs-on: ubuntu-latest
+    name: gotest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/execute-go-tests
+        name: "execute go-tests action"
+      # collect logs
+      - uses: ./.github/actions/collect-testing-logs
+        if: always()
+        name: "Collect testing logs"
+  pytests:
+    runs-on: ubuntu-latest
+    env:
+      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+      DOCKER_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+    strategy:
+      matrix:
+        test: [envoy-ah, envoy-v2-ah, envoy-ip, envoy-v2-ip, envoy-qz, envoy-v2-qz, kat, integration]
+    name: pytest-${{ matrix.test }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/execute-pytests
+        name: "execute pytests action"
+      # collect logs
+      - uses: ./.github/actions/collect-testing-logs
+        if: always()
+        name: "Collect testing logs"
+  pytest-unit:
+    # pytest-unit is separate from pytests (above) because we know for certain that no cluster is needed.
+    # XXX This is pretty much a crock.
+    runs-on: ubuntu-latest
+    env:
+      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+      DOCKER_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+    strategy:
+      matrix:
+        test:
+          - unit
+    name: pytest-${{ matrix.test }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/execute-pytest-unit
+        name: "execute pytest-unit action"
+      # collect logs
+      - uses: ./.github/actions/collect-testing-logs
+        if: always()
+        name: "Collect testing logs"
+  job-image:
+    name: "job-image"
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
+      AWS_EC2_METADATA_DISABLED: true
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+      DOCKER_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: ./.github/actions/execute-job-image
+        name: "execute job-image action"
+  promote-to-passed:
+    needs:
+      - lint-test
+      - job-image
+      - generate
+      - check-envoy-version
+      - go-tests
+      - pytests
+      - pytest-unit
+    runs-on: ubuntu-latest
+    name: job-promote-to-passed
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
+      AWS_EC2_METADATA_DISABLED: true
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+      - name: "promote build to passed"
+        run: |
+          make release/promote-oss/dev-to-passed-ci

@@ -1,0 +1,163 @@
+{
+    "id": "https://getambassador.io/schemas/listener.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "hostBinding",
+        "port",
+        "securityModel"
+    ],
+    "properties": {
+        "ambassador_id": {
+            "description": "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural).",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v3alpha1"
+            ]
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "hostBinding": {
+            "description": "HostBinding allows restricting which Hosts will be used for this Listener.",
+            "type": "object",
+            "properties": {
+                "namespace": {
+                    "description": "NamespaceBindingType defines we we specify which namespaces to look for Hosts in.",
+                    "type": "object",
+                    "properties": {
+                        "from": {
+                            "description": "NamespaceFromType defines how we evaluate a NamespaceBindingType.",
+                            "type": "string",
+                            "enum": [
+                                "SELF",
+                                "ALL",
+                                "SELECTOR"
+                            ]
+                        }
+                    }
+                },
+                "selector": {
+                    "description": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+                    "type": "object",
+                    "properties": {
+                        "matchExpressions": {
+                            "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+                            "type": "array",
+                            "items": {
+                                "description": "A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.",
+                                "type": "object",
+                                "required": [
+                                    "key",
+                                    "operator"
+                                ],
+                                "properties": {
+                                    "key": {
+                                        "description": "key is the label key that the selector applies to.",
+                                        "type": "string"
+                                    },
+                                    "operator": {
+                                        "description": "operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.",
+                                        "type": "string"
+                                    },
+                                    "values": {
+                                        "description": "values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "matchLabels": {
+                            "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "kind": {
+            "enum": [
+                "Listener"
+            ]
+        },
+        "l7Depth": {
+            "description": "L7Depth specifies how many layer 7 load balancers are between us and the edge of the network.",
+            "type": "integer",
+            "format": "int32"
+        },
+        "metadata_labels": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "port": {
+            "description": "Port is the network port. Only one Listener can use a given port.",
+            "type": "integer",
+            "format": "int32",
+            "maximum": 65535,
+            "minimum": 1
+        },
+        "protocol": {
+            "description": "Protocol is a shorthand for certain predefined stacks. Exactly one of Protocol or ProtocolStack must be supplied.",
+            "type": "string",
+            "enum": [
+                "HTTP",
+                "HTTPS",
+                "HTTPPROXY",
+                "HTTPSPROXY",
+                "TCP",
+                "TLS",
+                "UDP"
+            ]
+        },
+        "protocolStack": {
+            "description": "ProtocolStack explicitly specifies the protocol stack to set up. Exactly one of Protocol or ProtocolStack must be supplied.",
+            "type": "array",
+            "items": {
+                "description": "ProtocolStackElement defines specific layers that may be combined in a protocol stack for processing connections to a port.",
+                "type": "string",
+                "enum": [
+                    "HTTP",
+                    "PROXY",
+                    "TLS",
+                    "TCP",
+                    "UDP"
+                ]
+            }
+        },
+        "securityModel": {
+            "description": "SecurityModel specifies how to determine whether connections to this port are secure or insecure.",
+            "type": "string",
+            "enum": [
+                "XFP",
+                "SECURE",
+                "INSECURE"
+            ]
+        },
+        "statsPrefix": {
+            "description": "StatsPrefix specifies the prefix for statistics sent by Envoy about this Listener. The default depends on the protocol: \"ingress-http\", \"ingress-https\", \"ingress-tls-$port\", or \"ingress-$port\".",
+            "type": "string"
+        }
+    }
+}

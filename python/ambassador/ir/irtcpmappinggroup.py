@@ -102,11 +102,12 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
 
         self.referenced_by(mapping)
 
-        self.ir.logger.debug("%s: group now %s" % (self, self.as_json()))
+        # self.ir.logger.debug("%s: group now %s" % (self, self.as_json()))
 
+    # Deliberately matches IRListener.bind_to()
     def bind_to(self) -> str:
-        bind_addr = self.get('address') or '0.0.0.0'
-        return "%s-%s" % (bind_addr, self.port)
+        bind_addr = self.get('address') or Config.envoy_bind_address
+        return f"{bind_addr}-{self.port}"
 
     def add_cluster_for_mapping(self, mapping: IRBaseMapping,
                                 marker: Optional[str] = None) -> IRCluster:
@@ -136,7 +137,8 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
                                 enable_ipv6=mapping.get('enable_ipv6', None),
                                 circuit_breakers=mapping.get('circuit_breakers', None),
                                 marker=marker,
-                                allow_scheme=False)
+                                stats_name=self.get("stats_name", None)
+            )
 
         # Make sure that the cluster is really in our IR...
         stored = self.ir.add_cluster(cluster)
@@ -149,12 +151,12 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
 
             # ...and link the Group to the cluster.
             #
-            # Right now, I'm going for maximum safety, which means a single chain linking 
+            # Right now, I'm going for maximum safety, which means a single chain linking
             # Mapping -> Group -> Cluster. That means that deleting a single Mapping deletes
             # the Group to which that Mapping is attached, which in turn deletes all the
             # Clusters for that Group.
             #
-            # Performance might dictate linking Mapping -> Group and Mapping -> Cluster, so 
+            # Performance might dictate linking Mapping -> Group and Mapping -> Cluster, so
             # that deleting a Mapping deletes the Group but only the single Cluster. Needs
             # testing.
 

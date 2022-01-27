@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Generator, Tuple, Union
 
 import yaml
 
@@ -18,13 +18,13 @@ class Empty(AmbassadorTest):
             self.xfail = "XFailing for now"
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         yield cls()
 
     def manifests(self) -> str:
         return namespace_manifest("empty-namespace") + super().manifests()
 
-    def config(self) -> Union[str, Tuple[Node, str]]:
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield from ()
 
     def queries(self):
@@ -53,25 +53,26 @@ class AmbassadorIDTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self) -> Union[str, Tuple[Node, str]]:
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, """
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
-config: 
+config:
   use_ambassador_namespace_for_service_resolution: true
 """
-        for prefix, amb_id in (("findme", "{self.ambassador_id}"),
+        for prefix, amb_id in (("findme", "[{self.ambassador_id}]"),
                                ("findme-array", "[{self.ambassador_id}, missme]"),
                                ("findme-array2", "[missme, {self.ambassador_id}]"),
-                               ("missme", "missme"),
+                               ("missme", "[missme]"),
                                ("missme-array", "[missme1, missme2]")):
             yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.path.k8s}-{prefix}
+hostname: "*"
 prefix: /{prefix}/
 service: {self.target.path.fqdn}
 ambassador_id: {amb_id}
@@ -93,88 +94,90 @@ class InvalidResources(AmbassadorTest):
         self.resource_names = []
 
         self.models = [ """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  AuthService
 metadata:
   name:  {self.path.k8s}-as-bad1-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   service_bad: {self.target.path.fqdn}
 ""","""
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name:  {self.path.k8s}-m-good-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
+  hostname: "*"
   prefix: /good-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name:  {self.path.k8s}-m-bad-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
+  hostname: "*"
   prefix_bad: /bad-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 metadata:
   name:  {self.path.k8s}-md-bad-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   config_bad: []
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  RateLimitService
 metadata:
   name:  {self.path.k8s}-r-bad-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   service_bad: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
-kind:  TCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 metadata:
   name:  {self.path.k8s}-tm-bad1-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   service: {self.target.path.fqdn}
   port_bad: 8888
 """, """
-apiVersion: getambassador.io/v2
-kind:  TCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 metadata:
   name:  {self.path.k8s}-tm-bad2-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   service_bad: {self.target.path.fqdn}
   port: 8888
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  TracingService
 metadata:
   name:  {self.path.k8s}-ts-bad1-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   driver_bad: zipkin
   service: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  TracingService
 metadata:
   name:  {self.path.k8s}-ts-bad2-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   driver: zipkin
   service_bad: {self.target.path.fqdn}
 """
         ]
 
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         counter = 0
 
         for m_yaml in self.models:
@@ -233,7 +236,7 @@ spec:
 
         for resource, error in errors:
             error_dict[resource] = error.split("\n", 1)[0]
-        
+
         for name in self.resource_names:
             assert name in error_dict, f"no error found for {name}"
 
@@ -243,7 +246,14 @@ spec:
             # stuff, the empty config we pass in our bad Module turns into None. Python
             # validation still catches it, but the error message is different.
 
-            if error != "not a valid Module: None is not of type 'object'":
+            # Don't be too picky about the serialization
+            expected_error = [
+                # if .spec.config is omitted because it's empty
+                "not a valid Module: None is not of type 'object'",
+                # if .spec.config is present-but-null
+                'spec.config in body must be of type object: "null"'
+            ]
+            if error not in expected_error:
                 assert 'required' in error, f"error for {name} should talk about required properties: {error}"
 
 
@@ -254,18 +264,19 @@ class ServerNameTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
   server_name: "test-server"
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.path.k8s}/server-name
+hostname: "*"
 prefix: /server-name
 service: {self.target.path.fqdn}
 """)
@@ -284,11 +295,11 @@ class SafeRegexMapping(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 prefix: /{self.name}/
 prefix_regex: true
@@ -319,11 +330,11 @@ class UnsafeRegexMapping(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 prefix: /{self.name}/
 prefix_regex: true
@@ -333,7 +344,7 @@ regex_headers:
   X-Foo: "^[a-z].*"
 service: http://{self.target.path.fqdn}
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:

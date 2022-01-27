@@ -22,7 +22,7 @@ if [[ -n "${VERSION_OVERRIDE}" ]] ; then
     version=${VERSION_OVERRIDE}
 fi
 
-if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
+if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] ; then
     # if this is a stable version, working directory must be clean
     # otherwise this is an rc, ea or test version and we don't care
     if [ -n "$(git status --porcelain)" ] ; then
@@ -36,8 +36,8 @@ elif [[ "${BUMP_STABLE}" = "true" ]] ; then
 fi
 
 echo ${version} > stable.txt
-if [ -z "$AWS_BUCKET" ] ; then
-    AWS_BUCKET=datawire-static-files
+if [ -z "$AWS_S3_BUCKET" ] ; then
+    AWS_S3_BUCKET=datawire-static-files
 fi
 
 # make this something different than ambassador, emissary, or edge-stack
@@ -45,7 +45,7 @@ fi
 unversioned_base_s3_key=yaml/v2-docs/
 base_s3_key=${unversioned_base_s3_key}${version}
 aws s3api put-object \
-    --bucket "$AWS_BUCKET" \
+    --bucket "$AWS_S3_BUCKET" \
     --key ${base_s3_key}
 
 echo "Pushing files to s3..."
@@ -58,7 +58,7 @@ for file in "$@"; do
     s3_key=`echo ${file} | sed "s#${basedir}##"`
     s3_key="${base_s3_key}/${s3_key}"
     aws s3api put-object \
-        --bucket "$AWS_BUCKET" \
+        --bucket "$AWS_S3_BUCKET" \
         --key ${s3_key} \
         --body "$file" &&  echo "... ${s3_key} pushed"
 done
@@ -66,7 +66,7 @@ done
 if [[ "${BUMP_STABLE}" = "true" ]] ; then
     echo "Bumping stable version for yaml/${dir}"
     aws s3api put-object \
-        --bucket "$AWS_BUCKET" \
+        --bucket "$AWS_S3_BUCKET" \
         --key "${unversioned_base_s3_key}stable.txt" \
         --body stable.txt
 fi

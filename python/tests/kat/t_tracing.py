@@ -1,13 +1,12 @@
+from typing import Generator, Tuple, Union
+
 import json
-import pytest
-import os
 
-from typing import ClassVar, Dict, List, Sequence, Tuple, Union
+from kat.harness import Query
 
-from kat.harness import sanitize, variants, Query, Runner
+from abstract_tests import AmbassadorTest, HTTP, AHTTP, Node
 
-from abstract_tests import AmbassadorTest, HTTP, AHTTP
-from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
+from ambassador import Config
 
 # The phase that we should wait until before performing test checks. Normally
 # this would be phase 2, which is 10 seconds after the first wave of queries,
@@ -61,15 +60,16 @@ spec:
           containerPort: 9411
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tracing_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -77,7 +77,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing
 service: zipkin:9411
@@ -179,15 +179,16 @@ spec:
           containerPort: 9411
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tracing_target_mapping_longclustername
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -195,7 +196,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing-longclustername
 service: zipkinservicenamewithoversixtycharacterstoforcenamecompression:9411
@@ -291,15 +292,16 @@ spec:
           containerPort: 9411
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tracing_target_mapping_64
+hostname: "*"
 prefix: /target-64/
 service: {self.target.path.fqdn}
 """)
@@ -307,7 +309,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing-64
 service: zipkin-64:9411
@@ -385,19 +387,20 @@ spec:
           containerPort: 9411
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tracing_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing-auth
 service: zipkin-auth:9411
@@ -406,12 +409,12 @@ driver: zipkin
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
 path_prefix: "/extauth"
-allowed_headers:
+allowed_request_headers:
 - Requested-Status
 - Requested-Header
 """)
@@ -484,15 +487,16 @@ spec:
           containerPort: 9411
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tracing_target_mapping_65
+hostname: "*"
 prefix: /target-65/
 service: {self.target.path.fqdn}
 """)
@@ -500,7 +504,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing-65
 service: zipkin-65:9411
@@ -586,14 +590,15 @@ spec:
           containerPort: 9411
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tracing_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -601,7 +606,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing
 service: zipkin-v2:9411
@@ -662,7 +667,7 @@ class TracingTestZipkinV1(AmbassadorTest):
     """
 
     def init(self):
-        if os.environ.get('KAT_USE_ENVOY_V3', '') != '':
+        if Config.envoy_api_version == "V3":
             self.skip_node = True
         self.target = HTTP()
 
@@ -706,15 +711,16 @@ spec:
           containerPort: 9411
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tracing_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -722,7 +728,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing
 service: zipkin-v1:9411

@@ -1,6 +1,8 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, ServiceType, EGRPC
+from abstract_tests import AmbassadorTest, ServiceType, EGRPC, Node
 
 class AcceptanceGrpcBridgeTest(AmbassadorTest):
 
@@ -9,10 +11,10 @@ class AcceptanceGrpcBridgeTest(AmbassadorTest):
     def init(self):
         self.target = EGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -21,9 +23,10 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 grpc: True
+hostname: "*"
 prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}

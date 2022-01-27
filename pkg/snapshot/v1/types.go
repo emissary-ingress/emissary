@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"strings"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/kates"
-	"github.com/datawire/ambassador/pkg/watt"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/watt"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
 
@@ -36,6 +36,9 @@ type Snapshot struct {
 	// portion of the snapshot. Changes in the Consul endpoint data are not
 	// reflected in this field.
 	Deltas []*kates.Delta
+	// The APIDocs field contains a list of OpenAPI documents scrapped from
+	// Ambassador Mappings part of the KubernetesSnapshot
+	APIDocs []*APIDoc `json:"APIDocs,omitempty"`
 	// The Invalid field contains any kubernetes resources that have failed
 	// validation.
 	Invalid []*kates.Unstructured
@@ -43,20 +46,22 @@ type Snapshot struct {
 }
 
 type AmbassadorMetaInfo struct {
-	ClusterID         string `json:"cluster_id"`
-	AmbassadorID      string `json:"ambassador_id"`
-	AmbassadorVersion string `json:"ambassador_version"`
-	KubeVersion       string `json:"kube_version"`
+	ClusterID         string          `json:"cluster_id"`
+	AmbassadorID      string          `json:"ambassador_id"`
+	AmbassadorVersion string          `json:"ambassador_version"`
+	KubeVersion       string          `json:"kube_version"`
+	Sidecar           json.RawMessage `json:"sidecar"`
 }
 
 type KubernetesSnapshot struct {
 	// k8s resources
-	IngressClasses []*kates.IngressClass `json:"ingressclasses"`
-	Ingresses      []*kates.Ingress      `json:"ingresses"`
-	Services       []*kates.Service      `json:"service"`
-	Endpoints      []*kates.Endpoints    `json:"Endpoints"`
+	IngressClasses []*IngressClass    `json:"ingressclasses"`
+	Ingresses      []*Ingress         `json:"ingresses"`
+	Services       []*kates.Service   `json:"service"`
+	Endpoints      []*kates.Endpoints `json:"Endpoints"`
 
 	// ambassador resources
+	Listeners   []*amb.Listener   `json:"Listener"`
 	Hosts       []*amb.Host       `json:"Host"`
 	Mappings    []*amb.Mapping    `json:"Mapping"`
 	TCPMappings []*amb.TCPMapping `json:"TCPMapping"`
@@ -111,6 +116,41 @@ type KubernetesSnapshot struct {
 	// ArgoApplications represents the argo-rollout CRD state of the world that may or may not be present
 	// in the client's cluster. For reasons why this is defined as unstructured see ArgoRollouts attribute.
 	ArgoApplications []*kates.Unstructured `json:"ArgoApplications,omitempty"`
+}
+
+// The APIDoc type is custom object built in the style of a Kubernetes resource (name, type, version)
+// which holds a reference to a Kubernetes object from which an OpenAPI document was scrapped (Data field)
+type APIDoc struct {
+	*kates.TypeMeta
+	Metadata  *kates.ObjectMeta      `json:"metadata,omitempty"`
+	TargetRef *kates.ObjectReference `json:"targetRef,omitempty"`
+	Data      []byte                 `json:"data,omitempty"`
+}
+
+// Custom Unmarshaller for the kubernetes snapshot
+// TODO: This should be REMOVED once LEGACY_MODE is removed.
+// This unmarshall will take a snapshot that comes from watt, and translate the mis-named fields
+// into the correct fields in KubernetesSnapshot
+func (a *KubernetesSnapshot) UnmarshalJSON(data []byte) error {
+	legacyK8sTranslator := struct {
+		LegacyModeListeners   []*amb.Listener   `json:"Listener"`
+		LegacyModeHosts       []*amb.Host       `json:"Host"`
+		LegacyModeMappings    []*amb.Mapping    `json:"Mapping"`
+		LegacyModeTCPMappings []*amb.TCPMapping `json:"TCPMapping"`
+	}{}
+
+	if err := json.Unmarshal(data, &legacyK8sTranslator); err != nil {
+		return err
+	}
+	type k8ssnap2 KubernetesSnapshot
+	if err := json.Unmarshal(data, (*k8ssnap2)(a)); err != nil {
+		return err
+	}
+	a.Listeners = append(a.Listeners, legacyK8sTranslator.LegacyModeListeners...)
+	a.Hosts = append(a.Hosts, legacyK8sTranslator.LegacyModeHosts...)
+	a.Mappings = append(a.Mappings, legacyK8sTranslator.LegacyModeMappings...)
+	a.TCPMappings = append(a.TCPMappings, legacyK8sTranslator.LegacyModeTCPMappings...)
+	return nil
 }
 
 func (a *KubernetesSnapshot) Render() string {

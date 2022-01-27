@@ -1,0 +1,25 @@
+name: generate
+description: "execute make generate twice, ensure git not dirty"
+
+runs:
+  using: "composite"
+  steps:
+    - name: "install bsdtar (libarchive-tools)"
+      shell: bash
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y libarchive-tools
+    - name: Install Deps
+      uses: ./.github/actions/setup-deps
+    - name: "'make generate'"
+      shell: bash
+      run: |
+        make generate
+    - uses: ./.github/actions/git-dirty-check
+      name: "Check git not dirty from 'make generate'"
+    - name: "'make generate' (again!)"
+      shell: bash
+      run: |
+        make generate
+    - uses: ./.github/actions/git-dirty-check
+      name: "Check git not dirty from 'make generate' (again!)"

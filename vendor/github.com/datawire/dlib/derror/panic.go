@@ -7,21 +7,25 @@ import (
 	"github.com/pkg/errors"
 )
 
-// causer is not exported by github.com/pkg/errors.
+// unwrapper is not exported by "errors".
+type unwrapper interface {
+	Unwrap() error
+}
+
+// causer is not exported by "github.com/pkg/errors".
 type causer interface {
 	Cause() error
 }
 
-// stackTracer is not exported by github.com/pkg/errors.
+// stackTracer is not exported by "github.com/pkg/errors".
 type stackTracer interface {
 	StackTrace() errors.StackTrace
 }
 
-// featurefulError documents the features of
-// github.com/pkg/errors.Wrap().
+// featurefulError documents the features of github.com/pkg/errors.WithStack() and
+// github.com/pkg/errors.Errorf().
 type featurefulError interface {
 	error
-	//causer
 	stackTracer
 	fmt.Formatter
 }
@@ -31,7 +35,8 @@ type panicError struct {
 }
 
 func (pe panicError) Error() string                 { return "PANIC: " + pe.err.Error() }
-func (pe panicError) Cause() error                  { return pe.err }
+func (pe panicError) Unwrap() error                 { return pe.err } // Go 1.13 std "errors"
+func (pe panicError) Cause() error                  { return pe.err } // "github.com/pkg/errors"
 func (pe panicError) StackTrace() errors.StackTrace { return pe.err.StackTrace()[1:] }
 func (pe panicError) Format(s fmt.State, verb rune) {
 	switch verb {
@@ -50,6 +55,7 @@ func (pe panicError) Format(s fmt.State, verb rune) {
 	}
 }
 
+var _ unwrapper = panicError{}
 var _ causer = panicError{}
 var _ featurefulError = panicError{}
 

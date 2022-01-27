@@ -1,28 +1,63 @@
 {
-    "$schema": "http://json-schema.org/schema#",
     "id": "https://getambassador.io/schemas/mapping.json",
-
+    "$schema": "http://json-schema.org/schema#",
     "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "service"
+    ],
     "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v0" ] },
-        "generation": { "type": "integer" },
-        "kind": { "type": "string" },
-        "name": { "type": "string" },
-        "namespace": { "type": "string" },
-        "metadata_labels": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
-        },
         "ambassador_id": {
             "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
             ]
         },
-        
-        "service": { "type": "string" },
-        "timeout_ms": { "type": "integer" }
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v0"
+            ]
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "kind": {
+            "type": "string"
+        },
+        "metadata_labels": {
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "service": {
+            "type": "string"
+        },
+        "timeout_ms": {
+            "type": "integer"
+        }
     },
-    "required": [ "apiVersion", "kind", "name", "service" ],
     "additionalProperties": false
 }

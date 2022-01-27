@@ -9,12 +9,32 @@ namespaceOverride: ''
 replicaCount: 3
 # If true, Create a DaemonSet. By default Deployment controller will be created
 daemonSet: false
+# If true, Create a bare Pod instead of a Deployment or DaemonSet; for
+# test purposes.
+barePod: false
 
 test:
   # If true, Create test Pod to verify the Ambassador service works correctly (Only created on helm test)
   enabled: true
   # Image to use for the test Pod
   image: busybox
+
+canary:
+  # Creates a Canary deployment and service using the following canary settings. Other settings inherited from main deployment
+  enabled: false
+  # When true allows for requests to the main ambassador to hit either the pods from the main deployment or the canary deployment.
+  # Requests to the canary service will still only hit the canary pods
+  mixPods: false
+  # Similar to 'replicaCount', but controls the number of pods for the Canary deployment. 0 by default
+  replicaCount: 0
+  # If a value is supplied, then the canary deployment will use the following image for Ambassador instead of using the image from the main deployment
+  image:
+    # Controlls the image repository for the canary deployment.
+    repository: ''
+    # Controlls the tag for the canary deployments image.repository. Uses the repository from the main deployment if the canay.image.repository is not set.
+    tag: ''
+  # Environment variables to be used for the canary deployment, see `envRaw` for usage example
+  envRaw: {}
 
 # Enable autoscaling using HorizontalPodAutoscaler
 # daemonSet: true, autoscaling will be disabled
@@ -59,16 +79,17 @@ env: {}
 
 # Additional container environment variable in raw YAML format
 # Example:
-# - name: REDIS_PASSWORD
-#   value: password
-#   valueFrom:
-#     secretKeyRef:
-#       name: redis-password
-#       key: password
-# - name: POD_IP
-#   valueFrom:
-#     fieldRef:
-#       fieldPath: status.podIP
+# envRaw: |
+#   - name: REDIS_PASSWORD
+#     value: password
+#     valueFrom:
+#       secretKeyRef:
+#         name: redis-password
+#         key: password
+#   - name: POD_IP
+#     valueFrom:
+#       fieldRef:
+#         fieldPath: status.podIP
 envRaw: {}
 
 # Image pull secrets
@@ -116,9 +137,9 @@ security:
 
 image:
   # Emissary Ingress docker repo
-  repository: docker.io/datawire/ambassador
+  repository: docker.io/emissaryingress/emissary
   # Emissary Ingress docker tag
-  tag: 1.13.6
+  tag: 2.1.0
   # Pod container image pull policy
   pullPolicy: IfNotPresent
 
@@ -150,6 +171,8 @@ service:
       # targetPort: 2222
       # protocol: TCP
       # nodePort: 30222
+  # For test purposes, do not use.
+  portsRaw: ''
 
   externalTrafficPolicy:
 
@@ -201,9 +224,17 @@ serviceAccount:
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name:
+  # Extra YAML to include at the end of the ServiceAccount
+  extra: ''
 
 deploymentStrategy:
   type: RollingUpdate
+
+# configures progressDeadlineSeconds for deployments
+progressDeadlines:
+  ambassador: 600
+  agent: 600
+
 
 restartPolicy:
 
@@ -275,14 +306,6 @@ topologySpreadConstraints: []
 # Config thats mounted to `/ambassador/ambassador-config`
 ambassadorConfig: ''
 
-crds:
-  # If `true`, enables CRD resources for the installation.
-  enabled: true
-  # If true, Creates CRD resources
-  create: true
-  # If true, if the ambassador CRDs should be kept when the chart is deleted
-  keep: true
-
 # Prometheus Operator ServiceMonitor configuration
 # See documentation: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitor
 metrics:
@@ -353,10 +376,12 @@ prometheusExporter: # +doc-gen:break
 
 # Configure the ambassador agent
 agent:
+  # If `true`, installs the ambassador-agent Deployment, ServiceAccount and ClusterRole in the ambassador namespace, enabling the Service Catalog
   enabled: true
-  # this will be empty when it first gets applied, then the user will edit the agent to
-  # make it start reporting
+  # API token for reporting snapshots to the [Service Catalog](https://app.getambassador.io/cloud/catalog/);
+  # If empty, agent will not report snapshots
   cloudConnectToken: ''
+  # Address of the ambassador Service Catalog rpc server.
   rpcAddress: https://app.getambassador.io/
   createArgoRBAC: true
   image:
@@ -369,3 +394,8 @@ deploymentTool: ''
 # configure docker to pull from private registry
 docker: {}
 createNamespace: false
+
+# Whether Emissary should be created with default listeners:
+# - HTTP on port 8080
+# - HTTPS on port 8443
+createDefaultListeners: false

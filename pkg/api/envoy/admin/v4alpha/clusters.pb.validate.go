@@ -17,7 +17,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 
-	v4alpha "github.com/datawire/ambassador/pkg/api/envoy/config/core/v4alpha"
+	v4alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v4alpha"
 )
 
 // ensure the imports are used
@@ -36,9 +36,6 @@ var (
 
 	_ = v4alpha.HealthStatus(0)
 )
-
-// define the regex for a UUID once up-front
-var _clusters_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 
 // Validate checks the field values on Clusters with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
@@ -160,6 +157,16 @@ func (m *ClusterStatus) Validate() error {
 		if err := v.Validate(); err != nil {
 			return ClusterStatusValidationError{
 				field:  "LocalOriginSuccessRateEjectionThreshold",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetCircuitBreakers()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterStatusValidationError{
+				field:  "CircuitBreakers",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

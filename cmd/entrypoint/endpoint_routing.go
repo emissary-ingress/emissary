@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/datawire/ambassador/cmd/ambex"
-	"github.com/datawire/ambassador/pkg/consulwatch"
-	"github.com/datawire/ambassador/pkg/kates"
-	"github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/ambassador/v2/cmd/ambex"
+	"github.com/datawire/ambassador/v2/pkg/consulwatch"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
 

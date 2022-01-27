@@ -3,7 +3,11 @@
 Expand the name of the chart.
 */}}
 {{- define "ambassador.name" -}}
+{{- if contains "ambassador" .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -18,10 +22,25 @@ If release name contains chart name it will be used as a full name.
 {{- $name := default .Chart.Name .Values.nameOverride -}}
 {{- if contains $name .Release.Name -}}
 {{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else if contains "ambassador" .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+The base set of labels for all resources.
+*/}}
+{{- define "ambassador.labels" -}}
+{{- $deploymentTool := .Values.deploymentTool | default .Release.Service }}
+{{- if eq $deploymentTool "Helm" -}}
+helm.sh/chart: {{ include "ambassador.chart" . }}
+{{- end }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/part-of: {{ .Release.Name }}
+app.kubernetes.io/managed-by: {{ $deploymentTool }}
 {{- end -}}
 
 {{/*
@@ -35,9 +54,30 @@ Then if the image repository is explicitly set, use "repository:image"
 {{- else if hasKey .Values.image "repository"  -}}
 {{- printf "%s:%s" .Values.image.repository .Values.image.tag -}}
 {{- else -}}
-{{- printf "%s:%s" "docker.io/datawire/ambassador" .Values.image.tag -}}
+{{- printf "%s:%s" "docker.io/emissaryingress/emissary" .Values.image.tag -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Set the image that should be used for the canary deployment.
+disabled if fullImageOverride is present
+*/}}
+{{- define "ambassador.canaryImage" -}}
+{{- if .Values.image.fullImageOverride }}
+{{- printf "%s" "" -}}
+{{- else if and .Values.canary.image.repository .Values.canary.image.tag -}}
+{{- printf "%s:%s" .Values.canary.image.repository .Values.canary.image.tag -}}
+{{- else if .Values.canary.image.tag -}}
+{{- if hasKey .Values.image "repository" -}}
+{{- printf "%s:%s" .Values.image.repository .Values.canary.image.tag -}}
+{{- else -}}
+{{- printf "%s:%s" "docker.io/emissaryingress/emissary" .Values.canary.image.tag -}}
+{{- end -}}
+{{- else -}}
+{{- printf "%s" "" -}}
+{{- end -}}
+{{- end -}}
+
 
 {{/*
 Create chart namespace based on override value.

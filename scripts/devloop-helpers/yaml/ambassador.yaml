@@ -58,12 +58,12 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  TLSContext
       name:  server-context
       secret: client-cert-server-secret
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  TLSContext
       name:  client-context
       secret: client-cert-secret

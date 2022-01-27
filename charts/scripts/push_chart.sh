@@ -26,19 +26,21 @@ if ! command -v helm 2> /dev/null ; then
     ./get_helm.sh --version v3.4.1
     rm -f get_helm.sh
 fi
-thisversion=$(get_chart_version ${TOP_DIR})
+thisversion=$(get_chart_version ${chart_dir})
 
 repo_key=
 if [[ -n "${REPO_KEY}" ]] ; then
     repo_key="${REPO_KEY}"
-elif [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
-    # repo_key=ambassador
-    repo_key=emissary-ingress   # I really don't want this messing with ambassador's stuff now
+elif [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] ; then
+    repo_key=charts
 else
-    # repo_key=ambassador-dev
-    repo_key=emissary-ingress   # I really don't want this messing with ambassador's stuff now
+    repo_key=charts-dev
 fi
-repo_url=https://s3.amazonaws.com/datawire-static-files/${repo_key}/
+if [ -z "$AWS_S3_BUCKET" ] ; then
+    AWS_S3_BUCKET=datawire-static-files
+fi
+
+repo_url=https://s3.amazonaws.com/${AWS_S3_BUCKET}/${repo_key}/
 
 rm -f ${chart_dir}/*.tgz
 info "Pushing Helm Chart"
@@ -54,48 +56,39 @@ if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$  ]] && [[ $(grep -c "${chart_name
 	exit 1
 fi
 
-helm repo index ${chart_dir} --url ${repo_url} --merge ${chart_dir}/tmp.yaml
-
-if [ -z "$AWS_BUCKET" ] ; then
-    AWS_BUCKET=datawire-static-files
-fi
 
 [ -n "$AWS_ACCESS_KEY_ID"     ] || abort "AWS_ACCESS_KEY_ID is not set"
 [ -n "$AWS_SECRET_ACCESS_KEY" ] || abort "AWS_SECRET_ACCESS_KEY is not set"
 
-info "Pushing chart to S3 bucket $AWS_BUCKET"
-for f in "$CHART_PACKAGE" "${chart_dir}/index.yaml" ; do
+info "Pushing chart to S3 bucket $AWS_S3_BUCKET"
+for f in "$CHART_PACKAGE" ; do
     fname=`basename $f`
     echo "pushing ${repo_key}/$fname"
     aws s3api put-object \
-        --bucket "$AWS_BUCKET" \
+        --bucket "$AWS_S3_BUCKET" \
         --key "${repo_key}/$fname" \
         --body "$f" && passed "... ${repo_key}/$fname pushed"
 done
 
 info "Cleaning up..."
 echo
-rm ${chart_dir}/tmp.yaml ${chart_dir}/index.yaml "$CHART_PACKAGE"
+rm ${chart_dir}/tmp.yaml "$CHART_PACKAGE"
 
-if [[ `basename ${chart_dir}` != ambassador ]] ; then
-    info "This script only publishes release for the ambassador chart, skipping publishing git release for ${chart_dir}"
+if [[ `basename ${chart_dir}` != emissary-ingress ]] ; then
+    info "This script only publishes release for the emissary-ingress chart, skipping publishing git release for ${chart_dir}"
     exit 0
 fi
 
-if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ -n "${PUBLISH_GIT_RELEASE}" ]]; then
-    if [[ -z "${CIRCLE_SHA1}" ]] ; then
-        echo "CIRCLE_SHA1 not set"
-        exit 1
-    fi
-    if [[ -z "${GH_RELEASE_TOKEN}" ]] ; then
-        echo "GH_RELEASE_TOKEN not set"
+if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] && [[ -n "${PUBLISH_GIT_RELEASE}" ]]; then
+    if [[ -z "${GH_GITHUB_API_KEY}" ]] ; then
+        echo "GH_GITHUB_API_KEY not set"
         exit 1
     fi
     tag="chart-v${thisversion}"
     export CHART_VERSION=${thisversion}
     title=`envsubst < ${chart_dir}/RELEASE_TITLE.tpl`
     repo_full_name="emissary-ingress/emissary"
-    token="${GH_RELEASE_TOKEN}"
+    token="${GH_GITHUB_API_KEY}"
     description=`envsubst < ${chart_dir}/RELEASE.tpl | awk '{printf "%s\\\n", $0}'`
     in_changelog=false
     while IFS= read -r line ; do
@@ -122,7 +115,7 @@ if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ -n "${PUBLISH_GIT_RELEAS
   "body": "${description}",
   "draft": false,
   "prerelease": false,
-  "target_commitish": "${CIRCLE_SHA1}"
+  "target_commitish": "${GITHUB_REF}"
 }
 EOF
     }

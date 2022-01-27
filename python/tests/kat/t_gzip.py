@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Generator, Tuple, Union
 
 from kat.harness import Query
 
@@ -11,10 +11,10 @@ class GzipMinimumConfigTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -23,16 +23,17 @@ config:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
 
     def queries(self):
         yield Query(self.url("target/"), headers={"Accept-Encoding": "gzip"}, expected=200)
-        
+
     def check(self):
         assert self.results[0].headers["Content-Encoding"] == [ "gzip" ]
 
@@ -43,10 +44,10 @@ class GzipTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -58,16 +59,17 @@ config:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
 
     def queries(self):
         yield Query(self.url("target/"), headers={"Accept-Encoding": "gzip"}, expected=200)
-        
+
     def check(self):
         assert self.results[0].headers["Content-Encoding"] == [ "gzip" ]
 
@@ -78,10 +80,10 @@ class GzipNotSupportedContentTypeTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -92,15 +94,16 @@ config:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
 
     def queries(self):
         yield Query(self.url("target/"), headers={"Accept-Encoding": "gzip"}, expected=200)
-        
+
     def check(self):
         assert "Content-Encoding" not in self.results[0].headers

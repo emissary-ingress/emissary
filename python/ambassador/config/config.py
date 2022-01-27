@@ -53,6 +53,20 @@ StringOrList = Union[str, List[str]]
 Validator = Callable[[ACResource], RichStatus]
 
 
+def envoy_api_version():
+    """
+    Return the Envoy API version we should be using.
+    """
+    env_version = os.environ.get('AMBASSADOR_ENVOY_API_VERSION', 'V3')
+
+    version = env_version.upper()
+
+    if version == 'V2' or env_version == 'V3':
+        return version
+
+    return 'V2'
+
+
 class Config:
     # CLASS VARIABLES
     # When using multiple Ambassadors in one cluster, use AMBASSADOR_ID to distinguish them.
@@ -62,11 +76,15 @@ class Config:
     certs_single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_CERTS_SINGLE_NAMESPACE', os.environ.get('AMBASSADOR_SINGLE_NAMESPACE')))
     enable_endpoints: ClassVar[bool] = not bool(os.environ.get('AMBASSADOR_DISABLE_ENDPOINTS'))
     legacy_mode: ClassVar[bool] = parse_bool(os.environ.get('AMBASSADOR_LEGACY_MODE'))
+    log_resources: ClassVar[bool] = parse_bool(os.environ.get('AMBASSADOR_LOG_RESOURCES'))
+    envoy_api_version: ClassVar[str] = envoy_api_version()
+    envoy_bind_address: ClassVar[str] = os.environ.get('AMBASSADOR_ENVOY_BIND_ADDRESS', "0.0.0.0")
 
     StorageByKind: ClassVar[Dict[str, str]] = {
         'authservice': "auth_configs",
         'consulresolver': "resolvers",
         'host': "hosts",
+        'listener': "listeners",
         'mapping': "mappings",
         'kubernetesendpointresolver': "resolvers",
         'kubernetesserviceresolver': "resolvers",
@@ -80,8 +98,9 @@ class Config:
 
     SupportedVersions: ClassVar[Dict[str, str]] = {
         "v0": "is deprecated, consider upgrading",
-        "v1": "ok",
-        "v2": "ok"
+        "v1": "is deprecated, consider upgrading",
+        "v2": "is deprecated, consider upgrading",
+        "v3alpha1": "ok",
     }
 
     NoSchema: ClassVar = {
@@ -95,6 +114,7 @@ class Config:
     # INSTANCE VARIABLES
     ambassador_nodename: str = "ambassador"     # overridden in Config.reset
 
+    schema_dir_path: str                        # where to look for JSONSchema files
     current_resource: Optional[ACResource] = None
     helm_chart: Optional[str]
 
@@ -118,14 +138,17 @@ class Config:
     # resource is invalid, but Python says it's OK.
     fast_validation_disagreements: Dict[str, List[str]]
 
-    def __init__(self, schema_dir_path: Optional[str]=None) -> None:
-
-        self.logger = logging.getLogger("ambassador.config")
+    def __init__(self, logger:logging.Logger=None, schema_dir_path: Optional[str]=None) -> None:
+        self.logger = logger or logging.getLogger("ambassador.config")
 
         if not schema_dir_path:
             # Note that this "resource_filename" has to do with setuptool packages, not
             # with our ACResource class.
             schema_dir_path = resource_filename(Requirement.parse("ambassador"), "schemas")
+
+        # Once here, we know that schema_dir_path cannot be None. assert that, for mypy's
+        # benefit.
+        assert schema_dir_path is not None
 
         self.statsd: Dict[str, Any] = {
             'enabled': (os.environ.get('STATSD_ENABLED', '').lower() == 'true'),
@@ -293,14 +316,18 @@ class Config:
         rcount = 0
 
         for resource in resources:
-            self.logger.debug(f"Trying to parse resource: {resource}")
+            if Config.log_resources:
+                self.logger.debug("Trying to parse resource: %s", resource)
 
             rcount += 1
 
             if not self.good_ambassador_id(resource):
                 continue
 
-            self.logger.debug("LOAD_ALL: %s @ %s" % (resource, resource.location))
+            if Config.log_resources:
+                self.logger.debug("LOAD_ALL: %s @ %s", resource, resource.location)
+            else:
+                self.logger.debug("LOAD_ALL: process %s", resource.location)
 
             rc = self.process(resource)
 
@@ -308,7 +335,7 @@ class Config:
                 # Object error. Not good but we'll allow the system to start.
                 self.post_error(rc, resource=resource)
 
-        self.logger.debug("LOAD_ALL: processed %d resource%s" % (rcount, "" if (rcount == 1) else "s"))
+        self.logger.debug("LOAD_ALL: processed %d resource%s", rcount, "" if (rcount == 1) else "s")
 
         if self.fatal_errors:
             # Kaboom.
@@ -481,11 +508,11 @@ class Config:
 
         # If we're not running in legacy mode, though...
         if not Config.legacy_mode:
-            # ...then entrypoint.go will have already done validation, and we'll 
+            # ...then entrypoint.go will have already done validation, and we'll
             # trust that its validation is good _UNLESS THIS IS A MODULE_. Why?
-            # Well, at present entrypoint.go can't actually validate Modules _at all_ 
+            # Well, at present entrypoint.go can't actually validate Modules _at all_
             # (because Module.spec.config is just a dict of anything, pretty much),
-            # and that means it can't check for Modules with missing configs, and 
+            # and that means it can't check for Modules with missing configs, and
             # Modules with missing configs will crash Ambassador.
 
             if resource.kind.lower() != "module":
@@ -498,11 +525,11 @@ class Config:
             need_validation = True
             del(resource['_force_validation'])
 
-        # Did entrypoint.go flag errors here? (This can only happen if we're not in 
-        # legacy mode -- in a later version we'll short-circuit earlier, but for now 
+        # Did entrypoint.go flag errors here? (This can only happen if we're not in
+        # legacy mode -- in a later version we'll short-circuit earlier, but for now
         # we're going to re-validate as a sanity check.)
         #
-        # (It's still called watt_errors because our other docs talk about "watt 
+        # (It's still called watt_errors because our other docs talk about "watt
         # snapshots", and I'm OK with retaining that name for the format.)
 
         watt_errors = None
@@ -526,7 +553,7 @@ class Config:
 
         # ...then, let's see whether reality matches our assumption.
         if need_validation:
-            # Aha, we need to do validation -- either we're in legacy mode, or 
+            # Aha, we need to do validation -- either we're in legacy mode, or
             # entrypoint.go reported errors. So if we can do validation, do it.
 
             # Do we have a validator that can work on this object?
@@ -583,7 +610,7 @@ class Config:
     def cannot_validate(self, apiVersion: str, kind: str) -> RichStatus:
         self.logger.debug(f"Cannot validate getambassador.io/{apiVersion} {kind}")
 
-        return RichStatus.OK(msg="Not validating getambassador.io/{apiVersion} {kind}")
+        return RichStatus.OK(msg=f"Not validating getambassador.io/{apiVersion} {kind}")
 
     def get_proto_validator(self, apiVersion, kind) -> Optional[Validator]:
         # See if we can import a protoclass...

@@ -24,8 +24,17 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 TEST_DATA_DIR=/tmp/test-data/
+if [[ -n "${TEST_XML_DIR}" ]] ; then
+    TEST_DATA_DIR=${TEST_XML_DIR}
+fi
 
-DBUILD=${DIR}/dbuild.sh
+dsum() {
+    local exe=${DIR}/../tools/bin/dsum
+    if ! test -f "$exe"; then
+        make -C "$DIR/.." tools/bin/dsum
+    fi
+    "$exe" "$@"
+}
 
 now=$(date +"%H%M%S")
 
@@ -173,9 +182,8 @@ print("stage2_tag=%s" % stage2)
 
     msg2 "Using stage-1 base ${BLU}${name1}${GRN}"
     if ! (docker image inspect "$name1" || docker pull "$name2") &>/dev/null; then # skip building if the "$name1" already exists
-        TIMEFORMAT="     (stage-1 build took %1R seconds)"
-        time ${DBUILD} -f "${DIR}/Dockerfile.base" -t "${name1}" --target builderbase-stage1 "${DIR}"
-        unset TIMEFORMAT
+        dsum 'stage-1 build' 3s \
+             docker build -f "${DIR}/Dockerfile.base" -t "${name1}" --target builderbase-stage1 "${DIR}"
         if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then
             TIMEFORMAT="     (stage-1 push took %1R seconds)"
             time docker push "$name1"
@@ -189,9 +197,8 @@ print("stage2_tag=%s" % stage2)
 
     msg2 "Using stage-2 base ${BLU}${name2}${GRN}"
     if ! (docker image inspect "$name2" || docker pull "$name2") &>/dev/null; then # skip building if the "$name2" already exists
-        TIMEFORMAT="     (stage-2 build took %1R seconds)"
-        time ${DBUILD} --build-arg=builderbase_stage1="$name1" -f "${DIR}/Dockerfile.base" -t "${name2}" --target builderbase-stage2 "${DIR}"
-        unset TIMEFORMAT
+        dsum 'stage-2 build' 3s \
+             docker build --build-arg=builderbase_stage1="$name1" -f "${DIR}/Dockerfile.base" -t "${name2}" --target builderbase-stage2 "${DIR}"
         if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then
             TIMEFORMAT="     (stage-2 push took %1R seconds)"
             time docker push "$name2"
@@ -226,13 +233,12 @@ bootstrap() {
         builder_base_image=$(cat docker/builder-base.docker)
         envoy_base_image=$(cat docker/base-envoy.docker)
         msg2 'Bootstrapping build image'
-        TIMEFORMAT="     (builder bootstrap took %1R seconds)"
-        time ${DBUILD} \
-            --build-arg=envoy="${envoy_base_image}" \
-            --build-arg=builderbase="${builder_base_image}" \
-            --target=builder \
-            ${DIR} -t ${BUILDER_NAME}.local/builder
-        unset TIMEFORMAT
+        dsum 'builder bootstrap' 3s \
+             docker build \
+             --build-arg=envoy="${envoy_base_image}" \
+             --build-arg=builderbase="${builder_base_image}" \
+             --target=builder \
+             ${DIR} -t ${BUILDER_NAME}.local/builder
         if stat --version | grep -q GNU ; then
             DOCKER_GID=$(stat -c "%g" /var/run/docker.sock)
         else
@@ -292,6 +298,9 @@ module_version() {
 
     if [ -f docs/yaml/versions.yml ]; then
         BASE_VERSION=$(grep version: docs/yaml/versions.yml | awk ' { print $2 }')
+        if [[ "${BASE_VERSION}" =~ -ea$ ]] ; then
+            BASE_VERSION=${BASE_VERSION%-ea}
+        fi
     else
         # We have... nothing.
         echo "No base version" >&2
@@ -315,8 +324,8 @@ module_version() {
         dirty=""
     fi
     # The _previous_ tag, plus a git delta, like 'v1.13.3-117-g2434c437f'... or, if we're _on_
-    # a tag, just something like 'v1.13.3'.
-    GIT_DESCRIPTION=$(git describe --tags --match 'v*')
+    # a tag, just something like 'v1.13.3'. Don't allow hotfix tags to appear here, though!
+    GIT_DESCRIPTION=$(git describe --tags --match 'v*' --exclude '*-hf.*')
     echo GIT_DESCRIPTION="\"$GIT_DESCRIPTION\""
 
     # Do we have a '-' in our GIT_DESCRIPTION?
@@ -580,47 +589,6 @@ case "${cmd}" in
         done
         rm -f go.dirty  # Do this after _all_ the Go code is built
         ;;
-    mypy-internal)
-        # This runs inside the builder image
-        shift
-        op="$1"
-
-        # This runs inside the builder image
-        if [[ $(find-modules) != /buildroot/ambassador* ]]; then
-            echo "Error: ambassador must be the first module to build things correctly"
-            echo "Modules are: $(find-modules)"
-            exit 1
-        fi
-
-        for MODDIR in $(find-modules); do
-            module=$(basename ${MODDIR})
-
-            if [ -e "${MODDIR}/python" ]; then
-                cd "${MODDIR}"
-
-                case "$op" in
-                    start)
-                        if ! dmypy status >/dev/null; then
-                            dmypy start -- --use-fine-grained-cache --follow-imports=skip --ignore-missing-imports
-                            printf "${CYN}==> ${GRN}Started mypy server for ${BLU}$module${GRN} Python code${END}\n"
-                        else
-                            printf "${CYN}==> ${GRN}mypy server already running for ${BLU}$module${GRN} Python code${END}\n"
-                        fi
-                        ;;
-
-                    stop)
-                        printf "${CYN}==> ${GRN}Stopping mypy server for ${BLU}$module${GRN} Python code${END}"
-                        dmypy stop
-                        ;;
-
-                    check)
-                        printf "${CYN}==> ${GRN}Running mypy over ${BLU}$module${GRN} Python code${END}\n"
-                        time dmypy check python
-                        ;;
-                esac
-            fi
-        done
-        ;;
 
     pip-compile)
         build_builder_base --stage1-only
@@ -652,7 +620,7 @@ case "${cmd}" in
         fi
 
         if [ -z "$KUBESTATUS_PATH" ] ; then
-            export KUBESTATUS_PATH="${MODDIR}/bin/kubestatus"
+            export KUBESTATUS_PATH="${MODDIR}/tools/bin/kubestatus"
         fi
         if [ ! -f "$KUBESTATUS_PATH" ] ; then
             echo "Kubestatus not found at $KUBESTATUS_PATH"
@@ -664,6 +632,38 @@ case "${cmd}" in
         echo "$0: MODDIR=$MODDIR"
         echo "$0: ENVOY_PATH=$ENVOY_PATH"
         echo "$0: KUBESTATUS_PATH=$KUBESTATUS_PATH"
+        if ! (cd ${MODDIR} && pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=${TEST_DATA_DIR}/pytest.xml --tb=short -rP "${pytest_args[@]}") then
+            fail="yes"
+        fi
+
+        if [ "${fail}" = yes ]; then
+            exit 1
+        fi
+        ;;
+
+    pytest-local-unit)
+        fail=""
+        mkdir -p ${TEST_DATA_DIR}
+
+        if [ -z "$SOURCE_ROOT" ] ; then
+            export SOURCE_ROOT="$PWD"
+        fi
+
+        if [ -z "$MODDIR" ] ; then
+            export MODDIR="$PWD"
+        fi
+
+        if [ -z "$ENVOY_PATH" ] ; then
+            export ENVOY_PATH="${MODDIR}/bin/envoy"
+        fi
+        if [ ! -f "$ENVOY_PATH" ] ; then
+            echo "Envoy not found at ENVOY_PATH=$ENVOY_PATH"
+            exit 1
+        fi
+
+        echo "$0: SOURCE_ROOT=$SOURCE_ROOT"
+        echo "$0: MODDIR=$MODDIR"
+        echo "$0: ENVOY_PATH=$ENVOY_PATH"
         if ! (cd ${MODDIR} && pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=${TEST_DATA_DIR}/pytest.xml --tb=short -rP "${pytest_args[@]}") then
             fail="yes"
         fi
@@ -701,7 +701,7 @@ case "${cmd}" in
                     if [[ -n "${TEST_XML_DIR}" ]] ; then
                         junitarg="--junitfile ${TEST_XML_DIR}/${modname}-gotest.xml"
                     fi
-                    if ! (cd ${MODDIR} && gotestsum ${junitarg} --rerun-fails=3 --packages="${pkgs}" -- ${GOTEST_ARGS}) ; then
+                    if ! (cd ${MODDIR} && gotestsum ${junitarg} --rerun-fails=3 --format=testname --packages="${pkgs}" -- -v ${GOTEST_ARGS}) ; then
                        fail="yes"
                     fi
                 fi

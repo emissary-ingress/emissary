@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""Waits for ga docker image
+"""
+
+import argparse
+import http.client
+import sys
+import time
+import subprocess
+import fileinput
+
+from lib import ansiterm
+
+
+def check_docker(image: str) -> bool:
+    p = subprocess.run(["docker", "pull", image], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return p.returncode == 0
+
+
+def main(ga_tag: str, release_registry: str, image_name: str) -> int:
+    image = f"{release_registry}/{image_name}:{ga_tag}"
+    print(f"{ansiterm.sgr.bold.fg_cyn}==> Waiting for GA image {image}")
+    print(f"    Check Circle CI if you would like to check progress:")
+    print(f"        https://app.circleci.com/pipelines/github/emissary-ingress/emissary")
+    print(f"    The 'OSS: GA Release' workflow for tag {ga_tag} should create these artifacts.{ansiterm.sgr.reset}")
+
+    docker_found = False
+    while not docker_found:
+        if check_docker(image):
+            print(f"==> {ansiterm.sgr.bold.fg_grn}Image {image} found!{ansiterm.sgr}")
+            docker_found = True
+        else:
+            print(f"        {ansiterm.sgr.fg_red}Image {image} not found, sleeping before trying again.{ansiterm.sgr}")
+            time.sleep(30)
+    if not docker_found:
+        return 1
+    return 0
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Wait for commit to show up in s3')
+    parser.add_argument('--ga-tag', required=True)
+    parser.add_argument('--release-registry', default="docker.io/datawire")
+    parser.add_argument('--image-name', default="emissary")
+    args = parser.parse_args()
+
+    sys.exit(main(
+        ga_tag=args.ga_tag,
+        release_registry=args.release_registry,
+        image_name=args.image_name,
+    ))

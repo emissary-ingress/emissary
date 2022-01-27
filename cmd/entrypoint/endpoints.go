@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -40,9 +40,9 @@ func (rt ResolverType) String() string {
 		return "KubernetesEndpointResolver"
 	case ConsulResolver:
 		return "ConsulResolver"
+	default:
+		panic(fmt.Errorf("ResolverType.String: invalid enum value: %d", rt))
 	}
-
-	panic("unknown resolver type")
 }
 
 // newEndpointRoutingInfo creates a shiny new struct to hold information about
@@ -74,7 +74,7 @@ func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s 
 	// includes Modules and Resolvers. When we are done with Phase one we have processed enough
 	// resources to correctly interpret Mappings.
 	for _, a := range s.Annotations {
-		if include(GetAmbId(a)) {
+		if include(GetAmbId(ctx, a)) {
 			eri.checkResourcePhase1(ctx, a, "annotation")
 		}
 	}
@@ -119,7 +119,7 @@ func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s 
 	}
 
 	for _, a := range s.Annotations {
-		if include(GetAmbId(a)) {
+		if include(GetAmbId(ctx, a)) {
 			eri.checkResourcePhase2(ctx, a, "annotation")
 		}
 	}

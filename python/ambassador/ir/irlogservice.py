@@ -72,15 +72,16 @@ class IRLogService(IRResource):
                 service=self.service,
                 host_rewrite=self.get('host_rewrite', None),
                 marker='logging',
-                grpc=self.grpc
+                grpc=self.grpc,
+                stats_name=self.get("stats_name", None)
             )
         )
 
         self.cluster.referenced_by(self)
 
     def get_common_config(self) -> dict:
-        # get_common_config isn't allowed to be called before add_mappings 
-        # is called (by ir.walk_saved_resources). So we can assert that 
+        # get_common_config isn't allowed to be called before add_mappings
+        # is called (by ir.walk_saved_resources). So we can assert that
         # self.cluster isn't None here, both to make mypy happier and out
         # of paranoia.
         assert(self.cluster)

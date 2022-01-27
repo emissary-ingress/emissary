@@ -89,11 +89,11 @@ def V3HTTPFilter(irfilter: IRFilter, v3config: 'V3Config'):
     if irfilter.kind == 'IRAuth':
         if irfilter.api_version == 'getambassador.io/v0':
             return 'IRAuth_v0'
-        elif irfilter.api_version in ['getambassador.io/v1', 'getambassador.io/v2']:
-            return 'IRAuth_v1-2'
+        elif irfilter.api_version in ['getambassador.io/v1', 'getambassador.io/v2', 'getambassador.io/v3alpha1']:
+            return 'IRAuth_v1-3'
         else:
-            irfilter.post_error('AuthService version %s unknown, treating as v2' % irfilter.api_version)
-            return 'IRAuth_v1-2'
+            irfilter.post_error('AuthService version %s unknown, treating as v3alpha1' % irfilter.api_version)
+            return 'IRAuth_v1-3'
     else:
         return irfilter.kind
 
@@ -112,21 +112,30 @@ def V3HTTPFilter_buffer(buffer: IRBuffer, v3config: 'V3Config'):
 @V3HTTPFilter.when("IRGzip")
 def V3HTTPFilter_gzip(gzip: IRGzip, v3config: 'V3Config'):
     del v3config  # silence unused-variable warning
+    common_config = {
+        'min_content_length': gzip.content_length,
+        'content_type': gzip.content_type,
+    }
 
     return {
         'name': 'envoy.filters.http.gzip',
         'typed_config': {
-            '@type': 'type.googleapis.com/envoy.extensions.filters.http.gzip.v3.Gzip',
-            'memory_level': gzip.memory_level,
-            'compression_level': gzip.compression_level,
-            'compression_strategy': gzip.compression_strategy,
-            'window_bits': gzip.window_bits,
-            'compressor': {
-                'content_type': gzip.content_type,
-                'content_length': gzip.content_length,
+            '@type': 'type.googleapis.com/envoy.extensions.filters.http.compressor.v3.Compressor',
+            'compressor_library': {
+                "name": "envoy.compression.gzip.compressor",
+                "typed_config": {
+                    "@type": "type.googleapis.com/envoy.extensions.compression.gzip.compressor.v3.Gzip",
+                    'memory_level': gzip.memory_level,
+                    'compression_level': gzip.compression_level,
+                    'compression_strategy': gzip.compression_strategy,
+                    'window_bits': gzip.window_bits,
+                }
+            },
+            'response_direction_config': {
                 'disable_on_etag_header': gzip.disable_on_etag_header,
                 'remove_accept_encoding_header': gzip.remove_accept_encoding_header,
-            },
+                'common_config': common_config,
+            }
         }
     }
 
@@ -201,12 +210,12 @@ def V3HTTPFilter_authv0(auth: IRAuth, v3config: 'V3Config'):
     allowed_authorization_headers = []
 
     for key in sorted(hdrs):
-        allowed_authorization_headers.append({"exact": key})
+        allowed_authorization_headers.append({"exact": key, "ignore_case": True})
 
     allowed_request_headers = []
 
     for key in sorted(request_headers.keys()):
-        allowed_request_headers.append({"exact": key})
+        allowed_request_headers.append({"exact": key, "ignore_case": True})
 
     return {
         'name': 'envoy.filters.http.ext_authz',
@@ -237,14 +246,14 @@ def V3HTTPFilter_authv0(auth: IRAuth, v3config: 'V3Config'):
     }
 
 
-@V3HTTPFilter.when("IRAuth_v1-2")
+@V3HTTPFilter.when("IRAuth_v1-3")
 def V3HTTPFilter_authv1(auth: IRAuth, v3config: 'V3Config'):
     del v3config  # silence unused-variable warning
 
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
 
-    if auth.api_version not in ['getambassador.io/v1', 'getambassador.io/v2']:
+    if auth.api_version not in ['getambassador.io/v1', 'getambassador.io/v2', 'getambassador.io/v3alpha1']:
         auth.ir.logger.warning("IRAuth_v1 working on %s, mismatched at %s" % (auth.name, auth.api_version))
 
     assert auth.proto
@@ -281,12 +290,12 @@ def V3HTTPFilter_authv1(auth: IRAuth, v3config: 'V3Config'):
             })
 
         for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
-            allowed_authorization_headers.append({"exact": key})
+            allowed_authorization_headers.append({"exact": key, "ignore_case": True})
 
         allowed_request_headers = []
 
         for key in list(set(auth.allowed_request_headers).union(AllowedRequestHeaders)):
-            allowed_request_headers.append({"exact": key})
+            allowed_request_headers.append({"exact": key, "ignore_case": True})
 
         if auth.get('add_linkerd_headers', False):
             svc = Service(auth.ir.logger, auth_cluster_uri(auth, cluster))

@@ -3,7 +3,7 @@ package agent
 import (
 	"fmt"
 
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 	v1 "k8s.io/api/core/v1"
 )
 

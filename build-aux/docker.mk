@@ -8,8 +8,6 @@
 #  - Target:       : $(NAME).docker          # build untagged image; define this for each image $(NAME)
 ## Outputs ##
 #
-#  - Executable    : WRITE_DOCKERTAGFILE ?= $(CURDIR)/build-aux/bin/write-dockertagfile
-#
 #  - Variable      : HAVE_DOCKER             # non-empty if true, empty if false
 #  - Variable      : docker.LOCALHOST        # "host.docker.internal" on Docker for Desktop, "localhost" on Docker CE
 #
@@ -42,20 +40,20 @@
 #
 #     2. It must only adjust the timestamp of IMAGE.docker if the
 #        contents of the file change.  (This is trivially accomplished
-#        using any of the `*_IFCHANGED` build-aux helper programs.)
+#        using any of the `$(tools/*-ifchanged)` helper programs.)
 #
 #    The simplest version of that is:
 #
-#        IMAGE.docker: $(MOVE_IFCHANGED) FORCE
+#        IMAGE.docker: $(tools/move-ifchanged) FORCE
 #        	docker build --iidfile=$@.tmp .
-#        	$(MOVE_IFCHANGED) $@.tmp $@
+#        	$(tools/move-ifchanged) $@.tmp $@
 #
 #    If you have multiple `Dockerfile` at `IMAGE/Dockerfile`, you
 #    might write a pattern rule:
 #
-#        %.docker: %/Dockerfile $(MOVE_IFCHANGED) FORCE
+#        %.docker: %/Dockerfile $(tools/move-ifchanged) FORCE
 #        	docker build --iidfile=$@.tmp $*
-#        	$(MOVE_IFCHANGED) $@.tmp $@
+#        	$(tools/move-ifchanged) $@.tmp $@
 #
 #    Unless you have a good reason to, you shouldn't concern yourself
 #    with tagging the image in this rule.
@@ -149,9 +147,9 @@
 #        `--build-arg=` or `-f`:
 #
 #            # Set a custom --build-arg, and use a funny Dockerfile name
-#            myimage.docker: $(MOVE_IFCHANGED) FORCE
+#            myimage.docker: $(tools/move-ifchanged) FORCE
 #            	docker build --iidfile=$(@D)/.tmp.$(@F).tmp --build-arg=FOO=BAR -f Dockerfile.myimage .
-#            	$(MOVE_IFCHANGED) $(@D)/.tmp.$(@F).tmp $@
+#            	$(tools/move-ifchanged) $(@D)/.tmp.$(@F).tmp $@
 #
 #     2. In `ambassador.git`, building the Envoy binary is slow, so we
 #        might want to try pulling it from a build-cache Docker
@@ -160,22 +158,22 @@
 #            # Building this is expensive, so try grabbing a cached
 #            # version before trying to build it.  This goes ahead and
 #            # tags the image, for caching purposes.
-#            base-envoy.docker: $(WRITE_IFCHANGED) $(var.)BASE_ENVOY_IMAGE_CACHE
+#            base-envoy.docker: $(tools/write-ifchanged) $(var.)BASE_ENVOY_IMAGE_CACHE
 #            	if ! docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE_CACHE); then \
 #            		$(MAKE) envoy-bin/envoy-static-stripped
 #            		docker build -t $(BASE_ENVOY_IMAGE_CACHE) -f Dockerfile.base-envoy; \
 #            	fi
-#            	docker image inspect $(BASE_ENVOY_IMAGE_CACHE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+#            	docker image inspect $(BASE_ENVOY_IMAGE_CACHE) --format='{{.Id}}' | $(tools/write-ifchanged) $@
 #
 #     3. In `apro.git`, we have many Docker images to build; each with
 #        a Dockerfile at `docker/NAME/Dockerfile`.  We accomplish this
 #        with a simple pattern rule only slightly more complex than
 #        the one given in the "Building" section:
 #
-#            %.docker: %/Dockerfile $(MOVE_IFCHANGED) FORCE
+#            %.docker: %/Dockerfile $(tools/move-ifchanged) FORCE
 #            # Try with --pull, fall back to without --pull
 #            	docker build --iidfile=$(@D)/.tmp.$(@F).tmp --pull $* || docker build --iidfile=$(@D)/.tmp.$(@F).tmp $*
-#            	$(MOVE_IFCHANGED) $(@D)/.tmp.$(@F).tmp $@
+#            	$(tools/move-ifchanged) $(@D)/.tmp.$(@F).tmp $@
 #
 #        The `--pull` is a good way to ensure that we incorporate any
 #        patches to the base images that we build ours FROM.  However,
@@ -212,11 +210,6 @@ _docker.tag.groups = $(patsubst docker.tag.%,%,$(filter docker.tag.%,$(.VARIABLE
 _docker.clean.groups += $(_docker.tag.groups)
 
 #
-# Executables
-
-WRITE_DOCKERTAGFILE ?= $(build-aux.bindir)/write-dockertagfile
-
-#
 # Output variables
 
 HAVE_DOCKER      = $(call lazyonce,HAVE_DOCKER,$(shell which docker 2>/dev/null))
@@ -242,9 +235,9 @@ define _docker.tag.rule
   #   line 2: tag 1
   #   line 3: tag 2
   #   ...
-  %.docker.tag.$(_docker.tag.group): %.docker $$(WRITE_DOCKERTAGFILE) FORCE
+  %.docker.tag.$(_docker.tag.group): %.docker $$(tools/write-dockertagfile) FORCE
   # The 'foreach' is to handle newlines as normal whitespace
-	printf '%s\n' $$$$(cat $$<) $$(foreach v,$$(docker.tag.$(_docker.tag.group)),$$v) | $$(WRITE_DOCKERTAGFILE) $$@
+	printf '%s\n' $$$$(cat $$<) $$(foreach v,$$(docker.tag.$(_docker.tag.group)),$$v) | $$(tools/write-dockertagfile) $$@
 
   # file contents:
   #   line 1: image ID

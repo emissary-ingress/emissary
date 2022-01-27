@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _tcp_proxy_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on TcpProxy with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *TcpProxy) Validate() error {
@@ -43,10 +40,10 @@ func (m *TcpProxy) Validate() error {
 		return nil
 	}
 
-	if len(m.GetStatPrefix()) < 1 {
+	if utf8.RuneCountInString(m.GetStatPrefix()) < 1 {
 		return TcpProxyValidationError{
 			field:  "StatPrefix",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -146,6 +143,27 @@ func (m *TcpProxy) Validate() error {
 				cause:  err,
 			}
 		}
+	}
+
+	if d := m.GetMaxDownstreamConnectionDuration(); d != nil {
+		dur, err := ptypes.Duration(d)
+		if err != nil {
+			return TcpProxyValidationError{
+				field:  "MaxDownstreamConnectionDuration",
+				reason: "value is not a valid duration",
+				cause:  err,
+			}
+		}
+
+		gte := time.Duration(0*time.Second + 1000000*time.Nanosecond)
+
+		if dur < gte {
+			return TcpProxyValidationError{
+				field:  "MaxDownstreamConnectionDuration",
+				reason: "value must be greater than or equal to 1ms",
+			}
+		}
+
 	}
 
 	if v, ok := interface{}(m.GetHiddenEnvoyDeprecatedDeprecatedV1()).(interface{ Validate() error }); ok {
@@ -337,10 +355,10 @@ func (m *TcpProxy_TunnelingConfig) Validate() error {
 		return nil
 	}
 
-	if len(m.GetHostname()) < 1 {
+	if utf8.RuneCountInString(m.GetHostname()) < 1 {
 		return TcpProxy_TunnelingConfigValidationError{
 			field:  "Hostname",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -500,10 +518,10 @@ func (m *TcpProxy_WeightedCluster_ClusterWeight) Validate() error {
 		return nil
 	}
 
-	if len(m.GetName()) < 1 {
+	if utf8.RuneCountInString(m.GetName()) < 1 {
 		return TcpProxy_WeightedCluster_ClusterWeightValidationError{
 			field:  "Name",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 

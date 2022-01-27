@@ -1,0 +1,91 @@
+{
+    "id": "https://getambassador.io/schemas/logservice.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name"
+    ],
+    "properties": {
+        "ambassador_id": {
+            "description": "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural).",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v3alpha1"
+            ]
+        },
+        "driver": {
+            "type": "string",
+            "enum": [
+                "tcp",
+                "http"
+            ]
+        },
+        "driver_config": {
+            "type": "object",
+            "properties": {
+                "additional_log_headers": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "during_request": {
+                                "type": "boolean"
+                            },
+                            "during_response": {
+                                "type": "boolean"
+                            },
+                            "during_trailer": {
+                                "type": "boolean"
+                            },
+                            "header_name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "flush_interval_byte_size": {
+            "type": "integer"
+        },
+        "flush_interval_time": {
+            "type": "integer"
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "grpc": {
+            "type": "boolean"
+        },
+        "kind": {
+            "enum": [
+                "LogService"
+            ]
+        },
+        "metadata_labels": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "service": {
+            "type": "string"
+        },
+        "stats_name": {
+            "type": "string"
+        }
+    }
+}

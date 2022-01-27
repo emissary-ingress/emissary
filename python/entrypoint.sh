@@ -39,9 +39,9 @@ fi
 # diagd's localhost checks are in sync with what's actually running...
 export AMBASSADOR_LEGACY_MODE=true
 
-# For the same reason, smite the FAST flags -- even the old FAST_VALIDATION flag.
-unset AMBASSADOR_FAST_RECONFIGURE
-unset AMBASSADOR_FAST_VALIDATION
+# For the same reason, force the FAST flags to false -- even the old FAST_VALIDATION flag.
+export AMBASSADOR_FAST_RECONFIGURE=false
+export AMBASSADOR_FAST_VALIDATION=false
 
 ENTRYPOINT_DEBUG=
 
@@ -459,7 +459,7 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
     fi
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_3" ]; then
-        watt_query_flags+=(-s Host)
+        watt_query_flags+=(-s Host -s Listener)
     fi
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_4" ]; then

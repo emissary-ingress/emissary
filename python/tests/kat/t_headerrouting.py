@@ -1,9 +1,7 @@
-# import json
-
-from typing import ClassVar
+from typing import ClassVar, Generator, Tuple, Union
 
 from kat.harness import variants, Query
-from abstract_tests import AmbassadorTest, MappingTest, ServiceType, HTTP
+from abstract_tests import AmbassadorTest, MappingTest, ServiceType, HTTP, Node
 
 
 class HeaderRoutingTest(MappingTest):
@@ -13,28 +11,34 @@ class HeaderRoutingTest(MappingTest):
     weight: int
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         for v in variants(ServiceType):
             yield cls(v, v.clone("target2"), name="{self.target.name}")
 
-    def init(self, target: ServiceType, target2: ServiceType):
+    # XXX This type: ignore is here because we're deliberately overriding the 
+    # parent's init to have a different signature... but it's also intimately
+    # (nay, incestuously) related to the variant()'s yield() above, and I really
+    # don't want to deal with that right now. So. We'll deal with it later.
+    def init(self, target: ServiceType, target2: ServiceType):  # type: ignore
         MappingTest.init(self, target)
         self.target2 = target2
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target1
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 """)
         yield self.target2, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target2
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target2.path.fqdn}
 headers:
@@ -53,7 +57,8 @@ class HeaderRoutingAuth(ServiceType):
     skip_variant: ClassVar[bool] = True
 
     def __init__(self, *args, **kwargs) -> None:
-        manifests = """
+        # Do this unconditionally, since that's part of the point of this class.
+        kwargs["service_manifests"] = """
 ---
 kind: Service
 apiVersion: v1
@@ -89,7 +94,7 @@ spec:
       value: {self.path.k8s}
 """
 
-        super().__init__(*args, service_manifests=manifests, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def requirements(self):
         yield ("url", Query("http://%s/ambassador/check/" % self.path.fqdn))
@@ -104,7 +109,7 @@ class AuthenticationHeaderRouting(AmbassadorTest):
         self.target2 = HTTP(name="target2")
         self.auth = HeaderRoutingAuth()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # The auth service we're using works like this:
         #
         # prefix ENDS WITH /good/ -> 200, include X-Auth-Route -> we should hit target2
@@ -113,7 +118,7 @@ class AuthenticationHeaderRouting(AmbassadorTest):
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -127,17 +132,19 @@ allowed_authorization_headers:
 """)
         yield self.target1, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target1
+hostname: "*"
 prefix: /target/
 service: http://{self.target1.path.fqdn}
 """)
         yield self.target2, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target2
+hostname: "*"
 prefix: /target/
 service: http://{self.target2.path.fqdn}
 headers:

@@ -77,7 +77,9 @@ class IRAuth (IRFilter):
                 host_rewrite=self.get('host_rewrite', False),
                 ctx_name=ctx_name,
                 grpc=grpc,
-                marker='extauth'
+                marker='extauth',
+                stats_name=self.get("stats_name", None),
+                circuit_breakers=self.get("circuit_breakers", None),
             )
 
             cluster.referenced_by(self)
@@ -124,6 +126,14 @@ class IRAuth (IRFilter):
             add_linkerd_headers = module.get('add_linkerd_headers', None)
             if add_linkerd_headers is None:
                 self["add_linkerd_headers"] = ir.ambassador_module.get('add_linkerd_headers', False)
+
+        if module.get('circuit_breakers', None):
+            self['circuit_breakers'] = module.get('circuit_breakers')
+        else:
+            cb = ir.ambassador_module.get('circuit_breakers')
+
+            if cb:
+                self['circuit_breakers'] = cb
 
         self["allow_request_body"] = module.get("allow_request_body", False)
         self["include_body"] = module.get("include_body", None)

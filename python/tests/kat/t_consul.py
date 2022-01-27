@@ -1,7 +1,9 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
-from selfsigned import TLSCerts
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
+from tests.selfsigned import TLSCerts
 
 SECRETS="""
 ---
@@ -26,16 +28,16 @@ class ConsulTest(AmbassadorTest):
         self.datacenter = "dc12"
 
         # We use Consul's local-config environment variable to set the datacenter name
-        # on the actual Consul pod. That means that we need to supply the datacenter 
+        # on the actual Consul pod. That means that we need to supply the datacenter
         # name in JSON format.
-        # 
+        #
         # In a perfect world this would just be
-        # 
+        #
         # self.datacenter_dict = { "datacenter": self.datacenter }
         #
         # but the world is not perfect, so we have to supply it as JSON with LOTS of
         # escaping, since this gets passed through self.format (hence two layers of
-        # doubled braces) and JSON decoding (hence backslash-escaped double quotes, 
+        # doubled braces) and JSON decoding (hence backslash-escaped double quotes,
         # and of course the backslashes themselves have to be escaped...)
         self.datacenter_json = f'{{{{\\\"datacenter\\\":\\\"{self.datacenter}\\\"}}}}'
 
@@ -86,22 +88,23 @@ metadata:
   name: consul-test-namespace
 """) + super().manifests() + consul_manifest + self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: ConsulResolver
 metadata:
   name: {self.path.k8s}-resolver
 spec:
-  ambassador_id: consultest
+  ambassador_id: [consultest]
   address: {self.path.k8s}-consul:$CONSUL_WATCHER_PORT
   datacenter: {self.datacenter}
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name:  {self.path.k8s}-consul-ns-mapping
   namespace: consul-test-namespace
 spec:
-  ambassador_id: consultest
+  ambassador_id: [consultest]
+  hostname: "*"
   prefix: /{self.path.k8s}_consul_ns/
   service: {self.path.k8s}-consul-ns-service
   resolver: {self.path.k8s}-resolver
@@ -109,18 +112,20 @@ spec:
     policy: round_robin
 """ + SECRETS)
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.k8s_target, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.path.k8s}_k8s_mapping
+hostname: "*"
 prefix: /{self.path.k8s}_k8s/
 service: {self.k8s_target.path.k8s}
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.path.k8s}_consul_mapping
+hostname: "*"
 prefix: /{self.path.k8s}_consul/
 service: {self.path.k8s}-consul-service
 # tls: {self.path.k8s}-client-context # this doesn't seem to work... ambassador complains with "no private key in secret ..."
@@ -128,9 +133,10 @@ resolver: {self.path.k8s}-resolver
 load_balancer:
   policy: round_robin
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.path.k8s}_consul_node_mapping
+hostname: "*"
 prefix: /{self.path.k8s}_consul_node/ # this is testing that Ambassador correctly falls back to the `Address` if `Service.Address` does not exist
 service: {self.path.k8s}-consul-node
 # tls: {self.path.k8s}-client-context # this doesn't seem to work... ambassador complains with "no private key in secret ..."
@@ -138,10 +144,16 @@ resolver: {self.path.k8s}-resolver
 load_balancer:
   policy: round_robin
 ---
-apiVersion: ambassador/v1
 kind:  TLSContext
 name:  {self.path.k8s}-client-context
 secret: {self.path.k8s}-client-cert-secret
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+name:  {self.path.k8s}-client-host
+requestPolicy:
+  insecure:
+    action: Route
 """)
 
     def requirements(self):

@@ -1,48 +1,61 @@
 HELM_TEST_IMAGE = quay.io/helmpack/chart-testing:v3.0.0-rc.1
-K3D_CLUSTER_NAME = helm-chart-test-cluster
+HELM_TEST_VALUES ?=
 CHART_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
-KUBECONFIG := /tmp/kubeconfig/k3dconfig
-CT_EXEC = docker run --rm -v $(KUBECONFIG):/root/.kube/config -v $(CHART_DIR):/charts --network host $(HELM_TEST_IMAGE) ct
-K3D_EXEC := KUBECONFIG=$(KUBECONFIG) k3d
+CHART_KUBECONFIG := /tmp/kubeconfig/k3dconfig
+K3D_EXEC := KUBECONFIG=$(CHART_KUBECONFIG) k3d
+
+K3S_VERSION      = 1.22.2+k3s1
+K3D_CLUSTER_NAME = helm-chart-test-cluster
+K3D_ARGS         = --k3s-server-arg=--no-deploy=traefik
 
 test-chart: lint-chart preflight-chart-test chart-create-cluster
-	$(CT_EXEC) install --config /charts/ct.yaml && \
-		$(MAKE) chart-delete-cluster
+	rm -rf $(CHART_DIR)/ci.tmp
+	cp -a $(CHART_DIR)/ci $(CHART_DIR)/ci.tmp
+	$(if $(HELM_TEST_VALUES),for file in $(CHART_DIR)/ci.tmp/*-values.yaml; do cat $(HELM_TEST_VALUES) >> "$$file"; done)
+	{ docker run --rm \
+	  --network=host \
+	  --volume=$(CHART_KUBECONFIG):/root/.kube/config \
+	  --volume=$(CHART_DIR):/charts \
+	  --volume=$(CHART_DIR)/ci.tmp:/charts/ci \
+	  $(HELM_TEST_IMAGE) \
+	  ct install --config=/charts/ct.yaml; }
+	$(MAKE) chart-delete-cluster
 .PHONY: test-chart
 
 lint-chart: preflight-kubeconfig
-	$(CT_EXEC) lint --config /charts/ct.yaml
+# This does NOT have the extra ci.tmp volume that the chart-test rule has.
+	{ docker run --rm \
+	  --network=host \
+	  --volume=$(CHART_KUBECONFIG):/root/.kube/config \
+	  --volume=$(CHART_DIR):/charts \
+	  $(HELM_TEST_IMAGE) \
+	  ct lint --config /charts/ct.yaml; }
 .PHONY: lint-chart
 
 preflight-chart-test: preflight-kubeconfig
 	# check if k3d is installed
 	@if ! command -v k3d 2> /dev/null ; then \
-		printf 'k3d not installed, plz do that'; \
-	    false; \
+	  echo 'k3d not installed, plz do that'; \
+	  false; \
 	fi
 .PHONY: preflight-chart-test
 
 preflight-kubeconfig:
-	mkdir -p `dirname $(KUBECONFIG)`
-	touch $(KUBECONFIG)
+	mkdir -p `dirname $(CHART_KUBECONFIG)`
+	touch $(CHART_KUBECONFIG)
 .PHONY: preflight-kubeconfig
 
+# TODO(lukeshu): De-duplicate chart-create-cluster with
+# build-aux/ci.mk's `ci/setup-k3d` target.
 chart-create-cluster: preflight-kubeconfig
 	$(MAKE) chart-delete-cluster || true
-	$(K3D_EXEC) cluster create $(K3D_CLUSTER_NAME) --k3s-server-arg "--no-deploy=traefik"
+	$(K3D_EXEC) cluster create $(K3D_CLUSTER_NAME) --image=docker.io/rancher/k3s:v$(subst +,-,$(K3S_VERSION)) $(K3D_ARGS)
+	while ! kubectl --kubeconfig=$(CHART_KUBECONFIG) get serviceaccount default >/dev/null; do sleep 1; done
+	kubectl --kubeconfig=$(CHART_KUBECONFIG) version
+	kubectl --kubeconfig=$(CHART_KUBECONFIG) apply -f ../../manifests/emissary/emissary-crds.yaml
+	kubectl --kubeconfig=$(CHART_KUBECONFIG) --namespace=emissary-system wait --timeout=90s --for=condition=available Deployments/emissary-apiext
 .PHONY: chart-create-cluster
 
 chart-delete-cluster:
 	$(K3D_EXEC) cluster delete $(K3D_CLUSTER_NAME)
 .PHONY: chart-delete-cluster
-
-doc-gen-preflight:
-	@if ! command -v chart-doc-gen 2> /dev/null ; then \
-		printf 'chart-doc-gen not installed, see https://github.com/kubepack/chart-doc-gen'; \
-	    false; \
-	fi
-.PHONY: doc-gen-preflight
-
-chart-doc-gen: doc-gen-preflight
-	chart-doc-gen -d ./doc.yaml -t ./readme.tpl -v ./values.yaml > ./README.md
-.PHONY: chart-doc-gen

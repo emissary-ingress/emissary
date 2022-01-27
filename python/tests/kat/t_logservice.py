@@ -1,12 +1,10 @@
+from typing import Generator, Tuple, Union
+
 import json
-import pytest
 
-from typing import ClassVar, Dict, List, Sequence, Tuple, Union
+from kat.harness import Query
 
-from kat.harness import sanitize, variants, Query, Runner
-
-from abstract_tests import AmbassadorTest, HTTP, AHTTP
-from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
+from abstract_tests import AmbassadorTest, HTTP, AHTTP, Node
 
 
 class LogServiceTest(AmbassadorTest):
@@ -57,10 +55,10 @@ spec:
           containerPort: 25565
 """) + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: LogService
 name: custom-http-logging
 service: stenography:25565
@@ -82,9 +80,10 @@ flush_interval_byte_size: 1
       """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  config__dump
+hostname: "*"
 prefix: /config_dump
 rewrite: /config_dump
 service: http://127.0.0.1:8001
@@ -195,10 +194,10 @@ spec:
           containerPort: 25565
 """) + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: LogService
 name: custom-http-logging
 service: stenographylongservicenamewithnearly60characterss:25565
@@ -220,9 +219,10 @@ flush_interval_byte_size: 1
       """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  config__dump-longservicename
+hostname: "*"
 prefix: /config_dump
 rewrite: /config_dump
 service: http://127.0.0.1:8001

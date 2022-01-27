@@ -1,34 +1,48 @@
 package gateway_test
 
 import (
+	// standard library
+	"errors"
 	"fmt"
 	"testing"
 
-	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
-	listener "github.com/datawire/ambassador/pkg/api/envoy/api/v2/listener"
-	v2http "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/wellknown"
-	"github.com/datawire/ambassador/pkg/gateway"
-	"github.com/golang/protobuf/ptypes"
+	// third-party libraries
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/anypb"
+
+	// envoy api v2
+	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	apiv2_core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	apiv2_listener "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/listener"
+	apiv2_httpman "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
+
+	// envoy control plane
+	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
+	ecp_wellknown "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+
+	// first-party libraries
+	"github.com/datawire/ambassador/v2/pkg/gateway"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/dlib/dlog"
 )
 
 func assertErrorContains(t *testing.T, err error, msg string) {
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), msg)
+	t.Helper()
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), msg)
+	}
 }
 
 func TestDispatcherRegister(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_Foo)
+	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
-	disp.Upsert(foo)
-	l := disp.GetListener("bar")
+	assert.NoError(t, disp.Upsert(foo))
+	l := disp.GetListener(ctx, "bar")
 	require.NotNil(t, l)
 	assert.Equal(t, "bar", l.Name)
 }
@@ -36,16 +50,16 @@ func TestDispatcherRegister(t *testing.T) {
 func TestDispatcherDuplicateRegister(t *testing.T) {
 	t.Parallel()
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_Foo)
+	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
-	err = disp.Register("Foo", compile_Foo)
+	err = disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	assertErrorContains(t, err, "duplicate")
 }
 
 func TestIsRegistered(t *testing.T) {
 	t.Parallel()
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_Foo)
+	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
 	assert.True(t, disp.IsRegistered("Foo"))
 	assert.False(t, disp.IsRegistered("Bar"))
@@ -54,10 +68,10 @@ func TestIsRegistered(t *testing.T) {
 func TestDispatcherFaultIsolation1(t *testing.T) {
 	t.Parallel()
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_Foo)
+	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bang")
-	foo.Spec.PanicArg = "bang bang!"
+	foo.Spec.PanicArg = errors.New("bang bang!")
 	err = disp.Upsert(foo)
 	assertErrorContains(t, err, "error processing")
 }
@@ -65,10 +79,10 @@ func TestDispatcherFaultIsolation1(t *testing.T) {
 func TestDispatcherFaultIsolation2(t *testing.T) {
 	t.Parallel()
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_Foo)
+	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bang")
-	foo.Spec.PanicArg = fmt.Errorf("bang bang!")
+	foo.Spec.PanicArg = errors.New("bang bang!")
 	err = disp.Upsert(foo)
 	assertErrorContains(t, err, "error processing")
 }
@@ -76,7 +90,7 @@ func TestDispatcherFaultIsolation2(t *testing.T) {
 func TestDispatcherTransformError(t *testing.T) {
 	t.Parallel()
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_FooWithErrors)
+	err := disp.Register("Foo", wrapFooCompiler(compile_FooWithErrors))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	err = disp.Upsert(foo)
@@ -103,7 +117,7 @@ func TestDispatcherTransformError(t *testing.T) {
 	assert.Equal(t, "this is a load assignment error", errors[5].Error)
 }
 
-func compile_FooWithErrors(f *Foo) *gateway.CompiledConfig {
+func compile_FooWithErrors(f *Foo) (*gateway.CompiledConfig, error) {
 	src := gateway.SourceFromResource(f)
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItemError(src, "this is an error"),
@@ -125,7 +139,7 @@ func compile_FooWithErrors(f *Foo) *gateway.CompiledConfig {
 			{CompiledItem: gateway.NewCompiledItemError(gateway.Sourcef("load assignment in %s", src),
 				"this is a load assignment error")},
 		},
-	}
+	}, nil
 }
 
 func TestDispatcherNoTransform(t *testing.T) {
@@ -138,46 +152,48 @@ func TestDispatcherNoTransform(t *testing.T) {
 
 func TestDispatcherDelete(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_Foo)
+	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
-	disp.Upsert(foo)
-	l := disp.GetListener("bar")
+	assert.NoError(t, disp.Upsert(foo))
+	l := disp.GetListener(ctx, "bar")
 	require.NotNil(t, l)
 	assert.Equal(t, "bar", l.Name)
 	disp.Delete(foo)
-	l = disp.GetListener("bar")
+	l = disp.GetListener(ctx, "bar")
 	require.Nil(t, l)
 }
 
 func TestDispatcherDeleteKey(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_Foo)
+	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
-	disp.Upsert(foo)
-	l := disp.GetListener("bar")
+	assert.NoError(t, disp.Upsert(foo))
+	l := disp.GetListener(ctx, "bar")
 	require.NotNil(t, l)
 	assert.Equal(t, "bar", l.Name)
 	disp.DeleteKey("Foo", "default", "foo")
-	l = disp.GetListener("bar")
+	l = disp.GetListener(ctx, "bar")
 	require.Nil(t, l)
 }
 
-func compile_Foo(f *Foo) *gateway.CompiledConfig {
+func compile_Foo(f *Foo) (*gateway.CompiledConfig, error) {
 	if f.Spec.Value == "bang" {
-		panic(f.Spec.PanicArg)
+		return nil, f.Spec.PanicArg
 	}
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
 		Listeners: []*gateway.CompiledListener{
 			{
-				Listener: &v2.Listener{Name: f.Spec.Value},
+				Listener: &apiv2.Listener{Name: f.Spec.Value},
 			},
 		},
-	}
+	}, nil
 }
 
 func TestDispatcherUpsertYamlErr(t *testing.T) {
@@ -201,57 +217,58 @@ spec:
 
 func TestDispatcherAssemblyWithRouteConfg(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_FooWithRouteConfigName)
+	err := disp.Register("Foo", wrapFooCompiler(compile_FooWithRouteConfigName))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
-	disp.Upsert(foo)
-	l := disp.GetListener("bar")
+	assert.NoError(t, disp.Upsert(foo))
+	l := disp.GetListener(ctx, "bar")
 	require.NotNil(t, l)
 	assert.Equal(t, "bar", l.Name)
-	r := disp.GetRouteConfiguration("bar-routeconfig")
+	r := disp.GetRouteConfiguration(ctx, "bar-routeconfig")
 	require.NotNil(t, r)
 	assert.Equal(t, "bar-routeconfig", r.Name)
 }
 
-func compile_FooWithRouteConfigName(f *Foo) *gateway.CompiledConfig {
+func compile_FooWithRouteConfigName(f *Foo) (*gateway.CompiledConfig, error) {
 	if f.Spec.Value == "bang" {
-		panic(f.Spec.PanicArg)
+		return nil, f.Spec.PanicArg
 	}
 
 	name := f.Spec.Value
 	rcName := fmt.Sprintf("%s-routeconfig", name)
 
-	hcm := &v2http.HttpConnectionManager{
+	hcm := &apiv2_httpman.HttpConnectionManager{
 		StatPrefix: name,
-		HttpFilters: []*v2http.HttpFilter{
-			{Name: wellknown.CORS},
-			{Name: wellknown.Router},
+		HttpFilters: []*apiv2_httpman.HttpFilter{
+			{Name: ecp_wellknown.CORS},
+			{Name: ecp_wellknown.Router},
 		},
-		RouteSpecifier: &v2http.HttpConnectionManager_Rds{
-			Rds: &v2http.Rds{
-				ConfigSource: &core.ConfigSource{
-					ConfigSourceSpecifier: &core.ConfigSource_Ads{
-						Ads: &core.AggregatedConfigSource{},
+		RouteSpecifier: &apiv2_httpman.HttpConnectionManager_Rds{
+			Rds: &apiv2_httpman.Rds{
+				ConfigSource: &apiv2_core.ConfigSource{
+					ConfigSourceSpecifier: &apiv2_core.ConfigSource_Ads{
+						Ads: &apiv2_core.AggregatedConfigSource{},
 					},
 				},
 				RouteConfigName: rcName,
 			},
 		},
 	}
-	hcmAny, err := ptypes.MarshalAny(hcm)
+	hcmAny, err := anypb.New(hcm)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	l := &v2.Listener{
+	l := &apiv2.Listener{
 		Name: name,
-		FilterChains: []*listener.FilterChain{
+		FilterChains: []*apiv2_listener.FilterChain{
 			{
-				Filters: []*listener.Filter{
+				Filters: []*apiv2_listener.Filter{
 					{
-						Name:       wellknown.HTTPConnectionManager,
-						ConfigType: &listener.Filter_TypedConfig{TypedConfig: hcmAny},
+						Name:       ecp_wellknown.HTTPConnectionManager,
+						ConfigType: &apiv2_listener.Filter_TypedConfig{TypedConfig: hcmAny},
 					},
 				},
 			},
@@ -261,58 +278,59 @@ func compile_FooWithRouteConfigName(f *Foo) *gateway.CompiledConfig {
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
 		Listeners:    []*gateway.CompiledListener{{Listener: l}},
-	}
+	}, nil
 }
 
 func TestDispatcherAssemblyWithEmptyRouteConfigName(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_FooWithEmptyRouteConfigName)
+	err := disp.Register("Foo", wrapFooCompiler(compile_FooWithEmptyRouteConfigName))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
-	disp.Upsert(foo)
-	l := disp.GetListener("bar")
+	assert.NoError(t, disp.Upsert(foo))
+	l := disp.GetListener(ctx, "bar")
 	require.NotNil(t, l)
 	assert.Equal(t, "bar", l.Name)
 	// This is a bit weird, but the go control plane's consistency check seems to imply that an
 	// empty route config name is ok.
-	r := disp.GetRouteConfiguration("")
+	r := disp.GetRouteConfiguration(ctx, "")
 	require.NotNil(t, r)
 	assert.Equal(t, "", r.Name)
 }
 
-func compile_FooWithEmptyRouteConfigName(f *Foo) *gateway.CompiledConfig {
+func compile_FooWithEmptyRouteConfigName(f *Foo) (*gateway.CompiledConfig, error) {
 	name := f.Spec.Value
 
-	hcm := &v2http.HttpConnectionManager{
+	hcm := &apiv2_httpman.HttpConnectionManager{
 		StatPrefix: name,
-		HttpFilters: []*v2http.HttpFilter{
-			{Name: wellknown.CORS},
-			{Name: wellknown.Router},
+		HttpFilters: []*apiv2_httpman.HttpFilter{
+			{Name: ecp_wellknown.CORS},
+			{Name: ecp_wellknown.Router},
 		},
-		RouteSpecifier: &v2http.HttpConnectionManager_Rds{
-			Rds: &v2http.Rds{
-				ConfigSource: &core.ConfigSource{
-					ConfigSourceSpecifier: &core.ConfigSource_Ads{
-						Ads: &core.AggregatedConfigSource{},
+		RouteSpecifier: &apiv2_httpman.HttpConnectionManager_Rds{
+			Rds: &apiv2_httpman.Rds{
+				ConfigSource: &apiv2_core.ConfigSource{
+					ConfigSourceSpecifier: &apiv2_core.ConfigSource_Ads{
+						Ads: &apiv2_core.AggregatedConfigSource{},
 					},
 				},
 			},
 		},
 	}
-	hcmAny, err := ptypes.MarshalAny(hcm)
+	hcmAny, err := anypb.New(hcm)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	l := &v2.Listener{
+	l := &apiv2.Listener{
 		Name: name,
-		FilterChains: []*listener.FilterChain{
+		FilterChains: []*apiv2_listener.FilterChain{
 			{
-				Filters: []*listener.Filter{
+				Filters: []*apiv2_listener.Filter{
 					{
-						Name:       wellknown.HTTPConnectionManager,
-						ConfigType: &listener.Filter_TypedConfig{TypedConfig: hcmAny},
+						Name:       ecp_wellknown.HTTPConnectionManager,
+						ConfigType: &apiv2_listener.Filter_TypedConfig{TypedConfig: hcmAny},
 					},
 				},
 			},
@@ -322,49 +340,50 @@ func compile_FooWithEmptyRouteConfigName(f *Foo) *gateway.CompiledConfig {
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
 		Listeners:    []*gateway.CompiledListener{{Listener: l}},
-	}
+	}, nil
 }
 
 func TestDispatcherAssemblyWithoutRds(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_FooWithoutRds)
+	err := disp.Register("Foo", wrapFooCompiler(compile_FooWithoutRds))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
-	disp.Upsert(foo)
-	l := disp.GetListener("bar")
+	assert.NoError(t, disp.Upsert(foo))
+	l := disp.GetListener(ctx, "bar")
 	require.NotNil(t, l)
 	assert.Equal(t, "bar", l.Name)
-	r := disp.GetRouteConfiguration("bar")
+	r := disp.GetRouteConfiguration(ctx, "bar")
 	require.Nil(t, r)
 }
 
-func compile_FooWithoutRds(f *Foo) *gateway.CompiledConfig {
+func compile_FooWithoutRds(f *Foo) (*gateway.CompiledConfig, error) {
 	name := f.Spec.Value
 
-	hcm := &v2http.HttpConnectionManager{
+	hcm := &apiv2_httpman.HttpConnectionManager{
 		StatPrefix: name,
-		HttpFilters: []*v2http.HttpFilter{
-			{Name: wellknown.CORS},
-			{Name: wellknown.Router},
+		HttpFilters: []*apiv2_httpman.HttpFilter{
+			{Name: ecp_wellknown.CORS},
+			{Name: ecp_wellknown.Router},
 		},
 	}
-	hcmAny, err := ptypes.MarshalAny(hcm)
+	hcmAny, err := anypb.New(hcm)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	l := &v2.Listener{
+	l := &apiv2.Listener{
 		Name: name,
-		FilterChains: []*listener.FilterChain{
+		FilterChains: []*apiv2_listener.FilterChain{
 			{
-				Filters: []*listener.Filter{
+				Filters: []*apiv2_listener.Filter{
 					{
-						Name: wellknown.RateLimit,
+						Name: ecp_wellknown.RateLimit,
 					},
 					{
-						Name:       wellknown.HTTPConnectionManager,
-						ConfigType: &listener.Filter_TypedConfig{TypedConfig: hcmAny},
+						Name:       ecp_wellknown.HTTPConnectionManager,
+						ConfigType: &apiv2_listener.Filter_TypedConfig{TypedConfig: hcmAny},
 					},
 				},
 			},
@@ -374,21 +393,22 @@ func compile_FooWithoutRds(f *Foo) *gateway.CompiledConfig {
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
 		Listeners:    []*gateway.CompiledListener{{Listener: l}},
-	}
+	}, nil
 }
 
 func TestDispatcherAssemblyEndpointDefaulting(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_FooWithClusterRefs)
+	err := disp.Register("Foo", wrapFooCompiler(compile_FooWithClusterRefs))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	err = disp.Upsert(foo)
 	require.NoError(t, err)
-	_, snap := disp.GetSnapshot()
+	_, snap := disp.GetSnapshot(ctx)
 	found := false
-	for _, r := range snap.Resources[types.Endpoint].Items {
-		cla := r.(*v2.ClusterLoadAssignment)
+	for _, r := range snap.Resources[ecp_cache_types.Endpoint].Items {
+		cla := r.(*apiv2.ClusterLoadAssignment)
 		if cla.ClusterName == "foo" && len(cla.Endpoints) == 0 {
 			found = true
 		}
@@ -398,33 +418,40 @@ func TestDispatcherAssemblyEndpointDefaulting(t *testing.T) {
 	}
 }
 
-func compile_FooWithClusterRefs(f *Foo) *gateway.CompiledConfig {
+func wrapFooCompiler(inner func(*Foo) (*gateway.CompiledConfig, error)) func(kates.Object) (*gateway.CompiledConfig, error) {
+	return func(untyped kates.Object) (*gateway.CompiledConfig, error) {
+		return inner(untyped.(*Foo))
+	}
+}
+
+func compile_FooWithClusterRefs(f *Foo) (*gateway.CompiledConfig, error) {
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
 		Routes: []*gateway.CompiledRoute{{
 			ClusterRefs: []*gateway.ClusterRef{{Name: "foo"}},
 		}},
-	}
+	}, nil
 }
 
 func TestDispatcherAssemblyEndpointWatches(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_FooEndpointWatches)
+	err := disp.Register("Foo", wrapFooCompiler(compile_FooEndpointWatches))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	err = disp.Upsert(foo)
 	require.NoError(t, err)
-	disp.GetSnapshot()
+	disp.GetSnapshot(ctx)
 	assert.True(t, disp.IsWatched("foo-ns", "foo"))
 }
 
-func compile_FooEndpointWatches(f *Foo) *gateway.CompiledConfig {
+func compile_FooEndpointWatches(f *Foo) (*gateway.CompiledConfig, error) {
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
 		Routes: []*gateway.CompiledRoute{{
 			CompiledItem: gateway.CompiledItem{Source: gateway.SourceFromResource(f), Namespace: "foo-ns"},
 			ClusterRefs:  []*gateway.ClusterRef{{Name: "foo"}},
 		}},
-	}
+	}, nil
 }

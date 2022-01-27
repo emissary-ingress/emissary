@@ -1,9 +1,9 @@
 *
 !demo/
-!docs/yaml/ambassador/ambassador-crds.yaml
+!manifests/emissary/emissary-crds.yaml
 !post-compile.sh
 !api/
-!build-aux-local
+!build-aux
 !builder/server.crt
 !builder/server.key
 !cmd/
@@ -23,3 +23,5 @@ bin/
 bin_linux_amd64/.go-build/
 bin_linux_amd64/*-static
 python/tests/
+**/__pycache__/
+python/ambassador.egg-info

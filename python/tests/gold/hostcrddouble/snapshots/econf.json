@@ -1,0 +1,3301 @@
+{
+  "layered_runtime": {
+    "layers": [
+      {
+        "name": "static_layer",
+        "static_layer": {
+          "envoy.reloadable_features.enable_deprecated_v2_api": true,
+          "re2.max_program_size.error_level": 200
+        }
+      }
+    ]
+  },
+  "static_resources": {
+    "clusters": [
+      {
+        "alt_stat_name": "127_0_0_1_8877",
+        "connect_timeout": "3.000s",
+        "dns_lookup_family": "V4_ONLY",
+        "lb_policy": "ROUND_ROBIN",
+        "load_assignment": {
+          "cluster_name": "cluster_127_0_0_1_8877_default",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "127.0.0.1",
+                        "port_value": 8877,
+                        "protocol": "TCP"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "cluster_127_0_0_1_8877_default",
+        "type": "STRICT_DNS"
+      },
+      {
+        "alt_stat_name": "hostcrddouble_http_target1",
+        "connect_timeout": "3.000s",
+        "dns_lookup_family": "V4_ONLY",
+        "lb_policy": "ROUND_ROBIN",
+        "load_assignment": {
+          "cluster_name": "cluster_hostcrddouble_http_target1_default",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "hostcrddouble-http-target1",
+                        "port_value": 80,
+                        "protocol": "TCP"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "cluster_hostcrddouble_http_target1_default",
+        "type": "STRICT_DNS"
+      },
+      {
+        "alt_stat_name": "hostcrddouble_http_target2",
+        "connect_timeout": "3.000s",
+        "dns_lookup_family": "V4_ONLY",
+        "lb_policy": "ROUND_ROBIN",
+        "load_assignment": {
+          "cluster_name": "cluster_hostcrddouble_http_target2_default",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "hostcrddouble-http-target2",
+                        "port_value": 80,
+                        "protocol": "TCP"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "cluster_hostcrddouble_http_target2_default",
+        "type": "STRICT_DNS"
+      },
+      {
+        "alt_stat_name": "hostcrddouble_http_target3",
+        "connect_timeout": "3.000s",
+        "dns_lookup_family": "V4_ONLY",
+        "lb_policy": "ROUND_ROBIN",
+        "load_assignment": {
+          "cluster_name": "cluster_hostcrddouble_http_target3_default",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "hostcrddouble-http-target3",
+                        "port_value": 80,
+                        "protocol": "TCP"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "cluster_hostcrddouble_http_target3_default",
+        "type": "STRICT_DNS"
+      },
+      {
+        "alt_stat_name": "hostcrddouble_http_targetshared",
+        "connect_timeout": "3.000s",
+        "dns_lookup_family": "V4_ONLY",
+        "lb_policy": "ROUND_ROBIN",
+        "load_assignment": {
+          "cluster_name": "cluster_hostcrddouble_http_targetshared_default",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "hostcrddouble-http-targetshared",
+                        "port_value": 80,
+                        "protocol": "TCP"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "cluster_hostcrddouble_http_targetshared_default",
+        "type": "STRICT_DNS"
+      }
+    ],
+    "listeners": [
+      {
+        "address": {
+          "socket_address": {
+            "address": "0.0.0.0",
+            "port_value": 8080,
+            "protocol": "TCP"
+          }
+        },
+        "filter_chains": [
+          {
+            "filter_chain_match": {
+              "server_names": [
+                "ambassador.example.com"
+              ],
+              "transport_protocol": "tls"
+            },
+            "filters": [
+              {
+                "name": "envoy.filters.network.http_connection_manager",
+                "typed_config": {
+                  "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                  "access_log": [
+                    {
+                      "name": "envoy.access_loggers.file",
+                      "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
+                        "path": "/dev/fd/1"
+                      }
+                    }
+                  ],
+                  "http_filters": [
+                    {
+                      "name": "envoy.filters.http.cors"
+                    },
+                    {
+                      "name": "envoy.filters.http.router"
+                    }
+                  ],
+                  "http_protocol_options": {
+                    "accept_http_10": false
+                  },
+                  "normalize_path": true,
+                  "preserve_external_request_id": false,
+                  "route_config": {
+                    "virtual_hosts": [
+                      {
+                        "domains": [
+                          "ambassador.example.com"
+                        ],
+                        "name": "listener-8080-hostcrddouble-ambassador.example.com",
+                        "routes": [
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "ambassador.example.com",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/.well-known/acme-challenge/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target3_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target3_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "ambassador.example.com",
+                                  "name": ":authority"
+                                }
+                              ],
+                              "prefix": "/.well-known/acme-challenge/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target3_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target3_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "ambassador.example.com",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-3/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target3_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target3_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "server_name": "envoy",
+                  "stat_prefix": "ingress_https",
+                  "use_remote_address": true
+                }
+              }
+            ],
+            "transport_socket": {
+              "name": "envoy.transport_sockets.tls",
+              "typed_config": {
+                "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext",
+                "common_tls_context": {
+                  "tls_certificates": [
+                    {
+                      "certificate_chain": {
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-3/300765A404006AF7D11272D8DFE3B7230313C40F.crt"
+                      },
+                      "private_key": {
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-3/300765A404006AF7D11272D8DFE3B7230313C40F.key"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "filter_chain_match": {},
+            "filters": [
+              {
+                "name": "envoy.filters.network.http_connection_manager",
+                "typed_config": {
+                  "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                  "access_log": [
+                    {
+                      "name": "envoy.access_loggers.file",
+                      "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
+                        "path": "/dev/fd/1"
+                      }
+                    }
+                  ],
+                  "http_filters": [
+                    {
+                      "name": "envoy.filters.http.cors"
+                    },
+                    {
+                      "name": "envoy.filters.http.router"
+                    }
+                  ],
+                  "http_protocol_options": {
+                    "accept_http_10": false
+                  },
+                  "normalize_path": true,
+                  "preserve_external_request_id": false,
+                  "route_config": {
+                    "virtual_hosts": [
+                      {
+                        "domains": [
+                          "ambassador.example.com"
+                        ],
+                        "name": "listener-8080-hostcrddouble-ambassador.example.com",
+                        "routes": [
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "ambassador.example.com",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/.well-known/acme-challenge/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target3_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target3_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "ambassador.example.com",
+                                  "name": ":authority"
+                                }
+                              ],
+                              "prefix": "/.well-known/acme-challenge/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target3_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target3_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "ambassador.example.com",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-3/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target3_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target3_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "domains": [
+                          "tls-context-host-1"
+                        ],
+                        "name": "listener-8080-hostcrddouble-tls-context-host-1",
+                        "routes": [
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-1",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-1/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target1_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target1_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-1",
+                                  "name": ":authority"
+                                }
+                              ],
+                              "prefix": "/target-1/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target1_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target1_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "domains": [
+                          "tls-context-host-2"
+                        ],
+                        "name": "listener-8080-hostcrddouble-tls-context-host-2",
+                        "routes": [
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-2",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target2_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-2",
+                                  "name": ":authority"
+                                }
+                              ],
+                              "prefix": "/target-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "server_name": "envoy",
+                  "stat_prefix": "ingress_https",
+                  "use_remote_address": true
+                }
+              }
+            ]
+          },
+          {
+            "filter_chain_match": {
+              "server_names": [
+                "tls-context-host-1"
+              ],
+              "transport_protocol": "tls"
+            },
+            "filters": [
+              {
+                "name": "envoy.filters.network.http_connection_manager",
+                "typed_config": {
+                  "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                  "access_log": [
+                    {
+                      "name": "envoy.access_loggers.file",
+                      "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
+                        "path": "/dev/fd/1"
+                      }
+                    }
+                  ],
+                  "http_filters": [
+                    {
+                      "name": "envoy.filters.http.cors"
+                    },
+                    {
+                      "name": "envoy.filters.http.router"
+                    }
+                  ],
+                  "http_protocol_options": {
+                    "accept_http_10": false
+                  },
+                  "normalize_path": true,
+                  "preserve_external_request_id": false,
+                  "route_config": {
+                    "virtual_hosts": [
+                      {
+                        "domains": [
+                          "tls-context-host-1"
+                        ],
+                        "name": "listener-8080-hostcrddouble-tls-context-host-1",
+                        "routes": [
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-1",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-1/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target1_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target1_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-1",
+                                  "name": ":authority"
+                                }
+                              ],
+                              "prefix": "/target-1/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target1_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target1_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "server_name": "envoy",
+                  "stat_prefix": "ingress_https",
+                  "use_remote_address": true
+                }
+              }
+            ],
+            "transport_socket": {
+              "name": "envoy.transport_sockets.tls",
+              "typed_config": {
+                "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext",
+                "common_tls_context": {
+                  "tls_certificates": [
+                    {
+                      "certificate_chain": {
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-1/6F3041C4F66B50E21731FCD2EE9CFF137AF932FC.crt"
+                      },
+                      "private_key": {
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-1/6F3041C4F66B50E21731FCD2EE9CFF137AF932FC.key"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "filter_chain_match": {
+              "server_names": [
+                "tls-context-host-2"
+              ],
+              "transport_protocol": "tls"
+            },
+            "filters": [
+              {
+                "name": "envoy.filters.network.http_connection_manager",
+                "typed_config": {
+                  "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                  "access_log": [
+                    {
+                      "name": "envoy.access_loggers.file",
+                      "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
+                        "path": "/dev/fd/1"
+                      }
+                    }
+                  ],
+                  "http_filters": [
+                    {
+                      "name": "envoy.filters.http.cors"
+                    },
+                    {
+                      "name": "envoy.filters.http.router"
+                    }
+                  ],
+                  "http_protocol_options": {
+                    "accept_http_10": false
+                  },
+                  "normalize_path": true,
+                  "preserve_external_request_id": false,
+                  "route_config": {
+                    "virtual_hosts": [
+                      {
+                        "domains": [
+                          "tls-context-host-2"
+                        ],
+                        "name": "listener-8080-hostcrddouble-tls-context-host-2",
+                        "routes": [
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-2",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target2_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-2",
+                                  "name": ":authority"
+                                }
+                              ],
+                              "prefix": "/target-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "server_name": "envoy",
+                  "stat_prefix": "ingress_https",
+                  "use_remote_address": true
+                }
+              }
+            ],
+            "transport_socket": {
+              "name": "envoy.transport_sockets.tls",
+              "typed_config": {
+                "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext",
+                "common_tls_context": {
+                  "tls_certificates": [
+                    {
+                      "certificate_chain": {
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-2/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.crt"
+                      },
+                      "private_key": {
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-2/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.key"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "listener_filters": [
+          {
+            "name": "envoy.filters.listener.tls_inspector"
+          }
+        ],
+        "name": "listener-8080-hostcrddouble",
+        "traffic_direction": "UNSPECIFIED"
+      },
+      {
+        "address": {
+          "socket_address": {
+            "address": "0.0.0.0",
+            "port_value": 8443,
+            "protocol": "TCP"
+          }
+        },
+        "filter_chains": [
+          {
+            "filter_chain_match": {
+              "server_names": [
+                "ambassador.example.com"
+              ],
+              "transport_protocol": "tls"
+            },
+            "filters": [
+              {
+                "name": "envoy.filters.network.http_connection_manager",
+                "typed_config": {
+                  "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                  "access_log": [
+                    {
+                      "name": "envoy.access_loggers.file",
+                      "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
+                        "path": "/dev/fd/1"
+                      }
+                    }
+                  ],
+                  "http_filters": [
+                    {
+                      "name": "envoy.filters.http.cors"
+                    },
+                    {
+                      "name": "envoy.filters.http.router"
+                    }
+                  ],
+                  "http_protocol_options": {
+                    "accept_http_10": false
+                  },
+                  "normalize_path": true,
+                  "preserve_external_request_id": false,
+                  "route_config": {
+                    "virtual_hosts": [
+                      {
+                        "domains": [
+                          "ambassador.example.com"
+                        ],
+                        "name": "listener-8443-hostcrddouble-ambassador.example.com",
+                        "routes": [
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "ambassador.example.com",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/.well-known/acme-challenge/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target3_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target3_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "ambassador.example.com",
+                                  "name": ":authority"
+                                }
+                              ],
+                              "prefix": "/.well-known/acme-challenge/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target3_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target3_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "ambassador.example.com",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-3/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target3_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target3_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "server_name": "envoy",
+                  "stat_prefix": "ingress_https",
+                  "use_remote_address": true
+                }
+              }
+            ],
+            "transport_socket": {
+              "name": "envoy.transport_sockets.tls",
+              "typed_config": {
+                "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext",
+                "common_tls_context": {
+                  "tls_certificates": [
+                    {
+                      "certificate_chain": {
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-3/300765A404006AF7D11272D8DFE3B7230313C40F.crt"
+                      },
+                      "private_key": {
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-3/300765A404006AF7D11272D8DFE3B7230313C40F.key"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "filter_chain_match": {},
+            "filters": [
+              {
+                "name": "envoy.filters.network.http_connection_manager",
+                "typed_config": {
+                  "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                  "access_log": [
+                    {
+                      "name": "envoy.access_loggers.file",
+                      "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
+                        "path": "/dev/fd/1"
+                      }
+                    }
+                  ],
+                  "http_filters": [
+                    {
+                      "name": "envoy.filters.http.cors"
+                    },
+                    {
+                      "name": "envoy.filters.http.router"
+                    }
+                  ],
+                  "http_protocol_options": {
+                    "accept_http_10": false
+                  },
+                  "normalize_path": true,
+                  "preserve_external_request_id": false,
+                  "route_config": {
+                    "virtual_hosts": [
+                      {
+                        "domains": [
+                          "ambassador.example.com"
+                        ],
+                        "name": "listener-8443-hostcrddouble-ambassador.example.com",
+                        "routes": [
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "ambassador.example.com",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/.well-known/acme-challenge/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target3_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target3_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "ambassador.example.com",
+                                  "name": ":authority"
+                                }
+                              ],
+                              "prefix": "/.well-known/acme-challenge/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target3_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target3_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "ambassador.example.com",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-3/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target3_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target3_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "domains": [
+                          "tls-context-host-1"
+                        ],
+                        "name": "listener-8443-hostcrddouble-tls-context-host-1",
+                        "routes": [
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-1",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-1/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target1_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target1_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-1",
+                                  "name": ":authority"
+                                }
+                              ],
+                              "prefix": "/target-1/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target1_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target1_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "domains": [
+                          "tls-context-host-2"
+                        ],
+                        "name": "listener-8443-hostcrddouble-tls-context-host-2",
+                        "routes": [
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-2",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target2_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-2",
+                                  "name": ":authority"
+                                }
+                              ],
+                              "prefix": "/target-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "server_name": "envoy",
+                  "stat_prefix": "ingress_https",
+                  "use_remote_address": true
+                }
+              }
+            ]
+          },
+          {
+            "filter_chain_match": {
+              "server_names": [
+                "tls-context-host-1"
+              ],
+              "transport_protocol": "tls"
+            },
+            "filters": [
+              {
+                "name": "envoy.filters.network.http_connection_manager",
+                "typed_config": {
+                  "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                  "access_log": [
+                    {
+                      "name": "envoy.access_loggers.file",
+                      "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
+                        "path": "/dev/fd/1"
+                      }
+                    }
+                  ],
+                  "http_filters": [
+                    {
+                      "name": "envoy.filters.http.cors"
+                    },
+                    {
+                      "name": "envoy.filters.http.router"
+                    }
+                  ],
+                  "http_protocol_options": {
+                    "accept_http_10": false
+                  },
+                  "normalize_path": true,
+                  "preserve_external_request_id": false,
+                  "route_config": {
+                    "virtual_hosts": [
+                      {
+                        "domains": [
+                          "tls-context-host-1"
+                        ],
+                        "name": "listener-8443-hostcrddouble-tls-context-host-1",
+                        "routes": [
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-1",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-1/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target1_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target1_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-1",
+                                  "name": ":authority"
+                                }
+                              ],
+                              "prefix": "/target-1/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target1_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target1_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "server_name": "envoy",
+                  "stat_prefix": "ingress_https",
+                  "use_remote_address": true
+                }
+              }
+            ],
+            "transport_socket": {
+              "name": "envoy.transport_sockets.tls",
+              "typed_config": {
+                "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext",
+                "common_tls_context": {
+                  "tls_certificates": [
+                    {
+                      "certificate_chain": {
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-1/6F3041C4F66B50E21731FCD2EE9CFF137AF932FC.crt"
+                      },
+                      "private_key": {
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-1/6F3041C4F66B50E21731FCD2EE9CFF137AF932FC.key"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "filter_chain_match": {
+              "server_names": [
+                "tls-context-host-2"
+              ],
+              "transport_protocol": "tls"
+            },
+            "filters": [
+              {
+                "name": "envoy.filters.network.http_connection_manager",
+                "typed_config": {
+                  "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                  "access_log": [
+                    {
+                      "name": "envoy.access_loggers.file",
+                      "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
+                        "path": "/dev/fd/1"
+                      }
+                    }
+                  ],
+                  "http_filters": [
+                    {
+                      "name": "envoy.filters.http.cors"
+                    },
+                    {
+                      "name": "envoy.filters.http.router"
+                    }
+                  ],
+                  "http_protocol_options": {
+                    "accept_http_10": false
+                  },
+                  "normalize_path": true,
+                  "preserve_external_request_id": false,
+                  "route_config": {
+                    "virtual_hosts": [
+                      {
+                        "domains": [
+                          "tls-context-host-2"
+                        ],
+                        "name": "listener-8443-hostcrddouble-tls-context-host-2",
+                        "routes": [
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_ready",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_ready",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/check_alive",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/check_alive",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_targetshared_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/target-shared/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_targetshared_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_127_0_0_1_8877_default",
+                              "prefix_rewrite": "/ambassador/v0/",
+                              "priority": null,
+                              "timeout": "10.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/ambassador/v0/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-2",
+                                  "name": ":authority"
+                                },
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/target-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_hostcrddouble_http_target2_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "tls-context-host-2",
+                                  "name": ":authority"
+                                }
+                              ],
+                              "prefix": "/target-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
+                              }
+                            },
+                            "redirect": {
+                              "https_redirect": true
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "server_name": "envoy",
+                  "stat_prefix": "ingress_https",
+                  "use_remote_address": true
+                }
+              }
+            ],
+            "transport_socket": {
+              "name": "envoy.transport_sockets.tls",
+              "typed_config": {
+                "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext",
+                "common_tls_context": {
+                  "tls_certificates": [
+                    {
+                      "certificate_chain": {
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-2/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.crt"
+                      },
+                      "private_key": {
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-2/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.key"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "listener_filters": [
+          {
+            "name": "envoy.filters.listener.tls_inspector"
+          }
+        ],
+        "name": "listener-8443-hostcrddouble",
+        "traffic_direction": "UNSPECIFIED"
+      }
+    ]
+  }
+}

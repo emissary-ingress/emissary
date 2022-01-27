@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _wasm_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on VmConfig with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *VmConfig) Validate() error {
@@ -45,10 +42,10 @@ func (m *VmConfig) Validate() error {
 
 	// no validation rules for VmId
 
-	if len(m.GetRuntime()) < 1 {
+	if utf8.RuneCountInString(m.GetRuntime()) < 1 {
 		return VmConfigValidationError{
 			field:  "Runtime",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -73,6 +70,8 @@ func (m *VmConfig) Validate() error {
 	}
 
 	// no validation rules for AllowPrecompiled
+
+	// no validation rules for NackOnCodeCacheMiss
 
 	return nil
 }
@@ -141,7 +140,7 @@ func (m *PluginConfig) Validate() error {
 
 	// no validation rules for Name
 
-	// no validation rules for GroupName
+	// no validation rules for RootId
 
 	if v, ok := interface{}(m.GetConfiguration()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
@@ -153,14 +152,16 @@ func (m *PluginConfig) Validate() error {
 		}
 	}
 
-	switch m.VmConfig.(type) {
+	// no validation rules for FailOpen
 
-	case *PluginConfig_InlineVmConfig:
+	switch m.Vm.(type) {
 
-		if v, ok := interface{}(m.GetInlineVmConfig()).(interface{ Validate() error }); ok {
+	case *PluginConfig_VmConfig:
+
+		if v, ok := interface{}(m.GetVmConfig()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return PluginConfigValidationError{
-					field:  "InlineVmConfig",
+					field:  "VmConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}

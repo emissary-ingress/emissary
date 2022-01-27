@@ -1,18 +1,20 @@
 package k8s_test
 
 import (
+	"context"
 	"os"
 	"testing"
 
-	"github.com/datawire/ambassador/pkg/dtest"
-	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/dtest"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/dlib/dlog"
 )
 
 func TestMain(m *testing.M) {
 	// we get the lock to make sure we are the only thing running
 	// because the nat tests interfere with docker functionality
-	dtest.WithMachineLock(func() {
-		dtest.K8sApply("00-custom-crd.yaml", "custom.yaml")
+	dtest.WithMachineLock(context.TODO(), func(ctx context.Context) {
+		dtest.K8sApply(ctx, dtest.Kube22, "00-custom-crd.yaml", "custom.yaml")
 
 		os.Exit(m.Run())
 	})
@@ -20,12 +22,13 @@ func TestMain(m *testing.M) {
 
 func TestList(t *testing.T) {
 	t.Parallel()
-	c, err := k8s.NewClient(info())
+	ctx := dlog.NewTestContext(t, false)
+	c, err := k8s.NewClient(info(ctx))
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	svcs, err := c.List("svc")
+	svcs, err := c.List(ctx, "svc")
 	if err != nil {
 		t.Error(err)
 	}
@@ -39,7 +42,7 @@ func TestList(t *testing.T) {
 		t.Errorf("did not find kubernetes service")
 	}
 
-	customs, err := c.List("customs")
+	customs, err := c.List(ctx, "customs")
 	if err != nil {
 		t.Error(err)
 	}

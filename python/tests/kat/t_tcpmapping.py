@@ -1,9 +1,9 @@
-import json
+from typing import Generator, Tuple, Union
 
-from kat.harness import Query, Test, variants
+from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
-from selfsigned import TLSCerts
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
+from tests.selfsigned import TLSCerts
 from kat.utils import namespace_manifest
 
 # An AmbassadorTest subclass will actually create a running Ambassador.
@@ -13,6 +13,10 @@ class TCPMappingTest(AmbassadorTest):
     # single_namespace = True
     namespace = "tcp-namespace"
     extra_ports = [ 6789, 7654, 8765, 9876 ]
+
+    # This test is written assuming explicit control of which Hosts are present,
+    # so don't let Edge Stack mess with that.
+    edge_stack_cleartext_host = False
 
     # If you set debug = True here, the results of every Query will be printed
     # when the test is run.
@@ -26,6 +30,9 @@ class TCPMappingTest(AmbassadorTest):
     # Test, AmbassadorTest, etc.).
 
     def init(self):
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
+
         self.target1 = HTTP(name="target1")
         # print("TCP target1 %s" % self.target1.namespace)
 
@@ -49,15 +56,85 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
   tls.key: {TLSCerts["tls-context-host-2"].k8s_key}
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: {self.path.k8s}-listener
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ "{self.ambassador_id}" ]
+  port: 8443
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
+---
+# In most real-world cases, we'd just use a single wildcard Host instead
+# of using three. For this test, though, we need three because we aren't
+# using real domain names, and you can't do wildcards like tls-context-*
+# (because the '*' has to be a domain part on its own).
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-host
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ "{self.ambassador_id}" ]
+  hostname: tls-context-host-1
+  tlsContext:
+    name: {self.name}-tlscontext
+  tlsSecret:
+    name: supersecret
+  requestPolicy:
+    insecure:
+      action: Reject
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-host-2
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ "{self.ambassador_id}" ]
+  hostname: tls-context-host-2
+  tlsContext:
+    name: {self.name}-tlscontext
+  tlsSecret:
+    name: supersecret
+  requestPolicy:
+    insecure:
+      action: Reject
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-host-3
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ "{self.ambassador_id}" ]
+  hostname: tls-context-host-3
+  tlsContext:
+    name: {self.name}-tlscontext
+  tlsSecret:
+    name: supersecret
+  requestPolicy:
+    insecure:
+      action: Reject
 """ + super().manifests()
 
     # config() must _yield_ tuples of Node, Ambassador-YAML where the
     # Ambassador-YAML will be annotated onto the Node.
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-tlscontext
 hosts:
@@ -69,28 +146,27 @@ secret: supersecret
 
         yield self.target1, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  TCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  {self.name}
 port: 9876
 service: {self.target1.path.fqdn}:443
 ---
-apiVersion: ambassador/v1
-kind:  TCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  {self.name}-local-only
 address: 127.0.0.1
 port: 8765
 service: {self.target1.path.fqdn}:443
 ---
-apiVersion: ambassador/v1
-kind:  TCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  {self.name}-clear-to-tls
 port: 7654
-tls: true
-service: {self.target2.path.fqdn}:443
+service: https://{self.target2.path.fqdn}:443
 ---
-apiVersion: ambassador/v1
-kind:  TCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  {self.name}-1
 port: 6789
 host: tls-context-host-1
@@ -100,8 +176,8 @@ service: {self.target1.path.fqdn}:80
         # Host-differentiated.
         yield self.target2, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  TCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  {self.name}-2
 port: 6789
 host: tls-context-host-2
@@ -112,13 +188,12 @@ tls: {self.name}-tlscontext
         # Host-differentiated.
         yield self.target3, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  TCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  {self.name}-3
 port: 6789
 host: tls-context-host-3
-service: {self.target3.path.fqdn}
-tls: true
+service: https://{self.target3.path.fqdn}
 """)
 
     def requirements(self):

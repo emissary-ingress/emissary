@@ -1,11 +1,11 @@
-// MODIFIED: This file is a verbatim subset of Go 1.15.5 os/exec/exec.go,
-// MODIFIED: except that the imports list has been changed.
-//
+// MODIFIED: META: This file is a verbatim subset of Go 1.15.14 os/exec/exec.go,
+// MODIFIED: META: except that the imports list has been changed.
+
 // Copyright 2009 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package dexec // MODIFIED
+package dexec // MODIFIED: FROM: package exec
 
 import (
 	"bytes"
@@ -60,7 +60,7 @@ func (c *Cmd) Output() ([]byte, error) {
 	err := c.Run()
 	if err != nil && captureErr {
 		if ee, ok := err.(*ExitError); ok {
-			ee.Stderr = c.Stderr.(*loggingWriter).writer.(*prefixSuffixSaver).Bytes() // MODIFIED
+			ee.Stderr = c.Stderr.(*loggingWriter).writer.(*prefixSuffixSaver).Bytes() // MODIFIED: FROM: ee.Stderr = c.Stderr.(*prefixSuffixSaver).Bytes()
 		}
 	}
 	return stdout.Bytes(), err

@@ -1,0 +1,134 @@
+{
+    "id": "https://getambassador.io/schemas/devportal.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name"
+    ],
+    "properties": {
+        "ambassador_id": {
+            "description": "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural).",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v3alpha1"
+            ]
+        },
+        "content": {
+            "description": "Content specifies where the content shown in the DevPortal come from",
+            "type": "object",
+            "properties": {
+                "branch": {
+                    "type": "string"
+                },
+                "dir": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "default": {
+            "description": "Default must be true when this is the default DevPortal",
+            "type": "boolean"
+        },
+        "docs": {
+            "description": "Docs is a static docs definition",
+            "type": "array",
+            "items": {
+                "description": "DevPortalDocsSpec is a static documentation definition: instead of using a Selector for finding documentation for services, users can provide a static list of \u003cservice\u003e:\u003cURL\u003e tuples. These services will be shown in the Dev Portal with the documentation obtained from this URL.",
+                "type": "object",
+                "properties": {
+                    "service": {
+                        "description": "Service is the service being documented",
+                        "type": "string"
+                    },
+                    "timeout_ms": {
+                        "description": "Timeout specifies the amount of time devportal will wait for the downstream service to report an openapi spec back",
+                        "type": "integer"
+                    },
+                    "url": {
+                        "description": "URL is the URL used for obtaining docs",
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "kind": {
+            "enum": [
+                "DevPortal"
+            ]
+        },
+        "metadata_labels": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "naming_scheme": {
+            "description": "Describes how to display \"services\" in the DevPortal. Default namespace.name",
+            "type": "string",
+            "enum": [
+                "namespace.name",
+                "name.prefix"
+            ]
+        },
+        "preserve_servers": {
+            "description": "Configures this DevPortal to use server definitions from the openAPI doc instead of rewriting them based on the url used for the connection.",
+            "type": "boolean"
+        },
+        "search": {
+            "description": "DevPortalSearchSpec allows configuration over search functionality for the DevPortal",
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "description": "Type of search. \"title-only\" does a fuzzy search over openapi and page titles \"all-content\" will fuzzy search over all openapi and page content. \"title-only\" is the default. warning:  using all-content may incur a larger memory footprint",
+                    "type": "string",
+                    "enum": [
+                        "title-only",
+                        "all-content"
+                    ]
+                }
+            }
+        },
+        "selector": {
+            "description": "Selector is used for choosing what is shown in the DevPortal",
+            "type": "object",
+            "properties": {
+                "matchLabels": {
+                    "description": "MatchLabels specifies the list of labels that must be present in Mappings for being present in this DevPortal.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "matchNamespaces": {
+                    "description": "MatchNamespaces is a list of namespaces that will be included in this DevPortal.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

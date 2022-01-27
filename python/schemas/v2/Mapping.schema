@@ -1,198 +1,310 @@
 {
-    "$schema": "http://json-schema.org/schema#",
     "id": "https://getambassador.io/schemas/mapping.json",
-
+    "$schema": "http://json-schema.org/schema#",
     "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "service",
+        "prefix"
+    ],
     "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v2" ] },
-        "generation": { "type": "integer" },
-        "kind": { "type": "string" },
-        "name": { "type": "string" },
-        "namespace": { "type": "string" },
-        "metadata_labels": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
+        "add_linkerd_headers": {
+            "type": "boolean"
         },
-        "ambassador_id": {
-            "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
-            ]
+        "add_request_headers": {
+            "$ref": "#/definitions/mapStrObj"
         },
-
-        "prefix": { "type": "string" },
-        "prefix_regex": { "type": "boolean" },
-        "prefix_exact": { "type": "boolean" },
-        "service": { "type": "string" },
-        "add_request_headers": { "$ref": "#/definitions/mapStrObj" },
-        "add_response_headers": { "$ref": "#/definitions/mapStrObj" },
-        "add_linkerd_headers": { "type": "boolean" },
-        "auto_host_rewrite": { "type": "boolean" },
-        "case_sensitive": { "type": "boolean" },
-        "enable_ipv4": { "type": "boolean" },
-        "enable_ipv6": { "type": "boolean" },
-        "circuit_breakers": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "priority": {
-                        "type": "string",
-                        "enum": ["default", "high"]
-                    },
-                    "max_connections": { "type": "integer" },
-                    "max_pending_requests": { "type": "integer" },
-                    "max_requests": { "type": "integer" },
-                    "max_retries": { "type": "integer" }
-                },
-                "additionalProperties": false
-            }
+        "add_response_headers": {
+            "$ref": "#/definitions/mapStrObj"
         },
-        "cors": {
-            "type": "object",
-            "properties": {
-                "origins":  {
-                    "anyOf": [
-                        { "type": "string" },
-                        { "type": "array", "items": { "type": "string" } }
-                    ]
-                },
-                "methods": {
-                    "anyOf": [
-                        { "type": "string" },
-                        { "type": "array", "items": { "type": "string" } }
-                    ]
-                },
-                "headers": {
-                    "anyOf": [
-                        { "type": "string" },
-                        { "type": "array", "items": { "type": "string" } }
-                    ]
-                },
-                "credentials": { "type": "boolean" },
-                "exposed_headers": {
-                    "anyOf": [
-                        { "type": "string" },
-                        { "type": "array", "items": { "type": "string" } }
-                    ]
-                },
-                "max_age": { "type": "string" }
-            },
-            "additionalProperties": false
-        },
-        "docs": {
-            "type": "object",
-            "properties": {
-                "path": { "type": "string" },
-                "url": { "type": "string" },
-                "ignored": { "type": "boolean" }
-            },
-            "additionalProperties": false
-        },
-        "retry_policy": {
-            "type": "object",
-            "properties": {
-                "retry_on":  {
-                    "type": "string",
-                    "enum": ["5xx", "gateway-error", "connect-failure", "retriable-4xx", "refused-stream", "retriable-status-codes"]
-                },
-                "num_retries": { "type": "integer" },
-                "per_try_timeout": { "type": "string" }
-            },
-            "additionalProperties": false
-        },
-        "grpc": { "type": "boolean" },
-        "host_redirect": { "type": "boolean" },
-        "host_rewrite": { "type": "string" },
-        "method": { "type": "string" },
-        "method_regex": { "type": "boolean" },
-        "outlier_detection": { "type": "string" },
-        "path_redirect": { "type": "string" },
-        "prefix_redirect": { "type": "string" },
-        "regex_redirect": {
-            "type": "object",
-            "properties": {
-                "pattern": { "type": "string" },
-                "substitution": { "type": "string" }
-            },
-            "additionalProperties": false
-        },
-        "redirect_response_code": {
-            "type": "integer",
-            "enum": [301, 302, 303, 307, 308]
-        },
-        "priority": { "type": "string" },
-        "precedence": { "type": "integer" },
-        "cluster_tag": { "type": "string" },
-        "remove_request_headers": {
-            "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
-            ]
-        },
-        "remove_response_headers": {
-            "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
-            ]
-        },
-        "resolver": { "type": "string" },
-        "rewrite": { "type": "string" },
-        "regex_rewrite": { "$ref": "#/definitions/mapStrStr" },
-        "shadow": { "type": "boolean" },
-        "connect_timeout_ms": { "type": "integer" },
-        "cluster_idle_timeout_ms": { "type": "integer" },
-        "cluster_max_connection_lifetime_ms": { "type": "integer" },
-        "timeout_ms": { "type": "integer" },
-        "idle_timeout_ms": { "type": "integer" },
-        "tls": { "type": [ "string", "boolean" ] },
-        "use_websocket": { "type": "boolean" },
         "allow_upgrade": {
             "type": "array",
             "items": {
                 "type": "string"
             }
         },
-        "weight": { "type": "integer" },
-        "bypass_auth": { "type": "boolean" },
-        "auth_context_extensions": {"$ref": "#/definitions/mapStrStr"},
-        "bypass_error_response_overrides": { "type": "boolean" },
+        "ambassador_id": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v2"
+            ]
+        },
+        "auth_context_extensions": {
+            "$ref": "#/definitions/mapStrStr"
+        },
+        "auto_host_rewrite": {
+            "type": "boolean"
+        },
+        "bypass_auth": {
+            "type": "boolean"
+        },
+        "bypass_error_response_overrides": {
+            "type": "boolean"
+        },
+        "case_sensitive": {
+            "type": "boolean"
+        },
+        "circuit_breakers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "max_connections": {
+                        "type": "integer"
+                    },
+                    "max_pending_requests": {
+                        "type": "integer"
+                    },
+                    "max_requests": {
+                        "type": "integer"
+                    },
+                    "max_retries": {
+                        "type": "integer"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "enum": [
+                            "default",
+                            "high"
+                        ]
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "cluster_idle_timeout_ms": {
+            "type": "integer"
+        },
+        "cluster_max_connection_lifetime_ms": {
+            "type": "integer"
+        },
+        "cluster_tag": {
+            "type": "string"
+        },
+        "connect_timeout_ms": {
+            "type": "integer"
+        },
+        "cors": {
+            "type": "object",
+            "properties": {
+                "credentials": {
+                    "type": "boolean"
+                },
+                "exposed_headers": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "headers": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "max_age": {
+                    "type": "string"
+                },
+                "methods": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "origins": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "dns_type": {
+            "type": "string"
+        },
+        "docs": {
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "type": "string"
+                },
+                "ignored": {
+                    "type": "boolean"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "timeout_ms": {
+                    "type": "integer"
+                },
+                "url": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "enable_ipv4": {
+            "type": "boolean"
+        },
+        "enable_ipv6": {
+            "type": "boolean"
+        },
+        "envoy_override": {
+            "type": "object"
+        },
         "error_response_overrides": {
             "type": "array",
             "minItems": 1,
             "items": {
                 "type": "object",
+                "required": [
+                    "on_status_code",
+                    "body"
+                ],
                 "properties": {
+                    "body": {},
                     "on_status_code": {
                         "type": "integer",
-                        "minimum": 400,
-                        "maximum": 599
-                    },
-                    "body": {
-                        "text_format": {
-                            "type": "string"
-                        },
-                        "json_format": {
-                            "type": "object"
-                        },
-                        "text_format_source": {
-                            "type": "object",
-                            "properties": {
-                                "filename": {
-                                    "type": "string"
-                                }
-                            },
-                            "required": [ "filename" ],
-                            "additionalProperties": false
-                        },
-                        "content_type": {
-                            "type": "string"
-                        }
+                        "maximum": 599,
+                        "minimum": 400
                     }
                 },
-                "required": [ "on_status_code", "body" ],
                 "additionalProperties": false
             }
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "grpc": {
+            "type": "boolean"
+        },
+        "headers": {
+            "$ref": "#/definitions/mapStrStr"
+        },
+        "host": {
+            "type": "string"
+        },
+        "host_redirect": {
+            "type": "boolean"
+        },
+        "host_regex": {
+            "type": "boolean"
+        },
+        "host_rewrite": {
+            "type": "string"
+        },
+        "idle_timeout_ms": {
+            "type": "integer"
+        },
+        "kind": {
+            "type": "string"
+        },
+        "labels": {
+            "type": "object"
+        },
+        "load_balancer": {
+            "type": "object",
+            "required": [
+                "policy"
+            ],
+            "properties": {
+                "cookie": {
+                    "type": "object",
+                    "required": [
+                        "name"
+                    ],
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "path": {
+                            "type": "string"
+                        },
+                        "ttl": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "header": {
+                    "type": "string"
+                },
+                "policy": {
+                    "type": "string",
+                    "enum": [
+                        "round_robin",
+                        "ring_hash",
+                        "maglev",
+                        "least_request"
+                    ]
+                },
+                "source_ip": {
+                    "type": "boolean"
+                }
+            },
+            "additionalProperties": false
+        },
+        "metadata_labels": {
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "method": {
+            "type": "string"
+        },
+        "method_regex": {
+            "type": "boolean"
         },
         "modules": {
             "type": "array",
@@ -200,55 +312,194 @@
                 "type": "object"
             }
         },
-        "host": { "type": "string" },
-        "host_regex": { "type": "boolean" },
-        "headers": { "$ref": "#/definitions/mapStrStr" },
-        "regex_headers": { "$ref": "#/definitions/mapStrStr" },
-        "labels": {
-            "type": "object"
+        "name": {
+            "type": "string"
         },
-        "envoy_override": {
-            "type": "object"
+        "namespace": {
+            "type": "string"
         },
-        "load_balancer": {
+        "outlier_detection": {
+            "type": "string"
+        },
+        "path_redirect": {
+            "type": "string"
+        },
+        "precedence": {
+            "type": "integer"
+        },
+        "prefix": {
+            "type": "string"
+        },
+        "prefix_exact": {
+            "type": "boolean"
+        },
+        "prefix_redirect": {
+            "type": "string"
+        },
+        "prefix_regex": {
+            "type": "boolean"
+        },
+        "priority": {
+            "type": "string"
+        },
+        "query_parameters": {
+            "$ref": "#/definitions/mapStrStr"
+        },
+        "redirect_response_code": {
+            "type": "integer",
+            "enum": [
+                301,
+                302,
+                303,
+                307,
+                308
+            ]
+        },
+        "regex_headers": {
+            "$ref": "#/definitions/mapStrStr"
+        },
+        "regex_query_parameters": {
+            "$ref": "#/definitions/mapStrStr"
+        },
+        "regex_redirect": {
             "type": "object",
             "properties": {
-                "policy":  {
-                    "type": "string",
-                    "enum": ["round_robin", "ring_hash", "maglev", "least_request"]
+                "pattern": {
+                    "type": "string"
                 },
-                "cookie":  {
-                    "type": "object",
-                    "properties": {
-                        "name": { "type": "string" },
-                        "path": { "type": "string" },
-                        "ttl": { "type": "string" }
-                    },
-                    "required": ["name"],
-                    "additionalProperties": false
-                },
-                "header":  { "type": "string" },
-                "source_ip": {"type": "boolean"}
+                "substitution": {
+                    "type": "string"
+                }
             },
-            "required": ["policy"],
             "additionalProperties": false
         },
-        "query_parameters": { "$ref": "#/definitions/mapStrStr" },
-        "regex_query_parameters": { "$ref": "#/definitions/mapStrStr" }
-    },
-    "definitions": {
-        "mapStrStr": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
+        "regex_rewrite": {
+            "$ref": "#/definitions/mapStrStr"
         },
-        "mapStrObj": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean", "object" ] }
+        "remove_request_headers": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
         },
-        "rateLimit": {
-            "anyOf": [ { "type": "array" }, { "type": "object" } ]
+        "remove_response_headers": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "resolver": {
+            "type": "string"
+        },
+        "respect_dns_ttl": {
+            "type": "boolean"
+        },
+        "retry_policy": {
+            "type": "object",
+            "properties": {
+                "num_retries": {
+                    "type": "integer"
+                },
+                "per_try_timeout": {
+                    "type": "string"
+                },
+                "retry_on": {
+                    "type": "string",
+                    "enum": [
+                        "5xx",
+                        "gateway-error",
+                        "connect-failure",
+                        "retriable-4xx",
+                        "refused-stream",
+                        "retriable-status-codes"
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "rewrite": {
+            "type": "string"
+        },
+        "service": {
+            "type": "string"
+        },
+        "shadow": {
+            "type": "boolean"
+        },
+        "timeout_ms": {
+            "type": "integer"
+        },
+        "tls": {
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "boolean"
+                }
+            ]
+        },
+        "use_websocket": {
+            "type": "boolean"
+        },
+        "weight": {
+            "type": "integer"
         }
     },
-    "required": [ "apiVersion", "kind", "name", "service", "prefix" ],
-    "additionalProperties": false
+    "additionalProperties": false,
+    "definitions": {
+        "mapStrObj": {
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    },
+                    {
+                        "type": "object"
+                    }
+                ]
+            }
+        },
+        "mapStrStr": {
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "rateLimit": {
+            "anyOf": [
+                {
+                    "type": "array"
+                },
+                {
+                    "type": "object"
+                }
+            ]
+        }
+    }
 }

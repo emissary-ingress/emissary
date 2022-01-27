@@ -17,13 +17,16 @@
             "cluster_name": "xds_cluster"
           }
         }
-      ]
+      ],
+      "transport_api_version": "V3"
     },
     "cds_config": {
-      "ads": {}
+      "ads": {},
+      "resource_api_version": "V3"
     },
     "lds_config": {
-      "ads": {}
+      "ads": {},
+      "resource_api_version": "V3"
     }
   },
   "layered_runtime": {
@@ -31,10 +34,8 @@
       {
         "name": "static_layer",
         "static_layer": {
-          "envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match": true,
-          "envoy.deprecated_features:envoy.api.v2.route.RouteMatch.regex": true,
-          "envoy.deprecated_features:envoy.config.trace.v2.ZipkinConfig.HTTP_JSON_V1": true,
-          "envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher": false
+          "envoy.reloadable_features.enable_deprecated_v2_api": true,
+          "re2.max_program_size.error_level": 200
         }
       }
     ]
