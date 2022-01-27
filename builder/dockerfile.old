@@ -1,0 +1,120 @@
+# syntax = docker/dockerfile:1.3
+
+###
+# This dockerfile builds all the source code and docker images for the
+# edge stack.
+##
+
+###
+# How it works.
+##
+# All our source code is built in a single monolithic build
+# container. (The "builder" stage below.) We then produce optimized
+# release images by copying the specific binaries and entrypoints out
+# of the build container. The build container must always contain all
+# the binaries and entrypoints for any container we produce, and
+# therefore (with the appropriate entrypoint) can function in place of
+# any release container. The release containers are trivial stages
+# that simply copy the relevant artifacts out of the builder
+# container.
+
+# This argument controls the base image that is used for the release
+# containers.
+ARG base="docker.io/frolvlad/alpine-glibc:alpine-3.12_glibc-2.32"
+
+# This argument sets the base image for the build container image. This
+# base image contains only third-party code.
+ARG builderbase="i-forgot-to-set-build-arg-builderbase"
+
+# This controls where we copy envoy from.
+ARG envoy="i-forgot-to-set-build-arg-envoy"
+
+########################################
+# The builder image
+########################################
+
+FROM ${envoy} as envoy
+
+FROM ${builderbase} as builder
+
+WORKDIR /buildroot
+
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
+
+COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
+
+ENV KUBECONFIG=/buildroot/kubeconfig.yaml
+
+# XXX: this will go away
+RUN mkdir -p /ambassador/sidecars && \
+    ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py && \
+    ln -s /buildroot/ambassador/python/watch_hook.py /ambassador/watch_hook.py && \
+    ln -s /buildroot/ambassador/python/kubewatch.py /ambassador/kubewatch.py
+
+RUN adduser dw --disabled-password
+# SUDO_USERS HOSTS=(AS_USER) TAGS COMMANDS
+RUN echo "dw ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/datawire
+RUN chown dw /buildroot
+USER dw
+
+ENTRYPOINT [ "/bin/bash" ]
+
+########################################
+# The golang build stage
+########################################
+
+FROM ${builderbase} as golang
+
+WORKDIR /go
+
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
+
+# Build the golang binaries
+ADD api api
+ADD cmd cmd
+ADD pkg pkg
+ADD vendor vendor
+ADD go.mod go.mod
+ADD go.sum go.sum
+
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    mkdir -p /go/bin && \
+	time go build -mod=vendor -o /go/bin/ ./cmd/...
+
+########################################
+# The artifact build stage
+########################################
+
+FROM ${builderbase} as artifact-stage
+
+WORKDIR /buildroot/ambassador
+
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
+
+# Copy in the golang binaries
+COPY --from=golang /go/bin/* /buildroot/bin/
+
+# Setup the python code
+ADD python python
+RUN time pip install --no-deps -e python
+
+# Run post-compile.sh
+ADD build-aux build-aux
+ADD post-compile.sh post-compile.sh
+RUN bash post-compile.sh
+
+# XXX: this will go away
+RUN mkdir -p /ambassador/sidecars && \
+    ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py && \
+    ln -s /buildroot/ambassador/python/watch_hook.py /ambassador/watch_hook.py && \
+    ln -s /buildroot/ambassador/python/kubewatch.py /ambassador/kubewatch.py
+
+# These will be extracted into the optimized image later
+ADD demo demo
+ADD manifests/emissary/emissary-crds.yaml manifests/emissary/emissary-crds.yaml
+
+########################################
+# The optimized images
+########################################
+
+FROM artifact-stage as artifacts

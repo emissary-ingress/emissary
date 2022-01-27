@@ -52,6 +52,12 @@ docker/.base.img.tar.stamp: FORCE $(tools/crane) docker/base-python/Dockerfile
 docker/.base-python.docker.stamp: FORCE docker/base-python/Dockerfile docker/base-python.docker.gen
 	docker/base-python.docker.gen >$@
 
+# Collect some metadata about base-python
+docker/base-python.img.tar: docker/base-python.docker.tag.local
+	docker save $$(sed -n 2p $<) > $@
+python-env.yaml: $(tools/ocibuild) docker/base-python.img.tar 
+	$(tools/ocibuild) python inspect --imagefile=$(filter %.img.tar,$^) > $@
+
 # base-pip: base-python, but with requirements.txt installed.
 #
 # Mixed feelings about this one; it kinda wants to not be a separate
