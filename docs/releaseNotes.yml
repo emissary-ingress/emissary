@@ -36,6 +36,17 @@ items:
     prevVersion: 3.3.0
     date: 'TBD'
     notes:
+      - title: Re-add support for getambassador.io/v1
+        type: feature
+        body: >-
+          Support for the <code>getambassador.io/v1</code> apiVersion has been re-introduced, in
+          order to facilitate smoother migrations from $productName$ 1.y.  Previously, in order to
+          make migrations possible, an "unserved" <code>v1</code> version was declared to
+          Kubernetes, but was unsupported by $productName$.  That unserved <code>v1</code> could
+          cause an excess of errors to be logged by the Kubernetes Nodes (regardless of whether the
+          installation was migrated from 1.y or was a fresh 2.y install); fully supporting
+          <code>v1</code> again should resolve these errors.
+
       - title: Update Golang to 1.19.3
         type: security
         body: >-

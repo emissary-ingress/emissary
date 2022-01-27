@@ -90,6 +90,13 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Feature: Support for the `getambassador.io/v1` apiVersion has been re-introduced, in order to
+  facilitate smoother migrations from Emissary-ingress 1.y.  Previously, in order to make migrations
+  possible, an "unserved" `v1` version was declared to Kubernetes, but was unsupported by
+  Emissary-ingress.  That unserved `v1` could cause an excess of errors to be logged by the
+  Kubernetes Nodes (regardless of whether the installation was migrated from 1.y or was a fresh 2.y
+  install); fully supporting `v1` again should resolve these errors.
+
 - Security: Updated Golang to the latest z patch. We are not vulnerable to the CVE-2022-3602 that
   was  released in 1.19.3 and you can read more about it here:
   <https://medium.com/ambassador-api-gateway/ambassador-labs-security-impact-assessment-of-nov-1-openssl-golang-vulnerabilities-f11b5ec37a7e>.

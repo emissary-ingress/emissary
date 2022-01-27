@@ -14,6 +14,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	getambassadorio "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v1"
 	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v2"
 	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
@@ -63,10 +64,12 @@ func requireEqualNormalized(t *testing.T, exp, act interface{}) {
 func TestConvert(t *testing.T) {
 	testcases := map[string]map[string]interface{}{
 		"authsvc": {
+			"getambassador.io/v1":       v1.AuthService{},
 			"getambassador.io/v2":       v2.AuthService{},
 			"getambassador.io/v3alpha1": v3alpha1.AuthService{},
 		},
 		"devportals": {
+			"getambassador.io/v1":       v1.DevPortal{},
 			"getambassador.io/v2":       v2.DevPortal{},
 			"getambassador.io/v3alpha1": v3alpha1.DevPortal{},
 		},
@@ -75,30 +78,37 @@ func TestConvert(t *testing.T) {
 			"getambassador.io/v3alpha1": v3alpha1.Host{},
 		},
 		"logsvc": {
+			"getambassador.io/v1":       v1.LogService{},
 			"getambassador.io/v2":       v2.LogService{},
 			"getambassador.io/v3alpha1": v3alpha1.LogService{},
 		},
 		"mappings": {
+			"getambassador.io/v1":       v1.Mapping{},
 			"getambassador.io/v2":       v2.Mapping{},
 			"getambassador.io/v3alpha1": v3alpha1.Mapping{},
 		},
 		"modules": {
+			"getambassador.io/v1":       v1.Module{},
 			"getambassador.io/v2":       v2.Module{},
 			"getambassador.io/v3alpha1": v3alpha1.Module{},
 		},
 		"ratelimitsvc": {
+			"getambassador.io/v1":       v1.RateLimitService{},
 			"getambassador.io/v2":       v2.RateLimitService{},
 			"getambassador.io/v3alpha1": v3alpha1.RateLimitService{},
 		},
 		"tcpmappings": {
+			"getambassador.io/v1":       v1.TCPMapping{},
 			"getambassador.io/v2":       v2.TCPMapping{},
 			"getambassador.io/v3alpha1": v3alpha1.TCPMapping{},
 		},
 		"tlscontexts": {
+			"getambassador.io/v1":       v1.TLSContext{},
 			"getambassador.io/v2":       v2.TLSContext{},
 			"getambassador.io/v3alpha1": v3alpha1.TLSContext{},
 		},
 		"tracingsvc": {
+			"getambassador.io/v1":       v1.TracingService{},
 			"getambassador.io/v2":       v2.TracingService{},
 			"getambassador.io/v3alpha1": v3alpha1.TracingService{},
 		},
