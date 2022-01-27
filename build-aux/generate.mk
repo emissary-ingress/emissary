@@ -53,6 +53,8 @@ generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/  # recipe in _cxx/en
 generate/files      += $(OSS_HOME)/DEPENDENCIES.md
 generate/files      += $(OSS_HOME)/DEPENDENCY_LICENSES.md
 generate-fast/files += $(OSS_HOME)/CHANGELOG.md
+generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v1/zz_generated.conversion.go
+generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v1/zz_generated.conversion-spoke.go
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion.go
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion-spoke.go
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v3alpha1/zz_generated.conversion-hub.go
@@ -200,6 +202,9 @@ $(OSS_HOME)/%/zz_generated.conversion.go: $(tools/conversion-gen) build-aux/copy
 	  --go-header-file=build-aux/copyright-boilerplate.go.txt \
 	  --input-dirs=./$* \
 	  --output-file-base=zz_generated.conversion
+# Because v1 just aliases v2, conversion-gen will need to be able to see the v2 conversion functions
+# when generating code for v1.
+$(OSS_HOME)/pkg/api/getambassador.io/v1/zz_generated.conversion.go: $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion.go
 
 $(OSS_HOME)/%/handwritten.conversion.scaffold.go: $(OSS_HOME)/%/zz_generated.conversion.go
 	{ \
