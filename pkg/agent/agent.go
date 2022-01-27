@@ -48,7 +48,7 @@ func (ab *atomicBool) Set(v bool) {
 	ab.value = v
 }
 
-// Agent is the component that talks to the CEPC Director, which is a cloud
+// Agent is the component that talks to the DCP Director, which is a cloud
 // service run by Datawire.
 type Agent struct {
 	// Connectivity to the Director
@@ -460,13 +460,13 @@ func (a *Agent) MaybeReport(ctx context.Context) {
 
 	// It's time to send a report
 	if a.comm == nil {
-		// The communications channel to the CEPC was not yet created or was
+		// The communications channel to the DCP was not yet created or was
 		// closed above, due to a change in identity, or close elsewhere, due to
 		// a change in endpoint configuration.
 		newComm, err := NewComm(ctx, a.connInfo, a.agentID, a.ambassadorAPIKey)
 		if err != nil {
-			dlog.Warnf(ctx, "Failed to dial the CEPC: %v", err)
-			dlog.Warn(ctx, "CEPC functionality disabled until next retry")
+			dlog.Warnf(ctx, "Failed to dial the DCP: %v", err)
+			dlog.Warn(ctx, "DCP functionality disabled until next retry")
 
 			return
 		}

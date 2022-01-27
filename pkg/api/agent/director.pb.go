@@ -37,7 +37,7 @@ const (
 // of the legacy proto package is being used.
 const _ = proto.ProtoPackageIsVersion4
 
-// How Ambassador's Agent identifies itself to the CEPC
+// How Ambassador's Agent identifies itself to the DCP
 // This is the identity of the ambassador the agent is reporting on behalf of
 // no user account specific information should be contained in here
 type Identity struct {
@@ -45,7 +45,7 @@ type Identity struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The account ID assigned by the CEPC
+	// The account ID assigned by the DCP
 	//
 	// Deprecated: Do not use.
 	AccountId string `protobuf:"bytes,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
@@ -143,7 +143,7 @@ func (x *Identity) GetLabel() string {
 }
 
 // Information that Ambassador's Agent can send to the Director
-// component of the CEPC
+// component of the DCP
 type Snapshot struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -404,7 +404,7 @@ func (*SnapshotResponse) Descriptor() ([]byte, []int) {
 	return file_agent_director_proto_rawDescGZIP(), []int{4}
 }
 
-// Instructions that the CEPC can send to Ambassador
+// Instructions that the DCP can send to Ambassador
 type Directive struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -482,7 +482,7 @@ func (x *Directive) GetCommands() []*Command {
 	return nil
 }
 
-// An individual instruction from the CEPC
+// An individual instruction from the DCP
 type Command struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -941,14 +941,14 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DirectorClient interface {
 	// Deprecated: Do not use.
-	// Report a consistent Snapshot of information to the CEPC.  This
+	// Report a consistent Snapshot of information to the DCP.  This
 	// method is deprecated, you should call ReportStream instead.
 	Report(ctx context.Context, in *Snapshot, opts ...grpc.CallOption) (*SnapshotResponse, error)
-	// Report a consistent Snapshot of information to the CEPC.
+	// Report a consistent Snapshot of information to the DCP.
 	ReportStream(ctx context.Context, opts ...grpc.CallOption) (Director_ReportStreamClient, error)
-	// Stream metrics to the CEPC.
+	// Stream metrics to the DCP.
 	StreamMetrics(ctx context.Context, opts ...grpc.CallOption) (Director_StreamMetricsClient, error)
-	// Retrieve Directives from the CEPC
+	// Retrieve Directives from the DCP
 	Retrieve(ctx context.Context, in *Identity, opts ...grpc.CallOption) (Director_RetrieveClient, error)
 	RetrieveSnapshot(ctx context.Context, in *Identity, opts ...grpc.CallOption) (Director_RetrieveSnapshotClient, error)
 }
@@ -1106,14 +1106,14 @@ func (x *directorRetrieveSnapshotClient) Recv() (*RawSnapshotChunk, error) {
 // DirectorServer is the server API for Director service.
 type DirectorServer interface {
 	// Deprecated: Do not use.
-	// Report a consistent Snapshot of information to the CEPC.  This
+	// Report a consistent Snapshot of information to the DCP.  This
 	// method is deprecated, you should call ReportStream instead.
 	Report(context.Context, *Snapshot) (*SnapshotResponse, error)
-	// Report a consistent Snapshot of information to the CEPC.
+	// Report a consistent Snapshot of information to the DCP.
 	ReportStream(Director_ReportStreamServer) error
-	// Stream metrics to the CEPC.
+	// Stream metrics to the DCP.
 	StreamMetrics(Director_StreamMetricsServer) error
-	// Retrieve Directives from the CEPC
+	// Retrieve Directives from the DCP
 	Retrieve(*Identity, Director_RetrieveServer) error
 	RetrieveSnapshot(*Identity, Director_RetrieveSnapshotServer) error
 }
