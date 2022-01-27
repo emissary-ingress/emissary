@@ -269,14 +269,35 @@ $(OSS_HOME)/%/zz_generated.conversion-spoke.go: FORCE
 	       print("package $(notdir $*)"); \
 	       print(""); \
 	       print("import ("); \
-	       print("  \"k8s.io/apimachinery/pkg/runtime\""); \
+	       print("  k8sRuntime \"k8s.io/apimachinery/pkg/runtime\""); \
 	       print("  \"sigs.k8s.io/controller-runtime/pkg/conversion\""); \
 	       print(")"); \
 	       print(""); \
-	       print("func convert(src, dst runtime.Object) error {"); \
-	       print("  s, err := SchemeBuilder.Build()"); \
-	       print("  if err != nil { return err }"); \
-	       print("  return s.Convert(src, dst, nil)"); \
+	       print("func convertFrom(src conversion.Hub, dst conversion.Convertible) error {"); \
+	       print("  scheme := conversionScheme()"); \
+	       print("  var cur k8sRuntime.Object = src"); \
+	       print("  for i := len(conversionIntermediates) - 1; i >= 0; i-- {"); \
+	       print("    gv := conversionIntermediates[i]"); \
+	       print("    var err error"); \
+	       print("    cur, err = scheme.ConvertToVersion(cur, gv)"); \
+	       print("    if err != nil {"); \
+	       print("      return err"); \
+	       print("    }"); \
+	       print("  }"); \
+	       print("  return scheme.Convert(cur, dst, nil)"); \
+	       print("}"); \
+	       print(""); \
+	       print("func convertTo(src conversion.Convertible, dst conversion.Hub) error {"); \
+	       print("  scheme := conversionScheme()"); \
+	       print("  var cur k8sRuntime.Object = src"); \
+	       print("  for _, gv := range conversionIntermediates {"); \
+	       print("    var err error"); \
+	       print("    cur, err = scheme.ConvertToVersion(cur, gv)"); \
+	       print("    if err != nil {"); \
+	       print("      return err"); \
+	       print("    }"); \
+	       print("  }"); \
+	       print("  return scheme.Convert(cur, dst, nil)"); \
 	       print("}"); \
 	       print(""); \
 	       object=0; \
@@ -286,8 +307,8 @@ $(OSS_HOME)/%/zz_generated.conversion-spoke.go: FORCE
 	    } \
 	    /^type \S+ struct/ && object { \
 	        if (!match($$2, /List$$/)) { \
-	          print "func(dst *" $$2 ") ConvertFrom(src conversion.Hub) error { return convert(src, dst) }"; \
-	          print "func(src *" $$2 ") ConvertTo(dst conversion.Hub) error { return convert(src, dst) }"; \
+	          print "func(dst *" $$2 ") ConvertFrom(src conversion.Hub) error { return convertFrom(src, dst) }"; \
+	          print "func(src *" $$2 ") ConvertTo(dst conversion.Hub) error { return convertTo(src, dst) }"; \
 	        } \
 	        object=0; \
 	    }' $(sort $(wildcard $(@D)/*.go)) | \

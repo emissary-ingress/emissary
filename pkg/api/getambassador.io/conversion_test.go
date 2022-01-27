@@ -1,8 +1,8 @@
-package getambassadorio
+package getambassadorio_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"reflect"
@@ -10,10 +10,13 @@ import (
 
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/stretchr/testify/require"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/yaml"
 
+	getambassadorio "github.com/datawire/ambassador/v2/pkg/api/getambassador.io"
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
 func marshalNormalized(t *testing.T, typed interface{}) string {
@@ -58,7 +61,6 @@ func requireEqualNormalized(t *testing.T, exp, act interface{}) {
 }
 
 func TestConvert(t *testing.T) {
-	t.Parallel()
 	testcases := map[string]map[string]interface{}{
 		"authsvc": {
 			"getambassador.io/v2":       v2.AuthService{},
@@ -102,7 +104,12 @@ func TestConvert(t *testing.T) {
 		},
 	}
 
-	scheme := BuildScheme()
+	scheme := getambassadorio.BuildScheme()
+
+	v2.MangleAmbassadorID = false
+	t.Cleanup(func() {
+		v2.MangleAmbassadorID = true
+	})
 
 	t.Run("RoundTrip", func(t *testing.T) {
 		t.Parallel()
@@ -120,7 +127,7 @@ func TestConvert(t *testing.T) {
 						testname := path.Base(mainAPIVersion) + "_through_" + path.Base(throughAPIVersion)
 						t.Run(testname, func(t *testing.T) {
 							t.Parallel()
-							inBytes, err := ioutil.ReadFile(filepath.Join(path.Base(mainAPIVersion), "testdata", typename+".yaml"))
+							inBytes, err := os.ReadFile(filepath.Join(path.Base(mainAPIVersion), "testdata", typename+".yaml"))
 							require.NoError(t, err)
 							inListPtr := reflect.New(reflect.SliceOf(reflect.TypeOf(testcases[typename][mainAPIVersion])))
 							require.NoError(t, yaml.Unmarshal(inBytes, inListPtr.Interface()))
@@ -129,13 +136,15 @@ func TestConvert(t *testing.T) {
 
 							midList := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(testcases[typename][throughAPIVersion])), listLen, listLen)
 							for i := 0; i < listLen; i++ {
-								require.NoError(t, scheme.Convert(inList.Index(i).Addr().Interface(), midList.Index(i).Addr().Interface(), v2.DisableManglingAmbassadorID{}))
+								midList.Index(i).FieldByName("TypeMeta").FieldByName("APIVersion").Set(reflect.ValueOf(throughAPIVersion))
+								midList.Index(i).FieldByName("TypeMeta").FieldByName("Kind").Set(inList.Index(i).FieldByName("TypeMeta").FieldByName("Kind"))
+								require.NoError(t, kates.ConvertObject(scheme, inList.Index(i).Addr().Interface().(runtime.Object), midList.Index(i).Addr().Interface().(runtime.Object)))
 							}
 
 							outList := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(testcases[typename][mainAPIVersion])), listLen, listLen)
 							for i := 0; i < listLen; i++ {
-								require.NoError(t, scheme.Convert(midList.Index(i).Addr().Interface(), outList.Index(i).Addr().Interface(), v2.DisableManglingAmbassadorID{}))
 								outList.Index(i).FieldByName("TypeMeta").Set(inList.Index(i).FieldByName("TypeMeta"))
+								require.NoError(t, kates.ConvertObject(scheme, midList.Index(i).Addr().Interface().(runtime.Object), outList.Index(i).Addr().Interface().(runtime.Object)))
 							}
 
 							requireEqualNormalized(t, inList.Interface(), outList.Interface())
