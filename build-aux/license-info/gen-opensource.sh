@@ -20,6 +20,7 @@ cd "${OSS_HOME}"
   echo -e "\n"
 } >"${DESTINATION}"
 
+
 # Analyze Python dependencies
 (
   {
@@ -29,10 +30,11 @@ cd "${OSS_HOME}"
   echo -e "\n"
 ) >>"${DESTINATION}"
 
+
 # Analyze Node.Js dependencies
 # TODO: Scan other folders with JS files but no package.json
 echo -e "The ${APPLICATION} Node.Js code makes use of the following Free and Open Source
-libraries:" >>"${DESTINATION}"
+libraries:\n" >>"${DESTINATION}"
 
 (
   echo -e "Name|Version|License(s)

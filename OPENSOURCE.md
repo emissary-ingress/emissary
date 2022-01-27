@@ -196,6 +196,7 @@ libraries:
 
 The Emissary-ingress Node.Js code makes use of the following Free and Open Source
 libraries:
+
     Name                                       Version   License(s)
     ----                                       -------   ----------
     abbrev                                     1.1.1     ISC license
