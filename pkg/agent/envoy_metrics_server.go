@@ -2,18 +2,19 @@ package agent
 
 import (
 	"context"
-	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v3"
+	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v2"
 	"github.com/datawire/dlib/dlog"
 	"google.golang.org/grpc"
 	"io"
 	"net"
 )
 
-type streamHandler func(in *envoyMetrics.StreamMetricsMessage)
+type streamHandler func(logCtx context.Context, in *envoyMetrics.StreamMetricsMessage)
 
 type metricsServer struct {
 	envoyMetrics.MetricsServiceServer
 	handler streamHandler
+	logCtx  context.Context
 }
 
 // NewMetricsServer is the main metricsServer constructor.
@@ -35,14 +36,14 @@ func (s *metricsServer) StartServer(ctx context.Context) error {
 	}
 
 	dlog.Infof(ctx, "metrics service listening on %s", listener.Addr().String())
+	s.logCtx = ctx
 	return grpcServer.Serve(listener)
 }
 
 // StreamMetrics implements the StreamMetrics rpc call by calling the stream handler on each
 // message received. It's invoked whenever metrics arrive from Envoy.
 func (s *metricsServer) StreamMetrics(stream envoyMetrics.MetricsService_StreamMetricsServer) error {
-	ctx := stream.Context()
-	dlog.Debug(ctx, "started stream")
+	dlog.Debug(s.logCtx, "started stream")
 	for {
 		in, err := stream.Recv()
 		if err == io.EOF {
@@ -51,6 +52,6 @@ func (s *metricsServer) StreamMetrics(stream envoyMetrics.MetricsService_StreamM
 		if err != nil {
 			return err
 		}
-		s.handler(in)
+		s.handler(s.logCtx, in)
 	}
 }

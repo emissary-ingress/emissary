@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v3"
+	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v2"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -601,9 +601,8 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 	return nil
 }
 
-func (a *Agent) MetricsRelayHandler(in *envoyMetrics.StreamMetricsMessage) {
-	ctx := context.Background()
-	dlog.Debugf(ctx, "received %d metrics", len(in.GetEnvoyMetrics()))
+func (a *Agent) MetricsRelayHandler(logCtx context.Context, in *envoyMetrics.StreamMetricsMessage) {
+	dlog.Debugf(logCtx, "received %d metrics", len(in.GetEnvoyMetrics()))
 	if a.comm != nil && !a.reportingStopped {
 		a.ambassadorAPIKeyMutex.Lock()
 		apikey := a.ambassadorAPIKey
@@ -612,9 +611,9 @@ func (a *Agent) MetricsRelayHandler(in *envoyMetrics.StreamMetricsMessage) {
 			Identity:     a.agentID,
 			EnvoyMetrics: in.EnvoyMetrics,
 		}
-		dlog.Debugf(ctx, "relaying %d metrics", len(outMessage.GetEnvoyMetrics()))
-		if err := a.comm.StreamMetrics(ctx, outMessage, apikey); err != nil {
-			dlog.Errorf(ctx, "Error streaming metrics: %+v", err)
+		dlog.Debugf(logCtx, "relaying %d metrics", len(outMessage.GetEnvoyMetrics()))
+		if err := a.comm.StreamMetrics(logCtx, outMessage, apikey); err != nil {
+			dlog.Errorf(logCtx, "Error streaming metrics: %+v", err)
 		}
 	}
 }
