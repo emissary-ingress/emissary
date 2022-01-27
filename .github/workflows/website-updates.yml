@@ -2,14 +2,15 @@ name: website-updates
 on:
   push:
     branches:
-      - release/*
+      - master
+      - release/v*
 
 jobs:
   repatriate-to-lts:
     runs-on: ubuntu-latest
 
     name: update-website-docs
-    
+
     env:
       REF: ${{ github.ref }}
       RUN: ${{ github.run_id }}
@@ -33,7 +34,7 @@ jobs:
           git config --global user.name "$GIT_USER_NAME"
           git config --global --remove-section url."ssh://git@github.com" || true
           git config --global "url.https://$GIT_API_KEY@github.com.insteadof" https://github.com
-          
+
       - name: Get yq
         shell: bash
         run: |
@@ -78,7 +79,7 @@ jobs:
           #yq eval-all '.items |= [env(ITEM)] + .' /tmp/getambassador.io/ambassador-docs/docs/emissary/$SHORT/releaseNotes.yml
           # cp docs/releaseNotes.yml /tmp/getambassador.io/ambassador-docs/docs/edge-stack/$SHORT/releaseNotes.yml
           cp docs/releaseNotes.yml /tmp/getambassador.io/ambassador-docs/docs/emissary/$SHORT/releaseNotes.yml
-          
+
       - name: Prerelease docs update
         shell: bash
         # according to Luke this will hit only and all pre-releases
