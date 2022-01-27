@@ -79,6 +79,24 @@ spec:
     app.kubernetes.io/instance: emissary-ingress
     profile: main
 ---
+# Source: emissary-ingress/templates/ambassador-agent.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: emissary-ingress-agent
+  namespace: default
+  labels:
+    product: aes
+spec:
+  ports:
+  - port: 8123
+    targetPort: grpc
+    protocol: TCP
+    name: grpc
+  selector:
+    app.kubernetes.io/name: emissary-ingress-agent
+    app.kubernetes.io/instance: emissary-ingress
+---
 # Source: emissary-ingress/templates/rbac.yaml
 ######################################################################
 # Aggregate                                                          #
@@ -277,6 +295,8 @@ spec:
         - name: admin
           containerPort: 8877
         env:
+        - name: AMBASSADOR_GRPC_METRICS_SINK
+          value: emissary-ingress:8123
         - name: HOST_IP
           valueFrom:
             fieldRef:
@@ -561,6 +581,9 @@ spec:
         image: docker.io/emissaryingress/emissary:2.1.0
         imagePullPolicy: IfNotPresent
         command: [agent]
+        ports:
+        - containerPort: 8123
+          name: grpc
         env:
         - name: AGENT_NAMESPACE
           valueFrom:
