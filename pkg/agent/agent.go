@@ -618,7 +618,7 @@ func (a *Agent) MetricsRelayHandler(logCtx context.Context, in *envoyMetrics.Str
 			for _, suffix := range allowedMetricsSuffixes {
 				if strings.HasSuffix(metricFamily.GetName(), suffix) {
 					outMetrics = append(outMetrics, metricFamily)
-					continue
+					break
 				}
 			}
 		}
