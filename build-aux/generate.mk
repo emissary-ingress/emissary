@@ -495,7 +495,7 @@ $(PYTHON_DEPS): PY_BUILDER clean-pip-deps
 	}
 .PHONY: $(PYTHON_DEPS)
 
-$(OSS_HOME)/build-aux/pip-deps-merged.txt: $(PYTHON_DEPS)
+$(OSS_HOME)/build-aux/pip-deps-merged.txt: FORCE $(PYTHON_DEPS)
 	set -e; { \
 		: > $@; \
 		find . -type f -name 'pip-deps.txt' -exec cat "{}" \; >>$@; \
