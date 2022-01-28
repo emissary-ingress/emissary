@@ -109,38 +109,6 @@ def main(ga_ver: str, chart_ver: str, include_docker: bool = True,
                     if b != a:
                         subcheck.ok = False
 
-    # def do_check_binary(checker: Checker, name: str, txt: bool, private: bool) -> None:
-    #     with checker.check(name=f'Executable: {name}', clear_on_success=False) as checker:
-    #         for platform in ['linux/amd64/{}', 'darwin/amd64/{}', 'windows/amd64/{}.exe']:
-    #             rc_body: Optional[bytes] = None
-    #             with do_check_s3(checker, f'{name}/{rc_ver}/{platform.format(name)}',
-    #                              private=private, bucket=s3_bucket) as (subcheck, body):
-    #                 if body is not None:
-    #                     rc_body = body
-    #                     # TODO: Validate the binary somehow
-    #             if ga:
-    #                 with do_check_s3(checker, f'{name}/{ga_ver}/{platform.format(name)}',
-    #                                  private=private, bucket=s3_bucket) as (subcheck, body):
-    #                     if body is not None:
-    #                         assert body == rc_body
-    #         if txt:
-    #             if include_latest:
-    #                 with do_check_s3(checker, f'{name}/latest.txt', private=private, bucket=s3_bucket) as (subcheck, body):
-    #                     if body is not None:
-    #                         subcheck.result = body.decode('UTF-8').strip()
-    #                         if is_private:
-    #                             assert subcheck.result != rc_ver
-    #                         else:
-    #                             assert_eq(subcheck.result, rc_ver)
-    #             if ga or is_private:
-    #                 with do_check_s3(checker, f'{name}/stable.txt', private=private, bucket=s3_bucket) as (subcheck, body):
-    #                     if body is not None:
-    #                         subcheck.result = body.decode('UTF-8').strip()
-    #                         if is_private:
-    #                             assert subcheck.result != ga_ver
-    #                         else:
-    #                             assert_eq(subcheck.result, ga_ver)
-
     s3_login()
 
     checker = Checker()
