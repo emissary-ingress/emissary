@@ -106,6 +106,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
     strings.ReplaceAll "</i>" "*" |
     strings.ReplaceAll "<code>" "`" |
     strings.ReplaceAll "</code>" "`" |
+    strings.ReplaceAll "href=\"../" "href=\"https://www.getambassador.io/docs/emissary/latest/" |
     strings.WordWrap 100 }}
 {{- end }}{{ end }}{{ end }}
 {{ if ne $release.date "N/A" }}
@@ -119,6 +120,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
     strings.ReplaceAll "</i>" "*" |
     strings.ReplaceAll "<code>" "`" |
     strings.ReplaceAll "</code>" "`" |
+    strings.ReplaceAll "href=\"../" "href=\"https://www.getambassador.io/docs/emissary/latest/" |
     strings.WordWrap 98 |
     strings.Indent 2 |
     strings.TrimPrefix "  " }}{{ if index . "github" }}{{ range .github }} ([{{.title}}]){{ end }}{{ end }}
@@ -135,6 +137,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
     strings.ReplaceAll "</i>" "*" |
     strings.ReplaceAll "<code>" "`" |
     strings.ReplaceAll "</code>" "`" |
+    strings.ReplaceAll "href=\"../" "href=\"https://www.getambassador.io/docs/edge-stack/latest/" |
     strings.WordWrap 98 |
     strings.Indent 2 |
     strings.TrimPrefix "  " }}{{ if index . "github" }}{{ range .github }} ([{{.title}}]){{ end }}{{ end }}
