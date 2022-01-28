@@ -3,11 +3,8 @@ on:
   push:
     branches:
       - master
-    paths:
-      - 'charts/**'
-  pull_request:
-    paths:
-      - 'charts/**'
+      - release/v*
+  pull_request: {}
 
 jobs:
   execute-chart-test:

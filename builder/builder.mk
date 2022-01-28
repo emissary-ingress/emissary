@@ -857,13 +857,6 @@ release/go:
 	}
 .PHONY: release/go
 
-# `make release/repatriate` is meant to be run by the human maintainer
-# after GA images have been pushed.
-release/repatriate:
-	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION must be set to a GA "v2.Y.Z" value; it is set to "%s"$(END)\n' "$(VERSION)"; exit 1)
-	$(OSS_HOME)/releng/release-repatriate $(patsubst v%,%,$(VERSION))
-.PHONY: release/repatriate
-
 # `make release/ga-mirror` aught to be run by CI, but because
 # credentials are a nightmare it currently has to be run by a human
 # maintainer.
