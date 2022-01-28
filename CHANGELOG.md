@@ -101,7 +101,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   have been removed. Only the Envoy V3 API is supported (this has been the default since
   Emissary-ingress v1.14.0).
 
+- Feature: Support for streaming Envoy metrics about the clusters to Ambassador's cloud. ([4053])
+
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
+[4053]: https://github.com/emissary-ingress/emissary/pull/4053
 
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
