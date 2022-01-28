@@ -164,13 +164,6 @@ def main(ga_ver: str, chart_ver: str, include_docker: bool = True,
                     else:
                         assert_eq(subcheck.result, ga_ver)
 
-    # This is redundant since we now look at the tag for which the GitHub release was
-    # created -- we're trusting GitHub not to allow a release that points to a tag that
-    # doesn't exist.
-    # with checker.check(name='Git tags') as check:
-    #     check.result = 'TODO'
-    #     raise NotImplementedError()
-        
     with checker.check(name='Website YAML') as check:
         yaml_str = http_cat('https://app.getambassador.io/yaml/emissary/latest/emissary-emissaryns.yaml').decode('utf-8')
         images = [
@@ -213,7 +206,11 @@ def main(ga_ver: str, chart_ver: str, include_docker: bool = True,
             check_tag = f"{check_tag}-{release_channel}"
         assert_eq(check.result, check_tag)
 
-    with checker.check(name='ambassador.git GitHub release for chart') as check:
+    # The existence of a GitHub release implies the existence of its tag, and we check to
+    # make sure that the tag matches what we expect. Therefore we don't do a separate check
+    # for the tag. (It's true that you can delete the tag after the release; we're just not
+    # going to worry about that.)
+    with checker.check(name='ambassador.git GitHub release for chart (implies GitHub tag, too)') as check:
         tag = run_txtcapture([
             "gh", "release", "view",
             "--json=tagName",
@@ -222,7 +219,8 @@ def main(ga_ver: str, chart_ver: str, include_docker: bool = True,
             f"chart/v{chart_ver}"])
         assert_eq(tag.strip(), f"chart/v{chart_ver}")
 
-    with checker.check(name='ambassador.git GitHub release for code') as check:
+    # See above re tags.
+    with checker.check(name='ambassador.git GitHub release for code (implies GitHub tag, too)') as check:
         tag = run_txtcapture([
             "gh", "release", "view",
             "--json=tagName",
