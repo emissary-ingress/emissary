@@ -69,14 +69,14 @@ def do_check_s3(checker: Checker,
             yield (out, body)
 
 
-def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = True,
-        release_channel: str = "", source_registry: str ="docker.io/datawire", image_append: str = "", image_name: str = "emissary", s3_bucket: str = "datawire-static-files") -> int:
+def main(ga_ver: str, chart_ver: str, include_docker: bool = True,
+        release_channel: str = "", source_registry: str ="docker.io/datawire", 
+        image_append: str = "", image_name: str = "emissary",
+        s3_bucket: str = "datawire-static-files") -> int:
     warning = """
  ==> Warning: FIXME: While this script is handy in the things that it
-     does check, there's still quite a bit that it doesn't check;
-     check_artifacts.py is still riddled with "TODO"s.  Don't be
-     lulled in to thinking that running this script means you don't
-     need to do anything else.
+     does check, there's still quite a bit more that it could check. Don't
+     be fooled into thinking that this script is complete.
 """
     print(f"{ansiterm.sgr.fg_red}{warning}{ansiterm.sgr}")
 
@@ -164,9 +164,13 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
                     else:
                         assert_eq(subcheck.result, ga_ver)
 
-    with checker.check(name='Git tags') as check:
-        check.result = 'TODO'
-        raise NotImplementedError()
+    # This is redundant since we now look at the tag for which the GitHub release was
+    # created -- we're trusting GitHub not to allow a release that points to a tag that
+    # doesn't exist.
+    # with checker.check(name='Git tags') as check:
+    #     check.result = 'TODO'
+    #     raise NotImplementedError()
+        
     with checker.check(name='Website YAML') as check:
         yaml_str = http_cat('https://app.getambassador.io/yaml/emissary/latest/emissary-emissaryns.yaml').decode('utf-8')
         images = [
@@ -179,20 +183,26 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
         if release_channel != '':
             check_tag = f"{check_tag}-{release_channel}"
         for image in images:
-            assert '/ambassador:' in image
+            assert '/emissary:' in image
             check.result = image.split(':', 1)[1]
             assert_eq(check.result, check_tag)
-    subprocess.run(['helm', 'repo', 'rm', 'emissary'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    subprocess.run(['helm', 'repo', 'add', 'emissary',
-            'https://s3.amazonaws.com/{}/charts'.format(s3_bucket)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
     with checker.check(name="Updating helm repo"):
+        subprocess.run(['helm', 'repo', 'rm', 'emissary'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        subprocess.run(['helm', 'repo', 'add', 'emissary',
+                'https://s3.amazonaws.com/{}/charts'.format(s3_bucket)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
         run(['helm', 'repo', 'update'])
-    chart_version = ""
-    for line in fileinput.FileInput("charts/emissary-ingress/Chart.yaml"):
-        if line.startswith("version:"):
-            chart_version = line.replace('version:', '').strip()
+
     with checker.check(name="Check Helm Chart"):
+        # chart_version = ""
+        # for line in fileinput.FileInput("charts/emissary-ingress/Chart.yaml"):
+        #     if line.startswith("version:"):
+        #         chart_version = line.replace('version:', '').strip()
+        chart_version = chart_ver
+
         yaml_str = run_txtcapture(['helm', 'show', 'chart', '--version', chart_version, 'emissary/emissary-ingress'])
+
         versions = [
             line[len('appVersion:'):].strip() for line in yaml_str.split("\n") if line.startswith('appVersion:')
         ]
@@ -202,12 +212,24 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
         if release_channel != '':
             check_tag = f"{check_tag}-{release_channel}"
         assert_eq(check.result, check_tag)
+
     with checker.check(name='ambassador.git GitHub release for chart') as check:
-        check.result = 'TODO'
-        raise NotImplementedError()
+        tag = run_txtcapture([
+            "gh", "release", "view",
+            "--json=tagName",
+            "--jq=.tagName",
+            "--repo=emissary-ingress/emissary",
+            f"chart/v{chart_ver}"])
+        assert_eq(tag.strip(), f"chart/v{chart_ver}")
+
     with checker.check(name='ambassador.git GitHub release for code') as check:
-        check.result = 'TODO'
-        raise NotImplementedError()
+        tag = run_txtcapture([
+            "gh", "release", "view",
+            "--json=tagName",
+            "--jq=.tagName",
+            "--repo=emissary-ingress/emissary",
+            f"v{ga_ver}"])
+        assert_eq(tag.strip(), f"v{ga_ver}")
 
     if not checker.ok:
         return 1
