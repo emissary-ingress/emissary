@@ -457,9 +457,6 @@ $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_
 #
 # Generate report on dependencies
 
-$(OSS_HOME)/build-aux/pip-show.txt: sync
-	docker exec $$($(BUILDER)) sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
-
 $(OSS_HOME)/builder/requirements.txt: %.txt: %.in FORCE
 	$(BUILDER) pip-compile
 .PRECIOUS: $(OSS_HOME)/builder/requirements.txt
@@ -476,32 +473,13 @@ PY_BUILDER:
 	docker build -f "${OSS_HOME}/builder/Dockerfile.base" -t "python-deps-builder" --target builderbase-stage1 "${OSS_HOME}/builder"
 .PHONY: $(PY_BUILDER)
 
-clean-pip-deps:
-	find . -type f -name 'pip-deps.txt' -delete
-
-PYTHON_DEPS = $(shell \
-	find . \( -path "./_cxx/envoy/*" \
-  -o -path "./docker/test-auth/*" \
-  -o -path "./docker/test-shadow/*" \
-  -o -path "./docker/test-stats/*" \
-  -o -path "./_generate.tmp/*" \
-  \) -prune -o -name requirements.txt -type f -print)
-
-$(PYTHON_DEPS): PY_BUILDER clean-pip-deps
-	@echo "Scanning python dependencies for $@"
+$(OSS_HOME)/build-aux/pip-show.txt:
 	set -e; { \
-		export OSS_HOME=$(OSS_HOME); \
+		export DESTINATION=$@; \
 		$(OSS_HOME)/build-aux/license-info/python-deps.sh "$@"; \
-	}
-.PHONY: $(PYTHON_DEPS)
+	} > $@;
 
-$(OSS_HOME)/build-aux/pip-deps-merged.txt: FORCE $(PYTHON_DEPS)
-	set -e; { \
-		: > $@; \
-		find . -type f -name 'pip-deps.txt' -exec cat "{}" \; >>$@; \
-	}
-
-$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(tools/js-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-deps-merged.txt
+$(OSS_HOME)/OPENSOURCE.md: FORCE $(tools/go-mkopensource) $(tools/py-mkopensource) $(tools/js-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
 		export DESTINATION=$@; \
@@ -510,12 +488,12 @@ $(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(t
 		export GO_MKOPENSOURCE="$(tools/go-mkopensource)"; \
 		export PY_MKOPENSOURCE="$(tools/py-mkopensource)"; \
 		export JS_MKOPENSOURCE="$(tools/js-mkopensource)"; \
-		export PIP_SHOW="$(OSS_HOME)/build-aux/pip-deps-merged.txt"; \
+		export PIP_SHOW="$(OSS_HOME)/build-aux/pip-show.txt"; \
 		export GO_TAR="$(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz"; \
 		$(OSS_HOME)/build-aux/license-info/gen-opensource.sh; \
 	}
 
-$(OSS_HOME)/LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(tools/js-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-deps-merged.txt
+$(OSS_HOME)/LICENSES.md: FORCE $(tools/go-mkopensource) $(tools/py-mkopensource) $(tools/js-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
 		export DESTINATION=$@; \
@@ -524,7 +502,7 @@ $(OSS_HOME)/LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(too
 		export GO_MKOPENSOURCE="$(tools/go-mkopensource)"; \
 		export PY_MKOPENSOURCE="$(tools/py-mkopensource)"; \
 		export JS_MKOPENSOURCE="$(tools/js-mkopensource)"; \
-		export PIP_SHOW="$(OSS_HOME)/build-aux/pip-deps-merged.txt"; \
+		export PIP_SHOW="$(OSS_HOME)/build-aux/pip-show.txt"; \
 		export GO_TAR="$(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz"; \
 		$(OSS_HOME)/build-aux/license-info/gen-licenses.sh; \
 	}
