@@ -399,3 +399,17 @@ createNamespace: false
 # - HTTP on port 8080
 # - HTTPS on port 8443
 createDefaultListeners: false
+
+# Configure a 'lifecycle' section for the main pod
+lifecycle: # +doc-gen:break
+  # Example block that works well if the main container is running behind a load balancer that
+  # is slow to deregister pods - e.g. with IP-type registration in an AWS TargetGroup:
+  # lifecycle:
+  #   preStop:
+  #     exec:
+  #       command:
+  #         - "sh"
+  #         - "-c"
+  #         - >
+  #           curl -XPOST localhost:8001/healthcheck/fail;
+  #           /bin/sleep 45;

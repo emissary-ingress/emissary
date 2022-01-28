@@ -5,7 +5,7 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
-(no changes yet)
+- Add "lifecycle" option to main container. This can be used, for example, to add a lifecycle.preStop hook. Thanks to [Eric Totten](https://github.com/etotten) for the contribution!
 
 ## v7.2.2
 

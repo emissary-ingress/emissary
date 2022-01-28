@@ -874,6 +874,7 @@ release/ga-mirror:
 release/ga-check:
 	{ $(OSS_HOME)/releng/release-ga-check \
 	  --ga-version=$(patsubst v%,%,$(VERSION)) \
+	  --chart-version=$(patsubst v%,%,$(CHART_VERSION)) \
 	  --source-registry=$(RELEASE_REGISTRY) \
 	  --image-name=$(LCNAME); }
 
