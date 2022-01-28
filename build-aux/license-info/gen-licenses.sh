@@ -29,7 +29,7 @@ ${GO_MKOPENSOURCE} --output-format=txt --package=mod --output-type=json --gotar=
 # TODO: Scan other folders with JS files but no package.json
 find -name package.json -exec dirname {} \; | while IFS=$'\n' read packagedir; do
   pushd "${packagedir}" >/dev/null
-  DOCKER_BUILDKIT=1 docker build -f "${DOCKERFILE}" --output "${TEMP}" .
+  docker build -f "${DOCKERFILE}" --output "${TEMP}" .
   popd >/dev/null
 
   cat "${TEMP}/dependencies.json" | ${JS_MKOPENSOURCE} | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' >>"${LICENSES_TMP}"

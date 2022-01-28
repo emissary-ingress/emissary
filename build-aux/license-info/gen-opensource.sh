@@ -43,7 +43,7 @@ libraries:\n" >>"${DESTINATION}"
   {
     find . -name package.json -exec dirname {} \; | while IFS=$'\n' read packagedir; do
     pushd "${packagedir}" >/dev/null
-    DOCKER_BUILDKIT=1 docker build -f "${DOCKERFILE}" --output "${TEMP}" . >&2
+    docker build -f "${DOCKERFILE}" --output "${TEMP}" . >&2
     popd >/dev/null
 
     cat "${TEMP}/dependencies.json" | ${JS_MKOPENSOURCE} | jq -r '.dependencies[] | .name + "|" + .version + "|" + (.licenses | flatten | join(", "))'
