@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v2"
+	io_prometheus_client "github.com/prometheus/client_model/go"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -601,12 +603,26 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 	return nil
 }
 
+var allowedMetricsSuffixes = []string{"upstream_rq_total", "upstream_rq_time", "upstream_rq_5xx"}
+
 func (a *Agent) MetricsRelayHandler(logCtx context.Context, in *envoyMetrics.StreamMetricsMessage) {
-	dlog.Debugf(logCtx, "received %d metrics", len(in.GetEnvoyMetrics()))
+	metrics := in.GetEnvoyMetrics()
+	dlog.Debugf(logCtx, "received %d metrics", len(metrics))
 	if a.comm != nil && !a.reportingStopped {
 		a.ambassadorAPIKeyMutex.Lock()
 		apikey := a.ambassadorAPIKey
 		a.ambassadorAPIKeyMutex.Unlock()
+
+		outMetrics := make([]*io_prometheus_client.MetricFamily, 0, len(metrics))
+		for _, metricFamily := range metrics {
+			for _, suffix := range allowedMetricsSuffixes {
+				if strings.HasSuffix(metricFamily.GetName(), suffix) {
+					outMetrics = append(outMetrics, metricFamily)
+					continue
+				}
+			}
+		}
+
 		outMessage := &agent.StreamMetricsMessage{
 			Identity:     a.agentID,
 			EnvoyMetrics: in.EnvoyMetrics,
