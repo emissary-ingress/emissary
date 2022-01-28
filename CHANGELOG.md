@@ -80,7 +80,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [2.1.2] TBD
+## [2.1.2] January 25, 2022
 [2.1.2]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.1.2
 
 ### Emissary-ingress and Ambassador Edge Stack
@@ -98,8 +98,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Using `rewrite: ""` in a `Mapping` is correctly handled to mean "do not rewrite the path
   at all".
 
-- Change: Docker BuildKit is enabled for all Emissary builds. Additionally, the Go build cache is
-  fully enabled when building images, speeding up repeated builds.
+- Bugfix: `Mapping`s with DNS wildcard `hostname` will now be correctly matched with `Host`s.
+  Previously, the case where both the `Host` and the `Mapping` use DNS wildcards for their hostnames
+  could sometimes  not correctly match when they should have.
 
 - Bugfix: Any `Mapping` that uses the `host_redirect` field is now properly discovered and used.
   Thanks to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix! ([3709])
@@ -121,6 +122,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Bugfix: Resource validation errors are now reported more consistently; it was the case that in
   some situations a validation error would not be reported.
+
+- Change: Docker BuildKit is enabled for all Emissary builds. Additionally, the Go build cache is
+  fully enabled when building images, speeding up repeated builds.
 
 [3709]: https://github.com/emissary-ingress/emissary/issues/3709
 

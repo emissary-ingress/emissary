@@ -140,7 +140,6 @@ libraries:
     attrs                19.3.0     MIT license
     cachetools           4.1.1      MIT license
     certifi              2020.6.20  Mozilla Public License 2.0
-    chardet              3.0.4      GNU Lesser General Public License Version 2.1
     charset-normalizer   2.0.8      MIT license
     click                8.0.3      3-clause BSD license
     clize                4.2.1      MIT license
