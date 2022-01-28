@@ -123,6 +123,7 @@ following Free and Open Source software:
     sigs.k8s.io/structured-merge-diff/v4                                                       v4.0.2                                      Apache License 2.0
     sigs.k8s.io/yaml                                                                           v1.2.0                                      3-clause BSD license, MIT license
 
+
 The Emissary-ingress Python code makes use of the following Free and Open Source
 libraries:
 
