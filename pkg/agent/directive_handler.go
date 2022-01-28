@@ -80,7 +80,7 @@ func (dh *BasicDirectiveHandler) handleRolloutCommand(ctx context.Context, cmdSc
 		namespace:   namespace,
 		action:      rolloutAction(action),
 	}
-	err := cmd.RunWithClientFactory(rolloutsGetterFactory)
+	err := cmd.RunWithClientFactory(ctx, rolloutsGetterFactory)
 	if err != nil {
 		dlog.Errorf(ctx, "error running rollout command %s: %s", cmd, err)
 	}

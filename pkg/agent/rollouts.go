@@ -39,15 +39,15 @@ func (r *rolloutCommand) String() string {
 }
 
 // RunWithClientFactory runs the given Rollout command using rolloutsClientFactory to get a RolloutsGetter.
-func (r *rolloutCommand) RunWithClientFactory(rolloutsClientFactory rolloutsGetterFactory) error {
+func (r *rolloutCommand) RunWithClientFactory(ctx context.Context, rolloutsClientFactory rolloutsGetterFactory) error {
 	client, err := rolloutsClientFactory()
 	if err != nil {
 		return err
 	}
-	return r.patchRollout(client)
+	return r.patchRollout(ctx, client)
 }
 
-func (r *rolloutCommand) patchRollout(client argov1alpha1.RolloutsGetter) error {
+func (r *rolloutCommand) patchRollout(ctx context.Context, client argov1alpha1.RolloutsGetter) error {
 	var patch []byte
 	switch r.action {
 	case rolloutActionResume:
@@ -63,12 +63,12 @@ func (r *rolloutCommand) patchRollout(client argov1alpha1.RolloutsGetter) error 
 			r.rolloutName,
 			r.namespace,
 		)
-		dlog.Errorln(context.TODO(), err)
+		dlog.Errorln(ctx, err)
 		return err
 	}
 	rollout := client.Rollouts(r.namespace)
 	_, err := rollout.Patch(
-		context.TODO(),
+		ctx,
 		r.rolloutName,
 		types.MergePatchType,
 		patch,
@@ -82,7 +82,7 @@ func (r *rolloutCommand) patchRollout(client argov1alpha1.RolloutsGetter) error 
 			r.namespace,
 			err,
 		)
-		dlog.Errorln(context.TODO(), errMsg)
+		dlog.Errorln(ctx, errMsg)
 		return err
 	}
 	return nil
