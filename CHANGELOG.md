@@ -32,6 +32,13 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
 
 ## UPCOMING BREAKING CHANGES
 
+#### Envoy V2 API
+
+In *Emissary-ingress v2.2.0*, support for the Envoy V2 API will be removed, and Emissary-ingress
+will support only the Envoy V3 API. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will
+also be removed. Note that Emissary-ingress has been using the Envoy V3 API as its default since
+v1.14.0.
+
 #### TLS Termination and the `Host` CRD
 
 As of Emissary-ingress v2.0.4, you _must_ supply a `Host` CRD to terminate TLS: it is not
@@ -80,6 +87,22 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.2.0] TBD
+[2.2.0]: https://github.com/emissary-ingress/emissary/compare/v2.1.2...v2.2.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Feature: Emissary now supports the metric `ambassador_log_level{label="debug"}` which will be set
+  to 1 if debug logging is enabled for the running Emissary instance, or to 0 if not. This can help
+  to be sure that a running production instance was not actually left doing debugging logging, for
+  example. (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!) ([3906])
+
+- Change: Support for the Envoy V2 API and the `AMBASSADOR_ENVOY_API_VERSION` environment variable
+  have been removed. Only the Envoy V3 API is supported (this has been the default since
+  Emissary-ingress v1.14.0).
+
+[3906]: https://github.com/emissary-ingress/emissary/issues/3906
+
 ## [2.1.2] January 25, 2022
 [2.1.2]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.1.2
 
@@ -100,7 +123,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Bugfix: `Mapping`s with DNS wildcard `hostname` will now be correctly matched with `Host`s.
   Previously, the case where both the `Host` and the `Mapping` use DNS wildcards for their hostnames
-  could sometimes  not correctly match when they should have.
+  could sometimes not correctly match when they should have.
 
 - Bugfix: Any `Mapping` that uses the `host_redirect` field is now properly discovered and used.
   Thanks to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix! ([3709])

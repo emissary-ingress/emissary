@@ -31,6 +31,29 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 2.2.0
+    date: 'TBD'
+    notes:
+      - title: Support a log-level metric
+        type: feature
+        body: >-
+          Emissary now supports the metric <code>ambassador_log_level{label="debug"}</code>
+          which will be set to 1 if debug logging is enabled for the running Emissary
+          instance, or to 0 if not. This can help to be sure that a running production
+          instance was not actually left doing debugging logging, for example.
+          (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!)
+        github:
+        - title: 3906
+          link: https://github.com/emissary-ingress/emissary/issues/3906
+        docs: https://www.getambassador.io/docs/edge-stack/latest/topics/running/statistics/8877-metrics/
+
+      - title: Envoy V2 API no longer supported
+        type: change
+        body: >-
+          Support for the Envoy V2 API and the `AMBASSADOR_ENVOY_API_VERSION` environment
+          variable have been removed. Only the Envoy V3 API is supported (this has been the
+          default since Emissary-ingress v1.14.0).
+
   - version: 2.1.2
     prevVersion: 2.1.0
     date: '2022-01-25'
@@ -71,7 +94,7 @@ items:
         body: >-
           <code>Mapping</code>s with DNS wildcard <code>hostname</code> will now be correctly
           matched with <code>Host</code>s. Previously, the case where both the <code>Host</code>
-          and the <code>Mapping</code> use DNS wildcards for their hostnames could sometimes 
+          and the <code>Mapping</code> use DNS wildcards for their hostnames could sometimes
           not correctly match when they should have.
         docs: howtos/configure-communications/
 
