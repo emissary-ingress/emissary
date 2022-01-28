@@ -1077,7 +1077,7 @@ proto: grpc
 include_body:
   max_bytes: 4096
   allow_partial: true
-  body_raw_bytes: true
+  as_bytes: true
 """)
         yield self, self.format("""
 ---
@@ -1110,6 +1110,7 @@ service: {self.target.path.fqdn}
 
         # test that the body of the request can still be send to the AuthService successfully
         # uploading a file as form-data would be a beter test, but it doesnt seem that harness.py supports it
+        # TODO(AliceProxy): modify harness.py to support form-data
         assert self.results[2].backend.request.headers["requested-status"] == ["200"]
         assert self.results[2].status == 200
         assert self.results[2].headers["Server"] == ["envoy"]

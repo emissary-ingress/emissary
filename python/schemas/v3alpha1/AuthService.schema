@@ -92,7 +92,8 @@
                 "allow_partial": {
                     "type": "boolean"
                 },
-                "body_raw_bytes": {
+                "as_bytes": {
+                    "description": "AsBytes (default=false) controls whether to transmit the body as bytes (true) or as a string (false). Request data that is not valid UTF-8 cannot be transmitted as a string, and will result in a 403 UAEX response if AsBytes is not set to true.",
                     "type": "boolean"
                 },
                 "max_bytes": {

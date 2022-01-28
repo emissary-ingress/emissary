@@ -77,7 +77,7 @@
                 "allow_partial": {
                     "type": "boolean"
                 },
-                "body_raw_bytes": {
+                "as_bytes": {
                     "type": "boolean"
                 },
                 "max_bytes": {

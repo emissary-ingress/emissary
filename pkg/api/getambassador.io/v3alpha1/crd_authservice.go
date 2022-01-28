@@ -31,7 +31,10 @@ type AuthServiceIncludeBody struct {
 	// +kubebuilder:validation:Required
 	AllowPartial bool `json:"allow_partial,omitempty"`
 
-	BodyAsRawBytes *bool `json:"body_raw_bytes,omitempty"`
+	// AsBytes (default=false) controls whether to transmit the body as bytes (true) or as a
+	// string (false). Request data that is not valid UTF-8 cannot be transmitted as a string,
+	// and will result in a 403 UAEX response if AsBytes is not set to true.
+	AsBytes bool `json:"as_bytes,omitempty"`
 }
 
 // TODO(lukeshu): In v3alpha2, consider getting rid of this struct type in favor of just using an

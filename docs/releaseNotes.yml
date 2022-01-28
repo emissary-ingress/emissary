@@ -253,7 +253,7 @@ items:
       - title: Support for including request bodies with binary data on requests to AuthService
         type: feature
         body: >-
-          A new field <code>body_raw_bytes</code> has been added to <code>AuthService.spec.include_body</code> to allow
+          A new field <code>as_bytes</code> has been added to <code>AuthService.spec.include_body</code> to allow
           sending request bodies containing binary data to an <code>AuthService</code>.
         docs: https://www.getambassador.io/docs/edge-stack/latest/topics/using/authservice/#authservice-settings
 

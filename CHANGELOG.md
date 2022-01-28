@@ -197,8 +197,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## 2.1.1 not issued
 
 *Emissary-ingress 2.1.1 was not issued; Ambassador Edge Stack 2.1.1 uses Emissary-ingress 2.1.0.*
-- Feature: A new field `body_raw_bytes` has been added to `AuthService.spec.include_body` to allow
-  sending request bodies containing binary data to an `AuthService`.
+- Feature: A new field `as_bytes` has been added to `AuthService.spec.include_body` to allow sending
+  request bodies containing binary data to an `AuthService`.
 
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
 
