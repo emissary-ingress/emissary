@@ -58,7 +58,7 @@ RUN apk --no-cache add \
 # 'python3' versions above.
 RUN pip3 install pip-tools==6.3.1
 
-RUN curl --fail -L https://dl.google.com/go/go1.17.1.linux-amd64.tar.gz | tar -C /usr/local -xzf -
+RUN curl --fail -L https://dl.google.com/go/go1.17.6.linux-amd64.tar.gz | tar -C /usr/local -xzf -
 
 RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.22.2/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
     chmod a+x /usr/bin/kubectl
