@@ -52,6 +52,8 @@ ever find anything missing from this list.
  - kubectl
  - a kubernetes cluster
  - a Docker registry
+ - bsdtar (Provided by libarchive-tools on Ubuntu 19.10 and newer)
+ - gawk
 
 ### Configuration:
 
@@ -705,3 +707,7 @@ Additionally, if your hostname contains an upper-case character, the build scrip
 `NAME` environment variable, which should contain your hostname. You can solve this issue by doing `export NAME=my-lowercase-host-name`.
 If you do this *after* you've already run `make images` once, you will manually have to clean up the docker images
 that have been created using your upper-case host name.
+
+Updating license documentation
+-----------------------------------------------
+When new dependencies are added or existing ones are updated, run `make generate` and commit changes to `LICENSES.md` and `OPENSOURCE.md`

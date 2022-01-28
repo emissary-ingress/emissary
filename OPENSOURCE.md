@@ -24,7 +24,7 @@ following Free and Open Source software:
     github.com/cncf/udpa/go                                                                    v0.0.0-20210322005330-6414d713912e          Apache License 2.0
     github.com/datawire/dlib                                                                   v1.2.5-0.20211116212847-0316f8d7af2b        Apache License 2.0
     github.com/datawire/dtest                                                                  v0.0.0-20210927191556-2cccf1a938b0          Apache License 2.0
-    github.com/datawire/go-mkopensource                                                        v0.0.0-20211110205306-9a3f29b7c373          Apache License 2.0
+    github.com/datawire/go-mkopensource                                                        v0.0.0-20220121154707-b0476e7f8255          Apache License 2.0
     github.com/davecgh/go-spew                                                                 v1.1.1                                      ISC license
     github.com/docker/distribution                                                             v2.7.1+incompatible                         Apache License 2.0
     github.com/docker/spdystream                                                               v0.0.0-20160310174837-449fdfce4d96          Apache License 2.0
@@ -123,7 +123,7 @@ following Free and Open Source software:
     sigs.k8s.io/structured-merge-diff/v4                                                       v4.0.2                                      Apache License 2.0
     sigs.k8s.io/yaml                                                                           v1.2.0                                      3-clause BSD license, MIT license
 
-The Ambassador Python code makes use of the following Free and Open Source
+The Emissary-ingress Python code makes use of the following Free and Open Source
 libraries:
 
     Name                 Version    License(s)
@@ -146,7 +146,7 @@ libraries:
     contextlib2          0.6.0      Python Software Foundation license
     distlib              0.3.0      Python Software Foundation license
     distro               1.5.0      Apache License 2.0
-    docutils             0.17.1     2-clause BSD license, GNU General Public License Version 3, Python Software Foundation license, public domain
+    docutils             0.17.1     2-clause BSD license, GNU General Public License Version 3, Public domain, Python Software Foundation license
     durationpy           0.5        MIT license
     expiringdict         1.2.1      Apache License 2.0
     google-auth          1.23.0     Apache License 2.0
