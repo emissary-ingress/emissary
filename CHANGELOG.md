@@ -151,7 +151,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Feature: Emissary-ingress supports `getambassador.io/v2` CRDs, to simplify migration from
   Emissary-ingress 1.X. **Note:** it is important to read the <a
-  href="../topics/install/migration-matrix">migration documentation</a> before starting migration.
+  href="https://www.getambassador.io/docs/emissary/latest/topics/install/migration-matrix">migration
+  documentation</a> before starting migration.
 
 - Bugfix: The incremental reconfiguration cache could miss some updates when multiple `Mapping`s had
   the same `prefix` ("canary"ing multiple `Mapping`s together). This has been corrected, so that all
@@ -329,13 +330,15 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
   configuration changes that are not backwards compatible with the 1.X family.  API versions
   `getambassador.io/v0`, `getambassador.io/v1`, and `getambassador.io/v2` are deprecated.  Further
   details are available in the <a
-  href="../about/changes-2.x/#1-configuration-api-version-getambassadoriov3alpha1">Major Changes in
-  2.X</a> document.
+  href="https://www.getambassador.io/docs/emissary/latest/about/changes-2.x/#1-configuration-api-version-getambassadoriov3alpha1">Major
+  Changes in 2.X</a> document.
 
 - Feature: The new `AmbassadorListener` CRD defines where and how to listen for requests from the
   network, and which `AmbassadorHost` definitions should be used to process those requests. Note
   that the `AmbassadorListener` CRD is **mandatory** and consolidates *all* port configuration; see
-  the <a href="../topics/running/listener">`AmbassadorListener` documentation</a> for more details.
+  the <a
+  href="https://www.getambassador.io/docs/emissary/latest/topics/running/listener">`AmbassadorListener`
+  documentation</a> for more details.
 
 - Feature: Where `AmbassadorMapping`'s `host` field is either an exact match or (with `host_regex`
   set) a regex, the new `hostname` element is always a DNS glob. Use `hostname` instead of `host`
@@ -366,17 +369,19 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
   `AmbassadorMapping`'s `host` or the `AmbassadorHost`'s `selector` (or both) are explicitly set,
   and match. This change can significantly improve Emissary-ingress's memory footprint when many
   `AmbassadorHost`s are involved. Further details are available in the <a
-  href="../about/changes-2.x/#host-and-mapping-association">Major Changes in 2.X</a> document.
+  href="https://www.getambassador.io/docs/emissary/latest/about/changes-2.x/#host-and-mapping-association">Major
+  Changes in 2.X</a> document.
 
 - Change: An `AmbassadorHost` or `Ingress` resource is now required when terminating TLS -- simply
   creating a `TLSContext` is not sufficient. Further details are available in the <a
-  href="../about/changes-2.x/#host-tlscontext-and-tls-termination">`AmbassadorHost` CRD
-  documentation.</a>
+  href="https://www.getambassador.io/docs/emissary/latest/about/changes-2.x/#host-tlscontext-and-tls-termination">`AmbassadorHost`
+  CRD documentation.</a>
 
 - Change: By default, Emissary-ingress will configure Envoy using the V3 Envoy API. This change is
   mostly transparent to users, but note that Envoy V3 does not support unsafe regular expressions
   or, e.g., Zipkin's V1 collector protocol. Further details are available in the <a
-  href="../about/changes-2.x">Major Changes in 2.X</a> document.
+  href="https://www.getambassador.io/docs/emissary/latest/about/changes-2.x">Major Changes in
+  2.X</a> document.
 
 - Change: The `tls` module and the `tls` field in the Ambassador module are no longer supported.
   Please use `TLSContext` resources instead.
