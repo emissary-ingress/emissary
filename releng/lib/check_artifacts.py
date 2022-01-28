@@ -188,13 +188,7 @@ def main(ga_ver: str, chart_ver: str, include_docker: bool = True,
         run(['helm', 'repo', 'update'])
 
     with checker.check(name="Check Helm Chart"):
-        # chart_version = ""
-        # for line in fileinput.FileInput("charts/emissary-ingress/Chart.yaml"):
-        #     if line.startswith("version:"):
-        #         chart_version = line.replace('version:', '').strip()
-        chart_version = chart_ver
-
-        yaml_str = run_txtcapture(['helm', 'show', 'chart', '--version', chart_version, 'emissary/emissary-ingress'])
+        yaml_str = run_txtcapture(['helm', 'show', 'chart', '--version', chart_ver, 'emissary/emissary-ingress'])
 
         versions = [
             line[len('appVersion:'):].strip() for line in yaml_str.split("\n") if line.startswith('appVersion:')
