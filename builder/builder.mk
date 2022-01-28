@@ -938,7 +938,11 @@ release/ga-mirror:
 	@$(OSS_HOME)/releng/release-mirror-images --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME) --repo-list $(GCR_RELEASE_REGISTRY)
 
 release/ga-check:
-	@$(OSS_HOME)/releng/release-ga-check --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME)
+	$(OSS_HOME)/releng/release-ga-check \
+		--ga-version $(VERSIONS_YAML_VER) \
+		--chart-version `grep 'version' $(OSS_HOME)/charts/emissary-ingress/Chart.yaml | awk '{ print $$2 }'` \
+		--source-registry $(RELEASE_REGISTRY) \
+		--image-name $(LCNAME)
 
 clean:
 	@$(BUILDER) clean
