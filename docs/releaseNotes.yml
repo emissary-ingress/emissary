@@ -33,7 +33,7 @@ changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.
 items:
   - version: 2.1.2
     prevVersion: 2.1.0
-    date: 'TBD'
+    date: '2022-01-25'
     notes:
       - title: Fix support for for v2 Mappings with CORS
         type: bugfix
@@ -74,13 +74,6 @@ items:
           and the <code>Mapping</code> use DNS wildcards for their hostnames could sometimes 
           not correctly match when they should have.
         docs: howtos/configure-communications/
-
-      - title: Docker BuildKit always used for builds
-        type: change
-        body: >-
-          Docker BuildKit is enabled for all Emissary builds. Additionally, the Go
-          build cache is fully enabled when building images, speeding up repeated builds.
-        docs: https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md
 
       - title: Correctly use Mappings with host redirects
         type: bugfix
@@ -127,7 +120,12 @@ items:
           Resource validation errors are now reported more consistently; it was the case that in
           some situations a validation error would not be reported.
 
-      # next changelog item here
+      - title: Docker BuildKit always used for builds
+        type: change
+        body: >-
+          Docker BuildKit is enabled for all Emissary builds. Additionally, the Go
+          build cache is fully enabled when building images, speeding up repeated builds.
+        docs: https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md
 
   - version: 2.1.1
     date: 'N/A'

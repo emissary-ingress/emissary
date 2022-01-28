@@ -1,0 +1,21 @@
+{
+  "dependencies": [
+    {
+      "name": "Jinja2",
+      "version": "2.10.1",
+      "licenses": [
+        "3-clause BSD license"
+      ]
+    },
+    {
+      "name": "Jinja2",
+      "version": "3.0.3",
+      "licenses": [
+        "3-clause BSD license"
+      ]
+    }
+  ],
+  "licenseInfo": {
+    "3-clause BSD license": "https://opensource.org/licenses/BSD-3-Clause"
+  }
+}

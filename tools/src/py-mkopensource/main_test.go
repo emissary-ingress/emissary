@@ -10,45 +10,87 @@ import (
 )
 
 func TestMarkdownOutput(t *testing.T) {
-	//Arrange
-	pipDependencies, err := os.Open("./testdata/successful-generation/dependency_list.txt")
-	require.NoError(t, err)
-	defer func() { _ = pipDependencies.Close() }()
+	testCases := []struct {
+		testName       string
+		dependencies   string
+		expectedOutput string
+	}{
+		{
+			"Different dependencies are processed correctly",
+			"./testdata/successful-generation/dependency_list.txt",
+			"./testdata/successful-generation/expected_markdown.json",
+		},
+		{
+			"Same dependency twice with different version",
+			"./testdata/two-versions-of-a-dependency/dependency_list.txt",
+			"./testdata/two-versions-of-a-dependency/expected_markdown.json",
+		},
+	}
 
-	r, w, pipeErr := os.Pipe()
-	require.NoError(t, pipeErr)
+	for _, testCase := range testCases {
+		t.Run(testCase.testName, func(t *testing.T) {
+			//Arrange
+			pipDependencies, err := os.Open("./testdata/successful-generation/dependency_list.txt")
+			require.NoError(t, err)
+			defer func() { _ = pipDependencies.Close() }()
 
-	// Act
-	err = Main(markdownOutputType, pipDependencies, w)
-	require.NoError(t, err)
-	_ = w.Close()
+			r, w, pipeErr := os.Pipe()
+			require.NoError(t, pipeErr)
 
-	// Assert
-	programOutput, readErr := io.ReadAll(r)
-	require.NoError(t, readErr)
+			// Act
+			err = Main(markdownOutputType, pipDependencies, w)
+			require.NoError(t, err)
+			_ = w.Close()
 
-	expectedOutput := getFileContents(t, "./testdata/successful-generation/expected_markdown.txt")
-	require.Equal(t, string(expectedOutput), string(programOutput))
+			// Assert
+			programOutput, readErr := io.ReadAll(r)
+			require.NoError(t, readErr)
+
+			expectedOutput := getFileContents(t, "./testdata/successful-generation/expected_markdown.txt")
+			require.Equal(t, string(expectedOutput), string(programOutput))
+		})
+	}
 }
 
 func TestJsonOutput(t *testing.T) {
-	//Arrange
-	pipDependencies, err := os.Open("./testdata/successful-generation/dependency_list.txt")
-	require.NoError(t, err)
-	defer func() { _ = pipDependencies.Close() }()
+	testCases := []struct {
+		testName       string
+		dependencies   string
+		expectedOutput string
+	}{
+		{
+			"Different dependencies are processed correctly",
+			"./testdata/successful-generation/dependency_list.txt",
+			"./testdata/successful-generation/expected_json.json",
+		},
+		{
+			"Same dependency twice with different version",
+			"./testdata/two-versions-of-a-dependency/dependency_list.txt",
+			"./testdata/two-versions-of-a-dependency/expected_json.json",
+		},
+	}
 
-	r, w, pipeErr := os.Pipe()
-	require.NoError(t, pipeErr)
+	for _, testCase := range testCases {
+		t.Run(testCase.testName, func(t *testing.T) {
+			//Arrange
+			pipDependencies, err := os.Open(testCase.dependencies)
+			require.NoError(t, err)
+			defer func() { _ = pipDependencies.Close() }()
 
-	// Act
-	err = Main(jsonOutputType, pipDependencies, w)
-	require.NoError(t, err)
-	_ = w.Close()
+			r, w, pipeErr := os.Pipe()
+			require.NoError(t, pipeErr)
 
-	// Assert
-	programOutput := getDependencyInfoFromReader(t, r)
-	expectedOutput := getDependencyInfoFromFile(t, "./testdata/successful-generation/expected_json.json")
-	require.Equal(t, expectedOutput, programOutput)
+			// Act
+			err = Main(jsonOutputType, pipDependencies, w)
+			require.NoError(t, err)
+			_ = w.Close()
+
+			// Assert
+			programOutput := getDependencyInfoFromReader(t, r)
+			expectedOutput := getDependencyInfoFromFile(t, testCase.expectedOutput)
+			require.Equal(t, expectedOutput, programOutput)
+		})
+	}
 }
 
 func getFileContents(t *testing.T, path string) []byte {

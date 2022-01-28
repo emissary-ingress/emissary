@@ -4,21 +4,8 @@ on:
   push:
     branches:
       - master
-    paths-ignore:
-      - 'releng/**'
-      - 'charts/**'
-      - 'manifests/**'
-      - 'k8s-config/**'
-      - 'docs/**'
-      - '*.md$'
-  pull_request:
-    paths-ignore:
-      - 'releng/**'
-      - 'charts/**'
-      - 'manifests/**'
-      - 'k8s-config/**'
-      - 'docs/**'
-      - '*.md$'
+      - release/v*
+  pull_request: {}
 
 jobs:
   lint-test:

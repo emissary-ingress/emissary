@@ -8,20 +8,20 @@ import (
 
 //nolint:gochecknoglobals // Can't be a constant
 var knownLicenses = map[string]detectlicense.License{
-	detectlicense.Proprietary.Name:  detectlicense.Proprietary,
-	detectlicense.PublicDomain.Name: detectlicense.PublicDomain,
-	detectlicense.Apache2.Name:      detectlicense.Apache2,
-	detectlicense.BSD1.Name:         detectlicense.BSD1,
-	detectlicense.BSD2.Name:         detectlicense.BSD2,
-	detectlicense.BSD3.Name:         detectlicense.BSD3,
-	detectlicense.CcBySa40.Name:     detectlicense.CcBySa40,
-	detectlicense.GPL3.Name:         detectlicense.GPL3,
-	detectlicense.ISC.Name:          detectlicense.ISC,
-	detectlicense.LGPL21.Name:       detectlicense.LGPL21,
-	detectlicense.MIT.Name:          detectlicense.MIT,
-	detectlicense.MPL2.Name:         detectlicense.MPL2,
-	detectlicense.PSF.Name:          detectlicense.PSF,
-	detectlicense.Unicode2015.Name:  detectlicense.Unicode2015}
+	detectlicense.AmbassadorProprietary.Name: detectlicense.AmbassadorProprietary,
+	detectlicense.PublicDomain.Name:          detectlicense.PublicDomain,
+	detectlicense.Apache2.Name:               detectlicense.Apache2,
+	detectlicense.BSD1.Name:                  detectlicense.BSD1,
+	detectlicense.BSD2.Name:                  detectlicense.BSD2,
+	detectlicense.BSD3.Name:                  detectlicense.BSD3,
+	detectlicense.CcBySa40.Name:              detectlicense.CcBySa40,
+	detectlicense.GPL3.Name:                  detectlicense.GPL3,
+	detectlicense.ISC.Name:                   detectlicense.ISC,
+	detectlicense.LGPL21OrLater.Name:         detectlicense.LGPL21OrLater,
+	detectlicense.MIT.Name:                   detectlicense.MIT,
+	detectlicense.MPL2.Name:                  detectlicense.MPL2,
+	detectlicense.PSF.Name:                   detectlicense.PSF,
+	detectlicense.Unicode2015.Name:           detectlicense.Unicode2015}
 
 type DependencyInfo struct {
 	Dependencies []Dependency      `json:"dependencies"`

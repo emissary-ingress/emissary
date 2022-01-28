@@ -22,14 +22,7 @@ cd "${OSS_HOME}"
 
 
 # Analyze Python dependencies
-(
-  {
-    sed 's/^---$//' "${PIP_SHOW}"
-    echo
-  } | ${PY_MKOPENSOURCE}
-  echo -e "\n"
-) >>"${DESTINATION}"
-
+sed 's/^---$//' "${PIP_SHOW}" | ${PY_MKOPENSOURCE} >>"${DESTINATION}"
 
 # Analyze Node.Js dependencies
 # TODO: Scan other folders with JS files but no package.json
