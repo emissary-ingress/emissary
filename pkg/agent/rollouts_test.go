@@ -4,6 +4,7 @@ import (
 	context "context"
 	alpha1 "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	"github.com/argoproj/argo-rollouts/pkg/client/clientset/versioned/typed/rollouts/v1alpha1"
+	"github.com/datawire/dlib/dlog"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -130,7 +131,8 @@ func TestRolloutCommand_RunWithClient(t *testing.T) {
 				rolloutName: tt.fields.rolloutName,
 				action:      tt.fields.action,
 			}
-			err := r.RunWithClientFactory(mockRolloutsFactory)
+			ctx := dlog.NewTestContext(t, true)
+			err := r.RunWithClientFactory(ctx, mockRolloutsFactory)
 
 			assert.NoError(t, err)
 			assert.Equal(t, tt.fields.namespace, mockRolloutsGetter.latestNamespace)
