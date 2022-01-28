@@ -22,9 +22,4 @@ cd "${OSS_HOME}"
 
 
 # Analyze Python dependencies
-(
-  {
-    sed 's/^---$//' "${PIP_SHOW}"
-    echo
-  } | ${PY_MKOPENSOURCE}
-) >>"${DESTINATION}"
+sed 's/^---$//' "${PIP_SHOW}" | ${PY_MKOPENSOURCE} >>"${DESTINATION}"

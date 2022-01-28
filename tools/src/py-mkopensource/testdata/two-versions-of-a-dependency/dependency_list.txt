@@ -1,0 +1,22 @@
+Name: Jinja2
+Version: 3.0.3
+Summary: A very fast and expressive template engine.
+Home-page: https://palletsprojects.com/p/jinja/
+Author: Armin Ronacher
+Author-email: armin.ronacher@active-4.com
+License: BSD-3-Clause
+Location: /usr/lib/python3.8/site-packages
+Requires: MarkupSafe
+Required-by: Flask
+
+Name: Jinja2
+Version: 2.10.1
+Summary: A small but fast and easy to use stand-alone template engine written in pure python.
+Home-page: http://jinja.pocoo.org/
+Author: Armin Ronacher
+Author-email: armin.ronacher@active-4.com
+License: BSD
+Location: /usr/lib/python3.8/site-packages
+Requires: MarkupSafe
+Required-by: Flask
+

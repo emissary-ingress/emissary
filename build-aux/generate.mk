@@ -472,7 +472,33 @@ $(OSS_HOME)/build-aux/py-version.txt: $(OSS_HOME)/builder/Dockerfile.base
 $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
 
-$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
+PY_BUILDER:
+	docker build -f "${OSS_HOME}/builder/Dockerfile.base" -t "python-deps-builder" --target builderbase-stage1 "${OSS_HOME}/builder"
+.PHONY: $(PY_BUILDER)
+
+clean-pip-deps:
+	find . -type f -name 'pip-deps.txt' -delete
+
+PYTHON_DEPS = $(shell \
+	find . \( -path "./_generate.tmp/*" \
+  -o -path "./_cxx/envoy/*" \
+  \) -prune -o -name requirements.txt -type f -print)
+
+$(PYTHON_DEPS): PY_BUILDER clean-pip-deps
+	@echo "Scanning python dependencies for $@"
+	set -e; { \
+		export OSS_HOME=$(OSS_HOME); \
+		$(OSS_HOME)/build-aux/license-info/python-deps.sh "$@"; \
+	}
+.PHONY: $(PYTHON_DEPS)
+
+$(OSS_HOME)/build-aux/pip-deps-merged.txt: $(PYTHON_DEPS)
+	set -e; { \
+		: > $@; \
+		find . -type f -name 'pip-deps.txt' -exec cat "{}" \; >>$@; \
+	}
+
+$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-deps-merged.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
 		export DESTINATION=$@; \
@@ -480,12 +506,12 @@ $(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(O
 		export OSS_HOME=$(OSS_HOME); \
 		export GO_MKOPENSOURCE="$(tools/go-mkopensource)"; \
 		export PY_MKOPENSOURCE="$(tools/py-mkopensource)"; \
-		export PIP_SHOW="$(OSS_HOME)/build-aux/pip-show.txt"; \
+		export PIP_SHOW="$(OSS_HOME)/build-aux/pip-deps-merged.txt"; \
 		export GO_TAR="$(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz"; \
 		$(OSS_HOME)/build-aux/license-info/gen-opensource.sh; \
 	}
 
-$(OSS_HOME)/LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
+$(OSS_HOME)/LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-deps-merged.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
 		export DESTINATION=$@; \
@@ -493,7 +519,7 @@ $(OSS_HOME)/LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS
 		export OSS_HOME=$(OSS_HOME); \
 		export GO_MKOPENSOURCE="$(tools/go-mkopensource)"; \
 		export PY_MKOPENSOURCE="$(tools/py-mkopensource)"; \
-		export PIP_SHOW="$(OSS_HOME)/build-aux/pip-show.txt"; \
+		export PIP_SHOW="$(OSS_HOME)/build-aux/pip-deps-merged.txt"; \
 		export GO_TAR="$(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz"; \
 		$(OSS_HOME)/build-aux/license-info/gen-licenses.sh; \
 	}

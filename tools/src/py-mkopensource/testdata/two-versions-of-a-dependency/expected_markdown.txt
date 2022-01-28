@@ -1,0 +1,7 @@
+The Emissary-ingress Python code makes use of the following Free and Open Source
+libraries:
+
+    Name    Version  License(s)
+    ----    -------  ----------
+    Jinja2  2.10.1   3-clause BSD license
+    Jinja2  3.0.3    3-clause BSD license

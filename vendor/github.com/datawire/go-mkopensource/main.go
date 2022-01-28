@@ -152,12 +152,9 @@ func loadGoTar(goTarFilename string) (version string, license []byte, err error)
 	return version, license, nil
 }
 
-func licenseIsProprietary(licenses map[detectlicense.License]struct{}) (bool, error) {
-	_, proprietary := licenses[detectlicense.Proprietary]
-	if proprietary && len(licenses) != 1 {
-		return false, errors.New("mixed proprietary and open-source licenses")
-	}
-	return proprietary, nil
+func isAmbassadorProprietary(licenses map[detectlicense.License]struct{}) bool {
+	_, ok := licenses[detectlicense.AmbassadorProprietary]
+	return ok
 }
 
 func licenseIsWeakCopyleft(licenses map[detectlicense.License]struct{}) bool {
@@ -272,7 +269,7 @@ func Main(args *CLIArgs) error {
 	pkgLicenses := make(map[string]map[detectlicense.License]struct{})
 	licErrs := []error(nil)
 	for _, pkgName := range pkgNames {
-		pkgLicenses[pkgName], err = detectlicense.DetectLicenses(pkgFiles[pkgName])
+		pkgLicenses[pkgName], err = detectlicense.DetectLicenses(pkgName, pkgFiles[pkgName])
 		if err == nil && licenseIsStrongCopyleft(pkgLicenses[pkgName]) {
 			err = fmt.Errorf("has an unacceptable license for use by Ambassador Labs (%s)",
 				licenseString(pkgLicenses[pkgName]))
@@ -350,12 +347,9 @@ func Main(args *CLIArgs) error {
 		tarfiles := make(map[string][]byte)
 		tarfiles["OPENSOURCE.md"] = readme.Bytes()
 		for pkgName := range pkgFiles {
-			proprietary, err := licenseIsProprietary(pkgLicenses[pkgName])
-			if err != nil {
-				return fmt.Errorf("package %q: %w", pkgName, err)
-			}
+			ambassadorProprietary := isAmbassadorProprietary(pkgLicenses[pkgName])
 			switch {
-			case proprietary:
+			case ambassadorProprietary:
 				// don't include anything
 			case licenseIsWeakCopyleft(pkgLicenses[pkgName]):
 				// include everything
@@ -467,11 +461,8 @@ func markdownOutput(readme *bytes.Buffer, modNames []string, modLicenses map[str
 	io.WriteString(table, "  \tName\tVersion\tLicense(s)\n")
 	io.WriteString(table, "  \t----\t-------\t----------\n")
 	for _, modKey := range modNames {
-		proprietary, err := licenseIsProprietary(modLicenses[modKey])
-		if err != nil {
-			return fmt.Errorf("module %q: %w", modKey, err)
-		}
-		if proprietary {
+		ambassadorProprietary := isAmbassadorProprietary(modLicenses[modKey])
+		if ambassadorProprietary {
 			continue
 		}
 
@@ -492,11 +483,8 @@ func jsonOutput(readme *bytes.Buffer, modNames []string, modLicenses map[string]
 	jsonOutput := dependencies.NewDependencyInfo()
 
 	for _, modKey := range modNames {
-		proprietary, err := licenseIsProprietary(modLicenses[modKey])
-		if err != nil {
-			return fmt.Errorf("module %q: %w", modKey, err)
-		}
-		if proprietary {
+		ambassadorProprietary := isAmbassadorProprietary(modLicenses[modKey])
+		if ambassadorProprietary {
 			continue
 		}
 

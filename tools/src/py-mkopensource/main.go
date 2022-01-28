@@ -34,16 +34,22 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		// that a human has to go make sure that the license didn't
 		// change when upgrading.
 		{"CacheControl", "0.12.6", "UNKNOWN"}:          {Apache2},
+		{"Babel", "2.8.0", "BSD"}:                      {BSD3},
 		{"Click", "7.0", "BSD"}:                        {BSD3},
 		{"Flask", "1.0.2", "BSD"}:                      {BSD3},
+		{"GitPython", "3.1.8", "UNKNOWN"}:              {BSD3},
 		{"GitPython", "3.1.11", "UNKNOWN"}:             {BSD3},
 		{"Jinja2", "2.10.1", "BSD"}:                    {BSD3},
-		{"chardet", "3.0.4", "LGPL"}:                   {LGPL21},
+		{"Pygments", "2.7.1", "BSD License"}:           {BSD2},
+		{"Sphinx", "3.2.1", "BSD"}:                     {BSD2, BSD3, MIT},
+		{"chardet", "3.0.4", "LGPL"}:                   {LGPL21OrLater},
 		{"colorama", "0.4.3", "BSD"}:                   {BSD3},
 		{"decorator", "4.4.2", "new BSD License"}:      {BSD2},
 		{"gitdb", "4.0.5", "BSD License"}:              {BSD3},
+		{"idna", "2.6", "BSD-like"}:                    {BSD3, PSF, Unicode2015},
 		{"idna", "2.7", "BSD-like"}:                    {BSD3, PSF, Unicode2015},
 		{"idna", "2.8", "BSD-like"}:                    {BSD3, PSF, Unicode2015},
+		{"idna", "2.9", "BSD-like"}:                    {BSD3, PSF, Unicode2015},
 		{"importlib-resources", "5.4.0", "UNKNOWN"}:    {Apache2},
 		{"itsdangerous", "1.1.0", "BSD"}:               {BSD3},
 		{"jsonpatch", "1.32", "Modified BSD License"}:  {BSD3},
@@ -58,6 +64,8 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"pycparser", "2.20", "BSD"}:                   {BSD3},
 		{"python-dateutil", "2.8.1", "Dual License"}:   {BSD3, Apache2},
 		{"python-json-logger", "2.0.2", "BSD"}:         {BSD2},
+		{"scout.py", "0.3.0", "UNKNOWN"}:               {AmbassadorProprietary},
+		{"semantic-version", "2.6.0", "BSD"}:           {BSD2},
 		{"semantic-version", "2.8.5", "BSD"}:           {BSD2},
 		{"smmap", "3.0.4", "BSD"}:                      {BSD3},
 		{"webencodings", "0.5.1", "BSD"}:               {BSD3},
@@ -67,6 +75,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		// These are packages with non-trivial strings to parse, and
 		// it's easier to just hard-code it.
 		{"docutils", "0.17.1", "public domain, Python, 2-Clause BSD, GPL 3 (see COPYING.txt)"}: {PublicDomain, PSF, BSD2, GPL3},
+		{"docutils", "0.18.1", "public domain, Python, 2-Clause BSD, GPL 3 (see COPYING.txt)"}: {PublicDomain, PSF, BSD2, GPL3},
 		{"orjson", "3.3.1", "Apache-2.0 OR MIT"}:                                               {Apache2, MIT},
 		{"packaging", "20.4", "BSD-2-Clause or Apache-2.0"}:                                    {BSD2, Apache2},
 	}[tuple{name, version, license}]
@@ -133,7 +142,7 @@ func Main(outputType OutputType, r io.Reader, w io.Writer) error {
 			}
 			return err
 		}
-		distribs[distrib.Get("Name")] = distrib
+		distribs[distrib.Get("Name")+"@"+distrib.Get("Version")] = distrib
 	}
 
 	distribNames := make([]string, 0, len(distribs))
@@ -183,8 +192,9 @@ func markdownOutput(w io.Writer, distribNames []string, distribs map[string]text
 	_, _ = io.WriteString(table, "  \tName\tVersion\tLicense(s)\n")
 	_, _ = io.WriteString(table, "  \t----\t-------\t----------\n")
 	var errs derror.MultiError
-	for _, distribName := range distribNames {
-		distrib := distribs[distribName]
+	for _, versionedName := range distribNames {
+		distribName := strings.Split(versionedName, "@")[0]
+		distrib := distribs[versionedName]
 		distribVersion := distrib.Get("Version")
 
 		licenses := parseLicenses(distribName, distribVersion, distrib.Get("License"))
@@ -235,8 +245,10 @@ func getDependencies(distribNames []string, distribs map[string]textproto.MIMEHe
 	jsonOutput := dependencies.NewDependencyInfo()
 
 	var errs derror.MultiError
-	for _, distribName := range distribNames {
-		distrib := distribs[distribName]
+	for _, versionedName := range distribNames {
+		distribName := strings.Split(versionedName, "@")[0]
+
+		distrib := distribs[versionedName]
 		distribVersion := distrib.Get("Version")
 
 		licenses := parseLicenses(distribName, distribVersion, distrib.Get("License"))
