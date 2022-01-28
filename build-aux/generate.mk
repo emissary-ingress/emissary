@@ -480,8 +480,11 @@ clean-pip-deps:
 	find . -type f -name 'pip-deps.txt' -delete
 
 PYTHON_DEPS = $(shell \
-	find . \( -path "./_generate.tmp/*" \
-  -o -path "./_cxx/envoy/*" \
+	find . \( -path "./_cxx/envoy/*" \
+  -o -path "./docker/test-auth/*" \
+  -o -path "./docker/test-shadow/*" \
+  -o -path "./docker/test-stats/*" \
+  -o -path "./_generate.tmp/*" \
   \) -prune -o -name requirements.txt -type f -print)
 
 $(PYTHON_DEPS): PY_BUILDER clean-pip-deps

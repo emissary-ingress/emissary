@@ -20,10 +20,7 @@ cd "${OSS_HOME}"
 ${GO_MKOPENSOURCE} --output-format=txt --package=mod --output-type=json --gotar=${GO_TAR} | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' | sed -e 's/\[\([^]]*\)]()/\1/' >"${LICENSES_TMP}"
 
 # Analyze Python dependencies
-{
-  sed 's/^---$//' "${PIP_SHOW}"
-  echo
-} | ${PY_MKOPENSOURCE} --output-type=json | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' | sed -e 's/\[\([^]]*\)]()/\1/' >>"${LICENSES_TMP}"
+sed 's/^---$//' "${PIP_SHOW}" | ${PY_MKOPENSOURCE} --output-type=json | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' | sed -e 's/\[\([^]]*\)]()/\1/' >>"${LICENSES_TMP}"
 
 # Analyze Node.Js dependencies
 # TODO: Scan other folders with JS files but no package.json
