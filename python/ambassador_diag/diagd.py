@@ -2162,6 +2162,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
         'bind': '%s:%s' % (host, port),
         # 'workers': 1,
         'threads': workers,
+        'keepalive': 300,
     }
 
     app.logger.info("thread count %d, listening on %s" % (gunicorn_config['threads'], gunicorn_config['bind']))
