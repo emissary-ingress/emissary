@@ -91,11 +91,9 @@ _generate:
 	@echo '$(MAKE) $$(generate/files)'; $(MAKE) $(patsubst %/,%,$(generate/files))
 .PHONY: generate _generate
 
-generate-clean: ## Delete generated sources that get committed to Git
+generate-clean: clean-license-info ## Delete generated sources that get committed to Git
 	rm -rf $(filter-out $(generate/precious),$(generate/files))
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js # This corresponds to the "# XXX: There are other files in this dir" comments above
-	rm -f $(OSS_HOME)/build-aux/pip-show.txt # Python license scanning
-	find $(OSS_HOME) -name 'js-deps.json' -type f -delete # npm license scanning
 	find $(OSS_HOME)/pkg/api/getambassador.io -name 'zz_generated.*.go' -print -delete # generated as a side-effect of other files
 .PHONY: generate-clean
 
@@ -471,13 +469,42 @@ $(OSS_HOME)/build-aux/py-version.txt: $(OSS_HOME)/builder/Dockerfile.base
 $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
 
-PY_BUILDER:
-	docker build -f "${OSS_HOME}/builder/Dockerfile.base" -t "python-deps-builder" --target builderbase-stage1 "${OSS_HOME}/builder"
-.PHONY: $(PY_BUILDER)
-
+# Javascript license information
 JS_BUILDER:
 	cd ${OSS_HOME}/build-aux/license-info/docker/ && docker build -t "js-deps-builder" .
 .PHONY: $(JS_BUILDER)
+
+NPM_PACKAGES := $(shell find . \( -path "./_cxx/envoy/*" -o -path "./_generate.tmp/*" \) -prune -o -name package.json -type f -print)
+NPM_RAW_DEPS := ${NPM_PACKAGES:.json=_deps.json}
+NPM_LICENSES := ${NPM_PACKAGES:.json=.licenses}
+NPM_DEPENDENCIES := ${NPM_PACKAGES:.json=.dependencies}
+
+clean-license-info:
+	rm -f $(NPM_RAW_DEPS) $(NPM_LICENSES) $(NPM_DEPENDENCIES) $(OSS_HOME)/build-aux/js-licenses.txt $(OSS_HOME)/build-aux/js-dependencies.txt $(OSS_HOME)/LICENSES.md $(OSS_HOME)/OPENSOURCE.md
+.PHONY: clean-license-info
+
+$(NPM_RAW_DEPS): %_deps.json: %.json JS_BUILDER $(tools/js-mkopensource)
+	set -e; { \
+		export JS_MKOPENSOURCE="$(OSS_HOME)/$(tools/js-mkopensource)"; \
+		$(OSS_HOME)/build-aux/license-info/js-deps.sh "$<"; \
+	} > $@
+
+$(NPM_LICENSES): %.licenses: %_deps.json
+	cat $< | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' >$@
+
+$(OSS_HOME)/build-aux/js-licenses.txt: $(NPM_LICENSES)
+	cat $^ | sed -e 's/\[\([^]]*\)]()/\1/' | sort | uniq > $@
+
+$(NPM_DEPENDENCIES): %.dependencies: %_deps.json
+	cat $< | jq -r '.dependencies[] | .name + "|" + .version + "|" + (.licenses | flatten | join(", "))' >$@
+
+$(OSS_HOME)/build-aux/js-dependencies.txt: $(NPM_DEPENDENCIES)
+	cat $^ | sort | uniq > $@
+
+# Python license information
+PY_BUILDER:
+	docker build -f "${OSS_HOME}/builder/Dockerfile.base" -t "python-deps-builder" --target builderbase-stage1 "${OSS_HOME}/builder"
+.PHONY: $(PY_BUILDER)
 
 $(OSS_HOME)/build-aux/pip-show.txt: PY_BUILDER
 	set -e; { \
@@ -485,16 +512,7 @@ $(OSS_HOME)/build-aux/pip-show.txt: PY_BUILDER
 		$(OSS_HOME)/build-aux/license-info/python-deps.sh "$@"; \
 	} > $@;
 
-$(OSS_HOME)/build-aux/js-show.txt: JS_BUILDER $(tools/js-mkopensource)
-	set -e; { \
-		export DESTINATION=$@; \
-		export OSS_HOME=$(OSS_HOME); \
-		export JS_MKOPENSOURCE="$(OSS_HOME)/$(tools/js-mkopensource)"; \
-		$(OSS_HOME)/build-aux/license-info/js-deps.sh "$@"; \
-	}
-.PHONY: $(OSS_HOME)/build-aux/js-show.txt
-
-$(OSS_HOME)/OPENSOURCE.md: FORCE $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt $(OSS_HOME)/build-aux/js-show.txt
+$(OSS_HOME)/OPENSOURCE.md: FORCE $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt $(OSS_HOME)/build-aux/js-dependencies.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
 		export DESTINATION=$@; \
@@ -503,11 +521,12 @@ $(OSS_HOME)/OPENSOURCE.md: FORCE $(tools/go-mkopensource) $(tools/py-mkopensourc
 		export GO_MKOPENSOURCE="$(tools/go-mkopensource)"; \
 		export PY_MKOPENSOURCE="$(tools/py-mkopensource)"; \
 		export PIP_SHOW="$(OSS_HOME)/build-aux/pip-show.txt"; \
+		export JS_DEPENDENCIES="$(OSS_HOME)/build-aux/js-dependencies.txt"; \
 		export GO_TAR="$(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz"; \
 		$(OSS_HOME)/build-aux/license-info/gen-opensource.sh; \
 	}
 
-$(OSS_HOME)/LICENSES.md: FORCE $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt $(OSS_HOME)/build-aux/js-show.txt
+$(OSS_HOME)/LICENSES.md: FORCE $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt $(OSS_HOME)/build-aux/js-licenses.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
 		export DESTINATION=$@; \
@@ -516,6 +535,7 @@ $(OSS_HOME)/LICENSES.md: FORCE $(tools/go-mkopensource) $(tools/py-mkopensource)
 		export GO_MKOPENSOURCE="$(tools/go-mkopensource)"; \
 		export PY_MKOPENSOURCE="$(tools/py-mkopensource)"; \
 		export PIP_SHOW="$(OSS_HOME)/build-aux/pip-show.txt"; \
+		export JS_LICENSES="$(OSS_HOME)/build-aux/js-licenses.txt"; \
 		export GO_TAR="$(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz"; \
 		$(OSS_HOME)/build-aux/license-info/gen-licenses.sh; \
 	}

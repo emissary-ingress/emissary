@@ -28,8 +28,7 @@ TMP_LICENSES="${OSS_HOME}/_generate.tmp/licences"
 
 {
   echo -e "Name|Version|License(s)\n----|-------|----------"
-
-  find . -name "js-deps.json" -type f -exec bash -c 'parse_js_dependencies "{}"' \; | sed -e 's/\[\([^]]*\)]()/\1/' | sort | uniq
+  cat "${JS_DEPENDENCIES}"
 } >"${TMP_LICENSES}"
 
 {
