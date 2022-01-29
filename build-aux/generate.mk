@@ -94,6 +94,8 @@ _generate:
 generate-clean: ## Delete generated sources that get committed to Git
 	rm -rf $(filter-out $(generate/precious),$(generate/files))
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js # This corresponds to the "# XXX: There are other files in this dir" comments above
+	rm -f $(OSS_HOME)/build-aux/pip-show.txt # Python license scanning
+	find $(OSS_HOME) -name 'js-deps.json' -type f -delete # npm license scanning
 	find $(OSS_HOME)/pkg/api/getambassador.io -name 'zz_generated.*.go' -print -delete # generated as a side-effect of other files
 .PHONY: generate-clean
 
@@ -473,13 +475,26 @@ PY_BUILDER:
 	docker build -f "${OSS_HOME}/builder/Dockerfile.base" -t "python-deps-builder" --target builderbase-stage1 "${OSS_HOME}/builder"
 .PHONY: $(PY_BUILDER)
 
-$(OSS_HOME)/build-aux/pip-show.txt:
+JS_BUILDER:
+	cd ${OSS_HOME}/build-aux/license-info/docker/ && docker build -t "js-deps-builder" .
+.PHONY: $(JS_BUILDER)
+
+$(OSS_HOME)/build-aux/pip-show.txt: PY_BUILDER
 	set -e; { \
 		export DESTINATION=$@; \
 		$(OSS_HOME)/build-aux/license-info/python-deps.sh "$@"; \
 	} > $@;
 
-$(OSS_HOME)/OPENSOURCE.md: FORCE $(tools/go-mkopensource) $(tools/py-mkopensource) $(tools/js-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
+$(OSS_HOME)/build-aux/js-show.txt: JS_BUILDER $(tools/js-mkopensource)
+	set -e; { \
+		export DESTINATION=$@; \
+		export OSS_HOME=$(OSS_HOME); \
+		export JS_MKOPENSOURCE="$(OSS_HOME)/$(tools/js-mkopensource)"; \
+		$(OSS_HOME)/build-aux/license-info/js-deps.sh "$@"; \
+	}
+.PHONY: $(OSS_HOME)/build-aux/js-show.txt
+
+$(OSS_HOME)/OPENSOURCE.md: FORCE $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt $(OSS_HOME)/build-aux/js-show.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
 		export DESTINATION=$@; \
@@ -487,13 +502,12 @@ $(OSS_HOME)/OPENSOURCE.md: FORCE $(tools/go-mkopensource) $(tools/py-mkopensourc
 		export OSS_HOME=$(OSS_HOME); \
 		export GO_MKOPENSOURCE="$(tools/go-mkopensource)"; \
 		export PY_MKOPENSOURCE="$(tools/py-mkopensource)"; \
-		export JS_MKOPENSOURCE="$(tools/js-mkopensource)"; \
 		export PIP_SHOW="$(OSS_HOME)/build-aux/pip-show.txt"; \
 		export GO_TAR="$(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz"; \
 		$(OSS_HOME)/build-aux/license-info/gen-opensource.sh; \
 	}
 
-$(OSS_HOME)/LICENSES.md: FORCE $(tools/go-mkopensource) $(tools/py-mkopensource) $(tools/js-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
+$(OSS_HOME)/LICENSES.md: FORCE $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt $(OSS_HOME)/build-aux/js-show.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
 		export DESTINATION=$@; \
@@ -501,7 +515,6 @@ $(OSS_HOME)/LICENSES.md: FORCE $(tools/go-mkopensource) $(tools/py-mkopensource)
 		export OSS_HOME=$(OSS_HOME); \
 		export GO_MKOPENSOURCE="$(tools/go-mkopensource)"; \
 		export PY_MKOPENSOURCE="$(tools/py-mkopensource)"; \
-		export JS_MKOPENSOURCE="$(tools/js-mkopensource)"; \
 		export PIP_SHOW="$(OSS_HOME)/build-aux/pip-show.txt"; \
 		export GO_TAR="$(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz"; \
 		$(OSS_HOME)/build-aux/license-info/gen-licenses.sh; \

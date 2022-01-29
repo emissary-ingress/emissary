@@ -1,17 +1,15 @@
 #!/bin/env bash
-set -ex
+set -e
 
 if [[ ! -f "${PIP_SHOW}" ]]; then
-  >&2 echo "Could not find file ${PIP_SHOW}"
+  echo >&2 "Could not find file ${PIP_SHOW}"
   exit 1
 fi
 
 TOOLS="${OSS_HOME}/tools"
 DOCKERFILE=${OSS_HOME}/build-aux/license-info/docker/Dockerfile
 
-TEMP="${OSS_HOME}/_generate.tmp/licences"
-mkdir -p "${TEMP}"
-LICENSES_TMP=${TEMP}/LICENSES.md
+LICENSES_TMP="${OSS_HOME}/_generate.tmp/LICENSES.md"
 : >"${LICENSES_TMP}"
 
 cd "${OSS_HOME}"
@@ -23,14 +21,13 @@ ${GO_MKOPENSOURCE} --output-format=txt --package=mod --output-type=json --gotar=
 sed 's/^---$//' "${PIP_SHOW}" | ${PY_MKOPENSOURCE} --output-type=json | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' | sed -e 's/\[\([^]]*\)]()/\1/' >>"${LICENSES_TMP}"
 
 # Analyze Node.Js dependencies
-# TODO: Scan other folders with JS files but no package.json
-find -name package.json -exec dirname {} \; | while IFS=$'\n' read packagedir; do
-  pushd "${packagedir}" >/dev/null
-  docker build -f "${DOCKERFILE}" --output "${TEMP}" .
-  popd >/dev/null
+function parse_js_dependencies() {
+  jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' <"$1"
+}
 
-  cat "${TEMP}/dependencies.json" | ${JS_MKOPENSOURCE} | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' >>"${LICENSES_TMP}"
-done
+export -f parse_js_dependencies
+
+find . -name "js-deps.json" -type f -exec bash -c 'parse_js_dependencies "{}"' \; | sed -e 's/\[\([^]]*\)]()/\1/' >>"${LICENSES_TMP}"
 
 #Generate LICENSES.md
 {

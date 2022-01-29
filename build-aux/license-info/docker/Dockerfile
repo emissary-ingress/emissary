@@ -3,21 +3,13 @@
 
 FROM node:10-alpine as dependencies
 
-WORKDIR /js_scanner
-RUN echo '{"name": "", "version": "", "description": "", "licenseFile": "", "licenseText": "", "licenseModified": ""}' > ./customLicenseFormat.json
-
-WORKDIR /app
-ADD . .
-
 RUN apk add --update --no-cache jq
 
-RUN mkdir /dependencies && \
-    npm install && \
-    npm install -g license-checker@25.0.1
+RUN npm install -g license-checker@25.0.1
 
+WORKDIR /app
+COPY scan.sh customLicenseFormat.json ./
 
-RUN export THIS_PACKAGE=$(cat package.json | jq -r '.name + "@" + .version') && \
-    license-checker --excludePackages "$THIS_PACKAGE" --customPath /js_scanner/customLicenseFormat.json --json > /dependencies/dependencies.json
+RUN chmod +x scan.sh
 
-FROM scratch AS export-stage
-COPY --from=dependencies /dependencies/dependencies.json .
+WORKDIR /app/build

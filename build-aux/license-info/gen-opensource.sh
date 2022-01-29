@@ -1,16 +1,10 @@
 #!/bin/env bash
-set -ex
+set -e
 
 if [[ ! -f "${PIP_SHOW}" ]]; then
-  >&2 echo "Could not find file ${PIP_SHOW}"
+  echo >&2 "Could not find file ${PIP_SHOW}"
   exit 1
 fi
-
-TOOLS="${OSS_HOME}/tools"
-DOCKERFILE=${OSS_HOME}/build-aux/license-info/docker/Dockerfile
-
-TEMP="${OSS_HOME}/_generate.tmp/licences"
-mkdir -p "${TEMP}"
 
 cd "${OSS_HOME}"
 
@@ -20,31 +14,29 @@ cd "${OSS_HOME}"
   echo -e "\n"
 } >"${DESTINATION}"
 
-
 # Analyze Python dependencies
 sed 's/^---$//' "${PIP_SHOW}" | ${PY_MKOPENSOURCE} >>"${DESTINATION}"
 
 # Analyze Node.Js dependencies
-# TODO: Scan other folders with JS files but no package.json
-echo -e "The ${APPLICATION} Node.Js code makes use of the following Free and Open Source
-libraries:\n" >>"${DESTINATION}"
+function parse_js_dependencies() {
+  jq -r '.dependencies[] | .name + "|" + .version + "|" + (.licenses | flatten | join(", "))' <"$1"
+}
 
-(
-  echo -e "Name|Version|License(s)
-----|-------|----------"
+export -f parse_js_dependencies
 
-  {
-    find . -name package.json -exec dirname {} \; | while IFS=$'\n' read packagedir; do
-    pushd "${packagedir}" >/dev/null
-    docker build -f "${DOCKERFILE}" --output "${TEMP}" . >&2
-    popd >/dev/null
+TMP_LICENSES="${OSS_HOME}/_generate.tmp/licences"
 
-    cat "${TEMP}/dependencies.json" | ${JS_MKOPENSOURCE} | jq -r '.dependencies[] | .name + "|" + .version + "|" + (.licenses | flatten | join(", "))'
-  done
-  } | sort | uniq | sed -e 's/\[\([^]]*\)]()/\1/'
-) > "${TEMP}/output"
+{
+  echo -e "Name|Version|License(s)\n----|-------|----------"
 
-awk 'BEGIN{OFS=FS="|"}
+  find . -name "js-deps.json" -type f -exec bash -c 'parse_js_dependencies "{}"' \; | sed -e 's/\[\([^]]*\)]()/\1/' | sort | uniq
+} >"${TMP_LICENSES}"
+
+{
+  echo -e "\n\nThe ${APPLICATION} Node.Js code makes use of the following Free and Open Source\nlibraries:\n"
+
+  awk 'BEGIN{OFS=FS="|"}
        NR==FNR {for (i=1; i<=NF; i++) max[i]=(length($i)>max[i]?length($i):max[i]); next}
                {for (i=1; i<=NF; i++) printf "%s%-*s%s", i==1 ? "    " : "", i < NF? max[i]+2 : 1, $i, i==NF ? ORS : " "}
-     ' "${TEMP}/output" "${TEMP}/output" >> "${DESTINATION}"
+     ' "${TMP_LICENSES}" "${TMP_LICENSES}"
+} >>"${DESTINATION}"
