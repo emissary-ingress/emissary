@@ -91,10 +91,11 @@ _generate:
 	@echo '$(MAKE) $$(generate/files)'; $(MAKE) $(patsubst %/,%,$(generate/files))
 .PHONY: generate _generate
 
-generate-clean: clean-license-info ## Delete generated sources that get committed to Git
+generate-clean: ## Delete generated sources that get committed to Git
 	rm -rf $(filter-out $(generate/precious),$(generate/files))
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js # This corresponds to the "# XXX: There are other files in this dir" comments above
 	find $(OSS_HOME)/pkg/api/getambassador.io -name 'zz_generated.*.go' -print -delete # generated as a side-effect of other files
+	$(MAKE) clean-license-info
 .PHONY: generate-clean
 
 generate-fast: ## Update the subset of generated-sources-that-get-committed-to-Git that can be updated quickly
