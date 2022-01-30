@@ -6,12 +6,7 @@ if [[ ! -f "${PIP_SHOW}" ]]; then
   exit 1
 fi
 
-if [[ ! -f "${JS_LICENSES}" ]]; then
-  echo >&2 "Could not find JavaScript license file ${JS_LICENSES}"
-  exit 1
-fi
-
-cd "${OSS_HOME}"
+cd "${BUILD_HOME}"
 
 #Generate LICENSES.md
 {
@@ -24,8 +19,10 @@ cd "${OSS_HOME}"
     # Analyze Python dependencies
     cat "${PIP_SHOW}" | ${PY_MKOPENSOURCE} --output-type=json | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' | sed -e 's/\[\([^]]*\)]()/\1/'
 
-    # Analyze Node.Js dependencies
-    cat "${JS_LICENSES}"
+    if [[ -e "${JS_LICENSES}" ]]; then
+      # Analyze Node.Js dependencies
+      cat "${JS_LICENSES}"
+    fi
   } | sort | uniq
 
 } >"${DESTINATION}"

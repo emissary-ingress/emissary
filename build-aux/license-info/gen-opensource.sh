@@ -6,7 +6,7 @@ if [[ ! -f "${PIP_SHOW}" ]]; then
   exit 1
 fi
 
-cd "${OSS_HOME}"
+cd "${BUILD_HOME}"
 
 # Analyze Go dependencies
 {
@@ -18,24 +18,26 @@ cd "${OSS_HOME}"
 cat "${PIP_SHOW}" | ${PY_MKOPENSOURCE} >>"${DESTINATION}"
 
 # Analyze Node.Js dependencies
-function parse_js_dependencies() {
-  jq -r '.dependencies[] | .name + "|" + .version + "|" + (.licenses | flatten | join(", "))' <"$1"
-}
+if [[ -f "${JS_DEPENDENCIES}" ]]; then
+  function parse_js_dependencies() {
+    jq -r '.dependencies[] | .name + "|" + .version + "|" + (.licenses | flatten | join(", "))' <"$1"
+  }
 
-export -f parse_js_dependencies
+  export -f parse_js_dependencies
 
-TMP_LICENSES="${OSS_HOME}/_generate.tmp/licences"
+  TMP_LICENSES="${BUILD_HOME}/_generate.tmp/licences"
 
-{
-  echo -e "Name|Version|License(s)\n----|-------|----------"
-  cat "${JS_DEPENDENCIES}"
-} >"${TMP_LICENSES}"
+  {
+    echo -e "Name|Version|License(s)\n----|-------|----------"
+    cat "${JS_DEPENDENCIES}"
+  } >"${TMP_LICENSES}"
 
-{
-  echo -e "\n\nThe ${APPLICATION} Node.Js code makes use of the following Free and Open Source\nlibraries:\n"
+  {
+    echo -e "\n\nThe ${APPLICATION} Node.Js code makes use of the following Free and Open Source\nlibraries:\n"
 
-  awk 'BEGIN{OFS=FS="|"}
-       NR==FNR {for (i=1; i<=NF; i++) max[i]=(length($i)>max[i]?length($i):max[i]); next}
-               {for (i=1; i<=NF; i++) printf "%s%-*s%s", i==1 ? "    " : "", i < NF? max[i]+2 : 1, $i, i==NF ? ORS : " "}
-     ' "${TMP_LICENSES}" "${TMP_LICENSES}"
-} >>"${DESTINATION}"
+    awk 'BEGIN{OFS=FS="|"}
+         NR==FNR {for (i=1; i<=NF; i++) max[i]=(length($i)>max[i]?length($i):max[i]); next}
+                 {for (i=1; i<=NF; i++) printf "%s%-*s%s", i==1 ? "    " : "", i < NF? max[i]+2 : 1, $i, i==NF ? ORS : " "}
+       ' "${TMP_LICENSES}" "${TMP_LICENSES}"
+  } >>"${DESTINATION}"
+fi
