@@ -15,7 +15,7 @@ cd "${BUILD_HOME}"
 } >"${DESTINATION}"
 
 # Analyze Python dependencies
-cat "${PIP_SHOW}" | ${PY_MKOPENSOURCE} >>"${DESTINATION}"
+cat "${PIP_SHOW}" | ${PY_MKOPENSOURCE} | sed -e "s/Emissary-ingress/${APPLICATION}/" >>"${DESTINATION}"
 
 # Analyze Node.Js dependencies
 if [[ -f "${JS_DEPENDENCIES}" ]]; then
