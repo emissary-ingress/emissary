@@ -15,7 +15,7 @@ cd "${OSS_HOME}"
 } >"${DESTINATION}"
 
 # Analyze Python dependencies
-sed 's/^---$//' "${PIP_SHOW}" | ${PY_MKOPENSOURCE} >>"${DESTINATION}"
+cat "${PIP_SHOW}" | ${PY_MKOPENSOURCE} >>"${DESTINATION}"
 
 # Analyze Node.Js dependencies
 function parse_js_dependencies() {
