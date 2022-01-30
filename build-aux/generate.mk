@@ -473,10 +473,7 @@ $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 clean-license-info:
 	@set -e; { \
   		export BUILD_HOME=$${BUILD_HOME:-$(OSS_HOME)}; \
-  		\
-		rm -fv $(NPM_RAW_DEPS) $(NPM_LICENSES) $(NPM_DEPENDENCIES)  $(PY_RAW_DEPS) \
-		"$${BUILD_HOME}/LICENSES.md" "$${BUILD_HOME}/OPENSOURCE.md" ; \
-		\
+		rm -fv $(NPM_RAW_DEPS) $(NPM_LICENSES) $(NPM_DEPENDENCIES)  $(PY_RAW_DEPS); \
 		find -type f \( -name pip-show.txt -o -name js-dependencies.txt -o -name js-licenses.txt \) -print -delete; \
 	}
 .PHONY: clean-license-info
