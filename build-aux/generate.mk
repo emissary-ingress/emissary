@@ -523,7 +523,13 @@ $(OSS_HOME)/build-aux/js-dependencies.txt: ${NPM_PACKAGES:.json=_dependencies.tm
 	@echo "^ $^"
 	set -e; { \
   		if [[ ! -z "$^" ]]; then \
+  		  	echo "==================================================== Raw list of dependencies"; \
+			cat $^; \
+  		  	echo "==================================================== Raw-sorted list of dependencies"; \
+			cat $^ | sort | uniq; \
 			cat $^ | sort | uniq > $@; \
+  		  	echo "==================================================== File contents"; \
+  		  	cat $@; \
 		else \
   			echo "There are no Javascript dependencies to analyze"; \
 		fi \
