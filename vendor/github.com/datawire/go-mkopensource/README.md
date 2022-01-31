@@ -15,7 +15,7 @@ a Go program; there is nothing special about `go-mkopensource`.
 TL;DR: run one of
 
 ```shell
-go-mkopensource --gotar=/path/to/go1.17.2.src.tar.gz --package=mod --output-format=txt >OPENSOURCE.md
+go-mkopensource --gotar=/path/to/go1.17.2.src.tar.gz --package=mod --output-format=txt --output-type=markdown >OPENSOURCE.md
 go-mkopensource --gotar=/path/to/go1.17.2.src.tar.gz --package=mod --output-format=tar --output-name=mything >mything.OPENSOURCE.tar.gz
 #               \________________  ________________/ \_____  ____/ \_________________________________  _______________________________/
 #                                \/                        \/                                        \/
@@ -40,7 +40,7 @@ path.  For example, `--gotar=$HOME/Downloads/go1.17.2.tar.gz`.
 The `--package=` flag tells `go-mkopensource` which Go packages it
 should produce a report for.  You can either
 
- - pass it an string that you would pass to `go list` like `./...` or
+ - pass it a string that you would pass to `go list` like `./...` or
    `./cmd/mything`, or
  - pass the special value `mod` to describe the entire Go module of
    the current directory.
@@ -89,6 +89,20 @@ This is what the `--output-name=` flag is for, it tells
 `go-mkopensource` what to use for the name of the directory inside of
 the tarball (since it does not know the name of the file that you are
 directing the output to).
+
+### Output type
+
+Parameter --output-type controls for output format.
+When parameter is not provided in the command line or value is incorrect, `--output-type` is set to `markdown`
+This parameter only applies when `--ouput-format` is `txt`
+
+#### `--output-type=markdown`
+
+Program outputs dependency information in markdown format
+
+#### `--output-type=json`
+
+Program outputs dependency information in json format
 
 ## Using as a library
 

@@ -26,6 +26,9 @@
 # var.mk
 /.var.*
 
+# version-hack.mk
+/version-hack.stamp.mk
+
 # --- Files ignored by older versions ---
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.

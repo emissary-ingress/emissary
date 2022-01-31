@@ -9,6 +9,7 @@ import (
 
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/type/v3"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 )
@@ -59,6 +60,27 @@ func TestFake(t *testing.T) {
 
 }
 
+func assertRoutePresent(t *testing.T, envoyConfig *v3bootstrap.Bootstrap, cluster string, weight int) {
+	t.Helper()
+
+	listener := mustFindListenerByName(t, envoyConfig, "ambassador-listener-8080")
+	routes := mustFindRoutesToCluster(t, listener, cluster)
+
+	for _, r := range routes {
+		assert.Equal(t, uint32(weight), r.Match.RuntimeFraction.DefaultValue.Numerator)
+		assert.Equal(t, v3.FractionalPercent_HUNDRED, r.Match.RuntimeFraction.DefaultValue.Denominator)
+	}
+}
+
+func assertRouteNotPresent(t *testing.T, envoyConfig *v3bootstrap.Bootstrap, cluster string) {
+	t.Helper()
+
+	listener := mustFindListenerByName(t, envoyConfig, "ambassador-listener-8080")
+	routes := findRoutesToCluster(listener, cluster)
+
+	assert.Empty(t, routes)
+}
+
 func TestWeightWithCache(t *testing.T) {
 	get_envoy_config := func(f *entrypoint.Fake, want_foo bool, want_bar bool) (*v3bootstrap.Bootstrap, error) {
 		return f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
@@ -72,17 +94,46 @@ func TestWeightWithCache(t *testing.T) {
 		})
 	}
 
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true, DiagdDebug: false}, nil)
 	assert.NoError(t, f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+ name: ambassador-listener-8080
+ namespace: default
+spec:
+ port: 8080
+ protocol: HTTP
+ securityModel: XFP
+ hostBinding:
+  namespace:
+   from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+ name: test-host
+ namespace: default
+spec:
+ mappingSelector:
+  matchLabels:
+   host: minimal
+ hostname: foo.example.com
+ requestPolicy:
+  insecure:
+   action: Route
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
-  name: mapping-foo
-  namespace: default
+ name: mapping-foo
+ namespace: default
+ labels:
+  host: minimal
 spec:
-  prefix: /foo/
-  service: foo.default
+ prefix: /foo/
+ service: foo.default
 `))
 
 	f.Flush()
@@ -92,17 +143,24 @@ spec:
 	require.NoError(t, err)
 	assert.NotNil(t, envoyConfig)
 
-	// Now add a bar mapping.
+	// Now we need to check the weights for our routes.
+	assertRoutePresent(t, envoyConfig, "cluster_foo_default_default", 100)
+	assertRouteNotPresent(t, envoyConfig, "cluster_bar_default_default")
+
+	// Now add a bar mapping at weight 10.
 	assert.NoError(t, f.UpsertYAML(`
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
-  name: mapping-bar
-  namespace: default
+ name: mapping-bar
+ namespace: default
+ labels:
+  host: minimal
 spec:
-  prefix: /foo/
-  service: bar.default
+ prefix: /foo/
+ service: bar.default
+ weight: 10
 `))
 
 	f.Flush()
@@ -112,24 +170,25 @@ spec:
 	require.NoError(t, err)
 	assert.NotNil(t, envoyConfig)
 
-	assert.NoError(t, f.Delete("Mapping", "default", "mapping-bar"))
-	f.Flush()
+	// Check the weights in order: we should see the bar cluster at 10%, then the foo
+	// cluster at 100%.
+	assertRoutePresent(t, envoyConfig, "cluster_bar_default_default", 10)
+	assertRoutePresent(t, envoyConfig, "cluster_foo_default_default", 100)
 
-	// We need an Envoy config that has a foo cluster, but not a bar cluster.
-	envoyConfig, err = get_envoy_config(f, true, false)
-	require.NoError(t, err)
-	assert.NotNil(t, envoyConfig)
-	// Now add a bar mapping.
+	// Now ramp the bar mapping to weight 50.
 	assert.NoError(t, f.UpsertYAML(`
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
-  name: mapping-bar
-  namespace: default
+ name: mapping-bar
+ namespace: default
+ labels:
+  host: minimal
 spec:
-  prefix: /foo/
-  service: bar.default
+ prefix: /foo/
+ service: bar.default
+ weight: 50
 `))
 
 	f.Flush()
@@ -138,6 +197,76 @@ spec:
 	envoyConfig, err = get_envoy_config(f, true, true)
 	require.NoError(t, err)
 	assert.NotNil(t, envoyConfig)
+
+	// Here we expect bar at 50%, then foo at 100%.
+	assertRoutePresent(t, envoyConfig, "cluster_bar_default_default", 50)
+	assertRoutePresent(t, envoyConfig, "cluster_foo_default_default", 100)
+
+	assert.NoError(t, f.Delete("Mapping", "default", "mapping-foo"))
+	f.Flush()
+
+	// We need an Envoy config that has a bar cluster, but not a foo cluster...
+	envoyConfig, err = get_envoy_config(f, false, true)
+	require.NoError(t, err)
+	assert.NotNil(t, envoyConfig)
+
+	// ...and we should see the bar cluster at 100%.
+	assertRoutePresent(t, envoyConfig, "cluster_bar_default_default", 100)
+	assertRouteNotPresent(t, envoyConfig, "cluster_foo_default_default")
+
+	// Now change bar's weight...
+	assert.NoError(t, f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+ name: mapping-bar
+ namespace: default
+ labels:
+  host: minimal
+spec:
+ prefix: /foo/
+ service: bar.default
+ weight: 20 
+`))
+
+	f.Flush()
+
+	// ...and that should have absolutely no effect on what we see so far. We should
+	// still see the bar cluster at 100% and no foo cluster.
+	envoyConfig, err = get_envoy_config(f, false, true)
+	require.NoError(t, err)
+	assert.NotNil(t, envoyConfig)
+
+	assertRoutePresent(t, envoyConfig, "cluster_bar_default_default", 100)
+	assertRouteNotPresent(t, envoyConfig, "cluster_foo_default_default")
+
+	// Now re-add the foo mapping.
+	assert.NoError(t, f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+ name: mapping-foo
+ namespace: default
+ labels:
+  host: minimal
+spec:
+ prefix: /foo/
+ service: foo.default
+`))
+
+	f.Flush()
+
+	// Now we should see both the foo cluster and the bar cluster...
+	envoyConfig, err = get_envoy_config(f, true, true)
+	require.NoError(t, err)
+	assert.NotNil(t, envoyConfig)
+
+	// ...and we should see the bar cluster drop to 20%, with the foo cluster now
+	// at 100%.
+	assertRoutePresent(t, envoyConfig, "cluster_bar_default_default", 20)
+	assertRoutePresent(t, envoyConfig, "cluster_foo_default_default", 100)
 }
 
 func LogJSON(t testing.TB, obj interface{}) {

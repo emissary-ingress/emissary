@@ -70,9 +70,10 @@ github.com/datawire/dlib/internal/sigint
 # github.com/datawire/dtest v0.0.0-20210927191556-2cccf1a938b0
 ## explicit; go 1.16
 github.com/datawire/dtest
-# github.com/datawire/go-mkopensource v0.0.0-20211110205306-9a3f29b7c373
+# github.com/datawire/go-mkopensource v0.0.0-20220121154707-b0476e7f8255
 ## explicit; go 1.17
 github.com/datawire/go-mkopensource
+github.com/datawire/go-mkopensource/pkg/dependencies
 github.com/datawire/go-mkopensource/pkg/detectlicense
 github.com/datawire/go-mkopensource/pkg/golist
 # github.com/davecgh/go-spew v1.1.1
@@ -290,8 +291,9 @@ golang.org/x/crypto/pkcs12
 golang.org/x/crypto/pkcs12/internal/rc2
 golang.org/x/crypto/scrypt
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/mod v0.3.0
-## explicit; go 1.12
+# golang.org/x/mod v0.5.1
+## explicit; go 1.17
+golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/module
 golang.org/x/mod/semver
 # golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
@@ -793,7 +795,7 @@ k8s.io/client-go/util/homedir
 k8s.io/client-go/util/jsonpath
 k8s.io/client-go/util/keyutil
 k8s.io/client-go/util/workqueue
-# k8s.io/code-generator v0.20.2 => github.com/datawire/code-generator v0.20.5-rc.0.0.20211202225009-42280fcbc4f0
+# k8s.io/code-generator v0.20.2 => github.com/emissary-ingress/code-generator v0.20.5-rc.0.0.20220120231034-6c7797b9220f
 ## explicit; go 1.15
 k8s.io/code-generator/cmd/conversion-gen
 k8s.io/code-generator/cmd/conversion-gen/args
@@ -813,7 +815,7 @@ k8s.io/gengo/types
 # k8s.io/klog/v2 v2.10.0
 ## explicit; go 1.13
 k8s.io/klog/v2
-# k8s.io/kube-openapi v0.0.0-20201113171705-d219536bb9fd
+# k8s.io/kube-openapi v0.0.0-20210304212320-e467f52fd9db
 ## explicit; go 1.12
 k8s.io/kube-openapi/pkg/common
 k8s.io/kube-openapi/pkg/util/proto
@@ -878,7 +880,7 @@ sigs.k8s.io/controller-runtime/pkg/conversion
 sigs.k8s.io/controller-runtime/pkg/log
 sigs.k8s.io/controller-runtime/pkg/scheme
 sigs.k8s.io/controller-runtime/pkg/webhook/conversion
-# sigs.k8s.io/controller-tools v0.5.0
+# sigs.k8s.io/controller-tools v0.5.0 => github.com/emissary-ingress/controller-tools v0.5.1-0.20220120234851-b97c2515f1c2
 ## explicit; go 1.15
 sigs.k8s.io/controller-tools/cmd/controller-gen
 sigs.k8s.io/controller-tools/pkg/crd

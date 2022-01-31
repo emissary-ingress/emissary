@@ -293,7 +293,7 @@ class V3Route(Cacheable):
 
         runtime_fraction: Dict[str, Union[dict, str]] = {
             'default_value': {
-                'numerator': mapping.get('weight', 100),
+                'numerator': mapping.get('_weight', 100),
                 'denominator': 'HUNDRED'
             }
         }
@@ -616,7 +616,7 @@ class V3Route(Cacheable):
 
             config.cache.add(route)
             config.cache.link(irgroup, route)
-            config.cache.dump("V2Route synth %s: %s", cache_key, v3prettyroute(route))
+            config.cache.dump("V3Route synth %s: %s", cache_key, v3prettyroute(route))
         else:
             # Cache hit. We know a priori that it's a V3Route, but let's assert that
             # before casting.

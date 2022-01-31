@@ -1,8 +1,6 @@
 package entrypoint_test
 
 import (
-	"os"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,11 +11,6 @@ import (
 )
 
 func TestFakeCollision(t *testing.T) {
-	// This test will not pass in legacy mode because diagd will not emit EDS clusters in legacy mode.
-	if legacy, err := strconv.ParseBool(os.Getenv("AMBASSADOR_LEGACY_MODE")); err == nil && legacy {
-		return
-	}
-
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true, DiagdDebug: true}, nil)
 
 	assert.NoError(t, f.UpsertFile("testdata/Collision1.yaml"))

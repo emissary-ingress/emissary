@@ -2,10 +2,10 @@ package entrypoint
 
 import (
 	"context"
-	_ "embed"
-	"fmt"
 
+	getambassadorio "github.com/datawire/ambassador/v2/pkg/api/getambassador.io"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/dlib/dlog"
 )
 
 type resourceValidator struct {
@@ -13,21 +13,9 @@ type resourceValidator struct {
 	katesValidator *kates.Validator
 }
 
-//go:embed crds.yaml
-var crdYAML string
-
 func newResourceValidator() (*resourceValidator, error) {
-	crdObjs, err := kates.ParseManifests(crdYAML)
-	if err != nil {
-		return nil, err
-	}
-	katesValidator, err := kates.NewValidator(nil, crdObjs)
-	if err != nil {
-		return nil, err
-	}
-
 	return &resourceValidator{
-		katesValidator: katesValidator,
+		katesValidator: getambassadorio.NewValidator(),
 		invalid:        map[string]*kates.Unstructured{},
 	}, nil
 }
@@ -36,7 +24,7 @@ func (v *resourceValidator) isValid(ctx context.Context, un *kates.Unstructured)
 	key := string(un.GetUID())
 	err := v.katesValidator.Validate(ctx, un)
 	if err != nil {
-		fmt.Printf("validation error: %s %s/%s -- %s\n", un.GetKind(), un.GetNamespace(), un.GetName(), err.Error())
+		dlog.Errorf(ctx, "validation error: %s %s/%s -- %s", un.GetKind(), un.GetNamespace(), un.GetName(), err.Error())
 		copy := un.DeepCopy()
 		copy.Object["errors"] = err.Error()
 		v.invalid[key] = copy

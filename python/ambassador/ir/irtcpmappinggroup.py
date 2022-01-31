@@ -123,7 +123,7 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
                 assert(isinstance(cached_cluster, IRCluster))
                 cluster = cached_cluster
 
-                self.ir.logger.debug(f"IRTCPMappingGroup: got Cluster from cache for {mapping.cluster_key}")
+                self.ir.logger.debug(f"IRTCPMappingGroup: got Cluster from cache for {mapping.cluster_key}")
 
         if not cluster:
             # Find or create the cluster for this Mapping...
