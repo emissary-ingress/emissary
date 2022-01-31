@@ -481,7 +481,6 @@ clean-license-info:
 			-o -name *_licenses.tmp \
 			-o -name *_dependencies.tmp \
 			-o -name  py_deps.tmp \
-			-o -name  py_deps.tmp \
 			\) -print -delete; \
 	rm -fv "$${BUILD_HOME}/OPENSOURCE.md" "$${BUILD_HOME}/LICENSES.md"; \
   }
@@ -540,7 +539,7 @@ PY_REQUIREMENTS := $(shell find "${OSS_HOME}" \( \
 	-o -path "${OSS_HOME}/_generate.tmp/*" \
 	\) -prune -o -name requirements.txt -type f -print)
 
-%/py_deps.tmp: %/requirements.txt PY_BUILDER
+%/py_deps.tmp: %/requirements.txt PY_BUILDER $(OSS_HOME)/builder/requirements.txt
 	$(OSS_HOME)/build-aux/license-info/python-deps.sh "$<" >$@
 
 $(OSS_HOME)/build-aux/pip-show.txt: $(PY_REQUIREMENTS:requirements.txt=py_deps.tmp)
