@@ -131,6 +131,8 @@ spec:
       valueFrom:
         fieldRef:
           fieldPath: metadata.namespace
+    - name: AGENT_CONFIG_RESOURCE_NAME
+      value: {self.path.k8s}-agent-cloud-token
     - name: AMBASSADOR_CONFIG_BASE_DIR
       value: /tmp/ambassador
     - name: AMBASSADOR_ID

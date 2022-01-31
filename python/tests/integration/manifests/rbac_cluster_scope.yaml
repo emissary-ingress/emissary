@@ -106,6 +106,7 @@ rules:
   - namespaces
   - services
   - secrets
+  - configmaps
   - endpoints
   verbs: [get, list, watch]
 
