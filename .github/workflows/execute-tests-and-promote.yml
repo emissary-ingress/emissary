@@ -98,7 +98,7 @@ jobs:
           # unfolded in the snapshot.
           #
           #- kat-local
-        test: [envoy-ah, envoy-ip, envoy-qz, integration] # (add kat to this list when fixed)
+        test: [kat-envoy3-ah, kat-envoy3-ip, kat-envoy3-qz, integration] # (add kat to this list when fixed)
     name: pytest-${{ matrix.test }}
     steps:
       - uses: actions/checkout@v2
