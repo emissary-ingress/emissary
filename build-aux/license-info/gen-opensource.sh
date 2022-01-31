@@ -40,4 +40,8 @@ if [[ -f "${JS_DEPENDENCIES}" ]]; then
                  {for (i=1; i<=NF; i++) printf "%s%-*s%s", i==1 ? "    " : "", i < NF? max[i]+2 : 1, $i, i==NF ? ORS : " "}
        ' "${TMP_LICENSES}" "${TMP_LICENSES}"
   } >>"${DESTINATION}"
+
+  echo "============================================= Dependencies used to build final file"
+  cat "${TMP_LICENSES}"
+  echo "============================================= END"
 fi

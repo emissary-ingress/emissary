@@ -530,6 +530,7 @@ $(OSS_HOME)/build-aux/js-dependencies.txt: ${NPM_PACKAGES:.json=_dependencies.tm
 			cat $^ | sort | uniq > $@; \
   		  	echo "==================================================== File contents"; \
   		  	cat $@; \
+  		  	echo "==================================================== END"; \
 		else \
   			echo "There are no Javascript dependencies to analyze"; \
 		fi \
