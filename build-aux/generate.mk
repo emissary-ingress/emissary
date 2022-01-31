@@ -501,6 +501,7 @@ NPM_PACKAGES := $(shell find "${OSS_HOME}" \( \
 		export JS_MKOPENSOURCE="$(OSS_HOME)/$(tools/js-mkopensource)"; \
 		$(OSS_HOME)/build-aux/license-info/js-deps.sh "$<"; \
 	} > $@
+	>&2 echo "START DEPS $@ from $< ===================================================="
 	cat $@
 	>&2 echo "END DEPS $@ from $< ===================================================="
 

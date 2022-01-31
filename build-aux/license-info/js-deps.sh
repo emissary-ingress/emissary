@@ -13,10 +13,11 @@ pushd "${DIR}" >/dev/null
 
 
 docker run --rm -i "js-deps-builder" sh -c 'tar xf - && ../scan.sh' \
-  < <(tar cf - *) >&2
+  < <(tar cf - *) > tmp.tmp
+
+cat tmp.tmp >&2
 >&2 echo "END dependencies $1 ===================================================="
 
-docker run --rm -i "js-deps-builder" sh -c 'tar xf - && ../scan.sh' \
-   < <(tar cf - *) | ${JS_MKOPENSOURCE}
-
+cat tmp.tmp | ${JS_MKOPENSOURCE}
+rm -f tmp.tmp
 popd >/dev/null
