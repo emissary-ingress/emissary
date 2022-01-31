@@ -27,6 +27,7 @@ if [[ -f "${JS_DEPENDENCIES}" ]]; then
   export -f parse_js_dependencies
 
   TMP_LICENSES="${BUILD_HOME}/_generate.tmp/licences"
+  mkdir -p "${BUILD_HOME}/_generate.tmp/"
 
   {
     echo -e "Name|Version|License(s)\n----|-------|----------"
