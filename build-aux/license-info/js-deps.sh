@@ -2,7 +2,7 @@
 set -e
 set -o pipefail
 
-echo >&2 "Scanning file $1"
+echo >&2 "Scanning NPM package file $1"
 
 DIR=$(dirname $1)
 

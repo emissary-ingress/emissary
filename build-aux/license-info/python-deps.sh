@@ -1,7 +1,7 @@
 #!/bin/env bash
 set -e
 
-echo >&2 "Scanning file $1"
+echo >&2 "Scanning python requirements $1"
 
 DIR=$(dirname $1)
 pushd "${DIR}" >/dev/null

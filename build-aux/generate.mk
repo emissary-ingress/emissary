@@ -472,17 +472,19 @@ $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
 
 clean-license-info:
-	@set -e; { \
-  		export BUILD_HOME=$${BUILD_HOME:-$(OSS_HOME)}; \
-		find "${BUILD_HOME}" -type f \( -name pip-show.txt \
+	set -e; { \
+	export BUILD_HOME="$${BUILD_HOME:-$(OSS_HOME)}"; \
+	find "$${BUILD_HOME}" -type f \( -name pip-show.txt \
 			-o -name js-dependencies.txt \
 			-o -name js-licenses.txt \
 			-o -name *_rawdeps.tmp \
 			-o -name *_licenses.tmp \
 			-o -name *_dependencies.tmp \
 			-o -name  py_deps.tmp \
+			-o -name  py_deps.tmp \
 			\) -print -delete; \
-	}
+	rm -fv "$${BUILD_HOME}/OPENSOURCE.md" "$${BUILD_HOME}/LICENSES.md"; \
+  }
 .PHONY: clean-license-info
 
 # Javascript license information
