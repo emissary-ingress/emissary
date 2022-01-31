@@ -26,6 +26,7 @@ const cloudConnectTokenKey = "CLOUD_CONNECT_TOKEN"
 type Comm interface {
 	Close() error
 	Report(context.Context, *agent.Snapshot, string) error
+	ReportCommandResult(context.Context, *agent.CommandResult) error
 	Directives() <-chan *agent.Directive
 }
 
