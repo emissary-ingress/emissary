@@ -47,13 +47,9 @@ func (dh *BasicDirectiveHandler) HandleDirective(ctx context.Context, a *Agent, 
 			dlog.Info(ctx, command.Message)
 		}
 
-		//if command.RolloutCommand != nil {
-		dh.handleRolloutCommand(ctx, &agentapi.RolloutCommand{
-			Name:      "nginx-gitlab-example-v2",
-			Namespace: "default",
-			Action:    agentapi.RolloutCommand_ABORT,
-		}, dh.rolloutsGetterFactory)
-		//}
+		if command.RolloutCommand != nil {
+			dh.handleRolloutCommand(ctx, command.RolloutCommand, dh.rolloutsGetterFactory)
+		}
 	}
 
 	a.SetLastDirectiveID(ctx, directive.ID)
