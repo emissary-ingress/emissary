@@ -219,6 +219,10 @@ spec:
               path: /ambassador/v0/check_ready
               port: admin
             {{- toYaml .Values.readinessProbe | nindent 12 }}
+          {{- if .Values.lifecycle }}
+          lifecycle:
+            {{- toYaml .Values.lifecycle | nindent 12 }}
+          {{- end }}
           volumeMounts:
             - name: ambassador-pod-info
               mountPath: /tmp/ambassador-pod-info
