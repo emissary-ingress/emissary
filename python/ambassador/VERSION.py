@@ -1,4 +1,4 @@
-# Copyright 2018 Datawire. All rights reserved.
+# Copyright 2018-2022 Datawire. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,67 +13,22 @@
 # limitations under the License
 
 import os
-from typing import NamedTuple
 
+# Keep this in-sync with cmd/busyambassador/main.go.
+#
+# We don't report or log errors here, we just silently fall back to some static "MISSING(XXX)"
+# strings.  This is in-part because the code here is running pretty early, and logging setup hasn't
+# happened yet.  Also because any errors will be evident when the version number gets logged and
+# it's this static string.
+Version = "MISSING(FILE)"
+Commit = "MISSING(FILE)"
 try:
     with open(os.path.join(os.path.dirname(__file__), "..", "ambassador.version")) as version:
-        exec(version.read())
+        info = version.read().split('\n')
+        while len(info) < 2:
+            info.append("MISSING(VAL)")
+
+        Version = info[0]
+        Commit = info[1]
 except FileNotFoundError:
-    BUILD_VERSION = "dirty"
-    GIT_COMMIT = "dirty"
-    GIT_BRANCH = "master"
-    GIT_DIRTY = True
-    GIT_DESCRIPTION = "dirty"
-
-class GitInfo(NamedTuple):
-    commit: str
-    branch: str
-    dirty: bool
-    description: str
-
-
-class BuildInfo(NamedTuple):
-    version: str
-    git: GitInfo
-
-
-Version = BUILD_VERSION
-
-Build = BuildInfo(
-    version=Version,
-    git=GitInfo(
-        commit=GIT_COMMIT,
-        branch=GIT_BRANCH,
-        dirty=bool(GIT_DIRTY),
-        description=GIT_DESCRIPTION,
-    )
-)
-
-if __name__ == "__main__":
-    import sys
-
-    cmd = "--compact"
-
-    if len(sys.argv) > 1:
-        cmd = sys.argv[1].lower()
-
-    if (cmd == '--version') or (cmd == '-V'):
-        print(Version)
-    elif cmd == '--desc':
-        print(Build.git.description)
-    elif cmd == '--branch':
-        print(Build.git.branch)
-    elif cmd == '--commit':
-        print(Build.git.commit)
-    elif cmd == '--dirty':
-        print(Build.git.dirty)
-    elif cmd == '--all':
-        print("version:         %s" % Version)
-        print("git.branch:      %s" % Build.git.branch)
-        print("git.commit:      %s" % Build.git.commit)
-        print("git.dirty:       %s" % Build.git.dirty)
-        print("git.description: %s" % Build.git.description)
-    else:   # compact
-        print("%s (%s at %s on %s%s)" %
-              (Version, Build.git.description, Build.git.commit, Build.git.branch,
-               " - dirty" if Build.git.dirty else ""))
+    pass

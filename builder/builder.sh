@@ -289,120 +289,14 @@ bootstrap() {
     fi
 }
 
-module_version() {
-    echo MODULE="\"$1\""
-
-    # What version is in docs/yaml/version.yaml?
-
-    BASE_VERSION=
-
-    if [ -f docs/yaml/versions.yml ]; then
-        BASE_VERSION=$(grep version: docs/yaml/versions.yml | awk ' { print $2 }')
-        if [[ "${BASE_VERSION}" =~ -ea$ ]] ; then
-            BASE_VERSION=${BASE_VERSION%-ea}
-        fi
-    else
-        # We have... nothing.
-        echo "No base version" >&2
-        exit 1
-    fi
-
-    # EXTRA_VERSION gets added to BASE_VERSION (below). Start it out empty.
-    EXTRA_VERSION=
-
-    # Get a bunch of git info, starting with the branch.
-    echo GIT_BRANCH="\"$(git rev-parse --abbrev-ref HEAD)\""
-
-    # The short git commit hash
-    echo GIT_COMMIT="\"$(git rev-parse --short HEAD)\""
-    # Whether `git add . && git commit` would commit anything (empty=false, nonempty=true)
-    if [ -n "$(git status --porcelain)" ]; then
-        echo GIT_DIRTY="\"dirty\""
-        dirty="yes"
-    else
-        echo GIT_DIRTY="\"\""
-        dirty=""
-    fi
-    # The _previous_ tag, plus a git delta, like 'v1.13.3-117-g2434c437f'... or, if we're _on_
-    # a tag, just something like 'v1.13.3'. Don't allow hotfix tags to appear here, though!
-    GIT_DESCRIPTION=$(git describe --tags --match 'v*' --exclude '*-hf.*')
-    echo GIT_DESCRIPTION="\"$GIT_DESCRIPTION\""
-
-    # Do we have a '-' in our GIT_DESCRIPTION?
-    if [[ ${GIT_DESCRIPTION} =~ - ]]; then
-        # Pull out fields from that.
-        GIT_VERSION=$(echo $GIT_DESCRIPTION | cut -d- -f1)
-        GIT_REST=$(echo $GIT_DESCRIPTION | cut -d- -f2-)
-        if [[ ${GIT_REST} =~ ^[a-z] ]] && [[ ${GIT_REST} =~ - ]]; then
-            # git describe isn't exactly at an rc or ea tag
-            # so let's filter those out when getting the git description
-            GIT_DESCRIPTION=$(git describe --tags --match 'v*' --exclude '*-*')
-            GIT_VERSION=$(echo $GIT_DESCRIPTION | cut -d- -f1)
-            GIT_REST=$(echo $GIT_DESCRIPTION | cut -d- -f2-)
-        fi
-
-        # If the first character of GIT_REST is alphabetic, we should be looking
-        # at an "-rc" or "-ea" tag or the like, and there should not be another -
-        # in it.
-        if [[ ${GIT_REST} =~ ^[a-z] ]]; then
-            if [[ ${GIT_REST} =~ - ]]; then
-                echo "GIT_VERSION $GIT_VERSION is not understood" >&2
-                exit 1
-            fi
-
-            # Good to go. Remember to put the leading "-" back here.
-            EXTRA_VERSION="-${GIT_REST}"
-        else
-            # GIT_REST should be N-gH, so split it into parts...
-            GIT_COUNT=$(echo $GIT_REST | cut -d- -f1)
-            GIT_HASH=$(echo $GIT_REST | cut -d- -f2)
-
-            # ...and build EXTRA_VERSION from that.
-            EXTRA_VERSION="-dev.${GIT_COUNT}+${GIT_HASH}"
-        fi
-    else
-        # We're on a tag. Does it match our build version?
-        if [ "$GIT_DESCRIPTION" != "v$BASE_VERSION" ]; then
-            echo "Tag $GIT_DESCRIPTION does not match base version $BASE_VERSION" >&2
-            exit 1
-        fi
-
-        # All good, use no EXTRA_VERSION stuff here -- but set GIT_VERSION just in
-        # case someone wants it?
-        GIT_VERSION=$GIT_DESCRIPTION
-    fi
-
-    # RELEASE_VERSION is a semver string that we use for tagging things.
-    # BUILD_VERSION is a semver string that we build into the images.
-    #
-    # Neither of these should have a leading 'v'.
-
-    BUILD_VERSION="${BASE_VERSION}${EXTRA_VERSION}"
-
-    if [[ ${BUILD_VERSION} =~ ^v[0-9]+.*$ ]]; then
-        BUILD_VERSION=${BUILD_VERSION:1}
-    fi
-
-    RELEASE_VERSION=$BUILD_VERSION
-
-    if [ -n "${dirty}" ]; then
-        RELEASE_VERSION="${RELEASE_VERSION}-dirty"
-    fi
-
-    echo GIT_VERSION="\"${GIT_VERSION}\""
-    echo GIT_REST="\"${GIT_REST}\""
-    echo BASE_VERSION="\"${BASE_VERSION}\""
-    echo EXTRA_VERSION="\"${EXTRA_VERSION}\""
-    echo RELEASE_VERSION="\"${RELEASE_VERSION}\""
-    echo BUILD_VERSION="\"${BUILD_VERSION}\""
-}
-
 sync() {
     name=$1
     sourcedir=$2
     container=$3
 
     real=$(cd ${sourcedir}; pwd)
+
+    make python/ambassador.version
 
     dexec mkdir -p /buildroot/${name}
     if [[ $name == apro ]]; then
@@ -415,19 +309,24 @@ sync() {
         # BusyBox `ln` 1.30.1's `-T` flag is broken, and doesn't have a `-t` flag.
         dexec sh -c 'if ! test -L apro/ambassador; then rm -rf apro/ambassador && ln -s ../ambassador apro; fi'
     fi
-    (cd ${sourcedir} && module_version ${name} ) | dexec sh -c "cat > /buildroot/${name}.version && cp ${name}.version ambassador/python/"
 }
 
 summarize-sync() {
     name=$1
     shift
     lines=("$@")
-    if [ "${#lines[@]}" != 0 ]; then
-        dexec touch ${name}.dirty image.dirty
-    fi
+    local pydirty=false
+    local godirty=false
     for line in "${lines[@]}"; do
-        if [[ $line = *.go ]]; then
+        if [[ $line != *.version ]] && ! $pydirty; then
+            dexec touch ${name}.dirty image.dirty
+            pydirty=true
+        fi
+        if [[ $line = *.go ]] && ! $godirty; then
             dexec touch go.dirty
+            godirty=true
+        fi
+        if $pydirty && $godirty; then
             break
         fi
     done
@@ -504,41 +403,6 @@ case "${cmd}" in
         shift
         sync $1 $2 $(builder)
         ;;
-    release-type)
-        shift
-        RELVER="$1"
-        if [ -z "${RELVER}" ]; then
-            source <(module_version ${BUILDER_NAME})
-            RELVER="${RELEASE_VERSION}"
-        fi
-
-        if [[ "${RELVER}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo release
-        elif [[ "${RELVER}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]*$ ]]; then
-            echo rc
-        else
-            echo other
-        fi
-        ;;
-    release-version)
-        shift
-        eval $(module_version ${BUILDER_NAME})
-        echo "${RELEASE_VERSION}"
-        ;;
-    is-dirty)
-        shift
-        eval $(module_version ${BUILDER_NAME})
-        echo "${GIT_DIRTY}"
-        ;;
-    raw-version)
-        shift
-        module_version ${BUILDER_NAME}
-        ;;
-    version)
-        shift
-        eval $(module_version ${BUILDER_NAME})
-        echo "${BUILD_VERSION}"
-        ;;
     compile)
         shift
         dexec /buildroot/builder.sh compile-internal
@@ -553,7 +417,6 @@ case "${cmd}" in
 
         for MODDIR in $(find-modules); do
             module=$(basename ${MODDIR})
-            eval "$(grep BUILD_VERSION apro.version 2>/dev/null)" # this will `eval ''` for OSS-only builds, leaving BUILD_VERSION unset; dont embed the version-number in OSS Go binaries
 
             if [ -e ${module}.dirty ] || ([ "$module" != ambassador ] && [ -e go.dirty ]) ; then
                 if [ -e "${MODDIR}/go.mod" ]; then
@@ -561,7 +424,7 @@ case "${cmd}" in
                     echo_on
                     mkdir -p /buildroot/bin
                     TIMEFORMAT="     (go build took %1R seconds)"
-                    (cd ${MODDIR} && time go build -trimpath ${BUILD_VERSION:+ -ldflags "-X main.Version=$BUILD_VERSION" } -o /buildroot/bin ./cmd/...) || exit 1
+                    (cd ${MODDIR} && time go build -trimpath -o /buildroot/bin ./cmd/...) || exit 1
                     TIMEFORMAT="     (${MODDIR}/post-compile took %1R seconds)"
                     if [ -e ${MODDIR}/post-compile.sh ]; then (cd ${MODDIR} && time bash post-compile.sh); fi
                     unset TIMEFORMAT

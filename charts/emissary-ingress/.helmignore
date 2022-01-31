@@ -1,23 +1,19 @@
-# Patterns to ignore when building packages.
-# This supports shell glob matching, relative path matching, and
-# negation (prefixed with !). Only one pattern per line.
-.DS_Store
-# Common VCS dirs
-.git/
-.gitignore
-.bzr/
-.bzrignore
-.hg/
-.hgignore
-.svn/
-# Common backup files
-*.swp
-*.bak
-*.tmp
-*~
-# Various IDEs
+# IDE/text editor/OS stuff
 .project
 .idea/
 *.tmproj
 .vscode/
+#*#
+.#*
+*~
+.DS_Store
+*.swp
+
+# generic stuff
+*.bak
+*.tmp
+
+# stuff specific to the Emissary chart directory
+.gitignore
 OWNERS
+*.in

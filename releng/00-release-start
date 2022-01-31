@@ -15,7 +15,7 @@ import subprocess
 from lib import re_ga, re_ea, get_gh_repo, vX, vY
 from lib.uiutil import Checker, CheckResult, run, check_command
 from lib.uiutil import run_txtcapture as run_capture
-from lib.start_release_updates import update_versions_yaml, update_changelog_date
+from lib.start_release_updates import update_changelog_date
 from lib.gitutil import branch_exists, has_open_pr
 
 
@@ -29,9 +29,7 @@ Reviewers, please review the changelog and commits in this branch to make sure e
 
 def main(next_ver: str, commit: bool = True) -> int:
     """Starts a release train.
-    This script will edit docs/yaml/versions.yml with the supplied version,
-    and create a changelog entry.
-    This will also create prs of applicable
+    This script will create a changelog entry and create PRs of applicable.
     """
     m = re_ga.match(next_ver)
     if not m:
@@ -87,9 +85,6 @@ def main(next_ver: str, commit: bool = True) -> int:
             raise AssertionError(f"Merge conflicts on {current_release_branch}. Resolve these, then rerun this scrip")
     if not checker.ok:
         return 1
-    # docs/yaml/versions.yml
-    with check(f"Updating docs/yaml/versions.yml with {next_ver}..."):
-        update_versions_yaml(next_ver)
 
     with check(f"Updating CHANGELOG.md with {next_ver}..."):
         update_changelog_date(next_ver)
@@ -103,7 +98,7 @@ def main(next_ver: str, commit: bool = True) -> int:
     if not out:
         print("No changes needed, all good.")
         return 0
-    
+
     with check(f"Committing changes..."):
         gitdir = run_capture(['git', 'rev-parse', '--git-dir'])
         with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
@@ -159,4 +154,3 @@ if __name__ == '__main__':
         next_ver=args.next_version,
         commit=args.commit
     ))
-

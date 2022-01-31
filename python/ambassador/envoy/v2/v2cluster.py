@@ -49,7 +49,7 @@ class V2Cluster(Cacheable):
         assert(len(cluster.envoy_name) <= 60)
 
         cmap_entry = cluster.clustermap_entry()
-        if Config.legacy_mode or (cmap_entry['kind'] == 'KubernetesServiceResolver'):
+        if cmap_entry['kind'] == 'KubernetesServiceResolver':
             ctype = cluster.type.upper()
             # For now we are only allowing Logical_dns for the cluster since it is similar enough to strict_dns that we dont need any other config changes
             # It should be easy to add the other dns_types here in the future if we decide to support them

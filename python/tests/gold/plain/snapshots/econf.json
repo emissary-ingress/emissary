@@ -2596,6 +2596,68 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              },
+                              "safe_regex": {
+                                "google_re2": {
+                                  "max_program_size": 200
+                                },
+                                "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "regex_rewrite": {
+                                "pattern": {
+                                  "google_re2": {},
+                                  "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                                },
+                                "substitution": "/images/\\1"
+                              },
+                              "response_code": 4
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              },
+                              "safe_regex": {
+                                "google_re2": {
+                                  "max_program_size": 200
+                                },
+                                "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "regex_rewrite": {
+                                "pattern": {
+                                  "google_re2": {},
+                                  "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                                },
+                                "substitution": "/images/\\1"
+                              },
+                              "response_code": 4
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
                               "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/",
                               "runtime_fraction": {
                                 "default_value": {
@@ -4292,6 +4354,46 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
+                              "prefix": "/HostRedirectMapping-4/foo/bar/baz",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "prefix_rewrite": "/foobar/baz",
+                              "response_code": 3
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/HostRedirectMapping-4/foo/bar/baz",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "prefix_rewrite": "/foobar/baz",
+                              "response_code": 3
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
                               "prefix": "/SimpleMapping-HTTP-UseWebsocket/",
                               "runtime_fraction": {
                                 "default_value": {
@@ -5149,6 +5251,46 @@
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/HostRedirectMapping-3/foo/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "path_redirect": "/redirect/",
+                              "response_code": 1
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/HostRedirectMapping-3/foo/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "path_redirect": "/redirect/",
+                              "response_code": 1
                             }
                           },
                           {
@@ -7073,6 +7215,42 @@
                           },
                           {
                             "match": {
+                              "case_sensitive": false,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/HostRedirectMapping-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": false,
+                              "prefix": "/HostRedirectMapping-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
+                            }
+                          },
+                          {
+                            "match": {
                               "case_sensitive": true,
                               "headers": [
                                 {
@@ -7597,6 +7775,42 @@
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/HostRedirectMapping/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/HostRedirectMapping/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
                             }
                           },
                           {
@@ -7793,6 +8007,68 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              },
+                              "safe_regex": {
+                                "google_re2": {
+                                  "max_program_size": 200
+                                },
+                                "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "regex_rewrite": {
+                                "pattern": {
+                                  "google_re2": {},
+                                  "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                                },
+                                "substitution": "/images/\\1"
+                              },
+                              "response_code": 4
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              },
+                              "safe_regex": {
+                                "google_re2": {
+                                  "max_program_size": 200
+                                },
+                                "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "regex_rewrite": {
+                                "pattern": {
+                                  "google_re2": {},
+                                  "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                                },
+                                "substitution": "/images/\\1"
+                              },
+                              "response_code": 4
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
                               "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/",
                               "runtime_fraction": {
                                 "default_value": {
@@ -9489,6 +9765,46 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
+                              "prefix": "/HostRedirectMapping-4/foo/bar/baz",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "prefix_rewrite": "/foobar/baz",
+                              "response_code": 3
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/HostRedirectMapping-4/foo/bar/baz",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "prefix_rewrite": "/foobar/baz",
+                              "response_code": 3
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
                               "prefix": "/SimpleMapping-HTTP-UseWebsocket/",
                               "runtime_fraction": {
                                 "default_value": {
@@ -10346,6 +10662,46 @@
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/HostRedirectMapping-3/foo/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "path_redirect": "/redirect/",
+                              "response_code": 1
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/HostRedirectMapping-3/foo/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "path_redirect": "/redirect/",
+                              "response_code": 1
                             }
                           },
                           {
@@ -12270,6 +12626,42 @@
                           },
                           {
                             "match": {
+                              "case_sensitive": false,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/HostRedirectMapping-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": false,
+                              "prefix": "/HostRedirectMapping-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
+                            }
+                          },
+                          {
+                            "match": {
                               "case_sensitive": true,
                               "headers": [
                                 {
@@ -12794,6 +13186,42 @@
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/HostRedirectMapping/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/HostRedirectMapping/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
                             }
                           },
                           {
@@ -13010,6 +13438,68 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              },
+                              "safe_regex": {
+                                "google_re2": {
+                                  "max_program_size": 200
+                                },
+                                "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "regex_rewrite": {
+                                "pattern": {
+                                  "google_re2": {},
+                                  "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                                },
+                                "substitution": "/images/\\1"
+                              },
+                              "response_code": 4
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              },
+                              "safe_regex": {
+                                "google_re2": {
+                                  "max_program_size": 200
+                                },
+                                "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "regex_rewrite": {
+                                "pattern": {
+                                  "google_re2": {},
+                                  "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                                },
+                                "substitution": "/images/\\1"
+                              },
+                              "response_code": 4
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
                               "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/",
                               "runtime_fraction": {
                                 "default_value": {
@@ -14706,6 +15196,46 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
+                              "prefix": "/HostRedirectMapping-4/foo/bar/baz",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "prefix_rewrite": "/foobar/baz",
+                              "response_code": 3
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/HostRedirectMapping-4/foo/bar/baz",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "prefix_rewrite": "/foobar/baz",
+                              "response_code": 3
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
                               "prefix": "/SimpleMapping-HTTP-UseWebsocket/",
                               "runtime_fraction": {
                                 "default_value": {
@@ -15563,6 +16093,46 @@
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/HostRedirectMapping-3/foo/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "path_redirect": "/redirect/",
+                              "response_code": 1
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/HostRedirectMapping-3/foo/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "path_redirect": "/redirect/",
+                              "response_code": 1
                             }
                           },
                           {
@@ -17487,6 +18057,42 @@
                           },
                           {
                             "match": {
+                              "case_sensitive": false,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/HostRedirectMapping-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": false,
+                              "prefix": "/HostRedirectMapping-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
+                            }
+                          },
+                          {
+                            "match": {
                               "case_sensitive": true,
                               "headers": [
                                 {
@@ -18011,6 +18617,42 @@
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/HostRedirectMapping/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/HostRedirectMapping/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
                             }
                           },
                           {
@@ -18207,6 +18849,68 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              },
+                              "safe_regex": {
+                                "google_re2": {
+                                  "max_program_size": 200
+                                },
+                                "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "regex_rewrite": {
+                                "pattern": {
+                                  "google_re2": {},
+                                  "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                                },
+                                "substitution": "/images/\\1"
+                              },
+                              "response_code": 4
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              },
+                              "safe_regex": {
+                                "google_re2": {
+                                  "max_program_size": 200
+                                },
+                                "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "regex_rewrite": {
+                                "pattern": {
+                                  "google_re2": {},
+                                  "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                                },
+                                "substitution": "/images/\\1"
+                              },
+                              "response_code": 4
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
                               "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/",
                               "runtime_fraction": {
                                 "default_value": {
@@ -19903,6 +20607,46 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
+                              "prefix": "/HostRedirectMapping-4/foo/bar/baz",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "prefix_rewrite": "/foobar/baz",
+                              "response_code": 3
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/HostRedirectMapping-4/foo/bar/baz",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "prefix_rewrite": "/foobar/baz",
+                              "response_code": 3
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
                               "prefix": "/SimpleMapping-HTTP-UseWebsocket/",
                               "runtime_fraction": {
                                 "default_value": {
@@ -20760,6 +21504,46 @@
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/HostRedirectMapping-3/foo/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "path_redirect": "/redirect/",
+                              "response_code": 1
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/HostRedirectMapping-3/foo/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "path_redirect": "/redirect/",
+                              "response_code": 1
                             }
                           },
                           {
@@ -22684,6 +23468,42 @@
                           },
                           {
                             "match": {
+                              "case_sensitive": false,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/HostRedirectMapping-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": false,
+                              "prefix": "/HostRedirectMapping-2/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
+                            }
+                          },
+                          {
+                            "match": {
                               "case_sensitive": true,
                               "headers": [
                                 {
@@ -23208,6 +24028,42 @@
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/HostRedirectMapping/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/HostRedirectMapping/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com"
                             }
                           },
                           {
