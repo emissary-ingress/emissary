@@ -48,14 +48,14 @@ func (dh *BasicDirectiveHandler) HandleDirective(ctx context.Context, a *Agent, 
 		}
 
 		if command.RolloutCommand != nil {
-			dh.handleRolloutCommand(ctx, command.RolloutCommand, dh.rolloutsGetterFactory)
+			dh.handleRolloutCommand(ctx, command.RolloutCommand, a)
 		}
 	}
 
 	a.SetLastDirectiveID(ctx, directive.ID)
 }
 
-func (dh *BasicDirectiveHandler) handleRolloutCommand(ctx context.Context, cmdSchema *agentapi.RolloutCommand, rolloutsGetterFactory rolloutsGetterFactory) {
+func (dh *BasicDirectiveHandler) handleRolloutCommand(ctx context.Context, cmdSchema *agentapi.RolloutCommand, a *Agent) {
 	if dh.rolloutsGetterFactory == nil {
 		dlog.Warn(ctx, "Received rollout command but does not know how to talk to Argo Rollouts.")
 		return
@@ -64,6 +64,7 @@ func (dh *BasicDirectiveHandler) handleRolloutCommand(ctx context.Context, cmdSc
 	rolloutName := cmdSchema.GetName()
 	namespace := cmdSchema.GetNamespace()
 	action := int32(cmdSchema.GetAction())
+	commandID := cmdSchema.GetCommandId()
 
 	if rolloutName == "" {
 		dlog.Warn(ctx, "Rollout command received without a rollout name.")
@@ -75,13 +76,31 @@ func (dh *BasicDirectiveHandler) handleRolloutCommand(ctx context.Context, cmdSc
 		return
 	}
 
+	if commandID == "" {
+		dlog.Warn(ctx, "Rollout command received without a command ID.")
+		return
+	}
+
 	cmd := &rolloutCommand{
 		rolloutName: rolloutName,
 		namespace:   namespace,
 		action:      rolloutAction(agentapi.RolloutCommand_Action_name[action]),
 	}
-	err := cmd.RunWithClientFactory(ctx, rolloutsGetterFactory)
+	err := cmd.RunWithClientFactory(ctx, dh.rolloutsGetterFactory)
 	if err != nil {
 		dlog.Errorf(ctx, "error running rollout command %s: %s", cmd, err)
+	}
+	dh.reportCommandResult(ctx, commandID, cmd, err, a)
+}
+
+func (dh *BasicDirectiveHandler) reportCommandResult(ctx context.Context, commandID string, cmd *rolloutCommand, cmdError error, a *Agent) {
+	result := &agentapi.CommandResult{CommandId: commandID, Success: true}
+	if cmdError != nil {
+		result.Success = false
+		result.Message = cmdError.Error()
+	}
+	err := a.comm.ReportCommandResult(ctx, result)
+	if err != nil {
+		dlog.Errorf(ctx, "error reporting result of rollout command %s: %s", cmd, cmdError)
 	}
 }
