@@ -4,7 +4,7 @@ description: "execute emissary pytests"
 runs:
   using: "composite"
   steps:
-    - run: echo "PREFIX=pytest-${{ matrix.test }}-legacy-mode.${{ matrix.pytest-settings.legacy-mode }}-fast-reconfigure.${{ matrix.pytest-settings.fast-reconfigure }}" >> $GITHUB_ENV
+    - run: echo "PREFIX=pytest-${{ matrix.test }}" >> $GITHUB_ENV
       name: Set Unique Test prefix ${{ env.PREFIX }}
       shell: bash
     - run: echo "USE_LOCAL_K3S_CLUSTER=1" >> $GITHUB_ENV
@@ -15,42 +15,24 @@ runs:
         sudo sysctl -w fs.inotify.max_user_instances=4096
       shell: bash
       name: "Configure system file and inotify maximums (1600000/4096)"
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '^3.9.5'
-      name: "Install Python (^3.9.5)"
-    - run: python --version
-      shell: bash
-      name: "Check python installed"
+    - name: Install Deps
+      uses: ./.github/actions/setup-deps
     - uses: BSFishy/pip-action@v1
       with:
         packages: |
           awscli
           packaging
       name: "Install Python requirements with pip"
-    - uses: azure/setup-kubectl@v1
-      id: install
-      with:
-        version: 'v1.19.12'
-      name: "Install kubectl (v1.19.12)" # maybe not?
-    - name: "Install/Setup K3d/K3s"
-      uses: nolar/setup-k3d-k3s@v1.0.7
+    - name: "Install and start k3d"
+      shell: bash
+      run: |
+        make ci/setup-k3d K3D_CLUSTER_NAME=amb-ci
     - name: "Docker Login"
       uses: docker/login-action@v1
       with:
         username: ${{ env.DOCKER_USERNAME }}
         password: ${{ env.DOCKER_PASSWORD }}
-    - name: "Configure Kubernetes cluster and Docker registry"
-      shell: bash
-      run: |
-        ./.ci/cluster-claim
-        rm -f ~/.kube/config
-        cp ~/.kube/kubeception.yaml ~/.kube/config
-
-        if test -e ~/.kube/kubeception.yaml; then
-          echo 'DEV_KUBECONFIG=~/.kube/kubeception.yaml' >> $GITHUB_ENV
-        fi
-    - name: make pytest-${{ matrix.test }} (legacy-mode:${{ matrix.pytest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.pytest-settings.fast-reconfigure }} )
+    - name: make pytest-${{ matrix.test }}
       uses: nick-invision/retry@v2.4.0
       with:
         max_attempts: 3
@@ -58,10 +40,8 @@ runs:
         command: |
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
-          export AMBASSADOR_LEGACY_MODE=${{ matrix.pytest-settings.legacy-mode }}
-          export AMBASSADOR_FAST_RECONFIGURE=${{ matrix.pytest-settings.fast-reconfigure }}
           export TEST_XML_DIR=/tmp/test-logs/xml/
-          export DEV_KUBECONFIG=~/.kube/kubeception.yaml
+          export DEV_KUBECONFIG=~/.kube/config
           export DEV_REGISTRY=${{ env.DEV_REGISTRY }}
           mkdir -p ${TEST_XML_DIR}
           make pytest-${{ matrix.test }}

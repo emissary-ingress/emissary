@@ -98,7 +98,7 @@ else:
     # Check for env var log level
     if level_name := os.getenv("AES_LOG_LEVEL"):
         level_number = logging.getLevelName(level_name.upper())
-        
+
         if isinstance(level_number, int):
             level = level_number
 
@@ -233,10 +233,17 @@ class DiagApp (Flask):
                                  namespace='ambassador', registry=self.metrics_registry)
         self.diag_notices = Gauge(f'diagnostics_notices', f'Number of configuration notices',
                                  namespace='ambassador', registry=self.metrics_registry)
+        self.diag_log_level = Gauge(f'log_level', f'Debug log level enabled or not',
+                                 ["level"],
+                                 namespace='ambassador', registry=self.metrics_registry)
 
         if debug:
             self.logger.setLevel(logging.DEBUG)
+            self.diag_log_level.labels('debug').set(1)
             logging.getLogger('ambassador').setLevel(logging.DEBUG)
+        else:
+            self.diag_log_level.labels('debug').set(0)
+
 
         # Assume that we will NOT update Mapping status.
         ksclass: Type[KubeStatus] = KubeStatusNoMappings
@@ -1019,6 +1026,7 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 
     if loglevel:
         app.logger.debug("%s %s -- requesting loglevel %s" % (what, reqid, loglevel))
+        app.diag_log_level.labels('debug').set(1 if loglevel == 'debug' else 0)
 
         if not app.estatsmgr.update_log_levels(time.time(), level=loglevel):
             notice = { 'level': 'WARNING', 'message': "Could not update log level!" }
@@ -1527,68 +1535,16 @@ class AmbassadorEventWatcher(threading.Thread):
         aconf_path = os.path.join(app.snapshot_path, "aconf-tmp.json")
         open(aconf_path, "w").write(aconf.as_json())
 
-        # Assume that this should be marked as a complete reconfigure.
-        config_type = "complete"
+        # OK. What kind of reconfiguration are we doing?
+        config_type, reset_cache, invalidate_groups_for = IR.check_deltas(self.logger, fetcher, self.app.cache)
 
-        # OK. If we have a cache...
-        if self.app.cache is not None:
-            # ...then we'll start by assuming that we'll need to reset it.
-            reset_cache = True
-
-            # Next up: are there any deltas?
-            if fetcher.deltas:
-                # Yes. We're going to walk over them all and assemble a list
-                # of things to delete and a count of errors while processing our
-                # list.
-
-                delta_errors = 0
-                to_invalidate: List[str] = []
-
-                for delta in fetcher.deltas:
-                    self.logger.debug(f"Delta: {delta}")
-
-                    # The "kind" of a Delta must be a string; assert that to make
-                    # mypy happy.
-
-                    delta_kind = delta['kind']
-                    assert(isinstance(delta_kind, str))
-
-                    # Only worry about Mappings and TCPMappings right now.
-                    if (delta_kind == 'Mapping') or (delta_kind == 'TCPMapping'):
-                        # XXX C'mon, mypy, is this cast really necessary?
-                        metadata = typecast(Dict[str, str], delta.get("metadata", {}))
-                        name = metadata.get("name", "")
-                        namespace = metadata.get("namespace", "")
-
-                        if not name or not namespace:
-                            # This is an error.
-                            delta_errors += 1
-
-                            self.logger.error(f"Delta object needs name and namespace: {delta}")
-                        else:
-                            key = IRBaseMapping.make_cache_key(delta_kind, name, namespace)
-                            to_invalidate.append(key)
-
-                # OK. If we have things to invalidate, and we have NO ERRORS...
-                if to_invalidate and not delta_errors:
-                    # ...then we can invalidate all those things instead of clearing the cache.
-                    reset_cache = False
-
-                    for key in to_invalidate:
-                        self.logger.debug(f"Delta: invalidating {key}")
-                        self.app.cache.invalidate(key)
-
-            # When all is said and done, reset the cache if necessary.
-            if reset_cache:
-                # This is _not_ an incremental reconfigure. Reset the cache...
-                self.logger.debug("RESETTING CACHE")
-                self.app.cache = Cache(self.logger)
-            else:
-                # OK, we're doing an incremental reconfigure.
-                config_type = "incremental"
+        if reset_cache:
+            self.logger.debug("RESETTING CACHE")
+            self.app.cache = Cache(self.logger)
 
         with self.app.ir_timer:
-            ir = IR(aconf, secret_handler=secret_handler, cache=self.app.cache)
+            ir = IR(aconf, secret_handler=secret_handler,
+                    invalidate_groups_for=invalidate_groups_for, cache=self.app.cache)
 
         ir_path = os.path.join(app.snapshot_path, "ir-tmp.json")
         open(ir_path, "w").write(ir.as_json())

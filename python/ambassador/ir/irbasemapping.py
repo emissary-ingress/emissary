@@ -72,7 +72,7 @@ def normalize_service_name(ir: 'IR', in_service: str, mapping_namespace: Optiona
         is_qualified,
         out_service
     ))
-    
+
     return out_service
 
 class IRBaseMapping (IRResource):
@@ -82,6 +82,7 @@ class IRBaseMapping (IRResource):
     cached_status: Optional[Dict[str, str]]
     status_update: Optional[Dict[str, str]]
     cluster_key: Optional[str]
+    _weight: int
 
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str,      # REQUIRED
@@ -90,7 +91,7 @@ class IRBaseMapping (IRResource):
                  kind: str,      # REQUIRED
                  namespace: Optional[str] = None,
                  metadata_labels: Optional[Dict[str, str]] = None,
-                 apiVersion: str="getambassador.io/v2",
+                 apiVersion: str="getambassador.io/v3alpha1",
                  precedence: int=0,
                  cluster_tag: Optional[str]=None,
                  **kwargs) -> None:
@@ -100,6 +101,9 @@ class IRBaseMapping (IRResource):
 
         # Start by assuming that we don't know the cluster key for this Mapping.
         self.cluster_key = None
+
+        # We don't know the calculated weight yet, so set it to 0.
+        self._weight = 0
 
         # Init the superclass...
         super().__init__(

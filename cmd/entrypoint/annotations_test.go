@@ -10,13 +10,16 @@ import (
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8s_resource_types"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
 
-func getModuleSpec(rawconfig string) amb.UntypedDict {
+func getModuleSpec(t *testing.T, rawconfig string) amb.UntypedDict {
 	moduleConfig := amb.UntypedDict{}
-	json.Unmarshal([]byte(rawconfig), &moduleConfig)
+	if err := json.Unmarshal([]byte(rawconfig), &moduleConfig); err != nil {
+		t.Fatal(t)
+	}
 	return moduleConfig
 }
 
@@ -48,7 +51,7 @@ name: cool-mapping
 prefix: /blah/
 `
 
-	ingress := &kates.Ingress{
+	ingress := &k8s_resource_types.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ingress",
 			Namespace: "somens",
@@ -100,7 +103,7 @@ prefix: /blah/`
 
 	ks := &snapshotTypes.KubernetesSnapshot{
 		Services:  []*kates.Service{svc, ambSvc},
-		Ingresses: []*kates.Ingress{ingress},
+		Ingresses: []*snapshotTypes.Ingress{{Ingress: *ingress}},
 		Hosts:     []*amb.Host{ignoredHost},
 	}
 
@@ -142,7 +145,9 @@ prefix: /blah/`
 	}
 	moduleConfigRaw := `{"diagnostics": {"enabled":true}}`
 	moduleConfig := amb.UntypedDict{}
-	json.Unmarshal([]byte(moduleConfigRaw), &moduleConfig)
+	if err := json.Unmarshal([]byte(moduleConfigRaw), &moduleConfig); err != nil {
+		t.Fatal(err)
+	}
 
 	expectedModule := &amb.Module{
 		TypeMeta: metav1.TypeMeta{
@@ -154,7 +159,7 @@ prefix: /blah/`
 			Namespace: "ambassador",
 		},
 		Spec: amb.ModuleSpec{
-			Config: getModuleSpec(`{"diagnostics":{"enabled":true}}`),
+			Config: getModuleSpec(t, `{"diagnostics":{"enabled":true}}`),
 		},
 	}
 	expectedResolver := &amb.KubernetesEndpointResolver{
@@ -194,7 +199,7 @@ prefix: /blah/`
 	assert.Equal(t, 2, foundMappings)
 }
 
-func TestConvertAnnotation(tmain *testing.T) {
+func TestConvertAnnotation(t *testing.T) {
 	testcases := []struct {
 		testName     string
 		objString    string
@@ -372,17 +377,19 @@ config:
 					Labels:    map[string]string{},
 				},
 				Spec: amb.ModuleSpec{
-					Config: getModuleSpec(`{"diagnostics":{"enabled":true}}`),
+					Config: getModuleSpec(t, `{"diagnostics":{"enabled":true}}`),
 				},
 			},
 		},
 	}
 
 	for _, tc := range testcases {
-		tmain.Run(tc.testName, func(t *testing.T) {
+		t.Run(tc.testName, func(t *testing.T) {
 			kobj := kates.NewUnstructured(tc.kind, tc.apiVersion)
 
-			yaml.Unmarshal([]byte(tc.objString), kobj)
+			if err := yaml.Unmarshal([]byte(tc.objString), kobj); err != nil {
+				t.Fatal(err)
+			}
 			parent := &kates.Service{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "svc",

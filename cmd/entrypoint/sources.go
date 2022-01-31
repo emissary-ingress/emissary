@@ -7,16 +7,16 @@ import (
 )
 
 type K8sSource interface {
-	Watch(ctx context.Context, queries ...kates.Query) K8sWatcher
+	Watch(ctx context.Context, queries ...kates.Query) (K8sWatcher, error)
 }
 
 type K8sWatcher interface {
 	Changed() chan struct{}
-	FilteredUpdate(target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool
+	FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error)
 }
 
 type IstioCertSource interface {
-	Watch(ctx context.Context) IstioCertWatcher
+	Watch(ctx context.Context) (IstioCertWatcher, error)
 }
 
 type IstioCertWatcher interface {

@@ -195,27 +195,33 @@ func (f *Fake) runWatcher(ctx context.Context) error {
 	interestingTypes := GetInterestingTypes(ctx, nil)
 	queries := GetQueries(ctx, interestingTypes)
 
-	var err error
-	defer func() {
-		r := recover()
-		if r != nil {
-			err = r.(error)
-		}
-	}()
-	watcherLoop(ctx, f.currentSnapshot, f.k8sSource, queries, f.watcher, f.istioCertSource, f.notifySnapshot, f.notifyFastpath, f.ambassadorMeta)
-	return err
+	return watcherLoop(
+		ctx,
+		f.currentSnapshot, // encoded
+		f.k8sSource,
+		queries,
+		f.watcher, // consulWatcher
+		f.istioCertSource,
+		f.notifySnapshot,
+		f.notifyFastpath,
+		f.ambassadorMeta,
+	)
 }
 
 func (f *Fake) notifyFastpath(ctx context.Context, fastpath *ambex.FastpathSnapshot) {
 	f.fastpath.Add(fastpath)
 }
 
-func (f *Fake) GetEndpoints(predicate func(*ambex.Endpoints) bool) *ambex.Endpoints {
+func (f *Fake) GetEndpoints(predicate func(*ambex.Endpoints) bool) (*ambex.Endpoints, error) {
 	f.T.Helper()
-	return f.fastpath.Get(func(obj interface{}) bool {
+	untyped, err := f.fastpath.Get(func(obj interface{}) bool {
 		fastpath := obj.(*ambex.FastpathSnapshot)
 		return predicate(fastpath.Endpoints)
-	}).(*ambex.FastpathSnapshot).Endpoints
+	})
+	if err != nil {
+		return nil, err
+	}
+	return untyped.(*ambex.FastpathSnapshot).Endpoints, nil
 }
 
 func (f *Fake) AssertEndpointsEmpty(timeout time.Duration) {
@@ -229,12 +235,12 @@ type SnapshotEntry struct {
 }
 
 // We pass this into the watcher loop to get notified when a snapshot is produced.
-func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, snapJSON []byte) {
-	if disp == SnapshotReady {
-		if f.config.EnvoyConfig {
-			notifyReconfigWebhooksFunc(ctx, &noopNotable{}, false)
-			f.appendEnvoyConfig()
+func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, snapJSON []byte) error {
+	if disp == SnapshotReady && f.config.EnvoyConfig {
+		if err := notifyReconfigWebhooksFunc(ctx, &noopNotable{}, false); err != nil {
+			return err
 		}
+		f.appendEnvoyConfig(ctx)
 	}
 
 	var snap *snapshot.Snapshot
@@ -244,27 +250,36 @@ func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, sna
 	}
 
 	f.snapshots.Add(SnapshotEntry{disp, snap})
+	return nil
 }
 
 // GetSnapshotEntry will return the next SnapshotEntry that satisfies the supplied predicate.
-func (f *Fake) GetSnapshotEntry(predicate func(SnapshotEntry) bool) SnapshotEntry {
+func (f *Fake) GetSnapshotEntry(predicate func(SnapshotEntry) bool) (SnapshotEntry, error) {
 	f.T.Helper()
-	return f.snapshots.Get(func(obj interface{}) bool {
+	untyped, err := f.snapshots.Get(func(obj interface{}) bool {
 		entry := obj.(SnapshotEntry)
 		return predicate(entry)
-	}).(SnapshotEntry)
+	})
+	if err != nil {
+		return SnapshotEntry{}, err
+	}
+	return untyped.(SnapshotEntry), nil
 }
 
 // GetSnapshot will return the next snapshot that satisfies the supplied predicate.
-func (f *Fake) GetSnapshot(predicate func(*snapshot.Snapshot) bool) *snapshot.Snapshot {
+func (f *Fake) GetSnapshot(predicate func(*snapshot.Snapshot) bool) (*snapshot.Snapshot, error) {
 	f.T.Helper()
-	return f.GetSnapshotEntry(func(entry SnapshotEntry) bool {
+	entry, err := f.GetSnapshotEntry(func(entry SnapshotEntry) bool {
 		return entry.Disposition == SnapshotReady && predicate(entry.Snapshot)
-	}).Snapshot
+	})
+	if err != nil {
+		return nil, err
+	}
+	return entry.Snapshot, nil
 }
 
-func (f *Fake) appendEnvoyConfig() {
-	msg, err := ambex.Decode("/tmp/envoy.json")
+func (f *Fake) appendEnvoyConfig(ctx context.Context) {
+	msg, err := ambex.Decode(ctx, "/tmp/envoy.json")
 	if err != nil {
 		f.T.Fatalf("error decoding envoy.json after sending snapshot to python: %+v", err)
 	}
@@ -273,11 +288,15 @@ func (f *Fake) appendEnvoyConfig() {
 }
 
 // GetEnvoyConfig will return the next envoy config that satisfies the supplied predicate.
-func (f *Fake) GetEnvoyConfig(predicate func(*v3bootstrap.Bootstrap) bool) *v3bootstrap.Bootstrap {
+func (f *Fake) GetEnvoyConfig(predicate func(*v3bootstrap.Bootstrap) bool) (*v3bootstrap.Bootstrap, error) {
 	f.T.Helper()
-	return f.envoyConfigs.Get(func(obj interface{}) bool {
+	untyped, err := f.envoyConfigs.Get(func(obj interface{}) bool {
 		return predicate(obj.(*v3bootstrap.Bootstrap))
-	}).(*v3bootstrap.Bootstrap)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return untyped.(*v3bootstrap.Bootstrap), nil
 }
 
 // AutoFlush will cause a flush whenever any inputs are modified.
@@ -299,28 +318,40 @@ func (f *Fake) SetAmbassadorMeta(ambMeta *snapshot.AmbassadorMetaInfo) {
 
 // UpsertFile will parse the contents of the file as yaml and feed them into the control plane
 // created or updating any overlapping resources that exist.
-func (f *Fake) UpsertFile(filename string) {
-	f.k8sStore.UpsertFile(filename)
+func (f *Fake) UpsertFile(filename string) error {
+	if err := f.k8sStore.UpsertFile(filename); err != nil {
+		return err
+	}
 	f.k8sNotifier.Changed()
+	return nil
 }
 
 // UpsertYAML will parse the provided YAML and feed the resources in it into the control plane,
 // creating or updating any overlapping resources that exist.
-func (f *Fake) UpsertYAML(yaml string) {
-	f.k8sStore.UpsertYAML(yaml)
+func (f *Fake) UpsertYAML(yaml string) error {
+	if err := f.k8sStore.UpsertYAML(yaml); err != nil {
+		return err
+	}
 	f.k8sNotifier.Changed()
+	return nil
 }
 
 // Upsert will update (or if necessary create) the supplied resource in the fake k8s datastore.
-func (f *Fake) Upsert(resource kates.Object) {
-	f.k8sStore.Upsert(resource)
+func (f *Fake) Upsert(resource kates.Object) error {
+	if err := f.k8sStore.Upsert(resource); err != nil {
+		return err
+	}
 	f.k8sNotifier.Changed()
+	return nil
 }
 
 // Delete will removes the specified resource from the fake k8s datastore.
-func (f *Fake) Delete(kind, namespace, name string) {
-	f.k8sStore.Delete(kind, namespace, name)
+func (f *Fake) Delete(kind, namespace, name string) error {
+	if err := f.k8sStore.Delete(kind, namespace, name); err != nil {
+		return err
+	}
 	f.k8sNotifier.Changed()
+	return nil
 }
 
 // ConsulEndpoint stores the supplied consul endpoint data.
@@ -339,14 +370,14 @@ type fakeK8sSource struct {
 	store *K8sStore
 }
 
-func (fs *fakeK8sSource) Watch(ctx context.Context, queries ...kates.Query) K8sWatcher {
+func (fs *fakeK8sSource) Watch(ctx context.Context, queries ...kates.Query) (K8sWatcher, error) {
 	fw := &fakeK8sWatcher{fs.store.Cursor(), make(chan struct{}), queries}
 	fs.fake.k8sNotifier.Listen(func() {
 		go func() {
 			fw.notifyCh <- struct{}{}
 		}()
 	})
-	return fw
+	return fw, nil
 }
 
 type fakeK8sWatcher struct {
@@ -359,17 +390,24 @@ func (f *fakeK8sWatcher) Changed() chan struct{} {
 	return f.notifyCh
 }
 
-func (f *fakeK8sWatcher) FilteredUpdate(target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool {
+func (f *fakeK8sWatcher) FilteredUpdate(_ context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error) {
 	byname := map[string][]kates.Object{}
-	resources, newDeltas := f.cursor.Get()
+	resources, newDeltas, err := f.cursor.Get()
+	if err != nil {
+		return false, err
+	}
 	for _, obj := range resources {
 		for _, q := range f.queries {
 			var un *kates.Unstructured
 			err := convert(obj, &un)
 			if err != nil {
-				panic(err)
+				return false, err
 			}
-			if matches(q, obj) && predicate(un) {
+			doesMatch, err := matches(q, obj)
+			if err != nil {
+				return false, err
+			}
+			if doesMatch && predicate(un) {
 				byname[q.Name] = append(byname[q.Name], obj)
 			}
 		}
@@ -383,25 +421,31 @@ func (f *fakeK8sWatcher) FilteredUpdate(target interface{}, deltas *[]*kates.Del
 		v := byname[q.Name]
 		fieldEntry, ok := targetType.FieldByName(name)
 		if !ok {
-			panic(fmt.Sprintf("no such field: %q", name))
+			return false, fmt.Errorf("no such field: %q", name)
 		}
 		val := reflect.New(fieldEntry.Type)
 		err := convert(v, val.Interface())
 		if err != nil {
-			panic(err)
+			return false, err
 		}
 		targetVal.Elem().FieldByName(name).Set(reflect.Indirect(val))
 	}
 
 	*deltas = newDeltas
 
-	return len(newDeltas) > 0
+	return len(newDeltas) > 0, nil
 }
 
-func matches(query kates.Query, obj kates.Object) bool {
-	kind := canon(query.Kind)
-	gvk := obj.GetObjectKind().GroupVersionKind()
-	return kind == canon(gvk.Kind)
+func matches(query kates.Query, obj kates.Object) (bool, error) {
+	queryKind, err := canon(query.Kind)
+	if err != nil {
+		return false, err
+	}
+	objKind, err := canon(obj.GetObjectKind().GroupVersionKind().Kind)
+	if err != nil {
+		return false, err
+	}
+	return queryKind == objKind, nil
 }
 
 type fakeWatcher struct {
@@ -409,7 +453,7 @@ type fakeWatcher struct {
 	store *ConsulStore
 }
 
-func (f *fakeWatcher) Watch(ctx context.Context, resolver *amb.ConsulResolver, svc string, endpoints chan consulwatch.Endpoints) Stopper {
+func (f *fakeWatcher) Watch(ctx context.Context, resolver *amb.ConsulResolver, svc string, endpoints chan consulwatch.Endpoints) (Stopper, error) {
 	var sent consulwatch.Endpoints
 	stop := f.fake.consulNotifier.Listen(func() {
 		ep, ok := f.store.Get(resolver.Spec.Datacenter, svc)
@@ -418,7 +462,7 @@ func (f *fakeWatcher) Watch(ctx context.Context, resolver *amb.ConsulResolver, s
 			sent = ep
 		}
 	})
-	return &fakeStopper{stop}
+	return &fakeStopper{stop}, nil
 }
 
 type fakeStopper struct {
@@ -433,10 +477,10 @@ type fakeIstioCertSource struct {
 	updateChannel chan IstioCertUpdate
 }
 
-func (src *fakeIstioCertSource) Watch(ctx context.Context) IstioCertWatcher {
+func (src *fakeIstioCertSource) Watch(ctx context.Context) (IstioCertWatcher, error) {
 	src.updateChannel = make(chan IstioCertUpdate)
 
 	return &istioCertWatcher{
 		updateChannel: src.updateChannel,
-	}
+	}, nil
 }

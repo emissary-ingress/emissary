@@ -1,11 +1,9 @@
-from typing import List
-
-import pytest
+from typing import List, Generator, Tuple, Union
 
 from kat.harness import Query, EDGE_STACK
 
-from abstract_tests import AmbassadorTest, HTTP, ServiceType
-from selfsigned import TLSCerts
+from abstract_tests import AmbassadorTest, HTTP, ServiceType, Node
+from tests.selfsigned import TLSCerts
 from kat.utils import namespace_manifest
 
 
@@ -40,7 +38,7 @@ kind: Secret
 type: Opaque
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -103,7 +101,7 @@ data:
   tls.key: {TLSCerts["ambassador.example.com"].k8s_key}
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -136,10 +134,10 @@ name:  {self.target.path.k8s}
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
 add_request_headers:
-  x-cert-start: "%DOWNSTREAM_PEER_CERT_V_START%"
-  x-cert-end: "%DOWNSTREAM_PEER_CERT_V_END%"
-  x-cert-start-custom: "%DOWNSTREAM_PEER_CERT_V_START(%b %e %H:%M:%S %Y %Z)%"
-  x-cert-end-custom: "%DOWNSTREAM_PEER_CERT_V_END(%b %e %H:%M:%S %Y %Z)%"
+  x-cert-start: { value: "%DOWNSTREAM_PEER_CERT_V_START%" }
+  x-cert-end: { value: "%DOWNSTREAM_PEER_CERT_V_END%" }
+  x-cert-start-custom: { value: "%DOWNSTREAM_PEER_CERT_V_START(%b %e %H:%M:%S %Y %Z)%" }
+  x-cert-end-custom: { value: "%DOWNSTREAM_PEER_CERT_V_END(%b %e %H:%M:%S %Y %Z)%" }
 """)
 
     def scheme(self) -> str:
@@ -232,7 +230,7 @@ spec:
   cert_required: True
 """) + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -296,7 +294,7 @@ data:
   tls.key: {TLSCerts["localhost"].k8s_key}
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -388,7 +386,7 @@ spec:
       action: Reject
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
 #         # Use self here, not self.target, because we want the TLS module to
 #         # be annotated on the Ambassador itself.
 #         yield self, self.format("""
@@ -435,7 +433,7 @@ class TLSInvalidSecret(AmbassadorTest):
         self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -540,7 +538,7 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -816,7 +814,7 @@ metadata:
     kat-ambassador-id: tlsingresstest
 type: kubernetes.io/tls
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -833,11 +831,14 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /tls-context-same/
+        pathType: Prefix
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -854,12 +855,15 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /tls-context-same/
+        pathType: Prefix
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -1025,7 +1029,7 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -1144,7 +1148,7 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -1243,7 +1247,7 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -1343,7 +1347,7 @@ metadata:
 type: istio.io/key-and-cert
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -1395,7 +1399,7 @@ kind: Secret
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
@@ -1441,7 +1445,7 @@ class TLSInheritFromModule(AmbassadorTest):
         self.edge_stack_cleartext_host = False
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # These are annotations instead of resources because the name matters.
         yield self, self.format('''
 ---

@@ -1,46 +1,23 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
-
-	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 const (
-	ProductAES  = Product("aes")
-	ProductOSS  = Product("oss")
-	ProductHelm = Product("helm")
+	TargetAPIServerKubectl  = "apiserver-kubectl"
+	TargetAPIServerKAT      = "apiserver-kat"
+	TargetInternalValidator = "internal-validator"
 )
 
-var Products = []Product{
-	ProductAES,
-	ProductOSS,
-	ProductHelm,
+var Targets = []string{
+	TargetAPIServerKubectl,
+	TargetAPIServerKAT,
+	TargetInternalValidator,
 }
-
-var (
-// old_pro_crds = []string{
-// 	"Filter",
-// 	"FilterPolicy",
-// 	"RateLimit",
-// }
-
-// old_oss_crds = []string{
-// 	"AuthService",
-// 	"ConsulResolver",
-// 	"KubernetesEndpointResolver",
-// 	"KubernetesServiceResolver",
-// 	"LogService",
-// 	"Mapping",
-// 	"Module",
-// 	"RateLimitService",
-// 	"TCPMapping",
-// 	"TLSContext",
-// 	"TracingService",
-// }
-)
 
 // Like apiext.CustomResourceDefinition, but we have a little more
 // control over serialization.
@@ -65,20 +42,29 @@ type CRD struct {
 		Versions                 []apiext.CustomResourceDefinitionVersion `json:"versions,omitempty"`
 		AdditionalPrinterColumns []apiext.CustomResourceColumnDefinition  `json:"additionalPrinterColumns,omitempty"`
 		Conversion               *apiext.CustomResourceConversion         `json:"conversion,omitempty"`
-		PreserveUnknownFields    *bool                                    `json:"preserveUnknownFields,omitempty"`
+		// Explicitly setting 'preserveUnknownFields: false' is important even though that's
+		// the default; it's important when upgrading from CRDv1beta1 to CRDv1; the default
+		// was true in v1beta1, but we need it to be false.
+		PreserveUnknownFields bool `json:"preserveUnknownFields"`
 	} `json:"spec"`
 }
 
 func FixCRD(args Args, crd *CRD) error {
 	// sanity check
 	if crd.Kind != "CustomResourceDefinition" || !strings.HasPrefix(crd.APIVersion, "apiextensions.k8s.io/") {
-		return errors.Errorf("not a CRD: %#v", crd)
+		return fmt.Errorf("not a CRD: %#v", crd)
 	}
 
-	// hack around limitations in `controller-gen`; see the comments in
+	// hack around non-structural schemas; see the comments in
 	// `pkg/api/getambassdor.io/v2/common.go`.
-	VisitAllSchemaProps(crd, func(node *apiext.JSONSchemaProps) {
+	if err := VisitAllSchemaProps(crd, func(version string, node *apiext.JSONSchemaProps) error {
 		if strings.HasPrefix(node.Type, "d6e-union:") {
+			if strings.HasPrefix(version, "v3") {
+				return fmt.Errorf("v3 schemas should not contain d6e-union types")
+			}
+			if args.Target != TargetInternalValidator {
+				return ErrExcludeFromSchema
+			}
 			types := strings.Split(strings.TrimPrefix(node.Type, "d6e-union:"), ",")
 			node.Type = ""
 			node.OneOf = nil
@@ -88,29 +74,52 @@ func FixCRD(args Args, crd *CRD) error {
 				})
 			}
 		}
-	})
+		return nil
+	}); err != nil {
+		return err
+	}
 
 	// fix labels
-	if crd.Metadata.Labels == nil {
-		crd.Metadata.Labels = make(map[string]string)
+	if args.Target != TargetInternalValidator {
+		if crd.Metadata.Labels == nil {
+			crd.Metadata.Labels = make(map[string]string)
+		}
+		for k, v := range globalLabels {
+			crd.Metadata.Labels[k] = v
+		}
 	}
-	crd.Metadata.Labels["product"] = "aes"
-	crd.Metadata.Labels["app.kubernetes.io/name"] = "ambassador"
 
 	// fix annotations
 	if crd.Metadata.Annotations == nil {
 		crd.Metadata.Annotations = make(map[string]string)
 	}
-	if args.Product == ProductHelm {
-		crd.Metadata.Annotations["helm.sh/hook"] = "crd-install"
-	} else {
-		delete(crd.Metadata.Annotations, "helm.sh/hook")
-	}
+	delete(crd.Metadata.Annotations, "helm.sh/hook")
 
 	// fix categories
 	if !inArray("ambassador-crds", crd.Spec.Names.Categories) {
-		//fmt.Fprintf(os.Stderr, "CRD %q missing ambassador-crds category\n", crd.Metadata.Name)
 		crd.Spec.Names.Categories = append(crd.Spec.Names.Categories, "ambassador-crds")
+	}
+
+	// fix conversion
+	if len(crd.Spec.Versions) > 1 {
+		crd.Spec.Conversion = &apiext.CustomResourceConversion{
+			Strategy: apiext.WebhookConverter,
+			Webhook: &apiext.WebhookConversion{
+				// 'ClientConfig' will get overwritten by Emissary's 'apiext'
+				// controller.
+				ClientConfig: &apiext.WebhookClientConfig{
+					Service: &apiext.ServiceReference{
+						Name:      apiextSvcName,
+						Namespace: namespace,
+					},
+				},
+				// Which versions of the conversion API our webhook supports.  Since
+				// we use sigs.k8s.io/controller-runtime/pkg/webhook/conversion to
+				// implement the webhook this list should be kept in-sync with what
+				// that package supports.
+				ConversionReviewVersions: []string{"v1beta1"},
+			},
+		}
 	}
 
 	return nil

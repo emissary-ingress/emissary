@@ -28,7 +28,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: {{image "../cmd/httptest/Dockerfile"}}
+    image: {{image "../docker/test-http/Dockerfile"}}
     ports:
     - containerPort: 80
     env:

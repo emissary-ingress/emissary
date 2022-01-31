@@ -72,7 +72,7 @@ def main(rc_tag: str, release_registry: str, image_name: str, helm_s3_key: str) 
     manifests_found = False
     while not manifests_found:
         conn = http.client.HTTPSConnection(s3_url)
-        conn.request("GET", f"/yaml/emissary/{rc_tag}/emissary-ingress.yaml")
+        conn.request("GET", f"/yaml/emissary/{rc_tag}/emissary-emissaryns.yaml")
         r1 = conn.getresponse()
         if r1.status == 200:
             print(f"        {ansiterm.sgr.bold.fg_grn}Yaml manifests for {rc_tag} found in S3!{ansiterm.sgr}")

@@ -1,7 +1,15 @@
-apiVersion: apps/v1
+{{- if .Values.barePod }}
+apiVersion: v1
+kind: Pod
+metadata:
+      name: {{ include "ambassador.fullname" . }}
+      namespace: {{ include "ambassador.namespace" . }}
+{{- else }}
 {{- if .Values.daemonSet }}
+apiVersion: apps/v1
 kind: DaemonSet
 {{- else }}
+apiVersion: apps/v1
 kind: Deployment
 {{- end }}
 metadata:
@@ -12,33 +20,24 @@ metadata:
   {{- end }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
-    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
-    app.kubernetes.io/part-of: {{ .Release.Name }}
-    helm.sh/chart: {{ include "ambassador.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if .Values.deploymentTool }}
-    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
-    {{- else }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- end }}
-    {{- end }}
+    {{- include "ambassador.labels" . | nindent 4 }}
     product: aes
     {{- if .Values.deploymentLabels }}
-    {{- toYaml .Values.deploymentLabels | nindent 4 }}
+      {{- toYaml .Values.deploymentLabels | nindent 4 }}
     {{- end }}
-    {{- if .Values.deploymentAnnotations }}
+  {{- if .Values.deploymentAnnotations }}
   annotations:
-      {{- toYaml .Values.deploymentAnnotations | nindent 4 }}
-    {{- end }}
+    {{- toYaml .Values.deploymentAnnotations | nindent 4 }}
+  {{- end }}
 spec:
 {{- if and (not .Values.autoscaling.enabled) (not .Values.daemonSet) }}
   replicas: {{ .Values.replicaCount }}
 {{- end }}
   selector:
     matchLabels:
-      {{- if .Values.service.selector }}
-      {{ toYaml .Values.service.selector | nindent 6 }}
+      {{- with .Values.service.selector }}
+        {{- toYaml . | nindent 6 }}
       {{- else }}
       app.kubernetes.io/name: {{ include "ambassador.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
@@ -56,33 +55,30 @@ spec:
   {{- end }}
   template:
     metadata:
+{{- end }}
       labels:
-        {{- if .Values.service.selector }}
-        {{ toYaml .Values.service.selector | nindent 8 }}
+        {{- with .Values.service.selector }}
+          {{- toYaml . | nindent 8 }}
         {{- end }}
-        {{- if ne .Values.deploymentTool "getambassador.io" }}
         app.kubernetes.io/name: {{ include "ambassador.name" . }}
-        app.kubernetes.io/part-of: {{ .Release.Name }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- include "ambassador.labels" . | nindent 8 }}
         product: aes
-        {{- end }}
-        {{- if .Values.deploymentTool }}
-        app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
-        {{- else }}
-        app.kubernetes.io/managed-by: {{ .Release.Service }}
-        {{- end }}
         profile: main
-      {{- if .Values.podLabels }}
-        {{- toYaml .Values.podLabels | nindent 8 }}
-      {{- end }}
+        {{- if .Values.podLabels }}
+          {{- toYaml .Values.podLabels | nindent 8 }}
+        {{- end }}
       annotations:
         {{- if ne .Values.deploymentTool "getambassador.io" }}
         checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
         {{- end }}
-      {{- if .Values.podAnnotations }}
-        {{- toYaml .Values.podAnnotations | nindent 8 }}
-      {{- end }}
+        {{- if .Values.podAnnotations }}
+          {{- toYaml .Values.podAnnotations | nindent 8 }}
+        {{- end }}
+{{- if .Values.barePod }}
+spec:
+{{- else }}
     spec:
+{{- end }}
       {{- if .Values.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       {{- end }}
@@ -221,6 +217,10 @@ spec:
               path: /ambassador/v0/check_ready
               port: admin
             {{- toYaml .Values.readinessProbe | nindent 12 }}
+          {{- if .Values.lifecycle }}
+          lifecycle:
+            {{- toYaml .Values.lifecycle | nindent 12 }}
+          {{- end }}
           volumeMounts:
             - name: ambassador-pod-info
               mountPath: /tmp/ambassador-pod-info

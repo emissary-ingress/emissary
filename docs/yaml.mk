@@ -9,7 +9,10 @@ generate-docs-yaml:
 .PHONY: generate-docs-yaml
 
 publish-docs-yaml: generate-docs-yaml
-	@([ "$(IS_PRIVATE)" ] && (echo "Private repo, not pushing manifests" && exit 1)) || true
+	if [ ! -z $(IS_PRIVATE) ]; then \
+		echo "Private repo, not pushing chart" ;\
+		exit 1 ;\
+	fi;
 	@$(OSS_HOME)/docs/publish_yaml_s3.sh $(GENERATED_YAML_DIR)yaml/ $(generate-docs-yaml/files)
 	@rm -rf $(GENERATED_YAML_DIR)
 .PHONY: publish-docs-yaml

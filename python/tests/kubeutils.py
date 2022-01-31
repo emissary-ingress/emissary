@@ -7,7 +7,7 @@ def meta_action_kube_artifacts(namespace, artifacts, action, retries=0):
     temp_file.write(artifacts.encode())
     temp_file.flush()
 
-    command = ['kubectl', action, '-f', temp_file.name]
+    command = ['tools/bin/kubectl', action, '-f', temp_file.name]
     if namespace is None:
         namespace = 'default'
 

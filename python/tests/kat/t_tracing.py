@@ -1,13 +1,10 @@
+from typing import Generator, Tuple, Union
+
 import json
-import pytest
-import os
 
-from typing import ClassVar, Dict, List, Sequence, Tuple, Union
+from kat.harness import Query
 
-from kat.harness import sanitize, variants, Query, Runner
-
-from abstract_tests import AmbassadorTest, HTTP, AHTTP
-from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
+from abstract_tests import AmbassadorTest, HTTP, AHTTP, Node
 
 from ambassador import Config
 
@@ -63,7 +60,7 @@ spec:
           containerPort: 9411
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
 
@@ -182,7 +179,7 @@ spec:
           containerPort: 9411
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
 
@@ -295,7 +292,7 @@ spec:
           containerPort: 9411
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
 
@@ -390,7 +387,7 @@ spec:
           containerPort: 9411
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -490,7 +487,7 @@ spec:
           containerPort: 9411
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
 
@@ -593,7 +590,7 @@ spec:
           containerPort: 9411
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
         yield self.target, self.format("""
@@ -609,7 +606,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing
 service: zipkin-v2:9411
@@ -714,7 +711,7 @@ spec:
           containerPort: 9411
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
 
@@ -731,7 +728,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing
 service: zipkin-v1:9411

@@ -91,11 +91,6 @@ class V3Config (EnvoyConfig):
                     {
                         'name': 'static_layer',
                         'static_layer': {
-                            # Envoy 1.14.1 disabled the use of lowercase string matcher for headers matching in HTTP-based.
-                            # Following setting toggled it to be consistent with old behavior.
-                            # AuthenticationTest (v0) is a good example that expects the old behavior.
-                            # UPDATE: removed when migrating to envoy 1.17 as the config option was deprecated
-
                             'envoy.reloadable_features.enable_deprecated_v2_api': True,
                             're2.max_program_size.error_level': 200,
                         }

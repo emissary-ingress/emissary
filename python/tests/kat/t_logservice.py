@@ -1,12 +1,10 @@
+from typing import Generator, Tuple, Union
+
 import json
-import pytest
 
-from typing import ClassVar, Dict, List, Sequence, Tuple, Union
+from kat.harness import Query
 
-from kat.harness import sanitize, variants, Query, Runner
-
-from abstract_tests import AmbassadorTest, HTTP, AHTTP
-from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
+from abstract_tests import AmbassadorTest, HTTP, AHTTP, Node
 
 
 class LogServiceTest(AmbassadorTest):
@@ -57,7 +55,7 @@ spec:
           containerPort: 25565
 """) + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -196,7 +194,7 @@ spec:
           containerPort: 25565
 """) + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

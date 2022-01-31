@@ -8,6 +8,9 @@ import (
 	"net/http/pprof"
 	"net/url"
 
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+
 	"github.com/datawire/ambassador/v2/pkg/acp"
 	"github.com/datawire/ambassador/v2/pkg/debug"
 	"github.com/datawire/dlib/dhttp"
@@ -21,7 +24,7 @@ func handleCheckAlive(w http.ResponseWriter, r *http.Request, ambwatch *acp.Amba
 	ok := ambwatch.IsAlive()
 
 	if ok {
-		w.Write([]byte("Ambassador is alive and well\n"))
+		_, _ = w.Write([]byte("Ambassador is alive and well\n"))
 	} else {
 		http.Error(w, "Ambassador is not alive\n", http.StatusServiceUnavailable)
 	}
@@ -38,7 +41,7 @@ func handleCheckReady(w http.ResponseWriter, r *http.Request, ambwatch *acp.Amba
 	ok := ambwatch.IsReady()
 
 	if ok {
-		w.Write([]byte("Ambassador is ready and waiting\n"))
+		_, _ = w.Write([]byte("Ambassador is ready and waiting\n"))
 	} else {
 		http.Error(w, "Ambassador is not ready\n", http.StatusServiceUnavailable)
 	}

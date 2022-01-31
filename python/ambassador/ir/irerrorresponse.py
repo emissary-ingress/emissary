@@ -9,6 +9,37 @@ if TYPE_CHECKING:
     from .ir import IR # pragma: no cover
     from .ir.irresource import IRResource # pragma: no cover
 
+import re
+
+# github.com/datawire/apro/issues/2661
+# Use a whitelist to validate that any command operators in error response body are supported by envoy
+# TODO: remove this after support for escaping "%" lands in envoy
+ALLOWED_ENVOY_FMT_TOKENS = [
+    "START_TIME", "REQUEST_HEADERS_BYTES", "BYTES_RECEIVED",
+    "PROTOCOL", "RESPONSE_CODE", "RESPONSE_CODE_DETAILS",
+    "CONNECTION_TERMINATION_DETAILS", "RESPONSE_HEADERS_BYTES",
+    "RESPONSE_TRAILERS_BYTES", "BYTES_SENT", "UPSTREAM_WIRE_BYTES_SENT",
+    "UPSTREAM_WIRE_BYTES_RECEIVED", "UPSTREAM_HEADER_BYTES_SENT",
+    "UPSTREAM_HEADER_BYTES_RECEIVED", "DOWNSTREAM_WIRE_BYTES_SENT",
+    "DOWNSTREAM_WIRE_BYTES_RECEIVED", "DOWNSTREAM_HEADER_BYTES_SENT",
+    "DOWNSTREAM_HEADER_BYTES_RECEIVED", "DURATION", "REQUEST_DURATION",
+    "REQUEST_TX_DURATION", "RESPONSE_DURATION", "RESPONSE_TX_DURATION",
+    "RESPONSE_FLAGS", "ROUTE_NAME", "UPSTREAM_HOST", "UPSTREAM_CLUSTER",
+    "UPSTREAM_LOCAL_ADDRESS", "UPSTREAM_TRANSPORT_FAILURE_REASON",
+    "DOWNSTREAM_REMOTE_ADDRESS", "DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT",
+    "DOWNSTREAM_DIRECT_REMOTE_ADDRESS", "DOWNSTREAM_DIRECT_REMOTE_ADDRESS_WITHOUT_PORT",
+    "DOWNSTREAM_LOCAL_ADDRESS", "DOWNSTREAM_LOCAL_ADDRESS_WITHOUT_PORT",
+    "CONNECTION_ID", "GRPC_STATUS", "DOWNSTREAM_LOCAL_PORT", "REQ",
+    "RESP", "TRAILER", "DYNAMIC_METADATA", "CLUSTER_METADATA",
+    "FILTER_STATE", "REQUESTED_SERVER_NAME", "DOWNSTREAM_LOCAL_URI_SAN",
+    "DOWNSTREAM_PEER_URI_SAN", "DOWNSTREAM_LOCAL_SUBJECT", "DOWNSTREAM_PEER_SUBJECT",
+    "DOWNSTREAM_PEER_ISSUER", "DOWNSTREAM_TLS_SESSION_ID", "DOWNSTREAM_TLS_CIPHER",
+    "DOWNSTREAM_TLS_VERSION", "DOWNSTREAM_PEER_FINGERPRINT_256", "DOWNSTREAM_PEER_FINGERPRINT_1",
+    "DOWNSTREAM_PEER_SERIAL", "DOWNSTREAM_PEER_CERT", "DOWNSTREAM_PEER_CERT_V_START",
+    "DOWNSTREAM_PEER_CERT_V_END", "HOSTNAME", "LOCAL_REPLY_BODY", "FILTER_CHAIN_NAME"
+]
+ENVOY_FMT_TOKEN_REGEX = "\%([A-Za-z0-9_]+?)(\([A-Za-z0-9_.]+?((:|\?)[A-Za-z0-9_.]+?)+\))?(:[A-Za-z0-9_]+?)?\%"
+
 # IRErrorResponse implements custom error response bodies using Envoy's HTTP response_map filter.
 #
 # Error responses are configured as an array of rules on the Ambassador module. Rules can be
@@ -156,6 +187,10 @@ class IRErrorResponse (IRFilter):
             ir_text_format = ir_body.get("text_format", None)
             ir_json_format = ir_body.get("json_format", None)
 
+            # get the text used for error response body so we can check it for bad tokens
+            # TODO: remove once envoy supports escaping "%"
+            format_body = ""
+
             # Only one of text_format, json_format, or text_format_source may be set.
             # Post an error if we found more than one these fields set.
             formats_set: int = 0
@@ -180,10 +215,19 @@ class IRErrorResponse (IRFilter):
                     continue
 
                 body_format_override["text_format_source"] = ir_text_format_source
+                try:
+                    fmt_file = open(ir_text_format_source["filename"], mode='r')
+                    format_body = fmt_file.read()
+                    fmt_file.close()
+                except OSError:
+                    self.post_error("IRErrorResponse: text_format_source field references a file that does not exist")
+                    continue
+
             elif ir_text_format is not None:
                 # Verify that the text_format field is a string
                 try:
                     body_format_override["text_format"] = str(ir_text_format)
+                    format_body = str(ir_text_format)
                 except ValueError as e:
                     self.post_error(f"IRErrorResponse: text_format: %s" % e)
             elif ir_json_format is not None:
@@ -204,8 +248,10 @@ class IRErrorResponse (IRFilter):
                         k = str(k)
                         if isinstance(v, bool):
                             sanitized[k] = str(v).lower()
+                            format_body += f"{k}: {str(v).upper()}, "
                         elif isinstance(v, (int, float, str)):
                             sanitized[k] = str(v)
+                            format_body += f"{k}: {str(v)}, "
                         else:
                             error = f"IRErrorResponse: json_format only supports string values, and type \"{type(v)}\" for key \"{k}\" cannot be implicitly converted to string"
                             break
@@ -231,6 +277,21 @@ class IRErrorResponse (IRFilter):
                     continue
 
                 body_format_override["content_type"] = ir_content_type
+
+            # search the body for command tokens
+            # TODO: remove this code when envoy supports escaping "%"
+            token_finder = re.compile(ENVOY_FMT_TOKEN_REGEX)
+            matches = token_finder.findall(format_body)
+
+            bad_token = False
+            for i in matches:
+                # i[0] is first group in regex match which will contain the command operator name
+                if not i[0] in ALLOWED_ENVOY_FMT_TOKENS:
+                    self.post_error(f"IRErrorResponse: Invalid Envoy command token: {i[0]}")
+                    bad_token = True
+
+            if bad_token:
+                continue
 
             # The mapper config now has a `filter` (the rule) and a `body_format_override` (the action)
             mapper["body_format_override"] = body_format_override

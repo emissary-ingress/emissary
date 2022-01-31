@@ -32,6 +32,7 @@ class IRAmbassador (IRResource):
         'admin_port',
         'auth_enabled',
         'allow_chunked_length',
+        'buffer_limit_bytes',
         'circuit_breakers',
         'cluster_idle_timeout_ms',
         'cluster_max_connection_lifetime_ms',
@@ -409,43 +410,53 @@ class IRAmbassador (IRResource):
         ]:
             if cur and cur.get("enabled", False):
                 name = "internal_%s_probe_mapping" % name
+                cache_key = "InternalMapping-v2-%s-default" % name
 
-                mapping = IRHTTPMapping(ir, aconf, rkey=self.rkey, name=name, location=self.location,
-                                        timeout_ms=10000, hostname="*", **cur)
-                mapping.referenced_by(self)
+                mapping = ir.cache_fetch(cache_key)
+
+                if mapping is not None:
+                    # Cache hit. We know a priori that anything in the cache under a Mapping
+                    # key must be an IRBaseMapping, but let's assert that rather than casting.
+                    assert(isinstance(mapping, IRBaseMapping))
+                else:
+                    mapping = IRHTTPMapping(ir, aconf, kind="InternalMapping", 
+                                            rkey=self.rkey, name=name, location=self.location,
+                                            timeout_ms=10000, hostname="*", **cur)
+                    mapping.referenced_by(self)
+
                 ir.add_mapping(aconf, mapping)
 
-        if ir.edge_stack_allowed:
-            if self.diagnostics and self.diagnostics.get("enabled", False):
-                ir.logger.debug("adding mappings for Edge Policy Console")
-                edge_stack_response_header = {"x-content-type-options": "nosniff"}
-                mapping = IRHTTPMapping(ir, aconf, rkey=self.rkey, location=self.location,
-                                        name="edgestack-direct-mapping",
-                                        metadata_labels={"ambassador_diag_class": "private"},
-                                        prefix="/edge_stack/",
-                                        rewrite="/edge_stack_ui/edge_stack/",
-                                        service="127.0.0.1:8500",
-                                        precedence=1000000,
-                                        timeout_ms=60000,
-                                        hostname="*",
-                                        add_response_headers=edge_stack_response_header)
-                mapping.referenced_by(self)
-                ir.add_mapping(aconf, mapping)
+        # if ir.edge_stack_allowed:
+        #     if self.diagnostics and self.diagnostics.get("enabled", False):
+        #         ir.logger.debug("adding mappings for Edge Policy Console")
+        #         edge_stack_response_header = {"x-content-type-options": "nosniff"}
+        #         mapping = IRHTTPMapping(ir, aconf, rkey=self.rkey, location=self.location,
+        #                                 name="edgestack-direct-mapping",
+        #                                 metadata_labels={"ambassador_diag_class": "private"},
+        #                                 prefix="/edge_stack/",
+        #                                 rewrite="/edge_stack_ui/edge_stack/",
+        #                                 service="127.0.0.1:8500",
+        #                                 precedence=1000000,
+        #                                 timeout_ms=60000,
+        #                                 hostname="*",
+        #                                 add_response_headers=edge_stack_response_header)
+        #         mapping.referenced_by(self)
+        #         ir.add_mapping(aconf, mapping)
 
-                mapping = IRHTTPMapping(ir, aconf, rkey=self.rkey, location=self.location,
-                                        name="edgestack-fallback-mapping",
-                                        metadata_labels={"ambassador_diag_class": "private"},
-                                        prefix="^/$", prefix_regex=True,
-                                        rewrite="/edge_stack_ui/",
-                                        service="127.0.0.1:8500",
-                                        precedence=-1000000,
-                                        timeout_ms=60000,
-                                        hostname="*",
-                                        add_response_headers=edge_stack_response_header)
-                mapping.referenced_by(self)
-                ir.add_mapping(aconf, mapping)
-            else:
-                ir.logger.debug("diagnostics disabled, skipping mapping for Edge Policy Console")
+        #         mapping = IRHTTPMapping(ir, aconf, rkey=self.rkey, location=self.location,
+        #                                 name="edgestack-fallback-mapping",
+        #                                 metadata_labels={"ambassador_diag_class": "private"},
+        #                                 prefix="^/$", prefix_regex=True,
+        #                                 rewrite="/edge_stack_ui/",
+        #                                 service="127.0.0.1:8500",
+        #                                 precedence=-1000000,
+        #                                 timeout_ms=60000,
+        #                                 hostname="*",
+        #                                 add_response_headers=edge_stack_response_header)
+        #         mapping.referenced_by(self)
+        #         ir.add_mapping(aconf, mapping)
+        #     else:
+        #         ir.logger.debug("diagnostics disabled, skipping mapping for Edge Policy Console")
 
     def get_default_label_domain(self) -> str:
         return self.default_label_domain

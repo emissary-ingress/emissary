@@ -49,8 +49,13 @@ import (
 	"os/exec"
 	"sync"
 
+	// Specifically use github.com/pkg/errors instead of stdlib "errors" because the situations
+	// we'll use it are situations where stacktraces will be useful.
+	"github.com/pkg/errors"
+
 	"github.com/datawire/dlib/dcontext"
 	"github.com/datawire/dlib/dlog"
+	"github.com/datawire/dlib/internal/sigint"
 )
 
 // Error is returned by LookPath when it fails to classify a file as an
@@ -78,6 +83,8 @@ var LookPath = exec.LookPath
 // must be created with CommandContext.
 type Cmd struct {
 	*exec.Cmd
+	osCancel context.CancelFunc
+
 	DisableLogging bool
 
 	ctx context.Context
@@ -86,6 +93,8 @@ type Cmd struct {
 
 	waitDone chan struct{}
 	waitOnce sync.Once
+
+	supervisorDone chan struct{}
 }
 
 // CommandContext returns the Cmd struct to execute the named program with
@@ -100,9 +109,11 @@ type Cmd struct {
 // See the os/exec.Command and os/exec.CommandContext documentation
 // for more information.
 func CommandContext(ctx context.Context, name string, arg ...string) *Cmd {
+	osCtx, osCancel := context.WithCancel(dcontext.WithoutCancel(ctx))
 	ret := &Cmd{
-		Cmd: exec.CommandContext(dcontext.HardContext(ctx), name, arg...),
-		ctx: ctx,
+		Cmd:      exec.CommandContext(osCtx, name, arg...),
+		ctx:      ctx,
+		osCancel: osCancel,
 	}
 	ret.pidlock.Lock()
 	return ret
@@ -137,7 +148,18 @@ func (c *Cmd) logiofn(stream string) func(error, []byte) {
 // Start starts the specified command but does not wait for it to complete.
 //
 // See the os/exec.Cmd.Start documenaton for more information.
+//
+// BUG(lukeshu) On GOOS=windows, it is an error to use a dcontext soft Context without also setting
+// Cmd.SysProcAttr.CreationFlags |= syscall.CREATE_NEW_PROCESS_GROUP.  This is because on Windows it
+// is not possible to send the appropriate signal for graceful shutdown to just one process, it must
+// be sent to the entire process group, which would involve sending it to ourselves.  You must make
+// the appropriate decision for your application whether to disable soft cancellation or whether to
+// put the child process in its own process group.
 func (c *Cmd) Start() error {
+	if c.ctx != dcontext.HardContext(c.ctx) && !c.canInterrupt() {
+		return errors.New("dexec.Cmd.Start: on GOOS=windows it is an error to use soft cancellation without CREATE_NEW_PROCESS_GROUP")
+	}
+
 	c.Stdin = fixupReader(c.Stdin, c.logiofn("stdin"))
 	if interfaceEqual(c.Stdout, c.Stderr) {
 		c.Stdout = fixupWriter(c.Stdout, c.logiofn("stdout+stderr"))
@@ -147,8 +169,15 @@ func (c *Cmd) Start() error {
 		c.Stderr = fixupWriter(c.Stderr, c.logiofn("stderr"))
 	}
 
+	select {
+	case <-c.ctx.Done():
+		c.osCancel()
+	default:
+	}
 	err := c.Cmd.Start()
-	if err == nil {
+	if err != nil {
+		c.osCancel()
+	} else {
 		if !c.DisableLogging {
 			ctx := dlog.WithField(c.ctx, "dexec.pid", c.Process.Pid)
 			dlog.Printf(ctx, "started command %q", c.Args)
@@ -162,19 +191,42 @@ func (c *Cmd) Start() error {
 				dlog.Printf(dlog.WithField(ctx, "dexec.stream", "stderr"), "not logging output written to file %q", stderr.Name())
 			}
 		}
-		if c.ctx != dcontext.HardContext(c.ctx) {
-			c.waitDone = make(chan struct{})
-			go func() {
+		c.waitDone = make(chan struct{})
+		c.supervisorDone = make(chan struct{})
+		go func() {
+			defer close(c.supervisorDone)
+			if c.ctx != dcontext.HardContext(c.ctx) {
+				// possibly-soft shutdown
 				select {
-				case <-dcontext.HardContext(c.ctx).Done(): // hard shutdown
-					// let os/exec send SIGKILL
-				case <-c.ctx.Done(): // soft shutdown
-					_ = c.Cmd.Process.Signal(os.Interrupt) // send SIGINT
+				case <-c.ctx.Done(): // shutdown
+					select {
+					case <-dcontext.HardContext(c.ctx).Done(): // hard shutdown
+						if !c.DisableLogging {
+							dlog.Print(c.ctx, "sending SIGKILL")
+						}
+						c.osCancel() // let os/exec send it for us
+						return
+					default: // soft shutdown
+						if !c.DisableLogging {
+							dlog.Print(c.ctx, "sending SIGINT")
+						}
+						_ = sigint.SendInterrupt(c.Cmd.Process)
+					}
 				case <-c.waitDone:
 					// it exited on its own
+					return
 				}
-			}()
-		}
+			}
+			select {
+			case <-dcontext.HardContext(c.ctx).Done(): // hard shutdown
+				if !c.DisableLogging {
+					dlog.Print(c.ctx, "sending SIGKILL")
+				}
+				c.osCancel() // let os/exec send it for us
+			case <-c.waitDone:
+				// it exited on its own
+			}
+		}()
 	}
 	c.pidlock.Unlock()
 	return err
@@ -190,6 +242,7 @@ func (c *Cmd) Wait() error {
 	if c.waitDone != nil {
 		c.waitOnce.Do(func() { close(c.waitDone) })
 	}
+	<-c.supervisorDone
 
 	pid := -1
 	if c.Process != nil {

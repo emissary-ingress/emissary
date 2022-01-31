@@ -3,7 +3,7 @@
 // visiblity into important internal state and performance charactaristics of Ambassador, however
 // unlike a debugger and/or profiler it is intended to function well in a production context.
 //
-// The debug package is also very complimentary to a logging library. To make an analogy to GPS
+// The debug package is also very complementary to a logging library. To make an analogy to GPS
 // Navigation, a logging library is kind of like directions that your nav system produces. The
 // information that logging provides is often similar to "turn left", "go straight", etc. This is
 // super useful if you are trying to understand how your code got to the wrong destination, but

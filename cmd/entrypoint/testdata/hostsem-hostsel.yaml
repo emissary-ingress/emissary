@@ -34,7 +34,7 @@ spec:
   requestPolicy:
     insecure:
       action: Route
-  selector:
+  mappingSelector:
     matchLabels:
       host: h1      
 ---
@@ -49,7 +49,7 @@ spec:
   requestPolicy:
     insecure:
       action: Redirect
-  selector:
+  mappingSelector:
     matchLabels:
       host: h2
 ---

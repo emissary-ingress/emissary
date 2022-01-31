@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 # This is the root of a certain amount of ugliness in this file -- it's a V3Route
-# that's been turned into a plain old dict, so it can be easily JSONified. The 
+# that's been turned into a plain old dict, so it can be easily JSONified. The
 # problem is that that currently happens earlier than it should; I'm hoping to fix
 # that shortly.
 DictifiedV3Route = Dict[str, Any]
@@ -205,15 +205,15 @@ class V3RouteVariants:
     def matcher_always(self, variant: DictifiedV3Route) -> None:
         pass
 
-    # Match XFP=https. 
+    # Match XFP=https.
     def matcher_xfp_https(self, variant: DictifiedV3Route) -> None:
         self.matcher_xfp(variant, "https")
 
     # Match XFP=http... but we turn that into "don't match XFP at all"
-    # because if XFP isn't set (somehow?), we want that case to match 
+    # because if XFP isn't set (somehow?), we want that case to match
     # here. It's really "not https" as opposed to "equals http".
     #
-    # (We could also have done this as "invert XFP=https" but this is a 
+    # (We could also have done this as "invert XFP=https" but this is a
     # better fit for what we'e done historically.)
     def matcher_xfp_http(self, variant: DictifiedV3Route) -> None:
         self.matcher_xfp(variant, None)
@@ -263,8 +263,8 @@ class V3RouteVariants:
 # This is where the magic happens to actually route an HTTP request. There's a
 # lot going on here because the Envoy route element is actually pretty complex.
 #
-# Of particular note is the ["_host_constraints"] element: the Mapping can 
-# either specify a single host glob, or nothing (which means "*"). All the 
+# Of particular note is the ["_host_constraints"] element: the Mapping can
+# either specify a single host glob, or nothing (which means "*"). All the
 # context-matching madness happens up at the chain level, so we only need to
 # mess with the one host glob at this point.
 
@@ -616,6 +616,7 @@ class V3Route(Cacheable):
 
             config.cache.add(route)
             config.cache.link(irgroup, route)
+            config.cache.dump("V2Route synth %s: %s", cache_key, v3prettyroute(route))
         else:
             # Cache hit. We know a priori that it's a V3Route, but let's assert that
             # before casting.

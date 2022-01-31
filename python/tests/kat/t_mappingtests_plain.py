@@ -1,8 +1,9 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import EDGE_STACK, variants, Query
 
-from abstract_tests import AmbassadorTest, HTTP
+from abstract_tests import AmbassadorTest, HTTP, Node
 from abstract_tests import MappingTest, OptionTest, ServiceType
-from kat.utils import namespace_manifest
 
 from ambassador.constants import Constants
 
@@ -25,7 +26,7 @@ class SimpleMapping(MappingTest):
     target: ServiceType
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         for st in variants(ServiceType):
             yield cls(st, name="{self.target.name}")
 
@@ -35,7 +36,7 @@ class SimpleMapping(MappingTest):
             yield cls(st, unique(v for v in variants(OptionTest)
                                  if not getattr(v, "isolated", False)), name="{self.target.name}-all")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -63,13 +64,13 @@ class SimpleMappingIngress(MappingTest):
     target: ServiceType
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         for st in variants(ServiceType):
             yield cls(st, name="{self.target.name}")
 
     def manifests(self) -> str:
         return f"""
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -81,14 +82,17 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """
 
     def queries(self):
-        yield Query(self.parent.url(self.name + "/"), xfail="IHA hostglob")
-        yield Query(self.parent.url(f'need-normalization/../{self.name}/'), xfail="IHA hostglob")
+        yield Query(self.parent.url(self.name + "/"))    # , xfail="IHA hostglob")
+        yield Query(self.parent.url(f'need-normalization/../{self.name}/'))    # , xfail="IHA hostglob")
 
     def check(self):
         for r in self.results:
@@ -104,13 +108,13 @@ spec:
 #     target: ServiceType
 #
 #     @classmethod
-#     def variants(cls):
+#    def variants(cls) -> Generator[Node, None, None]:
 #         for st in variants(ServiceType):
 #             yield cls(st, name="{self.target.name}")
 #
 #     def manifests(self) -> str:
 #         return f"""
-# apiVersion: extensions/v1beta1
+# apiVersion: networking.k8s.io/v1
 # kind: Ingress
 # metadata:
 #   annotations:
@@ -119,8 +123,10 @@ spec:
 #   name: {self.name.lower()}
 # spec:
 #   backend:
-#     serviceName: {self.target.path.k8s}
-#     servicePort: 80
+#     service:
+#       name: {self.target.path.k8s}
+#       port:
+#         number: 80
 # """
 #
 #     def queries(self):
@@ -139,13 +145,13 @@ class SimpleIngressWithAnnotations(MappingTest):
     target: ServiceType
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         for st in variants(ServiceType):
             yield cls(st, name="{self.target.name}")
 
     def manifests(self) -> str:
         return f"""
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -166,16 +172,19 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """
 
     def queries(self):
-        yield Query(self.parent.url(self.name + "/"), xfail="IHA hostglob")
-        yield Query(self.parent.url(f'need-normalization/../{self.name}/'), xfail="IHA hostglob")
-        yield Query(self.parent.url(self.name + "-nested/"), xfail="IHA hostglob")
-        yield Query(self.parent.url(self.name + "-non-existent/"), expected=404, xfail="IHA hostglob")
+        yield Query(self.parent.url(self.name + "/")) # , xfail="IHA hostglob")
+        yield Query(self.parent.url(f'need-normalization/../{self.name}/')) # , xfail="IHA hostglob")
+        yield Query(self.parent.url(self.name + "-nested/")) # , xfail="IHA hostglob")
+        yield Query(self.parent.url(self.name + "-non-existent/"), expected=404) # , xfail="IHA hostglob")
 
     def check(self):
         for r in self.results:
@@ -189,13 +198,13 @@ class HostHeaderMappingIngress(MappingTest):
     parent: AmbassadorTest
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         for st in variants(ServiceType):
             yield cls(st, name="{self.target.name}")
 
     def manifests(self) -> str:
         return f"""
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -208,9 +217,12 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """
 
     def queries(self):
@@ -224,11 +236,11 @@ class HostHeaderMapping(MappingTest):
     parent: AmbassadorTest
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         for st in variants(ServiceType):
             yield cls(st, name="{self.target.name}")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -253,11 +265,11 @@ class InvalidPortMapping(MappingTest):
     parent: AmbassadorTest
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         for st in variants(ServiceType):
             yield cls(st, name="{self.target.name}")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -286,11 +298,11 @@ class WebSocketMapping(MappingTest):
     parent: AmbassadorTest
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         for st in variants(ServiceType):
             yield cls(st, name="{self.target.name}")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -333,12 +345,10 @@ kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
-service: {self.target.path.fqdn}
-tls: true
+service: https://{self.target.path.fqdn}
 """
-
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         for v in variants(ServiceType):
             for name, dfn in ("IMPLICIT", cls.IMPLICIT), ("EXPLICIT", cls.EXPLICIT):
                 yield cls(v, dfn, name="{self.target.name}-%s" % name)
@@ -347,7 +357,7 @@ tls: true
         MappingTest.init(self, target)
         self.definition = definition
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format(self.definition)
 
     def queries(self):
@@ -368,7 +378,7 @@ class HostRedirectMapping(MappingTest):
 
         MappingTest.init(self, HTTP())
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -488,17 +498,21 @@ class CanaryMapping(MappingTest):
     weight: int
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         for v in variants(ServiceType):
             for w in (0, 10, 50, 100):
                 yield cls(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
 
-    def init(self, target: ServiceType, canary: ServiceType, weight):
+    # XXX This type: ignore is here because we're deliberately overriding the 
+    # parent's init to have a different signature... but it's also intimately
+    # (nay, incestuously) related to the variant()'s yield() above, and I really
+    # don't want to deal with that right now. So. We'll deal with it later.
+    def init(self, target: ServiceType, canary: ServiceType, weight): # type: ignore
         MappingTest.init(self, target)
         self.canary = canary
         self.weight = weight
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -551,17 +565,21 @@ class CanaryDiffMapping(MappingTest):
     weight: int
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         for v in variants(ServiceType):
             for w in (0, 10, 50, 100):
                 yield cls(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
 
-    def init(self, target: ServiceType, canary: ServiceType, weight):
+    # XXX This type: ignore is here because we're deliberately overriding the 
+    # parent's init to have a different signature... but it's also intimately
+    # (nay, incestuously) related to the variant()'s yield() above, and I really
+    # don't want to deal with that right now. So. We'll deal with it later.
+    def init(self, target: ServiceType, canary: ServiceType, weight): # type: ignore
         MappingTest.init(self, target)
         self.canary = canary
         self.weight = weight
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -616,11 +634,11 @@ class AddRespHeadersMapping(MappingTest):
     target: ServiceType
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         for st in variants(ServiceType):
             yield cls(st, name="{self.target.name}")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -638,7 +656,8 @@ add_response_headers:
         value: ZooZ
     test:
         value: boo
-    foo: Foo
+    foo:
+        value: Foo
 """)
 
     def queries(self):
@@ -665,7 +684,7 @@ class EdgeStackMapping(MappingTest):
         if not EDGE_STACK:
             self.skip_node = True
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -689,11 +708,11 @@ class RemoveReqHeadersMapping(MappingTest):
     target: ServiceType
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         for st in variants(ServiceType):
             yield cls(st, name="{self.target.name}")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -727,11 +746,11 @@ class AddReqHeadersMapping(MappingTest):
     target: ServiceType
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         for st in variants(ServiceType):
             yield cls(st, name="{self.target.name}")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -749,7 +768,8 @@ add_request_headers:
         value: aoo
     boo:
         value: boo
-    foo: Foo
+    foo:
+        value: Foo
 """)
 
     def queries(self):

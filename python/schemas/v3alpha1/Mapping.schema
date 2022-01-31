@@ -16,33 +16,45 @@
         "add_request_headers": {
             "type": "object",
             "additionalProperties": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
+                "type": "object",
+                "properties": {
+                    "append": {
                         "type": "boolean"
                     },
-                    {
-                        "type": "object"
+                    "v2Representation": {
+                        "type": "string",
+                        "enum": [
+                            "",
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "value": {
+                        "type": "string"
                     }
-                ]
+                }
             }
         },
         "add_response_headers": {
             "type": "object",
             "additionalProperties": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
+                "type": "object",
+                "properties": {
+                    "append": {
                         "type": "boolean"
                     },
-                    {
-                        "type": "object"
+                    "v2Representation": {
+                        "type": "string",
+                        "enum": [
+                            "",
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "value": {
+                        "type": "string"
                     }
-                ]
+                }
             }
         },
         "allow_upgrade": {
@@ -53,7 +65,7 @@
             }
         },
         "ambassador_id": {
-            "description": "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\"",
+            "description": "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural).",
             "type": "array",
             "items": {
                 "type": "string"
@@ -111,15 +123,18 @@
             }
         },
         "cluster_idle_timeout_ms": {
+            "description": "TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.",
             "type": "integer"
         },
         "cluster_max_connection_lifetime_ms": {
+            "description": "TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.",
             "type": "integer"
         },
         "cluster_tag": {
             "type": "string"
         },
         "connect_timeout_ms": {
+            "description": "TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.",
             "type": "integer"
         },
         "cors": {
@@ -154,8 +169,14 @@
                     "items": {
                         "type": "string"
                     }
+                },
+                "v2CommaSeparatedOrigins": {
+                    "type": "boolean"
                 }
             }
+        },
+        "dns_type": {
+            "type": "string"
         },
         "docs": {
             "description": "DocsInfo provides some extra information about the docs for the Mapping. Docs is used by both the agent and the DevPortal.",
@@ -170,6 +191,10 @@
                 "path": {
                     "type": "string"
                 },
+                "timeout_ms": {
+                    "description": "TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.",
+                    "type": "integer"
+                },
                 "url": {
                     "type": "string"
                 }
@@ -183,7 +208,8 @@
         },
         "envoy_override": {
             "description": "UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.",
-            "type": "object"
+            "type": "object",
+            "x-kubernetes-preserve-unknown-fields": true
         },
         "error_response_overrides": {
             "description": "Error response overrides for this Mapping. Replaces all of the `error_response_overrides` set on the Ambassador module, if any.",
@@ -246,26 +272,18 @@
         "headers": {
             "type": "object",
             "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+                "type": "string"
             }
         },
         "host": {
-            "description": "Exact match for the hostname of a request if HostRegex is false; regex match for the hostname if HostRegex is true. \n Host specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Host will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used. \n DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.",
+            "description": "Exact match for the hostname of a request if HostRegex is false; regex match for the hostname if HostRegex is true. \n Host specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Host will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used. \n DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead. \n TODO(lukeshu): In v3alpha2, get rid of MappingSpec.host and MappingSpec.host_regex in favor of a MappingSpec.deprecated_hostname_regex.",
             "type": "string"
         },
         "host_redirect": {
             "type": "boolean"
         },
         "host_regex": {
-            "description": "DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.",
+            "description": "DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead. \n TODO(lukeshu): In v3alpha2, get rid of MappingSpec.host and MappingSpec.host_regex in favor of a MappingSpec.deprecated_hostname_regex.",
             "type": "boolean"
         },
         "host_rewrite": {
@@ -276,6 +294,7 @@
             "type": "string"
         },
         "idle_timeout_ms": {
+            "description": "TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.",
             "type": "integer"
         },
         "keepalive": {
@@ -306,11 +325,101 @@
                 "items": {
                     "description": "A MappingLabelGroup is a single element of a MappingLabelGroupsArray: a second map, where the key is a human-readable name that identifies the group.",
                     "type": "object",
+                    "maxProperties": 1,
+                    "minProperties": 1,
                     "additionalProperties": {
                         "description": "A MappingLabelsArray is the value in the MappingLabelGroup: an array of label specifiers.",
                         "type": "array",
                         "items": {
-                            "description": "A MappingLabelSpecifier (finally!) defines a single label. There are multiple kinds of label, so this is more complex than we'd like it to be. See the remarks about schema on custom types in `./common.go`."
+                            "description": "A MappingLabelSpecifier (finally!) defines a single label. \n This mimics envoy/config/route/v3/route_components.proto:RateLimit:Action:action_specifier.",
+                            "type": "object",
+                            "maxProperties": 1,
+                            "minProperties": 1,
+                            "properties": {
+                                "destination_cluster": {
+                                    "description": "Sets the label \"destination_cluster=«Envoy destination cluster name»\".",
+                                    "type": "object",
+                                    "required": [
+                                        "key"
+                                    ],
+                                    "properties": {
+                                        "key": {
+                                            "type": "string",
+                                            "enum": [
+                                                "destination_cluster"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "generic_key": {
+                                    "description": "Sets the label \"«key»=«value»\" (where by default «key» is \"generic_key\").",
+                                    "type": "object",
+                                    "required": [
+                                        "value"
+                                    ],
+                                    "properties": {
+                                        "key": {
+                                            "description": "The default is \"generic_key\".",
+                                            "type": "string"
+                                        },
+                                        "v2Shorthand": {
+                                            "type": "boolean"
+                                        },
+                                        "value": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "remote_address": {
+                                    "description": "Sets the label \"remote_address=«IP address of the client»\".",
+                                    "type": "object",
+                                    "required": [
+                                        "key"
+                                    ],
+                                    "properties": {
+                                        "key": {
+                                            "type": "string",
+                                            "enum": [
+                                                "remote_address"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "request_headers": {
+                                    "description": "If the «header_name» header is set, then set the label \"«key»=«Value of the «header_name» header»\"; otherwise skip applying this label group.",
+                                    "type": "object",
+                                    "required": [
+                                        "header_name",
+                                        "key"
+                                    ],
+                                    "properties": {
+                                        "header_name": {
+                                            "type": "string"
+                                        },
+                                        "key": {
+                                            "type": "string"
+                                        },
+                                        "omit_if_not_present": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                },
+                                "source_cluster": {
+                                    "description": "Sets the label \"source_cluster=«Envoy source cluster name»\".",
+                                    "type": "object",
+                                    "required": [
+                                        "key"
+                                    ],
+                                    "properties": {
+                                        "key": {
+                                            "type": "string",
+                                            "enum": [
+                                                "source_cluster"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -372,7 +481,8 @@
             "type": "array",
             "items": {
                 "description": "UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.",
-                "type": "object"
+                "type": "object",
+                "x-kubernetes-preserve-unknown-fields": true
             }
         },
         "name": {
@@ -410,15 +520,7 @@
         "query_parameters": {
             "type": "object",
             "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+                "type": "string"
             }
         },
         "redirect_response_code": {
@@ -435,58 +537,36 @@
         "regex_headers": {
             "type": "object",
             "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+                "type": "string"
             }
         },
         "regex_query_parameters": {
             "type": "object",
             "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+                "type": "string"
             }
         },
         "regex_redirect": {
             "description": "Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.",
             "type": "object",
-            "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+            "properties": {
+                "pattern": {
+                    "type": "string"
+                },
+                "substitution": {
+                    "type": "string"
+                }
             }
         },
         "regex_rewrite": {
             "type": "object",
-            "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+            "properties": {
+                "pattern": {
+                    "type": "string"
+                },
+                "substitution": {
+                    "type": "string"
+                }
             }
         },
         "remove_request_headers": {
@@ -503,6 +583,9 @@
         },
         "resolver": {
             "type": "string"
+        },
+        "respect_dns_ttl": {
+            "type": "boolean"
         },
         "retry_policy": {
             "type": "object",
@@ -543,19 +626,45 @@
             "type": "integer"
         },
         "tls": {
-            "description": "BoolOrString is a type that can hold a Boolean or a string.",
-            "oneOf": [
-                {
-                    "type": "string"
-                },
-                {
-                    "type": "boolean"
-                }
-            ]
+            "type": "string"
         },
         "use_websocket": {
-            "description": "use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: [\"websocket\"]`",
+            "description": "use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: [\"websocket\"]` \n TODO(lukeshu): In v3alpha2, get rid of MappingSpec.DeprecatedUseWebsocket.",
             "type": "boolean"
+        },
+        "v2BoolHeaders": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "v2BoolQueryParameters": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "v2ExplicitTLS": {
+            "description": "V2ExplicitTLS controls some vanity/stylistic elements when converting from v3alpha1 to v2.  The values in an V2ExplicitTLS should not in any way affect the runtime operation of Emissary; except that it may affect internal names in the Envoy config, which may in turn affect stats names.  But it should not affect any end-user observable behavior.",
+            "type": "object",
+            "properties": {
+                "serviceScheme": {
+                    "description": "ServiceScheme specifies how to spell and capitalize the scheme-part of the service URL. \n Acceptable values are \"http://\" (case-insensitive), \"https://\" (case-insensitive), or \"\".  The value is used if it agrees with whether or not this resource enables TLS origination, or if something else in the resource overrides the scheme.",
+                    "type": "string",
+                    "pattern": "^([hH][tT][tT][pP][sS]?://)?$"
+                },
+                "tls": {
+                    "description": "TLS controls whether and how to represent the \"tls\" field when its value could be implied by the \"service\" field.  In v2, there were a lot of different ways to spell an \"empty\" value, and this field specifies which way to spell it (and will therefore only be used if the value will indeed be empty). \n  | Value        | Representation                        | Meaning of representation          |  |--------------+---------------------------------------+------------------------------------|  | \"\"           | omit the field                        | defer to service (no TLSContext)   |  | \"null\"       | store an explicit \"null\" in the field | defer to service (no TLSContext)   |  | \"string\"     | store an empty string in the field    | defer to service (no TLSContext)   |  | \"bool:false\" | store a Boolean \"false\" in the field  | defer to service (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\" in the field   | originate TLS (no TLSContext)      | \n If the meaning of the representation contradicts anything else (if a TLSContext is to be used, or in the case of \"bool:true\" if TLS is not to be originated), then this field is ignored.",
+                    "type": "string",
+                    "enum": [
+                        "",
+                        "null",
+                        "bool:true",
+                        "bool:false",
+                        "string"
+                    ]
+                }
+            }
         },
         "weight": {
             "type": "integer"

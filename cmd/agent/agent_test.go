@@ -33,7 +33,7 @@ import (
 // More complicated business logic tests live in ambassador.git/pkg/agent
 func TestAgentE2E(t *testing.T) {
 	ctx := dlog.NewTestContext(t, false)
-	kubeconfig := dtest.Kubeconfig(ctx)
+	kubeconfig := dtest.KubeVersionConfig(ctx, dtest.Kube22)
 	cli, err := kates.NewClient(kates.ClientConfig{Kubeconfig: kubeconfig})
 	require.NoError(t, err)
 	// applies all k8s yaml to dtest cluter
@@ -216,14 +216,14 @@ func setup(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Clie
 	// this as frictionless as possible for the time being
 	// TODO(acookin): this will probably need to change when we finish #1280
 	crdFile := "../../manifests/emissary/emissary-crds.yaml"
-	aesFile := "../../manifests/emissary/emissary-ingress.yaml"
+	aesFile := "../../manifests/emissary/emissary-emissaryns.yaml"
 	aesDat, err := ioutil.ReadFile(aesFile)
 	require.NoError(t, err)
 	image := os.Getenv("AMBASSADOR_DOCKER_IMAGE")
 	require.NotEmpty(t, image)
 
-	aesReplaced := regexp.MustCompile(`docker\.io/datawire/emissary:\S+`).ReplaceAllString(string(aesDat), image)
-	newAesFile := filepath.Join(t.TempDir(), "emissary-ingress.yaml")
+	aesReplaced := regexp.MustCompile(`docker\.io/emissaryingress/emissary:\S+`).ReplaceAllString(string(aesDat), image)
+	newAesFile := filepath.Join(t.TempDir(), "emissary-emissaryns.yaml")
 
 	require.NoError(t, ioutil.WriteFile(newAesFile, []byte(aesReplaced), 0644))
 	kubeinfo := k8s.NewKubeInfo(kubeconfig, "", "")

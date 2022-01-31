@@ -1,3 +1,5 @@
+from typing import Generator, Tuple, Union
+
 # Note that there's also a CORS OptionTest in t_optiontests.py.
 
 from kat.harness import Query
@@ -11,7 +13,7 @@ class GlobalCORSTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

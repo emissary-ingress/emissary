@@ -1,16 +1,18 @@
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: cqrs_get_mapping
 prefix: /cqrs/
 method: GET
+hostname: "*"
 rewrite: /quote/
 service: 127.0.0.1:5000
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: cqrs_put_mapping
 prefix: /cqrs/
 method: PUT
+hostname: "*"
 rewrite: /quote/
 service: 127.0.0.1:5000

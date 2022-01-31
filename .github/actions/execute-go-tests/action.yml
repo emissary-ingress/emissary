@@ -4,45 +4,26 @@ description: "execute go tests based upon parameters"
 runs:
   using: "composite"
   steps:
-    - run: echo "PREFIX=gotests-legacy-mode.${{ matrix.gotest-settings.legacy-mode }}-fast-reconfigure.${{ matrix.gotest-settings.fast-reconfigure }}" >> $GITHUB_ENV
+    - run: echo "PREFIX=gotests" >> $GITHUB_ENV
       shell: bash
-      name: Set Unique Test prefix (gotests-legacy-mode.${{ matrix.gotest-settings.legacy-mode }}-fast-reconfigure.${{ matrix.gotest-settings.fast-reconfigure }})
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '^3.9.5'
-      name: "Install Python (^3.9.5)"
-    - run: python --version
-      shell: bash
-      name: "Check python installed"
+      name: Set Unique Test prefix
+    - name: Install Deps
+      uses: ./.github/actions/setup-deps
     - uses: BSFishy/pip-action@v1
       with:
         packages: |
           awscli
           packaging
       name: "Install Python requirements with pip"
-    - uses: azure/setup-kubectl@v1
-      id: install
-      with:
-        version: 'v1.19.12'
-      name: "Install kubectl (v1.19.12)" # maybe not?
-    - uses: actions/setup-go@v2
-      with:
-        go-version: '^1.15.0' # The Go version to download (if necessary) and use.
-      name: "Install go (^1.15.0)"
-    - run: go version
-      shell: bash
-      name: "Check go version"
     - run: |
         go install gotest.tools/gotestsum@latest
       shell: bash
       name: "Install gotestsum (latest)"
-    - name: make gotest (legacy-mode:${{ matrix.gotest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.gotest-settings.fast-reconfigure }} )
+    - name: make gotest
       shell: bash
       run: |
         export DEV_KUBE_NO_PVC=yes
         export KAT_REQ_LIMIT=900
-        export AMBASSADOR_LEGACY_MODE=${{ matrix.gotest-settings.legacy-mode }}
-        export AMBASSADOR_FAST_RECONFIGURE=${{ matrix.gotest-settings.fast-reconfigure }}
         export TEST_XML_DIR=/tmp/test-logs/xml/
         export GOTEST_ARGS='-timeout 30m'
         mkdir -p ${TEST_XML_DIR}

@@ -93,7 +93,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/dev/fd/1"
                       }
                     }
@@ -111,14 +115,6 @@
                             "compression_strategy": null,
                             "memory_level": null,
                             "window_bits": null
-                          }
-                        },
-                        "request_direction_config": {
-                          "common_config": {
-                            "content_type": [
-                              "application/json"
-                            ],
-                            "min_content_length": 32
                           }
                         },
                         "response_direction_config": {
@@ -335,8 +331,7 @@
                   },
                   "server_name": "envoy",
                   "stat_prefix": "ingress_https",
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ]
@@ -353,7 +348,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/dev/fd/1"
                       }
                     }
@@ -371,14 +370,6 @@
                             "compression_strategy": null,
                             "memory_level": null,
                             "window_bits": null
-                          }
-                        },
-                        "request_direction_config": {
-                          "common_config": {
-                            "content_type": [
-                              "application/json"
-                            ],
-                            "min_content_length": 32
                           }
                         },
                         "response_direction_config": {
@@ -595,8 +586,7 @@
                   },
                   "server_name": "envoy",
                   "stat_prefix": "ingress_https",
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ]
@@ -633,7 +623,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/dev/fd/1"
                       }
                     }
@@ -651,14 +645,6 @@
                             "compression_strategy": null,
                             "memory_level": null,
                             "window_bits": null
-                          }
-                        },
-                        "request_direction_config": {
-                          "common_config": {
-                            "content_type": [
-                              "application/json"
-                            ],
-                            "min_content_length": 32
                           }
                         },
                         "response_direction_config": {
@@ -875,8 +861,7 @@
                   },
                   "server_name": "envoy",
                   "stat_prefix": "ingress_https",
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ]
@@ -893,7 +878,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/dev/fd/1"
                       }
                     }
@@ -911,14 +900,6 @@
                             "compression_strategy": null,
                             "memory_level": null,
                             "window_bits": null
-                          }
-                        },
-                        "request_direction_config": {
-                          "common_config": {
-                            "content_type": [
-                              "application/json"
-                            ],
-                            "min_content_length": 32
                           }
                         },
                         "response_direction_config": {
@@ -1135,8 +1116,7 @@
                   },
                   "server_name": "envoy",
                   "stat_prefix": "ingress_https",
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ]

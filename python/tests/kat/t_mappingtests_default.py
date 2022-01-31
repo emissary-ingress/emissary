@@ -1,7 +1,8 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import EDGE_STACK, variants, Query
 
-from abstract_tests import AmbassadorTest, HTTP
-from abstract_tests import ServiceType
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 from kat.utils import namespace_manifest
 
 from ambassador.constants import Constants
@@ -18,10 +19,10 @@ class HostHeaderMappingStripMatchingHostPort(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -57,7 +58,7 @@ class MergeSlashesDisabled(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -87,10 +88,10 @@ class MergeSlashesEnabled(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -122,7 +123,7 @@ class RejectRequestsWithEscapedSlashesDisabled(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -155,10 +156,10 @@ class RejectRequestsWithEscapedSlashesEnabled(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -192,7 +193,7 @@ class LinkerdHeaderMapping(AmbassadorTest):
         self.target_no_header = HTTP(name="noheader")
         self.target_add_linkerd_header_only = HTTP(name="addlinkerdonly")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1

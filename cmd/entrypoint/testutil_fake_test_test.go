@@ -2,8 +2,10 @@ package entrypoint_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
@@ -21,15 +23,27 @@ func AnyConfig(_ *v3bootstrap.Bootstrap) bool {
 
 func TestFake(t *testing.T) {
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
-	f.UpsertFile("testdata/snapshot.yaml")
+	assert.NoError(t, f.UpsertFile("testdata/snapshot.yaml"))
 	f.AutoFlush(true)
-	fmt.Println(Jsonify(f.GetSnapshot(AnySnapshot)))
-	fmt.Println(Jsonify(f.GetEnvoyConfig(AnyConfig)))
 
-	f.Delete("Mapping", "default", "foo")
+	snapshot, err := f.GetSnapshot(AnySnapshot)
+	require.NoError(t, err)
+	LogJSON(t, snapshot)
 
-	fmt.Println(Jsonify(f.GetSnapshot(AnySnapshot)))
-	fmt.Println(Jsonify(f.GetEnvoyConfig(AnyConfig)))
+	envoyConfig, err := f.GetEnvoyConfig(AnyConfig)
+	require.NoError(t, err)
+	LogJSON(t, envoyConfig)
+
+	assert.NoError(t, f.Delete("Mapping", "default", "foo"))
+
+	snapshot, err = f.GetSnapshot(AnySnapshot)
+	require.NoError(t, err)
+	LogJSON(t, snapshot)
+
+	envoyConfig, err = f.GetEnvoyConfig(AnyConfig)
+	require.NoError(t, err)
+	LogJSON(t, envoyConfig)
+
 	/*f.ConsulEndpoints(endpointsBlob)
 	f.ApplyFile()
 	f.ApplyResources()
@@ -45,12 +59,92 @@ func TestFake(t *testing.T) {
 
 }
 
-func Jsonify(obj interface{}) string {
-	bytes, err := json.MarshalIndent(obj, "", "  ")
-	if err != nil {
-		panic(err)
+func TestWeightWithCache(t *testing.T) {
+	get_envoy_config := func(f *entrypoint.Fake, want_foo bool, want_bar bool) (*v3bootstrap.Bootstrap, error) {
+		return f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
+			c_foo := FindCluster(config, ClusterNameContains("cluster_foo_"))
+			c_bar := FindCluster(config, ClusterNameContains("cluster_bar_"))
+
+			has_foo := c_foo != nil
+			has_bar := c_bar != nil
+
+			return (has_foo == want_foo) && (has_bar == want_bar)
+		})
 	}
-	return string(bytes)
+
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
+	assert.NoError(t, f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-foo
+  namespace: default
+spec:
+  prefix: /foo/
+  service: foo.default
+`))
+
+	f.Flush()
+
+	// We need an Envoy config that has a foo cluster, but not a bar cluster.
+	envoyConfig, err := get_envoy_config(f, true, false)
+	require.NoError(t, err)
+	assert.NotNil(t, envoyConfig)
+
+	// Now add a bar mapping.
+	assert.NoError(t, f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-bar
+  namespace: default
+spec:
+  prefix: /foo/
+  service: bar.default
+`))
+
+	f.Flush()
+
+	// We need an Envoy config that has a foo cluster and a bar cluster.
+	envoyConfig, err = get_envoy_config(f, true, true)
+	require.NoError(t, err)
+	assert.NotNil(t, envoyConfig)
+
+	assert.NoError(t, f.Delete("Mapping", "default", "mapping-bar"))
+	f.Flush()
+
+	// We need an Envoy config that has a foo cluster, but not a bar cluster.
+	envoyConfig, err = get_envoy_config(f, true, false)
+	require.NoError(t, err)
+	assert.NotNil(t, envoyConfig)
+	// Now add a bar mapping.
+	assert.NoError(t, f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: mapping-bar
+  namespace: default
+spec:
+  prefix: /foo/
+  service: bar.default
+`))
+
+	f.Flush()
+
+	// We need an Envoy config that has a foo cluster and a bar cluster.
+	envoyConfig, err = get_envoy_config(f, true, true)
+	require.NoError(t, err)
+	assert.NotNil(t, envoyConfig)
+}
+
+func LogJSON(t testing.TB, obj interface{}) {
+	t.Helper()
+	bytes, err := json.MarshalIndent(obj, "", "  ")
+	require.NoError(t, err)
+	t.Log(string(bytes))
 }
 
 func TestFakeIstioCert(t *testing.T) {
@@ -58,11 +152,13 @@ func TestFakeIstioCert(t *testing.T) {
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: false}, nil)
 	f.AutoFlush(true)
 
-	f.UpsertFile("testdata/tls-snap.yaml")
+	assert.NoError(t, f.UpsertFile("testdata/tls-snap.yaml"))
 
-	// fmt.Println(f.GetSnapshotString())
+	// t.Log(f.GetSnapshotString())
 
-	k := f.GetSnapshot(AnySnapshot).Kubernetes
+	snapshot, err := f.GetSnapshot(AnySnapshot)
+	require.NoError(t, err)
+	k := snapshot.Kubernetes
 
 	if len(k.Secrets) != 1 {
 		t.Errorf("needed 1 secret, got %d", len(k.Secrets))
@@ -91,9 +187,10 @@ func TestFakeIstioCert(t *testing.T) {
 		Secret:    &istioSecret,
 	})
 
-	k = f.GetSnapshot(AnySnapshot).Kubernetes
-
-	fmt.Println(Jsonify(k))
+	snapshot, err = f.GetSnapshot(AnySnapshot)
+	require.NoError(t, err)
+	k = snapshot.Kubernetes
+	LogJSON(t, k)
 
 	if len(k.Secrets) != 2 {
 		t.Errorf("needed 2 secrets, got %d", len(k.Secrets))

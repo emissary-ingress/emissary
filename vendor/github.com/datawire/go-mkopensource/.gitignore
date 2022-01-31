@@ -1,0 +1,5 @@
+# Build output
+go-mkopensource
+
+# `go mod vendor`
+vendor/

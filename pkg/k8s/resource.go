@@ -1,13 +1,11 @@
 package k8s
 
 import (
-	"bytes"
+	"encoding/json"
 	"fmt"
-	"io"
 	"strings"
 
-	ms "github.com/mitchellh/mapstructure"
-	"gopkg.in/yaml.v2"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
 // Map is a YAML/JSON-ish map with some convenience methods on it.
@@ -90,12 +88,9 @@ func (r Resource) Kind() string {
 	return Map(r).GetString("kind")
 }
 
-// QKind returns a fully qualified resource kind with the following
-// format: <kind>.<version>.<group>
-func (r Resource) QKind() string {
-	gv := Map(r).GetString("apiVersion")
-	k := Map(r).GetString("kind")
-
+// Given a "group/version" string (i.g. from ".apiVersion") and a "kind" string, return a qualified
+// "kind.version.group" string.
+func QKind(gv, k string) string {
 	var g, v string
 	if slash := strings.IndexByte(gv, '/'); slash < 0 {
 		g = ""
@@ -104,8 +99,14 @@ func (r Resource) QKind() string {
 		g = gv[:slash]
 		v = gv[slash+1:]
 	}
-
 	return strings.Join([]string{k, v, g}, ".")
+}
+
+// QKind returns a fully qualified resource kind with the following format: <kind>.<version>.<group>
+func (r Resource) QKind() string {
+	gv := Map(r).GetString("apiVersion")
+	k := Map(r).GetString("kind")
+	return QKind(gv, k)
 }
 
 func (r Resource) Empty() bool {
@@ -158,10 +159,6 @@ func (m Metadata) QName() string {
 
 func (r Resource) QName() string { return r.Metadata().QName() }
 
-func (r Resource) Decode(output interface{}) error {
-	return ms.Decode(r, output)
-}
-
 // This fixes objects parsed by yaml to objects that are compatible
 // with json by converting any map[interface{}]interface{} to
 // map[string]interface{}
@@ -202,19 +199,16 @@ func NewResourceFromYaml(yaml map[interface{}]interface{}) Resource {
 }
 
 func ParseResources(name, input string) (result []Resource, err error) {
-	d := yaml.NewDecoder(bytes.NewReader([]byte(input)))
-	for {
-		var uns map[interface{}]interface{}
-		err = d.Decode(&uns)
-		if err != nil {
-			if err == io.EOF {
-				err = nil
-			} else {
-				err = fmt.Errorf("%s: %v", name, err)
-			}
-			return
-		}
-		res := NewResourceFromYaml(uns)
-		result = append(result, res)
+	resultWrongType, err := kates.ParseManifestsToUnstructured(input)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", name, err)
 	}
+	bs, err := json.Marshal(resultWrongType)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", name, err)
+	}
+	if err := json.Unmarshal(bs, &result); err != nil {
+		return nil, fmt.Errorf("%s: %w", name, err)
+	}
+	return result, nil
 }

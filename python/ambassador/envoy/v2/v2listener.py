@@ -114,7 +114,7 @@ class V2Chain(dict):
 
 # Model an Envoy listener.
 #
-# In Envoy, Listeners are the top-level configuration element defining a port on which we'll 
+# In Envoy, Listeners are the top-level configuration element defining a port on which we'll
 # listen; in turn, they contain filter chains which define what will be done with a connection.
 #
 # There is a one-to-one correspondence between an IRListener and an Envoy listener: the logic
@@ -135,6 +135,7 @@ class V2Listener(dict):
         self.use_proxy_proto = False
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
+        self.per_connection_buffer_limit_bytes: Optional[int] = None
         self._irlistener = irlistener   # We cache the IRListener to use its match method later
         self._stats_prefix = irlistener.statsPrefix
         self._security_model: str = irlistener.securityModel
@@ -154,6 +155,10 @@ class V2Listener(dict):
 
         # If the IRListener is marked insecure-only, so are we.
         self._insecure_only = irlistener.insecure_only
+
+        buffer_limit_bytes = self.config.ir.ambassador_module.get('buffer_limit_bytes', None)
+        if buffer_limit_bytes:
+            self.per_connection_buffer_limit_bytes = buffer_limit_bytes
 
         # Build out our listener filters, and figure out if we're an HTTP listener
         # in the process.
@@ -185,20 +190,20 @@ class V2Listener(dict):
                     # Only look at TCPMappingGroups here...
                     if not isinstance(irgroup, IRTCPMappingGroup):
                         continue
-                    
+
                     # ...and make sure the group in question wants the same bind
                     # address that we do.
-                    if irgroup.bind_to() != self.bind_to: 
+                    if irgroup.bind_to() != self.bind_to:
                         # self.config.ir.logger.debug("V2Listener %s: skip TCPMappingGroup on %s", self.bind_to, irgroup.bind_to())
                         continue
-                    
+
                     self.add_tcp_group(irgroup)
 
     def add_chain(self, chain_type: str, host: Optional[IRHost]) -> V2Chain:
         # Add a chain for a specific Host to this listener, while dealing with the fundamental
         # asymmetry that filter_chain_match can - and should - use SNI whenever the chain has
-        # TLS available, but that's simply not available for chains without TLS. 
-        # 
+        # TLS available, but that's simply not available for chains without TLS.
+        #
         # The pratical upshot is that we can generate _only one_ HTTP chain, but we can have
         # HTTPS and TCP chains for specfic hostnames. HOWEVER, we still track HTTP chains by
         # hostname, because we can - and do - separate HTTP chains into specific domains.
@@ -240,7 +245,7 @@ class V2Listener(dict):
         group_host = irgroup.get('host', None)
 
         if self._log_debug:
-            self.config.ir.logger.debug("V2Listener %s on %s: take TCPMappingGroup on %s (%s)", 
+            self.config.ir.logger.debug("V2Listener %s on %s: take TCPMappingGroup on %s (%s)",
                                         self.name, self.bind_to, irgroup.bind_to(), group_host or "i'*'")
 
         if not group_host:
@@ -256,12 +261,12 @@ class V2Listener(dict):
 
                 if not host.context:
                     if self._log_debug:
-                        self.config.ir.logger.debug("V2Listener %s @ %s TCP %s: skip %s", 
+                        self.config.ir.logger.debug("V2Listener %s @ %s TCP %s: skip %s",
                                                     self.name, self.bind_to, group_host, host)
                     continue
-                
+
                 if self._log_debug:
-                    self.config.ir.logger.debug("V2Listener %s @ %s TCP %s: consider %s", 
+                    self.config.ir.logger.debug("V2Listener %s @ %s TCP %s: consider %s",
                                                 self.name, self.bind_to, group_host, host)
 
                 if hostglob_matches(host.hostname, group_host):
@@ -391,8 +396,8 @@ class V2Listener(dict):
         if 'use_remote_address' in self.config.ir.ambassador_module:
             base_http_config["use_remote_address"] = self.config.ir.ambassador_module.use_remote_address
 
-        if 'xff_num_trusted_hops' in self.config.ir.ambassador_module:
-            base_http_config["xff_num_trusted_hops"] = self.config.ir.ambassador_module.xff_num_trusted_hops
+        if self._l7_depth > 0:
+            base_http_config["xff_num_trusted_hops"] = self._l7_depth
 
         if 'server_name' in self.config.ir.ambassador_module:
             base_http_config["server_name"] = self.config.ir.ambassador_module.server_name
@@ -557,7 +562,7 @@ class V2Listener(dict):
                 # First up, which clusters do we need to talk to?
                 clusters = [{
                     'name': mapping.cluster.envoy_name,
-                    'weight': mapping.weight
+                    'weight': mapping._weight
                 } for mapping in irgroup.mappings]
 
                 # From that, we can sort out a basic tcp_proxy filter config.
@@ -579,7 +584,7 @@ class V2Listener(dict):
                     ]
                 }
 
-                # The chain as a whole has a single matcher.            
+                # The chain as a whole has a single matcher.
                 filter_chain_match: Dict[str, Any] = {}
 
                 chain_hosts = chain.hostglobs()
@@ -589,7 +594,7 @@ class V2Listener(dict):
                     # ...then we can ask for TLS.
                     filter_chain_match["transport_protocol"] = "tls"
 
-                    # Note that we're modifying the filter_chain itself here, not 
+                    # Note that we're modifying the filter_chain itself here, not
                     # filter_chain_match.
                     filter_chain["tls_context"] = V2TLSContext(chain.context)
 
@@ -602,7 +607,7 @@ class V2Listener(dict):
 
                 # Once all of that is done, hook in the match...
                 filter_chain['filter_chain_match'] = filter_chain_match
-            
+
                 # ...and stick this chain into our filter.
                 self._filter_chains.append(filter_chain)
 
@@ -623,10 +628,10 @@ class V2Listener(dict):
 
             # OK, if we're still here, then it's a question of matching the Listener's
             # SecurityModel with the Host's requestPolicy. It happens that it's actually
-            # pretty hard to reject things at this level. 
+            # pretty hard to reject things at this level.
             #
             # First up, if the Listener is marked insecure-only, but the Listener's port
-            # doesn't match the Host's insecure_addl_port, don't take this Host: this 
+            # doesn't match the Host's insecure_addl_port, don't take this Host: this
             # Listener was synthesized to handle some other Host. (This is a corner case that
             # will become less and less likely as more people hop on the Listener bandwagon.
             # Also, remember that Hosts don't specify bind addresses, so only the port matters
@@ -645,7 +650,7 @@ class V2Listener(dict):
             insecure_action = host.insecure_action
 
             # If the Listener's securityModel is SECURE, but this host has a secure_action
-            # of Reject (or empty), we'll skip this host, because the only requests this 
+            # of Reject (or empty), we'll skip this host, because the only requests this
             # Listener can ever produce will be rejected. In any other case, we'll set up an
             # HTTPS chain for this Host, as long as we think TLS is OK.
 
@@ -667,11 +672,11 @@ class V2Listener(dict):
 
     def compute_routes(self) -> None:
         # Compute the set of valid HTTP routes for _each chain_ in this Listener.
-        # 
+        #
         # Note that a route using XFP can match _any_ chain, whether HTTP or HTTPS.
 
         logger = self.config.ir.logger
-        
+
         for chain_key, chain in self._chains.items():
             # Only look at HTTP(S) chains.
             if (chain.type != "http") and (chain.type != "https"):
@@ -704,7 +709,7 @@ class V2Listener(dict):
                     # For each host, we need to look at things for the secure world as well
                     # as the insecure world, depending on what the action is exactly (and note
                     # that, yes, we can have an action of None for an insecure_only listener).
-                    # 
+                    #
                     # "candidates" is host, matcher, action, V2RouteVariants
                     candidates: List[Tuple[IRHost, str, str, V2RouteVariants]] = []
                     hostname = host.hostname
@@ -715,7 +720,7 @@ class V2Listener(dict):
                         matcher = 'always' if (self._security_model == 'SECURE') else 'xfp-https'
 
                         candidates.append(( host, matcher, 'Route', rv ))
-                    
+
                     if (host.insecure_action is not None) and (self._security_model != "SECURE"):
                         # We have an insecure action, and we're willing to believe that at least some of
                         # our requests will be insecure.
@@ -808,7 +813,7 @@ class V2Listener(dict):
 
             if chain.type == "http":
                 # All HTTP chains get collapsed into one here, using domains to separate them.
-                # This works because we don't need to offer TLS certs (we can't anyway), and 
+                # This works because we don't need to offer TLS certs (we can't anyway), and
                 # because of that, SNI (and thus filter server_names matches) aren't things.
                 chain_key = "http"
 
@@ -839,13 +844,13 @@ class V2Listener(dict):
 
                 # Set up the server_names part of the match, if we have any names.
                 #
-                # Note that "*" is _not allowed_ in server_names, though e.g. "*.example.com" 
-                # is. So we need to filter out the "*" itself... which is ugly, because 
-                # 
-                # server_names: [ "*", "foo.example.com" ] 
+                # Note that "*" is _not allowed_ in server_names, though e.g. "*.example.com"
+                # is. So we need to filter out the "*" itself... which is ugly, because
                 #
-                # is very different from 
-                # 
+                # server_names: [ "*", "foo.example.com" ]
+                #
+                # is very different from
+                #
                 # server_names: [ "foo.example.com" ]
                 #
                 # So, if "*" is present at all in our chain_hosts, we can't match server_names
@@ -859,10 +864,10 @@ class V2Listener(dict):
 
                 if chain.context:
                     # ...uh. How could we not have a context if we're doing TLS?
-                    # Note that we're modifying the filter_chain itself here, not 
+                    # Note that we're modifying the filter_chain itself here, not
                     # filter_chain_match.
                     filter_chain["tls_context"] = V2TLSContext(chain.context)
-                        
+
                 # Finally, stash the match in the chain...
                 filter_chain["filter_chain_match"] = filter_chain_match
 
@@ -875,10 +880,10 @@ class V2Listener(dict):
             # OK, we have the filter_chain variable set -- build the Envoy virtual_hosts for it.
 
             for host in chain.hosts.values():
-                # Make certain that no internal keys from the route make it into the Envoy 
+                # Make certain that no internal keys from the route make it into the Envoy
                 # configuration.
                 routes = []
-                
+
                 for r in chain.routes:
                     routes.append({ k: v for k, v in r.items() if k[0] != '_' })
 
@@ -935,17 +940,22 @@ class V2Listener(dict):
             self._filter_chains.append(filter_chain)
 
     def as_dict(self) -> dict:
-        odict = {
+        listener = {
             "name": self.name,
             "address": self.address,
             "filter_chains": self._filter_chains,
             "traffic_direction": self.traffic_direction
         }
 
-        if self.listener_filters:
-            odict["listener_filters"] = self.listener_filters
+        # We only want to add the buffer limit setting to the listener if specified in the module.
+        # Otherwise, we want to leave it unset and allow Envoys Default 1MiB setting.
+        if self.per_connection_buffer_limit_bytes:
+            listener['per_connection_buffer_limit_bytes'] = self.per_connection_buffer_limit_bytes
 
-        return odict          
+        if self.listener_filters:
+            listener["listener_filters"] = self.listener_filters
+
+        return listener
 
     def pretty(self) -> dict:
         return {

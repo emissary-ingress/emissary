@@ -69,9 +69,9 @@ class IRBaseMappingGroup (IRResource):
                 # increment current weight by mapping's weight
                 current_weight += round(mapping.weight)
 
-                # set mapping's new weight to current weight
-                self.logger.debug(f"Assigning weight {current_weight} to mapping {mapping.name}")
-                mapping.weight = current_weight
+                # set mapping's calculated weight to current weight
+                self.logger.debug(f"Assigning calculated weight {current_weight} to mapping {mapping.name}")
+                mapping._weight = current_weight
 
                 # add this mapping to normalized mappings
                 normalized_mappings.append(mapping)
@@ -87,7 +87,7 @@ class IRBaseMappingGroup (IRResource):
             remaining_weight = 100 - current_weight
             weight_per_weightless_mapping = round(remaining_weight/num_weightless_mappings)
 
-            self.logger.debug(f"Assigning weight {weight_per_weightless_mapping} of remaining weight {remaining_weight} to each of {num_weightless_mappings} weightless mappings")
+            self.logger.debug(f"Assigning calculated weight {weight_per_weightless_mapping} of remaining weight {remaining_weight} to each of {num_weightless_mappings} weightless mappings")
 
             # Now, let's add weight to every weightless mapping and push to normalized_mappings
             for i, weightless_mapping in enumerate(weightless_mappings):
@@ -99,7 +99,7 @@ class IRBaseMappingGroup (IRResource):
                     current_weight += weight_per_weightless_mapping
 
                 self.logger.debug(f"Assigning weight {current_weight} to weightless mapping {weightless_mapping.name}")
-                weightless_mapping['weight'] = current_weight
+                weightless_mapping._weight = current_weight
                 normalized_mappings.append(weightless_mapping)
 
         self.mappings = normalized_mappings

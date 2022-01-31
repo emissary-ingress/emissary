@@ -162,14 +162,23 @@
             },
             "additionalProperties": false
         },
+        "dns_type": {
+            "type": "string"
+        },
         "docs": {
             "type": "object",
             "properties": {
+                "display_name": {
+                    "type": "string"
+                },
                 "ignored": {
                     "type": "boolean"
                 },
                 "path": {
                     "type": "string"
+                },
+                "timeout_ms": {
+                    "type": "integer"
                 },
                 "url": {
                     "type": "string"
@@ -225,9 +234,6 @@
             "type": "boolean"
         },
         "host_rewrite": {
-            "type": "string"
-        },
-        "hostname": {
             "type": "string"
         },
         "idle_timeout_ms": {
@@ -399,6 +405,9 @@
         "resolver": {
             "type": "string"
         },
+        "respect_dns_ttl": {
+            "type": "boolean"
+        },
         "retry_policy": {
             "type": "object",
             "properties": {
@@ -430,9 +439,6 @@
         },
         "shadow": {
             "type": "boolean"
-        },
-        "stats_name": {
-            "type": "string"
         },
         "timeout_ms": {
             "type": "integer"

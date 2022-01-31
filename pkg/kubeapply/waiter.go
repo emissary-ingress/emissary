@@ -3,10 +3,12 @@ package kubeapply
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
+
 	"github.com/datawire/ambassador/v2/pkg/k8s"
+	kates_internal "github.com/datawire/ambassador/v2/pkg/kates_internal"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -56,15 +58,17 @@ func (w *Waiter) add(resource k8s.Resource) error {
 
 // Scan calls LoadResources(path), and add all resources loaded to the
 // Waiter.
-func (w *Waiter) Scan(ctx context.Context, path string) (err error) {
+func (w *Waiter) Scan(ctx context.Context, path string) error {
 	resources, err := LoadResources(ctx, path)
+	if err != nil {
+		return fmt.Errorf("LoadResources: %w", err)
+	}
 	for _, res := range resources {
-		err = w.add(res)
-		if err != nil {
-			return
+		if err = w.add(res); err != nil {
+			return fmt.Errorf("%s/%s: %w", res.QKind(), res.QName(), err)
 		}
 	}
-	return
+	return nil
 }
 
 func (w *Waiter) remove(kind k8s.ResourceType, name string) {
@@ -85,42 +89,45 @@ func (w *Waiter) isEmpty() bool {
 // Scan()ed resources to be ready.  If they all become ready before
 // deadline, then it returns true.  If they don't become ready by
 // then, then it bails early and returns false.
-func (w *Waiter) Wait(ctx context.Context, deadline time.Time) bool {
+func (w *Waiter) Wait(ctx context.Context, deadline time.Time) (bool, error) {
 	start := time.Now()
 	printed := make(map[string]bool)
-	err := w.watcher.WatchQuery(k8s.Query{Kind: "events", Namespace: k8s.NamespaceAll}, func(watcher *k8s.Watcher) {
-		for _, r := range watcher.List("events") {
-			if lastStr, ok := r["lastTimestamp"].(string); ok {
-				last, err := time.Parse("2006-01-02T15:04:05Z", lastStr)
-				if err != nil {
-					log.Println(err)
-					continue
-				}
-				if last.Before(start) {
-					continue
-				}
+	err := w.watcher.WatchQuery(k8s.Query{Kind: "Events.v1.", Namespace: k8s.NamespaceAll}, func(watcher *k8s.Watcher) error {
+		list, err := watcher.List("Events.v1.")
+		if err != nil {
+			return err
+		}
+		for _, untypedEvent := range list {
+			var event corev1.Event
+			if err := kates_internal.Convert(untypedEvent, &event); err != nil {
+				dlog.Errorln(ctx, err)
+				continue
 			}
-			if !printed[r.QName()] {
-				var name string
-				if obj, ok := r["involvedObject"].(map[string]interface{}); ok {
-					res := k8s.Resource(obj)
-					name = fmt.Sprintf("%s/%s", res.QKind(), res.QName())
-				} else {
-					name = r.QName()
-				}
-				dlog.Printf(ctx, "event: %s %s\n", name, r["message"])
-				printed[r.QName()] = true
+			if event.LastTimestamp.Time.Before(start) && !event.LastTimestamp.IsZero() {
+				continue
+			}
+			eventQName := fmt.Sprintf("%s.%s", event.Name, event.Namespace)
+			if !printed[eventQName] {
+				involvedQKind := k8s.QKind(event.InvolvedObject.APIVersion, event.InvolvedObject.Kind)
+				involvedQName := fmt.Sprintf("%s.%s", event.InvolvedObject.Name, event.InvolvedObject.Namespace)
+
+				dlog.Printf(ctx, "event: %s/%s: %s\n", involvedQKind, involvedQName, event.Message)
+				printed[eventQName] = true
 			}
 		}
+		return nil
 	})
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 
-	listener := func(watcher *k8s.Watcher) {
+	listener := func(watcher *k8s.Watcher) error {
 		for kind, names := range w.kinds {
 			for name := range names {
-				r := watcher.Get(kind.String(), name)
+				r, err := watcher.Get(kind.String(), name)
+				if err != nil {
+					return err
+				}
 				if Ready(r) {
 					if ReadyImplemented(r) {
 						dlog.Printf(ctx, "ready: %s/%s\n", r.QKind(), r.QName())
@@ -136,23 +143,27 @@ func (w *Waiter) Wait(ctx context.Context, deadline time.Time) bool {
 		if w.isEmpty() {
 			watcher.Stop()
 		}
+		return nil
 	}
 
 	for k := range w.kinds {
-		err := w.watcher.WatchQuery(k8s.Query{Kind: k.String(), Namespace: k8s.NamespaceAll}, listener)
-		if err != nil {
-			panic(err)
+		if err := w.watcher.WatchQuery(k8s.Query{Kind: k.String(), Namespace: k8s.NamespaceAll}, listener); err != nil {
+			return false, err
 		}
 	}
 
-	w.watcher.Start(ctx)
+	if err := w.watcher.Start(ctx); err != nil {
+		return false, err
+	}
 
 	go func() {
 		time.Sleep(time.Until(deadline))
 		w.watcher.Stop()
 	}()
 
-	w.watcher.Wait(ctx)
+	if err := w.watcher.Wait(ctx); err != nil {
+		return false, err
+	}
 
 	result := true
 
@@ -163,5 +174,5 @@ func (w *Waiter) Wait(ctx context.Context, deadline time.Time) bool {
 		}
 	}
 
-	return result
+	return result, nil
 }

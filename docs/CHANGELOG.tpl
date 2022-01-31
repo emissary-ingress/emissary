@@ -1,9 +1,10 @@
-# CHANGELOG -- this is a GENERATED FILE, edit docs/releaseNotes.yml and "make generate" to change.
+<!-- -*- fill-column: 100 -*- -->
+# CHANGELOG -- this is {{/* NOT */}}a GENERATED FILE, edit docs/releaseNotes.yml and "make generate" to change.
 
 ## EMISSARY-INGRESS and AMBASSADOR EDGE STACK
 
 Emissary-ingress is a Kubernatives-native, self-service, open-source API gateway
-and ingress controller. It is a CNCF Incubation project, formerly known as the 
+and ingress controller. It is a CNCF Incubation project, formerly known as the
 Ambassador API Gateway.
 
 Ambassador Edge Stack is a comprehensive, self-service solution for exposing,
@@ -15,12 +16,12 @@ The core of Ambassador Edge Stack is Emissary-ingress.
 - Ambassador Edge Stack provides all the capabilities of Emissary-ingress,
   as well as additional capabilities including:
 
-   - Security features such as automatic TLS setup via ACME integration, OAuth/OpenID Connect
-     integration, rate limiting, and fine-grained access control; and
-   - Developer onboarding assistance, including an API catalog, Swagger/OpenAPI documentation
-     support, and a fully customizable developer portal.
+  - Security features such as automatic TLS setup via ACME integration, OAuth/OpenID Connect
+    integration, rate limiting, and fine-grained access control; and
+  - Developer onboarding assistance, including an API catalog, Swagger/OpenAPI documentation
+    support, and a fully customizable developer portal.
 
-- Emissary-ingress can do everything that Ambassador Edge Stack can do, but you'll need to 
+- Emissary-ingress can do everything that Ambassador Edge Stack can do, but you'll need to
   write your own code to take advantage of the capabilities above.
 
 - Ambassador Edge Stack is free for all users: due to popular demand, Ambassador Edge Stack
@@ -31,27 +32,38 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
 
 ## UPCOMING BREAKING CHANGES
 
+#### Envoy V2 API
+
+In *Emissary-ingress v2.2.0*, support for the Envoy V2 API will be removed, and Emissary-ingress
+will support only the Envoy V3 API. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will
+also be removed. Note that Emissary-ingress has been using the Envoy V3 API as its default since
+v1.14.0.
+
 #### TLS Termination and the `Host` CRD
 
-As of Ambassador 2.0.0, you _must_ supply a `Host` CRD to terminate TLS: it is not sufficient
-to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS configuration
-information to be shared across multiple `Host`s). The minimal configuration for TLS termination is
-now a certificate stored in a Kubernetes `Secret`, and a `Host` referring to that `Secret`.
+As of Emissary-ingress v2.0.4, you _must_ supply a `Host` CRD to terminate TLS: it is not
+sufficient to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS
+configuration information to be shared across multiple `Host`s). The minimal configuration for
+TLS termination is now a certificate stored in a Kubernetes `Secret`, and a `Host` referring to
+that `Secret`.
+
+For Emissary-ingress v2.0.0 - v2.0.3, you must supply an `AmbassadorHost` CRD.
 
 #### `Ingress` Resources and Namespaces
 
-In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, TLS secrets
-in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
+In a future version of Emissary-ingress, *no sooner than Emissary-ingress v2.1.0*, TLS
+secrets in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 #### Regex Matching
 
-In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, the `regex_type` and `regex_max_size`
-fields will be removed from the `ambassador` `Module`, and Ambassador will support only Envoy `safe_regex`
-matching. Note that `safe_regex` matching has been Ambassador's default since Ambassador v0.83.0.
+In a future version of Emissary-ingress, *no sooner than Ambassador v2.1.0*, the `regex_type`
+and `regex_max_size` fields will be removed from the `ambassador` `Module`, and Ambassador Edge
+Stack will support only Envoy `safe_regex` matching. Note that `safe_regex` matching has been
+the default for all 1.X releases of Emissary-ingress.
 
-This change is being made because the `regex` field for `HeaderMatcher`, `RouteMatch`, and `StringMatcher` was
-[deprecated in favor of safe_regex] in Envoy v1.12.0, then removed entirely from the Envoy V3 APIs. Additionally,
-setting [max_program_size was deprecated] in Envoy v1.15.0. As such, `regex_type: unsafe` and setting
+This change is being made the original Envay `regex` matcher was [deprecated in favor of safe_regex]
+in Envoy v1.12.0, then removed entirely from the Envoy V3 APIs. Additionally, setting
+[max_program_size was deprecated] in Envoy v1.15.0. As such, `regex_type: unsafe` and setting
 `regex_max_size` are no longer supported unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`.
 
 Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/type/matcher/v3/regex.proto.html) for more information.
@@ -61,78 +73,71 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 #### Zipkin Collector Versions
 
-In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, support for the [HTTP_JSON_V1] Zipkin
-collector version will be removed.
+In a future version of Emissary-ingress, *no sooner than Emissary-ingress v2.1.0*, support
+for the [HTTP_JSON_V1] Zipkin collector version will be removed.
 
-This change is being made because the HTTP_JSON_V1 collector was deprecated in Envoy v1.12.0, then removed
-entirely from the Envoy V3 APIs. As such, the HTTP_JSON_V1 collector is no longer supported unless
-`AMBASSADOR_ENVOY_API_VERSION` is set to `V2`. You must migrate to either the HTTP_JSON or the HTTP_PROTO
-collector unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`.
+This change is being made because the HTTP_JSON_V1 collector was deprecated in Envoy v1.12.0, then
+removed entirely from the Envoy V3 APIs. As such, the HTTP_JSON_V1 collector is no longer supported
+unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`. You must migrate to either the HTTP_JSON or
+the HTTP_PROTO collector unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`.
 
 Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version) for more information.
 
 [HTTP_JSON_V1]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version
 
 ## RELEASE NOTES
+{{ $relnotes := (datasource "relnotes") -}}
+{{ $ghName := "emissary-ingress/emissary" -}}
 
-{{ range (datasource "relnotes").items -}}
-## [{{ .version }}] ({{ .date }})
-[{{ .version }}]: https://github.com/emissary-ingress/emissary/releases/v{{ .version }}
-{{- range .notes }}{{ if index . "isHeadline" }}{{ if .isHeadline }}
+{{ range $i, $release := $relnotes.items -}}
+{{ $prevVersion := "1.13.3" -}}
+{{ if lt (add $i 1) (len $relnotes.items) -}}
+{{   $prevVersion = (index $relnotes.items (add $i 1)).version -}}
+{{ end -}}
+{{ if eq $release.version "1.13.7" -}}
+{{   $ghName = "datawire/ambassador" -}}
+{{ end }}
+## [{{ $release.version }}] {{ if eq $release.date "TBD" }}TBD{{ else }}{{ (time.Parse "2006-01-02" $release.date).Format "January 02, 2006" }}{{ end }}
+[{{ $release.version }}]: https://github.com/{{ $ghName }}/compare/v{{ $prevVersion }}...v{{ $release.version }}
+{{- range $release.notes }}{{ if index . "isHeadline" }}{{ if .isHeadline }}
 
-{{ .body | strings.ReplaceAll "$productName$" "Emissary-ingress" | strings.ReplaceAll "<b>" "_" | strings.ReplaceAll "</b>" "_" | strings.ReplaceAll "<code>" "`" | strings.ReplaceAll "</code>" "`" | strings.WordWrap 98 }}
+{{ .body |
+    strings.ReplaceAll "$productName$" "Emissary-ingress" |
+    strings.ReplaceAll "<b>" "_" |
+    strings.ReplaceAll "</b>" "_" |
+    strings.ReplaceAll "<code>" "`" |
+    strings.ReplaceAll "</code>" "`" |
+    strings.WordWrap 100 }}
 {{- end }}{{ end }}{{ end }}
 
-## Emissary-ingress
-{{ range .notes -}}{{ if not (index . "isHeadline") }}
-- {{ .type | strings.Title }}: {{ .body | strings.ReplaceAll "$productName$" "Emissary-ingress" | strings.ReplaceAll "<b>" "_" | strings.ReplaceAll "</b>" "_" | strings.ReplaceAll "<code>" "`" | strings.ReplaceAll "</code>" "`" | strings.WordWrap 98 "\n  " }}
-{{ end }}{{ end }}
-{{ end }}
-
-## [1.13.11] (TBD)
-[1.13.11]: https://github.com/emissary-ingress/emissary/compare/v1.13.10...v1.13.11
-
-### Emissary Ingress and Ambassador Edge Stack
-
-- Change: Logs now include subsecond time resolutions, rather than just seconds.
-
-## [1.13.8] June 08, 2021
-[1.13.8]: https://github.com/emissary-ingress/emissary/compare/v1.13.7...v1.13.8
-
-### Emissary Ingress and Ambassador Edge Stack
-
-- Bugfix: Ambassador Agent now accurately reports up-to-date Endpoint information to Ambassador Cloud
-- Feature: Ambassador Agent reports ConfigMaps and Deployments to Ambassador Cloud to provide a better Argo Rollouts experience. See [Argo+Ambassador documentation](https://www.getambassador.io/docs/argo) for more info.
-
-## [1.13.7] June 03, 2021
-[1.13.7]: https://github.com/datawire/ambassador/compare/v1.13.6...v1.13.7
-
-### Emissary Ingress and Ambassador Edge Stack
-
-- Feature: Add AMBASSADOR_JSON_LOGGING to enable JSON for most of the Ambassador control plane. Some (but few) logs from gunicorn and the Kubernetes client-go package still log text.
-- Bugfix: Fixed a bug where the Consul resolver would not actually use Consul endpoints with TCPMappings.
-- Change: Ambassador now calculates its own memory usage in a way that is more similar to how the kernel OOMKiller tracks memory.
-
-## [1.13.6] May 24, 2021
-[1.13.6]: https://github.com/datawire/ambassador/compare/v1.13.5...v1.13.6
-
-- Bugfix: Fixed a regression where Ambassador snapshot data was logged at the INFO label when using AMBASSADOR_LEGACY_MODE=true
-
-## [1.13.5] May 13, 2021
-[1.13.5]: https://github.com/datawire/ambassador/compare/v1.13.4...v1.13.5
-
-### Emissary Ingress and Ambassador Edge Stack
-
-- Bugfix: Fix a regression from 1.8.0 that prevented Ambassador module config keys `proper_case` and `preserve_external_request_id` from working correctly.
-- Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the wrong IP or hostname to be used in Ingress statuses (thanks, [Noah Fontes](https://github.com/impl)!
-
-## [1.13.4] May 11, 2021
-[1.13.4]: https://github.com/datawire/ambassador/compare/v1.13.3...v1.13.4
-
-### Emissary Ingress and Ambassador Edge Stack
-
-- Bugfix: Incorporate the Envoy 1.15.5 security update by adding the `reject_requests_with_escaped_slashes` option to the Ambassador module.
-
+### Emissary-ingress and Ambassador Edge Stack
+{{ range $release.notes }}{{ if not (index . "isHeadline") }}
+- {{ printf "%s: %s" (.type | strings.Title) .body |
+    strings.ReplaceAll "$productName$" "Emissary-ingress" |
+    strings.ReplaceAll "<b>" "_" |
+    strings.ReplaceAll "</b>" "_" |
+    strings.ReplaceAll "<code>" "`" |
+    strings.ReplaceAll "</code>" "`" |
+    strings.WordWrap 98 |
+    strings.Indent 2 |
+    strings.TrimPrefix "  " }}{{ if index . "github" }}{{ range .github }} ([{{.title}}]){{ end }}{{ end }}
+{{ end }}{{ end }}{{ $anyGitLinks := false }}{{ range $release.notes -}}{{- if index . "github" -}}{{- range .github }}{{ $anyGitLinks = true }}
+[{{.title}}]: {{.link}}{{ end -}}{{- end -}}{{- end -}}{{ if $anyGitLinks }}
+{{ end }}{{ if index $release "edgeStackNotes" }}
+### Ambassador Edge Stack only
+{{ range $release.edgeStackNotes }}
+- {{ printf "%s: %s" (.type | strings.Title) .body |
+    strings.ReplaceAll "$productName$" "Emissary-ingress" |
+    strings.ReplaceAll "<b>" "_" |
+    strings.ReplaceAll "</b>" "_" |
+    strings.ReplaceAll "<code>" "`" |
+    strings.ReplaceAll "</code>" "`" |
+    strings.WordWrap 98 |
+    strings.Indent 2 |
+    strings.TrimPrefix "  " }}{{ if index . "github" }}{{ range .github }} ([{{.title}}]){{ end }}{{ end }}
+{{ end }}{{ $anyGitLinks := false }}{{ range $release.edgeStackNotes -}}{{- if index . "github" -}}{{- range .github }}{{ $anyGitLinks = true }}
+[{{.title}}]: {{.link}}{{ end -}}{{- end -}}{{- end -}}{{ if $anyGitLinks }}
+{{ end }}{{ end }}{{ end }}
 ## [1.13.3] May 03, 2021
 [1.13.3]: https://github.com/datawire/ambassador/compare/v1.13.2...v1.13.3
 
@@ -2519,4 +2524,3 @@ Based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/). Ambassador fol
 [Ambassador-Envoy]: https://github.com/datawire/ambassador-envoy
 [Telepresence]: http://telepresence.io
 [Istio]: https://istio.io/
-

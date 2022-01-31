@@ -3,7 +3,6 @@ package kates
 import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	netv1beta1 "k8s.io/api/networking/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	xv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -16,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	k8s_util_node "k8s.io/kubernetes/pkg/util/node"
 	metrics "k8s.io/metrics/pkg/apis/metrics/v1beta1"
 )
 
@@ -59,9 +59,6 @@ type Secret = corev1.Secret
 
 const SecretTypeServiceAccountToken = corev1.SecretTypeServiceAccountToken
 const SecretTypeTLS = corev1.SecretTypeTLS
-
-type Ingress = netv1beta1.Ingress
-type IngressClass = netv1beta1.IngressClass
 
 type Service = corev1.Service
 type ServiceSpec = corev1.ServiceSpec
@@ -108,7 +105,7 @@ var CoreConditionTrue = corev1.ConditionTrue
 
 type Node = corev1.Node
 
-const NodeUnreachablePodReason = "NodeLost" // k8s.io/kubernetes/pkg/util/node.NodeUnreachablePodReason
+const NodeUnreachablePodReason = k8s_util_node.NodeUnreachablePodReason
 
 type Volume = corev1.Volume
 type VolumeSource = corev1.VolumeSource

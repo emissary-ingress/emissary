@@ -9,7 +9,7 @@
     ],
     "properties": {
         "ambassador_id": {
-            "description": "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\"",
+            "description": "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural).",
             "type": "array",
             "items": {
                 "type": "string"
@@ -50,6 +50,10 @@
                         "description": "Service is the service being documented",
                         "type": "string"
                     },
+                    "timeout_ms": {
+                        "description": "Timeout specifies the amount of time devportal will wait for the downstream service to report an openapi spec back",
+                        "type": "integer"
+                    },
                     "url": {
                         "description": "URL is the URL used for obtaining docs",
                         "type": "string"
@@ -84,6 +88,10 @@
                 "namespace.name",
                 "name.prefix"
             ]
+        },
+        "preserve_servers": {
+            "description": "Configures this DevPortal to use server definitions from the openAPI doc instead of rewriting them based on the url used for the connection.",
+            "type": "boolean"
         },
         "search": {
             "description": "DevPortalSearchSpec allows configuration over search functionality for the DevPortal",

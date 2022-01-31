@@ -55,10 +55,10 @@ type AmbassadorMetaInfo struct {
 
 type KubernetesSnapshot struct {
 	// k8s resources
-	IngressClasses []*kates.IngressClass `json:"ingressclasses"`
-	Ingresses      []*kates.Ingress      `json:"ingresses"`
-	Services       []*kates.Service      `json:"service"`
-	Endpoints      []*kates.Endpoints    `json:"Endpoints"`
+	IngressClasses []*IngressClass    `json:"ingressclasses"`
+	Ingresses      []*Ingress         `json:"ingresses"`
+	Services       []*kates.Service   `json:"service"`
+	Endpoints      []*kates.Endpoints `json:"Endpoints"`
 
 	// ambassador resources
 	Listeners   []*amb.Listener   `json:"Listener"`

@@ -1,5 +1,16 @@
 ---
-apiVersion: extensions/v1beta1
+# This ConfigMap needs to be edited to define Prometheus mappings.
+# See https://getambassador.io/docs/emissary/latest/topics/running/statistics/envoy-statsd/
+# for more information.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ambassador-statsd-config
+data:
+  exporterConfiguration: ''
+---
+# This Deployment keeps the StatsD exporter running.
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   creationTimestamp: null
@@ -7,6 +18,9 @@ metadata:
 spec:
   replicas: 1
   strategy: {}
+  selector:
+    matchLabels:
+      service: statsd-sink
   template:
     metadata:
       creationTimestamp: null
@@ -16,12 +30,21 @@ spec:
       containers:
       - name: statsd-sink
         image: prom/statsd-exporter:v0.8.1
-        args:
-        - --statsd.listen-udp=":8125"
-        resources: {}
+        args: ["--statsd.listen-udp=:8125", "--statsd.mapping-config=/statsd-exporter/mapping-config.yaml"]
+        volumeMounts:
+        - name: stats-exporter-mapping-config
+          mountPath: /statsd-exporter/
+          readOnly: true
+      volumes:
+      - name: stats-exporter-mapping-config
+        configMap:
+          name: ambassador-statsd-config
+          items:
+          - key: exporterConfiguration
+            path: mapping-config.yaml
       restartPolicy: Always
-status: {}
 ---
+# Finally, this Service defines ports in use by StatsD.
 apiVersion: v1
 kind: Service
 metadata:

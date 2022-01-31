@@ -1,9 +1,9 @@
-import json
+from typing import Generator, Tuple, Union
 
-from kat.harness import Query, Test, variants
+from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
-from selfsigned import TLSCerts
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
+from tests.selfsigned import TLSCerts
 from kat.utils import namespace_manifest
 
 # An AmbassadorTest subclass will actually create a running Ambassador.
@@ -131,7 +131,7 @@ spec:
     # config() must _yield_ tuples of Node, Ambassador-YAML where the
     # Ambassador-YAML will be annotated onto the Node.
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -163,8 +163,7 @@ apiVersion: getambassador.io/v3alpha1
 kind: TCPMapping
 name:  {self.name}-clear-to-tls
 port: 7654
-tls: true
-service: {self.target2.path.fqdn}:443
+service: https://{self.target2.path.fqdn}:443
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TCPMapping
@@ -194,8 +193,7 @@ kind: TCPMapping
 name:  {self.name}-3
 port: 6789
 host: tls-context-host-3
-service: {self.target3.path.fqdn}
-tls: true
+service: https://{self.target3.path.fqdn}
 """)
 
     def requirements(self):

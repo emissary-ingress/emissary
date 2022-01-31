@@ -4,6 +4,8 @@ description: "push emissary image to dev"
 runs:
   using: "composite"
   steps:
+    - name: Install Deps
+      uses: ./.github/actions/setup-deps
     - name: "Docker Login"
       uses: docker/login-action@v1
       with:

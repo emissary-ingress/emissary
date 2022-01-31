@@ -1,9 +1,10 @@
+from typing import Generator, Tuple, Union
+
 import os
 
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, HTTP
-from abstract_tests import ServiceType
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 
 
 LOADBALANCER_POD = """
@@ -34,7 +35,7 @@ class LoadBalancerTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -189,7 +190,7 @@ spec:
 """.format(backend=backend) + \
     super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -338,7 +339,7 @@ spec:
 """.format(backend=backend) + \
     super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         for policy in ['ring_hash', 'maglev']:
             self.policy = policy
             yield self, self.format("""

@@ -11,31 +11,30 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
-func JSONify(obj interface{}) string {
+func JSONify(obj interface{}) (string, error) {
 	bytes, err := json.MarshalIndent(obj, "", "  ")
-
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	return string(bytes)
+	return string(bytes), nil
 }
 
-func LoadYAML(path string) []kates.Object {
+func LoadYAML(path string) ([]kates.Object, error) {
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	objs, err := kates.ParseManifests(string(content))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return objs
+	return objs, nil
 }
 
-func GlobMatch(what string, text string, pattern string, regex bool) (bool, string, string) {
+func GlobMatch(what string, text string, pattern string, regex bool) (bool, string, string, error) {
 	var err error
 	rc := false
 	authority := ""
@@ -54,9 +53,8 @@ func GlobMatch(what string, text string, pattern string, regex bool) (bool, stri
 		globre = "^" + globre + "$"
 
 		rc, err = regexp.MatchString(globre, text)
-
 		if err != nil {
-			panic(err)
+			return false, "", "", err
 		}
 
 		authority = pattern
@@ -69,10 +67,10 @@ func GlobMatch(what string, text string, pattern string, regex bool) (bool, stri
 	}
 
 	fmt.Printf("GlobMatch %s: '%s' %s '%s' == %v\n", what, text, authorityMatch, authority, rc)
-	return rc, authority, authorityMatch
+	return rc, authority, authorityMatch, nil
 }
 
-func HostMatch(mapping v3alpha1.Mapping, host v3alpha1.Host) (bool, string, string) {
+func HostMatch(mapping v3alpha1.Mapping, host v3alpha1.Host) (bool, string, string, error) {
 	hostName := host.Spec.Hostname
 
 	if mapping.Spec.Hostname != "" {
@@ -94,19 +92,13 @@ func HostMatch(mapping v3alpha1.Mapping, host v3alpha1.Host) (bool, string, stri
 
 	// No host in the Mapping -- how about authority?
 	mappingAuthorityRegex := false
-	mappingAuthorityBoolOrString, found := mapping.Spec.Headers[":authority"]
 	mappingAuthority := ""
 
-	if found && (mappingAuthorityBoolOrString.String != nil) {
-		mappingAuthority = *mappingAuthorityBoolOrString.String
-	} else {
-		// Try a regex authority.
-		mappingAuthorityBoolOrString, found = mapping.Spec.RegexHeaders[":authority"]
-
-		if found && (mappingAuthorityBoolOrString.String != nil) {
-			mappingAuthorityRegex = true
-			mappingAuthority = *mappingAuthorityBoolOrString.String
-		}
+	if stringVal, ok := mapping.Spec.Headers[":authority"]; ok {
+		mappingAuthority = stringVal
+	} else if regexVal, ok := mapping.Spec.RegexHeaders[":authority"]; ok {
+		mappingAuthorityRegex = true
+		mappingAuthority = regexVal
 	}
 
 	fmt.Printf("HostMatch: mappingAuthority %s\n", mappingAuthority)
@@ -117,5 +109,5 @@ func HostMatch(mapping v3alpha1.Mapping, host v3alpha1.Host) (bool, string, stri
 
 	fmt.Printf("HostMatch: fallthrough\n")
 	// If we're here, there's no host to match, so return true.
-	return true, "", ""
+	return true, "", "", nil
 }

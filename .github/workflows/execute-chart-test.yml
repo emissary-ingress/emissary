@@ -28,8 +28,8 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: "Install/Setup K3d/K3s"
-        uses: nolar/setup-k3d-k3s@v1.0.7
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
       - name: make test-chart
         run: |
           make test-chart

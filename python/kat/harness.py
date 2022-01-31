@@ -84,15 +84,25 @@ class TestImage:
     def __init__(self, *args, **kwargs) -> None:
         self.images: Dict[str, str] = {}
 
-        default_registry = os.environ.get('TEST_SERVICE_REGISTRY', 'docker.io/datawire/test_services')
-        default_version = os.environ.get('TEST_SERVICE_VERSION', '0.0.3')
+        svc_names = ['auth', 'ratelimit', 'shadow', 'stats']
 
-        for svc in ['auth', 'auth-tls', 'ratelimit', 'shadow', 'stats']:
-            key = svc.replace('-', '_').upper()
+        try:
+            subprocess.run(['make']+[f'docker/test-{svc}.docker.push.remote' for svc in svc_names],
+                           check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        except subprocess.CalledProcessError as err:
+            raise Exception(f"{err.stdout}{err}") from err
 
-            image = os.environ.get(f'TEST_SERVICE_{key}', f'{default_registry}:test-{svc}-{default_version}')
-
-            self.images[svc] = image
+        for svc in svc_names:
+            with open(f'docker/test-{svc}.docker.push.remote', 'r') as fh:
+                # file contents:
+                #   line 1: image ID
+                #   line 2: tag 1
+                #   line 3: tag 2
+                #   ...
+                #
+                # Set 'image' to one of the tags.
+                image = fh.readlines()[1].strip()
+                self.images[svc] = image
 
     def __getitem__(self, key: str) -> str:
         return self.images[key]
@@ -107,7 +117,7 @@ def run(cmd):
 
 
 def kube_version_json():
-    result = subprocess.Popen('kubectl version -o json', stdout=subprocess.PIPE, shell=True)
+    result = subprocess.Popen('tools/bin/kubectl version -o json', stdout=subprocess.PIPE, shell=True)
     stdout, _ = result.communicate()
     return json.loads(stdout)
 
@@ -641,14 +651,14 @@ imagePullSecrets:
             if DEV:
                 os.system(f'docker logs {self.path.k8s} >{log_path} 2>&1')
             else:
-                os.system(f'kubectl logs -n {self.namespace} {self.path.k8s} >{log_path} 2>&1')
+                os.system(f'tools/bin/kubectl logs -n {self.namespace} {self.path.k8s} >{log_path} 2>&1')
 
                 event_path = f'/tmp/kat-events-{self.path.k8s}'
 
                 fs1 = f'involvedObject.name={self.path.k8s}'
                 fs2 = f'involvedObject.namespace={self.namespace}'
 
-                cmd = f'kubectl get events -o json --field-selector "{fs1}" --field-selector "{fs2}"'
+                cmd = f'tools/bin/kubectl get events -o json --field-selector "{fs1}" --field-selector "{fs2}"'
                 os.system(f'echo ==== "{cmd}" >{event_path}')
                 os.system(f'{cmd} >>{event_path} 2>&1')
 
@@ -1055,7 +1065,7 @@ def run_queries(name: str, queries: Sequence[Query]) -> Sequence[Result]:
 
     # run(f"{CLIENT_GO} -input {path_urls} -output {path_results} 2> {path_log}")
     res = ShellCommand.run('Running queries',
-            f"kubectl exec -n default -i kat /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'",
+            f"tools/bin/kubectl exec -n default -i kat /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'",
             shell=True)
 
     if not res:
@@ -1522,8 +1532,20 @@ class Runner:
         manifest_changed, manifest_reason = has_changed(yaml, fname)
 
         # First up: CRDs.
-        CRDS = load_manifest("crds")
-        input_crds = CRDS
+        serviceAccountExtra = ''
+        if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
+            serviceAccountExtra = """
+imagePullSecrets:
+- name: dev-image-pull-secret
+"""
+
+        # Use .replace instead of .format because there are other '{word}' things in 'description'
+        # fields that would cause KeyErrors when .format erroneously tries to evaluate them.
+        input_crds = (
+            load_manifest("crds")
+            .replace('{image}', os.environ["AMBASSADOR_DOCKER_IMAGE"])
+            .replace('{serviceAccountExtra}', serviceAccountExtra)
+        )
 
         if is_knative_compatible():
             KNATIVE_SERVING_CRDS = load_manifest("knative_serving_crds")
@@ -1545,11 +1567,31 @@ class Runner:
             if not crd:
                 continue
 
-            # We can't strip the schema validation from apiextensions.k8s.io/v1 CRDs because it is
-            # required; otherwise the API server would refuse to create the CRD, telling us:
-            #
-            #     CustomResourceDefinition.apiextensions.k8s.io "…" is invalid: spec.versions[0].schema.openAPIV3Schema: Required value: schemas are required
-            if crd["apiVersion"] != "apiextensions.k8s.io/v1":
+            if crd["apiVersion"] == "apiextensions.k8s.io/v1":
+                # We can't naively strip the schema validation from apiextensions.k8s.io/v1 CRDs
+                # because it is required; otherwise the API server would refuse to create the CRD,
+                # telling us:
+                #
+                #     CustomResourceDefinition.apiextensions.k8s.io "…" is invalid: spec.versions[0].schema.openAPIV3Schema: Required value: schemas are required
+                #
+                # So instead we must replace it with a schema that allows anything.
+                for version in crd["spec"]["versions"]:
+                    if "schema" in version:
+                        version["schema"] = {
+                            'openAPIV3Schema': {
+                                'type': 'object',
+                                'properties': {
+                                    'apiVersion': { 'type': 'string' },
+                                    'kind':       { 'type': 'string' },
+                                    'metadata':   { 'type': 'object' },
+                                    'spec': {
+                                        'type': 'object',
+                                        'x-kubernetes-preserve-unknown-fields': True,
+                                    },
+                                },
+                            },
+                        }
+            elif crd["apiVersion"] == "apiextensions.k8s.io/v1beta1":
                 crd["spec"].pop("validation", None)
                 for version in crd["spec"]["versions"]:
                     version.pop("schema", None)
@@ -1562,13 +1604,13 @@ class Runner:
             print(f'CRDS changed ({reason}), applying.')
             if not ShellCommand.run_with_retry(
                     'Apply CRDs',
-                    'kubectl', 'apply', '-f', '/tmp/k8s-CRDs.yaml',
+                    'tools/bin/kubectl', 'apply', '-f', '/tmp/k8s-CRDs.yaml',
                     retries=5, sleep_seconds=10):
                 raise RuntimeError("Failed applying CRDs")
 
             tries_left = 10
 
-            while os.system('kubectl get crd mappings.getambassador.io > /dev/null 2>&1') != 0:
+            while os.system('tools/bin/kubectl get crd mappings.getambassador.io > /dev/null 2>&1') != 0:
                 tries_left -= 1
 
                 if tries_left <= 0:
@@ -1588,7 +1630,7 @@ class Runner:
         if changed:
             print(f'KAT pod definition changed ({reason}), applying')
             if not ShellCommand.run_with_retry('Apply KAT pod',
-                    'kubectl', 'apply', '-f' , '/tmp/k8s-kat-pod.yaml', '-n', 'default',
+                    'tools/bin/kubectl', 'apply', '-f' , '/tmp/k8s-kat-pod.yaml', '-n', 'default',
                     retries=5, sleep_seconds=10):
                 raise RuntimeError('Could not apply manifest for KAT pod')
 
@@ -1597,7 +1639,7 @@ class Runner:
 
             while True:
                 if ShellCommand.run("wait for KAT pod",
-                                    'kubectl', '-n', 'default', 'wait', '--timeout=30s', '--for=condition=Ready', 'pod', 'kat'):
+                                    'tools/bin/kubectl', '-n', 'default', 'wait', '--timeout=30s', '--for=condition=Ready', 'pod', 'kat'):
                     print("KAT pod ready")
                     break
 
@@ -1621,7 +1663,7 @@ class Runner:
         if changed:
             print(f'Dummy pod definition changed ({reason}), applying')
             if not ShellCommand.run_with_retry('Apply dummy pod',
-                    'kubectl', 'apply', '-f' , '/tmp/k8s-dummy-pod.yaml', '-n', 'default',
+                    'tools/bin/kubectl', 'apply', '-f' , '/tmp/k8s-dummy-pod.yaml', '-n', 'default',
                     retries=5, sleep_seconds=10):
                 raise RuntimeError('Could not apply manifest for dummy pod')
 
@@ -1630,7 +1672,7 @@ class Runner:
 
             while True:
                 if ShellCommand.run("wait for dummy pod",
-                                    'kubectl', '-n', 'default', 'wait', '--timeout=30s', '--for=condition=Ready', 'pod', 'dummy-pod'):
+                                    'tools/bin/kubectl', '-n', 'default', 'wait', '--timeout=30s', '--for=condition=Ready', 'pod', 'dummy-pod'):
                     print("Dummy pod ready")
                     break
 
@@ -1648,17 +1690,17 @@ class Runner:
         if os.environ.get("DEV_CLEAN_K8S_RESOURCES", False):
             print("Clearing cluster...")
             ShellCommand.run('clear old Kubernetes namespaces',
-                             'kubectl', 'delete', 'namespaces', '-l', 'scope=AmbassadorTest',
+                             'tools/bin/kubectl', 'delete', 'namespaces', '-l', 'scope=AmbassadorTest',
                              verbose=True)
             ShellCommand.run('clear old Kubernetes pods etc.',
-                             'kubectl', 'delete', 'all', '-l', 'scope=AmbassadorTest', '--all-namespaces',
+                             'tools/bin/kubectl', 'delete', 'all', '-l', 'scope=AmbassadorTest', '--all-namespaces',
                              verbose=True)
 
         # XXX: better prune selector label
         if manifest_changed:
             print(f"manifest changed ({manifest_reason}), applying...")
             if not ShellCommand.run_with_retry('Applying k8s manifests',
-                    'kubectl', 'apply', '--prune', '-l', 'scope=%s' % self.scope, '-f', fname,
+                    'tools/bin/kubectl', 'apply', '--prune', '-l', 'scope=%s' % self.scope, '-f', fname,
                     retries=5, sleep_seconds=10):
                 raise RuntimeError('Could not apply manifests')
             self.applied_manifests = True
@@ -1831,7 +1873,7 @@ class Runner:
 
         fname = f'/tmp/pods-{scope_for_path}.json'
         if not ShellCommand.run_with_retry('Getting pods',
-            f'kubectl get pod {label_for_scope} --all-namespaces -o json > {fname}',
+            f'tools/bin/kubectl get pod {label_for_scope} --all-namespaces -o json > {fname}',
             shell=True, retries=5, sleep_seconds=10):
             raise RuntimeError('Could not get pods')
 

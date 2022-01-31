@@ -96,7 +96,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/dev/fd/1"
                       }
                     }
@@ -292,8 +296,7 @@
                   },
                   "server_name": "envoy",
                   "stat_prefix": "ingress_https",
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ],
@@ -305,16 +308,16 @@
                   "tls_certificates": [
                     {
                       "certificate_chain": {
-                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdclientcertcrossnamespace.server/8FB752F9041E28BF670D13CAACFCAA93444B6955.crt"
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdclientcertcrossnamespace.server/300765A404006AF7D11272D8DFE3B7230313C40F.crt"
                       },
                       "private_key": {
-                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdclientcertcrossnamespace.server/8FB752F9041E28BF670D13CAACFCAA93444B6955.key"
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdclientcertcrossnamespace.server/300765A404006AF7D11272D8DFE3B7230313C40F.key"
                       }
                     }
                   ],
                   "validation_context": {
                     "trusted_ca": {
-                      "filename": "/tmp/ambassador/snapshots/alt-namespace/secrets-decoded/hostcrdclientcertcrossnamespace.ca/631341503C68B2279DD972CC1936DCAE84D9C177.crt"
+                      "filename": "/tmp/ambassador/snapshots/alt-namespace/secrets-decoded/hostcrdclientcertcrossnamespace.ca/3F6484405FFDDE45F1844FB414CE70E47705CBBE.crt"
                     }
                   }
                 },
@@ -334,7 +337,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/dev/fd/1"
                       }
                     }
@@ -530,8 +537,7 @@
                   },
                   "server_name": "envoy",
                   "stat_prefix": "ingress_https",
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ]
@@ -571,7 +577,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/dev/fd/1"
                       }
                     }
@@ -767,8 +777,7 @@
                   },
                   "server_name": "envoy",
                   "stat_prefix": "ingress_https",
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ],
@@ -780,16 +789,16 @@
                   "tls_certificates": [
                     {
                       "certificate_chain": {
-                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdclientcertcrossnamespace.server/8FB752F9041E28BF670D13CAACFCAA93444B6955.crt"
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdclientcertcrossnamespace.server/300765A404006AF7D11272D8DFE3B7230313C40F.crt"
                       },
                       "private_key": {
-                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdclientcertcrossnamespace.server/8FB752F9041E28BF670D13CAACFCAA93444B6955.key"
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdclientcertcrossnamespace.server/300765A404006AF7D11272D8DFE3B7230313C40F.key"
                       }
                     }
                   ],
                   "validation_context": {
                     "trusted_ca": {
-                      "filename": "/tmp/ambassador/snapshots/alt-namespace/secrets-decoded/hostcrdclientcertcrossnamespace.ca/631341503C68B2279DD972CC1936DCAE84D9C177.crt"
+                      "filename": "/tmp/ambassador/snapshots/alt-namespace/secrets-decoded/hostcrdclientcertcrossnamespace.ca/3F6484405FFDDE45F1844FB414CE70E47705CBBE.crt"
                     }
                   }
                 },
@@ -809,7 +818,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/dev/fd/1"
                       }
                     }
@@ -1005,8 +1018,7 @@
                   },
                   "server_name": "envoy",
                   "stat_prefix": "ingress_https",
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ]

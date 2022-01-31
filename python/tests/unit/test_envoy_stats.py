@@ -22,8 +22,12 @@ from ambassador.diagnostics import EnvoyStatsMgr, EnvoyStats
 
 class EnvoyStatsMocker:
     def __init__(self) -> None:
+        current_test = os.environ.get('PYTEST_CURRENT_TEST')
+
+        assert current_test is not None, "PYTEST_CURRENT_TEST is not set??"
+
         self.test_dir = os.path.join(
-            os.path.dirname(os.environ.get('PYTEST_CURRENT_TEST').split("::")[0]),
+            os.path.dirname(current_test.split("::")[0]),
             "test_envoy_stats_data"
         )
 
@@ -66,8 +70,8 @@ def test_levels():
     # This one may be a bit more fragile than we'd like.
     esm.update()
     assert esm.loginfo == {
-        'error': [ 'admin', 'aws', 'assert', 'backtrace', 'cache_filter', 
-                   'client', 'config', 'connection', 'conn_handler', 
+        'error': [ 'admin', 'aws', 'assert', 'backtrace', 'cache_filter',
+                   'client', 'config', 'connection', 'conn_handler',
                    'decompression', 'envoy_bug', 'ext_authz', 'rocketmq',
                    'file', 'filter', 'forward_proxy', 'grpc', 'hc', 'health_checker',
                    'http', 'http2', 'hystrix', 'init', 'io', 'jwt', 'kafka',
