@@ -519,7 +519,10 @@ $(OSS_HOME)/build-aux/js-licenses.txt: ${NPM_PACKAGES:.json=_licenses.tmp}
 	cat $< | jq -r '.dependencies[] | .name + "|" + .version + "|" + (.licenses | flatten | join(", "))' >$@
 
 $(OSS_HOME)/build-aux/js-dependencies.txt: ${NPM_PACKAGES:.json=_dependencies.tmp}
-	@set -e; { \
+	@echo "NPM_PACKAGES $(NPM_PACKAGES)"
+	@echo "_dependencies ${NPM_PACKAGES:.json=_dependencies.tmp}"
+	@echo "^ $^"
+	set -e; { \
   		if [[ ! -z "$^" ]]; then \
 			cat $^ | sort | uniq > $@; \
 		else \
