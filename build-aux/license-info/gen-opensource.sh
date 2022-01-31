@@ -1,5 +1,5 @@
 #!/bin/env bash
-set -e
+set -ex
 set -o pipefail
 
 if [[ ! -f "${PIP_SHOW}" ]]; then
