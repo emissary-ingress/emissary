@@ -497,10 +497,12 @@ NPM_PACKAGES := $(shell find "${OSS_HOME}" \( \
 		\) -prune -o -name package.json -type f -print)
 
 %_rawdeps.tmp: %.json JS_BUILDER $(tools/js-mkopensource)
-	set -e; { \
+	set -ex; { \
 		export JS_MKOPENSOURCE="$(OSS_HOME)/$(tools/js-mkopensource)"; \
 		$(OSS_HOME)/build-aux/license-info/js-deps.sh "$<"; \
 	} > $@
+	cat $@
+	>&2 echo "END DEPS $@ from $< ===================================================="
 
 %_licenses.tmp: %_rawdeps.tmp
 	cat $< | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' >$@
