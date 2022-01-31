@@ -23,6 +23,7 @@
 /py-version.txt
 /pip-show.txt
 /js-licenses.txt
+/js-dependencies.txt
 
 # var.mk
 /.var.*
