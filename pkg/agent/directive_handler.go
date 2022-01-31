@@ -63,7 +63,7 @@ func (dh *BasicDirectiveHandler) handleRolloutCommand(ctx context.Context, cmdSc
 
 	rolloutName := cmdSchema.GetName()
 	namespace := cmdSchema.GetNamespace()
-	action := cmdSchema.GetAction()
+	action := int32(cmdSchema.GetAction())
 
 	if rolloutName == "" {
 		dlog.Warn(ctx, "Rollout command received without a rollout name.")
@@ -78,7 +78,7 @@ func (dh *BasicDirectiveHandler) handleRolloutCommand(ctx context.Context, cmdSc
 	cmd := &rolloutCommand{
 		rolloutName: rolloutName,
 		namespace:   namespace,
-		action:      rolloutAction(action),
+		action:      rolloutAction(agentapi.RolloutCommand_Action_name[action]),
 	}
 	err := cmd.RunWithClientFactory(ctx, rolloutsGetterFactory)
 	if err != nil {
