@@ -1,13 +1,29 @@
 #!/bin/bash
 
+# Program setup
 set -e
 
 CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 [ -d "$CURR_DIR" ] || { echo "FATAL: no current dir (maybe running in zsh?)";  exit 1; }
+
+
+# Arg parsing
+errUsage() {
+	echo >&2 "$0: error: $*"
+	echo >&2 "Usage: GA_EMISSARY_VER GA_CHART_VERSION"
+	echo >&2 "Neither version should have a leading 'v'."
+	exit 2
+}
+if [[ $# != 2 ]]; then
+	errUsage "2 arguments expected, got $#"
+fi
 ga_ver=$1
-if [[ -z "${ga_ver}" ]] ; then
-    echo "ERROR: ga_ver must be first argument"
-    exit 1
+chart_ver=$2
+if [[ $ga_ver != 2.* || $ga_ver == *-* ]]; then
+	errUsage "arg doesn't look like a GA Emissary version: $ga_ver"
+fi
+if [[ $chart_ver != 7.* || $2 == *-* ]]; then
+	errUsage "arg doesn't look like a GA Chart version: $chart_ver"
 fi
 
 commit=$(git rev-parse HEAD)
@@ -27,8 +43,8 @@ ${CURR_DIR}/release-wait-for-ga-image --ga-tag $ga_ver --release-registry $RELEA
 ${CURR_DIR}/release-mirror-images --ga-version ${ga_ver} --source-registry $RELEASE_REGISTRY
 
 git checkout v$ga_ver
-${CURR_DIR}/release-manifest-image-update --oss-version ${ga_ver}
 
-make release/chart/tag
+git tag --annotate --message="Tagging chart/v${chart_ver}" "chart/v${chart_ver}"
+git push origin "chart/v${chart_ver}"
 
 ${CURR_DIR}/release-wait-for-ga-artifacts --ga-tag $ga_ver

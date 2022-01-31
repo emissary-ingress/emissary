@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/textproto"
@@ -13,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/datawire/dlib/derror"
+	"github.com/datawire/go-mkopensource/pkg/dependencies"
 	. "github.com/datawire/go-mkopensource/pkg/detectlicense"
 )
 
@@ -21,13 +23,6 @@ type tuple struct {
 	Version string
 	License string
 }
-
-var (
-	PSF         = License{Name: "Python Software Foundation license"}
-	Unicode2015 = License{Name: "Unicode License Agreement for Data Files and Software (2015)"}
-	LGPL21      = License{Name: "GNU Lesser General Public License Version 2.1", WeakCopyleft: true}
-	GPL3        = License{Name: "GNU General Public License Version 3", StrongCopyleft: true}
-)
 
 func parseLicenses(name, version, license string) map[License]struct{} {
 	override, ok := map[tuple][]License{
@@ -126,10 +121,10 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 	return nil
 }
 
-func Main() error {
+func Main(outputType OutputType, r io.Reader, w io.Writer) error {
 	distribs := make(map[string]textproto.MIMEHeader)
 
-	input := textproto.NewReader(bufio.NewReader(os.Stdin))
+	input := textproto.NewReader(bufio.NewReader(r))
 	for {
 		distrib, err := input.ReadMIMEHeader()
 		if err != nil {
@@ -147,7 +142,44 @@ func Main() error {
 	}
 	sort.Strings(distribNames)
 
-	table := tabwriter.NewWriter(os.Stdout, 0, 8, 2, ' ', 0)
+	switch outputType {
+	case jsonOutputType:
+		if err := jsonOutput(w, distribNames, distribs); err != nil {
+			return err
+		}
+	default:
+		if err := markdownOutput(w, distribNames, distribs); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func jsonOutput(w io.Writer, distribNames []string, distribs map[string]textproto.MIMEHeader) error {
+	dependencyInfo, err := getDependencies(distribNames, distribs)
+	if err != nil {
+		return err
+	}
+
+	jsonString, marshalErr := json.Marshal(dependencyInfo)
+	if marshalErr != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Could not generate JSON output: %v\n", err)
+		os.Exit(int(MarshallJsonError))
+	}
+
+	if _, err := w.Write(jsonString); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Could not write JSON output: %v\n", err)
+		os.Exit(int(WriteError))
+	}
+
+	_, _ = fmt.Fprintf(w, "\n")
+
+	return nil
+}
+
+func markdownOutput(w io.Writer, distribNames []string, distribs map[string]textproto.MIMEHeader) error {
+	table := tabwriter.NewWriter(w, 0, 8, 2, ' ', 0)
 	_, _ = io.WriteString(table, "  \tName\tVersion\tLicense(s)\n")
 	_, _ = io.WriteString(table, "  \t----\t-------\t----------\n")
 	var errs derror.MultiError
@@ -167,7 +199,10 @@ func Main() error {
 		sort.Strings(licenseList)
 		distribLicense := strings.Join(licenseList, ", ")
 
-		fmt.Fprintf(table, "\t%s\t%s\t%s\n", distribName, distribVersion, distribLicense)
+		if _, err := fmt.Fprintf(table, "\t%s\t%s\t%s\n", distribName, distribVersion, distribLicense); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Could not write Markdown output: %v\n", err)
+			os.Exit(int(WriteError))
+		}
 	}
 	if len(errs) > 0 {
 		err := errs
@@ -181,15 +216,78 @@ func Main() error {
     file to correctly detect the license.`,
 			err)
 	}
-	fmt.Printf("The Ambassador Python code makes use of the following Free and Open Source\nlibraries:\n\n")
-	table.Flush()
+
+	if _, err := fmt.Fprintf(w, "The Emissary-ingress Python code makes use of the following Free and Open Source\nlibraries:\n\n"); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Could not write Markdown output: %v\n", err)
+		os.Exit(int(WriteError))
+	}
+
+	if err := table.Flush(); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Could not write Markdown output: %v\n", err)
+		os.Exit(int(WriteError))
+	}
 
 	return nil
 }
 
+func getDependencies(distribNames []string, distribs map[string]textproto.MIMEHeader) (dependencies.DependencyInfo, error) {
+	allLicenses := map[License]struct{}{}
+	jsonOutput := dependencies.NewDependencyInfo()
+
+	var errs derror.MultiError
+	for _, distribName := range distribNames {
+		distrib := distribs[distribName]
+		distribVersion := distrib.Get("Version")
+
+		licenses := parseLicenses(distribName, distribVersion, distrib.Get("License"))
+		if licenses == nil {
+			errs = append(errs, fmt.Errorf("distrib %q %q: Could not parse license-string %q", distribName, distribVersion, distrib.Get("License")))
+			continue
+		}
+		licenseList := make([]string, 0, len(licenses))
+		for license := range licenses {
+			licenseList = append(licenseList, license.Name)
+			allLicenses[license] = struct{}{}
+		}
+		sort.Strings(licenseList)
+
+		dependencyDetails := dependencies.Dependency{
+			Name:     distribName,
+			Version:  distribVersion,
+			Licenses: licenseList,
+		}
+		jsonOutput.Dependencies = append(jsonOutput.Dependencies, dependencyDetails)
+	}
+
+	if len(errs) > 0 {
+		err := errs
+		return jsonOutput, errors.Errorf(`%v
+    This probably means that you added or upgraded a dependency, and the
+    automated opensource-license-checker can't confidently detect what
+    the license is.  (This is a good thing, because it is reminding you
+    to check the license of libraries before using them.)
+
+    You need to update the "github.com/datawire/ambassador/v2/cmd/py-mkopensource/main.go"
+    file to correctly detect the license.`,
+			err)
+	}
+
+	for license := range allLicenses {
+		jsonOutput.Licenses[license.Name] = license.URL
+	}
+
+	return jsonOutput, nil
+}
+
 func main() {
-	if err := Main(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
+	cliArgs, err := parseArgs()
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "%s: %v\nTry '%s --help' for more information.\n", os.Args[0], err, os.Args[0])
+		os.Exit(int(InvalidArgumentsError))
+	}
+
+	if err := Main(cliArgs.outputType, os.Stdin, os.Stdout); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(int(DependencyGenerationError))
 	}
 }

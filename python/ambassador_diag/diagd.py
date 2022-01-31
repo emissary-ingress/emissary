@@ -180,7 +180,7 @@ class DiagApp (Flask):
               config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
               metrics_endpoint: Optional[str], k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False,
               verbose=False, notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
-              report_action_keys=False, enable_fast_reconfigure=False, legacy_mode=False, clustermap_path=None):
+              report_action_keys=False, enable_fast_reconfigure=False, clustermap_path=None):
         self.health_checks = do_checks
         self.no_envoy = no_envoy
         self.debugging = reload
@@ -197,7 +197,6 @@ class DiagApp (Flask):
         self.metrics_endpoint = metrics_endpoint
         self.metrics_registry = CollectorRegistry(auto_describe=True)
         self.enable_fast_reconfigure = enable_fast_reconfigure
-        self.legacy_mode = legacy_mode
 
         # Init logger, inherits settings from default
         self.logger = logging.getLogger("ambassador.diagd")
@@ -644,29 +643,19 @@ def _is_local_request() -> bool:
     """
     Determine if this request originated with localhost.
 
-    When we are not running in LEGACY_MODE, we rely on healthcheck_server.go setting
-    the X-Ambassador-Diag-IP header for us (and we rely on it overwriting anything
-    that's already there!).
-
-    When we _are_ running in LEGACY_MODE, we rely on an implementation detail of
-    Flask (or maybe of GUnicorn?): the existence of the REMOTE_ADDR environment
-    variable. This may not work as intended on other WSGI implementations, though if
-    the environment variable is missing entirely, the effect is to fail closed, i.e.
-    all requests will be rejected, in which case the problem will become apparent
-    very quickly.
+    We rely on healthcheck_server.go setting the X-Ambassador-Diag-IP header for us
+    (and we rely on it overwriting anything that's already there!).
 
     It might be possible to consider the environment variables SERVER_NAME and
     SERVER_PORT instead, as those are allegedly required by WSGI... but attempting
     to do so in Flask/GUnicorn yielded a worse implementation that was still not
     portable.
+
     """
 
     remote_addr: Optional[str] = ""
 
-    if not app.legacy_mode:
-        remote_addr = request.headers.get("X-Ambassador-Diag-IP")
-    else:
-        remote_addr = request.environ.get("REMOTE_ADDR")
+    remote_addr = request.headers.get("X-Ambassador-Diag-IP")
 
     return remote_addr == "127.0.0.1"
 
@@ -2117,7 +2106,6 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     """
 
     enable_fast_reconfigure = parse_bool(os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "true"))
-    legacy_mode = parse_bool(os.environ.get("AMBASSADOR_LEGACY_MODE", "false"))
 
     if port < 0:
         port = Constants.DIAG_PORT if not enable_fast_reconfigure else Constants.DIAG_PORT_ALT
@@ -2153,7 +2141,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick, banner_endpoint,
               metrics_endpoint, k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
               validation_retries, allow_fs_commands, local_scout, report_action_keys,
-              enable_fast_reconfigure, legacy_mode)
+              enable_fast_reconfigure)
 
     if not workers:
         workers = number_of_workers()

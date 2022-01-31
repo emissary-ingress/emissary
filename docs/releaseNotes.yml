@@ -53,10 +53,122 @@ items:
           Support for the Envoy V2 API and the `AMBASSADOR_ENVOY_API_VERSION` environment
           variable have been removed. Only the Envoy V3 API is supported (this has been the
           default since Emissary-ingress v1.14.0).
- 
+
+  - version: 2.1.2
+    prevVersion: 2.1.0
+    date: '2022-01-25'
+    notes:
+      - title: Fix support for for v2 Mappings with CORS
+        type: bugfix
+        body: >-
+          Emissary-ingress 2.1.0 generated invalid Envoy configuration for
+          <code>getambassador.io/v2</code> <code>Mappings</code> that set
+          <code>spec.cors.origins</code> to a string rather than a list of strings; this has been
+          fixed, and these <code>Mappings<code> should once again function correctly.
+
+      - title: Correctly handle canary Mapping weights when reconfiguring
+        type: bugfix
+        body: >-
+          Changes to the <code>weight</code> of <code>Mapping</code> in a canary group
+          will now always be correctly managed during reconfiguration; such changes could
+          have been missed in earlier releases.
+        docs: topics/using/canary/#the-weight-attribute
+
+      - title: Correctly handle solitary Mappings with explicit weights
+        type: bugfix
+        body: >-
+          A <code>Mapping</code> that is not part of a canary group, but that has a
+          <code>weight</code> less than 100, will be correctly configured to receive all
+          traffic as if the <code>weight</code> were 100.
+        docs: topics/using/canary/#the-weight-attribute
+
+      - title: Correctly handle empty rewrite in a Mapping
+        type: bugfix
+        body: >-
+          Using <code>rewrite: ""</code> in a <code>Mapping</code> is correctly handled
+          to mean "do not rewrite the path at all".
+        docs: topics/using/rewrites
+
+      - title: Correctly handle DNS wildcards when associating Hosts and Mappings
+        type: bugfix
+        body: >-
+          <code>Mapping</code>s with DNS wildcard <code>hostname</code> will now be correctly
+          matched with <code>Host</code>s. Previously, the case where both the <code>Host</code>
+          and the <code>Mapping</code> use DNS wildcards for their hostnames could sometimes
+          not correctly match when they should have.
+        docs: howtos/configure-communications/
+
+      - title: Correctly use Mappings with host redirects
+        type: bugfix
+        body: >-
+          Any <code>Mapping</code> that uses the <code>host_redirect</code> field is now properly discovered and used. Thanks
+          to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix!
+        github:
+        - title: 3709
+          link: https://github.com/emissary-ingress/emissary/issues/3709
+        docs: https://github.com/emissary-ingress/emissary/issues/3709
+
+      - title: Fix overriding global settings for adding or removing headers
+        type: bugfix
+        body: >-
+          If the <code>ambassador</code> <code>Module</code> sets a global default for
+          <code>add_request_headers</code>, <code>add_response_headers</code>,
+          <code>remove_request_headers</code>, or <code>remove_response_headers</code>, it is often
+          desirable to be able to turn off that setting locally for a specific <code>Mapping</code>.
+          For several releases this has not been possible for <code>Mappings</code> that are native
+          Kubernetes resources (as opposed to annotations), as an empty value ("mask the global
+          default") was erroneously considered to be equivalent to unset ("inherit the global
+          default").  This is now fixed.
+        docs: topics/using/defaults/
+
+      - title: Fix empty error_response_override bodies
+        type: bugfix
+        body: >-
+          It is now possible to set a <code>Mapping</code>
+          <code>spec.error_response_overrides</code> <code>body.text_format</code> to an empty
+          string or <code>body.json_format</code> to an empty dict.  Previously, this was possible
+          for annotations but not for native Kubernetes resources.
+        docs: topics/running/custom-error-responses/
+
+      - title: Annotation conversion and validation
+        type: bugfix
+        body: >-
+          Resources that exist as <code>getambassador.io/config</code> annotations rather than as
+          native Kubernetes resources are now validated and internally converted to v3alpha1 and,
+          the same as native Kubernetes resources.
+
+      - title: Validation error reporting
+        type: bugfix
+        body: >-
+          Resource validation errors are now reported more consistently; it was the case that in
+          some situations a validation error would not be reported.
+
+      - title: Docker BuildKit always used for builds
+        type: change
+        body: >-
+          Docker BuildKit is enabled for all Emissary builds. Additionally, the Go
+          build cache is fully enabled when building images, speeding up repeated builds.
+        docs: https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md
+
+  - version: 2.1.1
+    date: 'N/A'
+    notes:
+      - title: Never issued
+        type: change
+        isHeadline: true
+        body: >-
+          <i>Emissary-ingress 2.1.1 was not issued; Ambassador Edge Stack 2.1.1 uses
+          Emissary-ingress 2.1.0.</i>
+
   - version: 2.1.0
     date: '2021-12-16'
     notes:
+      - title: Not recommended; upgrade to 2.1.2 instead
+        type: change
+        isHeadline: true
+        body: >-
+          <i>Emissary-ingress 2.1.0 is not recommended; upgrade to 2.1.2 instead.</i>
+
       - title: CRD conversions
         type: feature
         body: >-

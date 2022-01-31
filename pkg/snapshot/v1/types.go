@@ -2,13 +2,10 @@ package snapshot
 
 import (
 	"encoding/json"
-	"fmt"
-	"reflect"
-	"strings"
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/watt"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
 
@@ -30,7 +27,7 @@ type Snapshot struct {
 	Kubernetes *KubernetesSnapshot
 	// The Consul field contains endpoint data for any mappings setup to use a
 	// consul resolver.
-	Consul *watt.ConsulSnapshot
+	Consul *ConsulSnapshot
 	// The Deltas field contains a list of deltas to indicate what has changed
 	// since the prior snapshot. This is only computed for the Kubernetes
 	// portion of the snapshot. Changes in the Consul endpoint data are not
@@ -51,6 +48,10 @@ type AmbassadorMetaInfo struct {
 	AmbassadorVersion string          `json:"ambassador_version"`
 	KubeVersion       string          `json:"kube_version"`
 	Sidecar           json.RawMessage `json:"sidecar"`
+}
+
+type ConsulSnapshot struct {
+	Endpoints map[string]consulwatch.Endpoints `json:",omitempty"`
 }
 
 type KubernetesSnapshot struct {
@@ -95,7 +96,8 @@ type KubernetesSnapshot struct {
 	FSSecrets  map[SecretRef]*kates.Secret `json:"-"`      // Secrets from the filesystem
 	Secrets    []*kates.Secret             `json:"secret"` // Secrets we'll feed to Ambassador
 
-	Annotations []kates.Object `json:"-"`
+	// [kind/name.namespace][]kates.Object
+	Annotations map[string]AnnotationList `json:"annotations"`
 
 	// Pods, Deployments and ConfigMaps were added to be used by Ambassador Agent so it can
 	// report to AgentCom in Ambassador Cloud.
@@ -118,6 +120,45 @@ type KubernetesSnapshot struct {
 	ArgoApplications []*kates.Unstructured `json:"ArgoApplications,omitempty"`
 }
 
+// AnnotationList is a []kates.Object that round-trips through JSON (kates.Object is an interface,
+// and you can't normally unmarshal in to an interface).
+//
+// The kates.Object will be the appropriate struct(-pointer) type for valid resources, and a
+// *kates.Unstructured for invalid resources.
+type AnnotationList []kates.Object
+
+// UnmarshalJSON implements json.Unmarshaler, and exists because unmarshalling directly in to an
+// interface (kates.Object) doesn't work.
+func (al *AnnotationList) UnmarshalJSON(bs []byte) error {
+	if string(bs) == "null" {
+		*al = AnnotationList{}
+		return nil
+	}
+	var untyped []*kates.Unstructured
+
+	// Unmarshal as unstructured
+	err := json.Unmarshal(bs, &untyped)
+	if err != nil {
+		return err
+	}
+
+	typed := make(AnnotationList, len(untyped))
+	for i, inObj := range untyped {
+		if _, isInvalid := inObj.Object["errors"]; isInvalid {
+			typed[i] = inObj
+		} else {
+			outObj, err := convertAnnotationObject(inObj)
+			if err != nil {
+				return err
+			}
+			typed[i] = outObj
+		}
+	}
+
+	*al = typed
+	return nil
+}
+
 // The APIDoc type is custom object built in the style of a Kubernetes resource (name, type, version)
 // which holds a reference to a Kubernetes object from which an OpenAPI document was scrapped (Data field)
 type APIDoc struct {
@@ -125,41 +166,4 @@ type APIDoc struct {
 	Metadata  *kates.ObjectMeta      `json:"metadata,omitempty"`
 	TargetRef *kates.ObjectReference `json:"targetRef,omitempty"`
 	Data      []byte                 `json:"data,omitempty"`
-}
-
-// Custom Unmarshaller for the kubernetes snapshot
-// TODO: This should be REMOVED once LEGACY_MODE is removed.
-// This unmarshall will take a snapshot that comes from watt, and translate the mis-named fields
-// into the correct fields in KubernetesSnapshot
-func (a *KubernetesSnapshot) UnmarshalJSON(data []byte) error {
-	legacyK8sTranslator := struct {
-		LegacyModeListeners   []*amb.Listener   `json:"Listener"`
-		LegacyModeHosts       []*amb.Host       `json:"Host"`
-		LegacyModeMappings    []*amb.Mapping    `json:"Mapping"`
-		LegacyModeTCPMappings []*amb.TCPMapping `json:"TCPMapping"`
-	}{}
-
-	if err := json.Unmarshal(data, &legacyK8sTranslator); err != nil {
-		return err
-	}
-	type k8ssnap2 KubernetesSnapshot
-	if err := json.Unmarshal(data, (*k8ssnap2)(a)); err != nil {
-		return err
-	}
-	a.Listeners = append(a.Listeners, legacyK8sTranslator.LegacyModeListeners...)
-	a.Hosts = append(a.Hosts, legacyK8sTranslator.LegacyModeHosts...)
-	a.Mappings = append(a.Mappings, legacyK8sTranslator.LegacyModeMappings...)
-	a.TCPMappings = append(a.TCPMappings, legacyK8sTranslator.LegacyModeTCPMappings...)
-	return nil
-}
-
-func (a *KubernetesSnapshot) Render() string {
-	result := &strings.Builder{}
-	v := reflect.ValueOf(a)
-	t := v.Type().Elem()
-	for i := 0; i < t.NumField(); i++ {
-		f := t.Field(i)
-		result.WriteString(fmt.Sprintf("%s: %d\n", f.Name, reflect.Indirect(v).Field(i).Len()))
-	}
-	return result.String()
 }

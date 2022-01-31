@@ -19,9 +19,5 @@ runs:
       shell: bash
       run: |
         make push-dev
-    - name: "Clean up dirty chart stuff"
-      shell: bash
-      run: |
-        make chart-clean
     - uses: ./.github/actions/git-dirty-check
       name: "Check git not dirty (from make push + make push-dev)"

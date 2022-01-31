@@ -55,14 +55,22 @@ class NormalizedResource:
         return cls(ir_obj, rkey)
 
     @classmethod
-    def from_kubernetes_object(cls, obj: KubernetesObject) -> NormalizedResource:
-        if obj.gvk.api_group not in ('getambassador.io', 'getambassador.io'):
-            raise ValueError(f'Cannot construct resource from non-Ambassador Kubernetes object with API version {obj.gvk.api_version}')
+    def from_kubernetes_object(cls, obj: KubernetesObject, rkey: Optional[str] = None) -> NormalizedResource:
         if obj.namespace is None:
             raise ValueError(f'Cannot construct resource from Kubernetes object {obj.key} without namespace')
 
         labels = dict(obj.labels)
-        labels['ambassador_crd'] = f"{obj.name}.{obj.namespace}"
+
+        if not rkey:  # rkey is only set for annotations
+            # Default rkey for native Kubernetes resources
+            rkey = f"{obj.name}.{obj.namespace}"
+            # Some other code uses the 'ambassador_crd' label to know which resource to update
+            # .status for with the apiserver.  Which is (IMO) a horrible hack, but I'm not up for
+            # changing it at the moment.
+            labels['ambassador_crd'] = rkey
+        else:
+            # Don't let it think that an annotation can have its status updated.
+            labels.pop('ambassador_crd', None)
 
         # When creating an Ambassador object from a Kubernetes object, we have to make
         # sure that we pay attention to 'errors', which will be set IFF watt's validation
@@ -78,26 +86,8 @@ class NormalizedResource:
             api_group=obj.gvk.api_group,
             labels=labels,
             spec=obj.spec,
+            rkey=rkey,
         )
-
-    @classmethod
-    def from_kubernetes_object_annotation(cls, obj: KubernetesObject) -> List[NormalizedResource]:
-        config = obj.annotations.get('getambassador.io/config')
-        if not config:
-            return []
-
-        def clean_normalize(r: Dict[str, Any]) -> NormalizedResource:
-            # Annotations should have to pass manual object validation.
-            r['_force_validation'] = True
-
-            if r.get('metadata_labels') is None and obj.labels:
-                r['metadata_labels'] = obj.labels
-            if r.get('namespace') is None and obj.scope == KubernetesObjectScope.NAMESPACE:
-                r['namespace'] = obj.namespace
-
-            return NormalizedResource(r, rkey=f'{obj.name}.{obj.namespace}')
-
-        return [clean_normalize(r) for r in parse_yaml(config) if r]
 
 
 class ResourceManager:
@@ -182,8 +172,3 @@ class ResourceManager:
     def emit(self, resource: NormalizedResource):
         if self._emit(resource):
             self.locations.current.ocount += 1
-
-    def emit_annotated(self, resources: List[NormalizedResource]):
-        with self.locations.mark_annotated():
-            for resource in resources:
-                self.emit(resource)

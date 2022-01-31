@@ -41,6 +41,7 @@
 #  - Function: joinlist
 #  - Function: quote.shell
 #  - Function: lazyonce
+#  - .PHONY Target: noop
 #  - .PHONY Target: FORCE
 #
 #  Internal use:
@@ -112,6 +113,10 @@ build-aux.dir = $(patsubst %/,%,$(dir $(_prelude.mk)))
 
 #
 # Targets
+
+noop:
+	@true
+.PHONY: noop
 
 # Sometimes we have a file-target that we want Make to always try to
 # re-generate (such as compiling a Go program; we would like to let

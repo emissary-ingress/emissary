@@ -1,7 +1,6 @@
 package entrypoint
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -18,7 +17,7 @@ func TestGetEnvoyFlags(t *testing.T) {
 	for idx, flag := range flags {
 		if flag == "--concurrency" {
 			foundFlag = true
-			fmt.Printf("flags[idx] = %v\n", flags[idx])
+			t.Logf("flags[idx] = %v", flags[idx])
 			if idx+1 < len(flags) && flags[idx+1] == "4" {
 				foundValue = true
 			}
