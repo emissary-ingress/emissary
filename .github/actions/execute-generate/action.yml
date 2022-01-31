@@ -14,12 +14,12 @@ runs:
     - name: "'make generate'"
       shell: bash
       run: |
-        make generate
+        make ${PWD}/OPENSOURCE.md ${PWD}/LICENSES.md
     - uses: ./.github/actions/git-dirty-check
       name: "Check git not dirty from 'make generate'"
     - name: "'make generate' (again!)"
       shell: bash
       run: |
-        make generate
+        make ${PWD}/OPENSOURCE.md ${PWD}/LICENSES.md
     - uses: ./.github/actions/git-dirty-check
       name: "Check git not dirty from 'make generate' (again!)"

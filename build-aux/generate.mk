@@ -529,14 +529,15 @@ $(OSS_HOME)/build-aux/js-dependencies.txt: ${NPM_PACKAGES:.json=_dependencies.tm
 	@echo "NPM_PACKAGES $(NPM_PACKAGES)"
 	@echo "_dependencies ${NPM_PACKAGES:.json=_dependencies.tmp}"
 	@echo "^ $^"
-	set -e; { \
+	set -ex; { \
   		if [[ ! -z "$^" ]]; then \
   		  	echo "Raw list of dependencies ==================================================== "; \
 			cat $^; \
+			alias sort; \
   		  	echo "Raw-sorted list of dependencies ==================================================== "; \
-			cat $^ | sort | uniq; \
-			cat $^ | sort | uniq > $@; \
+			(cat $^) | sort -h | uniq; \
   		  	echo "BEGIN js-dependencies File contents ==================================================== "; \
+			(cat $^) | sort -h | uniq > $@; \
   		  	cat $@; \
   		  	echo "END js-dependencies File contents ==================================================== "; \
 		else \
