@@ -8,15 +8,15 @@ on:
   pull_request: {}
 
 jobs:
-  lint-test:
-    name: "lint-test"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/execute-lint-test
-        name: "execute lint-test action"
+#  lint-test:
+#    name: "lint-test"
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#      - uses: ./.github/actions/execute-lint-test
+#        name: "execute lint-test action"
   generate:
     name: "generate"
     runs-on: ubuntu-latest
@@ -26,85 +26,85 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/execute-generate
         name: "execute generate action"
-  check-envoy-version:
-    name: "check-envoy-version"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Install Deps
-        uses: ./.github/actions/setup-deps
-      - run: make check-envoy-version
-  go-tests:
-    runs-on: ubuntu-latest
-    name: gotest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/execute-go-tests
-        name: "execute go-tests action"
-      # collect logs
-      - uses: ./.github/actions/collect-testing-logs
-        if: always()
-        name: "Collect testing logs"
-  pytests:
-    runs-on: ubuntu-latest
-    env:
-      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
-      DOCKER_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-    strategy:
-      fail-fast: false
-      matrix:
-        test:
-          - integration
-          - kat-envoy2-ah
-          - kat-envoy2-ip
-          - kat-envoy2-qz
-          - kat-envoy3-ah
-          - kat-envoy3-ip
-          - kat-envoy3-qz
-          # FIXME(lukeshu): KAT_RUN_MODE=local is disabled because it
-          # needs fixed for a world where annotations are already
-          # unfolded in the snapshot.
-          #
-          #- kat-local
-    name: pytest-${{ matrix.test }}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/execute-pytests
-        name: "execute pytests action"
-      # collect logs
-      - uses: ./.github/actions/collect-testing-logs
-        if: always()
-        name: "Collect testing logs"
-  pytest-unit:
-    # pytest-unit is separate from pytests (above) because we know for certain that no cluster is needed.
-    # XXX This is pretty much a crock.
-    runs-on: ubuntu-latest
-    env:
-      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
-      DOCKER_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-    strategy:
-      matrix:
-        test:
-          - unit
-    name: pytest-${{ matrix.test }}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/execute-pytest-unit
-        name: "execute pytest-unit action"
-      # collect logs
-      - uses: ./.github/actions/collect-testing-logs
-        if: always()
-        name: "Collect testing logs"
+#  check-envoy-version:
+#    name: "check-envoy-version"
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#      - name: Install Deps
+#        uses: ./.github/actions/setup-deps
+#      - run: make check-envoy-version
+#  go-tests:
+#    runs-on: ubuntu-latest
+#    name: gotest
+#    steps:
+#      - uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#      - uses: ./.github/actions/execute-go-tests
+#        name: "execute go-tests action"
+#      # collect logs
+#      - uses: ./.github/actions/collect-testing-logs
+#        if: always()
+#        name: "Collect testing logs"
+#  pytests:
+#    runs-on: ubuntu-latest
+#    env:
+#      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+#      DOCKER_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+#      DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        test:
+#          - integration
+#          - kat-envoy2-ah
+#          - kat-envoy2-ip
+#          - kat-envoy2-qz
+#          - kat-envoy3-ah
+#          - kat-envoy3-ip
+#          - kat-envoy3-qz
+#          # FIXME(lukeshu): KAT_RUN_MODE=local is disabled because it
+#          # needs fixed for a world where annotations are already
+#          # unfolded in the snapshot.
+#          #
+#          #- kat-local
+#    name: pytest-${{ matrix.test }}
+#    steps:
+#      - uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#      - uses: ./.github/actions/execute-pytests
+#        name: "execute pytests action"
+#      # collect logs
+#      - uses: ./.github/actions/collect-testing-logs
+#        if: always()
+#        name: "Collect testing logs"
+#  pytest-unit:
+#    # pytest-unit is separate from pytests (above) because we know for certain that no cluster is needed.
+#    # XXX This is pretty much a crock.
+#    runs-on: ubuntu-latest
+#    env:
+#      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+#      DOCKER_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+#      DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+#    strategy:
+#      matrix:
+#        test:
+#          - unit
+#    name: pytest-${{ matrix.test }}
+#    steps:
+#      - uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#      - uses: ./.github/actions/execute-pytest-unit
+#        name: "execute pytest-unit action"
+#      # collect logs
+#      - uses: ./.github/actions/collect-testing-logs
+#        if: always()
+#        name: "Collect testing logs"
   job-image:
     name: "job-image"
     runs-on: ubuntu-latest
@@ -125,13 +125,13 @@ jobs:
         name: "execute job-image action"
   promote-to-passed:
     needs:
-      - lint-test
+#      - lint-test
       - job-image
       - generate
-      - check-envoy-version
-      - go-tests
-      - pytests
-      - pytest-unit
+#      - check-envoy-version
+#      - go-tests
+#      - pytests
+#      - pytest-unit
     runs-on: ubuntu-latest
     name: job-promote-to-passed
     env:
