@@ -506,9 +506,14 @@ NPM_PACKAGES := $(shell find "${OSS_HOME}" \( \
 	>&2 echo "END DEPS $@ from $< ===================================================="
 
 %_licenses.tmp: %_rawdeps.tmp
+	>&2 echo "START generate _licenses.tmp ===================================================="
 	cat $< | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' >$@
+	>&2 echo "START _licenses.tmp $@ from $< ===================================================="
+	cat $@
+	>&2 echo "ENC _licenses.tmp $@ from $< ===================================================="
 
 $(OSS_HOME)/build-aux/js-licenses.txt: ${NPM_PACKAGES:.json=_licenses.tmp}
+	>&2 echo "START generate _licenses.tmp ===================================================="
 	@set -e; { \
   		if [[ ! -z "$^" ]]; then \
 			cat $^ | sed -e 's/\[\([^]]*\)]()/\1/' | sort | uniq > $@; \
@@ -526,14 +531,14 @@ $(OSS_HOME)/build-aux/js-dependencies.txt: ${NPM_PACKAGES:.json=_dependencies.tm
 	@echo "^ $^"
 	set -e; { \
   		if [[ ! -z "$^" ]]; then \
-  		  	echo "==================================================== Raw list of dependencies"; \
+  		  	echo "Raw list of dependencies ==================================================== "; \
 			cat $^; \
-  		  	echo "==================================================== Raw-sorted list of dependencies"; \
+  		  	echo "Raw-sorted list of dependencies ==================================================== "; \
 			cat $^ | sort | uniq; \
 			cat $^ | sort | uniq > $@; \
-  		  	echo "==================================================== File contents"; \
+  		  	echo "BEGIN js-dependencies File contents ==================================================== "; \
   		  	cat $@; \
-  		  	echo "==================================================== END"; \
+  		  	echo "END js-dependencies File contents ==================================================== "; \
 		else \
   			echo "There are no Javascript dependencies to analyze"; \
 		fi \
