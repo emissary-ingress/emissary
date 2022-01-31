@@ -8,7 +8,7 @@ include build-aux/tools.mk
 # Bootstrapping the build env
 ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
   $(_prelude.go.ensure)
-  ifeq ($(shell go env GOPATH),$(shell go env GOROOT))
+  ifneq ($(filter $(shell go env GOROOT),$(subst :, ,$(shell go env GOPATH))),)
     $(error Your $$GOPATH (where *your* Go stuff goes) and $$GOROOT (where Go *itself* is installed) are both set to the same directory ($(shell go env GOROOT)); it is remarkable that it has not blown up catastrophically before now)
   endif
 
