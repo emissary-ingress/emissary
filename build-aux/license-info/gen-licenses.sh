@@ -1,5 +1,6 @@
 #!/bin/env bash
 set -e
+set -o pipefail
 
 if [[ ! -f "${PIP_SHOW}" ]]; then
   echo >&2 "Could not find pip dependency file ${PIP_SHOW}"
