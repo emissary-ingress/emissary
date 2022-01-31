@@ -278,7 +278,20 @@ class V3Listener(dict):
         access_log: List[dict] = []
 
         for al in self.config.ir.log_services.values():
-            access_log_obj: Dict[str, Any] = { "common_config": al.get_common_config() }
+            assert(al.cluster)
+            access_log_obj: Dict[str, Any] = {
+                "common_config": {
+                    "transport_api_version": "V3",
+                    "log_name": al.name,
+                    "grpc_service": {
+                        "envoy_grpc": {
+                            "cluster_name": al.cluster.envoy_name
+                        }
+                    },
+                    "buffer_flush_interval": "%ds" % al.flush_interval_time,
+                    "buffer_size_bytes": al.flush_interval_byte_size
+                }
+            }
             req_headers = []
             resp_headers = []
             trailer_headers = []
