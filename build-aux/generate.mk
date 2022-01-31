@@ -474,8 +474,14 @@ $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 clean-license-info:
 	@set -e; { \
   		export BUILD_HOME=$${BUILD_HOME:-$(OSS_HOME)}; \
-		rm -fv $(NPM_RAW_DEPS) $(NPM_LICENSES) $(NPM_DEPENDENCIES)  $(PY_RAW_DEPS); \
-		find -type f \( -name pip-show.txt -o -name js-dependencies.txt -o -name js-licenses.txt \) -print -delete; \
+		find "${BUILD_HOME}" -type f \( -name pip-show.txt \
+			-o -name js-dependencies.txt \
+			-o -name js-licenses.txt \
+			-o -name *_rawdeps.tmp \
+			-o -name *_licenses.tmp \
+			-o -name *_dependencies.tmp \
+			-o -name  py_deps.tmp \
+			\) -print -delete; \
 	}
 .PHONY: clean-license-info
 
@@ -484,39 +490,35 @@ JS_BUILDER:
 	cd ${OSS_HOME}/build-aux/license-info/docker/ && docker build -t "js-deps-builder" .
 .PHONY: $(JS_BUILDER)
 
-NPM_PACKAGES := $(shell find . \( \
-		-path "./_cxx/envoy/*" \
-		-o -path "./_generate.tmp/*" \
+NPM_PACKAGES := $(shell find "${OSS_HOME}" \( \
+		-path "${OSS_HOME}/_cxx/envoy/*" \
+		-o -path "${OSS_HOME}/_generate.tmp/*" \
 		\) -prune -o -name package.json -type f -print)
 
-NPM_RAW_DEPS := ${NPM_PACKAGES:.json=_deps.json}
-NPM_LICENSES := ${NPM_PACKAGES:.json=.licenses}
-NPM_DEPENDENCIES := ${NPM_PACKAGES:.json=.dependencies}
-
-$(NPM_RAW_DEPS): %_deps.json: %.json JS_BUILDER $(tools/js-mkopensource)
+%_rawdeps.tmp: %.json JS_BUILDER $(tools/js-mkopensource)
 	set -e; { \
 		export JS_MKOPENSOURCE="$(OSS_HOME)/$(tools/js-mkopensource)"; \
 		$(OSS_HOME)/build-aux/license-info/js-deps.sh "$<"; \
 	} > $@
 
-$(NPM_LICENSES): %.licenses: %_deps.json
+%_licenses.tmp: %_rawdeps.tmp
 	cat $< | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' >$@
 
-$(OSS_HOME)/build-aux/js-licenses.txt: $(NPM_LICENSES)
+$(OSS_HOME)/build-aux/js-licenses.txt: ${NPM_PACKAGES:.json=_licenses.tmp}
 	@set -e; { \
-  		if [[ ! -z "$(NPM_LICENSES)" ]]; then \
+  		if [[ ! -z "$^" ]]; then \
 			cat $^ | sed -e 's/\[\([^]]*\)]()/\1/' | sort | uniq > $@; \
 		else \
   			echo "There are no Javascript licenses to analyze"; \
 		fi \
 	}
 
-$(NPM_DEPENDENCIES): %.dependencies: %_deps.json
+%_dependencies.tmp: %_rawdeps.tmp
 	cat $< | jq -r '.dependencies[] | .name + "|" + .version + "|" + (.licenses | flatten | join(", "))' >$@
 
-$(OSS_HOME)/build-aux/js-dependencies.txt: $(NPM_DEPENDENCIES)
+$(OSS_HOME)/build-aux/js-dependencies.txt: ${NPM_PACKAGES:.json=_dependencies.tmp}
 	@set -e; { \
-  		if [[ ! -z "$(NPM_LICENSES)" ]]; then \
+  		if [[ ! -z "$^" ]]; then \
 			cat $^ | sort | uniq > $@; \
 		else \
   			echo "There are no Javascript dependencies to analyze"; \
@@ -528,21 +530,19 @@ PY_BUILDER:
 	docker build -f "${OSS_HOME}/builder/Dockerfile.base" -t "python-deps-builder" --target builderbase-stage1 "${OSS_HOME}/builder"
 .PHONY: $(PY_BUILDER)
 
-PY_REQUIREMENTS := $(shell find . \( \
-	-path "./_cxx/envoy/*" \
-	-o -path "./docker/test-auth/*" \
-	-o -path "./docker/test-shadow/*" \
-	-o -path "./docker/test-stats/*" \
-	-o -path "./_generate.tmp/*" \
+PY_REQUIREMENTS := $(shell find "${OSS_HOME}" \( \
+	-path "${OSS_HOME}/_cxx/envoy/*" \
+	-o -path "${OSS_HOME}/docker/test-auth/*" \
+	-o -path "${OSS_HOME}/docker/test-shadow/*" \
+	-o -path "${OSS_HOME}/docker/test-stats/*" \
+	-o -path "${OSS_HOME}/_generate.tmp/*" \
 	\) -prune -o -name requirements.txt -type f -print)
 
-PY_RAW_DEPS := ${PY_REQUIREMENTS:requirements.txt=py_deps.txt}
-
-$(PY_RAW_DEPS): %py_deps.txt: %requirements.txt PY_BUILDER
+%/py_deps.tmp: %/requirements.txt PY_BUILDER
 	$(OSS_HOME)/build-aux/license-info/python-deps.sh "$<" >$@
 
-$(OSS_HOME)/build-aux/pip-show.txt: $(PY_RAW_DEPS)
-	cat $(PY_RAW_DEPS) > $@;
+$(OSS_HOME)/build-aux/pip-show.txt: $(PY_REQUIREMENTS:requirements.txt=py_deps.tmp)
+	cat $^ > $@;
 
 $(OSS_HOME)/OPENSOURCE.md: FORCE $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt $(OSS_HOME)/build-aux/js-dependencies.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
