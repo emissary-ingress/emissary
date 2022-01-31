@@ -15,12 +15,10 @@ basedir=`realpath ${basedir}`/
 [ -n "$AWS_ACCESS_KEY_ID"     ] || (echo "AWS_ACCESS_KEY_ID is not set" ; exit 1)
 [ -n "$AWS_SECRET_ACCESS_KEY" ] || (echo "AWS_SECRET_ACCESS_KEY is not set" ; exit 1)
 
-ver_yaml=${CURR_DIR}/yaml/versions.yml
-
-version=$(grep version ${ver_yaml} | awk ' { print $2 }')
-if [[ -n "${VERSION_OVERRIDE}" ]] ; then
-    version=${VERSION_OVERRIDE}
+if [[ ${VERSION:-} != v2.* ]]; then
+    abort "VERSION must be set to a 'v2.*' string"
 fi
+version=${VERSION#v}
 
 if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] ; then
     # if this is a stable version, working directory must be clean

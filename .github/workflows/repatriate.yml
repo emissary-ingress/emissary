@@ -1,35 +1,57 @@
-name: repatriate-to-lts
+name: repatriate
 on:
   push:
     branches:
-      - release/v2.0
+      - release/v*
 
 jobs:
-  repatriate-to-master:
+  repatriate:
     runs-on: ubuntu-latest
-    name: repatriate-to-master
-    env:
-      REF: ${{ github.ref }}
-      RUN: ${{ github.run_id }}
-      PUSH_ID: ${{ github.event.push_id }}
-      GITHUB_TOKEN: ${{ secrets.GH_GITHUB_API_KEY }}
+    name: repatriate
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Repatriate branch PR
+      - name: Log in to GitHub
         shell: bash
         run: |
-          set -x
-          echo "${GITHUB_TOKEN}" > temp_credential
-          # GH does NOT want this in the env
-          export GITHUB_TOKEN=
-          cat temp_credential | gh auth login --with-token
-          rm temp_credential
-          gh pr create --title "[CI] repatriate changes to master job ${RUN}" \
-                       --body "This PR contains changes from push to release/v2.0 ${REF}" \
-                       --base master \
-                       --reviewer "kflynn,aidanhahn,lukeshu,anodelman"
+          git config --global user.name '${{ secrets.GH_AUTO_USER }}'
+          git config --global user.email '${{ secrets.GH_AUTO_EMAIL }}'
+          git config --global 'url.https://${{ secrets.GH_GITHUB_API_KEY }}@github.com.insteadof' https://github.com
+          echo '${{ secrets.GH_GITHUB_API_KEY }}' | gh auth login --with-token
+      - name: Create PR
+        id: step-create-pr
+        shell: bash
+        run: |
+          set -e
+
+          this_ver=${GITHUB_REF##*/}
+          this_branch=release/${this_ver}
+          echo "::set-output this_branch=${this_branch}"
+
+          next_ver=$(git for-each-ref --format='%(refname:lstrip=4)' 'refs/remotes/origin/release/v*' | sort --version-sort | grep -A1 -Fx "$this_ver" | sed 1d)
+          if test -n "$next_ver"; then
+            next_branch="release/${next_ver}"
+          else
+            next_ver="${this_ver%.*}.$((${this_ver##*.}+1))"
+            next_branch='master'
+          fi
+          echo "::set-output next_branch=${next_branch}"
+
+          merge_branch="ci/repatriate/from-${this_ver}-to-${next_ver}"
+          if git checkout "$merge_branch"; then
+            # PR already exists; update it.
+            git merge "$this_branch"
+            git push origin "$merge_branch"
+          else
+            # PR does not yet exist.
+            git checkout -b "$merge_branch"
+            git push --set-upstream origin "$merge_branch"
+            gh pr create \
+              --title="[${next_ver}] Repatriate from ${this_ver}" \
+              --body="This PR merges ${this_branch} in to ${next_branch}." \
+              --base="$next_branch"
+          fi
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
@@ -37,8 +59,8 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
-          success_text: "Created repatriation PR for push to release/v2.0"
-          failure_text: "Couldn\'t cleanly repatriate changes back to master"
+          success_text: "Created repatriation PR merging ${{ steps.step-create-pr.this_branch }} in to ${{ steps.step-create-pr.next_branch }}"
+          failure_text: "Creation of repatriation PR failed"
           fields: |
-            [{ "title": "Repository", "value": "${env.GITHUB_REPOSITORY}", "short": true },
-             { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true}]
+            [{ "title": "Repository", "value": "${{ github.repository }}", "short": true },
+             { "title": "Branch", "value": "${{ github.ref }}", "short": true}]

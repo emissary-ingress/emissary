@@ -26,3 +26,6 @@ resources:
     memory: 100Mi
 adminService:
   type: NodePort
+image:
+  repository: "$imageRepo$"
+  tag: "$version$"

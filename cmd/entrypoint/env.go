@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
 
+	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -197,7 +197,7 @@ func GetDiagdBindPort() string {
 }
 
 func IsEnvoyAvailable() bool {
-	_, err := exec.LookPath("envoy")
+	_, err := dexec.LookPath("envoy")
 	return err == nil
 }
 

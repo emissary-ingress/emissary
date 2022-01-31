@@ -22,7 +22,7 @@ Emissary-ingress
 
 [Emissary-Ingress](https://www.getambassador.io) is an open-source Kubernetes-native API Gateway +
 Layer 7 load balancer + Kubernetes Ingress built on [Envoy Proxy](https://www.envoyproxy.io).
-Emissary-ingress is an CNCF incubation project (and was formerly known as Ambassador API Gateway.)
+Emissary-ingress is a CNCF incubation project (and was formerly known as Ambassador API Gateway.)
 
 Emissary-ingress enables its users to:
 * Manage ingress traffic with [load balancing], support for multiple protocols ([gRPC and HTTP/2], [TCP], and [web sockets]), and Kubernetes integration
@@ -57,7 +57,7 @@ You can also use Helm to install Emissary. For more information, see the instruc
 Community
 =========
 
-Emissary-ingress is a CNCF Incubating project, and welcomes any and all contributors. To get started:
+Emissary-ingress is a CNCF Incubating project and welcomes any and all contributors. To get started:
 
 * Join our [Slack channel](https://a8r.io/slack)
 * Check out the [Emissary documentation](https://www.getambassador.io/docs/emissary/)

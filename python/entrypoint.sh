@@ -15,33 +15,19 @@
 # limitations under the License
 
 # THE DEFAULT BOOT SEQUENCE IS NOW entrypoint.go. HOWEVER, we'll stick
-# with entrypoint.sh in the following cases:
-#
-# 1. AMBASSADOR_LEGACY_MODE is set. This is the official, approved way
-#    to stick with entrypoint.sh if you need to do that for some reason.
-# 2. AGENT_SERVICE is set. This is used for old-style service preview,
-#    using telepresence 1.
-# 3. The --dev-magic parameter is present. This is currently used only
-#    for test_scout.py.
-#
-# XXX Cases 2 and 3 are BRUTAL HACKS.
+# with entrypoint.sh when the --dev-magic parameter is present. This
+# is currently used only for test_scout.py.  This is a BRUTAL HACK.
 
-DEVMAGIC=
-if [ "$1" == "--dev-magic" ]; then
-    DEVMAGIC=yes
-fi
-
-if [ -z "$DEVMAGIC" -a -z "$AGENT_SERVICE" -a \( "${AMBASSADOR_LEGACY_MODE,,}" != "true" \) ]; then
+if [ "$1" != "--dev-magic" ]; then
   exec busyambassador entrypoint "$@"   # See comment above.
 fi
 
-# If we are here, define AMBASSADOR_LEGACY_MODE, to make _absolutely certain_ that
-# diagd's localhost checks are in sync with what's actually running...
-export AMBASSADOR_LEGACY_MODE=true
+DEVMAGIC=yes
 
-# For the same reason, force the FAST flags to false -- even the old FAST_VALIDATION flag.
+# If we are here, define AMBASSADOR_FAST_RECONFIGURE, to make
+# _absolutely certain_ that diagd's localhost checks are in sync with
+# what's actually running...
 export AMBASSADOR_FAST_RECONFIGURE=false
-export AMBASSADOR_FAST_VALIDATION=false
 
 ENTRYPOINT_DEBUG=
 
@@ -493,7 +479,7 @@ fi
 # WORKER: extra sidecars                                                       #
 ################################################################################
 # If AGENT_SERVICE is set, we don't do this: the intercept agent doesn't use
-# any of the Edge Stack sidecars, and they just clutter up the logs doing 
+# any of the Edge Stack sidecars, and they just clutter up the logs doing
 # nothing useful.
 
 if [[ -z "$AGENT_SERVICE" ]]; then

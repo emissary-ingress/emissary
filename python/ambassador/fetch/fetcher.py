@@ -210,7 +210,8 @@ spec:
                 # UGH. This parse_yaml is the one we imported from utils. XXX This needs to be fixed.
                 for obj in parse_yaml(serialization):
                     if k8s:
-                        self.handle_k8s(obj)
+                        with self.manager.locations.push_reset():
+                            self.handle_k8s(obj)
                     else:
                         self.manager.emit(NormalizedResource(obj, rkey=rkey))
             except yaml.error.YAMLError as e:
@@ -290,6 +291,9 @@ spec:
 
                 watt_list.append(obj)
 
+            # Remove annotations from the snapshot; we'll process them separately.
+            annotations = watt_k8s.pop('annotations') or {}
+
             # These objects have to be processed first, in order, as they depend
             # on each other.
             watt_k8s_keys = list(self.manager.deps.sorted_watt_keys())
@@ -303,7 +307,12 @@ spec:
             for key in dict.fromkeys(watt_k8s_keys):
                 for obj in watt_k8s.get(key) or []:
                     # self.logger.debug(f"Handling Kubernetes {key}...")
-                    self.handle_k8s(obj)
+                    with self.manager.locations.push_reset():
+                        self.handle_k8s(obj)
+                        if 'errors' not in obj:
+                            ann_parent_key = f"{obj['kind']}/{obj['metadata']['name']}.{obj['metadata'].get('namespace')}"
+                            for ann_obj in (annotations.get(ann_parent_key) or []):
+                                self.handle_annotation(ann_parent_key, ann_obj)
 
             watt_consul = watt_dict.get('Consul', {})
             consul_endpoints = watt_consul.get('Endpoints', {})
@@ -350,9 +359,20 @@ spec:
             # can't process it.
             return
 
-        with self.manager.locations.push_reset():
-            if not self.k8s_processor.try_process(obj):
-                self.logger.debug(f"{self.location}: skipping K8s {obj.gvk}")
+        if not self.k8s_processor.try_process(obj):
+            self.logger.debug(f"{self.location}: skipping K8s {obj.gvk}")
+
+    def handle_annotation(self, parent_key: str, raw_obj: dict) -> None:
+        try:
+            obj = KubernetesObject(raw_obj)
+        except ValueError:
+            # The object doesn't contain a kind, API version, or name, so we
+            # can't process it.
+            return
+
+        with self.manager.locations.mark_annotated():
+            rkey = parent_key.split('/', 1)[1]
+            self.manager.emit(NormalizedResource.from_kubernetes_object(obj, rkey=rkey))
 
     # Handler for Consul services
     def handle_consul_service(self,
