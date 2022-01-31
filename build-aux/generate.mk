@@ -536,9 +536,9 @@ $(OSS_HOME)/build-aux/js-dependencies.txt: ${NPM_PACKAGES:.json=_dependencies.tm
   		  	echo "Raw list of dependencies ==================================================== "; \
 			cat $^; \
   		  	echo "Raw-sorted list of dependencies ==================================================== "; \
-			(cat $^) | sort -h | uniq; \
+			LC_ALL=C sort -h $^ | uniq; \
   		  	echo "BEGIN js-dependencies File contents ==================================================== "; \
-			(cat $^) | sort -h | uniq > $@; \
+			LC_ALL=C sort -h $^ | uniq > $@; \
   		  	cat $@; \
   		  	echo "END js-dependencies File contents ==================================================== "; \
 		else \
