@@ -8,7 +8,6 @@ def _get_images() -> Dict[str, str]:
     # Keep this list in-sync with the 'push-pytest-images' Makefile target.
     image_names = [
         'test-auth',
-        'test-ratelimit',
         'test-shadow',
         'test-stats',
         'kat-client',

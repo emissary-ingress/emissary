@@ -50,7 +50,6 @@ generate/files      += $(OSS_HOME)/pkg/api/envoy/
 generate/files      += $(OSS_HOME)/pkg/api/pb/
 generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/
 # Individual files: Misc
-generate/files      += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 generate/files      += $(OSS_HOME)/OPENSOURCE.md
 generate/files      += $(OSS_HOME)/LICENSES.md
 generate/files      += $(OSS_HOME)/builder/requirements.txt
@@ -71,8 +70,6 @@ generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_names
 # Individual files: Test TLS Certificates
 generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.crt
 generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.key
-generate-fast/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.crt
-generate-fast/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.key
 generate-fast/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.crt
 generate-fast/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.key
 generate-fast/files += $(OSS_HOME)/python/tests/selfsigned.py
@@ -163,14 +160,6 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	}
 	cd $(OSS_HOME) && gofmt -w -s ./pkg/envoy-control-plane/
 
-$(OSS_HOME)/docker/test-ratelimit/ratelimit.proto:
-	set -e; { \
-	  url=https://raw.githubusercontent.com/envoyproxy/ratelimit/v1.3.0/proto/ratelimit/ratelimit.proto; \
-	  echo "// Downloaded from $$url"; \
-	  echo; \
-	  curl --fail -L "$$url"; \
-	} > $@
-
 #
 # `make generate` certificate generation
 
@@ -178,11 +167,6 @@ $(OSS_HOME)/docker/test-auth/authsvc.crt: $(tools/testcert-gen)
 	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=authsvc.datawire.io
 $(OSS_HOME)/docker/test-auth/authsvc.key: $(tools/testcert-gen)
 	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=authsvc.datawire.io
-
-$(OSS_HOME)/docker/test-ratelimit/ratelimit.crt: $(tools/testcert-gen)
-	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=ratelimit.datawire.io
-$(OSS_HOME)/docker/test-ratelimit/ratelimit.key: $(tools/testcert-gen)
-	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=ratelimit.datawire.io
 
 $(OSS_HOME)/docker/test-shadow/shadowsvc.crt: $(tools/testcert-gen)
 	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=demosvc.datawire.io
