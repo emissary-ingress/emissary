@@ -148,11 +148,6 @@ class AmbassadorTest(Test):
       value: "yes"
 """
 
-        if self.envoy_api_version is not None:
-            self.manifest_envs += f"""
-    - name: AMBASSADOR_ENVOY_API_VERSION
-      value: "{self.envoy_api_version}"
-"""
         elif os.environ.get('AMBASSADOR_ENVOY_API_VERSION', '') != '':
             self.manifest_envs += """
     - name: AMBASSADOR_ENVOY_API_VERSION
