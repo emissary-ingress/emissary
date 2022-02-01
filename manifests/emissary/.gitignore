@@ -2,3 +2,7 @@
 /emissary-crds.yaml
 /emissary-defaultns.yaml
 /emissary-emissaryns.yaml
+/emissary-defaultns-agent.yaml
+/emissary-emissaryns-agent.yaml
+/emissary-defaultns-migration.yaml
+/emissary-emissaryns-migration.yaml
