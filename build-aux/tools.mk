@@ -69,6 +69,7 @@ $(tools.main-gomod): $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(OSS_HOME)/go.
 # ================
 #
 tools/dsum            = $(tools.bindir)/dsum
+tools/filter-yaml     = $(tools.bindir)/filter-yaml
 tools/fix-crds        = $(tools.bindir)/fix-crds
 tools/flock           = $(tools.bindir)/flock
 tools/gotest2tap      = $(tools.bindir)/gotest2tap
