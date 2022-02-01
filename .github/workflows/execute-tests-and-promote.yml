@@ -8,8 +8,8 @@ on:
   pull_request: {}
 
 jobs:
-  lint-test:
-    name: "lint-test"
+
+  lint: ########################################################################
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -17,12 +17,11 @@ jobs:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: make lint
-        shell: bash
+      - shell: bash
         run: |
           make lint
-  generate:
-    name: "generate"
+
+  generate: ####################################################################
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -40,15 +39,15 @@ jobs:
         run: |
           make generate
       - uses: ./.github/actions/git-dirty-check
-        name: "Check git not dirty from 'make generate'"
+        name: "Check Git not dirty from 'make generate'"
       - name: "'make generate' (again!)"
         shell: bash
         run: |
           make generate
       - uses: ./.github/actions/git-dirty-check
-        name: "Check git not dirty from 'make generate' (again!)"
-  check-envoy-version:
-    name: "check-envoy-version"
+        name: "Check Git not dirty from 'make generate' (again!)"
+
+  check-envoy-version: #########################################################
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -57,9 +56,10 @@ jobs:
       - name: Install Deps
         uses: ./.github/actions/setup-deps
       - run: make check-envoy-version
-  go-tests:
+
+  # Tests ######################################################################
+  check-gotest:
     runs-on: ubuntu-latest
-    name: gotest
     steps:
       - uses: actions/checkout@v2
         with:
@@ -94,7 +94,7 @@ jobs:
       - uses: ./.github/actions/collect-testing-logs
         if: always()
         name: "Collect testing logs"
-  pytests:
+  check-pytest:
     runs-on: ubuntu-latest
     env:
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
@@ -168,7 +168,7 @@ jobs:
       - uses: ./.github/actions/collect-testing-logs
         if: always()
         name: "Collect testing logs"
-  pytest-unit:
+  check-pytest-unit:
     # pytest-unit is separate from pytests (above) because we know for certain that no cluster is needed.
     # XXX This is pretty much a crock.
     runs-on: ubuntu-latest
@@ -225,8 +225,8 @@ jobs:
       - uses: ./.github/actions/collect-testing-logs
         if: always()
         name: "Collect testing logs"
-  job-image:
-    name: "job-image"
+
+  build: #######################################################################
     runs-on: ubuntu-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
@@ -258,17 +258,19 @@ jobs:
           make push-dev
       - uses: ./.github/actions/git-dirty-check
         name: "Check git not dirty (from make push + make push-dev)"
-  promote-to-passed:
+
+  ##############################################################################
+  pass:
+    name: "job-promote-to-passed" # This is the job name that the branch protection looks for
     needs:
-      - lint-test
-      - job-image
+      - lint
+      - build
       - generate
       - check-envoy-version
-      - go-tests
-      - pytests
-      - pytest-unit
+      - check-gotest
+      - check-pytest
+      - check-pytest-unit
     runs-on: ubuntu-latest
-    name: job-promote-to-passed
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
