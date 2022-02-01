@@ -413,12 +413,18 @@ $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_
 #
 # Generate report on dependencies
 
-$(OSS_HOME)/build-aux/pip-show.txt: docker/builder-base.docker
-	docker run --rm "$$(cat docker/builder-base.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
-
-$(OSS_HOME)/builder/requirements.txt: %.txt: %.in $(tools/dsum) FORCE
-	$(BUILDER) pip-compile
+$(OSS_HOME)/builder/.requirements.txt.stamp: $(OSS_HOME)/builder/requirements.in docker/base-python.docker.tag.local
+# The --interactive is so that stdin gets passed through; otherwise Docker closes stdin.
+	set -ex -o pipefail; { \
+	  docker run --rm --interactive "$$(cat docker/base-python.docker)" sh -c 'tar xf - && pip-compile --allow-unsafe -q >&2 && cat requirements.txt' \
+	    < <(bsdtar -cf - -C $(@D) requirements.in requirements.txt) \
+	    > $@; }
+$(OSS_HOME)/builder/requirements.txt: $(OSS_HOME)/builder/%: $(OSS_HOME)/builder/.%.stamp $(tools/copy-ifchanged)
+	$(tools/copy-ifchanged) $< $@
 .PRECIOUS: $(OSS_HOME)/builder/requirements.txt
+
+$(OSS_HOME)/build-aux/pip-show.txt: docker/base-pip.docker.tag.local
+	docker run --rm "$$(cat docker/base-pip.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
 
 $(OSS_HOME)/build-aux/go-version.txt: docker/base-python/Dockerfile
 	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@

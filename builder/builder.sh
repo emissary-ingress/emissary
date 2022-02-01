@@ -28,7 +28,7 @@ panic() {
     exit 1
 }
 
-# Usage: build_builder_base [--stage1-only]
+# Usage: build_builder
 # Effects:
 #   1. Set the `builder_base_image` variable in the parent scope
 #   2. Ensure that the `$builder_base_image` Docker image exists (pulling
@@ -40,7 +40,6 @@ panic() {
 #
 #   Rebuild (and push if DEV_REGISTRY is set) the builder's base image if
 #    - `docker/base-python/Dockerfile` changes
-#    - `requirements.txt` changes
 #    - Enough time has passed (The base only has external/third-party
 #      dependencies, and most of those dependencies are not pinned by
 #      version, so we rebuild periodically to make sure we don't fall too
@@ -50,28 +49,12 @@ panic() {
 #
 #   The base theory of operation is that we generate a Docker tag name that
 #   is essentially the tuple
-#       (rounded_timestamp, hash("docker/base-python/Dockerfile"), hash("builder/requirements.txt")
-#   then check that tag for existence/pullability using `docker run --rm
-#   --entrypoint=true`; and build it if it doesn't exist and can't be
-#   pulled.
-#
-#   OK, now for a wee bit of complexity.  We want to use `pip-compile` to
-#   update `requirements.txt`.  Because of Python-version-conditioned
-#   dependencies, we really want to run it with the image's python3, not
-#   with the host's python3.  And since we're updating `requirements.txt`,
-#   we don't really want the `pip install` to have already been run.  So,
-#   we split the base image in to two stages; stage-1 is everything but
-#   `COPY requirements.txt` / `pip install -r requirements.txt`, and then
-#   stage-2 copies in `requirements.txt` and runs the `pip install`.  In
-#   normal operation we just go ahead and build both stages.  But if the
-#   `--stage1-only` flag is given (as it is by the `pip-compile`
-#   subcommand), then we only build the stage-1, and set the
-#   `builder_base_image` variable to that.
+#       (rounded_timestamp, hash("docker/base-python/Dockerfile"))
+#   then check that tag for existence/pullability using
+#   `docker inspect || docker pull`; and build it if it doesn't exist
+#   and can't be pulled.
 build_builder_base() {
     local builder_base_tag_py='
-# Someone please rewrite this in portable Bash. Until then, this code
-# works on Python 2.7 and 3.5+.
-
 import datetime, hashlib
 
 # Arrange these 2 variables to reduce the likelihood that build_every_n_days
@@ -86,18 +69,13 @@ age_start = epoch + datetime.timedelta(days=age*build_every_n_days)
 dockerfilehash = hashlib.sha256(open("docker/base-python/Dockerfile", "rb").read()).hexdigest()
 stage1 = "%sx%s-%s" % (age_start.strftime("%Y%m%d"), build_every_n_days, dockerfilehash[:16])
 
-requirementshash = hashlib.sha256(open("requirements.txt", "rb").read()).hexdigest()
-stage2 = "%s-%s" % (stage1, requirementshash[:16])
-
 print("stage1_tag=%s" % stage1)
-print("stage2_tag=%s" % stage2)
 '
 
     local stage1_tag stage2_tag
-    eval "$(cd "$DIR" && python -c "$builder_base_tag_py")" # sets 'stage1_tag' and 'stage2_tag'
+    eval "$(python3 -c "$builder_base_tag_py")" # sets 'stage1_tag' and 'stage2_tag'
 
     local name1="${BASE_REGISTRY}/builder-base:stage1-${stage1_tag}"
-    local name2="${BASE_REGISTRY}/builder-base:stage2-${stage2_tag}"
 
     msg2 "Using stage-1 base ${BLU}${name1}${GRN}"
     if ! (docker image inspect "$name1" || docker pull "$name1") &>/dev/null; then # skip building if the "$name1" already exists
@@ -109,44 +87,18 @@ print("stage2_tag=%s" % stage2)
             unset TIMEFORMAT
         fi
     fi
-    if [[ $1 = '--stage1-only' ]]; then
-        builder_base_image="$name1" # not local
-        return
-    fi
-
-    msg2 "Using stage-2 base ${BLU}${name2}${GRN}"
-    if ! (docker image inspect "$name2" || docker pull "$name2") &>/dev/null; then # skip building if the "$name2" already exists
-        tools/bin/copy-ifchanged builder/requirements.txt docker/base-pip/requirements.txt
-        tools/bin/dsum 'stage-2 build' 3s \
-             docker build --build-arg=from="$name1" -t "${name2}" docker/base-pip
-        if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then
-            TIMEFORMAT="     (stage-2 push took %1R seconds)"
-            time docker push "$name2"
-            unset TIMEFORMAT
-        fi
-    fi
-
-    builder_base_image="$name2" # not local
+    builder_base_image="$name1" # not local
 }
 
 cmd="${1:-help}"
 
 case "${cmd}" in
-    pip-compile)
-        build_builder_base --stage1-only
-        printf "${GRN}Running pip-compile to update ${BLU}requirements.txt${END}\n"
-        docker run --rm -i "$builder_base_image" sh -c 'tar xf - && pip-compile --allow-unsafe -q >&2 && cat requirements.txt' \
-               < <(cd "$DIR" && tar cf - requirements.in requirements.txt) \
-               > "$DIR/requirements.txt.tmp"
-        mv -f "$DIR/requirements.txt.tmp" "$DIR/requirements.txt"
-        ;;
-
     build-builder-base)
         build_builder_base >&2
         echo "${builder_base_image}"
         ;;
     *)
-        echo "usage: builder.sh [pip-compile|build-builder-base]"
+        echo "usage: builder.sh [build-builder-base]"
         exit 1
         ;;
 esac
