@@ -101,20 +101,20 @@ following Free and Open Source software:
     gopkg.in/inf.v0                                                                            v0.9.1                                      3-clause BSD license
     gopkg.in/yaml.v2                                                                           v2.3.0                                      Apache License 2.0, MIT license
     gopkg.in/yaml.v3                                                                           v3.0.0-20200615113413-eeeca48fe776          Apache License 2.0, MIT license
-    k8s.io/api                                                                                 v0.20.2                                     Apache License 2.0
-    k8s.io/apiextensions-apiserver                                                             v0.20.2                                     Apache License 2.0
-    k8s.io/apimachinery                                                                        v0.20.2                                     Apache License 2.0
-    k8s.io/apiserver                                                                           v0.20.2                                     Apache License 2.0
-    k8s.io/cli-runtime                                                                         v0.20.2                                     Apache License 2.0
-    k8s.io/client-go                                                                           v0.20.2                                     Apache License 2.0
+    k8s.io/api                                                                                 v0.20.4                                     Apache License 2.0
+    k8s.io/apiextensions-apiserver                                                             v0.20.4                                     Apache License 2.0
+    k8s.io/apimachinery                                                                        v0.20.4                                     Apache License 2.0
+    k8s.io/apiserver                                                                           v0.20.4                                     Apache License 2.0
+    k8s.io/cli-runtime                                                                         v0.20.4                                     Apache License 2.0
+    k8s.io/client-go                                                                           v0.20.4                                     Apache License 2.0
     github.com/emissary-ingress/code-generator (modified from k8s.io/code-generator)           v0.20.5-rc.0.0.20220120231034-6c7797b9220f  Apache License 2.0
-    k8s.io/component-base                                                                      v0.20.2                                     Apache License 2.0
+    k8s.io/component-base                                                                      v0.20.4                                     Apache License 2.0
     k8s.io/gengo                                                                               v0.0.0-20201214224949-b6c5ce23f027          Apache License 2.0
     k8s.io/klog/v2                                                                             v2.10.0                                     Apache License 2.0
     k8s.io/kube-openapi                                                                        v0.0.0-20210304212320-e467f52fd9db          Apache License 2.0
-    k8s.io/kubectl                                                                             v0.20.2                                     Apache License 2.0
-    k8s.io/kubernetes                                                                          v1.20.2                                     Apache License 2.0
-    k8s.io/metrics                                                                             v0.20.2                                     Apache License 2.0
+    k8s.io/kubectl                                                                             v0.20.4                                     Apache License 2.0
+    k8s.io/kubernetes                                                                          v1.20.4                                     Apache License 2.0
+    k8s.io/metrics                                                                             v0.20.4                                     Apache License 2.0
     k8s.io/utils                                                                               v0.0.0-20201110183641-67b214c5f920          Apache License 2.0
     sigs.k8s.io/controller-runtime                                                             v0.8.0                                      Apache License 2.0
     github.com/emissary-ingress/controller-tools (modified from sigs.k8s.io/controller-tools)  v0.5.1-0.20220120234851-b97c2515f1c2        Apache License 2.0
