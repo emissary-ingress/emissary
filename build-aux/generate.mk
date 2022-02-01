@@ -418,10 +418,6 @@ $(OSS_HOME)/python/tests/integration/manifests/crds.yaml: $(OSS_HOME)/_generate.
 $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) --target=internal-validator $(sort $(wildcard $</*.yaml)) >$@
 
-python-setup: create-venv
-	$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
-.PHONY: python-setup
-
 helm.name.emissary-emissaryns = emissary-ingress
 helm.name.emissary-defaultns = emissary-ingress
 helm.namespace.emissary-emissaryns = emissary
@@ -436,7 +432,7 @@ $(OSS_HOME)/k8s-config/%/output.yaml: \
   $(OSS_HOME)/k8s-config/%/helm-expanded.yaml \
   $(OSS_HOME)/k8s-config/%/require.yaml \
   $(OSS_HOME)/k8s-config/create_yaml.py \
-  python-setup
+  $(OSS_HOME)/venv
 	. $(OSS_HOME)/venv/bin/activate && $(filter %.py,$^) $(filter %/helm-expanded.yaml,$^) $(filter %/require.yaml,$^) >$@
 $(OSS_HOME)/manifests/emissary/%.yaml.in: $(OSS_HOME)/k8s-config/%/output.yaml
 	cp $< $@

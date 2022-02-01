@@ -391,7 +391,7 @@ setup-envoy: extract-bin-envoy
 pytest: push-pytest-images
 pytest: $(tools/kubestatus)
 pytest: $(tools/kubectl)
-pytest: setup-diagd
+pytest: $(OSS_HOME)/venv
 pytest: setup-envoy
 pytest: proxy
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
@@ -409,7 +409,7 @@ pytest: proxy
 	}
 .PHONY: pytest
 
-pytest-unit: setup-envoy setup-diagd
+pytest-unit: setup-envoy $(OSS_HOME)/venv
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
 	mkdir -p $(or $(TEST_XML_DIR),/tmp/test-data)
 	set -e; { \
@@ -450,12 +450,12 @@ extract-bin-envoy: docker/base-envoy.docker.tag.local
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
-mypy-server-stop: setup-diagd
+mypy-server-stop: $(OSS_HOME)/venv
 	@printf "${CYN}==> ${GRN}Stopping mypy server${END}"
 	{ . $(OSS_HOME)/venv/bin/activate && dmypy stop; }
 .PHONY: mypy-server-stop
 
-mypy-server: setup-diagd
+mypy-server: $(OSS_HOME)/venv
 	{ . $(OSS_HOME)/venv/bin/activate && \
 	  if ! dmypy status >/dev/null; then \
 	    dmypy start -- --use-fine-grained-cache --follow-imports=skip --ignore-missing-imports ;\
@@ -470,37 +470,31 @@ mypy: mypy-server
 	{ . $(OSS_HOME)/venv/bin/activate && time dmypy check python; }
 .PHONY: mypy
 
-create-venv:
-	[[ -d $(OSS_HOME)/venv ]] || python3 -m venv $(OSS_HOME)/venv
-.PHONY: create-venv
-
 # If we're setting up within Alpine linux, make sure to pin pip and pip-tools
 # to something that is still PEP517 compatible. This allows us to set _manylinux.py
 # and convince pip to install prebuilt wheels. We do this because there's no good
 # rust toolchain to build orjson within Alpine itself.
-setup-venv:
-	@set -e; { \
-		if [ -f /etc/issue ] && grep "Alpine Linux" < /etc/issue ; then \
-			pip3 install -U pip==20.2.4 pip-tools==5.3.1; \
-			echo 'manylinux1_compatible = True' > venv/lib/python3.8/site-packages/_manylinux.py; \
-			pip install orjson==3.3.1; \
-			rm -f venv/lib/python3.8/site-packages/_manylinux.py; \
-		else \
-			pip install orjson==3.6.0; \
-		fi; \
-		pip install -r $(OSS_HOME)/builder/requirements.txt; \
-		pip install -r $(OSS_HOME)/builder/requirements-dev.txt; \
-		pip install -e $(OSS_HOME)/python; \
+$(OSS_HOME)/venv: builder/requirements.txt builder/requirements-dev.txt
+	rm -rf $@
+	python3 -m venv $@
+	{ \
+	  if grep "Alpine Linux" /etc/issue &>/dev/null; then \
+	    $@/bin/pip3 install -U pip==20.2.4 pip-tools==5.3.1; \
+	    echo 'manylinux1_compatible = True' > $@/lib/python3.8/site-packages/_manylinux.py; \
+	    $@/bin/pip3 install orjson==3.3.1; \
+	    rm -f venv/lib/python3.8/site-packages/_manylinux.py; \
+	  else \
+	    $@/bin/pip3 install orjson==3.6.0; \
+	  fi; \
 	}
-.PHONY: setup-orjson
-
-setup-diagd: create-venv
-	. $(OSS_HOME)/venv/bin/activate && $(MAKE) setup-venv
-.PHONY: setup-diagd
+	$@/bin/pip3 install ruamel.yaml
+	$@/bin/pip3 install -r builder/requirements.txt
+	$@/bin/pip3 install -r builder/requirements-dev.txt
+	$@/bin/pip3 install -e $(OSS_HOME)/python
 
 GOTEST_ARGS ?= -race -count=1 -timeout 30m
 GOTEST_PKGS ?= ./...
-gotest: setup-diagd $(tools/kubectl)
+gotest: $(OSS_HOME)/venv $(tools/kubectl)
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
 	{ . $(OSS_HOME)/venv/bin/activate && \
 	  export PATH=$(tools.bindir):$${PATH} && \
