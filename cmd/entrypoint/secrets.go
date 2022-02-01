@@ -14,7 +14,7 @@ import (
 // ReconcileSecrets figures out which secrets we're actually using,
 // since we don't want to send secrets to Ambassador unless we're
 // using them, since any secret we send will be saved to disk.
-func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) error {
+func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 	// Start by building up a list of all the K8s objects that are
 	// allowed to mention secrets. Note that we vet the ambassador_id
 	// for all of these before putting them on the list.
@@ -25,7 +25,7 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 	// them earlier so that we can treat them like any other resource
 	// here).
 
-	for _, list := range s.Annotations {
+	for _, list := range sh.k8sSnapshot.Annotations {
 		for _, a := range list {
 			if _, isInvalid := a.(*kates.Unstructured); isInvalid {
 				continue
@@ -38,7 +38,7 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 
 	// Hosts are a little weird, because we have two ways to find the
 	// ambassador_id. Sorry about that.
-	for _, h := range s.Hosts {
+	for _, h := range sh.k8sSnapshot.Hosts {
 		var id amb.AmbassadorID
 		if len(h.Spec.AmbassadorID) > 0 {
 			id = h.Spec.AmbassadorID
@@ -49,17 +49,17 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 	}
 
 	// TLSContexts, Modules, and Ingresses are all straightforward.
-	for _, t := range s.TLSContexts {
+	for _, t := range sh.k8sSnapshot.TLSContexts {
 		if include(t.Spec.AmbassadorID) {
 			resources = append(resources, t)
 		}
 	}
-	for _, m := range s.Modules {
+	for _, m := range sh.k8sSnapshot.Modules {
 		if include(m.Spec.AmbassadorID) {
 			resources = append(resources, m)
 		}
 	}
-	for _, i := range s.Ingresses {
+	for _, i := range sh.k8sSnapshot.Ingresses {
 		resources = append(resources, i)
 	}
 
@@ -128,19 +128,19 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 	// The way this works is kind of simple: first we check everything in
 	// FSSecrets. Then, when we check K8sSecrets, we skip any secrets that are
 	// also in FSSecrets. End result: FSSecrets wins if there are any conflicts.
-	s.Secrets = make([]*kates.Secret, 0, len(refs))
+	sh.k8sSnapshot.Secrets = make([]*kates.Secret, 0, len(refs))
 
-	for ref, secret := range s.FSSecrets {
+	for ref, secret := range sh.k8sSnapshot.FSSecrets {
 		if refs[ref] {
 			dlog.Debugf(ctx, "Taking FSSecret %#v", ref)
-			s.Secrets = append(s.Secrets, secret)
+			sh.k8sSnapshot.Secrets = append(sh.k8sSnapshot.Secrets, secret)
 		}
 	}
 
-	for _, secret := range s.K8sSecrets {
+	for _, secret := range sh.k8sSnapshot.K8sSecrets {
 		ref := snapshotTypes.SecretRef{Namespace: secret.GetNamespace(), Name: secret.GetName()}
 
-		_, found := s.FSSecrets[ref]
+		_, found := sh.k8sSnapshot.FSSecrets[ref]
 		if found {
 			dlog.Debugf(ctx, "Conflict! skipping K8sSecret %#v", ref)
 			continue
@@ -148,7 +148,7 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 
 		if refs[ref] {
 			dlog.Debugf(ctx, "Taking K8sSecret %#v", ref)
-			s.Secrets = append(s.Secrets, secret)
+			sh.k8sSnapshot.Secrets = append(sh.k8sSnapshot.Secrets, secret)
 		}
 	}
 	return nil
