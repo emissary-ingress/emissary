@@ -23,12 +23,20 @@ jobs:
 
   generate: ####################################################################
     runs-on: ubuntu-latest
+    env:
+      # Set DEV_REGISTRY to match BASE_REGISTRY.
+      DEV_REGISTRY: "docker.io/emissaryingress"
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
+      - name: "Docker Login"
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
       - name: "'make generate'"
         shell: bash
         run: |
@@ -61,6 +69,11 @@ jobs:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
+      - name: "Docker Login"
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - name: make gotest
         shell: bash
         run: |

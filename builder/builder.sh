@@ -104,13 +104,11 @@ print("stage2_tag=%s" % stage2)
     local stage1_tag stage2_tag
     eval "$(cd "$DIR" && python -c "$builder_base_tag_py")" # sets 'stage1_tag' and 'stage2_tag'
 
-    local BASE_REGISTRY="${BASE_REGISTRY:-${DEV_REGISTRY:-${BUILDER_NAME}.local}}"
-
     local name1="${BASE_REGISTRY}/builder-base:stage1-${stage1_tag}"
     local name2="${BASE_REGISTRY}/builder-base:stage2-${stage2_tag}"
 
     msg2 "Using stage-1 base ${BLU}${name1}${GRN}"
-    if ! (docker image inspect "$name1" || docker pull "$name2") &>/dev/null; then # skip building if the "$name1" already exists
+    if ! (docker image inspect "$name1" || docker pull "$name1") &>/dev/null; then # skip building if the "$name1" already exists
         dsum 'stage-1 build' 3s \
              docker build -f "${DIR}/Dockerfile.base" -t "${name1}" --target builderbase-stage1 "${DIR}"
         if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then

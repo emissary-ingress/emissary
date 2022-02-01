@@ -859,8 +859,7 @@ $(BLU)$$DOCKER_BUILD_USERNAME$(END), and $(BLU)$$DOCKER_BUILD_PASSWORD$(END).
 
 By default, the base builder image is (as an optimization) pulled from
 $(BLU)$$BASE_REGISTRY$(END) instead of being built locally; where $(BLD)$$BASE_REGISTRY$(END)
-defaults to $(BLD)$$DEV_REGISTRY$(END) or else $(BLD)$${BUILDER_NAME}.local$(END).  If that pull
-fails (as it will if trying to pull from a $(BLD).local$(END) registry, or if the
+defaults to $(BLD)docker.io/emissaryingress$(END).  If that pull fails, (as it will if the
 image does not yet exist), then it falls back to building the base image
 locally.  If $(BLD)$$BASE_REGISTRY$(END) is equal to $(BLD)$$DEV_REGISTRY$(END), then it will
 proceed to push the built image back to the $(BLD)$$BASE_REGISTRY$(END).
