@@ -4,6 +4,17 @@ description: "Install Go and Python"
 runs:
   using: "composite"
   steps:
+    - name: "Install bsdtar (libarchive-tools)"
+      shell: bash
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y libarchive-tools
+    - name: "Install Python requirements with pip"
+      uses: BSFishy/pip-action@v1
+      with:
+        packages: |
+          awscli
+          packaging
     # Go: Do this first because `Makefile` checks that the `go` version is correct.
     - name: "Get Go version from builder container"
       id: step-detect-go
@@ -26,3 +37,7 @@ runs:
       uses: actions/setup-python@v2
       with:
         python-version: "${{ steps.step-detect-py.outputs.py_version }}"
+    - name: "Install gotestsum (latest)"
+      shell: bash
+      run: |
+        go install gotest.tools/gotestsum@latest
