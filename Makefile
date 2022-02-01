@@ -33,6 +33,10 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
   $(info [make] CHART_VERSION=$(CHART_VERSION))
 endif
 
+# If SOURCE_DATE_EPOCH isn't set, AND the tree isn't dirty, then set
+# SOURCE_DATE_EPOCH to the commit timestamp.
+#
+# if [[ -z "$SOURCE_DATE_EPOCH" ]] && [[ -z "$(git status --porcelain)" ]]; then
 ifeq ($(SOURCE_DATE_EPOCH)$(shell git status --porcelain),)
   SOURCE_DATE_EPOCH := $(shell git log -1 --pretty=%ct)
 endif

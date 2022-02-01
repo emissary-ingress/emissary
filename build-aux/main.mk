@@ -11,6 +11,7 @@ include build-aux/tools.mk
 docker/%: docker/.%.stamp $(tools/copy-ifchanged)
 	$(tools/copy-ifchanged) $< $@
 
+# Load ocibuild files in to dockerd.
 _ocibuild-images  = base
 _ocibuild-images += kat-client
 _ocibuild-images += kat-server
