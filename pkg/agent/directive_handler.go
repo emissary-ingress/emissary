@@ -104,6 +104,6 @@ func (dh *BasicDirectiveHandler) reportCommandResult(ctx context.Context, comman
 	a.ambassadorAPIKeyMutex.Unlock()
 	err := a.comm.ReportCommandResult(ctx, result, apiKey)
 	if err != nil {
-		dlog.Errorf(ctx, "error reporting result of rollout command %s: %s", cmd, cmdError)
+		dlog.Errorf(ctx, "error reporting result of rollout command %s: %s", cmd, err)
 	}
 }
