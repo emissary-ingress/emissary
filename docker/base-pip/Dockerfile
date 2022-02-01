@@ -1,3 +1,5 @@
+# syntax = docker/dockerfile:1.3
+
 ###
 # This dockerfile builds the base image for the builder container. See
 # the main Dockerfile for more information about what the builder
@@ -19,4 +21,4 @@ ARG from="i-forgot-to-set-build-arg-from"
 FROM ${from}
 
 COPY requirements.txt .
-RUN pip3 install -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip pip3 install -r requirements.txt && rm requirements.txt
