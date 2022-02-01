@@ -446,8 +446,8 @@ $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_
 #
 # Generate report on dependencies
 
-$(OSS_HOME)/build-aux/pip-show.txt: sync
-	docker exec $$($(BUILDER)) sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
+$(OSS_HOME)/build-aux/pip-show.txt: docker/builder-base.docker
+	docker run --rm "$$(cat docker/builder-base.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
 
 $(OSS_HOME)/builder/requirements.txt: %.txt: %.in FORCE
 	$(BUILDER) pip-compile
