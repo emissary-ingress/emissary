@@ -88,7 +88,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 # The artifact build stage
 ########################################
 
-FROM ${builderbase} as artifact-stage
+FROM ${builderbase} as artifacts
 
 WORKDIR /buildroot/ambassador
 
@@ -119,8 +119,6 @@ ADD manifests/emissary/emissary-crds.yaml manifests/emissary/emissary-crds.yaml
 ########################################
 # The optimized images
 ########################################
-
-FROM artifact-stage as artifacts
 
 FROM ${base} as ambassador
 

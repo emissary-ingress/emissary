@@ -46,7 +46,7 @@ ever find anything missing from this list.
  - make
  - docker (make sure you can run docker commands as your dev user without sudo)
  - bash
- - rsync (with the --info option)
+ - rsync
  - golang 1.15
  - python 3.8 or 3.9
  - kubectl

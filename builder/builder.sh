@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-shopt -s expand_aliases
-
-alias echo_on="{ set -x; }"
-alias echo_off="{ set +x; } 2>/dev/null"
-
 # Choose colors carefully. If they don't work on both a black
 # background and a white background, pick other colors (so white,
 # yellow, and black are poor choices).
@@ -23,10 +18,6 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
     [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-TEST_DATA_DIR=/tmp/test-data/
-if [[ -n "${TEST_XML_DIR}" ]] ; then
-    TEST_DATA_DIR=${TEST_XML_DIR}
-fi
 
 dsum() {
     local exe=${DIR}/../tools/bin/dsum
@@ -36,22 +27,6 @@ dsum() {
     "$exe" "$@"
 }
 
-now=$(date +"%H%M%S")
-
-# container name of the builder
-BUILDER_CONT_NAME=${BUILDER_CONT_NAME:-"bld-${BUILDER_NAME}-${now}"}
-
-# command for running a container (ie, "docker run")
-BUILDER_DOCKER_RUN=${BUILDER_DOCKER_RUN:-docker run}
-
-# the name of the Docker network
-# note: this is necessary for connecting the builder to a local k3d/microk8s/kind network (ie, for running tests)
-BUILDER_DOCKER_NETWORK=${BUILDER_DOCKER_NETWORK:-${BUILDER_NAME}}
-
-msg() {
-    printf "${CYN}==> ${GRN}%s${END}\n" "$*" >&2
-}
-
 msg2() {
     printf "${BLU}  -> ${GRN}%s${END}\n" "$*" >&2
 }
@@ -59,49 +34,6 @@ msg2() {
 panic() {
     printf 'panic: %s\n' "$*" >&2
     exit 1
-}
-
-builder() {
-    if ! [ -e docker/builder-base.docker ]; then
-        panic "This should not happen: 'docker/builder-base.docker' does not exist"
-    fi
-    if ! [ -e docker/base-envoy.docker ]; then
-        panic "This should not happen: 'docker/base-envoy.docker' does not exist"
-    fi
-    local builder_base_image envoy_base_image
-    builder_base_image=$(cat docker/builder-base.docker)
-    envoy_base_image=$(cat docker/base-envoy.docker)
-    docker ps --quiet \
-           --filter=label=builder \
-           --filter=label="$BUILDER_NAME" \
-           --filter=label=builderbase="$builder_base_image" \
-           --filter=label=envoybase="$envoy_base_image"
-}
-builder_network() { docker network ls -q -f name="${BUILDER_DOCKER_NETWORK}"; }
-
-builder_volume() { docker volume ls -q -f label=builder; }
-
-declare -a dsynced
-
-dsync() {
-    msg2 "Synchronizing... $*"
-    TIMEFORMAT="     (sync took %1R seconds)"
-    time IFS='|' read -ra dsynced <<<"$(rsync --info=name -aO --blocking-io -e 'docker exec -i' $@ 2> >(fgrep -v 'rsync: failed to set permissions on' >&2) | tr '\n' '|')"
-}
-
-dcopy() {
-    msg2 "Copying... $*"
-    local TIMEFORMAT="     (copy took %1R seconds)"
-    time docker cp $@
-}
-
-dexec() {
-    if [[ -t 0 ]]; then
-        flags=-it
-    else
-        flags=-i
-    fi
-    docker exec ${flags} $(builder) "$@"
 }
 
 # Usage: build_builder_base [--stage1-only]
@@ -206,250 +138,9 @@ print("stage2_tag=%s" % stage2)
     builder_base_image="$name2" # not local
 }
 
-bootstrap() {
-    if [ -z "$(builder_volume)" ] ; then
-        docker volume create --label builder
-        msg2 "Created docker volume ${BLU}$(builder_volume)${GRN} for caching"
-    fi
-
-    if [ -z "$(builder_network)" ]; then
-        msg2 "Creating docker network ${BLU}${BUILDER_DOCKER_NETWORK}${GRN}"
-        docker network create "${BUILDER_DOCKER_NETWORK}" > /dev/null
-    else
-        msg2 "Connecting to existing network ${BLU}${BUILDER_DOCKER_NETWORK}${GRN}"
-    fi
-
-    if [ -z "$(builder)" ] ; then
-        if ! [ -e docker/builder-base.docker ]; then
-            panic "This should not happen: 'docker/builder-base.docker' does not exist"
-        fi
-        if ! [ -e docker/base-envoy.docker ]; then
-            panic "This should not happen: 'docker/base-envoy.docker' does not exist"
-        fi
-        local builder_base_image envoy_base_image
-        builder_base_image=$(cat docker/builder-base.docker)
-        envoy_base_image=$(cat docker/base-envoy.docker)
-        msg2 'Bootstrapping build image'
-        dsum 'builder bootstrap' 3s \
-             docker build \
-             --build-arg=envoy="${envoy_base_image}" \
-             --build-arg=builderbase="${builder_base_image}" \
-             --target=builder \
-             ${DIR} -t ${BUILDER_NAME}.local/builder
-        if stat --version | grep -q GNU ; then
-            DOCKER_GID=$(stat -c "%g" /var/run/docker.sock)
-        else
-            DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
-        fi
-        if [ -z "${DOCKER_GID}" ]; then
-            panic "Unable to determine docker group-id"
-        fi
-
-        msg2 'Starting build container...'
-
-        echo_on
-        $BUILDER_DOCKER_RUN \
-            --name="$BUILDER_CONT_NAME" \
-            --network="${BUILDER_DOCKER_NETWORK}" \
-            --network-alias="builder" \
-            --group-add="${DOCKER_GID}" \
-            --detach \
-            --rm \
-            --volume=/var/run/docker.sock:/var/run/docker.sock \
-            --volume="$(builder_volume):/home/dw" \
-            ${BUILDER_MOUNTS} \
-            --cap-add=NET_ADMIN \
-            --label=builder \
-            --label="${BUILDER_NAME}" \
-            --label=builderbase="$builder_base_image" \
-            --label=envoybase="$envoy_base_image" \
-            ${BUILDER_PORTMAPS} \
-            ${BUILDER_DOCKER_EXTRA} \
-            --env=BUILDER_NAME="${BUILDER_NAME}" \
-            --env=GOPRIVATE="${GOPRIVATE}" \
-            --env=AWS_SECRET_ACCESS_KEY \
-            --env=AWS_ACCESS_KEY_ID \
-            --env=AWS_SESSION_TOKEN \
-            --init \
-            --entrypoint=tail ${BUILDER_NAME}.local/builder -f /dev/null > /dev/null
-        echo_off
-
-        msg2 "Started build container ${BLU}$(builder)${GRN}"
-    fi
-
-    dcopy ${DIR}/builder.sh $(builder):/buildroot
-    dcopy ${DIR}/builder_bash_rc $(builder):/home/dw/.bashrc
-
-    # If we've been asked to muck with gitconfig, do it.
-    if [ -n "$SYNC_GITCONFIG" ]; then
-        dsync "$SYNC_GITCONFIG" $(builder):/home/dw/.gitconfig
-    fi
-}
-
-sync() {
-    name=$1
-    sourcedir=$2
-    container=$3
-
-    real=$(cd ${sourcedir}; pwd)
-
-    make python/ambassador.version
-
-    dexec mkdir -p /buildroot/${name}
-    if [[ $name == apro ]]; then
-        # Don't let 'deleting ambassador' cause the sync to be marked dirty
-        dexec sh -c 'rm -rf apro/ambassador'
-    fi
-    dsync $DSYNC_EXTRA --exclude-from=${DIR}/sync-excludes.txt --delete ${real}/ ${container}:/buildroot/${name}
-    summarize-sync $name "${dsynced[@]}"
-    if [[ $name == apro ]]; then
-        # BusyBox `ln` 1.30.1's `-T` flag is broken, and doesn't have a `-t` flag.
-        dexec sh -c 'if ! test -L apro/ambassador; then rm -rf apro/ambassador && ln -s ../ambassador apro; fi'
-    fi
-}
-
-summarize-sync() {
-    name=$1
-    shift
-    lines=("$@")
-    local pydirty=false
-    local godirty=false
-    for line in "${lines[@]}"; do
-        if [[ $line != *.version ]] && ! $pydirty; then
-            dexec touch ${name}.dirty image.dirty
-            pydirty=true
-        fi
-        if [[ $line = *.go ]] && ! $godirty; then
-            dexec touch go.dirty
-            godirty=true
-        fi
-        if $pydirty && $godirty; then
-            break
-        fi
-    done
-    printf "     ${GRN}Synced ${#lines[@]} ${BLU}${name}${GRN} source files${END}\n"
-    PARTIAL="yes"
-    for i in {0..9}; do
-        if [ "$i" = "${#lines[@]}" ]; then
-            PARTIAL=""
-            break
-        fi
-        line="${lines[$i]}"
-        printf "       ${CYN}%s${END}\n" "$line"
-    done
-    if [ -n "${PARTIAL}" ]; then
-        printf "       ${CYN}...${END}\n"
-    fi
-}
-
-clean() {
-    local cid
-    # This command is similar to
-    #
-    #     builder | while read -r cid; do
-    #
-    # except that this command does *not* filter based on the
-    # `builderbase=` and `envoybase=` labels, because we want to
-    # garbage-collect old containers that were orphaned when either
-    # the builderbase or the envoybase image changed.
-    docker ps --quiet \
-           --filter=label=builder \
-           --filter=label="$BUILDER_NAME" \
-    | while read -r cid; do
-        printf "${GRN}Killing build container ${BLU}${cid}${END}\n"
-        docker kill ${cid} > /dev/null 2>&1
-        docker wait ${cid} > /dev/null 2>&1 || true
-    done
-    local nid
-    nid=$(builder_network)
-    if [ -n "${nid}" ] ; then
-        printf "${GRN}Removing docker network ${BLU}${BUILDER_DOCKER_NETWORK} (${nid})${END}\n"
-        # This will fail if the network has some other endpoints alive: silence any errors
-        docker network rm ${nid} 2>&1 >/dev/null || true
-    fi
-}
-
-find-modules () {
-    find /buildroot -type d -mindepth 1 -maxdepth 1 \! -name bin | sort
-}
-
-cmd="${1:-builder}"
+cmd="${1:-help}"
 
 case "${cmd}" in
-    clean)
-        clean
-        ;;
-    clobber)
-        clean
-        vid=$(builder_volume)
-        if [ -n "${vid}" ] ; then
-            printf "${GRN}Killing cache volume ${BLU}${vid}${END}\n"
-            if ! docker volume rm ${vid} > /dev/null 2>&1 ; then \
-                printf "${RED}Could not kill cache volume; are other builders still running?${END}\n"
-            fi
-        fi
-        ;;
-    bootstrap)
-        bootstrap >&2
-        echo $(builder)
-        ;;
-    builder)
-        echo $(builder)
-        ;;
-    sync)
-        shift
-        sync $1 $2 $(builder)
-        ;;
-    compile)
-        shift
-        dexec /buildroot/builder.sh compile-internal
-        ;;
-    compile-internal)
-        # This runs inside the builder image
-        if [[ $(find-modules) != /buildroot/ambassador* ]]; then
-            echo "Error: ambassador must be the first module to build things correctly"
-            echo "Modules are: $(find-modules)"
-            exit 1
-        fi
-
-        for MODDIR in $(find-modules); do
-            module=$(basename ${MODDIR})
-
-            if [ -e ${module}.dirty ] || ([ "$module" != ambassador ] && [ -e go.dirty ]) ; then
-                if [ -e "${MODDIR}/go.mod" ]; then
-                    printf "${CYN}==> ${GRN}Building ${BLU}${module}${GRN} go code${END}\n"
-                    echo_on
-                    mkdir -p /buildroot/bin
-                    TIMEFORMAT="     (go build took %1R seconds)"
-                    (cd ${MODDIR} && time go build -trimpath -o /buildroot/bin ./cmd/...) || exit 1
-                    TIMEFORMAT="     (${MODDIR}/post-compile took %1R seconds)"
-                    if [ -e ${MODDIR}/post-compile.sh ]; then (cd ${MODDIR} && time bash post-compile.sh); fi
-                    unset TIMEFORMAT
-                    echo_off
-                fi
-            fi
-
-            if [ -e ${module}.dirty ]; then
-                if [ -e "${MODDIR}/python" ]; then
-                    if ! [ -e ${MODDIR}/python/*.egg-info ]; then
-                        printf "${CYN}==> ${GRN}Setting up ${BLU}${module}${GRN} python code${END}\n"
-                        echo_on
-                        TIMEFORMAT="     (pip install took %1R seconds)"
-                        time sudo pip install --no-deps -e ${MODDIR}/python || exit 1
-                        unset TIMEFORMAT
-                        echo_off
-                    fi
-                    chmod a+x ${MODDIR}/python/*.py
-                fi
-
-                rm ${module}.dirty
-            else
-                printf "${CYN}==> ${GRN}Already built ${BLU}${module}${GRN}${END}\n"
-            fi
-        done
-        rm -f go.dirty  # Do this after _all_ the Go code is built
-        ;;
-
     pip-compile)
         build_builder_base --stage1-only
         printf "${GRN}Running pip-compile to update ${BLU}requirements.txt${END}\n"
@@ -463,12 +154,8 @@ case "${cmd}" in
         build_builder_base >&2
         echo "${builder_base_image}"
         ;;
-    shell)
-        echo
-        docker exec -it "$(builder)" /bin/bash
-        ;;
     *)
-        echo "usage: builder.sh [bootstrap|builder|clean|clobber|compile|build-builder-base|shell]"
+        echo "usage: builder.sh [pip-compile|build-builder-base]"
         exit 1
         ;;
 esac

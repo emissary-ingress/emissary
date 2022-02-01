@@ -172,15 +172,11 @@ else
   # ...and I (lukeshu) couldn't figure out a good way to do it on old (net-tools) GNU/Linux.
 endif
 
-RSYNC_ERR  = $(RED)ERROR: please update to a version of rsync with the --info option$(END)
 GO_ERR     = $(RED)ERROR: please update to go 1.13 or newer$(END)
 DOCKER_ERR = $(RED)ERROR: please update to a version of docker built with Go 1.13 or newer$(END)
 
 preflight:
 	@printf "$(CYN)==> $(GRN)Preflight checks$(END)\n"
-
-	@echo "Checking that 'rsync' is installed and is new enough to support '--info'"
-	@$(if $(shell rsync --help 2>/dev/null | grep -F -- --info),,printf '%s\n' $(call quote.shell,$(RSYNC_ERR)))
 
 	@echo "Checking that 'go' is installed and is 1.13 or later"
 	@$(if $(call _prelude.go.VERSION.HAVE,1.13),,printf '%s\n' $(call quote.shell,$(GO_ERR)))
@@ -206,21 +202,6 @@ preflight-cluster: $(tools/kubectl)
 	fi
 .PHONY: preflight-cluster
 
-sync: docker/container.txt $(tools/kubectl)
-	@printf "${CYN}==> ${GRN}Syncing sources in to builder container${END}\n"
-	@$(foreach MODULE,$(MODULES),$(BUILDER) sync $(MODULE) $(SOURCE_$(MODULE)) &&) true
-	@if [ -n "$(DEV_KUBECONFIG)" ] && [ "$(DEV_KUBECONFIG)" != '-skip-for-release-' ]; then \
-		$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) config view --flatten | docker exec -i $$(cat $<) sh -c "cat > /buildroot/kubeconfig.yaml" ;\
-	fi
-	@if [ -e ~/.docker/config.json ]; then \
-		cat ~/.docker/config.json | docker exec -i $$(cat $<) sh -c "mkdir -p /home/dw/.docker && cat > /home/dw/.docker/config.json" ; \
-	fi
-	@if [ -n "$(GCLOUD_CONFIG)" ]; then \
-		printf "Copying gcloud config to builder container\n"; \
-		docker cp $(GCLOUD_CONFIG) $$(cat $<):/home/dw/.config/; \
-	fi
-.PHONY: sync
-
 builder:
 	@$(BUILDER) builder
 .PHONY: builder
@@ -235,10 +216,6 @@ python/ambassador.version: $(tools/write-ifchanged) FORCE
 	  git rev-parse HEAD; \
 	} | $(tools/write-ifchanged) $@
 
-compile: sync
-	@$(BUILDER) compile
-.PHONY: compile
-
 # Give Make a hint about which pattern rules to apply.  Honestly, I'm
 # not sure why Make isn't figuring it out on its own, but it isn't.
 _images = builder-base base-envoy $(LCNAME) kat-client kat-server
@@ -248,9 +225,6 @@ $(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remot
 docker/.builder-base.docker.stamp: FORCE preflight
 	@printf "${CYN}==> ${GRN}Bootstrapping builder base image${END}\n"
 	@$(BUILDER) build-builder-base >$@
-docker/.container.txt.stamp: %/.container.txt.stamp: %/builder-base.docker.tag.local %/base-envoy.docker.tag.local FORCE
-	@printf "${CYN}==> ${GRN}Bootstrapping builder container${END}\n"
-	@($(BOOTSTRAP_EXTRAS) $(BUILDER) bootstrap > $@)
 
 docker/.base-envoy.docker.stamp: FORCE
 	@set -e; { \
@@ -273,7 +247,6 @@ docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base-envoy.docker.t
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
-	    --target=ambassador \
 	    --iidfile=$@; }
 
 REPO=$(BUILDER_NAME)
@@ -585,11 +558,6 @@ ingresstest: $(tools/kubectl) | docker/$(LCNAME).docker.push.remote
 
 test: ingresstest gotest pytest
 .PHONY: test
-
-shell: docker/container.txt
-	@printf "$(CYN)==> $(GRN)Launching interactive shell...$(END)\n"
-	@$(BUILDER) shell
-.PHONY: shell
 
 AMB_IMAGE_RC=$(RELEASE_REGISTRY)/$(REPO):$(patsubst v%,%,$(VERSION))
 AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(patsubst v%,%,$(VERSION))
@@ -911,11 +879,7 @@ define _help.targets
 
   $(BLD)$(MAKE) $(BLU)preflight$(END)    -- checks dependencies of this makefile.
 
-  $(BLD)$(MAKE) $(BLU)sync$(END)         -- syncs source code into the build container.
-
   $(BLD)$(MAKE) $(BLU)version$(END)      -- display source code version.
-
-  $(BLD)$(MAKE) $(BLU)compile$(END)      -- syncs and compiles the source code in the build container.
 
   $(BLD)$(MAKE) $(BLU)images$(END)       -- creates images from the build container.
 
@@ -952,12 +916,6 @@ define _help.targets
     caches for the passing tests.
 
     $(BLD)DO NOT$(END) run $(BLD)$(MAKE) $(BLU)pytest-gold$(END) if you have failing tests.
-
-  $(BLD)$(MAKE) $(BLU)shell$(END)        -- starts a shell in the build container
-
-    The current commit must be tagged for this to work, and your tree must be clean.
-    Additionally, the tag must be of the form 'vX.Y.Z-rc.N'. You must also have previously
-    built an RC for the same tag using $(BLD)release/bits$(END).
 
   $(BLD)$(MAKE) $(BLU)release/promote-oss/to-ga$(END) -- promote a release candidate to general availability
 
