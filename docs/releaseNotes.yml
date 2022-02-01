@@ -62,6 +62,14 @@ items:
           components (and not only the Ambassador Agent) to authenticate requests to
           Ambassador Cloud.
 
+      - title: gRPC Statistics
+        type: change
+        body: >-
+          Envoy now emits gRPC service filter statistics prefixed with <code>(grpc service).(grpc method)</code>.
+          Existing statistics may start appearing prefixed with <code>envoy_cluster_(method name)</code>.
+          See the Envoy documentation on gRPC Statistics for more information.
+        docs: https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_stats_filter
+
   - version: 2.1.2
     prevVersion: 2.1.0
     date: '2022-01-25'

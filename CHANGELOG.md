@@ -105,6 +105,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   `AGENT_CONFIG_RESOURCE_NAME` environment variable in order to allow all components (and not only
   the Ambassador Agent) to authenticate requests to Ambassador Cloud.
 
+- Change: Envoy now emits gRPC service filter statistics prefixed with `(grpc service).(grpc
+  method)`. Existing statistics may start appearing prefixed with `envoy_cluster_(method name)`. See
+  the Envoy documentation on gRPC Statistics for more information.
+
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
 
 ## [2.1.2] January 25, 2022
