@@ -8,8 +8,11 @@ include build-aux/tools.mk
 # Bootstrapping the build env
 ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
   $(_prelude.go.ensure)
-  ifeq ($(shell go env GOPATH),$(shell go env GOROOT))
+  ifneq ($(filter $(shell go env GOROOT),$(subst :, ,$(shell go env GOPATH))),)
     $(error Your $$GOPATH (where *your* Go stuff goes) and $$GOROOT (where Go *itself* is installed) are both set to the same directory ($(shell go env GOROOT)); it is remarkable that it has not blown up catastrophically before now)
+  endif
+  ifneq ($(foreach gopath,$(subst :, ,$(shell go env GOPATH)),$(filter $(gopath)/%,$(CURDIR))),)
+    $(error Your emissary.git checkout is inside of your $$GOPATH ($(shell go env GOPATH)); Emissary-ingress uses Go modules and so GOPATH need not be pointed at it (in a post-modules world, the only role of GOPATH is to store the module download cache); and indeed some of the Kubernetes tools will get confused if GOPATH is pointed at it)
   endif
 
   VERSION := $(or $(VERSION),$(shell go run ./tools/src/goversion))
