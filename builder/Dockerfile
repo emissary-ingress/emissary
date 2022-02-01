@@ -88,7 +88,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 # The artifact build stage
 ########################################
 
-FROM ${builderbase} as artifact-stage
+FROM ${builderbase} as artifacts
 
 WORKDIR /buildroot/ambassador
 
@@ -119,8 +119,6 @@ ADD manifests/emissary/emissary-crds.yaml manifests/emissary/emissary-crds.yaml
 ########################################
 # The optimized images
 ########################################
-
-FROM artifact-stage as artifacts
 
 FROM ${base} as ambassador
 
@@ -185,27 +183,3 @@ ENV HOME=/tmp/ambassador
 COPY --from=artifacts /bin/busybox /bin/busybox
 
 ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]
-
-########################################
-
-FROM ${base} as kat-client
-
-COPY --from=artifacts /buildroot/bin/kat-client /usr/bin/kat-client
-RUN mkdir /work && ln -s /usr/bin/kat-client /work/kat_client
-CMD [ "sleep", "3600" ]
-
-########################################
-
-FROM ${base} as kat-server
-
-COPY --from=artifacts /buildroot/bin/kat-server /usr/bin/kat-server
-
-WORKDIR /work
-COPY builder/server.crt server.crt
-COPY builder/server.key server.key
-
-ENV GRPC_VERBOSITY=debug
-ENV GRPC_TRACE=tcp,http,api
-
-EXPOSE 8080
-CMD [ "kat-server" ]

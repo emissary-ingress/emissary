@@ -113,7 +113,7 @@ spec:
     name: scratchpad
   containers:
   - name: ambassador
-    image: {image}
+    image: {images[emissary]}
     imagePullPolicy: IfNotPresent
     ports:
     - name: http

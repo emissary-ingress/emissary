@@ -69,8 +69,6 @@ generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml
 # Individual files: Test TLS Certificates
-generate-fast/files += $(OSS_HOME)/builder/server.crt
-generate-fast/files += $(OSS_HOME)/builder/server.key
 generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.crt
 generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.key
 generate-fast/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.crt
@@ -175,11 +173,6 @@ $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto:
 
 #
 # `make generate` certificate generation
-
-$(OSS_HOME)/builder/server.crt: $(tools/testcert-gen)
-	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=kat-server.test.getambassador.io
-$(OSS_HOME)/builder/server.key: $(tools/testcert-gen)
-	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=kat-server.test.getambassador.io
 
 $(OSS_HOME)/docker/test-auth/authsvc.crt: $(tools/testcert-gen)
 	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=authsvc.datawire.io
@@ -425,10 +418,6 @@ $(OSS_HOME)/python/tests/integration/manifests/crds.yaml: $(OSS_HOME)/_generate.
 $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) --target=internal-validator $(sort $(wildcard $</*.yaml)) >$@
 
-python-setup: create-venv
-	$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
-.PHONY: python-setup
-
 helm.name.emissary-emissaryns = emissary-ingress
 helm.name.emissary-defaultns = emissary-ingress
 helm.namespace.emissary-emissaryns = emissary
@@ -443,7 +432,7 @@ $(OSS_HOME)/k8s-config/%/output.yaml: \
   $(OSS_HOME)/k8s-config/%/helm-expanded.yaml \
   $(OSS_HOME)/k8s-config/%/require.yaml \
   $(OSS_HOME)/k8s-config/create_yaml.py \
-  python-setup
+  $(OSS_HOME)/venv
 	. $(OSS_HOME)/venv/bin/activate && $(filter %.py,$^) $(filter %/helm-expanded.yaml,$^) $(filter %/require.yaml,$^) >$@
 $(OSS_HOME)/manifests/emissary/%.yaml.in: $(OSS_HOME)/k8s-config/%/output.yaml
 	cp $< $@
@@ -457,8 +446,8 @@ $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_
 #
 # Generate report on dependencies
 
-$(OSS_HOME)/build-aux/pip-show.txt: sync
-	docker exec $$($(BUILDER)) sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
+$(OSS_HOME)/build-aux/pip-show.txt: docker/builder-base.docker
+	docker run --rm "$$(cat docker/builder-base.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
 
 $(OSS_HOME)/builder/requirements.txt: %.txt: %.in FORCE
 	$(BUILDER) pip-compile

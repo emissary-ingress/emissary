@@ -1,5 +1,8 @@
-# Docker build pin files
-docker/*.pin
+*.img.tar
+*.layer.tar
+.*.stamp
+/docker/kat-server/server.crt
+/docker/kat-server/server.key
 
 *.pyc
 *~
@@ -41,8 +44,6 @@ vendor_bootstrap_hack.go
 /docker/images.sh
 /docker/images.tar
 /docker/volume.tar
-/docker/container.txt
-/docker/container.txt.stamp
 *.docker
 *.docker.stamp
 *.docker.tag.*
@@ -108,6 +109,9 @@ ambassador-secrets-deployment.yaml
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2022-01-31
+/docker/container.txt
+/docker/container.txt.stamp
 # 2020-08-20
 /cxx/envoy/
 /cxx/envoy-static
