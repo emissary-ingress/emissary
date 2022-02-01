@@ -404,10 +404,6 @@ pytest-kat-envoy3: push-pytest-images # doing this all at once is too much for C
 	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
 pytest-kat-envoy3-%: push-pytest-images # ... so we have a separate rule to run things split up
 	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range $* python/tests/kat"
-pytest-kat-envoy2: push-pytest-images # doing this all at once is too much for CI...
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
-pytest-kat-envoy2-%: push-pytest-images # ... so we have a separate rule to run things split up
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range $* python/tests/kat"
 .PHONY: pytest-kat-%
 
 extract-bin-envoy: docker/base-envoy.docker.tag.local
