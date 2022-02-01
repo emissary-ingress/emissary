@@ -96,14 +96,15 @@ type KubernetesSnapshot struct {
 	FSSecrets  map[SecretRef]*kates.Secret `json:"-"`      // Secrets from the filesystem
 	Secrets    []*kates.Secret             `json:"secret"` // Secrets we'll feed to Ambassador
 
+	ConfigMaps []*kates.ConfigMap `json:"ConfigMaps,omitempty"`
+
 	// [kind/name.namespace][]kates.Object
 	Annotations map[string]AnnotationList `json:"annotations"`
 
-	// Pods, Deployments and ConfigMaps were added to be used by Ambassador Agent so it can
+	// Pods and Deployments were added to be used by Ambassador Agent so it can
 	// report to AgentCom in Ambassador Cloud.
 	Pods        []*kates.Pod        `json:"Pods,omitempty"`
 	Deployments []*kates.Deployment `json:"Deployments,omitempty"`
-	ConfigMaps  []*kates.ConfigMap  `json:"ConfigMaps,omitempty"`
 
 	// ArgoRollouts represents the argo-rollout CRD state of the world that may or may not be present
 	// in the client's cluster. For this reason, Rollouts resources are fetched making use of the

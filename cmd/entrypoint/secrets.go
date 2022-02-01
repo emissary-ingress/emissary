@@ -109,6 +109,9 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 		findSecretRefs(ctx, resource, secretNamespacing, action)
 	}
 
+	// We _always_ have an implicit references to the cloud-connec-token secret...
+	secretRef(GetCloudConnectTokenResourceNamespace(), GetCloudConnectTokenResourceName(), false, action)
+
 	// We _always_ have an implicit references to the fallback cert secret...
 	secretRef(GetAmbassadorNamespace(), "fallback-self-signed-cert", false, action)
 

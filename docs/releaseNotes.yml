@@ -54,6 +54,14 @@ items:
           variable have been removed. Only the Envoy V3 API is supported (this has been the
           default since Emissary-ingress v1.14.0).
 
+      - title: Emissary watch for Cloud Connect Tokens
+        type: change
+        body: >-
+          Emissary will now watch for ConfigMap or Secret resources specified by the
+          `AGENT_CONFIG_RESOURCE_NAME` environment variable in order to allow all
+          components (and not only the Ambassador Agent) to authenticate requests to
+          Ambassador Cloud.
+
   - version: 2.1.2
     prevVersion: 2.1.0
     date: '2022-01-25'
