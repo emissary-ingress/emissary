@@ -96,7 +96,6 @@ class Config:
     # INSTANCE VARIABLES
     ambassador_nodename: str = "ambassador"     # overridden in Config.reset
 
-    schema_dir_path: str                        # where to look for JSONSchema files
     current_resource: Optional[ACResource] = None
     helm_chart: Optional[str]
 
@@ -115,17 +114,8 @@ class Config:
     fatal_errors: int
     object_errors: int
 
-    def __init__(self, logger:logging.Logger=None, schema_dir_path: Optional[str]=None) -> None:
+    def __init__(self, logger:logging.Logger=None) -> None:
         self.logger = logger or logging.getLogger("ambassador.config")
-
-        if not schema_dir_path:
-            # Note that this "resource_filename" has to do with setuptool packages, not
-            # with our ACResource class.
-            schema_dir_path = resource_filename(Requirement.parse("ambassador"), "schemas")
-
-        # Once here, we know that schema_dir_path cannot be None. assert that, for mypy's
-        # benefit.
-        assert schema_dir_path is not None
 
         self.statsd: Dict[str, Any] = {
             'enabled': (os.environ.get('STATSD_ENABLED', '').lower() == 'true'),
@@ -144,9 +134,6 @@ class Config:
                 self.logger.error("Stats will not be exported to {}".format(statsd_host))
                 self.statsd['enabled'] = False
 
-        self.schema_dir_path = schema_dir_path
-
-        self.logger.debug("SCHEMA DIR    %s" % os.path.abspath(self.schema_dir_path))
         self.k8s_status_updates: Dict[str, Tuple[str, str, Optional[Dict[str, Any]]]] = {}  # Tuple is (name, namespace, status_json)
         self.pod_labels: Dict[str, str] = {}
         self._reset()

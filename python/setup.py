@@ -31,7 +31,6 @@ def collect_data_files(dirpath):
     ]
 
 template_files = collect_data_files("templates")
-schema_files = collect_data_files("schemas")
 kat_files = [
     (subdirpath,
      [ os.path.join(subdirpath, filename)
@@ -39,7 +38,7 @@ kat_files = [
     for subdirpath, folders, filenames in os.walk("kat")
 ]
 
-data_files = [("", ["ambassador.version"])] + template_files + schema_files + kat_files
+data_files = [("", ["ambassador.version"])] + template_files + kat_files
 
 setup(
     name="ambassador",
