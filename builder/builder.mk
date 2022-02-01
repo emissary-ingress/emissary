@@ -460,7 +460,6 @@ $(OSS_HOME)/venv: builder/requirements.txt builder/requirements-dev.txt
 	    $@/bin/pip3 install orjson==3.6.0; \
 	  fi; \
 	}
-	$@/bin/pip3 install ruamel.yaml
 	$@/bin/pip3 install -r builder/requirements.txt
 	$@/bin/pip3 install -r builder/requirements-dev.txt
 	$@/bin/pip3 install -e $(OSS_HOME)/python
