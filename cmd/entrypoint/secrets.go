@@ -2,14 +2,162 @@ package entrypoint
 
 import (
 	"context"
+	"crypto/x509"
+	"encoding/json"
+	"encoding/pem"
+	"fmt"
 	"strings"
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/kates/k8s_resource_types"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/datawire/dlib/derror"
 	"github.com/datawire/dlib/dlog"
+	v1 "k8s.io/api/core/v1"
 )
+
+// checkSecret checks whether a secret is valid, and adds it to the list of secrets
+// in this snapshot if so.
+func checkSecret(
+	ctx context.Context,
+	sh *SnapshotHolder,
+	what string,
+	ref snapshotTypes.SecretRef,
+	secret *v1.Secret) {
+	// Make it more convenient to consistently refer to this secret.
+	secretName := fmt.Sprintf("%s secret %s.%s", what, ref.Name, ref.Namespace)
+
+	if secret == nil {
+		// This is "impossible". Arguably it should be a panic...
+		dlog.Debugf(ctx, "%s not found", secretName)
+		return
+	}
+
+	// Assume that the secret is valid...
+	isValid := true
+
+	// ...and that we have no errors.
+	var errs derror.MultiError
+
+	// OK, do we have a TLS private key?
+	privKeyPEMBytes, ok := secret.Data[v1.TLSPrivateKeyKey]
+
+	if ok && len(privKeyPEMBytes) > 0 {
+		// Yes. We need to be able to decode it.
+		caKeyBlock, _ := pem.Decode(privKeyPEMBytes)
+
+		if caKeyBlock != nil {
+			dlog.Debugf(ctx, "%s has private key, block type %s", secretName, caKeyBlock.Type)
+
+			// First try PKCS1.
+			_, err := x509.ParsePKCS1PrivateKey(caKeyBlock.Bytes)
+
+			if err != nil {
+				// Try PKCS8? (No, = instead of := is not a typo here: we're overwriting the
+				// earlier error.)
+				_, err = x509.ParsePKCS8PrivateKey(caKeyBlock.Bytes)
+			}
+
+			// Any issues here?
+			if err != nil {
+				errs = append(errs,
+					fmt.Errorf("%s %s cannot be parsed as PKCS1 or PKCS8: %s", secretName, v1.TLSPrivateKeyKey, err.Error()))
+				isValid = false
+			}
+		} else {
+			errs = append(errs,
+				fmt.Errorf("%s %s is not a PEM-encoded key", secretName, v1.TLSPrivateKeyKey))
+			isValid = false
+		}
+	}
+
+	// How about a TLS cert bundle?
+	caCertPEMBytes, ok := secret.Data[v1.TLSCertKey]
+
+	if ok && len(caCertPEMBytes) > 0 {
+		caCertBlock, _ := pem.Decode(caCertPEMBytes)
+
+		if caCertBlock != nil {
+			dlog.Debugf(ctx, "%s has public key, block type %s", secretName, caCertBlock.Type)
+
+			_, err := x509.ParseCertificate(caCertBlock.Bytes)
+
+			if err != nil {
+				errs = append(errs,
+					fmt.Errorf("%s %s cannot be parsed as x.509: %s", secretName, v1.TLSCertKey, err.Error()))
+				isValid = false
+			}
+		} else {
+			errs = append(errs,
+				fmt.Errorf("%s %s is not a PEM-encoded certificate", secretName, v1.TLSCertKey))
+			isValid = false
+		}
+	}
+
+	if isValid {
+		dlog.Debugf(ctx, "taking %s", secretName)
+		sh.k8sSnapshot.Secrets = append(sh.k8sSnapshot.Secrets, secret)
+	} else {
+		// This secret is invalid, but we're not going to log about it -- instead, it'll go into the
+		// list of Invalid resources.
+		dlog.Debugf(ctx, "%s is not valid, skipping: %s", secretName, errs.Error())
+
+		// We need to add this to our set of invalid resources. Sadly, this means we need to convert it
+		// to an Unstructured and redact various bits.
+		secretBytes, err := json.Marshal(secret)
+
+		if err != nil {
+			// This we'll log about, since it's impossible.
+			dlog.Errorf(ctx, "unable to marshal invalid %s: %s", secretName, err)
+			return
+		}
+
+		var unstructuredSecret kates.Unstructured
+		err = json.Unmarshal(secretBytes, &unstructuredSecret)
+
+		if err != nil {
+			// This we'll log about, since it's impossible.
+			dlog.Errorf(ctx, "unable to unmarshal invalid %s: %s", secretName, err)
+			return
+		}
+
+		// Construct a redacted version of things in the original data map.
+		redactedData := map[string]interface{}{}
+
+		for key := range secret.Data {
+			redactedData[key] = "-redacted-"
+		}
+
+		unstructuredSecret.Object["data"] = redactedData
+
+		// We have to toss the last-applied-configuration as well... and we may as well toss the
+		// managedFields.
+
+		metadata, ok := unstructuredSecret.Object["metadata"].(map[string]interface{})
+
+		if ok {
+			delete(metadata, "managedFields")
+
+			annotations, ok := metadata["annotations"].(map[string]interface{})
+
+			if ok {
+				delete(annotations, "kubectl.kubernetes.io/last-applied-configuration")
+
+				if len(annotations) == 0 {
+					delete(metadata, "annotations")
+				}
+			}
+
+			if len(metadata) == 0 {
+				delete(unstructuredSecret.Object, "metadata")
+			}
+		}
+
+		// Finally, mark it invalid.
+		sh.validator.addInvalid(ctx, &unstructuredSecret, errs.Error())
+	}
+}
 
 // ReconcileSecrets figures out which secrets we're actually using,
 // since we don't want to send secrets to Ambassador unless we're
@@ -132,8 +280,7 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 
 	for ref, secret := range sh.k8sSnapshot.FSSecrets {
 		if refs[ref] {
-			dlog.Debugf(ctx, "Taking FSSecret %#v", ref)
-			sh.k8sSnapshot.Secrets = append(sh.k8sSnapshot.Secrets, secret)
+			checkSecret(ctx, sh, "FSSecret", ref, secret)
 		}
 	}
 
@@ -147,8 +294,7 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 		}
 
 		if refs[ref] {
-			dlog.Debugf(ctx, "Taking K8sSecret %#v", ref)
-			sh.k8sSnapshot.Secrets = append(sh.k8sSnapshot.Secrets, secret)
+			checkSecret(ctx, sh, "K8sSecret", ref, secret)
 		}
 	}
 	return nil
