@@ -143,7 +143,8 @@ func (c *RPCComm) Close() error {
 	return c.conn.Close()
 }
 
-func (c *RPCComm) ReportCommandResult(ctx context.Context, result *agent.CommandResult) error {
+func (c *RPCComm) ReportCommandResult(ctx context.Context, result *agent.CommandResult, apiKey string) error {
+	ctx = metadata.AppendToOutgoingContext(ctx, APIKeyMetadataKey, apiKey)
 	_, err := c.client.ReportCommandResult(ctx, result, grpc.EmptyCallOption{})
 	if err != nil {
 		return fmt.Errorf("ReportCommandResult error: %w", err)
