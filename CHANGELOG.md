@@ -102,7 +102,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   Emissary-ingress v1.14.0).
 
 - Feature: The Emissary agent now receive commands to manipulate Rollouts (pause, continue, and
-  abort are currently supported) via directives and executes them in the cluster. ([4040])
+  abort are currently supported) via directives and executes them in the cluster.  A report is send
+  to Ambassador's cloud including the command ID, whether it ran successfully, and an error message
+  in case there was any. ([4040])
 
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
 [4040]: https://github.com/emissary-ingress/emissary/pull/4040

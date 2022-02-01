@@ -58,7 +58,9 @@ items:
         type: feature
         body: >-
           The Emissary agent now receive commands to manipulate Rollouts (pause, continue, and abort are
-          currently supported) via directives and executes them in the cluster.
+          currently supported) via directives and executes them in the cluster. 
+          A report is send to Ambassador's cloud including the command ID, whether it ran successfully,
+          and an error message in case there was any.
         github:
           - title: 4040
             link: https://github.com/emissary-ingress/emissary/pull/4040
