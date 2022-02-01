@@ -267,6 +267,8 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
                 diagv3 = Diagnostics(ir, econfv3)
                 od['diag'] = diagv3.as_dict()
                 od['elements'] = econfv3.elements
+                od['diagv3'] = diagv3.as_dict()
+                od['elementsv3'] = econfv3.elements
 
         features_timer = Timer("features")
         with features_timer:
@@ -323,6 +325,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
             sys.stderr.write("  load resources:   %.3fs\n" % load_timer.average)
             sys.stderr.write("  ir generation:    %.3fs\n" % irgen_timer.average)
             sys.stderr.write("  aconf:            %.3fs\n" % aconf_timer.average)
+            sys.stderr.write("  envoy v3:         %.3fs\n" % v3_timer.average)
             sys.stderr.write("  diag:             %.3fs\n" % diag_timer.average)
             sys.stderr.write("  features:         %.3fs\n" % features_timer.average)
             sys.stderr.write("  dump json:        %.3fs\n" % dump_timer.average)
