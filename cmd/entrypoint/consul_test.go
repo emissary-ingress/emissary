@@ -121,7 +121,7 @@ func TestBootstrap(t *testing.T) {
 	assert.True(t, c.isBootstrapped())
 }
 
-func setup(t *testing.T) (ctx context.Context, resolvers []*amb.ConsulResolver, mappings []consulMapping, c *consul, tw *testWatcher) {
+func setup(t *testing.T) (ctx context.Context, resolvers []*amb.ConsulResolver, mappings []consulMapping, c *consulWatcher, tw *testWatcher) {
 	ctx = dlog.NewTestContext(t, false)
 
 	parent := &kates.Unstructured{
@@ -157,7 +157,7 @@ func setup(t *testing.T) (ctx context.Context, resolvers []*amb.ConsulResolver, 
 	assert.Equal(t, 4, len(mappings))
 
 	tw = &testWatcher{t: t, events: make(map[string]bool)}
-	c = newConsul(ctx, tw.Watch)
+	c = newConsulWatcher(ctx, tw.Watch)
 	tw.Assert()
 
 	return

@@ -19,7 +19,7 @@ type consulMapping struct {
 	Resolver string
 }
 
-func ReconcileConsul(ctx context.Context, consul *consul, s *snapshotTypes.KubernetesSnapshot) error {
+func ReconcileConsul(ctx context.Context, consulWatcher *consulWatcher, s *snapshotTypes.KubernetesSnapshot) error {
 	var mappings []consulMapping
 	for _, list := range s.Annotations {
 		for _, a := range list {
@@ -55,10 +55,10 @@ func ReconcileConsul(ctx context.Context, consul *consul, s *snapshotTypes.Kuber
 		}
 	}
 
-	return consul.reconcile(ctx, s.ConsulResolvers, mappings)
+	return consulWatcher.reconcile(ctx, s.ConsulResolvers, mappings)
 }
 
-type consul struct {
+type consulWatcher struct {
 	watchFunc                 watchConsulFunc
 	resolvers                 map[string]*resolver
 	firstReconcileHasHappened bool
@@ -77,8 +77,8 @@ type consul struct {
 	bootstrapped     bool
 }
 
-func newConsul(ctx context.Context, watchFunc watchConsulFunc) *consul {
-	result := &consul{
+func newConsulWatcher(ctx context.Context, watchFunc watchConsulFunc) *consulWatcher {
+	result := &consulWatcher{
 		watchFunc:      watchFunc,
 		resolvers:      make(map[string]*resolver),
 		coalescedDirty: make(chan struct{}),
@@ -93,7 +93,7 @@ func newConsul(ctx context.Context, watchFunc watchConsulFunc) *consul {
 	return result
 }
 
-func (c *consul) run(ctx context.Context) error {
+func (c *consulWatcher) run(ctx context.Context) error {
 	dirty := false
 	for {
 		if dirty {
@@ -118,17 +118,17 @@ func (c *consul) run(ctx context.Context) error {
 	}
 }
 
-func (c *consul) updateEndpoints(endpoints consulwatch.Endpoints) {
+func (c *consulWatcher) updateEndpoints(endpoints consulwatch.Endpoints) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.endpoints[endpoints.Service] = endpoints
 }
 
-func (c *consul) changed() chan struct{} {
+func (c *consulWatcher) changed() chan struct{} {
 	return c.coalescedDirty
 }
 
-func (c *consul) update(snap *snapshotTypes.ConsulSnapshot) {
+func (c *consulWatcher) update(snap *snapshotTypes.ConsulSnapshot) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	snap.Endpoints = make(map[string]consulwatch.Endpoints, len(c.endpoints))
@@ -137,7 +137,7 @@ func (c *consul) update(snap *snapshotTypes.ConsulSnapshot) {
 	}
 }
 
-func (c *consul) isBootstrapped() bool {
+func (c *consulWatcher) isBootstrapped() bool {
 	if !c.firstReconcileHasHappened {
 		return false
 	}
@@ -161,7 +161,7 @@ func (c *consul) isBootstrapped() bool {
 }
 
 // Stop all service watches.
-func (c *consul) cleanup(ctx context.Context) error {
+func (c *consulWatcher) cleanup(ctx context.Context) error {
 	// XXX: do we care about a clean shutdown
 	/*go func() {
 		<-ctx.Done()
@@ -173,7 +173,7 @@ func (c *consul) cleanup(ctx context.Context) error {
 
 // Start and stop consul service watches as needed in order to match the supplied set of resolvers
 // and mappings.
-func (c *consul) reconcile(ctx context.Context, resolvers []*amb.ConsulResolver, mappings []consulMapping) error {
+func (c *consulWatcher) reconcile(ctx context.Context, resolvers []*amb.ConsulResolver, mappings []consulMapping) error {
 	// ==First we compute resolvers and their related mappings without actualy changing anything.==
 	resolversByName := make(map[string]*amb.ConsulResolver)
 	for _, cr := range resolvers {

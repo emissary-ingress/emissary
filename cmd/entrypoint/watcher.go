@@ -196,7 +196,7 @@ func watchAllTheThingsInternal(
 	if err != nil {
 		return err
 	}
-	consul := newConsul(ctx, watchConsulFunc)
+	consulWatcher := newConsulWatcher(ctx, watchConsulFunc)
 	istioCertWatcher, err := istioCertSrc.Watch(ctx)
 	if err != nil {
 		return err
@@ -220,7 +220,7 @@ func watchAllTheThingsInternal(
 		for {
 			select {
 			case sh := <-notifyCh:
-				if err := sh.Notify(ctx, encoded, consul, snapshotProcessor); err != nil {
+				if err := sh.Notify(ctx, encoded, consulWatcher, snapshotProcessor); err != nil {
 					panic(err) // TODO: Find a better way of reporting errors from goroutines.
 				}
 			case <-ctx.Done():
@@ -242,7 +242,7 @@ func watchAllTheThingsInternal(
 		select {
 		case <-k8sWatcher.Changed():
 			// Kubernetes has some changes, so we need to handle them.
-			changed, err := snapshots.K8sUpdate(ctx, k8sWatcher, consul, fastpathProcessor)
+			changed, err := snapshots.K8sUpdate(ctx, k8sWatcher, consulWatcher, fastpathProcessor)
 			if err != nil {
 				return err
 			}
@@ -250,9 +250,9 @@ func watchAllTheThingsInternal(
 				continue
 			}
 			out = notifyCh
-		case <-consul.changed():
+		case <-consulWatcher.changed():
 			dlog.Debugf(ctx, "WATCHER: Consul fired")
-			snapshots.ConsulUpdate(ctx, consul, fastpathProcessor)
+			snapshots.ConsulUpdate(ctx, consulWatcher, fastpathProcessor)
 			out = notifyCh
 		case icertUpdate := <-istio.Changed():
 			// The Istio cert has some changes, so we need to handle them.
@@ -340,7 +340,7 @@ func NewSnapshotHolder(ambassadorMeta *snapshot.AmbassadorMetaInfo) (*SnapshotHo
 func (sh *SnapshotHolder) K8sUpdate(
 	ctx context.Context,
 	watcher K8sWatcher,
-	consul *consul,
+	consulWatcher *consulWatcher,
 	fastpathProcessor FastpathProcessor,
 ) (bool, error) {
 	dbg := debug.FromContext(ctx)
@@ -413,7 +413,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 			return false, err
 		}
 		reconcileConsulTimer.Time(func() {
-			err = ReconcileConsul(ctx, consul, sh.k8sSnapshot)
+			err = ReconcileConsul(ctx, consulWatcher, sh.k8sSnapshot)
 		})
 		if err != nil {
 			return false, err
@@ -492,13 +492,13 @@ func (sh *SnapshotHolder) K8sUpdate(
 	return changed, nil
 }
 
-func (sh *SnapshotHolder) ConsulUpdate(ctx context.Context, consul *consul, fastpathProcessor FastpathProcessor) bool {
+func (sh *SnapshotHolder) ConsulUpdate(ctx context.Context, consulWatcher *consulWatcher, fastpathProcessor FastpathProcessor) bool {
 	var endpoints *ambex.Endpoints
 	var dispSnapshot *ecp_v2_cache.Snapshot
 	func() {
 		sh.mutex.Lock()
 		defer sh.mutex.Unlock()
-		consul.update(sh.consulSnapshot)
+		consulWatcher.update(sh.consulSnapshot)
 		endpoints = makeEndpoints(ctx, sh.k8sSnapshot, sh.consulSnapshot.Endpoints)
 		_, dispSnapshot = sh.dispatcher.GetSnapshot(ctx)
 	}()
@@ -538,7 +538,7 @@ func (sh *SnapshotHolder) IstioUpdate(ctx context.Context, istio *istioCertWatch
 func (sh *SnapshotHolder) Notify(
 	ctx context.Context,
 	encoded *atomic.Value,
-	consul *consul,
+	consulWatcher *consulWatcher,
 	snapshotProcessor SnapshotProcessor,
 ) error {
 	dbg := debug.FromContext(ctx)
@@ -573,7 +573,7 @@ func (sh *SnapshotHolder) Notify(
 			return err
 		}
 
-		bootstrapped = consul.isBootstrapped()
+		bootstrapped = consulWatcher.isBootstrapped()
 		if bootstrapped {
 			sh.unsentDeltas = nil
 			if sh.firstReconfig {
