@@ -1,3 +1,5 @@
+# syntax = docker/dockerfile:1.3
+
 ###
 # This dockerfile builds all the source code and docker images for the
 # edge stack.
@@ -39,9 +41,6 @@ WORKDIR /buildroot
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
 
-# Some of the tests need redis-server to run
-RUN apk add redis
-
 COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
 
 ENV KUBECONFIG=/buildroot/kubeconfig.yaml
@@ -66,8 +65,6 @@ ENTRYPOINT [ "/bin/bash" ]
 
 FROM ${builderbase} as golang
 
-ARG version="i-forgot-to-set-build-arg-version"
-
 WORKDIR /go
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
@@ -79,15 +76,16 @@ ADD pkg pkg
 ADD vendor vendor
 ADD go.mod go.mod
 ADD go.sum go.sum
+
 RUN --mount=type=cache,target=/root/.cache/go-build \
     mkdir -p /go/bin && \
-    time go build -ldflags="-X 'main.Version=${version}'" -mod=vendor -o /go/bin/ ./cmd/...
+	time go build -mod=vendor -o /go/bin/ ./cmd/...
 
 ########################################
 # The artifact build stage
 ########################################
 
-FROM ${builderbase} as artifact-stage
+FROM ${builderbase} as artifacts
 
 WORKDIR /buildroot/ambassador
 
@@ -118,8 +116,6 @@ ADD manifests/emissary/emissary-crds.yaml manifests/emissary/emissary-crds.yaml
 ########################################
 # The optimized images
 ########################################
-
-FROM artifact-stage as artifacts
 
 FROM ${base} as ambassador
 
@@ -184,27 +180,3 @@ ENV HOME=/tmp/ambassador
 COPY --from=artifacts /bin/busybox /bin/busybox
 
 ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]
-
-########################################
-
-FROM ${base} as kat-client
-
-COPY --from=artifacts /buildroot/bin/kat-client /usr/bin/kat-client
-RUN mkdir /work && ln -s /usr/bin/kat-client /work/kat_client
-CMD [ "sleep", "3600" ]
-
-########################################
-
-FROM ${base} as kat-server
-
-COPY --from=artifacts /buildroot/bin/kat-server /usr/bin/kat-server
-
-WORKDIR /work
-COPY builder/server.crt server.crt
-COPY builder/server.key server.key
-
-ENV GRPC_VERBOSITY=debug
-ENV GRPC_TRACE=tcp,http,api
-
-EXPOSE 8080
-CMD [ "kat-server" ]

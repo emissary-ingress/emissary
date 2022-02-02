@@ -31,7 +31,6 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local
 
 RUN apk --no-cache add \
     bash \
-    bash-completion \
     gcc \
     make \
     musl-dev \
@@ -45,12 +44,8 @@ RUN apk --no-cache add \
     libcap-dev \
     libffi-dev \
     ncurses \
-    nodejs \
-    npm \
-    openssh-client \
     openssl-dev \
     py3-pip \
-    py3-pip-bash-completion \
     python3=~3.8.10 \
     python3-dev \
     rsync \
@@ -75,24 +70,10 @@ RUN mkdir /tmp/busybox \
 # PEP600 compatible wheels for our linux platform, or we start building orjson
 # from source using a rust toolchain.
 RUN pip3 install -U pip==20.2.4 pip-tools==5.3.1
-RUN npm config set user 0 && \
-    npm config set unsafe-perm true && \
-    npm install -g rollup@2.9.1 rollup-plugin-terser@5.3.0
 RUN curl --fail -L https://dl.google.com/go/go1.17.1.linux-amd64.tar.gz | tar -C /usr/local -xzf -
 
 RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.22.2/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
-    chmod a+x /usr/bin/kubectl && \
-    kubectl completion bash > /usr/share/bash-completion/completions/kubectl
-RUN curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kubectx -o /usr/local/bin/kubectx && chmod a+x /usr/local/bin/kubectx && \
-    curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubectx.bash -o /usr/share/bash-completion/completions/kubectx
-RUN curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kubens -o /usr/local/bin/kubens && chmod a+x /usr/local/bin/kubens && \
-    curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubens.bash -o /usr/share/bash-completion/completions/kubens
-RUN curl --fail -L https://github.com/gotestyourself/gotestsum/releases/download/v0.6.0/gotestsum_0.6.0_linux_amd64.tar.gz | tar -C /usr/local/bin -xzf -
-RUN mkdir helmtmp && curl -o helmtmp/helm.tar.gz https://get.helm.sh/helm-v3.4.1-linux-amd64.tar.gz && tar -zxvf helmtmp/helm.tar.gz -C helmtmp && mv helmtmp/linux-amd64/helm /usr/local/bin/helm && rm -rf helmtmp
-RUN curl --fail -L https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence -o /usr/local/bin/telepresence && chmod a+x /usr/local/bin/telepresence
-RUN curl --fail -L https://raw.githubusercontent.com/jonmosco/kube-ps1/v0.7.0/kube-ps1.sh -o /usr/local/bin/kube-ps1.sh
-RUN curl -o /usr/local/bin/yq --fail -L https://github.com/mikefarah/yq/releases/download/v4.3.1/yq_linux_amd64 && \
-    chmod a+x /usr/local/bin/yq
+    chmod a+x /usr/bin/kubectl
 
 # The YAML parser is... special. To get the C version, we need to install Cython and libyaml, then
 # build it locally -- just using pip won't work.
@@ -104,6 +85,10 @@ RUN mkdir /tmp/pyyaml && \
   tar xzf pyyaml-5.4.1.1.tar.gz && \
   cd pyyaml-5.4.1.1 && \
   python3 setup.py --with-libyaml install
+
+# Installing `requests` pulls in both `chardet` and `charset_normalizer`. Only one of these is
+# needed, so we'll uninstall `chardet` since it's GPL-licensed.
+RUN pip3 uninstall -y chardet
 
 FROM ${builderbase_stage1} as builderbase-stage2
 

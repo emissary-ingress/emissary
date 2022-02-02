@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -29,7 +28,7 @@ func TestFakeHello(t *testing.T) {
 	// Use RunFake() to spin up the ambassador control plane with its inputs wired up to the Fake
 	// APIs. This will automatically invoke the Setup() method for the Fake and also register the
 	// Teardown() method with the Cleanup() hook of the supplied testing.T object.
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{}, nil)
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: false}, nil)
 
 	// The Fake harness has a store for both kubernetes resources and consul endpoint data. We can
 	// use the UpsertFile() to method to load as many resources as we would like. This is much like
@@ -54,11 +53,24 @@ func TestFakeHello(t *testing.T) {
 	// computation is occurring without being overly prescriptive about the exact number of
 	// snapshots and/or envoy configs that are produce to achieve a certain result.
 	snap, err := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
-		return len(snap.Kubernetes.Mappings) > 0
+		hasMappings := len(snap.Kubernetes.Mappings) > 0
+		hasSecrets := len(snap.Kubernetes.Secrets) > 0
+		hasInvalid := len(snap.Invalid) > 0
+
+		return hasMappings && hasSecrets && hasInvalid
 	})
 	require.NoError(t, err)
+
 	// Check that the snapshot contains the mapping from the file.
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
+
+	// This snapshot also needs to have one good secret...
+	assert.Equal(t, 1, len(snap.Kubernetes.Secrets))
+	assert.Equal(t, "tls-cert", snap.Kubernetes.Secrets[0].Name)
+
+	// ...and one invalid secret.
+	assert.Equal(t, 1, len(snap.Invalid))
+	assert.Equal(t, "tls-broken-cert", snap.Invalid[0].GetName())
 }
 
 // By default the Fake struct only invokes the first part of the pipeline that forms the control
@@ -160,11 +172,6 @@ func deltaSummary(snap *snapshot.Snapshot) []string {
 // the same as supplying kubernetes resources, however it uses the ConsulEndpoint() method to
 // provide consul data.
 func TestFakeHelloConsul(t *testing.T) {
-	// This test will not pass in legacy mode because diagd will not emit EDS clusters in legacy mode.
-	if legacy, err := strconv.ParseBool(os.Getenv("AMBASSADOR_LEGACY_MODE")); err == nil && legacy {
-		return
-	}
-
 	os.Setenv("CONSULPORT", "8500")
 	os.Setenv("CONSULHOST", "consul-1")
 

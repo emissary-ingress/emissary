@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
 
+	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -197,7 +197,7 @@ func GetDiagdBindPort() string {
 }
 
 func IsEnvoyAvailable() bool {
-	_, err := exec.LookPath("envoy")
+	_, err := dexec.LookPath("envoy")
 	return err == nil
 }
 
@@ -270,6 +270,14 @@ func GetLicenseSecretName() string {
 
 func GetLicenseSecretNamespace() string {
 	return env("AMBASSADOR_AES_SECRET_NAMESPACE", GetAmbassadorNamespace())
+}
+
+func GetCloudConnectTokenResourceName() string {
+	return env("AGENT_CONFIG_RESOURCE_NAME", "ambassador-agent-cloud-token")
+}
+
+func GetCloudConnectTokenResourceNamespace() string {
+	return env("AGENT_NAMESPACE", GetAmbassadorNamespace())
 }
 
 func GetEventHost() string {

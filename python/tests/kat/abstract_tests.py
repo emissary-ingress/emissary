@@ -21,17 +21,9 @@ try:
 except AttributeError:
     pass
 
-from kat.harness import abstract_test, sanitize, Name, Node, Test, Query, load_manifest
+import tests.integration.manifests as integration_manifests
+from kat.harness import abstract_test, sanitize, Name, Node, Test, Query
 from kat.utils import ShellCommand
-
-RBAC_CLUSTER_SCOPE = load_manifest("rbac_cluster_scope")
-RBAC_NAMESPACE_SCOPE = load_manifest("rbac_namespace_scope")
-AMBASSADOR = load_manifest("ambassador")
-BACKEND = load_manifest("backend")
-GRPC_ECHO_BACKEND = load_manifest("grpc_echo_backend")
-AUTH_BACKEND = load_manifest("auth_backend")
-GRPC_AUTH_BACKEND = load_manifest("grpc_auth_backend")
-GRPC_RLS_BACKEND = load_manifest("grpc_rls_backend")
 
 AMBASSADOR_LOCAL = """
 ---
@@ -104,19 +96,13 @@ class AmbassadorTest(Test):
     env: List[str] = []
 
     def manifests(self) -> str:
-        rbac = RBAC_CLUSTER_SCOPE
+        rbac = integration_manifests.load("rbac_cluster_scope")
 
         self.manifest_envs += """
     - name: POLL_EVERY_SECS
       value: "0"
     - name: CONSUL_WATCHER_PORT
       value: "8500"
-"""
-
-        if os.environ.get('AMBASSADOR_LEGACY_MODE', 'false').lower() == 'true':
-            self.manifest_envs += """
-    - name: AMBASSADOR_LEGACY_MODE
-      value: "true"
 """
 
         if os.environ.get('AMBASSADOR_FAST_RECONFIGURE', 'true').lower() == 'false':
@@ -149,7 +135,7 @@ class AmbassadorTest(Test):
     - name: AMBASSADOR_SINGLE_NAMESPACE
       value: "yes"
 """
-            rbac = RBAC_NAMESPACE_SCOPE
+            rbac = integration_manifests.load("rbac_namespace_scope")
 
         if self.disable_endpoints:
             self.manifest_envs += """
@@ -185,10 +171,13 @@ class AmbassadorTest(Test):
 """
 
         if DEV:
-            return self.format(rbac + AMBASSADOR_LOCAL, extra_ports=eports)
+            return self.format(rbac + AMBASSADOR_LOCAL,
+                               extra_ports=eports)
         else:
-            return self.format(rbac + AMBASSADOR,
-                               image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=self.manifest_envs, extra_ports=eports, capabilities_block = "")
+            return self.format(rbac + integration_manifests.load('ambassador'),
+                               envs=self.manifest_envs,
+                               extra_ports=eports,
+                               capabilities_block="")
 
     # # Will tear this out of the harness shortly
     # @property
@@ -419,7 +408,7 @@ class ServiceTypeGrpc(Node):
 
     def __init__(self, service_manifests: str=None, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._manifests = service_manifests or BACKEND
+        self._manifests = service_manifests or integration_manifests.load("backend")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield from ()
@@ -444,7 +433,7 @@ class EGRPC(ServiceType):
 
     def __init__(self, *args, **kwargs) -> None:
         # Do this unconditionally, because that's the point of this class.
-        kwargs["service_manifests"] = GRPC_ECHO_BACKEND
+        kwargs["service_manifests"] = integration_manifests.load("grpc_echo_backend")
         super().__init__(*args, **kwargs)
 
     def requirements(self):
@@ -459,7 +448,7 @@ class AHTTP(ServiceType):
 
     def __init__(self, *args, **kwargs) -> None:
         # Do this unconditionally, because that's the point of this class.
-        kwargs["service_manifests"] = AUTH_BACKEND
+        kwargs["service_manifests"] = integration_manifests.load("auth_backend")
         super().__init__(*args, **kwargs)
 
 
@@ -470,7 +459,7 @@ class AGRPC(ServiceType):
         self.protocol_version = protocol_version
 
         # Do this unconditionally, because that's the point of this class.
-        kwargs["service_manifests"] = GRPC_AUTH_BACKEND
+        kwargs["service_manifests"] = integration_manifests.load("grpc_auth_backend")
         super().__init__(*args, **kwargs)
 
     def requirements(self):
@@ -483,7 +472,7 @@ class RLSGRPC(ServiceType):
         self.protocol_version = protocol_version
 
         # Do this unconditionally, because that's the point of this class.
-        kwargs["service_manifests"] = GRPC_RLS_BACKEND
+        kwargs["service_manifests"] = integration_manifests.load("grpc_rls_backend")
         super().__init__(*args, **kwargs)
 
     def requirements(self):

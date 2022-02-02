@@ -5,7 +5,16 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
-(no changes yet)
+- Add "lifecycle" option to main container. This can be used, for example, to add a lifecycle.preStop hook. Thanks to [Eric Totten](https://github.com/etotten) for the contribution!
+
+## v7.2.2
+
+- Update Emissary chart image to version v2.1.2: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
+## v7.2.1
+
+There was no v7.2.1 release; we skipped to v7.2.2 to keep the version
+number in-sync with the edge-stack chart.
 
 ## v7.2.0
 

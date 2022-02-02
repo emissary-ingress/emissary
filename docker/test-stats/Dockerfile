@@ -1,5 +1,5 @@
 # The `test-stats` image gets built by `build-aux/check.mk` for use by
-# `python/kat/harness.py:TestImage`.
+# `python/tests/ingegration/manifests.py`.
 
 # Copyright 2018 Datawire. All rights reserved.
 #

@@ -3,13 +3,6 @@ import sys
 from lib import git_add
 import re
 
-def update_versions_yaml(next_ver):
-    for line in fileinput.FileInput("docs/yaml/versions.yml", inplace=True):
-        if line.startswith("version:"):
-            line = f"version: {next_ver}\n"
-        sys.stdout.write(line)
-    git_add("docs/yaml/versions.yml")
-
 def update_changelog_date(next_ver):
     changelog_ver_pattern = re.compile(r"^## \[([0-9]+\.[0-9]+\.[0-9]+(-ea)?)\]")
     in_notes = False
