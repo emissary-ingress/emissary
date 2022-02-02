@@ -202,7 +202,7 @@ func (f *Fake) runWatcher(ctx context.Context) error {
 	interestingTypes := GetInterestingTypes(ctx, nil)
 	queries := GetQueries(ctx, interestingTypes)
 
-	return watcherLoop(
+	return watchAllTheThingsInternal(
 		ctx,
 		f.currentSnapshot, // encoded
 		f.k8sSource,

@@ -20,7 +20,7 @@ import (
 	"github.com/datawire/dlib/dlog"
 )
 
-func watcher(
+func WatchAllTheThings(
 	ctx context.Context,
 	ambwatch *acp.AmbassadorWatcher,
 	encoded *atomic.Value,
@@ -62,7 +62,7 @@ func watcher(
 	consulSrc := &consulWatcher{}
 	istioCertSrc := newIstioCertSource()
 
-	return watcherLoop(
+	return watchAllTheThingsInternal(
 		ctx,
 		encoded,
 		k8sSrc,
@@ -151,7 +151,7 @@ type FastpathProcessor func(context.Context, *ambex.FastpathSnapshot)
 //
 // 4. If you don't fully understand everything above, _do not touch this function without
 //    guidance_.
-func watcherLoop(
+func watchAllTheThingsInternal(
 	ctx context.Context,
 	encoded *atomic.Value,
 	k8sSrc K8sSource,
@@ -162,20 +162,20 @@ func watcherLoop(
 	fastpathProcessor FastpathProcessor,
 	ambassadorMeta *snapshot.AmbassadorMetaInfo,
 ) error {
-	// Ambassador has three sources of inputs: kubernetes, consul, and the filesystem. The job of
-	// the watcherLoop is to read updates from all three of these sources, assemble them into a
-	// single coherent configuration, and pass them along to other parts of ambassador for
-	// processing.
+	// Ambassador has three sources of inputs: kubernetes, consul, and the filesystem. The job
+	// of the watchAllTheThingsInternal loop is to read updates from all three of these sources,
+	// assemble them into a single coherent configuration, and pass them along to other parts of
+	// ambassador for processing.
 
-	// The watcherLoop must decide what information is relevant to solicit from each source. This is
-	// decided a bit differently for each source.
+	// The watchAllTheThingsInternal loop must decide what information is relevant to solicit
+	// from each source. This is decided a bit differently for each source.
 	//
 	// For kubernetes the set of subscriptions is basically hardcoded to the set of resources
-	// defined in interesting_types.go, this is filtered down at boot based on RBAC limitations. The
-	// filtered list is used to construct the queries that are passed into this function, and that
-	// set of queries remains fixed for the lifetime of the loop, i.e. the lifetime of the
-	// abmassador process (unless we are testing, in which case we may run the watcherLoop more than
-	// once in a single process).
+	// defined in interesting_types.go, this is filtered down at boot based on RBAC
+	// limitations. The filtered list is used to construct the queries that are passed into this
+	// function, and that set of queries remains fixed for the lifetime of the loop, i.e. the
+	// lifetime of the abmassador process (unless we are testing, in which case we may run the
+	// watchAllTheThingsInternal loop more than once in a single process).
 	//
 	// For the consul source we derive the set of resources to watch based on the configuration in
 	// kubernetes, i.e. we watch the services defined in Mappings that are configured to use a
