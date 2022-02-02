@@ -33,6 +33,10 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
   $(info [make] CHART_VERSION=$(CHART_VERSION))
 endif
 
+# If SOURCE_DATE_EPOCH isn't set, AND the tree isn't dirty, then set
+# SOURCE_DATE_EPOCH to the commit timestamp.
+#
+# if [[ -z "$SOURCE_DATE_EPOCH" ]] && [[ -z "$(git status --porcelain)" ]]; then
 ifeq ($(SOURCE_DATE_EPOCH)$(shell git status --porcelain),)
   SOURCE_DATE_EPOCH := $(shell git log -1 --pretty=%ct)
 endif
@@ -42,15 +46,6 @@ ifneq ($(SOURCE_DATE_EPOCH),)
 endif
 
 # Everything else...
-
-# BASE_REGISTRY is where the base images (as in
-# `builder/Dockerfile.base`) get pulled-from/pushed-to.  We default
-# this to docker.io/emissaryingress rather than to $(DEV_REGISTRY) or
-# to a .local registry because rebuilding orjson takes so long, we
-# really want to cache it unless the dev really wants to force doing
-# everything locally.
-BASE_REGISTRY ?= docker.io/emissaryingress
-export BASE_REGISTRY
 
 NAME ?= emissary
 _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)

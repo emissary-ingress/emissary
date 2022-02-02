@@ -109,6 +109,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   `AGENT_CONFIG_RESOURCE_NAME` environment variable in order to allow all components (and not only
   the Ambassador Agent) to authenticate requests to Ambassador Cloud.
 
+- Security: Emissary has been upgraded from Alpine 3.12 to Alpine 3.15, which incorporates numerous
+  security patches.
+
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
 [3821]: https://github.com/emissary-ingress/emissary/issues/3821
 
