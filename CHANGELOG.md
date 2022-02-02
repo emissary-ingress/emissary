@@ -115,8 +115,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   in case there was any. ([4040])
 
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
-[4040]: https://github.com/emissary-ingress/emissary/pull/4040
 [3821]: https://github.com/emissary-ingress/emissary/issues/3821
+[4040]: https://github.com/emissary-ingress/emissary/pull/4040
 
 ## [2.1.2] January 25, 2022
 [2.1.2]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.1.2
