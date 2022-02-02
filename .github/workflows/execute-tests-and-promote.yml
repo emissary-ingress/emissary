@@ -1,6 +1,6 @@
 name: job-promote-to-passed
 
-on:
+"on":
   push:
     branches:
       - master

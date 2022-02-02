@@ -1,5 +1,5 @@
 name: chart-test
-on:
+"on":
   push:
     branches:
       - master
