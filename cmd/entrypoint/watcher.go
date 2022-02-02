@@ -17,6 +17,7 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/gateway"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -184,6 +185,8 @@ func watchAllTheThingsInternal(
 	//
 	// The filesystem datasource is for istio secrets. XXX fill in more
 
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
+
 	// Each time the wathcerLoop wakes up, it assembles updates from whatever source woke it up into
 	// its view of the world. It then determines if enough information has been assembled to
 	// consider ambassador "booted" and if so passes the updated view along to its output (the
@@ -216,56 +219,60 @@ func watchAllTheThingsInternal(
 	// information. This is deliberately nil to begin with as we have nothing to send yet.
 	var out chan *SnapshotHolder
 	notifyCh := make(chan *SnapshotHolder)
-	go func() {
+	grp.Go("notifyCh", func(ctx context.Context) error {
 		for {
 			select {
 			case sh := <-notifyCh:
 				if err := sh.Notify(ctx, encoded, consulWatcher, snapshotProcessor); err != nil {
-					panic(err) // TODO: Find a better way of reporting errors from goroutines.
+					return err
 				}
 			case <-ctx.Done():
-				return
+				return nil
 			}
 		}
-	}()
+	})
 
-	for {
-		dlog.Debugf(ctx, "WATCHER: --------")
+	grp.Go("loop", func(ctx context.Context) error {
+		for {
+			dlog.Debugf(ctx, "WATCHER: --------")
 
-		// XXX Hack: the istioCertWatchManager needs to reset at the start of the
-		// loop, for now. A better way, I think, will be to instead track deltas in
-		// ReconcileSecrets -- that way we can ditch this crap and Istio-cert changes
-		// that somehow don't generate an actual change will still not trigger a
-		// reconfigure.
-		istio.StartLoop(ctx)
+			// XXX Hack: the istioCertWatchManager needs to reset at the start of the
+			// loop, for now. A better way, I think, will be to instead track deltas in
+			// ReconcileSecrets -- that way we can ditch this crap and Istio-cert changes
+			// that somehow don't generate an actual change will still not trigger a
+			// reconfigure.
+			istio.StartLoop(ctx)
 
-		select {
-		case <-k8sWatcher.Changed():
-			// Kubernetes has some changes, so we need to handle them.
-			changed, err := snapshots.K8sUpdate(ctx, k8sWatcher, consulWatcher, fastpathProcessor)
-			if err != nil {
-				return err
+			select {
+			case <-k8sWatcher.Changed():
+				// Kubernetes has some changes, so we need to handle them.
+				changed, err := snapshots.K8sUpdate(ctx, k8sWatcher, consulWatcher, fastpathProcessor)
+				if err != nil {
+					return err
+				}
+				if !changed {
+					continue
+				}
+				out = notifyCh
+			case <-consulWatcher.changed():
+				dlog.Debugf(ctx, "WATCHER: Consul fired")
+				snapshots.ConsulUpdate(ctx, consulWatcher, fastpathProcessor)
+				out = notifyCh
+			case icertUpdate := <-istio.Changed():
+				// The Istio cert has some changes, so we need to handle them.
+				if _, err := snapshots.IstioUpdate(ctx, istio, icertUpdate); err != nil {
+					return err
+				}
+				out = notifyCh
+			case out <- snapshots:
+				out = nil
+			case <-ctx.Done():
+				return nil
 			}
-			if !changed {
-				continue
-			}
-			out = notifyCh
-		case <-consulWatcher.changed():
-			dlog.Debugf(ctx, "WATCHER: Consul fired")
-			snapshots.ConsulUpdate(ctx, consulWatcher, fastpathProcessor)
-			out = notifyCh
-		case icertUpdate := <-istio.Changed():
-			// The Istio cert has some changes, so we need to handle them.
-			if _, err := snapshots.IstioUpdate(ctx, istio, icertUpdate); err != nil {
-				return err
-			}
-			out = notifyCh
-		case out <- snapshots:
-			out = nil
-		case <-ctx.Done():
-			return nil
 		}
-	}
+	})
+
+	return grp.Wait()
 }
 
 // SnapshotHolder is responsible for holding
