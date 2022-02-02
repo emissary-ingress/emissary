@@ -90,8 +90,6 @@ RUN mkdir /tmp/pyyaml && \
 # needed, so we'll uninstall `chardet` since it's GPL-licensed.
 RUN pip3 uninstall -y chardet
 
-FROM ${builderbase_stage1} as builderbase-stage2
-
 # orjson is also special. It relies on glibc, so we need to temporarily convince
 # python that our linux is 'manylinux1_compatible' so it will fetch a prebuilt
 # binary instead of unsucessfully attempting to build using a rust toolchain.
@@ -102,6 +100,8 @@ FROM ${builderbase_stage1} as builderbase-stage2
 RUN echo 'manylinux1_compatible = True' > /usr/lib/python3.8/_manylinux.py && \
 	pip3 install orjson==3.3.1 && \
 	rm -f /usr/lib/python3.8/_manylinux.py
+
+FROM ${builderbase_stage1} as builderbase-stage2
 
 # Then we can do the rest of the Python stuff.
 COPY requirements.txt .
