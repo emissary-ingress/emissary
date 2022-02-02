@@ -1,4 +1,0 @@
-# The actual requirements list is in ../builder/requirements.txt
-#
-# But this file needs to exist anyway, so that `pip install -e .` can
-# set up the entry-point stub scripts.
