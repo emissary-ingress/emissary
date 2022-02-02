@@ -31,9 +31,7 @@ class V3RateLimit(dict):
         ratelimit = typecast(IRRateLimit, config.ir.ratelimit)
 
         assert(ratelimit.cluster.envoy_name)
-
-        protocol_version = ratelimit.protocol_version
-        self['transport_api_version'] = protocol_version.replace("alpha", "").upper()
+        self['transport_api_version'] = "V3"
         self['grpc_service'] = {
             'envoy_grpc': {
                 'cluster_name': ratelimit.cluster.envoy_name
