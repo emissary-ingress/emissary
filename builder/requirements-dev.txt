@@ -1,18 +1,18 @@
 # Dev requirements
 dpath
 gitpython
+httpretty
 mypy
 pexpect
 pytest
 pytest-cov
-retry
-httpretty
 pytest-rerunfailures
+retry
 
 # Type stubs
-types-requests
 types-orjson
-types-setuptools
 types-protobuf
 types-pyyaml
+types-requests
 types-retry
+types-setuptools
