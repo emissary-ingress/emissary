@@ -202,14 +202,6 @@ preflight-cluster: $(tools/kubectl)
 	fi
 .PHONY: preflight-cluster
 
-builder:
-	@$(BUILDER) builder
-.PHONY: builder
-
-version:
-	@$(BUILDER) version
-.PHONY: version
-
 python/ambassador.version: $(tools/write-ifchanged) FORCE
 	set -e -o pipefail; { \
 	  echo $(patsubst v%,%,$(VERSION)); \
@@ -739,14 +731,6 @@ release/ga-check:
 	  --chart-version=$(patsubst v%,%,$(CHART_VERSION)) \
 	  --source-registry=$(RELEASE_REGISTRY) \
 	  --image-name=$(LCNAME); }
-
-clean:
-	@$(BUILDER) clean
-.PHONY: clean
-
-clobber:
-	@$(BUILDER) clobber
-.PHONY: clobber
 
 AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.push.remote 2>/dev/null)
 export AMBASSADOR_DOCKER_IMAGE
