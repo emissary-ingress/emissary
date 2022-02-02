@@ -172,15 +172,11 @@ else
   # ...and I (lukeshu) couldn't figure out a good way to do it on old (net-tools) GNU/Linux.
 endif
 
-RSYNC_ERR  = $(RED)ERROR: please update to a version of rsync with the --info option$(END)
 GO_ERR     = $(RED)ERROR: please update to go 1.13 or newer$(END)
 DOCKER_ERR = $(RED)ERROR: please update to a version of docker built with Go 1.13 or newer$(END)
 
 preflight:
 	@printf "$(CYN)==> $(GRN)Preflight checks$(END)\n"
-
-	@echo "Checking that 'rsync' is installed and is new enough to support '--info'"
-	@$(if $(shell rsync --help 2>/dev/null | grep -F -- --info),,printf '%s\n' $(call quote.shell,$(RSYNC_ERR)))
 
 	@echo "Checking that 'go' is installed and is 1.13 or later"
 	@$(if $(call _prelude.go.VERSION.HAVE,1.13),,printf '%s\n' $(call quote.shell,$(GO_ERR)))
@@ -206,21 +202,6 @@ preflight-cluster: $(tools/kubectl)
 	fi
 .PHONY: preflight-cluster
 
-sync: docker/container.txt $(tools/kubectl)
-	@printf "${CYN}==> ${GRN}Syncing sources in to builder container${END}\n"
-	@$(foreach MODULE,$(MODULES),$(BUILDER) sync $(MODULE) $(SOURCE_$(MODULE)) &&) true
-	@if [ -n "$(DEV_KUBECONFIG)" ] && [ "$(DEV_KUBECONFIG)" != '-skip-for-release-' ]; then \
-		$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) config view --flatten | docker exec -i $$(cat $<) sh -c "cat > /buildroot/kubeconfig.yaml" ;\
-	fi
-	@if [ -e ~/.docker/config.json ]; then \
-		cat ~/.docker/config.json | docker exec -i $$(cat $<) sh -c "mkdir -p /home/dw/.docker && cat > /home/dw/.docker/config.json" ; \
-	fi
-	@if [ -n "$(GCLOUD_CONFIG)" ]; then \
-		printf "Copying gcloud config to builder container\n"; \
-		docker cp $(GCLOUD_CONFIG) $$(cat $<):/home/dw/.config/; \
-	fi
-.PHONY: sync
-
 builder:
 	@$(BUILDER) builder
 .PHONY: builder
@@ -235,33 +216,17 @@ python/ambassador.version: $(tools/write-ifchanged) FORCE
 	  git rev-parse HEAD; \
 	} | $(tools/write-ifchanged) $@
 
-compile: sync
-	@$(BUILDER) compile
-.PHONY: compile
-
-# For files that should only-maybe update when the rule runs, put ".stamp" on
-# the left-side of the ":", and just go ahead and update it within the rule.
-#
-# ".stamp" should NEVER appear in a dependency list (that is, it
-# should never be on the right-side of the ":"), save for in this rule
-# itself.
-%: %.stamp $(tools/copy-ifchanged)
-	@$(tools/copy-ifchanged) $< $@
-
 # Give Make a hint about which pattern rules to apply.  Honestly, I'm
 # not sure why Make isn't figuring it out on its own, but it isn't.
 _images = builder-base base-envoy $(LCNAME) kat-client kat-server
 $(foreach i,$(_images), docker/$i.docker.tag.local  ): docker/%.docker.tag.local : docker/%.docker
 $(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remote: docker/%.docker
 
-docker/builder-base.docker.stamp: FORCE preflight
+docker/.builder-base.docker.stamp: FORCE preflight
 	@printf "${CYN}==> ${GRN}Bootstrapping builder base image${END}\n"
 	@$(BUILDER) build-builder-base >$@
-docker/container.txt.stamp: %/container.txt.stamp: %/builder-base.docker.tag.local %/base-envoy.docker.tag.local FORCE
-	@printf "${CYN}==> ${GRN}Bootstrapping builder container${END}\n"
-	@($(BOOTSTRAP_EXTRAS) $(BUILDER) bootstrap > $@)
 
-docker/base-envoy.docker.stamp: FORCE
+docker/.base-envoy.docker.stamp: FORCE
 	@set -e; { \
 	  if docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@ 2>/dev/null; then \
 	    printf "${CYN}==> ${GRN}Base Envoy image is already pulled${END}\n"; \
@@ -273,7 +238,7 @@ docker/base-envoy.docker.stamp: FORCE
 	  fi; \
 	  echo $(ENVOY_DOCKER_TAG) >$@; \
 	}
-docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
+docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
 	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
 	@printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"
 	@printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"
@@ -282,26 +247,6 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
-	    --target=ambassador \
-	    --iidfile=$@; }
-
-docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
-	@printf "${CYN}==> ${GRN}Building image ${BLU}kat-client${END}\n"
-	{ $(tools/dsum) 'kat-client build' 3s \
-	  docker build -f ${BUILDER_HOME}/Dockerfile . \
-	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
-	    --target=kat-client \
-	    --iidfile=$@; }
-docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
-	@printf "${CYN}==> ${GRN}Building image ${BLU}kat-server${END}\n"
-	{ $(tools/dsum) 'kat-server build' 3s \
-	  docker build -f ${BUILDER_HOME}/Dockerfile . \
-	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
-	    --target=kat-server \
 	    --iidfile=$@; }
 
 REPO=$(BUILDER_NAME)
@@ -398,8 +343,6 @@ docker/run/%: docker/builder-base.docker
 		-e INTERACTIVE_GROUP=$$(id -g -n) \
 		-e PYTEST_ARGS="$$PYTEST_ARGS" \
 		-e AMBASSADOR_DOCKER_IMAGE="$$AMBASSADOR_DOCKER_IMAGE" \
-		-e KAT_CLIENT_DOCKER_IMAGE="$$KAT_CLIENT_DOCKER_IMAGE" \
-		-e KAT_SERVER_DOCKER_IMAGE="$$KAT_SERVER_DOCKER_IMAGE" \
 		-e DEV_KUBECONFIG="$$DEV_KUBECONFIG" \
 		-v /etc/resolv.conf:/etc/resolv.conf \
 		-v /var/run/docker.sock:/var/run/docker.sock \
@@ -418,47 +361,52 @@ docker/run/shell:
 
 setup-envoy: extract-bin-envoy
 
-pytest: docker/$(LCNAME).docker.push.remote
-pytest: docker/kat-client.docker.push.remote
-pytest: docker/kat-server.docker.push.remote
+pytest: push-pytest-images
 pytest: $(tools/kubestatus)
 pytest: $(tools/kubectl)
-	@$(MAKE) setup-diagd
-	@$(MAKE) setup-envoy
-	@$(MAKE) proxy
+pytest: $(OSS_HOME)/venv
+pytest: setup-envoy
+pytest: proxy
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
-	@echo "KAT_CLIENT_DOCKER_IMAGE=$$KAT_CLIENT_DOCKER_IMAGE"
-	@echo "KAT_SERVER_DOCKER_IMAGE=$$KAT_SERVER_DOCKER_IMAGE"
 	@echo "DEV_KUBECONFIG=$$DEV_KUBECONFIG"
 	@echo "KAT_RUN_MODE=$$KAT_RUN_MODE"
 	@echo "PYTEST_ARGS=$$PYTEST_ARGS"
-	. $(OSS_HOME)/venv/bin/activate; \
-		$(OSS_HOME)/builder/builder.sh pytest-local
+	mkdir -p $(or $(TEST_XML_DIR),/tmp/test-data)
+	set -e; { \
+	  . $(OSS_HOME)/venv/bin/activate; \
+	  export SOURCE_ROOT=$(CURDIR); \
+	  export ENVOY_PATH=$(CURDIR)/bin/envoy; \
+	  export KUBESTATUS_PATH=$(CURDIR)/tools/bin/kubestatus; \
+	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=$(or $(TEST_XML_DIR),/tmp/test-data)/pytest.xml --tb=short -rP $(PYTEST_ARGS); \
+	}
 .PHONY: pytest
 
-pytest-unit:
+pytest-unit: setup-envoy $(OSS_HOME)/venv
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
-	@$(MAKE) setup-envoy
-	@$(MAKE) setup-diagd
-	. $(OSS_HOME)/venv/bin/activate; \
-		PYTEST_ARGS="$$PYTEST_ARGS python/tests/unit" $(OSS_HOME)/builder/builder.sh pytest-local-unit
+	mkdir -p $(or $(TEST_XML_DIR),/tmp/test-data)
+	set -e; { \
+	  . $(OSS_HOME)/venv/bin/activate; \
+	  export SOURCE_ROOT=$(CURDIR); \
+	  export ENVOY_PATH=$(CURDIR)/bin/envoy; \
+	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=$(or $(TEST_XML_DIR),/tmp/test-data)/pytest.xml --tb=short -rP $(PYTEST_ARGS) python/tests/unit; \
+	}
 .PHONY: pytest-unit
 
-pytest-integration:
+pytest-integration: push-pytest-images
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) integration tests$(END)\n"
 	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/integration"
 .PHONY: pytest-integration
 
-pytest-kat-local:
+pytest-kat-local: push-pytest-images
 	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
-pytest-kat-envoy3: # doing this all at once is too much for CI...
+pytest-kat-envoy3: push-pytest-images # doing this all at once is too much for CI...
 	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
-pytest-kat-envoy3-%: # ... so we have a separate rule to run things split up
+pytest-kat-envoy3-%: push-pytest-images # ... so we have a separate rule to run things split up
 	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range $* python/tests/kat"
-pytest-kat-envoy2: # doing this all at once is too much for CI...
+pytest-kat-envoy2: push-pytest-images # doing this all at once is too much for CI...
 	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
-pytest-kat-envoy2-%: # ... so we have a separate rule to run things split up
+pytest-kat-envoy2-%: push-pytest-images # ... so we have a separate rule to run things split up
 	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range $* python/tests/kat"
 .PHONY: pytest-kat-%
 
@@ -472,52 +420,15 @@ extract-bin-envoy: docker/base-envoy.docker.tag.local
 	@chmod +x $(OSS_HOME)/bin/envoy
 .PHONY: extract-bin-envoy
 
-pytest-builder: test-ready
-	$(MAKE) pytest-builder-only
-.PHONY: pytest-builder
-
-pytest-envoy3-builder:
-	$(MAKE) pytest-builder KAT_RUN_MODE=envoy
-.PHONY: pytest-envoy3-builder
-
-pytest-envoy2-builder:
-	$(MAKE) pytest-builder KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2
-.PHONY: pytest-envoy2-builder
-
-pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
-	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests in builder shell$(END)\n"
-	docker exec \
-		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) \
-		-e KAT_CLIENT_DOCKER_IMAGE=$$(sed -n 2p docker/kat-client.docker.push.remote) \
-		-e KAT_SERVER_DOCKER_IMAGE=$$(sed -n 2p docker/kat-server.docker.push.remote) \
-		-e KAT_IMAGE_PULL_POLICY=Always \
-		-e DOCKER_NETWORK=$(DOCKER_NETWORK) \
-		-e KAT_REQ_LIMIT \
-		-e KAT_RUN_MODE \
-		-e KAT_VERBOSE \
-		-e PYTEST_ARGS \
-		-e DEV_USE_IMAGEPULLSECRET \
-		-e DEV_REGISTRY \
-		-e DOCKER_BUILD_USERNAME \
-		-e DOCKER_BUILD_PASSWORD \
-		-e AMBASSADOR_ENVOY_API_VERSION \
-		-e AMBASSADOR_FAST_RECONFIGURE \
-		-e AWS_SECRET_ACCESS_KEY \
-		-e AWS_ACCESS_KEY_ID \
-		-e AWS_SESSION_TOKEN \
-		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal ; test_exit=$$? ; \
-		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-data/pytest.xml $(TEST_XML_DIR) ; exit $$test_exit
-.PHONY: pytest-builder-only
-
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
-mypy-server-stop: setup-diagd
+mypy-server-stop: $(OSS_HOME)/venv
 	@printf "${CYN}==> ${GRN}Stopping mypy server${END}"
 	{ . $(OSS_HOME)/venv/bin/activate && dmypy stop; }
 .PHONY: mypy-server-stop
 
-mypy-server: setup-diagd
+mypy-server: $(OSS_HOME)/venv
 	{ . $(OSS_HOME)/venv/bin/activate && \
 	  if ! dmypy status >/dev/null; then \
 	    dmypy start -- --use-fine-grained-cache --follow-imports=skip --ignore-missing-imports ;\
@@ -532,48 +443,35 @@ mypy: mypy-server
 	{ . $(OSS_HOME)/venv/bin/activate && time dmypy check python; }
 .PHONY: mypy
 
-GOTEST_PKGS = github.com/datawire/ambassador/v2/...
-GOTEST_MODDIRS = $(OSS_HOME)
-export GOTEST_PKGS
-export GOTEST_MODDIRS
-
-GOTEST_ARGS ?= -race -count=1
-export GOTEST_ARGS
-
-create-venv:
-	[[ -d $(OSS_HOME)/venv ]] || python3 -m venv $(OSS_HOME)/venv
-.PHONY: create-venv
-
 # If we're setting up within Alpine linux, make sure to pin pip and pip-tools
 # to something that is still PEP517 compatible. This allows us to set _manylinux.py
 # and convince pip to install prebuilt wheels. We do this because there's no good
 # rust toolchain to build orjson within Alpine itself.
-setup-venv:
-	@set -e; { \
-		if [ -f /etc/issue ] && grep "Alpine Linux" < /etc/issue ; then \
-			pip3 install -U pip==20.2.4 pip-tools==5.3.1; \
-			echo 'manylinux1_compatible = True' > venv/lib/python3.8/site-packages/_manylinux.py; \
-			pip install orjson==3.3.1; \
-			rm -f venv/lib/python3.8/site-packages/_manylinux.py; \
-		else \
-			pip install orjson==3.6.0; \
-		fi; \
-		pip install -r $(OSS_HOME)/builder/requirements.txt; \
-		pip install -r $(OSS_HOME)/builder/requirements-dev.txt; \
-		pip install -e $(OSS_HOME)/python; \
+$(OSS_HOME)/venv: builder/requirements.txt builder/requirements-dev.txt
+	rm -rf $@
+	python3 -m venv $@
+	{ \
+	  if grep "Alpine Linux" /etc/issue &>/dev/null; then \
+	    $@/bin/pip3 install -U pip==20.2.4 pip-tools==5.3.1; \
+	    echo 'manylinux1_compatible = True' > $@/lib/python3.8/site-packages/_manylinux.py; \
+	    $@/bin/pip3 install orjson==3.3.1; \
+	    rm -f venv/lib/python3.8/site-packages/_manylinux.py; \
+	  else \
+	    $@/bin/pip3 install orjson==3.6.0; \
+	  fi; \
 	}
-.PHONY: setup-orjson
+	$@/bin/pip3 install -r builder/requirements.txt
+	$@/bin/pip3 install -r builder/requirements-dev.txt
+	$@/bin/pip3 install -e $(OSS_HOME)/python
 
-setup-diagd: create-venv
-	. $(OSS_HOME)/venv/bin/activate && $(MAKE) setup-venv
-.PHONY: setup-diagd
-
-gotest: setup-diagd $(tools/kubectl)
+GOTEST_ARGS ?= -race -count=1 -timeout 30m
+GOTEST_PKGS ?= ./...
+gotest: $(OSS_HOME)/venv $(tools/kubectl)
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
 	{ . $(OSS_HOME)/venv/bin/activate && \
 	  export PATH=$(tools.bindir):$${PATH} && \
 	  export EDGE_STACK=$(GOTEST_AES_ENABLED) && \
-	  $(OSS_HOME)/builder/builder.sh gotest-local; }
+	  go test $(GOTEST_ARGS) $(GOTEST_PKGS); }
 .PHONY: gotest
 
 # Ingress v1 conformance tests, using KIND and the Ingress Conformance Tests suite.
@@ -659,11 +557,6 @@ ingresstest: $(tools/kubectl) | docker/$(LCNAME).docker.push.remote
 
 test: ingresstest gotest pytest
 .PHONY: test
-
-shell: docker/container.txt
-	@printf "$(CYN)==> $(GRN)Launching interactive shell...$(END)\n"
-	@$(BUILDER) shell
-.PHONY: shell
 
 AMB_IMAGE_RC=$(RELEASE_REGISTRY)/$(REPO):$(patsubst v%,%,$(VERSION))
 AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(patsubst v%,%,$(VERSION))
@@ -888,18 +781,12 @@ clobber:
 
 AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.push.remote 2>/dev/null)
 export AMBASSADOR_DOCKER_IMAGE
-KAT_CLIENT_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-client.docker.push.remote 2>/dev/null)
-export KAT_CLIENT_DOCKER_IMAGE
-KAT_SERVER_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-server.docker.push.remote 2>/dev/null)
-export KAT_SERVER_DOCKER_IMAGE
 
 _user-vars  = BUILDER_NAME
 _user-vars += DEV_KUBECONFIG
 _user-vars += DEV_REGISTRY
 _user-vars += RELEASE_REGISTRY
 _user-vars += AMBASSADOR_DOCKER_IMAGE
-_user-vars += KAT_CLIENT_DOCKER_IMAGE
-_user-vars += KAT_SERVER_DOCKER_IMAGE
 env:
 	@printf '$(BLD)%s$(END)=$(BLU)%s$(END)\n' $(foreach v,$(_user-vars), $v $(call quote.shell,$(call quote.shell,$($v))) )
 .PHONY: env
@@ -971,8 +858,7 @@ $(BLU)$$DOCKER_BUILD_USERNAME$(END), and $(BLU)$$DOCKER_BUILD_PASSWORD$(END).
 
 By default, the base builder image is (as an optimization) pulled from
 $(BLU)$$BASE_REGISTRY$(END) instead of being built locally; where $(BLD)$$BASE_REGISTRY$(END)
-defaults to $(BLD)$$DEV_REGISTRY$(END) or else $(BLD)$${BUILDER_NAME}.local$(END).  If that pull
-fails (as it will if trying to pull from a $(BLD).local$(END) registry, or if the
+defaults to $(BLD)docker.io/emissaryingress$(END).  If that pull fails, (as it will if the
 image does not yet exist), then it falls back to building the base image
 locally.  If $(BLD)$$BASE_REGISTRY$(END) is equal to $(BLD)$$DEV_REGISTRY$(END), then it will
 proceed to push the built image back to the $(BLD)$$BASE_REGISTRY$(END).
@@ -991,11 +877,7 @@ define _help.targets
 
   $(BLD)$(MAKE) $(BLU)preflight$(END)    -- checks dependencies of this makefile.
 
-  $(BLD)$(MAKE) $(BLU)sync$(END)         -- syncs source code into the build container.
-
   $(BLD)$(MAKE) $(BLU)version$(END)      -- display source code version.
-
-  $(BLD)$(MAKE) $(BLU)compile$(END)      -- syncs and compiles the source code in the build container.
 
   $(BLD)$(MAKE) $(BLU)images$(END)       -- creates images from the build container.
 
@@ -1032,12 +914,6 @@ define _help.targets
     caches for the passing tests.
 
     $(BLD)DO NOT$(END) run $(BLD)$(MAKE) $(BLU)pytest-gold$(END) if you have failing tests.
-
-  $(BLD)$(MAKE) $(BLU)shell$(END)        -- starts a shell in the build container
-
-    The current commit must be tagged for this to work, and your tree must be clean.
-    Additionally, the tag must be of the form 'vX.Y.Z-rc.N'. You must also have previously
-    built an RC for the same tag using $(BLD)release/bits$(END).
 
   $(BLD)$(MAKE) $(BLU)release/promote-oss/to-ga$(END) -- promote a release candidate to general availability
 

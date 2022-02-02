@@ -407,7 +407,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 		})
 
 		reconcileSecretsTimer.Time(func() {
-			err = ReconcileSecrets(ctx, sh.k8sSnapshot)
+			err = ReconcileSecrets(ctx, sh)
 		})
 		if err != nil {
 			return false, err
@@ -525,7 +525,7 @@ func (sh *SnapshotHolder) IstioUpdate(ctx context.Context, istio *istioCertWatch
 
 	var err error
 	reconcileSecretsTimer.Time(func() {
-		err = ReconcileSecrets(ctx, sh.k8sSnapshot)
+		err = ReconcileSecrets(ctx, sh)
 	})
 	if err != nil {
 		return false, err

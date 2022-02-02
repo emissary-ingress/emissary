@@ -1,14 +1,11 @@
-from typing import Generator, Tuple, Union
-
 import os
+from typing import Generator, Tuple, Union
 
 import pytest
 
+import tests.integration.manifests as integration_manifests
 from abstract_tests import AmbassadorTest, HTTP, ServiceType, Node
-from kat.harness import Query, load_manifest
-
-AMBASSADOR = load_manifest("ambassador")
-RBAC_CLUSTER_SCOPE = load_manifest("rbac_cluster_scope")
+from kat.harness import Query
 
 STATSD_MANIFEST = """
 ---
@@ -98,10 +95,15 @@ spec:
   requestPolicy:
     insecure:
       action: Route
-""" + self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="", capabilities_block="") + \
-               STATSD_MANIFEST.format(name='cbstatsd-sink', image=self.test_image['stats'],
-                                      target=self.__class__.TARGET_CLUSTER)
+""" + \
+        self.format(integration_manifests.load("rbac_cluster_scope") + integration_manifests.load("ambassador"),
+                    envs=envs,
+                    extra_ports="",
+                    capabilities_block="") + \
+        STATSD_MANIFEST.format(
+            name='cbstatsd-sink',
+            image=integration_manifests.images['test-stats'],
+            target=self.__class__.TARGET_CLUSTER)
 
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:

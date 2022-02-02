@@ -213,6 +213,8 @@ func canonGVK(rawString string) (canonKind string, canonGroupVersion string, err
 		return "Endpoints", "v1", nil
 	case "secret", "secrets":
 		return "Secret", "v1", nil
+	case "configmap", "configmaps":
+		return "ConfigMap", "v1", nil
 	case "ingress", "ingresses":
 		if strings.HasSuffix(rawVG, ".knative.dev") {
 			return "Ingress", "networking.internal.knative.dev/v1alpha1", nil
