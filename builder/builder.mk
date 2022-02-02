@@ -330,35 +330,6 @@ _runner:
 	@su -s /bin/bash $$INTERACTIVE_USER -c "$$ENTRYPOINT"
 .PHONY: _runner
 
-# This target is a convenience alias for running the _bash target.
-docker/shell: docker/run/_bash
-.PHONY: docker/shell
-
-# This target runs any existing target inside of the builder base docker image.
-docker/run/%: docker/builder-base.docker
-	docker run --net=host \
-		-e INTERACTIVE_UID=$$(id -u) \
-		-e INTERACTIVE_GID=$$(id -g) \
-		-e INTERACTIVE_USER=$$(id -u -n) \
-		-e INTERACTIVE_GROUP=$$(id -g -n) \
-		-e PYTEST_ARGS="$$PYTEST_ARGS" \
-		-e AMBASSADOR_DOCKER_IMAGE="$$AMBASSADOR_DOCKER_IMAGE" \
-		-e DEV_KUBECONFIG="$$DEV_KUBECONFIG" \
-		-v /etc/resolv.conf:/etc/resolv.conf \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v $${DEV_KUBECONFIG}:$${DEV_KUBECONFIG} \
-		-v $${PWD}:$${PWD} \
-		-it \
-		--init \
-		--cap-add=NET_ADMIN \
-		--entrypoint /bin/bash \
-		$$(cat docker/builder-base.docker) -c "cd $$PWD && ENTRYPOINT=make\ $* make --quiet _runner"
-
-# Don't try running 'make shell' from within docker. That target already tries to run a builder shell.
-# Instead, quietly define 'docker/run/shell' to be an alias for 'docker/shell'.
-docker/run/shell:
-	$(MAKE) --quiet docker/shell
-
 setup-envoy: extract-bin-envoy
 
 pytest: push-pytest-images
