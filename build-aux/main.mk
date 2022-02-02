@@ -49,8 +49,8 @@ docker/.base.img.tar.stamp: FORCE $(tools/crane) docker/base-python/Dockerfile
 # In the long-run, this will likely always be a `docker build` rather
 # than an `ocibuild`, in order to do truly base-OS-specific setup
 # (`apk add`, libc-specific compilation...).
-docker/.base-python.docker.stamp: FORCE docker/base-python/Dockerfile
-	@$(BUILDER) build-builder-base >$@
+docker/.base-python.docker.stamp: FORCE docker/base-python/Dockerfile docker/base-python.docker.gen
+	docker/base-python.docker.gen >$@
 
 # base-pip: base-python, but with requirements.txt installed.
 #
