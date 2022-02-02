@@ -222,7 +222,7 @@ _images = builder-base base-envoy $(LCNAME) kat-client kat-server
 $(foreach i,$(_images), docker/$i.docker.tag.local  ): docker/%.docker.tag.local : docker/%.docker
 $(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remote: docker/%.docker
 
-docker/.builder-base.docker.stamp: FORCE preflight
+docker/.builder-base.docker.stamp: FORCE preflight $(tools/dsum) $(tools/copy-ifchanged)
 	@printf "${CYN}==> ${GRN}Bootstrapping builder base image${END}\n"
 	@$(BUILDER) build-builder-base >$@
 

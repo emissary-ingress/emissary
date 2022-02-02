@@ -48,7 +48,7 @@ endif
 # Everything else...
 
 # BASE_REGISTRY is where the base images (as in
-# `builder/Dockerfile.base`) get pulled-from/pushed-to.  We default
+# `docker/base-*/Dockerfile`) get pulled-from/pushed-to.  We default
 # this to docker.io/emissaryingress rather than to $(DEV_REGISTRY) or
 # to a .local registry because rebuilding orjson takes so long, we
 # really want to cache it unless the dev really wants to force doing

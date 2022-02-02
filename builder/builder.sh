@@ -19,14 +19,6 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
-dsum() {
-    local exe=${DIR}/../tools/bin/dsum
-    if ! test -f "$exe"; then
-        make -C "$DIR/.." tools/bin/dsum
-    fi
-    "$exe" "$@"
-}
-
 msg2() {
     printf "${BLU}  -> ${GRN}%s${END}\n" "$*" >&2
 }
@@ -47,7 +39,7 @@ panic() {
 # Description:
 #
 #   Rebuild (and push if DEV_REGISTRY is set) the builder's base image if
-#    - `Dockerfile.base` changes
+#    - `docker/base-python/Dockerfile` changes
 #    - `requirements.txt` changes
 #    - Enough time has passed (The base only has external/third-party
 #      dependencies, and most of those dependencies are not pinned by
@@ -58,7 +50,7 @@ panic() {
 #
 #   The base theory of operation is that we generate a Docker tag name that
 #   is essentially the tuple
-#     (rounded_timestamp, hash(Dockerfile.base), hash(requirements.txt)
+#       (rounded_timestamp, hash("docker/base-python/Dockerfile"), hash("builder/requirements.txt")
 #   then check that tag for existence/pullability using `docker run --rm
 #   --entrypoint=true`; and build it if it doesn't exist and can't be
 #   pulled.
@@ -91,7 +83,7 @@ epoch = datetime.datetime(2020, 11, 8, 5, 0) # 1AM EDT on a Sunday
 age = int((datetime.datetime.now() - epoch).days / build_every_n_days)
 age_start = epoch + datetime.timedelta(days=age*build_every_n_days)
 
-dockerfilehash = hashlib.sha256(open("Dockerfile.base", "rb").read()).hexdigest()
+dockerfilehash = hashlib.sha256(open("docker/base-python/Dockerfile", "rb").read()).hexdigest()
 stage1 = "%sx%s-%s" % (age_start.strftime("%Y%m%d"), build_every_n_days, dockerfilehash[:16])
 
 requirementshash = hashlib.sha256(open("requirements.txt", "rb").read()).hexdigest()
@@ -109,8 +101,8 @@ print("stage2_tag=%s" % stage2)
 
     msg2 "Using stage-1 base ${BLU}${name1}${GRN}"
     if ! (docker image inspect "$name1" || docker pull "$name1") &>/dev/null; then # skip building if the "$name1" already exists
-        dsum 'stage-1 build' 3s \
-             docker build -f "${DIR}/Dockerfile.base" -t "${name1}" --target builderbase-stage1 "${DIR}"
+        tools/bin/dsum 'stage-1 build' 3s \
+             docker build -t "${name1}" docker/base-python
         if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then
             TIMEFORMAT="     (stage-1 push took %1R seconds)"
             time docker push "$name1"
@@ -124,8 +116,9 @@ print("stage2_tag=%s" % stage2)
 
     msg2 "Using stage-2 base ${BLU}${name2}${GRN}"
     if ! (docker image inspect "$name2" || docker pull "$name2") &>/dev/null; then # skip building if the "$name2" already exists
-        dsum 'stage-2 build' 3s \
-             docker build --build-arg=builderbase_stage1="$name1" -f "${DIR}/Dockerfile.base" -t "${name2}" --target builderbase-stage2 "${DIR}"
+        tools/bin/copy-ifchanged builder/requirements.txt docker/base-pip/requirements.txt
+        tools/bin/dsum 'stage-2 build' 3s \
+             docker build --build-arg=from="$name1" -t "${name2}" docker/base-pip
         if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then
             TIMEFORMAT="     (stage-2 push took %1R seconds)"
             time docker push "$name2"

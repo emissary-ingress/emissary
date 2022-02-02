@@ -14,16 +14,11 @@
 # to see when and how often this base image is built and pushed.
 ##
 
-# This argument controls the base image that is used for our build
-# container.
-ARG builderbase_stage0="docker.io/frolvlad/alpine-glibc:alpine-3.12_glibc-2.32"
-ARG builderbase_stage1="builderbase-stage1"
-
 ########################################
 # Third-party code
 ########################################
 
-FROM ${builderbase_stage0} as builderbase-stage1
+FROM docker.io/frolvlad/alpine-glibc:alpine-3.12_glibc-2.32
 
 WORKDIR /buildroot
 
@@ -100,9 +95,3 @@ RUN pip3 uninstall -y chardet
 RUN echo 'manylinux1_compatible = True' > /usr/lib/python3.8/_manylinux.py && \
 	pip3 install orjson==3.3.1 && \
 	rm -f /usr/lib/python3.8/_manylinux.py
-
-FROM ${builderbase_stage1} as builderbase-stage2
-
-# Then we can do the rest of the Python stuff.
-COPY requirements.txt .
-RUN pip3 install -r requirements.txt
