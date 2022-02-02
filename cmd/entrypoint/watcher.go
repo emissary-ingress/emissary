@@ -199,7 +199,8 @@ func watchAllTheThingsInternal(
 	if err != nil {
 		return err
 	}
-	consulWatcher := newConsulWatcher(ctx, watchConsulFunc)
+	consulWatcher := newConsulWatcher(watchConsulFunc)
+	grp.Go("consul", consulWatcher.run)
 	istioCertWatcher, err := istioCertSrc.Watch(ctx)
 	if err != nil {
 		return err

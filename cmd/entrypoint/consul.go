@@ -77,20 +77,14 @@ type consulWatcher struct {
 	bootstrapped     bool
 }
 
-func newConsulWatcher(ctx context.Context, watchFunc watchConsulFunc) *consulWatcher {
-	result := &consulWatcher{
+func newConsulWatcher(watchFunc watchConsulFunc) *consulWatcher {
+	return &consulWatcher{
 		watchFunc:      watchFunc,
 		resolvers:      make(map[string]*resolver),
 		coalescedDirty: make(chan struct{}),
 		endpointsCh:    make(chan consulwatch.Endpoints),
 		endpoints:      make(map[string]consulwatch.Endpoints),
 	}
-	go func() {
-		if err := result.run(ctx); err != nil {
-			panic(err) // TODO: Find a better way of reporting errors from goroutines.
-		}
-	}()
-	return result
 }
 
 func (c *consulWatcher) run(ctx context.Context) error {

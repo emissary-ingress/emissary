@@ -12,6 +12,7 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -122,7 +123,13 @@ func TestBootstrap(t *testing.T) {
 }
 
 func setup(t *testing.T) (ctx context.Context, resolvers []*amb.ConsulResolver, mappings []consulMapping, c *consulWatcher, tw *testWatcher) {
-	ctx = dlog.NewTestContext(t, false)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithCancel(dlog.NewTestContext(t, false))
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
+	t.Cleanup(func() {
+		cancel()
+		assert.NoError(t, grp.Wait())
+	})
 
 	parent := &kates.Unstructured{
 		Object: map[string]interface{}{
@@ -157,7 +164,8 @@ func setup(t *testing.T) (ctx context.Context, resolvers []*amb.ConsulResolver, 
 	assert.Equal(t, 4, len(mappings))
 
 	tw = &testWatcher{t: t, events: make(map[string]bool)}
-	c = newConsulWatcher(ctx, tw.Watch)
+	c = newConsulWatcher(tw.Watch)
+	grp.Go("consul", c.run)
 	tw.Assert()
 
 	return
