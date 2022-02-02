@@ -19,5 +19,5 @@ $(foreach img,$(_ocibuild-images),docker/.$(img).docker.stamp): docker/.%.docker
 	docker load < $<
 	docker inspect $$(bsdtar xfO $< manifest.json|jq -r '.[0].RepoTags[0]') --format='{{.Id}}' > $@
 
-docker/.base.img.tar.stamp: FORCE $(tools/crane) builder/Dockerfile
-	$(tools/crane) pull $(shell sed -n 's,ARG base=,,p' < builder/Dockerfile) $@ || test -e $@
+docker/.base.img.tar.stamp: FORCE $(tools/crane) docker/base-python/Dockerfile
+	$(tools/crane) pull $(shell gawk '$$1 == "FROM" { print $$2; quit; }' < docker/base-python/Dockerfile) $@ || test -e $@

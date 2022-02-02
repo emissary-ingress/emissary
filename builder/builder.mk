@@ -238,12 +238,14 @@ docker/.base-envoy.docker.stamp: FORCE
 	  fi; \
 	  echo $(ENVOY_DOCKER_TAG) >$@; \
 	}
-docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
+docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
 	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
+	@printf "    ${BLU}base=$$(sed -n 2p $*/base.docker.tag.local)${END}\n"
 	@printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"
 	@printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"
 	{ $(tools/dsum) '$(LCNAME) build' 3s \
 	  docker build -f ${BUILDER_HOME}/Dockerfile . \
+	    --build-arg=base="$$(sed -n 2p $*/base.docker.tag.local)" \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \

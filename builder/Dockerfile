@@ -20,7 +20,7 @@
 
 # This argument controls the base image that is used for the release
 # containers.
-ARG base="docker.io/frolvlad/alpine-glibc:alpine-3.12_glibc-2.32"
+ARG base="i-forgot-to-set-build-arg-base"
 
 # This argument sets the base image for the build container image. This
 # base image contains only third-party code.
