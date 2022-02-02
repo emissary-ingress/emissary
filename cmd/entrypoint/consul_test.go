@@ -157,7 +157,7 @@ func setup(t *testing.T) (ctx context.Context, resolvers []*amb.ConsulResolver, 
 	assert.Equal(t, 4, len(mappings))
 
 	tw = &testWatcher{t: t, events: make(map[string]bool)}
-	c = newConsul(ctx, tw)
+	c = newConsul(ctx, tw.Watch)
 	tw.Assert()
 
 	return

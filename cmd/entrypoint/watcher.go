@@ -59,7 +59,7 @@ func WatchAllTheThings(
 	}
 
 	k8sSrc := newK8sSource(client)
-	consulSrc := &consulWatcher{}
+	consulSrc := watchConsul
 	istioCertSrc := newIstioCertSource()
 
 	return watchAllTheThingsInternal(
@@ -67,7 +67,7 @@ func WatchAllTheThings(
 		encoded,
 		k8sSrc,
 		queries,
-		consulSrc, // consulWatcher
+		consulSrc, // watchConsulFunc
 		istioCertSrc,
 		notify,         // snapshotProcessor
 		fastpathUpdate, // fastpathProcessor
@@ -156,7 +156,7 @@ func watchAllTheThingsInternal(
 	encoded *atomic.Value,
 	k8sSrc K8sSource,
 	queries []kates.Query,
-	consulWatcher Watcher,
+	watchConsulFunc watchConsulFunc,
 	istioCertSrc IstioCertSource,
 	snapshotProcessor SnapshotProcessor,
 	fastpathProcessor FastpathProcessor,
@@ -196,7 +196,7 @@ func watchAllTheThingsInternal(
 	if err != nil {
 		return err
 	}
-	consul := newConsul(ctx, consulWatcher)
+	consul := newConsul(ctx, watchConsulFunc)
 	istioCertWatcher, err := istioCertSrc.Watch(ctx)
 	if err != nil {
 		return err

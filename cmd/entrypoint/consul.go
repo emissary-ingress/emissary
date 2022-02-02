@@ -59,7 +59,7 @@ func ReconcileConsul(ctx context.Context, consul *consul, s *snapshotTypes.Kuber
 }
 
 type consul struct {
-	watcher                   Watcher
+	watchFunc                 watchConsulFunc
 	resolvers                 map[string]*resolver
 	firstReconcileHasHappened bool
 
@@ -77,9 +77,9 @@ type consul struct {
 	bootstrapped     bool
 }
 
-func newConsul(ctx context.Context, watcher Watcher) *consul {
+func newConsul(ctx context.Context, watchFunc watchConsulFunc) *consul {
 	result := &consul{
-		watcher:        watcher,
+		watchFunc:      watchFunc,
 		resolvers:      make(map[string]*resolver),
 		coalescedDirty: make(chan struct{}),
 		endpointsCh:    make(chan consulwatch.Endpoints),
@@ -239,7 +239,7 @@ func (c *consul) reconcile(ctx context.Context, resolvers []*amb.ConsulResolver,
 	// Finally we reconcile each mapping.
 	for rname, mappings := range mappingsByResolver {
 		res := c.resolvers[rname]
-		if err := res.reconcile(ctx, c.watcher, mappings, c.endpointsCh); err != nil {
+		if err := res.reconcile(ctx, c.watchFunc, mappings, c.endpointsCh); err != nil {
 			return err
 		}
 	}
@@ -276,7 +276,7 @@ func (r *resolver) deleted() {
 	}
 }
 
-func (r *resolver) reconcile(ctx context.Context, watcher Watcher, mappings []consulMapping, endpoints chan consulwatch.Endpoints) error {
+func (r *resolver) reconcile(ctx context.Context, watchFunc watchConsulFunc, mappings []consulMapping, endpoints chan consulwatch.Endpoints) error {
 	servicesByName := make(map[string]bool)
 	for _, m := range mappings {
 		// XXX: how to parse this?
@@ -285,7 +285,7 @@ func (r *resolver) reconcile(ctx context.Context, watcher Watcher, mappings []co
 		w, ok := r.watches[svc]
 		if !ok {
 			var err error
-			w, err = watcher.Watch(ctx, r.resolver, svc, endpoints)
+			w, err = watchFunc(ctx, r.resolver, svc, endpoints)
 			if err != nil {
 				return err
 			}
@@ -303,17 +303,13 @@ func (r *resolver) reconcile(ctx context.Context, watcher Watcher, mappings []co
 	return nil
 }
 
-type Watcher interface {
-	Watch(ctx context.Context, resolver *amb.ConsulResolver, svc string, endpoints chan consulwatch.Endpoints) (Stopper, error)
-}
+type watchConsulFunc func(ctx context.Context, resolver *amb.ConsulResolver, svc string, endpoints chan consulwatch.Endpoints) (Stopper, error)
 
 type Stopper interface {
 	Stop()
 }
 
-type consulWatcher struct{}
-
-func (cw *consulWatcher) Watch(
+func watchConsul(
 	ctx context.Context,
 	resolver *amb.ConsulResolver,
 	svc string,

@@ -207,7 +207,7 @@ func (f *Fake) runWatcher(ctx context.Context) error {
 		f.currentSnapshot, // encoded
 		f.k8sSource,
 		queries,
-		f.watcher, // consulWatcher
+		f.watcher.Watch, // watchConsulFunc
 		f.istioCertSource,
 		f.notifySnapshot,
 		f.notifyFastpath,
