@@ -150,6 +150,7 @@ libraries:
     distlib             0.3.3      Python Software Foundation license
     distro              1.6.0      Apache License 2.0
     docutils            0.17.1     2-clause BSD license, GNU General Public License Version 3, Public domain, Python Software Foundation license
+    dpath               2.0.6      MIT license
     durationpy          0.5        MIT license
     expiringdict        1.2.1      Apache License 2.0
     google-auth         1.23.0     Apache License 2.0
@@ -160,7 +161,6 @@ libraries:
     jsonpatch           1.32       3-clause BSD license
     jsonpointer         2.0        3-clause BSD license
     jsonschema          4.2.1      MIT license
-    k8s-proto           0.0.3      Apache License 2.0
     kubernetes          20.13.0    Apache License 2.0
     lockfile            0.12.2     MIT license
     msgpack             1.0.2      Apache License 2.0

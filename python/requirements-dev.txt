@@ -1,8 +1,8 @@
 # Dev requirements
-dpath
 gitpython
 httpretty
 mypy
+packaging
 pexpect
 pytest
 pytest-cov

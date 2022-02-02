@@ -24,6 +24,8 @@ clize==4.2.1
     # via -r requirements.in
 docutils==0.17.1
     # via clize
+dpath==2.0.6
+    # via -r requirements.in
 durationpy==0.5
     # via -r requirements.in
 expiringdict==1.2.1
@@ -46,8 +48,6 @@ jsonpointer==2.0
     # via jsonpatch
 jsonschema==4.2.1
     # via -r requirements.in
-k8s-proto==0.0.3
-    # via -r requirements.in
 kubernetes==20.13.0
     # via -r requirements.in
 markupsafe==2.0.1
@@ -58,10 +58,10 @@ od==1.0
     # via clize
 orjson==3.6.6
     # via -r requirements.in
-prometheus_client==0.12.0
+prometheus-client==0.12.0
     # via -r requirements.in
 protobuf==3.13.0
-    # via k8s-proto
+    # via -r requirements.in
 pyasn1==0.4.8
     # via
     #   pyasn1-modules
@@ -102,7 +102,6 @@ six==1.16.0
     #   websocket-client
 urllib3==1.26.5
     # via
-    #   -r requirements.in
     #   kubernetes
     #   requests
 websocket-client==0.57.0
@@ -113,6 +112,7 @@ werkzeug==2.0.2
 # The following packages are considered to be unsafe in a requirements file:
 setuptools==50.3.2
     # via
+    #   -r requirements.in
     #   google-auth
     #   gunicorn
     #   kubernetes

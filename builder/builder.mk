@@ -404,11 +404,11 @@ mypy: mypy-server
 	{ . $(OSS_HOME)/venv/bin/activate && time dmypy check python; }
 .PHONY: mypy
 
-$(OSS_HOME)/venv: builder/requirements.txt builder/requirements-dev.txt
+$(OSS_HOME)/venv: python/requirements.txt python/requirements-dev.txt
 	rm -rf $@
 	python3 -m venv $@
-	$@/bin/pip3 install -r builder/requirements.txt
-	$@/bin/pip3 install -r builder/requirements-dev.txt
+	$@/bin/pip3 install -r python/requirements.txt
+	$@/bin/pip3 install -r python/requirements-dev.txt
 	$@/bin/pip3 install -e $(OSS_HOME)/python
 
 GOTEST_ARGS ?= -race -count=1 -timeout 30m

@@ -50,8 +50,6 @@ generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/
 # Individual files: Misc
 generate/files      += $(OSS_HOME)/OPENSOURCE.md
 generate/files      += $(OSS_HOME)/LICENSES.md
-generate/files      += $(OSS_HOME)/builder/requirements.txt
-generate/precious   += $(OSS_HOME)/builder/requirements.txt
 generate-fast/files += $(OSS_HOME)/CHANGELOG.md
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion.go
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion-spoke.go
@@ -434,16 +432,6 @@ $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_
 
 #
 # Generate report on dependencies
-
-$(OSS_HOME)/builder/.requirements.txt.stamp: $(OSS_HOME)/builder/requirements.in docker/base-python.docker.tag.local
-# The --interactive is so that stdin gets passed through; otherwise Docker closes stdin.
-	set -ex -o pipefail; { \
-	  docker run --rm --interactive "$$(cat docker/base-python.docker)" sh -c 'tar xf - && pip-compile --allow-unsafe -q >&2 && cat requirements.txt' \
-	    < <(bsdtar -cf - -C $(@D) requirements.in requirements.txt) \
-	    > $@; }
-$(OSS_HOME)/builder/requirements.txt: $(OSS_HOME)/builder/%: $(OSS_HOME)/builder/.%.stamp $(tools/copy-ifchanged)
-	$(tools/copy-ifchanged) $< $@
-.PRECIOUS: $(OSS_HOME)/builder/requirements.txt
 
 $(OSS_HOME)/build-aux/pip-show.txt: docker/base-pip.docker.tag.local
 	docker run --rm "$$(cat docker/base-pip.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
