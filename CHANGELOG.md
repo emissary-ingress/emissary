@@ -92,20 +92,25 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Change: Support for the Envoy V2 API and the `AMBASSADOR_ENVOY_API_VERSION` environment variable
+  have been removed. Only the Envoy V3 API is supported (this has been the default since
+  Emissary-ingress v1.14.0).
+
 - Feature: Emissary now supports the metric `ambassador_log_level{label="debug"}` which will be set
   to 1 if debug logging is enabled for the running Emissary instance, or to 0 if not. This can help
   to be sure that a running production instance was not actually left doing debugging logging, for
   example. (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!) ([3906])
 
-- Change: Support for the Envoy V2 API and the `AMBASSADOR_ENVOY_API_VERSION` environment variable
-  have been removed. Only the Envoy V3 API is supported (this has been the default since
-  Emissary-ingress v1.14.0).
+- Bugfix: Kubernetes Secrets that should contain TLS certificates are now validated before being
+  accepted for configuration. A Secret that contains an invalid TLS certificate will be logged as an
+  invalid resource. ([3821])
 
 - Change: Emissary will now watch for ConfigMap or Secret resources specified by the
   `AGENT_CONFIG_RESOURCE_NAME` environment variable in order to allow all components (and not only
   the Ambassador Agent) to authenticate requests to Ambassador Cloud.
 
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
+[3821]: https://github.com/emissary-ingress/emissary/issues/3821
 
 ## [2.1.2] January 25, 2022
 [2.1.2]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.1.2

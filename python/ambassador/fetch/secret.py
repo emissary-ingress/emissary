@@ -7,6 +7,7 @@ from .k8sobject import KubernetesGVK, KubernetesObject
 from .k8sprocessor import ManagedKubernetesProcessor
 from .resource import NormalizedResource, ResourceManager
 
+from ..utils import dump_json
 
 class SecretProcessor (ManagedKubernetesProcessor):
     """
@@ -43,6 +44,8 @@ class SecretProcessor (ManagedKubernetesProcessor):
         return super()._admit(obj)
 
     def _process(self, obj: KubernetesObject) -> None:
+        # self.logger.debug("processing K8s Secret %s", dump_json(dict(obj), pretty=True))
+
         secret_type = obj.get('type')
         if secret_type not in self.KNOWN_TYPES:
             self.logger.debug("ignoring K8s Secret with unknown type %s" % secret_type)
@@ -72,4 +75,5 @@ class SecretProcessor (ManagedKubernetesProcessor):
             namespace=obj.namespace,
             labels=obj.labels,
             spec=spec,
+            errors=obj.get('errors'),   # Make sure we preserve errors here!
         ))
