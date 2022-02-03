@@ -3,10 +3,10 @@ package agent
 import (
 	"context"
 	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v3"
+	"github.com/datawire/dlib/dhttp"
 	"github.com/datawire/dlib/dlog"
 	"google.golang.org/grpc"
 	"io"
-	"net"
 )
 
 type streamHandler func(logCtx context.Context, in *envoyMetrics.StreamMetricsMessage)
@@ -25,19 +25,17 @@ func NewMetricsServer(handler streamHandler) *metricsServer {
 }
 
 // StartServer will start the metrics gRPC server, listening on :8006
-// It is a blocking call until grpcServer.Serve returns.
+// It is a blocking call until sc.ListenAndServe returns.
 func (s *metricsServer) StartServer(ctx context.Context) error {
 	grpcServer := grpc.NewServer()
 	envoyMetrics.RegisterMetricsServiceServer(grpcServer, s)
 
-	listener, err := net.Listen("tcp", ":8006")
-	if err != nil {
-		dlog.Errorf(ctx, "metrics service failed to listen: %v", err)
+	sc := &dhttp.ServerConfig{
+		Handler: grpcServer,
 	}
 
-	dlog.Infof(ctx, "metrics service listening on %s", listener.Addr().String())
-	s.logCtx = ctx
-	return grpcServer.Serve(listener)
+	dlog.Info(ctx, "starting metrics service listening on :8006")
+	return sc.ListenAndServe(ctx, ":8006")
 }
 
 // StreamMetrics implements the StreamMetrics rpc call by calling the stream handler on each
