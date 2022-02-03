@@ -469,7 +469,7 @@ NPM_PACKAGES := $(shell find . \( \
 	\) -type f -print)
 
 MKOPENSOURCE_COMMIT = 'fbbef0f7'
-$(OSS_HOME)/_generate.tmp/mkopensource:
+$(OSS_HOME)/_generate.tmp/mkopensource: FORCE
 	set -ex; { \
 	  unset GIT_DIR GIT_WORK_TREE; \
 	  mkdir -p $@; \
