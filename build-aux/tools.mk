@@ -71,7 +71,6 @@ tools/fix-crds        = $(tools.bindir)/fix-crds
 tools/flock           = $(tools.bindir)/flock
 tools/gotest2tap      = $(tools.bindir)/gotest2tap
 tools/goversion       = $(tools.bindir)/goversion
-tools/py-mkopensource = $(tools.bindir)/py-mkopensource
 tools/testcert-gen    = $(tools.bindir)/testcert-gen
 $(tools.bindir)/.%.stamp: $(tools.srcdir)/%/main.go FORCE
 # If we build with `-mod=vendor` (which is the default if
