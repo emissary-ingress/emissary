@@ -468,7 +468,7 @@ NPM_PACKAGES := $(shell find . \( \
 	-name package.json -o -name package-lock.json \
 	\) -type f -print)
 
-MKOPENSOURCE_COMMIT = 'fbbef0f7'
+MKOPENSOURCE_COMMIT = '471a8aa7'
 $(OSS_HOME)/_generate.tmp/mkopensource: FORCE
 	set -ex; { \
 	  unset GIT_DIR GIT_WORK_TREE; \
