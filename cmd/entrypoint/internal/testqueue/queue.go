@@ -1,4 +1,4 @@
-package entrypoint
+package testqueue
 
 import (
 	"encoding/json"

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/v2/cmd/ambex"
+	"github.com/datawire/ambassador/v2/cmd/entrypoint/internal/testqueue"
 	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
@@ -69,9 +70,9 @@ type Fake struct {
 	// This holds the current snapshot.
 	currentSnapshot *atomic.Value
 
-	fastpath     *Queue // All fastpath snapshots that have been produced.
-	snapshots    *Queue // All snapshots that have been produced.
-	envoyConfigs *Queue // All envoyConfigs that have been produced.
+	fastpath     *testqueue.Queue // All fastpath snapshots that have been produced.
+	snapshots    *testqueue.Queue // All snapshots that have been produced.
+	envoyConfigs *testqueue.Queue // All envoyConfigs that have been produced.
 
 	// This is used to make Teardown idempotent.
 	teardownOnce sync.Once
@@ -113,9 +114,9 @@ func NewFake(t *testing.T, config FakeConfig) *Fake {
 
 		currentSnapshot: &atomic.Value{},
 
-		fastpath:     NewQueue(t, config.Timeout),
-		snapshots:    NewQueue(t, config.Timeout),
-		envoyConfigs: NewQueue(t, config.Timeout),
+		fastpath:     testqueue.NewQueue(t, config.Timeout),
+		snapshots:    testqueue.NewQueue(t, config.Timeout),
+		envoyConfigs: testqueue.NewQueue(t, config.Timeout),
 	}
 
 	fake.k8sSource = &fakeK8sSource{fake: fake, store: k8sStore}
