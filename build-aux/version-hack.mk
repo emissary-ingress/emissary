@@ -38,6 +38,10 @@ version-hack.simple-substitutions += docs/yaml/versions.yml
 version-hack.simple-substitutions += manifests/emissary/emissary-crds.yaml
 version-hack.simple-substitutions += manifests/emissary/emissary-defaultns.yaml
 version-hack.simple-substitutions += manifests/emissary/emissary-emissaryns.yaml
+version-hack.simple-substitutions += manifests/emissary/emissary-defaultns-agent.yaml
+version-hack.simple-substitutions += manifests/emissary/emissary-emissaryns-agent.yaml
+version-hack.simple-substitutions += manifests/emissary/emissary-defaultns-migration.yaml
+version-hack.simple-substitutions += manifests/emissary/emissary-emissaryns-migration.yaml
 $(version-hack.simple-substitutions): %: %.in $(tools/write-ifchanged) FORCE
 # Hack: clear $CI, some of the CI jobs intentionally modify these
 # files, as described above.
@@ -60,6 +64,10 @@ build-aux/version-hack.stamp.mk: docs/yaml/versions.yml
 build-aux/version-hack.stamp.mk: manifests/emissary/emissary-crds.yaml
 build-aux/version-hack.stamp.mk: manifests/emissary/emissary-defaultns.yaml
 build-aux/version-hack.stamp.mk: manifests/emissary/emissary-emissaryns.yaml
+build-aux/version-hack.stamp.mk: manifests/emissary/emissary-defaultns-agent.yaml
+build-aux/version-hack.stamp.mk: manifests/emissary/emissary-emissaryns-agent.yaml
+build-aux/version-hack.stamp.mk: manifests/emissary/emissary-defaultns-migration.yaml
+build-aux/version-hack.stamp.mk: manifests/emissary/emissary-emissaryns-migration.yaml
 build-aux/version-hack.stamp.mk: $(tools/write-ifchanged)
 	@ls -l $^ | sed 's/^/#/' | $(tools/write-ifchanged) $@
 # The "-include" directive (compared to plain "include") considers it

@@ -50,6 +50,14 @@ type CRD struct {
 }
 
 func FixCRD(args Args, crd *CRD) error {
+	// Really, Golang? You couldn't just have a "set" type?
+	// TODO(Flynn): Look into having kubebuilder generate our unserved v1.
+	CRDsWithNoUnservedV1 := map[string]interface{}{
+		"filterpolicies.getambassador.io": struct{}{},
+		"filters.getambassador.io":        struct{}{},
+		"ratelimits.getambassador.io":     struct{}{},
+	}
+
 	// sanity check
 	if crd.Kind != "CustomResourceDefinition" || !strings.HasPrefix(crd.APIVersion, "apiextensions.k8s.io/") {
 		return fmt.Errorf("not a CRD: %#v", crd)
@@ -119,6 +127,58 @@ func FixCRD(args Args, crd *CRD) error {
 				// that package supports.
 				ConversionReviewVersions: []string{"v1beta1"},
 			},
+		}
+
+		// If we're generating stuff for the APIServer, make sure we have an unserved,
+		// unstored v1 version, unless it's one of the CRDs for which we shouldn't do that.
+		//
+		// TODO(Flynn): Look into having kubebuilder generate our unserved v1.
+		if args.Target == TargetAPIServerKubectl {
+			_, skip := CRDsWithNoUnservedV1[crd.Metadata.Name]
+
+			if !skip {
+				var v2desc string
+				versions := make([]apiext.CustomResourceDefinitionVersion, 0, len(crd.Spec.Versions))
+
+				for _, version := range crd.Spec.Versions {
+					if version.Name != "v1" {
+						versions = append(versions, version)
+					}
+
+					if version.Name == "v2" {
+						v2desc = version.Schema.OpenAPIV3Schema.Description
+
+						// I don't want multiline descriptions in the unserved v1, so let's see
+						// if we have a newline in v2desc.
+						idx := strings.Index(v2desc, "\n")
+
+						if idx > 0 {
+							// Yup. Toss everything after it.
+							v2desc = v2desc[:idx]
+						}
+
+						// Finally, strip whitespace whether we found a newline or not.
+						v2desc = strings.TrimSpace(v2desc)
+					}
+				}
+
+				preserveUnknownFields := true
+
+				versions = append(versions, apiext.CustomResourceDefinitionVersion{
+					Name: "v1",
+					Schema: &apiext.CustomResourceValidation{
+						OpenAPIV3Schema: &apiext.JSONSchemaProps{
+							Description:            v2desc,
+							Type:                   "object",
+							XPreserveUnknownFields: &preserveUnknownFields,
+						},
+					},
+					Served:  false,
+					Storage: false,
+				})
+
+				crd.Spec.Versions = versions
+			}
 		}
 	}
 
