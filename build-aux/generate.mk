@@ -48,8 +48,6 @@ generate/files      += $(OSS_HOME)/pkg/api/envoy/
 generate/files      += $(OSS_HOME)/pkg/api/pb/
 generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/
 # Individual files: Misc
-generate/files      += $(OSS_HOME)/OPENSOURCE.md
-generate/files      += $(OSS_HOME)/LICENSES.md
 generate/files      += $(OSS_HOME)/builder/requirements.txt
 generate/precious   += $(OSS_HOME)/builder/requirements.txt
 generate-fast/files += $(OSS_HOME)/CHANGELOG.md
@@ -96,6 +94,7 @@ generate-clean: ## Delete generated sources that get committed to Git
 generate-fast: ## Update the subset of generated-sources-that-get-committed-to-Git that can be updated quickly
 generate-fast:
 	$(MAKE) generate-fast-clean
+	$(MAKE) LICENSES
 	$(MAKE) $(patsubst %/,%,$(generate-fast/files))
 .PHONY: generate-fast
 
@@ -445,35 +444,61 @@ $(OSS_HOME)/builder/requirements.txt: $(OSS_HOME)/builder/%: $(OSS_HOME)/builder
 	$(tools/copy-ifchanged) $< $@
 .PRECIOUS: $(OSS_HOME)/builder/requirements.txt
 
-$(OSS_HOME)/build-aux/pip-show.txt: docker/base-pip.docker.tag.local
-	docker run --rm "$$(cat docker/base-pip.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
-
 $(OSS_HOME)/build-aux/go-version.txt: docker/base-python/Dockerfile
 	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
+
+GO_VERSION := $(shell cat "$(OSS_HOME)/build-aux/go-version.txt")
+
 $(OSS_HOME)/build-aux/py-version.txt: docker/base-python/Dockerfile
 	{ grep -o 'python3=\S*' | cut -d= -f2; } < $< > $@
 
-$(OSS_HOME)/build-aux/go1%.src.tar.gz:
-	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
+PYTHON_PACKAGES := $(shell find . \( \
+	-path "./_cxx/envoy/*" \
+	-o -path "./docker/test-auth/*" \
+	-o -path "./docker/test-shadow/*" \
+	-o -path "./docker/test-stats/*" \
+	-o -path "./_generate.tmp/*" \
+	\) -prune -o -name requirements.txt -type f -print)
 
-$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
-	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
-	set -e; { \
-		cd $(OSS_HOME); \
-		$(tools/go-mkopensource) --output-format=txt --package=mod --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz; \
-		echo; \
-		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource); \
-	} > $@
+NPM_PACKAGES := $(shell find . \( \
+	-path "./_cxx/envoy/*" \
+	-o -path "./_generate.tmp/*" \
+	-o -path "./docker/test-ratelimit/*" \
+	\) -prune -o \( \
+	-name package.json -o -name package-lock.json \
+	\) -type f -print)
 
-$(OSS_HOME)/LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
-	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
+MKOPENSOURCE_COMMIT = 'fbbef0f7'
+$(OSS_HOME)/_generate.tmp/mkopensource:
+	set -ex; { \
+	  unset GIT_DIR GIT_WORK_TREE; \
+	  mkdir -p $@; \
+	  cd $@; \
+	  if test -e .git; then \
+	    git fetch || true; \
+	  else \
+	    git clone https://github.com/datawire/go-mkopensource .; \
+	  fi; \
+	  git checkout $(MKOPENSOURCE_COMMIT); \
+	  touch .; \
+	}
+
+LICENSES: $(OSS_HOME)/builder/requirements.txt $(OSS_HOME)/_generate.tmp/mkopensource \
+		$(OSS_HOME)/build-aux/py-version.txt $(PYTHON_PACKAGES) $(NPM_PACKAGES)
 	set -e; { \
-		cd $(OSS_HOME); \
-		echo -e "Emissary-ingress Go code incorporates Free and Open Source software under the following licenses:\n"; \
-		$(tools/go-mkopensource) --output-format=txt --package=mod --output-type=json --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' | sed -e 's/\[\([^]]*\)]()/\1/'; \
-		echo -e "\n\nEmissary-ingress Python code incorporates Free and Open Source software under the following licenses:\n"; \
-		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource) --output-type=json | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' | sed -e 's/\[\([^]]*\)]()/\1/'; \
-	} > $@
+		export APPLICATION="Emissary-ingress"; \
+		export GO_VERSION=$(GO_VERSION); \
+		export PYTHON_VERSION="$$(cat $(OSS_HOME)/build-aux/py-version.txt)"; \
+		export PYTHON_PACKAGES="$(PYTHON_PACKAGES)"; \
+		export NPM_PACKAGES="$(NPM_PACKAGES)"; \
+		export NODE_VERSION=10; \
+		export BUILD_HOME="$(OSS_HOME)"; \
+		export BUILD_TMP="$(OSS_HOME)/_generate.tmp/license"; \
+		\
+		mkdir -p "$${BUILD_TMP}"; \
+		"$(OSS_HOME)/_generate.tmp/mkopensource/build-aux/generate.sh"; \
+	}
+.PHONY: LICENSES
 
 #
 # Misc. other `make generate` rules
