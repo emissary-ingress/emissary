@@ -1,5 +1,5 @@
 name: manifest-publish
-on:
+"on":
   push:
     tags:
       - 'chart/v*'

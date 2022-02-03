@@ -60,6 +60,10 @@ generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v3alpha1/zz_generate
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml.in
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns.yaml.in
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns.yaml.in
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns-agent.yaml.in
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns-agent.yaml.in
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns-migration.yaml.in
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns-migration.yaml.in
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
@@ -386,43 +390,67 @@ $(OSS_HOME)/python/tests/integration/manifests/crds.yaml: $(OSS_HOME)/_generate.
 $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) --target=internal-validator $(sort $(wildcard $</*.yaml)) >$@
 
+# Names for all the helm-expanded.yaml files (and thence output.yaml and *.yaml.in files)
 helm.name.emissary-emissaryns = emissary-ingress
 helm.name.emissary-defaultns = emissary-ingress
 helm.namespace.emissary-emissaryns = emissary
 helm.namespace.emissary-defaultns = default
+helm.name.emissary-emissaryns-agent = emissary-ingress
+helm.namespace.emissary-emissaryns-agent = emissary
+helm.name.emissary-defaultns-agent = emissary-ingress
+helm.namespace.emissary-defaultns-agent = default
+helm.name.emissary-emissaryns-migration = emissary-ingress
+helm.namespace.emissary-emissaryns-migration = emissary
+helm.name.emissary-defaultns-migration = emissary-ingress
+helm.namespace.emissary-defaultns-migration = default
+
+# IF YOU'RE LOOKING FOR *.yaml: recipes, look in version-hack.mk at the
+# build-aux/version-hack.stamp.mk dependencies.
+
 $(OSS_HOME)/k8s-config/%/helm-expanded.yaml: \
   $(OSS_HOME)/k8s-config/%/values.yaml \
   $(OSS_HOME)/charts/emissary-ingress/templates $(wildcard $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml) \
   $(OSS_HOME)/charts/emissary-ingress/values.yaml \
   FORCE
 	helm template --namespace=$(helm.namespace.$*) --values=$(@D)/values.yaml $(or $(helm.name.$*),$*) $(OSS_HOME)/charts/emissary-ingress >$@
+
 $(OSS_HOME)/k8s-config/%/output.yaml: \
   $(OSS_HOME)/k8s-config/%/helm-expanded.yaml \
   $(OSS_HOME)/k8s-config/%/require.yaml \
   $(tools/filter-yaml)
 	$(tools/filter-yaml) $(filter %/helm-expanded.yaml,$^) $(filter %/require.yaml,$^) >$@
+
 $(OSS_HOME)/manifests/emissary/%.yaml.in: $(OSS_HOME)/k8s-config/%/output.yaml
 	cp $< $@
+
 $(OSS_HOME)/python/tests/integration/manifests/%.yaml: $(OSS_HOME)/k8s-config/kat-%/output.yaml
 	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
+
 $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml: $(OSS_HOME)/k8s-config/kat-rbac-multinamespace/output.yaml
 	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
+
 $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_HOME)/k8s-config/kat-rbac-singlenamespace/output.yaml
 	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
 
 #
 # Generate report on dependencies
 
-$(OSS_HOME)/build-aux/pip-show.txt: docker/builder-base.docker
-	docker run --rm "$$(cat docker/builder-base.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
-
-$(OSS_HOME)/builder/requirements.txt: %.txt: %.in FORCE
-	$(BUILDER) pip-compile
+$(OSS_HOME)/builder/.requirements.txt.stamp: $(OSS_HOME)/builder/requirements.in docker/base-python.docker.tag.local
+# The --interactive is so that stdin gets passed through; otherwise Docker closes stdin.
+	set -ex -o pipefail; { \
+	  docker run --rm --interactive "$$(cat docker/base-python.docker)" sh -c 'tar xf - && pip-compile --allow-unsafe -q >&2 && cat requirements.txt' \
+	    < <(bsdtar -cf - -C $(@D) requirements.in requirements.txt) \
+	    > $@; }
+$(OSS_HOME)/builder/requirements.txt: $(OSS_HOME)/builder/%: $(OSS_HOME)/builder/.%.stamp $(tools/copy-ifchanged)
+	$(tools/copy-ifchanged) $< $@
 .PRECIOUS: $(OSS_HOME)/builder/requirements.txt
 
-$(OSS_HOME)/build-aux/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
+$(OSS_HOME)/build-aux/pip-show.txt: docker/base-pip.docker.tag.local
+	docker run --rm "$$(cat docker/base-pip.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
+
+$(OSS_HOME)/build-aux/go-version.txt: docker/base-python/Dockerfile
 	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
-$(OSS_HOME)/build-aux/py-version.txt: $(OSS_HOME)/builder/Dockerfile.base
+$(OSS_HOME)/build-aux/py-version.txt: docker/base-python/Dockerfile
 	{ grep -o 'python3=\S*' | cut -d= -f2; } < $< > $@
 
 $(OSS_HOME)/build-aux/go1%.src.tar.gz:

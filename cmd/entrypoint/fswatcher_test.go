@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
+	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -30,7 +31,12 @@ type fswMetadata struct {
 }
 
 func newMetadata(t *testing.T) (context.Context, *fswMetadata, error) {
-	ctx := dlog.NewTestContext(t, false)
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
+	t.Cleanup(func() {
+		cancel()
+		assert.NoError(t, grp.Wait())
+	})
 	m := &fswMetadata{t: t}
 	m.bootstrapped = make(map[string]bool)
 	m.updates = make(map[string]int)
@@ -46,11 +52,14 @@ func newMetadata(t *testing.T) (context.Context, *fswMetadata, error) {
 	}
 
 	m.fsw, err = entrypoint.NewFSWatcher(ctx)
-
 	if err != nil {
 		t.Errorf("could not instantiate FSWatcher: %s", err)
 		return nil, nil, err
 	}
+	grp.Go("watch", func(ctx context.Context) error {
+		m.fsw.Run(ctx)
+		return nil
+	})
 
 	m.fsw.SetErrorHandler(m.errorHandler)
 

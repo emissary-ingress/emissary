@@ -1,6 +1,6 @@
 name: job-promote-to-passed
 
-on:
+"on":
   push:
     branches:
       - master
@@ -11,6 +11,9 @@ jobs:
 
   lint: ########################################################################
     runs-on: ubuntu-latest
+    env:
+      # See docker/base-python.docker.gen
+      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -24,8 +27,8 @@ jobs:
   generate: ####################################################################
     runs-on: ubuntu-latest
     env:
-      # Set DEV_REGISTRY to match BASE_REGISTRY.
-      DEV_REGISTRY: "docker.io/emissaryingress"
+      # See docker/base-python.docker.gen
+      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -52,6 +55,9 @@ jobs:
 
   check-envoy-version: #########################################################
     runs-on: ubuntu-latest
+    env:
+      # See docker/base-python.docker.gen
+      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -63,6 +69,9 @@ jobs:
   # Tests ######################################################################
   check-gotest:
     runs-on: ubuntu-latest
+    env:
+      # See docker/base-python.docker.gen
+      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -90,6 +99,9 @@ jobs:
         name: "Collect testing logs"
   check-pytest:
     runs-on: ubuntu-latest
+    env:
+      # See docker/base-python.docker.gen
+      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     strategy:
       fail-fast: false
       matrix:
@@ -147,6 +159,9 @@ jobs:
     # pytest-unit is separate from pytests (above) because we know for certain that no cluster is needed.
     # XXX This is pretty much a crock.
     runs-on: ubuntu-latest
+    env:
+      # See docker/base-python.docker.gen
+      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     strategy:
       matrix:
         test:
@@ -185,6 +200,34 @@ jobs:
       - uses: ./.github/actions/collect-testing-logs
         if: always()
         name: "Collect testing logs"
+  check-chart:
+    runs-on: ubuntu-latest
+    name: chart-test
+    env:
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
+      AWS_EC2_METADATA_DISABLED: true
+      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+      # See docker/base-python.docker.gen
+      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
+    steps:
+      - uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+      - name: make test-chart
+        run: |
+          make test-chart
+      - name: make release/promote-chart-passed
+        run: |
+          make release/promote-chart-passed
 
   build: #######################################################################
     runs-on: ubuntu-latest
@@ -194,6 +237,8 @@ jobs:
       AWS_EC2_METADATA_DISABLED: true
       AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+      # See docker/base-python.docker.gen
+      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -228,6 +273,7 @@ jobs:
       - check-gotest
       - check-pytest
       - check-pytest-unit
+      - check-chart
     runs-on: ubuntu-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}

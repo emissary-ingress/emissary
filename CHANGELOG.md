@@ -112,6 +112,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Feature: Support for streaming Envoy metrics about the clusters to Ambassador's cloud. ([4053])
 
+- Security: Emissary has been upgraded from Alpine 3.12 to Alpine 3.15, which incorporates numerous
+  security patches.
+
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
 [3821]: https://github.com/emissary-ingress/emissary/issues/3821
 [4053]: https://github.com/emissary-ingress/emissary/pull/4053
