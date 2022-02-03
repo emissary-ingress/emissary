@@ -142,7 +142,7 @@ func FindCluster(envoyConfig *v3bootstrap.Bootstrap, predicate func(*v3cluster.C
 	return nil
 }
 
-func deltaSummary(snap *snapshot.Snapshot) []string {
+func deltaSummary(t *testing.T, snap *snapshot.Snapshot) []string {
 	summary := []string{}
 
 	var typestr string
@@ -157,7 +157,7 @@ func deltaSummary(snap *snapshot.Snapshot) []string {
 			typestr = "delete"
 		default:
 			// Bug because the programmer needs to add another case here.
-			panic(fmt.Errorf("missing case for DeltaType enum: %#v", delta))
+			t.Fatalf("missing case for DeltaType enum: %#v", delta)
 		}
 
 		summary = append(summary, fmt.Sprintf("%s %s %s", typestr, delta.Kind, delta.Name))
@@ -242,7 +242,7 @@ func TestFakeHelloConsul(t *testing.T) {
 	assert.Equal(t, "consul-server.default:8500", snap.Kubernetes.ConsulResolvers[0].Spec.Address)
 
 	// Check that our deltas are what we expect.
-	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "add Mapping hello", "add TCPMapping hello-tcp"}, deltaSummary(snap))
+	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "add Mapping hello", "add TCPMapping hello-tcp"}, deltaSummary(t, snap))
 
 	// Create a predicate that will recognize the cluster we care about. The surjection from
 	// Mappings to clusters is a bit opaque, so we just look for a cluster that contains the name
@@ -309,7 +309,7 @@ spec:
 	require.NoError(t, err)
 
 	// ...with one delta, namely the ConsulResolver...
-	assert.Equal(t, []string{"update ConsulResolver consul-dc1"}, deltaSummary(snap))
+	assert.Equal(t, []string{"update ConsulResolver consul-dc1"}, deltaSummary(t, snap))
 
 	// ...where the mapping name hasn't changed...
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
@@ -344,7 +344,7 @@ spec:
 
 	// Two deltas here since we've deleted and re-added without a check in between.
 	// (They appear out of order here because of string sorting. Don't panic.)
-	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "delete ConsulResolver consul-dc1"}, deltaSummary(snap))
+	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "delete ConsulResolver consul-dc1"}, deltaSummary(t, snap))
 
 	// ...one mapping...
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
