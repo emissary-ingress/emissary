@@ -1,5 +1,8 @@
 include build-aux/tools.mk
 
+#
+# Utility rules
+
 # For files that should only-maybe update when the rule runs, put ".stamp" on
 # the left-side of the ":", and just go ahead and update it within the rule.
 #
@@ -11,6 +14,7 @@ include build-aux/tools.mk
 docker/%: docker/.%.stamp $(tools/copy-ifchanged)
 	$(tools/copy-ifchanged) $< $@
 
+# Load ocibuild files in to dockerd.
 _ocibuild-images  = base
 _ocibuild-images += kat-client
 _ocibuild-images += kat-server
@@ -18,5 +22,43 @@ $(foreach img,$(_ocibuild-images),docker/.$(img).docker.stamp): docker/.%.docker
 	docker load < $<
 	docker inspect $$(bsdtar xfO $< manifest.json|jq -r '.[0].RepoTags[0]') --format='{{.Id}}' > $@
 
-docker/.base.img.tar.stamp: FORCE $(tools/crane) builder/Dockerfile
-	$(tools/crane) pull $(shell sed -n 's,ARG base=,,p' < builder/Dockerfile) $@ || test -e $@
+#
+# Specific rules
+
+# For images we can either write rules for
+#  - `docker/.NAME.img.tar.stamp` for ocibuild-oriented images, or
+#  - `docker/.NAME.docker.stamp` for `docker build`-oriented images.
+#
+# Note that there are a few images used by the test suite that are
+# defined in check.mk, rather than here.
+
+# base: Base OS; none of our specific stuff.  Used for auxiliar test images
+# that don't need Emissary-specif stuff.
+docker/.base.img.tar.stamp: FORCE $(tools/crane) docker/base-python/Dockerfile
+	$(tools/crane) pull $(shell gawk '$$1 == "FROM" { print $$2; quit; }' < docker/base-python/Dockerfile) $@ || test -e $@
+
+# base-python: Base OS, plus some Emissary-specific setup of
+# low-level/expensive pieces of the Python environment.  This does NOT
+# include the packages installed by `requirements.txt`.
+#
+# At the moment, it also includes some other stuff too (kubectl...),
+# but including those things at such an early stage should be
+# understood to be debt from a previous build system, and not
+# something we're actually happy with.
+#
+# In the long-run, this will likely always be a `docker build` rather
+# than an `ocibuild`, in order to do truly base-OS-specific setup
+# (`apk add`, libc-specific compilation...).
+docker/.base-python.docker.stamp: FORCE docker/base-python/Dockerfile docker/base-python.docker.gen
+	docker/base-python.docker.gen >$@
+
+# base-pip: base-python, but with requirements.txt installed.
+#
+# Mixed feelings about this one; it kinda wants to not be a separate
+# image and just be part of the main emissary Dockerfile.  But that
+# would create problems for generate.mk's `pip freeze` step.  Perhaps
+# it will get to go away with `ocibuild`.
+docker/base-pip/requirements.txt: $(OSS_HOME)/builder/requirements.txt $(tools/copy-ifchanged)
+	$(tools/copy-ifchanged) $< $@
+docker/.base-pip.docker.stamp: docker/.%.docker.stamp: docker/%/Dockerfile docker/%/requirements.txt docker/base-python.docker.tag.local
+	docker build --build-arg=from="$$(sed -n 2p docker/base-python.docker.tag.local)" --iidfile=$@ $(<D)

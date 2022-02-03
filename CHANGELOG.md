@@ -114,6 +114,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   to Ambassador's cloud including the command ID, whether it ran successfully, and an error message
   in case there was any. ([4040])
 
+- Security: Emissary has been upgraded from Alpine 3.12 to Alpine 3.15, which incorporates numerous
+  security patches.
+
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
 [3821]: https://github.com/emissary-ingress/emissary/issues/3821
 [4040]: https://github.com/emissary-ingress/emissary/pull/4040

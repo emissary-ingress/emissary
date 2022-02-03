@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/v2/cmd/ambex"
+	"github.com/datawire/ambassador/v2/cmd/entrypoint/internal/testqueue"
 	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
@@ -69,9 +70,9 @@ type Fake struct {
 	// This holds the current snapshot.
 	currentSnapshot *atomic.Value
 
-	fastpath     *Queue // All fastpath snapshots that have been produced.
-	snapshots    *Queue // All snapshots that have been produced.
-	envoyConfigs *Queue // All envoyConfigs that have been produced.
+	fastpath     *testqueue.Queue // All fastpath snapshots that have been produced.
+	snapshots    *testqueue.Queue // All snapshots that have been produced.
+	envoyConfigs *testqueue.Queue // All envoyConfigs that have been produced.
 
 	// This is used to make Teardown idempotent.
 	teardownOnce sync.Once
@@ -113,9 +114,9 @@ func NewFake(t *testing.T, config FakeConfig) *Fake {
 
 		currentSnapshot: &atomic.Value{},
 
-		fastpath:     NewQueue(t, config.Timeout),
-		snapshots:    NewQueue(t, config.Timeout),
-		envoyConfigs: NewQueue(t, config.Timeout),
+		fastpath:     testqueue.NewQueue(t, config.Timeout),
+		snapshots:    testqueue.NewQueue(t, config.Timeout),
+		envoyConfigs: testqueue.NewQueue(t, config.Timeout),
 	}
 
 	fake.k8sSource = &fakeK8sSource{fake: fake, store: k8sStore}
@@ -202,12 +203,12 @@ func (f *Fake) runWatcher(ctx context.Context) error {
 	interestingTypes := GetInterestingTypes(ctx, nil)
 	queries := GetQueries(ctx, interestingTypes)
 
-	return watcherLoop(
+	return watchAllTheThingsInternal(
 		ctx,
 		f.currentSnapshot, // encoded
 		f.k8sSource,
 		queries,
-		f.watcher, // consulWatcher
+		f.watcher.Watch, // watchConsulFunc
 		f.istioCertSource,
 		f.notifySnapshot,
 		f.notifyFastpath,
@@ -216,12 +217,12 @@ func (f *Fake) runWatcher(ctx context.Context) error {
 }
 
 func (f *Fake) notifyFastpath(ctx context.Context, fastpath *ambex.FastpathSnapshot) {
-	f.fastpath.Add(fastpath)
+	f.fastpath.Add(f.T, fastpath)
 }
 
 func (f *Fake) GetEndpoints(predicate func(*ambex.Endpoints) bool) (*ambex.Endpoints, error) {
 	f.T.Helper()
-	untyped, err := f.fastpath.Get(func(obj interface{}) bool {
+	untyped, err := f.fastpath.Get(f.T, func(obj interface{}) bool {
 		fastpath := obj.(*ambex.FastpathSnapshot)
 		return predicate(fastpath.Endpoints)
 	})
@@ -233,12 +234,20 @@ func (f *Fake) GetEndpoints(predicate func(*ambex.Endpoints) bool) (*ambex.Endpo
 
 func (f *Fake) AssertEndpointsEmpty(timeout time.Duration) {
 	f.T.Helper()
-	f.fastpath.AssertEmpty(timeout, "endpoints queue not empty")
+	f.fastpath.AssertEmpty(f.T, timeout, "endpoints queue not empty")
 }
 
 type SnapshotEntry struct {
 	Disposition SnapshotDisposition
 	Snapshot    *snapshot.Snapshot
+}
+
+func (entry SnapshotEntry) String() string {
+	snapshot := "nil"
+	if entry.Snapshot != nil {
+		snapshot = fmt.Sprintf("&%#v", *entry.Snapshot)
+	}
+	return fmt.Sprintf("{Disposition: %v, Snapshot: %s}", entry.Disposition, snapshot)
 }
 
 // We pass this into the watcher loop to get notified when a snapshot is produced.
@@ -256,14 +265,14 @@ func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, sna
 		f.T.Fatalf("error decoding snapshot: %+v", err)
 	}
 
-	f.snapshots.Add(SnapshotEntry{disp, snap})
+	f.snapshots.Add(f.T, SnapshotEntry{disp, snap})
 	return nil
 }
 
 // GetSnapshotEntry will return the next SnapshotEntry that satisfies the supplied predicate.
 func (f *Fake) GetSnapshotEntry(predicate func(SnapshotEntry) bool) (SnapshotEntry, error) {
 	f.T.Helper()
-	untyped, err := f.snapshots.Get(func(obj interface{}) bool {
+	untyped, err := f.snapshots.Get(f.T, func(obj interface{}) bool {
 		entry := obj.(SnapshotEntry)
 		return predicate(entry)
 	})
@@ -291,13 +300,13 @@ func (f *Fake) appendEnvoyConfig(ctx context.Context) {
 		f.T.Fatalf("error decoding envoy.json after sending snapshot to python: %+v", err)
 	}
 	bs := msg.(*v3bootstrap.Bootstrap)
-	f.envoyConfigs.Add(bs)
+	f.envoyConfigs.Add(f.T, bs)
 }
 
 // GetEnvoyConfig will return the next envoy config that satisfies the supplied predicate.
 func (f *Fake) GetEnvoyConfig(predicate func(*v3bootstrap.Bootstrap) bool) (*v3bootstrap.Bootstrap, error) {
 	f.T.Helper()
-	untyped, err := f.envoyConfigs.Get(func(obj interface{}) bool {
+	untyped, err := f.envoyConfigs.Get(f.T, func(obj interface{}) bool {
 		return predicate(obj.(*v3bootstrap.Bootstrap))
 	})
 	if err != nil {

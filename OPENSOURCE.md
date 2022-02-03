@@ -129,68 +129,66 @@ following Free and Open Source software:
 The Emissary-ingress Python code makes use of the following Free and Open Source
 libraries:
 
-    Name                 Version    License(s)
-    ----                 -------    ----------
-    CacheControl         0.12.6     Apache License 2.0
-    Cython               0.29.19    Apache License 2.0
-    Flask                2.0.2      3-clause BSD license
-    Jinja2               3.0.3      3-clause BSD license
-    MarkupSafe           2.0.1      3-clause BSD license
-    PyYAML               5.4.1      MIT license
-    Werkzeug             2.0.2      3-clause BSD license
-    appdirs              1.4.4      MIT license
-    attrs                19.3.0     MIT license
-    cachetools           4.1.1      MIT license
-    certifi              2020.6.20  Mozilla Public License 2.0
-    charset-normalizer   2.0.8      MIT license
-    click                8.0.3      3-clause BSD license
-    clize                4.2.1      MIT license
-    colorama             0.4.3      3-clause BSD license
-    contextlib2          0.6.0      Python Software Foundation license
-    distlib              0.3.0      Python Software Foundation license
-    distro               1.5.0      Apache License 2.0
-    docutils             0.17.1     2-clause BSD license, GNU General Public License Version 3, Public domain, Python Software Foundation license
-    durationpy           0.5        MIT license
-    expiringdict         1.2.1      Apache License 2.0
-    google-auth          1.23.0     Apache License 2.0
-    gunicorn             20.1.0     MIT license
-    html5lib             1.0.1      MIT license
-    idna                 2.7        3-clause BSD license, Python Software Foundation license, Unicode License Agreement for Data Files and Software (2015)
-    importlib-resources  5.4.0      Apache License 2.0
-    itsdangerous         2.0.1      3-clause BSD license
-    jsonpatch            1.32       3-clause BSD license
-    jsonpointer          2.0        3-clause BSD license
-    jsonschema           4.2.1      MIT license
-    k8s-proto            0.0.3      Apache License 2.0
-    kubernetes           20.13.0    Apache License 2.0
-    lockfile             0.12.2     MIT license
-    msgpack              1.0.0      Apache License 2.0
-    oauthlib             3.1.0      3-clause BSD license
-    od                   1.0        MIT license
-    ordered-set          4.0.1      MIT license
-    orjson               3.3.1      Apache License 2.0, MIT license
-    packaging            20.4       2-clause BSD license, Apache License 2.0
-    pep517               0.8.2      MIT license
-    pip-tools            5.3.1      3-clause BSD license
-    progress             1.5        ISC license
-    prometheus-client    0.12.0     Apache License 2.0
-    protobuf             3.13.0     3-clause BSD license
-    pyasn1               0.4.8      2-clause BSD license
-    pyasn1-modules       0.2.8      2-clause BSD license
-    pyparsing            2.4.7      MIT license
-    pyrsistent           0.17.3     MIT license
-    python-dateutil      2.8.1      3-clause BSD license, Apache License 2.0
-    python-json-logger   2.0.2      2-clause BSD license
-    pytoml               0.1.21     MIT license
-    requests             2.26.0     Apache License 2.0
-    requests-oauthlib    1.3.0      ISC license
-    retrying             1.3.3      Apache License 2.0
-    rsa                  4.6        Apache License 2.0
-    semantic-version     2.8.5      2-clause BSD license
-    sigtools             2.0.2      MIT license
-    six                  1.15.0     MIT license
-    toml                 0.10.1     MIT license
-    urllib3              1.26.5     MIT license
-    webencodings         0.5.1      3-clause BSD license
-    websocket-client     0.57.0     3-clause BSD license
-    zipp                 3.6.0      MIT license
+    Name                Version    License(s)
+    ----                -------    ----------
+    CacheControl        0.12.10    Apache License 2.0
+    Cython              0.29.24    Apache License 2.0
+    Flask               2.0.2      3-clause BSD license
+    Jinja2              3.0.3      3-clause BSD license
+    MarkupSafe          2.0.1      3-clause BSD license
+    PyYAML              5.4.1      MIT license
+    Werkzeug            2.0.2      3-clause BSD license
+    appdirs             1.4.4      MIT license
+    attrs               19.3.0     MIT license
+    cachetools          4.1.1      MIT license
+    certifi             2020.6.20  Mozilla Public License 2.0
+    charset-normalizer  2.0.8      MIT license
+    click               8.0.3      3-clause BSD license
+    clize               4.2.1      MIT license
+    colorama            0.4.4      3-clause BSD license
+    contextlib2         21.6.0     Python Software Foundation license
+    distlib             0.3.3      Python Software Foundation license
+    distro              1.6.0      Apache License 2.0
+    docutils            0.17.1     2-clause BSD license, GNU General Public License Version 3, Public domain, Python Software Foundation license
+    durationpy          0.5        MIT license
+    expiringdict        1.2.1      Apache License 2.0
+    google-auth         1.23.0     Apache License 2.0
+    gunicorn            20.1.0     MIT license
+    html5lib            1.1        MIT license
+    idna                2.7        3-clause BSD license, Python Software Foundation license, Unicode License Agreement for Data Files and Software (2015)
+    itsdangerous        2.0.1      3-clause BSD license
+    jsonpatch           1.32       3-clause BSD license
+    jsonpointer         2.0        3-clause BSD license
+    jsonschema          4.2.1      MIT license
+    k8s-proto           0.0.3      Apache License 2.0
+    kubernetes          20.13.0    Apache License 2.0
+    lockfile            0.12.2     MIT license
+    msgpack             1.0.2      Apache License 2.0
+    oauthlib            3.1.0      3-clause BSD license
+    od                  1.0        MIT license
+    ordered-set         4.0.2      MIT license
+    orjson              3.6.6      Apache License 2.0, MIT license
+    packaging           20.9       2-clause BSD license, Apache License 2.0
+    pep517              0.12.0     MIT license
+    pip-tools           6.3.1      3-clause BSD license
+    progress            1.6        ISC license
+    prometheus-client   0.12.0     Apache License 2.0
+    protobuf            3.13.0     3-clause BSD license
+    pyasn1              0.4.8      2-clause BSD license
+    pyasn1-modules      0.2.8      2-clause BSD license
+    pyparsing           2.4.7      MIT license
+    pyrsistent          0.17.3     MIT license
+    python-dateutil     2.8.1      3-clause BSD license, Apache License 2.0
+    python-json-logger  2.0.2      2-clause BSD license
+    requests            2.26.0     Apache License 2.0
+    requests-oauthlib   1.3.0      ISC license
+    retrying            1.3.3      Apache License 2.0
+    rsa                 4.6        Apache License 2.0
+    semantic-version    2.8.5      2-clause BSD license
+    sigtools            2.0.2      MIT license
+    six                 1.16.0     MIT license
+    toml                0.10.2     MIT license
+    tomli               1.2.2      MIT license
+    urllib3             1.26.5     MIT license
+    webencodings        0.5.1      3-clause BSD license
+    websocket-client    0.57.0     3-clause BSD license

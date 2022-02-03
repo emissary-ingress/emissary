@@ -60,6 +60,7 @@ func (src *istioCertSource) Watch(ctx context.Context) (IstioCertWatcher, error)
 		if err != nil {
 			return nil, err
 		}
+		go fsw.Run(ctx)
 
 		// ...then tell the FSWatcher to watch the Istio cert directory,
 		// and give it a handler function that'll update the IstioCert

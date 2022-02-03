@@ -189,7 +189,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		group.Go("watcher", func(ctx context.Context) error {
 			// We need to pass the AmbassadorWatcher to this (Kubernetes/Consul) watcher, so
 			// that it can tell the AmbassadorWatcher when snapshots are posted.
-			return watcher(ctx, ambwatch, snapshot, fastpathCh, clusterID, Version)
+			return WatchAllTheThings(ctx, ambwatch, snapshot, fastpathCh, clusterID, Version)
 		})
 	}
 

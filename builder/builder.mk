@@ -202,14 +202,6 @@ preflight-cluster: $(tools/kubectl)
 	fi
 .PHONY: preflight-cluster
 
-builder:
-	@$(BUILDER) builder
-.PHONY: builder
-
-version:
-	@$(BUILDER) version
-.PHONY: version
-
 python/ambassador.version: $(tools/write-ifchanged) FORCE
 	set -e -o pipefail; { \
 	  echo $(patsubst v%,%,$(VERSION)); \
@@ -218,13 +210,9 @@ python/ambassador.version: $(tools/write-ifchanged) FORCE
 
 # Give Make a hint about which pattern rules to apply.  Honestly, I'm
 # not sure why Make isn't figuring it out on its own, but it isn't.
-_images = builder-base base-envoy $(LCNAME) kat-client kat-server
+_images = base-envoy $(LCNAME) kat-client kat-server
 $(foreach i,$(_images), docker/$i.docker.tag.local  ): docker/%.docker.tag.local : docker/%.docker
 $(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remote: docker/%.docker
-
-docker/.builder-base.docker.stamp: FORCE preflight
-	@printf "${CYN}==> ${GRN}Bootstrapping builder base image${END}\n"
-	@$(BUILDER) build-builder-base >$@
 
 docker/.base-envoy.docker.stamp: FORCE
 	@set -e; { \
@@ -238,14 +226,16 @@ docker/.base-envoy.docker.stamp: FORCE
 	  fi; \
 	  echo $(ENVOY_DOCKER_TAG) >$@; \
 	}
-docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
+docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.local %/base-envoy.docker.tag.local %/base-pip.docker.tag.local python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
 	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
+	@printf "    ${BLU}base=$$(sed -n 2p $*/base.docker.tag.local)${END}\n"
 	@printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"
-	@printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"
+	@printf "    ${BLU}builderbase=$$(sed -n 2p $*/base-pip.docker.tag.local)${END}\n"
 	{ $(tools/dsum) '$(LCNAME) build' 3s \
 	  docker build -f ${BUILDER_HOME}/Dockerfile . \
+	    --build-arg=base="$$(sed -n 2p $*/base.docker.tag.local)" \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	    --build-arg=builderbase="$$(sed -n 2p $*/base-pip.docker.tag.local)" \
 	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
 	    --iidfile=$@; }
 
@@ -329,35 +319,6 @@ _runner:
 	@printf "$(CYN)==>$(END) * Switching to user $(BLU)$$INTERACTIVE_USER$(END) with shell $(BLU)/bin/bash$(END)\n"
 	@su -s /bin/bash $$INTERACTIVE_USER -c "$$ENTRYPOINT"
 .PHONY: _runner
-
-# This target is a convenience alias for running the _bash target.
-docker/shell: docker/run/_bash
-.PHONY: docker/shell
-
-# This target runs any existing target inside of the builder base docker image.
-docker/run/%: docker/builder-base.docker
-	docker run --net=host \
-		-e INTERACTIVE_UID=$$(id -u) \
-		-e INTERACTIVE_GID=$$(id -g) \
-		-e INTERACTIVE_USER=$$(id -u -n) \
-		-e INTERACTIVE_GROUP=$$(id -g -n) \
-		-e PYTEST_ARGS="$$PYTEST_ARGS" \
-		-e AMBASSADOR_DOCKER_IMAGE="$$AMBASSADOR_DOCKER_IMAGE" \
-		-e DEV_KUBECONFIG="$$DEV_KUBECONFIG" \
-		-v /etc/resolv.conf:/etc/resolv.conf \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v $${DEV_KUBECONFIG}:$${DEV_KUBECONFIG} \
-		-v $${PWD}:$${PWD} \
-		-it \
-		--init \
-		--cap-add=NET_ADMIN \
-		--entrypoint /bin/bash \
-		$$(cat docker/builder-base.docker) -c "cd $$PWD && ENTRYPOINT=make\ $* make --quiet _runner"
-
-# Don't try running 'make shell' from within docker. That target already tries to run a builder shell.
-# Instead, quietly define 'docker/run/shell' to be an alias for 'docker/shell'.
-docker/run/shell:
-	$(MAKE) --quiet docker/shell
 
 setup-envoy: extract-bin-envoy
 
@@ -443,23 +404,9 @@ mypy: mypy-server
 	{ . $(OSS_HOME)/venv/bin/activate && time dmypy check python; }
 .PHONY: mypy
 
-# If we're setting up within Alpine linux, make sure to pin pip and pip-tools
-# to something that is still PEP517 compatible. This allows us to set _manylinux.py
-# and convince pip to install prebuilt wheels. We do this because there's no good
-# rust toolchain to build orjson within Alpine itself.
 $(OSS_HOME)/venv: builder/requirements.txt builder/requirements-dev.txt
 	rm -rf $@
 	python3 -m venv $@
-	{ \
-	  if grep "Alpine Linux" /etc/issue &>/dev/null; then \
-	    $@/bin/pip3 install -U pip==20.2.4 pip-tools==5.3.1; \
-	    echo 'manylinux1_compatible = True' > $@/lib/python3.8/site-packages/_manylinux.py; \
-	    $@/bin/pip3 install orjson==3.3.1; \
-	    rm -f venv/lib/python3.8/site-packages/_manylinux.py; \
-	  else \
-	    $@/bin/pip3 install orjson==3.6.0; \
-	  fi; \
-	}
 	$@/bin/pip3 install -r builder/requirements.txt
 	$@/bin/pip3 install -r builder/requirements-dev.txt
 	$@/bin/pip3 install -e $(OSS_HOME)/python
@@ -771,14 +718,6 @@ release/ga-check:
 	  --source-registry=$(RELEASE_REGISTRY) \
 	  --image-name=$(LCNAME); }
 
-clean:
-	@$(BUILDER) clean
-.PHONY: clean
-
-clobber:
-	@$(BUILDER) clobber
-.PHONY: clobber
-
 AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.push.remote 2>/dev/null)
 export AMBASSADOR_DOCKER_IMAGE
 
@@ -855,13 +794,6 @@ to have the cluster use an imagePullSecret to pull from $(BLD)$$DEV_REGISTRY$(EN
 by setting $(BLU)$$DEV_USE_IMAGEPULLSECRET$(END) to a non-empty value.  The
 imagePullSecret will be constructed from $(BLD)$$DEV_REGISTRY$(END),
 $(BLU)$$DOCKER_BUILD_USERNAME$(END), and $(BLU)$$DOCKER_BUILD_PASSWORD$(END).
-
-By default, the base builder image is (as an optimization) pulled from
-$(BLU)$$BASE_REGISTRY$(END) instead of being built locally; where $(BLD)$$BASE_REGISTRY$(END)
-defaults to $(BLD)docker.io/emissaryingress$(END).  If that pull fails, (as it will if the
-image does not yet exist), then it falls back to building the base image
-locally.  If $(BLD)$$BASE_REGISTRY$(END) is equal to $(BLD)$$DEV_REGISTRY$(END), then it will
-proceed to push the built image back to the $(BLD)$$BASE_REGISTRY$(END).
 
 Use $(BLD)$(MAKE) $(BLU)targets$(END) for help about available $(BLD)make$(END) targets.
 endef

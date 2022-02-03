@@ -142,30 +142,53 @@ func FindCluster(envoyConfig *v3bootstrap.Bootstrap, predicate func(*v3cluster.C
 	return nil
 }
 
-func deltaSummary(snap *snapshot.Snapshot) []string {
+func deltaSummary(t *testing.T, snaps ...*snapshot.Snapshot) []string {
 	summary := []string{}
 
 	var typestr string
 
-	for _, delta := range snap.Deltas {
-		switch delta.DeltaType {
-		case kates.ObjectAdd:
-			typestr = "add"
-		case kates.ObjectUpdate:
-			typestr = "update"
-		case kates.ObjectDelete:
-			typestr = "delete"
-		default:
-			// Bug because the programmer needs to add another case here.
-			panic(fmt.Errorf("missing case for DeltaType enum: %#v", delta))
-		}
+	for _, snap := range snaps {
+		for _, delta := range snap.Deltas {
+			switch delta.DeltaType {
+			case kates.ObjectAdd:
+				typestr = "add"
+			case kates.ObjectUpdate:
+				typestr = "update"
+			case kates.ObjectDelete:
+				typestr = "delete"
+			default:
+				// Bug because the programmer needs to add another case here.
+				t.Fatalf("missing case for DeltaType enum: %#v", delta)
+			}
 
-		summary = append(summary, fmt.Sprintf("%s %s %s", typestr, delta.Kind, delta.Name))
+			summary = append(summary, fmt.Sprintf("%s %s %s", typestr, delta.Kind, delta.Name))
+		}
 	}
 
 	sort.Strings(summary)
 
 	return summary
+}
+
+// getSnapshots is like f.GetSnapshot, but returns the list of every snapshot evaluated (rather than
+// discarding the snapshots from before predicate returns true).  This is particularly important if
+// you're looking at deltas; you don't want to discard any deltas just because two snapshots didn't
+// get coalesced.
+func getSnapshots(f *entrypoint.Fake, predicate func(*snapshot.Snapshot) bool) ([]*snapshot.Snapshot, error) {
+	var ret []*snapshot.Snapshot
+	for {
+		snap, err := f.GetSnapshot(func(_ *snapshot.Snapshot) bool {
+			return true
+		})
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, snap)
+		if predicate(snap) {
+			break
+		}
+	}
+	return ret, nil
 }
 
 // This test will cover how to exercise the consul portion of the control plane. In principal it is
@@ -242,7 +265,7 @@ func TestFakeHelloConsul(t *testing.T) {
 	assert.Equal(t, "consul-server.default:8500", snap.Kubernetes.ConsulResolvers[0].Spec.Address)
 
 	// Check that our deltas are what we expect.
-	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "add Mapping hello", "add TCPMapping hello-tcp"}, deltaSummary(snap))
+	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "add Mapping hello", "add TCPMapping hello-tcp"}, deltaSummary(t, snap))
 
 	// Create a predicate that will recognize the cluster we care about. The surjection from
 	// Mappings to clusters is a bit opaque, so we just look for a cluster that contains the name
@@ -309,7 +332,7 @@ spec:
 	require.NoError(t, err)
 
 	// ...with one delta, namely the ConsulResolver...
-	assert.Equal(t, []string{"update ConsulResolver consul-dc1"}, deltaSummary(snap))
+	assert.Equal(t, []string{"update ConsulResolver consul-dc1"}, deltaSummary(t, snap))
 
 	// ...where the mapping name hasn't changed...
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
@@ -337,14 +360,16 @@ spec:
 	f.Flush()
 
 	// Repeat all the checks.
-	snap, err = f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+	snaps, err := getSnapshots(f, func(snap *snapshot.Snapshot) bool {
 		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.TCPMappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
 	})
 	require.NoError(t, err)
+	require.Greater(t, len(snaps), 0)
+	snap = snaps[len(snaps)-1]
 
 	// Two deltas here since we've deleted and re-added without a check in between.
 	// (They appear out of order here because of string sorting. Don't panic.)
-	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "delete ConsulResolver consul-dc1"}, deltaSummary(snap))
+	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "delete ConsulResolver consul-dc1"}, deltaSummary(t, snaps...))
 
 	// ...one mapping...
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)

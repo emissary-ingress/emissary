@@ -288,6 +288,14 @@ spec:
         type: object
     served: true
     storage: false
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: AuthService is the Schema for the authservices API
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    served: false
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -390,6 +398,14 @@ spec:
             type: object
         type: object
     served: true
+    storage: false
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: ConsulResolver is the Schema for the ConsulResolver API
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    served: false
     storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
@@ -657,6 +673,14 @@ spec:
             type: object
         type: object
     served: true
+    storage: false
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: DevPortal is the Schema for the DevPortals API
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    served: false
     storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
@@ -1298,6 +1322,14 @@ spec:
     storage: false
     subresources:
       status: {}
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: Host is the Schema for the hosts API
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    served: false
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -1394,6 +1426,14 @@ spec:
         type: object
     served: true
     storage: false
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: KubernetesEndpointResolver is the Schema for the kubernetesendpointresolver API
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    served: false
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -1489,6 +1529,14 @@ spec:
             type: object
         type: object
     served: true
+    storage: false
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: KubernetesServiceResolver is the Schema for the kubernetesserviceresolver API
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    served: false
     storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
@@ -1839,6 +1887,14 @@ spec:
             type: object
         type: object
     served: true
+    storage: false
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: LogService is the Schema for the logservices API
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    served: false
     storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
@@ -2848,6 +2904,14 @@ spec:
     storage: false
     subresources:
       status: {}
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: Mapping is the Schema for the mappings API
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    served: false
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -2954,6 +3018,14 @@ spec:
             type: object
         type: object
     served: true
+    storage: false
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: A Module defines system-wide configuration.  The type of module is controlled by the .metadata.name; valid names are "ambassador" or "tls".
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    served: false
     storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
@@ -3119,6 +3191,14 @@ spec:
             type: object
         type: object
     served: true
+    storage: false
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: RateLimitService is the Schema for the ratelimitservices API
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    served: false
     storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
@@ -3347,6 +3427,14 @@ spec:
         type: object
     served: true
     storage: false
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: TCPMapping is the Schema for the tcpmappings API
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    served: false
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -3529,6 +3617,14 @@ spec:
             type: object
         type: object
     served: true
+    storage: false
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: TLSContext is the Schema for the tlscontexts API
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    served: false
     storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1
@@ -3718,6 +3814,14 @@ spec:
             type: object
         type: object
     served: true
+    storage: false
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: TracingService is the Schema for the tracingservices API
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    served: false
     storage: false
 ---
 ################################################################################
