@@ -1429,7 +1429,8 @@ spec:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: KubernetesEndpointResolver is the Schema for the kubernetesendpointresolver API
+        description: KubernetesEndpointResolver is the Schema for the kubernetesendpointresolver
+          API
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: false
@@ -1533,7 +1534,8 @@ spec:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: KubernetesServiceResolver is the Schema for the kubernetesserviceresolver API
+        description: KubernetesServiceResolver is the Schema for the kubernetesserviceresolver
+          API
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: false
@@ -3022,7 +3024,8 @@ spec:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: A Module defines system-wide configuration.  The type of module is controlled by the .metadata.name; valid names are "ambassador" or "tls".
+        description: A Module defines system-wide configuration.  The type of module
+          is controlled by the .metadata.name; valid names are "ambassador" or "tls".
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: false
