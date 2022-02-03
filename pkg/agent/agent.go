@@ -625,7 +625,7 @@ func (a *Agent) MetricsRelayHandler(logCtx context.Context, in *envoyMetrics.Str
 
 		outMessage := &agent.StreamMetricsMessage{
 			Identity:     a.agentID,
-			EnvoyMetrics: in.EnvoyMetrics,
+			EnvoyMetrics: outMetrics,
 		}
 		dlog.Debugf(logCtx, "relaying %d metrics", len(outMessage.GetEnvoyMetrics()))
 		if err := a.comm.StreamMetrics(logCtx, outMessage, apikey); err != nil {
