@@ -217,12 +217,12 @@ func (f *Fake) runWatcher(ctx context.Context) error {
 }
 
 func (f *Fake) notifyFastpath(ctx context.Context, fastpath *ambex.FastpathSnapshot) {
-	f.fastpath.Add(fastpath)
+	f.fastpath.Add(f.T, fastpath)
 }
 
 func (f *Fake) GetEndpoints(predicate func(*ambex.Endpoints) bool) (*ambex.Endpoints, error) {
 	f.T.Helper()
-	untyped, err := f.fastpath.Get(func(obj interface{}) bool {
+	untyped, err := f.fastpath.Get(f.T, func(obj interface{}) bool {
 		fastpath := obj.(*ambex.FastpathSnapshot)
 		return predicate(fastpath.Endpoints)
 	})
@@ -234,7 +234,7 @@ func (f *Fake) GetEndpoints(predicate func(*ambex.Endpoints) bool) (*ambex.Endpo
 
 func (f *Fake) AssertEndpointsEmpty(timeout time.Duration) {
 	f.T.Helper()
-	f.fastpath.AssertEmpty(timeout, "endpoints queue not empty")
+	f.fastpath.AssertEmpty(f.T, timeout, "endpoints queue not empty")
 }
 
 type SnapshotEntry struct {
@@ -257,14 +257,14 @@ func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, sna
 		f.T.Fatalf("error decoding snapshot: %+v", err)
 	}
 
-	f.snapshots.Add(SnapshotEntry{disp, snap})
+	f.snapshots.Add(f.T, SnapshotEntry{disp, snap})
 	return nil
 }
 
 // GetSnapshotEntry will return the next SnapshotEntry that satisfies the supplied predicate.
 func (f *Fake) GetSnapshotEntry(predicate func(SnapshotEntry) bool) (SnapshotEntry, error) {
 	f.T.Helper()
-	untyped, err := f.snapshots.Get(func(obj interface{}) bool {
+	untyped, err := f.snapshots.Get(f.T, func(obj interface{}) bool {
 		entry := obj.(SnapshotEntry)
 		return predicate(entry)
 	})
@@ -292,13 +292,13 @@ func (f *Fake) appendEnvoyConfig(ctx context.Context) {
 		f.T.Fatalf("error decoding envoy.json after sending snapshot to python: %+v", err)
 	}
 	bs := msg.(*v3bootstrap.Bootstrap)
-	f.envoyConfigs.Add(bs)
+	f.envoyConfigs.Add(f.T, bs)
 }
 
 // GetEnvoyConfig will return the next envoy config that satisfies the supplied predicate.
 func (f *Fake) GetEnvoyConfig(predicate func(*v3bootstrap.Bootstrap) bool) (*v3bootstrap.Bootstrap, error) {
 	f.T.Helper()
-	untyped, err := f.envoyConfigs.Get(func(obj interface{}) bool {
+	untyped, err := f.envoyConfigs.Get(f.T, func(obj interface{}) bool {
 		return predicate(obj.(*v3bootstrap.Bootstrap))
 	})
 	if err != nil {
