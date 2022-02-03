@@ -76,12 +76,6 @@ github.com/datawire/dlib/internal/sigint
 # github.com/datawire/dtest v0.0.0-20210927191556-2cccf1a938b0
 ## explicit; go 1.16
 github.com/datawire/dtest
-# github.com/datawire/go-mkopensource v0.0.0-20220121154707-b0476e7f8255
-## explicit; go 1.17
-github.com/datawire/go-mkopensource
-github.com/datawire/go-mkopensource/pkg/dependencies
-github.com/datawire/go-mkopensource/pkg/detectlicense
-github.com/datawire/go-mkopensource/pkg/golist
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
