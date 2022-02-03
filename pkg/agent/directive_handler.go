@@ -4,19 +4,20 @@ import (
 	"context"
 	"time"
 
-	"github.com/datawire/ambassador/v2/pkg/api/agent"
+	agentapi "github.com/datawire/ambassador/v2/pkg/api/agent"
 	"github.com/datawire/dlib/dlog"
 )
 
 type DirectiveHandler interface {
-	HandleDirective(context.Context, *Agent, *agent.Directive)
+	HandleDirective(context.Context, *Agent, *agentapi.Directive)
 }
 
 type BasicDirectiveHandler struct {
 	DefaultMinReportPeriod time.Duration
+	rolloutsGetterFactory  rolloutsGetterFactory
 }
 
-func (dh *BasicDirectiveHandler) HandleDirective(ctx context.Context, a *Agent, directive *agent.Directive) {
+func (dh *BasicDirectiveHandler) HandleDirective(ctx context.Context, a *Agent, directive *agentapi.Directive) {
 	if directive == nil {
 		dlog.Warn(ctx, "Received empty directive, ignoring.")
 		return
@@ -45,7 +46,64 @@ func (dh *BasicDirectiveHandler) HandleDirective(ctx context.Context, a *Agent, 
 		if command.Message != "" {
 			dlog.Info(ctx, command.Message)
 		}
+
+		if command.RolloutCommand != nil {
+			dh.handleRolloutCommand(ctx, command.RolloutCommand, a)
+		}
 	}
 
 	a.SetLastDirectiveID(ctx, directive.ID)
+}
+
+func (dh *BasicDirectiveHandler) handleRolloutCommand(ctx context.Context, cmdSchema *agentapi.RolloutCommand, a *Agent) {
+	if dh.rolloutsGetterFactory == nil {
+		dlog.Warn(ctx, "Received rollout command but does not know how to talk to Argo Rollouts.")
+		return
+	}
+
+	rolloutName := cmdSchema.GetName()
+	namespace := cmdSchema.GetNamespace()
+	action := int32(cmdSchema.GetAction())
+	commandID := cmdSchema.GetCommandId()
+
+	if rolloutName == "" {
+		dlog.Warn(ctx, "Rollout command received without a rollout name.")
+		return
+	}
+
+	if namespace == "" {
+		dlog.Warn(ctx, "Rollout command received without a namespace.")
+		return
+	}
+
+	if commandID == "" {
+		dlog.Warn(ctx, "Rollout command received without a command ID.")
+		return
+	}
+
+	cmd := &rolloutCommand{
+		rolloutName: rolloutName,
+		namespace:   namespace,
+		action:      rolloutAction(agentapi.RolloutCommand_Action_name[action]),
+	}
+	err := cmd.RunWithClientFactory(ctx, dh.rolloutsGetterFactory)
+	if err != nil {
+		dlog.Errorf(ctx, "error running rollout command %s: %s", cmd, err)
+	}
+	dh.reportCommandResult(ctx, commandID, cmd, err, a)
+}
+
+func (dh *BasicDirectiveHandler) reportCommandResult(ctx context.Context, commandID string, cmd *rolloutCommand, cmdError error, a *Agent) {
+	result := &agentapi.CommandResult{CommandId: commandID, Success: true}
+	if cmdError != nil {
+		result.Success = false
+		result.Message = cmdError.Error()
+	}
+	a.ambassadorAPIKeyMutex.Lock()
+	apiKey := a.ambassadorAPIKey
+	a.ambassadorAPIKeyMutex.Unlock()
+	err := a.comm.ReportCommandResult(ctx, result, apiKey)
+	if err != nil {
+		dlog.Errorf(ctx, "error reporting result of rollout command %s: %s", cmd, err)
+	}
 }

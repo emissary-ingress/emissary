@@ -23,6 +23,9 @@ service Director {
   // Retrieve Directives from the CEPC
   rpc Retrieve(Identity) returns (stream Directive) {}
 
+  // Reports the result of a command execution to the cloud
+  rpc ReportCommandResult(CommandResult) returns (CommandResultResponse) {}
+
   rpc RetrieveSnapshot(Identity) returns (stream RawSnapshotChunk) {}
 }
 
@@ -104,4 +107,25 @@ message Directive {
 message Command {
   // Log this message if present
   string message = 1;
+  RolloutCommand rolloutCommand = 2;
 }
+
+message RolloutCommand {
+  string name = 1;
+  string namespace = 2;
+  enum Action {
+    PAUSE = 0;
+    RESUME = 1;
+    ABORT = 2;
+  }
+  Action action = 3;
+  string command_id = 4;
+}
+
+message CommandResult {
+  string command_id = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message CommandResultResponse {}
