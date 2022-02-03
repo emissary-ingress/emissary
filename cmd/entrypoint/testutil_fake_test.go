@@ -242,6 +242,14 @@ type SnapshotEntry struct {
 	Snapshot    *snapshot.Snapshot
 }
 
+func (entry SnapshotEntry) String() string {
+	snapshot := "nil"
+	if entry.Snapshot != nil {
+		snapshot = fmt.Sprintf("&%#v", *entry.Snapshot)
+	}
+	return fmt.Sprintf("{Disposition: %v, Snapshot: %s}", entry.Disposition, snapshot)
+}
+
 // We pass this into the watcher loop to get notified when a snapshot is produced.
 func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, snapJSON []byte) error {
 	if disp == SnapshotReady && f.config.EnvoyConfig {

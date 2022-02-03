@@ -90,6 +90,7 @@ func getAmbassadorMeta(ambassadorID string, clusterID string, version string, cl
 }
 
 type SnapshotProcessor func(context.Context, SnapshotDisposition, []byte) error
+
 type SnapshotDisposition int
 
 const (
@@ -104,6 +105,19 @@ const (
 	// Indicates that the snapshot is ready to be processed.
 	SnapshotReady
 )
+
+func (disposition SnapshotDisposition) String() string {
+	ret, ok := map[SnapshotDisposition]string{
+		SnapshotIncomplete: "SnapshotIncomplete",
+		SnapshotDefer:      "SnapshotDefer",
+		SnapshotDrop:       "SnapshotDrop",
+		SnapshotReady:      "SnapshotReady",
+	}[disposition]
+	if !ok {
+		return fmt.Sprintf("%[1]T(%[1]d)", disposition)
+	}
+	return ret
+}
 
 type FastpathProcessor func(context.Context, *ambex.FastpathSnapshot)
 
