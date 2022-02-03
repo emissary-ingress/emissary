@@ -118,9 +118,6 @@ func NewFSWatcher(ctx context.Context) (*FSWatcher, error) {
 	// Start with the default error handler...
 	fsw.handleError = fsw.defaultErrorHandler
 
-	// ...and then go watch for events.
-	go fsw.watchForEvents(ctx)
-
 	return fsw, nil
 }
 
@@ -170,7 +167,7 @@ func (fsw *FSWatcher) defaultErrorHandler(ctx context.Context, err error) {
 }
 
 // Watch for events, and handle them.
-func (fsw *FSWatcher) watchForEvents(ctx context.Context) {
+func (fsw *FSWatcher) Run(ctx context.Context) {
 	for {
 		select {
 		case event := <-fsw.FSW.Events:
