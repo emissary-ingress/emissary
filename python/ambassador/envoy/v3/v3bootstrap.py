@@ -123,6 +123,7 @@ class V3Bootstrap(dict):
                     'name': "envoy.metrics_service",
                     'typed_config': {
                         '@type': 'type.googleapis.com/envoy.config.metrics.v3.MetricsServiceConfig',
+                        'transport_api_version': 'V3',
                         'grpc_service': {
                             'envoy_grpc': {
                                 'cluster_name': 'envoy_metrics_service'

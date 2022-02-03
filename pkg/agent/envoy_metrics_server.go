@@ -2,7 +2,7 @@ package agent
 
 import (
 	"context"
-	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v2"
+	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v3"
 	"github.com/datawire/dlib/dlog"
 	"google.golang.org/grpc"
 	"io"
