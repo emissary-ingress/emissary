@@ -109,7 +109,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   `AGENT_CONFIG_RESOURCE_NAME` environment variable in order to allow all components (and not only
   the Ambassador Agent) to authenticate requests to Ambassador Cloud.
 
-- Feature: The Emissary agent now receive commands to manipulate Rollouts (pause, continue, and
+- Feature: The Emissary agent now receives commands to manipulate Rollouts (pause, continue, and
   abort are currently supported) via directives and executes them in the cluster.  A report is send
   to Ambassador's cloud including the command ID, whether it ran successfully, and an error message
   in case there was any. ([4040])
