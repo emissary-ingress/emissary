@@ -1,7 +1,9 @@
 from typing import TYPE_CHECKING
 from typing import cast as typecast
+from typing import Tuple
 
 import os
+from urllib.parse import urlparse
 
 from ...ir.ircluster import IRCluster
 from ...ir.irlogservice import IRLogService
@@ -198,14 +200,6 @@ class V3Bootstrap(dict):
         config.bootstrap = V3Bootstrap(config)
 
 
-def split_host_port(value):
-    parts = value.split(":")
-    if len(parts) == 1:
-        host = parts[0]
-        port = 80
-    elif len(parts) == 2:
-        host = parts[0]
-        port = int(parts[1])
-    else:
-        raise ValueError("too many colons")
-    return host, port
+def split_host_port(value: str) -> Tuple[str, int]:
+    parsed = urlparse("//"+value)
+    return parsed.hostname, int(parsed.port or 80)
