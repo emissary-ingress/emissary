@@ -227,7 +227,7 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: [ "agent" ]
         ports:
-          - containerPort: 8123
+          - containerPort: 8006
             name: grpc
         env:
         - name: AGENT_NAMESPACE
@@ -266,7 +266,7 @@ metadata:
     product: aes
 spec:
   ports:
-    - port: 8123
+    - port: 8006
       targetPort: grpc
       protocol: TCP
       name: grpc

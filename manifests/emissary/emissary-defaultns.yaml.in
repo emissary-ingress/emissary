@@ -81,7 +81,7 @@ metadata:
 spec:
   ports:
   - name: grpc
-    port: 8123
+    port: 8006
     protocol: TCP
     targetPort: grpc
   selector:
@@ -286,7 +286,7 @@ spec:
       containers:
       - env:
         - name: AMBASSADOR_GRPC_METRICS_SINK
-          value: emissary-ingress:8123
+          value: emissary-ingress:8006
         - name: HOST_IP
           valueFrom:
             fieldRef:
@@ -608,6 +608,6 @@ spec:
         imagePullPolicy: IfNotPresent
         name: agent
         ports:
-        - containerPort: 8123
+        - containerPort: 8006
           name: grpc
       serviceAccountName: emissary-ingress-agent

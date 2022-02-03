@@ -24,13 +24,13 @@ func NewMetricsServer(handler streamHandler) *metricsServer {
 	}
 }
 
-// StartServer will start the metrics gRPC server, listening on :8123
+// StartServer will start the metrics gRPC server, listening on :8006
 // It is a blocking call until grpcServer.Serve returns.
 func (s *metricsServer) StartServer(ctx context.Context) error {
 	grpcServer := grpc.NewServer()
 	envoyMetrics.RegisterMetricsServiceServer(grpcServer, s)
 
-	listener, err := net.Listen("tcp", ":8123")
+	listener, err := net.Listen("tcp", ":8006")
 	if err != nil {
 		dlog.Errorf(ctx, "metrics service failed to listen: %v", err)
 	}
