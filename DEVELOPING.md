@@ -711,3 +711,16 @@ that have been created using your upper-case host name.
 Updating license documentation
 -----------------------------------------------
 When new dependencies are added or existing ones are updated, run `make generate` and commit changes to `LICENSES.md` and `OPENSOURCE.md`
+
+How do I upgrade all of the Python dependencies?
+------------------------------------------------
+
+Delete `python/requirements.txt`, then run `make generate`.
+
+If there are some dependencies you don't want to upgrade, but want to
+upgrade everything else, then
+
+ 1. Remove from `python/requirements.txt` all of the entries except
+    for those you want to pin.
+ 2. Delete `python/requirements.in` (if it exists).
+ 3. Run `make generate`.

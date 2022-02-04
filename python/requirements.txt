@@ -4,15 +4,15 @@
 #
 #    pip-compile --allow-unsafe
 #
-attrs==19.3.0
+attrs==21.4.0
     # via jsonschema
-cachetools==4.1.1
+cachetools==5.0.0
     # via google-auth
-certifi==2020.6.20
+certifi==2021.10.8
     # via
     #   kubernetes
     #   requests
-charset-normalizer==2.0.8
+charset-normalizer==2.0.11
     # via requests
 click==8.0.3
     # via
@@ -26,11 +26,11 @@ expiringdict==1.2.1
     # via -r requirements.in
 flask==2.0.2
     # via -r requirements.in
-google-auth==1.23.0
+google-auth==2.6.0
     # via kubernetes
 gunicorn==20.1.0
     # via -r requirements.in
-idna==2.7
+idna==3.3
     # via requests
 itsdangerous==2.0.1
     # via flask
@@ -38,21 +38,21 @@ jinja2==3.0.3
     # via flask
 jsonpatch==1.32
     # via -r requirements.in
-jsonpointer==2.0
+jsonpointer==2.2
     # via jsonpatch
-jsonschema==4.2.1
+jsonschema==4.4.0
     # via -r requirements.in
-kubernetes==20.13.0
+kubernetes==21.7.0
     # via -r requirements.in
 markupsafe==2.0.1
     # via jinja2
-oauthlib==3.1.0
+oauthlib==3.2.0
     # via requests-oauthlib
 orjson==3.6.6
     # via -r requirements.in
-prometheus-client==0.12.0
+prometheus-client==0.13.1
     # via -r requirements.in
-protobuf==3.13.0
+protobuf==3.19.4
     # via -r requirements.in
 pyasn1==0.4.8
     # via
@@ -60,9 +60,9 @@ pyasn1==0.4.8
     #   rsa
 pyasn1-modules==0.2.8
     # via google-auth
-pyrsistent==0.17.3
+pyrsistent==0.18.1
     # via jsonschema
-python-dateutil==2.8.1
+python-dateutil==2.8.2
     # via kubernetes
 python-json-logger==2.0.2
     # via -r requirements.in
@@ -70,14 +70,14 @@ pyyaml==5.4.1
     # via
     #   -r requirements.in
     #   kubernetes
-requests==2.26.0
+requests==2.27.1
     # via
     #   -r requirements.in
     #   kubernetes
     #   requests-oauthlib
-requests-oauthlib==1.3.0
+requests-oauthlib==1.3.1
     # via kubernetes
-rsa==4.6
+rsa==4.8
     # via google-auth
 semantic-version==2.8.5
     # via -r requirements.in
@@ -85,23 +85,19 @@ six==1.16.0
     # via
     #   google-auth
     #   kubernetes
-    #   protobuf
     #   python-dateutil
-    #   websocket-client
-urllib3==1.26.5
+urllib3==1.26.8
     # via
     #   kubernetes
     #   requests
-websocket-client==0.57.0
+websocket-client==1.2.3
     # via kubernetes
 werkzeug==2.0.2
     # via flask
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==50.3.2
+setuptools==60.7.1
     # via
     #   -r requirements.in
-    #   google-auth
     #   gunicorn
     #   kubernetes
-    #   protobuf

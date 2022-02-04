@@ -17,4 +17,3 @@ Emissary-ingress Python code incorporates Free and Open Source software under th
 * [MIT license](https://opensource.org/licenses/MIT)
 * [Mozilla Public License 2.0](https://opensource.org/licenses/MPL-2.0)
 * [Python Software Foundation license](https://spdx.org/licenses/PSF-2.0.html)
-* [Unicode License Agreement for Data Files and Software (2015)](https://spdx.org/licenses/Unicode-DFS-2015.html)
