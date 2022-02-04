@@ -144,12 +144,10 @@ libraries:
     certifi             2020.6.20  Mozilla Public License 2.0
     charset-normalizer  2.0.8      MIT license
     click               8.0.3      3-clause BSD license
-    clize               4.2.1      MIT license
     colorama            0.4.4      3-clause BSD license
     contextlib2         21.6.0     Python Software Foundation license
     distlib             0.3.3      Python Software Foundation license
     distro              1.6.0      Apache License 2.0
-    docutils            0.17.1     2-clause BSD license, GNU General Public License Version 3, Public domain, Python Software Foundation license
     dpath               2.0.6      MIT license
     durationpy          0.5        MIT license
     expiringdict        1.2.1      Apache License 2.0
@@ -165,7 +163,6 @@ libraries:
     lockfile            0.12.2     MIT license
     msgpack             1.0.2      Apache License 2.0
     oauthlib            3.1.0      3-clause BSD license
-    od                  1.0        MIT license
     ordered-set         4.0.2      MIT license
     orjson              3.6.6      Apache License 2.0, MIT license
     packaging           20.9       2-clause BSD license, Apache License 2.0
@@ -185,7 +182,6 @@ libraries:
     retrying            1.3.3      Apache License 2.0
     rsa                 4.6        Apache License 2.0
     semantic-version    2.8.5      2-clause BSD license
-    sigtools            2.0.2      MIT license
     six                 1.16.0     MIT license
     toml                0.10.2     MIT license
     tomli               1.2.2      MIT license

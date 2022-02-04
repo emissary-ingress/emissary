@@ -5,9 +5,7 @@
 #    pip-compile --allow-unsafe
 #
 attrs==19.3.0
-    # via
-    #   clize
-    #   jsonschema
+    # via jsonschema
 cachetools==4.1.1
     # via google-auth
 certifi==2020.6.20
@@ -20,10 +18,6 @@ click==8.0.3
     # via
     #   -r requirements.in
     #   flask
-clize==4.2.1
-    # via -r requirements.in
-docutils==0.17.1
-    # via clize
 dpath==2.0.6
     # via -r requirements.in
 durationpy==0.5
@@ -54,8 +48,6 @@ markupsafe==2.0.1
     # via jinja2
 oauthlib==3.1.0
     # via requests-oauthlib
-od==1.0
-    # via clize
 orjson==3.6.6
     # via -r requirements.in
 prometheus-client==0.12.0
@@ -89,16 +81,12 @@ rsa==4.6
     # via google-auth
 semantic-version==2.8.5
     # via -r requirements.in
-sigtools==2.0.2
-    # via clize
 six==1.16.0
     # via
-    #   clize
     #   google-auth
     #   kubernetes
     #   protobuf
     #   python-dateutil
-    #   sigtools
     #   websocket-client
 urllib3==1.26.5
     # via
