@@ -74,6 +74,23 @@ spec:
     profile: main
   type: LoadBalancer
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    product: aes
+  name: emissary-ingress-agent
+  namespace: emissary
+spec:
+  ports:
+  - name: grpc
+    port: 8006
+    protocol: TCP
+    targetPort: grpc
+  selector:
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/name: emissary-ingress-agent
+---
 aggregationRule:
   clusterRoleSelectors:
   - matchLabels:
@@ -271,6 +288,8 @@ spec:
             weight: 100
       containers:
       - env:
+        - name: AMBASSADOR_GRPC_METRICS_SINK
+          value: emissary-ingress:8006
         - name: HOST_IP
           valueFrom:
             fieldRef:
@@ -592,4 +611,7 @@ spec:
         image: $imageRepo$:$version$
         imagePullPolicy: IfNotPresent
         name: agent
+        ports:
+        - containerPort: 8006
+          name: grpc
       serviceAccountName: emissary-ingress-agent

@@ -271,6 +271,8 @@ spec:
             weight: 100
       containers:
       - env:
+        - name: AMBASSADOR_GRPC_METRICS_SINK
+          value: emissary-ingress:8006
         - name: HOST_IP
           valueFrom:
             fieldRef:

@@ -73,6 +73,15 @@ items:
           `AGENT_CONFIG_RESOURCE_NAME` environment variable in order to allow all
           components (and not only the Ambassador Agent) to authenticate requests to
           Ambassador Cloud.
+          Support for the Envoy V2 API and the `AMBASSADOR_ENVOY_API_VERSION` environment
+
+      - title: Stream metrics from Envoy to the Ambassador cloud
+        type: feature
+        body: >-
+          Support for streaming Envoy metrics about the clusters to Ambassador's cloud.
+        github:
+        - title: 4053
+          link: https://github.com/emissary-ingress/emissary/pull/4053
 
       - title: Support received commands to pause, continue and abort a Rollout via Agent directives
         type: feature

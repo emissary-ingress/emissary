@@ -8,21 +8,26 @@ syntax = "proto3";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
+import "prometheus/metrics.proto";
+
 package agent;
 
 option go_package = "./agent";
 
 service Director {
-  // Report a consistent Snapshot of information to the CEPC.  This
+  // Report a consistent Snapshot of information to the DCP.  This
   // method is deprecated, you should call ReportStream instead.
   rpc Report(Snapshot) returns (SnapshotResponse) {
     option deprecated = true;
   }
 
-  // Report a consistent Snapshot of information to the CEPC.
+  // Report a consistent Snapshot of information to the DCP.
   rpc ReportStream(stream RawSnapshotChunk) returns (SnapshotResponse) {}
 
-  // Retrieve Directives from the CEPC
+  // Stream metrics to the DCP.
+  rpc StreamMetrics(stream StreamMetricsMessage) returns (StreamMetricsResponse) {}
+
+  // Retrieve Directives from the DCP
   rpc Retrieve(Identity) returns (stream Directive) {}
 
   // Reports the result of a command execution to the cloud
@@ -31,11 +36,11 @@ service Director {
   rpc RetrieveSnapshot(Identity) returns (stream RawSnapshotChunk) {}
 }
 
-// How Ambassador's Agent identifies itself to the CEPC
+// How Ambassador's Agent identifies itself to the DCP
 // This is the identity of the ambassador the agent is reporting on behalf of
 // no user account specific information should be contained in here
 message Identity {
-  // The account ID assigned by the CEPC
+  // The account ID assigned by the DCP
   string account_id = 1 [deprecated=true];
 
   // Ambassador version
@@ -55,7 +60,7 @@ message Identity {
 }
 
 // Information that Ambassador's Agent can send to the Director
-// component of the CEPC
+// component of the DCP
 message Snapshot {
   Identity identity = 1;
   string message = 2;
@@ -88,7 +93,7 @@ message SnapshotResponse {
   // an error. In the future this may contain additional information.
 }
 
-// Instructions that the CEPC can send to Ambassador
+// Instructions that the DCP can send to Ambassador
 message Directive {
   string ID = 1;
 
@@ -105,7 +110,7 @@ message Directive {
   repeated Command commands = 4;
 }
 
-// An individual instruction from the CEPC
+// An individual instruction from the DCP
 message Command {
   // Log this message if present
   string message = 1;
@@ -130,4 +135,15 @@ message CommandResult {
   string message = 3;
 }
 
-message CommandResultResponse {}
+message CommandResultResponse {
+}
+
+message StreamMetricsMessage {
+  Identity identity = 1;
+
+  // A list of metric entries
+  repeated io.prometheus.client.MetricFamily envoy_metrics = 2;
+}
+
+message StreamMetricsResponse {
+}

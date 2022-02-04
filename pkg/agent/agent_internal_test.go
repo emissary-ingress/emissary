@@ -270,7 +270,7 @@ func TestProcessSnapshot(t *testing.T) {
 		},
 		{
 			// ProcessSnapshot should set the Agent.connInfo to the parsed url from the
-			// ambassador module's CEPC config
+			// ambassador module's DCP config
 			testName: "module-contains-connection-info",
 			address:  "http://somecooladdress:1234",
 			inputSnap: &snapshotTypes.Snapshot{

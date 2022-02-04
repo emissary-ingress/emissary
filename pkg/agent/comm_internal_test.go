@@ -63,6 +63,10 @@ func (m *MockClient) Report(ctx context.Context, in *agent.Snapshot, opts ...grp
 	return nil, nil
 }
 
+func (m *MockClient) StreamMetrics(ctx context.Context, opts ...grpc.CallOption) (agent.Director_StreamMetricsClient, error) {
+	panic("implement me")
+}
+
 type mockReportStreamClient struct {
 	ctx     context.Context
 	opts    []grpc.CallOption

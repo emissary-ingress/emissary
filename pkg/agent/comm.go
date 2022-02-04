@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"sync"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -19,12 +20,13 @@ import (
 const APIKeyMetadataKey = "x-ambassador-api-key"
 
 type RPCComm struct {
-	conn       io.Closer
-	client     agent.DirectorClient
-	rptWake    chan struct{}
-	retCancel  context.CancelFunc
-	agentID    *agent.Identity
-	directives chan *agent.Directive
+	conn                     io.Closer
+	client                   agent.DirectorClient
+	rptWake                  chan struct{}
+	retCancel                context.CancelFunc
+	agentID                  *agent.Identity
+	directives               chan *agent.Directive
+	metricsStreamWriterMutex sync.Mutex
 }
 
 const (
@@ -197,6 +199,19 @@ func (c *RPCComm) Report(ctx context.Context, report *agent.Snapshot, apiKey str
 	}
 
 	return nil
+}
+
+func (c *RPCComm) StreamMetrics(ctx context.Context, metrics *agent.StreamMetricsMessage, apiKey string) error {
+	ctx = dlog.WithField(ctx, "agent", "streammetrics")
+
+	c.metricsStreamWriterMutex.Lock()
+	defer c.metricsStreamWriterMutex.Unlock()
+	ctx = metadata.AppendToOutgoingContext(ctx, APIKeyMetadataKey, apiKey)
+	streamClient, err := c.client.StreamMetrics(ctx)
+	if err != nil {
+		return err
+	}
+	return streamClient.Send(metrics)
 }
 
 func (c *RPCComm) Directives() <-chan *agent.Directive {
