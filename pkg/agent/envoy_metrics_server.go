@@ -14,7 +14,6 @@ type streamHandler func(logCtx context.Context, in *envoyMetrics.StreamMetricsMe
 type metricsServer struct {
 	envoyMetrics.MetricsServiceServer
 	handler streamHandler
-	logCtx  context.Context
 }
 
 // NewMetricsServer is the main metricsServer constructor.
@@ -34,7 +33,6 @@ func (s *metricsServer) StartServer(ctx context.Context) error {
 		Handler: grpcServer,
 	}
 
-	s.logCtx = ctx
 	dlog.Info(ctx, "starting metrics service listening on :8006")
 	return sc.ListenAndServe(ctx, ":8006")
 }
@@ -42,7 +40,8 @@ func (s *metricsServer) StartServer(ctx context.Context) error {
 // StreamMetrics implements the StreamMetrics rpc call by calling the stream handler on each
 // message received. It's invoked whenever metrics arrive from Envoy.
 func (s *metricsServer) StreamMetrics(stream envoyMetrics.MetricsService_StreamMetricsServer) error {
-	dlog.Debug(s.logCtx, "started stream")
+	ctx := stream.Context()
+	dlog.Debug(ctx, "started stream")
 	for {
 		in, err := stream.Recv()
 		if err == io.EOF {
@@ -51,6 +50,6 @@ func (s *metricsServer) StreamMetrics(stream envoyMetrics.MetricsService_StreamM
 		if err != nil {
 			return err
 		}
-		s.handler(s.logCtx, in)
+		s.handler(ctx, in)
 	}
 }
