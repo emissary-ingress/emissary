@@ -58,7 +58,23 @@ docker/.base-python.docker.stamp: FORCE docker/base-python/Dockerfile docker/bas
 # image and just be part of the main emissary Dockerfile.  But that
 # would create problems for generate.mk's `pip freeze` step.  Perhaps
 # it will get to go away with `ocibuild`.
-docker/base-pip/requirements.txt: $(OSS_HOME)/builder/requirements.txt $(tools/copy-ifchanged)
+#
+# TODO(lukeshu): Figure out a `py-list-deps`-based workflow for
+# updating requirements-dev.txt.
+#python/requirements-dev.txt: $(tools/py-list-deps) $(tools/write-ifchanged) FORCE
+#	$(tools/py-list-deps) --include-dev python/ | $(tools/write-ifchanged) $@
+python/requirements.in: $(tools/py-list-deps) $(tools/write-ifchanged) FORCE
+	$(tools/py-list-deps) --no-include-dev python/ | $(tools/write-ifchanged) $@
+python/.requirements.txt.stamp: python/requirements.in docker/base-python.docker.tag.local
+# The --interactive is so that stdin gets passed through; otherwise Docker closes stdin.
+	set -ex -o pipefail; { \
+	  docker run --rm --interactive "$$(cat docker/base-python.docker)" sh -c 'tar xf - && pip-compile --allow-unsafe -q >&2 && cat requirements.txt' \
+	    < <(bsdtar -cf - -C $(@D) requirements.in requirements.txt) \
+	    > $@; }
+python/requirements.txt: python/%: python/.%.stamp $(tools/copy-ifchanged)
+	$(tools/copy-ifchanged) $< $@
+.PRECIOUS: python/requirements.txt
+docker/base-pip/requirements.txt: python/requirements.txt $(tools/copy-ifchanged)
 	$(tools/copy-ifchanged) $< $@
 docker/.base-pip.docker.stamp: docker/.%.docker.stamp: docker/%/Dockerfile docker/%/requirements.txt docker/base-python.docker.tag.local
 	docker build --build-arg=from="$$(sed -n 2p docker/base-python.docker.tag.local)" --iidfile=$@ $(<D)

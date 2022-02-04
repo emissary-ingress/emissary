@@ -12,6 +12,8 @@ type Ref struct {
 	Ref string `json:"$ref" yaml:"$ref"`
 }
 
+// CallbackRef represents either a Callback or a $ref to a Callback.
+// When serializing and both fields are set, Ref is preferred over Value.
 type CallbackRef struct {
 	Ref   string
 	Value *Callback
@@ -43,6 +45,8 @@ func (value CallbackRef) JSONLookup(token string) (interface{}, error) {
 	return ptr, err
 }
 
+// ExampleRef represents either a Example or a $ref to a Example.
+// When serializing and both fields are set, Ref is preferred over Value.
 type ExampleRef struct {
 	Ref   string
 	Value *Example
@@ -74,6 +78,8 @@ func (value ExampleRef) JSONLookup(token string) (interface{}, error) {
 	return ptr, err
 }
 
+// HeaderRef represents either a Header or a $ref to a Header.
+// When serializing and both fields are set, Ref is preferred over Value.
 type HeaderRef struct {
 	Ref   string
 	Value *Header
@@ -105,6 +111,8 @@ func (value HeaderRef) JSONLookup(token string) (interface{}, error) {
 	return ptr, err
 }
 
+// LinkRef represents either a Link or a $ref to a Link.
+// When serializing and both fields are set, Ref is preferred over Value.
 type LinkRef struct {
 	Ref   string
 	Value *Link
@@ -125,6 +133,8 @@ func (value *LinkRef) Validate(ctx context.Context) error {
 	return foundUnresolvedRef(value.Ref)
 }
 
+// ParameterRef represents either a Parameter or a $ref to a Parameter.
+// When serializing and both fields are set, Ref is preferred over Value.
 type ParameterRef struct {
 	Ref   string
 	Value *Parameter
@@ -156,6 +166,8 @@ func (value ParameterRef) JSONLookup(token string) (interface{}, error) {
 	return ptr, err
 }
 
+// ResponseRef represents either a Response or a $ref to a Response.
+// When serializing and both fields are set, Ref is preferred over Value.
 type ResponseRef struct {
 	Ref   string
 	Value *Response
@@ -187,6 +199,8 @@ func (value ResponseRef) JSONLookup(token string) (interface{}, error) {
 	return ptr, err
 }
 
+// RequestBodyRef represents either a RequestBody or a $ref to a RequestBody.
+// When serializing and both fields are set, Ref is preferred over Value.
 type RequestBodyRef struct {
 	Ref   string
 	Value *RequestBody
@@ -218,6 +232,8 @@ func (value RequestBodyRef) JSONLookup(token string) (interface{}, error) {
 	return ptr, err
 }
 
+// SchemaRef represents either a Schema or a $ref to a Schema.
+// When serializing and both fields are set, Ref is preferred over Value.
 type SchemaRef struct {
 	Ref   string
 	Value *Schema
@@ -256,6 +272,8 @@ func (value SchemaRef) JSONLookup(token string) (interface{}, error) {
 	return ptr, err
 }
 
+// SecuritySchemeRef represents either a SecurityScheme or a $ref to a SecurityScheme.
+// When serializing and both fields are set, Ref is preferred over Value.
 type SecuritySchemeRef struct {
 	Ref   string
 	Value *SecurityScheme

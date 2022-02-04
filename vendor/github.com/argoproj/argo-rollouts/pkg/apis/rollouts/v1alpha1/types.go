@@ -69,8 +69,14 @@ type RolloutSpec struct {
 	// Note that progress will not be estimated during the time a rollout is paused.
 	// Defaults to 600s.
 	ProgressDeadlineSeconds *int32 `json:"progressDeadlineSeconds,omitempty" protobuf:"varint,8,opt,name=progressDeadlineSeconds"`
+	// ProgressDeadlineAbort is whether to abort the update when ProgressDeadlineSeconds
+	// is exceeded if analysis is not used. Default is false.
+	// +optional
+	ProgressDeadlineAbort bool `json:"progressDeadlineAbort,omitempty" protobuf:"varint,12,opt,name=progressDeadlineAbort"`
 	// RestartAt indicates when all the pods of a Rollout should be restarted
 	RestartAt *metav1.Time `json:"restartAt,omitempty" protobuf:"bytes,9,opt,name=restartAt"`
+	// Analysis configuration for the analysis runs to retain
+	Analysis *AnalysisRunStrategy `json:"analysis,omitempty" protobuf:"bytes,11,opt,name=analysis"`
 }
 
 func (s *RolloutSpec) SetResolvedSelector(selector *metav1.LabelSelector) {
@@ -202,6 +208,11 @@ type BlueGreenStrategy struct {
 	// ActiveMetadata specify labels and annotations which will be attached to the active pods for
 	// the duration which they act as a active pod, and will be removed after
 	ActiveMetadata *PodTemplateMetadata `json:"activeMetadata,omitempty" protobuf:"bytes,13,opt,name=activeMetadata"`
+	// AbortScaleDownDelaySeconds adds a delay in second before scaling down the preview replicaset
+	// if update is aborted. 0 means not to scale down.
+	// Default is 30 second
+	// +optional
+	AbortScaleDownDelaySeconds *int32 `json:"abortScaleDownDelaySeconds,omitempty" protobuf:"varint,14,opt,name=abortScaleDownDelaySeconds"`
 }
 
 // AntiAffinity defines which inter-pod scheduling rule to use for anti-affinity injection
@@ -282,6 +293,26 @@ type CanaryStrategy struct {
 	// ScaleDownDelayRevisionLimit limits the number of old RS that can run at one time before getting scaled down
 	// +optional
 	ScaleDownDelayRevisionLimit *int32 `json:"scaleDownDelayRevisionLimit,omitempty" protobuf:"varint,12,opt,name=scaleDownDelayRevisionLimit"`
+	// AbortScaleDownDelaySeconds adds a delay in second before scaling down the canary pods when update
+	// is aborted for canary strategy with traffic routing (not applicable for basic canary).
+	// 0 means canary pods are not scaled down.
+	// Default is 30 seconds.
+	// +optional
+	AbortScaleDownDelaySeconds *int32 `json:"abortScaleDownDelaySeconds,omitempty" protobuf:"varint,13,opt,name=abortScaleDownDelaySeconds"`
+	// DynamicStableScale is a traffic routing feature which dynamically scales the stable
+	// ReplicaSet to minimize total pods which are running during an update. This is calculated by
+	// scaling down the stable as traffic is increased to canary. When disabled (the default behavior)
+	// the stable ReplicaSet remains fully scaled to support instantaneous aborts.
+	DynamicStableScale bool `json:"dynamicStableScale,omitempty" protobuf:"varint,14,opt,name=dynamicStableScale"`
+}
+
+// AnalysisRunStrategy configuration for the analysis runs and experiments to retain
+type AnalysisRunStrategy struct {
+	// SuccessfulRunHistoryLimit limits the number of old successful analysis runs and experiments to be retained in a history
+	SuccessfulRunHistoryLimit *int32 `json:"successfulRunHistoryLimit,omitempty" protobuf:"varint,1,opt,name=successfulRunHistoryLimit"`
+	// UnsuccessfulRunHistoryLimit limits the number of old unsuccessful analysis runs and experiments to be retained in a history.
+	// Stages for unsuccessful: "Error", "Failed", "Inconclusive"
+	UnsuccessfulRunHistoryLimit *int32 `json:"unsuccessfulRunHistoryLimit,omitempty" protobuf:"varint,2,opt,name=unsuccessfulRunHistoryLimit"`
 }
 
 // ALBTrafficRouting configuration for ALB ingress controller to control traffic routing
@@ -343,17 +374,29 @@ type NginxTrafficRouting struct {
 // IstioTrafficRouting configuration for Istio service mesh to enable fine grain configuration
 type IstioTrafficRouting struct {
 	// VirtualService references an Istio VirtualService to modify to shape traffic
-	VirtualService IstioVirtualService `json:"virtualService" protobuf:"bytes,1,opt,name=virtualService"`
+	VirtualService *IstioVirtualService `json:"virtualService,omitempty" protobuf:"bytes,1,opt,name=virtualService"`
 	// DestinationRule references an Istio DestinationRule to modify to shape traffic
 	DestinationRule *IstioDestinationRule `json:"destinationRule,omitempty" protobuf:"bytes,2,opt,name=destinationRule"`
+	// VirtualServices references a list of Istio VirtualService to modify to shape traffic
+	VirtualServices []IstioVirtualService `json:"virtualServices,omitempty" protobuf:"bytes,3,opt,name=virtualServices"`
 }
 
 // IstioVirtualService holds information on the virtual service the rollout needs to modify
 type IstioVirtualService struct {
 	// Name holds the name of the VirtualService
 	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
-	// Routes are list of routes within VirtualService to edit. If omitted, VirtualService must have a single route
+	// A list of HTTP routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
 	Routes []string `json:"routes,omitempty" protobuf:"bytes,2,rep,name=routes"`
+	// A list of TLS/HTTPS routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
+	TLSRoutes []TLSRoute `json:"tlsRoutes,omitempty" protobuf:"bytes,3,rep,name=tlsRoutes"`
+}
+
+// TLSRoute holds the information on the virtual service's TLS/HTTPS routes that are desired to be matched for changing weights.
+type TLSRoute struct {
+	// Port number of the TLS Route desired to be matched in the given Istio VirtualService.
+	Port int64 `json:"port,omitempty" protobuf:"bytes,1,opt,name=port"`
+	// A list of all the SNI Hosts of the TLS Route desired to be matched in the given Istio VirtualService.
+	SNIHosts []string `json:"sniHosts,omitempty" protobuf:"bytes,2,rep,name=sniHosts"`
 }
 
 // IstioDestinationRule is a reference to an Istio DestinationRule to modify and shape traffic
@@ -413,6 +456,8 @@ type RolloutExperimentTemplate struct {
 	// use the same selector as the Rollout
 	// +optional
 	Selector *metav1.LabelSelector `json:"selector,omitempty" protobuf:"bytes,5,opt,name=selector"`
+	// Weight sets the percentage of traffic the template's replicas should receive
+	Weight *int32 `json:"weight,omitempty" protobuf:"varint,6,opt,name=weight"`
 }
 
 // PodTemplateMetadata extra labels to add to the template
@@ -664,6 +709,9 @@ type RolloutStatus struct {
 	// The generation observed by the rollout controller from metadata.generation
 	// +optional
 	ObservedGeneration string `json:"observedGeneration,omitempty" protobuf:"bytes,13,opt,name=observedGeneration"`
+	// The generation of referenced workload observed by the rollout controller
+	// +optional
+	WorkloadObservedGeneration string `json:"workloadObservedGeneration,omitempty" protobuf:"bytes,24,opt,name=workloadObservedGeneration"`
 	// Conditions a list of conditions a rollout can have.
 	// +optional
 	Conditions []RolloutCondition `json:"conditions,omitempty" protobuf:"bytes,14,rep,name=conditions"`
@@ -717,6 +765,30 @@ type CanaryStatus struct {
 	CurrentBackgroundAnalysisRunStatus *RolloutAnalysisRunStatus `json:"currentBackgroundAnalysisRunStatus,omitempty" protobuf:"bytes,2,opt,name=currentBackgroundAnalysisRunStatus"`
 	// CurrentExperiment indicates the running experiment
 	CurrentExperiment string `json:"currentExperiment,omitempty" protobuf:"bytes,3,opt,name=currentExperiment"`
+	// Weights records the weights which have been set on traffic provider. Only valid when using traffic routing
+	Weights *TrafficWeights `json:"weights,omitempty" protobuf:"bytes,4,opt,name=weights"`
+}
+
+// TrafficWeights describes the current status of how traffic has been split
+type TrafficWeights struct {
+	// Canary is the current traffic weight split to canary ReplicaSet
+	Canary WeightDestination `json:"canary" protobuf:"bytes,1,opt,name=canary"`
+	// Stable is the current traffic weight split to stable ReplicaSet
+	Stable WeightDestination `json:"stable" protobuf:"bytes,2,opt,name=stable"`
+	// Additional holds the weights split to additional ReplicaSets such as experiment ReplicaSets
+	Additional []WeightDestination `json:"additional,omitempty" protobuf:"bytes,3,rep,name=additional"`
+	// Verified is an optional indicator that the weight has been verified to have taken effect.
+	// This is currently only applicable to ALB traffic router
+	Verified *bool `json:"verified,omitempty" protobuf:"bytes,4,opt,name=verified"`
+}
+
+type WeightDestination struct {
+	// Weight is an percentage of traffic being sent to this destination
+	Weight int32 `json:"weight" protobuf:"varint,1,opt,name=weight"`
+	// ServiceName is the Kubernetes service name traffic is being sent to
+	ServiceName string `json:"serviceName,omitempty" protobuf:"bytes,2,opt,name=serviceName"`
+	// PodTemplateHash is the pod template hash label for this destination
+	PodTemplateHash string `json:"podTemplateHash,omitempty" protobuf:"bytes,3,opt,name=podTemplateHash"`
 }
 
 type RolloutAnalysisRunStatus struct {
