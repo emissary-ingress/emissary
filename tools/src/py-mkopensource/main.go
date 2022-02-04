@@ -39,7 +39,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"Flask", "1.0.2", "BSD"}:                      {BSD3},
 		{"GitPython", "3.1.11", "UNKNOWN"}:             {BSD3},
 		{"Jinja2", "2.10.1", "BSD"}:                    {BSD3},
-		{"chardet", "3.0.4", "LGPL"}:                   {LGPL21},
+		{"chardet", "3.0.4", "LGPL"}:                   {LGPL21OrLater},
 		{"colorama", "0.4.3", "BSD"}:                   {BSD3},
 		{"colorama", "0.4.4", "BSD"}:                   {BSD3},
 		{"decorator", "4.4.2", "new BSD License"}:      {BSD2},
@@ -70,7 +70,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 
 		// These are packages with non-trivial strings to parse, and
 		// it's easier to just hard-code it.
-		{"docutils", "0.17.1", "public domain, Python, 2-Clause BSD, GPL 3 (see COPYING.txt)"}: {PublicDomain, PSF, BSD2, GPL3},
+		{"docutils", "0.17.1", "public domain, Python, 2-Clause BSD, GPL 3 (see COPYING.txt)"}: {PublicDomain, PSF, BSD2, GPL3OrLater},
 		{"orjson", "3.3.1", "Apache-2.0 OR MIT"}:                                               {Apache2, MIT},
 		{"orjson", "3.6.6", "Apache-2.0 OR MIT"}:                                               {Apache2, MIT},
 		{"packaging", "20.4", "BSD-2-Clause or Apache-2.0"}:                                    {BSD2, Apache2},
