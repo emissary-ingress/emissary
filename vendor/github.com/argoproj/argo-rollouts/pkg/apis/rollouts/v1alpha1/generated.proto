@@ -60,6 +60,7 @@ message AmbassadorTrafficRouting {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:resource:path=analysisruns, shortName=ar
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.phase",description="AnalysisRun status"
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description="Time since resource was created"
 message AnalysisRun {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -120,10 +121,21 @@ message AnalysisRunStatus {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Time startedAt = 4;
 }
 
+// AnalysisRunStrategy configuration for the analysis runs and experiments to retain
+message AnalysisRunStrategy {
+  // SuccessfulRunHistoryLimit limits the number of old successful analysis runs and experiments to be retained in a history
+  optional int32 successfulRunHistoryLimit = 1;
+
+  // UnsuccessfulRunHistoryLimit limits the number of old unsuccessful analysis runs and experiments to be retained in a history.
+  // Stages for unsuccessful: "Error", "Failed", "Inconclusive"
+  optional int32 unsuccessfulRunHistoryLimit = 2;
+}
+
 // AnalysisTemplate holds the template for performing canary analysis
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:resource:path=analysistemplates,shortName=at
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description="Time since resource was created"
 message AnalysisTemplate {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -264,6 +276,12 @@ message BlueGreenStrategy {
   // ActiveMetadata specify labels and annotations which will be attached to the active pods for
   // the duration which they act as a active pod, and will be removed after
   optional PodTemplateMetadata activeMetadata = 13;
+
+  // AbortScaleDownDelaySeconds adds a delay in second before scaling down the preview replicaset
+  // if update is aborted. 0 means not to scale down.
+  // Default is 30 second
+  // +optional
+  optional int32 abortScaleDownDelaySeconds = 14;
 }
 
 // CanaryStatus status fields that only pertain to the canary rollout
@@ -276,6 +294,9 @@ message CanaryStatus {
 
   // CurrentExperiment indicates the running experiment
   optional string currentExperiment = 3;
+
+  // Weights records the weights which have been set on traffic provider. Only valid when using traffic routing
+  optional TrafficWeights weights = 4;
 }
 
 // CanaryStep defines a step of a canary deployment.
@@ -368,6 +389,65 @@ message CanaryStrategy {
   // ScaleDownDelayRevisionLimit limits the number of old RS that can run at one time before getting scaled down
   // +optional
   optional int32 scaleDownDelayRevisionLimit = 12;
+
+  // AbortScaleDownDelaySeconds adds a delay in second before scaling down the canary pods when update
+  // is aborted for canary strategy with traffic routing (not applicable for basic canary).
+  // 0 means canary pods are not scaled down.
+  // Default is 30 seconds.
+  // +optional
+  optional int32 abortScaleDownDelaySeconds = 13;
+
+  // DynamicStableScale is a traffic routing feature which dynamically scales the stable
+  // ReplicaSet to minimize total pods which are running during an update. This is calculated by
+  // scaling down the stable as traffic is increased to canary. When disabled (the default behavior)
+  // the stable ReplicaSet remains fully scaled to support instantaneous aborts.
+  optional bool dynamicStableScale = 14;
+}
+
+// CloudWatchMetric defines the cloudwatch query to perform canary analysis
+message CloudWatchMetric {
+  optional string interval = 1;
+
+  repeated CloudWatchMetricDataQuery metricDataQueries = 2;
+}
+
+// CloudWatchMetricDataQuery defines the cloudwatch query
+message CloudWatchMetricDataQuery {
+  optional string id = 1;
+
+  optional string expression = 2;
+
+  optional string label = 3;
+
+  optional CloudWatchMetricStat metricStat = 4;
+
+  optional k8s.io.apimachinery.pkg.util.intstr.IntOrString period = 5;
+
+  optional bool returnData = 6;
+}
+
+message CloudWatchMetricStat {
+  optional CloudWatchMetricStatMetric metric = 1;
+
+  optional k8s.io.apimachinery.pkg.util.intstr.IntOrString period = 2;
+
+  optional string stat = 3;
+
+  optional string unit = 4;
+}
+
+message CloudWatchMetricStatMetric {
+  repeated CloudWatchMetricStatMetricDimension dimensions = 1;
+
+  optional string metricName = 2;
+
+  optional string namespace = 3;
+}
+
+message CloudWatchMetricStatMetricDimension {
+  optional string name = 1;
+
+  optional string value = 2;
 }
 
 // ClusterAnalysisTemplate holds the template for performing canary analysis
@@ -375,6 +455,7 @@ message CanaryStrategy {
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:resource:path=clusteranalysistemplates,shortName=cat
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description="Time since resource was created"
 message ClusterAnalysisTemplate {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -400,6 +481,7 @@ message DatadogMetric {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:resource:path=experiments,shortName=exp
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.phase",description="Experiment status"
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description="Time since resource was created"
 message Experiment {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -498,6 +580,14 @@ message ExperimentSpec {
   // +patchMergeKey=name
   // +patchStrategy=merge
   repeated ExperimentAnalysisTemplateRef analyses = 5;
+
+  // ScaleDownDelaySeconds adds a delay before scaling down the Experiment.
+  // If omitted, the Experiment waits 30 seconds before scaling down.
+  // A minimum of 30 seconds is recommended to ensure IP table propagation across the nodes in
+  // a cluster. See https://github.com/argoproj/argo-rollouts/issues/19#issuecomment-476329960 for
+  // more information
+  // +optional
+  optional int32 scaleDownDelaySeconds = 6;
 }
 
 // ExperimentStatus is the status for a Experiment resource
@@ -533,6 +623,15 @@ message FieldRef {
   optional string fieldPath = 1;
 }
 
+// GraphiteMetric defines the Graphite query to perform canary analysis
+message GraphiteMetric {
+  // Address is the HTTP address and port of the Graphite server
+  optional string address = 1;
+
+  // Query is a raw Graphite query to perform
+  optional string query = 2;
+}
+
 // IstioDestinationRule is a reference to an Istio DestinationRule to modify and shape traffic
 message IstioDestinationRule {
   // Name holds the name of the DestinationRule
@@ -552,6 +651,9 @@ message IstioTrafficRouting {
 
   // DestinationRule references an Istio DestinationRule to modify to shape traffic
   optional IstioDestinationRule destinationRule = 2;
+
+  // VirtualServices references a list of Istio VirtualService to modify to shape traffic
+  repeated IstioVirtualService virtualServices = 3;
 }
 
 // IstioVirtualService holds information on the virtual service the rollout needs to modify
@@ -559,8 +661,11 @@ message IstioVirtualService {
   // Name holds the name of the VirtualService
   optional string name = 1;
 
-  // Routes are list of routes within VirtualService to edit. If omitted, VirtualService must have a single route
+  // A list of HTTP routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
   repeated string routes = 2;
+
+  // A list of TLS/HTTPS routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
+  repeated TLSRoute tlsRoutes = 3;
 }
 
 // JobMetric defines a job to run which acts as a metric
@@ -696,6 +801,12 @@ message MetricProvider {
 
   // Job specifies the job metric run
   optional JobMetric job = 7;
+
+  // CloudWatch specifies the cloudWatch metric to query
+  optional CloudWatchMetric cloudWatch = 8;
+
+  // Graphite specifies the Graphite metric to query
+  optional GraphiteMetric graphite = 9;
 }
 
 // MetricResult contain a list of the most recent measurements for a single metric along with
@@ -930,6 +1041,9 @@ message RolloutExperimentTemplate {
   // use the same selector as the Rollout
   // +optional
   optional k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector selector = 5;
+
+  // Weight sets the percentage of traffic the template's replicas should receive
+  optional int32 weight = 6;
 }
 
 // RolloutList is a list of Rollout resources
@@ -991,8 +1105,16 @@ message RolloutSpec {
   // Defaults to 600s.
   optional int32 progressDeadlineSeconds = 8;
 
+  // ProgressDeadlineAbort is whether to abort the update when ProgressDeadlineSeconds
+  // is exceeded if analysis is not used. Default is false.
+  // +optional
+  optional bool progressDeadlineAbort = 12;
+
   // RestartAt indicates when all the pods of a Rollout should be restarted
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Time restartAt = 9;
+
+  // Analysis configuration for the analysis runs to retain
+  optional AnalysisRunStrategy analysis = 11;
 }
 
 // RolloutStatus is the status for a Rollout resource
@@ -1055,6 +1177,10 @@ message RolloutStatus {
   // The generation observed by the rollout controller from metadata.generation
   // +optional
   optional string observedGeneration = 13;
+
+  // The generation of referenced workload observed by the rollout controller
+  // +optional
+  optional string workloadObservedGeneration = 24;
 
   // Conditions a list of conditions a rollout can have.
   // +optional
@@ -1166,6 +1292,18 @@ message SetCanaryScale {
   optional bool matchTrafficWeight = 3;
 }
 
+// TLSRoute holds the information on the virtual service's TLS/HTTPS routes that are desired to be matched for changing weights.
+message TLSRoute {
+  // Port number of the TLS Route desired to be matched in the given Istio VirtualService.
+  optional int64 port = 1;
+
+  // A list of all the SNI Hosts of the TLS Route desired to be matched in the given Istio VirtualService.
+  repeated string sniHosts = 2;
+}
+
+message TemplateService {
+}
+
 message TemplateSpec {
   // Name of the template used to identity replicaset running for this experiment
   optional string name = 1;
@@ -1188,6 +1326,9 @@ message TemplateSpec {
 
   // Template describes the pods that will be created.
   optional k8s.io.api.core.v1.PodTemplateSpec template = 5;
+
+  // TemplateService describes how a service should be generated for template
+  optional TemplateService service = 6;
 }
 
 // TemplateStatus is the status of a specific template of an Experiment
@@ -1222,6 +1363,28 @@ message TemplateStatus {
   // LastTransitionTime is the last time the replicaset transitioned, which resets the countdown
   // on the ProgressDeadlineSeconds check.
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Time lastTransitionTime = 9;
+
+  // ServiceName is the name of the service which corresponds to this experiment
+  optional string serviceName = 10;
+
+  // PodTemplateHash is the value of the Replicas' PodTemplateHash
+  optional string podTemplateHash = 11;
+}
+
+// TrafficWeights describes the current status of how traffic has been split
+message TrafficWeights {
+  // Canary is the current traffic weight split to canary ReplicaSet
+  optional WeightDestination canary = 1;
+
+  // Stable is the current traffic weight split to stable ReplicaSet
+  optional WeightDestination stable = 2;
+
+  // Additional holds the weights split to additional ReplicaSets such as experiment ReplicaSets
+  repeated WeightDestination additional = 3;
+
+  // Verified is an optional indicator that the weight has been verified to have taken effect.
+  // This is currently only applicable to ALB traffic router
+  optional bool verified = 4;
 }
 
 message ValueFrom {
@@ -1267,5 +1430,16 @@ message WebMetricHeader {
   optional string key = 1;
 
   optional string value = 2;
+}
+
+message WeightDestination {
+  // Weight is an percentage of traffic being sent to this destination
+  optional int32 weight = 1;
+
+  // ServiceName is the Kubernetes service name traffic is being sent to
+  optional string serviceName = 2;
+
+  // PodTemplateHash is the pod template hash label for this destination
+  optional string podTemplateHash = 3;
 }
 

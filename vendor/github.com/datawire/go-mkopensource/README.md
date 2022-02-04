@@ -65,7 +65,7 @@ There are two modes of operation:
     both the `OPENSOURCE.md` file that `--output-format=txt` generates
     (plus a footer reading "The appropriate license notices and source
     code are in correspondingly named directories."), and a directory
-    for each dependency, containing any nescessary license notices and
+    for each dependency, containing any necessary license notices and
     source code.
 
 Many licenses require the author to be credited, the full license text
@@ -92,17 +92,34 @@ directing the output to).
 
 ### Output type
 
-Parameter --output-type controls for output format.
-When parameter is not provided in the command line or value is incorrect, `--output-type` is set to `markdown`
+Parameter --output-type controls for output format.  
+When parameter is not provided in the command line or value is 
+incorrect, `--output-type` is set to `markdown`.
+
 This parameter only applies when `--ouput-format` is `txt`
 
 #### `--output-type=markdown`
 
-Program outputs dependency information in markdown format
+Program outputs dependency information in Markdown format
 
 #### `--output-type=json`
 
 Program outputs dependency information in json format
+
+### Application type
+
+Parameter `--application-type` controls the types of licenses that are 
+allowed. Logic is documented in [Notion](https://www.notion.so/datawire/1-Automate-License-Scan-and-Information-Files-31f4cd0f58f645f0afb922cfd710df81) 
+
+#### `--application-type=internal`
+
+Use this option with applications that run on customer infrastructure. 
+This is the default.
+
+#### `--application-type=external`
+
+Use this option with applications that run on Ambassador Labs 
+infrastructure.
 
 ## Using as a library
 

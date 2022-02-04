@@ -47,6 +47,13 @@ type ExperimentSpec struct {
 	// +patchMergeKey=name
 	// +patchStrategy=merge
 	Analyses []ExperimentAnalysisTemplateRef `json:"analyses,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,5,rep,name=analyses"`
+	// ScaleDownDelaySeconds adds a delay before scaling down the Experiment.
+	// If omitted, the Experiment waits 30 seconds before scaling down.
+	// A minimum of 30 seconds is recommended to ensure IP table propagation across the nodes in
+	// a cluster. See https://github.com/argoproj/argo-rollouts/issues/19#issuecomment-476329960 for
+	// more information
+	// +optional
+	ScaleDownDelaySeconds *int32 `json:"scaleDownDelaySeconds,omitempty" protobuf:"varint,6,opt,name=scaleDownDelaySeconds"`
 }
 
 type TemplateSpec struct {
@@ -67,7 +74,11 @@ type TemplateSpec struct {
 	Selector *metav1.LabelSelector `json:"selector" protobuf:"bytes,4,opt,name=selector"`
 	// Template describes the pods that will be created.
 	Template corev1.PodTemplateSpec `json:"template" protobuf:"bytes,5,opt,name=template"`
+	// TemplateService describes how a service should be generated for template
+	Service *TemplateService `json:"service,omitempty" protobuf:"bytes,6,opt,name=service"`
 }
+
+type TemplateService struct{}
 
 type TemplateStatusCode string
 
@@ -111,6 +122,10 @@ type TemplateStatus struct {
 	// LastTransitionTime is the last time the replicaset transitioned, which resets the countdown
 	// on the ProgressDeadlineSeconds check.
 	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty" protobuf:"bytes,9,opt,name=lastTransitionTime"`
+	// ServiceName is the name of the service which corresponds to this experiment
+	ServiceName string `json:"serviceName,omitempty" protobuf:"bytes,10,opt,name=serviceName"`
+	// PodTemplateHash is the value of the Replicas' PodTemplateHash
+	PodTemplateHash string `json:"podTemplateHash,omitempty" protobuf:"bytes,11,opt,name=podTemplateHash"`
 }
 
 // ExperimentStatus is the status for a Experiment resource
@@ -144,7 +159,7 @@ const (
 	// InvalidExperimentSpec means the experiment has an invalid spec and will not progress until
 	// the spec is fixed.
 	InvalidExperimentSpec ExperimentConditionType = "InvalidSpec"
-	// ExperimentConcluded means the experiment is available, ie. the active service is pointing at a
+	// ExperimentCompleted means the experiment is available, ie. the active service is pointing at a
 	// replicaset with the required replicas up and running for at least minReadySeconds.
 	ExperimentCompleted ExperimentConditionType = "Completed"
 	// ExperimentProgressing means the experiment is progressing. Progress for a experiment is
