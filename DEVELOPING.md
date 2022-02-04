@@ -711,4 +711,4 @@ that have been created using your upper-case host name.
 Updating license documentation
 -----------------------------------------------
 When new dependencies are added or existing ones are updated, run 
-`make LICENSES` and commit changes to `LICENSES.md` and `OPENSOURCE.md`
+`make LICENSES` and commit changes to `DEPENDENCY_LICENSES.md` and `DEPENDENCIES.md`
