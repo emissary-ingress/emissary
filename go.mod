@@ -74,7 +74,7 @@ exclude (
 // controller-gen.
 replace (
 	k8s.io/code-generator v0.21.9 => github.com/emissary-ingress/code-generator v0.21.10-rc.0.0.20220204004229-4708b255a33a
-	sigs.k8s.io/controller-tools v0.5.0 => github.com/emissary-ingress/controller-tools v0.5.1-0.20220120234851-b97c2515f1c2
+	sigs.k8s.io/controller-tools v0.6.2 => github.com/emissary-ingress/controller-tools db507acbb466dde2b617503ea1430891ed9289b2
 )
 
 require (
@@ -118,10 +118,10 @@ require (
 	k8s.io/kubectl v0.21.9
 	k8s.io/kubernetes v1.21.9
 	k8s.io/metrics v0.21.9
-	sigs.k8s.io/controller-runtime v0.8.0
-	sigs.k8s.io/controller-tools v0.5.0
+	sigs.k8s.io/controller-runtime v0.9.7
+	sigs.k8s.io/controller-tools v0.6.2
 	sigs.k8s.io/gateway-api v0.2.0
-	sigs.k8s.io/yaml v1.2.0
+	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
