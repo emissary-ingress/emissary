@@ -460,7 +460,7 @@ PYTHON_PACKAGES := $(shell find . \( \
 	-o -path "./_generate.tmp/*" \
 	\) -prune -o -name requirements.txt -type f -print)
 
-MKOPENSOURCE_COMMIT = '7d5c9b59'
+MKOPENSOURCE_COMMIT = '70450d68'
 $(OSS_HOME)/_generate.tmp/mkopensource: FORCE
 	set -ex; { \
 	  unset GIT_DIR GIT_WORK_TREE; \
