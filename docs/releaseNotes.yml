@@ -82,6 +82,17 @@ items:
         - title: 4053
           link: https://github.com/emissary-ingress/emissary/pull/4053
 
+      - title: Support received commands to pause, continue and abort a Rollout via Agent directives
+        type: feature
+        body: >-
+          The Emissary agent now receives commands to manipulate Rollouts (pause, continue, and abort are
+          currently supported) via directives and executes them in the cluster. 
+          A report is send to Ambassador's cloud including the command ID, whether it ran successfully,
+          and an error message in case there was any.
+        github:
+          - title: 4040
+            link: https://github.com/emissary-ingress/emissary/pull/4040
+
       - title: Update to Alpine 3.15
         type: security
         body: >-

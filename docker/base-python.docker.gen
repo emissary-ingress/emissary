@@ -128,9 +128,17 @@ main() {
 	# add_repo REPO appends a repo to ${repos[@]}; if ${repos[@]}
 	# doesn't already contain REPO.
 	add_repo() {
-		local
+		local needle straw
 		needle="$1"
-		for straw in "${repos[@]}"; do
+		# The `${repos[@]:+…}` non-emptiness check seems
+		# pointless here, but it's important because macOS
+		# still has Bash 3.2, and prior to Bash 4.4 (Sept
+		# 2016), there was a bug where it would consider an
+		# empty array to be unset, triggering `set -u`.  The
+		# other usages of "${repos[@]}" don't need this
+		# because this is the only one where it might still be
+		# empty.
+		for straw in ${repos[@]:+"${repos[@]}"}; do
 			if [[ "$straw" == "$needle" ]]; then
 				return
 			fi

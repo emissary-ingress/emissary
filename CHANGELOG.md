@@ -112,12 +112,18 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Feature: Support for streaming Envoy metrics about the clusters to Ambassador's cloud. ([4053])
 
+- Feature: The Emissary agent now receives commands to manipulate Rollouts (pause, continue, and
+  abort are currently supported) via directives and executes them in the cluster.  A report is send
+  to Ambassador's cloud including the command ID, whether it ran successfully, and an error message
+  in case there was any. ([4040])
+
 - Security: Emissary has been upgraded from Alpine 3.12 to Alpine 3.15, which incorporates numerous
   security patches.
 
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
 [3821]: https://github.com/emissary-ingress/emissary/issues/3821
 [4053]: https://github.com/emissary-ingress/emissary/pull/4053
+[4040]: https://github.com/emissary-ingress/emissary/pull/4040
 
 ## [2.1.2] January 25, 2022
 [2.1.2]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.1.2

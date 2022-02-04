@@ -121,6 +121,7 @@ func (c *RPCComm) retrieveLoop(ctx context.Context) {
 
 func (c *RPCComm) retrieve(ctx context.Context) error {
 	stream, err := c.client.Retrieve(ctx, c.agentID)
+
 	if err != nil {
 		return err
 	}
@@ -142,6 +143,15 @@ func (c *RPCComm) retrieve(ctx context.Context) error {
 func (c *RPCComm) Close() error {
 	c.retCancel()
 	return c.conn.Close()
+}
+
+func (c *RPCComm) ReportCommandResult(ctx context.Context, result *agent.CommandResult, apiKey string) error {
+	ctx = metadata.AppendToOutgoingContext(ctx, APIKeyMetadataKey, apiKey)
+	_, err := c.client.ReportCommandResult(ctx, result, grpc.EmptyCallOption{})
+	if err != nil {
+		return fmt.Errorf("ReportCommandResult error: %w", err)
+	}
+	return nil
 }
 
 func (c *RPCComm) Report(ctx context.Context, report *agent.Snapshot, apiKey string) error {
