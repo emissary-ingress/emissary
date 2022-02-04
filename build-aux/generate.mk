@@ -460,15 +460,7 @@ PYTHON_PACKAGES := $(shell find . \( \
 	-o -path "./_generate.tmp/*" \
 	\) -prune -o -name requirements.txt -type f -print)
 
-NPM_PACKAGES := $(shell find . \( \
-	-path "./_cxx/envoy/*" \
-	-o -path "./_generate.tmp/*" \
-	-o -path "./docker/test-ratelimit/*" \
-	\) -prune -o \( \
-	-name package.json -o -name package-lock.json \
-	\) -type f -print)
-
-MKOPENSOURCE_COMMIT = '471a8aa7'
+MKOPENSOURCE_COMMIT = '7d5c9b59'
 $(OSS_HOME)/_generate.tmp/mkopensource: FORCE
 	set -ex; { \
 	  unset GIT_DIR GIT_WORK_TREE; \
@@ -483,17 +475,22 @@ $(OSS_HOME)/_generate.tmp/mkopensource: FORCE
 	  touch .; \
 	}
 
-LICENSES: $(OSS_HOME)/builder/requirements.txt $(OSS_HOME)/_generate.tmp/mkopensource \
-		$(OSS_HOME)/build-aux/py-version.txt $(PYTHON_PACKAGES) $(NPM_PACKAGES)
+$(OSS_HOME)/builder/.requirements.txt.stamp: $(OSS_HOME)/builder/requirements.in docker/base-python.docker.tag.local
+# The --interactive is so that stdin gets passed through; otherwise Docker closes stdin.
+	set -ex -o pipefail; { \
+	  docker run --rm --interactive "$$(cat docker/base-python.docker)" sh -c 'tar xf - && pip-compile --allow-unsafe -q >&2 && cat requirements.txt' \
+
+LICENSES: $(OSS_HOME)/_generate.tmp/mkopensource \
+		$(OSS_HOME)/build-aux/py-version.txt $(PYTHON_PACKAGES) $(NPM_PACKAGES) \
+		docker/base-python.docker
 	set -e; { \
 		export APPLICATION="Emissary-ingress"; \
 		export GO_VERSION=$(GO_VERSION); \
-		export PYTHON_VERSION="$$(cat $(OSS_HOME)/build-aux/py-version.txt)"; \
 		export PYTHON_PACKAGES="$(PYTHON_PACKAGES)"; \
-		export NPM_PACKAGES="$(NPM_PACKAGES)"; \
-		export NODE_VERSION=10; \
 		export BUILD_HOME="$(OSS_HOME)"; \
 		export BUILD_TMP="$(OSS_HOME)/_generate.tmp/license"; \
+		IMAGE_ID="$$(cat $(OSS_HOME)/docker/base-python.docker | cut -d':' -f 2  | cut -c 1-12)"; \
+		export PYTHON_BUILDER=$$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | grep $${IMAGE_ID} | cut -d' ' -f1); \
 		\
 		mkdir -p "$${BUILD_TMP}"; \
 		"$(OSS_HOME)/_generate.tmp/mkopensource/build-aux/generate.sh"; \
