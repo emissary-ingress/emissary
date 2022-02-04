@@ -28,6 +28,7 @@
 #             `FOO/releaseNotes.yml`, then the image paths are
 #             relative to `FOO/release-notes/`.
 #         - docs: The path to the documentation page where additional information can be found.
+#         - href: A path from the root to a resource on the getambassador website, takes precedence over a docs link.
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
@@ -94,13 +95,29 @@ items:
     prevVersion: 2.1.0
     date: '2022-01-25'
     notes:
+      - title: Envoy V2 API deprecation
+        type: change
+        body: >-
+          Support for the Envoy V2 API is deprecated in $productName$ v2.1, and will be removed in $productName$
+          v2.2.0. The <code>AMBASSADOR_ENVOY_API_VERSION</code> environment variable will be removed at the same
+          time. Only the Envoy V3 API will be supported (this has been the default since $productName$ v1.14.0).
+
+      - title: Docker BuildKit always used for builds
+        type: change
+        body: >-
+          Docker BuildKit is enabled for all Emissary builds. Additionally, the Go
+          build cache is fully enabled when building images, speeding up repeated builds.
+        docs: https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md
+
       - title: Fix support for for v2 Mappings with CORS
         type: bugfix
         body: >-
           Emissary-ingress 2.1.0 generated invalid Envoy configuration for
           <code>getambassador.io/v2</code> <code>Mappings</code> that set
           <code>spec.cors.origins</code> to a string rather than a list of strings; this has been
-          fixed, and these <code>Mappings<code> should once again function correctly.
+          fixed, and these <code>Mappings</code> should once again function correctly.
+        docs: topics/using/cors/#the-cors-attribute
+        image: ./v2.1.2-mapping-cors.png
 
       - title: Correctly handle canary Mapping weights when reconfiguring
         type: bugfix
@@ -117,6 +134,7 @@ items:
           <code>weight</code> less than 100, will be correctly configured to receive all
           traffic as if the <code>weight</code> were 100.
         docs: topics/using/canary/#the-weight-attribute
+        image: ./v2.1.2-mapping-less-weighted.png
 
       - title: Correctly handle empty rewrite in a Mapping
         type: bugfix
@@ -124,6 +142,7 @@ items:
           Using <code>rewrite: ""</code> in a <code>Mapping</code> is correctly handled
           to mean "do not rewrite the path at all".
         docs: topics/using/rewrites
+        image: ./v2.1.2-mapping-no-rewrite.png
 
       - title: Correctly handle DNS wildcards when associating Hosts and Mappings
         type: bugfix
@@ -172,6 +191,7 @@ items:
           Resources that exist as <code>getambassador.io/config</code> annotations rather than as
           native Kubernetes resources are now validated and internally converted to v3alpha1 and,
           the same as native Kubernetes resources.
+        image: ./v2.1.2-annotations.png
 
       - title: Validation error reporting
         type: bugfix
@@ -205,16 +225,21 @@ items:
         body: >-
           <i>Emissary-ingress 2.1.0 is not recommended; upgrade to 2.1.2 instead.</i>
 
-      - title: CRD conversions
+      - title: Envoy V2 API deprecation
+        type: change
+        body: >-
+          Support for the Envoy V2 API is deprecated in $productName$ v2.1, and will be removed in $productName$
+          v2.2.0. The <code>AMBASSADOR_ENVOY_API_VERSION</code> environment variable will be removed at the same
+          time. Only the Envoy V3 API will be supported (this has been the default since $productName$ v1.14.0).
+
+      - title: Smoother migrations with support for getambassador.io/v2 CRDs
         type: feature
         body: >-
-          It is now possible to use both the <code>getambassador.io/v2</code> and
-          <code>getambassador.io/v3alpha1</code> apiVersions.  This is accomplished with the
-          addition of an <code>emissary-ingress-apiext</code> Service and Deployment that handles
-          converting between the two versions for the apiserver.  This allows the user to semlessly
-          request and author resources in whichever API version is desired, and facilitates easier
-          migration from Emissary 1.x to 2.x.  Resources authored in v3alpha1 will not be visible to
-          Emissary 1.x; resources authored in v2 will be visible to both Emissary 1.x and 2.x.
+          $productName$ supports <code>getambassador.io/v2</code> CRDs, to simplify migration from $productName$
+          1.X. <b>Note:</b> it is important to read the <a href="../topics/install/migration-matrix">migration
+          documentation</a> before starting migration.
+        docs: topics/install/migration-matrix
+        image: ./v2.1.0-smoother-migration.png
 
       - title: Correctly handle all changing canary configurations
         type: bugfix
@@ -224,9 +249,10 @@ items:
           <code>Mapping</code>s together). This has been corrected, so that all such
           updates correctly take effect.
         github:
-        - title: 3945
+        - title: "#3945"
           link: https://github.com/emissary-ingress/emissary/issues/3945
         docs: https://github.com/emissary-ingress/emissary/issues/3945
+        image: ./v2.1.0-canary.png
 
       - title: Secrets used for ACME private keys will not log errors
         type: bugfix
@@ -243,9 +269,10 @@ items:
           data. This bug was introduced in 1.14.0. The fix restores the default behavior of
           not sending compressed data to upstream services.
         github:
-        - title: 3818
+        - title: "#3818"
           link: https://github.com/emissary-ingress/emissary/issues/3818
         docs: https://github.com/emissary-ingress/emissary/issues/3818
+        image: ./v2.1.0-gzip-enabled.png
 
       - title: Update to busybox 1.34.1
         type: security
@@ -295,7 +322,7 @@ items:
           <code>mappingSelector</code>; a future version of $productName$ will remove the
           <code>selector</code> element.
         github:
-        - title: 3902
+        - title: "#3902"
           link: https://github.com/emissary-ingress/emissary/issues/3902
         docs: https://github.com/emissary-ingress/emissary/issues/3902
         image: ./v2.0.5-mappingselector.png
@@ -313,7 +340,7 @@ items:
           improve performance. We welcome feedback!! Join us on
           <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
         isHeadline: true
-        docs: about/changes-2.0.0
+        docs: about/changes-2.x
         image: ./emissary-ga.png
 
       - title: API version getambassador.io/v3alpha1
@@ -325,7 +352,7 @@ items:
           removed for ease of migration. <b>Note that <code>getambassador.io/v3alpha1</code>
           is the only supported API version for 2.0.4</b> &mdash; full support for
           <code>getambassador.io/v2</code> will arrive soon in a later 2.X version.
-        docs: about/changes-2.0.0
+        docs: about/changes-2.x
         image: ./v2.0.4-v3alpha1.png
 
       - title: Support for Kubernetes 1.22
@@ -335,7 +362,7 @@ items:
           and manifests have been updated to support Kubernetes 1.22. Thanks to
           <a href="https://github.com/imoisharma">Mohit Sharma</a> for contributions to
           this feature!
-        docs: about/changes-2.0.0
+        docs: about/changes-2.x
         image: ./v2.0.4-k8s-1.22.png
 
       - title: Mappings support configuring strict or logical DNS
@@ -399,7 +426,7 @@ items:
         body: We're pleased to introduce $productName$ 2.0.3 as a <b>developer preview</b>. The 2.X family introduces a number of changes to allow $productName$ to more gracefully handle larger installations, reduce global configuration to better handle multitenant or multiorganizational installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
         type: change
         isHeadline: true
-        docs: about/changes-2.0.0
+        docs: about/changes-2.x
 
       - title: AES_LOG_LEVEL more widely effective
         body: The environment variable <code>AES_LOG_LEVEL</code> now also sets the log level for the <code>diagd</code> logger.
@@ -431,7 +458,7 @@ items:
         body: We're pleased to introduce $productName$ 2.0.2 as a <b>developer preview</b>. The 2.X family introduces a number of changes to allow $productName$ to more gracefully handle larger installations, reduce global configuration to better handle multitenant or multiorganizational installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
         type: change
         isHeadline: true
-        docs: about/changes-2.0.0
+        docs: about/changes-2.x
 
       - title: Envoy security updates
         type: bugfix
@@ -455,12 +482,12 @@ items:
         body: We're pleased to introduce $productName$ 2.0.1 as a <b>developer preview</b>. The 2.X family introduces a number of changes to allow $productName$ to more gracefully handle larger installations, reduce global configuration to better handle multitenant or multiorganizational installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
         type: change
         isHeadline: true
-        docs: about/changes-2.0.0
+        docs: about/changes-2.x
 
       - title: Improved Ambassador Cloud visibility
         type: feature
         body: Ambassador Agent reports sidecar process information and <code>AmbassadorMapping</code> OpenAPI documentation to Ambassador Cloud to provide more visibility into services and clusters.
-        docs: ../../cloud/latest/service-catalog/quick-start/
+        docs: /docs/cloud/latest/service-catalog/quick-start/
 
       - title: Configurable per-AmbassadorListener statistics prefix
         body: The optional <code>stats_prefix</code> element of the <code>AmbassadorListener</code> CRD now determines the prefix of HTTP statistics emitted for a specific <code>AmbassadorListener</code>.
@@ -493,7 +520,7 @@ items:
       - title: Developer Preview!
         body: We're pleased to introduce $productName$ 2.0.0 as a <b>developer preview</b>. The 2.X family introduces a number of changes to allow $productName$ to more gracefully handle larger installations, reduce global configuration to better handle multitenant or multiorganizational installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
         type: change
-        docs: about/changes-2.0.0
+        docs: about/changes-2.x
         isHeadline: true
 
       - title: Configuration API v3alpha1
@@ -502,10 +529,10 @@ items:
           configuration changes that are not backwards compatible with the 1.X family.  API versions
           <code>getambassador.io/v0</code>, <code>getambassador.io/v1</code>, and
           <code>getambassador.io/v2</code> are deprecated.  Further details are available in the <a
-          href="../about/changes-2.0.0/#1-configuration-api-version-xgetambassadoriov3alpha1">2.0.0
-          Changes</a> document.
+          href="../about/changes-2.x/#1-configuration-api-version-getambassadoriov3alpha1">Major Changes
+          in 2.X</a> document.
         type: feature
-        docs: about/changes-2.0.0/#1-configuration-api-version-getambassadoriov3alpha1
+        docs: about/changes-2.x/#1-configuration-api-version-getambassadoriov3alpha1
         image: ./edge-stack-2.0.0-v3alpha1.png
 
       - title: The AmbassadorListener Resource
@@ -518,7 +545,7 @@ items:
         body: >-
           Where <code>AmbassadorMapping</code>'s <code>host</code> field is either an exact match or (with <code>host_regex</code> set) a regex,
           the new <code>hostname</code> element is always a DNS glob. Use <code>hostname</code> instead of <code>host</code> for best results.
-        docs: about/changes-2.0.0/#ambassadorhost-and-ambassadormapping-association
+        docs: about/changes-2.x/#ambassadorhost-and-ambassadormapping-association
         type: feature
 
       - title: Memory usage improvements for installations with many AmbassadorHosts
@@ -549,32 +576,32 @@ items:
       - title: Port configuration outside AmbassadorListener has been moved to AmbassadorListener
         body: The <code>TLSContext</code> <code>redirect_cleartext_from</code> and <code>AmbassadorHost</code> <code>requestPolicy.insecure.additionalPort</code> elements are no longer supported. Use a <code>AmbassadorListener</code> for this functionality instead.
         type: change
-        docs: about/changes-2.0.0/#tlscontext-redirect_cleartext_from-and-host-insecureadditionalport
+        docs: about/changes-2.x/#tlscontext-redirect_cleartext_from-and-host-insecureadditionalport
 
       - title: PROXY protocol configuration has been moved to AmbassadorListener
         body: The <code>use_proxy_protocol</code> element of the Ambassador <code>Module</code> is no longer supported, as it is now part of the <code>AmbassadorListener</code> resource (and can be set per-<code>AmbassadorListener</code> rather than globally).
         type: change
-        docs: about/changes-2.0.0/#proxy-protocol-configuration
+        docs: about/changes-2.x/#proxy-protocol-configuration
 
       - title: Stricter rules for AmbassadorHost/AmbassadorMapping association
-        body: An <code>AmbassadorMapping</code> will only be matched with an <code>AmbassadorHost</code> if the <code>AmbassadorMapping</code>'s <code>host</code> or the <code>AmbassadorHost</code>'s <code>selector</code> (or both) are explicitly set, and match. This change can significantly improve $productName$'s memory footprint when many <code>AmbassadorHost</code>s are involved. Further details are available in the <a href="../about/changes-2.0.0/#host-and-mapping-association">2.0.0 Changes</a> document.
-        docs: about/changes-2.0.0/#host-and-mapping-association
+        body: An <code>AmbassadorMapping</code> will only be matched with an <code>AmbassadorHost</code> if the <code>AmbassadorMapping</code>'s <code>host</code> or the <code>AmbassadorHost</code>'s <code>selector</code> (or both) are explicitly set, and match. This change can significantly improve $productName$'s memory footprint when many <code>AmbassadorHost</code>s are involved. Further details are available in the <a href="../about/changes-2.x/#host-and-mapping-association">Major Changes in 2.X</a> document.
+        docs: about/changes-2.x/#host-and-mapping-association
         type: change
 
       - title: AmbassadorHost or Ingress now required for TLS termination
-        body: An <code>AmbassadorHost</code> or <code>Ingress</code> resource is now required when terminating TLS -- simply creating a <code>TLSContext</code> is not sufficient. Further details are available in the <a href="../about/changes-2.0.0/#host-tlscontext-and-tls-termination"><code>AmbassadorHost</code> CRD documentation.</a>
-        docs: about/changes-2.0.0/#host-tlscontext-and-tls-termination
+        body: An <code>AmbassadorHost</code> or <code>Ingress</code> resource is now required when terminating TLS -- simply creating a <code>TLSContext</code> is not sufficient. Further details are available in the <a href="../about/changes-2.x/#host-tlscontext-and-tls-termination"><code>AmbassadorHost</code> CRD documentation.</a>
+        docs: about/changes-2.x/#host-tlscontext-and-tls-termination
         type: change
         image: ./edge-stack-2.0.0-host_crd.png
 
       - title: Envoy V3 APIs
-        body: By default, $productName$ will configure Envoy using the V3 Envoy API. This change is mostly transparent to users, but note that Envoy V3 does not support unsafe regular expressions or, e.g., Zipkin's V1 collector protocol. Further details are available in the <a href="../about/changes-2.0.0">2.0.0 Changes</a> document.
+        body: By default, $productName$ will configure Envoy using the V3 Envoy API. This change is mostly transparent to users, but note that Envoy V3 does not support unsafe regular expressions or, e.g., Zipkin's V1 collector protocol. Further details are available in the <a href="../about/changes-2.x">Major Changes in 2.X</a> document.
         type: change
-        docs: about/changes-2.0.0/#envoy-v3-api-by-default
+        docs: about/changes-2.x/#envoy-v3-api-by-default
 
       - title: Module-based TLS no longer supported
         body: The <code>tls</code> module and the <code>tls</code> field in the Ambassador module are no longer supported. Please use <code>TLSContext</code> resources instead.
-        docs: about/changes-2.0.0/#tls-the-ambassador-module-and-the-tls-module
+        docs: about/changes-2.x/#tls-the-ambassador-module-and-the-tls-module
         image: ./edge-stack-2.0.0-tlscontext.png
         type: change
 
@@ -621,7 +648,8 @@ items:
         docs: topics/running/ambassador/#modify-default-buffer-size
 
     edgeStackNotes:
-      - type: feature
+      - title: DevPortal supports configuring what server is displayed
+        type: feature
         body: >-
           You can now set <code>preserve_servers</code> in Ambassador Edge Stack's
           <code>DevPortal</code> resource to configure the DevPortal to use server definitions from
@@ -657,7 +685,7 @@ items:
         type: change
         body: >-
           <code>AMBASSADOR_ENVOY_API_VERSION</code> now defaults to <code>V3</code>
-        docs: https://www.getambassador.io/docs/edge-stack/latest/topics/running/running/#ambassador_envoy_api_version
+        docs: topics/running/running/#ambassador_envoy_api_version
 
       - title: Subsecond time resolution in logs
         type: change
@@ -692,18 +720,28 @@ items:
         docs: topics/running/environment/
 
     edgeStackNotes:
-      - type: bugfix
+      - title: Mappings support configuring the DevPortal fetch timeout
+        type: bugfix
         body: >-
           The <code>Mapping</code> resource can now specify <code>docs.timeout_ms</code> to set the
           timeout when the Dev Portal is fetching API specifications.
-      - type: bugfix
+        docs: topics/using/dev-portal
+        image: ../images/edge-stack-1.13.10-docs-timeout.png
+
+      - title: Dev Portal will strip HTML tags when displaying results
+        type: bugfix
         body: >-
           The Dev Portal will now strip HTML tags when displaying search results, showing just the
           actual content of the search result.
-      - type: change
+        docs: topics/using/dev-portal
+
+      - title: Consul certificate rotation logs more information
+        type: change
         body: >-
           Consul certificate-rotation logging now includes the fingerprints and validity timestamps
           of certificates being rotated.
+        docs: howtos/consul/
+        image: ../images/edge-stack-1.13.10-consul-cert-log.png
 
   - version: 1.13.9
     date: '2021-06-30'
