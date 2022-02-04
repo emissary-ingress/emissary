@@ -6,4 +6,4 @@ libraries:
     CacheControl  0.12.6   Apache License 2.0
     Flask         2.0.2    3-clause BSD license
     Werkzeug      2.0.2    3-clause BSD license
-    docutils      0.17.1   2-clause BSD license, GNU General Public License Version 3, Public domain, Python Software Foundation license
+    docutils      0.17.1   2-clause BSD license, GNU General Public License v3.0 or later, Public domain, Python Software Foundation license

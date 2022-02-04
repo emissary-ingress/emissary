@@ -26,7 +26,7 @@
       "version": "0.17.1",
       "licenses": [
         "2-clause BSD license",
-        "GNU General Public License Version 3",
+        "GNU General Public License v3.0 or later",
         "Public domain",
         "Python Software Foundation license"
       ]
@@ -36,7 +36,7 @@
     "2-clause BSD license": "https://opensource.org/licenses/BSD-2-Clause",
     "3-clause BSD license": "https://opensource.org/licenses/BSD-3-Clause",
     "Apache License 2.0": "https://opensource.org/licenses/Apache-2.0",
-    "GNU General Public License Version 3": "https://opensource.org/licenses/GPL-3.0",
+    "GNU General Public License v3.0 or later": "",
     "Public domain": "",
     "Python Software Foundation license": "https://spdx.org/licenses/PSF-2.0.html"
   }
