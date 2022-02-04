@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 from typing import cast as typecast
-from typing import Tuple
+from typing import Tuple, Optional
 
 import os
 from urllib.parse import urlparse
@@ -200,6 +200,6 @@ class V3Bootstrap(dict):
         config.bootstrap = V3Bootstrap(config)
 
 
-def split_host_port(value: str) -> Tuple[str, int]:
+def split_host_port(value: str) -> Tuple[Optional[str], int]:
     parsed = urlparse("//"+value)
     return parsed.hostname, int(parsed.port or 80)
