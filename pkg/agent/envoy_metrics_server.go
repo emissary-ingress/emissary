@@ -34,6 +34,7 @@ func (s *metricsServer) StartServer(ctx context.Context) error {
 		Handler: grpcServer,
 	}
 
+	s.logCtx = ctx
 	dlog.Info(ctx, "starting metrics service listening on :8006")
 	return sc.ListenAndServe(ctx, ":8006")
 }
