@@ -70,6 +70,185 @@ exclude (
 	k8s.io/sample-apiserver v0.0.0
 )
 
+// Invalid pseudo-version.
+exclude github.com/go-check/check v1.0.0-20180628173108-788fd7840127
+
+// Temporarily exclude all newer versions of packages we don't want to upgrade.
+exclude (
+	github.com/go-logr/logr v1.0.0
+	github.com/go-logr/logr v1.1.0
+	github.com/go-logr/logr v1.2.0
+	github.com/go-logr/logr v1.2.1
+	github.com/go-logr/logr v1.2.2
+	k8s.io/api v0.22.0
+	k8s.io/api v0.22.1
+	k8s.io/api v0.22.2
+	k8s.io/api v0.22.3
+	k8s.io/api v0.22.4
+	k8s.io/api v0.22.5
+	k8s.io/api v0.22.6
+	k8s.io/api v0.23.0
+	k8s.io/api v0.23.1
+	k8s.io/api v0.23.2
+	k8s.io/api v0.23.3
+	k8s.io/apiextensions-apiserver v0.22.0
+	k8s.io/apiextensions-apiserver v0.22.1
+	k8s.io/apiextensions-apiserver v0.22.2
+	k8s.io/apiextensions-apiserver v0.22.3
+	k8s.io/apiextensions-apiserver v0.22.4
+	k8s.io/apiextensions-apiserver v0.22.5
+	k8s.io/apiextensions-apiserver v0.22.6
+	k8s.io/apiextensions-apiserver v0.23.0
+	k8s.io/apiextensions-apiserver v0.23.1
+	k8s.io/apiextensions-apiserver v0.23.2
+	k8s.io/apiextensions-apiserver v0.23.3
+	k8s.io/apimachinery v0.22.0
+	k8s.io/apimachinery v0.22.1
+	k8s.io/apimachinery v0.22.2
+	k8s.io/apimachinery v0.22.3
+	k8s.io/apimachinery v0.22.4
+	k8s.io/apimachinery v0.22.5
+	k8s.io/apimachinery v0.22.6
+	k8s.io/apimachinery v0.23.0
+	k8s.io/apimachinery v0.23.1
+	k8s.io/apimachinery v0.23.2
+	k8s.io/apimachinery v0.23.3
+	k8s.io/apiserver v0.22.0
+	k8s.io/apiserver v0.22.1
+	k8s.io/apiserver v0.22.2
+	k8s.io/apiserver v0.22.3
+	k8s.io/apiserver v0.22.4
+	k8s.io/apiserver v0.22.5
+	k8s.io/apiserver v0.22.6
+	k8s.io/apiserver v0.23.0
+	k8s.io/apiserver v0.23.1
+	k8s.io/apiserver v0.23.2
+	k8s.io/apiserver v0.23.3
+	k8s.io/cli-runtime v0.22.0
+	k8s.io/cli-runtime v0.22.1
+	k8s.io/cli-runtime v0.22.2
+	k8s.io/cli-runtime v0.22.3
+	k8s.io/cli-runtime v0.22.4
+	k8s.io/cli-runtime v0.22.5
+	k8s.io/cli-runtime v0.22.6
+	k8s.io/cli-runtime v0.23.0
+	k8s.io/cli-runtime v0.23.1
+	k8s.io/cli-runtime v0.23.2
+	k8s.io/cli-runtime v0.23.3
+	k8s.io/client-go v0.22.0
+	k8s.io/client-go v0.22.1
+	k8s.io/client-go v0.22.2
+	k8s.io/client-go v0.22.3
+	k8s.io/client-go v0.22.4
+	k8s.io/client-go v0.22.5
+	k8s.io/client-go v0.22.6
+	k8s.io/client-go v0.23.0
+	k8s.io/client-go v0.23.1
+	k8s.io/client-go v0.23.2
+	k8s.io/client-go v0.23.3
+	k8s.io/code-generator v0.22.0
+	k8s.io/code-generator v0.22.1
+	k8s.io/code-generator v0.22.2
+	k8s.io/code-generator v0.22.3
+	k8s.io/code-generator v0.22.4
+	k8s.io/code-generator v0.22.5
+	k8s.io/code-generator v0.22.6
+	k8s.io/code-generator v0.23.0
+	k8s.io/code-generator v0.23.1
+	k8s.io/code-generator v0.23.2
+	k8s.io/code-generator v0.23.3
+	k8s.io/component-base v0.22.0
+	k8s.io/component-base v0.22.1
+	k8s.io/component-base v0.22.2
+	k8s.io/component-base v0.22.3
+	k8s.io/component-base v0.22.4
+	k8s.io/component-base v0.22.5
+	k8s.io/component-base v0.22.6
+	k8s.io/component-base v0.23.0
+	k8s.io/component-base v0.23.1
+	k8s.io/component-base v0.23.2
+	k8s.io/component-base v0.23.3
+	k8s.io/component-helpers v0.22.0
+	k8s.io/component-helpers v0.22.1
+	k8s.io/component-helpers v0.22.2
+	k8s.io/component-helpers v0.22.3
+	k8s.io/component-helpers v0.22.4
+	k8s.io/component-helpers v0.22.5
+	k8s.io/component-helpers v0.22.6
+	k8s.io/component-helpers v0.23.0
+	k8s.io/component-helpers v0.23.1
+	k8s.io/component-helpers v0.23.2
+	k8s.io/component-helpers v0.23.3
+	k8s.io/gengo v0.0.0-20210813121822-485abfe95c7c
+	k8s.io/klog/v2 v2.20.0
+	k8s.io/klog/v2 v2.30.0
+	k8s.io/klog/v2 v2.40.0
+	k8s.io/klog/v2 v2.40.1
+	k8s.io/kube-openapi v0.0.0-20220124234850-424119656bbf
+	k8s.io/kubectl v0.22.0
+	k8s.io/kubectl v0.22.1
+	k8s.io/kubectl v0.22.2
+	k8s.io/kubectl v0.22.3
+	k8s.io/kubectl v0.22.4
+	k8s.io/kubectl v0.22.5
+	k8s.io/kubectl v0.22.6
+	k8s.io/kubectl v0.23.0
+	k8s.io/kubectl v0.23.1
+	k8s.io/kubectl v0.23.2
+	k8s.io/kubectl v0.23.3
+	k8s.io/kubernetes v1.22.0
+	k8s.io/kubernetes v1.22.1
+	k8s.io/kubernetes v1.22.2
+	k8s.io/kubernetes v1.22.3
+	k8s.io/kubernetes v1.22.4
+	k8s.io/kubernetes v1.22.5
+	k8s.io/kubernetes v1.22.6
+	k8s.io/kubernetes v1.23.0
+	k8s.io/kubernetes v1.23.1
+	k8s.io/kubernetes v1.23.2
+	k8s.io/kubernetes v1.23.3
+	k8s.io/metrics v0.22.0
+	k8s.io/metrics v0.22.1
+	k8s.io/metrics v0.22.2
+	k8s.io/metrics v0.22.3
+	k8s.io/metrics v0.22.4
+	k8s.io/metrics v0.22.5
+	k8s.io/metrics v0.22.6
+	k8s.io/metrics v0.23.0
+	k8s.io/metrics v0.23.1
+	k8s.io/metrics v0.23.2
+	k8s.io/metrics v0.23.3
+	k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a
+	k8s.io/utils v0.0.0-20220127004650-9b3446523e65
+	sigs.k8s.io/controller-runtime v0.10.0
+	sigs.k8s.io/controller-runtime v0.10.1
+	sigs.k8s.io/controller-runtime v0.10.2
+	sigs.k8s.io/controller-runtime v0.10.3
+	sigs.k8s.io/controller-runtime v0.11.0
+	sigs.k8s.io/gateway-api v0.3.0
+	sigs.k8s.io/gateway-api v0.4.0
+	sigs.k8s.io/gateway-api v0.4.1
+	sigs.k8s.io/kustomize/api v0.10.0
+	sigs.k8s.io/kustomize/api v0.10.1
+	sigs.k8s.io/kustomize/api v0.11.0
+	sigs.k8s.io/kustomize/api v0.11.1
+	sigs.k8s.io/kustomize/api v0.8.10
+	sigs.k8s.io/kustomize/api v0.8.11
+	sigs.k8s.io/kustomize/api v0.8.9
+	sigs.k8s.io/kustomize/api v0.9.0
+	sigs.k8s.io/kustomize/kyaml v0.10.18
+	sigs.k8s.io/kustomize/kyaml v0.10.19
+	sigs.k8s.io/kustomize/kyaml v0.10.20
+	sigs.k8s.io/kustomize/kyaml v0.10.21
+	sigs.k8s.io/kustomize/kyaml v0.11.0
+	sigs.k8s.io/kustomize/kyaml v0.11.1
+	sigs.k8s.io/kustomize/kyaml v0.12.0
+	sigs.k8s.io/kustomize/kyaml v0.13.0
+	sigs.k8s.io/kustomize/kyaml v0.13.1
+	sigs.k8s.io/kustomize/kyaml v0.13.2
+	sigs.k8s.io/kustomize/kyaml v0.13.3
+)
+
 // We've got some bug-fixes that we need for conversion-gen and
 // controller-gen.
 replace (
@@ -170,6 +349,7 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/josharian/intern v1.0.1-0.20211109044230-42b52b674af5 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/mailru/easyjson v0.7.0 // indirect
