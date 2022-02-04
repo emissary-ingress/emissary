@@ -447,8 +447,6 @@ $(OSS_HOME)/builder/requirements.txt: $(OSS_HOME)/builder/%: $(OSS_HOME)/builder
 $(OSS_HOME)/build-aux/go-version.txt: docker/base-python/Dockerfile
 	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
 
-GO_VERSION := $(shell cat "$(OSS_HOME)/build-aux/go-version.txt")
-
 $(OSS_HOME)/build-aux/py-version.txt: docker/base-python/Dockerfile
 	{ grep -o 'python3=\S*' | cut -d= -f2; } < $< > $@
 
@@ -475,17 +473,12 @@ $(OSS_HOME)/_generate.tmp/mkopensource: FORCE
 	  touch .; \
 	}
 
-$(OSS_HOME)/builder/.requirements.txt.stamp: $(OSS_HOME)/builder/requirements.in docker/base-python.docker.tag.local
-# The --interactive is so that stdin gets passed through; otherwise Docker closes stdin.
-	set -ex -o pipefail; { \
-	  docker run --rm --interactive "$$(cat docker/base-python.docker)" sh -c 'tar xf - && pip-compile --allow-unsafe -q >&2 && cat requirements.txt' \
-
 LICENSES: $(OSS_HOME)/_generate.tmp/mkopensource \
 		$(OSS_HOME)/build-aux/py-version.txt $(PYTHON_PACKAGES) $(NPM_PACKAGES) \
 		docker/base-python.docker
 	set -e; { \
 		export APPLICATION="Emissary-ingress"; \
-		export GO_VERSION=$(GO_VERSION); \
+		export GO_VERSION=$$(cat "$(OSS_HOME)/build-aux/go-version.txt"); \
 		export PYTHON_PACKAGES="$(PYTHON_PACKAGES)"; \
 		export BUILD_HOME="$(OSS_HOME)"; \
 		export BUILD_TMP="$(OSS_HOME)/_generate.tmp/license"; \
