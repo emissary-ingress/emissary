@@ -57,7 +57,9 @@ func run(cmd *cobra.Command, args []string) error {
 		metricsServer := agent.NewMetricsServer(ambAgent.MetricsRelayHandler)
 		if err := metricsServer.StartServer(ctx); err != nil {
 			dlog.Errorf(ctx, "metrics service failed to listen: %v", err)
+			return err
 		}
+		return nil
 	})
 
 	if err := ambAgent.Watch(ctx, snapshotURL); err != nil {
