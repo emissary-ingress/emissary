@@ -4,13 +4,14 @@ package envoy.config.listener.v3;
 
 import "envoy/config/core/v3/address.proto";
 import "envoy/config/core/v3/base.proto";
+import "envoy/config/core/v3/extension.proto";
 import "envoy/type/v3/range.proto";
 
 import "google/protobuf/any.proto";
 import "google/protobuf/duration.proto";
-import "google/protobuf/struct.proto";
 import "google/protobuf/wrappers.proto";
 
+import "envoy/annotations/deprecation.proto";
 import "udpa/annotations/status.proto";
 import "udpa/annotations/versioning.proto";
 import "validate/validate.proto";
@@ -18,11 +19,13 @@ import "validate/validate.proto";
 option java_package = "io.envoyproxy.envoy.config.listener.v3";
 option java_outer_classname = "ListenerComponentsProto";
 option java_multiple_files = true;
+option go_package = "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3;listenerv3";
 option (udpa.annotations.file_status).package_version_status = ACTIVE;
 
 // [#protodoc-title: Listener components]
 // Listener :ref:`configuration overview <config_listeners>`
 
+// [#next-free-field: 6]
 message Filter {
   option (udpa.annotations.versioning).previous_message_type = "envoy.api.v2.listener.Filter";
 
@@ -34,10 +37,17 @@ message Filter {
   // :ref:`supported filter <config_network_filters>`.
   string name = 1 [(validate.rules).string = {min_len: 1}];
 
-  // Filter specific configuration which depends on the filter being
-  // instantiated. See the supported filters for further documentation.
   oneof config_type {
+    // Filter specific configuration which depends on the filter being
+    // instantiated. See the supported filters for further documentation.
+    // [#extension-category: envoy.filters.network]
     google.protobuf.Any typed_config = 4;
+
+    // Configuration source specifier for an extension configuration discovery
+    // service. In case of a failure and without the default configuration, the
+    // listener closes the connections.
+    // [#not-implemented-hide:]
+    core.v3.ExtensionConfigSource config_discovery = 5;
   }
 }
 
@@ -55,9 +65,12 @@ message Filter {
 // 3. Server name (e.g. SNI for TLS protocol),
 // 4. Transport protocol.
 // 5. Application protocols (e.g. ALPN for TLS protocol).
-// 6. Source type (e.g. any, local or external network).
-// 7. Source IP address.
-// 8. Source port.
+// 6. Directly connected source IP address (this will only be different from the source IP address
+//    when using a listener filter that overrides the source address, such as the :ref:`Proxy Protocol
+//    listener filter <config_listener_filters_proxy_protocol>`).
+// 7. Source type (e.g. any, local or external network).
+// 8. Source IP address.
+// 9. Source port.
 //
 // For criteria that allow ranges or wildcards, the most specific value in any
 // of the configured filter chains that matches the incoming connection is going
@@ -81,7 +94,7 @@ message Filter {
 // listed at the end, because that's how we want to list them in the docs.
 //
 // [#comment:TODO(PiotrSikora): Add support for configurable precedence of the rules]
-// [#next-free-field: 13]
+// [#next-free-field: 14]
 message FilterChainMatch {
   option (udpa.annotations.versioning).previous_message_type =
       "envoy.api.v2.listener.FilterChainMatch";
@@ -114,6 +127,11 @@ message FilterChainMatch {
 
   // [#not-implemented-hide:]
   google.protobuf.UInt32Value suffix_len = 5;
+
+  // The criteria is satisfied if the directly connected source IP address of the downstream
+  // connection is contained in at least one of the specified subnets. If the parameter is not
+  // specified or the list is empty, the directly connected source IP address is ignored.
+  repeated core.v3.CidrRange direct_source_prefix_ranges = 13;
 
   // Specifies the connection source IP match type. Can be any, local or external network.
   ConnectionSourceType source_type = 12 [(validate.rules).enum = {defined_only: true}];
@@ -222,16 +240,18 @@ message FilterChain {
   // This field is deprecated. Add a
   // :ref:`PROXY protocol listener filter <config_listener_filters_proxy_protocol>`
   // explicitly instead.
-  google.protobuf.BoolValue use_proxy_proto = 4 [deprecated = true];
+  google.protobuf.BoolValue use_proxy_proto = 4
+      [deprecated = true, (envoy.annotations.deprecated_at_minor_version) = "3.0"];
 
   // [#not-implemented-hide:] filter chain metadata.
   core.v3.Metadata metadata = 5;
 
   // Optional custom transport socket implementation to use for downstream connections.
-  // To setup TLS, set a transport socket with name `tls` and
-  // :ref:`DownstreamTlsContext <envoy_api_msg_extensions.transport_sockets.tls.v3.DownstreamTlsContext>` in the `typed_config`.
+  // To setup TLS, set a transport socket with name `envoy.transport_sockets.tls` and
+  // :ref:`DownstreamTlsContext <envoy_v3_api_msg_extensions.transport_sockets.tls.v3.DownstreamTlsContext>` in the `typed_config`.
   // If no transport socket configuration is specified, new connections
   // will be set up with plaintext.
+  // [#extension-category: envoy.transport_sockets.downstream]
   core.v3.TransportSocket transport_socket = 6;
 
   // If present and nonzero, the amount of time to allow incoming connections to complete any
@@ -271,7 +291,7 @@ message FilterChain {
 //    rules:
 //      - destination_port_range:
 //          start: 3306
-//          end: 3306
+//          end: 3307
 //      - destination_port_range:
 //          start: 15000
 //          end: 15001
@@ -326,14 +346,15 @@ message ListenerFilter {
   // :ref:`supported filter <config_listener_filters>`.
   string name = 1 [(validate.rules).string = {min_len: 1}];
 
-  // Filter specific configuration which depends on the filter being instantiated.
-  // See the supported filters for further documentation.
   oneof config_type {
+    // Filter specific configuration which depends on the filter being
+    // instantiated. See the supported filters for further documentation.
+    // [#extension-category: envoy.filters.listener,envoy.filters.udp_listener]
     google.protobuf.Any typed_config = 3;
   }
 
   // Optional match predicate used to disable the filter. The filter is enabled when this field is empty.
-  // See :ref:`ListenerFilterChainMatchPredicate <envoy_api_msg_config.listener.v3.ListenerFilterChainMatchPredicate>`
+  // See :ref:`ListenerFilterChainMatchPredicate <envoy_v3_api_msg_config.listener.v3.ListenerFilterChainMatchPredicate>`
   // for further examples.
   ListenerFilterChainMatchPredicate filter_disabled = 4;
 }

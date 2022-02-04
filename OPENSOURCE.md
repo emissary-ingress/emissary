@@ -22,7 +22,8 @@ following Free and Open Source software:
     github.com/armon/go-metrics                                                                v0.0.0-20180917152333-f0300d1749da          MIT license
     github.com/asaskevich/govalidator                                                          v0.0.0-20200428143746-21a406dcc535          MIT license
     github.com/census-instrumentation/opencensus-proto                                         v0.2.1                                      Apache License 2.0
-    github.com/cncf/udpa/go                                                                    v0.0.0-20210322005330-6414d713912e          Apache License 2.0
+    github.com/cncf/udpa/go                                                                    v0.0.0-20210930031921-04548b0d99d4          Apache License 2.0
+    github.com/cncf/xds/go                                                                     v0.0.0-20220121163655-4a2b9fdd466b          Apache License 2.0
     github.com/datawire/dlib                                                                   v1.2.5-0.20211116212847-0316f8d7af2b        Apache License 2.0
     github.com/datawire/dtest                                                                  v0.0.0-20210927191556-2cccf1a938b0          Apache License 2.0
     github.com/datawire/go-mkopensource                                                        v0.0.0-20220121154707-b0476e7f8255          Apache License 2.0
@@ -46,7 +47,7 @@ following Free and Open Source software:
     github.com/go-openapi/swag                                                                 v0.19.5                                     Apache License 2.0
     github.com/gobuffalo/flect                                                                 v0.2.2                                      MIT license
     github.com/gogo/protobuf                                                                   v1.3.2                                      3-clause BSD license
-    github.com/golang/protobuf                                                                 v1.4.3                                      3-clause BSD license
+    github.com/golang/protobuf                                                                 v1.5.2                                      3-clause BSD license
     github.com/google/btree                                                                    v1.0.0                                      Apache License 2.0
     github.com/google/go-cmp                                                                   v0.5.5                                      3-clause BSD license
     github.com/google/gofuzz                                                                   v1.1.0                                      Apache License 2.0
@@ -87,6 +88,7 @@ following Free and Open Source software:
     github.com/spf13/cobra                                                                     v1.1.1                                      Apache License 2.0
     github.com/spf13/pflag                                                                     v1.0.5                                      3-clause BSD license
     github.com/stretchr/testify                                                                v1.7.0                                      MIT license
+    go.opentelemetry.io/proto/otlp                                                             v0.12.0                                     Apache License 2.0
     golang.org/x/crypto                                                                        v0.0.0-20201221181555-eec23a3978ad          3-clause BSD license
     golang.org/x/mod                                                                           v0.5.1                                      3-clause BSD license
     golang.org/x/net                                                                           v0.0.0-20210226172049-e18ecbb05110          3-clause BSD license
@@ -99,8 +101,8 @@ following Free and Open Source software:
     golang.org/x/xerrors                                                                       v0.0.0-20200804184101-5ec99f83aff1          3-clause BSD license
     google.golang.org/appengine                                                                v1.6.6                                      Apache License 2.0
     google.golang.org/genproto                                                                 v0.0.0-20201110150050-8816d57aaa9a          Apache License 2.0
-    google.golang.org/grpc                                                                     v1.34.0                                     Apache License 2.0
-    google.golang.org/protobuf                                                                 v1.25.0                                     3-clause BSD license
+    google.golang.org/grpc                                                                     v1.43.0                                     Apache License 2.0
+    google.golang.org/protobuf                                                                 v1.27.1                                     3-clause BSD license
     gopkg.in/inf.v0                                                                            v0.9.1                                      3-clause BSD license
     gopkg.in/yaml.v2                                                                           v2.4.0                                      Apache License 2.0, MIT license
     gopkg.in/yaml.v3                                                                           v3.0.0-20210107192922-496545a6307b          Apache License 2.0, MIT license
