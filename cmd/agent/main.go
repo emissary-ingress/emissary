@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/datawire/dlib/dgroup"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -49,6 +50,17 @@ func run(cmd *cobra.Command, args []string) error {
 	if snapshotURL == "" {
 		snapshotURL = fmt.Sprintf(DefaultSnapshotURLFmt, entrypoint.ExternalSnapshotPort)
 	}
+
+	group := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
+
+	group.Go("metrics-server", func(ctx context.Context) error {
+		metricsServer := agent.NewMetricsServer(ambAgent.MetricsRelayHandler)
+		if err := metricsServer.StartServer(ctx); err != nil {
+			dlog.Errorf(ctx, "metrics service failed to listen: %v", err)
+			return err
+		}
+		return nil
+	})
 
 	if err := ambAgent.Watch(ctx, snapshotURL); err != nil {
 		return err

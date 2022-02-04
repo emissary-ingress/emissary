@@ -107,7 +107,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Change: Emissary will now watch for ConfigMap or Secret resources specified by the
   `AGENT_CONFIG_RESOURCE_NAME` environment variable in order to allow all components (and not only
-  the Ambassador Agent) to authenticate requests to Ambassador Cloud.
+  the Ambassador Agent) to authenticate requests to Ambassador Cloud. Support for the Envoy V2 API
+  and the `AMBASSADOR_ENVOY_API_VERSION` environment
+
+- Feature: Support for streaming Envoy metrics about the clusters to Ambassador's cloud. ([4053])
 
 - Feature: The Emissary agent now receives commands to manipulate Rollouts (pause, continue, and
   abort are currently supported) via directives and executes them in the cluster.  A report is send
@@ -119,6 +122,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
 [3821]: https://github.com/emissary-ingress/emissary/issues/3821
+[4053]: https://github.com/emissary-ingress/emissary/pull/4053
 [4040]: https://github.com/emissary-ingress/emissary/pull/4040
 
 ## [2.1.2] January 25, 2022

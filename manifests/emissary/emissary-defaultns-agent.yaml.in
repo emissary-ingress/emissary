@@ -260,4 +260,7 @@ spec:
         image: $imageRepo$:$version$
         imagePullPolicy: IfNotPresent
         name: agent
+        ports:
+        - containerPort: 8006
+          name: grpc
       serviceAccountName: emissary-ingress-agent
