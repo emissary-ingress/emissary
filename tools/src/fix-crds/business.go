@@ -53,8 +53,10 @@ func FixCRD(args Args, crd *CRD) error {
 	// Really, Golang? You couldn't just have a "set" type?
 	// TODO(Flynn): Look into letting kubebuilder generate our unserved v1.
 	CRDsWithNoUnservedV1 := map[string]interface{}{
-		"filterpolicies.getambassador.io": struct{}{},
 		"filters.getambassador.io":        struct{}{},
+		"filterpolicies.getambassador.io": struct{}{},
+		"hosts.getambassador.io":          struct{}{},
+		"listeners.getambassador.io":      struct{}{},
 		"ratelimits.getambassador.io":     struct{}{},
 	}
 
