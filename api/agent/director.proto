@@ -9,7 +9,7 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
 package agent;
-
+option go_package = "./agent";
 service Director {
   // Report a consistent Snapshot of information to the CEPC.  This
   // method is deprecated, you should call ReportStream instead.
