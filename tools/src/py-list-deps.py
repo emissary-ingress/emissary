@@ -57,9 +57,6 @@ def parse_members(filepath: str) -> Set[str]:
     with open(filepath, 'r') as filehandle:
         filecontent = filehandle.read()
 
-    with open(filepath, 'r') as filehandle:
-        filecontent = filehandle.read()
-
     members = set()
     for node in ast.parse(filecontent).body:
         # XXX: This doesn't recognize all the the statement types,
