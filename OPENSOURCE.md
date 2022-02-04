@@ -4,7 +4,7 @@ following Free and Open Source software:
     Name                                                                                       Version                                      License(s)
     ----                                                                                       -------                                      ----------
     the Go language standard library ("std")                                                   v1.17.6                                      3-clause BSD license
-    cloud.google.com/go                                                                        v0.58.0                                      Apache License 2.0
+    cloud.google.com/go                                                                        v0.81.0                                      Apache License 2.0
     github.com/Azure/go-ansiterm                                                               v0.0.0-20170929234023-d6e3b3328b78           MIT license
     github.com/Azure/go-autorest                                                               v14.2.0+incompatible                         Apache License 2.0
     github.com/Azure/go-autorest/autorest                                                      v0.11.12                                     Apache License 2.0
@@ -30,10 +30,10 @@ following Free and Open Source software:
     github.com/docker/distribution                                                             v2.7.1+incompatible                          Apache License 2.0
     github.com/emicklei/go-restful                                                             v2.9.5+incompatible                          MIT license
     github.com/envoyproxy/protoc-gen-validate                                                  v0.3.0-java.0.20200609174644-bd816e4522c1    Apache License 2.0
-    github.com/evanphx/json-patch                                                              v4.9.0+incompatible                          3-clause BSD license
+    github.com/evanphx/json-patch                                                              v4.11.0+incompatible                         3-clause BSD license
     github.com/exponent-io/jsonpath                                                            v0.0.0-20151013193312-d6023ce2651d           MIT license
     github.com/fatih/camelcase                                                                 v1.0.0                                       MIT license
-    github.com/fatih/color                                                                     v1.10.0                                      MIT license
+    github.com/fatih/color                                                                     v1.12.0                                      MIT license
     github.com/form3tech-oss/jwt-go                                                            v3.2.2+incompatible                          MIT license
     github.com/fsnotify/fsnotify                                                               v1.4.9                                       3-clause BSD license
     github.com/getkin/kin-openapi                                                              v0.66.0                                      MIT license
@@ -44,15 +44,15 @@ following Free and Open Source software:
     github.com/go-openapi/jsonreference                                                        v0.19.3                                      Apache License 2.0
     github.com/go-openapi/spec                                                                 v0.19.5                                      Apache License 2.0
     github.com/go-openapi/swag                                                                 v0.19.5                                      Apache License 2.0
-    github.com/gobuffalo/flect                                                                 v0.2.2                                       MIT license
+    github.com/gobuffalo/flect                                                                 v0.2.3                                       MIT license
     github.com/gogo/protobuf                                                                   v1.3.2                                       3-clause BSD license
-    github.com/golang/protobuf                                                                 v1.5.0                                       3-clause BSD license
+    github.com/golang/protobuf                                                                 v1.5.2                                       3-clause BSD license
     github.com/google/btree                                                                    v1.0.0                                       Apache License 2.0
-    github.com/google/go-cmp                                                                   v0.5.5                                       3-clause BSD license
+    github.com/google/go-cmp                                                                   v0.5.6                                       3-clause BSD license
     github.com/google/gofuzz                                                                   v1.1.0                                       Apache License 2.0
     github.com/google/shlex                                                                    v0.0.0-20191202100458-e7afc7fbc510           Apache License 2.0
     github.com/google/uuid                                                                     v1.1.2                                       3-clause BSD license
-    github.com/googleapis/gnostic                                                              v0.5.1                                       Apache License 2.0
+    github.com/googleapis/gnostic                                                              v0.5.5                                       Apache License 2.0
     github.com/gorilla/websocket                                                               v1.4.2                                       2-clause BSD license
     github.com/gregjones/httpcache                                                             v0.0.0-20190611155906-901d90724c79           MIT license
     github.com/hashicorp/consul/api                                                            v1.3.0                                       Mozilla Public License 2.0
@@ -62,9 +62,9 @@ following Free and Open Source software:
     github.com/hashicorp/golang-lru                                                            v0.5.4                                       Mozilla Public License 2.0
     github.com/hashicorp/serf                                                                  v0.8.2                                       Mozilla Public License 2.0
     github.com/huandu/xstrings                                                                 v1.3.2                                       MIT license
-    github.com/imdario/mergo                                                                   v0.3.11                                      3-clause BSD license
+    github.com/imdario/mergo                                                                   v0.3.12                                      3-clause BSD license
     github.com/inconshreveable/mousetrap                                                       v1.0.0                                       Apache License 2.0
-    github.com/json-iterator/go                                                                v1.1.10                                      MIT license
+    github.com/json-iterator/go                                                                v1.1.11                                      MIT license
     github.com/kballard/go-shellquote                                                          v0.0.0-20180428030007-95032a82bc51           MIT license
     github.com/liggitt/tabwriter                                                               v0.0.0-20181228230101-89fcab3d43de           3-clause BSD license
     github.com/mailru/easyjson                                                                 v0.7.0                                       MIT license
@@ -73,7 +73,7 @@ following Free and Open Source software:
     github.com/mitchellh/copystructure                                                         v1.0.0                                       MIT license
     github.com/mitchellh/go-homedir                                                            v1.1.0                                       MIT license
     github.com/mitchellh/go-wordwrap                                                           v1.0.0                                       MIT license
-    github.com/mitchellh/mapstructure                                                          v1.3.3                                       MIT license
+    github.com/mitchellh/mapstructure                                                          v1.4.1                                       MIT license
     github.com/mitchellh/reflectwalk                                                           v1.0.1                                       MIT license
     github.com/moby/spdystream                                                                 v0.2.0                                       Apache License 2.0
     github.com/moby/term                                                                       v0.0.0-20201216013528-df9cb8a40635           Apache License 2.0
@@ -87,7 +87,7 @@ following Free and Open Source software:
     github.com/prometheus/client_model                                                         v0.2.0                                       Apache License 2.0
     github.com/russross/blackfriday                                                            v1.5.2                                       2-clause BSD license
     github.com/sirupsen/logrus                                                                 v1.8.1                                       MIT license
-    github.com/spf13/cobra                                                                     v1.1.1                                       Apache License 2.0
+    github.com/spf13/cobra                                                                     v1.2.1                                       Apache License 2.0
     github.com/spf13/pflag                                                                     v1.0.5                                       3-clause BSD license
     github.com/stretchr/testify                                                                v1.7.0                                       MIT license
     github.com/xlab/treeprint                                                                  v0.0.0-20181112141820-a009c3971eca           MIT license
@@ -95,16 +95,16 @@ following Free and Open Source software:
     golang.org/x/crypto                                                                        v0.0.0-20210220033148-5ea612d1eb83           3-clause BSD license
     golang.org/x/mod                                                                           v0.5.1                                       3-clause BSD license
     golang.org/x/net                                                                           v0.0.0-20211209124913-491a49abca63           3-clause BSD license
-    golang.org/x/oauth2                                                                        v0.0.0-20200107190931-bf48bf16ab8d           3-clause BSD license
-    golang.org/x/sys                                                                           v0.0.0-20210630005230-0f9fa26af87c           3-clause BSD license
+    golang.org/x/oauth2                                                                        v0.0.0-20210402161424-2e8d93401602           3-clause BSD license
+    golang.org/x/sys                                                                           v0.0.0-20210817190340-bfb29a6856f2           3-clause BSD license
     golang.org/x/term                                                                          v0.0.0-20210220032956-6a3ed077a48d           3-clause BSD license
     golang.org/x/text                                                                          v0.3.6                                       3-clause BSD license
-    golang.org/x/time                                                                          v0.0.0-20210220033141-f8bda1e9f3ba           3-clause BSD license
-    golang.org/x/tools                                                                         v0.1.0                                       3-clause BSD license
+    golang.org/x/time                                                                          v0.0.0-20210723032227-1f47c861a9ac           3-clause BSD license
+    golang.org/x/tools                                                                         v0.1.5                                       3-clause BSD license
     golang.org/x/xerrors                                                                       v0.0.0-20200804184101-5ec99f83aff1           3-clause BSD license
-    google.golang.org/appengine                                                                v1.6.6                                       Apache License 2.0
-    google.golang.org/genproto                                                                 v0.0.0-20201110150050-8816d57aaa9a           Apache License 2.0
-    google.golang.org/grpc                                                                     v1.34.0                                      Apache License 2.0
+    google.golang.org/appengine                                                                v1.6.7                                       Apache License 2.0
+    google.golang.org/genproto                                                                 v0.0.0-20210602131652-f16073e35f0c           Apache License 2.0
+    google.golang.org/grpc                                                                     v1.38.0                                      Apache License 2.0
     google.golang.org/protobuf                                                                 v1.26.0                                      3-clause BSD license
     gopkg.in/inf.v0                                                                            v0.9.1                                       3-clause BSD license
     gopkg.in/yaml.v2                                                                           v2.4.0                                       Apache License 2.0, MIT license
@@ -123,14 +123,14 @@ following Free and Open Source software:
     k8s.io/kubectl                                                                             v0.21.9                                      Apache License 2.0
     k8s.io/kubernetes                                                                          v1.21.9                                      Apache License 2.0
     k8s.io/metrics                                                                             v0.21.9                                      Apache License 2.0
-    k8s.io/utils                                                                               v0.0.0-20210521133846-da695404a2bc           Apache License 2.0
-    sigs.k8s.io/controller-runtime                                                             v0.8.0                                       Apache License 2.0
-    github.com/emissary-ingress/controller-tools (modified from sigs.k8s.io/controller-tools)  v0.5.1-0.20220120234851-b97c2515f1c2         Apache License 2.0
+    k8s.io/utils                                                                               v0.0.0-20210802155522-efc7438f0176           3-clause BSD license, Apache License 2.0
+    sigs.k8s.io/controller-runtime                                                             v0.9.7                                       Apache License 2.0
+    github.com/emissary-ingress/controller-tools (modified from sigs.k8s.io/controller-tools)  v0.6.3-0.20220204053320-db507acbb466         Apache License 2.0
     sigs.k8s.io/gateway-api                                                                    v0.2.0                                       Apache License 2.0
     sigs.k8s.io/kustomize/api                                                                  v0.8.8                                       Apache License 2.0
     sigs.k8s.io/kustomize/kyaml                                                                v0.10.17                                     Apache License 2.0, MIT license
     sigs.k8s.io/structured-merge-diff/v4                                                       v4.2.1                                       Apache License 2.0
-    sigs.k8s.io/yaml                                                                           v1.2.0                                       3-clause BSD license, MIT license
+    sigs.k8s.io/yaml                                                                           v1.3.0                                       3-clause BSD license, MIT license
 
 The Emissary-ingress Python code makes use of the following Free and Open Source
 libraries:
