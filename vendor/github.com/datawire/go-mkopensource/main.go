@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/datawire/go-mkopensource/pkg/dependencies"
 	"io"
 	"os"
 	"os/exec"
@@ -24,17 +23,26 @@ import (
 )
 
 type CLIArgs struct {
-	OutputFormat string
-	OutputName   string
-	OutputType   string
+	OutputFormat    string
+	OutputName      string
+	OutputType      string
+	ApplicationType string
 
 	GoTarFilename string
 	Package       string
 }
 
 const (
+	// Type of output to generate
 	markdownOutputType = "markdown"
 	jsonOutputType     = "json"
+
+	// Validations to do on the licenses.
+	// The only validation for "internal" is to check chat forbidden licenses are not used
+	internalApplication = "internal"
+	// "external" applications have additional license requirements as documented in
+	//https://www.notion.so/datawire/License-Management-5194ca50c9684ff4b301143806c92157
+	externalApplication = "external"
 )
 
 func parseArgs() (*CLIArgs, error) {
@@ -44,9 +52,15 @@ func parseArgs() (*CLIArgs, error) {
 	argparser.BoolVarP(&help, "help", "h", false, "Show this message")
 	argparser.StringVar(&args.OutputFormat, "output-format", "", "Output format ('tar' or 'txt')")
 	argparser.StringVar(&args.OutputName, "output-name", "", "Name of the root directory in the --output-format=tar tarball")
-	argparser.StringVar(&args.OutputType, "output-type", markdownOutputType, fmt.Sprintf("Format used when printing dependency information. One of: %s, %s", markdownOutputType, jsonOutputType))
+	argparser.StringVar(&args.OutputType, "output-type", markdownOutputType,
+		fmt.Sprintf("Format used when printing dependency information. One of: %s, %s", markdownOutputType, jsonOutputType))
 	argparser.StringVar(&args.GoTarFilename, "gotar", "", "Tarball of the Go stdlib source code")
 	argparser.StringVar(&args.Package, "package", "", "The package(s) to report library usage for")
+	argparser.StringVar(&args.ApplicationType, "application-type", externalApplication,
+		fmt.Sprintf("Where will the application run. One of: %s, %s\n"+
+			"Internal applications are run on Ambassador servers.\n"+
+			"External applications run on client-controlled infrastructure", internalApplication, externalApplication))
+
 	if err := argparser.Parse(os.Args[1:]); err != nil {
 		return nil, err
 	}
@@ -64,6 +78,10 @@ func parseArgs() (*CLIArgs, error) {
 
 	if args.OutputType != markdownOutputType && args.OutputType != jsonOutputType {
 		return nil, fmt.Errorf("--output-type must be one of '%s', '%s'", markdownOutputType, jsonOutputType)
+	}
+
+	if args.ApplicationType != internalApplication && args.ApplicationType != externalApplication {
+		return nil, fmt.Errorf("--application-type must be one of '%s', '%s'", internalApplication, externalApplication)
 	}
 
 	switch args.OutputFormat {
@@ -152,12 +170,9 @@ func loadGoTar(goTarFilename string) (version string, license []byte, err error)
 	return version, license, nil
 }
 
-func licenseIsProprietary(licenses map[detectlicense.License]struct{}) (bool, error) {
-	_, proprietary := licenses[detectlicense.Proprietary]
-	if proprietary && len(licenses) != 1 {
-		return false, errors.New("mixed proprietary and open-source licenses")
-	}
-	return proprietary, nil
+func isAmbassadorProprietary(licenses map[detectlicense.License]struct{}) bool {
+	_, ok := licenses[detectlicense.AmbassadorProprietary]
+	return ok
 }
 
 func licenseIsWeakCopyleft(licenses map[detectlicense.License]struct{}) bool {
@@ -272,7 +287,7 @@ func Main(args *CLIArgs) error {
 	pkgLicenses := make(map[string]map[detectlicense.License]struct{})
 	licErrs := []error(nil)
 	for _, pkgName := range pkgNames {
-		pkgLicenses[pkgName], err = detectlicense.DetectLicenses(pkgFiles[pkgName])
+		pkgLicenses[pkgName], err = detectlicense.DetectLicenses(pkgName, pkgFiles[pkgName])
 		if err == nil && licenseIsStrongCopyleft(pkgLicenses[pkgName]) {
 			err = fmt.Errorf("has an unacceptable license for use by Ambassador Labs (%s)",
 				licenseString(pkgLicenses[pkgName]))
@@ -335,38 +350,42 @@ func Main(args *CLIArgs) error {
 	sort.Strings(mainLibPkgs)
 
 	// Generate the readme file.
-	readme, generationErr := generateOutput(args.Package, args.OutputFormat, args.OutputType, mainMods, mainLibPkgs, mainCmdPkgs, modNames, modLicenses, modInfos, goVersion)
-	if generationErr != nil {
-		return generationErr
-	}
+	licenseUsage := getAllowedLicenseUsage(args.ApplicationType)
 
 	switch args.OutputFormat {
 	case "txt":
+		readme, generationErr := generateOutput(args.Package, args.OutputFormat, args.OutputType, licenseUsage, mainMods, mainLibPkgs, mainCmdPkgs, modNames, modLicenses, modInfos, goVersion)
+		if generationErr != nil {
+			return generationErr
+		}
+
 		if _, err := readme.WriteTo(os.Stdout); err != nil {
 			return err
 		}
 	case "tar":
 		// Build a listing of all files to go in to the tarball
-		tarfiles := make(map[string][]byte)
-		tarfiles["OPENSOURCE.md"] = readme.Bytes()
+		readme, generationErr := generateOutput(args.Package, args.OutputFormat, markdownOutputType, licenseUsage, mainMods, mainLibPkgs, mainCmdPkgs, modNames, modLicenses, modInfos, goVersion)
+		if generationErr != nil {
+			return generationErr
+		}
+
+		tarFiles := make(map[string][]byte)
+		tarFiles["OPENSOURCE.md"] = readme.Bytes()
 		for pkgName := range pkgFiles {
-			proprietary, err := licenseIsProprietary(pkgLicenses[pkgName])
-			if err != nil {
-				return fmt.Errorf("package %q: %w", pkgName, err)
-			}
+			ambassadorProprietary := isAmbassadorProprietary(pkgLicenses[pkgName])
 			switch {
-			case proprietary:
+			case ambassadorProprietary:
 				// don't include anything
 			case licenseIsWeakCopyleft(pkgLicenses[pkgName]):
 				// include everything
-				for filename, filebody := range pkgFiles[pkgName] {
-					tarfiles[filename] = filebody
+				for filename, fileBody := range pkgFiles[pkgName] {
+					tarFiles[filename] = fileBody
 				}
 			default:
 				// just include metadata
-				for filename, filebody := range pkgFiles[pkgName] {
+				for filename, fileBody := range pkgFiles[pkgName] {
 					if matchMetadata(filename) {
-						tarfiles[filename] = filebody
+						tarFiles[filename] = fileBody
 					}
 				}
 			}
@@ -380,13 +399,13 @@ func Main(args *CLIArgs) error {
 		outputTar := tar.NewWriter(outputCompressed)
 		defer outputTar.Close()
 
-		filenames := make([]string, 0, len(tarfiles))
-		for filename := range tarfiles {
+		filenames := make([]string, 0, len(tarFiles))
+		for filename := range tarFiles {
 			filenames = append(filenames, filename)
 		}
 		sort.Strings(filenames)
 		for _, filename := range filenames {
-			body := tarfiles[filename]
+			body := tarFiles[filename]
 			err := outputTar.WriteHeader(&tar.Header{
 				Typeflag: tar.TypeReg,
 				Name:     args.OutputName + "/" + filename,
@@ -405,20 +424,33 @@ func Main(args *CLIArgs) error {
 	return nil
 }
 
-func generateOutput(packages string, outputFormat string, outputType string, mainMods map[string]struct{}, mainLibPkgs []string, mainCmdPkgs []string,
-	modNames []string, modLicenses map[string]map[detectlicense.License]struct{}, modInfos map[string]*golist.Module, goVersion string) (*bytes.Buffer, error) {
+func getAllowedLicenseUsage(applicationType string) detectlicense.AllowedLicenseUse {
+	var licenseUsage detectlicense.AllowedLicenseUse
+	switch applicationType {
+	case internalApplication:
+		licenseUsage = detectlicense.OnAmbassadorServers
+	default:
+		licenseUsage = detectlicense.Unrestricted
+	}
+	return licenseUsage
+}
+
+func generateOutput(packages string, outputFormat string, outputType string, licenseUsage detectlicense.AllowedLicenseUse,
+	mainMods map[string]struct{}, mainLibPkgs []string, mainCmdPkgs []string, modNames []string,
+	modLicenses map[string]map[detectlicense.License]struct{}, modInfos map[string]*golist.Module,
+	goVersion string) (*bytes.Buffer, error) {
 	output := new(bytes.Buffer)
 
 	switch outputType {
 	case jsonOutputType:
-		err := jsonOutput(output, modNames, modLicenses, modInfos, goVersion)
+		err := jsonOutput(output, modNames, modLicenses, modInfos, goVersion, licenseUsage)
 		if err != nil {
 			return nil, err
 		}
 	default:
 		markdownHeader(packages, mainMods, output, mainLibPkgs, mainCmdPkgs)
 		output.WriteString("\n")
-		err := markdownOutput(output, modNames, modLicenses, modInfos, goVersion)
+		err := markdownOutput(output, modNames, modLicenses, modInfos, goVersion, licenseUsage)
 		if err != nil {
 			return nil, err
 		}
@@ -462,99 +494,42 @@ func markdownHeader(packages string, mainMods map[string]struct{}, readme *bytes
 	}
 }
 
-func markdownOutput(readme *bytes.Buffer, modNames []string, modLicenses map[string]map[detectlicense.License]struct{}, modInfos map[string]*golist.Module, goVersion string) error {
+func markdownOutput(readme *bytes.Buffer, modNames []string, modLicenses map[string]map[detectlicense.License]struct{},
+	modInfos map[string]*golist.Module, goVersion string, usage detectlicense.AllowedLicenseUse) error {
+	dependencyList, generationErr := GenerateDependencyList(modNames, modLicenses, modInfos, goVersion, usage)
+	if generationErr != nil {
+		return generationErr
+	}
+
 	table := tabwriter.NewWriter(readme, 0, 8, 2, ' ', 0)
 	io.WriteString(table, "  \tName\tVersion\tLicense(s)\n")
 	io.WriteString(table, "  \t----\t-------\t----------\n")
-	for _, modKey := range modNames {
-		proprietary, err := licenseIsProprietary(modLicenses[modKey])
-		if err != nil {
-			return fmt.Errorf("module %q: %w", modKey, err)
-		}
-		if proprietary {
-			continue
+
+	for _, dependency := range dependencyList.Dependencies {
+		depLicenses := strings.Join(dependency.Licenses, ", ")
+		if depLicenses == "" {
+			panic(fmt.Errorf("this should not happen: empty license string for %q", dependency.Name))
 		}
 
-		modVal := modInfos[modKey]
-		depName := getDependencyName(modVal)
-		depVersion := getDependencyVersion(modVal, goVersion)
-		depLicenses := licenseString(modLicenses[modKey])
-		if depLicenses == "" {
-			panic(fmt.Errorf("this should not happen: empty license string for %q", depName))
-		}
-		fmt.Fprintf(table, "\t%s\t%s\t%s\n", depName, depVersion, depLicenses)
+		fmt.Fprintf(table, "\t%s\t%s\t%s\n", dependency.Name, dependency.Version, depLicenses)
 	}
 	table.Flush()
 	return nil
 }
 
-func jsonOutput(readme *bytes.Buffer, modNames []string, modLicenses map[string]map[detectlicense.License]struct{}, modInfos map[string]*golist.Module, goVersion string) error {
-	jsonOutput := dependencies.NewDependencyInfo()
-
-	for _, modKey := range modNames {
-		proprietary, err := licenseIsProprietary(modLicenses[modKey])
-		if err != nil {
-			return fmt.Errorf("module %q: %w", modKey, err)
-		}
-		if proprietary {
-			continue
-		}
-
-		modVal := modInfos[modKey]
-
-		dependencyDetails := dependencies.Dependency{
-			Name:     getDependencyName(modVal),
-			Version:  getDependencyVersion(modVal, goVersion),
-			Licenses: []string{},
-		}
-
-		for license := range modLicenses[modKey] {
-			dependencyDetails.Licenses = append(dependencyDetails.Licenses, license.Name)
-		}
-		sort.Strings(dependencyDetails.Licenses)
-
-		jsonOutput.Dependencies = append(jsonOutput.Dependencies, dependencyDetails)
+func jsonOutput(readme *bytes.Buffer, modNames []string, modLicenses map[string]map[detectlicense.License]struct{},
+	modInfos map[string]*golist.Module, goVersion string, usage detectlicense.AllowedLicenseUse) error {
+	dependencyList, generationErr := GenerateDependencyList(modNames, modLicenses, modInfos, goVersion, usage)
+	if generationErr != nil {
+		return generationErr
 	}
 
-	if err := jsonOutput.UpdateLicenseList(); err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Could not generate list of license URLs: %v\n", err)
-		os.Exit(int(DependencyGenerationError))
-	}
-
-	jsonString, err := json.Marshal(jsonOutput)
-	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Could not generate JSON output: %v\n", err)
+	jsonString, marshallErr := json.Marshal(dependencyList)
+	if marshallErr != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Could not generate JSON output: %v\n", marshallErr)
 		os.Exit(int(MarshallJsonError))
 	}
 
 	readme.Write(jsonString)
 	return nil
-}
-
-func getDependencyName(modVal *golist.Module) string {
-	if modVal == nil {
-		return "the Go language standard library (\"std\")"
-	}
-
-	if modVal.Replace != nil && modVal.Replace.Version != "" && modVal.Replace.Path != modVal.Path {
-		return fmt.Sprintf("%s (modified from %s)", modVal.Replace.Path, modVal.Path)
-	}
-
-	return modVal.Path
-}
-
-func getDependencyVersion(modVal *golist.Module, goVersion string) string {
-	if modVal == nil {
-		return goVersion
-	}
-
-	if modVal.Replace != nil {
-		if modVal.Replace.Version == "" {
-			return "(modified)"
-		} else {
-			return modVal.Replace.Version
-		}
-	}
-
-	return modVal.Version
 }
