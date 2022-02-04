@@ -26,6 +26,10 @@ type MockClient struct {
 	LastMetadata  metadata.MD
 }
 
+func (m *MockClient) ReportCommandResult(ctx context.Context, in *agent.CommandResult, opts ...grpc.CallOption) (*agent.CommandResultResponse, error) {
+	panic("implement me")
+}
+
 func (m *MockClient) Close() error {
 	return nil
 }
