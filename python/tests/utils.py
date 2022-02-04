@@ -227,8 +227,6 @@ def assert_valid_envoy_config(config_dict, v2=False):
         temp.flush()
         f_name = temp.name
         cmd = [ENVOY_PATH, '--config-path', f_name, '--mode', 'validate']
-        if v2:
-            cmd.append('--bootstrap-version 2')
         p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if p.returncode != 0:
             print(p.stdout)
