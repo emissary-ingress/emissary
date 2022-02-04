@@ -1,7 +1,6 @@
 EMISSARY_CHART = $(OSS_HOME)/charts/emissary-ingress
 
-push-preflight: create-venv $(tools/yq)
-	@$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
+push-preflight: $(OSS_HOME)/venv $(tools/yq)
 .PHONY: push-preflight
 
 release/ga/chart-push:

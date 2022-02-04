@@ -350,7 +350,7 @@ spec:
         return sorted(self.elements, key=key)
 
     def handle_k8s(self, raw_obj: dict) -> None:
-        # self.logger.debug("handle_k8s obj %s" % dump_json(obj, pretty=True))
+        # self.logger.debug("handle_k8s obj %s" % dump_json(raw_obj, pretty=True))
 
         try:
             obj = KubernetesObject(raw_obj)

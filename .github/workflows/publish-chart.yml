@@ -1,5 +1,5 @@
 name: chart-publish
-on:
+"on":
   push:
     tags:
       - 'chart/v*'

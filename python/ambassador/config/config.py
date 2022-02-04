@@ -451,21 +451,20 @@ class Config:
         ns = resource.get('namespace') or self.ambassador_namespace
         name = f"{resource.name} ns {ns}"
 
-        # Did entrypoint.go flag errors here? (in a later version we'll short-circuit earlier, but
-        # for now we're going to re-validate as a sanity check.)
+        # Did entrypoint.go flag errors here that we should show to the user?
         #
         # (It's still called watt_errors because our other docs talk about "watt
         # snapshots", and I'm OK with retaining that name for the format.)
         if 'errors' in resource:
-            # Pop the errors out of this resource, since we can't validate in Python
-            # while it's present!
+            # Pop the errors out of this resource...
             errors = resource.pop('errors').split('\n')
 
-            # This weird list comprehension around 'errors' is just filtering out any
-            # empty lines.
+            # ...strip any empty lines in the error list with this one weird list
+            # comprehension...
             watt_errors = '; '.join([error for error in errors if error])
 
-            if watt_errors:  # check that it's not an empty string
+            # ...and, assuming that we're left with any error message, post it.
+            if watt_errors:
                 return RichStatus.fromError(watt_errors)
 
         return RichStatus.OK(msg=f"good {resource.kind}")

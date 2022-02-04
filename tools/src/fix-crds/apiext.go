@@ -39,7 +39,7 @@ func writeAPIExt(output io.Writer, args Args, crdNames []string) error {
 	var image string
 	switch args.Target {
 	case TargetAPIServerKAT:
-		image = "{image}"
+		image = "{images[emissary]}"
 	case TargetAPIServerKubectl:
 		image = "$imageRepo$:$version$"
 	default:

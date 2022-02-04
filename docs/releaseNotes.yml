@@ -32,6 +32,65 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 2.2.0
+    date: 'TBD'
+    notes:
+      - title: Envoy V2 API no longer supported
+        type: change
+        body: >-
+          Support for the Envoy V2 API and the `AMBASSADOR_ENVOY_API_VERSION` environment
+          variable have been removed. Only the Envoy V3 API is supported (this has been the
+          default since Emissary-ingress v1.14.0).
+
+      - title: Support a log-level metric
+        type: feature
+        body: >-
+          Emissary now supports the metric <code>ambassador_log_level{label="debug"}</code>
+          which will be set to 1 if debug logging is enabled for the running Emissary
+          instance, or to 0 if not. This can help to be sure that a running production
+          instance was not actually left doing debugging logging, for example.
+          (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!)
+        github:
+        - title: 3906
+          link: https://github.com/emissary-ingress/emissary/issues/3906
+        docs: https://www.getambassador.io/docs/edge-stack/latest/topics/running/statistics/8877-metrics/
+
+      - title: Validate certificates in TLS Secrets
+        type: bugfix
+        body: >-
+          Kubernetes Secrets that should contain TLS certificates are now validated before being
+          accepted for configuration. A Secret that contains an invalid TLS certificate will be logged
+          as an invalid resource.
+        github:
+        - title: 3821
+          link: https://github.com/emissary-ingress/emissary/issues/3821
+        docs: https://github.com/emissary-ingress/emissary/issues/3821
+
+      - title: Emissary watch for Cloud Connect Tokens
+        type: change
+        body: >-
+          Emissary will now watch for ConfigMap or Secret resources specified by the
+          `AGENT_CONFIG_RESOURCE_NAME` environment variable in order to allow all
+          components (and not only the Ambassador Agent) to authenticate requests to
+          Ambassador Cloud.
+
+      - title: Support received commands to pause, continue and abort a Rollout via Agent directives
+        type: feature
+        body: >-
+          The Emissary agent now receives commands to manipulate Rollouts (pause, continue, and abort are
+          currently supported) via directives and executes them in the cluster. 
+          A report is send to Ambassador's cloud including the command ID, whether it ran successfully,
+          and an error message in case there was any.
+        github:
+          - title: 4040
+            link: https://github.com/emissary-ingress/emissary/pull/4040
+
+      - title: Update to Alpine 3.15
+        type: security
+        body: >-
+          Emissary has been upgraded from Alpine 3.12 to Alpine 3.15, which incorporates numerous
+          security patches.
+
   - version: 2.1.2
     prevVersion: 2.1.0
     date: '2022-01-25'
@@ -85,6 +144,15 @@ items:
         docs: topics/using/rewrites
         image: ./v2.1.2-mapping-no-rewrite.png
 
+      - title: Correctly handle DNS wildcards when associating Hosts and Mappings
+        type: bugfix
+        body: >-
+          <code>Mapping</code>s with DNS wildcard <code>hostname</code> will now be correctly
+          matched with <code>Host</code>s. Previously, the case where both the <code>Host</code>
+          and the <code>Mapping</code> use DNS wildcards for their hostnames could sometimes
+          not correctly match when they should have.
+        docs: howtos/configure-communications/
+
       - title: Correctly use Mappings with host redirects
         type: bugfix
         body: >-
@@ -94,16 +162,6 @@ items:
         - title: 3709
           link: https://github.com/emissary-ingress/emissary/issues/3709
         docs: https://github.com/emissary-ingress/emissary/issues/3709
-
-      - title: Correctly handle DNS wildcards when associating Hosts and Mappings
-        type: bugfix
-        body: >-
-          <code>Mapping</code>s with DNS wildcard <code>hostname</code> will now be correctly
-          matched with <code>Host</code>s. Previously, the case where both the <code>Host</code>
-          and the <code>Mapping</code> use DNS wildcards for their hostnames could sometimes
-          not correctly match when they should have.
-        docs: howtos/configure-communications/
-        image: ./v2.1.2-host-mapping-matching.png
 
       - title: Fix overriding global settings for adding or removing headers
         type: bugfix
@@ -140,6 +198,13 @@ items:
         body: >-
           Resource validation errors are now reported more consistently; it was the case that in
           some situations a validation error would not be reported.
+
+      - title: Docker BuildKit always used for builds
+        type: change
+        body: >-
+          Docker BuildKit is enabled for all Emissary builds. Additionally, the Go
+          build cache is fully enabled when building images, speeding up repeated builds.
+        docs: https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md
 
   - version: 2.1.1
     date: 'N/A'

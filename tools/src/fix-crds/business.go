@@ -51,7 +51,7 @@ type CRD struct {
 
 func FixCRD(args Args, crd *CRD) error {
 	// Really, Golang? You couldn't just have a "set" type?
-	// TODO(Flynn): Look into letting kubebuilder generate our unserved v1.
+	// TODO(Flynn): Look into having kubebuilder generate our unserved v1.
 	CRDsWithNoUnservedV1 := map[string]interface{}{
 		"filterpolicies.getambassador.io": struct{}{},
 		"filters.getambassador.io":        struct{}{},
@@ -132,7 +132,7 @@ func FixCRD(args Args, crd *CRD) error {
 		// If we're generating stuff for the APIServer, make sure we have an unserved,
 		// unstored v1 version, unless it's one of the CRDs for which we shouldn't do that.
 		//
-		// TODO(Flynn): Look into letting kubebuilder generate our unserved v1.
+		// TODO(Flynn): Look into having kubebuilder generate our unserved v1.
 		if args.Target == TargetAPIServerKubectl {
 			_, skip := CRDsWithNoUnservedV1[crd.Metadata.Name]
 

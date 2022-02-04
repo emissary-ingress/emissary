@@ -29,7 +29,7 @@ Check out https://www.getambassador.io/!
 How do I get help with any of this stuff?
 -----------------------------------------
 
-Ask on our [Slack channel](https://d6e.co/slack) in the `#ambassador-dev` channel.
+Ask on our [Slack channel](https://d6e.co/slack) in the [#emissary-dev](https://datawire-oss.slack.com/archives/CB46TNG83) channel.
 
 How do I setup a system for ambassador development?
 ---------------------------------------------------
@@ -46,7 +46,7 @@ ever find anything missing from this list.
  - make
  - docker (make sure you can run docker commands as your dev user without sudo)
  - bash
- - rsync (with the --info option)
+ - rsync
  - golang 1.15
  - python 3.8 or 3.9
  - kubectl
@@ -400,7 +400,7 @@ file is a Docker image; you just see that one image hash is different
 than another image hash.
 
 Fortunately, the failure showing the changed image hash is usually
-immediately preceeded by a `docker build`.  Earlier in the CI output,
+immediately preceded by a `docker build`.  Earlier in the CI output,
 you should find an identical `docker build` command from the first time it
 ran.  In the second `docker build`'s output, each step should say
 `---> Using cache`; the first few steps will say this, but at some
@@ -595,7 +595,7 @@ Modify the sources in `./_cxx/envoy/`.
 
 Once you're happy with your changes to Envoy:
 
-1. Ensure they're committed to `_cxx/envoy/` and push/PR them in to
+1. Ensure they're committed to `_cxx/envoy/` and push/PR them into
    https://github.com/datawire/envoy branch `rebase/master`.
 
    If you're outside of Datawire, you'll need to
@@ -620,7 +620,7 @@ Once you're happy with your changes to Envoy:
    The image will be pushed to `$ENVOY_DOCKER_REPO`, by default
    `ENVOY_DOCKER_REPO=docker.io/datawire/ambassador-base`; if you're
    outside of Datawire, you can skip this step if you don't want to
-   share your Envoy binary anywhere.  If you don't skip this step,
+   share your Envoy binary anywhere. If you don't skip this step,
    you'll need to `export
    ENVOY_DOCKER_REPO=${your-envoy-docker-registry}` to tell it to push
    somewhere other than Datawire's registry.
@@ -651,7 +651,7 @@ Once you're happy with your changes to Envoy:
 
 ### 6. Checklist for landing the changes
 
-I'd put this in in the pull request template, but so few PRs change Envoy...
+I'd put this in the pull request template, but so few PRs change Envoy...
 
  - [ ] The image has been pushed to...
    * [ ] `docker.io/datawire/ambassador-base`

@@ -304,8 +304,8 @@ func TestFakeIstioCert(t *testing.T) {
 		},
 		Type: kates.SecretTypeTLS,
 		Data: map[string][]byte{
-			"tls.key": []byte("not-real-cert"),
-			"tls.crt": []byte("not-real-pem"),
+			"tls.crt": k.Secrets[0].Data["tls.crt"],
+			"tls.key": k.Secrets[0].Data["tls.key"],
 		},
 	}
 

@@ -41,8 +41,6 @@ generate/precious    =
 # Whole directories with rules for each individual file in it
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) $(OSS_HOME)/pkg/api/kat/
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto')) $(OSS_HOME)/pkg/api/agent/
-generate/files      += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_pb.js          , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) # XXX: There are other files in this dir
-generate/files      += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) # XXX: There are other files in this dir
 # Whole directories with one rule for the whole directory
 generate/files      += $(OSS_HOME)/api/envoy/
 generate/files      += $(OSS_HOME)/api/pb/
@@ -50,7 +48,6 @@ generate/files      += $(OSS_HOME)/pkg/api/envoy/
 generate/files      += $(OSS_HOME)/pkg/api/pb/
 generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/
 # Individual files: Misc
-generate/files      += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 generate/files      += $(OSS_HOME)/OPENSOURCE.md
 generate/files      += $(OSS_HOME)/LICENSES.md
 generate/files      += $(OSS_HOME)/builder/requirements.txt
@@ -73,12 +70,8 @@ generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml
 # Individual files: Test TLS Certificates
-generate-fast/files += $(OSS_HOME)/builder/server.crt
-generate-fast/files += $(OSS_HOME)/builder/server.key
 generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.crt
 generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.key
-generate-fast/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.crt
-generate-fast/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.key
 generate-fast/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.crt
 generate-fast/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.key
 generate-fast/files += $(OSS_HOME)/python/tests/selfsigned.py
@@ -97,7 +90,6 @@ _generate:
 
 generate-clean: ## Delete generated sources that get committed to Git
 	rm -rf $(filter-out $(generate/precious),$(generate/files))
-	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js # This corresponds to the "# XXX: There are other files in this dir" comments above
 	find $(OSS_HOME)/pkg/api/getambassador.io -name 'zz_generated.*.go' -print -delete # generated as a side-effect of other files
 .PHONY: generate-clean
 
@@ -169,31 +161,13 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	}
 	cd $(OSS_HOME) && gofmt -w -s ./pkg/envoy-control-plane/
 
-$(OSS_HOME)/docker/test-ratelimit/ratelimit.proto:
-	set -e; { \
-	  url=https://raw.githubusercontent.com/envoyproxy/ratelimit/v1.3.0/proto/ratelimit/ratelimit.proto; \
-	  echo "// Downloaded from $$url"; \
-	  echo; \
-	  curl --fail -L "$$url"; \
-	} > $@
-
 #
 # `make generate` certificate generation
-
-$(OSS_HOME)/builder/server.crt: $(tools/testcert-gen)
-	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=kat-server.test.getambassador.io
-$(OSS_HOME)/builder/server.key: $(tools/testcert-gen)
-	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=kat-server.test.getambassador.io
 
 $(OSS_HOME)/docker/test-auth/authsvc.crt: $(tools/testcert-gen)
 	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=authsvc.datawire.io
 $(OSS_HOME)/docker/test-auth/authsvc.key: $(tools/testcert-gen)
 	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=authsvc.datawire.io
-
-$(OSS_HOME)/docker/test-ratelimit/ratelimit.crt: $(tools/testcert-gen)
-	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=ratelimit.datawire.io
-$(OSS_HOME)/docker/test-ratelimit/ratelimit.key: $(tools/testcert-gen)
-	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=ratelimit.datawire.io
 
 $(OSS_HOME)/docker/test-shadow/shadowsvc.crt: $(tools/testcert-gen)
 	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=demosvc.datawire.io
@@ -270,19 +244,6 @@ proto_options/go += plugins=grpc
 $(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go)
 	$(call protoc,go,$(OSS_HOME)/pkg/api,\
 	    $(tools/protoc-gen-go))
-
-proto_options/js += import_style=commonjs
-$(OSS_HOME)/_generate.tmp/%_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc)
-	$(call protoc,js,$(OSS_HOME)/_generate.tmp)
-
-proto_options/grpc-web += import_style=commonjs
-proto_options/grpc-web += mode=grpcwebtext
-$(OSS_HOME)/_generate.tmp/%_grpc_web_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-grpc-web)
-	$(call protoc,grpc-web,$(OSS_HOME)/_generate.tmp,\
-	    $(tools/protoc-gen-grpc-web))
-
-$(OSS_HOME)/tools/sandbox/grpc_web/%.js: $(OSS_HOME)/_generate.tmp/kat/%.js
-	cp $< $@
 
 clean: _generate_clean
 _generate_clean:
@@ -429,10 +390,6 @@ $(OSS_HOME)/python/tests/integration/manifests/crds.yaml: $(OSS_HOME)/_generate.
 $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) --target=internal-validator $(sort $(wildcard $</*.yaml)) >$@
 
-python-setup: create-venv
-	$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
-.PHONY: python-setup
-
 # Names for all the helm-expanded.yaml files (and thence output.yaml and *.yaml.in files)
 helm.name.emissary-emissaryns = emissary-ingress
 helm.name.emissary-defaultns = emissary-ingress
@@ -460,9 +417,9 @@ $(OSS_HOME)/k8s-config/%/helm-expanded.yaml: \
 $(OSS_HOME)/k8s-config/%/output.yaml: \
   $(OSS_HOME)/k8s-config/%/helm-expanded.yaml \
   $(OSS_HOME)/k8s-config/%/require.yaml \
-  $(OSS_HOME)/k8s-config/create_yaml.py \
-  python-setup
-	. $(OSS_HOME)/venv/bin/activate && $(filter %.py,$^) $(filter %/helm-expanded.yaml,$^) $(filter %/require.yaml,$^) >$@
+  $(tools/filter-yaml)
+	$(tools/filter-yaml) $(filter %/helm-expanded.yaml,$^) $(filter %/require.yaml,$^) >$@
+
 $(OSS_HOME)/manifests/emissary/%.yaml.in: $(OSS_HOME)/k8s-config/%/output.yaml
 	cp $< $@
 
@@ -478,16 +435,22 @@ $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_
 #
 # Generate report on dependencies
 
-$(OSS_HOME)/build-aux/pip-show.txt: sync
-	docker exec $$($(BUILDER)) sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
-
-$(OSS_HOME)/builder/requirements.txt: %.txt: %.in FORCE
-	$(BUILDER) pip-compile
+$(OSS_HOME)/builder/.requirements.txt.stamp: $(OSS_HOME)/builder/requirements.in docker/base-python.docker.tag.local
+# The --interactive is so that stdin gets passed through; otherwise Docker closes stdin.
+	set -ex -o pipefail; { \
+	  docker run --rm --interactive "$$(cat docker/base-python.docker)" sh -c 'tar xf - && pip-compile --allow-unsafe -q >&2 && cat requirements.txt' \
+	    < <(bsdtar -cf - -C $(@D) requirements.in requirements.txt) \
+	    > $@; }
+$(OSS_HOME)/builder/requirements.txt: $(OSS_HOME)/builder/%: $(OSS_HOME)/builder/.%.stamp $(tools/copy-ifchanged)
+	$(tools/copy-ifchanged) $< $@
 .PRECIOUS: $(OSS_HOME)/builder/requirements.txt
 
-$(OSS_HOME)/build-aux/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
+$(OSS_HOME)/build-aux/pip-show.txt: docker/base-pip.docker.tag.local
+	docker run --rm "$$(cat docker/base-pip.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
+
+$(OSS_HOME)/build-aux/go-version.txt: docker/base-python/Dockerfile
 	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
-$(OSS_HOME)/build-aux/py-version.txt: $(OSS_HOME)/builder/Dockerfile.base
+$(OSS_HOME)/build-aux/py-version.txt: docker/base-python/Dockerfile
 	{ grep -o 'python3=\S*' | cut -d= -f2; } < $< > $@
 
 $(OSS_HOME)/build-aux/go1%.src.tar.gz:

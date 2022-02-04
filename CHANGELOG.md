@@ -32,6 +32,13 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
 
 ## UPCOMING BREAKING CHANGES
 
+#### Envoy V2 API
+
+In *Emissary-ingress v2.2.0*, support for the Envoy V2 API will be removed, and Emissary-ingress
+will support only the Envoy V3 API. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will
+also be removed. Note that Emissary-ingress has been using the Envoy V3 API as its default since
+v1.14.0.
+
 #### TLS Termination and the `Host` CRD
 
 As of Emissary-ingress v2.0.4, you _must_ supply a `Host` CRD to terminate TLS: it is not
@@ -80,6 +87,40 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.2.0] TBD
+[2.2.0]: https://github.com/emissary-ingress/emissary/compare/v2.1.2...v2.2.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: Support for the Envoy V2 API and the `AMBASSADOR_ENVOY_API_VERSION` environment variable
+  have been removed. Only the Envoy V3 API is supported (this has been the default since
+  Emissary-ingress v1.14.0).
+
+- Feature: Emissary now supports the metric `ambassador_log_level{label="debug"}` which will be set
+  to 1 if debug logging is enabled for the running Emissary instance, or to 0 if not. This can help
+  to be sure that a running production instance was not actually left doing debugging logging, for
+  example. (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!) ([3906])
+
+- Bugfix: Kubernetes Secrets that should contain TLS certificates are now validated before being
+  accepted for configuration. A Secret that contains an invalid TLS certificate will be logged as an
+  invalid resource. ([3821])
+
+- Change: Emissary will now watch for ConfigMap or Secret resources specified by the
+  `AGENT_CONFIG_RESOURCE_NAME` environment variable in order to allow all components (and not only
+  the Ambassador Agent) to authenticate requests to Ambassador Cloud.
+
+- Feature: The Emissary agent now receives commands to manipulate Rollouts (pause, continue, and
+  abort are currently supported) via directives and executes them in the cluster.  A report is send
+  to Ambassador's cloud including the command ID, whether it ran successfully, and an error message
+  in case there was any. ([4040])
+
+- Security: Emissary has been upgraded from Alpine 3.12 to Alpine 3.15, which incorporates numerous
+  security patches.
+
+[3906]: https://github.com/emissary-ingress/emissary/issues/3906
+[3821]: https://github.com/emissary-ingress/emissary/issues/3821
+[4040]: https://github.com/emissary-ingress/emissary/pull/4040
+
 ## [2.1.2] January 25, 2022
 [2.1.2]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.1.2
 
@@ -106,12 +147,12 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Using `rewrite: ""` in a `Mapping` is correctly handled to mean "do not rewrite the path
   at all".
 
-- Bugfix: Any `Mapping` that uses the `host_redirect` field is now properly discovered and used.
-  Thanks to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix! ([3709])
-
 - Bugfix: `Mapping`s with DNS wildcard `hostname` will now be correctly matched with `Host`s.
   Previously, the case where both the `Host` and the `Mapping` use DNS wildcards for their hostnames
   could sometimes not correctly match when they should have.
+
+- Bugfix: Any `Mapping` that uses the `host_redirect` field is now properly discovered and used.
+  Thanks to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix! ([3709])
 
 - Bugfix: If the `ambassador` `Module` sets a global default for `add_request_headers`,
   `add_response_headers`, `remove_request_headers`, or `remove_response_headers`, it is often
@@ -130,6 +171,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Bugfix: Resource validation errors are now reported more consistently; it was the case that in
   some situations a validation error would not be reported.
+
+- Change: Docker BuildKit is enabled for all Emissary builds. Additionally, the Go build cache is
+  fully enabled when building images, speeding up repeated builds.
 
 [3709]: https://github.com/emissary-ingress/emissary/issues/3709
 

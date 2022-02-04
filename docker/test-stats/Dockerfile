@@ -1,5 +1,5 @@
 # The `test-stats` image gets built by `build-aux/check.mk` for use by
-# `python/kat/harness.py:TestImage`.
+# `python/tests/ingegration/manifests.py`.
 
 # Copyright 2018 Datawire. All rights reserved.
 #
@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-FROM alpine:3.11
+FROM docker.io/frolvlad/alpine-glibc:alpine-3.15
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
