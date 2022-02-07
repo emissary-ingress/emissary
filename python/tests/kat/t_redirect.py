@@ -262,6 +262,7 @@ spec:
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:

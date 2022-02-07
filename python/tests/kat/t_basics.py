@@ -1,3 +1,4 @@
+import re
 from typing import Generator, Tuple, Union
 
 import yaml
@@ -122,6 +123,15 @@ spec:
   prefix_bad: /bad-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
+kind: Mapping
+metadata:
+  name:  {self.path.k8s}-m-bad-no-apiversion-<<WHICH>>
+spec:
+  ambassador_id: ["{self.ambassador_id}"]
+  hostname: "*"
+  prefix_bad: /bad-<<WHICH>>/
+  service: {self.target.path.fqdn}
+""", """
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
 metadata:
@@ -207,11 +217,12 @@ spec:
 
         for m in self.models:
             m_yaml = self.format(m.replace("<<WHICH>>", "crd"))
+            m_obj = yaml.safe_load(m_yaml)
+            if 'apiVersion' not in m_obj:
+                continue
 
             manifests.append("---")
             manifests.append(m_yaml)
-
-            m_obj = yaml.safe_load(m_yaml)
 
             if 'good' not in m_obj["metadata"]["name"]:
                 self.resource_names.append(m_obj["metadata"]["name"] + ".default.1")
@@ -235,26 +246,20 @@ spec:
         error_dict = {}
 
         for resource, error in errors:
-            error_dict[resource] = error.split("\n", 1)[0]
+            error_dict[resource] = error
 
         for name in self.resource_names:
             assert name in error_dict, f"no error found for {name}"
 
             error = error_dict[name]
 
-            # This is a little weird. The way fast-reconfigure works with the Golang
-            # stuff, the empty config we pass in our bad Module turns into None. Python
-            # validation still catches it, but the error message is different.
-
-            # Don't be too picky about the serialization
-            expected_error = [
-                # if .spec.config is omitted because it's empty
-                "not a valid Module: None is not of type 'object'",
-                # if .spec.config is present-but-null
-                'spec.config in body must be of type object: "null"'
+            # Check that the error is one of the errors that we expect.
+            expected_errors = [
+                re.compile(r'^.* in body is required$'),
+                re.compile(r'^apiVersion None/ unsupported$'),
+                re.compile(r'^spec\.config in body must be of type object: "null"$'),
             ]
-            if error not in expected_error:
-                assert 'required' in error, f"error for {name} should talk about required properties: {error}"
+            assert any(pat.match(error) for pat in expected_errors), f"error for {name} should match one of the expected errors: {repr(error)}"
 
 
 class ServerNameTest(AmbassadorTest):

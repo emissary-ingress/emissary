@@ -6,7 +6,7 @@ import sys
 import pytest
 import requests
 
-from tests.utils import install_ambassador, create_httpbin_mapping
+from tests.integration.utils import install_ambassador, create_httpbin_mapping
 from tests.kubeutils import apply_kube_artifacts
 from tests.runutils import run_and_assert
 from tests.manifests import httpbin_manifests

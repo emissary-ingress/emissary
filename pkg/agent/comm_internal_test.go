@@ -26,6 +26,10 @@ type MockClient struct {
 	LastMetadata  metadata.MD
 }
 
+func (m *MockClient) ReportCommandResult(ctx context.Context, in *agent.CommandResult, opts ...grpc.CallOption) (*agent.CommandResultResponse, error) {
+	panic("implement me")
+}
+
 func (m *MockClient) Close() error {
 	return nil
 }
@@ -57,6 +61,10 @@ func (m *MockClient) Report(ctx context.Context, in *agent.Snapshot, opts ...grp
 		return m.reportFunc(ctx, in)
 	}
 	return nil, nil
+}
+
+func (m *MockClient) StreamMetrics(ctx context.Context, opts ...grpc.CallOption) (agent.Director_StreamMetricsClient, error) {
+	panic("implement me")
 }
 
 type mockReportStreamClient struct {

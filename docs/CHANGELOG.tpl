@@ -11,7 +11,7 @@ Ambassador Edge Stack is a comprehensive, self-service solution for exposing,
 securing, and managing the boundary between end users and your Kubernetes services.
 The core of Ambassador Edge Stack is Emissary-ingress.
 
-*Note well:*
+**Note well:**
 
 - Ambassador Edge Stack provides all the capabilities of Emissary-ingress,
   as well as additional capabilities including:
@@ -32,6 +32,13 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
 
 ## UPCOMING BREAKING CHANGES
 
+#### Envoy V2 API
+
+In *Emissary-ingress v2.2.0*, support for the Envoy V2 API will be removed, and Emissary-ingress
+will support only the Envoy V3 API. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will
+also be removed. Note that Emissary-ingress has been using the Envoy V3 API as its default since
+v1.14.0.
+
 #### TLS Termination and the `Host` CRD
 
 As of Emissary-ingress v2.0.4, you _must_ supply a `Host` CRD to terminate TLS: it is not
@@ -44,12 +51,12 @@ For Emissary-ingress v2.0.0 - v2.0.3, you must supply an `AmbassadorHost` CRD.
 
 #### `Ingress` Resources and Namespaces
 
-In a future version of Emissary-ingress, *no sooner than Emissary-ingress v2.1.0*, TLS
+In a future version of Emissary-ingress, **no sooner than Emissary-ingress v2.1.0**, TLS
 secrets in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 #### Regex Matching
 
-In a future version of Emissary-ingress, *no sooner than Ambassador v2.1.0*, the `regex_type`
+In a future version of Emissary-ingress, **no sooner than Ambassador v2.1.0**, the `regex_type`
 and `regex_max_size` fields will be removed from the `ambassador` `Module`, and Ambassador Edge
 Stack will support only Envoy `safe_regex` matching. Note that `safe_regex` matching has been
 the default for all 1.X releases of Emissary-ingress.
@@ -66,7 +73,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 #### Zipkin Collector Versions
 
-In a future version of Emissary-ingress, *no sooner than Emissary-ingress v2.1.0*, support
+In a future version of Emissary-ingress, **no sooner than Emissary-ingress v2.1.0**, support
 for the [HTTP_JSON_V1] Zipkin collector version will be removed.
 
 This change is being made because the HTTP_JSON_V1 collector was deprecated in Envoy v1.12.0, then
@@ -84,33 +91,43 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 {{ range $i, $release := $relnotes.items -}}
 {{ $prevVersion := "1.13.3" -}}
-{{ if lt (add $i 1) (len $relnotes.items) -}}
-{{   $prevVersion = (index $relnotes.items (add $i 1)).version -}}
+{{- if index $release "prevVersion" -}}
+  {{- $prevVersion = $release.prevVersion -}}
+{{ else -}}
+  {{- if lt (add $i 1) (len $relnotes.items) -}}
+  {{-   $prevVersion = (index $relnotes.items (add $i 1)).version -}}
+  {{- end -}}
 {{ end -}}
 {{ if eq $release.version "1.13.7" -}}
 {{   $ghName = "datawire/ambassador" -}}
 {{ end }}
-## [{{ $release.version }}] {{ if eq $release.date "TBD" }}TBD{{ else }}{{ (time.Parse "2006-01-02" $release.date).Format "January 02, 2006" }}{{ end }}
+## {{ if ne $release.date "N/A" }}[{{ end }}{{ $release.version }}{{ if ne $release.date "N/A" }}]{{ end }} {{ if eq $release.date "N/A" }}not issued{{ else if eq $release.date "TBD" }}TBD{{ else }}{{ (time.Parse "2006-01-02" $release.date).Format "January 02, 2006" }}{{ end }}{{ if ne $release.date "N/A" }}
 [{{ $release.version }}]: https://github.com/{{ $ghName }}/compare/v{{ $prevVersion }}...v{{ $release.version }}
-{{- range $release.notes }}{{ if index . "isHeadline" }}{{ if .isHeadline }}
+{{- end }}{{ range $release.notes }}{{ if index . "isHeadline" }}{{ if .isHeadline }}
 
 {{ .body |
     strings.ReplaceAll "$productName$" "Emissary-ingress" |
-    strings.ReplaceAll "<b>" "_" |
-    strings.ReplaceAll "</b>" "_" |
+    strings.ReplaceAll "<b>" "**" |
+    strings.ReplaceAll "</b>" "**" |
+    strings.ReplaceAll "<i>" "*" |
+    strings.ReplaceAll "</i>" "*" |
     strings.ReplaceAll "<code>" "`" |
     strings.ReplaceAll "</code>" "`" |
+    strings.ReplaceAll "href=\"../" "href=\"https://www.getambassador.io/docs/emissary/latest/" |
     strings.WordWrap 100 }}
 {{- end }}{{ end }}{{ end }}
-
+{{ if ne $release.date "N/A" }}
 ### Emissary-ingress and Ambassador Edge Stack
 {{ range $release.notes }}{{ if not (index . "isHeadline") }}
 - {{ printf "%s: %s" (.type | strings.Title) .body |
     strings.ReplaceAll "$productName$" "Emissary-ingress" |
-    strings.ReplaceAll "<b>" "_" |
-    strings.ReplaceAll "</b>" "_" |
+    strings.ReplaceAll "<b>" "**" |
+    strings.ReplaceAll "</b>" "**" |
+    strings.ReplaceAll "<i>" "*" |
+    strings.ReplaceAll "</i>" "*" |
     strings.ReplaceAll "<code>" "`" |
     strings.ReplaceAll "</code>" "`" |
+    strings.ReplaceAll "href=\"../" "href=\"https://www.getambassador.io/docs/emissary/latest/" |
     strings.WordWrap 98 |
     strings.Indent 2 |
     strings.TrimPrefix "  " }}{{ if index . "github" }}{{ range .github }} ([{{.title}}]){{ end }}{{ end }}
@@ -121,16 +138,19 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 {{ range $release.edgeStackNotes }}
 - {{ printf "%s: %s" (.type | strings.Title) .body |
     strings.ReplaceAll "$productName$" "Emissary-ingress" |
-    strings.ReplaceAll "<b>" "_" |
-    strings.ReplaceAll "</b>" "_" |
+    strings.ReplaceAll "<b>" "**" |
+    strings.ReplaceAll "</b>" "**" |
+    strings.ReplaceAll "<i>" "*" |
+    strings.ReplaceAll "</i>" "*" |
     strings.ReplaceAll "<code>" "`" |
     strings.ReplaceAll "</code>" "`" |
+    strings.ReplaceAll "href=\"../" "href=\"https://www.getambassador.io/docs/edge-stack/latest/" |
     strings.WordWrap 98 |
     strings.Indent 2 |
     strings.TrimPrefix "  " }}{{ if index . "github" }}{{ range .github }} ([{{.title}}]){{ end }}{{ end }}
 {{ end }}{{ $anyGitLinks := false }}{{ range $release.edgeStackNotes -}}{{- if index . "github" -}}{{- range .github }}{{ $anyGitLinks = true }}
 [{{.title}}]: {{.link}}{{ end -}}{{- end -}}{{- end -}}{{ if $anyGitLinks }}
-{{ end }}{{ end }}{{ end }}
+{{ end }}{{ end }}{{ end }}{{ end }}
 ## [1.13.3] May 03, 2021
 [1.13.3]: https://github.com/datawire/ambassador/compare/v1.13.2...v1.13.3
 
@@ -161,7 +181,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-*Note*: Support for the deprecated `v2alpha` `protocol_version` has been removed from the `AuthService` and `RateLimitService`.
+**Note**: Support for the deprecated `v2alpha` `protocol_version` has been removed from the `AuthService` and `RateLimitService`.
 
 - Feature: Added support for the [Mapping AuthService setting] `auth_context_extensions`, allowing supplying custom per-mapping information to external auth services (thanks, [Giridhar Pathak](https://github.com/gpathak)!).
 - Feature: Added support in ambassador-agent for reporting [Argo Rollouts] and [Argo Applications] to Ambassador Cloud
@@ -517,7 +537,7 @@ update the `Status` of a `Mapping` unless you explicitly set
 tooling that relies on `Mapping` status updates, we do not recommend setting
 `AMBASSADOR_UPDATE_MAPPING_STATUS`.
 
-*In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use
+**In Ambassador 1.7**, TLS secrets in `Ingress` resources will not be able to use
 `.namespace` suffixes to cross namespaces.
 
 ### Ambassador Edge Stack only

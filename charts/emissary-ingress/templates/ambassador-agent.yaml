@@ -166,7 +166,7 @@ metadata:
 rules:
 - apiGroups: ["argoproj.io"]
   resources: [ "rollouts" ]
-  verbs: [ "get", "list", "watch" ]
+  verbs: [ "get", "list", "watch", "patch" ]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -226,6 +226,9 @@ spec:
         image: {{ include "ambassador.image" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: [ "agent" ]
+        ports:
+          - containerPort: 8006
+            name: grpc
         env:
         - name: AGENT_NAMESPACE
           valueFrom:
@@ -242,5 +245,33 @@ spec:
   progressDeadlineSeconds: {{ .Values.progressDeadlines.agent }}
   {{- end }}
   {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ambassador.fullname" . }}-agent
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-agent
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    {{- end }}
+    product: aes
+spec:
+  ports:
+    - port: 8006
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+  selector:
+    app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-agent
+    app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 {{- end }}

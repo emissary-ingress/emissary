@@ -45,8 +45,7 @@ import concurrent.futures
 
 from pkg_resources import Requirement, resource_filename
 
-import clize
-from clize import Parameter
+import click
 from flask import Flask, render_template, send_from_directory, request, jsonify, Response
 from flask import json as flask_json
 import gunicorn.app.base
@@ -180,7 +179,7 @@ class DiagApp (Flask):
               config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
               metrics_endpoint: Optional[str], k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False,
               verbose=False, notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
-              report_action_keys=False, enable_fast_reconfigure=False, legacy_mode=False, clustermap_path=None):
+              report_action_keys=False, enable_fast_reconfigure=False, clustermap_path=None):
         self.health_checks = do_checks
         self.no_envoy = no_envoy
         self.debugging = reload
@@ -197,7 +196,6 @@ class DiagApp (Flask):
         self.metrics_endpoint = metrics_endpoint
         self.metrics_registry = CollectorRegistry(auto_describe=True)
         self.enable_fast_reconfigure = enable_fast_reconfigure
-        self.legacy_mode = legacy_mode
 
         # Init logger, inherits settings from default
         self.logger = logging.getLogger("ambassador.diagd")
@@ -644,29 +642,19 @@ def _is_local_request() -> bool:
     """
     Determine if this request originated with localhost.
 
-    When we are not running in LEGACY_MODE, we rely on healthcheck_server.go setting
-    the X-Ambassador-Diag-IP header for us (and we rely on it overwriting anything
-    that's already there!).
-
-    When we _are_ running in LEGACY_MODE, we rely on an implementation detail of
-    Flask (or maybe of GUnicorn?): the existence of the REMOTE_ADDR environment
-    variable. This may not work as intended on other WSGI implementations, though if
-    the environment variable is missing entirely, the effect is to fail closed, i.e.
-    all requests will be rejected, in which case the problem will become apparent
-    very quickly.
+    We rely on healthcheck_server.go setting the X-Ambassador-Diag-IP header for us
+    (and we rely on it overwriting anything that's already there!).
 
     It might be possible to consider the environment variables SERVER_NAME and
     SERVER_PORT instead, as those are allegedly required by WSGI... but attempting
     to do so in Flask/GUnicorn yielded a worse implementation that was still not
     portable.
+
     """
 
     remote_addr: Optional[str] = ""
 
-    if not app.legacy_mode:
-        remote_addr = request.headers.get("X-Ambassador-Diag-IP")
-    else:
-        remote_addr = request.environ.get("REMOTE_ADDR")
+    remote_addr = request.headers.get("X-Ambassador-Diag-IP")
 
     return remote_addr == "127.0.0.1"
 
@@ -2081,7 +2069,31 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         return self.application
 
 
-def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
+@click.command()
+@click.argument('snapshot-path',      type=click.Path(), required=False)
+@click.argument('bootstrap-path',     type=click.Path(), required=False)
+@click.argument('ads-path',           type=click.Path(), required=False)
+@click.option('--config-path',        type=click.Path(),                                 help="Optional configuration path to scan for Ambassador YAML files")
+@click.option('--k8s',                is_flag=True,                                      help="If True, assume config_path contains Kubernetes resources (only relevant with config_path)")
+@click.option('--ambex-pid',          type=int, default=0,                               help="Optional PID to signal with HUP after updating Envoy configuration", show_default=True)
+@click.option('--kick',               type=str,                                          help="Optional command to run after updating Envoy configuration")
+@click.option('--banner-endpoint',    type=str, default="http://127.0.0.1:8500/banner",  help="Optional endpoint of extra banner to include", show_default=True)
+@click.option('--metrics-endpoint',   type=str, default="http://127.0.0.1:8500/metrics", help="Optional endpoint of extra prometheus metrics to include", show_default=True)
+@click.option('--no-checks',          is_flag=True,                                      help="If True, don't do Envoy-cluster health checking")
+@click.option('--no-envoy',           is_flag=True,                                      help="If True, don't interact with Envoy at all")
+@click.option('--reload',             is_flag=True,                                      help="If True, run Flask in debug mode for live reloading")
+@click.option('--debug',              is_flag=True,                                      help="If True, do debug logging")
+@click.option('--dev-magic',          is_flag=True,                                      help="If True, override a bunch of things for Datawire dev-loop stuff")
+@click.option('--verbose',            is_flag=True,                                      help="If True, do really verbose debug logging")
+@click.option('--workers',            type=int,                                          help="Number of workers; default is based on the number of CPUs present")
+@click.option('--host',               type=str,                                          help="Interface on which to listen")
+@click.option('--port',               type=int, default=-1,                              help="Port on which to listen", show_default=True)
+@click.option('--notices',            type=click.Path(),                                 help="Optional file to read for local notices")
+@click.option('--validation-retries', type=int, default=5,                               help="Number of times to retry Envoy configuration validation after a timeout", show_default=True)
+@click.option('--allow-fs-commands',  is_flag=True,                                      help="If true, allow CONFIG_FS to support debug/testing commands")
+@click.option('--local-scout',        is_flag=True,                                      help="Don't talk to remote Scout at all; keep everything purely local")
+@click.option('--report-action-keys', is_flag=True,                                      help="Report action keys when chiming")
+def main(snapshot_path=None, bootstrap_path=None, ads_path=None,
           *, dev_magic=False, config_path=None, ambex_pid=0, kick=None,
           banner_endpoint="http://127.0.0.1:8500/banner", metrics_endpoint="http://127.0.0.1:8500/metrics", k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
@@ -2091,33 +2103,19 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     """
     Run the diagnostic daemon.
 
-    :param snapshot_path: Path to directory in which to save configuration snapshots and dynamic secrets
-    :param bootstrap_path: Path to which to write bootstrap Envoy configuration
-    :param ads_path: Path to which to write ADS Envoy configuration
-    :param config_path: Optional configuration path to scan for Ambassador YAML files
-    :param k8s: If True, assume config_path contains Kubernetes resources (only relevant with config_path)
-    :param ambex_pid: Optional PID to signal with HUP after updating Envoy configuration
-    :param kick: Optional command to run after updating Envoy configuration
-    :param banner_endpoint: Optional endpoint of extra banner to include
-    :param metrics_endpoint: Optional endpoint of extra prometheus metrics to include
-    :param no_checks: If True, don't do Envoy-cluster health checking
-    :param no_envoy: If True, don't interact with Envoy at all
-    :param reload: If True, run Flask in debug mode for live reloading
-    :param debug: If True, do debug logging
-    :param dev_magic: If True, override a bunch of things for Datawire dev-loop stuff
-    :param verbose: If True, do really verbose debug logging
-    :param workers: Number of workers; default is based on the number of CPUs present
-    :param host: Interface on which to listen
-    :param port: Port on which to listen
-    :param notices: Optional file to read for local notices
-    :param validation_retries: Number of times to retry Envoy configuration validation after a timeout
-    :param allow_fs_commands: If true, allow CONFIG_FS to support debug/testing commands
-    :param local_scout: Don't talk to remote Scout at all; keep everything purely local
-    :param report_action_keys: Report action keys when chiming
+    Arguments:
+
+      SNAPSHOT_PATH
+        Path to directory in which to save configuration snapshots and dynamic secrets
+
+      BOOTSTRAP_PATH
+        Path to which to write bootstrap Envoy configuration
+
+      ADS_PATH
+        Path to which to write ADS Envoy configuration
     """
 
     enable_fast_reconfigure = parse_bool(os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "true"))
-    legacy_mode = parse_bool(os.environ.get("AMBASSADOR_LEGACY_MODE", "false"))
 
     if port < 0:
         port = Constants.DIAG_PORT if not enable_fast_reconfigure else Constants.DIAG_PORT_ALT
@@ -2153,7 +2151,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick, banner_endpoint,
               metrics_endpoint, k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
               validation_retries, allow_fs_commands, local_scout, report_action_keys,
-              enable_fast_reconfigure, legacy_mode)
+              enable_fast_reconfigure)
 
     if not workers:
         workers = number_of_workers()
@@ -2167,10 +2165,6 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     app.logger.info("thread count %d, listening on %s" % (gunicorn_config['threads'], gunicorn_config['bind']))
 
     StandaloneApplication(app, gunicorn_config).run()
-
-
-def main():
-    clize.run(_main)
 
 
 if __name__ == "__main__":

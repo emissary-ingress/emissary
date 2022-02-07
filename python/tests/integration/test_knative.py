@@ -6,13 +6,13 @@ import time
 
 import pytest
 
-from kat.harness import is_knative_compatible
-from kat.harness import load_manifest
 from ambassador import Config, IR
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler, parse_bool
 
-from tests.utils import install_ambassador, get_code_with_retry, create_qotm_mapping
+import tests.integration.manifests as integration_manifests
+from kat.harness import is_knative_compatible
+from tests.integration.utils import install_ambassador, get_code_with_retry, create_qotm_mapping
 from tests.kubeutils import apply_kube_artifacts, delete_kube_artifacts
 from tests.runutils import run_with_retry, run_and_assert
 from tests.manifests import qotm_manifests
@@ -71,8 +71,8 @@ class KnativeTesting:
         namespace = 'knative-testing'
 
         # Install Knative
-        apply_kube_artifacts(namespace=None, artifacts=load_manifest("knative_serving_crds"))
-        apply_kube_artifacts(namespace='knative-serving', artifacts=load_manifest("knative_serving_0.18.0"))
+        apply_kube_artifacts(namespace=None, artifacts=integration_manifests.load("knative_serving_crds"))
+        apply_kube_artifacts(namespace='knative-serving', artifacts=integration_manifests.load("knative_serving_0.18.0"))
         run_and_assert(['tools/bin/kubectl', 'patch', 'configmap/config-network', '--type', 'merge', '--patch', r'{"data": {"ingress.class": "ambassador.ingress.networking.knative.dev"}}', '-n', 'knative-serving'])
 
         # Wait for Knative to become ready

@@ -33,8 +33,7 @@ import pstats
 import signal
 import traceback
 
-import clize
-from clize import Parameter
+import click
 
 from ambassador import Scout, Config, IR, Diagnostics, Version
 from ambassador.fetch import ResourceFetcher
@@ -141,7 +140,25 @@ class CLISecretHandler(SecretHandler):
         return None
 
 
-def dump(config_dir_path: Parameter.REQUIRED, *,
+@click.command()
+@click.argument('config_dir_path', type=click.Path())
+@click.option('--secret-dir-path', type=click.Path(), help="Directory into which to save secrets")
+@click.option('--watt',        is_flag=True, help="If set, input must be a WATT snapshot")
+@click.option('--debug',       is_flag=True, help="If set, generate debugging output")
+@click.option('--debug_scout', is_flag=True, help="If set, generate debugging output")
+@click.option('--k8s',         is_flag=True, help="If set, assume configuration files are annotated K8s manifests")
+@click.option('--recurse',     is_flag=True, help="If set, recurse into directories below config_dir_path")
+@click.option('--stats',       is_flag=True, help="If set, dump statistics to stderr")
+@click.option('--nopretty',    is_flag=True, help="If set, do not pretty print the dumped JSON")
+@click.option('--aconf',       is_flag=True, help="If set, dump the Ambassador config")
+@click.option('--ir',          is_flag=True, help="If set, dump the IR")
+@click.option('--v2',          is_flag=True, help="If set, dump the Envoy V2 config")
+@click.option('--v3',          is_flag=True, help="If set, dump the Envoy V3 config")
+@click.option('--diag',        is_flag=True, help="If set, dump the Diagnostics overview")
+@click.option('--everything',  is_flag=True, help="If set, dump everything")
+@click.option('--features',    is_flag=True, help="If set, dump the feature set")
+@click.option('--profile',     is_flag=True, help="If set, profile with the cProfile module")
+def dump(config_dir_path: str, *,
          secret_dir_path=None, watt=False, debug=False, debug_scout=False, k8s=False, recurse=False,
          stats=False, nopretty=False, everything=False, aconf=False, ir=False, v2=False, v3=False, diag=False,
          features=False, profile=False):
@@ -152,22 +169,6 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     will be dumped.
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
-    :param secret_dir_path: Directory into which to save secrets
-    :param watt: If set, input must be a WATT snapshot
-    :param debug: If set, generate debugging output
-    :param debug_scout: If set, generate debugging output
-    :param k8s: If set, assume configuration files are annotated K8s manifests
-    :param recurse: If set, recurse into directories below config_dir_path
-    :param stats: If set, dump statistics to stderr
-    :param nopretty: If set, do not pretty print the dumped JSON
-    :param aconf: If set, dump the Ambassador config
-    :param ir: If set, dump the IR
-    :param v2: If set, dump the Envoy V2 config
-    :param v3: If set, dump the Envoy V3 config
-    :param diag: If set, dump the Diagnostics overview
-    :param everything: If set, dump everything
-    :param features: If set, dump the feature set
-    :param profile: If set, profile with the cProfile module
     """
 
     if not secret_dir_path:
@@ -353,31 +354,37 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     sys.exit(_rc)
 
 
-def validate(config_dir_path: Parameter.REQUIRED, **kwargs):
+@click.command()
+@click.argument('config_dir_path', type=click.Path())
+def validate(config_dir_path: str):
     """
     Validate an Ambassador configuration. This is an extension of "config" that
     redirects output to devnull and always exits on error.
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
     """
-    config(config_dir_path, os.devnull, exit_on_error=True, **kwargs)
+    config(config_dir_path, os.devnull, exit_on_error=True)
 
 
-def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQUIRED, *,
+@click.command()
+@click.argument('config_dir_path',  type=click.Path())
+@click.argument('output_json_path', type=click.Path())
+@click.option('--debug',            is_flag=True,      help="If set, generate debugging output")
+@click.option('--debug-scout',      is_flag=True,      help="If set, generate debugging output when talking to Scout")
+@click.option('--check',            is_flag=True,      help="If set, generate configuration only if it doesn't already exist")
+@click.option('--k8s',              is_flag=True,      help="If set, assume configuration files are annotated K8s manifests")
+@click.option('--exit-on-error',    is_flag=True,      help="If set, will exit with status 1 on any configuration error")
+@click.option('--ir',               type=click.Path(), help="Pathname to which to dump the IR (not dumped if not present)")
+@click.option('--aconf',            type=click.Path(), help="Pathname to which to dump the aconf (not dumped if not present)")
+def config(config_dir_path: str, output_json_path: str, *,
            debug=False, debug_scout=False, check=False, k8s=False, ir=None, aconf=None,
            exit_on_error=False):
     """
     Generate an Envoy configuration
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
+
     :param output_json_path: Path to output envoy.json
-    :param debug: If set, generate debugging output
-    :param debug_scout: If set, generate debugging output when talking to Scout
-    :param check: If set, generate configuration only if it doesn't already exist
-    :param k8s: If set, assume configuration files are annotated K8s manifests
-    :param exit_on_error: If set, will exit with status 1 on any configuration error
-    :param ir: Pathname to which to dump the IR (not dumped if not present)
-    :param aconf: Pathname to which to dump the aconf (not dumped if not present)
     """
 
     if debug:
@@ -447,10 +454,6 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
                     output.write(ir.as_json())
                     output.write("\n")
 
-            # clize considers kwargs with False for default value as flags,
-            # resulting in the logic below.
-            # https://clize.readthedocs.io/en/stable/basics.html#accepting-flags
-
             logger.info("Writing envoy V2 configuration")
             v2config = V2Config(ir)
             rc = RichStatus.OK(msg="huh_v2")
@@ -473,19 +476,38 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
         sys.exit(1)
 
 
+def version_callback(ctx: click.core.Context, param: click.Parameter, value: bool) -> None:
+    if not value:
+        return
+    version()
+    ctx.exit()
+
+
+def showid_callback(ctx: click.core.Context, param: click.Parameter, value: bool) -> None:
+    if not value:
+        return
+    showid()
+    ctx.exit()
+
+
+@click.group(
+    no_args_is_help=False,
+    commands=[config, dump, validate],
+)
+@click.option('--version', is_flag=True, expose_value=False, callback=version_callback, help="Show the Emissary version number and exit.")
+@click.option('--showid', is_flag=True, expose_value=False, callback=showid_callback, help="Show the cluster ID and exit.")
 def main():
-    clize.run([config, dump, validate], alt=[version, showid],
-              description="""
-              Generate an Envoy config, or manage an Ambassador deployment. Use
+    """Generate an Envoy config, or manage an Ambassador deployment. Use
 
-              ambassador.py command --help
+        ambassador.py command --help
 
-              for more help, or
+    for more help, or
 
-              ambassador.py --version
+        ambassador.py --version
 
-              to see Ambassador's version.
-              """)
+    to see Ambassador's version.
+    """
+    pass
 
 
 if __name__ == "__main__":

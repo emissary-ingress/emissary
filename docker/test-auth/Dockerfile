@@ -1,5 +1,5 @@
 # The `test-auth` image gets built by `build-aux/check.mk` for use by
-# `python/kat/harness.py:TestImage`.
+# `python/tests/ingegration/manifests.py`.
 
 # Copyright 2018 Datawire. All rights reserved.
 #
@@ -36,26 +36,20 @@ RUN apt-get update && apt-get -q install -y \
     python3-pip \
     dnsutils
 
-# Set WORKDIR to /application which is the root of all our apps then COPY
-# only requirements.txt to avoid screwing up Docker caching and causing a
-# full reinstall of all dependencies when dependencies are not changed.
-
+# Set WORKDIR to /application which is the root of all our apps.
 WORKDIR /application
-COPY requirements.txt .
 
+# COPY only requirements.txt to avoid screwing up Docker caching and
+# causing a full reinstall of all dependencies when dependencies are
+# not changed.
+COPY requirements.txt .
 # Install application dependencies
 RUN pip3 install -r requirements.txt
 
-# COPY the app code and configuration into place, then perform any final
-# configuration steps.
+# COPY the app code and configuration into place.
+COPY auth.py authsvc.crt authsvc.key entrypoint.sh ./
 
-COPY auth.py authsvc.crt authsvc.key ./
-
-# COPY the entrypoint script and make it runnable.
-COPY entrypoint.sh .
-RUN chmod 755 entrypoint.sh
-
+# perform any final configuration steps.
 ARG TLS=""
 ENV TLS=${TLS}
-
 ENTRYPOINT ./entrypoint.sh ${TLS}

@@ -11,7 +11,7 @@ service:
 
 barePod: true
 image:
-  fullImageOverride: «image»
+  fullImageOverride: «images[emissary]»
 containerNameOverride: ambassador
 restartPolicy: Always
 env:

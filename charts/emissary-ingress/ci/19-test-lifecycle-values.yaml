@@ -1,0 +1,15 @@
+deploymentStrategy:
+  type: Recreate
+
+service:
+  type: NodePort
+
+lifecycle:
+  preStop:
+    exec:
+      command:
+        - "sh"
+        - "-c"
+        - "/bin/sleep 3"
+
+createDefaultListeners: true

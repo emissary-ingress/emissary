@@ -10,7 +10,7 @@ check:
 
 generate:
 	go generate ./...
-.PHONY: check
+.PHONY: generate
 
 lint: tools/bin/golangci-lint
 	tools/bin/golangci-lint run ./...

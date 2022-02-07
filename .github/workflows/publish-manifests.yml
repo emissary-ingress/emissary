@@ -1,8 +1,8 @@
 name: manifest-publish
-on:
+"on":
   push:
     tags:
-      - 'chart-v**'
+      - 'chart/v*'
 jobs:
   manifest-publish:
     runs-on: ubuntu-latest
@@ -12,19 +12,25 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
       AWS_EC2_METADATA_DISABLED: true
-      BUMP_STABLE: true
     steps:
       - uses: actions/checkout@v2
-      - name: "Install Go"
-        uses: ./.github/actions/setup-go
+        with:
+          fetch-depth: 0
+      - name: "Install Deps"
+        uses: ./.github/actions/setup-deps
+      - name: "Set BUMP_STABLE"
+        run: |
+          if [[ $GITHUB_REF != *-* ]]; then
+            echo 'export BUMP_STABLE=true' >> $GITHUB_ENV
+          fi
       - name: make push-manifests
         run: |
           make push-manifests
       - name: make publish-docs-yaml
+        id: step-publish-yaml
         run: |
           make publish-docs-yaml
-          ver_yaml_version=`grep 'version:' docs/yaml/versions.yml | sed 's/version://g'`
-          echo "RELEASED_VERSION=${ver_yaml_version}" >> $GITHUB_ENV
+          echo "::set-output name=published_version::$(go run ./tools/src/goversion)"
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
@@ -32,7 +38,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
-          success_text: 'Manifests successfully published for ${env.RELEASED_VERSION}'
+          success_text: 'Manifests successfully published for ${{steps.step-publish-yaml.published_version}}'
           failure_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build failed'
           cancelled_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build was cancelled'
           fields: |

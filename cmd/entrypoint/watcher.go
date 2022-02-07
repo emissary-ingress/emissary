@@ -17,11 +17,11 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/gateway"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
-	"github.com/datawire/ambassador/v2/pkg/watt"
+	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
 )
 
-func watcher(
+func WatchAllTheThings(
 	ctx context.Context,
 	ambwatch *acp.AmbassadorWatcher,
 	encoded *atomic.Value,
@@ -60,15 +60,15 @@ func watcher(
 	}
 
 	k8sSrc := newK8sSource(client)
-	consulSrc := &consulWatcher{}
+	consulSrc := watchConsul
 	istioCertSrc := newIstioCertSource()
 
-	return watcherLoop(
+	return watchAllTheThingsInternal(
 		ctx,
 		encoded,
 		k8sSrc,
 		queries,
-		consulSrc, // consulWatcher
+		consulSrc, // watchConsulFunc
 		istioCertSrc,
 		notify,         // snapshotProcessor
 		fastpathUpdate, // fastpathProcessor
@@ -90,6 +90,7 @@ func getAmbassadorMeta(ambassadorID string, clusterID string, version string, cl
 }
 
 type SnapshotProcessor func(context.Context, SnapshotDisposition, []byte) error
+
 type SnapshotDisposition int
 
 const (
@@ -104,6 +105,19 @@ const (
 	// Indicates that the snapshot is ready to be processed.
 	SnapshotReady
 )
+
+func (disposition SnapshotDisposition) String() string {
+	ret, ok := map[SnapshotDisposition]string{
+		SnapshotIncomplete: "SnapshotIncomplete",
+		SnapshotDefer:      "SnapshotDefer",
+		SnapshotDrop:       "SnapshotDrop",
+		SnapshotReady:      "SnapshotReady",
+	}[disposition]
+	if !ok {
+		return fmt.Sprintf("%[1]T(%[1]d)", disposition)
+	}
+	return ret
+}
 
 type FastpathProcessor func(context.Context, *ambex.FastpathSnapshot)
 
@@ -152,31 +166,31 @@ type FastpathProcessor func(context.Context, *ambex.FastpathSnapshot)
 //
 // 4. If you don't fully understand everything above, _do not touch this function without
 //    guidance_.
-func watcherLoop(
+func watchAllTheThingsInternal(
 	ctx context.Context,
 	encoded *atomic.Value,
 	k8sSrc K8sSource,
 	queries []kates.Query,
-	consulWatcher Watcher,
+	watchConsulFunc watchConsulFunc,
 	istioCertSrc IstioCertSource,
 	snapshotProcessor SnapshotProcessor,
 	fastpathProcessor FastpathProcessor,
 	ambassadorMeta *snapshot.AmbassadorMetaInfo,
 ) error {
-	// Ambassador has three sources of inputs: kubernetes, consul, and the filesystem. The job of
-	// the watcherLoop is to read updates from all three of these sources, assemble them into a
-	// single coherent configuration, and pass them along to other parts of ambassador for
-	// processing.
+	// Ambassador has three sources of inputs: kubernetes, consul, and the filesystem. The job
+	// of the watchAllTheThingsInternal loop is to read updates from all three of these sources,
+	// assemble them into a single coherent configuration, and pass them along to other parts of
+	// ambassador for processing.
 
-	// The watcherLoop must decide what information is relevant to solicit from each source. This is
-	// decided a bit differently for each source.
+	// The watchAllTheThingsInternal loop must decide what information is relevant to solicit
+	// from each source. This is decided a bit differently for each source.
 	//
 	// For kubernetes the set of subscriptions is basically hardcoded to the set of resources
-	// defined in interesting_types.go, this is filtered down at boot based on RBAC limitations. The
-	// filtered list is used to construct the queries that are passed into this function, and that
-	// set of queries remains fixed for the lifetime of the loop, i.e. the lifetime of the
-	// abmassador process (unless we are testing, in which case we may run the watcherLoop more than
-	// once in a single process).
+	// defined in interesting_types.go, this is filtered down at boot based on RBAC
+	// limitations. The filtered list is used to construct the queries that are passed into this
+	// function, and that set of queries remains fixed for the lifetime of the loop, i.e. the
+	// lifetime of the abmassador process (unless we are testing, in which case we may run the
+	// watchAllTheThingsInternal loop more than once in a single process).
 	//
 	// For the consul source we derive the set of resources to watch based on the configuration in
 	// kubernetes, i.e. we watch the services defined in Mappings that are configured to use a
@@ -184,6 +198,8 @@ func watcherLoop(
 	// the datacenter to query.
 	//
 	// The filesystem datasource is for istio secrets. XXX fill in more
+
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
 
 	// Each time the wathcerLoop wakes up, it assembles updates from whatever source woke it up into
 	// its view of the world. It then determines if enough information has been assembled to
@@ -197,7 +213,8 @@ func watcherLoop(
 	if err != nil {
 		return err
 	}
-	consul := newConsul(ctx, consulWatcher)
+	consulWatcher := newConsulWatcher(watchConsulFunc)
+	grp.Go("consul", consulWatcher.run)
 	istioCertWatcher, err := istioCertSrc.Watch(ctx)
 	if err != nil {
 		return err
@@ -217,56 +234,60 @@ func watcherLoop(
 	// information. This is deliberately nil to begin with as we have nothing to send yet.
 	var out chan *SnapshotHolder
 	notifyCh := make(chan *SnapshotHolder)
-	go func() {
+	grp.Go("notifyCh", func(ctx context.Context) error {
 		for {
 			select {
 			case sh := <-notifyCh:
-				if err := sh.Notify(ctx, encoded, consul, snapshotProcessor); err != nil {
-					panic(err) // TODO: Find a better way of reporting errors from goroutines.
+				if err := sh.Notify(ctx, encoded, consulWatcher, snapshotProcessor); err != nil {
+					return err
 				}
 			case <-ctx.Done():
-				return
+				return nil
 			}
 		}
-	}()
+	})
 
-	for {
-		dlog.Debugf(ctx, "WATCHER: --------")
+	grp.Go("loop", func(ctx context.Context) error {
+		for {
+			dlog.Debugf(ctx, "WATCHER: --------")
 
-		// XXX Hack: the istioCertWatchManager needs to reset at the start of the
-		// loop, for now. A better way, I think, will be to instead track deltas in
-		// ReconcileSecrets -- that way we can ditch this crap and Istio-cert changes
-		// that somehow don't generate an actual change will still not trigger a
-		// reconfigure.
-		istio.StartLoop(ctx)
+			// XXX Hack: the istioCertWatchManager needs to reset at the start of the
+			// loop, for now. A better way, I think, will be to instead track deltas in
+			// ReconcileSecrets -- that way we can ditch this crap and Istio-cert changes
+			// that somehow don't generate an actual change will still not trigger a
+			// reconfigure.
+			istio.StartLoop(ctx)
 
-		select {
-		case <-k8sWatcher.Changed():
-			// Kubernetes has some changes, so we need to handle them.
-			changed, err := snapshots.K8sUpdate(ctx, k8sWatcher, consul, fastpathProcessor)
-			if err != nil {
-				return err
+			select {
+			case <-k8sWatcher.Changed():
+				// Kubernetes has some changes, so we need to handle them.
+				changed, err := snapshots.K8sUpdate(ctx, k8sWatcher, consulWatcher, fastpathProcessor)
+				if err != nil {
+					return err
+				}
+				if !changed {
+					continue
+				}
+				out = notifyCh
+			case <-consulWatcher.changed():
+				dlog.Debugf(ctx, "WATCHER: Consul fired")
+				snapshots.ConsulUpdate(ctx, consulWatcher, fastpathProcessor)
+				out = notifyCh
+			case icertUpdate := <-istio.Changed():
+				// The Istio cert has some changes, so we need to handle them.
+				if _, err := snapshots.IstioUpdate(ctx, istio, icertUpdate); err != nil {
+					return err
+				}
+				out = notifyCh
+			case out <- snapshots:
+				out = nil
+			case <-ctx.Done():
+				return nil
 			}
-			if !changed {
-				continue
-			}
-			out = notifyCh
-		case <-consul.changed():
-			dlog.Debugf(ctx, "WATCHER: Consul fired")
-			snapshots.ConsulUpdate(ctx, consul, fastpathProcessor)
-			out = notifyCh
-		case icertUpdate := <-istio.Changed():
-			// The Istio cert has some changes, so we need to handle them.
-			if _, err := snapshots.IstioUpdate(ctx, istio, icertUpdate); err != nil {
-				return err
-			}
-			out = notifyCh
-		case out <- snapshots:
-			out = nil
-		case <-ctx.Done():
-			return nil
 		}
-	}
+	})
+
+	return grp.Wait()
 }
 
 // SnapshotHolder is responsible for holding
@@ -286,7 +307,7 @@ type SnapshotHolder struct {
 	// plus additional fields that are computed based on the raw data. These are cumulative values,
 	// they always represent the entire state of their respective worlds.
 	k8sSnapshot    *snapshot.KubernetesSnapshot
-	consulSnapshot *watt.ConsulSnapshot
+	consulSnapshot *snapshot.ConsulSnapshot
 	// XXX: you would expect there to be an analogous snapshot for istio secrets, however the istio
 	// source works by directly munging the k8sSnapshot.
 
@@ -330,7 +351,7 @@ func NewSnapshotHolder(ambassadorMeta *snapshot.AmbassadorMetaInfo) (*SnapshotHo
 		validator:           validator,
 		ambassadorMeta:      ambassadorMeta,
 		k8sSnapshot:         NewKubernetesSnapshot(),
-		consulSnapshot:      &watt.ConsulSnapshot{},
+		consulSnapshot:      &snapshot.ConsulSnapshot{},
 		endpointRoutingInfo: newEndpointRoutingInfo(),
 		dispatcher:          disp,
 		firstReconfig:       true,
@@ -341,7 +362,7 @@ func NewSnapshotHolder(ambassadorMeta *snapshot.AmbassadorMetaInfo) (*SnapshotHo
 func (sh *SnapshotHolder) K8sUpdate(
 	ctx context.Context,
 	watcher K8sWatcher,
-	consul *consul,
+	consulWatcher *consulWatcher,
 	fastpathProcessor FastpathProcessor,
 ) (bool, error) {
 	dbg := debug.FromContext(ctx)
@@ -381,8 +402,8 @@ func (sh *SnapshotHolder) K8sUpdate(
 		// bite us). So we'll look through deltas for changing ConsulResolvers, and then only
 		// interpolate the ones that've changed.
 		//
-		// Also note that legacy mode supports interpolation literally anywhere in the input, but
-		// let's not do that here.
+		// Also note that legacy mode supported interpolation literally anywhere in the
+		// input, but let's not do that here.
 		for _, delta := range deltas {
 			if (delta.Kind == "ConsulResolver") && (delta.DeltaType != kates.ObjectDelete) {
 				// Oh, look, a ConsulResolver changed, and it wasn't deleted. Go find the object
@@ -402,17 +423,19 @@ func (sh *SnapshotHolder) K8sUpdate(
 		}
 
 		parseAnnotationsTimer.Time(func() {
-			parseAnnotations(ctx, sh.k8sSnapshot)
+			if err := sh.k8sSnapshot.PopulateAnnotations(ctx); err != nil {
+				dlog.Errorf(ctx, "error parsing annotations: %v", err)
+			}
 		})
 
 		reconcileSecretsTimer.Time(func() {
-			err = ReconcileSecrets(ctx, sh.k8sSnapshot)
+			err = ReconcileSecrets(ctx, sh)
 		})
 		if err != nil {
 			return false, err
 		}
 		reconcileConsulTimer.Time(func() {
-			err = ReconcileConsul(ctx, consul, sh.k8sSnapshot)
+			err = ReconcileConsul(ctx, consulWatcher, sh.k8sSnapshot)
 		})
 		if err != nil {
 			return false, err
@@ -491,13 +514,13 @@ func (sh *SnapshotHolder) K8sUpdate(
 	return changed, nil
 }
 
-func (sh *SnapshotHolder) ConsulUpdate(ctx context.Context, consul *consul, fastpathProcessor FastpathProcessor) bool {
+func (sh *SnapshotHolder) ConsulUpdate(ctx context.Context, consulWatcher *consulWatcher, fastpathProcessor FastpathProcessor) bool {
 	var endpoints *ambex.Endpoints
 	var dispSnapshot *ecp_v2_cache.Snapshot
 	func() {
 		sh.mutex.Lock()
 		defer sh.mutex.Unlock()
-		consul.update(sh.consulSnapshot)
+		consulWatcher.update(sh.consulSnapshot)
 		endpoints = makeEndpoints(ctx, sh.k8sSnapshot, sh.consulSnapshot.Endpoints)
 		_, dispSnapshot = sh.dispatcher.GetSnapshot(ctx)
 	}()
@@ -524,7 +547,7 @@ func (sh *SnapshotHolder) IstioUpdate(ctx context.Context, istio *istioCertWatch
 
 	var err error
 	reconcileSecretsTimer.Time(func() {
-		err = ReconcileSecrets(ctx, sh.k8sSnapshot)
+		err = ReconcileSecrets(ctx, sh)
 	})
 	if err != nil {
 		return false, err
@@ -537,7 +560,7 @@ func (sh *SnapshotHolder) IstioUpdate(ctx context.Context, istio *istioCertWatch
 func (sh *SnapshotHolder) Notify(
 	ctx context.Context,
 	encoded *atomic.Value,
-	consul *consul,
+	consulWatcher *consulWatcher,
 	snapshotProcessor SnapshotProcessor,
 ) error {
 	dbg := debug.FromContext(ctx)
@@ -572,7 +595,7 @@ func (sh *SnapshotHolder) Notify(
 			return err
 		}
 
-		bootstrapped = consul.isBootstrapped()
+		bootstrapped = consulWatcher.isBootstrapped()
 		if bootstrapped {
 			sh.unsentDeltas = nil
 			if sh.firstReconfig {

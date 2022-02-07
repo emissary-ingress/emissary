@@ -83,11 +83,11 @@ type ErrorResponseTextFormatSource struct {
 type ErrorResponseOverrideBody struct {
 	// A format string representing a text response body.
 	// Content-Type can be set using the `content_type` field below.
-	ErrorResponseTextFormat string `json:"text_format,omitempty"`
+	ErrorResponseTextFormat *string `json:"text_format,omitempty"`
 
 	// A JSON response with content-type: application/json. The values can
 	// contain format text like in text_format.
-	ErrorResponseJsonFormat map[string]string `json:"json_format,omitempty"`
+	ErrorResponseJsonFormat *map[string]string `json:"json_format,omitempty"`
 
 	// A format string sourced from a file on the Ambassador container.
 	// Useful for larger response bodies that should not be placed inline

@@ -1,0 +1,415 @@
+# Override the generated chart name. Defaults to .Chart.Name.
+nameOverride: ''
+# Override the generated release name. Defaults to .Release.Name.
+fullnameOverride: ''
+# Override the generated release namespace. Defaults to .Release.Namespace.
+namespaceOverride: ''
+
+# Number of Ambassador replicas
+replicaCount: 3
+# If true, Create a DaemonSet. By default Deployment controller will be created
+daemonSet: false
+# If true, Create a bare Pod instead of a Deployment or DaemonSet; for
+# test purposes.
+barePod: false
+
+test:
+  # If true, Create test Pod to verify the Ambassador service works correctly (Only created on helm test)
+  enabled: true
+  # Image to use for the test Pod
+  image: busybox
+
+canary:
+  # Creates a Canary deployment and service using the following canary settings. Other settings inherited from main deployment
+  enabled: false
+  # When true allows for requests to the main ambassador to hit either the pods from the main deployment or the canary deployment.
+  # Requests to the canary service will still only hit the canary pods
+  mixPods: false
+  # Similar to 'replicaCount', but controls the number of pods for the Canary deployment. 0 by default
+  replicaCount: 0
+  # If a value is supplied, then the canary deployment will use the following image for Ambassador instead of using the image from the main deployment
+  image:
+    # Controlls the image repository for the canary deployment.
+    repository: ''
+    # Controlls the tag for the canary deployments image.repository. Uses the repository from the main deployment if the canay.image.repository is not set.
+    tag: ''
+  # Environment variables to be used for the canary deployment, see `envRaw` for usage example
+  envRaw: {}
+
+# Enable autoscaling using HorizontalPodAutoscaler
+# daemonSet: true, autoscaling will be disabled
+autoscaling: # +doc-gen:break
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 60
+
+podDisruptionBudget: {}
+
+namespace:
+  # Explicitly set the AMBASSADOR_NAMESPACE environment variable
+  name:
+
+# Any additional environment variables for ambassador pods
+# Example:
+# Exposing statistics via StatsD
+# STATSD_ENABLED: true
+# STATSD_HOST: statsd-sink
+# sets the minimum number of seconds between Envoy restarts
+# AMBASSADOR_RESTART_TIME: 15
+# sets the number of seconds that the Envoy will wait for open connections to drain on a restart
+# AMBASSADOR_DRAIN_TIME: 5
+# sets the number of seconds that Ambassador will wait for the old Envoy to clean up and exit on a restart
+# AMBASSADOR_SHUTDOWN_TIME: 10
+# labels Ambassador with an ID to allow for configuring multiple Ambassadors in a cluster
+# AMBASSADOR_ID: default
+env: {}
+
+# Additional container environment variable in raw YAML format
+# Example:
+# envRaw: |
+#   - name: REDIS_PASSWORD
+#     value: password
+#     valueFrom:
+#       secretKeyRef:
+#         name: redis-password
+#         key: password
+#   - name: POD_IP
+#     valueFrom:
+#       fieldRef:
+#         fieldPath: status.podIP
+envRaw: {}
+
+# Image pull secrets
+imagePullSecrets: []
+
+security:
+  # Security Context for all containers in the pod.
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#podsecuritycontext-v1-core
+  podSecurityContext: # +doc-gen:break
+    runAsUser: 8888
+  # Security Context for the Ambassador container specifically
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#securitycontext-v1-core
+  containerSecurityContext: # +doc-gen:break
+    allowPrivilegeEscalation: false
+  # A basic PodSecurityPolicy to ensure Ambassador is running with appropriate security permissions
+  # https://kubernetes.io/docs/concepts/policy/pod-security-policy/
+  #
+  # A set of reasonable defaults is outlined below. This is not created by default as it should only
+  # be created by a one Release. If you want to use the PodSecurityPolicy in the chart, create it in
+  # the "master" Release and then leave it unset in all others. Set the `rbac.podSecurityPolicies`
+  # in all non-"master" Releases.
+  podSecurityPolicy: {}
+    # # Add AppArmor and Seccomp annotations
+    # # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#apparmor
+    # annotations:
+    # spec:
+    #   seLinux:
+    #     rule: RunAsAny
+    #   supplementalGroups:
+    #     rule: 'MustRunAs'
+    #     ranges:
+    #       # Forbid adding the root group.
+    #       - min: 1
+    #         max: 65535
+    #   fsGroup:
+    #     rule: 'MustRunAs'
+    #     ranges:
+    #       # Forbid adding the root group.
+    #       - min: 1
+    #         max: 65535
+    #   privileged: false
+    #   allowPrivilegeEscalation: false
+    #   runAsUser:
+    #     rule: MustRunAsNonRoot
+
+image:
+  # Emissary Ingress docker repo
+  repository: $imageRepo$
+  # Emissary Ingress docker tag
+  tag: $version$
+  # Pod container image pull policy
+  pullPolicy: IfNotPresent
+
+# Dns policy, when hostNetwork set to ClusterFirstWithHostNet
+dnsPolicy: ClusterFirst
+# If true, uses the host network, useful for on-premise setups
+hostNetwork: false
+
+service:
+  type: LoadBalancer
+
+  # Note that target http ports need to match your ambassador configurations service_port
+  # https://www.getambassador.io/reference/modules/#the-ambassador-module
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+      # protocol: TCP
+      # nodePort: 30080
+      # hostPort: 80
+  - name: https
+    port: 443
+    targetPort: 8443
+      # protocol: TCP
+      # nodePort: 30443
+      # hostPort: 443
+    # TCPMapping_Port
+      # port: 2222
+      # targetPort: 2222
+      # protocol: TCP
+      # nodePort: 30222
+  # For test purposes, do not use.
+  portsRaw: ''
+
+  externalTrafficPolicy:
+
+  sessionAffinity:
+
+  sessionAffinityConfig:
+
+  externalIPs: []
+
+  annotations: {}
+
+  # Manually set the name of the generated Service
+  nameOverride:
+
+adminService:
+  # If true, create a service for Ambassador's admin UI
+  create: true
+  #	Ambassador's admin service type to be used
+  type: ClusterIP
+  port: 8877
+  snapshotPort: 8005
+  # If explicit NodePort for admin service is required
+  nodePort:
+  # Annotations to apply to Ambassador admin service
+  annotations: {}
+  # IP address to assign (if cloud provider supports it)
+  loadBalancerIP:
+  # Passed to cloud provider load balancer if created (e.g: AWS ELB)
+  loadBalancerSourceRanges:
+
+rbac:
+  # Specifies whether RBAC resources should be created
+  create: true
+  # List of Pod Security Policies to use on the container.
+  podSecurityPolicies: []
+  # Name of the RBAC resources defaults to the name of the release.
+  #
+  # Set nameOverride when installing Ambassador with cluster-wide scope in
+  # different namespaces with the same release name to avoid conflicts.
+  nameOverride:
+
+scope:
+  # Set the AMBASSADOR_SINGLE_NAMESPACE environment variable and create namespaced RBAC if rbac.enabled: true
+  singleNamespace: false
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+  # Extra YAML to include at the end of the ServiceAccount
+  extra: ''
+
+deploymentStrategy:
+  type: RollingUpdate
+
+# configures progressDeadlineSeconds for deployments
+progressDeadlines:
+  ambassador: 600
+  agent: 600
+
+
+restartPolicy:
+
+terminationGracePeriodSeconds:
+
+initContainers: []
+
+sidecarContainers: []
+
+# Liveness probe for emissary pods
+livenessProbe: # +doc-gen:break
+  initialDelaySeconds: 30
+  periodSeconds: 3
+  failureThreshold: 3
+
+# Liveness probe for emissary pods
+readinessProbe: # +doc-gen:break
+  initialDelaySeconds: 30
+  periodSeconds: 3
+  failureThreshold: 3
+
+
+volumes: []
+
+volumeMounts: []
+
+# Additional labels for ambassador pods
+podLabels: {}
+
+# Additional annotations for ambassador pods
+# Example:
+# prometheus.io/scrape: "true"
+# prometheus.io/port: "9102"
+podAnnotations: {}
+
+
+# Additional labels for ambassador DaemonSet/Deployment
+deploymentLabels: {}
+
+# Additional annotations for ambassador DaemonSet/Deployment
+# Example:
+# configmap.reloader.stakater.com/auto: "true"
+deploymentAnnotations: {}
+
+# CPU/memory resource requests/limits
+resources: # +doc-gen:break
+  # Recommended resource requests and limits for Ambassador
+  limits:
+    cpu: 1000m
+    memory: 600Mi
+  requests:
+    cpu: 200m
+    memory: 300Mi
+
+# The name of the priorityClass for the ambassador DaemonSet/Deployment
+priorityClassName: ''
+
+# NodeSelector for ambassador pods
+nodeSelector: {}
+
+tolerations: []
+
+# Affinity for ambassador pods
+affinity: {}
+
+# Topology Spread Constraints for Ambassador pods. Stable since 1.19.
+topologySpreadConstraints: []
+
+# Config thats mounted to `/ambassador/ambassador-config`
+ambassadorConfig: ''
+
+# Prometheus Operator ServiceMonitor configuration
+# See documentation: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitor
+metrics:
+  serviceMonitor:
+    enabled: false
+    # interval: 30s
+    # scrapeTimeout: 30s
+    # selector: {}
+
+# Resolvers are used to configure the discovery service strategy for Ambasador
+# See: https://www.getambassador.io/docs/edge-stack/latest/topics/running/resolvers/
+#
+# Example:
+# Configuration for a Consul Resolver
+#   address: consul-server.default.svc.cluster.local:8500
+#   datacenter: dc1
+resolvers: # +doc-gen:break
+  endpoint:
+    create: false
+    name: endpoint
+  consul:
+    create: false
+    name: consul-dc1
+    spec: {}
+
+# Create and manage an Ambassador Module from the Helm Chart. See:
+# https://www.getambassador.io/docs/edge-stack/latest/topics/running/ambassador
+# for more info on the available options.
+#
+# Note: The Module can only be named ambassador. There can only be one Module
+# installed per-namespace.
+module: {}
+
+# DEPRECATED: Enabling the prometheus exporter creates a sidecar and configures ambassador to use it
+#
+# Ambassador now exposes the /metrics endpoint in Envoy.
+# See https://www.getambassador.io/user-guide/monitoring#deployment for more information on how to use the /metrics endpoint
+prometheusExporter: # +doc-gen:break
+  enabled: false
+  repository: prom/statsd-exporter
+  tag: v0.8.1
+  pullPolicy: IfNotPresent
+  resources: {}
+  # If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  #   limits:
+  #     cpu: 100m
+  #     memory: 256Mi
+  #   requests:
+  #     cpu: 50m
+  #     memory: 128Mi
+  # You can configure the statsd exporter to modify the behavior of mappings and other features.
+  # See documentation: https://github.com/prometheus/statsd_exporter/tree/v0.8.1#metric-mapping-and-configuration
+  # Uncomment the following line if you wish to specify a custom configuration:
+  # configuration: |
+  #   ---
+  #   mappings:
+  #   - match: 'envoy.cluster.*.upstream_cx_connect_ms'
+  #     name: "envoy_cluster_upstream_cx_connect_time"
+  #     timer_type: 'histogram'
+  #     labels:
+  #       cluster_name: "$1"
+
+# DEPRECATED: Use security.podSecurityContext
+# securityContext:
+#   runAsUser: 8888
+
+
+# Configure the ambassador agent
+agent:
+  # If `true`, installs the ambassador-agent Deployment, ServiceAccount and ClusterRole in the ambassador namespace, enabling the Service Catalog
+  enabled: true
+  # API token for reporting snapshots to the [Service Catalog](https://app.getambassador.io/cloud/catalog/);
+  # If empty, agent will not report snapshots
+  cloudConnectToken: ''
+  # Address of the ambassador Service Catalog rpc server.
+  rpcAddress: https://app.getambassador.io/
+  createArgoRBAC: true
+  image:
+    # Leave blank to use image.repository and image.tag
+    tag:
+    repository:
+
+deploymentTool: ''
+
+# configure docker to pull from private registry
+docker: {}
+createNamespace: false
+
+# Whether Emissary should be created with default listeners:
+# - HTTP on port 8080
+# - HTTPS on port 8443
+createDefaultListeners: false
+
+# Configure a 'lifecycle' section for the main pod
+lifecycle: # +doc-gen:break
+  # Example block that works well if the main container is running behind a load balancer that
+  # is slow to deregister pods - e.g. with IP-type registration in an AWS TargetGroup:
+  # lifecycle:
+  #   preStop:
+  #     exec:
+  #       command:
+  #         - "sh"
+  #         - "-c"
+  #         - >
+  #           curl -XPOST localhost:8001/healthcheck/fail;
+  #           /bin/sleep 45;

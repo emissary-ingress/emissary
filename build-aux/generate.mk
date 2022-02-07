@@ -41,42 +41,35 @@ generate/precious    =
 # Whole directories with rules for each individual file in it
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) $(OSS_HOME)/pkg/api/kat/
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto')) $(OSS_HOME)/pkg/api/agent/
-generate/files      += $(patsubst $(OSS_HOME)/api/getambassador.io/%.proto,  $(OSS_HOME)/python/ambassador/proto/%_pb2.py        , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto')) $(OSS_HOME)/python/ambassador/proto/
-generate/files      += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_pb.js          , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) # XXX: There are other files in this dir
-generate/files      += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) # XXX: There are other files in this dir
 # Whole directories with one rule for the whole directory
 generate/files      += $(OSS_HOME)/api/envoy/
 generate/files      += $(OSS_HOME)/api/pb/
 generate/files      += $(OSS_HOME)/pkg/api/envoy/
 generate/files      += $(OSS_HOME)/pkg/api/pb/
 generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/
-generate-fast/files += $(OSS_HOME)/python/schemas/v3alpha1/
 # Individual files: Misc
-generate/files      += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
-generate/files      += $(OSS_HOME)/OPENSOURCE.md
-generate/files      += $(OSS_HOME)/builder/requirements.txt
-generate/precious   += $(OSS_HOME)/builder/requirements.txt
+generate/files      += $(OSS_HOME)/DEPENDENCIES.md
+generate/files      += $(OSS_HOME)/DEPENDENCY_LICENSES.md
 generate-fast/files += $(OSS_HOME)/CHANGELOG.md
-generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/README.md
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion.go
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion-spoke.go
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v3alpha1/zz_generated.conversion-hub.go
 # Individual files: YAML
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns.yaml
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns.yaml
-generate-fast/files += $(OSS_HOME)/cmd/entrypoint/crds.yaml
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml.in
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns.yaml.in
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns.yaml.in
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns-agent.yaml.in
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns-agent.yaml.in
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns-migration.yaml.in
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns-migration.yaml.in
+generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml
 # Individual files: Test TLS Certificates
-generate-fast/files += $(OSS_HOME)/builder/server.crt
-generate-fast/files += $(OSS_HOME)/builder/server.key
 generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.crt
 generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.key
-generate-fast/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.crt
-generate-fast/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.key
 generate-fast/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.crt
 generate-fast/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.key
 generate-fast/files += $(OSS_HOME)/python/tests/selfsigned.py
@@ -95,7 +88,6 @@ _generate:
 
 generate-clean: ## Delete generated sources that get committed to Git
 	rm -rf $(filter-out $(generate/precious),$(generate/files))
-	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js # This corresponds to the "# XXX: There are other files in this dir" comments above
 	find $(OSS_HOME)/pkg/api/getambassador.io -name 'zz_generated.*.go' -print -delete # generated as a side-effect of other files
 .PHONY: generate-clean
 
@@ -167,31 +159,13 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	}
 	cd $(OSS_HOME) && gofmt -w -s ./pkg/envoy-control-plane/
 
-$(OSS_HOME)/docker/test-ratelimit/ratelimit.proto:
-	set -e; { \
-	  url=https://raw.githubusercontent.com/envoyproxy/ratelimit/v1.3.0/proto/ratelimit/ratelimit.proto; \
-	  echo "// Downloaded from $$url"; \
-	  echo; \
-	  curl --fail -L "$$url"; \
-	} > $@
-
 #
 # `make generate` certificate generation
-
-$(OSS_HOME)/builder/server.crt: $(tools/testcert-gen)
-	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=kat-server.test.getambassador.io
-$(OSS_HOME)/builder/server.key: $(tools/testcert-gen)
-	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=kat-server.test.getambassador.io
 
 $(OSS_HOME)/docker/test-auth/authsvc.crt: $(tools/testcert-gen)
 	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=authsvc.datawire.io
 $(OSS_HOME)/docker/test-auth/authsvc.key: $(tools/testcert-gen)
 	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=authsvc.datawire.io
-
-$(OSS_HOME)/docker/test-ratelimit/ratelimit.crt: $(tools/testcert-gen)
-	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=ratelimit.datawire.io
-$(OSS_HOME)/docker/test-ratelimit/ratelimit.key: $(tools/testcert-gen)
-	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=ratelimit.datawire.io
 
 $(OSS_HOME)/docker/test-shadow/shadowsvc.crt: $(tools/testcert-gen)
 	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=demosvc.datawire.io
@@ -269,37 +243,6 @@ $(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/pro
 	$(call protoc,go,$(OSS_HOME)/pkg/api,\
 	    $(tools/protoc-gen-go))
 
-proto_options/python +=
-$(OSS_HOME)/_generate.tmp/%_pb2.py: $(OSS_HOME)/api/%.proto $(tools/protoc)
-	mkdir -p $(OSS_HOME)/_generate.tmp/getambassador.io
-	mkdir -p $(OSS_HOME)/_generate.tmp/getambassador
-	ln -sf ../getambassador.io/ $(OSS_HOME)/_generate.tmp/getambassador/io
-	$(call protoc,python,$(OSS_HOME)/_generate.tmp)
-
-proto_options/js += import_style=commonjs
-$(OSS_HOME)/_generate.tmp/%_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc)
-	$(call protoc,js,$(OSS_HOME)/_generate.tmp)
-
-proto_options/grpc-web += import_style=commonjs
-proto_options/grpc-web += mode=grpcwebtext
-$(OSS_HOME)/_generate.tmp/%_grpc_web_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-grpc-web)
-	$(call protoc,grpc-web,$(OSS_HOME)/_generate.tmp,\
-	    $(tools/protoc-gen-grpc-web))
-
-$(OSS_HOME)/python/ambassador/proto/%.py: $(OSS_HOME)/_generate.tmp/getambassador.io/%.py
-	mkdir -p $(@D)
-	# This madness is to because Host_pb2.py won't pass mypy without it (we have no stubs for
-	# google.protobuf, so we have to ignore missing stubs for it, so we can't tell that really
-	# _TIMESTAMP and _DURATION are OK). A better fix may be to switch to using 
-	# https://github.com/dropbox/mypy-protobuf.
-	sed \
-		-e 's/= google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP/= google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP # type: ignore[attr-defined]/' \
-		-e 's/= google_dot_protobuf_dot_duration__pb2._DURATION/= google_dot_protobuf_dot_duration__pb2._DURATION # type: ignore[attr-defined]/' \
-		$< >$@
-
-$(OSS_HOME)/tools/sandbox/grpc_web/%.js: $(OSS_HOME)/_generate.tmp/kat/%.js
-	cp $< $@
-
 clean: _generate_clean
 _generate_clean:
 	rm -rf $(OSS_HOME)/_generate.tmp
@@ -333,7 +276,7 @@ $(OSS_HOME)/_generate.tmp/crds: $(tools/controller-gen) build-aux/copyright-boil
 	cd $(OSS_HOME) && $(tools/controller-gen) \
 	  $(foreach varname,$(sort $(filter controller-gen/options/%,$(.VARIABLES))), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
 	  $(foreach varname,$(sort $(filter controller-gen/output/%,$(.VARIABLES))), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
-	  paths="./pkg/api/getambassador.io/..."
+	  $(foreach p,$(wildcard ./pkg/api/getambassador.io/v*/),paths=$p...)
 
 $(OSS_HOME)/%/zz_generated.conversion.go: $(tools/conversion-gen) build-aux/copyright-boilerplate.go.txt FORCE
 	rm -f $@ $(@D)/*.scaffold.go
@@ -436,71 +379,88 @@ $(OSS_HOME)/%/zz_generated.conversion-spoke.go: FORCE
 	  gofmt; \
 	} >$@
 
-$(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds) $(tools/yq) $(OSS_HOME)/charts/emissary-ingress/values.yaml
-	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) --target=apiserver-kubectl --image-version=$$($(tools/yq) read $(filter %/values.yaml,$^) image.tag) $(sort $(wildcard $</*.yaml)) >$@
+$(OSS_HOME)/manifests/emissary/emissary-crds.yaml.in: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
+	$(tools/fix-crds) --target=apiserver-kubectl $(sort $(wildcard $</*.yaml)) >$@
 
 $(OSS_HOME)/python/tests/integration/manifests/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) --target=apiserver-kat $(sort $(wildcard $</*.yaml)) >$@
 
-$(OSS_HOME)/cmd/entrypoint/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
+$(OSS_HOME)/pkg/api/getambassador.io/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) --target=internal-validator $(sort $(wildcard $</*.yaml)) >$@
 
-$(OSS_HOME)/python/schemas/v3alpha1: $(OSS_HOME)/cmd/entrypoint/crds.yaml $(tools/crds2schemas)
-	rm -rf $@
-	$(tools/crds2schemas) $< $@
-
-python-setup: create-venv
-	$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
-.PHONY: python-setup
-
+# Names for all the helm-expanded.yaml files (and thence output.yaml and *.yaml.in files)
 helm.name.emissary-emissaryns = emissary-ingress
 helm.name.emissary-defaultns = emissary-ingress
 helm.namespace.emissary-emissaryns = emissary
 helm.namespace.emissary-defaultns = default
+helm.name.emissary-emissaryns-agent = emissary-ingress
+helm.namespace.emissary-emissaryns-agent = emissary
+helm.name.emissary-defaultns-agent = emissary-ingress
+helm.namespace.emissary-defaultns-agent = default
+helm.name.emissary-emissaryns-migration = emissary-ingress
+helm.namespace.emissary-emissaryns-migration = emissary
+helm.name.emissary-defaultns-migration = emissary-ingress
+helm.namespace.emissary-defaultns-migration = default
+
+# IF YOU'RE LOOKING FOR *.yaml: recipes, look in version-hack.mk at the
+# build-aux/version-hack.stamp.mk dependencies.
+
 $(OSS_HOME)/k8s-config/%/helm-expanded.yaml: \
   $(OSS_HOME)/k8s-config/%/values.yaml \
   $(OSS_HOME)/charts/emissary-ingress/templates $(wildcard $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml) \
   $(OSS_HOME)/charts/emissary-ingress/values.yaml \
   FORCE
 	helm template --namespace=$(helm.namespace.$*) --values=$(@D)/values.yaml $(or $(helm.name.$*),$*) $(OSS_HOME)/charts/emissary-ingress >$@
+
 $(OSS_HOME)/k8s-config/%/output.yaml: \
   $(OSS_HOME)/k8s-config/%/helm-expanded.yaml \
   $(OSS_HOME)/k8s-config/%/require.yaml \
-  $(OSS_HOME)/k8s-config/create_yaml.py \
-  python-setup
-	. $(OSS_HOME)/venv/bin/activate && $(filter %.py,$^) $(filter %/helm-expanded.yaml,$^) $(filter %/require.yaml,$^) >$@
-$(OSS_HOME)/manifests/emissary/%.yaml: $(OSS_HOME)/k8s-config/%/output.yaml
+  $(tools/filter-yaml)
+	$(tools/filter-yaml) $(filter %/helm-expanded.yaml,$^) $(filter %/require.yaml,$^) >$@
+
+$(OSS_HOME)/manifests/emissary/%.yaml.in: $(OSS_HOME)/k8s-config/%/output.yaml
 	cp $< $@
+
 $(OSS_HOME)/python/tests/integration/manifests/%.yaml: $(OSS_HOME)/k8s-config/kat-%/output.yaml
 	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
+
 $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml: $(OSS_HOME)/k8s-config/kat-rbac-multinamespace/output.yaml
 	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
+
 $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_HOME)/k8s-config/kat-rbac-singlenamespace/output.yaml
 	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
 
 #
 # Generate report on dependencies
 
-$(OSS_HOME)/build-aux/pip-show.txt: sync
-	docker exec $$($(BUILDER)) sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
-$(OSS_HOME)/builder/requirements.txt: $(OSS_HOME)/builder/requirements.in setup-diagd FORCE
-	source venv/bin/activate && cd "$(OSS_HOME)" && pip-compile -q --no-allow-unsafe -o builder/requirements.txt builder/requirements.in
-.PRECIOUS: $(OSS_HOME)/builder/requirements.txt
+$(OSS_HOME)/build-aux/pip-show.txt: docker/base-pip.docker.tag.local
+	docker run --rm "$$(cat docker/base-pip.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
 
-$(OSS_HOME)/build-aux/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
+$(OSS_HOME)/build-aux/go-version.txt: docker/base-python/Dockerfile
 	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
+$(OSS_HOME)/build-aux/py-version.txt: docker/base-python/Dockerfile
+	{ grep -o 'python3=\S*' | cut -d= -f2; } < $< > $@
 
 $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
 
-$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
+$(OSS_HOME)/DEPENDENCIES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
 		cd $(OSS_HOME); \
 		$(tools/go-mkopensource) --output-format=txt --package=mod --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz; \
 		echo; \
 		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource); \
+	} > $@
+
+$(OSS_HOME)/DEPENDENCY_LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
+	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
+	set -e; { \
+		cd $(OSS_HOME); \
+		echo -e "Emissary-ingress Go code incorporates Free and Open Source software under the following licenses:\n"; \
+		$(tools/go-mkopensource) --output-format=txt --package=mod --output-type=json --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' | sed -e 's/\[\([^]]*\)]()/\1/'; \
+		echo -e "\n\nEmissary-ingress Python code incorporates Free and Open Source software under the following licenses:\n"; \
+		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource) --output-type=json | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' | sed -e 's/\[\([^]]*\)]()/\1/'; \
 	} > $@
 
 #
@@ -511,6 +471,3 @@ $(OSS_HOME)/CHANGELOG.md: $(OSS_HOME)/docs/CHANGELOG.tpl $(OSS_HOME)/docs/releas
 	  -v $(OSS_HOME)/docs/CHANGELOG.tpl:/tmp/CHANGELOG.tpl \
 	  -v $(OSS_HOME)/docs/releaseNotes.yml:/tmp/releaseNotes.yml \
 	  hairyhenderson/gomplate --verbose --file /tmp/CHANGELOG.tpl --datasource relnotes=/tmp/releaseNotes.yml > CHANGELOG.md
-
-$(OSS_HOME)/charts/emissary-ingress/README.md: %/README.md: %/doc.yaml %/readme.tpl %/values.yaml $(tools/chart-doc-gen)
-	$(tools/chart-doc-gen) -d $*/doc.yaml -t $*/readme.tpl -v $*/values.yaml >$@
