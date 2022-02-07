@@ -101,6 +101,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   to be sure that a running production instance was not actually left doing debugging logging, for
   example. (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!) ([3906])
 
+- Feature: Emissary is now leveraging a new Envoy Proxy patch that allows Envoy to accept escaped
+  '%' characters in its configuration. This means that error_response_overrides and other custom
+  user content can now contain '%' symbols escaped as '%%' ([DW Envoy: 74]) ([Upstream Envoy: 19383])
+
 - Bugfix: Kubernetes Secrets that should contain TLS certificates are now validated before being
   accepted for configuration. A Secret that contains an invalid TLS certificate will be logged as an
   invalid resource. ([3821])
@@ -121,6 +125,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   security patches.
 
 [3906]: https://github.com/emissary-ingress/emissary/issues/3906
+[DW Envoy: 74]: https://github.com/datawire/envoy/pull/74
+[Upstream Envoy: 19383]: https://github.com/envoyproxy/envoy/pull/19383
 [3821]: https://github.com/emissary-ingress/emissary/issues/3821
 [4053]: https://github.com/emissary-ingress/emissary/pull/4053
 [4040]: https://github.com/emissary-ingress/emissary/pull/4040
