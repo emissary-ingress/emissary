@@ -2,22 +2,24 @@ package agent
 
 import (
 	"context"
+	"io"
+
+	"google.golang.org/grpc"
+
 	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v3"
 	"github.com/datawire/dlib/dhttp"
 	"github.com/datawire/dlib/dlog"
-	"google.golang.org/grpc"
-	"io"
 )
 
-type streamHandler func(logCtx context.Context, in *envoyMetrics.StreamMetricsMessage)
+type StreamHandler func(ctx context.Context, in *envoyMetrics.StreamMetricsMessage)
 
 type metricsServer struct {
 	envoyMetrics.MetricsServiceServer
-	handler streamHandler
+	handler StreamHandler
 }
 
 // NewMetricsServer is the main metricsServer constructor.
-func NewMetricsServer(handler streamHandler) *metricsServer {
+func NewMetricsServer(handler StreamHandler) *metricsServer {
 	return &metricsServer{
 		handler: handler,
 	}
