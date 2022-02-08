@@ -110,7 +110,7 @@ def parse_imports(filepath: str) -> List[ImportedItem]:
         filecontent = filehandle.read()
 
     imports = []
-    for node in ast.parse(filecontent).body:
+    for node in ast.parse(filecontent, filename=filepath).body:
         if isinstance(node, ast.Import):
             #     import {node.names}
             imports += [ImportedItem(alias.name, None) for alias in node.names]

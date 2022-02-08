@@ -64,7 +64,7 @@ docker/.base-python.docker.stamp: FORCE docker/base-python/Dockerfile docker/bas
 #python/requirements-dev.txt: $(tools/py-list-deps) $(tools/write-ifchanged) FORCE
 #	$(tools/py-list-deps) --include-dev python/ | $(tools/write-ifchanged) $@
 python/requirements.in: $(tools/py-list-deps) $(tools/write-ifchanged) FORCE
-	$(tools/py-list-deps) --no-include-dev python/ | $(tools/write-ifchanged) $@
+	set -o pipefail; $(tools/py-list-deps) --no-include-dev python/ | $(tools/write-ifchanged) $@
 python/.requirements.txt.stamp: python/requirements.in docker/base-python.docker.tag.local
 # The --interactive is so that stdin gets passed through; otherwise Docker closes stdin.
 	set -ex -o pipefail; { \
