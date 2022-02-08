@@ -173,7 +173,7 @@ spec:
               containerPort: {{ .Values.adminService.port }}
           env:
             - name: AMBASSADOR_GRPC_METRICS_SINK
-              value: {{ include "ambassador.fullname" . }}:8006
+              value: {{ include "ambassador.fullname" . }}-agent:8006
             - name: HOST_IP
               valueFrom:
                 fieldRef:

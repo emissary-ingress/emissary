@@ -92,7 +92,7 @@ spec:
   containers:
   - env:
     - name: AMBASSADOR_GRPC_METRICS_SINK
-      value: {self.path.k8s}:8006
+      value: {self.path.k8s}-agent:8006
     - name: HOST_IP
       valueFrom:
         fieldRef:
