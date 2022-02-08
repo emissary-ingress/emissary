@@ -41,7 +41,7 @@ func TestMetricsContext(t *testing.T) {
 		return srv.StartServer(ctx)
 	})
 	grp.Go("client", func(ctx context.Context) error {
-		grpcClient, err := grpc.DialContext(ctx, "localhost:8006",
+		grpcClient, err := grpc.DialContext(ctx, "localhost:8080",
 			grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
 			return fmt.Errorf("grpc.DialContext: %w", err)

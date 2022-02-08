@@ -261,6 +261,6 @@ spec:
         imagePullPolicy: IfNotPresent
         name: agent
         ports:
-        - containerPort: 8006
-          name: grpc
+        - containerPort: 8080
+          name: http
       serviceAccountName: emissary-ingress-agent

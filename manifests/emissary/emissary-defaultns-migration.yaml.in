@@ -272,7 +272,7 @@ spec:
       containers:
       - env:
         - name: AMBASSADOR_GRPC_METRICS_SINK
-          value: emissary-ingress-agent:8006
+          value: emissary-ingress-agent:80
         - name: HOST_IP
           valueFrom:
             fieldRef:

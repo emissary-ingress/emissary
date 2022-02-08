@@ -25,7 +25,7 @@ func NewMetricsServer(handler StreamHandler) *metricsServer {
 	}
 }
 
-// StartServer will start the metrics gRPC server, listening on :8006
+// StartServer will start the metrics gRPC server, listening on :8080
 // It is a blocking call until sc.ListenAndServe returns.
 func (s *metricsServer) StartServer(ctx context.Context) error {
 	grpcServer := grpc.NewServer()
@@ -35,8 +35,8 @@ func (s *metricsServer) StartServer(ctx context.Context) error {
 		Handler: grpcServer,
 	}
 
-	dlog.Info(ctx, "starting metrics service listening on :8006")
-	return sc.ListenAndServe(ctx, ":8006")
+	dlog.Info(ctx, "starting metrics service listening on :8080")
+	return sc.ListenAndServe(ctx, ":8080")
 }
 
 // StreamMetrics implements the StreamMetrics rpc call by calling the stream handler on each

@@ -29,7 +29,7 @@ func main() {
 
 	dlog.Print(ctx, "starting...")
 
-	if err := sc.ListenAndServe(ctx, ":8006"); err != nil {
+	if err := sc.ListenAndServe(ctx, ":8080"); err != nil {
 		dlog.Errorf(ctx, "shut down with error: %v", err)
 		os.Exit(1)
 	}

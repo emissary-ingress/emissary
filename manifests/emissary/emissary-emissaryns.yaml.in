@@ -83,10 +83,10 @@ metadata:
   namespace: emissary
 spec:
   ports:
-  - name: grpc
-    port: 8006
+  - name: http
+    port: 80
     protocol: TCP
-    targetPort: grpc
+    targetPort: http
   selector:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/name: emissary-ingress-agent
@@ -289,7 +289,7 @@ spec:
       containers:
       - env:
         - name: AMBASSADOR_GRPC_METRICS_SINK
-          value: emissary-ingress-agent:8006
+          value: emissary-ingress-agent:80
         - name: HOST_IP
           valueFrom:
             fieldRef:
@@ -612,6 +612,6 @@ spec:
         imagePullPolicy: IfNotPresent
         name: agent
         ports:
-        - containerPort: 8006
-          name: grpc
+        - containerPort: 8080
+          name: http
       serviceAccountName: emissary-ingress-agent
