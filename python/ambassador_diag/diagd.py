@@ -538,6 +538,7 @@ class DiagApp (Flask):
                     self.logger.debug("could not rename %s -> %s: %s" % (from_path, to_path, e))
 
         self.logger.info("CACHE: check %s" % ("succeeded" if result else "failed"))
+        self.logger.info("random code edit, this is a test"))
 
         return result
 
