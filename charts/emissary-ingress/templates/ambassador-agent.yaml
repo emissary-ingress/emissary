@@ -227,8 +227,8 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: [ "agent" ]
         ports:
-          - containerPort: 8006
-            name: grpc
+          - containerPort: 8080
+            name: http
         env:
         - name: AGENT_NAMESPACE
           valueFrom:
@@ -266,10 +266,10 @@ metadata:
     product: aes
 spec:
   ports:
-    - port: 8006
-      targetPort: grpc
+    - port: 80
+      targetPort: http
       protocol: TCP
-      name: grpc
+      name: http
   selector:
     app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-agent
     app.kubernetes.io/instance: {{ .Release.Name }}

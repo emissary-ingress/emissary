@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"testing"
 
 	"google.golang.org/grpc"
@@ -26,8 +27,15 @@ import (
 // for it anyway, to put minds at ease.
 func TestMetricsContext(t *testing.T) {
 	grp := dgroup.NewGroup(dlog.NewTestContext(t, true), dgroup.GroupConfig{
+		EnableWithSoftness: true,
 		ShutdownOnNonError: true,
 	})
+
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	grp.Go("server", func(ctx context.Context) error {
 		type testCtxKey struct{}
 		ctx = context.WithValue(ctx, testCtxKey{}, "sentinel")
@@ -38,10 +46,10 @@ func TestMetricsContext(t *testing.T) {
 				t.Log("SUCCESS!!")
 			}
 		})
-		return srv.StartServer(ctx)
+		return srv.Serve(ctx, listener)
 	})
 	grp.Go("client", func(ctx context.Context) error {
-		grpcClient, err := grpc.DialContext(ctx, "localhost:8006",
+		grpcClient, err := grpc.DialContext(ctx, listener.Addr().String(),
 			grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
 			return fmt.Errorf("grpc.DialContext: %w", err)
@@ -56,6 +64,9 @@ func TestMetricsContext(t *testing.T) {
 		}
 		if _, err := stream.CloseAndRecv(); err != nil && !errors.Is(err, io.EOF) {
 			return fmt.Errorf("stream.CloseAndRecv: %w", err)
+		}
+		if err := grpcClient.Close(); err != nil {
+			return err
 		}
 		return nil
 	})
