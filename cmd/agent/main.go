@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -51,11 +52,17 @@ func run(cmd *cobra.Command, args []string) error {
 		snapshotURL = fmt.Sprintf(DefaultSnapshotURLFmt, entrypoint.ExternalSnapshotPort)
 	}
 
+	metricsListener, err := net.Listen("tcp", ":8080")
+	if err != nil {
+		return err
+	}
+	dlog.Info(ctx, "metrics service listening on :8080")
+
 	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
 
 	grp.Go("metrics-server", func(ctx context.Context) error {
 		metricsServer := agent.NewMetricsServer(ambAgent.MetricsRelayHandler)
-		return metricsServer.StartServer(ctx)
+		return metricsServer.Serve(ctx, metricsListener)
 	})
 
 	grp.Go("watch", func(ctx context.Context) error {

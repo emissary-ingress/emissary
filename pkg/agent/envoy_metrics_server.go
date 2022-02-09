@@ -3,6 +3,7 @@ package agent
 import (
 	"context"
 	"io"
+	"net"
 
 	"google.golang.org/grpc"
 
@@ -27,7 +28,7 @@ func NewMetricsServer(handler StreamHandler) *metricsServer {
 
 // StartServer will start the metrics gRPC server, listening on :8080
 // It is a blocking call until sc.ListenAndServe returns.
-func (s *metricsServer) StartServer(ctx context.Context) error {
+func (s *metricsServer) Serve(ctx context.Context, listener net.Listener) error {
 	grpcServer := grpc.NewServer()
 	envoyMetrics.RegisterMetricsServiceServer(grpcServer, s)
 
@@ -35,8 +36,7 @@ func (s *metricsServer) StartServer(ctx context.Context) error {
 		Handler: grpcServer,
 	}
 
-	dlog.Info(ctx, "starting metrics service listening on :8080")
-	return sc.ListenAndServe(ctx, ":8080")
+	return sc.Serve(ctx, listener)
 }
 
 // StreamMetrics implements the StreamMetrics rpc call by calling the stream handler on each
