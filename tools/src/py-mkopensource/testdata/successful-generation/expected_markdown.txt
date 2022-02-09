@@ -1,8 +1,0 @@
-The Emissary-ingress Python code makes use of the following Free and Open Source
-libraries:
-
-    Name          Version  License(s)
-    ----          -------  ----------
-    CacheControl  0.12.6   Apache License 2.0
-    Flask         2.0.2    3-clause BSD license
-    Werkzeug      2.0.2    3-clause BSD license

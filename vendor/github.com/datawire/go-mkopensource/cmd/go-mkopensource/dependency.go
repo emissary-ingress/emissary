@@ -9,7 +9,7 @@ import (
 )
 
 func GenerateDependencyList(modNames []string, modLicenses map[string]map[detectlicense.License]struct{},
-	modInfos map[string]*golist.Module, goVersion string, licenseUsage detectlicense.AllowedLicenseUse) (dependencies.DependencyInfo, error) {
+	modInfos map[string]*golist.Module, goVersion string, licenseRestriction detectlicense.LicenseRestriction) (dependencies.DependencyInfo, error) {
 	dependencyList := dependencies.NewDependencyInfo()
 
 	for _, modKey := range modNames {
@@ -34,7 +34,7 @@ func GenerateDependencyList(modNames []string, modLicenses map[string]map[detect
 		dependencyList.Dependencies = append(dependencyList.Dependencies, dependencyDetails)
 	}
 
-	if err := dependencyList.CheckLicenses(licenseUsage); err != nil {
+	if err := dependencyList.CheckLicenses(licenseRestriction); err != nil {
 		return dependencyList, fmt.Errorf("License validation failed: %v\n", err)
 	}
 

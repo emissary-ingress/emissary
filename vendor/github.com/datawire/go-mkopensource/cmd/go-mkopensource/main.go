@@ -59,7 +59,7 @@ func parseArgs() (*CLIArgs, error) {
 	argparser.StringVar(&args.ApplicationType, "application-type", externalApplication,
 		fmt.Sprintf("Where will the application run. One of: %s, %s\n"+
 			"Internal applications are run on Ambassador servers.\n"+
-			"External applications run on client-controlled infrastructure", internalApplication, externalApplication))
+			"External applications run on customer machines", internalApplication, externalApplication))
 
 	if err := argparser.Parse(os.Args[1:]); err != nil {
 		return nil, err
@@ -283,11 +283,19 @@ func Main(args *CLIArgs) error {
 	for pkgName := range pkgFiles {
 		pkgNames = append(pkgNames, pkgName)
 	}
+
+	pkgVersions := map[string]string{}
+	for _, pkg := range listPkgs {
+		if pkg.Module != nil {
+			pkgVersions[pkg.ImportPath] = pkg.Module.Version
+		}
+	}
+
 	sort.Strings(pkgNames)
 	pkgLicenses := make(map[string]map[detectlicense.License]struct{})
 	licErrs := []error(nil)
 	for _, pkgName := range pkgNames {
-		pkgLicenses[pkgName], err = detectlicense.DetectLicenses(pkgName, pkgFiles[pkgName])
+		pkgLicenses[pkgName], err = detectlicense.DetectLicenses(pkgName, pkgVersions[pkgName], pkgFiles[pkgName])
 		if err == nil && licenseIsStrongCopyleft(pkgLicenses[pkgName]) {
 			err = fmt.Errorf("has an unacceptable license for use by Ambassador Labs (%s)",
 				licenseString(pkgLicenses[pkgName]))
@@ -350,11 +358,11 @@ func Main(args *CLIArgs) error {
 	sort.Strings(mainLibPkgs)
 
 	// Generate the readme file.
-	licenseUsage := getAllowedLicenseUsage(args.ApplicationType)
+	licenseRestriction := getLicenseRestriction(args.ApplicationType)
 
 	switch args.OutputFormat {
 	case "txt":
-		readme, generationErr := generateOutput(args.Package, args.OutputFormat, args.OutputType, licenseUsage, mainMods, mainLibPkgs, mainCmdPkgs, modNames, modLicenses, modInfos, goVersion)
+		readme, generationErr := generateOutput(args.Package, args.OutputFormat, args.OutputType, licenseRestriction, mainMods, mainLibPkgs, mainCmdPkgs, modNames, modLicenses, modInfos, goVersion)
 		if generationErr != nil {
 			return generationErr
 		}
@@ -364,13 +372,13 @@ func Main(args *CLIArgs) error {
 		}
 	case "tar":
 		// Build a listing of all files to go in to the tarball
-		readme, generationErr := generateOutput(args.Package, args.OutputFormat, markdownOutputType, licenseUsage, mainMods, mainLibPkgs, mainCmdPkgs, modNames, modLicenses, modInfos, goVersion)
+		readme, generationErr := generateOutput(args.Package, args.OutputFormat, markdownOutputType, licenseRestriction, mainMods, mainLibPkgs, mainCmdPkgs, modNames, modLicenses, modInfos, goVersion)
 		if generationErr != nil {
 			return generationErr
 		}
 
 		tarFiles := make(map[string][]byte)
-		tarFiles["OPENSOURCE.md"] = readme.Bytes()
+		tarFiles["DEPENDENCIES.md"] = readme.Bytes()
 		for pkgName := range pkgFiles {
 			ambassadorProprietary := isAmbassadorProprietary(pkgLicenses[pkgName])
 			switch {
@@ -424,18 +432,18 @@ func Main(args *CLIArgs) error {
 	return nil
 }
 
-func getAllowedLicenseUsage(applicationType string) detectlicense.AllowedLicenseUse {
-	var licenseUsage detectlicense.AllowedLicenseUse
+func getLicenseRestriction(applicationType string) detectlicense.LicenseRestriction {
+	var LicenseRestriction detectlicense.LicenseRestriction
 	switch applicationType {
 	case internalApplication:
-		licenseUsage = detectlicense.OnAmbassadorServers
+		LicenseRestriction = detectlicense.AmbassadorServers
 	default:
-		licenseUsage = detectlicense.Unrestricted
+		LicenseRestriction = detectlicense.Unrestricted
 	}
-	return licenseUsage
+	return LicenseRestriction
 }
 
-func generateOutput(packages string, outputFormat string, outputType string, licenseUsage detectlicense.AllowedLicenseUse,
+func generateOutput(packages string, outputFormat string, outputType string, licenseRestriction detectlicense.LicenseRestriction,
 	mainMods map[string]struct{}, mainLibPkgs []string, mainCmdPkgs []string, modNames []string,
 	modLicenses map[string]map[detectlicense.License]struct{}, modInfos map[string]*golist.Module,
 	goVersion string) (*bytes.Buffer, error) {
@@ -443,14 +451,14 @@ func generateOutput(packages string, outputFormat string, outputType string, lic
 
 	switch outputType {
 	case jsonOutputType:
-		err := jsonOutput(output, modNames, modLicenses, modInfos, goVersion, licenseUsage)
+		err := jsonOutput(output, modNames, modLicenses, modInfos, goVersion, licenseRestriction)
 		if err != nil {
 			return nil, err
 		}
 	default:
 		markdownHeader(packages, mainMods, output, mainLibPkgs, mainCmdPkgs)
 		output.WriteString("\n")
-		err := markdownOutput(output, modNames, modLicenses, modInfos, goVersion, licenseUsage)
+		err := markdownOutput(output, modNames, modLicenses, modInfos, goVersion, licenseRestriction)
 		if err != nil {
 			return nil, err
 		}
@@ -495,8 +503,8 @@ func markdownHeader(packages string, mainMods map[string]struct{}, readme *bytes
 }
 
 func markdownOutput(readme *bytes.Buffer, modNames []string, modLicenses map[string]map[detectlicense.License]struct{},
-	modInfos map[string]*golist.Module, goVersion string, usage detectlicense.AllowedLicenseUse) error {
-	dependencyList, generationErr := GenerateDependencyList(modNames, modLicenses, modInfos, goVersion, usage)
+	modInfos map[string]*golist.Module, goVersion string, licenseRestriction detectlicense.LicenseRestriction) error {
+	dependencyList, generationErr := GenerateDependencyList(modNames, modLicenses, modInfos, goVersion, licenseRestriction)
 	if generationErr != nil {
 		return generationErr
 	}
@@ -518,8 +526,8 @@ func markdownOutput(readme *bytes.Buffer, modNames []string, modLicenses map[str
 }
 
 func jsonOutput(readme *bytes.Buffer, modNames []string, modLicenses map[string]map[detectlicense.License]struct{},
-	modInfos map[string]*golist.Module, goVersion string, usage detectlicense.AllowedLicenseUse) error {
-	dependencyList, generationErr := GenerateDependencyList(modNames, modLicenses, modInfos, goVersion, usage)
+	modInfos map[string]*golist.Module, goVersion string, licenseRestriction detectlicense.LicenseRestriction) error {
+	dependencyList, generationErr := GenerateDependencyList(modNames, modLicenses, modInfos, goVersion, licenseRestriction)
 	if generationErr != nil {
 		return generationErr
 	}

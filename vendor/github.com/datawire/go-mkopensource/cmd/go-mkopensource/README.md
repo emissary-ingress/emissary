@@ -6,16 +6,20 @@ attribution requirements of various opensource licenses.
 
 ## Building
 
-You may use `go get github.com/datawire/go-mkopensource`, clone the
-repo and run `go build .`, or any of the other usual ways of building
-a Go program; there is nothing special about `go-mkopensource`.
+You may clone the repo and run the following commands (or any of the
+other usual ways of building)
+
+```shell
+cd cmd/go-mkopensource
+go build .
+```
 
 ## Running
 
 TL;DR: run one of
 
 ```shell
-go-mkopensource --gotar=/path/to/go1.17.2.src.tar.gz --package=mod --output-format=txt --output-type=markdown >OPENSOURCE.md
+go-mkopensource --gotar=/path/to/go1.17.2.src.tar.gz --package=mod --output-format=txt --output-type=markdown >DEPENDENCIES.md
 go-mkopensource --gotar=/path/to/go1.17.2.src.tar.gz --package=mod --output-format=tar --output-name=mything >mything.OPENSOURCE.tar.gz
 #               \________________  ________________/ \_____  ____/ \_________________________________  _______________________________/
 #                                \/                        \/                                        \/
@@ -40,10 +44,10 @@ path.  For example, `--gotar=$HOME/Downloads/go1.17.2.tar.gz`.
 The `--package=` flag tells `go-mkopensource` which Go packages it
 should produce a report for.  You can either
 
- - pass it a string that you would pass to `go list` like `./...` or
-   `./cmd/mything`, or
- - pass the special value `mod` to describe the entire Go module of
-   the current directory.
+- pass it a string that you would pass to `go list` like `./...` or
+  `./cmd/mything`, or
+- pass the special value `mod` to describe the entire Go module of
+  the current directory.
 
 When passing a `go list` string, the behavior matches `go list`: What
 gets returned may depend on `GOOS` and `GOARCH`.  You may set those
@@ -59,14 +63,14 @@ are only needed on a single platform.
 
 There are two modes of operation:
 
- 1. `--output-format=txt` which produces a short-ish textual report of
-    all of the dependencies, their versions, and their licenses.
- 2. `--output-format=tar` which produces a gzipped-tarball containing
-    both the `OPENSOURCE.md` file that `--output-format=txt` generates
-    (plus a footer reading "The appropriate license notices and source
-    code are in correspondingly named directories."), and a directory
-    for each dependency, containing any necessary license notices and
-    source code.
+1. `--output-format=txt` which produces a short-ish textual report of
+   all of the dependencies, their versions, and their licenses.
+2. `--output-format=tar` which produces a gzipped-tarball containing
+   both the `DEPENDENCIES.md` file that `--output-format=txt` generates
+   (plus a footer reading "The appropriate license notices and source
+   code are in correspondingly named directories."), and a directory
+   for each dependency, containing any necessary license notices and
+   source code.
 
 Many licenses require the author to be credited, the full license text
 to be included, a notice to be included, or even (in the case of the
@@ -93,7 +97,7 @@ directing the output to).
 ### Output type
 
 Parameter --output-type controls for output format.  
-When parameter is not provided in the command line or value is 
+When parameter is not provided in the command line or value is
 incorrect, `--output-type` is set to `markdown`.
 
 This parameter only applies when `--ouput-format` is `txt`
@@ -108,39 +112,15 @@ Program outputs dependency information in json format
 
 ### Application type
 
-Parameter `--application-type` controls the types of licenses that are 
-allowed. Logic is documented in [Notion](https://www.notion.so/datawire/1-Automate-License-Scan-and-Information-Files-31f4cd0f58f645f0afb922cfd710df81) 
+Parameter `--application-type` controls the types of licenses that are
+allowed. Logic is documented in [Notion](https://www.notion.so/datawire/1-Automate-License-Scan-and-Information-Files-31f4cd0f58f645f0afb922cfd710df81)
 
 #### `--application-type=internal`
 
-Use this option with applications that run on customer infrastructure. 
+Use this option with applications that run on customer infrastructure.
 This is the default.
 
 #### `--application-type=external`
 
-Use this option with applications that run on Ambassador Labs 
+Use this option with applications that run on Ambassador Labs
 infrastructure.
-
-## Using as a library
-
-The [`github.com/datawire/go-mkopensource/pkg/detectlicense`][detectlicense]
-package is good at detecting the licenses in a file, and may be reused
-(for example, by [Emissary's `py-mkopensource`][py-mkopensource]).
-
-[detectlicense]: https://pkg.go.dev/github.com/datawire/go-mkopensource/pkg/detectlicense
-[py-mkopensource]: https://github.com/emissary-ingress/emissary/blob/master/tools/src/py-mkopensource/main.go
-
-## Design
-
-There are many existing packages to do license detection, such as
-[go-license-detector][] or GitHub's [licensee][].  The reason these
-are not used is that they are meant to be _informative_, they provide
-"best effort" identification of the license.
-
-`go-mkopensource` isn't meant to just be _informative_, it is meant to
-be used for _compliance_, if it has any reason at all to be even a
-little skeptical of a result, rather than returnit its best guess, it
-blows up in your face, asking a human to verify the result.
-
-[go-license-detector]: https://github.com/go-enry/go-license-detector
-[licensee]: https://github.com/licensee/licensee

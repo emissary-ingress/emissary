@@ -87,7 +87,7 @@ require (
 	github.com/cncf/udpa/go v0.0.0-20220112060539-c52dc94e7fbe
 	github.com/datawire/dlib v1.2.5-0.20211116212847-0316f8d7af2b
 	github.com/datawire/dtest v0.0.0-20210928162311-722b199c4c2f
-	github.com/datawire/go-mkopensource v0.0.0-20220203013436-a8068abfaa8b
+	github.com/datawire/go-mkopensource v0.0.0-20220209154948-d96eaf991a1c
 	github.com/envoyproxy/protoc-gen-validate v0.6.3
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/getkin/kin-openapi v0.89.0
