@@ -195,10 +195,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-              {{- end -}}
-            {{- if .Values.env }}
+              {{- end }}
             - name: AGENT_CONFIG_RESOURCE_NAME
               value: {{ include "ambassador.fullname" . }}-agent-cloud-token
+            {{- if .Values.env }}
             {{- range $key,$value := .Values.env }}
             - name: {{ $key | upper | quote}}
               value: {{ $value | quote}}
