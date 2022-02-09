@@ -165,7 +165,7 @@ metadata:
     product: aes
 rules:
 - apiGroups: ["argoproj.io"]
-  resources: [ "rollouts" ]
+  resources: [ "rollouts", "rollouts/status" ]
   verbs: [ "get", "list", "watch", "patch" ]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
