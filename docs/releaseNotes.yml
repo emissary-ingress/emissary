@@ -33,7 +33,7 @@
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
   - version: 2.2.0
-    date: 'TBD'
+    date: '2022-02-09'
     notes:
       - title: Envoy V2 API no longer supported
         type: change
@@ -67,7 +67,7 @@ items:
         - title: "Upstream Envoy: 19383"
           link: https://github.com/envoyproxy/envoy/pull/19383
         docs: https://github.com/envoyproxy/envoy/issues/15159
- 
+
       - title: Validate certificates in TLS Secrets
         type: bugfix
         body: >-
@@ -100,7 +100,7 @@ items:
         type: feature
         body: >-
           The Emissary agent now receives commands to manipulate Rollouts (pause, continue, and abort are
-          currently supported) via directives and executes them in the cluster. 
+          currently supported) via directives and executes them in the cluster.
           A report is send to Ambassador's cloud including the command ID, whether it ran successfully,
           and an error message in case there was any.
         github:

@@ -87,7 +87,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [2.2.0] TBD
+## [2.2.0] February 09, 2022
 [2.2.0]: https://github.com/emissary-ingress/emissary/compare/v2.1.2...v2.2.0
 
 ### Emissary-ingress and Ambassador Edge Stack
@@ -117,7 +117,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: Support for streaming Envoy metrics about the clusters to Ambassador's cloud. ([4053])
 
 - Feature: The Emissary agent now receives commands to manipulate Rollouts (pause, continue, and
-  abort are currently supported) via directives and executes them in the cluster.  A report is send
+  abort are currently supported) via directives and executes them in the cluster. A report is send
   to Ambassador's cloud including the command ID, whether it ran successfully, and an error message
   in case there was any. ([4040])
 
