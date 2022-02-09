@@ -26,7 +26,7 @@ following Free and Open Source software:
     github.com/cncf/xds/go                                                                     v0.0.0-20220121163655-4a2b9fdd466b           Apache License 2.0
     github.com/datawire/dlib                                                                   v1.2.5-0.20211116212847-0316f8d7af2b         Apache License 2.0
     github.com/datawire/dtest                                                                  v0.0.0-20210928162311-722b199c4c2f           Apache License 2.0
-    github.com/datawire/go-mkopensource                                                        v0.0.0-20220203013436-a8068abfaa8b           Apache License 2.0
+    github.com/datawire/go-mkopensource                                                        v0.0.0-20220209154948-d96eaf991a1c           Apache License 2.0
     github.com/davecgh/go-spew                                                                 v1.1.1                                       ISC license
     github.com/docker/distribution                                                             v2.7.1+incompatible                          Apache License 2.0
     github.com/emicklei/go-restful                                                             v2.15.0+incompatible                         MIT license
@@ -180,14 +180,14 @@ libraries:
     progress            1.6        ISC license
     prometheus-client   0.13.1     Apache License 2.0
     protobuf            3.19.4     3-clause BSD license
-    pyasn1              0.4.8      2-clause BSD license
     pyasn1-modules      0.2.8      2-clause BSD license
+    pyasn1              0.4.8      2-clause BSD license
     pyparsing           2.4.7      MIT license
     pyrsistent          0.18.1     MIT license
     python-dateutil     2.8.2      3-clause BSD license, Apache License 2.0
     python-json-logger  2.0.2      2-clause BSD license
-    requests            2.27.1     Apache License 2.0
     requests-oauthlib   1.3.1      ISC license
+    requests            2.27.1     Apache License 2.0
     retrying            1.3.3      Apache License 2.0
     rsa                 4.8        Apache License 2.0
     semantic-version    2.8.5      2-clause BSD license
