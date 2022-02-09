@@ -56,6 +56,8 @@ const pausePatch = `{"spec":{"paused":true}}`
 func (r *rolloutCommand) patchRollout(ctx context.Context, client argov1alpha1.RolloutsGetter) error {
 	var err error
 	switch r.action {
+	// The "Resume" action in the DCP should be able to recover from Rollout that is either paused or aborted.
+	// For more information about the need for rolloutCommand.applyRetryPatch to apply the "retry" patch, please check its godoc.
 	case rolloutActionResume:
 		err = r.applyPatch(ctx, client, unpausePatch)
 		if err == nil {
@@ -101,6 +103,9 @@ func (r *rolloutCommand) applyPatch(ctx context.Context, client argov1alpha1.Rol
 	return err
 }
 
+// applyRetryPatch exists because to "retry" a Rollout, recovering it from the "aborted" state, Argo Rollouts
+// first tries to patch the rollouts/status subresource. If that fails, then base "rollouts" rollout is patched.
+// This is based on the logic of the Argo Rollouts CLI, as seen at https://github.com/argoproj/argo-rollouts/blob/v1.1.1/pkg/kubectl-argo-rollouts/cmd/retry/retry.go#L84.
 func (r *rolloutCommand) applyRetryPatch(ctx context.Context, client argov1alpha1.RolloutsGetter) error {
 	rollout := client.Rollouts(r.namespace)
 	_, err := rollout.Patch(
