@@ -89,7 +89,7 @@ func (r *rolloutCommand) patchRollout(ctx context.Context, client argov1alpha1.R
 	return nil
 }
 
-func (r *rolloutCommand) applyPatch(ctx context.Context, client argov1alpha1.RolloutsGetter, patch string, subresources ...string) error {
+func (r *rolloutCommand) applyPatch(ctx context.Context, client argov1alpha1.RolloutsGetter, patch string) error {
 	rollout := client.Rollouts(r.namespace)
 	_, err := rollout.Patch(
 		ctx,
@@ -97,7 +97,6 @@ func (r *rolloutCommand) applyPatch(ctx context.Context, client argov1alpha1.Rol
 		types.MergePatchType,
 		[]byte(patch),
 		metav1.PatchOptions{},
-		subresources...,
 	)
 	return err
 }
