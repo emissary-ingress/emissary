@@ -28,7 +28,8 @@ type mockRolloutInterface struct {
 	latestName      string
 	latestPatchType types.PatchType
 	latestOptions   metav1.PatchOptions
-	latestPatch     []byte
+	patches         []string
+	subresources    []string
 }
 
 var _ v1alpha1.RolloutInterface = &mockRolloutInterface{}
@@ -68,7 +69,8 @@ func (m *mockRolloutInterface) Watch(ctx context.Context, opts metav1.ListOption
 func (m *mockRolloutInterface) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (result *alpha1.Rollout, err error) {
 	m.latestName = name
 	m.latestPatchType = pt
-	m.latestPatch = data
+	m.patches = append(m.patches, string(data))
+	m.subresources = append(m.subresources, subresources...)
 	m.latestOptions = opts
 	return nil, nil
 }
@@ -80,10 +82,11 @@ func TestRolloutCommand_RunWithClient(t *testing.T) {
 		action      rolloutAction
 	}
 	tests := []struct {
-		name      string
-		fields    fields
-		wantPatch string
-		wantErr   assert.ErrorAssertionFunc
+		name             string
+		fields           fields
+		wantPatches      []string
+		wantSubresources []string
+		wantErr          assert.ErrorAssertionFunc
 	}{
 		{
 			name: "Pausing a rollout",
@@ -92,8 +95,8 @@ func TestRolloutCommand_RunWithClient(t *testing.T) {
 				rolloutName: "my-rollout",
 				action:      rolloutActionPause,
 			},
-			wantPatch: `{"spec":{"paused":true}}`,
-			wantErr:   nil,
+			wantPatches: []string{`{"spec":{"paused":true}}`},
+			wantErr:     nil,
 		},
 		{
 			name: "Aborting a rollout",
@@ -102,8 +105,9 @@ func TestRolloutCommand_RunWithClient(t *testing.T) {
 				rolloutName: "my-rollout",
 				action:      rolloutActionAbort,
 			},
-			wantPatch: `{"status":{"abort":true}}`,
-			wantErr:   nil,
+			wantPatches:      []string{`{"status":{"abort":true}}`},
+			wantSubresources: []string{"status"},
+			wantErr:          nil,
 		},
 		{
 			name: "Resume a rollout",
@@ -112,8 +116,8 @@ func TestRolloutCommand_RunWithClient(t *testing.T) {
 				rolloutName: "my-rollout",
 				action:      rolloutActionResume,
 			},
-			wantPatch: `{"spec":{"paused":false}}`,
-			wantErr:   nil,
+			wantPatches: []string{`{"spec":{"paused":false}}`, `{"status":{"abort":false}}`},
+			wantErr:     nil,
 		},
 	}
 
@@ -138,7 +142,7 @@ func TestRolloutCommand_RunWithClient(t *testing.T) {
 			assert.Equal(t, tt.fields.namespace, mockRolloutsGetter.latestNamespace)
 			assert.Equal(t, tt.fields.rolloutName, mockRolloutInterface.latestName)
 			assert.Equal(t, types.MergePatchType, mockRolloutInterface.latestPatchType)
-			assert.Equal(t, tt.wantPatch, string(mockRolloutInterface.latestPatch))
+			assert.Equal(t, tt.wantPatches, mockRolloutInterface.patches)
 			assert.Equal(t, metav1.PatchOptions{}, mockRolloutInterface.latestOptions)
 		})
 	}
