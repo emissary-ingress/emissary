@@ -84,6 +84,7 @@ rules:
   - argoproj.io
   resources:
   - rollouts
+  - rollouts/status
   verbs:
   - get
   - list
