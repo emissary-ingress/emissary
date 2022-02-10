@@ -520,33 +520,33 @@ release/promote-oss/to-rc:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION=%s does not look like an RC tag\n' "$(VERSION)"; exit 1)
 	@set -e; { \
-		if [ -n "$$(git status -s)" ]; then \
-			echo "$@: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
-		commit=$$(git rev-parse HEAD) ;\
-		$(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key dev-builds ;\
-		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
-		if [ -z "$$dev_version" ]; then \
-			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
-			exit 1 ;\
-		fi ;\
-		printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
-		$(MAKE) release/promote-oss/.main \
-			PROMOTE_FROM_VERSION="$$dev_version" \
-			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-			PROMOTE_TO_VERSION="$(patsubst v%,%,$(VERSION))" \
-			PROMOTE_CHANNEL=test ; \
-		if [ $(IS_PRIVATE) ] ; then \
-			echo "Not publishing charts or manifests because in a private repo" ;\
-			exit 0 ; \
-		fi ; \
-		$(MAKE) \
-			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
-			release/push-chart ; \
-		$(MAKE) generate-fast --always-make; \
-		$(MAKE) push-manifests  ; \
-		$(MAKE) publish-docs-yaml ; \
+	  if [ -n "$$(git status -s)" ]; then \
+	    echo "$@: tree must be clean" >&2 ;\
+	    exit 1 ;\
+	  fi; \
+	  commit=$$(git rev-parse HEAD) ;\
+	  $(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key dev-builds ;\
+	  dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
+	  if [ -z "$$dev_version" ]; then \
+	    printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
+	    exit 1 ;\
+	  fi ;\
+	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
+	  $(MAKE) release/promote-oss/.main \
+	    PROMOTE_FROM_VERSION="$$dev_version" \
+	    PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
+	    PROMOTE_TO_VERSION="$(patsubst v%,%,$(VERSION))" \
+	    PROMOTE_CHANNEL=test ; \
+	  if [ $(IS_PRIVATE) ] ; then \
+	    echo "Not publishing charts or manifests because in a private repo" ;\
+	    exit 0 ; \
+	  fi ; \
+	  $(MAKE) \
+	    IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
+	    release/push-chart ; \
+	  $(MAKE) generate-fast --always-make; \
+	  $(MAKE) push-manifests  ; \
+	  $(MAKE) publish-docs-yaml ; \
 	}
 .PHONY: release/promote-oss/to-rc
 
