@@ -533,17 +533,17 @@ release/promote-oss/to-rc:
 	    PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
 	    PROMOTE_TO_VERSION="$(patsubst v%,%,$(VERSION))" \
 	    PROMOTE_CHANNEL=test ; \
-	  if [ $(IS_PRIVATE) ] ; then \
-	    echo "Not publishing charts or manifests because in a private repo" ;\
-	    exit 0 ; \
-	  fi ; \
-	  $(MAKE) \
-	    IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
-	    release/push-chart ; \
-	  $(MAKE) generate-fast --always-make; \
-	  $(MAKE) push-manifests  ; \
-	  $(MAKE) publish-docs-yaml ; \
 	}
+ifneq ($(IS_PRIVATE),)
+	echo "Not publishing charts or manifests because in a private repo" >&2
+else
+	{ $(MAKE) \
+	  IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
+	  release/push-chart; }
+	$(MAKE) generate-fast --always-make
+	$(MAKE) push-manifests
+	$(MAKE) publish-docs-yaml
+endif
 .PHONY: release/promote-oss/to-rc
 
 # just push the commit hash to s3
