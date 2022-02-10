@@ -19,9 +19,8 @@ jobs:
           fetch-depth: 0
       - name: "Install Deps"
         uses: ./.github/actions/setup-deps
-      - name: make release/ga/chart-push
-        run: |
-          make release/ga/chart-push
+      - run: |
+          make release/push-chart
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master

@@ -286,7 +286,7 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			CHART_VERSION_SUFFIX=-$$chartsuffix \
 			IMAGE_TAG=$${suffix} \
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
-			chart-push-ci ; \
+			release/push-chart ; \
 		$(MAKE) generate-fast --always-make; \
 		$(MAKE) push-manifests  ; \
 	}
@@ -552,7 +552,7 @@ release/promote-oss/dev-to-rc:
 			CHART_VERSION_SUFFIX=-$$chartsuffix \
 			IMAGE_TAG=$${veroverride} \
 			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
-			chart-push-ci ; \
+			release/push-chart ; \
 		$(MAKE) generate-fast --always-make; \
 		$(MAKE) push-manifests  ; \
 		$(MAKE) publish-docs-yaml ; \
