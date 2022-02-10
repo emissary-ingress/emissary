@@ -521,8 +521,7 @@ release/promote-oss/.main: $(tools/docker-promote)
 
 release/promote-oss/dev-to-rc:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ ( "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ) || \
-	    ( "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$$ ) ]] || (printf '$(RED)ERROR: VERSION=%s does not look like an RC tag\n' "$(VERSION)"; exit 1)
+	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION=%s does not look like an RC tag\n' "$(VERSION)"; exit 1)
 	@set -e; { \
 		if [ -n "$$(git status -s)" ]; then \
 			echo "release/promote-oss/dev-to-rc: tree must be clean" >&2 ;\
