@@ -211,7 +211,16 @@ func (c *RPCComm) StreamMetrics(ctx context.Context, metrics *agent.StreamMetric
 	if err != nil {
 		return err
 	}
-	return streamClient.Send(metrics)
+
+	if err := streamClient.Send(metrics); err != nil {
+		return err
+	}
+
+	if err := streamClient.CloseSend(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *RPCComm) Directives() <-chan *agent.Directive {
