@@ -303,13 +303,11 @@ export PYTEST_ARGS
 
 PYTEST_GOLD_DIR ?= $(abspath python/tests/gold)
 
-setup-envoy: extract-bin-envoy
-
 pytest: push-pytest-images
 pytest: $(tools/kubestatus)
 pytest: $(tools/kubectl)
 pytest: $(OSS_HOME)/venv
-pytest: setup-envoy
+pytest: bin/envoy
 pytest: proxy
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
@@ -326,7 +324,7 @@ pytest: proxy
 	}
 .PHONY: pytest
 
-pytest-unit: setup-envoy $(OSS_HOME)/venv
+pytest-unit: bin/envoy $(OSS_HOME)/venv
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
 	mkdir -p $(or $(TEST_XML_DIR),/tmp/test-data)
 	set -e; { \
@@ -354,15 +352,13 @@ pytest-kat-envoy2-%: push-pytest-images # ... so we have a separate rule to run 
 	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range $* python/tests/kat"
 .PHONY: pytest-kat-%
 
-extract-bin-envoy: docker/base-envoy.docker.tag.local
-	@mkdir -p $(OSS_HOME)/bin/
-	@rm -f $(OSS_HOME)/bin/envoy
-	@printf "Extracting envoy binary to $(OSS_HOME)/bin/envoy\n"
-	@echo "#!/bin/bash" > $(OSS_HOME)/bin/envoy
-	@echo "" >> $(OSS_HOME)/bin/envoy
-	@echo "docker run -v $(OSS_HOME):$(OSS_HOME) -v /var/:/var/ -v /tmp/:/tmp/ -t --entrypoint /usr/local/bin/envoy-static-stripped $$(cat docker/base-envoy.docker) \"\$$@\"" >> $(OSS_HOME)/bin/envoy
-	@chmod +x $(OSS_HOME)/bin/envoy
-.PHONY: extract-bin-envoy
+bin/envoy: docker/base-envoy.docker.tag.local
+	mkdir -p $(@D)
+	{ \
+	  echo '#!/bin/bash'; \
+	  echo "docker run -v $(OSS_HOME):$(OSS_HOME) -v /var/:/var/ -v /tmp/:/tmp/ -t --entrypoint /usr/local/bin/envoy-static-stripped $$(cat docker/base-envoy.docker) \"\$$@\""; \
+	} > $@
+	chmod +x $@
 
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
