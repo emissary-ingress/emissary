@@ -580,6 +580,15 @@ release/promote-oss/to-ga:
 	    PROMOTE_CHANNEL= \
 	    ; \
 	}
+ifneq ($(IS_PRIVATE),)
+	echo "Not publishing charts or manifests because in a private repo" >&2
+else
+	{ $(MAKE) \
+	  IMAGE_TAG=$(patsubst v%,%,$(VERSION)) \
+	  IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
+	  push-manifests \
+	  publish-docs-yaml; }
+endif
 .PHONY: release/promote-oss/to-ga
 
 # `make release/go VERSION=v2.Y.Z` is meant to be run by the human
