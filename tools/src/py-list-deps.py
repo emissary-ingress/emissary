@@ -120,6 +120,30 @@ def parse_imports(filepath: str) -> List[ImportedItem]:
             imports += [ImportedItem(modname, alias.name) for alias in node.names]
     return imports
 
+def dirpath_is_in_stdlib(dirpath: str) -> bool:
+    # Where isort does a similar thing, they have a comment saying the
+    # calls to 'os.path.normcase' are important on Windows.  Not that
+    # we expect this to work on Windows without more modification.
+
+    # The calls to 'os.path.realpath' are important on macOS because
+    # `brew install`d Python will have
+    # `sysconfig.get_paths()['stdlib']` start off
+    #   "/usr/local/opt/python@3.9/Frameworks"
+    # while the entries in `sys.path` start off
+    #   "/usr/local/Cellar/python@3.9/3.9.10/Frameworks"
+    # so we need to resolve symlinks for them to be comparable.
+
+    dirpath = os.path.normcase(os.path.realpath(dirpath))
+
+    if ('site-packages' in dirpath) or ('dist-packages' in dirpath):
+        return False
+
+    stdlib_prefix = os.path.normcase(os.path.realpath(sysconfig.get_paths()['stdlib']))
+    if dirpath.startswith(stdlib_prefix):
+        return True
+
+    return False
+
 def is_in_stdlib(item: ImportedItem) -> bool:
     if item.module.startswith('.'):
         return False
@@ -131,14 +155,7 @@ def is_in_stdlib(item: ImportedItem) -> bool:
     # that it's not in stdlib.
 
     original_sys_path = sys.path
-    # Where isort does a similar thing, they have a comment saying the
-    # call to 'os.path.normcase' is important on Windows.  Not that we
-    # expect this to work on Windows without more modification.
-    stdlib_prefix = os.path.normcase(sysconfig.get_paths()['stdlib'])
-    sys.path = [d for d in sys.path if (
-        os.path.normcase(d).startswith(stdlib_prefix) and
-        ('site-packages' not in d) and
-        ('dist-packages' not in d))]
+    sys.path = [d for d in sys.path if dirpath_is_in_stdlib(d)]
 
     in_stdlib = False
     try:
