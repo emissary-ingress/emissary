@@ -27,7 +27,7 @@ jobs:
           password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
       - id: step-main
         run: |
-          make release/promote-oss/dev-to-rc
+          make release/promote-oss/to-rc
           echo "::set-output name=version::$(go run ./tools/src/goversion | sed s/^v//)"
           echo "::set-output name=chart_version::$(go run ./tools/src/goversion --dir-prefix=chart | sed s/^v//)"
       - name: Slack notification

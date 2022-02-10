@@ -516,12 +516,12 @@ release/promote-oss/.main: $(tools/docker-promote)
 	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(patsubst v%,%,$(VERSION))" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
 .PHONY: release/promote-oss/.main
 
-release/promote-oss/dev-to-rc:
+release/promote-oss/to-rc:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION=%s does not look like an RC tag\n' "$(VERSION)"; exit 1)
 	@set -e; { \
 		if [ -n "$$(git status -s)" ]; then \
-			echo "release/promote-oss/dev-to-rc: tree must be clean" >&2 ;\
+			echo "$@: tree must be clean" >&2 ;\
 			exit 1 ;\
 		fi; \
 		commit=$$(git rev-parse HEAD) ;\
@@ -548,7 +548,7 @@ release/promote-oss/dev-to-rc:
 		$(MAKE) push-manifests  ; \
 		$(MAKE) publish-docs-yaml ; \
 	}
-.PHONY: release/promote-oss/dev-to-rc
+.PHONY: release/promote-oss/to-rc
 
 # just push the commit hash to s3
 # this should only happen if all tests have passed at a certain commit
