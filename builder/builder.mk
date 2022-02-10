@@ -539,10 +539,9 @@ ifneq ($(IS_PRIVATE),)
 else
 	{ $(MAKE) \
 	  IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
-	  release/push-chart; }
-	$(MAKE) generate-fast --always-make
-	$(MAKE) push-manifests
-	$(MAKE) publish-docs-yaml
+	  release/push-chart \
+	  push-manifests \
+	  publish-docs-yaml; }
 endif
 .PHONY: release/promote-oss/to-rc
 
