@@ -23,14 +23,3 @@ chart-push-ci: charts/emissary-ingress/README.md
 	[[ -z "$(IS_PRIVATE)" ]] || (echo "Private repo, not pushing chart" >&2; exit 1)
 	CHART_NAME=$(notdir $(EMISSARY_CHART)) $(OSS_HOME)/charts/scripts/push_chart.sh
 .PHONY: chart-push-ci
-
-release/changelog:
-	CHART_NAME=$(notdir $(EMISSARY_CHART)) $(OSS_HOME)/charts/scripts/update_chart_changelog.sh
-.PHONY: release/changelog
-
-release/chart/update-images: charts/emissary-ingress/Chart.yaml
-release/chart/update-images: charts/emissary-ingress/values.yaml
-release/chart/update-images: charts/emissary-ingress/README.md
-	@[ -n "${IMAGE_TAG}" ] || (echo "IMAGE_TAG must be set" && exit 1)
-	IMAGE_TAG="${IMAGE_TAG}" CHART_NAME=$(notdir $(EMISSARY_CHART)) $(OSS_HOME)/charts/scripts/image_tag_changelog_update.sh
-	CHART_NAME=$(notdir $(EMISSARY_CHART)) $(OSS_HOME)/charts/scripts/update_chart_changelog.sh
