@@ -303,23 +303,6 @@ export PYTEST_ARGS
 
 PYTEST_GOLD_DIR ?= $(abspath python/tests/gold)
 
-# Internal target for running a bash shell.
-_bash:
-	@PS1="\u:\w $$ " /bin/bash
-.PHONY: _bash
-
-# Internal runner target that executes an entrypoint after setting up the user's UID/GUID etc.
-_runner:
-	@printf "$(CYN)==>$(END) * Creating group $(BLU)$$INTERACTIVE_GROUP$(END) with GID $(BLU)$$INTERACTIVE_GID$(END)\n"
-	@addgroup -g $$INTERACTIVE_GID $$INTERACTIVE_GROUP
-	@printf "$(CYN)==>$(END) * Creating user $(BLU)$$INTERACTIVE_USER$(END) with UID $(BLU)$$INTERACTIVE_UID$(END)\n"
-	@adduser -u $$INTERACTIVE_UID -G $$INTERACTIVE_GROUP $$INTERACTIVE_USER -D
-	@printf "$(CYN)==>$(END) * Adding user $(BLU)$$INTERACTIVE_USER$(END) to $(BLU)/etc/sudoers$(END)\n"
-	@echo "$$INTERACTIVE_USER ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers
-	@printf "$(CYN)==>$(END) * Switching to user $(BLU)$$INTERACTIVE_USER$(END) with shell $(BLU)/bin/bash$(END)\n"
-	@su -s /bin/bash $$INTERACTIVE_USER -c "$$ENTRYPOINT"
-.PHONY: _runner
-
 setup-envoy: extract-bin-envoy
 
 pytest: push-pytest-images
@@ -604,21 +587,6 @@ release/promote-oss/dev-to-passed-ci:
 		echo "$$dev_version" | aws s3 cp - s3://$(AWS_S3_BUCKET)/passed-builds/$$commit ;\
 	}
 .PHONY: release/promote-oss/dev-to-passed-ci
-
-# should run on every PR once the builds have passed
-# this is less strong than "release/promote-oss/dev-to-passed-ci"
-release/promote-oss/pr-to-passed-ci:
-	@set -e; { \
-		commit=$$(git rev-parse HEAD) ;\
-		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
-		if [ -z "$$dev_version" ]; then \
-			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
-			exit 1 ;\
-		fi ;\
-		printf "$(CYN)==> $(GRN)Promoting $(BLU)$$commit$(GRN) => $(BLU)$$dev_version$(GRN) in S3...$(END)\n" ;\
-		echo "$$dev_version" | aws s3 cp - s3://$(AWS_S3_BUCKET)/passed-pr/$$commit ;\
-	}
-.PHONY: release/promote-oss/pr-to-passed-ci
 
 release/promote-oss/to-hotfix:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
