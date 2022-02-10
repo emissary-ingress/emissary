@@ -539,7 +539,6 @@ ifneq ($(IS_PRIVATE),)
 else
 	{ $(MAKE) \
 	  IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
-	  release/push-chart \
 	  push-manifests \
 	  publish-docs-yaml; }
 endif
