@@ -268,7 +268,6 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			exit 1 ;\
 		fi ;\
 		suffix=$(patsubst v%,%,$(VERSION)); \
-		chartsuffix=$${suffix#*-} ; \
 		for image in $(LCNAME) ; do \
 			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
 			printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
@@ -283,8 +282,6 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			exit 0 ; \
 		fi ; \
 		$(MAKE) \
-			CHART_VERSION_SUFFIX=-$$chartsuffix \
-			IMAGE_TAG=$${suffix} \
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 			release/push-chart ; \
 		$(MAKE) generate-fast --always-make; \
@@ -535,22 +532,16 @@ release/promote-oss/dev-to-rc:
 			exit 1 ;\
 		fi ;\
 		printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
-		veroverride=$(patsubst v%,%,$(VERSION)) ; \
-		tag=$$veroverride ; \
 		$(MAKE) release/promote-oss/.main \
 			PROMOTE_FROM_VERSION="$$dev_version" \
 			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-			PROMOTE_TO_VERSION="$$tag" \
+			PROMOTE_TO_VERSION="$(patsubst v%,%,$(VERSION))" \
 			PROMOTE_CHANNEL=test ; \
 		if [ $(IS_PRIVATE) ] ; then \
 			echo "Not publishing charts or manifests because in a private repo" ;\
 			exit 0 ; \
 		fi ; \
-		chartsuffix=$(patsubst v%,%,$(VERSION)) ; \
-		chartsuffix=$${chartsuffix#*-} ; \
 		$(MAKE) \
-			CHART_VERSION_SUFFIX=-$$chartsuffix \
-			IMAGE_TAG=$${veroverride} \
 			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
 			release/push-chart ; \
 		$(MAKE) generate-fast --always-make; \
