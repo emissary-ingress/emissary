@@ -520,10 +520,6 @@ release/promote-oss/to-rc:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION=%s does not look like an RC tag\n' "$(VERSION)"; exit 1)
 	@set -e; { \
-	  if [ -n "$$(git status -s)" ]; then \
-	    echo "$@: tree must be clean" >&2 ;\
-	    exit 1 ;\
-	  fi; \
 	  commit=$$(git rev-parse HEAD) ;\
 	  $(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key dev-builds ;\
 	  dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
