@@ -528,7 +528,7 @@ release/promote-oss/.main: $(tools/docker-promote)
 			echo "Must set PROMOTE_FROM_REPO or RELEASE_REGISTRY" ; \
 			exit 1; \
 		fi ; \
-		printf '  $(CYN)$${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n' ; \
+		printf "    $(GRN)pulling from $(BLU)$${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n" ; \
 		$(tools/docker-promote) $${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) && \
 		docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) ;\
 	}
@@ -576,7 +576,7 @@ release/promote-oss/dev-to-rc:
 			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
 		$(MAKE) generate-fast --always-make; \
-		$(MAKE) push-manifests  ; \
+		$(MAKE) IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" push-manifests  ; \
 		$(MAKE) publish-docs-yaml ; \
 	}
 .PHONY: release/promote-oss/dev-to-rc
@@ -654,7 +654,7 @@ release/promote-oss/to-hotfix:
 			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ;\
 		$(MAKE) generate-fast --always-make; \
-		$(MAKE) push-manifests ;\
+		$(MAKE) IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" push-manifests  ; \
 		$(MAKE) publish-docs-yaml ;\
 		docker logout ;\
 	}
