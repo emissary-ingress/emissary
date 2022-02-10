@@ -24,16 +24,6 @@ release/ga/changelog-update:
 # These commands are run in CI in a normal release process
 ########################################################################
 
-release/rc/print-test-artifacts:
-	@set -e; { \
-		manifest_ver=$(patsubst v%,%,$(VERSION)) ; \
-		manifest_ver=$${manifest_ver%"-dirty"} ; \
-		echo "RC_TAG=v$$manifest_ver" ; \
-		echo "AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/$$manifest_ver" ; \
-		echo "HELM_CHART_VERSION=$$(gawk '$$1 == "version:" { print $$2 }' <charts/emissary-ingress/Chart.yaml)" ; \
-	}
-.PHONY: release/print-test-artifacts
-
 release/rc/check:
 	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION must be set to an RC "v2.Y.Z-rc.N" value; it is set to "%s"$(END)\n' "$(VERSION)"; exit 1)
 	{ $(OSS_HOME)/releng/release-rc-check \
