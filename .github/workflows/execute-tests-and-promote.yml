@@ -107,12 +107,12 @@ jobs:
       matrix:
         test:
           - integration
-          - kat-envoy2-ah
-          - kat-envoy2-ip
-          - kat-envoy2-qz
-          - kat-envoy3-ah
-          - kat-envoy3-ip
-          - kat-envoy3-qz
+          - kat-envoy2-g1
+          - kat-envoy2-g2
+          - kat-envoy2-g3
+          - kat-envoy3-g1
+          - kat-envoy3-g2
+          - kat-envoy3-g3
           # FIXME(lukeshu): KAT_RUN_MODE=local is disabled because it
           # needs fixed for a world where annotations are already
           # unfolded in the snapshot.
