@@ -32,6 +32,14 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 2.2.1
+    date: 'TBD'
+    notes:
+      - title: Fix Rollout Aborts
+        type: bugfix
+        body: >-
+          The Ambassador Agent now correctly supports requests to abort a rollout.
+
   - version: 2.2.0
     date: '2022-02-10'
     notes:

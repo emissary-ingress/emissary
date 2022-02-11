@@ -116,8 +116,9 @@ func TestRolloutCommand_RunWithClient(t *testing.T) {
 				rolloutName: "my-rollout",
 				action:      rolloutActionResume,
 			},
-			wantPatches: []string{`{"spec":{"paused":false}}`, `{"status":{"abort":false}}`},
-			wantErr:     nil,
+			wantPatches:      []string{`{"spec":{"paused":false}}`, `{"status":{"abort":false}}`},
+			wantSubresources: []string{"status"},
+			wantErr:          nil,
 		},
 	}
 
@@ -143,6 +144,7 @@ func TestRolloutCommand_RunWithClient(t *testing.T) {
 			assert.Equal(t, tt.fields.rolloutName, mockRolloutInterface.latestName)
 			assert.Equal(t, types.MergePatchType, mockRolloutInterface.latestPatchType)
 			assert.Equal(t, tt.wantPatches, mockRolloutInterface.patches)
+			assert.Equal(t, tt.wantSubresources, mockRolloutInterface.subresources)
 			assert.Equal(t, metav1.PatchOptions{}, mockRolloutInterface.latestOptions)
 		})
 	}
