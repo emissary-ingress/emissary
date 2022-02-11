@@ -18,6 +18,12 @@ const (
 )
 
 const (
+	serviceHealth = "service"
+	connectHealth = "connect"
+	ingressHealth = "ingress"
+)
+
+const (
 	// NodeMaint is the special key set by a node in maintenance mode.
 	NodeMaint = "_node_maintenance"
 
@@ -37,6 +43,8 @@ type HealthCheck struct {
 	ServiceName string
 	ServiceTags []string
 	Type        string
+	Namespace   string `json:",omitempty"`
+	Partition   string `json:",omitempty"`
 
 	Definition HealthCheckDefinition
 
@@ -50,6 +58,8 @@ type HealthCheckDefinition struct {
 	HTTP                                   string
 	Header                                 map[string][]string
 	Method                                 string
+	Body                                   string
+	TLSServerName                          string
 	TLSSkipVerify                          bool
 	TCP                                    string
 	IntervalDuration                       time.Duration `json:"-"`
@@ -168,7 +178,7 @@ type HealthChecks []*HealthCheck
 func (c HealthChecks) AggregatedStatus() string {
 	var passing, warning, critical, maintenance bool
 	for _, check := range c {
-		id := string(check.CheckID)
+		id := check.CheckID
 		if id == NodeMaint || strings.HasPrefix(id, ServiceMaintPrefix) {
 			maintenance = true
 			continue
@@ -221,11 +231,14 @@ func (c *Client) Health() *Health {
 func (h *Health) Node(node string, q *QueryOptions) (HealthChecks, *QueryMeta, error) {
 	r := h.c.newRequest("GET", "/v1/health/node/"+node)
 	r.setQueryOptions(q)
-	rtt, resp, err := requireOK(h.c.doRequest(r))
+	rtt, resp, err := h.c.doRequest(r)
 	if err != nil {
 		return nil, nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp)
+	if err := requireOK(resp); err != nil {
+		return nil, nil, err
+	}
 
 	qm := &QueryMeta{}
 	parseQueryMeta(resp, qm)
@@ -242,11 +255,14 @@ func (h *Health) Node(node string, q *QueryOptions) (HealthChecks, *QueryMeta, e
 func (h *Health) Checks(service string, q *QueryOptions) (HealthChecks, *QueryMeta, error) {
 	r := h.c.newRequest("GET", "/v1/health/checks/"+service)
 	r.setQueryOptions(q)
-	rtt, resp, err := requireOK(h.c.doRequest(r))
+	rtt, resp, err := h.c.doRequest(r)
 	if err != nil {
 		return nil, nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp)
+	if err := requireOK(resp); err != nil {
+		return nil, nil, err
+	}
 
 	qm := &QueryMeta{}
 	parseQueryMeta(resp, qm)
@@ -267,11 +283,11 @@ func (h *Health) Service(service, tag string, passingOnly bool, q *QueryOptions)
 	if tag != "" {
 		tags = []string{tag}
 	}
-	return h.service(service, tags, passingOnly, q, false)
+	return h.service(service, tags, passingOnly, q, serviceHealth)
 }
 
 func (h *Health) ServiceMultipleTags(service string, tags []string, passingOnly bool, q *QueryOptions) ([]*ServiceEntry, *QueryMeta, error) {
-	return h.service(service, tags, passingOnly, q, false)
+	return h.service(service, tags, passingOnly, q, serviceHealth)
 }
 
 // Connect is equivalent to Service except that it will only return services
@@ -284,18 +300,31 @@ func (h *Health) Connect(service, tag string, passingOnly bool, q *QueryOptions)
 	if tag != "" {
 		tags = []string{tag}
 	}
-	return h.service(service, tags, passingOnly, q, true)
+	return h.service(service, tags, passingOnly, q, connectHealth)
 }
 
 func (h *Health) ConnectMultipleTags(service string, tags []string, passingOnly bool, q *QueryOptions) ([]*ServiceEntry, *QueryMeta, error) {
-	return h.service(service, tags, passingOnly, q, true)
+	return h.service(service, tags, passingOnly, q, connectHealth)
 }
 
-func (h *Health) service(service string, tags []string, passingOnly bool, q *QueryOptions, connect bool) ([]*ServiceEntry, *QueryMeta, error) {
-	path := "/v1/health/service/" + service
-	if connect {
+// Ingress is equivalent to Connect except that it will only return associated
+// ingress gateways for the requested service.
+func (h *Health) Ingress(service string, passingOnly bool, q *QueryOptions) ([]*ServiceEntry, *QueryMeta, error) {
+	var tags []string
+	return h.service(service, tags, passingOnly, q, ingressHealth)
+}
+
+func (h *Health) service(service string, tags []string, passingOnly bool, q *QueryOptions, healthType string) ([]*ServiceEntry, *QueryMeta, error) {
+	var path string
+	switch healthType {
+	case connectHealth:
 		path = "/v1/health/connect/" + service
+	case ingressHealth:
+		path = "/v1/health/ingress/" + service
+	default:
+		path = "/v1/health/service/" + service
 	}
+
 	r := h.c.newRequest("GET", path)
 	r.setQueryOptions(q)
 	if len(tags) > 0 {
@@ -306,11 +335,14 @@ func (h *Health) service(service string, tags []string, passingOnly bool, q *Que
 	if passingOnly {
 		r.params.Set(HealthPassing, "1")
 	}
-	rtt, resp, err := requireOK(h.c.doRequest(r))
+	rtt, resp, err := h.c.doRequest(r)
 	if err != nil {
 		return nil, nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp)
+	if err := requireOK(resp); err != nil {
+		return nil, nil, err
+	}
 
 	qm := &QueryMeta{}
 	parseQueryMeta(resp, qm)
@@ -336,11 +368,14 @@ func (h *Health) State(state string, q *QueryOptions) (HealthChecks, *QueryMeta,
 	}
 	r := h.c.newRequest("GET", "/v1/health/state/"+state)
 	r.setQueryOptions(q)
-	rtt, resp, err := requireOK(h.c.doRequest(r))
+	rtt, resp, err := h.c.doRequest(r)
 	if err != nil {
 		return nil, nil, err
 	}
-	defer resp.Body.Close()
+	defer closeResponseBody(resp)
+	if err := requireOK(resp); err != nil {
+		return nil, nil, err
+	}
 
 	qm := &QueryMeta{}
 	parseQueryMeta(resp, qm)

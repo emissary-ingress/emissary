@@ -32,6 +32,91 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 2.2.0
+    date: '2022-02-10'
+    notes:
+      - title: Envoy V2 API deprecation
+        type: change
+        body: >-
+          Support for the Envoy V2 API is deprecated as of $productName$ v2.1, and will be removed in $productName$
+          v3.0. The <code>AMBASSADOR_ENVOY_API_VERSION</code> environment variable will be removed at the same
+          time. Only the Envoy V3 API will be supported (this has been the default since $productName$ v1.14.0).
+
+      - title: Emissary-ingress will watch for Cloud Connect Tokens
+        type: change
+        body: >-
+          $productName$ will now watch for ConfigMap or Secret resources specified by the
+          <code>AGENT_CONFIG_RESOURCE_NAME</code> environment variable in order to allow all
+          components (and not only the Ambassador Agent) to authenticate requests to
+          Ambassador Cloud.
+        image: ./v2.2.0-cloud.png
+
+      - title: Update Alpine and libraries
+        type: security
+        body: >-
+          $productName$ has updated Alpine to 3.15, and Python and Go dependencies
+          to their latest compatible versions, to incorporate numerous security patches.
+
+      - title: Support a log-level metric
+        type: feature
+        body: >-
+          $productName$ now supports the metric <code>ambassador_log_level{label="debug"}</code>
+          which will be set to 1 if debug logging is enabled for the running Emissary
+          instance, or to 0 if not. This can help to be sure that a running production
+          instance was not actually left doing debugging logging, for example.
+          (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!)
+        github:
+        - title: "#3906"
+          link: https://github.com/emissary-ingress/emissary/issues/3906
+        docs: topics/running/statistics/8877-metrics/
+
+      - title: Envoy configuration % escaping
+        type: feature
+        body: >-
+          $productName$ is now leveraging a new Envoy Proxy patch that allows Envoy to accept escaped
+          '%' characters in its configuration. This means that error_response_overrides and other
+          custom user content can now contain '%' symbols escaped as '%%'.
+        docs: topics/running/custom-error-responses
+        github:
+        - title: "DW Envoy: 74"
+          link: https://github.com/datawire/envoy/pull/74
+        - title: "Upstream Envoy: 19383"
+          link: https://github.com/envoyproxy/envoy/pull/19383
+        image: ./v2.2.0-percent-escape.png
+
+      - title: Stream metrics from Envoy to Ambassador Cloud
+        type: feature
+        body: >-
+          Support for streaming Envoy metrics about the clusters to Ambassador Cloud.
+        github:
+        - title: "#4053"
+          link: https://github.com/emissary-ingress/emissary/pull/4053
+        docs: https://github.com/emissary-ingress/emissary/pull/4053
+
+      - title: Support received commands to pause, continue and abort a Rollout via Agent directives
+        type: feature
+        body: >-
+          The Ambassador agent now receives commands to manipulate Rollouts (pause, continue, and
+          abort are currently supported) via directives and executes them in the cluster. A report
+          is sent to Ambassador Cloud including the command ID, whether it ran successfully, and
+          an error message in case there was any.
+        github:
+          - title: "#4040"
+            link: https://github.com/emissary-ingress/emissary/pull/4040
+        docs: https://github.com/emissary-ingress/emissary/pull/4040
+
+      - title: Validate certificates in TLS Secrets
+        type: bugfix
+        body: >-
+          Kubernetes Secrets that should contain TLS certificates are now validated before being
+          accepted for configuration. A Secret that contains an invalid TLS certificate will be logged
+          as an invalid resource.
+        github:
+        - title: "#3821"
+          link: https://github.com/emissary-ingress/emissary/issues/3821
+        docs: ../topics/running/tls
+        image: ./v2.2.0-tls-cert-validation.png
+
   - version: 2.1.2
     prevVersion: 2.1.0
     date: '2022-01-25'
@@ -85,6 +170,15 @@ items:
         docs: topics/using/rewrites
         image: ./v2.1.2-mapping-no-rewrite.png
 
+      - title: Correctly handle DNS wildcards when associating Hosts and Mappings
+        type: bugfix
+        body: >-
+          <code>Mapping</code>s with DNS wildcard <code>hostname</code> will now be correctly
+          matched with <code>Host</code>s. Previously, the case where both the <code>Host</code>
+          and the <code>Mapping</code> use DNS wildcards for their hostnames could sometimes
+          not correctly match when they should have.
+        docs: howtos/configure-communications/
+
       - title: Correctly use Mappings with host redirects
         type: bugfix
         body: >-
@@ -94,16 +188,6 @@ items:
         - title: 3709
           link: https://github.com/emissary-ingress/emissary/issues/3709
         docs: https://github.com/emissary-ingress/emissary/issues/3709
-
-      - title: Correctly handle DNS wildcards when associating Hosts and Mappings
-        type: bugfix
-        body: >-
-          <code>Mapping</code>s with DNS wildcard <code>hostname</code> will now be correctly
-          matched with <code>Host</code>s. Previously, the case where both the <code>Host</code>
-          and the <code>Mapping</code> use DNS wildcards for their hostnames could sometimes
-          not correctly match when they should have.
-        docs: howtos/configure-communications/
-        image: ./v2.1.2-host-mapping-matching.png
 
       - title: Fix overriding global settings for adding or removing headers
         type: bugfix
@@ -140,6 +224,13 @@ items:
         body: >-
           Resource validation errors are now reported more consistently; it was the case that in
           some situations a validation error would not be reported.
+
+      - title: Docker BuildKit always used for builds
+        type: change
+        body: >-
+          Docker BuildKit is enabled for all Emissary builds. Additionally, the Go
+          build cache is fully enabled when building images, speeding up repeated builds.
+        docs: https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md
 
   - version: 2.1.1
     date: 'N/A'

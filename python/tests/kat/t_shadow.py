@@ -10,7 +10,7 @@ class ShadowTestCANFLAKE(MappingTest):
     target: ServiceType
     shadow: ServiceType
 
-    # XXX This type: ignore is here because we're deliberately overriding the 
+    # XXX This type: ignore is here because we're deliberately overriding the
     # parent's init to have a different signature... but it's also intimately
     # (nay, incestuously) related to the variant()'s yield() above, and I really
     # don't want to deal with that right now. So. We'll deal with it later.
@@ -52,7 +52,7 @@ spec:
     spec:
       containers:
       - name: shadow
-        image: {self.test_image[shadow]}
+        image: {images[test-shadow]}
         ports:
         - name: http
           containerPort: 3000

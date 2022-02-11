@@ -4,10 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v3"
+	io_prometheus_client "github.com/prometheus/client_model/go"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -26,7 +29,9 @@ const cloudConnectTokenKey = "CLOUD_CONNECT_TOKEN"
 type Comm interface {
 	Close() error
 	Report(context.Context, *agent.Snapshot, string) error
+	ReportCommandResult(context.Context, *agent.CommandResult, string) error
 	Directives() <-chan *agent.Directive
+	StreamMetrics(context.Context, *agent.StreamMetricsMessage, string) error
 }
 
 type atomicBool struct {
@@ -46,7 +51,7 @@ func (ab *atomicBool) Set(v bool) {
 	ab.value = v
 }
 
-// Agent is the component that talks to the CEPC Director, which is a cloud
+// Agent is the component that talks to the DCP Director, which is a cloud
 // service run by Datawire.
 type Agent struct {
 	// Connectivity to the Director
@@ -110,7 +115,7 @@ func getEnvWithDefault(envVarKey string, defaultValue string) string {
 }
 
 // New returns a new Agent.
-func NewAgent(directiveHandler DirectiveHandler) *Agent {
+func NewAgent(directiveHandler DirectiveHandler, rolloutsGetterFactory rolloutsGetterFactory) *Agent {
 	reportPeriodFromEnv := os.Getenv("AGENT_REPORTING_PERIOD")
 	var reportPeriod time.Duration
 	if reportPeriodFromEnv != "" {
@@ -124,7 +129,10 @@ func NewAgent(directiveHandler DirectiveHandler) *Agent {
 		reportPeriod = defaultMinReportPeriod
 	}
 	if directiveHandler == nil {
-		directiveHandler = &BasicDirectiveHandler{DefaultMinReportPeriod: defaultMinReportPeriod}
+		directiveHandler = &BasicDirectiveHandler{
+			DefaultMinReportPeriod: defaultMinReportPeriod,
+			rolloutsGetterFactory:  rolloutsGetterFactory,
+		}
 	}
 
 	return &Agent{
@@ -458,13 +466,13 @@ func (a *Agent) MaybeReport(ctx context.Context) {
 
 	// It's time to send a report
 	if a.comm == nil {
-		// The communications channel to the CEPC was not yet created or was
+		// The communications channel to the DCP was not yet created or was
 		// closed above, due to a change in identity, or close elsewhere, due to
 		// a change in endpoint configuration.
 		newComm, err := NewComm(ctx, a.connInfo, a.agentID, a.ambassadorAPIKey)
 		if err != nil {
-			dlog.Warnf(ctx, "Failed to dial the CEPC: %v", err)
-			dlog.Warn(ctx, "CEPC functionality disabled until next retry")
+			dlog.Warnf(ctx, "Failed to dial the DCP: %v", err)
+			dlog.Warn(ctx, "DCP functionality disabled until next retry")
 
 			return
 		}
@@ -597,6 +605,37 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 	a.reportToSend = report
 
 	return nil
+}
+
+var allowedMetricsSuffixes = []string{"upstream_rq_total", "upstream_rq_time", "upstream_rq_5xx"}
+
+func (a *Agent) MetricsRelayHandler(logCtx context.Context, in *envoyMetrics.StreamMetricsMessage) {
+	metrics := in.GetEnvoyMetrics()
+	dlog.Debugf(logCtx, "received %d metrics", len(metrics))
+	if a.comm != nil && !a.reportingStopped {
+		a.ambassadorAPIKeyMutex.Lock()
+		apikey := a.ambassadorAPIKey
+		a.ambassadorAPIKeyMutex.Unlock()
+
+		outMetrics := make([]*io_prometheus_client.MetricFamily, 0, len(metrics))
+		for _, metricFamily := range metrics {
+			for _, suffix := range allowedMetricsSuffixes {
+				if strings.HasSuffix(metricFamily.GetName(), suffix) {
+					outMetrics = append(outMetrics, metricFamily)
+					break
+				}
+			}
+		}
+
+		outMessage := &agent.StreamMetricsMessage{
+			Identity:     a.agentID,
+			EnvoyMetrics: outMetrics,
+		}
+		dlog.Debugf(logCtx, "relaying %d metrics", len(outMessage.GetEnvoyMetrics()))
+		if err := a.comm.StreamMetrics(logCtx, outMessage, apikey); err != nil {
+			dlog.Errorf(logCtx, "Error streaming metrics: %+v", err)
+		}
+	}
 }
 
 // ClearComm ends the current connection to the Director, if it exists, thereby

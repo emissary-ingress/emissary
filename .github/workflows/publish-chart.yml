@@ -1,5 +1,5 @@
 name: chart-publish
-on:
+"on":
   push:
     tags:
       - 'chart/v*'
@@ -19,9 +19,8 @@ jobs:
           fetch-depth: 0
       - name: "Install Deps"
         uses: ./.github/actions/setup-deps
-      - name: make release/ga/chart-push
-        run: |
-          make release/ga/chart-push
+      - run: |
+          make release/push-chart IMAGE_REPO=${{ secrets.RELEASE_REGISTRY }}/emissary
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master

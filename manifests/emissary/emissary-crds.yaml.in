@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -38,10 +38,14 @@ spec:
         description: AuthService is the Schema for the authservices API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -132,10 +136,14 @@ spec:
         description: AuthService is the Schema for the authservices API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -159,12 +167,17 @@ spec:
                   type: string
                 type: array
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
+                description: "AmbassadorID declares which Ambassador instances should
+                  pay attention to this resource. If no value is provided, the default
+                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  consider renaming all of the `ambassador_id` (singular) fields to
+                  `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
               auth_service:
-                description: 'TODO(lukeshu): In v3alpha2, consider renameing `auth_service` to just `service`, for consistency with the other resource types.'
+                description: 'TODO(lukeshu): In v3alpha2, consider renameing `auth_service`
+                  to just `service`, for consistency with the other resource types.'
                 type: string
               circuit_breakers:
                 items:
@@ -212,25 +225,55 @@ spec:
               stats_name:
                 type: string
               status_on_error:
-                description: 'TODO(lukeshu): In v3alpha2, consider getting rid of this struct type in favor of just using an int (i.e. `statusOnError: 500` instead of the current `statusOnError: { code: 500 }`).'
+                description: 'TODO(lukeshu): In v3alpha2, consider getting rid of
+                  this struct type in favor of just using an int (i.e. `statusOnError:
+                  500` instead of the current `statusOnError: { code: 500 }`).'
                 properties:
                   code:
                     type: integer
                 type: object
               timeout_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
+                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               tls:
                 type: string
               v2ExplicitTLS:
-                description: V2ExplicitTLS controls some vanity/stylistic elements when converting from v3alpha1 to v2.  The values in an V2ExplicitTLS should not in any way affect the runtime operation of Emissary; except that it may affect internal names in the Envoy config, which may in turn affect stats names.  But it should not affect any end-user observable behavior.
+                description: V2ExplicitTLS controls some vanity/stylistic elements
+                  when converting from v3alpha1 to v2.  The values in an V2ExplicitTLS
+                  should not in any way affect the runtime operation of Emissary;
+                  except that it may affect internal names in the Envoy config, which
+                  may in turn affect stats names.  But it should not affect any end-user
+                  observable behavior.
                 properties:
                   serviceScheme:
-                    description: "ServiceScheme specifies how to spell and capitalize the scheme-part of the service URL. \n Acceptable values are \"http://\" (case-insensitive), \"https://\" (case-insensitive), or \"\".  The value is used if it agrees with whether or not this resource enables TLS origination, or if something else in the resource overrides the scheme."
+                    description: "ServiceScheme specifies how to spell and capitalize
+                      the scheme-part of the service URL. \n Acceptable values are
+                      \"http://\" (case-insensitive), \"https://\" (case-insensitive),
+                      or \"\".  The value is used if it agrees with whether or not
+                      this resource enables TLS origination, or if something else
+                      in the resource overrides the scheme."
                     pattern: ^([hH][tT][tT][pP][sS]?://)?$
                     type: string
                   tls:
-                    description: "TLS controls whether and how to represent the \"tls\" field when its value could be implied by the \"service\" field.  In v2, there were a lot of different ways to spell an \"empty\" value, and this field specifies which way to spell it (and will therefore only be used if the value will indeed be empty). \n  | Value        | Representation                        | Meaning of representation          |  |--------------+---------------------------------------+------------------------------------|  | \"\"           | omit the field                        | defer to service (no TLSContext)   |  | \"null\"       | store an explicit \"null\" in the field | defer to service (no TLSContext)   |  | \"string\"     | store an empty string in the field    | defer to service (no TLSContext)   |  | \"bool:false\" | store a Boolean \"false\" in the field  | defer to service (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\" in the field   | originate TLS (no TLSContext)      | \n If the meaning of the representation contradicts anything else (if a TLSContext is to be used, or in the case of \"bool:true\" if TLS is not to be originated), then this field is ignored."
+                    description: "TLS controls whether and how to represent the \"tls\"
+                      field when its value could be implied by the \"service\" field.
+                      \ In v2, there were a lot of different ways to spell an \"empty\"
+                      value, and this field specifies which way to spell it (and will
+                      therefore only be used if the value will indeed be empty). \n
+                      \ | Value        | Representation                        | Meaning
+                      of representation          |  |--------------+---------------------------------------+------------------------------------|
+                      \ | \"\"           | omit the field                        |
+                      defer to service (no TLSContext)   |  | \"null\"       | store
+                      an explicit \"null\" in the field | defer to service (no TLSContext)
+                      \  |  | \"string\"     | store an empty string in the field
+                      \   | defer to service (no TLSContext)   |  | \"bool:false\"
+                      | store a Boolean \"false\" in the field  | defer to service
+                      (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\"
+                      in the field   | originate TLS (no TLSContext)      | \n If
+                      the meaning of the representation contradicts anything else
+                      (if a TLSContext is to be used, or in the case of \"bool:true\"
+                      if TLS is not to be originated), then this field is ignored."
                     enum:
                     - ""
                     - "null"
@@ -258,7 +301,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -292,15 +335,21 @@ spec:
         description: ConsulResolver is the Schema for the ConsulResolver API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
           spec:
-            description: ConsulResolver tells Ambassador to use Consul to resolve services. In addition to the AmbassadorID, it needs information about which Consul server and DC to use.
+            description: ConsulResolver tells Ambassador to use Consul to resolve
+              services. In addition to the AmbassadorID, it needs information about
+              which Consul server and DC to use.
             properties:
               address:
                 type: string
@@ -317,20 +366,30 @@ spec:
         description: ConsulResolver is the Schema for the ConsulResolver API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
           spec:
-            description: ConsulResolver tells Ambassador to use Consul to resolve services. In addition to the AmbassadorID, it needs information about which Consul server and DC to use.
+            description: ConsulResolver tells Ambassador to use Consul to resolve
+              services. In addition to the AmbassadorID, it needs information about
+              which Consul server and DC to use.
             properties:
               address:
                 type: string
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
+                description: "AmbassadorID declares which Ambassador instances should
+                  pay attention to this resource. If no value is provided, the default
+                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  consider renaming all of the `ambassador_id` (singular) fields to
+                  `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -353,7 +412,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -384,13 +443,25 @@ spec:
   - name: v2
     schema:
       openAPIV3Schema:
-        description: "DevPortal is the Schema for the DevPortals API \n DevPortal resources specify the `what` and `how` is shown in a DevPortal: \n * `what` is in a DevPortal can be controlled with   - a `selector`, that can be used for filtering `Mappings`.   - a `docs` listing of (services, url) * `how` is a pointer to some `contents` (a checkout of a Git repository   with go-templates/markdown/css). \n Multiple `DevPortal`s can exist in the cluster, and the Dev Portal server will show them at different endpoints. A `DevPortal` resource with a special name, `ambassador`, will be used for configuring the default Dev Portal (served at `/docs/` by default)."
+        description: "DevPortal is the Schema for the DevPortals API \n DevPortal
+          resources specify the `what` and `how` is shown in a DevPortal: \n * `what`
+          is in a DevPortal can be controlled with   - a `selector`, that can be used
+          for filtering `Mappings`.   - a `docs` listing of (services, url) * `how`
+          is a pointer to some `contents` (a checkout of a Git repository   with go-templates/markdown/css).
+          \n Multiple `DevPortal`s can exist in the cluster, and the Dev Portal server
+          will show them at different endpoints. A `DevPortal` resource with a special
+          name, `ambassador`, will be used for configuring the default Dev Portal
+          (served at `/docs/` by default)."
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -398,7 +469,8 @@ spec:
             description: DevPortalSpec defines the desired state of DevPortal
             properties:
               content:
-                description: Content specifies where the content shown in the DevPortal come from
+                description: Content specifies where the content shown in the DevPortal
+                  come from
                 properties:
                   branch:
                     type: string
@@ -413,13 +485,19 @@ spec:
               docs:
                 description: Docs is a static docs definition
                 items:
-                  description: 'DevPortalDocsSpec is a static documentation definition: instead of using a Selector for finding documentation for services, users can provide a static list of <service>:<URL> tuples. These services will be shown in the Dev Portal with the documentation obtained from this URL.'
+                  description: 'DevPortalDocsSpec is a static documentation definition:
+                    instead of using a Selector for finding documentation for services,
+                    users can provide a static list of <service>:<URL> tuples. These
+                    services will be shown in the Dev Portal with the documentation
+                    obtained from this URL.'
                   properties:
                     service:
                       description: Service is the service being documented
                       type: string
                     timeout_ms:
-                      description: Timeout specifies the amount of time devportal will wait for the downstream service to report an openapi spec back
+                      description: Timeout specifies the amount of time devportal
+                        will wait for the downstream service to report an openapi
+                        spec back
                       type: integer
                     url:
                       description: URL is the URL used for obtaining docs
@@ -427,21 +505,28 @@ spec:
                   type: object
                 type: array
               naming_scheme:
-                description: Describes how to display "services" in the DevPortal. Default namespace.name
+                description: Describes how to display "services" in the DevPortal.
+                  Default namespace.name
                 enum:
                 - namespace.name
                 - name.prefix
                 type: string
               preserve_servers:
-                description: Configures this DevPortal to use server definitions from the openAPI doc instead of rewriting them based on the url used for the connection.
+                description: Configures this DevPortal to use server definitions from
+                  the openAPI doc instead of rewriting them based on the url used
+                  for the connection.
                 type: boolean
               search:
-                description: DevPortalSearchSpec allows configuration over search functionality for the DevPortal
+                description: DevPortalSearchSpec allows configuration over search
+                  functionality for the DevPortal
                 properties:
                   enabled:
                     type: boolean
                   type:
-                    description: 'Type of search. "title-only" does a fuzzy search over openapi and page titles "all-content" will fuzzy search over all openapi and page content. "title-only" is the default. warning:  using all-content may incur a larger memory footprint'
+                    description: 'Type of search. "title-only" does a fuzzy search
+                      over openapi and page titles "all-content" will fuzzy search
+                      over all openapi and page content. "title-only" is the default.
+                      warning:  using all-content may incur a larger memory footprint'
                     enum:
                     - title-only
                     - all-content
@@ -453,10 +538,12 @@ spec:
                   matchLabels:
                     additionalProperties:
                       type: string
-                    description: MatchLabels specifies the list of labels that must be present in Mappings for being present in this DevPortal.
+                    description: MatchLabels specifies the list of labels that must
+                      be present in Mappings for being present in this DevPortal.
                     type: object
                   matchNamespaces:
-                    description: MatchNamespaces is a list of namespaces that will be included in this DevPortal.
+                    description: MatchNamespaces is a list of namespaces that will
+                      be included in this DevPortal.
                     items:
                       type: string
                     type: array
@@ -469,13 +556,25 @@ spec:
   - name: v3alpha1
     schema:
       openAPIV3Schema:
-        description: "DevPortal is the Schema for the DevPortals API \n DevPortal resources specify the `what` and `how` is shown in a DevPortal: \n * `what` is in a DevPortal can be controlled with   - a `selector`, that can be used for filtering `Mappings`.   - a `docs` listing of (services, url) * `how` is a pointer to some `contents` (a checkout of a Git repository   with go-templates/markdown/css). \n Multiple `DevPortal`s can exist in the cluster, and the Dev Portal server will show them at different endpoints. A `DevPortal` resource with a special name, `ambassador`, will be used for configuring the default Dev Portal (served at `/docs/` by default)."
+        description: "DevPortal is the Schema for the DevPortals API \n DevPortal
+          resources specify the `what` and `how` is shown in a DevPortal: \n * `what`
+          is in a DevPortal can be controlled with   - a `selector`, that can be used
+          for filtering `Mappings`.   - a `docs` listing of (services, url) * `how`
+          is a pointer to some `contents` (a checkout of a Git repository   with go-templates/markdown/css).
+          \n Multiple `DevPortal`s can exist in the cluster, and the Dev Portal server
+          will show them at different endpoints. A `DevPortal` resource with a special
+          name, `ambassador`, will be used for configuring the default Dev Portal
+          (served at `/docs/` by default)."
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -483,12 +582,17 @@ spec:
             description: DevPortalSpec defines the desired state of DevPortal
             properties:
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
+                description: "AmbassadorID declares which Ambassador instances should
+                  pay attention to this resource. If no value is provided, the default
+                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  consider renaming all of the `ambassador_id` (singular) fields to
+                  `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
               content:
-                description: Content specifies where the content shown in the DevPortal come from
+                description: Content specifies where the content shown in the DevPortal
+                  come from
                 properties:
                   branch:
                     type: string
@@ -503,13 +607,19 @@ spec:
               docs:
                 description: Docs is a static docs definition
                 items:
-                  description: 'DevPortalDocsSpec is a static documentation definition: instead of using a Selector for finding documentation for services, users can provide a static list of <service>:<URL> tuples. These services will be shown in the Dev Portal with the documentation obtained from this URL.'
+                  description: 'DevPortalDocsSpec is a static documentation definition:
+                    instead of using a Selector for finding documentation for services,
+                    users can provide a static list of <service>:<URL> tuples. These
+                    services will be shown in the Dev Portal with the documentation
+                    obtained from this URL.'
                   properties:
                     service:
                       description: Service is the service being documented
                       type: string
                     timeout_ms:
-                      description: Timeout specifies the amount of time devportal will wait for the downstream service to report an openapi spec back
+                      description: Timeout specifies the amount of time devportal
+                        will wait for the downstream service to report an openapi
+                        spec back
                       type: integer
                     url:
                       description: URL is the URL used for obtaining docs
@@ -517,21 +627,28 @@ spec:
                   type: object
                 type: array
               naming_scheme:
-                description: Describes how to display "services" in the DevPortal. Default namespace.name
+                description: Describes how to display "services" in the DevPortal.
+                  Default namespace.name
                 enum:
                 - namespace.name
                 - name.prefix
                 type: string
               preserve_servers:
-                description: Configures this DevPortal to use server definitions from the openAPI doc instead of rewriting them based on the url used for the connection.
+                description: Configures this DevPortal to use server definitions from
+                  the openAPI doc instead of rewriting them based on the url used
+                  for the connection.
                 type: boolean
               search:
-                description: DevPortalSearchSpec allows configuration over search functionality for the DevPortal
+                description: DevPortalSearchSpec allows configuration over search
+                  functionality for the DevPortal
                 properties:
                   enabled:
                     type: boolean
                   type:
-                    description: 'Type of search. "title-only" does a fuzzy search over openapi and page titles "all-content" will fuzzy search over all openapi and page content. "title-only" is the default. warning:  using all-content may incur a larger memory footprint'
+                    description: 'Type of search. "title-only" does a fuzzy search
+                      over openapi and page titles "all-content" will fuzzy search
+                      over all openapi and page content. "title-only" is the default.
+                      warning:  using all-content may incur a larger memory footprint'
                     enum:
                     - title-only
                     - all-content
@@ -543,10 +660,12 @@ spec:
                   matchLabels:
                     additionalProperties:
                       type: string
-                    description: MatchLabels specifies the list of labels that must be present in Mappings for being present in this DevPortal.
+                    description: MatchLabels specifies the list of labels that must
+                      be present in Mappings for being present in this DevPortal.
                     type: object
                   matchNamespaces:
-                    description: MatchNamespaces is a list of namespaces that will be included in this DevPortal.
+                    description: MatchNamespaces is a list of namespaces that will
+                      be included in this DevPortal.
                     items:
                       type: string
                     type: array
@@ -568,7 +687,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -618,10 +737,14 @@ spec:
         description: Host is the Schema for the hosts API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -629,18 +752,36 @@ spec:
             description: HostSpec defines the desired state of Host
             properties:
               acmeProvider:
-                description: Specifies whether/who to talk ACME with to automatically manage the $tlsSecret.
+                description: Specifies whether/who to talk ACME with to automatically
+                  manage the $tlsSecret.
                 properties:
                   authority:
-                    description: Specifies who to talk ACME with to get certs. Defaults to Let's Encrypt; if "none" (case-insensitive), do not try to do ACME for this Host.
+                    description: Specifies who to talk ACME with to get certs. Defaults
+                      to Let's Encrypt; if "none" (case-insensitive), do not try to
+                      do ACME for this Host.
                     type: string
                   email:
                     type: string
                   privateKeySecret:
-                    description: "Specifies the Kubernetes Secret to use to store the private key of the ACME account (essentially, where to store the auto-generated password for the auto-created ACME account).  You should not normally need to set this--the default value is based on a combination of the ACME authority being registered wit and the email address associated with the account. \n Note that this is a native-Kubernetes-style core.v1.LocalObjectReference, not an Ambassador-style `{name}.{namespace}` string.  Because we're opinionated, it does not support referencing a Secret in another namespace (because most native Kubernetes resources don't support that), but if we ever abandon that opinion and decide to support non-local references it, it would be by adding a `namespace:` field by changing it from a core.v1.LocalObjectReference to a core.v1.SecretReference, not by adopting the `{name}.{namespace}` notation."
+                    description: "Specifies the Kubernetes Secret to use to store
+                      the private key of the ACME account (essentially, where to store
+                      the auto-generated password for the auto-created ACME account).
+                      \ You should not normally need to set this--the default value
+                      is based on a combination of the ACME authority being registered
+                      wit and the email address associated with the account. \n Note
+                      that this is a native-Kubernetes-style core.v1.LocalObjectReference,
+                      not an Ambassador-style `{name}.{namespace}` string.  Because
+                      we're opinionated, it does not support referencing a Secret
+                      in another namespace (because most native Kubernetes resources
+                      don't support that), but if we ever abandon that opinion and
+                      decide to support non-local references it, it would be by adding
+                      a `namespace:` field by changing it from a core.v1.LocalObjectReference
+                      to a core.v1.SecretReference, not by adopting the `{name}.{namespace}`
+                      notation."
                     properties:
                       name:
-                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          TODO: Add other useful fields. apiVersion, kind, uid?'
                         type: string
                     type: object
                   registration:
@@ -651,7 +792,8 @@ spec:
                 description: Hostname by which the Ambassador can be reached.
                 type: string
               previewUrl:
-                description: Configuration for the Preview URL feature of Service Preview. Defaults to preview URLs not enabled.
+                description: Configuration for the Preview URL feature of Service
+                  Preview. Defaults to preview URLs not enabled.
                 properties:
                   enabled:
                     description: Is the Preview URL feature enabled?
@@ -678,21 +820,32 @@ spec:
                     type: object
                 type: object
               selector:
-                description: Selector by which we can find further configuration. Defaults to hostname=$hostname
+                description: Selector by which we can find further configuration.
+                  Defaults to hostname=$hostname
                 properties:
                   matchExpressions:
-                    description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                    description: matchExpressions is a list of label selector requirements.
+                      The requirements are ANDed.
                     items:
-                      description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                      description: A label selector requirement is a selector that
+                        contains values, a key, and an operator that relates the key
+                        and values.
                       properties:
                         key:
-                          description: key is the label key that the selector applies to.
+                          description: key is the label key that the selector applies
+                            to.
                           type: string
                         operator:
-                          description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                          description: operator represents a key's relationship to
+                            a set of values. Valid operators are In, NotIn, Exists
+                            and DoesNotExist.
                           type: string
                         values:
-                          description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                          description: values is an array of string values. If the
+                            operator is In or NotIn, the values array must be non-empty.
+                            If the operator is Exists or DoesNotExist, the values
+                            array must be empty. This array is replaced during a strategic
+                            merge patch.
                           items:
                             type: string
                           type: array
@@ -704,11 +857,16 @@ spec:
                   matchLabels:
                     additionalProperties:
                       type: string
-                    description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                    description: matchLabels is a map of {key,value} pairs. A single
+                      {key,value} in the matchLabels map is equivalent to an element
+                      of matchExpressions, whose key field is "key", the operator
+                      is "In", and the values array contains only "value". The requirements
+                      are ANDed.
                     type: object
                 type: object
               tls:
-                description: TLS configuration.  It is not valid to specify both `tlsContext` and `tls`.
+                description: TLS configuration.  It is not valid to specify both `tlsContext`
+                  and `tls`.
                 properties:
                   alpn_protocols:
                     type: string
@@ -740,17 +898,39 @@ spec:
                     type: string
                 type: object
               tlsContext:
-                description: "Name of the TLSContext the Host resource is linked with. It is not valid to specify both `tlsContext` and `tls`. \n Note that this is a native-Kubernetes-style core.v1.LocalObjectReference, not an Ambassador-style `{name}.{namespace}` string.  Because we're opinionated, it does not support referencing a Secret in another namespace (because most native Kubernetes resources don't support that), but if we ever abandon that opinion and decide to support non-local references it, it would be by adding a `namespace:` field by changing it from a core.v1.LocalObjectReference to a core.v1.SecretReference, not by adopting the `{name}.{namespace}` notation."
+                description: "Name of the TLSContext the Host resource is linked with.
+                  It is not valid to specify both `tlsContext` and `tls`. \n Note
+                  that this is a native-Kubernetes-style core.v1.LocalObjectReference,
+                  not an Ambassador-style `{name}.{namespace}` string.  Because we're
+                  opinionated, it does not support referencing a Secret in another
+                  namespace (because most native Kubernetes resources don't support
+                  that), but if we ever abandon that opinion and decide to support
+                  non-local references it, it would be by adding a `namespace:` field
+                  by changing it from a core.v1.LocalObjectReference to a core.v1.SecretReference,
+                  not by adopting the `{name}.{namespace}` notation."
                 properties:
                   name:
-                    description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                    description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                      TODO: Add other useful fields. apiVersion, kind, uid?'
                     type: string
                 type: object
               tlsSecret:
-                description: "Name of the Kubernetes secret into which to save generated certificates.  If ACME is enabled (see $acmeProvider), then the default is $hostname; otherwise the default is \"\".  If the value is \"\", then we do not do TLS for this Host. \n Note that this is a native-Kubernetes-style core.v1.LocalObjectReference, not an Ambassador-style `{name}.{namespace}` string.  Because we're opinionated, it does not support referencing a Secret in another namespace (because most native Kubernetes resources don't support that), but if we ever abandon that opinion and decide to support non-local references it, it would be by adding a `namespace:` field by changing it from a core.v1.LocalObjectReference to a core.v1.SecretReference, not by adopting the `{name}.{namespace}` notation."
+                description: "Name of the Kubernetes secret into which to save generated
+                  certificates.  If ACME is enabled (see $acmeProvider), then the
+                  default is $hostname; otherwise the default is \"\".  If the value
+                  is \"\", then we do not do TLS for this Host. \n Note that this
+                  is a native-Kubernetes-style core.v1.LocalObjectReference, not an
+                  Ambassador-style `{name}.{namespace}` string.  Because we're opinionated,
+                  it does not support referencing a Secret in another namespace (because
+                  most native Kubernetes resources don't support that), but if we
+                  ever abandon that opinion and decide to support non-local references
+                  it, it would be by adding a `namespace:` field by changing it from
+                  a core.v1.LocalObjectReference to a core.v1.SecretReference, not
+                  by adopting the `{name}.{namespace}` notation."
                 properties:
                   name:
-                    description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                    description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                      TODO: Add other useful fields. apiVersion, kind, uid?'
                     type: string
                 type: object
             type: object
@@ -761,13 +941,15 @@ spec:
               errorBackoff:
                 type: string
               errorReason:
-                description: errorReason, errorTimestamp, and errorBackoff are valid when state==Error.
+                description: errorReason, errorTimestamp, and errorBackoff are valid
+                  when state==Error.
                 type: string
               errorTimestamp:
                 format: date-time
                 type: string
               phaseCompleted:
-                description: phaseCompleted and phasePending are valid when state==Pending or state==Error.
+                description: phaseCompleted and phasePending are valid when state==Pending
+                  or state==Error.
                 enum:
                 - NA
                 - DefaultsFilled
@@ -776,7 +958,8 @@ spec:
                 - ACMECertificateChallenge
                 type: string
               phasePending:
-                description: phaseCompleted and phasePending are valid when state==Pending or state==Error.
+                description: phaseCompleted and phasePending are valid when state==Pending
+                  or state==Error.
                 enum:
                 - NA
                 - DefaultsFilled
@@ -785,7 +968,12 @@ spec:
                 - ACMECertificateChallenge
                 type: string
               state:
-                description: The first value listed in the Enum marker becomes the "zero" value, and it would be great if "Pending" could be the default value; but it's Important that the "zero" value be able to be shown as empty/omitted from display, and we really do want `kubectl get hosts` to say "Pending" in the "STATE" column, and not leave the column empty.
+                description: The first value listed in the Enum marker becomes the
+                  "zero" value, and it would be great if "Pending" could be the default
+                  value; but it's Important that the "zero" value be able to be shown
+                  as empty/omitted from display, and we really do want `kubectl get
+                  hosts` to say "Pending" in the "STATE" column, and not leave the
+                  column empty.
                 enum:
                 - Initial
                 - Pending
@@ -827,10 +1015,14 @@ spec:
         description: Host is the Schema for the hosts API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -838,18 +1030,36 @@ spec:
             description: HostSpec defines the desired state of Host
             properties:
               acmeProvider:
-                description: Specifies whether/who to talk ACME with to automatically manage the $tlsSecret.
+                description: Specifies whether/who to talk ACME with to automatically
+                  manage the $tlsSecret.
                 properties:
                   authority:
-                    description: Specifies who to talk ACME with to get certs. Defaults to Let's Encrypt; if "none" (case-insensitive), do not try to do ACME for this Host.
+                    description: Specifies who to talk ACME with to get certs. Defaults
+                      to Let's Encrypt; if "none" (case-insensitive), do not try to
+                      do ACME for this Host.
                     type: string
                   email:
                     type: string
                   privateKeySecret:
-                    description: "Specifies the Kubernetes Secret to use to store the private key of the ACME account (essentially, where to store the auto-generated password for the auto-created ACME account).  You should not normally need to set this--the default value is based on a combination of the ACME authority being registered wit and the email address associated with the account. \n Note that this is a native-Kubernetes-style core.v1.LocalObjectReference, not an Ambassador-style `{name}.{namespace}` string.  Because we're opinionated, it does not support referencing a Secret in another namespace (because most native Kubernetes resources don't support that), but if we ever abandon that opinion and decide to support non-local references it, it would be by adding a `namespace:` field by changing it from a core.v1.LocalObjectReference to a core.v1.SecretReference, not by adopting the `{name}.{namespace}` notation."
+                    description: "Specifies the Kubernetes Secret to use to store
+                      the private key of the ACME account (essentially, where to store
+                      the auto-generated password for the auto-created ACME account).
+                      \ You should not normally need to set this--the default value
+                      is based on a combination of the ACME authority being registered
+                      wit and the email address associated with the account. \n Note
+                      that this is a native-Kubernetes-style core.v1.LocalObjectReference,
+                      not an Ambassador-style `{name}.{namespace}` string.  Because
+                      we're opinionated, it does not support referencing a Secret
+                      in another namespace (because most native Kubernetes resources
+                      don't support that), but if we ever abandon that opinion and
+                      decide to support non-local references it, it would be by adding
+                      a `namespace:` field by changing it from a core.v1.LocalObjectReference
+                      to a core.v1.SecretReference, not by adopting the `{name}.{namespace}`
+                      notation."
                     properties:
                       name:
-                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          TODO: Add other useful fields. apiVersion, kind, uid?'
                         type: string
                     type: object
                   registration:
@@ -865,21 +1075,33 @@ spec:
                 description: Hostname by which the Ambassador can be reached.
                 type: string
               mappingSelector:
-                description: Selector for Mappings we'll associate with this Host. At the moment, Selector and MappingSelector are synonyms, but that will change soon.
+                description: Selector for Mappings we'll associate with this Host.
+                  At the moment, Selector and MappingSelector are synonyms, but that
+                  will change soon.
                 properties:
                   matchExpressions:
-                    description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                    description: matchExpressions is a list of label selector requirements.
+                      The requirements are ANDed.
                     items:
-                      description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                      description: A label selector requirement is a selector that
+                        contains values, a key, and an operator that relates the key
+                        and values.
                       properties:
                         key:
-                          description: key is the label key that the selector applies to.
+                          description: key is the label key that the selector applies
+                            to.
                           type: string
                         operator:
-                          description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                          description: operator represents a key's relationship to
+                            a set of values. Valid operators are In, NotIn, Exists
+                            and DoesNotExist.
                           type: string
                         values:
-                          description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                          description: values is an array of string values. If the
+                            operator is In or NotIn, the values array must be non-empty.
+                            If the operator is Exists or DoesNotExist, the values
+                            array must be empty. This array is replaced during a strategic
+                            merge patch.
                           items:
                             type: string
                           type: array
@@ -891,11 +1113,16 @@ spec:
                   matchLabels:
                     additionalProperties:
                       type: string
-                    description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                    description: matchLabels is a map of {key,value} pairs. A single
+                      {key,value} in the matchLabels map is equivalent to an element
+                      of matchExpressions, whose key field is "key", the operator
+                      is "In", and the values array contains only "value". The requirements
+                      are ANDed.
                     type: object
                 type: object
               previewUrl:
-                description: Configuration for the Preview URL feature of Service Preview. Defaults to preview URLs not enabled.
+                description: Configuration for the Preview URL feature of Service
+                  Preview. Defaults to preview URLs not enabled.
                 properties:
                   enabled:
                     description: Is the Preview URL feature enabled?
@@ -922,21 +1149,33 @@ spec:
                     type: object
                 type: object
               selector:
-                description: "DEPRECATED: Selector by which we can find further configuration. Use MappingSelector instead. \n TODO(lukeshu): In v3alpha2, figure out how to get rid of HostSpec.DeprecatedSelector."
+                description: "DEPRECATED: Selector by which we can find further configuration.
+                  Use MappingSelector instead. \n TODO(lukeshu): In v3alpha2, figure
+                  out how to get rid of HostSpec.DeprecatedSelector."
                 properties:
                   matchExpressions:
-                    description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                    description: matchExpressions is a list of label selector requirements.
+                      The requirements are ANDed.
                     items:
-                      description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                      description: A label selector requirement is a selector that
+                        contains values, a key, and an operator that relates the key
+                        and values.
                       properties:
                         key:
-                          description: key is the label key that the selector applies to.
+                          description: key is the label key that the selector applies
+                            to.
                           type: string
                         operator:
-                          description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                          description: operator represents a key's relationship to
+                            a set of values. Valid operators are In, NotIn, Exists
+                            and DoesNotExist.
                           type: string
                         values:
-                          description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                          description: values is an array of string values. If the
+                            operator is In or NotIn, the values array must be non-empty.
+                            If the operator is Exists or DoesNotExist, the values
+                            array must be empty. This array is replaced during a strategic
+                            merge patch.
                           items:
                             type: string
                           type: array
@@ -948,11 +1187,16 @@ spec:
                   matchLabels:
                     additionalProperties:
                       type: string
-                    description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                    description: matchLabels is a map of {key,value} pairs. A single
+                      {key,value} in the matchLabels map is equivalent to an element
+                      of matchExpressions, whose key field is "key", the operator
+                      is "In", and the values array contains only "value". The requirements
+                      are ANDed.
                     type: object
                 type: object
               tls:
-                description: TLS configuration.  It is not valid to specify both `tlsContext` and `tls`.
+                description: TLS configuration.  It is not valid to specify both `tlsContext`
+                  and `tls`.
                 properties:
                   alpn_protocols:
                     type: string
@@ -984,17 +1228,39 @@ spec:
                     type: string
                 type: object
               tlsContext:
-                description: "Name of the TLSContext the Host resource is linked with. It is not valid to specify both `tlsContext` and `tls`. \n Note that this is a native-Kubernetes-style core.v1.LocalObjectReference, not an Ambassador-style `{name}.{namespace}` string.  Because we're opinionated, it does not support referencing a Secret in another namespace (because most native Kubernetes resources don't support that), but if we ever abandon that opinion and decide to support non-local references it, it would be by adding a `namespace:` field by changing it from a core.v1.LocalObjectReference to a core.v1.SecretReference, not by adopting the `{name}.{namespace}` notation."
+                description: "Name of the TLSContext the Host resource is linked with.
+                  It is not valid to specify both `tlsContext` and `tls`. \n Note
+                  that this is a native-Kubernetes-style core.v1.LocalObjectReference,
+                  not an Ambassador-style `{name}.{namespace}` string.  Because we're
+                  opinionated, it does not support referencing a Secret in another
+                  namespace (because most native Kubernetes resources don't support
+                  that), but if we ever abandon that opinion and decide to support
+                  non-local references it, it would be by adding a `namespace:` field
+                  by changing it from a core.v1.LocalObjectReference to a core.v1.SecretReference,
+                  not by adopting the `{name}.{namespace}` notation."
                 properties:
                   name:
-                    description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                    description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                      TODO: Add other useful fields. apiVersion, kind, uid?'
                     type: string
                 type: object
               tlsSecret:
-                description: "Name of the Kubernetes secret into which to save generated certificates.  If ACME is enabled (see $acmeProvider), then the default is $hostname; otherwise the default is \"\".  If the value is \"\", then we do not do TLS for this Host. \n Note that this is a native-Kubernetes-style core.v1.LocalObjectReference, not an Ambassador-style `{name}.{namespace}` string.  Because we're opinionated, it does not support referencing a Secret in another namespace (because most native Kubernetes resources don't support that), but if we ever abandon that opinion and decide to support non-local references it, it would be by adding a `namespace:` field by changing it from a core.v1.LocalObjectReference to a core.v1.SecretReference, not by adopting the `{name}.{namespace}` notation."
+                description: "Name of the Kubernetes secret into which to save generated
+                  certificates.  If ACME is enabled (see $acmeProvider), then the
+                  default is $hostname; otherwise the default is \"\".  If the value
+                  is \"\", then we do not do TLS for this Host. \n Note that this
+                  is a native-Kubernetes-style core.v1.LocalObjectReference, not an
+                  Ambassador-style `{name}.{namespace}` string.  Because we're opinionated,
+                  it does not support referencing a Secret in another namespace (because
+                  most native Kubernetes resources don't support that), but if we
+                  ever abandon that opinion and decide to support non-local references
+                  it, it would be by adding a `namespace:` field by changing it from
+                  a core.v1.LocalObjectReference to a core.v1.SecretReference, not
+                  by adopting the `{name}.{namespace}` notation."
                 properties:
                   name:
-                    description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                    description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                      TODO: Add other useful fields. apiVersion, kind, uid?'
                     type: string
                 type: object
             type: object
@@ -1004,13 +1270,15 @@ spec:
               errorBackoff:
                 type: string
               errorReason:
-                description: errorReason, errorTimestamp, and errorBackoff are valid when state==Error.
+                description: errorReason, errorTimestamp, and errorBackoff are valid
+                  when state==Error.
                 type: string
               errorTimestamp:
                 format: date-time
                 type: string
               phaseCompleted:
-                description: phaseCompleted and phasePending are valid when state==Pending or state==Error.
+                description: phaseCompleted and phasePending are valid when state==Pending
+                  or state==Error.
                 enum:
                 - NA
                 - DefaultsFilled
@@ -1019,7 +1287,8 @@ spec:
                 - ACMECertificateChallenge
                 type: string
               phasePending:
-                description: phaseCompleted and phasePending are valid when state==Pending or state==Error.
+                description: phaseCompleted and phasePending are valid when state==Pending
+                  or state==Error.
                 enum:
                 - NA
                 - DefaultsFilled
@@ -1028,7 +1297,12 @@ spec:
                 - ACMECertificateChallenge
                 type: string
               state:
-                description: The first value listed in the Enum marker becomes the "zero" value, and it would be great if "Pending" could be the default value; but it's Important that the "zero" value be able to be shown as empty/omitted from display, and we really do want `kubectl get hosts` to say "Pending" in the "STATE" column, and not leave the column empty.
+                description: The first value listed in the Enum marker becomes the
+                  "zero" value, and it would be great if "Pending" could be the default
+                  value; but it's Important that the "zero" value be able to be shown
+                  as empty/omitted from display, and we really do want `kubectl get
+                  hosts` to say "Pending" in the "STATE" column, and not leave the
+                  column empty.
                 enum:
                 - Initial
                 - Pending
@@ -1053,7 +1327,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -1084,18 +1358,25 @@ spec:
   - name: v2
     schema:
       openAPIV3Schema:
-        description: KubernetesEndpointResolver is the Schema for the kubernetesendpointresolver API
+        description: KubernetesEndpointResolver is the Schema for the kubernetesendpointresolver
+          API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
           spec:
-            description: KubernetesEndpointResolver tells Ambassador to use Kubernetes Endpoints resources to resolve services. It actually has no spec other than the AmbassadorID.
+            description: KubernetesEndpointResolver tells Ambassador to use Kubernetes
+              Endpoints resources to resolve services. It actually has no spec other
+              than the AmbassadorID.
             type: object
             x-kubernetes-preserve-unknown-fields: true
         type: object
@@ -1104,21 +1385,32 @@ spec:
   - name: v3alpha1
     schema:
       openAPIV3Schema:
-        description: KubernetesEndpointResolver is the Schema for the kubernetesendpointresolver API
+        description: KubernetesEndpointResolver is the Schema for the kubernetesendpointresolver
+          API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
           spec:
-            description: KubernetesEndpointResolver tells Ambassador to use Kubernetes Endpoints resources to resolve services. It actually has no spec other than the AmbassadorID.
+            description: KubernetesEndpointResolver tells Ambassador to use Kubernetes
+              Endpoints resources to resolve services. It actually has no spec other
+              than the AmbassadorID.
             properties:
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
+                description: "AmbassadorID declares which Ambassador instances should
+                  pay attention to this resource. If no value is provided, the default
+                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  consider renaming all of the `ambassador_id` (singular) fields to
+                  `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -1129,7 +1421,8 @@ spec:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: KubernetesEndpointResolver is the Schema for the kubernetesendpointresolver API
+        description: KubernetesEndpointResolver is the Schema for the kubernetesendpointresolver
+          API
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: false
@@ -1139,7 +1432,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -1170,18 +1463,25 @@ spec:
   - name: v2
     schema:
       openAPIV3Schema:
-        description: KubernetesServiceResolver is the Schema for the kubernetesserviceresolver API
+        description: KubernetesServiceResolver is the Schema for the kubernetesserviceresolver
+          API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
           spec:
-            description: KubernetesServiceResolver tells Ambassador to use Kubernetes Service resources to resolve services. It actually has no spec other than the AmbassadorID.
+            description: KubernetesServiceResolver tells Ambassador to use Kubernetes
+              Service resources to resolve services. It actually has no spec other
+              than the AmbassadorID.
             type: object
             x-kubernetes-preserve-unknown-fields: true
         type: object
@@ -1190,21 +1490,32 @@ spec:
   - name: v3alpha1
     schema:
       openAPIV3Schema:
-        description: KubernetesServiceResolver is the Schema for the kubernetesserviceresolver API
+        description: KubernetesServiceResolver is the Schema for the kubernetesserviceresolver
+          API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
           spec:
-            description: KubernetesServiceResolver tells Ambassador to use Kubernetes Service resources to resolve services. It actually has no spec other than the AmbassadorID.
+            description: KubernetesServiceResolver tells Ambassador to use Kubernetes
+              Service resources to resolve services. It actually has no spec other
+              than the AmbassadorID.
             properties:
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
+                description: "AmbassadorID declares which Ambassador instances should
+                  pay attention to this resource. If no value is provided, the default
+                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  consider renaming all of the `ambassador_id` (singular) fields to
+                  `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -1215,7 +1526,8 @@ spec:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: KubernetesServiceResolver is the Schema for the kubernetesserviceresolver API
+        description: KubernetesServiceResolver is the Schema for the kubernetesserviceresolver
+          API
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: false
@@ -1225,7 +1537,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -1269,10 +1581,14 @@ spec:
         description: Listener is the Schema for the hosts API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -1280,15 +1596,21 @@ spec:
             description: ListenerSpec defines the desired state of this Port
             properties:
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
+                description: "AmbassadorID declares which Ambassador instances should
+                  pay attention to this resource. If no value is provided, the default
+                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  consider renaming all of the `ambassador_id` (singular) fields to
+                  `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
               hostBinding:
-                description: HostBinding allows restricting which Hosts will be used for this Listener.
+                description: HostBinding allows restricting which Hosts will be used
+                  for this Listener.
                 properties:
                   namespace:
-                    description: NamespaceBindingType defines we we specify which namespaces to look for Hosts in.
+                    description: NamespaceBindingType defines we we specify which
+                      namespaces to look for Hosts in.
                     properties:
                       from:
                         description: NamespaceFromType defines how we evaluate a NamespaceBindingType.
@@ -1299,21 +1621,34 @@ spec:
                         type: string
                     type: object
                   selector:
-                    description: A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+                    description: A label selector is a label query over a set of resources.
+                      The result of matchLabels and matchExpressions are ANDed. An
+                      empty label selector matches all objects. A null label selector
+                      matches no objects.
                     properties:
                       matchExpressions:
-                        description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                        description: matchExpressions is a list of label selector
+                          requirements. The requirements are ANDed.
                         items:
-                          description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                          description: A label selector requirement is a selector
+                            that contains values, a key, and an operator that relates
+                            the key and values.
                           properties:
                             key:
-                              description: key is the label key that the selector applies to.
+                              description: key is the label key that the selector
+                                applies to.
                               type: string
                             operator:
-                              description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                              description: operator represents a key's relationship
+                                to a set of values. Valid operators are In, NotIn,
+                                Exists and DoesNotExist.
                               type: string
                             values:
-                              description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                              description: values is an array of string values. If
+                                the operator is In or NotIn, the values array must
+                                be non-empty. If the operator is Exists or DoesNotExist,
+                                the values array must be empty. This array is replaced
+                                during a strategic merge patch.
                               items:
                                 type: string
                               type: array
@@ -1325,22 +1660,29 @@ spec:
                       matchLabels:
                         additionalProperties:
                           type: string
-                        description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                        description: matchLabels is a map of {key,value} pairs. A
+                          single {key,value} in the matchLabels map is equivalent
+                          to an element of matchExpressions, whose key field is "key",
+                          the operator is "In", and the values array contains only
+                          "value". The requirements are ANDed.
                         type: object
                     type: object
                 type: object
               l7Depth:
-                description: L7Depth specifies how many layer 7 load balancers are between us and the edge of the network.
+                description: L7Depth specifies how many layer 7 load balancers are
+                  between us and the edge of the network.
                 format: int32
                 type: integer
               port:
-                description: Port is the network port. Only one Listener can use a given port.
+                description: Port is the network port. Only one Listener can use a
+                  given port.
                 format: int32
                 maximum: 65535
                 minimum: 1
                 type: integer
               protocol:
-                description: Protocol is a shorthand for certain predefined stacks. Exactly one of Protocol or ProtocolStack must be supplied.
+                description: Protocol is a shorthand for certain predefined stacks.
+                  Exactly one of Protocol or ProtocolStack must be supplied.
                 enum:
                 - HTTP
                 - HTTPS
@@ -1351,9 +1693,12 @@ spec:
                 - UDP
                 type: string
               protocolStack:
-                description: ProtocolStack explicitly specifies the protocol stack to set up. Exactly one of Protocol or ProtocolStack must be supplied.
+                description: ProtocolStack explicitly specifies the protocol stack
+                  to set up. Exactly one of Protocol or ProtocolStack must be supplied.
                 items:
-                  description: ProtocolStackElement defines specific layers that may be combined in a protocol stack for processing connections to a port.
+                  description: ProtocolStackElement defines specific layers that may
+                    be combined in a protocol stack for processing connections to
+                    a port.
                   enum:
                   - HTTP
                   - PROXY
@@ -1363,14 +1708,17 @@ spec:
                   type: string
                 type: array
               securityModel:
-                description: SecurityModel specifies how to determine whether connections to this port are secure or insecure.
+                description: SecurityModel specifies how to determine whether connections
+                  to this port are secure or insecure.
                 enum:
                 - XFP
                 - SECURE
                 - INSECURE
                 type: string
               statsPrefix:
-                description: 'StatsPrefix specifies the prefix for statistics sent by Envoy about this Listener. The default depends on the protocol: "ingress-http", "ingress-https", "ingress-tls-$port", or "ingress-$port".'
+                description: 'StatsPrefix specifies the prefix for statistics sent
+                  by Envoy about this Listener. The default depends on the protocol:
+                  "ingress-http", "ingress-https", "ingress-tls-$port", or "ingress-$port".'
                 type: string
             required:
             - hostBinding
@@ -1386,7 +1734,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -1420,10 +1768,14 @@ spec:
         description: LogService is the Schema for the logservices API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -1472,10 +1824,14 @@ spec:
         description: LogService is the Schema for the logservices API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -1483,7 +1839,11 @@ spec:
             description: LogServiceSpec defines the desired state of LogService
             properties:
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
+                description: "AmbassadorID declares which Ambassador instances should
+                  pay attention to this resource. If no value is provided, the default
+                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  consider renaming all of the `ambassador_id` (singular) fields to
+                  `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -1535,7 +1895,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -1585,10 +1945,14 @@ spec:
         description: Mapping is the Schema for the mappings API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -1604,7 +1968,16 @@ spec:
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               allow_upgrade:
-                description: "A case-insensitive list of the non-HTTP protocols to allow \"upgrading\" to from HTTP via the \"Connection: upgrade\" mechanism[1].  After the upgrade, Ambassador does not interpret the traffic, and behaves similarly to how it does for TCPMappings. \n [1]: https://tools.ietf.org/html/rfc7230#section-6.7 \n For example, if your upstream service supports WebSockets, you would write \n    allow_upgrade:    - websocket \n Or if your upstream service supports upgrading from HTTP to SPDY (as the Kubernetes apiserver does for `kubectl exec` functionality), you would write \n    allow_upgrade:    - spdy/3.1"
+                description: "A case-insensitive list of the non-HTTP protocols to
+                  allow \"upgrading\" to from HTTP via the \"Connection: upgrade\"
+                  mechanism[1].  After the upgrade, Ambassador does not interpret
+                  the traffic, and behaves similarly to how it does for TCPMappings.
+                  \n [1]: https://tools.ietf.org/html/rfc7230#section-6.7 \n For example,
+                  if your upstream service supports WebSockets, you would write \n
+                  \   allow_upgrade:    - websocket \n Or if your upstream service
+                  supports upgrading from HTTP to SPDY (as the Kubernetes apiserver
+                  does for `kubectl exec` functionality), you would write \n    allow_upgrade:
+                  \   - spdy/3.1"
                 items:
                   type: string
                 type: array
@@ -1617,7 +1990,8 @@ spec:
               bypass_auth:
                 type: boolean
               bypass_error_response_overrides:
-                description: If true, bypasses any `error_response_overrides` set on the Ambassador module.
+                description: If true, bypasses any `error_response_overrides` set
+                  on the Ambassador module.
                 type: boolean
               case_sensitive:
                 type: boolean
@@ -1658,7 +2032,8 @@ spec:
               dns_type:
                 type: string
               docs:
-                description: DocsInfo provides some extra information about the docs for the Mapping (used by the Dev Portal)
+                description: DocsInfo provides some extra information about the docs
+                  for the Mapping (used by the Dev Portal)
                 properties:
                   display_name:
                     type: string
@@ -1676,11 +2051,14 @@ spec:
               enable_ipv6:
                 type: boolean
               envoy_override:
-                description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
+                description: UntypedDict is relatively opaque as a Go type, but it
+                  preserves its contents in a roundtrippable way.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               error_response_overrides:
-                description: Error response overrides for this Mapping. Replaces all of the `error_response_overrides` set on the Ambassador module, if any.
+                description: Error response overrides for this Mapping. Replaces all
+                  of the `error_response_overrides` set on the Ambassador module,
+                  if any.
                 items:
                   description: A response rewrite for an HTTP error response
                   properties:
@@ -1688,26 +2066,35 @@ spec:
                       description: The new response body
                       properties:
                         content_type:
-                          description: The content type to set on the error response body when using text_format or text_format_source. Defaults to 'text/plain'.
+                          description: The content type to set on the error response
+                            body when using text_format or text_format_source. Defaults
+                            to 'text/plain'.
                           type: string
                         json_format:
                           additionalProperties:
                             type: string
-                          description: 'A JSON response with content-type: application/json. The values can contain format text like in text_format.'
+                          description: 'A JSON response with content-type: application/json.
+                            The values can contain format text like in text_format.'
                           type: object
                         text_format:
-                          description: A format string representing a text response body. Content-Type can be set using the `content_type` field below.
+                          description: A format string representing a text response
+                            body. Content-Type can be set using the `content_type`
+                            field below.
                           type: string
                         text_format_source:
-                          description: A format string sourced from a file on the Ambassador container. Useful for larger response bodies that should not be placed inline in configuration.
+                          description: A format string sourced from a file on the
+                            Ambassador container. Useful for larger response bodies
+                            that should not be placed inline in configuration.
                           properties:
                             filename:
-                              description: The name of a file on the Ambassador pod that contains a format text string.
+                              description: The name of a file on the Ambassador pod
+                                that contains a format text string.
                               type: string
                           type: object
                       type: object
                     on_status_code:
-                      description: The status code to match on -- not a pointer because it's required.
+                      description: The status code to match on -- not a pointer because
+                        it's required.
                       maximum: 599
                       minimum: 400
                       type: integer
@@ -1743,15 +2130,20 @@ spec:
                 type: object
               labels:
                 additionalProperties:
-                  description: A MappingLabelGroupsArray is an array of MappingLabelGroups. I know, complex.
+                  description: A MappingLabelGroupsArray is an array of MappingLabelGroups.
+                    I know, complex.
                   items:
-                    description: 'A MappingLabelGroup is a single element of a MappingLabelGroupsArray: a second map, where the key is a human-readable name that identifies the group.'
+                    description: 'A MappingLabelGroup is a single element of a MappingLabelGroupsArray:
+                      a second map, where the key is a human-readable name that identifies
+                      the group.'
                     maxProperties: 1
                     minProperties: 1
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   type: array
-                description: A DomainMap is the overall Mapping.spec.Labels type. It maps domains (kind of like namespaces for Mapping labels) to arrays of label groups.
+                description: A DomainMap is the overall Mapping.spec.Labels type.
+                  It maps domains (kind of like namespaces for Mapping labels) to
+                  arrays of label groups.
                 type: object
               load_balancer:
                 properties:
@@ -1786,14 +2178,16 @@ spec:
                 type: boolean
               modules:
                 items:
-                  description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
+                  description: UntypedDict is relatively opaque as a Go type, but
+                    it preserves its contents in a roundtrippable way.
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                 type: array
               outlier_detection:
                 type: string
               path_redirect:
-                description: Path replacement to use when generating an HTTP redirect. Used with `host_redirect`.
+                description: Path replacement to use when generating an HTTP redirect.
+                  Used with `host_redirect`.
                 type: string
               precedence:
                 type: integer
@@ -1802,7 +2196,8 @@ spec:
               prefix_exact:
                 type: boolean
               prefix_redirect:
-                description: Prefix rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+                description: Prefix rewrite to use when generating an HTTP redirect.
+                  Used with `host_redirect`.
                 type: string
               prefix_regex:
                 type: boolean
@@ -1812,7 +2207,8 @@ spec:
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               redirect_response_code:
-                description: The response code to use when generating an HTTP redirect. Defaults to 301. Used with `host_redirect`.
+                description: The response code to use when generating an HTTP redirect.
+                  Defaults to 301. Used with `host_redirect`.
                 enum:
                 - 301
                 - 302
@@ -1829,7 +2225,8 @@ spec:
                   type: string
                 type: object
               regex_redirect:
-                description: Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+                description: Prefix regex rewrite to use when generating an HTTP redirect.
+                  Used with `host_redirect`.
                 properties:
                   pattern:
                     type: string
@@ -1870,10 +2267,13 @@ spec:
               shadow:
                 type: boolean
               timeout_ms:
-                description: The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
+                description: The timeout for requests that use this Mapping. Overrides
+                  `cluster_request_timeout_ms` set on the Ambassador Module, if it
+                  exists.
                 type: integer
               use_websocket:
-                description: 'use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: ["websocket"]`'
+                description: 'use_websocket is deprecated, and is equivlaent to setting
+                  `allow_upgrade: ["websocket"]`'
                 type: boolean
               v3StatsName:
                 type: string
@@ -1923,10 +2323,14 @@ spec:
         description: Mapping is the Schema for the mappings API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -1966,12 +2370,25 @@ spec:
                   type: object
                 type: object
               allow_upgrade:
-                description: "A case-insensitive list of the non-HTTP protocols to allow \"upgrading\" to from HTTP via the \"Connection: upgrade\" mechanism[1].  After the upgrade, Ambassador does not interpret the traffic, and behaves similarly to how it does for TCPMappings. \n [1]: https://tools.ietf.org/html/rfc7230#section-6.7 \n For example, if your upstream service supports WebSockets, you would write \n    allow_upgrade:    - websocket \n Or if your upstream service supports upgrading from HTTP to SPDY (as the Kubernetes apiserver does for `kubectl exec` functionality), you would write \n    allow_upgrade:    - spdy/3.1"
+                description: "A case-insensitive list of the non-HTTP protocols to
+                  allow \"upgrading\" to from HTTP via the \"Connection: upgrade\"
+                  mechanism[1].  After the upgrade, Ambassador does not interpret
+                  the traffic, and behaves similarly to how it does for TCPMappings.
+                  \n [1]: https://tools.ietf.org/html/rfc7230#section-6.7 \n For example,
+                  if your upstream service supports WebSockets, you would write \n
+                  \   allow_upgrade:    - websocket \n Or if your upstream service
+                  supports upgrading from HTTP to SPDY (as the Kubernetes apiserver
+                  does for `kubectl exec` functionality), you would write \n    allow_upgrade:
+                  \   - spdy/3.1"
                 items:
                   type: string
                 type: array
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
+                description: "AmbassadorID declares which Ambassador instances should
+                  pay attention to this resource. If no value is provided, the default
+                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  consider renaming all of the `ambassador_id` (singular) fields to
+                  `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -1984,7 +2401,8 @@ spec:
               bypass_auth:
                 type: boolean
               bypass_error_response_overrides:
-                description: If true, bypasses any `error_response_overrides` set on the Ambassador module.
+                description: If true, bypasses any `error_response_overrides` set
+                  on the Ambassador module.
                 type: boolean
               case_sensitive:
                 type: boolean
@@ -2007,15 +2425,18 @@ spec:
                   type: object
                 type: array
               cluster_idle_timeout_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
+                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               cluster_max_connection_lifetime_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
+                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               cluster_tag:
                 type: string
               connect_timeout_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
+                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               cors:
                 properties:
@@ -2045,7 +2466,8 @@ spec:
               dns_type:
                 type: string
               docs:
-                description: DocsInfo provides some extra information about the docs for the Mapping. Docs is used by both the agent and the DevPortal.
+                description: DocsInfo provides some extra information about the docs
+                  for the Mapping. Docs is used by both the agent and the DevPortal.
                 properties:
                   display_name:
                     type: string
@@ -2054,7 +2476,8 @@ spec:
                   path:
                     type: string
                   timeout_ms:
-                    description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
+                    description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
+                      fields to `{foo}`/`metav1.Duration`.'
                     type: integer
                   url:
                     type: string
@@ -2064,11 +2487,14 @@ spec:
               enable_ipv6:
                 type: boolean
               envoy_override:
-                description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
+                description: UntypedDict is relatively opaque as a Go type, but it
+                  preserves its contents in a roundtrippable way.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               error_response_overrides:
-                description: Error response overrides for this Mapping. Replaces all of the `error_response_overrides` set on the Ambassador module, if any.
+                description: Error response overrides for this Mapping. Replaces all
+                  of the `error_response_overrides` set on the Ambassador module,
+                  if any.
                 items:
                   description: A response rewrite for an HTTP error response
                   properties:
@@ -2076,26 +2502,35 @@ spec:
                       description: The new response body
                       properties:
                         content_type:
-                          description: The content type to set on the error response body when using text_format or text_format_source. Defaults to 'text/plain'.
+                          description: The content type to set on the error response
+                            body when using text_format or text_format_source. Defaults
+                            to 'text/plain'.
                           type: string
                         json_format:
                           additionalProperties:
                             type: string
-                          description: 'A JSON response with content-type: application/json. The values can contain format text like in text_format.'
+                          description: 'A JSON response with content-type: application/json.
+                            The values can contain format text like in text_format.'
                           type: object
                         text_format:
-                          description: A format string representing a text response body. Content-Type can be set using the `content_type` field below.
+                          description: A format string representing a text response
+                            body. Content-Type can be set using the `content_type`
+                            field below.
                           type: string
                         text_format_source:
-                          description: A format string sourced from a file on the Ambassador container. Useful for larger response bodies that should not be placed inline in configuration.
+                          description: A format string sourced from a file on the
+                            Ambassador container. Useful for larger response bodies
+                            that should not be placed inline in configuration.
                           properties:
                             filename:
-                              description: The name of a file on the Ambassador pod that contains a format text string.
+                              description: The name of a file on the Ambassador pod
+                                that contains a format text string.
                               type: string
                           type: object
                       type: object
                     on_status_code:
-                      description: The status code to match on -- not a pointer because it's required.
+                      description: The status code to match on -- not a pointer because
+                        it's required.
                       maximum: 599
                       minimum: 400
                       type: integer
@@ -2112,20 +2547,39 @@ spec:
                   type: string
                 type: object
               host:
-                description: "Exact match for the hostname of a request if HostRegex is false; regex match for the hostname if HostRegex is true. \n Host specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Host will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used. \n DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead. \n TODO(lukeshu): In v3alpha2, get rid of MappingSpec.host and MappingSpec.host_regex in favor of a MappingSpec.deprecated_hostname_regex."
+                description: "Exact match for the hostname of a request if HostRegex
+                  is false; regex match for the hostname if HostRegex is true. \n
+                  Host specifies both a match for the ':authority' header of a request,
+                  as well as a match criterion for Host CRDs: a Mapping that specifies
+                  Host will not associate with a Host that doesn't have a matching
+                  Hostname. \n If both Host and Hostname are set, an error is logged,
+                  Host is ignored, and Hostname is used. \n DEPRECATED: Host is either
+                  an exact match or a regex, depending on HostRegex. Use HostName
+                  instead. \n TODO(lukeshu): In v3alpha2, get rid of MappingSpec.host
+                  and MappingSpec.host_regex in favor of a MappingSpec.deprecated_hostname_regex."
                 type: string
               host_redirect:
                 type: boolean
               host_regex:
-                description: "DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead. \n TODO(lukeshu): In v3alpha2, get rid of MappingSpec.host and MappingSpec.host_regex in favor of a MappingSpec.deprecated_hostname_regex."
+                description: "DEPRECATED: Host is either an exact match or a regex,
+                  depending on HostRegex. Use HostName instead. \n TODO(lukeshu):
+                  In v3alpha2, get rid of MappingSpec.host and MappingSpec.host_regex
+                  in favor of a MappingSpec.deprecated_hostname_regex."
                 type: boolean
               host_rewrite:
                 type: string
               hostname:
-                description: "Hostname is a DNS glob specifying the hosts to which this Mapping applies. \n Hostname specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Hostname will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used."
+                description: "Hostname is a DNS glob specifying the hosts to which
+                  this Mapping applies. \n Hostname specifies both a match for the
+                  ':authority' header of a request, as well as a match criterion for
+                  Host CRDs: a Mapping that specifies Hostname will not associate
+                  with a Host that doesn't have a matching Hostname. \n If both Host
+                  and Hostname are set, an error is logged, Host is ignored, and Hostname
+                  is used."
                 type: string
               idle_timeout_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
+                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               keepalive:
                 properties:
@@ -2138,17 +2592,21 @@ spec:
                 type: object
               labels:
                 additionalProperties:
-                  description: A MappingLabelGroupsArray is an array of MappingLabelGroups. I know, complex.
+                  description: A MappingLabelGroupsArray is an array of MappingLabelGroups.
+                    I know, complex.
                   items:
                     additionalProperties:
-                      description: 'A MappingLabelsArray is the value in the MappingLabelGroup: an array of label specifiers.'
+                      description: 'A MappingLabelsArray is the value in the MappingLabelGroup:
+                        an array of label specifiers.'
                       items:
-                        description: "A MappingLabelSpecifier (finally!) defines a single label. \n This mimics envoy/config/route/v3/route_components.proto:RateLimit:Action:action_specifier."
+                        description: "A MappingLabelSpecifier (finally!) defines a
+                          single label. \n This mimics envoy/config/route/v3/route_components.proto:RateLimit:Action:action_specifier."
                         maxProperties: 1
                         minProperties: 1
                         properties:
                           destination_cluster:
-                            description: Sets the label "destination_cluster=«Envoy destination cluster name»".
+                            description: Sets the label "destination_cluster=«Envoy
+                              destination cluster name»".
                             properties:
                               key:
                                 enum:
@@ -2158,7 +2616,8 @@ spec:
                             - key
                             type: object
                           generic_key:
-                            description: Sets the label "«key»=«value»" (where by default «key» is "generic_key").
+                            description: Sets the label "«key»=«value»" (where by
+                              default «key» is "generic_key").
                             properties:
                               key:
                                 description: The default is "generic_key".
@@ -2171,7 +2630,8 @@ spec:
                             - value
                             type: object
                           remote_address:
-                            description: Sets the label "remote_address=«IP address of the client»".
+                            description: Sets the label "remote_address=«IP address
+                              of the client»".
                             properties:
                               key:
                                 enum:
@@ -2181,7 +2641,9 @@ spec:
                             - key
                             type: object
                           request_headers:
-                            description: If the «header_name» header is set, then set the label "«key»=«Value of the «header_name» header»"; otherwise skip applying this label group.
+                            description: If the «header_name» header is set, then
+                              set the label "«key»=«Value of the «header_name» header»";
+                              otherwise skip applying this label group.
                             properties:
                               header_name:
                                 type: string
@@ -2194,7 +2656,8 @@ spec:
                             - key
                             type: object
                           source_cluster:
-                            description: Sets the label "source_cluster=«Envoy source cluster name»".
+                            description: Sets the label "source_cluster=«Envoy source
+                              cluster name»".
                             properties:
                               key:
                                 enum:
@@ -2205,12 +2668,16 @@ spec:
                             type: object
                         type: object
                       type: array
-                    description: 'A MappingLabelGroup is a single element of a MappingLabelGroupsArray: a second map, where the key is a human-readable name that identifies the group.'
+                    description: 'A MappingLabelGroup is a single element of a MappingLabelGroupsArray:
+                      a second map, where the key is a human-readable name that identifies
+                      the group.'
                     maxProperties: 1
                     minProperties: 1
                     type: object
                   type: array
-                description: A DomainMap is the overall Mapping.spec.Labels type. It maps domains (kind of like namespaces for Mapping labels) to arrays of label groups.
+                description: A DomainMap is the overall Mapping.spec.Labels type.
+                  It maps domains (kind of like namespaces for Mapping labels) to
+                  arrays of label groups.
                 type: object
               load_balancer:
                 properties:
@@ -2245,14 +2712,16 @@ spec:
                 type: boolean
               modules:
                 items:
-                  description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
+                  description: UntypedDict is relatively opaque as a Go type, but
+                    it preserves its contents in a roundtrippable way.
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                 type: array
               outlier_detection:
                 type: string
               path_redirect:
-                description: Path replacement to use when generating an HTTP redirect. Used with `host_redirect`.
+                description: Path replacement to use when generating an HTTP redirect.
+                  Used with `host_redirect`.
                 type: string
               precedence:
                 type: integer
@@ -2261,7 +2730,8 @@ spec:
               prefix_exact:
                 type: boolean
               prefix_redirect:
-                description: Prefix rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+                description: Prefix rewrite to use when generating an HTTP redirect.
+                  Used with `host_redirect`.
                 type: string
               prefix_regex:
                 type: boolean
@@ -2272,7 +2742,8 @@ spec:
                   type: string
                 type: object
               redirect_response_code:
-                description: The response code to use when generating an HTTP redirect. Defaults to 301. Used with `host_redirect`.
+                description: The response code to use when generating an HTTP redirect.
+                  Defaults to 301. Used with `host_redirect`.
                 enum:
                 - 301
                 - 302
@@ -2289,7 +2760,8 @@ spec:
                   type: string
                 type: object
               regex_redirect:
-                description: Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+                description: Prefix regex rewrite to use when generating an HTTP redirect.
+                  Used with `host_redirect`.
                 properties:
                   pattern:
                     type: string
@@ -2340,12 +2812,16 @@ spec:
               stats_name:
                 type: string
               timeout_ms:
-                description: The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
+                description: The timeout for requests that use this Mapping. Overrides
+                  `cluster_request_timeout_ms` set on the Ambassador Module, if it
+                  exists.
                 type: integer
               tls:
                 type: string
               use_websocket:
-                description: "use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: [\"websocket\"]` \n TODO(lukeshu): In v3alpha2, get rid of MappingSpec.DeprecatedUseWebsocket."
+                description: "use_websocket is deprecated, and is equivlaent to setting
+                  `allow_upgrade: [\"websocket\"]` \n TODO(lukeshu): In v3alpha2,
+                  get rid of MappingSpec.DeprecatedUseWebsocket."
                 type: boolean
               v2BoolHeaders:
                 items:
@@ -2356,14 +2832,41 @@ spec:
                   type: string
                 type: array
               v2ExplicitTLS:
-                description: V2ExplicitTLS controls some vanity/stylistic elements when converting from v3alpha1 to v2.  The values in an V2ExplicitTLS should not in any way affect the runtime operation of Emissary; except that it may affect internal names in the Envoy config, which may in turn affect stats names.  But it should not affect any end-user observable behavior.
+                description: V2ExplicitTLS controls some vanity/stylistic elements
+                  when converting from v3alpha1 to v2.  The values in an V2ExplicitTLS
+                  should not in any way affect the runtime operation of Emissary;
+                  except that it may affect internal names in the Envoy config, which
+                  may in turn affect stats names.  But it should not affect any end-user
+                  observable behavior.
                 properties:
                   serviceScheme:
-                    description: "ServiceScheme specifies how to spell and capitalize the scheme-part of the service URL. \n Acceptable values are \"http://\" (case-insensitive), \"https://\" (case-insensitive), or \"\".  The value is used if it agrees with whether or not this resource enables TLS origination, or if something else in the resource overrides the scheme."
+                    description: "ServiceScheme specifies how to spell and capitalize
+                      the scheme-part of the service URL. \n Acceptable values are
+                      \"http://\" (case-insensitive), \"https://\" (case-insensitive),
+                      or \"\".  The value is used if it agrees with whether or not
+                      this resource enables TLS origination, or if something else
+                      in the resource overrides the scheme."
                     pattern: ^([hH][tT][tT][pP][sS]?://)?$
                     type: string
                   tls:
-                    description: "TLS controls whether and how to represent the \"tls\" field when its value could be implied by the \"service\" field.  In v2, there were a lot of different ways to spell an \"empty\" value, and this field specifies which way to spell it (and will therefore only be used if the value will indeed be empty). \n  | Value        | Representation                        | Meaning of representation          |  |--------------+---------------------------------------+------------------------------------|  | \"\"           | omit the field                        | defer to service (no TLSContext)   |  | \"null\"       | store an explicit \"null\" in the field | defer to service (no TLSContext)   |  | \"string\"     | store an empty string in the field    | defer to service (no TLSContext)   |  | \"bool:false\" | store a Boolean \"false\" in the field  | defer to service (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\" in the field   | originate TLS (no TLSContext)      | \n If the meaning of the representation contradicts anything else (if a TLSContext is to be used, or in the case of \"bool:true\" if TLS is not to be originated), then this field is ignored."
+                    description: "TLS controls whether and how to represent the \"tls\"
+                      field when its value could be implied by the \"service\" field.
+                      \ In v2, there were a lot of different ways to spell an \"empty\"
+                      value, and this field specifies which way to spell it (and will
+                      therefore only be used if the value will indeed be empty). \n
+                      \ | Value        | Representation                        | Meaning
+                      of representation          |  |--------------+---------------------------------------+------------------------------------|
+                      \ | \"\"           | omit the field                        |
+                      defer to service (no TLSContext)   |  | \"null\"       | store
+                      an explicit \"null\" in the field | defer to service (no TLSContext)
+                      \  |  | \"string\"     | store an empty string in the field
+                      \   | defer to service (no TLSContext)   |  | \"bool:false\"
+                      | store a Boolean \"false\" in the field  | defer to service
+                      (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\"
+                      in the field   | originate TLS (no TLSContext)      | \n If
+                      the meaning of the representation contradicts anything else
+                      (if a TLSContext is to be used, or in the case of \"bool:true\"
+                      if TLS is not to be originated), then this field is ignored."
                     enum:
                     - ""
                     - "null"
@@ -2408,7 +2911,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -2439,20 +2942,28 @@ spec:
   - name: v2
     schema:
       openAPIV3Schema:
-        description: "A Module defines system-wide configuration.  The type of module is controlled by the .metadata.name; valid names are \"ambassador\" or \"tls\". \n https://www.getambassador.io/docs/edge-stack/latest/topics/running/ambassador/#the-ambassador-module https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tls-module-deprecated"
+        description: "A Module defines system-wide configuration.  The type of module
+          is controlled by the .metadata.name; valid names are \"ambassador\" or \"tls\".
+          \n https://www.getambassador.io/docs/edge-stack/latest/topics/running/ambassador/#the-ambassador-module
+          https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tls-module-deprecated"
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
           spec:
             properties:
               config:
-                description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
+                description: UntypedDict is relatively opaque as a Go type, but it
+                  preserves its contents in a roundtrippable way.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
             type: object
@@ -2463,25 +2974,37 @@ spec:
   - name: v3alpha1
     schema:
       openAPIV3Schema:
-        description: "A Module defines system-wide configuration.  The type of module is controlled by the .metadata.name; valid names are \"ambassador\" or \"tls\". \n https://www.getambassador.io/docs/edge-stack/latest/topics/running/ambassador/#the-ambassador-module https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tls-module-deprecated"
+        description: "A Module defines system-wide configuration.  The type of module
+          is controlled by the .metadata.name; valid names are \"ambassador\" or \"tls\".
+          \n https://www.getambassador.io/docs/edge-stack/latest/topics/running/ambassador/#the-ambassador-module
+          https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tls-module-deprecated"
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
           spec:
             properties:
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
+                description: "AmbassadorID declares which Ambassador instances should
+                  pay attention to this resource. If no value is provided, the default
+                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  consider renaming all of the `ambassador_id` (singular) fields to
+                  `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
               config:
-                description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
+                description: UntypedDict is relatively opaque as a Go type, but it
+                  preserves its contents in a roundtrippable way.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
             required:
@@ -2493,7 +3016,8 @@ spec:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: A Module defines system-wide configuration.  The type of module is controlled by the .metadata.name; valid names are "ambassador" or "tls".
+        description: A Module defines system-wide configuration.  The type of module
+          is controlled by the .metadata.name; valid names are "ambassador" or "tls".
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: false
@@ -2503,7 +3027,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -2537,10 +3061,14 @@ spec:
         description: RateLimitService is the Schema for the ratelimitservices API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -2573,10 +3101,14 @@ spec:
         description: RateLimitService is the Schema for the ratelimitservices API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -2600,19 +3132,47 @@ spec:
               stats_name:
                 type: string
               timeout_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to `{foo}`/`metav1.Duration`.'
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
+                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               tls:
                 type: string
               v2ExplicitTLS:
-                description: V2ExplicitTLS controls some vanity/stylistic elements when converting from v3alpha1 to v2.  The values in an V2ExplicitTLS should not in any way affect the runtime operation of Emissary; except that it may affect internal names in the Envoy config, which may in turn affect stats names.  But it should not affect any end-user observable behavior.
+                description: V2ExplicitTLS controls some vanity/stylistic elements
+                  when converting from v3alpha1 to v2.  The values in an V2ExplicitTLS
+                  should not in any way affect the runtime operation of Emissary;
+                  except that it may affect internal names in the Envoy config, which
+                  may in turn affect stats names.  But it should not affect any end-user
+                  observable behavior.
                 properties:
                   serviceScheme:
-                    description: "ServiceScheme specifies how to spell and capitalize the scheme-part of the service URL. \n Acceptable values are \"http://\" (case-insensitive), \"https://\" (case-insensitive), or \"\".  The value is used if it agrees with whether or not this resource enables TLS origination, or if something else in the resource overrides the scheme."
+                    description: "ServiceScheme specifies how to spell and capitalize
+                      the scheme-part of the service URL. \n Acceptable values are
+                      \"http://\" (case-insensitive), \"https://\" (case-insensitive),
+                      or \"\".  The value is used if it agrees with whether or not
+                      this resource enables TLS origination, or if something else
+                      in the resource overrides the scheme."
                     pattern: ^([hH][tT][tT][pP][sS]?://)?$
                     type: string
                   tls:
-                    description: "TLS controls whether and how to represent the \"tls\" field when its value could be implied by the \"service\" field.  In v2, there were a lot of different ways to spell an \"empty\" value, and this field specifies which way to spell it (and will therefore only be used if the value will indeed be empty). \n  | Value        | Representation                        | Meaning of representation          |  |--------------+---------------------------------------+------------------------------------|  | \"\"           | omit the field                        | defer to service (no TLSContext)   |  | \"null\"       | store an explicit \"null\" in the field | defer to service (no TLSContext)   |  | \"string\"     | store an empty string in the field    | defer to service (no TLSContext)   |  | \"bool:false\" | store a Boolean \"false\" in the field  | defer to service (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\" in the field   | originate TLS (no TLSContext)      | \n If the meaning of the representation contradicts anything else (if a TLSContext is to be used, or in the case of \"bool:true\" if TLS is not to be originated), then this field is ignored."
+                    description: "TLS controls whether and how to represent the \"tls\"
+                      field when its value could be implied by the \"service\" field.
+                      \ In v2, there were a lot of different ways to spell an \"empty\"
+                      value, and this field specifies which way to spell it (and will
+                      therefore only be used if the value will indeed be empty). \n
+                      \ | Value        | Representation                        | Meaning
+                      of representation          |  |--------------+---------------------------------------+------------------------------------|
+                      \ | \"\"           | omit the field                        |
+                      defer to service (no TLSContext)   |  | \"null\"       | store
+                      an explicit \"null\" in the field | defer to service (no TLSContext)
+                      \  |  | \"string\"     | store an empty string in the field
+                      \   | defer to service (no TLSContext)   |  | \"bool:false\"
+                      | store a Boolean \"false\" in the field  | defer to service
+                      (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\"
+                      in the field   | originate TLS (no TLSContext)      | \n If
+                      the meaning of the representation contradicts anything else
+                      (if a TLSContext is to be used, or in the case of \"bool:true\"
+                      if TLS is not to be originated), then this field is ignored."
                     enum:
                     - ""
                     - "null"
@@ -2640,7 +3200,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -2674,10 +3234,14 @@ spec:
         description: TCPMapping is the Schema for the tcpmappings API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -2740,10 +3304,14 @@ spec:
         description: TCPMapping is the Schema for the tcpmappings API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -2753,7 +3321,11 @@ spec:
               address:
                 type: string
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
+                description: "AmbassadorID declares which Ambassador instances should
+                  pay attention to this resource. If no value is provided, the default
+                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  consider renaming all of the `ambassador_id` (singular) fields to
+                  `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -2798,14 +3370,41 @@ spec:
               tls:
                 type: string
               v2ExplicitTLS:
-                description: V2ExplicitTLS controls some vanity/stylistic elements when converting from v3alpha1 to v2.  The values in an V2ExplicitTLS should not in any way affect the runtime operation of Emissary; except that it may affect internal names in the Envoy config, which may in turn affect stats names.  But it should not affect any end-user observable behavior.
+                description: V2ExplicitTLS controls some vanity/stylistic elements
+                  when converting from v3alpha1 to v2.  The values in an V2ExplicitTLS
+                  should not in any way affect the runtime operation of Emissary;
+                  except that it may affect internal names in the Envoy config, which
+                  may in turn affect stats names.  But it should not affect any end-user
+                  observable behavior.
                 properties:
                   serviceScheme:
-                    description: "ServiceScheme specifies how to spell and capitalize the scheme-part of the service URL. \n Acceptable values are \"http://\" (case-insensitive), \"https://\" (case-insensitive), or \"\".  The value is used if it agrees with whether or not this resource enables TLS origination, or if something else in the resource overrides the scheme."
+                    description: "ServiceScheme specifies how to spell and capitalize
+                      the scheme-part of the service URL. \n Acceptable values are
+                      \"http://\" (case-insensitive), \"https://\" (case-insensitive),
+                      or \"\".  The value is used if it agrees with whether or not
+                      this resource enables TLS origination, or if something else
+                      in the resource overrides the scheme."
                     pattern: ^([hH][tT][tT][pP][sS]?://)?$
                     type: string
                   tls:
-                    description: "TLS controls whether and how to represent the \"tls\" field when its value could be implied by the \"service\" field.  In v2, there were a lot of different ways to spell an \"empty\" value, and this field specifies which way to spell it (and will therefore only be used if the value will indeed be empty). \n  | Value        | Representation                        | Meaning of representation          |  |--------------+---------------------------------------+------------------------------------|  | \"\"           | omit the field                        | defer to service (no TLSContext)   |  | \"null\"       | store an explicit \"null\" in the field | defer to service (no TLSContext)   |  | \"string\"     | store an empty string in the field    | defer to service (no TLSContext)   |  | \"bool:false\" | store a Boolean \"false\" in the field  | defer to service (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\" in the field   | originate TLS (no TLSContext)      | \n If the meaning of the representation contradicts anything else (if a TLSContext is to be used, or in the case of \"bool:true\" if TLS is not to be originated), then this field is ignored."
+                    description: "TLS controls whether and how to represent the \"tls\"
+                      field when its value could be implied by the \"service\" field.
+                      \ In v2, there were a lot of different ways to spell an \"empty\"
+                      value, and this field specifies which way to spell it (and will
+                      therefore only be used if the value will indeed be empty). \n
+                      \ | Value        | Representation                        | Meaning
+                      of representation          |  |--------------+---------------------------------------+------------------------------------|
+                      \ | \"\"           | omit the field                        |
+                      defer to service (no TLSContext)   |  | \"null\"       | store
+                      an explicit \"null\" in the field | defer to service (no TLSContext)
+                      \  |  | \"string\"     | store an empty string in the field
+                      \   | defer to service (no TLSContext)   |  | \"bool:false\"
+                      | store a Boolean \"false\" in the field  | defer to service
+                      (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\"
+                      in the field   | originate TLS (no TLSContext)      | \n If
+                      the meaning of the representation contradicts anything else
+                      (if a TLSContext is to be used, or in the case of \"bool:true\"
+                      if TLS is not to be originated), then this field is ignored."
                     enum:
                     - ""
                     - "null"
@@ -2836,7 +3435,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -2870,10 +3469,14 @@ spec:
         description: TLSContext is the Schema for the tlscontexts API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -2937,10 +3540,14 @@ spec:
         description: TLSContext is the Schema for the tlscontexts API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -2950,7 +3557,11 @@ spec:
               alpn_protocols:
                 type: string
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
+                description: "AmbassadorID declares which Ambassador instances should
+                  pay attention to this resource. If no value is provided, the default
+                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  consider renaming all of the `ambassador_id` (singular) fields to
+                  `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
@@ -3015,7 +3626,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -3049,10 +3660,14 @@ spec:
         description: TracingService is the Schema for the tracingservices API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -3119,10 +3734,14 @@ spec:
         description: TracingService is the Schema for the tracingservices API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -3130,7 +3749,11 @@ spec:
             description: TracingServiceSpec defines the desired state of TracingService
             properties:
               ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to `ambassador_ids` (plural)."
+                description: "AmbassadorID declares which Ambassador instances should
+                  pay attention to this resource. If no value is provided, the default
+                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  consider renaming all of the `ambassador_id` (singular) fields to
+                  `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array

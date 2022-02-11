@@ -9,17 +9,6 @@ Location: /usr/lib/python3.8/site-packages
 Requires: requests, msgpack
 Required-by:
 
-Name: docutils
-Version: 0.17.1
-Summary: Docutils -- Python Documentation Utilities
-Home-page: http://docutils.sourceforge.net/
-Author: David Goodger
-Author-email: goodger@python.org
-License: public domain, Python, 2-Clause BSD, GPL 3 (see COPYING.txt)
-Location: /usr/lib/python3.8/site-packages
-Requires:
-Required-by: clize
-
 Name: Flask
 Version: 2.0.2
 Summary: A simple framework for building complex web applications.

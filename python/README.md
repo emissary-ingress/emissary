@@ -27,7 +27,7 @@ Ambassador comprises several different components:
 Ambassador uses several TCP ports while running. All but one of them are in the range 8000-8499, and any future assignments for Ambassador ports should come from this range.
 
 | Port | Process                               | Function                                                                                                           |
-| :--- | :------                               | :-------                                                                                                           |
+| :--- |:--------------------------------------|:-------------------------------------------------------------------------------------------------------------------|
 | 8001 | `envoy`                               | Internal stats, logging, etc.; not exposed outside pod                                                             |
 | 8002 | `entrypoint/watcher`                  | Internal `watt` snapshot access; not exposed outside pod                                                           |
 | 8003 | `entrypoint/ambex`                    | Internal `ambex` snapshot access; not exposed outside pod                                                          |

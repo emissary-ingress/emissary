@@ -32,6 +32,13 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
 
 ## UPCOMING BREAKING CHANGES
 
+#### Envoy V2 API
+
+In *Emissary-ingress v2.2.0*, support for the Envoy V2 API will be removed, and Emissary-ingress
+will support only the Envoy V3 API. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will
+also be removed. Note that Emissary-ingress has been using the Envoy V3 API as its default since
+v1.14.0.
+
 #### TLS Termination and the `Host` CRD
 
 As of Emissary-ingress v2.0.4, you _must_ supply a `Host` CRD to terminate TLS: it is not
