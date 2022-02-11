@@ -48,8 +48,8 @@ func main() {
 
 	case "grpc_auth":
 		protocolVersion := os.Getenv("GRPC_AUTH_PROTOCOL_VERSION")
-		if protocolVersion == "v3" {
-			s = &srv.GRPCAUTHV3{
+		if protocolVersion == "v2" {
+			s = &srv.GRPCAUTH{
 				Port:            Port,
 				Backend:         os.Getenv("BACKEND"),
 				SecurePort:      SSLPort,
@@ -59,7 +59,7 @@ func main() {
 				ProtocolVersion: protocolVersion,
 			}
 		} else {
-			s = &srv.GRPCAUTH{
+			s = &srv.GRPCAUTHV3{
 				Port:            Port,
 				Backend:         os.Getenv("BACKEND"),
 				SecurePort:      SSLPort,
@@ -74,18 +74,7 @@ func main() {
 
 	case "grpc_rls":
 		protocolVersion := os.Getenv("GRPC_RLS_PROTOCOL_VERSION")
-		if protocolVersion == "v3" {
-			s = &srv.GRPCRLSV3{
-				Port:            Port,
-				Backend:         os.Getenv("BACKEND"),
-				SecurePort:      SSLPort,
-				SecureBackend:   os.Getenv("BACKEND"),
-				Cert:            Crt,
-				Key:             Key,
-				ProtocolVersion: protocolVersion,
-			}
-
-		} else {
+		if protocolVersion == "v2" {
 			s = &srv.GRPCRLS{
 				Port:            Port,
 				Backend:         os.Getenv("BACKEND"),
@@ -95,7 +84,16 @@ func main() {
 				Key:             Key,
 				ProtocolVersion: protocolVersion,
 			}
-
+		} else {
+			s = &srv.GRPCRLSV3{
+				Port:            Port,
+				Backend:         os.Getenv("BACKEND"),
+				SecurePort:      SSLPort,
+				SecureBackend:   os.Getenv("BACKEND"),
+				Cert:            Crt,
+				Key:             Key,
+				ProtocolVersion: protocolVersion,
+			}
 		}
 
 		listeners = append(listeners, s)
