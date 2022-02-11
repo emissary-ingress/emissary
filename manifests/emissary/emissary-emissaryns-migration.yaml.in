@@ -281,6 +281,8 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: AGENT_CONFIG_RESOURCE_NAME
+          value: emissary-ingress-agent-cloud-token
         image: $imageRepo$:$version$
         imagePullPolicy: IfNotPresent
         livenessProbe:

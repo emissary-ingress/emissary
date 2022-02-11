@@ -268,7 +268,6 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			exit 1 ;\
 		fi ;\
 		suffix=$(patsubst v%,%,$(VERSION)); \
-		chartsuffix=$${suffix#*-} ; \
 		for image in $(LCNAME) ; do \
 			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
 			printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
@@ -283,10 +282,8 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			exit 0 ; \
 		fi ; \
 		$(MAKE) \
-			CHART_VERSION_SUFFIX=-$$chartsuffix \
-			IMAGE_TAG=$${suffix} \
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
-			chart-push-ci ; \
+			release/push-chart ; \
 		$(MAKE) generate-fast --always-make; \
 		$(MAKE) push-manifests  ; \
 	}
@@ -303,30 +300,11 @@ export PYTEST_ARGS
 
 PYTEST_GOLD_DIR ?= $(abspath python/tests/gold)
 
-# Internal target for running a bash shell.
-_bash:
-	@PS1="\u:\w $$ " /bin/bash
-.PHONY: _bash
-
-# Internal runner target that executes an entrypoint after setting up the user's UID/GUID etc.
-_runner:
-	@printf "$(CYN)==>$(END) * Creating group $(BLU)$$INTERACTIVE_GROUP$(END) with GID $(BLU)$$INTERACTIVE_GID$(END)\n"
-	@addgroup -g $$INTERACTIVE_GID $$INTERACTIVE_GROUP
-	@printf "$(CYN)==>$(END) * Creating user $(BLU)$$INTERACTIVE_USER$(END) with UID $(BLU)$$INTERACTIVE_UID$(END)\n"
-	@adduser -u $$INTERACTIVE_UID -G $$INTERACTIVE_GROUP $$INTERACTIVE_USER -D
-	@printf "$(CYN)==>$(END) * Adding user $(BLU)$$INTERACTIVE_USER$(END) to $(BLU)/etc/sudoers$(END)\n"
-	@echo "$$INTERACTIVE_USER ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers
-	@printf "$(CYN)==>$(END) * Switching to user $(BLU)$$INTERACTIVE_USER$(END) with shell $(BLU)/bin/bash$(END)\n"
-	@su -s /bin/bash $$INTERACTIVE_USER -c "$$ENTRYPOINT"
-.PHONY: _runner
-
-setup-envoy: extract-bin-envoy
-
 pytest: push-pytest-images
 pytest: $(tools/kubestatus)
 pytest: $(tools/kubectl)
 pytest: $(OSS_HOME)/venv
-pytest: setup-envoy
+pytest: bin/envoy
 pytest: proxy
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
@@ -343,7 +321,7 @@ pytest: proxy
 	}
 .PHONY: pytest
 
-pytest-unit: setup-envoy $(OSS_HOME)/venv
+pytest-unit: bin/envoy $(OSS_HOME)/venv
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
 	mkdir -p $(or $(TEST_XML_DIR),/tmp/test-data)
 	set -e; { \
@@ -371,15 +349,13 @@ pytest-kat-envoy2-%: push-pytest-images # ... so we have a separate rule to run 
 	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range $* python/tests/kat"
 .PHONY: pytest-kat-%
 
-extract-bin-envoy: docker/base-envoy.docker.tag.local
-	@mkdir -p $(OSS_HOME)/bin/
-	@rm -f $(OSS_HOME)/bin/envoy
-	@printf "Extracting envoy binary to $(OSS_HOME)/bin/envoy\n"
-	@echo "#!/bin/bash" > $(OSS_HOME)/bin/envoy
-	@echo "" >> $(OSS_HOME)/bin/envoy
-	@echo "docker run -v $(OSS_HOME):$(OSS_HOME) -v /var/:/var/ -v /tmp/:/tmp/ -t --entrypoint /usr/local/bin/envoy-static-stripped $$(cat docker/base-envoy.docker) \"\$$@\"" >> $(OSS_HOME)/bin/envoy
-	@chmod +x $(OSS_HOME)/bin/envoy
-.PHONY: extract-bin-envoy
+bin/envoy: docker/base-envoy.docker.tag.local
+	mkdir -p $(@D)
+	{ \
+	  echo '#!/bin/bash'; \
+	  echo "docker run -v $(OSS_HOME):$(OSS_HOME) -v /var/:/var/ -v /tmp/:/tmp/ -t --entrypoint /usr/local/bin/envoy-static-stripped $$(cat docker/base-envoy.docker) \"\$$@\""; \
+	} > $@
+	chmod +x $@
 
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
@@ -540,55 +516,33 @@ release/promote-oss/.main: $(tools/docker-promote)
 	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(patsubst v%,%,$(VERSION))" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
 .PHONY: release/promote-oss/.main
 
-release/promote-oss/dev-to-rc:
+release/promote-oss/to-rc:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ ( "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ) || \
-	    ( "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$$ ) ]] || (printf '$(RED)ERROR: VERSION=%s does not look like an RC tag\n' "$(VERSION)"; exit 1)
+	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION=%s does not look like an RC tag\n' "$(VERSION)"; exit 1)
 	@set -e; { \
-		if [ -n "$$(git status -s)" ]; then \
-			echo "release/promote-oss/dev-to-rc: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
-		commit=$$(git rev-parse HEAD) ;\
-		$(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key dev-builds ;\
-		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
-		if [ -z "$$dev_version" ]; then \
-			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
-			exit 1 ;\
-		fi ;\
-		printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
-		veroverride=$(patsubst v%,%,$(VERSION)) ; \
-		tag=$$veroverride ; \
-		$(MAKE) release/promote-oss/.main \
-			PROMOTE_FROM_VERSION="$$dev_version" \
-			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-			PROMOTE_TO_VERSION="$$tag" \
-			PROMOTE_CHANNEL=test ; \
-		if [ $(IS_PRIVATE) ] ; then \
-			echo "Not publishing charts or manifests because in a private repo" ;\
-			exit 0 ; \
-		fi ; \
-		chartsuffix=$(patsubst v%,%,$(VERSION)) ; \
-		chartsuffix=$${chartsuffix#*-} ; \
-		$(MAKE) \
-			CHART_VERSION_SUFFIX=-$$chartsuffix \
-			IMAGE_TAG=$${veroverride} \
-			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
-			chart-push-ci ; \
-		$(MAKE) generate-fast --always-make; \
-		$(MAKE) push-manifests  ; \
-		$(MAKE) publish-docs-yaml ; \
+	  commit=$$(git rev-parse HEAD) ;\
+	  $(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key dev-builds ;\
+	  dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
+	  if [ -z "$$dev_version" ]; then \
+	    printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
+	    exit 1 ;\
+	  fi ;\
+	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
+	  $(MAKE) release/promote-oss/.main \
+	    PROMOTE_FROM_VERSION="$$dev_version" \
+	    PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
+	    PROMOTE_TO_VERSION="$(patsubst v%,%,$(VERSION))" \
+	    PROMOTE_CHANNEL=test ; \
 	}
-.PHONY: release/promote-oss/dev-to-rc
-
-release/print-test-artifacts:
-	@set -e; { \
-		manifest_ver=$(patsubst v%,%,$(VERSION)) ; \
-		manifest_ver=$${manifest_ver%"-dirty"} ; \
-		echo "export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/$$manifest_ver" ; \
-		echo "export HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/emissary-ingress/Chart.yaml | awk '{ print $$2 }'`" ; \
-	}
-.PHONY: release/print-test-artifacts
+ifneq ($(IS_PRIVATE),)
+	echo "Not publishing charts or manifests because in a private repo" >&2
+else
+	{ $(MAKE) \
+	  IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
+	  push-manifests \
+	  publish-docs-yaml; }
+endif
+.PHONY: release/promote-oss/to-rc
 
 # just push the commit hash to s3
 # this should only happen if all tests have passed at a certain commit
@@ -604,61 +558,6 @@ release/promote-oss/dev-to-passed-ci:
 		echo "$$dev_version" | aws s3 cp - s3://$(AWS_S3_BUCKET)/passed-builds/$$commit ;\
 	}
 .PHONY: release/promote-oss/dev-to-passed-ci
-
-# should run on every PR once the builds have passed
-# this is less strong than "release/promote-oss/dev-to-passed-ci"
-release/promote-oss/pr-to-passed-ci:
-	@set -e; { \
-		commit=$$(git rev-parse HEAD) ;\
-		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
-		if [ -z "$$dev_version" ]; then \
-			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
-			exit 1 ;\
-		fi ;\
-		printf "$(CYN)==> $(GRN)Promoting $(BLU)$$commit$(GRN) => $(BLU)$$dev_version$(GRN) in S3...$(END)\n" ;\
-		echo "$$dev_version" | aws s3 cp - s3://$(AWS_S3_BUCKET)/passed-pr/$$commit ;\
-	}
-.PHONY: release/promote-oss/pr-to-passed-ci
-
-release/promote-oss/to-hotfix:
-	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@set -e; { \
-		docker login -u $$(keybase fs read /keybase/team/datawireio/secrets/dockerhub.webui.d6eautomaton.username) \
-					 -p $$(keybase fs read /keybase/team/datawireio/secrets/dockerhub.webui.d6eautomaton.password) ;\
-		HOTFIX_COMMIT=$$(git rev-parse $${HOTFIX_COMMIT:-HEAD}) ;\
-		hotfix_tag=$$(git describe --tags --exact --match '*-hf*' $$HOTFIX_COMMIT | sed 's/^v//g') ;\
-		if [ -z "$$hotfix_tag" ]; then \
-			printf "$(RED)==> found no hotfix tag for $$HOTFIX_COMMIT...$(END)\n" ;\
-			exit 1 ;\
-		fi ;\
-		[[ "$$hotfix_tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$$ ]] || (printf '$(RED)ERROR: tag %s does not look like a hotfix tag\n' "$$hotfix_tag"; exit 1) ;\
-		$(OSS_HOME)/releng/release-wait-for-commit --commit $$HOTFIX_COMMIT --s3-key dev-builds ;\
-		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$HOTFIX_COMMIT -) ;\
-		if [ -z "$$dev_version" ]; then \
-			printf "$(RED)==> found no passed dev version for $$HOTFIX_COMMIT in S3...$(END)\n" ;\
-			exit 1 ;\
-		fi ;\
-		printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$HOTFIX_COMMIT$(GRN) in S3...$(END)\n" ;\
-		$(MAKE) release/promote-oss/.main \
-			PROMOTE_FROM_VERSION="$$dev_version" \
-			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-			PROMOTE_TO_VERSION=$$(echo "$$hotfix_tag" | tr '+' '-') \
-			PROMOTE_CHANNEL=hotfix ;\
-		chartsuffix=$$hotfix_tag ;\
-		chartsuffix=$${chartsuffix#*-} ;\
-		export AWS_ACCESS_KEY_ID=$$(keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials | grep 'aws_access_key_id' | sed 's/aws_access_key_id=//g') ;\
-		export AWS_SECRET_ACCESS_KEY=$$(keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials  | grep 'aws_secret_access_key' | sed 's/aws_secret_access_key=//g') ;\
-		$(MAKE) \
-			CHART_VERSION_SUFFIX=-$$chartsuffix \
-			IMAGE_TAG=$${hotfix_tag} \
-			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
-			chart-push-ci ;\
-		$(MAKE) generate-fast --always-make; \
-		$(MAKE) push-manifests ;\
-		$(MAKE) publish-docs-yaml ;\
-		docker logout ;\
-	}
-.PHONY: release/promote-oss/to-hotfix
 
 # To be run from a checkout at the tag you are promoting _from_.
 # This is normally run from CI by creating the GA tag.
@@ -681,6 +580,15 @@ release/promote-oss/to-ga:
 	    PROMOTE_CHANNEL= \
 	    ; \
 	}
+ifneq ($(IS_PRIVATE),)
+	echo "Not publishing charts or manifests because in a private repo" >&2
+else
+	{ $(MAKE) \
+	  IMAGE_TAG=$(patsubst v%,%,$(VERSION)) \
+	  IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
+	  push-manifests \
+	  publish-docs-yaml; }
+endif
 .PHONY: release/promote-oss/to-ga
 
 # `make release/go VERSION=v2.Y.Z` is meant to be run by the human

@@ -87,49 +87,49 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [2.2.0] TBD
+## [2.2.0] February 10, 2022
 [2.2.0]: https://github.com/emissary-ingress/emissary/compare/v2.1.2...v2.2.0
 
 ### Emissary-ingress and Ambassador Edge Stack
 
-- Change: Support for the Envoy V2 API and the `AMBASSADOR_ENVOY_API_VERSION` environment variable
-  have been removed. Only the Envoy V3 API is supported (this has been the default since
+- Change: Support for the Envoy V2 API is deprecated as of Emissary-ingress v2.1, and will be
+  removed in Emissary-ingress v3.0. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will be
+  removed at the same time. Only the Envoy V3 API will be supported (this has been the default since
   Emissary-ingress v1.14.0).
 
-- Feature: Emissary now supports the metric `ambassador_log_level{label="debug"}` which will be set
-  to 1 if debug logging is enabled for the running Emissary instance, or to 0 if not. This can help
-  to be sure that a running production instance was not actually left doing debugging logging, for
-  example. (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!) ([3906])
+- Change: Emissary-ingress will now watch for ConfigMap or Secret resources specified by the
+  `AGENT_CONFIG_RESOURCE_NAME` environment variable in order to allow all components (and not only
+  the Ambassador Agent) to authenticate requests to Ambassador Cloud.
 
-- Feature: Emissary is now leveraging a new Envoy Proxy patch that allows Envoy to accept escaped
-  '%' characters in its configuration. This means that error_response_overrides and other custom
-  user content can now contain '%' symbols escaped as '%%' ([DW Envoy: 74]) ([Upstream Envoy: 19383])
+- Security: Emissary-ingress has updated Alpine to 3.15, and Python and Go dependencies to their
+  latest compatible versions, to incorporate numerous security patches.
+
+- Feature: Emissary-ingress now supports the metric `ambassador_log_level{label="debug"}` which will
+  be set to 1 if debug logging is enabled for the running Emissary instance, or to 0 if not. This
+  can help to be sure that a running production instance was not actually left doing debugging
+  logging, for example. (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!) ([#3906])
+
+- Feature: Emissary-ingress is now leveraging a new Envoy Proxy patch that allows Envoy to accept
+  escaped '%' characters in its configuration. This means that error_response_overrides and other
+  custom user content can now contain '%' symbols escaped as '%%'. ([DW Envoy: 74]) ([Upstream Envoy: 19383])
+
+- Feature: Support for streaming Envoy metrics about the clusters to Ambassador Cloud. ([#4053])
+
+- Feature: The Ambassador agent now receives commands to manipulate Rollouts (pause, continue, and
+  abort are currently supported) via directives and executes them in the cluster. A report is sent
+  to Ambassador Cloud including the command ID, whether it ran successfully, and an error message in
+  case there was any. ([#4040])
 
 - Bugfix: Kubernetes Secrets that should contain TLS certificates are now validated before being
   accepted for configuration. A Secret that contains an invalid TLS certificate will be logged as an
-  invalid resource. ([3821])
+  invalid resource. ([#3821])
 
-- Change: Emissary will now watch for ConfigMap or Secret resources specified by the
-  `AGENT_CONFIG_RESOURCE_NAME` environment variable in order to allow all components (and not only
-  the Ambassador Agent) to authenticate requests to Ambassador Cloud. Support for the Envoy V2 API
-  and the `AMBASSADOR_ENVOY_API_VERSION` environment
-
-- Feature: Support for streaming Envoy metrics about the clusters to Ambassador's cloud. ([4053])
-
-- Feature: The Emissary agent now receives commands to manipulate Rollouts (pause, continue, and
-  abort are currently supported) via directives and executes them in the cluster.  A report is send
-  to Ambassador's cloud including the command ID, whether it ran successfully, and an error message
-  in case there was any. ([4040])
-
-- Security: Emissary has been upgraded from Alpine 3.12 to Alpine 3.15, which incorporates numerous
-  security patches.
-
-[3906]: https://github.com/emissary-ingress/emissary/issues/3906
+[#3906]: https://github.com/emissary-ingress/emissary/issues/3906
 [DW Envoy: 74]: https://github.com/datawire/envoy/pull/74
 [Upstream Envoy: 19383]: https://github.com/envoyproxy/envoy/pull/19383
-[3821]: https://github.com/emissary-ingress/emissary/issues/3821
-[4053]: https://github.com/emissary-ingress/emissary/pull/4053
-[4040]: https://github.com/emissary-ingress/emissary/pull/4040
+[#4053]: https://github.com/emissary-ingress/emissary/pull/4053
+[#4040]: https://github.com/emissary-ingress/emissary/pull/4040
+[#3821]: https://github.com/emissary-ingress/emissary/issues/3821
 
 ## [2.1.2] January 25, 2022
 [2.1.2]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.1.2
