@@ -223,7 +223,7 @@ docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: \
   %/base-envoy.docker.tag.local \
   %/base-pip.docker.tag.local \
   python/ambassador.version \
-  builder/Dockerfile \
+  docker/emissary/Dockerfile \
   $(OSS_HOME)/build-aux/py-version.txt \
   $(tools/dsum) \
   FORCE
@@ -232,7 +232,7 @@ docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: \
 	@printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"
 	@printf "    ${BLU}builderbase=$$(sed -n 2p $*/base-pip.docker.tag.local)${END}\n"
 	{ $(tools/dsum) '$(LCNAME) build' 3s \
-	  docker build -f builder/Dockerfile . \
+	  docker build -f docker/emissary/Dockerfile . \
 	    --build-arg=base="$$(sed -n 2p $*/base.docker.tag.local)" \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(sed -n 2p $*/base-pip.docker.tag.local)" \
