@@ -2,7 +2,7 @@ module local
 
 go 1.17
 
-require github.com/datawire/ocibuild v0.0.3-0.20220131233601-25ee488931d1
+require github.com/datawire/ocibuild v0.0.3-0.20220206205108-a1ff9828a491
 
 require (
 	github.com/containerd/stargz-snapshotter/estargz v0.7.0 // indirect
