@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- fill-column: 70 -*-
 
 # Copyright 2020, 2022 Datawire. All rights reserved.
 #
@@ -54,16 +55,37 @@ from typing import List, NamedTuple, Optional, Set
 
 
 def parse_members(filepath: str) -> Set[str]:
-    with open(filepath, 'r') as filehandle:
-        filecontent = filehandle.read()
+    """parse_members parses a .py file and returns a set of all of the
+    symbols exposed by file; whether they come from that file itself
+    or from its imports.
 
+    For example, given a file containing
+
+        from foo import bar
+
+        def baz():
+            pass
+
+    parse_members would return {'bar', 'baz'}.
+
+    In concept, parse_members should also support things like classes
+    and variables, but because this script only ever calls
+    parse_members on `__init__.py`, and `__init__.py` files tend to be
+    pretty minimal, I got lazy and only implemented support for
+    imports and functions.  It would be good to support all of the
+    statement types, but imports and function definitions are the only
+    statement types that Emissary uses in any `__init__.py` files, so
+    this is good enough.
+
+    """
     with open(filepath, 'r') as filehandle:
         filecontent = filehandle.read()
 
     members = set()
     for node in ast.parse(filecontent).body:
         # XXX: This doesn't recognize all the the statement types,
-        # just the ones that Emissary currently uses.
+        # just the ones that Emissary currently uses in __init__.py
+        # files.
         if isinstance(node, ast.Import) or  isinstance(node, ast.ImportFrom):
             members.update(alias.asname or alias.name for alias in node.names)
         elif isinstance(node, ast.FunctionDef):
@@ -80,11 +102,15 @@ class ImportedItem(NamedTuple):
     member: Optional[str]
 
 def parse_imports(filepath: str) -> List[ImportedItem]:
+    """parse_imports parses a .py file and returns a list of all of the
+    things that the file imports.
+
+    """
     with open(filepath, 'r') as filehandle:
         filecontent = filehandle.read()
 
     imports = []
-    for node in ast.parse(filecontent).body:
+    for node in ast.parse(filecontent, filename=filepath).body:
         if isinstance(node, ast.Import):
             #     import {node.names}
             imports += [ImportedItem(alias.name, None) for alias in node.names]
@@ -94,23 +120,50 @@ def parse_imports(filepath: str) -> List[ImportedItem]:
             imports += [ImportedItem(modname, alias.name) for alias in node.names]
     return imports
 
+def dirpath_is_in_stdlib(dirpath: str) -> bool:
+    # Where isort does a similar thing, they have a comment saying the
+    # calls to 'os.path.normcase' are important on Windows.  Not that
+    # we expect this to work on Windows without more modification.
+
+    # The calls to 'os.path.realpath' are important on macOS because
+    # `brew install`d Python will have
+    # `sysconfig.get_paths()['stdlib']` start off
+    #   "/usr/local/opt/python@3.9/Frameworks"
+    # while the entries in `sys.path` start off
+    #   "/usr/local/Cellar/python@3.9/3.9.10/Frameworks"
+    # so we need to resolve symlinks for them to be comparable.
+
+    dirpath = os.path.normcase(os.path.realpath(dirpath))
+
+    if ('site-packages' in dirpath) or ('dist-packages' in dirpath):
+        return False
+
+    stdlib_prefix = os.path.normcase(os.path.realpath(sysconfig.get_paths()['stdlib']))
+    if dirpath.startswith(stdlib_prefix):
+        return True
+
+    return False
+
 def is_in_stdlib(item: ImportedItem) -> bool:
     if item.module.startswith('.'):
         return False
 
+    # This function works by temporarily removing everything except
+    # for the stdlib from `sys.path`, then `try`ing to import the
+    # thing; if the import succeeds we set in_stdlib=True; if the
+    # import throws an ImportError or an AttributeError then we know
+    # that it's not in stdlib.
+
     original_sys_path = sys.path
-    # Where isort does a similar thing, they have a comment saying the
-    # call to 'os.path.normcase' is important on Windows.  Not that we
-    # expect this to work on Windows without more modification.
-    stdlib_prefix = os.path.normcase(sysconfig.get_paths()['stdlib'])
-    sys.path = [d for d in sys.path if (
-        os.path.normcase(d).startswith(stdlib_prefix) and
-        ('site-packages' not in d) and
-        ('dist-packages' not in d))]
+    sys.path = [d for d in sys.path if dirpath_is_in_stdlib(d)]
 
     in_stdlib = False
     try:
         module = importlib.import_module(item.module)
+        # If the import was of the form `from module import member`,
+        # then importlib.import_module has only checked that `module`
+        # is in stdlib, so now we need to check that it contains
+        # `member`.
         if item.member:
             getattr(module, item.member)
         in_stdlib = True
