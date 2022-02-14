@@ -69,6 +69,8 @@ WORKDIR /go
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
 
+RUN curl --fail -L https://dl.google.com/go/go1.17.6.linux-amd64.tar.gz | tar -C /usr/local -xzf -
+
 # Build the golang binaries
 ADD api api
 ADD cmd cmd
@@ -138,6 +140,10 @@ ADD manifests/emissary/emissary-crds.yaml manifests/emissary/emissary-crds.yaml
 
 FROM ${base} as ambassador
 
+WORKDIR /buildroot
+
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
+
 ARG py_version="i-forgot-to-set-build-arg-py-version"
 
 # Always have an "ambassador" user as UID 8888. This is what we recommend
@@ -148,7 +154,8 @@ RUN adduser ambassador -u 8888 -G root -D -H -s /bin/false
 RUN apk --no-cache add bash curl python3=${py_version} libcap htop
 RUN apk upgrade --no-cache
 RUN ln -s /usr/bin/python3 /usr/bin/python
-COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
+RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.23.3/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
+    chmod a+x /usr/bin/kubectl
 COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
 
 # External Python packages we use
