@@ -91,15 +91,12 @@
 #    repeating yourself, which can be especially useful with long
 #    filenames.
 
-BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-
 LCNAME := $(shell echo $(NAME) | tr '[:upper:]' '[:lower:]')
-BUILDER_NAME ?= $(LCNAME)
 
 include $(OSS_HOME)/build-aux/prelude.mk
 include $(OSS_HOME)/build-aux/colors.mk
 
-docker.tag.local = $(BUILDER_NAME).local/$(*F)
+docker.tag.local = emissary.local/$(*F)
 docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTRY)/$(*F):$(patsubst v%,%,$(VERSION))
 include $(OSS_HOME)/build-aux/docker.mk
 
@@ -109,8 +106,7 @@ MODULES :=
 
 module = $(eval MODULES += $(1))$(eval SOURCE_$(1)=$(abspath $(2)))
 
-BUILDER = BUILDER_NAME=$(BUILDER_NAME) $(abspath $(BUILDER_HOME)/builder.sh)
-COPY_GOLD = $(abspath $(BUILDER_HOME)/copy-gold.sh)
+COPY_GOLD = $(abspath builder/copy-gold.sh)
 
 AWS_S3_BUCKET ?= datawire-static-files
 
@@ -143,7 +139,7 @@ INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
 
 # directory with the manifests for loading Ambassador for running the Ingress Conformance tests
 # NOTE: these manifests can be slightly different to the regular ones asd they include
-INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../manifests/emissary/
+INGRESS_TEST_MANIF_DIR = manifests/emissary/
 INGRESS_TEST_MANIFS = emissary-crds.yaml emissary-emissaryns.yaml
 
 # DOCKER_BUILDKIT is _required_ by our Dockerfile, since we use Dockerfile extensions for the
@@ -154,10 +150,6 @@ all: help
 .PHONY: all
 
 .NOTPARALLEL:
-
-# the name of the Docker network
-# note: use your local k3d/microk8s/kind network for running tests
-DOCKER_NETWORK ?= $(BUILDER_NAME)
 
 # local host IP address (and not 127.0.0.1)
 ifneq ($(shell which ipconfig 2>/dev/null),)
@@ -226,20 +218,28 @@ docker/.base-envoy.docker.stamp: FORCE
 	  fi; \
 	  echo $(ENVOY_DOCKER_TAG) >$@; \
 	}
-docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.local %/base-envoy.docker.tag.local %/base-pip.docker.tag.local python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
+docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: \
+  %/base.docker.tag.local \
+  %/base-envoy.docker.tag.local \
+  %/base-pip.docker.tag.local \
+  python/ambassador.version \
+  docker/emissary/Dockerfile \
+  $(OSS_HOME)/build-aux/py-version.txt \
+  $(tools/dsum) \
+  FORCE
 	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
 	@printf "    ${BLU}base=$$(sed -n 2p $*/base.docker.tag.local)${END}\n"
 	@printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"
 	@printf "    ${BLU}builderbase=$$(sed -n 2p $*/base-pip.docker.tag.local)${END}\n"
 	{ $(tools/dsum) '$(LCNAME) build' 3s \
-	  docker build -f ${BUILDER_HOME}/Dockerfile . \
+	  docker build -f docker/emissary/Dockerfile . \
 	    --build-arg=base="$$(sed -n 2p $*/base.docker.tag.local)" \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(sed -n 2p $*/base-pip.docker.tag.local)" \
 	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
 	    --iidfile=$@; }
 
-REPO=$(BUILDER_NAME)
+REPO=emissary
 
 images: docker/$(LCNAME).docker.tag.local
 images: docker/kat-client.docker.tag.local
@@ -635,8 +635,7 @@ release/ga-check:
 AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.push.remote 2>/dev/null)
 export AMBASSADOR_DOCKER_IMAGE
 
-_user-vars  = BUILDER_NAME
-_user-vars += DEV_KUBECONFIG
+_user-vars  = DEV_KUBECONFIG
 _user-vars += DEV_REGISTRY
 _user-vars += RELEASE_REGISTRY
 _user-vars += AMBASSADOR_DOCKER_IMAGE
@@ -687,13 +686,6 @@ builds.
 This arrangement also permits building multiple codebases.  This is
 useful for producing builds with extended functionality.  Each external
 codebase is synced into the container at the $(BLD)/buildroot/<name>$(END) path.
-
-You can control the name of the container and the images it builds by
-setting $(BLU)$$BUILDER_NAME$(END), which defaults to $(BLD)$(LCNAME)$(END).  Note well that if
-you want to make multiple clones of this repo and build in more than one
-of them at the same time, you $(BLD)must$(END) set $(BLD)$$BUILDER_NAME$(END) so that each clone
-has its own builder!  If you do not do this, your builds will collide
-with confusing results.
 
 The build system doesn't try to magically handle all dependencies.  In
 general, if you change something that is not pure source code, you will

@@ -259,29 +259,12 @@ code directly on kubernetes resources without having to push that code
 or the relevant kubernetes resources into the cluster. This is the
 fastest way to hack on and debug the compiler.
 
-The `mockery` tool runs inside the Docker container used to build
-Ambassador, using `make shell`, so it's important to realize that it
-won't have access to your entire filesystem. There are two easy ways
-to arrange to get data in and out of the container:
+The `mockery` tool runs in a Python virtual env that mimics the
+Emissary runtime environment; you can create the virtual env by
+running `make $PWD/venv`, and enter it by running
+`. ./venv/bin/activate`.
 
-1. If you `make sync`, everything in the Ambassador source tree gets rsync'd
-   into the container's `/buildroot/ambassador`. The first time you start the
-   shell, this can take a bit, but after that it's pretty fast. You'll
-   probably need to use `docker cp` to get data out of the container, though.
-
-2. You may be able to use Docker volume mounts by exporting `BUILDER_MOUNTS`
-   with the appropriate `-v` switches before running `make shell` -- e.g.
-
-    ```
-    export BUILDER_MOUNTS=$(pwd)/xfer:/xfer
-    make shell
-    ```
-
-   will cause the dev shell to mount `xfer` in your current directory as `/xfer`.
-   This is known to work well on MacOS (though volume mounts are slow on Mac,
-   so moving gigabytes of data around this way isn't ideal).
-
-Once you've sorted out how to move data around:
+Once you've sorted out the virtual env:
 
 1. Put together a set of Ambassador configuration CRDs in a file that's somewhere
    that you'll be able to get them into the builder container. The easy way to do
@@ -289,9 +272,7 @@ Once you've sorted out how to move data around:
    Kubernetes objects with `metadata` and `spec` sections, etc. (If you want to
    use annotations, that's OK too, just put the whole `Service` object in there.)
 
-2. Run `make compile shell` to build everything and start the dev shell.
-
-3. From inside the build shell, run
+2. From inside the virtual env shell, run
 
    ```
    mockery $path_to_your_file

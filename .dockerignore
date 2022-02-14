@@ -1,7 +1,6 @@
 *
 !demo/
 !manifests/emissary/emissary-crds.yaml
-!post-compile.sh
 !api/
 !build-aux
 !builder/server.crt
