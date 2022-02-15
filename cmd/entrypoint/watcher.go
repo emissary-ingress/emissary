@@ -371,7 +371,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 	parseAnnotationsTimer := dbg.Timer("parseAnnotations")
 	reconcileSecretsTimer := dbg.Timer("reconcileSecrets")
 	reconcileConsulTimer := dbg.Timer("reconcileConsul")
-	reconcileAuthServicesTimer := dbg.Timer("scrubAuthServices")
+	reconcileAuthServicesTimer := dbg.Timer("reconcileAuthServices")
 
 	endpointsChanged := false
 	dispatcherChanged := false
