@@ -619,9 +619,8 @@ release/ga-mirror:
 	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION must be set to a GA "v2.Y.Z" value; it is set to "%s"$(END)\n' "$(VERSION)"; exit 1)
 	{ $(OSS_HOME)/releng/release-mirror-images \
 	  --ga-version=$(patsubst v%,%,$(VERSION)) \
-	  --source-registry=$(RELEASE_REGISTRY) \
-	  --image-name=$(LCNAME) \
-	  --repo-list=$(GCR_RELEASE_REGISTRY); }
+	  --source-repo=$(RELEASE_REGISTRY)/$(LCNAME) \
+	  --image-name=$(LCNAME); }
 
 # `make release/ga-check` is meant to be run by a human maintainer to
 # check that CI did all the right things.
