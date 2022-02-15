@@ -29,10 +29,6 @@ jobs:
       - name: "make release/promote-oss/to-ga"
         run: |
           make release/promote-oss/to-ga
-      # TODO: need to get dev mirror to test
-      #- name: "make release/ga-mirror"
-        #run: |
-          #make release/ga-mirror
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
