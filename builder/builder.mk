@@ -114,8 +114,6 @@ COPY_GOLD = $(abspath $(BUILDER_HOME)/copy-gold.sh)
 
 AWS_S3_BUCKET ?= datawire-static-files
 
-GCR_RELEASE_REGISTRY ?= gcr.io/datawire
-
 # the image used for running the Ingress v1 tests with KIND.
 # the current, official image does not support Ingress v1, so we must build our own image with k8s 1.18.
 # build this image with:
@@ -596,31 +594,6 @@ else
 	  publish-docs-yaml; }
 endif
 .PHONY: release/promote-oss/to-ga
-
-# `make release/go VERSION=v2.Y.Z` is meant to be run by the human
-# maintainer who is preparing to promote an RC to GA.  It will create
-# and push a v2.Y.Z Git tag.
-release/go:
-	@[[ -n "$(RELEASE_REGISTRY)"                      || (printf '$(RED)ERROR: RELEASE_REGISTRY must be set$(END)\n'; exit 1)
-	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION must be set to a GA "v2.Y.Z" value; it is set to "%s"$(END)\n' "$(VERSION)"; exit 1)
-	@[[ -z "$$(git status -s)" ]]                     || (printf '$(RED)ERROR: tree must be clean$(END)\n'; exit 1)
-	{ \
-	  export RELEASE_REGISTRY=$(RELEASE_REGISTRY); \
-	  export IMAGE_NAME=$(LCNAME); \
-	  $(OSS_HOME)/releng/02-release-ga $(patsubst v%,%,$(VERSION)) $(patsubst v%,%,$(CHART_VERSION)); \
-	}
-.PHONY: release/go
-
-# `make release/ga-mirror` aught to be run by CI, but because
-# credentials are a nightmare it currently has to be run by a human
-# maintainer.
-release/ga-mirror:
-	@[[ -n "$(RELEASE_REGISTRY)"                      || (printf '$(RED)ERROR: RELEASE_REGISTRY must be set$(END)\n'; exit 1)
-	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION must be set to a GA "v2.Y.Z" value; it is set to "%s"$(END)\n' "$(VERSION)"; exit 1)
-	{ $(OSS_HOME)/releng/release-mirror-images \
-	  --ga-version=$(patsubst v%,%,$(VERSION)) \
-	  --source-repo=$(RELEASE_REGISTRY)/$(LCNAME) \
-	  --image-name=$(LCNAME); }
 
 # `make release/ga-check` is meant to be run by a human maintainer to
 # check that CI did all the right things.
