@@ -572,3 +572,40 @@
       host: "example\\.com"
       host_regex: true
       service: "httpbin.default.svc.cluster.local"
+- apiVersion: getambassador.io/v3alpha1
+  kind: Mapping
+  metadata:
+    creationTimestamp: null
+    name: linkerdheadermapping-http-addlinkerdonly
+  spec:
+    hostname: "*"
+    prefix: /target_add_linkerd_header_only/
+    service: linkerdheadermapping-http-addlinkerdonly
+    add_request_headers: {}
+    remove_request_headers: []
+- apiVersion: getambassador.io/v3alpha1
+  kind: Mapping
+  metadata:
+    creationTimestamp: null
+    name:  errorresponseonstatuscode-invalidservice-empty
+  spec:
+    hostname: "*"
+    prefix: /target/invalidservice/empty
+    service: errorresponseonstatuscode-invalidservice-empty
+    error_response_overrides:
+    - on_status_code: 503
+      body:
+        text_format: ''
+- apiVersion: getambassador.io/v3alpha1
+  kind: Mapping
+  metadata:
+    creationTimestamp: null
+    name:  errorresponseonstatuscode-invalidservice-empty
+  spec:
+    hostname: "*"
+    prefix: /target/invalidservice/empty
+    service: errorresponseonstatuscode-invalidservice-empty
+    error_response_overrides:
+    - on_status_code: 503
+      body:
+        json_format: {}

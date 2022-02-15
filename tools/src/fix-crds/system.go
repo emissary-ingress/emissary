@@ -25,9 +25,8 @@ func inArray(needle string, haystack []string) bool {
 }
 
 type Args struct {
-	Target       string
-	ImageVersion string
-	InputFiles   []*os.File
+	Target     string
+	InputFiles []*os.File
 }
 
 func ParseArgs(strs ...string) (Args, error) {
@@ -36,7 +35,6 @@ func ParseArgs(strs ...string) (Args, error) {
 	flagset := pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
 	var help bool
 	flagset.StringVar(&args.Target, "target", "", fmt.Sprintf("What will be consuming the YAML; one of %q", Targets))
-	flagset.StringVar(&args.ImageVersion, "image-version", "", "The image version to use for apiext; only used by some targets")
 	flagset.BoolVarP(&help, "help", "h", false, "Display this help text")
 	err := flagset.Parse(strs)
 	if help {

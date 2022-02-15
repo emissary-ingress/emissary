@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"net"
 	"regexp"
+	"strings"
 )
 
 const (
 	// FormatOfStringForUUIDOfRFC4122 is an optional predefined format for UUID v1-v5 as specified by RFC4122
-	FormatOfStringForUUIDOfRFC4122 = `^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`
+	FormatOfStringForUUIDOfRFC4122 = `^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`
 )
 
 //FormatCallback custom check on exotic formats
@@ -37,24 +38,23 @@ func DefineStringFormatCallback(name string, callback FormatCallback) {
 	SchemaStringFormats[name] = Format{callback: callback}
 }
 
-func validateIP(ip string) (*net.IP, error) {
+func validateIP(ip string) error {
 	parsed := net.ParseIP(ip)
 	if parsed == nil {
-		return nil, &SchemaError{
+		return &SchemaError{
 			Value:  ip,
 			Reason: "Not an IP address",
 		}
 	}
-	return &parsed, nil
+	return nil
 }
 
 func validateIPv4(ip string) error {
-	parsed, err := validateIP(ip)
-	if err != nil {
+	if err := validateIP(ip); err != nil {
 		return err
 	}
 
-	if parsed.To4() == nil {
+	if !(strings.Count(ip, ":") < 2) {
 		return &SchemaError{
 			Value:  ip,
 			Reason: "Not an IPv4 address (it's IPv6)",
@@ -62,13 +62,13 @@ func validateIPv4(ip string) error {
 	}
 	return nil
 }
+
 func validateIPv6(ip string) error {
-	parsed, err := validateIP(ip)
-	if err != nil {
+	if err := validateIP(ip); err != nil {
 		return err
 	}
 
-	if parsed.To4() != nil {
+	if !(strings.Count(ip, ":") >= 2) {
 		return &SchemaError{
 			Value:  ip,
 			Reason: "Not an IPv6 address (it's IPv4)",

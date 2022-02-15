@@ -9,28 +9,68 @@ import (
 	"strings"
 )
 
+type AllowedLicenseUse int
+
+const (
+	Forbidden AllowedLicenseUse = iota
+	OnAmbassadorServers
+	Unrestricted
+)
+
 type License struct {
 	Name           string
-	NoticeFile     bool // are NOTICE files "a thing" for this license?
-	WeakCopyleft   bool // requires that library to be open-source
-	StrongCopyleft bool // requires the resulting program to be open-source
+	NoticeFile     bool              // are NOTICE files "a thing" for this license?
+	WeakCopyleft   bool              // requires that library to be open-source
+	StrongCopyleft bool              // requires the resulting program to be open-source
+	URL            string            // Location of the license description
+	AllowedUse     AllowedLicenseUse // Where is this license allowed
 }
 
 //nolint:gochecknoglobals // Would be 'const'.
 var (
-	Proprietary = License{Name: "proprietary"}
-
-	PublicDomain = License{Name: "public domain"}
-
-	Apache2 = License{Name: "Apache License 2.0", NoticeFile: true}
-	BSD1    = License{Name: "1-clause BSD license"}
-	BSD2    = License{Name: "2-clause BSD license"}
-	BSD3    = License{Name: "3-clause BSD license"}
-	ISC     = License{Name: "ISC license"}
-	MIT     = License{Name: "MIT license"}
-	MPL2    = License{Name: "Mozilla Public License 2.0", NoticeFile: true, WeakCopyleft: true}
-
-	CcBySa40 = License{Name: "Creative Commons Attribution Share Alike 4.0 International", StrongCopyleft: true}
+	AmbassadorProprietary = License{Name: "proprietary Ambassador software"}
+	Apache2               = License{Name: "Apache License 2.0", NoticeFile: true,
+		URL: "https://opensource.org/licenses/Apache-2.0", AllowedUse: Unrestricted}
+	AGPL1Only    = License{Name: "Affero General Public License v1.0 only", AllowedUse: Forbidden}
+	AGPL1OrLater = License{Name: "Affero General Public License v1.0 or later", AllowedUse: Forbidden}
+	AGPL3Only    = License{Name: "GNU Affero General Public License v3.0 only", AllowedUse: Forbidden}
+	AGPL3OrLater = License{Name: "GNU Affero General Public License v3.0 or later", AllowedUse: Forbidden}
+	BSD1         = License{Name: "1-clause BSD license", URL: "https://opensource.org/licenses/BSD-1-Clause",
+		AllowedUse: Unrestricted}
+	BSD2 = License{Name: "2-clause BSD license", URL: "https://opensource.org/licenses/BSD-2-Clause",
+		AllowedUse: Unrestricted}
+	BSD3 = License{Name: "3-clause BSD license", URL: "https://opensource.org/licenses/BSD-3-Clause",
+		AllowedUse: Unrestricted}
+	CcBySa40 = License{Name: "Creative Commons Attribution Share Alike 4.0 International",
+		StrongCopyleft: true, URL: "https://creativecommons.org/licenses/by-sa/4.0/legalcode", AllowedUse: Unrestricted}
+	GPL1Only    = License{Name: "GNU General Public License v1.0 only", AllowedUse: OnAmbassadorServers}
+	GPL1OrLater = License{Name: "GNU General Public License v1.0 or later", AllowedUse: OnAmbassadorServers}
+	GPL2Only    = License{Name: "GNU General Public License v2.0 only", AllowedUse: OnAmbassadorServers}
+	GPL2OrLater = License{Name: "GNU General Public License v2.0 or later", AllowedUse: OnAmbassadorServers}
+	GPL3Only    = License{Name: "GNU General Public License v3.0 only", StrongCopyleft: true,
+		URL: "https://opensource.org/licenses/GPL-3.0", AllowedUse: OnAmbassadorServers}
+	GPL3OrLater = License{Name: "GNU General Public License v3.0 or later", AllowedUse: OnAmbassadorServers}
+	ISC         = License{Name: "ISC license", URL: "https://opensource.org/licenses/ISC", AllowedUse: Unrestricted}
+	LGPL2Only   = License{Name: "GNU Library General Public License v2 only", WeakCopyleft: true,
+		AllowedUse: Unrestricted}
+	LGPL2OrLater = License{Name: "GNU Library General Public License v2 or later", WeakCopyleft: true,
+		AllowedUse: Unrestricted}
+	LGPL21Only = License{Name: "GNU Lesser General Public License v2.1 only", WeakCopyleft: true,
+		AllowedUse: Unrestricted}
+	LGPL21OrLater = License{Name: "GNU Lesser General Public License v2.1 or later", WeakCopyleft: true,
+		URL: "https://spdx.org/licenses/LGPL-2.1-or-later.html", AllowedUse: Unrestricted}
+	LGPL3Only = License{Name: "GNU Lesser General Public License v3.0 only", WeakCopyleft: true,
+		AllowedUse: Unrestricted}
+	LGPL3OrLater = License{Name: "GNU Lesser General Public License v3.0 or later", WeakCopyleft: true,
+		AllowedUse: Unrestricted}
+	MIT  = License{Name: "MIT license", URL: "https://opensource.org/licenses/MIT", AllowedUse: Unrestricted}
+	MPL2 = License{Name: "Mozilla Public License 2.0", NoticeFile: true,
+		WeakCopyleft: true, URL: "https://opensource.org/licenses/MPL-2.0", AllowedUse: Unrestricted}
+	PSF = License{Name: "Python Software Foundation license", URL: "https://spdx.org/licenses/PSF-2.0.html",
+		AllowedUse: Unrestricted}
+	PublicDomain = License{Name: "Public domain"}
+	Unicode2015  = License{Name: "Unicode License Agreement for Data Files and Software (2015)",
+		URL: "https://spdx.org/licenses/Unicode-DFS-2015.html", AllowedUse: Unrestricted}
 )
 
 // https://spdx.org/licenses/
@@ -40,15 +80,33 @@ var (
 	// split with "+" to avoid a false-positive on itself
 	spdxTag = []byte("SPDX-License" + "-Identifier:")
 
-	spdxIdentifiers = map[string]License{
-		"Apache-2.0":   Apache2,
-		"BSD-1-Clause": BSD1,
-		"BSD-2-Clause": BSD2,
-		"BSD-3-Clause": BSD3,
-		"ISC":          ISC,
-		"MIT":          MIT,
-		"MPL-2.0":      MPL2,
-		"CC-BY-SA-4.0": CcBySa40,
+	SpdxIdentifiers = map[string]License{
+		"Apache-2.0":        Apache2,
+		"AGPL-1.0-only":     AGPL1Only,
+		"AGPL-1.0-or-later": AGPL1OrLater,
+		"AGPL-3.0-only":     AGPL3Only,
+		"AGPL-3.0-or-later": AGPL3OrLater,
+		"BSD-1-Clause":      BSD1,
+		"BSD-2-Clause":      BSD2,
+		"BSD-3-Clause":      BSD3,
+		"CC-BY-SA-4.0":      CcBySa40,
+		"GPL-1.0-only":      GPL1Only,
+		"GPL-1.0-or-later":  GPL1OrLater,
+		"GPL-2.0-only":      GPL2Only,
+		"GPL-2.0-or-later":  GPL2OrLater,
+		"GPL-3.0-only":      GPL3Only,
+		"GPL-3.0-or-later":  GPL3OrLater,
+		"ISC":               ISC,
+		"LGPL-2.0-only":     LGPL2Only,
+		"LGPL-2.0-or-later": LGPL2OrLater,
+		"LGPL-2.1-only":     LGPL21Only,
+		"LGPL-2.1-or-later": LGPL21OrLater,
+		"LGPL-3.0-only":     LGPL3Only,
+		"LGPL-3.0-or-later": LGPL3OrLater,
+		"MIT":               MIT,
+		"MPL-2.0":           MPL2,
+		"PSF-2.0":           PSF,
+		"Unicode-DFS-2015":  Unicode2015,
 	}
 )
 
@@ -61,7 +119,13 @@ func expectsNotice(licenses map[License]struct{}) bool {
 	return false
 }
 
-func DetectLicenses(files map[string][]byte) (map[License]struct{}, error) {
+func DetectLicenses(packageName string, files map[string][]byte) (map[License]struct{}, error) {
+	if strings.HasPrefix(packageName, "github.com/datawire/telepresence2-proprietary/") {
+		// Ambassador's proprietary software has a proprietary license
+		softwareLicenses := map[License]struct{}{AmbassadorProprietary: {}}
+		return softwareLicenses, nil
+	}
+
 	licenses := make(map[License][]string)
 	hasNotice := false
 	hasLicenseFile := false
@@ -79,6 +143,9 @@ loop:
 		case "sigs.k8s.io/kustomize/kyaml/LICENSE_TEMPLATE":
 			// This is a template file for generated code,
 			// not an actual license file.
+			continue loop
+		case "github.com/telepresenceio/telepresence/v2/LICENSES.md":
+			// Licenses for telepresence are in LICENSE and not in LICENSES.md
 			continue loop
 		}
 
@@ -162,6 +229,7 @@ loop:
 			}
 		}
 	}
+
 	if !hasLicenseFile && hasNonSPDXSource {
 		return nil, errors.New("could not identify a license for all sources (had no global LICENSE file)")
 	}
@@ -187,7 +255,7 @@ func IdentifySPDXLicenses(body []byte) (map[License]struct{}, error) {
 		body = body[idEnd:]
 
 		id = strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(id), "*/"))
-		license, licenseOK := spdxIdentifiers[id]
+		license, licenseOK := SpdxIdentifiers[id]
 		if !licenseOK {
 			return nil, fmt.Errorf("unknown SPDX identifier %q", id)
 		}

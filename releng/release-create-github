@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from typing import Generator
 
 from lib import re_ga, get_gh_repo, re_ea
-from lib.uiutil import Checker, CheckResult, run
+from lib.uiutil import Checker, CheckResult, run, run_txtcapture
 
 
 RELEASE_TITLE_FORMAT = "Emissary Ingress {release_version}"
@@ -21,7 +21,7 @@ RELEASE_BODY_FORMAT= """
 #### Emissary Ingress is an open source, Kubernetes-native microservices API gateway built on the Envoy Proxy.
 
 Upgrade Emissary - https://www.getambassador.io/reference/upgrading.html
-View changelog - https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md
+View changelog - https://github.com/emissary-ingress/emissary/blob/{git_tag}/CHANGELOG.md
 Get started with Emissary on Kubernetes - https://www.getambassador.io/user-guide/getting-started
 
 {release_notes}
@@ -50,19 +50,22 @@ def main(release_version: str) -> int:
 
     buf = ""
     with check(f"Creating release notes for {release_version}"):
-        found = False
-        buffering = False
+        # TODO: Rewrite this to use `docs/releaseNotes.yml` instead of
+        # `CHANGELOG.md`.
+        in_changelog = False
         for line in fileinput.FileInput("CHANGELOG.md"):
-            if not found and line.startswith(f"## [{release_version}]"):
-                found = True
-            elif found and not buffering and line.startswith("### Emissary Ingress"):
-                buffering = True
-            elif buffering and line.startswith("## ["):
-                break
-            elif buffering:
+            if in_changelog:
+                if line.startswith("## ") or line == "### Ambassador Edge Stack only\n":
+                    break
+                if line.startswith(f"[{release_version}]: https://github.com/"):
+                    continue
+                if line == "### Emissary-ingress and Ambassador Edge Stack\n":
+                    continue
                 buf += line
-
-        if not found:
+            if line.startswith(f"## [{release_version}] "):
+                in_changelog = True
+        buf = buf.strip()
+        if buf == "":
             raise Exception(f"Changelog entry for {release_version} not found. Are you sure you're trying to release that?")
 
     print(f"Generated release notes:")
@@ -78,16 +81,26 @@ def main(release_version: str) -> int:
             f"v{release_version}",
             "--repo", get_gh_repo(),
             "--title", RELEASE_TITLE_FORMAT.format(release_version=release_version),
-            "--notes", RELEASE_BODY_FORMAT.format(release_version=release_version, release_notes=buf)])
+            "--notes", RELEASE_BODY_FORMAT.format(
+                release_version=release_version,
+                release_notes=buf,
+                git_tag="v"+release_version,
+            )])
     if not checker.ok:
         return 1
+
+    url = run_txtcapture([
+        "gh", "release", "view",
+        "--json=url",
+        "--jq=.url",
+        "--repo="+get_gh_repo(),
+        "v"+release_version])
+    print(f'::set-output name=url::{url}')
     if os.getenv("AMBASSADOR_RELENG_NO_GUI") == '':
         print('Release info from github:')
-        run(["gh", "release", "view", "--repo", get_gh_repo(), f"v{release_version}"])
-    if checker.ok:
-        return 0
-    else:
-        return 1
+        run(["gh", "release", "view", "--repo="+get_gh_repo(), f"v{release_version}"])
+
+    return 0
 
 
 if __name__ == '__main__':

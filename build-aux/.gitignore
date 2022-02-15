@@ -20,10 +20,17 @@
 # generate.mk
 /go1*.src.tar.gz
 /go-version.txt
+/py-version.txt
 /pip-show.txt
 
 # var.mk
 /.var.*
+
+# version-hack.mk
+/version-hack.stamp.mk
+
+# builder.mk
+/pytest-kat.txt
 
 # --- Files ignored by older versions ---
 # Remove the tail of this list when the commit making the change gets

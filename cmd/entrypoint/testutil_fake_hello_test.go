@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -29,7 +28,7 @@ func TestFakeHello(t *testing.T) {
 	// Use RunFake() to spin up the ambassador control plane with its inputs wired up to the Fake
 	// APIs. This will automatically invoke the Setup() method for the Fake and also register the
 	// Teardown() method with the Cleanup() hook of the supplied testing.T object.
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{}, nil)
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: false}, nil)
 
 	// The Fake harness has a store for both kubernetes resources and consul endpoint data. We can
 	// use the UpsertFile() to method to load as many resources as we would like. This is much like
@@ -54,11 +53,24 @@ func TestFakeHello(t *testing.T) {
 	// computation is occurring without being overly prescriptive about the exact number of
 	// snapshots and/or envoy configs that are produce to achieve a certain result.
 	snap, err := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
-		return len(snap.Kubernetes.Mappings) > 0
+		hasMappings := len(snap.Kubernetes.Mappings) > 0
+		hasSecrets := len(snap.Kubernetes.Secrets) > 0
+		hasInvalid := len(snap.Invalid) > 0
+
+		return hasMappings && hasSecrets && hasInvalid
 	})
 	require.NoError(t, err)
+
 	// Check that the snapshot contains the mapping from the file.
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
+
+	// This snapshot also needs to have one good secret...
+	assert.Equal(t, 1, len(snap.Kubernetes.Secrets))
+	assert.Equal(t, "tls-cert", snap.Kubernetes.Secrets[0].Name)
+
+	// ...and one invalid secret.
+	assert.Equal(t, 1, len(snap.Invalid))
+	assert.Equal(t, "tls-broken-cert", snap.Invalid[0].GetName())
 }
 
 // By default the Fake struct only invokes the first part of the pipeline that forms the control
@@ -130,25 +142,27 @@ func FindCluster(envoyConfig *v3bootstrap.Bootstrap, predicate func(*v3cluster.C
 	return nil
 }
 
-func deltaSummary(snap *snapshot.Snapshot) []string {
+func deltaSummary(t *testing.T, snaps ...*snapshot.Snapshot) []string {
 	summary := []string{}
 
 	var typestr string
 
-	for _, delta := range snap.Deltas {
-		switch delta.DeltaType {
-		case kates.ObjectAdd:
-			typestr = "add"
-		case kates.ObjectUpdate:
-			typestr = "update"
-		case kates.ObjectDelete:
-			typestr = "delete"
-		default:
-			// Bug because the programmer needs to add another case here.
-			panic(fmt.Errorf("missing case for DeltaType enum: %#v", delta))
-		}
+	for _, snap := range snaps {
+		for _, delta := range snap.Deltas {
+			switch delta.DeltaType {
+			case kates.ObjectAdd:
+				typestr = "add"
+			case kates.ObjectUpdate:
+				typestr = "update"
+			case kates.ObjectDelete:
+				typestr = "delete"
+			default:
+				// Bug because the programmer needs to add another case here.
+				t.Fatalf("missing case for DeltaType enum: %#v", delta)
+			}
 
-		summary = append(summary, fmt.Sprintf("%s %s %s", typestr, delta.Kind, delta.Name))
+			summary = append(summary, fmt.Sprintf("%s %s %s", typestr, delta.Kind, delta.Name))
+		}
 	}
 
 	sort.Strings(summary)
@@ -156,15 +170,31 @@ func deltaSummary(snap *snapshot.Snapshot) []string {
 	return summary
 }
 
+// getSnapshots is like f.GetSnapshot, but returns the list of every snapshot evaluated (rather than
+// discarding the snapshots from before predicate returns true).  This is particularly important if
+// you're looking at deltas; you don't want to discard any deltas just because two snapshots didn't
+// get coalesced.
+func getSnapshots(f *entrypoint.Fake, predicate func(*snapshot.Snapshot) bool) ([]*snapshot.Snapshot, error) {
+	var ret []*snapshot.Snapshot
+	for {
+		snap, err := f.GetSnapshot(func(_ *snapshot.Snapshot) bool {
+			return true
+		})
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, snap)
+		if predicate(snap) {
+			break
+		}
+	}
+	return ret, nil
+}
+
 // This test will cover how to exercise the consul portion of the control plane. In principal it is
 // the same as supplying kubernetes resources, however it uses the ConsulEndpoint() method to
 // provide consul data.
 func TestFakeHelloConsul(t *testing.T) {
-	// This test will not pass in legacy mode because diagd will not emit EDS clusters in legacy mode.
-	if legacy, err := strconv.ParseBool(os.Getenv("AMBASSADOR_LEGACY_MODE")); err == nil && legacy {
-		return
-	}
-
 	os.Setenv("CONSULPORT", "8500")
 	os.Setenv("CONSULHOST", "consul-1")
 
@@ -235,7 +265,7 @@ func TestFakeHelloConsul(t *testing.T) {
 	assert.Equal(t, "consul-server.default:8500", snap.Kubernetes.ConsulResolvers[0].Spec.Address)
 
 	// Check that our deltas are what we expect.
-	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "add Mapping hello", "add TCPMapping hello-tcp"}, deltaSummary(snap))
+	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "add Mapping hello", "add TCPMapping hello-tcp"}, deltaSummary(t, snap))
 
 	// Create a predicate that will recognize the cluster we care about. The surjection from
 	// Mappings to clusters is a bit opaque, so we just look for a cluster that contains the name
@@ -302,7 +332,7 @@ spec:
 	require.NoError(t, err)
 
 	// ...with one delta, namely the ConsulResolver...
-	assert.Equal(t, []string{"update ConsulResolver consul-dc1"}, deltaSummary(snap))
+	assert.Equal(t, []string{"update ConsulResolver consul-dc1"}, deltaSummary(t, snap))
 
 	// ...where the mapping name hasn't changed...
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
@@ -330,14 +360,16 @@ spec:
 	f.Flush()
 
 	// Repeat all the checks.
-	snap, err = f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+	snaps, err := getSnapshots(f, func(snap *snapshot.Snapshot) bool {
 		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.TCPMappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
 	})
 	require.NoError(t, err)
+	require.Greater(t, len(snaps), 0)
+	snap = snaps[len(snaps)-1]
 
 	// Two deltas here since we've deleted and re-added without a check in between.
 	// (They appear out of order here because of string sorting. Don't panic.)
-	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "delete ConsulResolver consul-dc1"}, deltaSummary(snap))
+	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "delete ConsulResolver consul-dc1"}, deltaSummary(t, snaps...))
 
 	// ...one mapping...
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)

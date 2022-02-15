@@ -305,7 +305,7 @@ class V2Route(Cacheable):
 
         runtime_fraction: Dict[str, Union[dict, str]] = {
             'default_value': {
-                'numerator': mapping.get('weight', 100),
+                'numerator': mapping.get('_weight', 100),
                 'denominator': 'HUNDRED'
             }
         }

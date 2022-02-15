@@ -1,0 +1,39 @@
+name: setup-deps
+description: "Install Go and Python"
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Install bsdtar (libarchive-tools)"
+      shell: bash
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y libarchive-tools
+    - name: "Install Python requirements with pip"
+      uses: BSFishy/pip-action@v1
+      with:
+        packages: |
+          awscli
+          packaging
+    # Go: Do this first because `Makefile` checks that the `go` version is correct.
+    - name: "Get Go version from builder container"
+      id: step-detect-go
+      shell: bash
+      run: |
+        make "$PWD/build-aux/go-version.txt"
+        echo "::set-output name=go_version::$(cat "$PWD/build-aux/go-version.txt")"
+    - name: "Install Go (${{ steps.step-detect-go.outputs.go_version }})"
+      uses: actions/setup-go@v2
+      with:
+        go-version: "${{ steps.step-detect-go.outputs.go_version }}"
+    # Python
+    - name: "Get Python version from builder container"
+      id: step-detect-py
+      shell: bash
+      run: |
+        make "$PWD/build-aux/py-version.txt"
+        echo "::set-output name=py_version::$(cat "$PWD/build-aux/py-version.txt")"
+    - name: "Install Py (${{ steps.step-detect-py.outputs.py_version }})"
+      uses: actions/setup-python@v2
+      with:
+        python-version: "${{ steps.step-detect-py.outputs.py_version }}"

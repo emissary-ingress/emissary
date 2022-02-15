@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -13,6 +14,7 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/agent"
 	"github.com/datawire/ambassador/v2/pkg/busy"
 	"github.com/datawire/ambassador/v2/pkg/logutil"
+	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -21,7 +23,7 @@ const DefaultSnapshotURLFmt = "http://ambassador-admin:%d/snapshot-external"
 
 func run(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
-	ambAgent := agent.NewAgent(nil)
+	ambAgent := agent.NewAgent(nil, agent.NewArgoRolloutsGetter)
 
 	// all log things need to happen here because we still allow the agent to run in amb-sidecar
 	// and amb-sidecar should control all the logging if it's kicking off the agent.
@@ -50,11 +52,24 @@ func run(cmd *cobra.Command, args []string) error {
 		snapshotURL = fmt.Sprintf(DefaultSnapshotURLFmt, entrypoint.ExternalSnapshotPort)
 	}
 
-	if err := ambAgent.Watch(ctx, snapshotURL); err != nil {
+	metricsListener, err := net.Listen("tcp", ":8080")
+	if err != nil {
 		return err
 	}
+	dlog.Info(ctx, "metrics service listening on :8080")
 
-	return nil
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
+
+	grp.Go("metrics-server", func(ctx context.Context) error {
+		metricsServer := agent.NewMetricsServer(ambAgent.MetricsRelayHandler)
+		return metricsServer.Serve(ctx, metricsListener)
+	})
+
+	grp.Go("watch", func(ctx context.Context) error {
+		return ambAgent.Watch(ctx, snapshotURL)
+	})
+
+	return grp.Wait()
 }
 
 func Main(ctx context.Context, version string, args ...string) error {

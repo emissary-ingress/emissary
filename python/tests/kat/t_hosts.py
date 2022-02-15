@@ -753,7 +753,6 @@ class HostCRDWildcards(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.xfail = "IHA FIXME (swap glob)"
         self.target = HTTP()
 
     def manifests(self) -> str:

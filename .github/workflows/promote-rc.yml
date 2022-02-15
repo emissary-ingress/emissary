@@ -1,8 +1,8 @@
 name: promote-to-rc
-on:
+"on":
   push:
     tags:
-      - v*.*.*-rc.*
+      - 'v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+'
 jobs:
   promote-to-rc:
     runs-on: ubuntu-latest
@@ -18,20 +18,18 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: "Install Go"
-        uses: ./.github/actions/setup-go
+      - name: "Install Deps"
+        uses: ./.github/actions/setup-deps
       - name: "Docker Login"
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
           password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
-      - name: "make release/promote-oss/dev-to-rc"
+      - id: step-main
         run: |
-          make release/promote-oss/dev-to-rc
-      - name: Extract RC Info
-        shell: bash
-        run: |
-          make release/rc/print-test-artifacts >> $GITHUB_ENV
+          make release/promote-oss/to-rc
+          echo "::set-output name=version::$(go run ./tools/src/goversion | sed s/^v//)"
+          echo "::set-output name=chart_version::$(go run ./tools/src/goversion --dir-prefix=chart | sed s/^v//)"
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
@@ -40,7 +38,12 @@ jobs:
         with:
           # TODO: actually put the RC info in the slack message
           status: ${{ job.status }}
-          success_text: 'Emissary RC for ${env.GITHUB_REF} successfully built:\n\`\`\`export AMBASSADOR_MANIFEST_URL=${env.AMBASSADOR_MANIFEST_URL}\nexport HELM_CHART_VERSION=${env.HELM_CHART_VERSION}\`\`\`'
+          success_text: |
+            Emissary RC for ${{ github.ref }} successfully built:
+            \`\`\`
+            export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/${{ steps.step-main.version }}
+            export HELM_CHART_VERSION=${{ steps.step-main.chart_version }}
+            \`\`\`
           failure_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build failed'
           cancelled_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build was cancelled'
           fields: |
@@ -48,29 +51,3 @@ jobs:
              { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true },
              { "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}
             ]
-
-  update-apro-with-rc:
-    runs-on: ubuntu-latest
-    needs: promote-to-rc
-    name: update-apro-with-rc
-    env:
-      GIT_TOKEN: ${{ secrets.GH_GITHUB_API_KEY }}
-      APRO_REPO_TARGET: ${{ secrets.APRO_REPO_TARGET }}
-      AUTO_USER: ${{ secrets.GH_AUTO_USER }}
-      AUTO_EMAIL: ${{ secrets.GH_AUTO_EMAIL }}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: "setup git config"
-        shell: bash
-        run: |
-          set -x
-          git config --global user.email "$AUTO_EMAIL"
-          git config --global user.name "$AUTO_USER"
-          git config --global --remove-section url."ssh://git@github.com" || true
-          git config --global "url.https://$GIT_TOKEN@github.com.insteadOf" https://github.com
-      - name: Update emissary tag in apro
-        shell: bash
-        run: |
-          make release/promote-oss/rc-update-apro

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: {environ[KAT_SERVER_DOCKER_IMAGE]}
+        image: {images[kat-server]}
         # ports:
         # (ports)
         env:

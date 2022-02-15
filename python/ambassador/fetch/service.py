@@ -101,10 +101,6 @@ class InternalServiceProcessor (ManagedKubernetesProcessor):
                 self.logger.debug(f"Found Ambassador service: {obj.name}")
                 self.service_dep.ambassador_service = obj
 
-        # Although we can't emit this resource immediately, we can handle
-        # anything added as an annotation.
-        self.manager.emit_annotated(NormalizedResource.from_kubernetes_object_annotation(obj))
-
 
 class InternalEndpointsProcessor (ManagedKubernetesProcessor):
     """
