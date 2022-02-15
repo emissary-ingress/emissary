@@ -21,6 +21,7 @@ jobs:
       - name: "Docker Login"
         uses: docker/login-action@v1
         with:
+          registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
           password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
       - name: "Install Deps"
