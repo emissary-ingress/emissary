@@ -17,10 +17,8 @@ def run(args: List[str], /) -> None:
 
 @contextmanager
 def gcr_login() -> Generator[None, None, None]:
-    key = os.getenv('GCLOUD_SA_KEY')
-    if key == '':
-        key = run_txtcapture(
-            ['keybase', 'fs', 'read', '/keybase/team/datawireio/secrets/googlecloud.gcr-ci-robot.datawire.json.key'])
+    key = run_txtcapture(
+        ['keybase', 'fs', 'read', '/keybase/team/datawireio/secrets/googlecloud.gcr-ci-robot.datawire.json.key'])
 
     subprocess.run(
         ['gcloud', 'auth', 'activate-service-account', '--key-file=-'],
