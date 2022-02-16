@@ -12,7 +12,7 @@ ENVOY_TEST_LABEL ?= //test/...
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
   BASE_ENVOY_RELVER ?= 0
 
-  ENVOY_DOCKER_REPO ?= $(if $(IS_PRIVATE),quay.io/datawire-private/ambassador-base,docker.io/datawire/ambassador-base)
+  ENVOY_DOCKER_REPO ?= $(if $(IS_PRIVATE),quay.io/datawire-private/base-envoy,docker.io/emissaryingress/base-envoy)
   ENVOY_DOCKER_VERSION ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
   ENVOY_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-$(ENVOY_DOCKER_VERSION)
   ENVOY_FULL_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-full-$(ENVOY_DOCKER_VERSION)
@@ -28,7 +28,7 @@ ifneq ($(IS_PRIVATE),)
   ENVOY_DOCKER_REPOS = $(ENVOY_DOCKER_REPO)
 else
   # ...otherwise, this list of repos:
-  ENVOY_DOCKER_REPOS  = docker.io/datawire/ambassador-base
+  ENVOY_DOCKER_REPOS  = docker.io/emissaryingress/base-envoy
   ENVOY_DOCKER_REPOS += gcr.io/datawire/ambassador-base
 endif
 
