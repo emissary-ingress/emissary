@@ -107,7 +107,6 @@ jobs:
       - name: make gotest
         shell: bash
         run: |
-          export PREFIX=gotests
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
           export TEST_XML_DIR=/tmp/test-logs/xml/
@@ -158,7 +157,6 @@ jobs:
           max_attempts: 3
           timeout_minutes: 20
           command: |
-            export PREFIX=pytest-${{ matrix.test }}
             export USE_LOCAL_K3S_CLUSTER=1
             sudo sysctl -w fs.file-max=1600000
             sudo sysctl -w fs.inotify.max_user_instances=4096
@@ -177,6 +175,8 @@ jobs:
       - uses: ./.github/actions/collect-testing-logs
         if: always()
         name: "Collect testing logs"
+        with:
+          name: pytest-${{ matrix.test }}
   check-pytest-unit:
     # pytest-unit is separate from pytests (above) because we know for certain that no cluster is needed.
     # XXX This is pretty much a crock.
@@ -207,7 +207,6 @@ jobs:
           max_attempts: 3
           timeout_minutes: 20
           command: |
-            export PREFIX=pytest-${{ matrix.test }}
             sudo sysctl -w fs.file-max=1600000
             sudo sysctl -w fs.inotify.max_user_instances=4096
 
@@ -223,6 +222,8 @@ jobs:
       - uses: ./.github/actions/collect-testing-logs
         if: always()
         name: "Collect testing logs"
+        with:
+          name: pytest-${{ matrix.test }}
   check-chart:
     runs-on: ubuntu-latest
     env:
