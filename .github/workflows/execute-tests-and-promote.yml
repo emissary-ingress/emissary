@@ -77,6 +77,13 @@ jobs:
             install -m700 -d ~/.ssh
             install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
           fi
+      - name: "Docker Login"
+        # This is important if ENVOY_DOCKER_REPO is a private repo.
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
+          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - run: make check-envoy-version
 
   # Tests ######################################################################
