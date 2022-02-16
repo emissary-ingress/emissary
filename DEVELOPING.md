@@ -90,7 +90,7 @@ These two images are only used for testing.
 
 0. `docker pull docker:latest`
 1. `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -it docker:latest sh`
-2. `apk add --update --no-cache bash build-base go curl rsync python3 python2 git`
+2. `apk add --update --no-cache bash build-base go curl rsync python3 python2 git libarchive-tools gawk jq`
 3. `git clone https://github.com/datawire/ambassador.git && cd ambassador`
 4. `make images`
 
