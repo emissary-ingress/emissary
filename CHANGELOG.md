@@ -87,13 +87,12 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [2.2.1] February 15, 2022
-[2.2.1]: https://github.com/emissary-ingress/emissary/compare/v2.2.0...v2.2.1
+## [2.3.0] TBD
+[2.3.0]: https://github.com/emissary-ingress/emissary/compare/v2.2.0...v2.3.0
 
 ### Emissary-ingress and Ambassador Edge Stack
 
-- Bugfix: Emissary-ingress v2.2.0 did not correctly handle patch requests for the abort operation,
-  this fix will cause  abort patches to be correctly considered.
+- Bugfix: The Ambassador Agent now correctly supports requests to abort a rollout.
 
 ## [2.2.0] February 10, 2022
 [2.2.0]: https://github.com/emissary-ingress/emissary/compare/v2.1.2...v2.2.0
