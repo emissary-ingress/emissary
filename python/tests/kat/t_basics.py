@@ -6,7 +6,7 @@ import yaml
 from kat.harness import Query, EDGE_STACK
 
 from abstract_tests import AmbassadorTest, assert_default_errors, HTTP, Node, ServiceType
-from kat.utils import namespace_manifest
+from tests.integration.manifests import namespace_manifest
 
 
 class Empty(AmbassadorTest):

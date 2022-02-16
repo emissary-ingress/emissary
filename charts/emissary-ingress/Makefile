@@ -52,7 +52,11 @@ chart-create-cluster: preflight-kubeconfig
 	$(K3D_EXEC) cluster create $(K3D_CLUSTER_NAME) --image=docker.io/rancher/k3s:v$(subst +,-,$(K3S_VERSION)) $(K3D_ARGS)
 	while ! kubectl --kubeconfig=$(CHART_KUBECONFIG) get serviceaccount default >/dev/null; do sleep 1; done
 	kubectl --kubeconfig=$(CHART_KUBECONFIG) version
+ifneq ($(DEV_USE_IMAGEPULLSECRET),)
+	cd ../.. && . venv/bin/activate && KUBECONFIG=$(CHART_KUBECONFIG) python3 -c 'from tests.integration.utils import install_crds; install_crds()'
+else
 	kubectl --kubeconfig=$(CHART_KUBECONFIG) apply -f ../../manifests/emissary/emissary-crds.yaml
+endif
 	kubectl --kubeconfig=$(CHART_KUBECONFIG) --namespace=emissary-system wait --timeout=90s --for=condition=available Deployments/emissary-apiext
 .PHONY: chart-create-cluster
 

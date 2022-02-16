@@ -1,7 +1,7 @@
 from typing import Generator, Tuple, Union
 
 from kat.harness import Query, EDGE_STACK
-from kat.utils import namespace_manifest
+from tests.integration.manifests import namespace_manifest
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 from tests.selfsigned import TLSCerts
