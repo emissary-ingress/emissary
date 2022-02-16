@@ -262,12 +262,12 @@ push-dev: docker/$(LCNAME).docker.tag.local
 	docker tag $$(cat docker/$(LCNAME).docker) '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
 	docker push '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
 
+ifneq ($(IS_PRIVATE),)
+	@echo '$@: not pushing to S3 because this is a private repo'
+else
 	@printf '$(CYN)==> $(GRN)recording $(BLU)%s$(GRN) => $(BLU)%s$(GRN) in S3...$(END)\n' "$$(git rev-parse HEAD)" $(patsubst v%,%,$(VERSION))
 	echo '$(patsubst v%,%,$(VERSION))' | aws s3 cp - 's3://$(AWS_S3_BUCKET)/dev-builds/'"$$(git rev-parse HEAD)"
 
-ifneq ($(IS_PRIVATE),)
-	@echo '$@: not pushing manifests because this is a private repo'
-else
 	{ $(MAKE) \
 	  IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 	  release/push-chart; }
