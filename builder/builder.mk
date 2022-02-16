@@ -256,35 +256,24 @@ push: docker/kat-server.docker.push.remote
 
 # `make push-dev` is meant to be run by CI.
 push-dev: docker/$(LCNAME).docker.tag.local
-	@set -e; { \
-		if [ -n "$$(git status -s)" ]; then \
-			echo "push-dev: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
-		if [[ '$(VERSION)' != *-* ]]; then \
-			printf "$(RED)push-dev: VERSION=$(VERSION) is not a pre-release version$(END)\n" >&2 ;\
-			exit 1 ;\
-		fi ;\
-		suffix=$(patsubst v%,%,$(VERSION)); \
-		for image in $(LCNAME) ; do \
-			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
-			printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
-			docker tag $$(cat docker/$$image.docker) $$tag && \
-			docker push $$tag ;\
-		done ;\
-		commit=$$(git rev-parse HEAD) ;\
-		printf "$(CYN)==> $(GRN)recording $(BLU)$$commit$(GRN) => $(BLU)$$suffix$(GRN) in S3...$(END)\n" ;\
-		echo "$$suffix" | aws s3 cp - s3://$(AWS_S3_BUCKET)/dev-builds/$$commit ;\
-		if [ $(IS_PRIVATE) ] ; then \
-			echo "push-dev: not pushing manifests because this is a private repo" ;\
-			exit 0 ; \
-		fi ; \
-		$(MAKE) \
-			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
-			release/push-chart ; \
-		$(MAKE) generate-fast --always-make; \
-		$(MAKE) push-manifests  ; \
-	}
+	@[[ '$(VERSION)' == *-* ]] || (echo "$(RED)$@: VERSION=$(VERSION) is not a pre-release version$(END)" >&2; exit 1)
+
+	@printf '$(CYN)==> $(GRN)pushing $(BLU)%s$(GRN) as $(BLU)$(GRN)...$(END)\n' '$(LCNAME)' '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
+	docker tag $$(cat docker/$(LCNAME).docker) '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
+	docker push '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
+
+	@printf '$(CYN)==> $(GRN)recording $(BLU)%s$(GRN) => $(BLU)%s$(GRN) in S3...$(END)\n' "$$(git rev-parse HEAD)" $(patsubst v%,%,$(VERSION))
+	echo '$(patsubst v%,%,$(VERSION))' | aws s3 cp - 's3://$(AWS_S3_BUCKET)/dev-builds/'"$$(git rev-parse HEAD)"
+
+ifneq ($(IS_PRIVATE),)
+	@echo '$@: not pushing manifests because this is a private repo'
+else
+	{ $(MAKE) \
+	  IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
+	  release/push-chart; }
+	$(MAKE) generate-fast --always-make
+	$(MAKE) push-manifests
+endif
 .PHONY: push-dev
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
