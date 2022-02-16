@@ -102,7 +102,7 @@ spec:
                     capabilities_block="") + \
         STATSD_MANIFEST.format(
             name='cbstatsd-sink',
-            image=integration_manifests.images['test-stats'],
+            image=integration_manifests.get_images()['test-stats'],
             target=self.__class__.TARGET_CLUSTER)
 
 

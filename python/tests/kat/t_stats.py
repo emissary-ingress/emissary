@@ -119,7 +119,7 @@ class StatsdTest(AmbassadorTest):
                            capabilities_block="") + \
                GRAPHITE_CONFIG.format(
                    'statsd-sink',
-                   integration_manifests.images['test-stats'],
+                   integration_manifests.get_images()['test-stats'],
                    f"{STATSD_TEST_CLUSTER}:{ALT_STATSD_TEST_CLUSTER}")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -236,7 +236,7 @@ class DogstatsdTest(AmbassadorTest):
                            capabilities_block="") + \
                DOGSTATSD_CONFIG.format(
                    'dogstatsd-sink',
-                   integration_manifests.images['test-stats'],
+                   integration_manifests.get_images()['test-stats'],
                    DOGSTATSD_TEST_CLUSTER)
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:

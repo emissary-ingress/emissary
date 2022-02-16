@@ -17,13 +17,15 @@ from ambassador.compile import Compile
 from ambassador.utils import NullSecretHandler
 
 import tests.integration.manifests as integration_manifests
-from kat.utils import namespace_manifest
 from tests.manifests import cleartext_host_manifest
 from tests.kubeutils import apply_kube_artifacts
 from tests.runutils import run_and_assert
 
 # Assume that both of these are on the PATH if not explicitly set
 KUBESTATUS_PATH = os.environ.get('KUBESTATUS_PATH', 'kubestatus')
+
+def install_crds() -> None:
+    apply_kube_artifacts(namespace='emissary-system', artifacts=integration_manifests.crd_manifests())
 
 def install_ambassador(namespace, single_namespace=True, envs=None, debug=None):
     """
@@ -56,7 +58,7 @@ def install_ambassador(namespace, single_namespace=True, envs=None, debug=None):
     create_namespace(namespace)
 
     # Create Ambassador CRDs
-    apply_kube_artifacts(namespace='emissary-system', artifacts=integration_manifests.CRDmanifests)
+    install_crds()
 
     print("Wait for apiext to be running...")
     run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=available', 'deploy', 'emissary-apiext', '-n', 'emissary-system'])
@@ -127,7 +129,7 @@ def update_envs(envs, name, value):
 
 
 def create_namespace(namespace):
-    apply_kube_artifacts(namespace=namespace, artifacts=namespace_manifest(namespace))
+    apply_kube_artifacts(namespace=namespace, artifacts=integration_manifests.namespace_manifest(namespace))
 
 
 def create_qotm_mapping(namespace):
