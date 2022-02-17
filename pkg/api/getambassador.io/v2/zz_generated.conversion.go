@@ -947,9 +947,18 @@ func Convert_v3alpha1_AuthService_To_v2_AuthService(in *v3alpha1.AuthService, ou
 }
 
 func autoConvert_v2_AuthServiceIncludeBody_To_v3alpha1_AuthServiceIncludeBody(in *AuthServiceIncludeBody, out *v3alpha1.AuthServiceIncludeBody, s conversion.Scope) error {
-	out.MaxBytes = in.MaxBytes
-	out.AllowPartial = in.AllowPartial
-	out.AsBytes = in.V3AsBytes
+	if true {
+		in, out := &in.MaxBytes, &out.MaxBytes
+		*out = *in
+	}
+	if true {
+		in, out := &in.AllowPartial, &out.AllowPartial
+		*out = *in
+	}
+	if true {
+		in, out := &in.V3AsBytes, &out.AsBytes
+		*out = *in
+	}
 	return nil
 }
 
@@ -959,9 +968,18 @@ func Convert_v2_AuthServiceIncludeBody_To_v3alpha1_AuthServiceIncludeBody(in *Au
 }
 
 func autoConvert_v3alpha1_AuthServiceIncludeBody_To_v2_AuthServiceIncludeBody(in *v3alpha1.AuthServiceIncludeBody, out *AuthServiceIncludeBody, s conversion.Scope) error {
-	out.MaxBytes = in.MaxBytes
-	out.AllowPartial = in.AllowPartial
-	out.V3AsBytes = in.AsBytes
+	if true {
+		in, out := &in.MaxBytes, &out.MaxBytes
+		*out = *in
+	}
+	if true {
+		in, out := &in.AllowPartial, &out.AllowPartial
+		*out = *in
+	}
+	if true {
+		in, out := &in.AsBytes, &out.V3AsBytes
+		*out = *in
+	}
 	return nil
 }
 
@@ -1082,12 +1100,15 @@ func autoConvert_v2_AuthServiceSpec_To_v3alpha1_AuthServiceSpec(in *AuthServiceS
 	}
 	if true {
 		in, out := &in.IncludeBody, &out.IncludeBody
-		*out = new(v3alpha1.AuthServiceIncludeBody)
-		if err := Convert_v2_AuthServiceIncludeBody_To_v3alpha1_AuthServiceIncludeBody(*in, *out, s); err != nil {
-			return err
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v3alpha1.AuthServiceIncludeBody)
+			in, out := *in, *out
+			if err := Convert_v2_AuthServiceIncludeBody_To_v3alpha1_AuthServiceIncludeBody(in, out, s); err != nil {
+				return err
+			}
 		}
-	} else {
-		out.IncludeBody = nil
 	}
 	if true {
 		in, out := &in.StatusOnError, &out.StatusOnError
@@ -1195,7 +1216,6 @@ func autoConvert_v3alpha1_AuthServiceSpec_To_v2_AuthServiceSpec(in *v3alpha1.Aut
 	}
 	if true {
 		in, out := &in.IncludeBody, &out.IncludeBody
-<<<<<<< HEAD
 		if *in == nil {
 			*out = nil
 		} else {
@@ -1205,14 +1225,6 @@ func autoConvert_v3alpha1_AuthServiceSpec_To_v2_AuthServiceSpec(in *v3alpha1.Aut
 				return err
 			}
 		}
-=======
-		*out = new(AuthServiceIncludeBody)
-		if err := Convert_v3alpha1_AuthServiceIncludeBody_To_v2_AuthServiceIncludeBody(*in, *out, s); err != nil {
-			return err
-		}
-	} else {
-		out.IncludeBody = nil
->>>>>>> f1f250d48... make asbytes a v3 field
 	}
 	if true {
 		in, out := &in.StatusOnError, &out.StatusOnError

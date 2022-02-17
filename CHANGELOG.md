@@ -94,6 +94,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Bugfix: The Ambassador Agent now correctly supports requests to abort a rollout.
 
+- Feature: A new field `as_bytes` has been added to `AuthService.spec.include_body` to allow sending
+  request bodies containing binary data to an `AuthService`.
+
 ## [2.2.0] February 10, 2022
 [2.2.0]: https://github.com/emissary-ingress/emissary/compare/v2.1.2...v2.2.0
 
@@ -197,10 +200,6 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## 2.1.1 not issued
 
 *Emissary-ingress 2.1.1 was not issued; Ambassador Edge Stack 2.1.1 uses Emissary-ingress 2.1.0.*
-- Feature: A new field `as_bytes` has been added to `AuthService.spec.include_body` to allow sending
-  request bodies containing binary data to an `AuthService`.
-
-[3906]: https://github.com/emissary-ingress/emissary/issues/3906
 
 ## [2.1.0] December 16, 2021
 [2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
