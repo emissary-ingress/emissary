@@ -442,6 +442,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 			return false, err
 		}
 		reconcileAuthServicesTimer.Time(func() {
+			dlog.Infof(ctx, "[debug-authservice] Reconciling AuthServices...")
 			err = ReconcileAuthServices(ctx, sh, &deltas)
 		})
 		if err != nil {
