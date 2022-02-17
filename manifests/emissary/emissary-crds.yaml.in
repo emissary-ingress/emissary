@@ -76,12 +76,12 @@ spec:
                 properties:
                   allow_partial:
                     type: boolean
-                  as_bytes:
-                    description: AsBytes (default=false) controls whether to transmit the body as bytes (true) or as a string (false). Request data that is not valid UTF-8 cannot be transmitted as a string, and will result in a 403 UAEX response if AsBytes is not set to true.
-                    type: boolean
                   max_bytes:
                     description: These aren't pointer types because they are required.
                     type: integer
+                  v3AsBytes:
+                    description: AsBytes (default=false) controls whether to transmit the body as bytes (true) or as a string (false). Request data that is not valid UTF-8 cannot be transmitted as a string, and will result in a 403 UAEX response if AsBytes is not set to true.
+                    type: boolean
                 required:
                 - allow_partial
                 - max_bytes

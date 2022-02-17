@@ -3,7 +3,6 @@ from typing import Generator, Tuple, Union
 import json
 import pytest
 import os
-import random
 
 from kat.harness import Query
 
@@ -1090,8 +1089,6 @@ service: {self.target.path.fqdn}
 """)
 
     def queries(self):
-        # generate some random data to upload
-        dummy_data = bytes(random.getrandbits(8) for _ in range(1000))
         # [0]
         yield Query(self.url("bodyPackBytes/"), headers={"Requested-Status": "200"}, expected=200)
         yield Query(self.url("bodyPackBytes/"), method="POST", headers={"Requested-Status": "200"}, expected=200)
