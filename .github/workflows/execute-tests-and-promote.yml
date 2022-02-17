@@ -257,9 +257,6 @@ jobs:
       - name: make test-chart
         run: |
           make test-chart
-      - name: make release/promote-chart-passed
-        run: |
-          make release/promote-chart-passed
 
   build: #######################################################################
     runs-on: ubuntu-latest
@@ -308,18 +305,7 @@ jobs:
       - check-pytest-unit
       - check-chart
     runs-on: ubuntu-latest
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
-      AWS_EC2_METADATA_DISABLED: true
-      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Install Deps
-        uses: ./.github/actions/setup-deps
-      - name: "promote build to passed"
-        run: |
-          make release/promote-oss/dev-to-passed-ci
+      - name: No-Op
+        if: ${{ false }}
+        run: "echo Pass"
