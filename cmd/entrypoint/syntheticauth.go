@@ -26,12 +26,13 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 		},
 		ObjectMeta: kates.ObjectMeta{
 			Name:      "synthetic-edge-stack-auth",
-			Namespace: "default",
+			Namespace: GetAmbassadorNamespace(),
 		},
 		Spec: v3alpha1.AuthServiceSpec{
 			AuthService:     "127.0.0.1:8500",
 			Proto:           "grpc",
 			ProtocolVersion: "v3",
+			AmbassadorID:    []string{"_automatic_"},
 		},
 	}
 
