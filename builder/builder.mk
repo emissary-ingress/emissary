@@ -537,21 +537,6 @@ else
 endif
 .PHONY: release/promote-oss/to-rc
 
-# just push the commit hash to s3
-# this should only happen if all tests have passed at a certain commit
-release/promote-oss/dev-to-passed-ci:
-	@set -e; { \
-		commit=$$(git rev-parse HEAD) ;\
-		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
-		if [ -z "$$dev_version" ]; then \
-			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
-			exit 1 ;\
-		fi ;\
-		printf "$(CYN)==> $(GRN)Promoting $(BLU)$$commit$(GRN) => $(BLU)$$dev_version$(GRN) in S3...$(END)\n" ;\
-		echo "$$dev_version" | aws s3 cp - s3://$(AWS_S3_BUCKET)/passed-builds/$$commit ;\
-	}
-.PHONY: release/promote-oss/dev-to-passed-ci
-
 # To be run from a checkout at the tag you are promoting _from_.
 # This is normally run from CI by creating the GA tag.
 release/promote-oss/to-ga:
