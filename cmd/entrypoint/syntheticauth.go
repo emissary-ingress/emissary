@@ -20,6 +20,7 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 		return nil
 	}
 
+	injectSyntheticAuth := true
 	syntheticAuth := &v3alpha1.AuthService{
 		TypeMeta: kates.TypeMeta{
 			Kind:       "AuthService",
@@ -41,10 +42,12 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 	syntheticAuthExists := false
 	for _, authService := range sh.k8sSnapshot.AuthServices {
 		// Keep any AuthServices already using protocol_version: v3
-		if authService.ObjectMeta.Name == "synthetic-edge-stack-auth" {
-			syntheticAuthExists = true
-		} else if authService.Spec.ProtocolVersion == "v3" {
+		if authService.Spec.ProtocolVersion == "v3" {
 			authServices = append(authServices, authService)
+			injectSyntheticAuth = false
+			if authService.ObjectMeta.Name == "synthetic-edge-stack-auth" {
+				syntheticAuthExists = true
+			}
 		}
 	}
 
@@ -83,6 +86,7 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 				if spec["protocol_version"] == "v3" {
 					// Whoa, it's a v3! Keep it.
 					editedList = append(editedList, un)
+					injectSyntheticAuth = false
 				}
 			}
 		}
@@ -102,7 +106,7 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 		delete(sh.k8sSnapshot.Annotations, key)
 	}
 
-	if len(authServices) == 0 && !syntheticAuthExists {
+	if injectSyntheticAuth {
 		// There are no valid AuthServices with protocol_version: v3. A synthetic one needs to be injected.
 		authServices = append(authServices, syntheticAuth)
 
