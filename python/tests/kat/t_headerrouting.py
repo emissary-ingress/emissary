@@ -1,6 +1,6 @@
 from typing import ClassVar, Generator, Tuple, Union
 
-from kat.harness import variants, Query
+from kat.harness import variants, Query, EDGE_STACK
 from abstract_tests import AmbassadorTest, MappingTest, ServiceType, HTTP, Node
 
 
@@ -105,6 +105,8 @@ class AuthenticationHeaderRouting(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target1 = HTTP(name="target1")
         self.target2 = HTTP(name="target2")
         self.auth = HeaderRoutingAuth()

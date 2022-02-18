@@ -3,6 +3,7 @@ import logging
 import sys
 
 import pytest
+from kat.harness import EDGE_STACK
 
 logging.basicConfig(
     level=logging.INFO,
@@ -47,6 +48,8 @@ def _get_envoy_config(yaml, version='V3'):
 
 @pytest.mark.compilertest
 def test_irauth_grpcservice_version_v2():
+    if EDGE_STACK:
+        pytest.xfail("XFailing for now, custom AuthServices not supported in Edge Stack")
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -96,6 +99,8 @@ spec:
 
 @pytest.mark.compilertest
 def test_irauth_grpcservice_version_default():
+    if EDGE_STACK:
+        pytest.xfail("XFailing for now, custom AuthServices not supported in Edge Stack")
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -119,6 +124,8 @@ spec:
 
 @pytest.mark.compilertest
 def test_irauth_grpcservice_version_default_v3():
+    if EDGE_STACK:
+        pytest.xfail("XFailing for now, custom AuthServices not supported in Edge Stack")
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
