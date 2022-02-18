@@ -4,7 +4,7 @@ import json
 import pytest
 import os
 
-from kat.harness import Query
+from kat.harness import Query, EDGE_STACK
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP, AHTTP, AGRPC, Node
 from tests.selfsigned import TLSCerts
@@ -18,6 +18,8 @@ class AuthenticationGRPCTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = AGRPC(name="auth")
 
@@ -162,6 +164,8 @@ class AuthenticationHTTPPartialBufferTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = HTTP(name="auth")
 
@@ -257,6 +261,8 @@ class AuthenticationHTTPBufferedTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = HTTP(name="auth")
 
@@ -400,6 +406,8 @@ class AuthenticationHTTPFailureModeAllowTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = HTTP(name="auth")
 
@@ -474,6 +482,8 @@ class AuthenticationTestV1(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth1 = AHTTP(name="auth1")
         self.auth2 = AHTTP(name="auth2")
@@ -694,6 +704,8 @@ class AuthenticationTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
 
@@ -830,6 +842,8 @@ class AuthenticationWebsocketTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.auth = HTTP(name="auth")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -872,6 +886,8 @@ class AuthenticationGRPCV2Test(AmbassadorTest):
     def init(self):
         if Config.envoy_api_version == "V3":
             self.skip_node = True
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = AGRPC(name="auth", protocol_version="v2")
 
