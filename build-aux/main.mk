@@ -78,3 +78,15 @@ docker/base-pip/requirements.txt: python/requirements.txt $(tools/copy-ifchanged
 	$(tools/copy-ifchanged) $< $@
 docker/.base-pip.docker.stamp: docker/.%.docker.stamp: docker/%/Dockerfile docker/%/requirements.txt docker/base-python.docker.tag.local
 	docker build --build-arg=from="$$(sed -n 2p docker/base-python.docker.tag.local)" --iidfile=$@ $(<D)
+
+# The Helm chart
+build-output/charts/emissary-ingress-$(patsubst v%,%,$(CHART_VERSION)).tgz: \
+  charts/emissary-ingress/Chart.yaml \
+  charts/emissary-ingress/values.yaml \
+  charts/emissary-ingress/README.md
+	mkdir -p $(@D)
+	helm package --destination=$(@D) $(<D)
+
+# Convience alias for the Helm chart
+chart: build-output/charts/emissary-ingress-$(patsubst v%,%,$(CHART_VERSION)).tgz
+PHONY: chart
