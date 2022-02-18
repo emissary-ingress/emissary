@@ -35,9 +35,16 @@ jobs:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
+      - name: "Git Login"
+        run: |
+          if [[ -n '${{ secrets.GHA_SSH_KEY }}' ]]; then
+            install -m700 -d ~/.ssh
+            install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
+          fi
       - name: "Docker Login"
         uses: docker/login-action@v1
         with:
+          registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
           password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
       - name: "'make generate'"
@@ -64,6 +71,19 @@ jobs:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
+      - name: "Git Login"
+        run: |
+          if [[ -n '${{ secrets.GHA_SSH_KEY }}' ]]; then
+            install -m700 -d ~/.ssh
+            install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
+          fi
+      - name: "Docker Login"
+        # This is important if ENVOY_DOCKER_REPO is a private repo.
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
+          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - run: make check-envoy-version
 
   # Tests ######################################################################
@@ -81,12 +101,12 @@ jobs:
       - name: "Docker Login"
         uses: docker/login-action@v1
         with:
+          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - name: make gotest
         shell: bash
         run: |
-          export PREFIX=gotests
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
           export TEST_XML_DIR=/tmp/test-logs/xml/
@@ -102,17 +122,21 @@ jobs:
     env:
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
+      # See pkg/kubeapply/resource_kubeapply.go
+      DEV_USE_IMAGEPULLSECRET: ${{ secrets.DEV_USE_IMAGEPULLSECRET }}
+      DOCKER_BUILD_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+      DOCKER_BUILD_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
         test:
           - integration
-          - kat-envoy2-ah
-          - kat-envoy2-ip
-          - kat-envoy2-qz
-          - kat-envoy3-ah
-          - kat-envoy3-ip
-          - kat-envoy3-qz
+          - kat-envoy2-g1
+          - kat-envoy2-g2
+          - kat-envoy2-g3
+          - kat-envoy3-g1
+          - kat-envoy3-g2
+          - kat-envoy3-g3
           # FIXME(lukeshu): KAT_RUN_MODE=local is disabled because it
           # needs fixed for a world where annotations are already
           # unfolded in the snapshot.
@@ -128,6 +152,7 @@ jobs:
       - name: "Docker Login"
         uses: docker/login-action@v1
         with:
+          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - name: make pytest-${{ matrix.test }}
@@ -136,7 +161,6 @@ jobs:
           max_attempts: 3
           timeout_minutes: 20
           command: |
-            export PREFIX=pytest-${{ matrix.test }}
             export USE_LOCAL_K3S_CLUSTER=1
             sudo sysctl -w fs.file-max=1600000
             sudo sysctl -w fs.inotify.max_user_instances=4096
@@ -155,6 +179,8 @@ jobs:
       - uses: ./.github/actions/collect-testing-logs
         if: always()
         name: "Collect testing logs"
+        with:
+          name: pytest-${{ matrix.test }}
   check-pytest-unit:
     # pytest-unit is separate from pytests (above) because we know for certain that no cluster is needed.
     # XXX This is pretty much a crock.
@@ -176,6 +202,7 @@ jobs:
       - name: "Docker Login"
         uses: docker/login-action@v1
         with:
+          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - name: make pytest-${{ matrix.test }}
@@ -184,7 +211,6 @@ jobs:
           max_attempts: 3
           timeout_minutes: 20
           command: |
-            export PREFIX=pytest-${{ matrix.test }}
             sudo sysctl -w fs.file-max=1600000
             sudo sysctl -w fs.inotify.max_user_instances=4096
 
@@ -200,9 +226,10 @@ jobs:
       - uses: ./.github/actions/collect-testing-logs
         if: always()
         name: "Collect testing logs"
+        with:
+          name: pytest-${{ matrix.test }}
   check-chart:
     runs-on: ubuntu-latest
-    name: chart-test
     env:
       AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
       AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
@@ -211,9 +238,14 @@ jobs:
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
+      # See pkg/kubeapply/resource_kubeapply.go
+      DEV_USE_IMAGEPULLSECRET: ${{ secrets.DEV_USE_IMAGEPULLSECRET }}
+      DOCKER_BUILD_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+      DOCKER_BUILD_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
     steps:
       - uses: docker/login-action@v1
         with:
+          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - uses: actions/checkout@v2
@@ -225,9 +257,6 @@ jobs:
       - name: make test-chart
         run: |
           make test-chart
-      - name: make release/promote-chart-passed
-        run: |
-          make release/promote-chart-passed
 
   build: #######################################################################
     runs-on: ubuntu-latest
@@ -249,6 +278,7 @@ jobs:
       - name: "Docker Login"
         uses: docker/login-action@v1
         with:
+          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - name: "make push"
@@ -275,18 +305,7 @@ jobs:
       - check-pytest-unit
       - check-chart
     runs-on: ubuntu-latest
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
-      AWS_EC2_METADATA_DISABLED: true
-      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Install Deps
-        uses: ./.github/actions/setup-deps
-      - name: "promote build to passed"
-        run: |
-          make release/promote-oss/dev-to-passed-ci
+      - name: No-Op
+        if: ${{ false }}
+        run: "echo Pass"

@@ -61,10 +61,10 @@ func (r *rolloutCommand) patchRollout(ctx context.Context, client argov1alpha1.R
 	case rolloutActionResume:
 		err = r.applyPatch(ctx, client, unpausePatch)
 		if err == nil {
-			err = r.applyRetryPatch(ctx, client)
+			err = r.applyStatusPatch(ctx, client, retryPatch)
 		}
 	case rolloutActionAbort:
-		err = r.applyPatch(ctx, client, abortPatch)
+		err = r.applyStatusPatch(ctx, client, abortPatch)
 	case rolloutActionPause:
 		err = r.applyPatch(ctx, client, pausePatch)
 	default:
@@ -103,16 +103,16 @@ func (r *rolloutCommand) applyPatch(ctx context.Context, client argov1alpha1.Rol
 	return err
 }
 
-// applyRetryPatch exists because to "retry" a Rollout, recovering it from the "aborted" state, Argo Rollouts
-// first tries to patch the rollouts/status subresource. If that fails, then base "rollouts" rollout is patched.
+// applyStatusPatch exists because any change to a Rollout status (Rollout Abort or Retry)
+// requires a patch the rollouts/status subresource. If that fails, then base "rollouts" rollout is patched.
 // This is based on the logic of the Argo Rollouts CLI, as seen at https://github.com/argoproj/argo-rollouts/blob/v1.1.1/pkg/kubectl-argo-rollouts/cmd/retry/retry.go#L84.
-func (r *rolloutCommand) applyRetryPatch(ctx context.Context, client argov1alpha1.RolloutsGetter) error {
+func (r *rolloutCommand) applyStatusPatch(ctx context.Context, client argov1alpha1.RolloutsGetter, patch string) error {
 	rollout := client.Rollouts(r.namespace)
 	_, err := rollout.Patch(
 		ctx,
 		r.rolloutName,
 		types.MergePatchType,
-		[]byte(retryPatch),
+		[]byte(patch),
 		metav1.PatchOptions{},
 		"status",
 	)
@@ -121,7 +121,7 @@ func (r *rolloutCommand) applyRetryPatch(ctx context.Context, client argov1alpha
 			ctx,
 			r.rolloutName,
 			types.MergePatchType,
-			[]byte(retryPatch),
+			[]byte(patch),
 			metav1.PatchOptions{},
 		)
 	}

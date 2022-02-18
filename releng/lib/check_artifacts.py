@@ -13,7 +13,7 @@ import subprocess
 
 from . import ansiterm, assert_eq, build_version, get_is_private
 from .uiutil import Checker, CheckResult, run, run_bincapture, run_txtcapture
-from .mirror_artifacts import get_images
+from . import mirror_artifacts
 
 
 def docker_pull(tag: str) -> str:
@@ -70,7 +70,7 @@ def do_check_s3(checker: Checker,
 
 
 def main(ga_ver: str, chart_ver: str, include_docker: bool = True,
-        release_channel: str = "", source_registry: str ="docker.io/datawire", 
+        release_channel: str = "", source_registry: str ="docker.io/datawire",
         image_append: str = "", image_name: str = "emissary",
         s3_bucket: str = "datawire-static-files") -> int:
     warning = """
@@ -92,10 +92,10 @@ def main(ga_ver: str, chart_ver: str, include_docker: bool = True,
                 tags = [ga_ver]
 
             for tag in tags:
+                repos = mirror_artifacts.default_repos
                 if is_private:
-                    images = [f'quay.io/datawire-private/ambassador:{tag}']
-                else:
-                    images = get_images(source_registry, image_name, tag, image_append)
+                    repos = {'quay.io/datawire-private/emissary'}
+                images = mirror_artifacts.enumerate_images(repos=repos, tag=tag)
                 for image in images:
                     with check.subcheck(name=image) as subcheck:
                         iid = docker_pull(image)

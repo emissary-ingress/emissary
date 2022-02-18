@@ -64,7 +64,7 @@ docker/.base-python.docker.stamp: FORCE docker/base-python/Dockerfile docker/bas
 #python/requirements-dev.txt: $(tools/py-list-deps) $(tools/write-ifchanged) FORCE
 #	$(tools/py-list-deps) --include-dev python/ | $(tools/write-ifchanged) $@
 python/requirements.in: $(tools/py-list-deps) $(tools/write-ifchanged) FORCE
-	$(tools/py-list-deps) --no-include-dev python/ | $(tools/write-ifchanged) $@
+	set -o pipefail; $(tools/py-list-deps) --no-include-dev python/ | $(tools/write-ifchanged) $@
 python/.requirements.txt.stamp: python/requirements.in docker/base-python.docker.tag.local
 # The --interactive is so that stdin gets passed through; otherwise Docker closes stdin.
 	set -ex -o pipefail; { \
@@ -78,3 +78,15 @@ docker/base-pip/requirements.txt: python/requirements.txt $(tools/copy-ifchanged
 	$(tools/copy-ifchanged) $< $@
 docker/.base-pip.docker.stamp: docker/.%.docker.stamp: docker/%/Dockerfile docker/%/requirements.txt docker/base-python.docker.tag.local
 	docker build --build-arg=from="$$(sed -n 2p docker/base-python.docker.tag.local)" --iidfile=$@ $(<D)
+
+# The Helm chart
+build-output/charts/emissary-ingress-$(patsubst v%,%,$(CHART_VERSION)).tgz: \
+  charts/emissary-ingress/Chart.yaml \
+  charts/emissary-ingress/values.yaml \
+  charts/emissary-ingress/README.md
+	mkdir -p $(@D)
+	helm package --destination=$(@D) $(<D)
+
+# Convience alias for the Helm chart
+chart: build-output/charts/emissary-ingress-$(patsubst v%,%,$(CHART_VERSION)).tgz
+PHONY: chart

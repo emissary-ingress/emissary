@@ -14,7 +14,6 @@ jobs:
       AWS_EC2_METADATA_DISABLED: true
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
       RELEASE_REGISTRY: ${{ secrets.RELEASE_REGISTRY }}
-      GCLOUD_SA_KEY: ${{ secrets.GCLOUD_SA_KEY }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -22,6 +21,7 @@ jobs:
       - name: "Docker Login"
         uses: docker/login-action@v1
         with:
+          registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
           password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
       - name: "Install Deps"
@@ -29,10 +29,6 @@ jobs:
       - name: "make release/promote-oss/to-ga"
         run: |
           make release/promote-oss/to-ga
-      # TODO: need to get dev mirror to test
-      #- name: "make release/ga-mirror"
-        #run: |
-          #make release/ga-mirror
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
@@ -53,9 +49,6 @@ jobs:
     needs: [promote-to-ga]
     name: "Create GitHub release"
     env:
-      GIT_TOKEN: ${{ secrets.GH_GITHUB_API_KEY }}
-      AUTO_USER: ${{ secrets.GH_AUTO_USER }}
-      AUTO_EMAIL: ${{ secrets.GH_AUTO_EMAIL }}
       AMBASSADOR_RELENG_NO_GUI: "1"
     steps:
       - uses: actions/checkout@v2
@@ -65,7 +58,7 @@ jobs:
         uses: ./.github/actions/setup-deps
       - name: "gh auth login"
         run: |
-          echo "${GIT_TOKEN}" | gh auth login --with-token
+          echo '${{ secrets.GH_GITHUB_API_KEY }}' | gh auth login --with-token
       - name: Create GitHub release
         id: step-create-gh-release
         run: |

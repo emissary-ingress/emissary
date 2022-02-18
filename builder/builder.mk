@@ -114,8 +114,6 @@ COPY_GOLD = $(abspath $(BUILDER_HOME)/copy-gold.sh)
 
 AWS_S3_BUCKET ?= datawire-static-files
 
-GCR_RELEASE_REGISTRY ?= gcr.io/datawire
-
 # the image used for running the Ingress v1 tests with KIND.
 # the current, official image does not support Ingress v1, so we must build our own image with k8s 1.18.
 # build this image with:
@@ -258,35 +256,24 @@ push: docker/kat-server.docker.push.remote
 
 # `make push-dev` is meant to be run by CI.
 push-dev: docker/$(LCNAME).docker.tag.local
-	@set -e; { \
-		if [ -n "$$(git status -s)" ]; then \
-			echo "push-dev: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
-		if [[ '$(VERSION)' != *-* ]]; then \
-			printf "$(RED)push-dev: VERSION=$(VERSION) is not a pre-release version$(END)\n" >&2 ;\
-			exit 1 ;\
-		fi ;\
-		suffix=$(patsubst v%,%,$(VERSION)); \
-		for image in $(LCNAME) ; do \
-			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
-			printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
-			docker tag $$(cat docker/$$image.docker) $$tag && \
-			docker push $$tag ;\
-		done ;\
-		commit=$$(git rev-parse HEAD) ;\
-		printf "$(CYN)==> $(GRN)recording $(BLU)$$commit$(GRN) => $(BLU)$$suffix$(GRN) in S3...$(END)\n" ;\
-		echo "$$suffix" | aws s3 cp - s3://$(AWS_S3_BUCKET)/dev-builds/$$commit ;\
-		if [ $(IS_PRIVATE) ] ; then \
-			echo "push-dev: not pushing manifests because this is a private repo" ;\
-			exit 0 ; \
-		fi ; \
-		$(MAKE) \
-			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
-			release/push-chart ; \
-		$(MAKE) generate-fast --always-make; \
-		$(MAKE) push-manifests  ; \
-	}
+	@[[ '$(VERSION)' == *-* ]] || (echo "$(RED)$@: VERSION=$(VERSION) is not a pre-release version$(END)" >&2; exit 1)
+
+	@printf '$(CYN)==> $(GRN)pushing $(BLU)%s$(GRN) as $(BLU)$(GRN)...$(END)\n' '$(LCNAME)' '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
+	docker tag $$(cat docker/$(LCNAME).docker) '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
+	docker push '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
+
+ifneq ($(IS_PRIVATE),)
+	@echo '$@: not pushing to S3 because this is a private repo'
+else
+	@printf '$(CYN)==> $(GRN)recording $(BLU)%s$(GRN) => $(BLU)%s$(GRN) in S3...$(END)\n' "$$(git rev-parse HEAD)" $(patsubst v%,%,$(VERSION))
+	echo '$(patsubst v%,%,$(VERSION))' | aws s3 cp - 's3://$(AWS_S3_BUCKET)/dev-builds/'"$$(git rev-parse HEAD)"
+
+	{ $(MAKE) \
+	  IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
+	  release/push-chart; }
+	$(MAKE) generate-fast --always-make
+	$(MAKE) push-manifests
+endif
 .PHONY: push-dev
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
@@ -341,12 +328,18 @@ pytest-kat-local: push-pytest-images
 	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
 pytest-kat-envoy3: push-pytest-images # doing this all at once is too much for CI...
 	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
-pytest-kat-envoy3-%: push-pytest-images # ... so we have a separate rule to run things split up
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range $* python/tests/kat"
+# ... so we have a separate rule to run things split up
+build-aux/.pytest-kat.txt.stamp: $(OSS_HOME)/venv push-pytest-images FORCE
+	. venv/bin/activate && set -o pipefail && pytest --collect-only python/tests/kat 2>&1 | sed -En 's/.*<Function (.*)>/\1/p' | sed 's/[].].*//' | sort -u > $@
+build-aux/pytest-kat.txt: build-aux/%: build-aux/.%.stamp $(tools/copy-ifchanged)
+	$(tools/copy-ifchanged) $< $@
+pytest-kat-envoy3-g%: build-aux/pytest-kat.txt $(tools/py-split-tests)
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $* 3 <build-aux/pytest-kat.txt)' python/tests/kat"
 pytest-kat-envoy2: push-pytest-images # doing this all at once is too much for CI...
 	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
-pytest-kat-envoy2-%: push-pytest-images # ... so we have a separate rule to run things split up
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range $* python/tests/kat"
+# ... so we have a separate rule to run things split up
+pytest-kat-envoy2-g%: build-aux/pytest-kat.txt $(tools/py-split-tests)
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $* 3 <build-aux/pytest-kat.txt)' python/tests/kat"
 .PHONY: pytest-kat-%
 
 bin/envoy: docker/base-envoy.docker.tag.local
@@ -544,21 +537,6 @@ else
 endif
 .PHONY: release/promote-oss/to-rc
 
-# just push the commit hash to s3
-# this should only happen if all tests have passed at a certain commit
-release/promote-oss/dev-to-passed-ci:
-	@set -e; { \
-		commit=$$(git rev-parse HEAD) ;\
-		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
-		if [ -z "$$dev_version" ]; then \
-			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
-			exit 1 ;\
-		fi ;\
-		printf "$(CYN)==> $(GRN)Promoting $(BLU)$$commit$(GRN) => $(BLU)$$dev_version$(GRN) in S3...$(END)\n" ;\
-		echo "$$dev_version" | aws s3 cp - s3://$(AWS_S3_BUCKET)/passed-builds/$$commit ;\
-	}
-.PHONY: release/promote-oss/dev-to-passed-ci
-
 # To be run from a checkout at the tag you are promoting _from_.
 # This is normally run from CI by creating the GA tag.
 release/promote-oss/to-ga:
@@ -590,32 +568,6 @@ else
 	  publish-docs-yaml; }
 endif
 .PHONY: release/promote-oss/to-ga
-
-# `make release/go VERSION=v2.Y.Z` is meant to be run by the human
-# maintainer who is preparing to promote an RC to GA.  It will create
-# and push a v2.Y.Z Git tag.
-release/go:
-	@[[ -n "$(RELEASE_REGISTRY)"                      || (printf '$(RED)ERROR: RELEASE_REGISTRY must be set$(END)\n'; exit 1)
-	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION must be set to a GA "v2.Y.Z" value; it is set to "%s"$(END)\n' "$(VERSION)"; exit 1)
-	@[[ -z "$$(git status -s)" ]]                     || (printf '$(RED)ERROR: tree must be clean$(END)\n'; exit 1)
-	{ \
-	  export RELEASE_REGISTRY=$(RELEASE_REGISTRY); \
-	  export IMAGE_NAME=$(LCNAME); \
-	  $(OSS_HOME)/releng/02-release-ga $(patsubst v%,%,$(VERSION)) $(patsubst v%,%,$(CHART_VERSION)); \
-	}
-.PHONY: release/go
-
-# `make release/ga-mirror` aught to be run by CI, but because
-# credentials are a nightmare it currently has to be run by a human
-# maintainer.
-release/ga-mirror:
-	@[[ -n "$(RELEASE_REGISTRY)"                      || (printf '$(RED)ERROR: RELEASE_REGISTRY must be set$(END)\n'; exit 1)
-	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION must be set to a GA "v2.Y.Z" value; it is set to "%s"$(END)\n' "$(VERSION)"; exit 1)
-	{ $(OSS_HOME)/releng/release-mirror-images \
-	  --ga-version=$(patsubst v%,%,$(VERSION)) \
-	  --source-registry=$(RELEASE_REGISTRY) \
-	  --image-name=$(LCNAME) \
-	  --repo-list=$(GCR_RELEASE_REGISTRY); }
 
 # `make release/ga-check` is meant to be run by a human maintainer to
 # check that CI did all the right things.

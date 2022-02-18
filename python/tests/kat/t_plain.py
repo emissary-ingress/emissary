@@ -3,7 +3,7 @@ from typing import Generator, Tuple, Union
 from kat.harness import variants, Query, EDGE_STACK
 
 from abstract_tests import AmbassadorTest, MappingTest, Node
-from kat.utils import namespace_manifest
+from tests.integration.manifests import namespace_manifest
 
 import t_mappingtests_plain
 import t_optiontests

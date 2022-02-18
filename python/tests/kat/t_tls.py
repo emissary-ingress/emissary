@@ -4,7 +4,7 @@ from kat.harness import Query, EDGE_STACK
 
 from abstract_tests import AmbassadorTest, HTTP, ServiceType, Node
 from tests.selfsigned import TLSCerts
-from kat.utils import namespace_manifest
+from tests.integration.manifests import namespace_manifest
 
 
 bug_404_routes = True              # Do we erroneously send 404 responses directly instead of redirect-to-tls first?

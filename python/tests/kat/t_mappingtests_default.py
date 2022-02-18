@@ -3,7 +3,7 @@ from typing import Generator, Tuple, Union
 from kat.harness import EDGE_STACK, variants, Query
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
-from kat.utils import namespace_manifest
+from tests.integration.manifests import namespace_manifest
 
 from ambassador.constants import Constants
 
