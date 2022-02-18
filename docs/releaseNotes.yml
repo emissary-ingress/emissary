@@ -33,12 +33,20 @@
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
   - version: 2.2.1
-    date: 'TBD'
+    date: '2022-02-22'
     notes:
-      - title: Fix Rollout Aborts
+      - title: Envoy V2 API deprecation
+        type: change
+        body: >-
+          Support for the Envoy V2 API is deprecated as of $productName$ v2.1, and will be removed in $productName$
+          v3.0. The <code>AMBASSADOR_ENVOY_API_VERSION</code> environment variable will be removed at the same
+          time. Only the Envoy V3 API will be supported (this has been the default since $productName$ v1.14.0).
+
+      - title: Correctly support canceling rollouts
         type: bugfix
         body: >-
-          The Ambassador Agent now correctly supports requests to abort a rollout.
+          The Ambassador Agent now correctly supports requests to cancel a rollout.
+        docs: ../../../argo/latest/howtos/manage-rollouts-using-cloud
 
   - version: 2.2.0
     date: '2022-02-10'
@@ -125,6 +133,14 @@ items:
         docs: ../topics/running/tls
         image: ./v2.2.0-tls-cert-validation.png
 
+    edgeStackNotes:
+      - title: Devportal support for using API server definitions from OpenAPI docs
+        type: feature
+        body: >-
+          You can now set <code>preserve_servers</code> in Ambassador Edge Stack's
+          <code>DevPortal</code> resource to configure the DevPortal to use server definitions from
+          the OpenAPI document when displaying connection information for services in the DevPortal.
+
   - version: 2.1.2
     prevVersion: 2.1.0
     date: '2022-01-25'
@@ -132,8 +148,8 @@ items:
       - title: Envoy V2 API deprecation
         type: change
         body: >-
-          Support for the Envoy V2 API is deprecated in $productName$ v2.1, and will be removed in $productName$
-          v2.2.0. The <code>AMBASSADOR_ENVOY_API_VERSION</code> environment variable will be removed at the same
+          Support for the Envoy V2 API is deprecated as of $productName$ v2.1, and will be removed in $productName$
+          v3.0. The <code>AMBASSADOR_ENVOY_API_VERSION</code> environment variable will be removed at the same
           time. Only the Envoy V3 API will be supported (this has been the default since $productName$ v1.14.0).
 
       - title: Docker BuildKit always used for builds
@@ -178,6 +194,16 @@ items:
         docs: topics/using/rewrites
         image: ./v2.1.2-mapping-no-rewrite.png
 
+      - title: Correctly use Mappings with host redirects
+        type: bugfix
+        body: >-
+          Any <code>Mapping</code> that uses the <code>host_redirect</code> field is now properly discovered and used. Thanks
+          to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix!
+        github:
+        - title: "#3709"
+          link: https://github.com/emissary-ingress/emissary/issues/3709
+        docs: https://github.com/emissary-ingress/emissary/issues/3709
+
       - title: Correctly handle DNS wildcards when associating Hosts and Mappings
         type: bugfix
         body: >-
@@ -186,16 +212,7 @@ items:
           and the <code>Mapping</code> use DNS wildcards for their hostnames could sometimes
           not correctly match when they should have.
         docs: howtos/configure-communications/
-
-      - title: Correctly use Mappings with host redirects
-        type: bugfix
-        body: >-
-          Any <code>Mapping</code> that uses the <code>host_redirect</code> field is now properly discovered and used. Thanks
-          to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix!
-        github:
-        - title: 3709
-          link: https://github.com/emissary-ingress/emissary/issues/3709
-        docs: https://github.com/emissary-ingress/emissary/issues/3709
+        image: ./v2.1.2-host-mapping-matching.png
 
       - title: Fix overriding global settings for adding or removing headers
         type: bugfix
@@ -233,13 +250,6 @@ items:
           Resource validation errors are now reported more consistently; it was the case that in
           some situations a validation error would not be reported.
 
-      - title: Docker BuildKit always used for builds
-        type: change
-        body: >-
-          Docker BuildKit is enabled for all Emissary builds. Additionally, the Go
-          build cache is fully enabled when building images, speeding up repeated builds.
-        docs: https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md
-
   - version: 2.1.1
     date: 'N/A'
     notes:
@@ -262,8 +272,8 @@ items:
       - title: Envoy V2 API deprecation
         type: change
         body: >-
-          Support for the Envoy V2 API is deprecated in $productName$ v2.1, and will be removed in $productName$
-          v2.2.0. The <code>AMBASSADOR_ENVOY_API_VERSION</code> environment variable will be removed at the same
+          Support for the Envoy V2 API is deprecated as of $productName$ v2.1, and will be removed in $productName$
+          v3.0. The <code>AMBASSADOR_ENVOY_API_VERSION</code> environment variable will be removed at the same
           time. Only the Envoy V3 API will be supported (this has been the default since $productName$ v1.14.0).
 
       - title: Smoother migrations with support for getambassador.io/v2 CRDs
@@ -680,14 +690,6 @@ items:
           <code>Module</code> to to change the size of the upstream read and write buffers.
           The default is 1MiB.
         docs: topics/running/ambassador/#modify-default-buffer-size
-
-    edgeStackNotes:
-      - title: DevPortal supports configuring what server is displayed
-        type: feature
-        body: >-
-          You can now set <code>preserve_servers</code> in Ambassador Edge Stack's
-          <code>DevPortal</code> resource to configure the DevPortal to use server definitions from
-          the OpenAPI document when displaying connection information for services in the DevPortal.
 
   - version: 1.14.1
     date: '2021-08-24'
