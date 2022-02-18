@@ -18,7 +18,7 @@ import time
 import threading
 import traceback
 
-from .utils import ShellCommand, namespace_manifest
+from .utils import ShellCommand
 from ambassador.utils import parse_bool
 
 from yaml.scanner import ScannerError as YAMLScanError
@@ -1488,7 +1488,7 @@ class Runner:
         manifest_changed, manifest_reason = has_changed(yaml, fname)
 
         # First up: CRDs.
-        input_crds = integration_manifests.CRDmanifests
+        input_crds = integration_manifests.crd_manifests()
         if is_knative_compatible():
             input_crds += integration_manifests.load("knative_serving_crds")
 
@@ -1565,7 +1565,7 @@ class Runner:
         # Next up: the KAT pod.
         kat_client_manifests = integration_manifests.load("kat_client_pod")
         if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
-            kat_client_manifests = namespace_manifest("default") + kat_client_manifests
+            kat_client_manifests = integration_manifests.namespace_manifest("default") + kat_client_manifests
         changed, reason = has_changed(integration_manifests.format(kat_client_manifests), "/tmp/k8s-kat-pod.yaml")
 
         if changed:
@@ -1598,7 +1598,7 @@ class Runner:
         # XXX Better: switch to GCR.
         dummy_pod = integration_manifests.load("dummy_pod")
         if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
-            dummy_pod = namespace_manifest("default") + dummy_pod
+            dummy_pod = integration_manifests.namespace_manifest("default") + dummy_pod
         changed, reason = has_changed(integration_manifests.format(dummy_pod), "/tmp/k8s-dummy-pod.yaml")
 
         if changed:

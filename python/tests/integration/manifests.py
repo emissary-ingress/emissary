@@ -1,6 +1,8 @@
+import json
 import os
 import subprocess
-from typing import Dict, Final
+from base64 import b64encode
+from typing import Dict, Final, Optional
 
 def _get_images() -> Dict[str, str]:
     ret: Dict[str, str] = {}
@@ -37,7 +39,13 @@ def _get_images() -> Dict[str, str]:
 
     return ret
 
-images: Final = _get_images()
+_image_cache: Optional[Dict[str, str]] = None
+
+def get_images() -> Dict[str, str]:
+    global _image_cache
+    if not _image_cache:
+        _image_cache = _get_images()
+    return _image_cache
 
 _file_cache: Dict[str, str] = {}
 
@@ -58,13 +66,59 @@ imagePullSecrets:
 - name: dev-image-pull-secret
 """
         return st.format(serviceAccountExtra=serviceAccountExtra,
-                         images=images,
+                         images=get_images(),
                          **kwargs)
 
-# Use .replace instead of .format because there are other '{word}' things in 'description' fields
-# that would cause KeyErrors when .format erroneously tries to evaluate them.
-CRDmanifests: Final[str] = (
-    load('crds')
-    .replace('{images[emissary]}', images['emissary'])
-    .replace('{serviceAccountExtra}', format('{serviceAccountExtra}'))
-)
+def namespace_manifest(namespace: str) -> str:
+    ret = f"""
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {namespace}
+"""
+
+    if os.environ.get("DEV_USE_IMAGEPULLSECRET", None):
+        dockercfg = {
+            "auths": {
+                os.path.dirname(os.environ['DEV_REGISTRY']): {
+                    "auth": b64encode((os.environ['DOCKER_BUILD_USERNAME']+":"+os.environ['DOCKER_BUILD_PASSWORD']).encode("utf-8")).decode("utf-8")
+                }
+            }
+        }
+        ret += f"""
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dev-image-pull-secret
+  namespace: {namespace}
+type: kubernetes.io/dockerconfigjson
+data:
+  ".dockerconfigjson": "{b64encode(json.dumps(dockercfg).encode("utf-8")).decode("utf-8")}"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: {namespace}
+imagePullSecrets:
+- name: dev-image-pull-secret
+"""
+
+    return ret
+
+def crd_manifests() -> str:
+    ret = ""
+
+    ret += namespace_manifest('emissary-system')
+
+    # Use .replace instead of .format because there are other '{word}' things in 'description' fields
+    # that would cause KeyErrors when .format erroneously tries to evaluate them.
+    ret += (
+        load('crds')
+        .replace('{images[emissary]}', get_images()['emissary'])
+        .replace('{serviceAccountExtra}', format('{serviceAccountExtra}'))
+    )
+
+    return ret
