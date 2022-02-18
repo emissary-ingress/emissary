@@ -1,3 +1,6 @@
+/build-output/
+
+*.tgz
 *.img.tar
 *.layer.tar
 .*.stamp
