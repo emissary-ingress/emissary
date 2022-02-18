@@ -3,8 +3,10 @@ package entrypoint
 import (
 	"context"
 	//"github.com/datawire/dlib/derror"
+
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 )
 
 // This is a gross hack to remove all AuthServices using protocol_version: v2 only when running Edge-Stack and then inject an
@@ -19,6 +21,7 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 		return nil
 	}
 
+	injectSyntheticAuth := true
 	syntheticAuth := &v3alpha1.AuthService{
 		TypeMeta: kates.TypeMeta{
 			Kind:       "AuthService",
@@ -40,13 +43,70 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 	syntheticAuthExists := false
 	for _, authService := range sh.k8sSnapshot.AuthServices {
 		// Keep any AuthServices already using protocol_version: v3
-		if authService.ObjectMeta.Name == "synthetic-edge-stack-auth" {
-			syntheticAuthExists = true
-		} else if authService.Spec.ProtocolVersion == "v3" {
-			authServices = append(authServices, authService)
+		if authService.Spec.ProtocolVersion == "v3" {
+			injectSyntheticAuth = false
+			if authService.ObjectMeta.Name == "synthetic-edge-stack-auth" {
+				syntheticAuthExists = true
+			} else {
+				authServices = append(authServices, authService)
+			}
 		}
 	}
-	if len(authServices) == 0 && !syntheticAuthExists {
+
+	// Also loop over the annotations and remove authservices that are not v3. We do
+	// this by looping over each entry in the annotations map, removing all the non-v3
+	// AuthService entries, and then removing any keys that end up with empty lists.
+	//
+	// keysToDelete tracks keys to delete, since I never trust deleting things from
+	// collections while iterating over them.
+	keysToDelete := make([]string, 0)
+
+	// OK. Loop over all the keys and their corrauthServicesesponding lists of annotations...
+	for key, list := range sh.k8sSnapshot.Annotations {
+		// ...and build up our edited list of things.
+		editedList := snapshot.AnnotationList{}
+
+		for _, obj := range list {
+			switch annotationObj := obj.(type) {
+			case *v3alpha1.AuthService:
+				// This _is_ an AuthService, so we'll check its protocol version.
+				// Anything other than v3 gets tossed.
+				//
+				// Note also that AuthServices other than getambassador.io/v3 cannot
+				// have a protocol_version, but whatever -- that'll be something not
+				// equal to v3, so it'll get tossed, and that's what we want.
+				if annotationObj.Spec.ProtocolVersion == "v3" {
+					// Whoa, it's a v3! Keep it.
+					editedList = append(editedList, annotationObj)
+					authServices = append(authServices, annotationObj)
+					injectSyntheticAuth = false
+				}
+			default:
+				// This isn't an AuthService at all, so we'll keep it.
+				//
+				// XXX There's optimization to do here: if there are no AuthServices
+				// in our list, we needn't edit it at all. Something to circle back to
+				// later.
+				editedList = append(editedList, annotationObj)
+			}
+		}
+
+		// Once here, is our editedList is empty?
+		if len(editedList) == 0 {
+			// Yes. Delete the whole key for this list.
+			keysToDelete = append(keysToDelete, key)
+		} else {
+			// Nope, not empty. Save the edited list.
+			sh.k8sSnapshot.Annotations[key] = editedList
+		}
+	}
+
+	// Finally, delete any keys that ended up with empty lists.
+	for _, key := range keysToDelete {
+		delete(sh.k8sSnapshot.Annotations, key)
+	}
+
+	if injectSyntheticAuth {
 		// There are no valid AuthServices with protocol_version: v3. A synthetic one needs to be injected.
 		authServices = append(authServices, syntheticAuth)
 
