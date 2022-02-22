@@ -32,6 +32,10 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 2.3.0
+    date: 'TBD'
+    notes: []
+
   - version: 2.2.1
     date: '2022-02-22'
     notes:
