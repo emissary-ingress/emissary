@@ -26,7 +26,7 @@ import (
 // events.
 func TestFakeHello(t *testing.T) {
 	// Make sure we toggle the safety mechanism to filter out invalid secrets
-	os.Setenv("FORCE_SECRET_VALIDATION", "true")
+	os.Setenv("AMBASSADOR_FORCE_SECRET_VALIDATION", "true")
 
 	// Use RunFake() to spin up the ambassador control plane with its inputs wired up to the Fake
 	// APIs. This will automatically invoke the Setup() method for the Fake and also register the
@@ -77,11 +77,11 @@ func TestFakeHello(t *testing.T) {
 }
 
 // This test will cover the exact same paths as TestFakeHello, but with the
-// FORCE_SECRET_VALIDATION environment variable disabled. We expect the number of
+// AMBASSADOR_FORCE_SECRET_VALIDATION environment variable disabled. We expect the number of
 // secrets to be different.
 func TestFakeHelloNoSecretValidation(t *testing.T) {
 	// Make sure we toggle the safety mechanism to filter out invalid secrets
-	os.Setenv("FORCE_SECRET_VALIDATION", "false")
+	os.Setenv("AMBASSADOR_FORCE_SECRET_VALIDATION", "false")
 
 	// Use RunFake() to spin up the ambassador control plane with its inputs wired up to the Fake
 	// APIs. This will automatically invoke the Setup() method for the Fake and also register the
@@ -136,7 +136,7 @@ func TestFakeHelloNoSecretValidation(t *testing.T) {
 // This test will cover mTLS Secret validation with EC (Elliptic Curve) Private Keys
 func TestFakeHelloEC(t *testing.T) {
 	// Make sure we toggle the safety mechanism to filter out invalid secrets
-	os.Setenv("FORCE_SECRET_VALIDATION", "true")
+	os.Setenv("AMBASSADOR_FORCE_SECRET_VALIDATION", "true")
 
 	// Use RunFake() to spin up the ambassador control plane with its inputs wired up to the Fake
 	// APIs. This will automatically invoke the Setup() method for the Fake and also register the
@@ -168,8 +168,9 @@ func TestFakeHelloEC(t *testing.T) {
 	snap, err := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
 		hasMappings := len(snap.Kubernetes.Mappings) > 0
 		hasSecrets := len(snap.Kubernetes.Secrets) > 0
+		hasInvalid := len(snap.Invalid) > 0
 
-		return hasMappings && hasSecrets
+		return hasMappings && hasSecrets && hasInvalid
 	})
 	require.NoError(t, err)
 
@@ -177,14 +178,14 @@ func TestFakeHelloEC(t *testing.T) {
 	assert.Equal(t, "hello-elliptic-curve", snap.Kubernetes.Mappings[0].Name)
 
 	// This snapshot also needs to have three good secret...
-	assert.Equal(t, 3, len(snap.Kubernetes.Secrets))
-	secretNames := []string{snap.Kubernetes.Secrets[0].Name, snap.Kubernetes.Secrets[1].Name, snap.Kubernetes.Secrets[2].Name}
-	assert.Contains(t, secretNames, "hello-elliptic-curve-server")
+	assert.Equal(t, 2, len(snap.Kubernetes.Secrets))
+	secretNames := []string{snap.Kubernetes.Secrets[0].Name, snap.Kubernetes.Secrets[1].Name}
 	assert.Contains(t, secretNames, "hello-elliptic-curve-client")
 	assert.Contains(t, secretNames, "tls-cert")
 
 	// ...and no invalid secret.
-	assert.Equal(t, 0, len(snap.Invalid))
+	assert.Equal(t, 1, len(snap.Invalid))
+	assert.Equal(t, "hello-elliptic-curve-broken-server", snap.Invalid[0].GetName())
 }
 
 // By default the Fake struct only invokes the first part of the pipeline that forms the control

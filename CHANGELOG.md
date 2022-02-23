@@ -93,8 +93,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ### Emissary-ingress and Ambassador Edge Stack
 
 - Change: You may now choose to enable TLS Secret validation by setting the
-  `FORCE_SECRET_VALIDATION=true` environment variable. The default configuration does not enforce
-  secret validation.
+  `AMBASSADOR_FORCE_SECRET_VALIDATION=true` environment variable. The default configuration does not
+  enforce secret validation.
 
 - Bugfix: Kubernetes Secrets that should contain an EC (Elliptic Curve) TLS Private Key are now
   properly validated. ([4134])

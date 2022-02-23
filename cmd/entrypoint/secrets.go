@@ -27,7 +27,7 @@ func checkSecret(
 	what string,
 	ref snapshotTypes.SecretRef,
 	secret *v1.Secret) {
-	forceSecretValidation, _ := strconv.ParseBool(os.Getenv("FORCE_SECRET_VALIDATION"))
+	forceSecretValidation, _ := strconv.ParseBool(os.Getenv("AMBASSADOR_FORCE_SECRET_VALIDATION"))
 	// Make it more convenient to consistently refer to this secret.
 	secretName := fmt.Sprintf("%s secret %s.%s", what, ref.Name, ref.Namespace)
 
