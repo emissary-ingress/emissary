@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"os"
+	"strconv"
 	"strings"
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
@@ -25,6 +27,7 @@ func checkSecret(
 	what string,
 	ref snapshotTypes.SecretRef,
 	secret *v1.Secret) {
+	forceSecretValidation, _ := strconv.ParseBool(os.Getenv("FORCE_SECRET_VALIDATION"))
 	// Make it more convenient to consistently refer to this secret.
 	secretName := fmt.Sprintf("%s secret %s.%s", what, ref.Name, ref.Namespace)
 
@@ -57,6 +60,12 @@ func checkSecret(
 				// Try PKCS8? (No, = instead of := is not a typo here: we're overwriting the
 				// earlier error.)
 				_, err = x509.ParsePKCS8PrivateKey(caKeyBlock.Bytes)
+			}
+
+			if err != nil {
+				// Try EC? (No, = instead of := is not a typo here: we're overwriting the
+				// earlier error.)
+				_, err = x509.ParseECPrivateKey(caKeyBlock.Bytes)
 			}
 
 			// Any issues here?
@@ -95,10 +104,11 @@ func checkSecret(
 		}
 	}
 
-	if isValid {
+	if isValid || !forceSecretValidation {
 		dlog.Debugf(ctx, "taking %s", secretName)
 		sh.k8sSnapshot.Secrets = append(sh.k8sSnapshot.Secrets, secret)
-	} else {
+	}
+	if !isValid {
 		// This secret is invalid, but we're not going to log about it -- instead, it'll go into the
 		// list of Invalid resources.
 		dlog.Debugf(ctx, "%s is not valid, skipping: %s", secretName, errs.Error())
