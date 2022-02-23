@@ -87,6 +87,20 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.2.2] TBD
+[2.2.2]: https://github.com/emissary-ingress/emissary/compare/v2.2.1...v2.2.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: You may now choose to enable TLS Secret validation by setting the
+  `FORCE_SECRET_VALIDATION=true` environment variable. The default configuration does not enforce
+  secret validation.
+
+- Bugfix: Kubernetes Secrets that should contain an EC (Elliptic Curve) TLS Private Key are now
+  properly validated. ([4134])
+
+[4134]: https://github.com/emissary-ingress/emissary/issues/4134
+
 ## [2.2.1] February 22, 2022
 [2.2.1]: https://github.com/emissary-ingress/emissary/compare/v2.2.0...v2.2.1
 
