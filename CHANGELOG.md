@@ -88,11 +88,21 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## RELEASE NOTES
 
 ## [2.3.0] TBD
-[2.3.0]: https://github.com/emissary-ingress/emissary/compare/v2.2.0...v2.3.0
+[2.3.0]: https://github.com/emissary-ingress/emissary/compare/v2.2.1...v2.3.0
 
 ### Emissary-ingress and Ambassador Edge Stack
 
-- Bugfix: The Ambassador Agent now correctly supports requests to abort a rollout.
+## [2.2.1] February 22, 2022
+[2.2.1]: https://github.com/emissary-ingress/emissary/compare/v2.2.0...v2.2.1
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: Support for the Envoy V2 API is deprecated as of Emissary-ingress v2.1, and will be
+  removed in Emissary-ingress v3.0. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will be
+  removed at the same time. Only the Envoy V3 API will be supported (this has been the default since
+  Emissary-ingress v1.14.0).
+
+- Bugfix: The Ambassador Agent now correctly supports requests to cancel a rollout.
 
 ## [2.2.0] February 10, 2022
 [2.2.0]: https://github.com/emissary-ingress/emissary/compare/v2.1.2...v2.2.0
@@ -138,13 +148,19 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 [#4040]: https://github.com/emissary-ingress/emissary/pull/4040
 [#3821]: https://github.com/emissary-ingress/emissary/issues/3821
 
+### Ambassador Edge Stack only
+
+- Feature: You can now set `preserve_servers` in Ambassador Edge Stack's `DevPortal` resource to
+  configure the DevPortal to use server definitions from the OpenAPI document when displaying
+  connection information for services in the DevPortal.
+
 ## [2.1.2] January 25, 2022
 [2.1.2]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.1.2
 
 ### Emissary-ingress and Ambassador Edge Stack
 
-- Change: Support for the Envoy V2 API is deprecated in Emissary-ingress v2.1, and will be removed
-  in Emissary-ingress v2.2.0. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will be
+- Change: Support for the Envoy V2 API is deprecated as of Emissary-ingress v2.1, and will be
+  removed in Emissary-ingress v3.0. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will be
   removed at the same time. Only the Envoy V3 API will be supported (this has been the default since
   Emissary-ingress v1.14.0).
 
@@ -164,12 +180,12 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Using `rewrite: ""` in a `Mapping` is correctly handled to mean "do not rewrite the path
   at all".
 
+- Bugfix: Any `Mapping` that uses the `host_redirect` field is now properly discovered and used.
+  Thanks to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix! ([#3709])
+
 - Bugfix: `Mapping`s with DNS wildcard `hostname` will now be correctly matched with `Host`s.
   Previously, the case where both the `Host` and the `Mapping` use DNS wildcards for their hostnames
   could sometimes not correctly match when they should have.
-
-- Bugfix: Any `Mapping` that uses the `host_redirect` field is now properly discovered and used.
-  Thanks to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix! ([3709])
 
 - Bugfix: If the `ambassador` `Module` sets a global default for `add_request_headers`,
   `add_response_headers`, `remove_request_headers`, or `remove_response_headers`, it is often
@@ -189,10 +205,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Resource validation errors are now reported more consistently; it was the case that in
   some situations a validation error would not be reported.
 
-- Change: Docker BuildKit is enabled for all Emissary builds. Additionally, the Go build cache is
-  fully enabled when building images, speeding up repeated builds.
-
-[3709]: https://github.com/emissary-ingress/emissary/issues/3709
+[#3709]: https://github.com/emissary-ingress/emissary/issues/3709
 
 ## 2.1.1 not issued
 
@@ -205,8 +218,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary-ingress and Ambassador Edge Stack
 
-- Change: Support for the Envoy V2 API is deprecated in Emissary-ingress v2.1, and will be removed
-  in Emissary-ingress v2.2.0. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will be
+- Change: Support for the Envoy V2 API is deprecated as of Emissary-ingress v2.1, and will be
+  removed in Emissary-ingress v3.0. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will be
   removed at the same time. Only the Envoy V3 API will be supported (this has been the default since
   Emissary-ingress v1.14.0).
 
@@ -472,12 +485,6 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 
 - Feature: You can now set `buffer_limit_bytes` in the `ambassador` `Module` to to change the size
   of the upstream read and write buffers. The default is 1MiB.
-
-### Ambassador Edge Stack only
-
-- Feature: You can now set `preserve_servers` in Ambassador Edge Stack's `DevPortal` resource to
-  configure the DevPortal to use server definitions from the OpenAPI document when displaying
-  connection information for services in the DevPortal.
 
 ## [1.14.1] August 24, 2021
 [1.14.1]: https://github.com/emissary-ingress/emissary/compare/v1.14.0...v1.14.1
