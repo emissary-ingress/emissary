@@ -25,6 +25,9 @@ import (
 // magnitute faster, this also provides the author of the test perfect control over the ordering of
 // events.
 func TestFakeHello(t *testing.T) {
+	// Make sure we toggle the safety mechanism to filter out invalid secrets
+	os.Setenv("AMBASSADOR_FORCE_SECRET_VALIDATION", "true")
+
 	// Use RunFake() to spin up the ambassador control plane with its inputs wired up to the Fake
 	// APIs. This will automatically invoke the Setup() method for the Fake and also register the
 	// Teardown() method with the Cleanup() hook of the supplied testing.T object.
@@ -71,6 +74,118 @@ func TestFakeHello(t *testing.T) {
 	// ...and one invalid secret.
 	assert.Equal(t, 1, len(snap.Invalid))
 	assert.Equal(t, "tls-broken-cert", snap.Invalid[0].GetName())
+}
+
+// This test will cover the exact same paths as TestFakeHello, but with the
+// AMBASSADOR_FORCE_SECRET_VALIDATION environment variable disabled. We expect the number of
+// secrets to be different.
+func TestFakeHelloNoSecretValidation(t *testing.T) {
+	// Make sure we toggle the safety mechanism to filter out invalid secrets
+	os.Setenv("AMBASSADOR_FORCE_SECRET_VALIDATION", "false")
+
+	// Use RunFake() to spin up the ambassador control plane with its inputs wired up to the Fake
+	// APIs. This will automatically invoke the Setup() method for the Fake and also register the
+	// Teardown() method with the Cleanup() hook of the supplied testing.T object.
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: false}, nil)
+
+	// The Fake harness has a store for both kubernetes resources and consul endpoint data. We can
+	// use the UpsertFile() to method to load as many resources as we would like. This is much like
+	// doing a `kubectl apply` to a real kubernetes API server, however apply uses fancy merge
+	// logic, whereas UpsertFile() does a simple Upsert operation. The `testdata/FakeHello.yaml`
+	// file has a single mapping named "hello".
+	assert.NoError(t, f.UpsertFile("testdata/FakeHello.yaml"))
+	// Initially the Fake harness is paused. This means we can make as many method calls as we want
+	// to in order to set up our initial conditions, and no inputs will be fed into the control
+	// plane. To feed inputs to the control plane, we can choose to either manually invoke the
+	// Flush() method whenever we want to send the control plane inputs, or for convenience we can
+	// enable AutoFlush so that inputs are set whenever we modify data that the control plane is
+	// watching.
+	f.AutoFlush(true)
+
+	// Once the control plane has started processing inputs, we need some way to observe its
+	// computation. The Fake harness provides two ways to do this. The GetSnapshot() method allows
+	// us to observe the snapshots assembled by the watchers for further processing. The
+	// GetEnvoyConfig() method allows us to observe the envoy configuration produced from a
+	// snapshot. Both these methods take a predicate so the can search for a snapshot that satisifes
+	// whatever conditions are being tested. This allows the test to verify that the correct
+	// computation is occurring without being overly prescriptive about the exact number of
+	// snapshots and/or envoy configs that are produce to achieve a certain result.
+	snap, err := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+		hasMappings := len(snap.Kubernetes.Mappings) > 0
+		hasSecrets := len(snap.Kubernetes.Secrets) > 0
+		hasInvalid := len(snap.Invalid) > 0
+
+		return hasMappings && hasSecrets && hasInvalid
+	})
+	require.NoError(t, err)
+
+	// Check that the snapshot contains the mapping from the file.
+	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
+
+	// This snapshot also needs to have one good secret, and one ignored bad secret...
+	assert.Equal(t, 2, len(snap.Kubernetes.Secrets))
+	secretNames := []string{snap.Kubernetes.Secrets[0].Name, snap.Kubernetes.Secrets[1].Name}
+	assert.Contains(t, secretNames, "tls-broken-cert")
+	assert.Contains(t, secretNames, "tls-cert")
+
+	// ...and one invalid secret.
+	assert.Equal(t, 1, len(snap.Invalid))
+	assert.Equal(t, "tls-broken-cert", snap.Invalid[0].GetName())
+}
+
+// This test will cover mTLS Secret validation with EC (Elliptic Curve) Private Keys
+func TestFakeHelloEC(t *testing.T) {
+	// Make sure we toggle the safety mechanism to filter out invalid secrets
+	os.Setenv("AMBASSADOR_FORCE_SECRET_VALIDATION", "true")
+
+	// Use RunFake() to spin up the ambassador control plane with its inputs wired up to the Fake
+	// APIs. This will automatically invoke the Setup() method for the Fake and also register the
+	// Teardown() method with the Cleanup() hook of the supplied testing.T object.
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: false}, nil)
+
+	// The Fake harness has a store for both kubernetes resources and consul endpoint data. We can
+	// use the UpsertFile() to method to load as many resources as we would like. This is much like
+	// doing a `kubectl apply` to a real kubernetes API server, however apply uses fancy merge
+	// logic, whereas UpsertFile() does a simple Upsert operation. The `testdata/FakeHelloEC.yaml`
+	// file has a single mapping named "hello".
+	assert.NoError(t, f.UpsertFile("testdata/FakeHelloEC.yaml"))
+	// Initially the Fake harness is paused. This means we can make as many method calls as we want
+	// to in order to set up our initial conditions, and no inputs will be fed into the control
+	// plane. To feed inputs to the control plane, we can choose to either manually invoke the
+	// Flush() method whenever we want to send the control plane inputs, or for convenience we can
+	// enable AutoFlush so that inputs are set whenever we modify data that the control plane is
+	// watching.
+	f.AutoFlush(true)
+
+	// Once the control plane has started processing inputs, we need some way to observe its
+	// computation. The Fake harness provides two ways to do this. The GetSnapshot() method allows
+	// us to observe the snapshots assembled by the watchers for further processing. The
+	// GetEnvoyConfig() method allows us to observe the envoy configuration produced from a
+	// snapshot. Both these methods take a predicate so the can search for a snapshot that satisifes
+	// whatever conditions are being tested. This allows the test to verify that the correct
+	// computation is occurring without being overly prescriptive about the exact number of
+	// snapshots and/or envoy configs that are produce to achieve a certain result.
+	snap, err := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+		hasMappings := len(snap.Kubernetes.Mappings) > 0
+		hasSecrets := len(snap.Kubernetes.Secrets) > 0
+		hasInvalid := len(snap.Invalid) > 0
+
+		return hasMappings && hasSecrets && hasInvalid
+	})
+	require.NoError(t, err)
+
+	// Check that the snapshot contains the mapping from the file.
+	assert.Equal(t, "hello-elliptic-curve", snap.Kubernetes.Mappings[0].Name)
+
+	// This snapshot also needs to have three good secret...
+	assert.Equal(t, 2, len(snap.Kubernetes.Secrets))
+	secretNames := []string{snap.Kubernetes.Secrets[0].Name, snap.Kubernetes.Secrets[1].Name}
+	assert.Contains(t, secretNames, "hello-elliptic-curve-client")
+	assert.Contains(t, secretNames, "tls-cert")
+
+	// ...and no invalid secret.
+	assert.Equal(t, 1, len(snap.Invalid))
+	assert.Equal(t, "hello-elliptic-curve-broken-server", snap.Invalid[0].GetName())
 }
 
 // By default the Fake struct only invokes the first part of the pipeline that forms the control
