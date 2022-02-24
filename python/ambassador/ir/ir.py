@@ -89,6 +89,7 @@ class IR:
     groups: Dict[str, IRBaseMappingGroup]
     grpc_services: Dict[str, IRCluster]
     hosts: Dict[str, IRHost]
+    invalid: List[Dict]
     invalidate_groups_for: List[str]
     # The key for listeners is "{bindaddr}-{port}" (see IRListener.bind_to())
     listeners: Dict[str, IRListener]
@@ -216,9 +217,12 @@ class IR:
         # ...then make sure we have a logger...
         self.logger = logger or logging.getLogger("ambassador.ir")
 
-        # ...then make sure we have a cache (which might be a NullCache).
+        # ...then make sure we have a cache (which might be a NullCache)...
         self.cache = cache or NullCache(self.logger)
         self.invalidate_groups_for = invalidate_groups_for or []
+
+        # ...then, finally, grab all the invalid objects from the aconf. This is for metrics later.
+        self.invalid = aconf.invalid
 
         self.cache.dump("Fetcher")
 

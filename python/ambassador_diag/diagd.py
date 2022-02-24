@@ -1520,6 +1520,13 @@ class AmbassadorEventWatcher(threading.Thread):
         with self.app.aconf_timer:
             aconf.load_all(fetcher.sorted())
 
+            # TODO(Flynn): This is an awful hack. Have aconf.load(fetcher) that does
+            # this correctly.
+            #
+            # I'm not doing this at this moment because aconf.load_all() is called in a
+            # lot of places, and I don't want to destablize 2.2.2.
+            aconf.load_invalid(fetcher)
+
         aconf_path = os.path.join(app.snapshot_path, "aconf-tmp.json")
         open(aconf_path, "w").write(aconf.as_json())
 

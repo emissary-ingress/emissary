@@ -57,6 +57,7 @@ k8sLabelMatcher = re.compile(r'([\w\-_./]+)=\"(.+)\"')
 class ResourceFetcher:
     manager: ResourceManager
     k8s_processor: KubernetesProcessor
+    invalid: List[Dict]
 
     def __init__(self, logger: logging.Logger, aconf: 'Config',
                  skip_init_dir: bool=False, watch_only=False) -> None:
@@ -270,9 +271,9 @@ spec:
             # processed??? It's because they have error information that we need to
             # propagate to the user, and this is the simplest way to do that.
 
-            invalid: List[Dict] = watt_dict.get('Invalid') or []
+            self.invalid: List[Dict] = watt_dict.get('Invalid') or []
 
-            for obj in invalid:
+            for obj in self.invalid:
                 kind = obj.get('kind', None)
 
                 if not kind:
