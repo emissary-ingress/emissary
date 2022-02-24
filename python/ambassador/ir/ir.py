@@ -996,7 +996,7 @@ class IR:
         return dump_json(self.as_dict(), pretty=True)
 
     def features(self) -> Dict[str, Any]:
-        od: Dict[str, Union[bool, int, Optional[str]]] = {}
+        od: Dict[str, Union[bool, int, Optional[str], Dict]] = {}
 
         if self.aconf.helm_chart:
             od['helm_chart'] = self.aconf.helm_chart
@@ -1294,6 +1294,16 @@ class IR:
 
         od['listener_count'] = len(self.listeners)
         od['host_count'] = len(self.hosts)
+
+        invalid_counts: Dict[str, int] = {}
+
+        if self.invalid:
+            for obj in self.invalid:
+                kind = obj.get("kind") or "(unknown)"
+
+                invalid_counts[kind] = invalid_counts.get(kind, 0) + 1
+
+        od['invalid_counts'] = invalid_counts
 
         # Fast reconfiguration information is supplied in check_scout in diagd.py.
 
