@@ -25,7 +25,7 @@ Get Started using a demo service with the quick start guide available in the doc
 This chart deploys either Edge Stack or Emissary-Ingress 1.14 on
 a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
-> The helm value `enableAES` is used in this chart to determine whether Emissary-Ingress or Edge Stack is Installed. The default is to install Edge Stack. 
+> The helm value `enableAES` is used in this chart to determine whether Emissary-Ingress or Edge Stack is Installed. The default is to install Edge Stack.
 
 For the 2.0 release line, Emissary-Ingress and Edge-Stack have separate charts. You should use the following 2.0 chart for the product of your choice when migrating to newer versions or starting a new install.
 
@@ -121,7 +121,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `envRaw`                                           | Additional environment variables in raw YAML format                                                                                                                      | `{}`                                                                                                |
 | `image.pullPolicy`                                 | Ambassador image pull policy                                                                                                                                             | `IfNotPresent`                                                                                      |
 | `image.repository`                                 | Ambassador image                                                                                                                                                         | `docker.io/datawire/aes`                                                                            |
-| `image.tag`                                        | Ambassador image tag                                                                                                                                                     | `1.14.2`                                                                                             |
+| `image.tag`                                        | Ambassador image tag                                                                                                                                                     | `1.14.3`                                                                                             |
 | `imagePullSecrets`                                 | Image pull secrets                                                                                                                                                       | `[]`                                                                                                |
 | `namespace.name`                                   | Set the `AMBASSADOR_NAMESPACE` environment variable                                                                                                                      | `metadata.namespace`                                                                                |
 | `scope.singleNamespace`                            | Set the `AMBASSADOR_SINGLE_NAMESPACE` environment variable and create namespaced RBAC if `rbac.enabled: true`                                                            | `false`                                                                                             |
