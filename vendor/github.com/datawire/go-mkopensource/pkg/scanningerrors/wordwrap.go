@@ -1,4 +1,4 @@
-package main
+package scanningerrors
 
 import (
 	"strings"
@@ -20,7 +20,7 @@ func indexWordSep(str string) int {
 	return -1
 }
 
-func wordwrap(indent, width int, str string) string {
+func Wordwrap(indent, width int, str string) string {
 	// 1. Tokenize the input
 	var words []string
 	str = strings.TrimLeft(str, whitespace)
