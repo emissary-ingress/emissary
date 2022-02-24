@@ -84,6 +84,13 @@ class ResourceFetcher:
         # Deltas, for managing the cache.
         self.deltas: List[Dict[str, Union[str, Dict[str, str]]]] = []
 
+        # Paranoia: make sure self.invalid is empty.
+        #
+        # TODO(Flynn): The only reason this is here is because filesystem configuration
+        # doesn't use parse_watt. This is broken for many reasons; filesystem configuration
+        # should be handled by entrypoint, so that we can make the fetcher _much_ simpler.
+        self.invalid = []
+
         # HACK
         # If AGENT_SERVICE is set, skip the init dir: we'll force some defaults later
         # instead.
