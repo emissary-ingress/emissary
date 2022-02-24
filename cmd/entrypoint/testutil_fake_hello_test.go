@@ -16,7 +16,14 @@ import (
 	v3cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/datawire/dlib/dlog"
 )
+
+// The IR layer produces a set of "feature" data describing things in use in the system.
+// For this test, we only care about the count of invalid secrets.
+type FakeFeatures struct {
+	Invalid map[string]int `json:"invalid_counts"`
+}
 
 // The Fake struct is a test harness for edgestack. It spins up the key portions of the edgestack
 // control plane that contain the bulk of its business logic, but instead of requiring tests to feed
@@ -44,7 +51,10 @@ func TestFakeHello(t *testing.T) {
 	// Use RunFake() to spin up the ambassador control plane with its inputs wired up to the Fake
 	// APIs. This will automatically invoke the Setup() method for the Fake and also register the
 	// Teardown() method with the Cleanup() hook of the supplied testing.T object.
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: false}, nil)
+	//
+	// Note that we _must_ set EnvoyConfig true to allow checking IR Features later, even though
+	// we don't actually do any checking of the Envoy config in this test.
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 
 	// The Fake harness has a store for both kubernetes resources and consul endpoint data. We can
 	// use the UpsertFile() to method to load as many resources as we would like. This is much like
@@ -53,13 +63,22 @@ func TestFakeHello(t *testing.T) {
 	// file has a single mapping named "hello".
 	assert.NoError(t, f.UpsertFile("testdata/FakeHello.yaml"))
 
+	// Note, also, that we needn't limit ourselves to a single input file. Here, we'll upsert
+	// a second file containing a broken TLS certificate, and we'll trust autoflush to do the
+	// right thing for us.
+	assert.NoError(t, f.UpsertFile("testdata/BrokenSecret.yaml"))
+
 	// Initially the Fake harness is paused. This means we can make as many method calls as we want
 	// to in order to set up our initial conditions, and no inputs will be fed into the control
 	// plane. To feed inputs to the control plane, we can choose to either manually invoke the
 	// Flush() method whenever we want to send the control plane inputs, or for convenience we can
 	// enable AutoFlush so that inputs are set whenever we modify data that the control plane is
 	// watching.
-	f.AutoFlush(true)
+	//
+	// XXX Well... that's the way it should work. For now, though, we need to manually flush a
+	// single time for both files, because something else strange is going on.
+	f.Flush()
+	// f.AutoFlush(true)
 
 	// Once the control plane has started processing inputs, we need some way to observe its
 	// computation. The Fake harness provides two ways to do this. The GetSnapshot() method allows
@@ -88,6 +107,13 @@ func TestFakeHello(t *testing.T) {
 	// ...and one invalid secret.
 	assert.Equal(t, 1, len(snap.Invalid))
 	assert.Equal(t, "tls-broken-cert", snap.Invalid[0].GetName())
+
+	// Finally, we need to see a single invalid Secret in the IR Features.
+	var features FakeFeatures
+	err = f.GetFeatures(dlog.NewTestContext(t, false), &features)
+	require.NoError(t, err)
+
+	assert.Equal(t, 1, features.Invalid["Secret"])
 }
 
 // TestFakeHelloNoSecretValidation will cover the exact same paths as TestFakeHello, but with
@@ -98,15 +124,17 @@ func TestFakeHelloNoSecretValidation(t *testing.T) {
 	// TestFakeHello. Read the comments there!
 	//
 	// We explicitly force secret validation off, so that broken secrets will not get dropped.
-	// They will still appear in the Invalid list, though.
+	// They will still appear in the Invalid list, and in the IR Features invalid_counts dict.
 	os.Setenv("AMBASSADOR_FORCE_SECRET_VALIDATION", "false")
 
-	// Get the test harness running. We don't need to be generating the Envoy config here.
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: false}, nil)
+	// Note that we _must_ set EnvoyConfig true to allow checking IR Features later.
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 
-	// After that, we can upsert FakeHello.yaml again.
+	// Once again, we'll use both FakeHello.yaml and BrokenSecret.yaml... and once again, we'll
+	// manually flush a single time.
 	assert.NoError(t, f.UpsertFile("testdata/FakeHello.yaml"))
-	f.AutoFlush(true)
+	assert.NoError(t, f.UpsertFile("testdata/BrokenSecret.yaml"))
+	f.Flush()
 
 	// We'll use the same predicate as TestFakeHello to grab a snapshot with some mappings,
 	// some secrets, and some invalid objects.
@@ -129,9 +157,16 @@ func TestFakeHelloNoSecretValidation(t *testing.T) {
 	assert.Contains(t, secretNames, "tls-cert")
 
 	// Even though the broken cert is in our "valid" list above, it should stil show
-	// up in the Invalid objects list.
+	// up in the Invalid objects list...
 	assert.Equal(t, 1, len(snap.Invalid))
 	assert.Equal(t, "tls-broken-cert", snap.Invalid[0].GetName())
+
+	// ...and in our invalid_counts in the IR Features.
+	var features FakeFeatures
+	err = f.GetFeatures(dlog.NewTestContext(t, false), &features)
+	require.NoError(t, err)
+
+	assert.Equal(t, 1, features.Invalid["Secret"])
 }
 
 // TestFakeHelloEC will cover mTLS Secret validation with EC (Elliptic Curve) Private Keys. Once again,
@@ -143,10 +178,10 @@ func TestFakeHelloEC(t *testing.T) {
 	// Make sure secret validation is on (so broken secrets won't show up in the "good" list).
 	os.Setenv("AMBASSADOR_FORCE_SECRET_VALIDATION", "true")
 
-	// Get the test harness running. We don't need to be generating the Envoy config here.
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: false}, nil)
+	// Note that we _must_ set EnvoyConfig true to allow checking IR Features later.
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 
-	// We can turn on autoflush before upserting anything, rather than after...
+	// AutoFlush will work fine here, with just the one file.
 	f.AutoFlush(true)
 
 	// FakeHelloEC.yaml contains good secrets and invalid secrets, so we just need the one file.
@@ -172,9 +207,16 @@ func TestFakeHelloEC(t *testing.T) {
 	assert.Contains(t, secretNames, "hello-elliptic-curve-client")
 	assert.Contains(t, secretNames, "tls-cert")
 
-	// ...since the broken cert shows up only in the invalid list.
+	// ...since the broken cert shows up only in the invalid list (and the IR Features, of
+	// course).
 	assert.Equal(t, 1, len(snap.Invalid))
 	assert.Equal(t, "hello-elliptic-curve-broken-server", snap.Invalid[0].GetName())
+
+	var features FakeFeatures
+	err = f.GetFeatures(dlog.NewTestContext(t, false), &features)
+	require.NoError(t, err)
+
+	assert.Equal(t, 1, features.Invalid["Secret"])
 }
 
 // TestFakeHelloWithEnvoyConfig is a Hello-World style test that also checks the Envoy configuration.
@@ -228,6 +270,13 @@ func TestFakeHelloWithEnvoyConfig(t *testing.T) {
 	endpoint := lbEndpoints[0].GetEndpoint()
 	address := endpoint.Address.GetSocketAddress().Address
 	assert.Equal(t, "hello", address)
+
+	// Since there are no broken secrets here, we should have no entries in the IR Features.
+	var features FakeFeatures
+	err = f.GetFeatures(dlog.NewTestContext(t, false), &features)
+	require.NoError(t, err)
+
+	assert.Equal(t, 0, features.Invalid["Secret"])
 }
 
 func FindCluster(envoyConfig *v3bootstrap.Bootstrap, predicate func(*v3cluster.Cluster) bool) *v3cluster.Cluster {

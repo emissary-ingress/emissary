@@ -842,6 +842,22 @@ def handle_ping():
     return "ACK\n", 200
 
 
+@app.route("/_internal/v0/features", methods=[ 'GET' ])
+@internal_handler
+def handle_features():
+    # If we don't have an IR yet, do nothing.
+    #
+    # We don't bother grabbing the config_lock here because we're not changing
+    # anything, and an features request hitting at exactly the same moment as
+    # the first configure is a race anyway. If it fails, that's not a big deal,
+    # they can try again.
+    if not app.ir:
+          app.logger.debug("Features: configuration required first")
+          return "Can't do features before configuration", 503
+
+    return jsonify(app.ir.features()), 200
+
+
 @app.route('/_internal/v0/watt', methods=[ 'POST' ])
 @internal_handler
 def handle_watt_update():
