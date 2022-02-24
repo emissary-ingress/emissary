@@ -92,6 +92,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Feature: Emissary-ingress currently logs an error if no `TLSContext`s are found; however, in some
+  situations (for example, when terminating TLS at the load balancer), this is not actually an
+  error. Setting `AMBASSADOR_MISSING_TLS_OK` to `true` in the environment will suppress the error.
+  (Thanks, [Vikas Kumar](https://github.com/vikas027)!)
+
 ## [2.2.1] February 22, 2022
 [2.2.1]: https://github.com/emissary-ingress/emissary/compare/v2.2.0...v2.2.1
 
