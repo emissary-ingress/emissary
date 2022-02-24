@@ -26,7 +26,7 @@ following Free and Open Source software:
     github.com/cncf/xds/go                                                                     v0.0.0-20220121163655-4a2b9fdd466b           Apache License 2.0
     github.com/datawire/dlib                                                                   v1.2.5-0.20211116212847-0316f8d7af2b         Apache License 2.0
     github.com/datawire/dtest                                                                  v0.0.0-20210928162311-722b199c4c2f           Apache License 2.0
-    github.com/datawire/go-mkopensource                                                        v0.0.0-20220203013436-a8068abfaa8b           Apache License 2.0
+    github.com/datawire/go-mkopensource                                                        v0.0.0-20220218163159-cc298d9fabc4           Apache License 2.0
     github.com/davecgh/go-spew                                                                 v1.1.1                                       ISC license
     github.com/docker/distribution                                                             v2.7.1+incompatible                          Apache License 2.0
     github.com/emicklei/go-restful                                                             v2.15.0+incompatible                         MIT license
