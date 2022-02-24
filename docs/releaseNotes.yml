@@ -34,7 +34,14 @@ changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.
 items:
   - version: 2.3.0
     date: 'TBD'
-    notes: []
+    notes:
+      - title: Liveness check idle timeout tuning
+        type: feature
+        body: >-
+          Set the diagd tcp idle timeout (i.e. keepalive timeout) to 300s, up from the
+          gunicorn default of 2s. This should help eliminate race-conditions where
+          probing `/ambassador/v0/check_alive` may intermittently fail. (Thanks,
+          [Jordan Neufeld](https://github.com/neufeldtech) and [Jason Smith](https://github.com/jasons42)!)
 
   - version: 2.2.1
     date: '2022-02-22'
