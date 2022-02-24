@@ -89,7 +89,7 @@ if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ -n "${PUBLISH_GIT_RELEAS
         echo "GH_RELEASE_TOKEN not set"
         exit 1
     fi
-    tag="chart-v${thisversion}"
+    tag="chart/v${thisversion}"
     export CHART_VERSION=${thisversion}
     title=`envsubst < ${chart_dir}/RELEASE_TITLE.tpl`
     repo_full_name="emissary-ingress/emissary"

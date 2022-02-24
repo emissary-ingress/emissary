@@ -580,7 +580,7 @@ commands:
         command: |
           thisversion=$(grep version: charts/ambassador/Chart.yaml | awk ' { print $2 }')
 
-          if [[ "<< pipeline.git.tag >>" != "chart-v${thisversion}" ]]; then
+          if [[ "<< pipeline.git.tag >>" != "chart/v${thisversion}" ]]; then
             echo "Chart version ${thisversion} doesn't match tag << pipeline.git.tag >>; aborting"
             exit 1
           fi
