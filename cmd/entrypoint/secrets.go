@@ -71,7 +71,7 @@ func checkSecret(
 			// Any issues here?
 			if err != nil {
 				errs = append(errs,
-					fmt.Errorf("%s %s cannot be parsed as PKCS1 or PKCS8: %s", secretName, v1.TLSPrivateKeyKey, err.Error()))
+					fmt.Errorf("%s %s cannot be parsed as PKCS1, PKCS8, or EC: %s", secretName, v1.TLSPrivateKeyKey, err.Error()))
 				isValid = false
 			}
 		} else {

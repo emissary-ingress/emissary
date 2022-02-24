@@ -13,7 +13,7 @@
 # limitations under the License
 import socket
 
-from typing import Any, Callable, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, Iterable, List, Optional, Tuple, Union, TYPE_CHECKING
 from typing import cast as typecast
 
 import collections
@@ -34,6 +34,8 @@ from ..resource import Resource
 from .acresource import ACResource
 from .acmapping import ACMapping
 
+if TYPE_CHECKING:
+    from ambassador.fetch.fetcher import ResourceFetcher
 
 #############################################################################
 ## config.py -- the main configuration parser for Ambassador
@@ -110,6 +112,9 @@ class Config:
     # rkey => ACResource
     sources: Dict[str, ACResource]
 
+    # Invalid objects (currently loaded using load_invalid())
+    invalid: List[Dict]
+
     errors: Dict[str, List[dict]]           # errors to post to the UI
     notices: Dict[str, List[str]]           # notices to post to the UI
     fatal_errors: int
@@ -168,6 +173,7 @@ class Config:
 
         self.counters = collections.defaultdict(lambda: 0)
 
+        self.invalid = []
         self.sources = {}
 
         # Save our magic internal sources.
@@ -277,6 +283,14 @@ class Config:
         Save a given ACResource as a source of Ambassador config information.
         """
         self.sources[resource.rkey] = resource
+
+    def load_invalid(self, fetcher: 'ResourceFetcher') -> None:
+        """
+        Loads the invalid resources from a ResourceFetcher. This and load_all() should be
+        combined.
+        """
+
+        self.invalid = fetcher.invalid
 
     def load_all(self, resources: Iterable[ACResource]) -> None:
         """

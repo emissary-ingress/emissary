@@ -89,6 +89,7 @@ class IR:
     groups: Dict[str, IRBaseMappingGroup]
     grpc_services: Dict[str, IRCluster]
     hosts: Dict[str, IRHost]
+    invalid: List[Dict]
     invalidate_groups_for: List[str]
     # The key for listeners is "{bindaddr}-{port}" (see IRListener.bind_to())
     listeners: Dict[str, IRListener]
@@ -216,9 +217,12 @@ class IR:
         # ...then make sure we have a logger...
         self.logger = logger or logging.getLogger("ambassador.ir")
 
-        # ...then make sure we have a cache (which might be a NullCache).
+        # ...then make sure we have a cache (which might be a NullCache)...
         self.cache = cache or NullCache(self.logger)
         self.invalidate_groups_for = invalidate_groups_for or []
+
+        # ...then, finally, grab all the invalid objects from the aconf. This is for metrics later.
+        self.invalid = aconf.invalid
 
         self.cache.dump("Fetcher")
 
@@ -992,7 +996,7 @@ class IR:
         return dump_json(self.as_dict(), pretty=True)
 
     def features(self) -> Dict[str, Any]:
-        od: Dict[str, Union[bool, int, Optional[str]]] = {}
+        od: Dict[str, Union[bool, int, Optional[str], Dict]] = {}
 
         if self.aconf.helm_chart:
             od['helm_chart'] = self.aconf.helm_chart
@@ -1290,6 +1294,16 @@ class IR:
 
         od['listener_count'] = len(self.listeners)
         od['host_count'] = len(self.hosts)
+
+        invalid_counts: Dict[str, int] = {}
+
+        if self.invalid:
+            for obj in self.invalid:
+                kind = obj.get("kind") or "(unknown)"
+
+                invalid_counts[kind] = invalid_counts.get(kind, 0) + 1
+
+        od['invalid_counts'] = invalid_counts
 
         # Fast reconfiguration information is supplied in check_scout in diagd.py.
 
