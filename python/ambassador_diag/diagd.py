@@ -69,8 +69,6 @@ __version__ = Version
 
 boot_time = datetime.datetime.now()
 
-no_tls_errors = parse_bool(os.environ.get('AMBASSADOR_MISSING_TLS_OK', 'false'))
-
 # allows 10 concurrent users, with a request timeout of 60 seconds
 tvars_cache = ExpiringDict(max_len=10, max_age_seconds=60)
 
@@ -1794,12 +1792,16 @@ class AmbassadorEventWatcher(threading.Thread):
 
         if tls_count:
             env_status.OK('TLS', f'{tls_count} TLSContext{" is" if (tls_count == 1) else "s are"} active')
+        else:
+            # We have no TLSContexts, but maybe we're, say, terminating TLS at the LB or the like.
+            # In cases like that, we wouldn't expect TLSContexts, so we allow the user to set
+            # AMBASSADOR_MISSING_TLS_OK to suppress the error.
+            skip_tls_errors = parse_bool(os.environ.get('AMBASSADOR_MISSING_TLS_OK', 'false'))
 
-        if no_tls_errors:
-            chime_failures['no TLS contexts'] = True
-            env_status.failure('TLS', "No TLSContexts are active")
-
-            env_good = False
+            if not skip_tls_errors:
+                env_good = False
+                chime_failures['no TLS contexts'] = True
+                env_status.failure('TLS', "No TLSContexts are active")
 
         if mapping_count:
             env_status.OK('Mappings', f'{mapping_count} Mapping{" is" if (mapping_count == 1) else "s are"} active')
