@@ -1,0 +1,11 @@
+Name: CacheControl
+Version: 1.99.6
+Summary: httplib2 caching for requests
+Home-page: https://github.com/ionrock/cachecontrol
+Author: Eric Larson
+Author-email: eric@ionrock.org
+License: UNKNOWN
+Location: /usr/lib/python3.8/site-packages
+Requires: requests, msgpack
+Required-by:
+

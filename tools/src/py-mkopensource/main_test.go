@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"io"
 	"os"
+	"path"
 	"testing"
 )
 
@@ -28,7 +29,7 @@ func TestMarkdownOutput(t *testing.T) {
 	require.NoError(t, readErr)
 
 	expectedOutput := getFileContents(t, "./testdata/successful-generation/expected_markdown.txt")
-	require.Equal(t, string(expectedOutput), string(programOutput))
+	require.Equal(t, expectedOutput, string(programOutput))
 }
 
 func TestJsonOutput(t *testing.T) {
@@ -51,12 +52,65 @@ func TestJsonOutput(t *testing.T) {
 	require.Equal(t, expectedOutput, programOutput)
 }
 
-func getFileContents(t *testing.T, path string) []byte {
+func TestLicenseErrors(t *testing.T) {
+	testCases := []struct {
+		testName     string
+		dependencies string
+		outputType   OutputType
+	}{
+		{
+			"GPL licenses are forbidden - Markdown format",
+			"./testdata/gpl-license",
+			markdownOutputType,
+		},
+		{
+			"GPL licenses are forbidden - JSON format",
+			"./testdata/gpl-license",
+			jsonOutputType,
+		},
+		{
+			"AGPL licenses are forbidden - Markdown format",
+			"./testdata/agpl-license",
+			markdownOutputType,
+		},
+		{
+			"AGPL licenses are forbidden - JSON format",
+			"./testdata/agpl-license",
+			jsonOutputType,
+		},
+		{
+			"Unknown licenses are identified correctly",
+			"./testdata/unknown-license",
+			jsonOutputType,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.testName, func(t *testing.T) {
+			//Arrange
+			pipDependencies, err := os.Open(path.Join(testCase.dependencies, "dependency_list.txt"))
+			require.NoError(t, err)
+			defer func() { _ = pipDependencies.Close() }()
+
+			_, w, pipeErr := os.Pipe()
+			require.NoError(t, pipeErr)
+
+			// Act
+			err = Main(markdownOutputType, pipDependencies, w)
+			require.Error(t, err)
+			expectedError := getFileContents(t, path.Join(testCase.dependencies, "expected_err.txt"))
+			require.Equal(t, expectedError, err.Error())
+			_ = w.Close()
+		})
+	}
+}
+
+func getFileContents(t *testing.T, path string) string {
 	content, err := os.ReadFile(path)
 	if err != nil && err != io.EOF {
 		require.NoError(t, err)
 	}
-	return content
+	return string(content)
 }
 
 func getDependencyInfoFromFile(t *testing.T, path string) *dependencies.DependencyInfo {
