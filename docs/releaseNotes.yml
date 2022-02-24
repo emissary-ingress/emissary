@@ -34,7 +34,14 @@ changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.
 items:
   - version: 2.3.0
     date: 'TBD'
-    notes: []
+    notes:
+      - title: Allow suppressing error about missing TLSContexts
+        type: feature
+        body: >-
+          $productName$ currently logs an error if no `TLSContext`s are found; however, in some situations
+          (for example, when terminating TLS at the load balancer), this is not actually an error. Setting
+          `AMBASSADOR_MISSING_TLS_OK` to `true` in the environment will suppress the error. (Thanks,
+          [Vikas Kumar](https://github.com/vikas027)!)
 
   - version: 2.2.1
     date: '2022-02-22'
