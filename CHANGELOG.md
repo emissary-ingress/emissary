@@ -92,6 +92,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Feature: Set the diagd tcp idle timeout (i.e. keepalive timeout) to 300s, up from the gunicorn
+  default of 2s. This should help eliminate race-conditions where probing
+  `/ambassador/v0/check_alive` may intermittently fail. (Thanks, [Jordan
+  Neufeld](https://github.com/neufeldtech) and [Jason Smith](https://github.com/jasons42)!)
+
 ## [2.2.1] February 22, 2022
 [2.2.1]: https://github.com/emissary-ingress/emissary/compare/v2.2.0...v2.2.1
 
