@@ -66,7 +66,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [1.14.3] February 24, 2022
+## [1.14.3] February 25, 2022
 [1.14.3]: https://github.com/emissary-ingress/emissary/compare/v1.14.2...v1.14.3
 
 ### Emissary Ingress and Ambassador Edge Stack
