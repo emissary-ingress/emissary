@@ -115,6 +115,10 @@ func GetInterestingTypes(ctx context.Context, serverTypeList []kates.APIResource
 		"KNativeClusterIngresses": {{typename: "clusteringresses.v1alpha1.networking.internal.knative.dev", ignoreIf: !IsKnativeEnabled()}}, // New in Knative Serving 0.3.0 (2019-01-09)
 		"KNativeIngresses":        {{typename: "ingresses.v1alpha1.networking.internal.knative.dev", ignoreIf: !IsKnativeEnabled()}},        // New in Knative Serving 0.7.0 (2019-06-25)
 
+		// Unstructured from Edge Stack
+		"FilterPolicies": {{typename: "filterpolicies.v3alpha1.getambassador.io"}},
+		"Filters":        {{typename: "filters.v3alpha1.getambassador.io"}},
+
 		// Native Emissary types
 		"AuthServices":                {{typename: "authservices.v3alpha1.getambassador.io"}},
 		"ConsulResolvers":             {{typename: "consulresolvers.v3alpha1.getambassador.io"}},
