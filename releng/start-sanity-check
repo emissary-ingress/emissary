@@ -14,7 +14,7 @@ import os.path
 from os import getenv
 from contextlib import contextmanager
 
-from lib import assert_eq, git_check_clean, parse_bool, vX, vY, re_ga
+from lib import assert_eq, git_check_clean, parse_bool, vX, vY, vZ, re_ga
 from lib.uiutil import Checker, CheckResult, run
 from lib.uiutil import run_txtcapture as run_capture
 
@@ -66,14 +66,21 @@ def main(next_ver: str, quiet: bool = False, allow_untracked: bool = False) -> i
     assert m
 
     # ...and figure out some branch names.
-    release_branch = os.environ.get("RELEASE_BRANCH") or f"release/v{m[vX]}.{m[vY]}"
     cur_branch = ""
 
-    with check(f"You're on master or {release_branch}"):
+    with check(f"You're on master or a release branch"):
         cur_branch = run_capture(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
 
-        if (cur_branch != "master") and (cur_branch != release_branch):
-            raise AssertionError(f"You can't start a release from {cur_branch}")
+        acceptable_branches = [
+            "master",
+            f"release/v{m[vX]}.{m[vY]}",
+            f"rel/v{m[vX]}.{m[vY]}.{m[vZ]}",
+        ]
+        if os.environ.get("RELEASE_BRANCH"):
+            acceptable_branches.append(os.environ.get("RELEASE_BRANCH"))
+
+        if cur_branch not in acceptable_branches:
+            raise AssertionError(f"You can't start a release from {repr(cur_branch)} (you must be on one of {repr(acceptable_branches)})")
 
     if checker.ok:
         with check("You're up-to-date with ambassador.git"):

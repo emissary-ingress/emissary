@@ -182,7 +182,7 @@ _anchors:
   "filter-chart-release-only": &filter-chart-release-only
     filters:
       tags:
-        only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+        only: /^chart/v[0-9]+\.[0-9]+\.[0-9]+$/
       branches:
         ignore: /.*/
   "filter-master-release-branches-only": &filter-master-release-branches-only

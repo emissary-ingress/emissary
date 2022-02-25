@@ -16,6 +16,7 @@ re_rc = re.compile(r'^([0-9]+)\.([0-9]+)\.([0-9]+)-rc\.([0-9]+)$')
 re_ga = re.compile(r'^([0-9]+)\.([0-9]+)\.([0-9]+)$')
 vX = 1
 vY = 2
+vZ = 3
 vN = 4
 
 DEFAULT_REPO = "emissary-ingress/emissary"
