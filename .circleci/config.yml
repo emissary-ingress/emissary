@@ -964,7 +964,7 @@ _anchors:
   filter-chart-release-only:
     filters:
       tags:
-        only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+        only: /^chart/v[0-9]+\.[0-9]+\.[0-9]+$/
       branches:
         ignore: /.*/
   filter-master-release-branches-only:
@@ -1174,7 +1174,7 @@ workflows:
         name: "oss-release-chart"
         filters:
           tags:
-            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+            only: /^chart/v[0-9]+\.[0-9]+\.[0-9]+$/
           branches:
             ignore: /.*/
   'OSS: Manifests Release':
@@ -1191,7 +1191,7 @@ workflows:
         name: "oss-rc-manifests-publish"
         filters:
           tags:
-            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+            only: /^chart/v[0-9]+\.[0-9]+\.[0-9]+$/
           branches:
             ignore: /.*/
   'OSS: Nightly':
