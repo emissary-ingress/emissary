@@ -12,6 +12,11 @@ jobs:
     steps:
       - job-lint
 
+  "oss-check-envoy-version":
+    executor: oss-linux
+    steps:
+      - job-check-envoy-version
+
   "oss-images":
     parameters:
       "release":
@@ -464,4 +469,3 @@ workflows:
               - test: pytest-envoy-v2
                 fast-reconfigure: true
                 legacy-mode: true
-
