@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
 	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
-	"golang.org/x/mod/module"
-	"golang.org/x/mod/semver"
 )
 
 // FlagErrorFunc is a function to be passed to (*cobra.Command).SetFlagErrorFunc that establishes
@@ -59,67 +56,18 @@ func main() {
 		if len(args) == 1 {
 			commitish = args[0]
 		}
-		desc, err := Describe(cmd.Context(), commitish, argDirPrefix)
+
+		dirtyMarker := ""
+		if commitish == "HEAD" {
+			dirtyMarker = fmt.Sprintf("-dirty.%d", time.Now().Unix())
+		}
+
+		desc, err := Describe(cmd.Context(), commitish, argDirPrefix, dirtyMarker)
 		if err != nil {
 			return err
 		}
-		fmt.Println(desc)
-		return nil
-	}
 
-	if err := argparser.ExecuteContext(ctx); err != nil {
-		fmt.Fprintf(argparser.ErrOrStderr(), "%s: error: %v\n", argparser.CommandPath(), err)
-		os.Exit(1)
-	}
-}
-
-func cmdOutput(ctx context.Context, args ...string) (string, error) {
-	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
-	cmd.Stderr = os.Stderr
-	bs, err := cmd.Output()
-	return string(bs), err
-}
-
-func Describe(ctx context.Context, commitish, dirPrefix string) (string, error) {
-	if dirPrefix != "" {
-		dirPrefix = path.Clean(dirPrefix) + "/"
-	}
-
-	commitInfo, err := statLocal(ctx, commitish)
-	if err != nil {
-		return "", err
-	}
-
-	parentTag, err := mostRecentTag(ctx, commitInfo, dirPrefix)
-	if err != nil {
-		return "", err
-	}
-
-	parentTagInfo, err := statLocal(ctx, parentTag)
-	if err != nil {
-		return "", err
-	}
-
-	isDirty := false
-	if commitish == "HEAD" {
-		out, err := cmdOutput(ctx, "git", "status", "--porcelain")
-		if err != nil {
-			return "", err
-		}
-		isDirty = len(out) > 0
-	}
-
-	goVersionStr := strings.TrimPrefix(parentTag, dirPrefix)
-	if parentTagInfo.Hash != commitInfo.Hash || isDirty {
-		goVersionStr = module.PseudoVersion(
-			semver.Major(goVersionStr),
-			goVersionStr,
-			commitInfo.Time,
-			ShortenSHA1(commitInfo.Hash))
-	}
-
-	if isDirty {
-		if os.Getenv("CI") != "" {
+		if dirtyMarker != "" && strings.HasPrefix(desc, dirtyMarker) && os.Getenv("CI") != "" {
 			fmt.Fprintln(os.Stderr, "error: this should not happen in CI: the tree should not be dirty")
 			// Don't bother checking for errors from .Run(), since these are
 			// just informative error messages.
@@ -135,8 +83,13 @@ func Describe(ctx context.Context, commitish, dirPrefix string) (string, error) 
 			_ = cmd.Run()
 			os.Exit(1)
 		}
-		goVersionStr += fmt.Sprintf("-dirty.%d", time.Now().Unix())
+
+		fmt.Println(desc)
+		return nil
 	}
 
-	return goVersionStr, nil
+	if err := argparser.ExecuteContext(ctx); err != nil {
+		fmt.Fprintf(argparser.ErrOrStderr(), "%s: error: %v\n", argparser.CommandPath(), err)
+		os.Exit(1)
+	}
 }
