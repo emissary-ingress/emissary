@@ -1,4 +1,4 @@
-// This file is a lightly modified subset of Go 1.17 cmd/go/internal/modfetch/codehost/codehost.go
+// This file is a lightly modified subset of Go 1.17 cmd/go/internal/modfetch/codehost/git.go
 
 package main
 

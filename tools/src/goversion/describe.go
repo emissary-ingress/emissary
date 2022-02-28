@@ -18,6 +18,16 @@ func cmdOutput(ctx context.Context, args ...string) (string, error) {
 	return string(bs), err
 }
 
+// Describe looks at the Git `commitish` and Git `vSEMVER` tags and returns a Go-modules-compatible
+// version string that refers to that commitish.
+//
+// If dirPrefix is non-empty, then Describe considers tags named `path.Join(dirPrefix, "vSEMVER")`
+// rather than `vSEMVER`.  Unlike Go itself, Describe does not validate that a `{dirPrefix}/go.mod`
+// file exist in the tree referred to by `commitish`.
+//
+// If dirtyMarker is non-empty, then Describe checks if the current Git tree is dirty and if so
+// appends dirtyMarker to the returned version string.  Strictly speaking, this makes the version
+// string not Go-modules-compatible.
 func Describe(ctx context.Context, commitish, dirPrefix, dirtyMarker string) (string, error) {
 	if dirPrefix != "" {
 		dirPrefix = path.Clean(dirPrefix) + "/"
@@ -48,6 +58,8 @@ func Describe(ctx context.Context, commitish, dirPrefix, dirtyMarker string) (st
 	}
 
 	goVersionStr := strings.TrimPrefix(parentTag, dirPrefix)
+	// The '|| isDirty' here is important so that the dirtyMarker parses as a *post*-release
+	// rather than as a pre-release.
 	if parentTagInfo.Hash != commitInfo.Hash || isDirty {
 		goVersionStr = module.PseudoVersion(
 			semver.Major(goVersionStr),
