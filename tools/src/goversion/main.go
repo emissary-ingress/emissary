@@ -48,6 +48,9 @@ func main() {
 	var argDirPrefix string
 	argparser.Flags().StringVar(&argDirPrefix, "dir-prefix", "",
 		"Consider the Go module `${COMMITISH}:${dir_prefix}/go.mod` instead of `${COMMITISH}:go.mod`")
+	var argAll bool
+	argparser.Flags().BoolVar(&argAll, "all", false,
+		"Print all possible version strings that identify `${COMMITISH}`, not just the highest one")
 
 	argparser.SetFlagErrorFunc(FlagErrorFunc)
 
@@ -62,12 +65,16 @@ func main() {
 			dirtyMarker = fmt.Sprintf("-dirty.%d", time.Now().Unix())
 		}
 
-		desc, err := Describe(cmd.Context(), commitish, argDirPrefix, dirtyMarker)
+		maxDescs := 1
+		if argAll {
+			maxDescs = 0
+		}
+		descs, err := Describe(cmd.Context(), commitish, argDirPrefix, dirtyMarker, maxDescs)
 		if err != nil {
 			return err
 		}
 
-		if dirtyMarker != "" && strings.HasPrefix(desc, dirtyMarker) && os.Getenv("CI") != "" {
+		if dirtyMarker != "" && strings.HasPrefix(descs[0], dirtyMarker) && os.Getenv("CI") != "" {
 			fmt.Fprintln(os.Stderr, "error: this should not happen in CI: the tree should not be dirty")
 			// Don't bother checking for errors from .Run(), since these are
 			// just informative error messages.
@@ -84,7 +91,9 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Println(desc)
+		for _, desc := range descs {
+			fmt.Println(desc)
+		}
 		return nil
 	}
 

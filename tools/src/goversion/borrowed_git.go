@@ -59,22 +59,23 @@ func statLocal(ctx context.Context, commitish string) (*commitInfo, error) {
 	return &info, nil
 }
 
-// mostRecentTag is based on and closely mimics  Go 1.17
+// forEachReachableTag is based on and closely mimics Go 1.17
 // cmd/go/internal/modfetch/codehost/git.go:gitRepo.RecentTag().
 //
-// The word "recent" is a little bit of a lie; it's based on semver ordering, not commit timestamps.
-func mostRecentTag(ctx context.Context, commit *commitInfo, dirPrefix string) (string, error) {
+// forEachReachableTag iterates over all Git tags matching "refs/tags/{dirPrefix}v{SEMVER}" that are
+// reachable-from (self-or-ancestor-of) the given `commit`, calling `cb` on each "v{SEMVER}" string
+// (with any "refs/tags/" or {dirPrefix} prefix trimmed off).  The iteration happens in no
+// particular order.
+func forEachReachableTag(ctx context.Context, commit *commitInfo, dirPrefix string, cb func(string)) error {
 	refPrefix := "refs/tags/" + dirPrefix
 	out, err := cmdOutput(ctx, "git", "for-each-ref",
 		"--format=%(refname)",
 		"--merged="+commit.Hash,
 		refPrefix)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	// prefixed tags aren't valid semver tags so compare without prefix, but only tags with correct prefix
-	var highest string
 	for _, line := range strings.Split(out, "\n") {
 		line = strings.TrimSpace(line)
 
@@ -88,16 +89,57 @@ func mostRecentTag(ctx context.Context, commit *commitInfo, dirPrefix string) (s
 		semtag := line[len(refPrefix):]
 
 		// Consider only tags that are valid and complete (not just major.minor prefixes).
-		// NOTE: Do not replace the call to semver.Compare with semver.Max.
-		// We want to return the actual tag, not a canonicalized version of it,
-		// and semver.Max currently canonicalizes (see golang.org/issue/32700).
 		if c := semver.Canonical(semtag); c == "" || !strings.HasPrefix(semtag, c) {
 			continue
 		}
+		cb(semtag)
+	}
+	return nil
+}
+
+// mostRecentTag is based on and closely mimics Go 1.17
+// cmd/go/internal/modfetch/codehost/git.go:gitRepo.RecentTag().
+//
+// The word "recent" is a little bit of a lie; it's based on semver ordering, not commit timestamps.
+func mostRecentTag(ctx context.Context, commit *commitInfo, dirPrefix string) (string, error) {
+	var highest string
+	err := forEachReachableTag(ctx, commit, dirPrefix, func(semtag string) {
+		// NOTE: Do not replace the call to semver.Compare with semver.Max.
+		// We want to return the actual tag, not a canonicalized version of it,
+		// and semver.Max currently canonicalizes (see golang.org/issue/32700).
 		if semver.Compare(semtag, highest) > 0 {
 			highest = semtag
 		}
+	})
+	if err != nil {
+		return "", err
 	}
-
+	if highest == "" {
+		return "", fmt.Errorf("no %q tags are reachable from %q",
+			dirPrefix+"v{SEMVER}", commit.Hash)
+	}
 	return dirPrefix + highest, nil
+}
+
+// mostRecentTags is like mostRecentTag, but returns a list of tags ordered most-recent-first,
+// rather than returning the singular most-recent tag.
+//
+// Like with mostRecentTag, the word "recent" is a little bit of a lie; it's based on semver
+// ordering, not commit timestamps.
+func mostRecentTags(ctx context.Context, commit *commitInfo, dirPrefix string) ([]string, error) {
+	var semtags []string
+	err := forEachReachableTag(ctx, commit, dirPrefix, func(semtag string) {
+		semtags = append(semtags, semtag)
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(semtags) == 0 {
+		return nil, fmt.Errorf("no %q tags are reachable from %q",
+			dirPrefix+"v{SEMVER}", commit.Hash)
+	}
+	sort.SliceStable(semtags, func(i, j int) bool {
+		return semver.Compare(semtags[i], semtags[j]) > 0
+	})
+	return semtags, nil
 }
