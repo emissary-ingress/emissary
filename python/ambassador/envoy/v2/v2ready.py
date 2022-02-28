@@ -35,6 +35,20 @@ class V2Ready(dict):
 
         config.ir.logger.info(f"V2Ready: ==== listen on %s:%s" % (rip, rport))
 
+        typed_config = {
+            '@type': 'type.googleapis.com/envoy.config.filter.http.health_check.v2.HealthCheck',
+            'pass_through_mode': False,
+            'headers': [
+                {
+                    'name': ':path',
+                    'exact_match': '/ready'
+                }
+            ]
+        }
+
+        if rlog:
+            typed_config['access_log'] = cls.access_log(config)
+
         ready_listener = {
             'name': 'ambassador-listener-ready-%s-%s' % (rip, rport),
             'address': {
@@ -58,16 +72,7 @@ class V2Ready(dict):
                                 'http_filters': [
                                     {
                                         'name': 'envoy.filters.http.health_check',
-                                        'typed_config': {
-                                            '@type': 'type.googleapis.com/envoy.config.filter.http.health_check.v2.HealthCheck',
-                                            'pass_through_mode': False,
-                                            'headers': [
-                                                {
-                                                    'name': ':path',
-                                                    'exact_match': '/ready'
-                                                }
-                                            ]
-                                        }
+                                        'typed_config': typed_config
                                     },
                                     {
                                         'name': 'envoy.filters.http.router'
@@ -79,9 +84,6 @@ class V2Ready(dict):
                 }
             ]
         }
-
-        if rlog:
-            ready_listener['filter_chains'][0]['filters'][0]['typed_config']['access_log'] = cls.access_log(config)
 
         config.static_resources['listeners'].append(ready_listener)
 

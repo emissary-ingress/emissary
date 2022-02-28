@@ -35,6 +35,19 @@ class V3Ready(dict):
 
         config.ir.logger.info(f"V3Ready: ==== listen on %s:%s" % (rip, rport))
 
+        typed_config = {
+            '@type': 'type.googleapis.com/envoy.extensions.filters.http.health_check.v3.HealthCheck',
+            'pass_through_mode': False,
+            'headers': [
+                {
+                    'name': ':path',
+                    'exact_match': '/ready'
+                }
+            ]
+        }
+        if rlog:
+            typed_config['access_log'] = cls.access_log(config)
+
         ready_listener = {
             'name': 'ambassador-listener-ready-%s-%s' % (rip, rport),
             'address': {
@@ -58,16 +71,7 @@ class V3Ready(dict):
                                 'http_filters': [
                                     {
                                         'name': 'envoy.filters.http.health_check',
-                                        'typed_config': {
-                                            '@type': 'type.googleapis.com/envoy.extensions.filters.http.health_check.v3.HealthCheck',
-                                            'pass_through_mode': False,
-                                            'headers': [
-                                                {
-                                                    'name': ':path',
-                                                    'exact_match': '/ready'
-                                                }
-                                            ]
-                                        }
+                                        'typed_config': typed_config
                                     },
                                     {
                                         'name': 'envoy.filters.http.router'
@@ -79,9 +83,6 @@ class V3Ready(dict):
                 }
             ]
         }
-
-        if rlog:
-            ready_listener['filter_chains'][0]['filters'][0]['typed_config']['access_log'] = cls.access_log(config)
 
         config.static_resources['listeners'].append(ready_listener)
 
