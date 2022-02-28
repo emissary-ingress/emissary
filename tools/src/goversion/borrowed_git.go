@@ -64,7 +64,11 @@ func statLocal(ctx context.Context, commitish string) (*commitInfo, error) {
 //
 // The word "recent" is a little bit of a lie; it's based on semver ordering, not commit timestamps.
 func mostRecentTag(ctx context.Context, commit *commitInfo, dirPrefix string) (string, error) {
-	out, err := cmdOutput(ctx, "git", "for-each-ref", "--format", "%(refname)", "refs/tags", "--merged", commit.Hash)
+	refPrefix := "refs/tags/" + dirPrefix
+	out, err := cmdOutput(ctx, "git", "for-each-ref",
+		"--format=%(refname)",
+		"--merged="+commit.Hash,
+		refPrefix)
 	if err != nil {
 		return "", err
 	}
@@ -73,18 +77,16 @@ func mostRecentTag(ctx context.Context, commit *commitInfo, dirPrefix string) (s
 	var highest string
 	for _, line := range strings.Split(out, "\n") {
 		line = strings.TrimSpace(line)
-		// git do support lstrip in for-each-ref format, but it was added in v2.13.0. Stripping here
-		// instead gives support for git v2.7.0.
-		if !strings.HasPrefix(line, "refs/tags/") {
+
+		// Git does support lstrip in for-each-ref format, but it was added in v2.13.0.
+		// Stripping here instead gives support for git v2.7.0.
+		if !strings.HasPrefix(line, refPrefix) {
+			// This check mostly just handles the trailing blank line and could be
+			// `if line != ""`, but let's have the full HasPrefix check just to be safe.
 			continue
 		}
-		line = line[len("refs/tags/"):]
+		semtag := line[len(refPrefix):]
 
-		if !strings.HasPrefix(line, dirPrefix) {
-			continue
-		}
-
-		semtag := line[len(dirPrefix):]
 		// Consider only tags that are valid and complete (not just major.minor prefixes).
 		// NOTE: Do not replace the call to semver.Compare with semver.Max.
 		// We want to return the actual tag, not a canonicalized version of it,
