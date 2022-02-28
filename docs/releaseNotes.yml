@@ -34,7 +34,21 @@ changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.
 items:
   - version: 2.3.0
     date: 'TBD'
-    notes: []
+    notes:
+      - title: Envoy V2 API deprecation
+        type: change
+        body: >-
+          Support for the Envoy V2 API is deprecated as of $productName$ v2.1, and will be removed in $productName$
+          v3.0. The <code>AMBASSADOR_ENVOY_API_VERSION</code> environment variable will be removed at the same
+          time. Only the Envoy V3 API will be supported (this has been the default since $productName$ v1.14.0).
+
+      - title: Allow protecting readiness checks from reconfiguration latency
+        type: feature
+        body: >-
+          Setting the <code>ready_port</code> in the <code>ambassador</code> <code>module</code> will
+          cause Emissary to respond to readiness checks on that port, thus moving readiness checks away
+          from code which can be slowed by reconfigurations.
+          (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!)
 
   - version: 2.2.1
     date: '2022-02-22'

@@ -92,6 +92,15 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Change: Support for the Envoy V2 API is deprecated as of Emissary-ingress v2.1, and will be
+  removed in Emissary-ingress v3.0. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will be
+  removed at the same time. Only the Envoy V3 API will be supported (this has been the default since
+  Emissary-ingress v1.14.0).
+
+- Feature: Setting the `ready_port` in the `ambassador` `module` will cause Emissary to respond to
+  readiness checks on that port, thus moving readiness checks away from code which can be slowed by
+  reconfigurations. (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!)
+
 ## [2.2.1] February 22, 2022
 [2.2.1]: https://github.com/emissary-ingress/emissary/compare/v2.2.0...v2.2.1
 
