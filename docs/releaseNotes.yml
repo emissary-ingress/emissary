@@ -34,7 +34,11 @@ changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.
 items:
   - version: 2.3.0
     date: 'TBD'
-    notes: []
+    notes:
+      - title: Remove unused packages
+        type: security
+        body: >-
+          Completely remove gdbm, pip, smtplib, and sqlite packages, as they are unused.
 
   - version: 2.2.1
     date: '2022-02-22'
