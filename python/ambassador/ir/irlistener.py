@@ -53,7 +53,7 @@ class IRListener (IRResource):
         "HTTPPROXY": [ "PROXY", "HTTP", "TCP" ],
 
         # HTTPSPROXY: accepts encrypted HTTP/1.1 or HTTP/2 sessions using the HAProxy PROXY protocol over TLS over TCP.
-        "HTTPSPROXY": [ "TLS", "PROXY", "HTTP", "TCP" ],
+        "HTTPSPROXY": [ "PROXY", "TLS", "HTTP", "TCP" ],
 
         # TCP: accepts raw TCP sessions.
         "TCP": [ "TCP" ],
