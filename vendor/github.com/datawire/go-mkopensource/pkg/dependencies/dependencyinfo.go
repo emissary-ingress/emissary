@@ -9,7 +9,9 @@ import (
 //nolint:gochecknoglobals // Can't be a constant
 var licensesByName = map[string]License{
 	AmbassadorProprietary.Name: AmbassadorProprietary,
+	ZeroBSD.Name:               ZeroBSD,
 	Apache2.Name:               Apache2,
+	AFL21.Name:                 AFL21,
 	AGPL1Only.Name:             AGPL1Only,
 	AGPL1OrLater.Name:          AGPL1OrLater,
 	AGPL3Only.Name:             AGPL3Only,
@@ -17,7 +19,11 @@ var licensesByName = map[string]License{
 	BSD1.Name:                  BSD1,
 	BSD2.Name:                  BSD2,
 	BSD3.Name:                  BSD3,
+	Cc010.Name:                 Cc010,
+	CcBy30.Name:                CcBy30,
+	CcBy40.Name:                CcBy40,
 	CcBySa40.Name:              CcBySa40,
+	EPL10.Name:                 EPL10,
 	GPL1Only.Name:              GPL1Only,
 	GPL1OrLater.Name:           GPL1OrLater,
 	GPL2Only.Name:              GPL2Only,
@@ -32,10 +38,17 @@ var licensesByName = map[string]License{
 	LGPL3Only.Name:             LGPL3Only,
 	LGPL3OrLater.Name:          LGPL3OrLater,
 	MIT.Name:                   MIT,
+	MPL11.Name:                 MPL11,
 	MPL2.Name:                  MPL2,
+	ODCBy10.Name:               ODCBy10,
+	OFL11.Name:                 OFL11,
 	PSF.Name:                   PSF,
+	Python20.Name:              Python20,
 	PublicDomain.Name:          PublicDomain,
-	Unicode2015.Name:           Unicode2015}
+	Unicode2015.Name:           Unicode2015,
+	Unlicense.Name:             Unlicense,
+	WTFPL.Name:                 WTFPL,
+}
 
 type DependencyInfo struct {
 	Dependencies []Dependency      `json:"dependencies"`
@@ -91,29 +104,20 @@ func getLicenseFromName(licenseName string) (License, error) {
 	return license, nil
 }
 
-// CheckLicenses checks that the licenses used by the dependencies are known and allowed to be used
-//in an application based on the buiness logic described here: https://www.notion.so/datawire/License-Management-5194ca50c9684ff4b301143806c92157.
-//This function must be called after parsing of the licenses has been done.
-func (d *DependencyInfo) CheckLicenses(allowedLicenses AllowedLicenseUse) error {
-	if allowedLicenses == Forbidden {
-		return fmt.Errorf("forbidden licenses should not be used")
+func CheckLicenseRestrictions(dependency Dependency, licenseName string, licenseRestriction LicenseRestriction) error {
+	license, err := getLicenseFromName(licenseName)
+	if err != nil {
+		return err
 	}
 
-	for _, dependency := range d.Dependencies {
-		for _, licenseName := range dependency.Licenses {
-			license, err := getLicenseFromName(licenseName)
-			if err != nil {
-				return err
-			}
+	if license.Restriction == Forbidden {
+		return fmt.Errorf("Dependency '%s@%s' uses license '%s' which is forbidden.", dependency.Name,
+			dependency.Version, license.Name)
+	}
 
-			if license.AllowedUse == Forbidden {
-				return fmt.Errorf("license '%s' is forbidden", license.Name)
-			}
-
-			if license.AllowedUse < allowedLicenses {
-				return fmt.Errorf("license '%s' should not be used since it should not run on customer servers", license.Name)
-			}
-		}
+	if license.Restriction < licenseRestriction {
+		return fmt.Errorf("Dependency '%s@%s' uses license '%s' which is not allowed on applications that run on customer machines.",
+			dependency.Name, dependency.Version, license.Name)
 	}
 	return nil
 }

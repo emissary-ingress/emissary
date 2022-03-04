@@ -9,8 +9,10 @@ import (
 )
 
 func GenerateDependencyList(modNames []string, modLicenses map[string]map[detectlicense.License]struct{},
-	modInfos map[string]*golist.Module, goVersion string, licenseUsage detectlicense.AllowedLicenseUse) (dependencies.DependencyInfo, error) {
-	dependencyList := dependencies.NewDependencyInfo()
+	modInfos map[string]*golist.Module, goVersion string,
+	licenseRestriction detectlicense.LicenseRestriction) (dependencyList dependencies.DependencyInfo, errors []error) {
+	dependencyList = dependencies.NewDependencyInfo()
+	errors = []error{}
 
 	for _, modKey := range modNames {
 		ambassadorProprietary := isAmbassadorProprietary(modLicenses[modKey])
@@ -28,21 +30,21 @@ func GenerateDependencyList(modNames []string, modLicenses map[string]map[detect
 
 		for license := range modLicenses[modKey] {
 			dependencyDetails.Licenses = append(dependencyDetails.Licenses, license.Name)
+
+			if err := dependencies.CheckLicenseRestrictions(dependencyDetails, license.Name, licenseRestriction); err != nil {
+				errors = append(errors, err)
+			}
 		}
 		sort.Strings(dependencyDetails.Licenses)
 
 		dependencyList.Dependencies = append(dependencyList.Dependencies, dependencyDetails)
 	}
 
-	if err := dependencyList.CheckLicenses(licenseUsage); err != nil {
-		return dependencyList, fmt.Errorf("License validation failed: %v\n", err)
-	}
-
 	if err := dependencyList.UpdateLicenseList(); err != nil {
-		return dependencyList, fmt.Errorf("Could not generate list of license URLs: %v\n", err)
+		errors = append(errors, fmt.Errorf("Could not generate list of license URLs: %v\n", err))
 	}
 
-	return dependencyList, nil
+	return dependencyList, errors
 }
 
 func getDependencyName(modVal *golist.Module) string {
