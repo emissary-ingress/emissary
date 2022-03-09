@@ -1,10 +1,16 @@
 # Community Meeting Schedule
 
-We hold Ambassador Developer Office Hours once a week on Thursdays, and we devote the second session every month to Emissary.  These sessions are a way to connect in person to share updates and listen to feedback from the community. 
+## Weekly Troubleshooting
 
-For the latest Ambassador Developer Office Hours information, [visit the website](https://www.getambassador.io/developer-office-hours/).
+We hold troubleshooting sessions once a week on Thursdays, at 2:30 pm Eastern.  These sessions are a way to connect in person with project maintainers and get help with any problems you might be encountering while using Emissary-ingress.
+
+**Zoom Meeting Link**: https://us02web.zoom.us/j/83032365622
 
 
-**Zoom Meeting Link**: https://us02web.zoom.us/j/86920930400
+## Monthly Contributors Meeting
 
-**Recordings**: http://bit.ly/AmbassadorOfficeHoursRecordings
+The Emissary-ingress Contributors Meeting is held on the first Wednesday of every month at 1pm Eastern.  The focus of this meeting is discussion of technical issues related to development of Emissary-ingress.
+
+New contributors are always welcome! Check out our [contributor's guide](https://github.com/emissary-ingress/emissary/blob/master/DEVELOPING.md) to learn how you can help make Emissary-ingress better.
+
+**Zoom Meeting Link**: https://us02web.zoom.us/j/85154302860
