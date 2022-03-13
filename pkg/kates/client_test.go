@@ -12,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/datawire/dlib/dlog"
 	dtest_k3s "github.com/datawire/dtest"
@@ -570,4 +571,90 @@ func checkNoDelta(t *testing.T, name string, deltas []*Delta) {
 			return
 		}
 	}
+}
+
+// This is a unit test for the patchWatch method of client. When you are watching resources and also
+// modifying the same set that you are watching (as is the case with a read/write controller), the
+// client has two sources of information for any given resource: (1) the version of the resource
+// reported by the watch, and (2) the version of the resource returned whenever a
+// Create/Update/Delete is performed. The patchWatch method updates the results of a watch to ensure
+// we always report back the newest version for any given resource.
+func TestPatchWatch(t *testing.T) {
+	require := require.New(t)
+	assert := assert.New(t)
+
+	ctx := context.Background()
+
+	cli, err := NewClient(ClientConfig{})
+	require.NoError(err)
+
+	// Build up a field the same way newAccumulator does. (Could stand to be deduplicated later.)
+	query := Query{Name: "Pods", Kind: "pods"}
+
+	mapping, err := cli.mappingFor(query.Kind)
+	require.NoError(err)
+	sel, err := ParseSelector(query.LabelSelector)
+	require.NoError(err)
+
+	field := &field{
+		query:    query,
+		mapping:  mapping,
+		selector: sel,
+		values:   make(map[string]*Unstructured),
+		deltas:   make(map[string]*Delta),
+	}
+
+	// Convenience function for making multiple versions of a given pod.
+	makePod := func(namespace, name string, version int) *Unstructured {
+		un := &Unstructured{}
+		un.SetGroupVersionKind(mapping.GroupVersionKind)
+		un.SetNamespace(namespace)
+		un.SetName(name)
+		un.SetUID(types.UID(fmt.Sprintf("UID:%s.%s", namespace, name)))
+		un.SetResourceVersion(fmt.Sprintf("%d", version))
+		return un
+	}
+
+	// The field.values map holds the version of a resource reported by watch.
+	//
+	// The cli.canonical map stores any resource that we Get/List/Create/Update/Delete.
+	//
+	// We can exercise all logic in patchWatch by populating these two maps in various permutations
+	// as is done below:
+
+	// Make a pod to take through the CRUD cycle.
+	p1 := makePod("default", "foo", 1)
+	p1Key := unKey(p1)
+
+	p1Newer := makePod("default", "foo", 2)
+	require.Equal(p1Key, unKey(p1Newer))
+
+	// Create: something in cli.canonical, nothing in field.values
+	cli.canonical[p1Key] = p1
+	delete(field.values, p1Key)
+	err = cli.patchWatch(ctx, field)
+	require.NoError(err)
+	assert.Equal(p1, field.values[p1Key])
+
+	// Local Update: something newer in cli.canonical, older version in field.values
+	cli.canonical[p1Key] = p1Newer
+	field.values[p1Key] = p1
+	err = cli.patchWatch(ctx, field)
+	require.NoError(err)
+	assert.Equal(p1Newer, field.values[p1Key])
+
+	// Remote Update: something older in cli.canonical, something newer in field.values
+	cli.canonical[p1Key] = p1
+	field.values[p1Key] = p1Newer
+	err = cli.patchWatch(ctx, field)
+	require.NoError(err)
+	assert.Equal(p1Newer, field.values[p1Key])
+	assert.NotContains(cli.canonical, p1Key)
+
+	// Delete: nil value in cli.canonical, something in field.values
+	cli.canonical[p1Key] = nil
+	field.values[p1Key] = p1Newer
+	err = cli.patchWatch(ctx, field)
+	require.NoError(err)
+	assert.NotContains(field.values, p1Key)
 }

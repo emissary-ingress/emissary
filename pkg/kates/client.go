@@ -989,7 +989,7 @@ func (c *Client) patchWatch(ctx context.Context, field *field) error {
 				// remove it.
 				dlog.Println(ctx, "Patching delete", field.mapping.GroupVersionKind.Kind, key)
 				delete(field.values, key)
-				field.deltas[key] = newDelta(ObjectDelete, can)
+				field.deltas[key] = newDelta(ObjectDelete, item)
 			} else if newer, err := gteq(item.GetResourceVersion(), can.GetResourceVersion()); err != nil {
 				return err
 			} else if newer {
