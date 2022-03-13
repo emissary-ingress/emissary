@@ -588,26 +588,14 @@ func TestPatchWatch(t *testing.T) {
 	cli, err := NewClient(ClientConfig{})
 	require.NoError(err)
 
-	// Build up a field the same way newAccumulator does. (Could stand to be deduplicated later.)
-	query := Query{Name: "Pods", Kind: "pods"}
-
-	mapping, err := cli.mappingFor(query.Kind)
+	// Make a field the same way newAccumulator does.
+	field, err := cli.newField(Query{Name: "Pods", Kind: "pods"})
 	require.NoError(err)
-	sel, err := ParseSelector(query.LabelSelector)
-	require.NoError(err)
-
-	field := &field{
-		query:    query,
-		mapping:  mapping,
-		selector: sel,
-		values:   make(map[string]*Unstructured),
-		deltas:   make(map[string]*Delta),
-	}
 
 	// Convenience function for making multiple versions of a given pod.
 	makePod := func(namespace, name string, version int) *Unstructured {
 		un := &Unstructured{}
-		un.SetGroupVersionKind(mapping.GroupVersionKind)
+		un.SetGroupVersionKind(field.mapping.GroupVersionKind)
 		un.SetNamespace(namespace)
 		un.SetName(name)
 		un.SetUID(types.UID(fmt.Sprintf("UID:%s.%s", namespace, name)))
