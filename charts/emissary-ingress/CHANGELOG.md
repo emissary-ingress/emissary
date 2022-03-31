@@ -6,7 +6,7 @@ numbering uses [semantic versioning](http://semver.org).
 ## Next Release
 
 - Add "lifecycle" option to main container. This can be used, for example, to add a lifecycle.preStop hook. Thanks to [Eric Totten](https://github.com/etotten) for the contribution!
-- Feature: Add possiblity to configure relabelings in service monitor
+- Feature: Add possibility to configure relabelings in service monitor
 
 ## v7.2.2
 
