@@ -19,14 +19,14 @@ spec:
       {{- with .Values.metrics.serviceMonitor.scrapeTimeout }}
       scrapeTimeout: {{ . }}
       {{- end }}
-{{- with .Values.metrics.serviceMonitor.metricRelabelings }}
+      {{- with .Values.metrics.serviceMonitor.metricRelabelings }}
       metricRelabelings:
 {{ toYaml . | indent 6 }}
-{{- end }}
-{{- with .Values.metrics.serviceMonitor.relabelings }}
+      {{- end }}
+      {{- with .Values.metrics.serviceMonitor.relabelings }}
       relabelings:
 {{ toYaml . | indent 6 }}
-{{- end }}
+      {{- end }}
   namespaceSelector:
     matchNames:
       - {{ include "ambassador.namespace" . }}
