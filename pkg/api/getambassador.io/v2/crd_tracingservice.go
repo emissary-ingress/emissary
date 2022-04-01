@@ -60,6 +60,8 @@ type TracingServiceSpec struct {
 
 	// +k8s:conversion-gen:rename=StatsName
 	V3StatsName string `json:"v3StatsName,omitempty"`
+	// +k8s:conversion-gen:rename=CustomTags
+	V3CustomTags []v3alpha1.TracingCustomTag `json:"v3CustomTags,omitempty"`
 }
 
 // TracingService is the Schema for the tracingservices API

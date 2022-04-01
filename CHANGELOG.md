@@ -97,7 +97,12 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: It is now possible to set `propagation_modes` in the `TracingService` config when using
   lightstep as the driver. (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!) ([#4179])
 
+- Feature: It is now possible to set `custom_tags` in the `TracingService`. Trace tags can be set
+  based on literal values, environment variables, or request headers. (Thanks to <a
+  href="https://github.com/psalaberria002">Paul</a>!) ([#4181])
+
 [#4179]: https://github.com/emissary-ingress/emissary/pull/4179
+[#4181]: https://github.com/emissary-ingress/emissary/pull/4181
 
 ## [2.2.2] TBD
 [2.2.2]: https://github.com/emissary-ingress/emissary/compare/v2.2.1...v2.2.2

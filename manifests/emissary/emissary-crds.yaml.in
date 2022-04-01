@@ -3727,6 +3727,49 @@ spec:
                 items:
                   type: string
                 type: array
+              v3CustomTags:
+                items:
+                  properties:
+                    environment:
+                      description: Environment explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal, Environment or Header must
+                        be supplied.
+                      properties:
+                        default_value:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    literal:
+                      description: Literal explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal, Environment or Header must
+                        be supplied.
+                      properties:
+                        value:
+                          type: string
+                      required:
+                      - value
+                      type: object
+                    request_header:
+                      description: Header explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal, Environment or Header must
+                        be supplied.
+                      properties:
+                        default_value:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    tag:
+                      type: string
+                  required:
+                  - tag
+                  type: object
+                type: array
               v3StatsName:
                 type: string
             required:
@@ -3798,6 +3841,49 @@ spec:
                   trace_id_128bit:
                     type: boolean
                 type: object
+              custom_tags:
+                items:
+                  properties:
+                    environment:
+                      description: Environment explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal, Environment or Header must
+                        be supplied.
+                      properties:
+                        default_value:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    literal:
+                      description: Literal explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal, Environment or Header must
+                        be supplied.
+                      properties:
+                        value:
+                          type: string
+                      required:
+                      - value
+                      type: object
+                    request_header:
+                      description: Header explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal, Environment or Header must
+                        be supplied.
+                      properties:
+                        default_value:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    tag:
+                      type: string
+                  required:
+                  - tag
+                  type: object
+                type: array
               driver:
                 enum:
                 - lightstep
@@ -3818,6 +3904,9 @@ spec:
               stats_name:
                 type: string
               tag_headers:
+                description: 'tag_headers is deprecated. Use custom_tags instead.
+                  `tag_headers: ["header"]` can be defined as `custom_tags: [{"request_header":
+                  {"name": "header"}}]`.'
                 items:
                   type: string
                 type: array

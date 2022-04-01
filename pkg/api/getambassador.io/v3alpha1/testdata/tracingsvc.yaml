@@ -96,3 +96,9 @@
           overall: 0
           random: 0
       service: "zipkin-65:9411"
+      tag_headers:
+      - hello
+      custom_tags:
+      - request_header:
+          name: hola
+        tag: hola

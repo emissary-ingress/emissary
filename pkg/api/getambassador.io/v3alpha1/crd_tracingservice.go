@@ -45,6 +45,40 @@ type TraceConfig struct {
 	ServiceName              string            `json:"service_name,omitempty"`
 }
 
+type TracingCustomTagTypeLiteral struct {
+	// +kubebuilder:validation:Required
+	Value string `json:"value"`
+}
+
+type TracingCustomTagTypeEnvironment struct {
+	// +kubebuilder:validation:Required
+	Name         string  `json:"name"`
+	DefaultValue *string `json:"default_value,omitempty"`
+}
+
+type TracingCustomTagTypeRequestHeader struct {
+	// +kubebuilder:validation:Required
+	Name         string  `json:"name"`
+	DefaultValue *string `json:"default_value,omitempty"`
+}
+
+type TracingCustomTag struct {
+	// +kubebuilder:validation:Required
+	Tag string `json:"tag"`
+
+	// There is no oneOf support in kubebuilder https://github.com/kubernetes-sigs/controller-tools/issues/461
+
+	// Literal explicitly specifies the protocol stack to set up. Exactly one of Literal,
+	// Environment or Header must be supplied.
+	Literal *TracingCustomTagTypeLiteral `json:"literal,omitempty"`
+	// Environment explicitly specifies the protocol stack to set up. Exactly one of Literal,
+	// Environment or Header must be supplied.
+	Environment *TracingCustomTagTypeEnvironment `json:"environment,omitempty"`
+	// Header explicitly specifies the protocol stack to set up. Exactly one of Literal,
+	// Environment or Header must be supplied.
+	Header *TracingCustomTagTypeRequestHeader `json:"request_header,omitempty"`
+}
+
 // TracingServiceSpec defines the desired state of TracingService
 type TracingServiceSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
@@ -53,11 +87,14 @@ type TracingServiceSpec struct {
 	// +kubebuilder:validation:Required
 	Driver string `json:"driver,omitempty"`
 	// +kubebuilder:validation:Required
-	Service    string         `json:"service,omitempty"`
-	Sampling   *TraceSampling `json:"sampling,omitempty"`
-	TagHeaders []string       `json:"tag_headers,omitempty"`
-	Config     *TraceConfig   `json:"config,omitempty"`
-	StatsName  string         `json:"stats_name,omitempty"`
+	Service  string         `json:"service,omitempty"`
+	Sampling *TraceSampling `json:"sampling,omitempty"`
+	// tag_headers is deprecated. Use custom_tags instead.
+	// `tag_headers: ["header"]` can be defined as `custom_tags: [{"request_header": {"name": "header"}}]`.
+	DeprecatedTagHeaders []string           `json:"tag_headers,omitempty"`
+	CustomTags           []TracingCustomTag `json:"custom_tags,omitempty"`
+	Config               *TraceConfig       `json:"config,omitempty"`
+	StatsName            string             `json:"stats_name,omitempty"`
 }
 
 // TracingService is the Schema for the tracingservices API
