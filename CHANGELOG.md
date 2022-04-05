@@ -392,7 +392,7 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
   meaning that the rate limiter is active.
 
 ## [2.0.0-ea] June 24, 2021
-[2.0.0-ea]: https://github.com/emissary-ingress/emissary/compare/v1.14.2...v2.0.0-ea
+[2.0.0-ea]: https://github.com/emissary-ingress/emissary/compare/v1.14.3...v2.0.0-ea
 
 We're pleased to introduce Emissary-ingress 2.0.0 as a **developer preview**. The 2.X family
 introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
@@ -473,6 +473,14 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
   instead.
 
 [#2888]: https://github.com/datawire/ambassador/issues/2888
+
+## [1.14.3] February 25, 2022
+[1.14.3]: https://github.com/emissary-ingress/emissary/compare/v1.14.2...v1.14.3
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Security: Upgraded Envoy to address security vulnerabilities CVE-2021-43824, CVE-2021-43825,
+  CVE-2021-43826, CVE-2022-21654, and CVE-2022-21655.
 
 ## [1.14.2] September 29, 2021
 [1.14.2]: https://github.com/emissary-ingress/emissary/compare/v1.14.1...v1.14.2
