@@ -22,7 +22,7 @@ jobs:
         run: |
           for sha in $(git log --format="%H" -10)
           do
-              echo "$sha $(git describe --tags $sha)"
+              echo "$sha $(git describe --tags $sha) -- $(git describe --tags --match chart/)"
           done
       - name: Install Deps
         uses: ./.github/actions/setup-deps
