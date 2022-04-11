@@ -269,7 +269,7 @@ push-dev: docker/$(LCNAME).docker.tag.local
 .PHONY: push-dev
 
 export-docker: docker/$(LCNAME).docker.tag.local
-	@if [ -z "$$EXPORT_FILE" ]; then printf '$(RED)$@: EXPORT_FILE is not set$(END)\n'; exit 1; fi; \
+	@if [ -z "$$EXPORT_FILE" ]; then printf '$(RED)$@: EXPORT_FILE is not set$(END)\n'; exit 1; fi;
 	@printf '$(CYN)==> $(GRN)exporting $(BLU)%s$(GRN) as $(BLU)%s$(GRN)...$(END)\n' '$(LCNAME)' '$$EXPORT_FILE'
 	docker save $$(cat docker/$(LCNAME).docker) -o '$$EXPORT_FILE'
 .PHONY: export-docker
