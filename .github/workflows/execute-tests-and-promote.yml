@@ -282,11 +282,11 @@ jobs:
       - name: "make push"
         shell: bash
         run: |
-          make push
+          make DEV_REGISTRY=localhost:5000 push
       - name: "make push-dev"
         shell: bash
         run: |
-          make push-dev
+          make DEV_REGISTRY=localhost:5000 push-dev
       - uses: ./.github/actions/after-job
         if: always()
 
