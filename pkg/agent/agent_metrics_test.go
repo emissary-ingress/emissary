@@ -1,12 +1,11 @@
 package agent
 
 import (
-	"context"
 	"github.com/datawire/ambassador/v2/pkg/api/agent"
 	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v3"
+	"github.com/datawire/dlib/dlog"
 	io_prometheus_client "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
 )
@@ -39,60 +38,50 @@ var (
 	}
 )
 
-type AgentMetricsSuite struct {
-	suite.Suite
+func agentMetricsSetupTest() (*MockClient, *Agent) {
+	clientMock := &MockClient{}
 
-	clientMock *MockClient
-
-	stubbedAgent *Agent
-}
-
-func (s *AgentMetricsSuite) SetupTest() {
-	s.clientMock = &MockClient{}
-
-	s.stubbedAgent = &Agent{
-		metricsRelayDeadline: time.Time{},
+	stubbedAgent := &Agent{
+		metricsBackoffUntil: time.Time{},
 		comm: &RPCComm{
-			client: s.clientMock,
+			client: clientMock,
 		},
 	}
+
+	return clientMock, stubbedAgent
 }
 
-func (s *AgentMetricsSuite) AfterTest(suiteName, testName string) {
-	return
-}
+func TestMetricsRelayHandler(t *testing.T) {
 
-func (s *AgentMetricsSuite) TestMetricsHandlerWithRelay() {
-	//given
-	ctx := context.TODO()
+	t.Run("will relay the metrics", func(t *testing.T) {
+		//given
+		clientMock, stubbedAgent := agentMetricsSetupTest()
+		ctx := dlog.NewTestContext(t, true)
 
-	//when
-	s.stubbedAgent.MetricsRelayHandler(ctx, &envoyMetrics.StreamMetricsMessage{
-		Identifier:   nil,
-		EnvoyMetrics: []*io_prometheus_client.MetricFamily{ignoredMetric, acceptedMetric},
+		//when
+		stubbedAgent.MetricsRelayHandler(ctx, &envoyMetrics.StreamMetricsMessage{
+			Identifier:   nil,
+			EnvoyMetrics: []*io_prometheus_client.MetricFamily{ignoredMetric, acceptedMetric},
+		})
+
+		//then
+		assert.Equal(t, []*agent.StreamMetricsMessage{{
+			EnvoyMetrics: []*io_prometheus_client.MetricFamily{acceptedMetric},
+		}}, clientMock.SentMetrics)
 	})
+	t.Run("will not relay the metrics since it is in cool down period.", func(t *testing.T) {
+		//given
+		clientMock, stubbedAgent := agentMetricsSetupTest()
+		ctx := dlog.NewTestContext(t, true)
+		stubbedAgent.metricsBackoffUntil = time.Now().Add(defaultMinReportPeriod)
 
-	//then
-	assert.Equal(s.T(), []*agent.StreamMetricsMessage{{
-		EnvoyMetrics: []*io_prometheus_client.MetricFamily{acceptedMetric},
-	}}, s.clientMock.SentMetrics)
-}
+		//when
+		stubbedAgent.MetricsRelayHandler(ctx, &envoyMetrics.StreamMetricsMessage{
+			Identifier:   nil,
+			EnvoyMetrics: []*io_prometheus_client.MetricFamily{acceptedMetric},
+		})
 
-func (s *AgentMetricsSuite) TestMetricsHandlerWithRelayPass() {
-	//given
-	ctx := context.TODO()
-	s.stubbedAgent.metricsRelayDeadline = time.Now().Add(defaultMinReportPeriod)
-
-	//when
-	s.stubbedAgent.MetricsRelayHandler(ctx, &envoyMetrics.StreamMetricsMessage{
-		Identifier:   nil,
-		EnvoyMetrics: []*io_prometheus_client.MetricFamily{acceptedMetric},
+		//then
+		assert.Equal(t, 0, len(clientMock.SentMetrics))
 	})
-
-	//then
-	assert.Equal(s.T(), 0, len(s.clientMock.SentMetrics))
-}
-
-func TestSuiteAgentMetrics(t *testing.T) {
-	suite.Run(t, new(AgentMetricsSuite))
 }
