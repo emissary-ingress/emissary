@@ -110,6 +110,9 @@ type Agent struct {
 	// Timestamp to keep in memory to Prevent from making too many requests to the Ambassador
 	// Cloud API.
 	metricsRelayDeadline time.Time
+
+	// Extra headers to inject into RPC requests to ambassador cloud.
+	rpcExtraHeaders []string
 }
 
 func getEnvWithDefault(envVarKey string, defaultValue string) string {
@@ -141,6 +144,17 @@ func NewAgent(directiveHandler DirectiveHandler, rolloutsGetterFactory rolloutsG
 		}
 	}
 
+	var rpcExtraHeaders = make([]string, 0)
+
+	if os.Getenv("RPC_INTERCEPT_HEADER_KEY") != "" &&
+		os.Getenv("RPC_INTERCEPT_HEADER_VALUE") != "" {
+		rpcExtraHeaders = append(
+			rpcExtraHeaders,
+			os.Getenv("RPC_INTERCEPT_HEADER_KEY"),
+			os.Getenv("RPC_INTERCEPT_HEADER_VALUE"),
+		)
+	}
+
 	return &Agent{
 		minReportPeriod:  reportPeriod,
 		reportComplete:   make(chan error),
@@ -156,6 +170,7 @@ func NewAgent(directiveHandler DirectiveHandler, rolloutsGetterFactory rolloutsG
 		reportRunning:                atomicBool{value: false},
 		agentWatchFieldSelector:      getEnvWithDefault("AGENT_WATCH_FIELD_SELECTOR", "metadata.namespace!=kube-system"),
 		metricsRelayDeadline:         time.Now(),
+		rpcExtraHeaders:              rpcExtraHeaders,
 	}
 }
 
@@ -476,7 +491,9 @@ func (a *Agent) MaybeReport(ctx context.Context) {
 		// The communications channel to the DCP was not yet created or was
 		// closed above, due to a change in identity, or close elsewhere, due to
 		// a change in endpoint configuration.
-		newComm, err := NewComm(ctx, a.connInfo, a.agentID, a.ambassadorAPIKey)
+		newComm, err := NewComm(
+			ctx, a.connInfo, a.agentID, a.ambassadorAPIKey, a.rpcExtraHeaders)
+
 		if err != nil {
 			dlog.Warnf(ctx, "Failed to dial the DCP: %v", err)
 			dlog.Warn(ctx, "DCP functionality disabled until next retry")
