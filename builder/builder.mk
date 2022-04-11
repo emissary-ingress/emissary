@@ -268,6 +268,12 @@ push-dev: docker/$(LCNAME).docker.tag.local
 	docker push '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
 .PHONY: push-dev
 
+export-docker: docker/$(LCNAME).docker.tag.local
+	@if [ -z "$$EXPORT_FILE" ]; then printf '$(RED)$@: EXPORT_FILE is not set$(END)\n'; exit 1; fi; \
+	@printf '$(CYN)==> $(GRN)exporting $(BLU)%s$(GRN) as $(BLU)%s$(GRN)...$(END)\n' '$(LCNAME)' '$$EXPORT_FILE'
+	docker save $$(cat docker/$(LCNAME).docker) -o '$$EXPORT_FILE'
+.PHONY: export-docker
+
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
 export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)
 

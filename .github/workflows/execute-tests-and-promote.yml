@@ -283,10 +283,18 @@ jobs:
         shell: bash
         run: |
           make DEV_REGISTRY=localhost:5000 push
-      - name: "make push-dev"
+      - uses: ./.github/actions/git-dirty-check
+        name: "Check git not dirty (from make push)"
+      - name: "Export Docker image"
         shell: bash
         run: |
-          make DEV_REGISTRY=localhost:5000 push-dev
+          make DEV_REGISTRY=localhost:5000 EXPORT_FILE=/tmp/docker-img export-docker
+      - name: "Upload Docker image"
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs-${{ inputs.name }}
+          path: /tmp/test-logs
+          if-no-files-found: ignore
       - uses: ./.github/actions/after-job
         if: always()
 
