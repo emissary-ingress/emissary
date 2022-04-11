@@ -106,10 +106,10 @@ type Agent struct {
 	agentWatchFieldSelector string
 
 	// A mutex related to the metrics endpoint action, to avoid concurrent (and useless) pushes.
-	metricsPushMutex sync.Mutex
+	metricsRelayMutex sync.Mutex
 	// Timestamp to keep in memory to Prevent from making too many requests to the Ambassador
 	// Cloud API.
-	metricsRelayDeadline time.Time
+	metricsBackoffUntil time.Time
 
 	// Extra headers to inject into RPC requests to ambassador cloud.
 	rpcExtraHeaders []string
@@ -169,7 +169,7 @@ func NewAgent(directiveHandler DirectiveHandler, rolloutsGetterFactory rolloutsG
 		directiveHandler:             directiveHandler,
 		reportRunning:                atomicBool{value: false},
 		agentWatchFieldSelector:      getEnvWithDefault("AGENT_WATCH_FIELD_SELECTOR", "metadata.namespace!=kube-system"),
-		metricsRelayDeadline:         time.Now(),
+		metricsBackoffUntil:          time.Now(),
 		rpcExtraHeaders:              rpcExtraHeaders,
 	}
 }
@@ -638,15 +638,15 @@ func (a *Agent) MetricsRelayHandler(
 	logCtx context.Context,
 	in *envoyMetrics.StreamMetricsMessage,
 ) {
-	a.metricsPushMutex.Lock()
-	defer a.metricsPushMutex.Unlock()
+	a.metricsRelayMutex.Lock()
+	defer a.metricsRelayMutex.Unlock()
 
 	metrics := in.GetEnvoyMetrics()
 	metricCount := len(metrics)
 
-	if !time.Now().After(a.metricsRelayDeadline) {
+	if !time.Now().After(a.metricsBackoffUntil) {
 		dlog.Debugf(logCtx, "Drop %d metric(s); next push scheduled for %s",
-			metricCount, a.metricsRelayDeadline.String())
+			metricCount, a.metricsBackoffUntil.String())
 		return
 	}
 
@@ -682,10 +682,10 @@ func (a *Agent) MetricsRelayHandler(
 				dlog.Errorf(logCtx, "error streaming metric(s): %+v", err)
 			}
 
-			a.metricsRelayDeadline = time.Now().Add(defaultMinReportPeriod)
+			a.metricsBackoffUntil = time.Now().Add(defaultMinReportPeriod)
 
 			dlog.Infof(logCtx, "Next metrics relay scheduled for %s",
-				a.metricsRelayDeadline.UTC().String())
+				a.metricsBackoffUntil.UTC().String())
 		}
 	}
 }
