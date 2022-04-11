@@ -18,6 +18,12 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+      - name: Git Describe
+        run: |
+          for sha in $(git log --format="%H" -10)
+          do
+              echo "$sha $(git describe --tags $sha)"
+          done
       - name: Install Deps
         uses: ./.github/actions/setup-deps
       - shell: bash
