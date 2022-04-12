@@ -75,6 +75,13 @@ jobs:
 
   check-envoy-version: #########################################################
     runs-on: ubuntu-latest
+    needs:
+    - build
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     env:
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
@@ -90,13 +97,22 @@ jobs:
             install -m700 -d ~/.ssh
             install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
           fi
-      - name: "Docker Login"
-        # This is important if ENVOY_DOCKER_REPO is a private repo.
-        uses: docker/login-action@v1
+      - name: Download image
+        uses: actions/download-artifact@v3
         with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+          name: docker-image
+          path: /tmp/docker-img
+      - name: Load image
+        shell: bash
+        run: |
+          make DEV_REGISTRY=localhost:5000 IMPORT_FILE=/tmp/docker-img import-docker
+      # - name: "Docker Login"
+      #   # This is important if ENVOY_DOCKER_REPO is a private repo.
+      #   uses: docker/login-action@v1
+      #   with:
+      #     registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
+      #     username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+      #     password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - run: make check-envoy-version
       - uses: ./.github/actions/after-job
         if: always()
@@ -185,6 +201,13 @@ jobs:
     # pytest-unit is separate from pytests (above) because we know for certain that no cluster is needed.
     # XXX This is pretty much a crock.
     runs-on: ubuntu-latest
+    needs:
+    - build
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     env:
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
@@ -199,12 +222,21 @@ jobs:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: "Docker Login"
-        uses: docker/login-action@v1
+      - name: Download image
+        uses: actions/download-artifact@v3
         with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+          name: docker-image
+          path: /tmp/docker-img
+      - name: Load image
+        shell: bash
+        run: |
+          make DEV_REGISTRY=localhost:5000 IMPORT_FILE=/tmp/docker-img import-docker
+      # - name: "Docker Login"
+      #   uses: docker/login-action@v1
+      #   with:
+      #     registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
+      #     username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+      #     password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - name: make pytest-${{ matrix.test }}
         run: |
           sudo sysctl -w fs.file-max=1600000
