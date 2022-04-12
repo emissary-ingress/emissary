@@ -277,8 +277,9 @@ export-docker: docker/$(LCNAME).docker.tag.local
 import-docker:
 	@if [ -z "$$IMPORT_FILE" ]; then printf '$(RED)$@: IMPORT_FILE is not set$(END)\n'; exit 1; fi;
 	@printf '$(CYN)==> $(GRN)importing $(BLU)%s$(GRN)...$(END)\n' "$$IMPORT_FILE"
+	docker load -i "$$IMPORT_FILE" | tee /tmp/load-output
 	@set -ex; { \
-		IMAGENAME=$$(docker load -i "$$IMPORT_FILE" | fgrep 'Loaded image' | awk ' { print $$3 }' | cut -d: -f1) ;\
+		IMAGENAME=$$(cat /tmp/load-output | fgrep 'Loaded image' | awk ' { print $$3 }' | cut -d: -f1) ;\
 		printf '$(CYN)==> $(GRN)image loaded as $(BLU)%s$(GRN)...$(END)\n' "$$IMAGENAME" ;\
 		docker inspect "$$IMAGENAME" --format '{{ .Id }}' > docker/$(LCNAME).docker ;\
 		( cat docker/$(LCNAME).docker ; echo "$$IMAGENAME" ) > docker/$(LCNAME).docker.tag.local ;\
