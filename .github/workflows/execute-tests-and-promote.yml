@@ -52,12 +52,12 @@ jobs:
             install -m700 -d ~/.ssh
             install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
           fi
-      - name: "Docker Login"
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
+      # - name: "Docker Login"
+      #   uses: docker/login-action@v1
+      #   with:
+      #     registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
+      #     username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
+      #     password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
       - name: "'make generate'"
         shell: bash
         run: |
