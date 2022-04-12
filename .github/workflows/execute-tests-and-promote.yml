@@ -105,7 +105,7 @@ jobs:
       - name: Load image
         shell: bash
         run: |
-          make DEV_REGISTRY=localhost:5000 IMPORT_FILE=/tmp/docker-img import-docker
+          make DEV_REGISTRY=localhost:5000 IMPORT_FILE=/tmp/docker-img/docker.image import-docker
       # - name: "Docker Login"
       #   # This is important if ENVOY_DOCKER_REPO is a private repo.
       #   uses: docker/login-action@v1
@@ -230,7 +230,7 @@ jobs:
       - name: Load image
         shell: bash
         run: |
-          make DEV_REGISTRY=localhost:5000 IMPORT_FILE=/tmp/docker-img import-docker
+          make DEV_REGISTRY=localhost:5000 IMPORT_FILE=/tmp/docker-img/docker.image import-docker
       # - name: "Docker Login"
       #   uses: docker/login-action@v1
       #   with:
