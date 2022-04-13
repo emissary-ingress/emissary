@@ -100,7 +100,7 @@ jobs:
       - name: Download image
         uses: actions/download-artifact@v3
         with:
-          name: docker-image
+          name: docker.image
           path: /tmp/docker-img
       - name: Load image
         shell: bash
@@ -226,7 +226,7 @@ jobs:
       - name: Download image
         uses: actions/download-artifact@v3
         with:
-          name: docker-image
+          name: docker.image
           path: /tmp/docker-img
       - name: Load image
         shell: bash
@@ -249,7 +249,7 @@ jobs:
           export DEV_KUBECONFIG=~/.kube/config
           export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
           export PYTEST_ARGS=' --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html '
-          make pytest-${{ matrix.test }}
+          make pytest-${{ matrix.test }} > /tmp/test-logs/pytest-unit.log 2>&1
       - uses: ./.github/actions/after-job
         if: always()
         with:
