@@ -100,6 +100,8 @@ jobs:
   # Tests ######################################################################
   check-gotest:
     runs-on: ubuntu-latest
+    needs:
+    - build
     env:
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
@@ -121,6 +123,8 @@ jobs:
         if: always()
   check-pytest:
     runs-on: ubuntu-latest
+    needs:
+    - build
     env:
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
@@ -213,6 +217,8 @@ jobs:
           jobname: check-pytest-${{ matrix.test }}
   check-chart:
     runs-on: ubuntu-latest
+    needs:
+    - build
     env:
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
       # See docker/base-python.docker.gen
