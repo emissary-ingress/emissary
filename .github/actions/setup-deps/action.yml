@@ -4,11 +4,11 @@ description: "Install Go and Python"
 runs:
   using: "composite"
   steps:
-    - name: "Install bsdtar (libarchive-tools)"
+    - name: "Install bsdtar (libarchive-tools) and jq"
       shell: bash
       run: |
         sudo apt-get update -y
-        sudo apt-get install -y libarchive-tools
+        sudo apt-get install -y libarchive-tools jq
     - name: "Install Python requirements with pip"
       uses: BSFishy/pip-action@v1
       with:

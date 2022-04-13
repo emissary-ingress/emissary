@@ -276,15 +276,12 @@ export-docker: docker/$(LCNAME).docker.tag.local
 
 import-docker:
 	@if [ -z "$$IMPORT_FILE" ]; then printf '$(RED)$@: IMPORT_FILE is not set$(END)\n'; exit 1; fi;
-	@printf '$(CYN)==> $(GRN)importing $(BLU)%s$(GRN)...$(END)\n' "$$IMPORT_FILE"
+	IMAGENAME=$$(bsdtar -xzO -f "$$IMPORT_FILE" manifest.json | jq '.[0].RepoTags[0]')
+	@printf '$(CYN)==> $(GRN)importing $(BLU)%s$(GRN) as $(BLU)%s$(GRN)...$(END)\n' "$$IMPORT_FILE" "$$IMAGENAME"
 	docker load -i "$$IMPORT_FILE" | tee /tmp/load-output
-	@set -ex; { \
-		IMAGENAME=$$(cat /tmp/load-output | fgrep 'Loaded image' | awk ' { print $$3 }' | cut -d: -f1) ;\
-		printf '$(CYN)==> $(GRN)image loaded as $(BLU)%s$(GRN)...$(END)\n' "$$IMAGENAME" ;\
-		docker inspect "$$IMAGENAME" --format '{{ .Id }}' > docker/$(LCNAME).docker ;\
-		( cat docker/$(LCNAME).docker ; echo "$$IMAGENAME" ) > docker/$(LCNAME).docker.tag.local ;\
-		cp docker/$(LCNAME).docker docker/.$(LCNAME).docker.stamp ;\
-	}
+	docker inspect "$$IMAGENAME" --format '{{ .Id }}' > docker/$(LCNAME).docker
+	( cat docker/$(LCNAME).docker ; echo "$$IMAGENAME" ) > docker/$(LCNAME).docker.tag.local
+	cp docker/$(LCNAME).docker docker/.$(LCNAME).docker.stamp
 .PHONY: import-docker
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
