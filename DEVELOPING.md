@@ -40,6 +40,9 @@ requirements and provide a friendly error message. If you ever find
 that this is not the case please file a PR with a fix. Likewise if you
 ever find anything missing from this list.
 
+> To enable contributors using Apple Silicon we ensure that the artifacts are built for `linux/amd64`
+> rather than the host `linux/arm64` architecture. This can be overriden using the `BUILD_ARCH` environment variable.
+
 ### Requirements:
 
  - git
@@ -727,3 +730,10 @@ upgrade everything else, then
     for those you want to pin.
  2. Delete `python/requirements.in` (if it exists).
  3. Run `make generate`.
+
+How do I develop on an Mac with Apple Silicon?
+----------------------------------------------
+
+To ensure that developers using a Mac with Apple Silicon can contribute, the build system ensures
+the build artifacts are `linux/amd64` rather than the host architecture. This behavior can be overriden
+using the `BUILD_ARCH` environment variable (e.g. `BUILD_ARCH=linux/arm64 make images`).

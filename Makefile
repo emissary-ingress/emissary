@@ -5,6 +5,10 @@ include build-aux/init-configure-make-itself.mk
 include build-aux/prelude.mk # In Haskell, "Prelude" is what they call the stdlib builtins that get get imported by default before anything else
 include build-aux/tools.mk
 
+# To support contributors building project on M1 Macs we will default container builds to run as linux/amd64 rather than
+# the host architecture. Setting the corresponding environment variable allows overriding it if want to work with other architectures.
+BUILD_ARCH ?= linux/amd64
+
 # Bootstrapping the build env
 ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
   $(_prelude.go.ensure)
