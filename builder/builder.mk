@@ -276,6 +276,7 @@ export-docker: docker/$(LCNAME).docker.tag.local
 
 import-docker:
 	@if [ -z "$$IMPORT_FILE" ]; then printf '$(RED)$@: IMPORT_FILE is not set$(END)\n'; exit 1; fi;
+	bsdtar -xzO -f "$$IMPORT_FILE" manifest.json
 	IMAGENAME=$$(bsdtar -xzO -f "$$IMPORT_FILE" manifest.json | jq '.[0].RepoTags[0]')
 	@printf '$(CYN)==> $(GRN)importing $(BLU)%s$(GRN) as $(BLU)%s$(GRN)...$(END)\n' "$$IMPORT_FILE" "$$IMAGENAME"
 	docker load -i "$$IMPORT_FILE" | tee /tmp/load-output
