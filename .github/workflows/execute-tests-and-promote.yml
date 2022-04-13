@@ -52,12 +52,6 @@ jobs:
             install -m700 -d ~/.ssh
             install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
           fi
-      # - name: "Docker Login"
-      #   uses: docker/login-action@v1
-      #   with:
-      #     registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
-      #     username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
-      #     password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
       - name: "'make generate'"
         shell: bash
         run: |
@@ -97,23 +91,8 @@ jobs:
             install -m700 -d ~/.ssh
             install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
           fi
-      - name: Download image
-        uses: actions/download-artifact@v3
-        with:
-          name: docker.image
-          path: /tmp/docker-img
-      - name: Load image
-        shell: bash
-        run: |
-          ls -l /tmp/docker-img
-          make DEV_REGISTRY=localhost:5000 IMPORT_FILE=/tmp/docker-img/docker-img import-docker
-      # - name: "Docker Login"
-      #   # This is important if ENVOY_DOCKER_REPO is a private repo.
-      #   uses: docker/login-action@v1
-      #   with:
-      #     registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-      #     username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-      #     password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+      - name: Pull Docker image
+        uses: ./.github/actions/download-docker
       - run: make check-envoy-version
       - uses: ./.github/actions/after-job
         if: always()
@@ -130,12 +109,8 @@ jobs:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: "Docker Login"
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+      - name: Pull Docker image
+        uses: ./.github/actions/download-docker
       - name: make gotest
         shell: bash
         run: |
@@ -175,12 +150,8 @@ jobs:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: "Docker Login"
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+      - name: Pull Docker image
+        uses: ./.github/actions/download-docker
       - name: make pytest-${{ matrix.test }}
         run: |
           export USE_LOCAL_K3S_CLUSTER=1
@@ -223,22 +194,8 @@ jobs:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: Download image
-        uses: actions/download-artifact@v3
-        with:
-          name: docker.image
-          path: /tmp/docker-img
-      - name: Load image
-        shell: bash
-        run: |
-          ls -l /tmp/docker-img
-          make DEV_REGISTRY=localhost:5000 IMPORT_FILE=/tmp/docker-img/docker-img import-docker
-      # - name: "Docker Login"
-      #   uses: docker/login-action@v1
-      #   with:
-      #     registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-      #     username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-      #     password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+      - name: Pull Docker image
+        uses: ./.github/actions/download-docker
       - name: make pytest-${{ matrix.test }}
         run: |
           sudo sysctl -w fs.file-max=1600000
@@ -265,17 +222,14 @@ jobs:
       DOCKER_BUILD_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
       DOCKER_BUILD_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
     steps:
-      - uses: docker/login-action@v1
-        with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Install Deps
         uses: ./.github/actions/setup-deps
+      - name: Pull Docker image
+        uses: ./.github/actions/download-docker
       - name: make test-chart
         run: |
           make ci/setup-k3d K3D_CLUSTER_NAME=amb-ci
@@ -307,18 +261,8 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      # - name: "Docker Login"
-      #   uses: docker/login-action@v1
-      #   with:
-      #     registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-      #     username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-      #     password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-      # - name: "make push"
-      #   shell: bash
-      #   run: |
-      #     make DEV_REGISTRY=localhost:5000 push
-      - uses: ./.github/actions/git-dirty-check
-        name: "Check git not dirty (from make push)"
+      - name: "Check git not dirty (from make push)"
+        uses: ./.github/actions/git-dirty-check
       - name: "Build and export Docker image"
         shell: bash
         run: |
@@ -340,10 +284,10 @@ jobs:
       - build
       - generate
       - check-envoy-version
-      # - check-gotest
-      # - check-pytest
+      - check-gotest
+      - check-pytest
       - check-pytest-unit
-      # - check-chart
+      - check-chart
     runs-on: ubuntu-latest
     steps:
       - name: No-Op
