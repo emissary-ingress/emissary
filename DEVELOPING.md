@@ -1,226 +1,313 @@
-Developing Ambassador
-=====================
+# Developing Emissary-ingress
 
-<!--
-  When editing this document, the hierarchy of headings is:
+Welcome to the Emissary-ingress Community!
 
-     Heading 1
-     =========
+Thank you for contributing, we appreciate small and large contributions and look forward to working with you to make Emissary-ingress better.
 
-     Heading 2
-     ---------
+This document is intended for developers looking to contribute to the Emissary-ingress project. In this document you will learn how to get your development environment setup and how to contribute to the project. Also, you will find more information about the internal components of Emissary-ingress and other questions about working on the project.
 
-     ### Heading 3
+> Looking for end user guides for Emissary-ingress? You can check out the end user guides at <https://www.getambassador.io/docs/emissary/>.
 
-     #### Heading 4
--->
+After reading this document if you have questions we encourage you to join us on our [Slack channel](https://d6e.co/slack) in the [#emissary-dev](https://datawire-oss.slack.com/archives/CB46TNG83) channel.
 
-Ambassador is a complex piece of software with lots of integrations
-and moving parts. Just being able to build the code and run tests is
-often not sufficient to work efficiently on a given piece of the
-code. This document functions as a central registry for how to
-**efficiently** hack on any part of ambassador.
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Governance](GOVERNANCE.md)
+- [Maintainers](MAINTAINERS.md)
 
-How do I get ambassador without building it?
---------------------------------------------
+**Table of Contents**
 
-Check out https://www.getambassador.io/!
+- [Development Setup](#development-setup)
+  - [Step 1: Install Build Dependencies](#step-1-install-build-dependencies)
+  - [Step 2: Clone Project](#step-2-clone-project)
+  - [Step 3: Configuration](#step-3-configuration)
+  - [Step 4: Building](#step-4-building)
+  - [Step 5: Push](#step-5-push)
+  - [Step 6: Deploy](#step-6-deploy)
+  - [What's Next?](#whats-next)
+- [Contributing a Pull Request](#contributing-a-pull-request)
+- [Contributing to the Docs](#contributing-to-the-docs)
+- [Advanced Topics](#advanced-topics)
+  - [Running Emissary-ingress internals locally](#running-emissary-ingress-internals-locally)
+    - [Setting up diagd](#setting-up-diagd)
+    - [Changing the ambassador root](#changing-the-ambassador-root)
+    - [Getting envoy](#getting-envoy)
+    - [Shutting up the pod labels error](#shutting-up-the-pod-labels-error)
+    - [Extra credit](#extra-credit)
+  - [Debugging and Developing Envoy Configuration](#debugging-and-developing-envoy-configuration)
+    - [Mockery](#mockery)
+    - [Ambassador Dump](#ambassador-dump)
+  - [Making changes to Envoy](#making-changes-to-envoy)
+    - [1. Preparing your machine](#1-preparing-your-machine)
+    - [2. Setting up your workspace to hack on Envoy](#2-setting-up-your-workspace-to-hack-on-envoy)
+    - [3. Hacking on Envoy](#3-hacking-on-envoy)
+    - [4. Building and testing your hacked-up Envoy](#4-building-and-testing-your-hacked-up-envoy)
+    - [5. Finalizing your changes](#5-finalizing-your-changes)
+    - [6. Checklist for landing the changes](#6-checklist-for-landing-the-changes)
+  - [Developing Emissary-ingress (Datawire-only advice)](#developing-emissary-ingress-datawire-only-advice)
+    - [Updating license documentation](#updating-license-documentation)
+    - [Upgrading Python dependencies](#upgrading-python-dependencies)
+- [FAQ](#faq)
+  - [How do I find out what build targets are available?](#how-do-i-find-out-what-build-targets-are-available)
+  - [How do I develop on a Mac with Apple Silicon?](#how-do-i-develop-on-a-mac-with-apple-silicon)
+  - [How do I develop on Windows using WSL?](#how-do-i-develop-on-windows-using-wsl)
+  - [How do I test using a private Docker repository?](#how-do-i-test-using-a-private-docker-repository)
+  - [How do I change the loglevel at runtime?](#how-do-i-change-the-loglevel-at-runtime)
+  - [Can I build from a docker container instead of on my local computer?](#can-i-build-from-a-docker-container-instead-of-on-my-local-computer)
+  - [How do I clear everything out to make sure my build runs like it will in CI?](#how-do-i-clear-everything-out-to-make-sure-my-build-runs-like-it-will-in-ci)
+  - [My editor is changing `go.mod` or `go.sum`, should I commit that?](#my-editor-is-changing-gomod-or-gosum-should-i-commit-that)
+  - [How do I debug "This should not happen in CI" errors?](#how-do-i-debug-this-should-not-happen-in-ci-errors)
+  - [How do I run Emissary-ingress tests?](#how-do-i-run-emissary-ingress-tests)
+  - [How do I update the python test cache?](#how-do-i-update-the-python-test-cache)
+  - [How do I type check my python code?](#how-do-i-type-check-my-python-code)
+  - [How do I get the source code for a release?](#how-do-i-get-the-source-code-for-a-release)
 
-How do I get help with any of this stuff?
------------------------------------------
+## Development Setup
 
-Ask on our [Slack channel](https://d6e.co/slack) in the [#emissary-dev](https://datawire-oss.slack.com/archives/CB46TNG83) channel.
+This section provides the steps for getting started developing on Emissary-ingress. There are a number of prerequisites that need to be setup. In general, our tooling tries to detect any missing requirements and provide a friendly error message. If you ever find that this is not the case please file an issue.
 
-How do I setup a system for ambassador development?
----------------------------------------------------
+> **Note:** To enable developers contributing on Macs with Apple Silicon, we ensure that the artifacts are built for `linux/amd64`
+> rather than the host `linux/arm64` architecture. This can be overriden using the `BUILD_ARCH` environment variable. Pull Request are welcome :).
 
-To build or hack on ambassador, there are a number of
-prerequisites. In general our tooling tries to detect any missing
-requirements and provide a friendly error message. If you ever find
-that this is not the case please file a PR with a fix. Likewise if you
-ever find anything missing from this list.
+### Step 1: Install Build Dependencies
 
-> To enable contributors using Apple Silicon we ensure that the artifacts are built for `linux/amd64`
-> rather than the host `linux/arm64` architecture. This can be overriden using the `BUILD_ARCH` environment variable.
+Here is a list of tools that are used by the build system to generate the build artifacts, packaging them up into containers, generating  crds, helm charts and for running tests.
 
-### Requirements:
+- git
+- make
+- docker (make sure you can run docker commands as your dev user without sudo)
+- bash
+- rsync
+- golang - `go.mod` for current version
+- python 3.8 or 3.9
+- kubectl
+- a kubernetes cluster (you need permissions to create resources, i.e. crds, deployments, services, etc...)
+- a Docker registry
+- bsdtar (Provided by libarchive-tools on Ubuntu 19.10 and newer)
+- gawk
 
- - git
- - make
- - docker (make sure you can run docker commands as your dev user without sudo)
- - bash
- - rsync
- - golang 1.15
- - python 3.8 or 3.9
- - kubectl
- - a kubernetes cluster
- - a Docker registry
- - bsdtar (Provided by libarchive-tools on Ubuntu 19.10 and newer)
- - gawk
+### Step 2: Clone Project
 
-### Configuration:
+If you haven't already then this would be a good time to clone the project running the following commands:
 
- - `export DEV_REGISTRY=<your-dev-docker-registry>` (you need to be logged in and have permission to push)
- - `export DEV_KUBECONFIG=<your-dev-kubeconfig>` (your cluster needs to be able to read from your registry,
-                                                  specifically from the ambassador, kat-server, and kat-client repos)
- - `export GCLOUD_CONFIG=<your-config>` (only needed if your kubeconfig uses gcloud, which is likely for a GKE cluster)
+```bash
+# clone to your preferred folder
+git clone https://github.com/emissary-ingress/emissary.git
 
-Please note that ambassador tests and build system will do destructive
-things to your development cluster. We therefore recommend that you
-create a separate kubeconfig file dedicated for ambassador development
-and point DEV_KUBECONFIG to this file instead of using the default
-`~/.kube/config` location.
+# navigate to project
+cd emissary
+```
 
-How do I find out what build targets are available?
----------------------------------------------------
+### Step 3: Configuration
 
-Use `make help` and `make targets` to see what build targets are
-available along with documentation for what each target does.
+You can configure the build system using environment variables, two required variables are used for setting the container registry and the kubeconfig used.
 
-How do I build an ambassador image from source?
------------------------------------------------
+> **Important**: the test and build system perform destructive operations against your cluster. Therefore, we recommend that you
+> use a development cluster. Setting the DEV_KUBECONFIG variable described below ensures you don't accidently perform actions on a production cluster.
 
-### On your machine
+Open a terminal in the location where you cloned the repository and run the following commands:
 
-0. `git clone https://github.com/datawire/ambassador.git && cd ambassador`
-1. `make images` (this will take a while the first time)
+```bash
+# set container registry using `export DEV_REGISTRY=<your-registry>
+# note: you need to be logged in and have permissions to push
+# Example:
+export DEV_REGISTRY=docker.io/parsec86
 
-The ambassador image will be tagged as `ambassador.local/ambassador:latest`.
-There will also be a `kat-server:latest` and a `kat-client:latest` image.
-These two images are only used for testing.
+# set kube config file using `export DEV_KUBECONFIG=<dev-kubeconfig>`
+# your cluster needs the ability to read from the configured container registry
+export DEV_KUBECONFIG="$HOME/.kube/dev-config.yaml"
 
-### Within a docker container
+```
 
-0. `docker pull docker:latest`
-1. `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -it docker:latest sh`
-2. `apk add --update --no-cache bash build-base go curl rsync python3 python2 git libarchive-tools gawk jq`
-3. `git clone https://github.com/datawire/ambassador.git && cd ambassador`
-4. `make images`
+### Step 4: Building
 
-Steps 0 and 1 are run on your machine, and 2 - 4 are from within the docker container. The base image is a "Docker in Docker" image, ran with `-v /var/run/docker.sock:/var/run/docker.sock` in order to connect to your local daemon from the docker inside the container. More info on Docker in Docker [here](https://hub.docker.com/_/docker).
+The build system for this project leverages `make` and multi-stage `docker` builds to produce the following containers:
 
-The images will be created and tagged as defined above, and will be available in docker on your local machine.
+- `emissary.local/emissary` - single deployable container for Emissary-ingress
+- `emissary.local/kat-client` - test client container used for testing
+- `emissary.local/kat-server` - test server container used for testing
 
-How do I push an ambassador image from source?
-----------------------------------------------
+Using the terminal session you opened in step 2, run the following commands
 
-1. `export DEV_REGISTRY=<your-dev-docker-registry>` (you need to be logged in and have permission to push)
-2. `make push`
-3. The output will contain the image names. You can also display this using
-   `make env` or `make export`. The latter form is suitable for
-   passing to bash.
+>
 
-NOTE: This will also push the `kat-client` and `kat-server` images.
+```bash
+# This will pull and build the necessary docker containers and produce multiple containers.
+# If this is the first time running this command it will take a little bit while the base images are built up and cached.
+make images
 
-How do I deploy an ambassador to a cluster from source?
--------------------------------------------------------
+# verify containers were successfully created, you should also see some of the intermediate builder containers as well
+docker images | grep emissary.local
+```
 
-1. `export DEV_REGISTRY=<your-dev-docker-registry>` (you need to be logged in and have permission to push)
-2. `export DEV_KUBECONFIG=<your-dev-kubeconfig>`
-3. `make deploy`
+*What just happened?*
 
-How do I clear everything out to make sure my build runs like it will in CI?
-----------------------------------------------------------------------------
+The build system generated a build container that pulled in envoy, the build dependencies, built various binaries from within this project and packaged them into a single deployable container. More information on this can be found in the [Architecture Document](ARCHITECTURE.md).
 
-Use `make clobber` to completely remove all derived objects, all cached artifacts, everything, and get back to a clean slate. This is recommended if you change branches within a clone, or if you need to `make generate` when you're not _certain_ that your last `make generate` was using the same Envoy version.
+### Step 5: Push
 
-Use `make clean` to remove derived objects, but _not_ clear the caches.
+Now that you have successfully built the containers its time to push them to your container registry which you setup in step 2.
 
-How do I run ambassador tests?
-------------------------------
+In the same terminal session you can run the following command:
 
-- `export DEV_REGISTRY=<your-dev-docker-registry>` (you need to be logged in and have permission to push)
-- `export DEV_KUBECONFIG=<your-dev-kubeconfig>`
+```bash
+# re-tags the images and pushes them to your configured container registry
+# docker must be able to login to your registry and you have to have push permissions
+make push
 
-If you want to run the Go tests for `cmd/entrypoint`, you'll need `diagd`
-in your `PATH`. See the instructions below about `Setting up diagd` to do
-that.
+# you can view the newly tag images by running 
+docker images | grep <your -registry>
 
-| Group           | Command                                                             |
-|-----------------|---------------------------------------------------------------------|
-| All Tests       | `make test`                                                         |
-| All Golang      | `make gotest`                                                       |
-| All Python      | `make pytest`                                                       |
-| Some/One Golang | `make gotest GOTEST_PKGS=./cmd/entrypoint GOTEST_ARGS="-run TestName"` |
-| Some/One Python | `make pytest PYTEST_ARGS="-k TestName"`                             |
+# alternatively, we have two make targets that provide information as well
+make env
 
-Please note the python tests use a local cache to speed up test
-results. If you make a code update that changes the generated envoy
-configuration, those tests will fail and you will need to update the
-python test cache.
+# or in a bash export friendly format
+make export
+```
 
-Note that it is invalid to run one of the `main[Plain.*]` Python tests
-without running all of the other `main[Plain*]` tests; the test will
-fail to run (not even showing up as a failure or xfail--it will fail
-to run at all).  For example, `PYTEST_ARGS="-k WebSocket"` would match
-the `main[Plain.WebSocketMapping-GRPC]` test, and that test would fail
-to run; one should instead say `PYTEST_ARGS="-k Plain or WebSocket"`
-to avoid breaking the sub-tests of "Plain".
+### Step 6: Deploy
 
-How do I update the python test cache?
---------------------------------------
+Now its time to deploy the container out to your Kubernetes cluster that was configured in step 2. Hopefully, it is already becoming apparent that we love to leverage Make to handle the complexity for you :).
 
-- First, run `make KAT_RUN_MODE=envoy pytest` to do a test run _without_
-  using the local cache.
+```bash
+# generate helm charts and K8's Configs with your container swapped in and apply them to your cluster
+make deploy
 
-- Once that succeeds, use `make pytest-gold` to update the cache from
-  the passing tests.
+# check your cluster to see if emissary is running
+# note: kubectl doesn't know about  DEV_KUBECONFIG so you may need to ensure KUBECONFIG is pointing to the correct cluster
+kubectl get pod -n ambassador
+```
 
-My editor is changing `go.mod` or `go.sum`, should I commit that?
------------------------------------------------------------------
+🥳 If all has gone well then you should have your development environment setup for building and testing Emissary-ingress.
 
-If you notice this happening, run `make go-mod-tidy`, and commit that.
+### What's Next?
 
-(If you're in Datawire, you should do this from `apro/`, not
-`apro/ambassador/`, so that apro.git's files are included too.)
+Now that you have your dev system up and running here are some additional content that we recommend you check out:
 
-How do I run ambassador for local development using the new entrypoint?
------------------------------------------------------------------------
+- [Emissary-ingress Architecture](ARCHITECTURE.md)
+- [Contributing a Pull Request](#contributing-a-pull-request)
+- [Contributing to Docs](#contributing-to-the-docs)
+- [Advanced Topics](#advanced-topics)
+- [Faq](#faq)
 
-The new entrypoint is written in go. It strives to be as compatible as possible
-with the normal go toolchain. You should be able to run it with:
+## Contributing a Pull Request
 
-    go run ./cmd/busyambassador entrypoint
+Before contributing be sure to read our [Code of Conduct](CODE_OF_CONDUCT.md) and [Governance](GOVERNANCE.md) to get an understanding of how our project is structured.
+
+1. **Identify an  Issue**
+   - Start by creating or searching for an open issue (*it is good to check open PR's too*)
+   - We will assign an issue to you so that others know who is working on it
+
+2. **Cut a development branch from `master`**.
+   - We recommend that your branches start with your username.
+      - At Ambassador Labs we typically use `git-flow`-style naming, e.g. `flynn/dev/telepathic-ui`
+   - Please do not use a branch name starting with `release`.
+
+3. If your development takes any significant time, **merge master back into your branch regularly**.
+   - Think "every morning" and "right before submitting a pull request."
+   - If you're using a branch name that starts with your username, `git rebase` is also OK and no one from Ambassador Labs will scream at you for force-pushing.
+   - Please do **not** rebase any branch that does **not** start with your username.
+
+   ```bash
+   # make sure you local master branch has the latest
+   git checkout master
+   git pull -ff origin master
+
+   # rebase development branch on master
+   # fix any conflicts if they occur during rebase
+   git checkout <your-dev-branch>
+   git rebase master
+
+   # if you previously pushed your changes to Github then your rebase will require you to force push
+   git push origin <your-dev-branch> -f 
+   ```
+
+4. **Code changes must have associated documentation updates.**
+   - Make changes in <https://github.com/datawire/ambassador-docs> as necessary,
+   and include a reference to those changes the pull request for your code
+   changes.
+   - See [Contributing to Docs](#contributing-to-the-docs) for more details.
+
+5. **Code changes must include passing tests.**
+   - See `python/tests/README.md` for more here.
+   - Your tests **must** actually test the change you're making.
+   - Your tests **must** pass in order for your change to be accepted.
+
+6. **Commit** should summarize what was changed
+   - we **require** that all commits are signed off so please be sure to commit using the `--signoff` flag, e.g. `git commit --signoff`
+   - commit message should summarize the fix and motivation for the proposed fix. Include issue # that the fix looks to address.
+
+7. When you have things working and tested, **submit a pull request back to `master`**.
+   - Make sure your branch is up-to-date with `master` right before submitting the PR, see previos steps on how to `rebase`
+   - The PR will trigger CI to perform a build and run tests.
+   - CI tests **must** be passing for the PR to be merged.
+
+8. One of the [Maintainers](MAINTAINERS.md) will review your PR and discuss any changes that need to be made
+
+9. When all is well, maintainers will merge the PR into `master`, accepting your
+   change for the next Emissary-ingress release. Thanks!
+
+## Contributing to the Docs
+
+The Emissary-ingress community will all benefit from having documentation that is useful and correct. If you have found an issue with the end user documentation, then please help us out by submitting an issue and/or pull request with a fix!
+
+The end user documentation for Emissary-ingress lives in a different repository and can be found at <https://github.com/datawire/ambassador-docs>.
+
+See this repository for details on how to contribute to either a `pre-release` or already-released version of Emissary-ingress.
+
+## Advanced Topics
+
+This section is for more advanced topics that provide more detailed instructions. Make sure you go through the Development Setup and read the Architecture document before exploring these topics.
+
+### Running Emissary-ingress internals locally
+
+The main entrypoint is written in go. It strives to be as compatible as possible
+with the normal go toolchain. You can run it with:
+
+```bash
+go run ./cmd/busyambassador entrypoint
+```
 
 Of course just because you can run it this way does not mean it will succeed.
 The entrypoint needs to launch `diagd` and `envoy` in order to function, and it
 also expect to be able to write to the `/ambassador` directory.
 
-### Setting up diagd
+#### Setting up diagd
 
 If you want to hack on diagd, its easiest to setup a virtualenv with an editable
 copy and launch your `go run` from within that virtualenv. Note that these
 instructions depend on the virtualenvwrapper
-(https://virtualenvwrapper.readthedocs.io/en/latest/) package:
+(<https://virtualenvwrapper.readthedocs.io/en/latest/>) package:
 
-    # Create a virtualenv named venv with all the python requirements
-    # installed.
-    python3 -m venv venv
-    . venv/bin/activate
-    # If you're doing this in Datawire's apro.git, then:
-    cd ambassador
-    # Update pip and install dependencies
-    pip install --upgrade pip
-    pip install orjson    # see below
-    pip install -r builder/requirements.txt
-    # Created an editable installation of ambassador:
-    pip install -e python/
-    # Check that we do indeed have diagd in our path.
-    which diagd
-    # If you're doing this in Datawire's apro.git, then:
-    cd ..
+```bash
+# Create a virtualenv named venv with all the python requirements
+# installed.
+python3 -m venv venv
+. venv/bin/activate
+# If you're doing this in Datawire's apro.git, then:
+cd ambassador
+# Update pip and install dependencies
+pip install --upgrade pip
+pip install orjson    # see below
+pip install -r builder/requirements.txt
+# Created an editable installation of ambassador:
+pip install -e python/
+# Check that we do indeed have diagd in our path.
+which diagd
+# If you're doing this in Datawire's apro.git, then:
+cd ..
+```
 
 (Note: it shouldn't be necessary to install `orjson` by hand. The fact that it is
 at the moment is an artifact of the way Ambassador builds currently happen.)
 
-### Changing the ambassador root
+#### Changing the ambassador root
 
 You should now be able to launch ambassador if you set the
 `ambassador_root` environment variable to a writable location:
 
    ambassador_root=/tmp go run ./cmd/busyambassador entrypoint
 
-### Getting envoy
+#### Getting envoy
 
 If you do not have envoy in your path already, the entrypoint will use
 docker to run it. At the moment this is untested for macs which probably
@@ -228,15 +315,17 @@ means it is broken since localhost communication does not work by
 default on macs. This can be made to work as soon an intrepid volunteer
 with a mac reaches out to me (rhs@datawire.io).
 
-### Shutting up the pod labels error
+#### Shutting up the pod labels error
 
 An astute observe of the logs will notice that ambassador complains
 vociferously that pod labels are not mounted in the ambassador
 container. To reduce this noise, you can:
 
-    mkdir /tmp/ambassador-pod-info && touch /tmp/ambassador-pod-info/labels
+```bash
+mkdir /tmp/ambassador-pod-info && touch /tmp/ambassador-pod-info/labels
+```
 
-### Extra credit
+#### Extra credit
 
 When you run ambassador locally it will configure itself exactly as it
 would in the cluster. That means with two caveats you can actually
@@ -247,15 +336,15 @@ interact with it and it will function normally:
 
 2. You need to supply the host header when you talk to it.
 
-How do I debug/develop envoy config generation?
------------------------------------------------
+### Debugging and Developing Envoy Configuration
 
 Envoy configuration is generated by the ambassador compiler. Debugging
 the ambassador compiler by running it in kubernetes is very slow since
 we need to push both the code and any relevant kubernetes resources
-into the cluster.
+into the cluster. The following sections will provide tips for improving
+this development experience.
 
-### `mockery`
+#### Mockery
 
 Fortunately we have the `mockery` tool which lets us run the compiler
 code directly on kubernetes resources without having to push that code
@@ -275,7 +364,7 @@ to arrange to get data in and out of the container:
 2. You may be able to use Docker volume mounts by exporting `BUILDER_MOUNTS`
    with the appropriate `-v` switches before running `make shell` -- e.g.
 
-    ```
+    ```bash
     export BUILDER_MOUNTS=$(pwd)/xfer:/xfer
     make shell
     ```
@@ -296,27 +385,26 @@ Once you've sorted out how to move data around:
 
 3. From inside the build shell, run
 
-   ```
+   ```bash
    mockery $path_to_your_file
    ```
 
    If you're using a non-default `ambassador_id` you need to provide it in the
    environment:
 
-   ```
+   ```bash
    AMBASSADOR_ID=whatever mockery $path_to_your_file
    ```
 
    Finally, if you're trying to mimic `KAT`, copy the `/tmp/k8s-AmbassadorTest.yaml`
    file from a KAT run to use as input, then
 
-   ```
+   ```bash
    mockery --kat $kat_test_name $path_to_k8s_AmbassadorTest.yaml
    ```
 
    where `$kat_test_name` is the class name of a `KAT` test class, like `LuaTest` or
    `TLSContextTest`.
-
 
 4. Once it's done, `/tmp/ambassador/snapshots` will have all the output from the
    compiler phase of Ambassador.
@@ -326,7 +414,7 @@ without relying at all on a Kubernetes cluster. This means that you can easily a
 quickly take a Kubernetes input and look at the generated Envoy configuration without
 any other infrastructure.
 
-### `ambassador dump`
+#### Ambassador Dump
 
 The `ambassador dump` tool is also useful for debugging and hacking on
 the compiler. After running `make shell`, you'll also be able to use
@@ -341,7 +429,7 @@ formats:
 
 Given an input source, running
 
-```
+```bash
 ambassador dump --ir --v2 [$input_flags] $input > test.json
 ```
 
@@ -354,126 +442,17 @@ will dump the Ambassador IR and v2 Envoy configuration into `test.json`. Here
 
 You can get more information with
 
-```
+```bash
 ambassador dump --help
 ```
 
-How do I type check my python code?
------------------------------------
+### Making changes to Envoy
 
-Ambassador uses Python 3 type hinting and the `mypy` static type checker to
-help find bugs before runtime. If you haven't worked with hinting before, a
-good place to start is
-[the `mypy` cheat sheet](https://mypy.readthedocs.io/en/latest/cheat_sheet_py3.html).
-
-New code must be hinted, and the build process will verify that the type
-check passes when you `make test`. Fair warning: this means that
-PRs will not pass CI if the type checker fails.
-
-We strongly recommend using an editor that can do realtime type checking
-(at Datawire we tend to use PyCharm and VSCode a lot, but many many editors
-can do this now) and also running the type checker by hand before submitting
-anything:
-
-- `make mypy` will start check all the Ambassador code
-
-Since `make mypy` uses the daemon for caching, it should be very fast after
-the first run. Ambassador code should produce _no_ warnings and _no_ errors.
-
-If you're concerned that the cache is somehow wrong (or if you just want the
-daemon to not be there any more), `make mypy-clean` will stop the daemon
-and clear the cache.
-
-How do I debug "This should not happen in CI" errors?
------------------------------------------------------
-
-These checks indicate that some output file changed in the middle of a
-run, when it should only change if a source file has changed.  Since
-CI isn't editing the source files, this shouldn't happen in CI!
-
-This is problematic because it means that running the build multiple
-times can give different results, and that the tests are probably not
-testing the same image that would be released.
-
-These checks will show you a patch showing how the output file
-changed; it is up to you to figure out what is happening in the
-build/test system that would cause that change in the middle of a run.
-For the most part, this is pretty simple... except when the output
-file is a Docker image; you just see that one image hash is different
-than another image hash.
-
-Fortunately, the failure showing the changed image hash is usually
-immediately preceded by a `docker build`.  Earlier in the CI output,
-you should find an identical `docker build` command from the first time it
-ran.  In the second `docker build`'s output, each step should say
-`---> Using cache`; the first few steps will say this, but at some
-point later steps will stop saying this; find the first step that is
-missing the `---> Using cache` line, and try to figure out what could
-have changed between the two runs that would cause it to not use the
-cache.
-
-If that step is an `ADD` command that is adding a directory, the
-problem is probably that you need to add something to `.dockerignore`.
-To help figure out what you need to add, try adding a `RUN find
-DIRECTORY -exec ls -ld -- {} +` step after the `ADD` step, so that you
-can see what it added, and see what is different on that between the
-first and second `docker build` commands.
-
-How do I make documentation-only changes?
------------------------------------------
-
-The Ambassador documentation lives at https://github.com/datawire/ambassador-docs.
-If you're working on documentation for an upcoming feature or fix, make your
-changes in the `pre-release` folder in that repository. If you want to make a
-change that affects the live documentation for an already-released version of
-Ambassador, make your changes in the corresponding version folder.
-
-How do I get the source code for a release?
--------------------------------------------
-
-The current shipping release of Ambassador lives on the `master`
-branch. It is tagged with its version (e.g. `v0.78.0`).
-
-Changes on `master` after the last tag have not been released yet, but
-will be included in the next release of Ambassador.
-
-How do I make a contribution?
------------------------------
-
-1. **All development must be on branches cut from `master`**.
-   - We recommend that your branches start with your username.
-      - At Datawire we typically use `git-flow`-style naming, e.g. `flynn/dev/telepathic-ui`
-   - Please do not use a branch name starting with `release`.
-
-2. If your development takes any significant time, **merge master back into your branch regularly**.
-   - Think "every morning" and "right before submitting a pull request."
-   - If you're using a branch name that starts with your username, `git rebase` is also OK and no one from Datawire will scream at you for force-pushing.
-   - Please do **not** rebase any branch that does **not** start with your username.
-
-3. **Code changes must have associated documentation updates.**
-   - Make changes in https://github.com/datawire/ambassador-docs as necessary,
-   and include a reference to those changes the pull request for your code
-   changes.
-
-4. **Code changes must include passing tests.**
-   - See `python/tests/README.md` for more here.
-   - Your tests **must** actually test the change you're making.
-   - Your tests **must** pass in order for your change to be accepted.
-
-5. When you have things working and tested, **submit a pull request back to `master`**.
-   - Make sure your branch is up-to-date with `master` right before submitting the PR!
-   - The PR will trigger CI to perform a build and run tests.
-   - CI tests **must** be passing for the PR to be merged.
-
-6. When all is well, maintainers will merge the PR into `master`, accepting your
-   change for the next Ambassador release. Thanks!
-
-How do I make changes to the Envoy that ships with Ambassador?
---------------------------------------------------------------
+Emissary-ingress is built on top of Envoy and leverages a vendored version of Envoy (*we track upstream very closely*). This section will go into how to make changes to the Envoy that is packaged with Emissary-ingress.
 
 This is a bit more complex than anyone likes, but here goes:
 
-### 1. Preparing your machine
+#### 1. Preparing your machine
 
 Building and testing Envoy can be very resource intensive.  A laptop
 often can build Envoy... if you plug in an external hard drive, point
@@ -492,14 +471,14 @@ it as:
 > [1] On a "Machine type: custom (32 vCPUs, 512 GB memory)" VM on GCE,
 > with the following entry in its `/etc/fstab`:
 >
-> ```
+> ```bash
 > tmpfs:docker  /var/lib/docker  tmpfs  size=450G  0  0
 > ```
 
 If you have the RAM, we've seen huge speed gains from doing the builds
 and tests on a RAM disk (see the `/etc/fstab` line above).
 
-### 2. Setting up your workspace to hack on Envoy
+#### 2. Setting up your workspace to hack on Envoy
 
 1. From your `ambassador.git` checkout, get Ambassador's current
    version of the Envoy sources, and create a branch from that:
@@ -531,13 +510,13 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
     3. Don't push the build of Envoy to a Docker cache (since you're
        still actively working on it).
 
-### 3. Hacking on Envoy
+#### 3. Hacking on Envoy
 
 Modify the sources in `./_cxx/envoy/`.
 
-### 4. Building and testing your hacked-up Envoy
+#### 4. Building and testing your hacked-up Envoy
 
-- **Build Envoy** with `make update-base`.  Again, this is _not_ a
+- **Build Envoy** with `make update-base`.  Again, this is *not* a
    quick process.  The build happens in a Docker container; you can
    set `DOCKER_HOST` to point to a powerful machine if you like.
 
@@ -548,7 +527,7 @@ Modify the sources in `./_cxx/envoy/`.
 
   Inner dev-loop steps:
 
-   * To run just specific tests, instead of the whole test suite, set
+  - To run just specific tests, instead of the whole test suite, set
      the `ENVOY_TEST_LABEL` environment variable.  For example, to run
      just the unit tests in
      `test/common/network/listener_impl_test.cc`, you should run
@@ -557,12 +536,12 @@ Modify the sources in `./_cxx/envoy/`.
      ENVOY_TEST_LABEL='//test/common/network:listener_impl_test' make check-envoy
      ```
 
-   * You can run `make envoy-shell` to get a Bash shell in the Docker
+  - You can run `make envoy-shell` to get a Bash shell in the Docker
      container that does the Envoy builds.
 
   Interpreting the test results:
 
-   * If you see the following message, don't worry, it's harmless; the
+  - If you see the following message, don't worry, it's harmless; the
      tests still ran:
 
      ```text
@@ -590,19 +569,19 @@ Modify the sources in `./_cxx/envoy/`.
   traffic through Envoy, and instead just check that the Envoy
   configuration that Ambassador generates hasn't changed since the
   previous version (since we generally trust that Envoy works, and
-  doesn't change as often).  Since you _are_ changing Envoy, you'll
+  doesn't change as often).  Since you *are* changing Envoy, you'll
   need to run the tests with `KAT_RUN_MODE=envoy` set in the
   environment in order to actually test against Envoy.
 
-### 5. Finalizing your changes
+#### 5. Finalizing your changes
 
 Once you're happy with your changes to Envoy:
 
 1. Ensure they're committed to `_cxx/envoy/` and push/PR them into
-   https://github.com/datawire/envoy branch `rebase/master`.
+   <https://github.com/datawire/envoy> branch `rebase/master`.
 
    If you're outside of Datawire, you'll need to
-    a. Create a fork of https://github.com/datawire/envoy on the
+    a. Create a fork of <https://github.com/datawire/envoy> on the
        GitHub web interface
     b. Add it as a remote to your `./_cxx/envoy/`:
        `git remote add my-fork git@github.com:YOUR_USERNAME/envoy.git`
@@ -649,77 +628,37 @@ Once you're happy with your changes to Envoy:
    push somewhere other than Datawire's registry.
 
 4. Push/PR the `envoy.mk` `ENVOY_COMMIT` change to
-   https://github.com/datawire/ambassador (or
-   https://github.com/datawire/apro if you're inside Datawire).
+   <https://github.com/datawire/ambassador> (or
+   <https://github.com/datawire/apro> if you're inside Datawire).
 
-### 6. Checklist for landing the changes
+#### 6. Checklist for landing the changes
 
 I'd put this in the pull request template, but so few PRs change Envoy...
 
- - [ ] The image has been pushed to...
-   * [ ] `docker.io/datawire/ambassador-base`
-   * [ ] `gcr.io/datawire/ambassador-base`
- - [ ] The envoy.git commit has been tagged as `datawire-$(git
+- [ ] The image has been pushed to...
+  - [ ] `docker.io/datawire/ambassador-base`
+  - [ ] `gcr.io/datawire/ambassador-base`
+- [ ] The envoy.git commit has been tagged as `datawire-$(git
    describe --tags --match='v*')` (the `--match` is to prevent
    `datawire-*` tags from stacking on each other).
- - [ ] It's been tested with...
-   * [ ] `make check-envoy`
+- [ ] It's been tested with...
+  - [ ] `make check-envoy`
 
-The `check-envoy-version` CI job should check all of those things,
-except for `make check-envoy`.
+The `check-envoy-version` CI job should check all of those things, except for `make check-envoy`.
 
-How do I test Ambassador when using a private Docker repository?
-----------------------------------------------------------------
-
-If you are pushing your development images to a private Docker repo,
-then
-
-```sh
-export DEV_USE_IMAGEPULLSECRET=true
-export DOCKER_BUILD_USERNAME=...
-export DOCKER_BUILD_PASSWORD=...
-```
-
-and the test machinery should create an `imagePullSecret` from those
-Docker credentials such that it can pull the images.
-
-How do I change the loglevel at runtime?
-----------------------------------------
-
-```console
-$ curl localhost:8877/ambassador/v0/diag/?loglevel=debug
-```
-
-Note: This affects diagd and Envoy, but NOT the AES `amb-sidecar`.
-See the AES `DEVELOPING.md` for how to do that.
-
-Developing Ambassador (Datawire-only advice)
-============================================
+### Developing Emissary-ingress (Datawire-only advice)
 
 At the moment, these techniques will only work internally to Datawire. Mostly
 this is because they require credentials to access internal resources at the
 moment, though in several cases we're working to fix that.
 
-How do I build ambassador on Windows using WSL?
------------------------------------------------
-As the ambassador build sequence requires docker communication via a UNIX socket, using WSL 1 is not possible.
-Not even with a `DOCKER_HOST` environment variable set. As a result, you have to use WSL 2, including using the
-WSL 2 version of docker-for-windows.
-
-Additionally, if your hostname contains an upper-case character, the build script will break. This is based on the
-`NAME` environment variable, which should contain your hostname. You can solve this issue by doing `export NAME=my-lowercase-host-name`.
-If you do this *after* you've already run `make images` once, you will manually have to clean up the docker images
-that have been created using your upper-case host name.
-
-Updating license documentation
------------------------------------------------
+#### Updating license documentation
 
 When new dependencies are added or existing ones are updated, run
 `make generate` and commit changes to `DEPENDENCIES.md` and
 `DEPENDENCY_LICENSES.md`
 
-How do I upgrade all of the Python dependencies?
-------------------------------------------------
+#### Upgrading Python dependencies
 
 Delete `python/requirements.txt`, then run `make generate`.
 
@@ -731,9 +670,182 @@ upgrade everything else, then
  2. Delete `python/requirements.in` (if it exists).
  3. Run `make generate`.
 
-How do I develop on an Mac with Apple Silicon?
-----------------------------------------------
+## FAQ
+
+This section contains a set of Frequently Asked Questions that may answer a question you have. Also, feel free to ping us in Slack.
+
+### How do I find out what build targets are available?
+
+Use `make help` and `make targets` to see what build targets are
+available along with documentation for what each target does.
+
+### How do I develop on a Mac with Apple Silicon?
 
 To ensure that developers using a Mac with Apple Silicon can contribute, the build system ensures
 the build artifacts are `linux/amd64` rather than the host architecture. This behavior can be overriden
 using the `BUILD_ARCH` environment variable (e.g. `BUILD_ARCH=linux/arm64 make images`).
+
+### How do I develop on Windows using WSL?
+
+As the Emissary-ingress build system requires docker communication via a UNIX socket, using WSL 1 is not possible.
+Not even with a `DOCKER_HOST` environment variable set. As a result, you have to use WSL 2, including using the
+WSL 2 version of docker-for-windows.
+
+Additionally, if your hostname contains an upper-case character, the build script will break. This is based on the
+`NAME` environment variable, which should contain your hostname. You can solve this issue by doing `export NAME=my-lowercase-host-name`.
+If you do this *after* you've already run `make images` once, you will manually have to clean up the docker images
+that have been created using your upper-case host name.
+
+### How do I test using a private Docker repository?
+
+If you are pushing your development images to a private Docker repo,
+then:
+
+```sh
+export DEV_USE_IMAGEPULLSECRET=true
+export DOCKER_BUILD_USERNAME=...
+export DOCKER_BUILD_PASSWORD=...
+```
+
+and the test machinery should create an `imagePullSecret` from those Docker credentials such that it can pull the images.
+
+### How do I change the loglevel at runtime?
+
+```console
+curl localhost:8877/ambassador/v0/diag/?loglevel=debug
+```
+
+Note: This affects diagd and Envoy, but NOT the AES `amb-sidecar`.
+See the AES `DEVELOPING.md` for how to do that.
+
+### Can I build from a docker container instead of on my local computer?
+
+If you want to build within a container instead of setting up dependencies on your local machine then you can run the build within a docker container and leverage "Docker in Docker" to build it.
+
+1. `docker pull docker:latest`
+2. `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -it docker:latest sh`
+3. `apk add --update --no-cache bash build-base go curl rsync python3 python2 git libarchive-tools gawk jq`
+4. `git clone https://github.com/emissary-ingress/emissary.git && cd emissary`
+5. `make images`
+
+Steps 0 and 1 are run on your machine, and 2 - 4 are from within the docker container. The base image is a "Docker in Docker" image, ran with `-v /var/run/docker.sock:/var/run/docker.sock` in order to connect to your local daemon from the docker inside the container. More info on Docker in Docker [here](https://hub.docker.com/_/docker).
+
+The images will be created and tagged as defined above, and will be available in docker on your local machine.
+
+### How do I clear everything out to make sure my build runs like it will in CI?
+
+Use `make clobber` to completely remove all derived objects, all cached artifacts, everything, and get back to a clean slate. This is recommended if you change branches within a clone, or if you need to `make generate` when you're not *certain* that your last `make generate` was using the same Envoy version.
+
+Use `make clean` to remove derived objects, but *not* clear the caches.
+
+### My editor is changing `go.mod` or `go.sum`, should I commit that?
+
+If you notice this happening, run `make go-mod-tidy`, and commit that.
+
+(If you're in Ambassador Labs, you should do this from `apro/`, not
+`apro/ambassador/`, so that apro.git's files are included too.)
+
+### How do I debug "This should not happen in CI" errors?
+
+These checks indicate that some output file changed in the middle of a
+run, when it should only change if a source file has changed.  Since
+CI isn't editing the source files, this shouldn't happen in CI!
+
+This is problematic because it means that running the build multiple
+times can give different results, and that the tests are probably not
+testing the same image that would be released.
+
+These checks will show you a patch showing how the output file
+changed; it is up to you to figure out what is happening in the
+build/test system that would cause that change in the middle of a run.
+For the most part, this is pretty simple... except when the output
+file is a Docker image; you just see that one image hash is different
+than another image hash.
+
+Fortunately, the failure showing the changed image hash is usually
+immediately preceded by a `docker build`.  Earlier in the CI output,
+you should find an identical `docker build` command from the first time it
+ran.  In the second `docker build`'s output, each step should say
+`---> Using cache`; the first few steps will say this, but at some
+point later steps will stop saying this; find the first step that is
+missing the `---> Using cache` line, and try to figure out what could
+have changed between the two runs that would cause it to not use the
+cache.
+
+If that step is an `ADD` command that is adding a directory, the
+problem is probably that you need to add something to `.dockerignore`.
+To help figure out what you need to add, try adding a `RUN find
+DIRECTORY -exec ls -ld -- {} +` step after the `ADD` step, so that you
+can see what it added, and see what is different on that between the
+first and second `docker build` commands.
+
+### How do I run Emissary-ingress tests?
+
+- `export DEV_REGISTRY=<your-dev-docker-registry>` (you need to be logged in and have permission to push)
+- `export DEV_KUBECONFIG=<your-dev-kubeconfig>`
+
+If you want to run the Go tests for `cmd/entrypoint`, you'll need `diagd`
+in your `PATH`. See the instructions below about `Setting up diagd` to do
+that.
+
+| Group           | Command                                                             |
+|-----------------|---------------------------------------------------------------------|
+| All Tests       | `make test`                                                         |
+| All Golang      | `make gotest`                                                       |
+| All Python      | `make pytest`                                                       |
+| Some/One Golang | `make gotest GOTEST_PKGS=./cmd/entrypoint GOTEST_ARGS="-run TestName"` |
+| Some/One Python | `make pytest PYTEST_ARGS="-k TestName"`                             |
+
+Please note the python tests use a local cache to speed up test
+results. If you make a code update that changes the generated envoy
+configuration, those tests will fail and you will need to update the
+python test cache.
+
+Note that it is invalid to run one of the `main[Plain.*]` Python tests
+without running all of the other `main[Plain*]` tests; the test will
+fail to run (not even showing up as a failure or xfail--it will fail
+to run at all).  For example, `PYTEST_ARGS="-k WebSocket"` would match
+the `main[Plain.WebSocketMapping-GRPC]` test, and that test would fail
+to run; one should instead say `PYTEST_ARGS="-k Plain or WebSocket"`
+to avoid breaking the sub-tests of "Plain".
+
+### How do I update the python test cache?
+
+- First, run `make KAT_RUN_MODE=envoy pytest` to do a test run *without*
+  using the local cache.
+
+- Once that succeeds, use `make pytest-gold` to update the cache from
+  the passing tests.
+
+### How do I type check my python code?
+
+Ambassador uses Python 3 type hinting and the `mypy` static type checker to
+help find bugs before runtime. If you haven't worked with hinting before, a
+good place to start is
+[the `mypy` cheat sheet](https://mypy.readthedocs.io/en/latest/cheat_sheet_py3.html).
+
+New code must be hinted, and the build process will verify that the type
+check passes when you `make test`. Fair warning: this means that
+PRs will not pass CI if the type checker fails.
+
+We strongly recommend using an editor that can do realtime type checking
+(at Datawire we tend to use PyCharm and VSCode a lot, but many many editors
+can do this now) and also running the type checker by hand before submitting
+anything:
+
+- `make mypy` will start check all the Ambassador code
+
+Since `make mypy` uses the daemon for caching, it should be very fast after
+the first run. Ambassador code should produce *no* warnings and *no* errors.
+
+If you're concerned that the cache is somehow wrong (or if you just want the
+daemon to not be there any more), `make mypy-clean` will stop the daemon
+and clear the cache.
+
+### How do I get the source code for a release?
+
+The current shipping release of Ambassador lives on the `master`
+branch. It is tagged with its version (e.g. `v0.78.0`).
+
+Changes on `master` after the last tag have not been released yet, but
+will be included in the next release of Ambassador.
