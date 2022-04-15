@@ -3605,6 +3605,15 @@ spec:
                     type: boolean
                   trace_id_128bit:
                     type: boolean
+                  v3PropagationModes:
+                    items:
+                      enum:
+                      - ENVOY
+                      - LIGHTSTEP
+                      - B3
+                      - TRACE_CONTEXT
+                      type: string
+                    type: array
                 type: object
               driver:
                 enum:
