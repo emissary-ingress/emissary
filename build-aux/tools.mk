@@ -149,4 +149,32 @@ $(tools.bindir)/kubectl: $(tools.mk)
 	curl -o $@ -L --fail https://storage.googleapis.com/kubernetes-release/release/v$(KUBECTL_VERSION)/bin/$(GOHOSTOS)/$(GOHOSTARCH)/kubectl
 	chmod 755 $@
 
+tools/ct = $(tools.bindir)/ct
+$(tools/ct): $(tools.bindir)/%: $(tools.srcdir)/%/wrap.sh $(tools/ct).d/bin/ct $(tools/ct).d/bin/kubectl $(tools/ct).d/venv $(tools/ct).d/home
+	install $< $@
+$(tools/ct).d/bin/ct: $(tools.srcdir)/ct/pin.go $(tools.srcdir)/ct/go.mod
+	@PS4=; set -ex; {\
+	  cd $(<D); \
+	  pkg=$$(sed -En 's,^import "(.*)".*,\1,p' pin.go); \
+	  ver=$$(go list -f='{{ .Module.Version }}' "$$pkg"); \
+	  GOOS= GOARCH= go build -o $(abspath $@) -ldflags="-X $$pkg/cmd.Version=$$ver" "$$pkg"; \
+	}
+$(tools/ct).d/bin/kubectl: $(tools/kubectl)
+	mkdir -p $(@D)
+	ln -s ../../kubectl $@
+$(tools/ct).d/dir.txt: $(tools.srcdir)/ct/pin.go $(tools.srcdir)/ct/go.mod
+	mkdir -p $(@D)
+	cd $(<D) && GOFLAGS='-mod=readonly' go list -f='{{ .Module.Dir }}' "$$(sed -En 's,^import "(.*)".*,\1,p' pin.go)" >$(abspath $@)
+$(tools/ct).d/venv: %/venv: %/dir.txt
+	rm -rf $@
+	python3 -m venv $@
+	$@/bin/pip3 install \
+	  yamllint==$$(sed -n 's/ARG yamllint_version=//p' "$$(cat $<)/Dockerfile") \
+	  yamale==$$(sed -n 's/ARG yamale_version=//p' "$$(cat $<)/Dockerfile") \
+	  || (rm -rf $@; exit 1)
+$(tools/ct).d/home: %/home: %/dir.txt
+	rm -rf $@
+	mkdir $@ $@/.ct
+	cp "$$(cat $<)"/etc/* $@/.ct || (rm -rf $@; exit 1)
+
 endif

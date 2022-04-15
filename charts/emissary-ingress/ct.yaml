@@ -16,11 +16,9 @@ remote: origin
 ################################################
 
 charts:
-  - /charts/
+  - ./
 chart-dirs:
-  - /charts/
-chart-repos:
-  - datawire=https://getambassador.io
+  - ./
 
 helm-extra-args: --timeout 600s
 

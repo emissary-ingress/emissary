@@ -76,12 +76,12 @@ test-chart-values.yaml: docker/$(LCNAME).docker.push.remote
 	  sed -E -n '2s/.*:/  tag: /p' < $<; \
 	} >$@
 
-test-chart: $(tools/k3d) $(tools/kubectl) test-chart-values.yaml $(if $(DEV_USE_IMAGEPULLSECRET),push-pytest-images $(OSS_HOME)/venv)
+test-chart: $(tools/ct) $(tools/k3d) $(tools/kubectl) test-chart-values.yaml $(if $(DEV_USE_IMAGEPULLSECRET),push-pytest-images $(OSS_HOME)/venv)
 	PATH=$(abspath $(tools.bindir)):$(PATH) $(MAKE) -C charts/emissary-ingress HELM_TEST_VALUES=$(abspath test-chart-values.yaml) $@
 .PHONY: test-chart
 
-lint-chart:
-	$(MAKE) -C charts/emissary-ingress $@
+lint-chart: $(tools/ct)
+	PATH=$(abspath $(tools.bindir)):$(PATH) $(MAKE) -C charts/emissary-ingress $@
 .PHONY: lint-chart
 
 .git/hooks/prepare-commit-msg:

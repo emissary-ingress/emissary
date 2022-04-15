@@ -12,7 +12,7 @@ contributed with a Pull Request targeting `master`.
 
 ## Testing
 
-The `ci/` directory contains scripts that will be run on PRs to `master`.
+The `ci.in` directory contains scripts that will be run on PRs to `master`.
 
 - `make chart-test` run from this directory will run the chart tests.
 
