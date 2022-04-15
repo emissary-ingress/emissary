@@ -15,5 +15,6 @@
 
 # stuff specific to the Emissary chart directory
 .gitignore
+readme.tpl
 OWNERS
 *.in
