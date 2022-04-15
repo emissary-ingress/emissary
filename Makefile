@@ -56,9 +56,9 @@ _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
 IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
 include $(OSS_HOME)/build-aux/ci.mk
+include $(OSS_HOME)/build-aux/main.mk
 include $(OSS_HOME)/build-aux/check.mk
 include $(OSS_HOME)/builder/builder.mk
-include $(OSS_HOME)/build-aux/main.mk
 include $(OSS_HOME)/_cxx/envoy.mk
 include $(OSS_HOME)/releng/release.mk
 
@@ -85,10 +85,10 @@ deploy: push preflight-cluster
 	$(MAKE) deploy-only
 .PHONY: deploy
 
-deploy-only: preflight-dev-kubeconfig $(tools/kubectl) $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
+deploy-only: preflight-dev-kubeconfig $(tools/kubectl) $(OSS_HOME)/manifests/emissary/emissary-crds.yaml $(boguschart_dir)
 	mkdir -p $(OSS_HOME)/build/helm/ && \
 	($(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) create ns ambassador || true) && \
-	helm template ambassador --output-dir $(OSS_HOME)/build/helm -n ambassador charts/emissary-ingress/ \
+	helm template ambassador --output-dir $(OSS_HOME)/build/helm -n ambassador $(boguschart_dir) \
 		--set createNamespace=true \
 		--set service.selector.service=ambassador \
 		--set replicaCount=1 \

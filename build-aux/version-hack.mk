@@ -32,8 +32,6 @@
 # case, because Make runs them every parse, it would be very very
 # noisy if Make actually printed them.
 
-version-hack.simple-substitutions  = charts/emissary-ingress/Chart.yaml
-version-hack.simple-substitutions += charts/emissary-ingress/values.yaml
 version-hack.simple-substitutions += docs/yaml/versions.yml
 version-hack.simple-substitutions += manifests/emissary/emissary-crds.yaml
 version-hack.simple-substitutions += manifests/emissary/emissary-defaultns.yaml
@@ -51,15 +49,9 @@ $(version-hack.simple-substitutions): %: %.in $(tools/write-ifchanged) FORCE
 	  -e 's,\$$imageRepo\$$,$(firstword $(IMAGE_REPO) $(patsubst %,%/emissary,$(DEV_REGISTRY)) docker.io/emissaryingress/emissary),g' \
 	  ; } <$< | CI= $(tools/write-ifchanged) $@
 
-charts/emissary-ingress/README.md: %/README.md: %/doc.yaml %/readme.tpl %/values.yaml $(tools/chart-doc-gen)
-	@$(tools/chart-doc-gen) -d $*/doc.yaml -t $*/readme.tpl -v $*/values.yaml >$@
-
 #
 # Trigger Make to update those
 
-build-aux/version-hack.stamp.mk: charts/emissary-ingress/Chart.yaml
-build-aux/version-hack.stamp.mk: charts/emissary-ingress/values.yaml
-build-aux/version-hack.stamp.mk: charts/emissary-ingress/README.md
 build-aux/version-hack.stamp.mk: docs/yaml/versions.yml
 build-aux/version-hack.stamp.mk: manifests/emissary/emissary-crds.yaml
 build-aux/version-hack.stamp.mk: manifests/emissary/emissary-defaultns.yaml

@@ -407,10 +407,8 @@ helm.namespace.emissary-defaultns-migration = default
 
 $(OSS_HOME)/k8s-config/%/helm-expanded.yaml: \
   $(OSS_HOME)/k8s-config/%/values.yaml \
-  $(OSS_HOME)/charts/emissary-ingress/templates $(wildcard $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml) \
-  $(OSS_HOME)/charts/emissary-ingress/values.yaml \
-  FORCE
-	helm template --namespace=$(helm.namespace.$*) --values=$(@D)/values.yaml $(or $(helm.name.$*),$*) $(OSS_HOME)/charts/emissary-ingress >$@
+  $(boguschart_dir)
+	helm template --namespace=$(helm.namespace.$*) --values=$(@D)/values.yaml $(or $(helm.name.$*),$*) $(boguschart_dir) >$@
 
 $(OSS_HOME)/k8s-config/%/output.yaml: \
   $(OSS_HOME)/k8s-config/%/helm-expanded.yaml \

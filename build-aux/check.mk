@@ -63,17 +63,17 @@ test-chart-values.yaml: docker/emissary.docker.push.remote
 	  sed -E -n '2s/^(.*):.*/  repository: \1/p' < $<; \
 	  sed -E -n '2s/.*:/  tag: /p' < $<; \
 	} >$@
-charts/emissary-ingress/ci: %: %.in test-chart-values.yaml
+build-output/chart-%/ci: build-output/chart-% test-chart-values.yaml
 	rm -rf $@
 	cp -a $@.in $@
 	for file in $@/*-values.yaml; do cat test-chart-values.yaml >> "$$file"; done
 
-test-chart: $(tools/ct) $(tools/kubectl) charts/emissary-ingress/ci $(if $(DEV_USE_IMAGEPULLSECRET),push-pytest-images $(OSS_HOME)/venv)
+test-chart: $(tools/ct) $(tools/kubectl) $(chart_dir)/ci $(if $(DEV_USE_IMAGEPULLSECRET),push-pytest-images $(OSS_HOME)/venv)
 ifneq ($(DEV_USE_IMAGEPULLSECRET),)
 	. venv/bin/activate && KUBECONFIG=$(DEV_KUBECONFIG) python3 -c 'from tests.integration.utils import install_crds; install_crds()'
 else
 	$(tools/kubectl) --kubeconfig=$(DEV_KUBECONFIG) apply -f manifests/emissary/emissary-crds.yaml
 endif
 	$(tools/kubectl) --kubeconfig=$(DEV_KUBECONFIG) --namespace=emissary-system wait --timeout=90s --for=condition=available Deployments/emissary-apiext
-	cd charts/emissary-ingress && KUBECONFIG=$(DEV_KUBECONFIG) $(abspath $(tools/ct)) install --config=./ct.yaml
+	cd $(chart_dir) && KUBECONFIG=$(DEV_KUBECONFIG) $(abspath $(tools/ct)) install --config=./ct.yaml
 .PHONY: test-chart

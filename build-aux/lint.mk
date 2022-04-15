@@ -40,6 +40,6 @@ format: $(tools/golangci-lint)
 	}
 .PHONY: format
 
-lint-chart: $(tools/ct)
-	cd charts/emissary-ingress && $(abspath $(tools/ct)) lint --config=./ct.yaml
+lint-chart: $(tools/ct) $(chart_dir)
+	cd $(chart_dir) && $(abspath $(tools/ct)) lint --config=./ct.yaml
 .PHONY: lint-chart

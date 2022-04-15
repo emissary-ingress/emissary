@@ -1,4 +1,5 @@
 include build-aux/tools.mk
+include build-aux/var.mk
 
 #
 # Utility rules
@@ -80,13 +81,46 @@ docker/.base-pip.docker.stamp: docker/.%.docker.stamp: docker/%/Dockerfile docke
 	docker build --platform="$(BUILD_ARCH)" --build-arg=from="$$(sed -n 2p docker/base-python.docker.tag.local)" --iidfile=$@ $(<D)
 
 # The Helm chart
-build-output/charts/emissary-ingress-$(patsubst v%,%,$(CHART_VERSION)).tgz: \
-  charts/emissary-ingress/Chart.yaml \
-  charts/emissary-ingress/values.yaml \
-  charts/emissary-ingress/README.md
+build-output/chart-%.d: \
+  $(shell find charts/emissary-ingress) \
+  $(var.)DEV_REGISTRY $(var.)RELEASE_REGISTRY \
+  $(tools/chart-doc-gen)
+ifeq ($(CI),)
+	rm -rf $@
+else
+	@if test -d $@; then \
+	  echo 'This should not happen in CI: $@ should not need to change' >&2; \
+	  echo 'Files triggering the change are: $?' >&2; \
+	  exit 1; \
+	fi
+endif
 	mkdir -p $(@D)
-	helm package --destination=$(@D) $(<D)
+	cp -a $< $@
+	@PS4=; set -ex -o pipefail; { \
+	  if [[ '$(word 1,$(subst _, ,$*))' =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+|-ea)?$$ ]]; then \
+	    registry=$(RELEASE_REGISTRY); \
+	  else \
+	    registry=$(DEV_REGISTRY); \
+	  fi; \
+	  for file in Chart.yaml values.yaml; do \
+	    sed \
+	      -e 's/@version@/$(word 1,$(subst _, ,$*))/g' \
+	      -e 's/@chartVersion@/$(word 2,$(subst _, ,$*))/g' \
+	      -e "s,@imageRepo@,$${registry}/emissary,g" \
+	      <'$<'/"$${file}.in" \
+	      >'$@'/"$${file}"; \
+	  done; \
+	}
+	$(tools/chart-doc-gen) -d $</doc.yaml -t $</readme.tpl -v $@/values.yaml >$@/README.md
+build-output/chart-%.tgz: build-output/chart-%.d
+	helm package --destination=$< $<
+	mv $</emissary-ingress-$(word 2,$(subst _, ,$*)).tgz $@
 
-# Convience alias for the Helm chart
-chart: build-output/charts/emissary-ingress-$(patsubst v%,%,$(CHART_VERSION)).tgz
+# Convenience aliases for the Helm chart
+chart_dir = build-output/chart-$(patsubst v%,%,$(VERSION))_$(patsubst v%,%,$(CHART_VERSION)).d
+chart_tgz = $(patsubst %.d,%.tgz,$(chart_dir))
+chart: $(chart_tgz)
 PHONY: chart
+
+boguschart_dir = build-output/chart-2.0.0-bogus_7.0.0-bogus.d
+boguschart_tgz = $(patsubst %.d,%.tgz,$(boguschart_dir))
