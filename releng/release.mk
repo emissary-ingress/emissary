@@ -24,16 +24,6 @@ release/ga/changelog-update:
 # These commands are run in CI in a normal release process
 ########################################################################
 
-release/rc/check:
-	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION must be set to an RC "v2.Y.Z-rc.N" value; it is set to "%s"$(END)\n' "$(VERSION)"; exit 1)
-	{ $(OSS_HOME)/releng/release-rc-check \
-	  --rc-version=$(patsubst v%,%,$(VERSION)) \
-	  --s3-bucket=$(AWS_S3_BUCKET) \
-	  --s3-key=charts-dev \
-	  --helm-version=$$(gawk '$$1 == "version:" { gsub("-", " "); print $$2; }' <charts/emissary-ingress/Chart.yaml)$$(sed 's/^[^-]*//' <<<'$(VERSION)') \
-	  --docker-image=$(RELEASE_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION)); }
-.PHONY: release/rc/check
-
 release/ga/create-gh-release:
 	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION must be set to a GA "v2.Y.Z" value; it is set to "%s"$(END)\n' "$(VERSION)"; exit 1)
 	@$(OSS_HOME)/releng/release-create-github $(patsubst v%,%,$(VERSION))
