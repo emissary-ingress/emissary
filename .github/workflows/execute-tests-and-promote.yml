@@ -256,7 +256,15 @@ jobs:
         uses: ./.github/actions/setup-deps
       - name: make test-chart
         run: |
+          make ci/setup-k3d K3D_CLUSTER_NAME=amb-ci
+          export DEV_KUBECONFIG=~/.kube/config
+
           make test-chart
+      - uses: ./.github/actions/git-dirty-check
+        name: "Check git not dirty from testing"
+      - uses: ./.github/actions/collect-testing-logs
+        if: always()
+        name: "Collect testing logs"
 
   build: #######################################################################
     runs-on: ubuntu-latest

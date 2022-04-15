@@ -69,21 +69,6 @@ include $(OSS_HOME)/build-aux/lint.mk
 
 include $(OSS_HOME)/docs/yaml.mk
 
-test-chart-values.yaml: docker/$(LCNAME).docker.push.remote
-	{ \
-	  echo 'image:'; \
-	  sed -E -n '2s/^(.*):.*/  repository: \1/p' < $<; \
-	  sed -E -n '2s/.*:/  tag: /p' < $<; \
-	} >$@
-
-test-chart: $(tools/ct) $(tools/k3d) $(tools/kubectl) test-chart-values.yaml $(if $(DEV_USE_IMAGEPULLSECRET),push-pytest-images $(OSS_HOME)/venv)
-	PATH=$(abspath $(tools.bindir)):$(PATH) $(MAKE) -C charts/emissary-ingress HELM_TEST_VALUES=$(abspath test-chart-values.yaml) $@
-.PHONY: test-chart
-
-lint-chart: $(tools/ct)
-	PATH=$(abspath $(tools.bindir)):$(PATH) $(MAKE) -C charts/emissary-ingress $@
-.PHONY: lint-chart
-
 .git/hooks/prepare-commit-msg:
 	ln -s $(OSS_HOME)/tools/hooks/prepare-commit-msg $(OSS_HOME)/.git/hooks/prepare-commit-msg
 

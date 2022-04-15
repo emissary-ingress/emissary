@@ -1,5 +1,8 @@
 include build-aux/tools.mk
 
+#
+# Auxiliar Docker images needed for the tests
+
 # Keep this list in-sync with python/tests/integration/manifests.py
 push-pytest-images: docker/emissary.docker.push.remote
 push-pytest-images: docker/test-auth.docker.push.remote
@@ -50,3 +53,27 @@ docker/.kat-server.img.tar.stamp: $(tools/ocibuild) docker/base.img.tar docker/k
 	  --config.Cmd='kat-server' \
 	  --tag=emissary.local/kat-server:latest \
 	  <($(tools/ocibuild) layer squash $(filter %.layer.tar,$^)); } > $@
+
+#
+# Helm tests
+
+test-chart-values.yaml: docker/emissary.docker.push.remote
+	{ \
+	  echo 'image:'; \
+	  sed -E -n '2s/^(.*):.*/  repository: \1/p' < $<; \
+	  sed -E -n '2s/.*:/  tag: /p' < $<; \
+	} >$@
+charts/emissary-ingress/ci: %: %.in test-chart-values.yaml
+	rm -rf $@
+	cp -a $@.in $@
+	for file in $@/*-values.yaml; do cat test-chart-values.yaml >> "$$file"; done
+
+test-chart: $(tools/ct) $(tools/kubectl) charts/emissary-ingress/ci $(if $(DEV_USE_IMAGEPULLSECRET),push-pytest-images $(OSS_HOME)/venv)
+ifneq ($(DEV_USE_IMAGEPULLSECRET),)
+	. venv/bin/activate && KUBECONFIG=$(DEV_KUBECONFIG) python3 -c 'from tests.integration.utils import install_crds; install_crds()'
+else
+	$(tools/kubectl) --kubeconfig=$(DEV_KUBECONFIG) apply -f manifests/emissary/emissary-crds.yaml
+endif
+	$(tools/kubectl) --kubeconfig=$(DEV_KUBECONFIG) --namespace=emissary-system wait --timeout=90s --for=condition=available Deployments/emissary-apiext
+	cd charts/emissary-ingress && KUBECONFIG=$(DEV_KUBECONFIG) $(abspath $(tools/ct)) install --config=./ct.yaml
+.PHONY: test-chart
