@@ -113,8 +113,8 @@ $(tools.bindir)/telepresence: $(tools.mk)
 	curl -s --fail -L https://app.getambassador.io/download/tel2/$(GOHOSTOS)/$(GOHOSTARCH)/$(TELEPRESENCE_VERSION)/telepresence -o $@
 	chmod a+x $@
 
-# k3d would be `go get`-able, but it requires Go 1.16, and Emissary is
-# still stuck on Go 1.15.
+# k3d is in theory `go get`-able, but... the tests fail when I do
+# that.  IDK.  --lukeshu
 tools/k3d   = $(tools.bindir)/k3d
 K3D_VERSION = 4.4.8
 $(tools.bindir)/k3d: $(tools.mk)
