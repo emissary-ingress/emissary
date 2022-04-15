@@ -39,6 +39,16 @@ items:
         type: security
         body: >-
           Completely remove gdbm, pip, smtplib, and sqlite packages, as they are unused.
+      - title: Allow setting propagation modes for Lightstep tracing
+        type: feature
+        body: >-
+          It is now possible to set <code>propagation_modes</code> in the
+          <code>TracingService</code> config when using lightstep as the driver.
+          (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
+        github:
+          - title: "#4179"
+            link: https://github.com/emissary-ingress/emissary/pull/4179
+
 
   - version: 2.2.1
     date: '2022-02-22'

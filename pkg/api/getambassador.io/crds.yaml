@@ -3831,6 +3831,15 @@ spec:
                     type: string
                   collector_hostname:
                     type: string
+                  propagation_modes:
+                    items:
+                      enum:
+                      - ENVOY
+                      - LIGHTSTEP
+                      - B3
+                      - TRACE_CONTEXT
+                      type: string
+                    type: array
                   service_name:
                     type: string
                   shared_span_context:
