@@ -109,6 +109,7 @@ ambassador-secrets-deployment.yaml
 # far enough in to the past.
 
 # 2022-04-18
+/build-aux/version-hack.stamp.mk
 /manifests/emissary/*.yaml
 /docs/yaml/versions.yml
 # 2022-01-31

@@ -26,9 +26,6 @@
 # var.mk
 /.var.*
 
-# version-hack.mk
-/version-hack.stamp.mk
-
 # builder.mk
 /pytest-kat.txt
 

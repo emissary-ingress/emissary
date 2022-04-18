@@ -31,8 +31,6 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
     ,$(error CHART_VERSION variable is invalid: It must be a v7.* string, but is '$(CHART_VERSION)'))
   export CHART_VERSION
 
-  include build-aux/version-hack.mk
-
   $(info [make] VERSION=$(VERSION))
   $(info [make] CHART_VERSION=$(CHART_VERSION))
 endif
