@@ -180,7 +180,7 @@ jobs:
         if: always()
         name: "Collect testing logs"
         with:
-          name: pytest-${{ matrix.test }}
+          name: check-pytest-${{ matrix.test }}
   check-pytest-unit:
     # pytest-unit is separate from pytests (above) because we know for certain that no cluster is needed.
     # XXX This is pretty much a crock.
@@ -227,7 +227,7 @@ jobs:
         if: always()
         name: "Collect testing logs"
         with:
-          name: pytest-${{ matrix.test }}
+          name: check-pytest-${{ matrix.test }}
   check-chart:
     runs-on: ubuntu-latest
     env:
