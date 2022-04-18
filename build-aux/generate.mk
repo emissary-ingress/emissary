@@ -402,8 +402,7 @@ helm.namespace.emissary-emissaryns-migration = emissary
 helm.name.emissary-defaultns-migration = emissary-ingress
 helm.namespace.emissary-defaultns-migration = default
 
-# IF YOU'RE LOOKING FOR *.yaml: recipes, look in version-hack.mk at the
-# build-aux/version-hack.stamp.mk dependencies.
+# IF YOU'RE LOOKING FOR *.yaml: recipes, look in main.mk.
 
 $(OSS_HOME)/k8s-config/%/helm-expanded.yaml: \
   $(OSS_HOME)/k8s-config/%/values.yaml \

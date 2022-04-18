@@ -50,11 +50,11 @@ else
 endif
 .PHONY: release/push-chart
 
-push-manifests:
+push-manifests: build-output/yaml-$(patsubst v%,%,$(VERSION))
 ifneq ($(IS_PRIVATE),)
 	@echo "Private repo, not pushing chart" >&2
 	@exit 1
 else
-	manifests/push_manifests.sh manifests/emissary
+	manifests/push_manifests.sh $<
 endif
 .PHONY: push-manifests

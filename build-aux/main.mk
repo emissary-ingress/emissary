@@ -124,3 +124,25 @@ PHONY: chart
 
 boguschart_dir = build-output/chart-2.0.0-bogus_7.0.0-bogus.d
 boguschart_tgz = $(patsubst %.d,%.tgz,$(boguschart_dir))
+
+# YAML manifests
+build-output/yaml-%: $(shell find $(CURDIR)/manifests/emissary/ -type d -o -name '*.yaml.in') $(var.)DEV_REGISTRY $(var.)RELEASE_REGISTRY
+ifeq ($(CI),)
+	rm -rf $@
+else
+	@if test -d $@; then \
+	  echo 'This should not happen in CI: $@ should not need to change' >&2; \
+	  echo 'Files triggering the change are: $?' >&2; \
+	  exit 1; \
+	fi
+endif
+	mkdir -p $@
+	$(foreach src,$(filter %.yaml.in,$^),$(foreach dst,$(patsubst $(CURDIR)/manifests/emissary/%.yaml.in,$@/%.yaml,$(src)),\
+	  { \
+	    if [[ '$*' =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+|-ea)?$$ ]]; then \
+	      registry=$(RELEASE_REGISTRY); \
+	    else \
+	      registry=$(DEV_REGISTRY); \
+	    fi; \
+	    sed -e 's/\$$version\$$/$*/g' -e 's,\$$imageRepo\$$,'"$${registry}"'/emissary,g' <$(src) >$(dst); \
+	  }$(NL)))

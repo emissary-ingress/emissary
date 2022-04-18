@@ -32,32 +32,9 @@
 # case, because Make runs them every parse, it would be very very
 # noisy if Make actually printed them.
 
-version-hack.simple-substitutions += manifests/emissary/emissary-crds.yaml
-version-hack.simple-substitutions += manifests/emissary/emissary-defaultns.yaml
-version-hack.simple-substitutions += manifests/emissary/emissary-emissaryns.yaml
-version-hack.simple-substitutions += manifests/emissary/emissary-defaultns-agent.yaml
-version-hack.simple-substitutions += manifests/emissary/emissary-emissaryns-agent.yaml
-version-hack.simple-substitutions += manifests/emissary/emissary-defaultns-migration.yaml
-version-hack.simple-substitutions += manifests/emissary/emissary-emissaryns-migration.yaml
-$(version-hack.simple-substitutions): %: %.in $(tools/write-ifchanged) FORCE
-# Hack: clear $CI, some of the CI jobs intentionally modify these
-# files, as described above.
-	@set -e -o pipefail; { sed \
-	  -e 's/\$$version\$$/$(patsubst v%,%,$(VERSION))/g' \
-	  -e 's/\$$chartVersion\$$/$(patsubst v%,%,$(CHART_VERSION))/g' \
-	  -e 's,\$$imageRepo\$$,$(firstword $(IMAGE_REPO) $(patsubst %,%/emissary,$(DEV_REGISTRY)) docker.io/emissaryingress/emissary),g' \
-	  ; } <$< | CI= $(tools/write-ifchanged) $@
-
 #
 # Trigger Make to update those
 
-build-aux/version-hack.stamp.mk: manifests/emissary/emissary-crds.yaml
-build-aux/version-hack.stamp.mk: manifests/emissary/emissary-defaultns.yaml
-build-aux/version-hack.stamp.mk: manifests/emissary/emissary-emissaryns.yaml
-build-aux/version-hack.stamp.mk: manifests/emissary/emissary-defaultns-agent.yaml
-build-aux/version-hack.stamp.mk: manifests/emissary/emissary-emissaryns-agent.yaml
-build-aux/version-hack.stamp.mk: manifests/emissary/emissary-defaultns-migration.yaml
-build-aux/version-hack.stamp.mk: manifests/emissary/emissary-emissaryns-migration.yaml
 build-aux/version-hack.stamp.mk: $(tools/write-ifchanged)
 	@ls -l $^ | sed 's/^/#/' | $(tools/write-ifchanged) $@
 # The "-include" directive (compared to plain "include") considers it
