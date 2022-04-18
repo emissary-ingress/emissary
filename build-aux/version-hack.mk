@@ -32,7 +32,6 @@
 # case, because Make runs them every parse, it would be very very
 # noisy if Make actually printed them.
 
-version-hack.simple-substitutions += docs/yaml/versions.yml
 version-hack.simple-substitutions += manifests/emissary/emissary-crds.yaml
 version-hack.simple-substitutions += manifests/emissary/emissary-defaultns.yaml
 version-hack.simple-substitutions += manifests/emissary/emissary-emissaryns.yaml
@@ -52,7 +51,6 @@ $(version-hack.simple-substitutions): %: %.in $(tools/write-ifchanged) FORCE
 #
 # Trigger Make to update those
 
-build-aux/version-hack.stamp.mk: docs/yaml/versions.yml
 build-aux/version-hack.stamp.mk: manifests/emissary/emissary-crds.yaml
 build-aux/version-hack.stamp.mk: manifests/emissary/emissary-defaultns.yaml
 build-aux/version-hack.stamp.mk: manifests/emissary/emissary-emissaryns.yaml
