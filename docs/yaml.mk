@@ -11,7 +11,7 @@ ifneq ($(IS_PRIVATE),)
 	@echo "Private repo, not pushing chart" >&2
 	@exit 1
 else
-	docs/publish_yaml_s3.sh build/docs/yaml/ $(docs/yaml.mk/dsts)
+	docs/publish_yaml_s3.sh build/docs/yaml/
 	rm -rf build/docs/
 endif
 .PHONY: publish-docs-yaml
