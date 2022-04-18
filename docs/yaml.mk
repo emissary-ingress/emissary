@@ -1,22 +1,22 @@
-docs/yamk.mk/srcs = $(shell find docs/ -name '*.yaml' -type f)
-docs/yaml.mk/dsts = $(patsubst docs/%.yaml,build/docs/%.yaml,$(docs/yaml.mk/srcs))
-
-generate-docs-yaml:
-	rm -rf build/docs/
-	@echo '$(MAKE) $$(docs/yaml.mk/dsts)'; $(MAKE) $(docs/yaml.mk/dsts)
-.PHONY: generate-docs-yaml
-
-publish-docs-yaml: generate-docs-yaml
+publish-docs-yaml: build-output/docs-yaml-$(patsubst v%,%,$(VERSION))
 ifneq ($(IS_PRIVATE),)
 	@echo "Private repo, not pushing chart" >&2
 	@exit 1
 else
-	docs/publish_yaml_s3.sh build/docs/yaml/
-	rm -rf build/docs/
+	docs/publish_yaml_s3.sh $<
 endif
 .PHONY: publish-docs-yaml
 
-build/docs/%.yaml: docs/%.yaml FORCE | build/docs
-	docs/template_versions.sh $< $@
-build/docs:
-	mkdir -p $@
+build-output/docs-yaml-%: $(shell find docs/yaml)
+ifeq ($(CI),)
+	rm -rf $@
+else
+	@if test -d $@; then \
+	  echo 'This should not happen in CI: $@ should not need to change' >&2; \
+	  echo 'Files triggering the change are: $?' >&2; \
+	  exit 1; \
+	fi
+endif
+	$(foreach src,$(filter %.yaml,$^),$(foreach dst,$(patsubst docs/yaml/%,$@/%,$(src)),\
+	  mkdir -p $(dir $(dst))$(NL)\
+	  sed -e 's/\$$version\$$/$*/g' -e 's/\$$quoteVersion$$/0.4.1/g' <$(src) >$(dst)$(NL)))
