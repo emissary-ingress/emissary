@@ -1,21 +1,22 @@
-GENERATED_YAML_DIR := $(OSS_HOME)/build/docs/
-
-generate-docs-yaml/files += $(patsubst $(OSS_HOME)/docs/%.yaml, $(GENERATED_YAML_DIR)/%.yaml, $(shell find $(OSS_HOME)/docs/ -name '*.yaml' -type f))
+docs/yamk.mk/srcs = $(shell find docs/ -name '*.yaml' -type f)
+docs/yaml.mk/dsts = $(patsubst docs/%.yaml,build/docs/%.yaml,$(docs/yaml.mk/srcs))
 
 generate-docs-yaml:
-	@rm -rf $(GENERATED_YAML_DIR)
-	@mkdir -p $(GENERATED_YAML_DIR)
-	@echo '$(MAKE) $$(generate-docs-yaml/files)'; $(MAKE) $(GENERATED_YAML_DIR) $(generate-docs-yaml/files)
+	rm -rf build/docs/
+	@echo '$(MAKE) $$(docs/yaml.mk/dsts)'; $(MAKE) $(docs/yaml.mk/dsts)
 .PHONY: generate-docs-yaml
 
 publish-docs-yaml: generate-docs-yaml
-	if [ ! -z $(IS_PRIVATE) ]; then \
-		echo "Private repo, not pushing chart" ;\
-		exit 1 ;\
-	fi;
-	@$(OSS_HOME)/docs/publish_yaml_s3.sh $(GENERATED_YAML_DIR)yaml/ $(generate-docs-yaml/files)
-	@rm -rf $(GENERATED_YAML_DIR)
+ifneq ($(IS_PRIVATE),)
+	@echo "Private repo, not pushing chart" >&2
+	@exit 1
+else
+	docs/publish_yaml_s3.sh build/docs/yaml/ $(docs/yaml.mk/dsts)
+	rm -rf build/docs/
+endif
 .PHONY: publish-docs-yaml
 
-$(GENERATED_YAML_DIR)/%.yaml: FORCE
-	$(OSS_HOME)/docs/template_versions.sh $(patsubst $(GENERATED_YAML_DIR)/%.yaml, $(OSS_HOME)/docs/%.yaml, $@) $@
+build/docs/%.yaml: docs/%.yaml FORCE | build/docs
+	docs/template_versions.sh $< $@
+build/docs:
+	mkdir -p $@
