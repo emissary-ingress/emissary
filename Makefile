@@ -65,8 +65,6 @@ $(call module,ambassador,$(OSS_HOME))
 include $(OSS_HOME)/build-aux/generate.mk
 include $(OSS_HOME)/build-aux/lint.mk
 
-include $(OSS_HOME)/docs/yaml.mk
-
 .git/hooks/prepare-commit-msg:
 	ln -s $(OSS_HOME)/tools/hooks/prepare-commit-msg $(OSS_HOME)/.git/hooks/prepare-commit-msg
 
