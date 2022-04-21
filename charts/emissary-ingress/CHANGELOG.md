@@ -7,6 +7,8 @@ numbering uses [semantic versioning](http://semver.org).
 
 - Add "lifecycle" option to main container. This can be used, for example, to add a lifecycle.preStop hook. Thanks to [Eric Totten](https://github.com/etotten) for the contribution!
 
+- Feature: Added configurable IngressClass resource to be compliant with Kubernetes 1.22+ ingress specification.
+
 ## v7.2.2
 
 - Update Emissary chart image to version v2.1.2: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
