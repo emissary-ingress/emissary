@@ -231,6 +231,7 @@ docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.loc
 	@printf "    ${BLU}builderbase=$$(sed -n 2p $*/base-pip.docker.tag.local)${END}\n"
 	{ $(tools/dsum) '$(LCNAME) build' 3s \
 	  docker build -f ${BUILDER_HOME}/Dockerfile . \
+			--platform="$(BUILD_ARCH)" \
 	    --build-arg=base="$$(sed -n 2p $*/base.docker.tag.local)" \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(sed -n 2p $*/base-pip.docker.tag.local)" \

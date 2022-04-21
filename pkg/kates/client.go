@@ -595,6 +595,25 @@ func (c *Client) cliForResource(resource *Unstructured) (dynamic.ResourceInterfa
 	return c.cliFor(mapping, ns), nil
 }
 
+func (c *Client) newField(q Query) (*field, error) {
+	mapping, err := c.mappingFor(q.Kind)
+	if err != nil {
+		return nil, err
+	}
+	sel, err := ParseSelector(q.LabelSelector)
+	if err != nil {
+		return nil, err
+	}
+
+	return &field{
+		query:    q,
+		mapping:  mapping,
+		selector: sel,
+		values:   make(map[string]*Unstructured),
+		deltas:   make(map[string]*Delta),
+	}, nil
+}
+
 // mappingFor returns the RESTMapping for the Kind given, or the Kind referenced by the resource.
 // Prefers a fully specified GroupVersionResource match. If one is not found, we match on a fully
 // specified GroupVersionKind, or fallback to a match on GroupKind.
@@ -989,7 +1008,7 @@ func (c *Client) patchWatch(ctx context.Context, field *field) error {
 				// remove it.
 				dlog.Println(ctx, "Patching delete", field.mapping.GroupVersionKind.Kind, key)
 				delete(field.values, key)
-				field.deltas[key] = newDelta(ObjectDelete, can)
+				field.deltas[key] = newDelta(ObjectDelete, item)
 			} else if newer, err := gteq(item.GetResourceVersion(), can.GetResourceVersion()); err != nil {
 				return err
 			} else if newer {

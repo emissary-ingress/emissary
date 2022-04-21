@@ -157,22 +157,12 @@ func newAccumulator(ctx context.Context, client *Client, queries ...Query) (*Acc
 	rawUpdateCh := make(chan rawUpdate)
 
 	for _, q := range queries {
-		mapping, err := client.mappingFor(q.Kind)
+		field, err := client.newField(q)
 		if err != nil {
 			return nil, err
 		}
-		sel, err := ParseSelector(q.LabelSelector)
-		if err != nil {
-			return nil, err
-		}
-		fields[q.Name] = &field{
-			query:    q,
-			mapping:  mapping,
-			selector: sel,
-			values:   make(map[string]*Unstructured),
-			deltas:   make(map[string]*Delta),
-		}
-		client.watchRaw(ctx, q, rawUpdateCh, client.cliFor(mapping, q.Namespace))
+		fields[q.Name] = field
+		client.watchRaw(ctx, q, rawUpdateCh, client.cliFor(field.mapping, q.Namespace))
 	}
 
 	acc := &Accumulator{client, fields, map[string]bool{}, 0, changed, sync.Mutex{}}
