@@ -1,4 +1,4 @@
-{{- if .Values.controller.ingressClassResource.enabled -}}
+{{- if .Values.ingressClassResource.enabled -}}
 {{- if or (.Capabilities.APIVersions.Has "networking.k8s.io/v1/IngressClass") (.Capabilities.APIVersions.Has "networking.k8s.io/v1beta1/IngressClass") }}
 {{- if .Capabilities.APIVersions.Has "networking.k8s.io/v1/IngressClass" }}
 apiVersion: networking.k8s.io/v1
