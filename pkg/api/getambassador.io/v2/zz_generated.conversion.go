@@ -5345,7 +5345,42 @@ func Convert_v3alpha1_TLSContextSpec_To_v2_TLSContextSpec(in *v3alpha1.TLSContex
 }
 
 func autoConvert_v2_TraceConfig_To_v3alpha1_TraceConfig(in *TraceConfig, out *v3alpha1.TraceConfig, s conversion.Scope) error {
-	*out = v3alpha1.TraceConfig(*in)
+	if true {
+		in, out := &in.AccessTokenFile, &out.AccessTokenFile
+		*out = *in
+	}
+	if true {
+		in, out := &in.CollectorCluster, &out.CollectorCluster
+		*out = *in
+	}
+	if true {
+		in, out := &in.CollectorEndpoint, &out.CollectorEndpoint
+		*out = *in
+	}
+	if true {
+		in, out := &in.CollectorEndpointVersion, &out.CollectorEndpointVersion
+		*out = *in
+	}
+	if true {
+		in, out := &in.CollectorHostname, &out.CollectorHostname
+		*out = *in
+	}
+	if true {
+		in, out := &in.TraceID128Bit, &out.TraceID128Bit
+		*out = *in
+	}
+	if true {
+		in, out := &in.SharedSpanContext, &out.SharedSpanContext
+		*out = *in
+	}
+	if true {
+		in, out := &in.ServiceName, &out.ServiceName
+		*out = *in
+	}
+	if true {
+		in, out := &in.V3PropagationModes, &out.PropagationModes
+		*out = *in
+	}
 	return nil
 }
 
@@ -5355,7 +5390,42 @@ func Convert_v2_TraceConfig_To_v3alpha1_TraceConfig(in *TraceConfig, out *v3alph
 }
 
 func autoConvert_v3alpha1_TraceConfig_To_v2_TraceConfig(in *v3alpha1.TraceConfig, out *TraceConfig, s conversion.Scope) error {
-	*out = TraceConfig(*in)
+	if true {
+		in, out := &in.AccessTokenFile, &out.AccessTokenFile
+		*out = *in
+	}
+	if true {
+		in, out := &in.CollectorCluster, &out.CollectorCluster
+		*out = *in
+	}
+	if true {
+		in, out := &in.CollectorEndpoint, &out.CollectorEndpoint
+		*out = *in
+	}
+	if true {
+		in, out := &in.CollectorEndpointVersion, &out.CollectorEndpointVersion
+		*out = *in
+	}
+	if true {
+		in, out := &in.CollectorHostname, &out.CollectorHostname
+		*out = *in
+	}
+	if true {
+		in, out := &in.PropagationModes, &out.V3PropagationModes
+		*out = *in
+	}
+	if true {
+		in, out := &in.TraceID128Bit, &out.TraceID128Bit
+		*out = *in
+	}
+	if true {
+		in, out := &in.SharedSpanContext, &out.SharedSpanContext
+		*out = *in
+	}
+	if true {
+		in, out := &in.ServiceName, &out.ServiceName
+		*out = *in
+	}
 	return nil
 }
 

@@ -94,6 +94,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Security: Completely remove gdbm, pip, smtplib, and sqlite packages, as they are unused.
 
+- Feature: It is now possible to set `propagation_modes` in the `TracingService` config when using
+  lightstep as the driver. (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!) ([#4179])
+
+[#4179]: https://github.com/emissary-ingress/emissary/pull/4179
+
 ## [2.2.1] February 22, 2022
 [2.2.1]: https://github.com/emissary-ingress/emissary/compare/v2.2.0...v2.2.1
 
