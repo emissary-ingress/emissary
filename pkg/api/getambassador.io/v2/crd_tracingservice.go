@@ -20,6 +20,7 @@
 package v2
 
 import (
+	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -39,6 +40,9 @@ type TraceConfig struct {
 	TraceID128Bit            *bool  `json:"trace_id_128bit,omitempty"`
 	SharedSpanContext        *bool  `json:"shared_span_context,omitempty"`
 	ServiceName              string `json:"service_name,omitempty"`
+
+	// +k8s:conversion-gen:rename=PropagationModes
+	V3PropagationModes []v3alpha1.PropagationMode `json:"v3PropagationModes,omitempty"`
 }
 
 // TracingServiceSpec defines the desired state of TracingService

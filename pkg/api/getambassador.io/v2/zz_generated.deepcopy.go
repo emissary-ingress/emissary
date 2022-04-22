@@ -21,6 +21,7 @@ package v2
 
 import (
 	"encoding/json"
+	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -2491,6 +2492,11 @@ func (in *TraceConfig) DeepCopyInto(out *TraceConfig) {
 		in, out := &in.SharedSpanContext, &out.SharedSpanContext
 		*out = new(bool)
 		**out = **in
+	}
+	if in.V3PropagationModes != nil {
+		in, out := &in.V3PropagationModes, &out.V3PropagationModes
+		*out = make([]v3alpha1.PropagationMode, len(*in))
+		copy(*out, *in)
 	}
 }
 
