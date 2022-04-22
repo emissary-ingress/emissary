@@ -66,9 +66,15 @@ clean: $(foreach img,$(_ocibuild-images),docker/$(img).img.tar.clean)
 
 # base: Base OS; none of our specific stuff.  Used for auxiliar test images
 # that don't need Emissary-specific stuff.
-docker/.base.img.tar.stamp: FORCE $(tools/crane) docker/base-python/Dockerfile
-	$(tools/crane) pull $(shell gawk '$$1 == "FROM" { print $$2; quit; }' < docker/base-python/Dockerfile) $@ || test -e $@
-clobber: docker/base.img.tar.clean
+docker/.base.img.tar.stamp: FORCE $(tools/crane) $(tools/copy-ifchanged) docker/base-python/Dockerfile
+	@echo "==== docker/.base.img.tar.stamp in main.mk, as $@: $^"
+	@set -ex -o pipefail; { \
+		to_pull=$$(gawk '$$1 == "FROM" { print $$2; quit; }' < docker/base-python/Dockerfile) ;\
+		$(tools/crane) pull $$to_pull /tmp/crane-base-pull ;\
+		test -e /tmp/crane-base-pull ;\
+		docker load < /tmp/crane-base-pull ;\
+		docker save $$to_pull > $@ ;\
+	}
 
 # base-python: Base OS, plus some Emissary-specific setup of
 # low-level/expensive pieces of the Python environment.  This does NOT
@@ -113,7 +119,9 @@ python/requirements.txt: python/%: python/.%.stamp $(tools/copy-ifchanged)
 	@echo "==== python/requirements.txt in main.mk, as $@: $^"
 	$(tools/copy-ifchanged) $< $@
 .PRECIOUS: python/requirements.txt
+
 docker/base-pip/requirements.txt: python/requirements.txt $(tools/copy-ifchanged)
+	@echo "==== docker/base-pip/requirements.txt in main.mk, as $@: $^"
 	$(tools/copy-ifchanged) $< $@
 clean: docker/base-pip/requirements.txt.rm
 

@@ -247,9 +247,10 @@ _images = base-envoy $(LCNAME) kat-client kat-server
 $(foreach i,$(_images), docker/$i.docker.tag.local  ): docker/%.docker.tag.local : docker/%.docker
 $(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remote: docker/%.docker
 
-docker/.base-envoy.docker.stamp: FORCE
-	@set -e; { \
-	  if docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@ 2>/dev/null; then \
+docker/.base-envoy.docker.stamp: $(tools/write-ifchanged) FORCE
+	@echo "==== docker/.base-envoy.docker.stamp in builder.mk, as $@: $^"
+	@set -e -o pipefail; { \
+	  if docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >/dev/null 2>&1; then \
 	    printf "${CYN}==> ${GRN}Base Envoy image is already pulled${END}\n"; \
 	  else \
 	    printf "${CYN}==> ${GRN}Pulling base Envoy image${END}\n"; \
@@ -257,23 +258,28 @@ docker/.base-envoy.docker.stamp: FORCE
 	    time docker pull $(ENVOY_DOCKER_TAG); \
 	    unset TIMEFORMAT; \
 	  fi; \
-	  echo $(ENVOY_DOCKER_TAG) >$@; \
+	  docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' | $(tools/write-ifchanged) $@; \
 	}
 clobber: docker/base-envoy.docker.clean
 
-docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.local %/base-envoy.docker.tag.local %/base-pip.docker.tag.local python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
+docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.local %/base-envoy.docker.tag.local %/base-pip.docker.tag.local python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum)
+	@echo "==== docker/.$(LCNAME).docker.stamp in builder.mk, as $@: $^"
+	@echo "Dependencies:"
+	@-ls -l $^
 	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
 	@printf "    ${BLU}base=$$(sed -n 2p $*/base.docker.tag.local)${END}\n"
-	@printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"
+	@printf "    ${BLU}envoy=$$(sed -n 2p $*/base-envoy.docker.tag.local)${END}\n"
 	@printf "    ${BLU}builderbase=$$(sed -n 2p $*/base-pip.docker.tag.local)${END}\n"
 	{ $(tools/dsum) '$(LCNAME) build' 3s \
 	  docker build -f ${BUILDER_HOME}/Dockerfile . \
 			--platform="$(BUILD_ARCH)" \
 	    --build-arg=base="$$(sed -n 2p $*/base.docker.tag.local)" \
-	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	    --build-arg=envoy="$$(sed -n 2p $*/base-envoy.docker.tag.local)" \
 	    --build-arg=builderbase="$$(sed -n 2p $*/base-pip.docker.tag.local)" \
 	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
-	    --iidfile=$@; }
+	    --iidfile=$@; \
+		echo "" >> "$@"	# Make sure the ID file ends with a newline. \
+	}
 clean: docker/$(LCNAME).docker.clean
 
 REPO=$(BUILDER_NAME)
