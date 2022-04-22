@@ -1,6 +1,9 @@
 include build-aux/tools.mk
 include build-aux/var.mk
 
+version:
+	@echo $(VERSION)
+
 #
 # Utility rules
 
