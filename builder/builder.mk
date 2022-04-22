@@ -308,30 +308,28 @@ push-dev: docker/$(LCNAME).docker.tag.local
 	docker push '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
 .PHONY: push-dev
 
-export-docker: docker/$(LCNAME).docker.tag.local
+docker-export: images $(tools/docker-export)
+	@if [ -z "$$VERSION_FILE" ]; then printf '$(RED)$@: VERSION_FILE is not set$(END)\n'; exit 1; fi;
 	@if [ -z "$$EXPORT_FILE" ]; then printf '$(RED)$@: EXPORT_FILE is not set$(END)\n'; exit 1; fi;
-	@printf '$(CYN)==> $(GRN)exporting $(BLU)%s$(GRN) as $(BLU)%s$(GRN)...$(END)\n' '$(LCNAME)' "$$EXPORT_FILE"
-	docker save $$(cat docker/$(LCNAME).docker) -o "$$EXPORT_FILE"
-.PHONY: export-docker
-
-import-docker:
-	@if [ -z "$$IMPORT_FILE" ]; then printf '$(RED)$@: IMPORT_FILE is not set$(END)\n'; exit 1; fi;
-	@{ set -e ; \
-		# repotags=$$(bsdtar -xzO -f "$$IMPORT_FILE" manifest.json | jq '.[0].RepoTags[0]') ;\
-		hash=$$(bsdtar -xzO -f "$$IMPORT_FILE" manifest.json | jq '.[0].Config' | tr -d '"' | sed -e 's/\.json$$//') ;\
-		test -n "$$hash" ;\
-		imgid="sha256:$$hash" ;\
-		imgtag="$(BUILDER_NAME).local/$(LCNAME)" ;\
-		printf '$(CYN)==> $(GRN)importing $(BLU)%s$(GRN) as $(BLU)%s$(GRN)...$(END)\n' "$$IMPORT_FILE" "$$imgid" ;\
-		docker load -i "$$IMPORT_FILE" ;\
-		printf '$(CYN)==> $(GRN)tagging as $(BLU)%s$(GRN)...$(END)\n' "$$imgtag" ;\
-		docker tag "$$imgid" "$$imgtag" ;\
-		printf '$(CYN)==> $(GRN)stamping $(BLU)%s$(GRN)...$(END)\n' "$$imgtag" ;\
-		echo "$$imgid" > docker/$(LCNAME).docker ;\
-		( echo "$$imgid" ; echo "$$imgtag" ) > docker/$(LCNAME).docker.tag.local ;\
-		cp docker/$(LCNAME).docker docker/.$(LCNAME).docker.stamp ;\
+	@printf '$(CYN)==> $(GRN)exporting Docker build state as $(BLU)%s$(GRN)...$(END)\n' "$$EXPORT_FILE"
+	$(tools/docker-export)
+	@set -ex -o pipefail ; { \
+		cd docker ;\
+		echo "$(VERSION)" > "$$VERSION_FILE" ;\
+		tar cf "$$EXPORT_FILE" images.tar images.sh ;\
 	}
-.PHONY: import-docker
+.PHONY: docker-export
+
+docker-import: $(tools/docker-import)
+	@if [ -z "$$IMPORT_FILE" ]; then printf '$(RED)$@: IMPORT_FILE is not set$(END)\n'; exit 1; fi;
+	@set -ex -o pipefail ; { \
+		printf '$(CYN)==> $(GRN)importing $(BLU)%s$(GRN) as $(BLU)%s$(GRN)...$(END)\n' "$$IMPORT_FILE" "$$imgid" ;\
+		cd docker ;\
+		tar xf "$$IMPORT_FILE" ;\
+		$(tools/docker-import) ;\
+		rm -f images.sh images.tar ;\
+	}
+.PHONY: docker-import
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
 export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)
