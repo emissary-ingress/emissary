@@ -111,7 +111,7 @@ RUN mkdir -p /ambassador/sidecars && \
 
 # These will be extracted into the optimized image later
 ADD demo demo
-ADD manifests/emissary/emissary-crds.yaml manifests/emissary/emissary-crds.yaml
+ADD manifests/emissary/emissary-crds.yaml.in manifests/emissary/emissary-crds.yaml
 
 ########################################
 # The optimized images

@@ -269,9 +269,7 @@ else
 	@printf '$(CYN)==> $(GRN)recording $(BLU)%s$(GRN) => $(BLU)%s$(GRN) in S3...$(END)\n' "$$(git rev-parse HEAD)" $(patsubst v%,%,$(VERSION))
 	echo '$(patsubst v%,%,$(VERSION))' | aws s3 cp - 's3://$(AWS_S3_BUCKET)/dev-builds/'"$$(git rev-parse HEAD)"
 
-	{ $(MAKE) \
-	  IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
-	  release/push-chart; }
+	$(MAKE) release/push-chart
 	$(MAKE) generate-fast --always-make
 	$(MAKE) push-manifests
 endif
@@ -532,7 +530,6 @@ ifneq ($(IS_PRIVATE),)
 	echo "Not publishing charts or manifests because in a private repo" >&2
 else
 	{ $(MAKE) \
-	  IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
 	  push-manifests \
 	  publish-docs-yaml; }
 endif
@@ -563,8 +560,6 @@ ifneq ($(IS_PRIVATE),)
 	echo "Not publishing charts or manifests because in a private repo" >&2
 else
 	{ $(MAKE) \
-	  IMAGE_TAG=$(patsubst v%,%,$(VERSION)) \
-	  IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
 	  push-manifests \
 	  publish-docs-yaml; }
 endif

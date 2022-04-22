@@ -144,9 +144,9 @@ security:
 
 image:
   # Emissary Ingress docker repo
-  repository: $imageRepo$
+  repository: @imageRepo@
   # Emissary Ingress docker tag
-  tag: $version$
+  tag: @version@
   # Pod container image pull policy
   pullPolicy: IfNotPresent
 

@@ -402,15 +402,12 @@ helm.namespace.emissary-emissaryns-migration = emissary
 helm.name.emissary-defaultns-migration = emissary-ingress
 helm.namespace.emissary-defaultns-migration = default
 
-# IF YOU'RE LOOKING FOR *.yaml: recipes, look in version-hack.mk at the
-# build-aux/version-hack.stamp.mk dependencies.
+# IF YOU'RE LOOKING FOR *.yaml: recipes, look in main.mk.
 
 $(OSS_HOME)/k8s-config/%/helm-expanded.yaml: \
   $(OSS_HOME)/k8s-config/%/values.yaml \
-  $(OSS_HOME)/charts/emissary-ingress/templates $(wildcard $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml) \
-  $(OSS_HOME)/charts/emissary-ingress/values.yaml \
-  FORCE
-	helm template --namespace=$(helm.namespace.$*) --values=$(@D)/values.yaml $(or $(helm.name.$*),$*) $(OSS_HOME)/charts/emissary-ingress >$@
+  $(boguschart_dir)
+	helm template --namespace=$(helm.namespace.$*) --values=$(@D)/values.yaml $(or $(helm.name.$*),$*) $(boguschart_dir) >$@
 
 $(OSS_HOME)/k8s-config/%/output.yaml: \
   $(OSS_HOME)/k8s-config/%/helm-expanded.yaml \
