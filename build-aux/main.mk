@@ -32,10 +32,16 @@ version:
 docker/%: docker/.%.stamp $(tools/copy-ifchanged)
 	$(tools/copy-ifchanged) $< $@
 
-# Load ocibuild files in to dockerd.
-_ocibuild-images  = base
-_ocibuild-images += kat-client
-_ocibuild-images += kat-server
+# This foreach supplies rules for various things we construct as Docker image
+# tarfiles in the filesystem (either with crane pull or with ocibuild) and need
+# to track the way we do for other docker.mk things.
+#
+# IF YOU ADD NEW THINGS HERE, ADD A COMMENT AS WELL that lists the .stamp and
+# .img.tar files, with the trailing :, so that people searching for the Makefile
+# recipe for these files can find them.
+_ocibuild-images  = base	        # docker/.base.docker.stamp:       from docker/base.img.tar:       
+_ocibuild-images += kat-client		# docker/.kat-client.docker.stamp: from docker/kat-client.img.tar: 
+_ocibuild-images += kat-server		# docker/.kat-server.docker.stamp: from docker/kat-server.img.tar: 
 $(foreach img,$(_ocibuild-images),docker/.$(img).docker.stamp): docker/.%.docker.stamp: docker/%.img.tar
 	docker load < $<
 	docker inspect $$(bsdtar xfO $< manifest.json|jq -r '.[0].RepoTags[0]') --format='{{.Id}}' > $@

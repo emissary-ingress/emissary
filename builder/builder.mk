@@ -99,6 +99,40 @@ BUILDER_NAME ?= $(LCNAME)
 include $(OSS_HOME)/build-aux/prelude.mk
 include $(OSS_HOME)/build-aux/colors.mk
 
+# The two lines down below this comment (the ones starting with docker.tag.local and
+# docker.tag.remote) are basically configuring docker.mk. To use docker.mk's terminology,
+# "local" and "remote" are groups (see the comments at the top of docker.mk). When you
+# read these lines, remember that "$(*F)" is the file part of a % glob -- and realize
+# that, even though you don't see a % glob in these lines, it's being added when 
+# docker.mk actually instantiates the rules for the groups. 
+#
+# The main convention we rely on (again, from docker.mk) is that depending on %.docker
+# causes a Docker image to be built, and its hash to be placed into the %.docker file.
+# HOWEVER: since it's possible for Docker images to depend on sources and thus get out
+# of date with respect to those sources, and since Docker is evil and doesn't expose 
+# this in any sane way, what you'll _actually_ see in the Makefiles are recipes to build
+# %.docker.stamp files -- _and_ there's a magic implicit rule that in main.mk that knows
+# how to have %.docker files depend on %.docker.stamp files. Furthermore, by convention,
+# we put these stamp files in the docker directory.
+#
+# SO. If you're trying to get a Docker image built, what you actually need to write is a
+# recipe for docker/.NAME.docker.stamp (e.g. docker/.emissary.docker.stamp) that makes
+# the image and then puts its hash into the .stamp file. And the rest, as they say, will
+# just happen.
+# 
+# Finally: docker.tag.local is arranging things such that:
+#  - depending on %.docker.tag.local will use your .stamp recipe to build a Docker image,
+#    tag it as something like emissary.local/emissary, and track things about it
+#  - depending on %.docker.push.local will fail, even though docker.mk talks about that
+#
+# And docker.tag.remote is arranging things such that:
+#  - depending on %.docker.tag.remote will use your .stamp recipe to build a Docker image,
+#    tag it as something like $DEV_REGISTRY/emissary:$VERSION-with-no-leading-v, and
+#    track things about it
+#  - depending on %.docker.push.remote will actually push to the $DEV_REGISTRY
+#
+# (READ HERE about .local: and .remote: if you're searching for them and can't find them.
+# The comments above explain everything.)
 docker.tag.local = $(BUILDER_NAME).local/$(*F)
 docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTRY)/$(*F):$(patsubst v%,%,$(VERSION))
 include $(OSS_HOME)/build-aux/docker.mk
