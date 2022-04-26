@@ -777,14 +777,11 @@ func Main(
 
 	// The golang signal package does not block when it writes to the channel. We therefore need a
 	// nonzero buffer for the channel to minimize the possiblity that we miss out on a signal that
-	// comes in while we are doing work and not reading from the channel. Since we are subscribing
-	// to multiple signals there is also the possibility that even with buffering, too many of one
-	// kind of signal can fill up the buffer and cause us to drop an occurance of the other types of
-	// signal. To minimize the chance of that happening we will choose a buffer size of 100. That
-	// may well be overkill, but better to not have to consider the possibility that we lose a
-	// signal.
-	ch := make(chan os.Signal, 100)
-	signal.Notify(ch, syscall.SIGHUP, os.Interrupt, syscall.SIGTERM)
+	// comes in while we are doing work and not reading from the channel. To minimize the chance
+	// of that happening we will choose a buffer size of 100. That may well be overkill, but
+	// better to not have to consider the possibility that we lose a signal.
+	sigCh := make(chan os.Signal, 100)
+	signal.Notify(sigCh, syscall.SIGHUP)
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -847,30 +844,22 @@ OUTER:
 	for {
 
 		select {
-		case sig := <-ch:
-			// Signal handling: reconfigure on HUP, bail on INT or TERM.
-			//
-			// XXX Y'know, redoing this with if would let us ditch that silly label.
-			switch sig {
-			case syscall.SIGHUP:
-				err := update(
-					ctx,
-					args.snapdirPath,
-					args.numsnaps,
-					config,
-					configv3,
-					&generation,
-					args.dirs,
-					edsEndpoints,
-					edsEndpointsV3,
-					fastpathSnapshot,
-					updates,
-				)
-				if err != nil {
-					return err
-				}
-			case os.Interrupt, syscall.SIGTERM:
-				break OUTER
+		case _ = <-sigCh:
+			err := update(
+				ctx,
+				args.snapdirPath,
+				args.numsnaps,
+				config,
+				configv3,
+				&generation,
+				args.dirs,
+				edsEndpoints,
+				edsEndpointsV3,
+				fastpathSnapshot,
+				updates,
+			)
+			if err != nil {
+				return err
 			}
 		case fpSnap := <-fastpathCh:
 			// Fastpath update. Grab new endpoints and update.
