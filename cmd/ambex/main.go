@@ -641,15 +641,6 @@ func update(
 	return nil
 }
 
-func warn(ctx context.Context, err error) bool {
-	if err != nil {
-		dlog.Warn(ctx, err)
-		return true
-	} else {
-		return false
-	}
-}
-
 type logAdapterBase struct {
 	prefix string
 }
@@ -797,7 +788,9 @@ func Main(
 
 	pid := os.Getpid()
 	file := "ambex.pid"
-	if !warn(ctx, ioutil.WriteFile(file, []byte(fmt.Sprintf("%v", pid)), 0644)) {
+	if err := ioutil.WriteFile(file, []byte(fmt.Sprintf("%v", pid)), 0644); err != nil {
+		dlog.Warn(ctx, err)
+	} else {
 		ctx := dlog.WithField(ctx, "pid", pid)
 		ctx = dlog.WithField(ctx, "file", file)
 		dlog.Info(ctx, "Wrote PID")
