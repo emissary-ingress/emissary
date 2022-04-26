@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/ambassador/v2/cmd/ambex"
 	"github.com/datawire/ambassador/v2/cmd/entrypoint/internal/testqueue"
+	"github.com/datawire/ambassador/v2/pkg/ambex"
 	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
