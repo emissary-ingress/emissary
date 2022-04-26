@@ -78,8 +78,8 @@ import (
 // appropriate.
 func Main(ctx context.Context, Version string, args ...string) error {
 	// Setup logging according to AES_LOG_LEVEL
-	lvl := os.Getenv("AES_LOG_LEVEL")
-	if lvl != "" {
+	busy.SetLogLevel(logutil.DefaultLogLevel)
+	if lvl := os.Getenv("AES_LOG_LEVEL"); lvl != "" {
 		parsed, err := logutil.ParseLogLevel(lvl)
 		if err != nil {
 			dlog.Errorf(ctx, "Error parsing log level: %v", err)
@@ -167,7 +167,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 
 	fastpathCh := make(chan *ambex.FastpathSnapshot)
 	group.Go("ambex", func(ctx context.Context) error {
-		return ambex.Main2(ctx, Version, usage.PercentUsed, fastpathCh, "--ads-listen-address",
+		return ambex.Main(ctx, Version, usage.PercentUsed, fastpathCh, "--ads-listen-address",
 			"127.0.0.1:8003", GetEnvoyDir())
 	})
 

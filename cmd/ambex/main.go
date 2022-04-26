@@ -122,14 +122,11 @@ import (
 	v3runtime "github.com/datawire/ambassador/v2/pkg/api/envoy/service/runtime/v3"
 
 	// first-party libraries
-	"github.com/datawire/ambassador/v2/pkg/busy"
-	"github.com/datawire/ambassador/v2/pkg/memory"
 	"github.com/datawire/dlib/dhttp"
 	"github.com/datawire/dlib/dlog"
 )
 
 type Args struct {
-	debug bool
 	watch bool
 
 	adsNetwork string
@@ -142,7 +139,6 @@ func parseArgs(rawArgs ...string) (*Args, error) {
 	var args Args
 	flagset := flag.NewFlagSet("ambex", flag.ContinueOnError)
 
-	flagset.BoolVar(&args.debug, "debug", false, "Use debug logging")
 	flagset.BoolVar(&args.watch, "watch", false, "Watch for file changes")
 
 	// TODO(lukeshu): Consider changing the default here so we don't need to put it in entrypoint.sh
@@ -721,15 +717,7 @@ func (l logAdapterV3) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3
 	dlog.Debugf(context.TODO(), "V3 Fetch response: %v -> %v", req, res)
 }
 
-// NOTE WELL: this Main() does NOT RUN from entrypoint! This one is only relevant if you
-// explicitly run Ambex by hand.
-func Main(ctx context.Context, Version string, rawArgs ...string) error {
-	usage := memory.GetMemoryUsage(ctx)
-	go usage.Watch(ctx)
-	return Main2(ctx, Version, usage.PercentUsed, make(chan *FastpathSnapshot), rawArgs...)
-}
-
-func Main2(
+func Main(
 	ctx context.Context,
 	Version string,
 	getUsage MemoryGetter,
@@ -739,12 +727,6 @@ func Main2(
 	args, err := parseArgs(rawArgs...)
 	if err != nil {
 		return err
-	}
-
-	if args.debug {
-		busy.SetLogLevel(logrusDebugLevel)
-	} else {
-		busy.SetLogLevel(logrusInfoLevel)
 	}
 
 	// ambex logs its own snapshots, separately from the ones provided by the Python
