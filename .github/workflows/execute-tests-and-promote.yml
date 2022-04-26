@@ -180,7 +180,7 @@ jobs:
         if: always()
         name: "Collect testing logs"
         with:
-          name: pytest-${{ matrix.test }}
+          name: check-pytest-${{ matrix.test }}
   check-pytest-unit:
     # pytest-unit is separate from pytests (above) because we know for certain that no cluster is needed.
     # XXX This is pretty much a crock.
@@ -227,7 +227,7 @@ jobs:
         if: always()
         name: "Collect testing logs"
         with:
-          name: pytest-${{ matrix.test }}
+          name: check-pytest-${{ matrix.test }}
   check-chart:
     runs-on: ubuntu-latest
     env:
@@ -256,7 +256,15 @@ jobs:
         uses: ./.github/actions/setup-deps
       - name: make test-chart
         run: |
+          make ci/setup-k3d K3D_CLUSTER_NAME=amb-ci
+          export DEV_KUBECONFIG=~/.kube/config
+
           make test-chart
+      - uses: ./.github/actions/git-dirty-check
+        name: "Check git not dirty from testing"
+      - uses: ./.github/actions/collect-testing-logs
+        if: always()
+        name: "Collect testing logs"
 
   build: #######################################################################
     runs-on: ubuntu-latest

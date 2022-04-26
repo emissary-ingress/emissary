@@ -87,6 +87,18 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.3.0] TBD
+[2.3.0]: https://github.com/emissary-ingress/emissary/compare/v2.2.2...v2.3.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Security: Completely remove gdbm, pip, smtplib, and sqlite packages, as they are unused.
+
+- Feature: It is now possible to set `propagation_modes` in the `TracingService` config when using
+  lightstep as the driver. (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!) ([#4179])
+
+[#4179]: https://github.com/emissary-ingress/emissary/pull/4179
+
 ## [2.2.2] TBD
 [2.2.2]: https://github.com/emissary-ingress/emissary/compare/v2.2.1...v2.2.2
 

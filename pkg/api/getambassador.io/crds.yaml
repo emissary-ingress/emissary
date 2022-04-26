@@ -3755,6 +3755,15 @@ spec:
                     type: boolean
                   trace_id_128bit:
                     type: boolean
+                  v3PropagationModes:
+                    items:
+                      enum:
+                      - ENVOY
+                      - LIGHTSTEP
+                      - B3
+                      - TRACE_CONTEXT
+                      type: string
+                    type: array
                 type: object
               driver:
                 enum:
@@ -3831,6 +3840,15 @@ spec:
                     type: string
                   collector_hostname:
                     type: string
+                  propagation_modes:
+                    items:
+                      enum:
+                      - ENVOY
+                      - LIGHTSTEP
+                      - B3
+                      - TRACE_CONTEXT
+                      type: string
+                    type: array
                   service_name:
                     type: string
                   shared_span_context:

@@ -1,8 +1,8 @@
 apiVersion: v1
-appVersion: $version$
+appVersion: @version@
 description: A Helm chart for Emissary Ingress
 name: emissary-ingress
-version: $chartVersion$
+version: @chartVersion@
 icon: https://www.getambassador.io/images/logo.png
 home: https://www.getambassador.io/
 sources:

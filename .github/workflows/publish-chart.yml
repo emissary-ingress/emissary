@@ -13,6 +13,8 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
       AWS_EC2_METADATA_DISABLED: true
       GH_GITHUB_API_KEY: ${{ secrets.GH_GITHUB_API_KEY }}
+      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+      RELEASE_REGISTRY: ${{ secrets.RELEASE_REGISTRY }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -20,7 +22,7 @@ jobs:
       - name: "Install Deps"
         uses: ./.github/actions/setup-deps
       - run: |
-          make release/push-chart IMAGE_REPO=${{ secrets.RELEASE_REGISTRY }}/emissary
+          make release/push-chart
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master

@@ -108,6 +108,10 @@ ambassador-secrets-deployment.yaml
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2022-04-18
+/build-aux/version-hack.stamp.mk
+/manifests/emissary/*.yaml
+/docs/yaml/versions.yml
 # 2022-01-31
 /docker/container.txt
 /docker/container.txt.stamp

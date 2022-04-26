@@ -36,6 +36,13 @@ canary:
   # Environment variables to be used for the canary deployment, see `envRaw` for usage example
   envRaw: {}
 
+# Install IngressClass resource
+ingressClassResource:
+  enabled: true
+  name: ambassador
+  default: false
+  controllerValue: getambassador.io/ingress-controller
+
 # Enable autoscaling using HorizontalPodAutoscaler
 # daemonSet: true, autoscaling will be disabled
 autoscaling: # +doc-gen:break
@@ -137,9 +144,9 @@ security:
 
 image:
   # Emissary Ingress docker repo
-  repository: $imageRepo$
+  repository: @imageRepo@
   # Emissary Ingress docker tag
-  tag: $version$
+  tag: @version@
   # Pod container image pull policy
   pullPolicy: IfNotPresent
 

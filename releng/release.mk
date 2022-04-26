@@ -24,16 +24,6 @@ release/ga/changelog-update:
 # These commands are run in CI in a normal release process
 ########################################################################
 
-release/rc/check:
-	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION must be set to an RC "v2.Y.Z-rc.N" value; it is set to "%s"$(END)\n' "$(VERSION)"; exit 1)
-	{ $(OSS_HOME)/releng/release-rc-check \
-	  --rc-version=$(patsubst v%,%,$(VERSION)) \
-	  --s3-bucket=$(AWS_S3_BUCKET) \
-	  --s3-key=charts-dev \
-	  --helm-version=$$(gawk '$$1 == "version:" { gsub("-", " "); print $$2; }' <charts/emissary-ingress/Chart.yaml)$$(sed 's/^[^-]*//' <<<'$(VERSION)') \
-	  --docker-image=$(RELEASE_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION)); }
-.PHONY: release/rc/check
-
 release/ga/create-gh-release:
 	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION must be set to a GA "v2.Y.Z" value; it is set to "%s"$(END)\n' "$(VERSION)"; exit 1)
 	@$(OSS_HOME)/releng/release-create-github $(patsubst v%,%,$(VERSION))
@@ -42,3 +32,38 @@ release/ga/create-gh-release:
 release/chart-create-gh-release:
 	$(OSS_HOME)/releng/chart-create-gh-release
 .PHONY: release/chart-create-gh-release
+
+CHART_S3_BUCKET = $(or $(AWS_S3_BUCKET),datawire-static-files)
+CHART_S3_PREFIX = $(if $(findstring -,$(CHART_VERSION)),charts-dev,charts)
+release/push-chart: $(chart_tgz)
+ifneq ($(IS_PRIVATE),)
+	echo "Private repo, not pushing chart" >&2
+else
+	@if curl -k -L https://s3.amazonaws.com/$(CHART_S3_BUCKET)/$(CHART_S3_PREFIX)/index.yaml | grep -F emissary-ingress-$(patsubst v%,%,$(CHART_VERSION)).tgz; then \
+	  printf 'Chart version %s is already in the index\n' '$(CHART_VERSION)' >&2; \
+	  exit 1; \
+	fi
+	{ aws s3api put-object \
+	  --bucket $(CHART_S3_BUCKET) \
+	  --key $(CHART_S3_PREFIX)/emissary-ingress-$(patsubst v%,%,$(CHART_VERSION)).tgz \
+	  --body $<; }
+endif
+.PHONY: release/push-chart
+
+push-manifests: build-output/yaml-$(patsubst v%,%,$(VERSION))
+ifneq ($(IS_PRIVATE),)
+	@echo "Private repo, not pushing chart" >&2
+	@exit 1
+else
+	manifests/push_manifests.sh $<
+endif
+.PHONY: push-manifests
+
+publish-docs-yaml: build-output/docs-yaml-$(patsubst v%,%,$(VERSION))
+ifneq ($(IS_PRIVATE),)
+	@echo "Private repo, not pushing chart" >&2
+	@exit 1
+else
+	docs/publish_yaml_s3.sh $<
+endif
+.PHONY: publish-docs-yaml

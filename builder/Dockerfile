@@ -111,7 +111,7 @@ RUN mkdir -p /ambassador/sidecars && \
 
 # These will be extracted into the optimized image later
 ADD demo demo
-ADD manifests/emissary/emissary-crds.yaml manifests/emissary/emissary-crds.yaml
+ADD manifests/emissary/emissary-crds.yaml.in manifests/emissary/emissary-crds.yaml
 
 ########################################
 # The optimized images
@@ -152,6 +152,10 @@ RUN setcap cap_net_bind_service=p /opt/ambassador/bin/wrapper
 # Our Python code
 COPY --from=artifacts /buildroot/ambassador/python /buildroot/ambassador/python
 RUN cd /buildroot/ambassador/python && python setup.py install
+
+# Delete some things that cause problems for security scanners.
+RUN python -m pip uninstall -y pip
+RUN find / \( -iname '*sqlite*' -o -iname '*gdbm*' -o -iname '*smtplib*' -o -iname '*piptools*' -o -iname '*pip_tools*' -o -iname '*ensurepip*' \) -exec rm -rf -- '{}' \+
 
 # Configuration, Docker demo stuff, the AES WebUI. The /ambassador bit changes
 # in post-install so it's always stale. But it's pretty small, so it's not too
