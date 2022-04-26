@@ -122,6 +122,7 @@ import (
 	v3runtime "github.com/datawire/ambassador/v2/pkg/api/envoy/service/runtime/v3"
 
 	// first-party libraries
+	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dhttp"
 	"github.com/datawire/dlib/dlog"
 )
@@ -244,15 +245,11 @@ func runManagementServer(ctx context.Context, server ecp_v2_server.Server, serve
 	v3listener.RegisterListenerDiscoveryServiceServer(grpcServer, serverv3)
 
 	dlog.Infof(ctx, "Listening on %s:%s", adsNetwork, adsAddress)
-	go func() {
-		sc := &dhttp.ServerConfig{
-			Handler: grpcServer,
-		}
-		if err := sc.Serve(ctx, lis); err != nil {
-			dlog.Errorf(ctx, "Management server exited: %v", err)
-		}
-	}()
-	return nil
+
+	sc := &dhttp.ServerConfig{
+		Handler: grpcServer,
+	}
+	return sc.Serve(ctx, lis)
 }
 
 // Decoders for unmarshalling our config
@@ -787,9 +784,11 @@ func Main(
 	server := ecp_v2_server.NewServer(ctx, config, logAdapterV2{logAdapterBase{"V2"}})
 	serverv3 := ecp_v3_server.NewServer(ctx, configv3, logAdapterV3{logAdapterBase{"V3"}})
 
-	if err := runManagementServer(ctx, server, serverv3, args.adsNetwork, args.adsAddress); err != nil {
-		return err
-	}
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
+
+	grp.Go("management-server", func(ctx context.Context) error {
+		return runManagementServer(ctx, server, serverv3, args.adsNetwork, args.adsAddress)
+	})
 
 	pid := os.Getpid()
 	file := "ambex.pid"
@@ -802,114 +801,107 @@ func Main(
 	}
 
 	updates := make(chan Update)
-	envoyUpdaterDone := make(chan struct{})
-	go func() {
-		defer close(envoyUpdaterDone)
-		if err := Updater(ctx, updates, getUsage); err != nil {
-			panic(err) // TODO: Find a better way of reporting errors from goroutines.
-		}
-	}()
+	grp.Go("updater", func(ctx context.Context) error {
+		return Updater(ctx, updates, getUsage)
+	})
+	grp.Go("main-loop", func(ctx context.Context) error {
+		generation := 0
+		var fastpathSnapshot *FastpathSnapshot
+		edsEndpoints := map[string]*v2.ClusterLoadAssignment{}
+		edsEndpointsV3 := map[string]*v3endpointconfig.ClusterLoadAssignment{}
 
-	generation := 0
-	var fastpathSnapshot *FastpathSnapshot
-	edsEndpoints := map[string]*v2.ClusterLoadAssignment{}
-	edsEndpointsV3 := map[string]*v3endpointconfig.ClusterLoadAssignment{}
-
-	// We always start by updating with a totally empty snapshot.
-	//
-	// XXX This seems questionable: why do we do this? Envoy isn't currently started until
-	// we have a real configuration...
-	err = update(
-		ctx,
-		args.snapdirPath,
-		args.numsnaps,
-		config,
-		configv3,
-		&generation,
-		args.dirs,
-		edsEndpoints,
-		edsEndpointsV3,
-		fastpathSnapshot,
-		updates,
-	)
-	if err != nil {
-		return err
-	}
-
-	// This is the main loop where the magic happens. The fact that it uses a label
-	// depresses me, though.
-OUTER:
-	for {
-
-		select {
-		case _ = <-sigCh:
-			err := update(
-				ctx,
-				args.snapdirPath,
-				args.numsnaps,
-				config,
-				configv3,
-				&generation,
-				args.dirs,
-				edsEndpoints,
-				edsEndpointsV3,
-				fastpathSnapshot,
-				updates,
-			)
-			if err != nil {
-				return err
-			}
-		case fpSnap := <-fastpathCh:
-			// Fastpath update. Grab new endpoints and update.
-			if fpSnap.Endpoints != nil {
-				edsEndpoints = fpSnap.Endpoints.ToMap_v2()
-				edsEndpointsV3 = fpSnap.Endpoints.ToMap_v3()
-			}
-			fastpathSnapshot = fpSnap
-			err := update(
-				ctx,
-				args.snapdirPath,
-				args.numsnaps,
-				config,
-				configv3,
-				&generation,
-				args.dirs,
-				edsEndpoints,
-				edsEndpointsV3,
-				fastpathSnapshot,
-				updates,
-			)
-			if err != nil {
-				return err
-			}
-		case <-watcher.Events:
-			// Non-fastpath update. Just update.
-			err := update(
-				ctx,
-				args.snapdirPath,
-				args.numsnaps,
-				config,
-				configv3,
-				&generation,
-				args.dirs,
-				edsEndpoints,
-				edsEndpointsV3,
-				fastpathSnapshot,
-				updates,
-			)
-			if err != nil {
-				return err
-			}
-		case err := <-watcher.Errors:
-			// Something went wrong, so scream about that.
-			dlog.Warnf(ctx, "Watcher error: %v", err)
-		case <-ctx.Done():
-			break OUTER
+		// We always start by updating with a totally empty snapshot.
+		//
+		// XXX This seems questionable: why do we do this? Envoy isn't currently started until
+		// we have a real configuration...
+		err = update(
+			ctx,
+			args.snapdirPath,
+			args.numsnaps,
+			config,
+			configv3,
+			&generation,
+			args.dirs,
+			edsEndpoints,
+			edsEndpointsV3,
+			fastpathSnapshot,
+			updates,
+		)
+		if err != nil {
+			return err
 		}
 
-	}
+		// This is the main loop where the magic happens. The fact that it uses a label
+		// depresses me, though.
+		for {
 
-	<-envoyUpdaterDone
-	dlog.Info(ctx, "Done")
-	return nil
+			select {
+			case _ = <-sigCh:
+				err := update(
+					ctx,
+					args.snapdirPath,
+					args.numsnaps,
+					config,
+					configv3,
+					&generation,
+					args.dirs,
+					edsEndpoints,
+					edsEndpointsV3,
+					fastpathSnapshot,
+					updates,
+				)
+				if err != nil {
+					return err
+				}
+			case fpSnap := <-fastpathCh:
+				// Fastpath update. Grab new endpoints and update.
+				if fpSnap.Endpoints != nil {
+					edsEndpoints = fpSnap.Endpoints.ToMap_v2()
+					edsEndpointsV3 = fpSnap.Endpoints.ToMap_v3()
+				}
+				fastpathSnapshot = fpSnap
+				err := update(
+					ctx,
+					args.snapdirPath,
+					args.numsnaps,
+					config,
+					configv3,
+					&generation,
+					args.dirs,
+					edsEndpoints,
+					edsEndpointsV3,
+					fastpathSnapshot,
+					updates,
+				)
+				if err != nil {
+					return err
+				}
+			case <-watcher.Events:
+				// Non-fastpath update. Just update.
+				err := update(
+					ctx,
+					args.snapdirPath,
+					args.numsnaps,
+					config,
+					configv3,
+					&generation,
+					args.dirs,
+					edsEndpoints,
+					edsEndpointsV3,
+					fastpathSnapshot,
+					updates,
+				)
+				if err != nil {
+					return err
+				}
+			case err := <-watcher.Errors:
+				// Something went wrong, so scream about that.
+				dlog.Warnf(ctx, "Watcher error: %v", err)
+			case <-ctx.Done():
+				return nil
+			}
+		}
+	})
+
+	return grp.Wait()
 }
