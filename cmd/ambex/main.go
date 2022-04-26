@@ -133,9 +133,12 @@ type Args struct {
 	adsAddress string
 
 	dirs []string
+
+	snapdirPath string
+	numsnaps    int
 }
 
-func parseArgs(rawArgs ...string) (*Args, error) {
+func parseArgs(ctx context.Context, rawArgs ...string) (*Args, error) {
 	var args Args
 	flagset := flag.NewFlagSet("ambex", flag.ContinueOnError)
 
@@ -159,6 +162,33 @@ func parseArgs(rawArgs ...string) (*Args, error) {
 	args.dirs = flagset.Args()
 	if len(args.dirs) == 0 {
 		args.dirs = []string{"."}
+	}
+
+	// ambex logs its own snapshots, separately from the ones provided by the Python
+	// side of the world, in $rootdir/snapshots/ambex-#.json, where rootdir is taken
+	// from $AMBASSADOR_CONFIG_BASE_DIR if set, else $ambassador_root if set, else
+	// whatever, set rootdir to /ambassador.
+	snapdirPath := os.Getenv("AMBASSADOR_CONFIG_BASE_DIR")
+	if snapdirPath == "" {
+		snapdirPath = os.Getenv("ambassador_root")
+	}
+	if snapdirPath == "" {
+		snapdirPath = "/ambassador"
+	}
+	args.snapdirPath = path.Join(snapdirPath, "snapshots")
+
+	// We'll keep $AMBASSADOR_AMBEX_SNAPSHOT_COUNT snapshots. If unset, or set to
+	// something we can't treat as an int, use 30 (which Flynn just made up, so don't
+	// be afraid to change it if need be).
+	numsnapStr := os.Getenv("AMBASSADOR_AMBEX_SNAPSHOT_COUNT")
+	if numsnapStr == "" {
+		numsnapStr = "30"
+	}
+	var err error
+	args.numsnaps, err = strconv.Atoi(numsnapStr)
+	if (err != nil) || (args.numsnaps < 0) {
+		args.numsnaps = 30
+		dlog.Errorf(ctx, "Invalid AMBASSADOR_AMBEX_SNAPSHOT_COUNT: %s, using %d", numsnapStr, args.numsnaps)
 	}
 
 	return &args, nil
@@ -724,46 +754,12 @@ func Main(
 	fastpathCh <-chan *FastpathSnapshot,
 	rawArgs ...string,
 ) error {
-	args, err := parseArgs(rawArgs...)
+	args, err := parseArgs(ctx, rawArgs...)
 	if err != nil {
 		return err
 	}
 
-	// ambex logs its own snapshots, separately from the ones provided by the Python
-	// side of the world, in $rootdir/snapshots/ambex-#.json, where rootdir is taken
-	// from $AMBASSADOR_CONFIG_BASE_DIR if set, else $ambassador_root if set, else
-	// whatever, set rootdir to /ambassador.
-
-	snapdirPath := os.Getenv("AMBASSADOR_CONFIG_BASE_DIR")
-
-	if snapdirPath == "" {
-		snapdirPath = os.Getenv("ambassador_root")
-	}
-
-	if snapdirPath == "" {
-		snapdirPath = "/ambassador"
-	}
-
-	snapdirPath = path.Join(snapdirPath, "snapshots")
-
-	// We'll keep $AMBASSADOR_AMBEX_SNAPSHOT_COUNT snapshots. If unset, or set to
-	// something we can't treat as an int, use 30 (which Flynn just made up, so don't
-	// be afraid to change it if need be).
-
-	numsnapStr := os.Getenv("AMBASSADOR_AMBEX_SNAPSHOT_COUNT")
-
-	if numsnapStr == "" {
-		numsnapStr = "30"
-	}
-
-	numsnaps, err := strconv.Atoi(numsnapStr)
-
-	if (err != nil) || (numsnaps < 0) {
-		numsnaps = 30
-		dlog.Errorf(ctx, "Invalid AMBASSADOR_AMBEX_SNAPSHOT_COUNT: %s, using %d", numsnapStr, numsnaps)
-	}
-
-	dlog.Infof(ctx, "Ambex %s starting, snapdirPath %s", Version, snapdirPath)
+	dlog.Infof(ctx, "Ambex %s starting, snapdirPath %s", Version, args.snapdirPath)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -830,8 +826,8 @@ func Main(
 	// we have a real configuration...
 	err = update(
 		ctx,
-		snapdirPath,
-		numsnaps,
+		args.snapdirPath,
+		args.numsnaps,
 		config,
 		configv3,
 		&generation,
@@ -859,8 +855,8 @@ OUTER:
 			case syscall.SIGHUP:
 				err := update(
 					ctx,
-					snapdirPath,
-					numsnaps,
+					args.snapdirPath,
+					args.numsnaps,
 					config,
 					configv3,
 					&generation,
@@ -885,8 +881,8 @@ OUTER:
 			fastpathSnapshot = fpSnap
 			err := update(
 				ctx,
-				snapdirPath,
-				numsnaps,
+				args.snapdirPath,
+				args.numsnaps,
 				config,
 				configv3,
 				&generation,
@@ -903,8 +899,8 @@ OUTER:
 			// Non-fastpath update. Just update.
 			err := update(
 				ctx,
-				snapdirPath,
-				numsnaps,
+				args.snapdirPath,
+				args.numsnaps,
 				config,
 				configv3,
 				&generation,
