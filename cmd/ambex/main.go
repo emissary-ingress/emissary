@@ -773,6 +773,7 @@ func Main(
 	// better to not have to consider the possibility that we lose a signal.
 	sigCh := make(chan os.Signal, 100)
 	signal.Notify(sigCh, syscall.SIGHUP)
+	defer func() { signal.Stop(sigCh) }()
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
