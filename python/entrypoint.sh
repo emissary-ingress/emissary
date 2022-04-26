@@ -108,8 +108,5 @@ export APPDIR="${APPDIR:-$ambassador_root}"
 export PYTHON_EGG_CACHE="${PYTHON_EGG_CACHE:-$AMBASSADOR_CONFIG_BASE_DIR}/.cache"
 export PYTHONUNBUFFERED=true
 
-if [ -n "$DEVMAGIC" ]; then
-    log "running with dev magic"
-    diagd --dev-magic
-    exit $?
-fi
+log "running with dev magic"
+diagd --dev-magic
