@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 
-	"github.com/datawire/ambassador/v2/pkg/envoytest"
-	"github.com/datawire/ambassador/v2/pkg/gateway"
-	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoytest"
+	"github.com/emissary-ingress/emissary/v3/pkg/gateway"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 func TestGatewayMatches(t *testing.T) {

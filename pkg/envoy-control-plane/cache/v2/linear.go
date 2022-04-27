@@ -21,7 +21,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
 )
 
 type watches = map[chan Response]struct{}

@@ -1,4 +1,4 @@
-The Go module "github.com/datawire/ambassador/v2" incorporates the
+The Go module "github.com/emissary-ingress/emissary/v3" incorporates the
 following Free and Open Source software:
 
     Name                                                                                       Version                                      License(s)

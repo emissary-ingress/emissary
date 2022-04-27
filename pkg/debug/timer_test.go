@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/datawire/ambassador/v2/pkg/debug"
+	"github.com/emissary-ingress/emissary/v3/pkg/debug"
 )
 
 func TestTimer(t *testing.T) {

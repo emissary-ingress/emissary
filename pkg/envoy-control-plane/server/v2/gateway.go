@@ -23,10 +23,10 @@ import (
 
 	"github.com/golang/protobuf/jsonpb"
 
-	discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/log"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v2"
+	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/log"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v2"
 )
 
 // HTTPGateway is a custom implementation of [gRPC gateway](https://github.com/grpc-ecosystem/grpc-gateway)

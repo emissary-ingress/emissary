@@ -8,7 +8,7 @@ package envoy_service_auth_v4alpha
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v4alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v4alpha"
+	v4alpha "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v4alpha"
 	proto "github.com/golang/protobuf/proto"
 	timestamp "github.com/golang/protobuf/ptypes/timestamp"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

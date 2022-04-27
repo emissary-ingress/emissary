@@ -8,18 +8,18 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/types/known/durationpb"
 
-	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	apiv2_core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	apiv2_endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/endpoint"
-	apiv2_route "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/route"
+	apiv2 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	apiv2_core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	apiv2_endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/endpoint"
+	apiv2_route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/route"
 
-	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
-	ecp_v2_resource "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v2"
-	ecp_wellknown "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+	ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	ecp_v2_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v2"
+	ecp_v2_resource "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v2"
+	ecp_wellknown "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 // The Dispatcher struct allows transforms to be registered for different kinds of kubernetes

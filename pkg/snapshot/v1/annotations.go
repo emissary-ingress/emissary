@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	crdAll "github.com/datawire/ambassador/v2/pkg/api/getambassador.io"
-	crdCurrent "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
-	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/dlib/derror"
+	crdAll "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io"
+	crdCurrent "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 func annotationKey(obj kates.Object) string {

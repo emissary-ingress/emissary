@@ -9,7 +9,7 @@ package envoy_config_trace_v2
 import (
 	v1 "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

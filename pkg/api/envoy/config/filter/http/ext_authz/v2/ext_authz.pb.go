@@ -8,10 +8,10 @@ package envoy_config_filter_http_ext_authz_v2
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/annotations"
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	_type "github.com/datawire/ambassador/v2/pkg/api/envoy/type"
-	matcher "github.com/datawire/ambassador/v2/pkg/api/envoy/type/matcher"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/annotations"
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	_type "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type"
+	matcher "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/matcher"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

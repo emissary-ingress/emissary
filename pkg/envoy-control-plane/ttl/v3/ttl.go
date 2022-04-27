@@ -1,8 +1,8 @@
 package ttl
 
 import (
-	discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
+	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"

@@ -9,7 +9,7 @@ package envoy_service_metrics_v3
 import (
 	context "context"
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
+	v3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	_go "github.com/prometheus/client_model/go"

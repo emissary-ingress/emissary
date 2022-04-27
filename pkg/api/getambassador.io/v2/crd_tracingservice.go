@@ -20,7 +20,7 @@
 package v2
 
 import (
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

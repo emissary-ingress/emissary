@@ -8,13 +8,13 @@ import (
 	"net"
 	"net/http"
 
-	serverv2 "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v2"
-	serverv3 "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v3"
-	testv2 "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/test/v2"
-	testv3 "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/test/v3"
+	serverv2 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v2"
+	serverv3 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
+	testv2 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/v2"
+	testv3 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/v3"
 	"google.golang.org/grpc"
 
-	gcplogger "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/log"
+	gcplogger "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/log"
 )
 
 const (

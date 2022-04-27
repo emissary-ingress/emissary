@@ -8,8 +8,8 @@ package envoy_extensions_transport_sockets_starttls_v4alpha
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/transport_sockets/raw_buffer/v3"
-	v4alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/transport_sockets/tls/v4alpha"
+	v3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/transport_sockets/raw_buffer/v3"
+	v4alpha "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/transport_sockets/tls/v4alpha"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	_ "github.com/golang/protobuf/ptypes/wrappers"

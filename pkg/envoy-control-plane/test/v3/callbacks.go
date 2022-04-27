@@ -6,7 +6,7 @@ import (
 	"log"
 	"sync"
 
-	discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
+	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
 )
 
 type Callbacks struct {

@@ -8,9 +8,9 @@ package envoy_config_tap_v3
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/common/matcher/v3"
-	v31 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
-	v32 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v3"
+	v3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/common/matcher/v3"
+	v31 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	v32 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"

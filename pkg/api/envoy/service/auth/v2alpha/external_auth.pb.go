@@ -9,7 +9,7 @@ package envoy_service_auth_v2alpha
 import (
 	context "context"
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/service/auth/v2"
+	v2 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/auth/v2"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"

@@ -18,7 +18,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 func getResourceKey(resource kates.Object) string {

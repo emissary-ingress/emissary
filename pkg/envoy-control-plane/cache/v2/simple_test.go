@@ -22,12 +22,12 @@ import (
 	"testing"
 	"time"
 
-	discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
-	rsrc "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v2"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/test/resource/v2"
+	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v2"
+	rsrc "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v2"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/resource/v2"
 )
 
 type group struct{}

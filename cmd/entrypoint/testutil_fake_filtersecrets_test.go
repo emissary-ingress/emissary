@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 type subtest struct {

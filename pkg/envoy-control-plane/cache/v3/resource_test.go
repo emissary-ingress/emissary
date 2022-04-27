@@ -19,12 +19,12 @@ import (
 	"reflect"
 	"testing"
 
-	cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
-	route "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v3"
-	v2route "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/test/resource/v3"
+	cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
+	route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
+	v2route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/resource/v3"
 )
 
 const (

@@ -12,9 +12,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
-	pb "github.com/datawire/ambassador/v2/pkg/api/envoy/service/ratelimit/v3"
 	"github.com/datawire/dlib/dlog"
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	pb "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/ratelimit/v3"
 )
 
 // GRPCRLSV3 server object (all fields are required).

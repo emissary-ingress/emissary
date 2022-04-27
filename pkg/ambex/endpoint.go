@@ -5,12 +5,12 @@ import (
 	"sort"
 	"strings"
 
-	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	v2core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	v2endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/endpoint"
-	v3core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
-	v3endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/config/endpoint/v3"
-	v3endpointconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/endpoint/v3"
+	v2 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	v2core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	v2endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/endpoint"
+	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
+	v3endpointconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
 )
 
 // The Endpoints struct is how Endpoint data gets communicated to ambex. This is a bit simpler than

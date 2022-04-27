@@ -10,15 +10,15 @@ import (
 
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 
-	"github.com/datawire/ambassador/v2/pkg/acp"
-	"github.com/datawire/ambassador/v2/pkg/ambex"
-	"github.com/datawire/ambassador/v2/pkg/debug"
-	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
-	"github.com/datawire/ambassador/v2/pkg/gateway"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/acp"
+	"github.com/emissary-ingress/emissary/v3/pkg/ambex"
+	"github.com/emissary-ingress/emissary/v3/pkg/debug"
+	ecp_v2_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v2"
+	"github.com/emissary-ingress/emissary/v3/pkg/gateway"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 func WatchAllTheThings(

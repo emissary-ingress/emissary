@@ -8,9 +8,9 @@ package envoy_extensions_filters_network_dubbo_proxy_v4alpha
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v4alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v4alpha"
-	v4alpha1 "github.com/datawire/ambassador/v2/pkg/api/envoy/type/matcher/v4alpha"
-	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/type/v3"
+	v4alpha "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v4alpha"
+	v4alpha1 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/matcher/v4alpha"
+	v3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/v3"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

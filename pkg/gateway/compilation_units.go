@@ -1,8 +1,8 @@
 package gateway
 
 import (
-	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	route "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/route"
+	v2 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/route"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
 

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	srv "github.com/datawire/ambassador/v2/cmd/kat-server/services"
 	"github.com/datawire/dlib/dlog"
+	srv "github.com/emissary-ingress/emissary/v3/cmd/kat-server/services"
 )
 
 const (

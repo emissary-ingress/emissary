@@ -3,9 +3,9 @@ package resource
 import (
 	"github.com/golang/protobuf/ptypes"
 
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
-	listener "github.com/datawire/ambassador/v2/pkg/api/envoy/config/listener/v3"
-	hcm "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
+	hcm "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
 )
 
 // Resource types in xDS v3.

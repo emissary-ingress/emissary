@@ -3,8 +3,8 @@ package entrypoint_test
 import (
 	"testing"
 
-	"github.com/datawire/ambassador/v2/cmd/entrypoint"
-	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
+	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
+	bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
 
 	"github.com/stretchr/testify/assert"
 )

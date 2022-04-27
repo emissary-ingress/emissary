@@ -11,18 +11,18 @@ import (
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 
 	// envoy api v2
-	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	apiv2_core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	apiv2_listener "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/listener"
-	apiv2_route "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/route"
-	apiv2_httpman "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
-	api_matcher "github.com/datawire/ambassador/v2/pkg/api/envoy/type/matcher"
+	apiv2 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	apiv2_core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	apiv2_listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/listener"
+	apiv2_route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/route"
+	apiv2_httpman "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
+	api_matcher "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/matcher"
 
 	// envoy control plane
-	ecp_wellknown "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+	ecp_wellknown "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
 
 	// first-party libraries
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 func Compile_Gateway(gateway *gw.Gateway) (*CompiledConfig, error) {

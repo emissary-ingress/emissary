@@ -11,9 +11,9 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
-	"github.com/datawire/ambassador/v2/pkg/acp"
-	"github.com/datawire/ambassador/v2/pkg/debug"
 	"github.com/datawire/dlib/dhttp"
+	"github.com/emissary-ingress/emissary/v3/pkg/acp"
+	"github.com/emissary-ingress/emissary/v3/pkg/debug"
 )
 
 func handleCheckAlive(w http.ResponseWriter, r *http.Request, ambwatch *acp.AmbassadorWatcher) {

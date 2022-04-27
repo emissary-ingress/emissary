@@ -10,25 +10,25 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	// envoy api v2
-	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	apiv2_core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	apiv2_endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/endpoint"
-	apiv2_listener "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/listener"
-	apiv2_httpman "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
+	apiv2 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	apiv2_core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	apiv2_endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/endpoint"
+	apiv2_listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/listener"
+	apiv2_httpman "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
 
 	// envoy api v3
-	apiv3_cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
-	apiv3_core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
-	apiv3_endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/config/endpoint/v3"
-	apiv3_listener "github.com/datawire/ambassador/v2/pkg/api/envoy/config/listener/v3"
-	apiv3_route "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v3"
-	apiv3_httpman "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	apiv3_cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
+	apiv3_core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	apiv3_endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
+	apiv3_listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
+	apiv3_route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
+	apiv3_httpman "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
 
 	// envoy control plane
-	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	ecp_v2_resource "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v2"
-	ecp_v3_resource "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
-	ecp_wellknown "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+	ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	ecp_v2_resource "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v2"
+	ecp_v3_resource "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
+	ecp_wellknown "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
 
 	// first-party libraries
 	"github.com/datawire/dlib/dlog"

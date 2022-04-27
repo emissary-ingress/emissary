@@ -14,14 +14,14 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/datawire/ambassador/v2/pkg/acp"
-	"github.com/datawire/ambassador/v2/pkg/ambex"
-	"github.com/datawire/ambassador/v2/pkg/busy"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/logutil"
-	"github.com/datawire/ambassador/v2/pkg/memory"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/acp"
+	"github.com/emissary-ingress/emissary/v3/pkg/ambex"
+	"github.com/emissary-ingress/emissary/v3/pkg/busy"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/logutil"
+	"github.com/emissary-ingress/emissary/v3/pkg/memory"
 )
 
 // This is the main ambassador entrypoint. It launches and manages two other

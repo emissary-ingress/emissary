@@ -17,17 +17,17 @@ package cache
 import (
 	"github.com/golang/protobuf/proto"
 
-	cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	listener "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	route "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	auth "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/auth"
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
-	hcm "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
-	runtime "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v2"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+	cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	auth "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/auth"
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	hcm "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
+	runtime "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v2"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v2"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
 )
 
 // GetResponseType returns the enumeration for a valid xDS type URL

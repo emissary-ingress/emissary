@@ -8,7 +8,7 @@ package ambex
  * go-control-plane, several different classes manage this stuff:
  *
  * - The root of the world is a SnapshotCache.
- *   - import github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2, then refer
+ *   - import github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v2, then refer
  *     to cache.SnapshotCache.
  *   - A collection of internally consistent configuration objects is a
  *     Snapshot (cache.Snapshot).
@@ -19,7 +19,7 @@ package ambex
  * - The SnapshotCache can only hold go-control-plane configuration objects,
  *   so you have to build these up to hand to the SnapshotCache.
  * - The gRPC stuff is handled by a Server.
- *   - import github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server, then refer
+ *   - import github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server, then refer
  *     to server.Server.
  *   - Our runManagementServer (largely ripped off from the go-control-plane
  *     tests) gets this running. It takes a SnapshotCache (cleverly called a
@@ -63,63 +63,63 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	// envoy control plane
-	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
-	ecp_v3_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
-	ecp_log "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/log"
-	ecp_v2_server "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v2"
-	ecp_v3_server "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v3"
+	ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	ecp_v2_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v2"
+	ecp_v3_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+	ecp_log "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/log"
+	ecp_v2_server "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v2"
+	ecp_v3_server "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
 
 	// Envoy API v2
 	// Be sure to import the package of any types that're referenced with "@type" in our
 	// generated Envoy config, even if that package is otherwise not used by ambex.
-	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/auth"
-	v2core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/accesslog/v2"
-	v2bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/buffer/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/ext_authz/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/gzip/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/lua/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/rate_limit/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/rbac/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/router/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/tcp_proxy/v2"
-	v2discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
+	v2 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/auth"
+	v2core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/accesslog/v2"
+	v2bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v2"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/filter/http/buffer/v2"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/filter/http/ext_authz/v2"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/filter/http/gzip/v2"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/filter/http/lua/v2"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/filter/http/rate_limit/v2"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/filter/http/rbac/v2"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/filter/http/router/v2"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/filter/network/tcp_proxy/v2"
+	v2discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v2"
 
 	// Envoy API v3
 	// Be sure to import the package of any types that're referenced with "@type" in our
 	// generated Envoy config, even if that package is otherwise not used by ambex.
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/accesslog/v3"
-	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
-	v3clusterconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
-	v3core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
-	v3endpointconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/endpoint/v3"
-	v3listenerconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/listener/v3"
-	v3routeconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/access_loggers/file/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/access_loggers/grpc/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/compression/gzip/compressor/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/buffer/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/compressor/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/ext_authz/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/grpc_stats/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/gzip/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/lua/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/ratelimit/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/rbac/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/response_map/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/router/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/tcp_proxy/v3"
-	v3cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/service/cluster/v3"
-	v3discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
-	v3endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/service/endpoint/v3"
-	v3listener "github.com/datawire/ambassador/v2/pkg/api/envoy/service/listener/v3"
-	v3route "github.com/datawire/ambassador/v2/pkg/api/envoy/service/route/v3"
-	v3runtime "github.com/datawire/ambassador/v2/pkg/api/envoy/service/runtime/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/accesslog/v3"
+	v3bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
+	v3clusterconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
+	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	v3endpointconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
+	v3listenerconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
+	v3routeconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/access_loggers/file/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/access_loggers/grpc/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/compression/gzip/compressor/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/buffer/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/compressor/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/ext_authz/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/grpc_stats/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/gzip/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/lua/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/ratelimit/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/rbac/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/response_map/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/router/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/tcp_proxy/v3"
+	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/cluster/v3"
+	v3discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
+	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/endpoint/v3"
+	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/listener/v3"
+	v3route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/route/v3"
+	v3runtime "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/runtime/v3"
 
 	// first-party libraries
 	"github.com/datawire/dlib/dgroup"

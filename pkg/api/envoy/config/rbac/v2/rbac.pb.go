@@ -8,9 +8,9 @@ package envoy_config_rbac_v2
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	route "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/route"
-	matcher "github.com/datawire/ambassador/v2/pkg/api/envoy/type/matcher"
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/route"
+	matcher "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/matcher"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	v1alpha1 "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
