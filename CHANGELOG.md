@@ -111,7 +111,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Kubernetes Secrets that should contain an EC (Elliptic Curve) TLS Private Key are now
   properly validated. ([4134])
 
-- Change: The new delay between two syncs is 30s. ([#4122])
+- Change: The new delay between two metrics syncs is now 30s. ([#4122])
 
 [4134]: https://github.com/emissary-ingress/emissary/issues/4134
 [#4122]: https://github.com/emissary-ingress/emissary/pull/4122
