@@ -71,7 +71,7 @@ items:
       - title: Decrease metric sync frequency
         type: change
         body: >-
-          The new delay between two syncs is 30s.
+          The new delay between two metrics syncs is now 30s.
         github:
           - title: "#4122"
             link: https://github.com/emissary-ingress/emissary/pull/4122
