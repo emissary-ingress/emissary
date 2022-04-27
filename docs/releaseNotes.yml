@@ -702,6 +702,16 @@ items:
         docs: topics/install/helm/
         type: change
 
+  - version: 1.14.3
+    date: '2022-02-25'
+    notes:
+      - title: Envoy security updates
+        type: security
+        body: >-
+          Upgraded Envoy to address security vulnerabilities CVE-2021-43824, CVE-2021-43825, CVE-2021-43826,
+          CVE-2022-21654, and CVE-2022-21655.
+        docs: https://groups.google.com/g/envoy-announce/c/bIUgEDKHl4g
+
   - version: 1.14.2
     date: '2021-09-29'
     notes:
