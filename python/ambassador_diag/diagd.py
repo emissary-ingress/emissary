@@ -842,6 +842,22 @@ def handle_ping():
     return "ACK\n", 200
 
 
+@app.route("/_internal/v0/features", methods=[ 'GET' ])
+@internal_handler
+def handle_features():
+    # If we don't have an IR yet, do nothing.
+    #
+    # We don't bother grabbing the config_lock here because we're not changing
+    # anything, and an features request hitting at exactly the same moment as
+    # the first configure is a race anyway. If it fails, that's not a big deal,
+    # they can try again.
+    if not app.ir:
+          app.logger.debug("Features: configuration required first")
+          return "Can't do features before configuration", 503
+
+    return jsonify(app.ir.features()), 200
+
+
 @app.route('/_internal/v0/watt', methods=[ 'POST' ])
 @internal_handler
 def handle_watt_update():
@@ -1519,6 +1535,13 @@ class AmbassadorEventWatcher(threading.Thread):
                  secret_handler: SecretHandler, snapshot: str) -> None:
         with self.app.aconf_timer:
             aconf.load_all(fetcher.sorted())
+
+            # TODO(Flynn): This is an awful hack. Have aconf.load(fetcher) that does
+            # this correctly.
+            #
+            # I'm not doing this at this moment because aconf.load_all() is called in a
+            # lot of places, and I don't want to destablize 2.2.2.
+            aconf.load_invalid(fetcher)
 
         aconf_path = os.path.join(app.snapshot_path, "aconf-tmp.json")
         open(aconf_path, "w").write(aconf.as_json())

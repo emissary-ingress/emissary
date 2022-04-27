@@ -49,6 +49,24 @@ items:
           - title: "#4179"
             link: https://github.com/emissary-ingress/emissary/pull/4179
 
+  - version: 2.2.2
+    date: 'TBD'
+    notes:
+      - title: TLS Secret validation is now opt-in
+        type: change
+        body: >-
+          You may now choose to enable TLS Secret validation by setting the
+          <code>AMBASSADOR_FORCE_SECRET_VALIDATION=true</code> environment variable. The default configuration does not
+          enforce secret validation.
+
+      - title: Correctly validate EC (Elliptic Curve) Private Keys
+        type: bugfix
+        body: >-
+          Kubernetes Secrets that should contain an EC (Elliptic Curve) TLS Private Key are now properly validated.
+        github:
+          - title: 4134
+            link: https://github.com/emissary-ingress/emissary/issues/4134
+        docs: https://github.com/emissary-ingress/emissary/issues/4134
 
   - version: 2.2.1
     date: '2022-02-22'

@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"reflect"
 	"sync"
@@ -78,6 +80,8 @@ type Fake struct {
 	teardownOnce sync.Once
 
 	ambassadorMeta *snapshot.AmbassadorMetaInfo
+
+	DiagdBindPort string
 }
 
 // FakeConfig provides option when constructing a new Fake.
@@ -150,6 +154,8 @@ func (f *Fake) Setup() {
 			return snapshotServer(ctx, f.currentSnapshot)
 		})
 
+		f.DiagdBindPort = GetDiagdBindPort()
+
 		f.group.Go("diagd", func(ctx context.Context) error {
 			args := []string{
 				"diagd",
@@ -158,7 +164,7 @@ func (f *Fake) Setup() {
 				"/tmp/envoy.json",
 				"--no-envoy",
 				"--host", "127.0.0.1",
-				"--port", GetDiagdBindPort(),
+				"--port", f.DiagdBindPort,
 			}
 
 			if f.config.DiagdDebug {
@@ -184,6 +190,61 @@ func (f *Fake) Setup() {
 	}
 	f.group.Go("fake-watcher", f.runWatcher)
 
+}
+
+// GetFeatures grabs features from diagd. Yup, it's a little ugly.
+func (f *Fake) GetFeatures(ctx context.Context, features interface{}) error {
+	// If EnvoyConfig isn't set, we're not running diagd, so there's no way to get the
+	// features. Just return an error immediately.
+	if !f.config.EnvoyConfig {
+		return fmt.Errorf("Features are not available with EnvoyConfig false")
+	}
+
+	// The way we get the features is by making a request to diagd. Why, you ask, is the
+	// features dict not just always part of the IR dump? It's basically a performance thing
+	// at present.
+	//
+	// TODO(Flynn): That's a stupid reason and we should fix it.
+	featuresURL := fmt.Sprintf("http://localhost:%s/_internal/v0/features", f.DiagdBindPort)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", featuresURL, nil)
+
+	if err != nil {
+		return err
+	}
+
+	// This is test code, so we can just always force X-Ambassador-Diag-IP to 127.0.0.1,
+	// so that diagd will trust the request.
+	req.Header.Set("X-Ambassador-Diag-IP", "127.0.0.1")
+	req.Header.Set("content-type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return err
+	}
+
+	// err = ioutil.WriteFile("/tmp/ambassador-features.json", body, 0644)
+	//
+	// if err != nil { return err }
+
+	// Trust our caller to have passed in something that we can unmarshal into. This is
+	// particularly relevant right now because there isn't a real Go type for the Features
+	// dict, so our caller is probably handing in something to look at just a subset.
+	//
+	// TODO(Flynn): Really, we should just have an IR Features type...
+	return json.Unmarshal(body, features)
 }
 
 // Teardown will clean up anything that Setup has started. It is idempotent. Note that if you use

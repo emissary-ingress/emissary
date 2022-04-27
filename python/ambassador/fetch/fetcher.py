@@ -57,6 +57,7 @@ k8sLabelMatcher = re.compile(r'([\w\-_./]+)=\"(.+)\"')
 class ResourceFetcher:
     manager: ResourceManager
     k8s_processor: KubernetesProcessor
+    invalid: List[Dict]
 
     def __init__(self, logger: logging.Logger, aconf: 'Config',
                  skip_init_dir: bool=False, watch_only=False) -> None:
@@ -82,6 +83,13 @@ class ResourceFetcher:
 
         # Deltas, for managing the cache.
         self.deltas: List[Dict[str, Union[str, Dict[str, str]]]] = []
+
+        # Paranoia: make sure self.invalid is empty.
+        #
+        # TODO(Flynn): The only reason this is here is because filesystem configuration
+        # doesn't use parse_watt. This is broken for many reasons; filesystem configuration
+        # should be handled by entrypoint, so that we can make the fetcher _much_ simpler.
+        self.invalid = []
 
         # HACK
         # If AGENT_SERVICE is set, skip the init dir: we'll force some defaults later
@@ -270,9 +278,9 @@ spec:
             # processed??? It's because they have error information that we need to
             # propagate to the user, and this is the simplest way to do that.
 
-            invalid: List[Dict] = watt_dict.get('Invalid') or []
+            self.invalid: List[Dict] = watt_dict.get('Invalid') or []
 
-            for obj in invalid:
+            for obj in self.invalid:
                 kind = obj.get('kind', None)
 
                 if not kind:
