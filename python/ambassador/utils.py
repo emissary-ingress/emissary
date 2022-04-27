@@ -169,7 +169,7 @@ def parse_bool(s: Optional[Union[str, bool]]) -> bool:
 
     # OK, we got _something_, so try strtobool.
     try:
-        return strtobool(s)
+        return bool(strtobool(s)) # the linter does not like a Literal[0, 1] being returned here
     except ValueError:
         return False
 
