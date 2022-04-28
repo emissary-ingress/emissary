@@ -23,6 +23,8 @@ package v3alpha1
 import (
 	"encoding/json"
 	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // V2ExplicitTLS controls some vanity/stylistic elements when converting
@@ -110,6 +112,40 @@ type ErrorResponseOverride struct {
 	// The new response body
 	// +kubebuilder:validation:Required
 	Body ErrorResponseOverrideBody `json:"body,omitempty"`
+}
+
+type HealthCheck struct {
+	// Timeout for connecting to the health checking endpoint
+	// +kubebuilder:validation:Required
+	Timeout *metav1.Duration `json:"timeout_ms,omitempty"`
+	// Interval between health checks
+	// +kubebuilder:validation:Required
+	Interval *metav1.Duration `json:"interval_ms,omitempty"`
+	// Number of non-expected responses for the upstream to be considered unhealthy. A single 503 will mark the upstream as unhealthy
+	// +kubebuilder:validation:Required
+	UnhealthyThreshold *int `json:"unhealthy_threshold,omitempty"`
+	// Number of expected responses for the upstream to be considered healthy.
+	// +kubebuilder:validation:Required
+	HealthyThreshold *int             `json:"healthy_threshold,omitempty"`
+	HttpHealthCheck  *HttpHealthCheck `json:"http_health_check,omitempty"`
+	GrpcHealthCheck  *GrpcHealthCheck `json:"grpc_health_check,omitempty"`
+}
+
+// HealthCheck for HTTP upstreams. Only one of http_health_check or grpc_health_check may be specified
+type HttpHealthCheck struct {
+	Host string `json:"hostname,omitempty"`
+	// +kubebuilder:validation:Required
+	Path                 string                  `json:"path,omitempty"`
+	AddRequestHeaders    *map[string]AddedHeader `json:"add_request_headers,omitempty"`
+	RemoveRequestHeaders *[]string               `json:"remove_request_headers,omitempty"`
+	ExpectedStatuses     *[]int                  `json:"expected_statuses,omitempty"`
+}
+
+// HealthCheck for gRPC upstreams. Only one of grpc_health_check or http_health_check may be specified
+type GrpcHealthCheck struct {
+	// +kubebuilder:validation:Required
+	ServiceName string `json:"service_name,omitempty"`
+	Authority   string `json:"authority,omitempty"`
 }
 
 // AmbassadorID declares which Ambassador instances should pay

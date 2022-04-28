@@ -2367,6 +2367,70 @@ spec:
                 type: boolean
               v3StatsName:
                 type: string
+              v3health_check_port:
+                type: integer
+              v3health_checks:
+                items:
+                  properties:
+                    grpc_health_check:
+                      description: HealthCheck for gRPC upstreams. Only one of grpc_health_check
+                        or http_health_check may be specified
+                      properties:
+                        authority:
+                          type: string
+                        service_name:
+                          type: string
+                      required:
+                      - service_name
+                      type: object
+                    healthy_threshold:
+                      description: Number of expected responses for the upstream to
+                        be considered healthy.
+                      type: integer
+                    http_health_check:
+                      description: HealthCheck for HTTP upstreams. Only one of http_health_check
+                        or grpc_health_check may be specified
+                      properties:
+                        add_request_headers:
+                          additionalProperties:
+                            oneOf:
+                            - type: string
+                            - type: object
+                          type: object
+                        expected_statuses:
+                          items:
+                            type: integer
+                          type: array
+                        hostname:
+                          type: string
+                        path:
+                          type: string
+                        remove_request_headers:
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - path
+                      type: object
+                    interval_ms:
+                      description: Interval between health checks
+                      type: string
+                    timeout_ms:
+                      description: Timeout for connecting to the health checking endpoint
+                      type: string
+                    unhealthy_threshold:
+                      description: Number of non-expected responses for the upstream
+                        to be considered unhealthy. A single 503 will mark the upstream
+                        as unhealthy
+                      type: integer
+                  required:
+                  - healthy_threshold
+                  - interval_ms
+                  - timeout_ms
+                  - unhealthy_threshold
+                  type: object
+                minItems: 1
+                type: array
               weight:
                 type: integer
             required:
@@ -2635,6 +2699,79 @@ spec:
                 additionalProperties:
                   type: string
                 type: object
+              health_check_port:
+                type: integer
+              health_checks:
+                items:
+                  properties:
+                    grpc_health_check:
+                      description: HealthCheck for gRPC upstreams. Only one of grpc_health_check
+                        or http_health_check may be specified
+                      properties:
+                        authority:
+                          type: string
+                        service_name:
+                          type: string
+                      required:
+                      - service_name
+                      type: object
+                    healthy_threshold:
+                      description: Number of expected responses for the upstream to
+                        be considered healthy.
+                      type: integer
+                    http_health_check:
+                      description: HealthCheck for HTTP upstreams. Only one of http_health_check
+                        or grpc_health_check may be specified
+                      properties:
+                        add_request_headers:
+                          additionalProperties:
+                            properties:
+                              append:
+                                type: boolean
+                              v2Representation:
+                                enum:
+                                - ""
+                                - string
+                                - "null"
+                                type: string
+                              value:
+                                type: string
+                            type: object
+                          type: object
+                        expected_statuses:
+                          items:
+                            type: integer
+                          type: array
+                        hostname:
+                          type: string
+                        path:
+                          type: string
+                        remove_request_headers:
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - path
+                      type: object
+                    interval_ms:
+                      description: Interval between health checks
+                      type: string
+                    timeout_ms:
+                      description: Timeout for connecting to the health checking endpoint
+                      type: string
+                    unhealthy_threshold:
+                      description: Number of non-expected responses for the upstream
+                        to be considered unhealthy. A single 503 will mark the upstream
+                        as unhealthy
+                      type: integer
+                  required:
+                  - healthy_threshold
+                  - interval_ms
+                  - timeout_ms
+                  - unhealthy_threshold
+                  type: object
+                minItems: 1
+                type: array
               host:
                 description: "Exact match for the hostname of a request if HostRegex
                   is false; regex match for the hostname if HostRegex is true. \n
