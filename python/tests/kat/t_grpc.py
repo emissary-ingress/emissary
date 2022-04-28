@@ -25,7 +25,7 @@ kind: Mapping
 grpc: True
 hostname: "*"
 prefix: /echo.EchoService/
-rewrite: /echo.EchoService/
+rewrite: ""   # This means to leave the prefix unaltered.
 name:  {self.target.path.k8s}
 service: {self.target.path.k8s}
 """)
@@ -84,7 +84,7 @@ kind: Mapping
 grpc: True
 hostname: "*"
 prefix: /echo.EchoService/
-rewrite: /echo.EchoService/
+rewrite: ""   # This means to leave the prefix unaltered.
 name:  {self.target.path.k8s}
 service: {self.target.path.k8s}
 resolver: my-endpoint
