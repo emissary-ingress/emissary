@@ -22,6 +22,7 @@ from ..config import Config
 from ..utils import RichStatus
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
+from .irhealthchecks import IRHealthChecks
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover
@@ -53,6 +54,7 @@ class IRCluster(IRResource):
         ctx_name: Optional[Union[str, bool]] = None,
         host_rewrite: Optional[str] = None,
         dns_type: Optional[str] = "strict_dns",
+        health_check_port: Optional[int] = None,
         enable_ipv4: Optional[bool] = None,
         enable_ipv6: Optional[bool] = None,
         lb_type: str = "round_robin",
@@ -62,6 +64,7 @@ class IRCluster(IRResource):
         keepalive: Optional[dict] = None,
         circuit_breakers: Optional[list] = None,
         respect_dns_ttl: Optional[bool] = False,
+        health_checks: Optional[IRHealthChecks] = None,
         rkey: str = "-override-",
         kind: str = "IRCluster",
         apiVersion: str = "getambassador.io/v0",  # Not a typo! See below.
@@ -294,19 +297,21 @@ class IRCluster(IRResource):
 
         new_args: Dict[str, Any] = {
             "type": dns_type,
+            "health_check_port": health_check_port,
             "lb_type": lb_type,
             "urls": [url],  # TODO: Should we completely eliminate `urls` in favor of `targets`?
             "load_balancer": load_balancer,
             "keepalive": keepalive,
             "circuit_breakers": circuit_breakers,
             "service": service,
-            "enable_ipv4": enable_ipv4,
-            "enable_ipv6": enable_ipv6,
-            "enable_endpoints": enable_endpoints,
-            "connect_timeout_ms": connect_timeout_ms,
-            "cluster_idle_timeout_ms": cluster_idle_timeout_ms,
-            "cluster_max_connection_lifetime_ms": cluster_max_connection_lifetime_ms,
-            "respect_dns_ttl": respect_dns_ttl,
+            'enable_ipv4': enable_ipv4,
+            'enable_ipv6': enable_ipv6,
+            'enable_endpoints': enable_endpoints,
+            'connect_timeout_ms': connect_timeout_ms,
+            'cluster_idle_timeout_ms': cluster_idle_timeout_ms,
+            'cluster_max_connection_lifetime_ms': cluster_max_connection_lifetime_ms,
+            'respect_dns_ttl': respect_dns_ttl,
+            'health_checks': health_checks,
         }
 
         # If we have a stats_name, use it. If not, default it to the service to make life
@@ -377,6 +382,11 @@ class IRCluster(IRResource):
         if not targets:
             self.ir.logger.debug("accepting cluster with no endpoints: %s" % self.name)
 
+        # If we have health checking config then generate IR for it
+        if 'health_checks' in self:
+            self.health_checks = IRHealthChecks(ir,
+                                                aconf,
+                                                self.get('health_checks', None))
         return True
 
     def is_edge_stack_sidecar(self) -> bool:

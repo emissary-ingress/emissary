@@ -194,6 +194,13 @@ class V3Cluster(Cacheable):
 
             fields["upstream_connection_options"] = {"tcp_keepalive": keepalive_options}
 
+        # Dont feed the raw health_checks obejct to envoy, grab its config where the econf has already been built
+        if cluster.health_checks is not None:
+            health_checks_config = cluster.health_checks.config()
+            if health_checks_config:
+                if 'mappers' in health_checks_config and len(health_checks_config['mappers']) > 0:
+                    self['health_checks'] = health_checks_config['mappers']
+
         self.update(fields)
 
     def get_endpoints(self, cluster: IRCluster):
@@ -203,19 +210,42 @@ class V3Cluster(Cacheable):
 
         if len(targetlist) > 0:
             for target in targetlist:
-                address = {
-                    "address": target["ip"],
-                    "port_value": target["port"],
-                    "protocol": "TCP",  # Yes, really. Envoy uses the TLS context to determine whether to originate TLS.
+                endpoint = {
+                    'address': {
+                        'socket_address':{
+                            'address': target['ip'],
+                            'port_value': target['port'],
+                            'protocol': 'TCP'  # Yes, really. Envoy uses the TLS context to determine whether to originate TLS.
+                        }
+                    }
                 }
-                result.append({"endpoint": {"address": {"socket_address": address}}})
+                # Check if the endpoint has an alternate health checking port
+                health_check_port = cluster.get('health_check_port', None)
+                if health_check_port is not None:
+                    endpoint['health_check_config'] = {
+                        'port_value': health_check_port
+                    }
+                result.append({'endpoint': endpoint})
         else:
             for u in cluster.urls:
                 p = urllib.parse.urlparse(u)
-                address = {"address": p.hostname, "port_value": int(p.port)}
+                endpoint = {
+                    'address': {
+                        'socket_address':{
+                            'address': p.hostname,
+                            'port_value': int(p.port)
+                        }
+                    }
+                }
                 if p.scheme:
-                    address["protocol"] = p.scheme.upper()
-                result.append({"endpoint": {"address": {"socket_address": address}}})
+                    endpoint['address']['socket_address']['protocol'] = p.scheme.upper()
+                # Check if the endpoint has an alternate health checking port
+                health_check_port = cluster.get('health_check_port', None)
+                if health_check_port is not None:
+                    endpoint['health_check_config'] = {
+                        'port_value': health_check_port
+                    }
+                result.append({'endpoint': endpoint})
         return result
 
     def get_circuit_breakers(self, cluster: IRCluster):
