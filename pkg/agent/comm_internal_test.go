@@ -20,6 +20,7 @@ import (
 type MockClient struct {
 	Counter int64
 	grpc.ClientStream
+	SentMetrics   []*agent.StreamMetricsMessage
 	SentSnapshots []*agent.Snapshot
 	snapMux       sync.Mutex
 	reportFunc    func(context.Context, *agent.Snapshot) (*agent.SnapshotResponse, error)
@@ -64,8 +65,33 @@ func (m *MockClient) Report(ctx context.Context, in *agent.Snapshot, opts ...grp
 }
 
 func (m *MockClient) StreamMetrics(ctx context.Context, opts ...grpc.CallOption) (agent.Director_StreamMetricsClient, error) {
-	panic("implement me")
+	return &mockStreamMetricsClient{
+		ctx:    ctx,
+		opts:   opts,
+		parent: m,
+	}, nil
 }
+
+type mockStreamMetricsClient struct {
+	ctx    context.Context
+	opts   []grpc.CallOption
+	parent *MockClient
+}
+
+func (s *mockStreamMetricsClient) Send(msg *agent.StreamMetricsMessage) error {
+	s.parent.SentMetrics = append(s.parent.SentMetrics, msg)
+	return nil
+}
+func (s *mockStreamMetricsClient) CloseAndRecv() (*agent.StreamMetricsResponse, error) {
+	return nil, nil
+}
+
+func (s *mockStreamMetricsClient) Header() (metadata.MD, error) { return nil, nil }
+func (s *mockStreamMetricsClient) Trailer() metadata.MD         { return nil }
+func (s *mockStreamMetricsClient) CloseSend() error             { return nil }
+func (s *mockStreamMetricsClient) Context() context.Context     { return s.ctx }
+func (s *mockStreamMetricsClient) SendMsg(m interface{}) error  { return nil }
+func (s *mockStreamMetricsClient) RecvMsg(m interface{}) error  { return nil }
 
 type mockReportStreamClient struct {
 	ctx     context.Context

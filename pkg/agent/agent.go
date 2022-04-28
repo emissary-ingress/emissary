@@ -104,6 +104,15 @@ type Agent struct {
 
 	// Field selector for the k8s resources that the agent watches
 	agentWatchFieldSelector string
+
+	// A mutex related to the metrics endpoint action, to avoid concurrent (and useless) pushes.
+	metricsRelayMutex sync.Mutex
+	// Timestamp to keep in memory to Prevent from making too many requests to the Ambassador
+	// Cloud API.
+	metricsBackoffUntil time.Time
+
+	// Extra headers to inject into RPC requests to ambassador cloud.
+	rpcExtraHeaders []string
 }
 
 func getEnvWithDefault(envVarKey string, defaultValue string) string {
@@ -135,6 +144,17 @@ func NewAgent(directiveHandler DirectiveHandler, rolloutsGetterFactory rolloutsG
 		}
 	}
 
+	var rpcExtraHeaders = make([]string, 0)
+
+	if os.Getenv("RPC_INTERCEPT_HEADER_KEY") != "" &&
+		os.Getenv("RPC_INTERCEPT_HEADER_VALUE") != "" {
+		rpcExtraHeaders = append(
+			rpcExtraHeaders,
+			os.Getenv("RPC_INTERCEPT_HEADER_KEY"),
+			os.Getenv("RPC_INTERCEPT_HEADER_VALUE"),
+		)
+	}
+
 	return &Agent{
 		minReportPeriod:  reportPeriod,
 		reportComplete:   make(chan error),
@@ -149,6 +169,8 @@ func NewAgent(directiveHandler DirectiveHandler, rolloutsGetterFactory rolloutsG
 		directiveHandler:             directiveHandler,
 		reportRunning:                atomicBool{value: false},
 		agentWatchFieldSelector:      getEnvWithDefault("AGENT_WATCH_FIELD_SELECTOR", "metadata.namespace!=kube-system"),
+		metricsBackoffUntil:          time.Now(),
+		rpcExtraHeaders:              rpcExtraHeaders,
 	}
 }
 
@@ -469,7 +491,9 @@ func (a *Agent) MaybeReport(ctx context.Context) {
 		// The communications channel to the DCP was not yet created or was
 		// closed above, due to a change in identity, or close elsewhere, due to
 		// a change in endpoint configuration.
-		newComm, err := NewComm(ctx, a.connInfo, a.agentID, a.ambassadorAPIKey)
+		newComm, err := NewComm(
+			ctx, a.connInfo, a.agentID, a.ambassadorAPIKey, a.rpcExtraHeaders)
+
 		if err != nil {
 			dlog.Warnf(ctx, "Failed to dial the DCP: %v", err)
 			dlog.Warn(ctx, "DCP functionality disabled until next retry")
@@ -609,15 +633,33 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 
 var allowedMetricsSuffixes = []string{"upstream_rq_total", "upstream_rq_time", "upstream_rq_5xx"}
 
-func (a *Agent) MetricsRelayHandler(logCtx context.Context, in *envoyMetrics.StreamMetricsMessage) {
+// MetricsRelayHandler is invoked as a callback when the agent receive metrics from Envoy (sink).
+func (a *Agent) MetricsRelayHandler(
+	logCtx context.Context,
+	in *envoyMetrics.StreamMetricsMessage,
+) {
+	a.metricsRelayMutex.Lock()
+	defer a.metricsRelayMutex.Unlock()
+
 	metrics := in.GetEnvoyMetrics()
-	dlog.Debugf(logCtx, "received %d metrics", len(metrics))
+	metricCount := len(metrics)
+
+	if !time.Now().After(a.metricsBackoffUntil) {
+		dlog.Debugf(logCtx, "Drop %d metric(s); next push scheduled for %s",
+			metricCount, a.metricsBackoffUntil.String())
+		return
+	}
+
 	if a.comm != nil && !a.reportingStopped {
+
+		dlog.Infof(logCtx, "Received %d metric(s)", metricCount)
+
 		a.ambassadorAPIKeyMutex.Lock()
 		apikey := a.ambassadorAPIKey
 		a.ambassadorAPIKeyMutex.Unlock()
 
 		outMetrics := make([]*io_prometheus_client.MetricFamily, 0, len(metrics))
+
 		for _, metricFamily := range metrics {
 			for _, suffix := range allowedMetricsSuffixes {
 				if strings.HasSuffix(metricFamily.GetName(), suffix) {
@@ -631,9 +673,19 @@ func (a *Agent) MetricsRelayHandler(logCtx context.Context, in *envoyMetrics.Str
 			Identity:     a.agentID,
 			EnvoyMetrics: outMetrics,
 		}
-		dlog.Debugf(logCtx, "relaying %d metrics", len(outMessage.GetEnvoyMetrics()))
-		if err := a.comm.StreamMetrics(logCtx, outMessage, apikey); err != nil {
-			dlog.Errorf(logCtx, "Error streaming metrics: %+v", err)
+
+		if relayedMetricCount := len(outMessage.GetEnvoyMetrics()); relayedMetricCount > 0 {
+
+			dlog.Infof(logCtx, "Relaying %d metric(s)", relayedMetricCount)
+
+			if err := a.comm.StreamMetrics(logCtx, outMessage, apikey); err != nil {
+				dlog.Errorf(logCtx, "error streaming metric(s): %+v", err)
+			}
+
+			a.metricsBackoffUntil = time.Now().Add(defaultMinReportPeriod)
+
+			dlog.Infof(logCtx, "Next metrics relay scheduled for %s",
+				a.metricsBackoffUntil.UTC().String())
 		}
 	}
 }
