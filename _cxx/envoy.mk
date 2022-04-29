@@ -37,19 +37,6 @@ endif
 
 $(OSS_HOME)/_cxx/envoy: FORCE
 	@echo "Getting Envoy sources..."
-# Migrate from old layouts
-	@set -e; { \
-	    if ! test -d $@; then \
-	        for old in $(OSS_HOME)/envoy $(OSS_HOME)/envoy-src $(OSS_HOME)/cxx/envoy; do \
-	            if test -d $$old; then \
-	                set -x; \
-	                mv $$old $@; \
-	                { set +x; } >&/dev/null; \
-	                break; \
-	            fi; \
-	        done; \
-	    fi; \
-	}
 # Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect`
 # and friends work properly.
 	@PS4=; set -ex; { \
@@ -74,19 +61,6 @@ $(OSS_HOME)/_cxx/envoy: FORCE
 
 $(OSS_HOME)/_cxx/go-control-plane: FORCE
 	@echo "Getting Envoy go-control-plane sources..."
-# Migrate from old layouts
-	@set -e; { \
-	    if ! test -d $@; then \
-	        for old in $(OSS_HOME)/cxx/go-control-plane; do \
-	            if test -d $$old; then \
-	                set -x; \
-	                mv $$old $@; \
-	                { set +x; } >&/dev/null; \
-	                break; \
-	            fi; \
-	        done; \
-	    fi; \
-	}
 # Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect`
 # and friends work properly.
 	@PS4=; set -ex; { \
@@ -328,7 +302,6 @@ update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-
 clean: _clean-envoy
 clobber: _clobber-envoy
 
-_clean-envoy: _clean-envoy-old
 _clean-envoy: $(OSS_HOME)/_cxx/envoy-build-container.txt.clean
 	@PS4=; set -e; { \
 		if docker volume inspect envoy-build >/dev/null 2>&1; then \
@@ -342,22 +315,3 @@ _clobber-envoy: _clean-envoy
 	rm -f $(OSS_HOME)/docker/base-envoy/envoy-static-stripped
 	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(OSS_HOME)/_cxx/envoy)
 .PHONY: _clean-envoy _clobber-envoy
-
-# Files made by older versions.  Remove the tail of this list when the
-# commit making the change gets far enough in to the past.
-
-# 2019-10-11
-_clean-envoy-old: $(OSS_HOME)/envoy-build-container.txt.clean
-
-_clean-envoy-old:
-# 2020-02-20
-	rm -f $(OSS_HOME)/cxx/envoy-static
-	rm -f $(OSS_HOME)/bin_linux_amd64/envoy-static
-	rm -f $(OSS_HOME)/bin_linux_amd64/envoy-static-stripped
-# 2019-10-11
-	rm -rf $(OSS_HOME)/envoy-bin
-	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(OSS_HOME)/envoy-src)
-	rm -f $(OSS_HOME)/envoy-build-image.txt
-# older than that
-	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(OSS_HOME)/envoy)
-.PHONY: _clean-envoy-old
