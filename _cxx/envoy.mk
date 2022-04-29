@@ -68,8 +68,8 @@ check-envoy-version: $(OSS_HOME)/_cxx/envoy
 	# pull` to test that these exist without actually pulling
 	# them... except that gcr.io doesn't allow `manifest inspect`.
 	# So just go ahead and do the `pull` :(
-	@PS4=; set -ex; $(foreach ENVOY_DOCKER_REPO,$(ENVOY_DOCKER_REPOS), docker pull $(ENVOY_DOCKER_TAG) >/dev/null; )
-	@PS4=; set -ex; $(foreach ENVOY_DOCKER_REPO,$(ENVOY_DOCKER_REPOS), docker pull $(ENVOY_FULL_DOCKER_TAG) >/dev/null; )
+	$(foreach ENVOY_DOCKER_REPO,$(ENVOY_DOCKER_REPOS), docker pull $(ENVOY_DOCKER_TAG) >/dev/null$(NL))
+	$(foreach ENVOY_DOCKER_REPO,$(ENVOY_DOCKER_REPOS), docker pull $(ENVOY_FULL_DOCKER_TAG) >/dev/null$(NL))
 .PHONY: check-envoy-version
 
 # See the comment on ENVOY_GO_CONTROL_PLANE_COMMIT at the top of the file for more explanation on how this target works.
