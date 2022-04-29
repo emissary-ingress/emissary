@@ -6,9 +6,11 @@ generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HO
 generate/files += $(patsubst $(OSS_HOME)/api/getambassador.io/%.proto,  $(OSS_HOME)/python/ambassador/proto/%_pb2.py        , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_pb.js          , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
-generate/files += $(OSS_HOME)/pkg/api/envoy
-generate/files += $(OSS_HOME)/pkg/api/pb
-generate/files += $(OSS_HOME)/pkg/envoy-control-plane
+generate/files += $(OSS_HOME)/api/envoy               # recipe in _cxx/envoy.mk
+generate/files += $(OSS_HOME)/api/pb                  # recipe in _cxx/envoy.mk
+generate/files += $(OSS_HOME)/pkg/api/envoy           # recipe in _cxx/envoy.mk
+generate/files += $(OSS_HOME)/pkg/api/pb              # recipe in _cxx/envoy.mk
+generate/files += $(OSS_HOME)/pkg/envoy-control-plane # recipe in _cxx/envoy.mk
 generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 generate/files += $(OSS_HOME)/OPENSOURCE.md
 generate/files += $(OSS_HOME)/builder/requirements.txt
@@ -132,49 +134,6 @@ $(tools/py-mkopensource): FORCE
 
 #
 # `make generate` vendor rules
-
-# How to set ENVOY_GO_CONTROL_PLANE_COMMIT: In envoyproxy/go-control-plane.git, the majority of
-# commits have a commit message of the form "Mirrored from envoyproxy/envoy @ ${envoy.git_commit}".
-# Look for the most recent one that names a commit that is an ancestor of our ENVOY_COMMIT.  If there
-# are commits not of that form immediately following that commit, you can take them in too (but that's
-# pretty uncommon).  Since that's a simple sentence, can be tedious to go through and check which
-# commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an automated
-# way!  Still look at the commit yourself to make sure it seems sane; blindly trusting machines is
-# bad, mmkay?
-ENVOY_GO_CONTROL_PLANE_COMMIT = v0.9.6
-
-guess-envoy-go-control-plane-commit: $(OSS_HOME)/_cxx/envoy $(OSS_HOME)/_cxx/go-control-plane
-	@echo
-	@echo '######################################################################'
-	@echo
-	@set -e; { \
-	  (cd $(OSS_HOME)/_cxx/go-control-plane && git log --format='%H %s' origin/master) | sed -n 's, Mirrored from envoyproxy/envoy @ , ,p' | \
-	  while read -r go_commit cxx_commit; do \
-	    if (cd $(OSS_HOME)/_cxx/envoy && git merge-base --is-ancestor "$$cxx_commit" $(ENVOY_COMMIT) 2>/dev/null); then \
-	      echo "ENVOY_GO_CONTROL_PLANE_COMMIT = $$go_commit"; \
-	      break; \
-	    fi; \
-	  done; \
-	}
-.PHONY: guess-envoy-go-control-plane-commit
-
-$(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
-	rm -rf $@
-	@PS4=; set -ex; { \
-	  unset GIT_DIR GIT_WORK_TREE; \
-	  tmpdir=$$(mktemp -d); \
-	  trap 'rm -rf "$$tmpdir"' EXIT; \
-	  cd "$$tmpdir"; \
-	  cd $(OSS_HOME)/_cxx/go-control-plane; \
-	  cp -r $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg/* "$$tmpdir"; \
-	  find "$$tmpdir" -name '*.go' -exec sed -E -i.bak \
-	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/datawire/ambassador/pkg/envoy-control-plane,g' \
-	    -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/pkg/api/envoy,g' \
-	    -- {} +; \
-	  find "$$tmpdir" -name '*.bak' -delete; \
-	  mv "$$tmpdir" $(abspath $@); \
-	}
-	cd $(OSS_HOME) && gofmt -w -s ./pkg/envoy-control-plane/
 
 #
 # `make generate` protobuf rules
