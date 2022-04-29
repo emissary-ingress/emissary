@@ -63,7 +63,7 @@ tools/ocibuild        = $(tools.bindir)/ocibuild
 tools/protoc-gen-go   = $(tools.bindir)/protoc-gen-go
 tools/yq              = $(tools.bindir)/yq
 $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(tools.srcdir)/%/go.mod
-	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import "(.*)".*,\1,p' pin.go)
+	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import( | _ )"(.*)".*,\2,p' pin.go)
 # Let these use the main Emissary go.mod instead of having their own go.mod.
 tools.main-gomod += $(tools/protoc-gen-go)   # ensure runtime libraries are consistent
 tools.main-gomod += $(tools/controller-gen)  # ensure runtime libraries are consistent

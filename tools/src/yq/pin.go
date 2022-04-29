@@ -3,4 +3,4 @@
 
 package ignore
 
-import "github.com/mikefarah/yq/v4"
+import _ "github.com/mikefarah/yq/v4"
