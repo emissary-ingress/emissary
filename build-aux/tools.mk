@@ -125,8 +125,8 @@ $(tools.bindir)/k3d: $(tools.mk)
 # PROTOC_VERSION must be at least 3.8.0 in order to contain the fix so that it doesn't generate
 # invalid Python if you name an Enum member the same as a Python keyword.
 tools/protoc    = $(tools.bindir)/protoc
-PROTOC_VERSION  = 3.8.0
-PROTOC_ZIP     := protoc-$(PROTOC_VERSION)-$(patsubst darwin,osx,$(GOHOSTOS))-$(shell uname -m).zip
+PROTOC_VERSION  = 3.20.1
+PROTOC_ZIP     := protoc-$(PROTOC_VERSION)-$(patsubst darwin,osx,$(GOHOSTOS))-$(patsubst arm64,aarch_64,$(shell uname -m)).zip
 $(tools.dir)/downloads/$(PROTOC_ZIP):
 	mkdir -p $(@D)
 	curl --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/$(PROTOC_ZIP) -o $@
