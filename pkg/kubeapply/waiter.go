@@ -3,50 +3,64 @@ package kubeapply
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
-	corev1 "k8s.io/api/core/v1"
-
-	"github.com/datawire/ambassador/v2/pkg/k8s"
-	kates_internal "github.com/datawire/ambassador/v2/pkg/kates_internal"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/dlib/dlog"
 )
 
 // Waiter takes some YAML and waits for all of the resources described
 // in it to be ready.
 type Waiter struct {
-	watcher *k8s.Watcher
-	kinds   map[k8s.ResourceType]map[string]struct{}
+	client *kates.Client
+	kinds  map[kates.GroupVersionKind]map[string]struct{}
 }
 
 // NewWaiter constructs a Waiter object based on the supplied Watcher.
-func NewWaiter(watcher *k8s.Watcher) (w *Waiter, err error) {
-	if watcher == nil {
-		cli, err := k8s.NewClient(nil)
-		if err != nil {
-			return nil, err
-		}
-		watcher = cli.Watcher()
-	}
+func NewWaiter(client *kates.Client) (w *Waiter, err error) {
 	return &Waiter{
-		watcher: watcher,
-		kinds:   make(map[k8s.ResourceType]map[string]struct{}),
+		client: client,
+		kinds:  make(map[kates.GroupVersionKind]map[string]struct{}),
 	}, nil
 }
 
-func (w *Waiter) add(resource k8s.Resource) error {
-	resourceType, err := w.watcher.Client.ResolveResourceType(resource.QKind())
+func gvkStr(gvk kates.GroupVersionKind) string {
+	return gvk.Kind + "." + gvk.Version + "." + gvk.Group
+}
+
+func (w *Waiter) qKind(resource kates.Object) string {
+	return gvkStr(resource.GetObjectKind().GroupVersionKind())
+}
+
+func (w *Waiter) qName(resource kates.Object) (string, error) {
+	qName := resource.GetName()
+
+	namespaced, err := w.client.IsNamespaced(resource.GetObjectKind().GroupVersionKind())
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	resourceName := resource.Name()
-	if resourceType.Namespaced {
-		namespace := resource.Namespace()
+	if namespaced {
+		namespace := resource.GetNamespace()
 		if namespace == "" {
-			namespace = w.watcher.Client.Namespace
+			namespace, err = w.client.CurrentNamespace()
+			if err != nil {
+				return "", err
+			}
 		}
-		resourceName += "." + namespace
+		qName += "." + namespace
+	}
+
+	return qName, nil
+}
+
+func (w *Waiter) add(resource kates.Object) error {
+	resourceType := resource.GetObjectKind().GroupVersionKind()
+
+	resourceName, err := w.qName(resource)
+	if err != nil {
+		return err
 	}
 
 	if _, ok := w.kinds[resourceType]; !ok {
@@ -65,13 +79,17 @@ func (w *Waiter) Scan(ctx context.Context, path string) error {
 	}
 	for _, res := range resources {
 		if err = w.add(res); err != nil {
-			return fmt.Errorf("%s/%s: %w", res.QKind(), res.QName(), err)
+			qName, err := w.qName(res)
+			if err != nil {
+				qName = res.GetName() + "." + res.GetNamespace()
+			}
+			return fmt.Errorf("%s/%s: %w", w.qKind(res), qName, err)
 		}
 	}
 	return nil
 }
 
-func (w *Waiter) remove(kind k8s.ResourceType, name string) {
+func (w *Waiter) remove(kind kates.GroupVersionKind, name string) {
 	delete(w.kinds[kind], name)
 }
 
@@ -90,89 +108,106 @@ func (w *Waiter) isEmpty() bool {
 // deadline, then it returns true.  If they don't become ready by
 // then, then it bails early and returns false.
 func (w *Waiter) Wait(ctx context.Context, deadline time.Time) (bool, error) {
-	start := time.Now()
-	printed := make(map[string]bool)
-	err := w.watcher.WatchQuery(k8s.Query{Kind: "Events.v1.", Namespace: k8s.NamespaceAll}, func(watcher *k8s.Watcher) error {
-		list, err := watcher.List("Events.v1.")
-		if err != nil {
-			return err
-		}
-		for _, untypedEvent := range list {
-			var event corev1.Event
-			if err := kates_internal.Convert(untypedEvent, &event); err != nil {
-				dlog.Errorln(ctx, err)
-				continue
-			}
-			if event.LastTimestamp.Time.Before(start) && !event.LastTimestamp.IsZero() {
-				continue
-			}
-			eventQName := fmt.Sprintf("%s.%s", event.Name, event.Namespace)
-			if !printed[eventQName] {
-				involvedQKind := k8s.QKind(event.InvolvedObject.APIVersion, event.InvolvedObject.Kind)
-				involvedQName := fmt.Sprintf("%s.%s", event.InvolvedObject.Name, event.InvolvedObject.Namespace)
+	ctx, cancelEverything := context.WithCancel(ctx)
+	defer cancelEverything()
 
-				dlog.Printf(ctx, "event: %s/%s: %s\n", involvedQKind, involvedQName, event.Message)
-				printed[eventQName] = true
-			}
-		}
-		return nil
-	})
+	deadlineTimer := time.NewTimer(time.Until(deadline))
+	defer deadlineTimer.Stop()
+
+	queries := []kates.Query{
+		{Kind: "Events.v1.", Namespace: kates.NamespaceAll},
+	}
+	for gvk := range w.kinds {
+		queries = append(queries, kates.Query{
+			Kind:      gvk.Kind + "." + gvk.Version + "." + gvk.Group,
+			Namespace: kates.NamespaceAll,
+		})
+	}
+
+	acc, err := w.client.Watch(ctx, queries...)
 	if err != nil {
 		return false, err
 	}
 
-	listener := func(watcher *k8s.Watcher) error {
+	defer func() {
 		for kind, names := range w.kinds {
 			for name := range names {
-				r, err := watcher.Get(kind.String(), name)
-				if err != nil {
-					return err
+				dlog.Errorf(ctx, "not ready: %s/%s", gvkStr(kind), name)
+			}
+		}
+	}()
+
+	start := time.Now()
+	printed := make(map[string]bool)
+	for {
+		if w.isEmpty() {
+			return true, nil
+		}
+		select {
+		case <-ctx.Done():
+			return false, ctx.Err()
+		case <-deadlineTimer.C:
+			return false, errorDeadlineExceeded
+		case <-acc.Changed():
+			var events []*kates.Event
+			if err := w.client.List(ctx, queries[0], &events); err != nil {
+				return false, err
+			}
+			for _, event := range events {
+				if event.LastTimestamp.Time.Before(start) && !event.LastTimestamp.IsZero() {
+					continue
 				}
-				if Ready(r) {
-					if ReadyImplemented(r) {
-						dlog.Printf(ctx, "ready: %s/%s\n", r.QKind(), r.QName())
-					} else {
-						dlog.Printf(ctx, "ready: %s/%s (UNIMPLEMENTED)\n",
-							r.QKind(), r.QName())
+				eventQName, err := w.qName(event)
+				if err != nil {
+					return false, err
+				}
+				if !printed[eventQName] {
+					involvedGVK := kates.GroupVersionKindFromAPIVersionAndKind(event.InvolvedObject.APIVersion, event.InvolvedObject.Kind)
+					involvedIsNamespaced, err := w.client.IsNamespaced(involvedGVK)
+					involvedQName := event.InvolvedObject.Name
+					if involvedIsNamespaced || err != nil {
+						involvedQName += "." + event.InvolvedObject.Namespace
 					}
-					w.remove(kind, name)
+					dlog.Printf(ctx, "event: %s/%s: %s", gvkStr(involvedGVK), involvedQName, event.Message)
+					printed[eventQName] = true
+				}
+			}
+
+			for gvk, names := range w.kinds {
+				for name := range names {
+					r := new(kates.Unstructured)
+					r.GetObjectKind().SetGroupVersionKind(gvk)
+					namespaced, err := w.client.IsNamespaced(gvk)
+					if err != nil {
+						return false, err
+					}
+					if namespaced {
+						dot := strings.LastIndexByte(name, '.')
+						r.SetName(name[:dot])
+						r.SetNamespace(name[dot+1:])
+					} else {
+						r.SetName(name)
+					}
+					if err := w.client.Get(ctx, r, &r); err != nil {
+						return false, err
+					}
+					if Ready(r) {
+						qKind := w.qKind(r)
+						qName, err := w.qName(r)
+						if err != nil {
+							return false, err
+						}
+						if ReadyImplemented(r) {
+							dlog.Printf(ctx, "ready: %s/%s\n",
+								qKind, qName)
+						} else {
+							dlog.Printf(ctx, "ready: %s/%s (UNIMPLEMENTED)\n",
+								qKind, qName)
+						}
+						w.remove(gvk, name)
+					}
 				}
 			}
 		}
-
-		if w.isEmpty() {
-			watcher.Stop()
-		}
-		return nil
 	}
-
-	for k := range w.kinds {
-		if err := w.watcher.WatchQuery(k8s.Query{Kind: k.String(), Namespace: k8s.NamespaceAll}, listener); err != nil {
-			return false, err
-		}
-	}
-
-	if err := w.watcher.Start(ctx); err != nil {
-		return false, err
-	}
-
-	go func() {
-		time.Sleep(time.Until(deadline))
-		w.watcher.Stop()
-	}()
-
-	if err := w.watcher.Wait(ctx); err != nil {
-		return false, err
-	}
-
-	result := true
-
-	for kind, names := range w.kinds {
-		for name := range names {
-			fmt.Printf("not ready: %s/%s\n", kind, name)
-			result = false
-		}
-	}
-
-	return result, nil
 }
