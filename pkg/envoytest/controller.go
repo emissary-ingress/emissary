@@ -12,15 +12,18 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 
-	// envoy api v2
-	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	apiv2_core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	apiv2_discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
+	// envoy api v3
+	v3core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
+	v3cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/service/cluster/v3"
+	v3discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
+	v3endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/service/endpoint/v3"
+	v3listener "github.com/datawire/ambassador/v2/pkg/api/envoy/service/listener/v3"
+	v3route "github.com/datawire/ambassador/v2/pkg/api/envoy/service/route/v3"
 
 	// envoy control plane
 	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
-	ecp_v2_server "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v2"
+	ecp_v3_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
+	ecp_v3_server "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v3"
 
 	// first-party-libraries
 	"github.com/datawire/dlib/dhttp"
@@ -33,7 +36,7 @@ import (
 type EnvoyController struct {
 	address string
 
-	configCache ecp_v2_cache.SnapshotCache
+	configCache ecp_v3_cache.SnapshotCache
 
 	// Protects the errors and outstanding fields.
 	cond        *sync.Cond
@@ -69,13 +72,13 @@ func NewEnvoyController(address string) *EnvoyController {
 		errors:      map[string]*errorInfo{},
 		outstanding: map[string]ackInfo{},
 	}
-	result.configCache = ecp_v2_cache.NewSnapshotCache(true, result, result)
+	result.configCache = ecp_v3_cache.NewSnapshotCache(true, result, result)
 	return result
 }
 
 // Configure will update the envoy configuration and block until the reconfiguration either succeeds
 // or signals an error.
-func (e *EnvoyController) Configure(node, version string, snapshot ecp_v2_cache.Snapshot) (*status.Status, error) {
+func (e *EnvoyController) Configure(node, version string, snapshot ecp_v3_cache.Snapshot) (*status.Status, error) {
 	err := e.configCache.SetSnapshot(node, snapshot)
 	if err != nil {
 		return nil, err
@@ -86,16 +89,16 @@ func (e *EnvoyController) Configure(node, version string, snapshot ecp_v2_cache.
 	// acked/nacked.
 	typeUrls := []string{}
 	if len(snapshot.Resources[ecp_cache_types.Endpoint].Items) > 0 {
-		typeUrls = append(typeUrls, "type.googleapis.com/envoy.api.v2.ClusterLoadAssignment")
+		typeUrls = append(typeUrls, "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment")
 	}
 	if len(snapshot.Resources[ecp_cache_types.Cluster].Items) > 0 {
-		typeUrls = append(typeUrls, "type.googleapis.com/envoy.api.v2.Cluster")
+		typeUrls = append(typeUrls, "type.googleapis.com/envoy.config.cluster.v3.Cluster")
 	}
 	if len(snapshot.Resources[ecp_cache_types.Route].Items) > 0 {
-		typeUrls = append(typeUrls, "type.googleapis.com/envoy.api.v2.RouteConfiguration")
+		typeUrls = append(typeUrls, "type.googleapis.com/envoy.config.route.v3.RouteConfiguration")
 	}
 	if len(snapshot.Resources[ecp_cache_types.Listener].Items) > 0 {
-		typeUrls = append(typeUrls, "type.googleapis.com/envoy.api.v2.Listener")
+		typeUrls = append(typeUrls, "type.googleapis.com/envoy.config.listener.v3.Listener")
 	}
 
 	for _, t := range typeUrls {
@@ -130,20 +133,20 @@ func (e *EnvoyController) waitFor(version string, typeUrl string) *status.Status
 }
 
 // Run the ADS server.
-func (e *EnvoyController) Run(ctx context.Context) error {
+func (ec *EnvoyController) Run(ctx context.Context) error {
 	// The callbacks don't have access to a context, so we'll capture this one for them to use.
-	e.logCtx = ctx
+	ec.logCtx = ctx
 
 	grpcServer := grpc.NewServer()
-	srv := ecp_v2_server.NewServer(ctx, e.configCache, e)
+	srv := ecp_v3_server.NewServer(ctx, ec.configCache, ec)
 
-	apiv2_discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, srv)
-	apiv2.RegisterEndpointDiscoveryServiceServer(grpcServer, srv)
-	apiv2.RegisterClusterDiscoveryServiceServer(grpcServer, srv)
-	apiv2.RegisterRouteDiscoveryServiceServer(grpcServer, srv)
-	apiv2.RegisterListenerDiscoveryServiceServer(grpcServer, srv)
+	v3discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, srv)
+	v3endpoint.RegisterEndpointDiscoveryServiceServer(grpcServer, srv)
+	v3cluster.RegisterClusterDiscoveryServiceServer(grpcServer, srv)
+	v3route.RegisterRouteDiscoveryServiceServer(grpcServer, srv)
+	v3listener.RegisterListenerDiscoveryServiceServer(grpcServer, srv)
 
-	lis, err := net.Listen("tcp", e.address)
+	lis, err := net.Listen("tcp", ec.address)
 	if err != nil {
 		return err
 	}
@@ -180,7 +183,7 @@ func SetupEnvoyController(t *testing.T, address string) *EnvoyController {
 }
 
 // ID is a callback function that the go control plane uses. I don't know what it does.
-func (e EnvoyController) ID(node *apiv2_core.Node) string {
+func (e EnvoyController) ID(node *v3core.Node) string {
 	if node == nil {
 		return "unknown"
 	}
@@ -189,18 +192,18 @@ func (e EnvoyController) ID(node *apiv2_core.Node) string {
 
 // OnStreamOpen is called once an xDS stream is open with a stream ID and the type URL (or "" for ADS).
 func (e *EnvoyController) OnStreamOpen(_ context.Context, sid int64, stype string) error {
-	//e.Infof("Stream open[%v]: %v", sid, stype)
+	e.Infof("Stream open[%v]: %v", sid, stype)
 	return nil
 }
 
 // OnStreamClosed is called immediately prior to closing an xDS stream with a stream ID.
 func (e *EnvoyController) OnStreamClosed(sid int64) {
-	//e.Infof("Stream closed[%v]", sid)
+	e.Infof("Stream closed[%v]", sid)
 }
 
 // OnStreamRequest is called once a request is received on a stream.
-func (e *EnvoyController) OnStreamRequest(sid int64, req *apiv2.DiscoveryRequest) error {
-	//e.Infof("Stream request[%v]: %v", sid, req.TypeUrl)
+func (e *EnvoyController) OnStreamRequest(sid int64, req *v3discovery.DiscoveryRequest) error {
+	e.Infof("Stream request[%v]: %v", sid, req.TypeUrl)
 
 	func() {
 		e.cond.L.Lock()
@@ -222,8 +225,8 @@ func (e *EnvoyController) OnStreamRequest(sid int64, req *apiv2.DiscoveryRequest
 }
 
 // OnStreamResponse is called immediately prior to sending a response on a stream.
-func (e *EnvoyController) OnStreamResponse(sid int64, req *apiv2.DiscoveryRequest, res *apiv2.DiscoveryResponse) {
-	//e.Infof("Stream response[%v]: %v -> %v", sid, req.TypeUrl, res.Nonce)
+func (e *EnvoyController) OnStreamResponse(sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
+	e.Infof("Stream response[%v]: %v -> %v", sid, req.TypeUrl, res.Nonce)
 	func() {
 		e.cond.L.Lock()
 		defer e.cond.L.Unlock()
@@ -232,14 +235,32 @@ func (e *EnvoyController) OnStreamResponse(sid int64, req *apiv2.DiscoveryReques
 }
 
 // OnFetchRequest is called for each Fetch request
-func (e *EnvoyController) OnFetchRequest(_ context.Context, r *apiv2.DiscoveryRequest) error {
-	//e.Infof("Fetch request: %v", r)
+func (e *EnvoyController) OnFetchRequest(_ context.Context, r *v3discovery.DiscoveryRequest) error {
+	e.Infof("Fetch request: %v", r)
 	return nil
 }
 
 // OnFetchResponse is called immediately prior to sending a response.
-func (e *EnvoyController) OnFetchResponse(req *apiv2.DiscoveryRequest, res *apiv2.DiscoveryResponse) {
-	//e.Infof("Fetch response: %v -> %v", req, res)
+func (e *EnvoyController) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
+	e.Infof("Fetch response: %v -> %v", req, res)
+}
+
+// OnDeltaStreamOpen implements ecp_v3_server.Callbacks.
+func (e *EnvoyController) OnDeltaStreamOpen(ctx context.Context, sid int64, stype string) error {
+	return nil
+}
+
+// OnDeltaStreamClosed implements ecp_v3_server.Callbacks.
+func (e *EnvoyController) OnDeltaStreamClosed(sid int64) {
+}
+
+// OnStreamDeltaRequest implements ecp_v3_server.Callbacks.
+func (e *EnvoyController) OnStreamDeltaRequest(sid int64, req *v3discovery.DeltaDiscoveryRequest) error {
+	return nil
+}
+
+// OnStreamDelatResponse implements ecp_v3_server.Callbacks.
+func (e *EnvoyController) OnStreamDeltaResponse(sid int64, req *v3discovery.DeltaDiscoveryRequest, res *v3discovery.DeltaDiscoveryResponse) {
 }
 
 // The go control plane requires a logger to be injected. These methods implement the logger

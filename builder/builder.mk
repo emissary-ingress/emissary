@@ -375,6 +375,7 @@ $(OSS_HOME)/venv: python/requirements.txt python/requirements-dev.txt
 	$@/bin/pip3 install -e $(OSS_HOME)/python
 
 GOTEST_ARGS ?= -race -count=1 -timeout 30m
+GOTEST_ARGS += -parallel=150
 GOTEST_PKGS ?= ./...
 gotest: $(OSS_HOME)/venv $(tools/kubectl)
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"

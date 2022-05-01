@@ -13,7 +13,7 @@ import (
 	"github.com/datawire/ambassador/v2/cmd/ambex"
 	"github.com/datawire/ambassador/v2/pkg/acp"
 	"github.com/datawire/ambassador/v2/pkg/debug"
-	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
+	ecp_v3_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
 	"github.com/datawire/ambassador/v2/pkg/gateway"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
@@ -376,7 +376,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 	endpointsChanged := false
 	dispatcherChanged := false
 	var endpoints *ambex.Endpoints
-	var dispSnapshot *ecp_v2_cache.Snapshot
+	var dispSnapshot *ecp_v3_cache.Snapshot
 	changed, err := func() (bool, error) {
 		sh.mutex.Lock()
 		defer sh.mutex.Unlock()
@@ -523,7 +523,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 
 func (sh *SnapshotHolder) ConsulUpdate(ctx context.Context, consulWatcher *consulWatcher, fastpathProcessor FastpathProcessor) bool {
 	var endpoints *ambex.Endpoints
-	var dispSnapshot *ecp_v2_cache.Snapshot
+	var dispSnapshot *ecp_v3_cache.Snapshot
 	func() {
 		sh.mutex.Lock()
 		defer sh.mutex.Unlock()

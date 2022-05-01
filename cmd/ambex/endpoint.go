@@ -5,12 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	v2core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	v2endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/endpoint"
 	v3core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
 	v3endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/config/endpoint/v3"
-	v3endpointconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/endpoint/v3"
 )
 
 // The Endpoints struct is how Endpoint data gets communicated to ambex. This is a bit simpler than
@@ -35,34 +31,17 @@ func (e *Endpoints) RoutesString() string {
 	return strings.Join(routes, "\n")
 }
 
-// ToMap_v2 produces a map with the envoy v2 friendly forms of all the endpoint data.
-func (e *Endpoints) ToMap_v2() map[string]*v2.ClusterLoadAssignment {
-	result := map[string]*v2.ClusterLoadAssignment{}
-	for name, eps := range e.Entries {
-		var endpoints []*v2endpoint.LbEndpoint
-		for _, ep := range eps {
-			endpoints = append(endpoints, ep.ToLbEndpoint_v2())
-		}
-		loadAssignment := &v2.ClusterLoadAssignment{
-			ClusterName: name,
-			Endpoints:   []*v2endpoint.LocalityLbEndpoints{{LbEndpoints: endpoints}},
-		}
-		result[name] = loadAssignment
-	}
-	return result
-}
-
 // ToMap_v3 produces a map with the envoy v3 friendly forms of all the endpoint data.
-func (e *Endpoints) ToMap_v3() map[string]*v3endpointconfig.ClusterLoadAssignment {
-	result := map[string]*v3endpointconfig.ClusterLoadAssignment{}
+func (e *Endpoints) ToMap_v3() map[string]*v3endpoint.ClusterLoadAssignment {
+	result := map[string]*v3endpoint.ClusterLoadAssignment{}
 	for name, eps := range e.Entries {
 		var endpoints []*v3endpoint.LbEndpoint
 		for _, ep := range eps {
 			endpoints = append(endpoints, ep.ToLbEndpoint_v3())
 		}
-		loadAssignment := &v3endpointconfig.ClusterLoadAssignment{
+		loadAssignment := &v3endpoint.ClusterLoadAssignment{
 			ClusterName: name,
-			Endpoints:   []*v3endpointconfig.LocalityLbEndpoints{{LbEndpoints: endpoints}},
+			Endpoints:   []*v3endpoint.LocalityLbEndpoints{{LbEndpoints: endpoints}},
 		}
 		result[name] = loadAssignment
 	}
@@ -75,28 +54,6 @@ type Endpoint struct {
 	Ip          string
 	Port        uint32
 	Protocol    string
-}
-
-// ToLBEndpoint_v2 translates to envoy v2 frinedly form of the Endpoint data.
-func (e *Endpoint) ToLbEndpoint_v2() *v2endpoint.LbEndpoint {
-	return &v2endpoint.LbEndpoint{
-		HostIdentifier: &v2endpoint.LbEndpoint_Endpoint{
-			Endpoint: &v2endpoint.Endpoint{
-				Address: &v2core.Address{
-					Address: &v2core.Address_SocketAddress{
-						SocketAddress: &v2core.SocketAddress{
-							Protocol: v2core.SocketAddress_Protocol(v2core.SocketAddress_Protocol_value[e.Protocol]),
-							Address:  e.Ip,
-							PortSpecifier: &v2core.SocketAddress_PortValue{
-								PortValue: e.Port,
-							},
-							Ipv4Compat: true,
-						},
-					},
-				},
-			},
-		},
-	}
 }
 
 // ToLBEndpoint_v3 translates to envoy v3 frinedly form of the Endpoint data.
