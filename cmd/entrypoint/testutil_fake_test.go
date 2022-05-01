@@ -463,7 +463,7 @@ type fakeK8sWatcher struct {
 	queries  []kates.Query
 }
 
-func (f *fakeK8sWatcher) Changed() chan struct{} {
+func (f *fakeK8sWatcher) Changed() <-chan struct{} {
 	return f.notifyCh
 }
 
