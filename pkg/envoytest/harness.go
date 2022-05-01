@@ -68,7 +68,9 @@ func SetupEnvoy(t *testing.T, adsAddress string, portmaps ...string) {
 		for _, pm := range portmaps {
 			args = append(args, "-p", pm)
 		}
-		args = append(args, "--rm", "--entrypoint", "envoy", "docker.io/datawire/aes:1.6.2", "--config-yaml", yaml)
+		// TODO: this should be marked as an end-to-end test after we have built an image
+		// args = append(args, "--rm", "--entrypoint", "envoy", "docker.io/datawire/aes:2.2.2", "--config-yaml", yaml)
+		args = append(args, "--rm", "--entrypoint", "envoy", "docker.io/parsec86/emissary:2.X-lance-1.21", "--config-yaml", yaml)
 		cmd = dexec.CommandContext(ctx, args[0], args[1:]...)
 	}
 
@@ -153,11 +155,7 @@ const bootstrap = `
       {
         "name": "static_layer",
         "static_layer": {
-          "envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match": true,
-          "envoy.deprecated_features:envoy.api.v2.route.RouteMatch.regex": true,
-          "envoy.deprecated_features:envoy.config.filter.http.ext_authz.v2.ExtAuthz.use_alpha": true,
-          "envoy.deprecated_features:envoy.config.trace.v2.ZipkinConfig.HTTP_JSON_V1": true,
-          "envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher": false
+					"re2.max_program_size.error_level": 200
         }
       }
     ]
@@ -165,6 +163,7 @@ const bootstrap = `
   "dynamic_resources": {
     "ads_config": {
       "api_type": "GRPC",
+			"transport_api_version": "V3",
       "grpc_services": [
         {
           "envoy_grpc": {

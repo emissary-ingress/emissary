@@ -26,16 +26,11 @@ import (
 	"os"
 	"time"
 
-	cachev2 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v2"
-	cachev3 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
-	serverv2 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v2"
-	serverv3 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test"
-	testv2 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/v2"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/resource/v3"
 	testv3 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/v3"
-
-	resourcev2 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/resource/v2"
-	resourcev3 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/resource/v3"
 )
 
 var (
@@ -96,7 +91,7 @@ func init() {
 
 	// Tell Envoy to request configurations from the control plane using
 	// this protocol
-	flag.StringVar(&mode, "xds", resourcev2.Ads, "Management protocol to test (ADS, xDS, REST)")
+	flag.StringVar(&mode, "xds", resource.Ads, "Management protocol to test (ADS, xDS, REST)")
 
 	// Tell Envoy to use this Node ID
 	flag.StringVar(&nodeID, "nodeID", "test-id", "Node ID")
@@ -147,47 +142,32 @@ func main() {
 
 	// create a cache
 	signal := make(chan struct{})
-	cbv2 := &testv2.Callbacks{Signal: signal, Debug: debug}
-	cbv3 := &testv3.Callbacks{Signal: signal, Debug: debug}
-
-	configv2 := cachev2.NewSnapshotCache(mode == resourcev2.Ads, cachev2.IDHash{}, logger{})
-	configv3 := cachev3.NewSnapshotCache(mode == resourcev2.Ads, cachev3.IDHash{}, logger{})
-	srv2 := serverv2.NewServer(context.Background(), configv2, cbv2)
+	cb := &testv3.Callbacks{Signal: signal, Debug: debug}
 
 	// mux integration
-	var configCachev3 cachev3.Cache = configv3
+	config := cache.NewSnapshotCache(mode == resource.Ads, cache.IDHash{}, logger{})
+	var configCache cache.Cache = config
 	typeURL := "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment"
-	eds := cachev3.NewLinearCache(typeURL)
+	eds := cache.NewLinearCache(typeURL)
 	if mux {
-		configCachev3 = &cachev3.MuxCache{
-			Classify: func(req cachev3.Request) string {
+		configCache = &cache.MuxCache{
+			Classify: func(req cache.Request) string {
 				if req.TypeUrl == typeURL {
 					return "eds"
 				}
 				return "default"
 			},
-			Caches: map[string]cachev3.Cache{
-				"default": configv3,
+			Caches: map[string]cache.Cache{
+				"default": config,
 				"eds":     eds,
 			},
 		}
 	}
-	srv3 := serverv3.NewServer(context.Background(), configCachev3, cbv3)
-	alsv2 := &testv2.AccessLogService{}
-	alsv3 := &testv3.AccessLogService{}
+	srv := server.NewServer(context.Background(), configCache, cb)
+	als := &testv3.AccessLogService{}
 
 	// create a test snapshot
-	snapshotsv2 := resourcev2.TestSnapshot{
-		Xds:              mode,
-		UpstreamPort:     uint32(upstreamPort),
-		BasePort:         uint32(basePort),
-		NumClusters:      clusters,
-		NumHTTPListeners: httpListeners,
-		NumTCPListeners:  tcpListeners,
-		TLS:              tls,
-		NumRuntimes:      runtimes,
-	}
-	snapshotsv3 := resourcev3.TestSnapshot{
+	snapshots := resource.TestSnapshot{
 		Xds:              mode,
 		UpstreamPort:     uint32(upstreamPort),
 		BasePort:         uint32(basePort),
@@ -199,9 +179,9 @@ func main() {
 	}
 
 	// start the xDS server
-	go test.RunAccessLogServer(ctx, alsv2, alsv3, alsPort)
-	go test.RunManagementServer(ctx, srv2, srv3, port)
-	go test.RunManagementGateway(ctx, srv2, srv3, gatewayPort, logger{})
+	go test.RunAccessLogServer(ctx, als, alsPort)
+	go test.RunManagementServer(ctx, srv, port)
+	go test.RunManagementGateway(ctx, srv, gatewayPort, logger{})
 
 	log.Println("waiting for the first request...")
 	select {
@@ -211,34 +191,28 @@ func main() {
 		log.Println("timeout waiting for the first request")
 		os.Exit(1)
 	}
-	log.Printf("initial snapshot %+v\n", snapshotsv2)
+	log.Printf("initial snapshot %+v\n", snapshots)
 	log.Printf("executing sequence updates=%d request=%d\n", updates, requests)
 
 	for i := 0; i < updates; i++ {
-		snapshotsv2.Version = fmt.Sprintf("v%d", i)
-		log.Printf("update snapshot %v\n", snapshotsv2.Version)
-		snapshotsv3.Version = fmt.Sprintf("v%d", i)
-		log.Printf("update snapshot %v\n", snapshotsv3.Version)
+		snapshots.Version = fmt.Sprintf("v%d", i)
+		log.Printf("update snapshot %v\n", snapshots.Version)
 
-		snapshotv2 := snapshotsv2.Generate()
-		snapshotv3 := snapshotsv3.Generate()
-		if err := snapshotv2.Consistent(); err != nil {
-			log.Printf("snapshot inconsistency: %+v\n", snapshotv2)
-		}
-		if err := snapshotv3.Consistent(); err != nil {
-			log.Printf("snapshot inconsistency: %+v\n", snapshotv3)
+		snapshot := snapshots.Generate()
+		if err := snapshot.Consistent(); err != nil {
+			log.Printf("snapshot inconsistency: %+v\n", snapshot)
 		}
 
-		err := configv2.SetSnapshot(nodeID, snapshotv2)
+		err := config.SetSnapshot(nodeID, snapshot)
 		if err != nil {
-			log.Printf("snapshot error %q for %+v\n", err, snapshotv2)
+			log.Printf("snapshot error %q for %+v\n", err, snapshot)
 			os.Exit(1)
 		}
 
-		err = configv3.SetSnapshot(nodeID, snapshotv3)
-		if err != nil {
-			log.Printf("snapshot error %q for %+v\n", err, snapshotv3)
-			os.Exit(1)
+		if mux {
+			for name, res := range snapshot.GetResources(typeURL) {
+				eds.UpdateResource(name, res)
+			}
 		}
 		if mux {
 			for name, res := range snapshotv3.GetResources(typeURL) {
@@ -261,19 +235,12 @@ func main() {
 			}
 		}
 
-		alsv2.Dump(func(s string) {
+		als.Dump(func(s string) {
 			if debug {
 				log.Println(s)
 			}
 		})
-		cbv2.Report()
-
-		alsv3.Dump(func(s string) {
-			if debug {
-				log.Println(s)
-			}
-		})
-		cbv3.Report()
+		cb.Report()
 
 		if !pass {
 			log.Printf("failed all requests in a run %d\n", i)

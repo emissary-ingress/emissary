@@ -6,6 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+
 	envoy_config_core_v3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
 	envoy_service_discovery_v3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
@@ -14,9 +18,6 @@ import (
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
 )
 
 type logger struct {

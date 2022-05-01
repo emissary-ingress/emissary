@@ -1,5 +1,26 @@
 # Changelog
 
+## Release v0.9.9
+
+### Added
+
+- Add snapshot support for ECDS (#379)
+- Add cache support for xDS TTLs (#359)
+- Add cache interfaces for incremental xDS (#408)
+- Incremental simple cache implementation (#411)
+
+### Changed
+
+- Envoy APIs are at b6039234e526eeccdf332a7eb041729aaa1bc286
+- Update dependencies to use `cncf/xds` instead of `cncf/udpa` (#404)
+- Log ignoring a watch at warn level (#352)
+- Removed support for V2 Envoy APIs in the server (#415)
+
+### Fixed
+
+- Go 1.16 compatibility fixes (#409)
+- Fix a potential goroutine leak in stream handler (#430)
+
 ## Release v0.9.8
 
 ### Added

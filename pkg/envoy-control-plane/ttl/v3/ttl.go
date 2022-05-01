@@ -1,11 +1,12 @@
 package ttl
 
 import (
-	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
-	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
+
+	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
 )
 
 var deltaResourceTypeURL = "type.googleapis.com/" + proto.MessageName(&discovery.Resource{})

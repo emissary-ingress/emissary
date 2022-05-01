@@ -217,7 +217,10 @@ func checkReady(t *testing.T, url string) {
 			t.Logf("error %v, retrying...", err)
 			time.Sleep(delay)
 			delay = delay * 2
+			// continue loop to retry request
+			continue
 		}
+		// bail-out when successful
 		return
 	}
 }
