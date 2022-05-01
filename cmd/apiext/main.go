@@ -12,7 +12,7 @@ import (
 	v2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/busy"
-	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/logutil"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
@@ -62,8 +62,8 @@ func Run(ctx context.Context, namespace, svcname string, httpPort, httpsPort int
 	}
 	dlog.Infof(ctx, "APIEXT_LOGLEVEL=%v", busy.GetLogLevel())
 
-	kubeinfo := k8s.NewKubeInfo("", "", "")
-	restConfig, err := kubeinfo.GetRestConfig()
+	kubeConfig := kates.NewConfigFlags(false)
+	restConfig, err := kubeConfig.ToRESTConfig()
 	if err != nil {
 		return err
 	}
