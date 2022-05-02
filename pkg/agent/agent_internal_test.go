@@ -415,7 +415,7 @@ type mockAccumulator struct {
 	targetInterface interface{}
 }
 
-func (m *mockAccumulator) Changed() chan struct{} {
+func (m *mockAccumulator) Changed() <-chan struct{} {
 	return m.changedChan
 }
 

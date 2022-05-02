@@ -114,7 +114,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "[dsum: %s] could not run command: %v\n", shortname, err)
 		os.Exit(1)
 	}
-	go func() {
+	go func() { // Don't bother with dgroup because waiting on channels is sufficient.
 		waitCh <- cmd.Wait()
 		close(waitCh)
 		pipeW.Close()
@@ -124,7 +124,7 @@ func main() {
 	var ioCh chan error
 	startIO := func() {
 		ioCh = make(chan error)
-		go func() {
+		go func() { // Don't bother with dgroup because waiting on channels is sufficient.
 			_, err := io.Copy(os.Stderr, pipeR)
 			ioCh <- err
 			close(ioCh)

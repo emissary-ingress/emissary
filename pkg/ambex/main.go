@@ -122,27 +122,27 @@ import (
 	v3runtime "github.com/datawire/ambassador/v2/pkg/api/envoy/service/runtime/v3"
 
 	// first-party libraries
-	"github.com/datawire/ambassador/v2/pkg/busy"
-	"github.com/datawire/ambassador/v2/pkg/memory"
+	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dhttp"
 	"github.com/datawire/dlib/dlog"
 )
 
 type Args struct {
-	debug bool
 	watch bool
 
 	adsNetwork string
 	adsAddress string
 
 	dirs []string
+
+	snapdirPath string
+	numsnaps    int
 }
 
-func parseArgs(rawArgs ...string) (*Args, error) {
+func parseArgs(ctx context.Context, rawArgs ...string) (*Args, error) {
 	var args Args
 	flagset := flag.NewFlagSet("ambex", flag.ContinueOnError)
 
-	flagset.BoolVar(&args.debug, "debug", false, "Use debug logging")
 	flagset.BoolVar(&args.watch, "watch", false, "Watch for file changes")
 
 	// TODO(lukeshu): Consider changing the default here so we don't need to put it in entrypoint.sh
@@ -163,6 +163,33 @@ func parseArgs(rawArgs ...string) (*Args, error) {
 	args.dirs = flagset.Args()
 	if len(args.dirs) == 0 {
 		args.dirs = []string{"."}
+	}
+
+	// ambex logs its own snapshots, separately from the ones provided by the Python
+	// side of the world, in $rootdir/snapshots/ambex-#.json, where rootdir is taken
+	// from $AMBASSADOR_CONFIG_BASE_DIR if set, else $ambassador_root if set, else
+	// whatever, set rootdir to /ambassador.
+	snapdirPath := os.Getenv("AMBASSADOR_CONFIG_BASE_DIR")
+	if snapdirPath == "" {
+		snapdirPath = os.Getenv("ambassador_root")
+	}
+	if snapdirPath == "" {
+		snapdirPath = "/ambassador"
+	}
+	args.snapdirPath = path.Join(snapdirPath, "snapshots")
+
+	// We'll keep $AMBASSADOR_AMBEX_SNAPSHOT_COUNT snapshots. If unset, or set to
+	// something we can't treat as an int, use 30 (which Flynn just made up, so don't
+	// be afraid to change it if need be).
+	numsnapStr := os.Getenv("AMBASSADOR_AMBEX_SNAPSHOT_COUNT")
+	if numsnapStr == "" {
+		numsnapStr = "30"
+	}
+	var err error
+	args.numsnaps, err = strconv.Atoi(numsnapStr)
+	if (err != nil) || (args.numsnaps < 0) {
+		args.numsnaps = 30
+		dlog.Errorf(ctx, "Invalid AMBASSADOR_AMBEX_SNAPSHOT_COUNT: %s, using %d", numsnapStr, args.numsnaps)
 	}
 
 	return &args, nil
@@ -218,15 +245,11 @@ func runManagementServer(ctx context.Context, server ecp_v2_server.Server, serve
 	v3listener.RegisterListenerDiscoveryServiceServer(grpcServer, serverv3)
 
 	dlog.Infof(ctx, "Listening on %s:%s", adsNetwork, adsAddress)
-	go func() {
-		sc := &dhttp.ServerConfig{
-			Handler: grpcServer,
-		}
-		if err := sc.Serve(ctx, lis); err != nil {
-			dlog.Errorf(ctx, "Management server exited: %v", err)
-		}
-	}()
-	return nil
+
+	sc := &dhttp.ServerConfig{
+		Handler: grpcServer,
+	}
+	return sc.Serve(ctx, lis)
 }
 
 // Decoders for unmarshalling our config
@@ -512,13 +535,13 @@ func update(
 
 	if fastpathSnapshot != nil && fastpathSnapshot.Snapshot != nil {
 		for _, lst := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Listener].Items {
-			listeners = append(listeners, lst)
+			listeners = append(listeners, lst.Resource)
 		}
 		for _, route := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Route].Items {
-			routes = append(routes, route)
+			routes = append(routes, route.Resource)
 		}
 		for _, clu := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Cluster].Items {
-			clusters = append(clusters, clu)
+			clusters = append(clusters, clu.Resource)
 		}
 		// We intentionally omit endpoints since those are carried separately.
 	}
@@ -560,7 +583,9 @@ func update(
 		clusters,
 		routes,
 		listeners,
-		runtimes)
+		runtimes,
+		nil, // secrets
+	)
 
 	if err := snapshot.Consistent(); err != nil {
 		bs, _ := json.Marshal(snapshot)
@@ -574,7 +599,9 @@ func update(
 		clustersv3,
 		routesv3,
 		listenersv3,
-		runtimesv3)
+		runtimesv3,
+		nil, // secrets
+	)
 
 	if err := snapshotv3.Consistent(); err != nil {
 		bs, _ := json.Marshal(snapshotv3)
@@ -613,15 +640,6 @@ func update(
 	case <-ctx.Done():
 	}
 	return nil
-}
-
-func warn(ctx context.Context, err error) bool {
-	if err != nil {
-		dlog.Warn(ctx, err)
-		return true
-	} else {
-		return false
-	}
 }
 
 type logAdapterBase struct {
@@ -721,67 +739,19 @@ func (l logAdapterV3) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3
 	dlog.Debugf(context.TODO(), "V3 Fetch response: %v -> %v", req, res)
 }
 
-// NOTE WELL: this Main() does NOT RUN from entrypoint! This one is only relevant if you
-// explicitly run Ambex by hand.
-func Main(ctx context.Context, Version string, rawArgs ...string) error {
-	usage := memory.GetMemoryUsage(ctx)
-	go usage.Watch(ctx)
-	return Main2(ctx, Version, usage.PercentUsed, make(chan *FastpathSnapshot), rawArgs...)
-}
-
-func Main2(
+func Main(
 	ctx context.Context,
 	Version string,
 	getUsage MemoryGetter,
 	fastpathCh <-chan *FastpathSnapshot,
 	rawArgs ...string,
 ) error {
-	args, err := parseArgs(rawArgs...)
+	args, err := parseArgs(ctx, rawArgs...)
 	if err != nil {
 		return err
 	}
 
-	if args.debug {
-		busy.SetLogLevel(logrusDebugLevel)
-	} else {
-		busy.SetLogLevel(logrusInfoLevel)
-	}
-
-	// ambex logs its own snapshots, separately from the ones provided by the Python
-	// side of the world, in $rootdir/snapshots/ambex-#.json, where rootdir is taken
-	// from $AMBASSADOR_CONFIG_BASE_DIR if set, else $ambassador_root if set, else
-	// whatever, set rootdir to /ambassador.
-
-	snapdirPath := os.Getenv("AMBASSADOR_CONFIG_BASE_DIR")
-
-	if snapdirPath == "" {
-		snapdirPath = os.Getenv("ambassador_root")
-	}
-
-	if snapdirPath == "" {
-		snapdirPath = "/ambassador"
-	}
-
-	snapdirPath = path.Join(snapdirPath, "snapshots")
-
-	// We'll keep $AMBASSADOR_AMBEX_SNAPSHOT_COUNT snapshots. If unset, or set to
-	// something we can't treat as an int, use 30 (which Flynn just made up, so don't
-	// be afraid to change it if need be).
-
-	numsnapStr := os.Getenv("AMBASSADOR_AMBEX_SNAPSHOT_COUNT")
-
-	if numsnapStr == "" {
-		numsnapStr = "30"
-	}
-
-	numsnaps, err := strconv.Atoi(numsnapStr)
-
-	if (err != nil) || (numsnaps < 0) {
-		numsnaps = 30
-		dlog.Errorf(ctx, "Invalid AMBASSADOR_AMBEX_SNAPSHOT_COUNT: %s, using %d", numsnapStr, numsnaps)
-	}
-
-	dlog.Infof(ctx, "Ambex %s starting, snapdirPath %s", Version, snapdirPath)
+	dlog.Infof(ctx, "Ambex %s starting, snapdirPath %s", Version, args.snapdirPath)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -799,14 +769,12 @@ func Main2(
 
 	// The golang signal package does not block when it writes to the channel. We therefore need a
 	// nonzero buffer for the channel to minimize the possiblity that we miss out on a signal that
-	// comes in while we are doing work and not reading from the channel. Since we are subscribing
-	// to multiple signals there is also the possibility that even with buffering, too many of one
-	// kind of signal can fill up the buffer and cause us to drop an occurance of the other types of
-	// signal. To minimize the chance of that happening we will choose a buffer size of 100. That
-	// may well be overkill, but better to not have to consider the possibility that we lose a
-	// signal.
-	ch := make(chan os.Signal, 100)
-	signal.Notify(ch, syscall.SIGHUP, os.Interrupt, syscall.SIGTERM)
+	// comes in while we are doing work and not reading from the channel. To minimize the chance
+	// of that happening we will choose a buffer size of 100. That may well be overkill, but
+	// better to not have to consider the possibility that we lose a signal.
+	sigCh := make(chan os.Signal, 100)
+	signal.Notify(sigCh, syscall.SIGHUP)
+	defer func() { signal.Stop(sigCh) }()
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -816,69 +784,63 @@ func Main2(
 	server := ecp_v2_server.NewServer(ctx, config, logAdapterV2{logAdapterBase{"V2"}})
 	serverv3 := ecp_v3_server.NewServer(ctx, configv3, logAdapterV3{logAdapterBase{"V3"}})
 
-	if err := runManagementServer(ctx, server, serverv3, args.adsNetwork, args.adsAddress); err != nil {
-		return err
-	}
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
+
+	grp.Go("management-server", func(ctx context.Context) error {
+		return runManagementServer(ctx, server, serverv3, args.adsNetwork, args.adsAddress)
+	})
 
 	pid := os.Getpid()
 	file := "ambex.pid"
-	if !warn(ctx, ioutil.WriteFile(file, []byte(fmt.Sprintf("%v", pid)), 0644)) {
+	if err := ioutil.WriteFile(file, []byte(fmt.Sprintf("%v", pid)), 0644); err != nil {
+		dlog.Warn(ctx, err)
+	} else {
 		ctx := dlog.WithField(ctx, "pid", pid)
 		ctx = dlog.WithField(ctx, "file", file)
 		dlog.Info(ctx, "Wrote PID")
 	}
 
 	updates := make(chan Update)
-	envoyUpdaterDone := make(chan struct{})
-	go func() {
-		defer close(envoyUpdaterDone)
-		if err := Updater(ctx, updates, getUsage); err != nil {
-			panic(err) // TODO: Find a better way of reporting errors from goroutines.
+	grp.Go("updater", func(ctx context.Context) error {
+		return Updater(ctx, updates, getUsage)
+	})
+	grp.Go("main-loop", func(ctx context.Context) error {
+		generation := 0
+		var fastpathSnapshot *FastpathSnapshot
+		edsEndpoints := map[string]*v2.ClusterLoadAssignment{}
+		edsEndpointsV3 := map[string]*v3endpointconfig.ClusterLoadAssignment{}
+
+		// We always start by updating with a totally empty snapshot.
+		//
+		// XXX This seems questionable: why do we do this? Envoy isn't currently started until
+		// we have a real configuration...
+		err = update(
+			ctx,
+			args.snapdirPath,
+			args.numsnaps,
+			config,
+			configv3,
+			&generation,
+			args.dirs,
+			edsEndpoints,
+			edsEndpointsV3,
+			fastpathSnapshot,
+			updates,
+		)
+		if err != nil {
+			return err
 		}
-	}()
 
-	generation := 0
-	var fastpathSnapshot *FastpathSnapshot
-	edsEndpoints := map[string]*v2.ClusterLoadAssignment{}
-	edsEndpointsV3 := map[string]*v3endpointconfig.ClusterLoadAssignment{}
+		// This is the main loop where the magic happens. The fact that it uses a label
+		// depresses me, though.
+		for {
 
-	// We always start by updating with a totally empty snapshot.
-	//
-	// XXX This seems questionable: why do we do this? Envoy isn't currently started until
-	// we have a real configuration...
-	err = update(
-		ctx,
-		snapdirPath,
-		numsnaps,
-		config,
-		configv3,
-		&generation,
-		args.dirs,
-		edsEndpoints,
-		edsEndpointsV3,
-		fastpathSnapshot,
-		updates,
-	)
-	if err != nil {
-		return err
-	}
-
-	// This is the main loop where the magic happens. The fact that it uses a label
-	// depresses me, though.
-OUTER:
-	for {
-
-		select {
-		case sig := <-ch:
-			// Signal handling: reconfigure on HUP, bail on INT or TERM.
-			//
-			// XXX Y'know, redoing this with if would let us ditch that silly label.
-			switch sig {
-			case syscall.SIGHUP:
+			select {
+			case _ = <-sigCh:
 				err := update(
 					ctx,
-					snapdirPath,
-					numsnaps,
+					args.snapdirPath,
+					args.numsnaps,
 					config,
 					configv3,
 					&generation,
@@ -891,60 +853,55 @@ OUTER:
 				if err != nil {
 					return err
 				}
-			case os.Interrupt, syscall.SIGTERM:
-				break OUTER
+			case fpSnap := <-fastpathCh:
+				// Fastpath update. Grab new endpoints and update.
+				if fpSnap.Endpoints != nil {
+					edsEndpoints = fpSnap.Endpoints.ToMap_v2()
+					edsEndpointsV3 = fpSnap.Endpoints.ToMap_v3()
+				}
+				fastpathSnapshot = fpSnap
+				err := update(
+					ctx,
+					args.snapdirPath,
+					args.numsnaps,
+					config,
+					configv3,
+					&generation,
+					args.dirs,
+					edsEndpoints,
+					edsEndpointsV3,
+					fastpathSnapshot,
+					updates,
+				)
+				if err != nil {
+					return err
+				}
+			case <-watcher.Events:
+				// Non-fastpath update. Just update.
+				err := update(
+					ctx,
+					args.snapdirPath,
+					args.numsnaps,
+					config,
+					configv3,
+					&generation,
+					args.dirs,
+					edsEndpoints,
+					edsEndpointsV3,
+					fastpathSnapshot,
+					updates,
+				)
+				if err != nil {
+					return err
+				}
+			case err := <-watcher.Errors:
+				// Something went wrong, so scream about that.
+				dlog.Warnf(ctx, "Watcher error: %v", err)
+			case <-ctx.Done():
+				return nil
 			}
-		case fpSnap := <-fastpathCh:
-			// Fastpath update. Grab new endpoints and update.
-			if fpSnap.Endpoints != nil {
-				edsEndpoints = fpSnap.Endpoints.ToMap_v2()
-				edsEndpointsV3 = fpSnap.Endpoints.ToMap_v3()
-			}
-			fastpathSnapshot = fpSnap
-			err := update(
-				ctx,
-				snapdirPath,
-				numsnaps,
-				config,
-				configv3,
-				&generation,
-				args.dirs,
-				edsEndpoints,
-				edsEndpointsV3,
-				fastpathSnapshot,
-				updates,
-			)
-			if err != nil {
-				return err
-			}
-		case <-watcher.Events:
-			// Non-fastpath update. Just update.
-			err := update(
-				ctx,
-				snapdirPath,
-				numsnaps,
-				config,
-				configv3,
-				&generation,
-				args.dirs,
-				edsEndpoints,
-				edsEndpointsV3,
-				fastpathSnapshot,
-				updates,
-			)
-			if err != nil {
-				return err
-			}
-		case err := <-watcher.Errors:
-			// Something went wrong, so scream about that.
-			dlog.Warnf(ctx, "Watcher error: %v", err)
-		case <-ctx.Done():
-			break OUTER
 		}
+	})
 
-	}
-
-	<-envoyUpdaterDone
-	dlog.Info(ctx, "Done")
-	return nil
+	return grp.Wait()
 }

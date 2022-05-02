@@ -349,7 +349,7 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 }
 
 type accumulator interface {
-	Changed() chan struct{}
+	Changed() <-chan struct{}
 	FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error)
 }
 
