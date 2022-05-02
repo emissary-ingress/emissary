@@ -15,14 +15,14 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/datawire/dlib/dlog"
-	dtest_k3s "github.com/datawire/dtest"
+	"github.com/datawire/dtest"
 )
 
 func testClient(t *testing.T, ctx context.Context) (context.Context, *Client) {
 	if ctx == nil {
 		ctx = dlog.NewTestContext(t, false)
 	}
-	cli, err := NewClient(ClientConfig{Kubeconfig: dtest_k3s.KubeVersionConfig(ctx, dtest_k3s.Kube22)})
+	cli, err := NewClient(ClientConfig{Kubeconfig: dtest.KubeVersionConfig(ctx, dtest.Kube22)})
 	require.NoError(t, err)
 	return ctx, cli
 }
