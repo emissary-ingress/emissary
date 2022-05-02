@@ -40,18 +40,26 @@ jobs:
 
           merge_branch="ci/repatriate/from-${this_ver}-to-${next_ver}"
           if git checkout "$merge_branch"; then
-            # PR already exists; update it.
+            # branch already exists; update it.
             git merge "$this_branch"
             git push origin "$merge_branch"
           else
-            # PR does not yet exist.
+            # branch does not yet exist.
             git checkout -b "$merge_branch"
             git push --set-upstream origin "$merge_branch"
+          fi
+
+          if url=$(gh pr view --json=url --jq=.url); then
+            echo "::set-output verb=Updated
+          else
             gh pr create \
               --title="[${next_ver}] Repatriate from ${this_ver}" \
               --body="This PR merges ${this_branch} in to ${next_branch}." \
               --base="$next_branch"
+            url=$(gh pr view --json=url --jq=.url)
+            echo "::set-output verb=Created"
           fi
+          echo "::set-output pr_url=${url}"
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
@@ -59,8 +67,9 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
-          success_text: "Created repatriation PR merging ${{ steps.step-create-pr.this_branch }} in to ${{ steps.step-create-pr.next_branch }}"
+          success_text: "${{ steps.step-create-pr.verb }} repatriation PR merging ${{ steps.step-create-pr.this_branch }} in to ${{ steps.step-create-pr.next_branch }}"
           failure_text: "Creation of repatriation PR failed"
           fields: |
             [{ "title": "Repository", "value": "${{ github.repository }}", "short": true },
-             { "title": "Branch", "value": "${{ github.ref }}", "short": true}]
+             { "title": "Branch", "value": "${{ github.ref }}", "short": true},
+             { "title": "Pull Request, "value": "${{ steps.step-create-pr.url }}"}]
