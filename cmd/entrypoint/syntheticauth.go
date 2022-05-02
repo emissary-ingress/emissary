@@ -65,29 +65,26 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 		editedList := snapshot.AnnotationList{}
 
 		for _, obj := range list {
-			un := obj.(*kates.Unstructured)
-
-			if un.GetKind() != "AuthService" {
-				// This isn't an AuthService at all, so we'll keep it.
-				//
-				// XXX There's optimization to do here: if there are no AuthServices
-				// in our list, we needn't edit it at all. Something to circle back to
-				// later.
-				editedList = append(editedList, un)
-			} else {
+			switch annotationObj := obj.(type) {
+			case *v3alpha1.AuthService:
 				// This _is_ an AuthService, so we'll check its protocol version.
 				// Anything other than v3 gets tossed.
 				//
 				// Note also that AuthServices other than getambassador.io/v3 cannot
 				// have a protocol_version, but whatever -- that'll be something not
 				// equal to v3, so it'll get tossed, and that's what we want.
-				spec := un.Object["spec"].(map[string]interface{})
-
-				if spec["protocol_version"] == "v3" {
+				if annotationObj.Spec.ProtocolVersion == "v3" {
 					// Whoa, it's a v3! Keep it.
-					editedList = append(editedList, un)
+					editedList = append(editedList, annotationObj)
 					injectSyntheticAuth = false
 				}
+			default:
+				// This isn't an AuthService at all, so we'll keep it.
+				//
+				// XXX There's optimization to do here: if there are no AuthServices
+				// in our list, we needn't edit it at all. Something to circle back to
+				// later.
+				editedList = append(editedList, annotationObj)
 			}
 		}
 
