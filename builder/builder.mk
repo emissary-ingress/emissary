@@ -268,10 +268,6 @@ ifneq ($(IS_PRIVATE),)
 else
 	@printf '$(CYN)==> $(GRN)recording $(BLU)%s$(GRN) => $(BLU)%s$(GRN) in S3...$(END)\n' "$$(git rev-parse HEAD)" $(patsubst v%,%,$(VERSION))
 	echo '$(patsubst v%,%,$(VERSION))' | aws s3 cp - 's3://$(AWS_S3_BUCKET)/dev-builds/'"$$(git rev-parse HEAD)"
-
-	$(MAKE) release/push-chart
-	$(MAKE) generate-fast --always-make
-	$(MAKE) push-manifests
 endif
 .PHONY: push-dev
 
