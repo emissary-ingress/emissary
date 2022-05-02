@@ -36,7 +36,11 @@ func (usage *MemoryUsage) Watch(ctx context.Context) {
 			usage.Refresh(ctx)
 			memory.Store(usage.ShortString())
 			usage.maybeDo(now, func() {
-				dlog.Infoln(ctx, usage.String())
+				if usage.debug {
+					dlog.Infoln(ctx, usage.Summary())
+				} else {
+					dlog.Infoln(ctx, usage.String())
+				}
 			})
 		case <-ctx.Done():
 			usage.Refresh(ctx)
@@ -56,6 +60,10 @@ func (m *MemoryUsage) ShortString() string {
 // than 10Gi since our previous action. We also take action once per minute if usage is greather
 // than 50% of our limit.
 func (m *MemoryUsage) shouldDo(now time.Time) bool {
+	if m.debug && (now.Sub(m.lastAction) >= 30*time.Second) {
+		return true
+	}
+
 	const jump = 10 * 1024 * 1024
 	delta := m.previous - m.usage
 	if delta >= jump || delta <= -jump {
@@ -85,9 +93,15 @@ func (m *MemoryUsage) maybeDo(now time.Time, f func()) {
 // The GetMemoryUsage function returns MemoryUsage info for the entire cgroup.
 func GetMemoryUsage(ctx context.Context) *MemoryUsage {
 	usage, limit := readUsage(ctx)
+
+	debug, _ := strconv.ParseBool(os.Getenv("AMBASSADOR_MEMORY_DEBUG"))
+
 	return &MemoryUsage{
-		usage:      usage,
-		limit:      limit,
+		usage: usage,
+		limit: limit,
+
+		debug: debug,
+
 		perProcess: readPerProcess(ctx),
 
 		readUsage:      readUsage,
@@ -97,8 +111,11 @@ func GetMemoryUsage(ctx context.Context) *MemoryUsage {
 
 // The MemoryUsage struct to holds memory usage and memory limit information about a cgroup.
 type MemoryUsage struct {
-	usage      memory
-	limit      memory
+	usage memory
+	limit memory
+
+	debug bool
+
 	perProcess map[int]*ProcessUsage
 	previous   memory
 	lastAction time.Time
@@ -124,14 +141,24 @@ type ProcessUsage struct {
 
 type memory int64
 
+const GiB = 1024 * 1024 * 1024
+
+// Convert memory to (float64) GiB.
+func (m memory) GiB() float64 {
+	if m == unlimited {
+		return math.Inf(1)
+	}
+
+	return float64(m) / GiB
+}
+
 // Pretty print memory in gigabytes.
 func (m memory) String() string {
 	if m == unlimited {
 		return "Unlimited"
-	} else {
-		const GiB = 1024 * 1024 * 1024
-		return fmt.Sprintf("%.2fGi", float64(m)/GiB)
 	}
+
+	return fmt.Sprintf("%.2fGi", m.GiB())
 }
 
 // The MemoryUsage.Refresh method updates memory usage information.
@@ -191,6 +218,90 @@ func (m *MemoryUsage) String() string {
 		usage := m.perProcess[pid]
 		msg.WriteString("\n  ")
 		msg.WriteString(usage.String())
+	}
+
+	return msg.String()
+}
+
+func (m *MemoryUsage) Summary() string {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	lstr := ""
+
+	if m.limit != unlimited {
+		lstr = fmt.Sprintf(" (%d%%)", m.percentUsed())
+	}
+
+	cmds := make(map[string]float64, len(m.perProcess))
+	sum := 0.0
+
+	for pid := range m.perProcess {
+		usage := m.perProcess[pid]
+
+		cmdLine := usage.Cmdline
+		cmd := strings.Join(cmdLine, " ")
+
+		cmdName := "other"
+
+		switch {
+		case usage.RefreshesSinceExit > 0:
+			cmdName = "exited"
+
+		case (cmdLine[0] == "busyambassador") && (cmdLine[1] == "entrypoint"):
+			cmdName = "entry"
+
+		case (cmdLine[0] == "/usr/bin/python") && (cmdLine[1] == "/usr/bin/diagd"):
+			cmdName = "diagd"
+
+		case cmdLine[0] == "/ambassador/sidecars/amb-sidecar":
+			cmdName = "sidecr"
+
+		case cmdLine[0] == "envoy":
+			if strings.Contains(cmd, "--mode validate") {
+				cmdName = "vldatr"
+			} else {
+				cmdName = "envoy"
+			}
+
+		case strings.Contains(cmd, "watt --listen"):
+			cmdName = "watt"
+
+		case strings.Contains(cmd, "post_update"):
+			cmdName = "post_update"
+
+		case strings.Contains(cmd, "kubestatus"):
+			cmdName = "kubestatus"
+		}
+
+		cmds[cmdName] += usage.Usage.GiB()
+		sum += usage.Usage.GiB()
+	}
+
+	var msg strings.Builder
+
+	msg.WriteString(fmt.Sprintf("Memory Summary %.2fGi calc %s rept%s", sum, m.usage.String(), lstr))
+
+	cmdNames := make([]string, 0, len(cmds))
+
+	for cmd := range cmds {
+		if cmd == "exited" {
+			continue
+		}
+
+		cmdNames = append(cmdNames, cmd)
+	}
+
+	sort.Strings(cmdNames)
+
+	for _, cmd := range cmdNames {
+		msg.WriteString(fmt.Sprintf(" %s %.2fGi", cmd, cmds[cmd]))
+	}
+
+	usage := cmds["exited"]
+
+	if usage > 0 {
+		msg.WriteString(fmt.Sprintf(" exited %.2fGi", usage))
 	}
 
 	return msg.String()
