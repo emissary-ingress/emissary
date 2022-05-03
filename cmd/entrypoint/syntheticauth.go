@@ -2,11 +2,11 @@ package entrypoint
 
 import (
 	"context"
-	//"github.com/datawire/dlib/derror"
 
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/datawire/dlib/dlog"
 )
 
 // This is a gross hack to remove all AuthServices using protocol_version: v2 only when running Edge-Stack and then inject an
@@ -21,6 +21,7 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 		return nil
 	}
 
+	// Construct a synthetic AuthService to be injected if we dont find any valid AuthServices
 	injectSyntheticAuth := true
 	syntheticAuth := &v3alpha1.AuthService{
 		TypeMeta: kates.TypeMeta{
@@ -107,6 +108,7 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 	}
 
 	if injectSyntheticAuth {
+		dlog.Debugf(ctx, "[WATCHER]: No valid AuthServices with protocol_version: v3 detected, injecting Synthetic AuthService")
 		// There are no valid AuthServices with protocol_version: v3. A synthetic one needs to be injected.
 		authServices = append(authServices, syntheticAuth)
 
@@ -127,6 +129,7 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 		*deltas = newDeltas
 		sh.k8sSnapshot.AuthServices = authServices
 	} else if len(authServices) >= 1 && syntheticAuthExists {
+		dlog.Debugf(ctx, "[WATCHER]: Valid AuthServices using protocol_version: v3 detected alongside the Synthetic AuthService, removing Synthetic...")
 		// One or more Valid AuthServices are present. The synthetic AuthService exists and needs to be removed now.
 		sh.k8sSnapshot.AuthServices = authServices
 		var newDeltas []*kates.Delta
