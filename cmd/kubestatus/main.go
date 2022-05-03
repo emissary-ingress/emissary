@@ -9,7 +9,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/datawire/ambassador/v2/pkg/k8s"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/dlib/dlog"
 )
@@ -23,10 +22,11 @@ func Main(ctx context.Context, version string, args ...string) error {
 		SilenceUsage:  true,
 	}
 
-	info := k8s.NewKubeInfoFromFlags(st.Flags())
 	fields := st.Flags().StringP("field-selector", "f", "", "field selector")
 	labels := st.Flags().StringP("label-selector", "l", "", "label selector")
 	statusFile := st.Flags().StringP("update", "u", "", "update with new status from file (must be json)")
+	kubeconfig := kates.NewConfigFlags(false)
+	kubeconfig.AddFlags(st.Flags())
 
 	st.RunE = func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
@@ -46,8 +46,13 @@ func Main(ctx context.Context, version string, args ...string) error {
 			}
 		}
 
+		client, err := kates.NewClientFromConfigFlags(kubeconfig)
+		if err != nil {
+			return err
+		}
+
 		kind := args[0]
-		namespace, err := info.Namespace()
+		namespace, err := client.CurrentNamespace()
 		if err != nil {
 			return err
 		}
@@ -72,11 +77,6 @@ func Main(ctx context.Context, version string, args ...string) error {
 					}
 				}
 			}
-		}
-
-		client, err := kates.NewClientFromConfigFlags(info.GetConfigFlags())
-		if err != nil {
-			return err
 		}
 
 		if name != "" {

@@ -831,8 +831,7 @@ func Main(
 			return err
 		}
 
-		// This is the main loop where the magic happens. The fact that it uses a label
-		// depresses me, though.
+		// This is the main loop where the magic happens.
 		for {
 
 			select {
