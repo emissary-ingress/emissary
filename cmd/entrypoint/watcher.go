@@ -441,10 +441,12 @@ func (sh *SnapshotHolder) K8sUpdate(
 		if err != nil {
 			return false, err
 		}
+		dlog.Errorf(ctx, "ALICE: started reconciling AuthServices: %v", err)
 		reconcileAuthServicesTimer.Time(func() {
 			err = ReconcileAuthServices(ctx, sh, &deltas)
 		})
 		if err != nil {
+			dlog.Errorf(ctx, "ALICE: ERROR reconciling AuthServices: %v", err)
 			return false, err
 		}
 

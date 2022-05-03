@@ -20,6 +20,7 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 		return nil
 	}
 
+	// Construct a synthetic AuthService to be injected if we dont find any valid AuthServices
 	injectSyntheticAuth := true
 	syntheticAuth := &v3alpha1.AuthService{
 		TypeMeta: kates.TypeMeta{
