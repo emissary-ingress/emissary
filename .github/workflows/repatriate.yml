@@ -50,7 +50,7 @@ jobs:
           fi
 
           if url=$(gh pr view --json=url --jq=.url); then
-            echo "::set-output verb=Updated
+            echo "::set-output verb=Updated"
           else
             gh pr create \
               --title="[${next_ver}] Repatriate from ${this_ver}" \
@@ -72,4 +72,4 @@ jobs:
           fields: |
             [{ "title": "Repository", "value": "${{ github.repository }}", "short": true },
              { "title": "Branch", "value": "${{ github.ref }}", "short": true},
-             { "title": "Pull Request, "value": "${{ steps.step-create-pr.url }}"}]
+             { "title": "Pull Request", "value": "${{ steps.step-create-pr.url }}"}]
