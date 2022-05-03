@@ -42,8 +42,8 @@ jobs:
           success_text: |
             Emissary RC for ${{ github.ref }} successfully built:
             \`\`\`
-            export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/${{ steps.step-main.version }}
-            export HELM_CHART_VERSION=${{ steps.step-main.chart_version }}
+            export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/${{ steps.step-main.outputs.version }}
+            export HELM_CHART_VERSION=${{ steps.step-main.outputs.chart_version }}
             \`\`\`
           failure_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build failed'
           cancelled_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build was cancelled'

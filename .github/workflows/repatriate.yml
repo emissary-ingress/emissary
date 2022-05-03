@@ -67,9 +67,9 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
-          success_text: "${{ steps.step-create-pr.verb }} repatriation PR merging ${{ steps.step-create-pr.this_branch }} in to ${{ steps.step-create-pr.next_branch }}"
+          success_text: "${{ steps.step-create-pr.outputs.verb }} repatriation PR merging ${{ steps.step-create-pr.outputs.this_branch }} in to ${{ steps.step-create-pr.outputs.next_branch }}"
           failure_text: "Creation of repatriation PR failed"
           fields: |
             [{ "title": "Repository", "value": "${{ github.repository }}", "short": true },
              { "title": "Branch", "value": "${{ github.ref }}", "short": true},
-             { "title": "Pull Request", "value": "${{ steps.step-create-pr.url }}"}]
+             { "title": "Pull Request", "value": "${{ steps.step-create-pr.outputs.pr_url }}"}]
