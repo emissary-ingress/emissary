@@ -80,6 +80,21 @@ docker/base-pip/requirements.txt: python/requirements.txt $(tools/copy-ifchanged
 docker/.base-pip.docker.stamp: docker/.%.docker.stamp: docker/%/Dockerfile docker/%/requirements.txt docker/base-python.docker.tag.local
 	docker build --platform="$(BUILD_ARCH)" --build-arg=from="$$(sed -n 2p docker/base-python.docker.tag.local)" --iidfile=$@ $(<D)
 
+#### HELM STUFF
+# Convenience aliases for the Helm chart (below)
+chart_dir = build-output/chart-$(patsubst v%,%,$(VERSION))_$(patsubst v%,%,$(CHART_VERSION)).d
+chart_tgz = $(patsubst %.d,%.tgz,$(chart_dir))
+chart: $(chart_tgz)
+PHONY: chart
+
+boguschart_dir = build-output/chart-2.0.0-bogus_7.0.0-bogus.d
+boguschart_tgz = $(patsubst %.d,%.tgz,$(boguschart_dir))
+boguschart: $(boguschart_tgz)
+PHONY: boguschart
+
+manifests: build-output/yaml-$(patsubst v%,%,$(VERSION)) $(boguschart_dir)
+PHONY: manifests
+
 # The Helm chart
 build-output/chart-%.d: \
   $(shell find charts/emissary-ingress) \
@@ -103,6 +118,7 @@ endif
 	    registry=$(DEV_REGISTRY); \
 	  fi; \
 	  for file in Chart.yaml values.yaml; do \
+		echo "== sed $</$${file}.in to $@/$${file}"; \
 	    sed \
 	      -e 's/@version@/$(word 1,$(subst _, ,$*))/g' \
 	      -e 's/@chartVersion@/$(word 2,$(subst _, ,$*))/g' \
@@ -112,18 +128,10 @@ endif
 	  done; \
 	}
 	$(tools/chart-doc-gen) -d $</doc.yaml -t $</readme.tpl -v $@/values.yaml >$@/README.md
+
 build-output/chart-%.tgz: build-output/chart-%.d
 	helm package --destination=$< $<
 	mv $</emissary-ingress-$(word 2,$(subst _, ,$*)).tgz $@
-
-# Convenience aliases for the Helm chart
-chart_dir = build-output/chart-$(patsubst v%,%,$(VERSION))_$(patsubst v%,%,$(CHART_VERSION)).d
-chart_tgz = $(patsubst %.d,%.tgz,$(chart_dir))
-chart: $(chart_tgz)
-PHONY: chart
-
-boguschart_dir = build-output/chart-2.0.0-bogus_7.0.0-bogus.d
-boguschart_tgz = $(patsubst %.d,%.tgz,$(boguschart_dir))
 
 # YAML manifests
 build-output/yaml-%: $(shell find $(CURDIR)/manifests/emissary/ -type d -o -name '*.yaml.in') $(var.)DEV_REGISTRY $(var.)RELEASE_REGISTRY
