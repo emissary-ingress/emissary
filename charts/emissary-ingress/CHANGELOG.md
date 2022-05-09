@@ -6,6 +6,7 @@ numbering uses [semantic versioning](http://semver.org).
 ## Next Release
 
 - Add "lifecycle" option to main container. This can be used, for example, to add a lifecycle.preStop hook. Thanks to [Eric Totten](https://github.com/etotten) for the contribution!
+- Add `ambassador_id` to listener manifests rendered when using `createDefaultListeners: true` with `AMBASSADOR_ID` set in environment variables.
 
 - Feature: Added configurable IngressClass resource to be compliant with Kubernetes 1.22+ ingress specification.
 
