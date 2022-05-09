@@ -12,6 +12,10 @@ spec:
   hostBinding:
     namespace:
       from: ALL
+  {{- if hasKey .Values.env "AMBASSADOR_ID" }}
+  ambassador_id:
+  - {{ .Values.env.AMBASSADOR_ID | quote }}
+  {{- end }}
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Listener
@@ -25,4 +29,8 @@ spec:
   hostBinding:
     namespace:
       from: ALL
+  {{- if hasKey .Values.env "AMBASSADOR_ID" }}
+  ambassador_id:
+  - {{ .Values.env.AMBASSADOR_ID | quote }}
+  {{- end }}
 {{ end }}
