@@ -18,6 +18,40 @@ import (
 	"github.com/datawire/dlib/dlog"
 )
 
+// The MemoryUsage struct to holds memory usage and memory limit information about a cgroup.
+type MemoryUsage struct {
+	usage memory
+	limit memory
+
+	debug bool
+
+	perProcess map[int]*ProcessUsage
+	previous   memory
+	lastAction time.Time
+
+	// these allow mocking for tests
+	readUsage      func(context.Context) (memory, memory)
+	readPerProcess func(context.Context) map[int]*ProcessUsage
+
+	// Protects the whole structure
+	mutex sync.Mutex
+}
+
+// The ProcessUsage struct holds per process memory usage information.
+type ProcessUsage struct {
+	Pid     int
+	Cmdline []string
+	Usage   memory
+
+	// This is zero if the process is still running. If the process has exited, this counts how many
+	// refreshes have happened. We GC after 10 refreshes.
+	RefreshesSinceExit int
+}
+
+type memory int64
+
+const GiB = 1024 * 1024 * 1024
+
 // The Watch method will check memory usage every 10 seconds and log it if it jumps more than 10Gi
 // up or down. Additionally if memory usage exceeds 50% of the cgroup limit, it will log usage every
 // minute. Usage is also unconditionally logged before returning. This function only returns if the
@@ -108,40 +142,6 @@ func GetMemoryUsage(ctx context.Context) *MemoryUsage {
 		readPerProcess: readPerProcess,
 	}
 }
-
-// The MemoryUsage struct to holds memory usage and memory limit information about a cgroup.
-type MemoryUsage struct {
-	usage memory
-	limit memory
-
-	debug bool
-
-	perProcess map[int]*ProcessUsage
-	previous   memory
-	lastAction time.Time
-
-	// these allow mocking for tests
-	readUsage      func(context.Context) (memory, memory)
-	readPerProcess func(context.Context) map[int]*ProcessUsage
-
-	// Protects the whole structure
-	mutex sync.Mutex
-}
-
-// The ProcessUsage struct holds per process memory usage information.
-type ProcessUsage struct {
-	Pid     int
-	Cmdline []string
-	Usage   memory
-
-	// This is zero if the process is still running. If the process has exited, this counts how many
-	// refreshes have happened. We GC after 10 refreshes.
-	RefreshesSinceExit int
-}
-
-type memory int64
-
-const GiB = 1024 * 1024 * 1024
 
 // Convert memory to (float64) GiB.
 func (m memory) GiB() float64 {
@@ -392,6 +392,53 @@ func readMemory(fpath string) (memory, error) {
 	return memory(m), err
 }
 
+// memoryStat represents the contents of /sys/fs/cgroup/memory/memory.stat.
+// It's the data structure returned by readMemoryStat.
+type memoryStat struct {
+	Rss          uint64 // rss field
+	Cache        uint64 // cache field
+	Swap         uint64 // swap field
+	InactiveFile uint64 // inactive_file field
+}
+
+func readMemoryStat(fpath string) (memoryStat, error) {
+	bytes, err := ioutil.ReadFile(fpath)
+	if err != nil {
+		return memoryStat{}, err
+	}
+
+	return parseMemoryStat(string(bytes))
+}
+
+func parseMemoryStat(content string) (memoryStat, error) {
+	result := memoryStat{}
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		line = strings.TrimSuffix(line, "\n")
+		parts := strings.Fields(line)
+		if len(parts) != 2 {
+			continue
+		}
+
+		n, err := strconv.ParseUint(parts[1], 10, 64)
+		if err != nil {
+			return result, err
+		}
+
+		switch parts[0] {
+		case "rss":
+			result.Rss = n
+		case "swap":
+			result.Swap = n
+		case "cache":
+			result.Cache = n
+		case "inactive_file":
+			result.InactiveFile = n
+		}
+	}
+	return result, nil
+}
+
 // The readPerProcess helper returns a map containing memory usage used for each process in the cgroup.
 func readPerProcess(ctx context.Context) map[int]*ProcessUsage {
 	result := map[int]*ProcessUsage{}
@@ -442,49 +489,4 @@ func readPerProcess(ctx context.Context) map[int]*ProcessUsage {
 	}
 
 	return result
-}
-
-type memoryStat struct {
-	Rss          uint64 // rss field
-	Cache        uint64 // cache field
-	Swap         uint64 // swap field
-	InactiveFile uint64 // inactive_file field
-}
-
-func readMemoryStat(fpath string) (memoryStat, error) {
-	bytes, err := ioutil.ReadFile(fpath)
-	if err != nil {
-		return memoryStat{}, err
-	}
-
-	return parseMemoryStat(string(bytes))
-}
-
-func parseMemoryStat(content string) (memoryStat, error) {
-	result := memoryStat{}
-	lines := strings.Split(content, "\n")
-	for _, line := range lines {
-		line = strings.TrimSuffix(line, "\n")
-		parts := strings.Fields(line)
-		if len(parts) != 2 {
-			continue
-		}
-
-		n, err := strconv.ParseUint(parts[1], 10, 64)
-		if err != nil {
-			return result, err
-		}
-
-		switch parts[0] {
-		case "rss":
-			result.Rss = n
-		case "swap":
-			result.Swap = n
-		case "cache":
-			result.Cache = n
-		case "inactive_file":
-			result.InactiveFile = n
-		}
-	}
-	return result, nil
 }
