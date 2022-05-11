@@ -16,6 +16,8 @@ import (
 	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
 	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
 	ecp_v3_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 
 	// Envoy API v2
 	// Be sure to import the package of any types that're referenced with "@type" in our
@@ -66,54 +68,124 @@ import (
 // /ambassador/snapshots/ambex-<version>.json.
 //
 // Actually making these snapshots is harder than you might think, because the core of
-// the Envoy configuration is protobuf messages rather than Go structs. So we need to
-// do a certain amount of work to make sure we can marshal to JSON using jsonpb.Marshaler
-// rather than just json.Marshal, so that the typed fields in the Envoy configuration are
-// properly serialized.
+// the Envoy configuration is protobuf messages rather than Go structs, and json.Marshal
+// doesn't properly handle Envoy's "typed_config" fields, where a protobuf message is
+// included with an explicit "@type" attribute to tell what kind of message it is so that
+// Envoy can unmarshal it.
 //
-// These "expanded" snapshots make the snapshots we log easier to read: basically,
-// instead of just indexing by Golang types, make the JSON marshal with real names.
-type v2ExpandedSnapshot struct {
-	Endpoints ecp_v2_cache.Resources `json:"endpoints"`
-	Clusters  ecp_v2_cache.Resources `json:"clusters"`
-	Routes    ecp_v2_cache.Resources `json:"routes"`
-	Listeners ecp_v2_cache.Resources `json:"listeners"`
-	Runtimes  ecp_v2_cache.Resources `json:"runtimes"`
+// Hence the marshaledSnapshot type, which handles the extra work needed to make it
+// possible to use protojson.Marshal rather than json.Marshal. The way this works is that
+// we take a bunch of V2 elements and a bunch of V3 elements, and we marshal them down to
+// json.RawMessages using protojson. Then we can serialize the whole marshaledSnapshot
+// easily with the usual json.Marshal function.
+//
+// Everything in the marshaledSnapshot is versioned, too, since that's how the ADS
+// protocol works. If you manage to find that the versions don't match up, that's likely
+// not a good thing.
+
+type marshaledSnapshot struct {
+	errors  []error                      `json:"-"`
+	Version string                       `json:"version"`
+	V2      map[string]marshaledElements `json:"v2"`
+	V3      map[string]marshaledElements `json:"v3"`
 }
 
-func NewV2ExpandedSnapshot(v2snap *ecp_v2_cache.Snapshot) v2ExpandedSnapshot {
-	return v2ExpandedSnapshot{
-		Endpoints: v2snap.Resources[ecp_cache_types.Endpoint],
-		Clusters:  v2snap.Resources[ecp_cache_types.Cluster],
-		Routes:    v2snap.Resources[ecp_cache_types.Route],
-		Listeners: v2snap.Resources[ecp_cache_types.Listener],
-		Runtimes:  v2snap.Resources[ecp_cache_types.Runtime],
+type marshaledElements struct {
+	Version  string            `json:"version"`
+	Elements []json.RawMessage `json:"elements"`
+}
+
+// NewMarshaledSnapshot takes a v2snapshot and a v3snapshot and returns a
+// marshaledSnapshot, ready to be serialized.
+func NewMarshaledSnapshot(version string, v2snap *ecp_v2_cache.Snapshot, v3snap *ecp_v3_cache.Snapshot) marshaledSnapshot {
+	ms := marshaledSnapshot{
+		errors:  make([]error, 0),
+		Version: version,
+		V2:      make(map[string]marshaledElements),
+		V3:      make(map[string]marshaledElements),
 	}
+
+	ms.marshalV2Resources("Endpoints", v2snap.Resources[ecp_cache_types.Endpoint])
+	ms.marshalV2Resources("Clusters", v2snap.Resources[ecp_cache_types.Cluster])
+	ms.marshalV2Resources("Routes", v2snap.Resources[ecp_cache_types.Route])
+	ms.marshalV2Resources("Listeners", v2snap.Resources[ecp_cache_types.Listener])
+	ms.marshalV2Resources("Runtimes", v2snap.Resources[ecp_cache_types.Runtime])
+
+	ms.marshalV3Resources("Endpoints", v3snap.Resources[ecp_cache_types.Endpoint])
+	ms.marshalV3Resources("Clusters", v3snap.Resources[ecp_cache_types.Cluster])
+	ms.marshalV3Resources("Routes", v3snap.Resources[ecp_cache_types.Route])
+	ms.marshalV3Resources("Listeners", v3snap.Resources[ecp_cache_types.Listener])
+	ms.marshalV3Resources("Runtimes", v3snap.Resources[ecp_cache_types.Runtime])
+
+	return ms
 }
 
-type v3ExpandedSnapshot struct {
-	Endpoints ecp_v3_cache.Resources `json:"endpoints"`
-	Clusters  ecp_v3_cache.Resources `json:"clusters"`
-	Routes    ecp_v3_cache.Resources `json:"routes"`
-	Listeners ecp_v3_cache.Resources `json:"listeners"`
-	Runtimes  ecp_v3_cache.Resources `json:"runtimes"`
-}
+// marshalV2Resources is just a helper: it marshals a bunch of V2 resources
+// and updates the marshaledSnapshot correctly. marshaledV2Elements does the heavy
+// lifting.
+func (ms *marshaledSnapshot) marshalV2Resources(name string, resources ecp_v2_cache.Resources) {
+	mel, err := marshaledV2Elements(resources)
 
-func NewV3ExpandedSnapshot(v3snap *ecp_v3_cache.Snapshot) v3ExpandedSnapshot {
-	return v3ExpandedSnapshot{
-		Endpoints: v3snap.Resources[ecp_cache_types.Endpoint],
-		Clusters:  v3snap.Resources[ecp_cache_types.Cluster],
-		Routes:    v3snap.Resources[ecp_cache_types.Route],
-		Listeners: v3snap.Resources[ecp_cache_types.Listener],
-		Runtimes:  v3snap.Resources[ecp_cache_types.Runtime],
+	if err != nil {
+		ms.errors = append(ms.errors, err)
+		return
 	}
+
+	ms.V2[name] = *mel
 }
 
-// A combinedSnapshot has both a V2 and V3 snapshot, for logging.
-type combinedSnapshot struct {
-	Version string             `json:"version"`
-	V2      v2ExpandedSnapshot `json:"v2"`
-	V3      v3ExpandedSnapshot `json:"v3"`
+// marshalV3Resources is just a helper: it marshals a bunch of V3 resources
+// and updates the marshaledSnapshot correctly. marshaledV3Elements does the heavy
+// lifting.
+func (ms *marshaledSnapshot) marshalV3Resources(name string, resources ecp_v3_cache.Resources) {
+	mel, err := marshaledV3Elements(resources)
+
+	if err != nil {
+		ms.errors = append(ms.errors, err)
+		return
+	}
+
+	ms.V3[name] = *mel
+}
+
+// marshaledV2Elements builds a marshaledElements data structure from a bunch of V2
+// resources. Note that the version comes from the resource set, not from the caller.
+func marshaledV2Elements(resources ecp_v2_cache.Resources) (*marshaledElements, error) {
+	mel := marshaledElements{
+		Version:  resources.Version,
+		Elements: make([]json.RawMessage, 0, len(resources.Items)),
+	}
+
+	for _, e := range resources.Items {
+		j, err := protojson.Marshal(e.Resource.(proto.Message))
+
+		if err != nil {
+			return nil, err
+		}
+		mel.Elements = append(mel.Elements, json.RawMessage(j))
+	}
+
+	return &mel, nil
+}
+
+// marshaledV3Elements builds a marshaledElements data structure from a bunch of V3
+// resources. Note that the version comes from the resource set, not from the caller.
+func marshaledV3Elements(resources ecp_v3_cache.Resources) (*marshaledElements, error) {
+	mel := marshaledElements{
+		Version:  resources.Version,
+		Elements: make([]json.RawMessage, 0, len(resources.Items)),
+	}
+
+	for _, e := range resources.Items {
+		j, err := protojson.Marshal(e.Resource.(proto.Message))
+
+		if err != nil {
+			return nil, err
+		}
+		mel.Elements = append(mel.Elements, json.RawMessage(j))
+	}
+
+	return &mel, nil
 }
 
 // csDump creates a combinedSnapshot from a V2 snapshot and a V3 snapshot, then
@@ -130,17 +202,13 @@ func csDump(ctx context.Context, snapdirPath string, numsnaps int, generation in
 	// OK, they want snapshots. Make a proper version string...
 	version := fmt.Sprintf("v%d", generation)
 
-	// ...and a combinedSnapshot.
-	cs := combinedSnapshot{
-		Version: version,
-		V2:      NewV2ExpandedSnapshot(v2snap),
-		V3:      NewV3ExpandedSnapshot(v3snap),
-	}
+	// ...and a marshaledSnapshot.
+	ms := NewMarshaledSnapshot(version, v2snap, v3snap)
 
 	// Next up, marshal as JSON and write to ambex-0.json. Note that we
 	// didn't say anything about a -0 file; that's because it's about to
 	// be renamed.
-	bs, err := json.Marshal(cs)
+	bs, err := json.Marshal(ms)
 
 	if err != nil {
 		dlog.Errorf(ctx, "CSNAP: marshal failure: %s", err)
