@@ -837,7 +837,7 @@ func Main(
 		for {
 
 			select {
-			case _ = <-sigCh:
+			case <-sigCh:
 				err := update(
 					ctx,
 					args.snapdirPath,
