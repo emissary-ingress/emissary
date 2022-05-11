@@ -102,6 +102,10 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		// Demo mode!
 		dlog.Infof(ctx, "DEMO MODE")
 		demoMode = true
+		// Set an environment variable so that other parts of the code can check if demo mode is active (mainly used for disabling synthetic authservice injection)
+		os.Setenv("AMBASSADOR_DEMO_MODE", "true")
+	} else {
+		os.Setenv("AMBASSADOR_DEMO_MODE", "false")
 	}
 
 	clusterID := GetClusterID(ctx)

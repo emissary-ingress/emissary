@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/datawire/dlib/dexec"
@@ -261,6 +262,19 @@ func IsEdgeStack() (bool, error) {
 		return false, nil
 	} else {
 		return false, err
+	}
+}
+
+func IsDemoMode() (bool, error) {
+	demoStr := os.Getenv("AMBASSADOR_DEMO_MODE")
+	if demoStr == "" {
+		demoStr = "false"
+	}
+	demoMode, err := strconv.ParseBool(demoStr)
+	if err != nil {
+		return false, err
+	} else {
+		return demoMode, nil
 	}
 }
 
