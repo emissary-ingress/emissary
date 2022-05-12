@@ -12,6 +12,7 @@ import (
 
 	"github.com/datawire/ambassador/v2/pkg/acp"
 	"github.com/datawire/ambassador/v2/pkg/ambex"
+	v3tlsconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/datawire/ambassador/v2/pkg/debug"
 	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
 	"github.com/datawire/ambassador/v2/pkg/gateway"
@@ -373,9 +374,11 @@ func (sh *SnapshotHolder) K8sUpdate(
 	reconcileConsulTimer := dbg.Timer("reconcileConsul")
 	reconcileAuthServicesTimer := dbg.Timer("reconcileAuthServices")
 
+	secretsChanged := false
 	endpointsChanged := false
 	dispatcherChanged := false
 	var endpoints *ambex.Endpoints
+	var secrets []*v3tlsconfig.Secret
 	var dispSnapshot *ecp_v2_cache.Snapshot
 	changed, err := func() (bool, error) {
 		dlog.Debugf(ctx, "[WATCHER]: processing cluster changes detected by the kubernetes watcher")
@@ -465,7 +468,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 			endpointsChanged = true
 		}
 
-		endpointsOnly := true
+		fastpathOnly := true
 		for _, delta := range deltas {
 			sh.unsentDeltas = append(sh.unsentDeltas, delta)
 
@@ -474,8 +477,12 @@ func (sh *SnapshotHolder) K8sUpdate(
 				if sh.endpointRoutingInfo.endpointWatches[key] || sh.dispatcher.IsWatched(delta.Namespace, delta.Name) {
 					endpointsChanged = true
 				}
+			} else if delta.Kind == "Secret" {
+				// Might need to do more here!
+				dlog.Warnf(ctx, "secret changed: %s/%s", delta.Namespace, delta.Name)
+				secretsChanged = true
 			} else {
-				endpointsOnly = false
+				fastpathOnly = false
 			}
 
 			if sh.dispatcher.IsRegistered(delta.Kind) {
@@ -485,12 +492,20 @@ func (sh *SnapshotHolder) K8sUpdate(
 				}
 			}
 		}
-		if !endpointsOnly {
+
+		if !fastpathOnly {
 			sh.snapshotChangeCount += 1
 		}
 
-		if endpointsChanged || dispatcherChanged {
+		if endpointsChanged {
 			endpoints = makeEndpoints(ctx, sh.k8sSnapshot, sh.consulSnapshot.Endpoints)
+		}
+
+		if secretsChanged {
+			secrets = ambex.MakeSecrets(ctx, sh.k8sSnapshot)
+		}
+
+		if dispatcherChanged {
 			for _, gwc := range sh.k8sSnapshot.GatewayClasses {
 				if err := sh.dispatcher.Upsert(gwc); err != nil {
 					// TODO: Should this be more severe?
@@ -519,10 +534,11 @@ func (sh *SnapshotHolder) K8sUpdate(
 		return changed, err
 	}
 
-	if endpointsChanged || dispatcherChanged {
+	if secretsChanged || endpointsChanged || dispatcherChanged {
 		fastpath := &ambex.FastpathSnapshot{
 			Endpoints: endpoints,
 			Snapshot:  dispSnapshot,
+			Secrets:   secrets,
 		}
 		fastpathProcessor(ctx, fastpath)
 	}

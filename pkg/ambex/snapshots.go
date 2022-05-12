@@ -116,6 +116,7 @@ func NewMarshaledSnapshot(version string, v2snap *ecp_v2_cache.Snapshot, v3snap 
 	ms.marshalV3Resources("Routes", v3snap.Resources[ecp_cache_types.Route])
 	ms.marshalV3Resources("Listeners", v3snap.Resources[ecp_cache_types.Listener])
 	ms.marshalV3Resources("Runtimes", v3snap.Resources[ecp_cache_types.Runtime])
+	ms.marshalV3Resources("Secrets", v3snap.Resources[ecp_cache_types.Secret])
 
 	return ms
 }
