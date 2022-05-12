@@ -115,12 +115,14 @@ import (
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/router/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/tcp_proxy/v3"
+	v3tlsconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/transport_sockets/tls/v3"
 	v3cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/service/cluster/v3"
 	v3discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
 	v3endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/service/endpoint/v3"
 	v3listener "github.com/datawire/ambassador/v2/pkg/api/envoy/service/listener/v3"
 	v3route "github.com/datawire/ambassador/v2/pkg/api/envoy/service/route/v3"
 	v3runtime "github.com/datawire/ambassador/v2/pkg/api/envoy/service/runtime/v3"
+	v3secret "github.com/datawire/ambassador/v2/pkg/api/envoy/service/secret/v3"
 
 	// first-party libraries
 	"github.com/datawire/dlib/dgroup"
@@ -246,6 +248,7 @@ func runManagementServer(ctx context.Context, server ecp_v2_server.Server, serve
 	v3cluster.RegisterClusterDiscoveryServiceServer(grpcServer, serverv3)
 	v3route.RegisterRouteDiscoveryServiceServer(grpcServer, serverv3)
 	v3listener.RegisterListenerDiscoveryServiceServer(grpcServer, serverv3)
+	v3secret.RegisterSecretDiscoveryServiceServer(grpcServer, serverv3)
 
 	dlog.Infof(ctx, "Listening on %s:%s", adsNetwork, adsAddress)
 
@@ -317,6 +320,7 @@ func update(
 	dirs []string,
 	edsEndpoints map[string]*v2.ClusterLoadAssignment,
 	edsEndpointsV3 map[string]*v3endpointconfig.ClusterLoadAssignment,
+	sdsSecretsV3 []*v3tlsconfig.Secret,
 	fastpathSnapshot *FastpathSnapshot,
 	updates chan<- Update,
 ) error {
@@ -329,6 +333,7 @@ func update(
 	routesv3 := []ecp_cache_types.Resource{}    // v3.RouteConfiguration
 	listenersv3 := []ecp_cache_types.Resource{} // v3.Listener
 	runtimesv3 := []ecp_cache_types.Resource{}  // v3.Runtime
+	secretsv3 := []ecp_cache_types.Resource{}   // v3.Secret
 
 	var filenames []string
 
@@ -441,7 +446,7 @@ func update(
 		for _, clu := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Cluster].Items {
 			clusters = append(clusters, clu.Resource)
 		}
-		// We intentionally omit endpoints since those are carried separately.
+		// We intentionally omit endpoints and secrets since those are carried separately.
 	}
 
 	// The configuration data that reaches us here arrives via two parallel paths that race each
@@ -469,6 +474,11 @@ func update(
 	// cluster exists but currently has no endpoints.
 	endpoints := JoinEdsClusters(ctx, clusters, edsEndpoints)
 	endpointsv3 := JoinEdsClustersV3(ctx, clustersv3, edsEndpointsV3)
+
+	for _, secret := range sdsSecretsV3 {
+		dlog.Warnf(ctx, "Updating with secret %s", secret.Name)
+		secretsv3 = append(secretsv3, secret)
+	}
 
 	// Create a new configuration snapshot from everything we have just loaded from disk.
 	curgen := *generation
@@ -498,7 +508,7 @@ func update(
 		routesv3,
 		listenersv3,
 		runtimesv3,
-		nil, // secrets
+		secretsv3, // secrets
 	)
 
 	if err := snapshotv3.Consistent(); err != nil {
@@ -707,6 +717,7 @@ func Main(
 		var fastpathSnapshot *FastpathSnapshot
 		edsEndpoints := map[string]*v2.ClusterLoadAssignment{}
 		edsEndpointsV3 := map[string]*v3endpointconfig.ClusterLoadAssignment{}
+		sdsSecretsV3 := []*v3tlsconfig.Secret{}
 
 		// We always start by updating with a totally empty snapshot.
 		//
@@ -722,6 +733,7 @@ func Main(
 			args.dirs,
 			edsEndpoints,
 			edsEndpointsV3,
+			sdsSecretsV3,
 			fastpathSnapshot,
 			updates,
 		)
@@ -744,6 +756,7 @@ func Main(
 					args.dirs,
 					edsEndpoints,
 					edsEndpointsV3,
+					sdsSecretsV3,
 					fastpathSnapshot,
 					updates,
 				)
@@ -756,6 +769,9 @@ func Main(
 					edsEndpoints = fpSnap.Endpoints.ToMap_v2()
 					edsEndpointsV3 = fpSnap.Endpoints.ToMap_v3()
 				}
+				if fpSnap.Secrets != nil {
+					sdsSecretsV3 = fpSnap.Secrets
+				}
 				fastpathSnapshot = fpSnap
 				err := update(
 					ctx,
@@ -767,6 +783,7 @@ func Main(
 					args.dirs,
 					edsEndpoints,
 					edsEndpointsV3,
+					sdsSecretsV3,
 					fastpathSnapshot,
 					updates,
 				)
@@ -785,6 +802,7 @@ func Main(
 					args.dirs,
 					edsEndpoints,
 					edsEndpointsV3,
+					sdsSecretsV3,
 					fastpathSnapshot,
 					updates,
 				)
