@@ -33,6 +33,7 @@ type TLSContextSpec struct {
 	PrivateKeyFile  string   `json:"private_key_file,omitempty"`
 	CASecret        string   `json:"ca_secret,omitempty"`
 	CACertChainFile string   `json:"cacert_chain_file,omitempty"`
+	CRLSecret       string   `json:"crl_secret,omitempty"`
 	ALPNProtocols   string   `json:"alpn_protocols,omitempty"`
 	CertRequired    *bool    `json:"cert_required,omitempty"`
 	// +kubebuilder:validation:Enum={"v1.0", "v1.1", "v1.2", "v1.3"}

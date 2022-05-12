@@ -1004,6 +1004,7 @@ class IR:
 
         tls_termination_count = 0   # TLS termination contexts
         tls_origination_count = 0   # TLS origination contexts
+        tls_crl_file_count = 0      # CRL files used
 
         using_tls_module = False
         using_tls_contexts = False
@@ -1021,6 +1022,9 @@ class IR:
                     if secret_info.get('cacert_chain_file', None):
                         tls_origination_count += 1
 
+                    if secret_info.get('crl_file', None):
+                        tls_crl_file_count += 1
+
                 if ctx.get('_legacy', False):
                     using_tls_module = True
 
@@ -1028,6 +1032,7 @@ class IR:
         od['tls_using_contexts'] = using_tls_contexts
         od['tls_termination_count'] = tls_termination_count
         od['tls_origination_count'] = tls_origination_count
+        od['tls_crl_file_count'] = tls_crl_file_count
 
         for key in [ 'diagnostics', 'liveness_probe', 'readiness_probe', 'statsd' ]:
             od[key] = self.ambassador_module.get(key, {}).get('enabled', False)

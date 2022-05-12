@@ -5083,7 +5083,58 @@ func autoConvert_v3alpha1_TCPMappingSpec_To_v2_TCPMappingSpec(in *v3alpha1.TCPMa
 }
 
 func autoConvert_v2_TLSConfig_To_v3alpha1_TLSConfig(in *TLSConfig, out *v3alpha1.TLSConfig, s conversion.Scope) error {
-	*out = v3alpha1.TLSConfig(*in)
+	if true {
+		in, out := &in.CertChainFile, &out.CertChainFile
+		*out = *in
+	}
+	if true {
+		in, out := &in.PrivateKeyFile, &out.PrivateKeyFile
+		*out = *in
+	}
+	if true {
+		in, out := &in.CASecret, &out.CASecret
+		*out = *in
+	}
+	if true {
+		in, out := &in.CAcertChainFile, &out.CAcertChainFile
+		*out = *in
+	}
+	if true {
+		in, out := &in.AlpnProtocols, &out.AlpnProtocols
+		*out = *in
+	}
+	if true {
+		in, out := &in.CertRequired, &out.CertRequired
+		*out = *in
+	}
+	if true {
+		in, out := &in.MinTLSVersion, &out.MinTLSVersion
+		*out = *in
+	}
+	if true {
+		in, out := &in.MaxTLSVersion, &out.MaxTLSVersion
+		*out = *in
+	}
+	if true {
+		in, out := &in.CipherSuites, &out.CipherSuites
+		*out = *in
+	}
+	if true {
+		in, out := &in.ECDHCurves, &out.ECDHCurves
+		*out = *in
+	}
+	if true {
+		in, out := &in.RedirectCleartextFrom, &out.RedirectCleartextFrom
+		*out = *in
+	}
+	if true {
+		in, out := &in.SNI, &out.SNI
+		*out = *in
+	}
+	if true {
+		in, out := &in.V3CRLSecret, &out.CRLSecret
+		*out = *in
+	}
 	return nil
 }
 
@@ -5093,7 +5144,58 @@ func Convert_v2_TLSConfig_To_v3alpha1_TLSConfig(in *TLSConfig, out *v3alpha1.TLS
 }
 
 func autoConvert_v3alpha1_TLSConfig_To_v2_TLSConfig(in *v3alpha1.TLSConfig, out *TLSConfig, s conversion.Scope) error {
-	*out = TLSConfig(*in)
+	if true {
+		in, out := &in.CertChainFile, &out.CertChainFile
+		*out = *in
+	}
+	if true {
+		in, out := &in.PrivateKeyFile, &out.PrivateKeyFile
+		*out = *in
+	}
+	if true {
+		in, out := &in.CASecret, &out.CASecret
+		*out = *in
+	}
+	if true {
+		in, out := &in.CAcertChainFile, &out.CAcertChainFile
+		*out = *in
+	}
+	if true {
+		in, out := &in.CRLSecret, &out.V3CRLSecret
+		*out = *in
+	}
+	if true {
+		in, out := &in.AlpnProtocols, &out.AlpnProtocols
+		*out = *in
+	}
+	if true {
+		in, out := &in.CertRequired, &out.CertRequired
+		*out = *in
+	}
+	if true {
+		in, out := &in.MinTLSVersion, &out.MinTLSVersion
+		*out = *in
+	}
+	if true {
+		in, out := &in.MaxTLSVersion, &out.MaxTLSVersion
+		*out = *in
+	}
+	if true {
+		in, out := &in.CipherSuites, &out.CipherSuites
+		*out = *in
+	}
+	if true {
+		in, out := &in.ECDHCurves, &out.ECDHCurves
+		*out = *in
+	}
+	if true {
+		in, out := &in.RedirectCleartextFrom, &out.RedirectCleartextFrom
+		*out = *in
+	}
+	if true {
+		in, out := &in.SNI, &out.SNI
+		*out = *in
+	}
 	return nil
 }
 
@@ -5261,6 +5363,10 @@ func autoConvert_v2_TLSContextSpec_To_v3alpha1_TLSContextSpec(in *TLSContextSpec
 		in, out := &in.SNI, &out.SNI
 		*out = *in
 	}
+	if true {
+		in, out := &in.V3CRLSecret, &out.CRLSecret
+		*out = *in
+	}
 	return nil
 }
 
@@ -5298,6 +5404,10 @@ func autoConvert_v3alpha1_TLSContextSpec_To_v2_TLSContextSpec(in *v3alpha1.TLSCo
 	}
 	if true {
 		in, out := &in.CACertChainFile, &out.CACertChainFile
+		*out = *in
+	}
+	if true {
+		in, out := &in.CRLSecret, &out.V3CRLSecret
 		*out = *in
 	}
 	if true {
