@@ -19,7 +19,12 @@
 # is currently used only for test_scout.py.  This is a BRUTAL HACK.
 
 if [ "$1" != "--dev-magic" ]; then
-  exec busyambassador entrypoint "$@"   # See comment above.
+  echo "Running entrypoint"
+  if [ -n "$AMBASSADOR_LOGFILE" ]; then
+    exec busyambassador entrypoint "$@" >/tmp/access.log 2>/tmp/entry.log  # See comment above.
+  else
+    exec busyambassador entrypoint "$@"  # See comment above
+  fi
 fi
 
 DEVMAGIC=yes
