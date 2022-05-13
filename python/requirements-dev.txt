@@ -4,6 +4,7 @@ httpretty
 mypy
 packaging
 pexpect
+pyOpenSSL
 pytest==6.2.5
 pytest-cov
 pytest-rerunfailures

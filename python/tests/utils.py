@@ -8,6 +8,8 @@ import tempfile
 import time
 from collections import namedtuple
 from retry import retry
+from OpenSSL import crypto
+from base64 import b64encode
 
 import json
 import yaml
@@ -233,3 +235,14 @@ def assert_valid_envoy_config(config_dict, v2=False):
         if p.returncode != 0:
             print(p.stdout)
         p.check_returncode()
+
+
+def create_crl_pem_b64(issuerCert, issuerKey, revokedCerts):
+    crl = crypto.CRL()
+    crl.set_lastUpdate(b"20190101010101Z")
+    for revoked in revokedCerts:
+        crl.add_revoked(revoked)
+    cert = crypto.load_certificate(crypto.FILETYPE_PEM, bytes(issuerCert, "utf-8"))
+    key = crypto.load_privatekey(crypto.FILETYPE_PEM, bytes(issuerKey, "utf-8"))
+    crl.sign(cert, key, b"sha256")
+    return b64encode((crypto.dump_crl(crypto.FILETYPE_PEM, crl).decode("utf-8")+"\n").encode('utf-8')).decode('utf-8')

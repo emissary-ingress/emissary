@@ -300,7 +300,7 @@ class IRTLSContext(IRResource):
                 if not fc(path):
                     self.post_error("TLSContext %s found no %s '%s'" % (self.name, key, path))
                     errors += 1
-            elif (key != 'cacert_chain_file' or key != 'crl_file') and self.get('hosts', None):
+            elif (not(key == 'cacert_chain_file' or key == 'crl_file')) and self.get('hosts', None):
                 self.post_error("TLSContext %s is missing %s" % (self.name, key))
                 errors += 1
 
