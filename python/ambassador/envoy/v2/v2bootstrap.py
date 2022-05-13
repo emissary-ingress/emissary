@@ -72,18 +72,15 @@ class V2Bootstrap(dict):
             "http2_protocol_options": {},
             "lb_policy": "ROUND_ROBIN",
             "load_assignment": {
-                "cluster_name": "cluster_127_0_0_1_8003",
+                "cluster_name": "cluster_xds_cluster",
                 "endpoints": [
                     {
                         "lb_endpoints": [
                             {
                                 "endpoint": {
                                     "address": {
-                                        "socket_address": {
-                                            # this should be kept in-sync with entrypoint.sh `ambex --ads-listen-address=...`
-                                            "address": "127.0.0.1",
-                                            "port_value": 8003,
-                                            "protocol": "TCP"
+                                        "pipe": {
+                                            "path": "/tmp/ambex.sock"
                                         }
                                     }
                                 }
