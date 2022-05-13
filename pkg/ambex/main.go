@@ -608,28 +608,26 @@ func (l logAdapterBase) OnStreamClosed(sid int64) {
 
 // OnStreamRequest implements ecp_v2_server.Callbacks.
 func (l logAdapterV2) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) error {
-	dlog.Debugf(context.TODO(), "V2 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
-	dlog.Debugf(context.TODO(), "V2 Stream request[%v] dump: %v", sid, req)
+	dlog.Debugf(context.TODO(), "V2 Stream request[%v] for type %s: %s", sid, req.TypeUrl, strings.Join(req.ResourceNames, ","))
 	return nil
 }
 
 // OnStreamRequest implements ecp_v3_server.Callbacks.
 func (l logAdapterV3) OnStreamRequest(sid int64, req *v3discovery.DiscoveryRequest) error {
-	dlog.Debugf(context.TODO(), "V3 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
-	dlog.Debugf(context.TODO(), "V3 Stream request[%v] dump: %v", sid, req)
+	dlog.Debugf(context.TODO(), "V3 Stream request[%v] for type %s: %s", sid, req.TypeUrl, strings.Join(req.ResourceNames, ","))
 	return nil
 }
 
 // OnStreamResponse implements ecp_v2_server.Callbacks.
 func (l logAdapterV2) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
 	dlog.Debugf(context.TODO(), "V2 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
-	dlog.Debugf(context.TODO(), "V2 Stream dump response[%v]: %v -> %v", sid, req, res)
+	// dlog.Debugf(context.TODO(), "V2 Stream dump response[%v]: %v -> %v", sid, req, res)
 }
 
 // OnStreamResponse implements ecp_v3_server.Callbacks.
 func (l logAdapterV3) OnStreamResponse(sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
-	dlog.Debugf(context.TODO(), "V3 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
-	dlog.Debugf(context.TODO(), "V3 Stream dump response[%v]: %v -> %v", sid, req, res)
+	dlog.Debugf(context.TODO(), "V3 Stream response[%v] for type %s: returning %d resources: %v", sid, res.TypeUrl, len(res.Resources), res.Resources)
+	// dlog.Debugf(context.TODO(), "V3 Stream dump response[%v]: %v -> %v", sid, req, res)
 }
 
 // OnFetchRequest implements ecp_v2_server.Callbacks.
