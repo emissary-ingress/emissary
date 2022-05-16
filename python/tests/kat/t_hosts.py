@@ -1108,7 +1108,7 @@ class HostCRDClientCertCRLEmptyList(AmbassadorTest):
         self.add_default_https_listener = False
 
     def manifests(self) -> str:
-        # Same as HostCRDClientCertSameNamespace, except we also
+        # Similar to HostCRDClientCertSameNamespace, except we also
         # include a Certificate Revocation List in the TLS config
         return namespace_manifest("alt3-namespace") + self.format('''
 ---
@@ -1207,32 +1207,14 @@ spec:
         }
 
         yield Query(**base,
+                    error="tls: certificate required")
+
+        yield Query(**base,
                     client_crt=TLSCerts["presto.example.com"].pubcert,
                     client_key=TLSCerts["presto.example.com"].privkey)
 
-        # Check that it requires the client cert.
-        #
-        # In TLS < 1.3, there's not a dedicated alert code for "the client forgot to include a certificate",
-        # so we get a generic alert=40 ("handshake_failure").
-        yield Query(**base, maxTLSv="v1.2", error="tls: handshake failure")
-        # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario.
-        yield Query(**base, minTLSv="v1.3", error=(["tls: certificate required"] + (["write: connection reset by peer", "write: broken pipe"] if bug_clientcert_reset else [])))
-
-        # Check that it's validating the client cert against the CA cert.
-        yield Query(**base,
-                    client_crt=TLSCerts["localhost"].pubcert,
-                    client_key=TLSCerts["localhost"].privkey,
-                    maxTLSv="v1.2", error="tls: handshake failure")
-
     def requirements(self):
-        for r in super().requirements():
-            query = r[1]
-            query.headers={"Host": "ambassador.example.com"}
-            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
-            query.ca_cert = TLSCerts["master.datawire.io"].pubcert
-            query.client_cert = TLSCerts["presto.example.com"].pubcert
-            query.client_key = TLSCerts["presto.example.com"].privkey
-            yield (r[0], query)
+        yield ("pod", self.path.k8s)
 
 
 class HostCRDRootRedirectCongratulations(AmbassadorTest):
