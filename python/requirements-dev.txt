@@ -13,6 +13,7 @@ retry
 # Type stubs
 types-orjson
 types-protobuf
+types-pyOpenSSL
 types-pyyaml
 types-requests
 types-retry
