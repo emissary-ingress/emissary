@@ -238,11 +238,17 @@ def assert_valid_envoy_config(config_dict, v2=False):
 
 
 def create_crl_pem_b64(issuerCert, issuerKey, revokedCerts):
+    when = b"20220516010101Z"
     crl = crypto.CRL()
-    crl.set_lastUpdate(b"20220516010101Z")
+    crl.set_lastUpdate(when)
 
-    for revoked in revokedCerts:
-        crl.add_revoked(revoked)
+    for revokedCert in revokedCerts:
+        clientCert = crypto.load_certificate(crypto.FILETYPE_PEM, bytes(revokedCert, "utf-8"))
+        r = crypto.Revoked()
+        r.set_serial(bytes('{:x}'.format(clientCert.get_serial_number()), "ascii"))
+        r.set_rev_date(when)
+        r.set_reason(None)
+        crl.add_revoked(r)
 
     cert = crypto.load_certificate(crypto.FILETYPE_PEM, bytes(issuerCert, "utf-8"))
     key = crypto.load_privatekey(crypto.FILETYPE_PEM, bytes(issuerKey, "utf-8"))
