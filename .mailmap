@@ -1,0 +1,121 @@
+# .mailmap -- normalize Git user names and email addresses
+#
+# Short version of the syntax:
+#
+#   - Lines starting with "#" are comments
+#
+#   - Fix just the name associated with an email address:
+#
+#         New Full Name <email@address>
+#
+#     Example: to map from "AliceProxy <alicewasko@datawire.io>" to
+#     "Alice Wasko <alicewasko@datawire.io>", I'd write
+#
+#         Alice Wasko <alicewasko@datawire.io>
+#
+#   - Adjust an email address (and possibly name as well):
+#
+#         New Full Name <new.email@address> <old.email@address>
+#
+#     Example: to map from "AliceProxy <aliceproxy@protonmail.com>" to
+#     "Alice Wasko <alicewasko@datawire.io>", I'd write
+#
+#         Alice Wasko <alicewasko@datawire.io> <aliceproxy@protonmail.com>
+#
+# In `git log` `--format` strings: the uppercase '%cN', '%cE', '%aN',
+# and '%aE' obey .mailmap; while the lowercase '%cn', '%ce', '%an',
+# and '%ae' ignore it.
+#
+# See the gitmailmap(5) man-page for more information.
+
+# Current Ambassador Labs employees
+Alex Gervais <alex@datawire.io>
+Alex Gervais <alex@datawire.io>                        <alex.gervais@gmail.com>
+Alex Gervais <alex@datawire.io>                        <alexandre.gervais@appdirect.com>
+Alice Wasko <alicewasko@datawire.io>
+Alice Wasko <alicewasko@datawire.io>                   <22459179+AliceProxy@users.noreply.github.com>
+Alice Wasko <alicewasko@datawire.io>                   <aliceProxy@protonmail.com>
+Alice Wasko <alicewasko@datawire.io>                   <aliceproxy@pm.me>
+Alice Wasko <alicewasko@datawire.io>                   <aliceproxy@protonmail.com>
+Andres Osorio <aosorio@datawire.io>                    <95947712+aosoriodw@users.noreply.github.com>
+Bjorn Freeman-Benson <bjorn@datawire.io>               <157783+bnfb@users.noreply.github.com>
+Bjorn Freeman-Benson <bjorn@datawire.io>               <bjorn@Bjorns-MacBook-Pro.local>
+Cindy Mullins <cindymullins@datawire.io>               <57576741+cindymullins-dw@users.noreply.github.com>
+Kelsey Evans <kelsey@datawire.io>
+Kevin Lambert <klambert@datawire.io>                   <kevin.lambert.ca@gmail.com>
+Lance Austin <laustin@datawire.io>                     <lanceaustin26@gmail.com>
+Nick Powell <nickpowell@datawire.io>                   <35627686+njayp@users.noreply.github.com>
+Nick Powell <nickpowell@datawire.io>                   <nickjaypowell@gmail.com>
+Rafael Schloming <rhs@datawire.io>                     <rhs@alum.mit.edu>
+Thomas Hallgren <thomas@datawire.io>                   <thomas@tada.se>
+William Hardin <williamhardin@datawire.io>             <47009048+w-h37@users.noreply.github.com>
+
+# Former Ambassador Labs employees (without a new address)
+Aidan Hahn <aidanhahn@datawire.io>                     <87328374+aidanhahn@users.noreply.github.com>
+Alix Cook <alixcook@datawire.io>                       <73843761+acookin@users.noreply.github.com>
+Douglas Camata <dcamata@datawire.io>                   <159076+douglascamata@users.noreply.github.com>
+Leonardo Luz Almeida <leonardoluz@datawire.io>         <leoluz@users.noreply.github.com>
+Matt McClure <mattmcclure@datawire.io>                 <73489204+mattmcclure-dw@users.noreply.github.com>
+
+# Former Ambassador Labs employees (with a new address)
+Abhay Saxena <ark3@email.com>                          <ark3@datawire.io>
+Alice Nodelman <alice@nodelman.net>
+Alice Nodelman <alice@nodelman.net>                    <anode@boat.local>
+Alice Nodelman <alice@nodelman.net>                    <anode@datawire.io>
+Alvaro Saurin <alvaro.saurin@gmail.com>                <1841612+inercia@users.noreply.github.com>
+Alvaro Saurin <alvaro.saurin@gmail.com>                <alvaro@datawire.io>
+Cynthia Coan <cynthia@coan.dev>
+Cynthia Coan <cynthia@coan.dev>                        <SecurityInsanity@users.noreply.github.com>
+Donny Yung <donaldryung@gmail.com>                     <donaldyung@datawire.io>
+Flynn <emissary@flynn.kodachi.com>                     <flynn+github@kodachi.com>
+Flynn <emissary@flynn.kodachi.com>                     <flynn@datawire.io>
+Flynn <emissary@flynn.kodachi.com>                     <flynn@ryoohko.local>
+Flynn <emissary@flynn.kodachi.com>                     <kflynn@users.noreply.github.com>
+Gabriel Linden Sagula <gsagula@gmail.com>
+Itamar Turner-Trauring <itamar@itamarst.org>           <itamar@datawire.io>
+John Esmet <john.esmet@gmail.com>                      <jesmet@appnexus.com>
+John Esmet <john.esmet@gmail.com>                      <johnesmest@datawire.io>
+John Esmet <john.esmet@gmail.com>                      <johnesmet@datawire.io>
+Luke Shumaker <lukeshu@lukeshu.com>                    <luke@lukeshu.com>
+Luke Shumaker <lukeshu@lukeshu.com>                    <lukeshu@datawire.io>
+Noah Krause <krausenoah@gmail.com>
+Noah Krause <krausenoah@gmail.com>                     <nkrause@MacBook-Pro.local>
+Noah Krause <krausenoah@gmail.com>                     <nkrause@Opss-MacBook-Air.local>
+Noah Krause <krausenoah@gmail.com>                     <nkrause@datawire.io>
+Noah Krause <krausenoah@gmail.com>                     <noahkrause@Noahs-MacBook-Pro.local>
+Philip Lombardi <plombardi89@gmail.com>
+Philip Lombardi <plombardi89@gmail.com>                <893096+plombardi89@users.noreply.github.com>
+Philip Lombardi <plombardi89@gmail.com>                <plombardi@datawire.io>
+Shahriar Rostami <srdsecond@gmail.com>                 <54422255+alphashr@users.noreply.github.com>
+Stephanie Coyle <stephaniecoyle391@gmail.com>
+Stephanie Coyle <stephaniecoyle391@gmail.com>          <55929576+scoyle391@users.noreply.github.com>
+Stephanie Coyle <stephaniecoyle391@gmail.com>          <scoyle@datawire.io>
+
+# Outside contributors (inconsistent email -- did I choosed the correct email?)
+Brandon Catcho <bcatcho@doubledutch.me>                <bcatcho@gmail.com>
+Christoph Grossegger <christoph.grossegger@gmail.com>  <christoph@dust-bit-games.com>
+Dan Sipple <dsipple@etsy.com>                          <sipple.dan@gmail.com>
+Endre Czirbesz <endre.czirbesz@rungway.com>            <endre@czirbesz.hu>
+Endre Czirbesz <endre.czirbesz@rungway.com>            <endrec@users.noreply.github.com>
+Giovanni Gargiulo <gargiulo.gianni@gmail.com>          <giovanni.gargiulo@hbc.com>
+John Morrissey <jmorrissey@devoted.com>                <jwm@devoted.com>
+Josue Diaz <josue_diaz@affirmednetworks.com>           <josuesdiaz15@msn.com>
+Markus Maga <markus@maga.nu>                           <markus@maga.se>
+Niko Kurtti <niko.kurtti@interdax.com>                 <niko@kurtti.eu>
+Phil Peble <philpeble@gmail.com>                       <ppeble@activecampaign.com>
+Romario Maxwell <maxwellra@jncb.com>                   <romario.maxwell@gmail.com>
+Wenhua Zhao <whzhao@gmail.com>                         <wenhuaz@splunk.com>
+n1koo <niko.kurtti@interdax.com>                       <niko@kurtti@eu>
+
+# Outside contributors (inconsistent name)
+Kevin Dagostino <kevin@tonkworks.com>
+Kowalczyk Bartek <bkowalczyyk@gmail.com>
+Mohit Sharma <imoisharma@icloud.com>
+
+# Outside contributors (just @users.norely.github.com substitutions)
+Jordan Neufeld <jordan.neufeld@nfl.com>                <neufeldtech@users.noreply.github.com>
+Mark Davydov <mark@monday.com>                         <markrity@users.noreply.github.com>
+Markus Jevring <markus.jevring@sesamecare.com>         <58325443+markusjevringsesame@users.noreply.github.com>
+
+# Bots
+<dev@datawire.io>                                      <dev@datawire.ioservices@datawire.io>
