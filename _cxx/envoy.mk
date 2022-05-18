@@ -115,8 +115,8 @@ $(OSS_HOME)/_cxx/envoy: FORCE
 	        git checkout origin/master; \
 	    fi; \
 	}
-$(OSS_HOME)/_cxx/envoy.clean: %.clean:
-	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $*)
+$(OSS_HOME)/_cxx/envoy.clean:
+	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $@)
 .PHONY: $(OSS_HOME)/_cxx/envoy.clean
 clobber: $(OSS_HOME)/_cxx/envoy.clean
 
@@ -128,8 +128,8 @@ $(OSS_HOME)/_cxx/envoy-build-image.txt: $(OSS_HOME)/_cxx/envoy $(tools/write-ifc
 	    popd; \
 	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(tools/write-ifchanged) $@; \
 	}
-$(OSS_HOME)/_cxx/envoy-build-image.txt.clean: %.clean:
-	rm -f $*
+$(OSS_HOME)/_cxx/envoy-build-image.txt.clean:
+	rm -f $@
 .PHONY: $(OSS_HOME)/_cxx/envoy-build-image.txt.clean
 clean: $(OSS_HOME)/_cxx/envoy-build-image.txt.clean
 
@@ -143,10 +143,14 @@ $(OSS_HOME)/_cxx/envoy-build-container.txt: $(OSS_HOME)/_cxx/envoy-build-image.t
 	    fi; \
 	    docker run --detach --rm --privileged --volume=envoy-build:/root:rw $$(cat $<) tail -f /dev/null > $@; \
 	}
-$(OSS_HOME)/_cxx/envoy-build-container.txt.clean: %.clean:
-	if [ -e $* ]; then docker kill $$(cat $*) || true; fi
-	rm -f $*
-	if docker volume inspect envoy-build &>/dev/null; then docker volume rm envoy-build >/dev/null; fi
+$(OSS_HOME)/_cxx/envoy-build-container.txt.clean:
+	if [ -e $@ ]; then docker kill $$(cat $@) || true; fi
+	rm -f $@
+	if docker volume inspect envoy-build &>/dev/null; then \
+	  if ! docker volume rm envoy-build >/dev/null; then \
+	    echo "Cannot remove Docker volume envoy-build, continuing" ;\
+	  fi ;\
+	fi
 .PHONY: $(OSS_HOME)/_cxx/envoy-build-container.txt.clean
 clean: $(OSS_HOME)/_cxx/envoy-build-container.txt.clean
 
@@ -203,8 +207,8 @@ $(OSS_HOME)/docker/base-envoy/envoy-static-stripped: %-stripped: % FORCE
 	        rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/tmp/$(@F) $@; \
 	    fi; \
 	}
-$(OSS_HOME)/docker/base-envoy/envoy-static.clean $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.clean: %.clean
-	rm -f $*
+$(OSS_HOME)/docker/base-envoy/envoy-static.clean $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.clean:
+	rm -f $@
 .PHONY: $(OSS_HOME)/docker/base-envoy/envoy-static.clean $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.clean
 clobber: $(OSS_HOME)/docker/base-envoy/envoy-static.clean $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.clean
 
