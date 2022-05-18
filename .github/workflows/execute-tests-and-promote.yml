@@ -114,9 +114,8 @@ jobs:
           make gotest
       - uses: ./.github/actions/git-dirty-check
         name: "Check git not dirty from testing"
-      - uses: ./.github/actions/collect-testing-logs
+      - uses: ./.github/actions/collect-logs
         if: always()
-        name: "Collect testing logs"
   check-pytest:
     runs-on: ubuntu-latest
     env:
@@ -176,11 +175,10 @@ jobs:
             make pytest-${{ matrix.test }}
       - uses: ./.github/actions/git-dirty-check
         name: "Check git not dirty from testing"
-      - uses: ./.github/actions/collect-testing-logs
+      - uses: ./.github/actions/collect-logs
         if: always()
-        name: "Collect testing logs"
         with:
-          name: check-pytest-${{ matrix.test }}
+          jobname: check-pytest-${{ matrix.test }}
   check-pytest-unit:
     # pytest-unit is separate from pytests (above) because we know for certain that no cluster is needed.
     # XXX This is pretty much a crock.
@@ -223,11 +221,10 @@ jobs:
             make pytest-${{ matrix.test }}
       - uses: ./.github/actions/git-dirty-check
         name: "Check git not dirty from testing"
-      - uses: ./.github/actions/collect-testing-logs
+      - uses: ./.github/actions/collect-logs
         if: always()
-        name: "Collect testing logs"
         with:
-          name: check-pytest-${{ matrix.test }}
+          jobname: check-pytest-${{ matrix.test }}
   check-chart:
     runs-on: ubuntu-latest
     env:
@@ -262,9 +259,8 @@ jobs:
           make test-chart
       - uses: ./.github/actions/git-dirty-check
         name: "Check git not dirty from testing"
-      - uses: ./.github/actions/collect-testing-logs
+      - uses: ./.github/actions/collect-logs
         if: always()
-        name: "Collect testing logs"
 
   build: #######################################################################
     runs-on: ubuntu-latest
