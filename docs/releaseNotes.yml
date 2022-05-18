@@ -48,6 +48,16 @@ items:
         github:
           - title: "#4179"
             link: https://github.com/emissary-ingress/emissary/pull/4179
+      - title: Allow setting custom_tags for traces
+        type: feature
+        body: >-
+          It is now possible to set <code>custom_tags</code> in the
+          <code>TracingService</code>. Trace tags can be set based on
+          literal values, environment variables, or request headers.
+          (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
+        github:
+          - title: "#4181"
+            link: https://github.com/emissary-ingress/emissary/pull/4181
 
   - version: 2.2.2
     date: 'TBD'
