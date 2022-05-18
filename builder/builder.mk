@@ -268,10 +268,6 @@ ifneq ($(IS_PRIVATE),)
 else
 	@printf '$(CYN)==> $(GRN)recording $(BLU)%s$(GRN) => $(BLU)%s$(GRN) in S3...$(END)\n' "$$(git rev-parse HEAD)" $(patsubst v%,%,$(VERSION))
 	echo '$(patsubst v%,%,$(VERSION))' | aws s3 cp - 's3://$(AWS_S3_BUCKET)/dev-builds/'"$$(git rev-parse HEAD)"
-
-	$(MAKE) release/push-chart
-	$(MAKE) generate-fast --always-make
-	$(MAKE) push-manifests
 endif
 .PHONY: push-dev
 
@@ -380,6 +376,7 @@ $(OSS_HOME)/venv: python/requirements.txt python/requirements-dev.txt
 	$@/bin/pip3 install -e $(OSS_HOME)/python
 
 GOTEST_ARGS ?= -race -count=1 -timeout 30m
+GOTEST_ARGS += -parallel=150 # The ./pkg/envoy-control-plane/cache/v{2,3}/ tests require high parallelism to reliably work
 GOTEST_PKGS ?= ./...
 gotest: $(OSS_HOME)/venv $(tools/kubectl)
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"

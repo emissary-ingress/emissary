@@ -70,7 +70,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
-          success_text: 'Emissary GitHub release was created: ${{ steps.step-create-gh-release.url }}'
+          success_text: 'Emissary GitHub release was created: ${{ steps.step-create-gh-release.outputs.url }}'
           failure_text: 'Emissary GitHub release failed'
           cancelled_text: 'Emissary GitHub release was was cancelled'
           fields: |

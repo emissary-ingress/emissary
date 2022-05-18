@@ -1678,11 +1678,11 @@ NOTE: this switches the default regex engine! See the documentation for the `amb
 - Bugfix: Prevent spurious duplicate-resource errors when loading config from the filesystem
 
 [#1255]: https://github.com/datawire/ambassador/issues/1255
-[#1292]: https://github.com/datawire/ambassador/issuse/1292
+[#1292]: https://github.com/datawire/ambassador/issues/1292
 [#1461]: https://github.com/datawire/ambassador/issues/1461
-[#1578]: https://github.com/datawire/ambassador/issuse/1578
-[#1579]: https://github.com/datawire/ambassador/issuse/1579
-[#1594]: https://github.com/datawire/ambassador/issuse/1594
+[#1578]: https://github.com/datawire/ambassador/issues/1578
+[#1579]: https://github.com/datawire/ambassador/issues/1579
+[#1594]: https://github.com/datawire/ambassador/issues/1594
 [#1622]: https://github.com/datawire/ambassador/issues/1622
 [#1625]: https://github.com/datawire/ambassador/issues/1625
 

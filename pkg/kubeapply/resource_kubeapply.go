@@ -15,68 +15,98 @@ import (
 
 	"github.com/Masterminds/sprig"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 
-	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates_internal"
 	"github.com/datawire/dlib/dexec"
 )
 
-var readyChecks = map[string]func(k8s.Resource) bool{
-	"": func(_ k8s.Resource) bool { return false },
-	"Deployment": func(r k8s.Resource) bool {
+var readyChecks = map[string]func(*kates.Client, kates.Object) bool{
+	"": func(_ *kates.Client, _ kates.Object) bool { return false },
+	"Deployment": func(_ *kates.Client, _r kates.Object) bool {
+		var r kates.Deployment
+		if err := kates_internal.Convert(_r, &r); err != nil {
+			return false
+		}
 		// NOTE - plombardi - (2019-05-20)
 		// a zero-sized deployment never gets status.readyReplicas and friends set by kubernetes deployment controller.
 		// this effectively short-circuits the wait.
 		//
 		// in the future it might be worth porting this change to StatefulSets, ReplicaSets and ReplicationControllers
-		if r.Spec().GetInt64("replicas") == 0 {
+		if r.Spec.Replicas == nil || *r.Spec.Replicas == 0 {
 			return true
 		}
-
-		return r.Status().GetInt64("readyReplicas") > 0
+		return r.Status.ReadyReplicas > 0
 	},
-	"Service": func(r k8s.Resource) bool {
+	"Service": func(_ *kates.Client, r kates.Object) bool {
 		return true
 	},
-	"Pod": func(r k8s.Resource) bool {
-		css := r.Status().GetMaps("containerStatuses")
-		for _, cs := range css {
-			if !k8s.Map(cs).GetBool("ready") {
+	"Pod": func(_ *kates.Client, _r kates.Object) bool {
+		var r kates.Pod
+		if err := kates_internal.Convert(_r, &r); err != nil {
+			return false
+		}
+		for _, cs := range r.Status.ContainerStatuses {
+			if !cs.Ready {
 				return false
 			}
 		}
 		return true
 	},
-	"Namespace": func(r k8s.Resource) bool {
-		return r.Status().GetString("phase") == "Active"
+	"Namespace": func(_ *kates.Client, _r kates.Object) bool {
+		var r kates.Namespace
+		if err := kates_internal.Convert(_r, &r); err != nil {
+			return false
+		}
+		return r.Status.Phase == "Active"
 	},
-	"ServiceAccount": func(r k8s.Resource) bool {
-		_, ok := r["secrets"]
-		return ok
+	"ServiceAccount": func(_ *kates.Client, _r kates.Object) bool {
+		var r kates.ServiceAccount
+		if err := kates_internal.Convert(_r, &r); err != nil {
+			return false
+		}
+		return len(r.Secrets) > 0
 	},
-	"ClusterRole": func(r k8s.Resource) bool {
+	"ClusterRole": func(_ *kates.Client, r kates.Object) bool {
 		return true
 	},
-	"ClusterRoleBinding": func(r k8s.Resource) bool {
+	"ClusterRoleBinding": func(_ *kates.Client, r kates.Object) bool {
 		return true
 	},
-	"CustomResourceDefinition": func(r k8s.Resource) bool {
-		conditions := r.Status().GetMaps("conditions")
+	"CustomResourceDefinition": func(client *kates.Client, _r kates.Object) bool {
+		var r kates.CustomResourceDefinition
+		if err := kates_internal.Convert(_r, &r); err != nil {
+			return false
+		}
+		conditions := r.Status.Conditions
 		if len(conditions) == 0 {
 			return false
 		}
 		last := conditions[len(conditions)-1]
-		return last["status"] == "True"
+		if last.Status != "True" {
+			return false
+		}
+		if err := client.InvalidateCache(); err != nil {
+			return false
+		}
+		resources, err := client.ServerResources()
+		if err != nil {
+			return false
+		}
+		for _, resource := range resources {
+			if resource.Group == r.Spec.Group && resource.Kind == r.Spec.Names.Kind {
+				return true
+			}
+		}
+		return false
 	},
 }
 
 // ReadyImplemented returns whether or not this package knows how to
 // wait for this resource to be ready.
-func ReadyImplemented(r k8s.Resource) bool {
-	if r.Empty() {
-		return false
-	}
-	kind := r.Kind()
+func ReadyImplemented(r kates.Object) bool {
+	kind := r.GetObjectKind().GroupVersionKind().Kind
 	_, ok := readyChecks[kind]
 	return ok
 }
@@ -84,16 +114,13 @@ func ReadyImplemented(r k8s.Resource) bool {
 // Ready returns whether or not this resource is ready; if this
 // package does not know how to check whether the resource is ready,
 // then it returns true.
-func Ready(r k8s.Resource) bool {
-	if r.Empty() {
-		return false
-	}
-	kind := r.Kind()
+func Ready(kubeclient *kates.Client, r kates.Object) bool {
+	kind := r.GetObjectKind().GroupVersionKind().Kind
 	fn, fnOK := readyChecks[kind]
 	if !fnOK {
 		return true
 	}
-	return fn(r)
+	return fn(kubeclient, r)
 }
 
 func isTemplate(input []byte) bool {
@@ -213,18 +240,20 @@ imagePullSecrets:
 
 // LoadResources is like ExpandResource, but follows it up by actually
 // parsing the YAML.
-func LoadResources(ctx context.Context, path string) (result []k8s.Resource, err error) {
-	var input []byte
-	input, err = ExpandResource(ctx, path)
+func LoadResources(ctx context.Context, path string) ([]kates.Object, error) {
+	input, err := ExpandResource(ctx, path)
 	if err != nil {
-		return
+		return nil, err
 	}
-	result, err = k8s.ParseResources(path, string(input))
-	return
+	result, err := kates.ParseManifestsToUnstructured(string(input))
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", path, err)
+	}
+	return result, nil
 }
 
-// SaveResources serializes a list of k8s.Resources to a YAML file.
-func SaveResources(path string, resources []k8s.Resource) error {
+// SaveResources serializes a list of kates.Objects to a YAML file.
+func SaveResources(path string, resources []kates.Object) error {
 	output, err := MarshalResources(resources)
 	if err != nil {
 		return fmt.Errorf("%s: %v", path, err)
@@ -236,16 +265,18 @@ func SaveResources(path string, resources []k8s.Resource) error {
 	return nil
 }
 
-// MarshalResources serializes a list of k8s.Resources in to YAML.
-func MarshalResources(resources []k8s.Resource) ([]byte, error) {
-	buf := bytes.NewBuffer(nil)
-	e := yaml.NewEncoder(buf)
-	for _, r := range resources {
-		err := e.Encode(r)
+// MarshalResources serializes a list of kates.Objects in to YAML.
+func MarshalResources(resources []kates.Object) ([]byte, error) {
+	var buf []byte
+	for i, r := range resources {
+		if i > 0 {
+			buf = append(buf, []byte("---\n")...)
+		}
+		bs, err := yaml.Marshal(r)
 		if err != nil {
 			return nil, err
 		}
+		buf = append(buf, bs...)
 	}
-	e.Close()
-	return buf.Bytes(), nil
+	return buf, nil
 }

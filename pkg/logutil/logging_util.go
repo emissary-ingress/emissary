@@ -24,3 +24,5 @@ func LogrusToKLogLevel(level logrus.Level) int {
 
 	return klogLevel
 }
+
+const DefaultLogLevel = logrus.InfoLevel

@@ -17,7 +17,6 @@ package resource
 import (
 	auth "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/auth"
 	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
 )
 
 const (
@@ -98,9 +97,9 @@ yA==
 )
 
 // MakeSecrets generates an SDS secret
-func MakeSecrets(tlsName, rootName string) []types.Resource {
-	return []types.Resource{
-		&auth.Secret{
+func MakeSecrets(tlsName, rootName string) []*auth.Secret {
+	return []*auth.Secret{
+		{
 			Name: tlsName,
 			Type: &auth.Secret_TlsCertificate{
 				TlsCertificate: &auth.TlsCertificate{
@@ -113,7 +112,7 @@ func MakeSecrets(tlsName, rootName string) []types.Resource {
 				},
 			},
 		},
-		&auth.Secret{
+		{
 			Name: rootName,
 			Type: &auth.Secret_ValidationContext{
 				ValidationContext: &auth.CertificateValidationContext{

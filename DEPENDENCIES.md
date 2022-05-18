@@ -22,6 +22,7 @@ following Free and Open Source software:
     github.com/armon/go-metrics                                                                v0.3.10                                      MIT license
     github.com/asaskevich/govalidator                                                          v0.0.0-20210307081110-f21760c49a8d           MIT license
     github.com/census-instrumentation/opencensus-proto                                         v0.3.0                                       Apache License 2.0
+    github.com/chai2010/gettext-go                                                             v0.0.0-20160711120539-c6fed771bfd5           3-clause BSD license
     github.com/cncf/udpa/go                                                                    v0.0.0-20220112060539-c52dc94e7fbe           Apache License 2.0
     github.com/cncf/xds/go                                                                     v0.0.0-20220121163655-4a2b9fdd466b           Apache License 2.0
     github.com/datawire/dlib                                                                   v1.2.5-0.20211116212847-0316f8d7af2b         Apache License 2.0
@@ -66,9 +67,9 @@ following Free and Open Source software:
     github.com/huandu/xstrings                                                                 v1.3.2                                       MIT license
     github.com/imdario/mergo                                                                   v0.3.12                                      3-clause BSD license
     github.com/inconshreveable/mousetrap                                                       v1.0.0                                       Apache License 2.0
+    github.com/jonboulle/clockwork                                                             v0.1.0                                       Apache License 2.0
     github.com/josharian/intern                                                                v1.0.1-0.20211109044230-42b52b674af5         MIT license
     github.com/json-iterator/go                                                                v1.1.12                                      MIT license
-    github.com/kballard/go-shellquote                                                          v0.0.0-20180428030007-95032a82bc51           MIT license
     github.com/liggitt/tabwriter                                                               v0.0.0-20181228230101-89fcab3d43de           3-clause BSD license
     github.com/mailru/easyjson                                                                 v0.7.7                                       MIT license
     github.com/mattn/go-colorable                                                              v0.1.12                                      MIT license

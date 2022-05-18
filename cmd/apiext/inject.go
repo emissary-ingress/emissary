@@ -91,7 +91,7 @@ func ConfigureCRDs(
 	if err != nil {
 		return err
 	}
-	go func() {
+	go func() { // Don't bother with dgroup because crdWatch.ResultChan() won't close until this goroutine returns.
 		<-ctx.Done()
 		crdWatch.Stop()
 	}()

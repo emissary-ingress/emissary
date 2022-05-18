@@ -115,9 +115,3 @@ ambassador-secrets-deployment.yaml
 # 2022-01-31
 /docker/container.txt
 /docker/container.txt.stamp
-# 2020-08-20
-/cxx/envoy/
-/cxx/envoy-static
-/cxx/envoy-build-image.txt
-/cxx/envoy-build-container.txt
-/cxx/go-control-plane/

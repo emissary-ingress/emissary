@@ -18,7 +18,6 @@ import (
 
 	// commands
 	"github.com/datawire/ambassador/v2/cmd/agent"
-	"github.com/datawire/ambassador/v2/cmd/ambex"
 	"github.com/datawire/ambassador/v2/cmd/apiext"
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	"github.com/datawire/ambassador/v2/cmd/kubestatus"
@@ -55,7 +54,6 @@ func main() {
 	}
 
 	busy.Main("busyambassador", "Ambassador", version, map[string]busy.Command{
-		"ambex":      {Setup: environment.EnvironmentSetupEntrypoint, Run: ambex.Main},
 		"kubestatus": {Setup: environment.EnvironmentSetupEntrypoint, Run: kubestatus.Main},
 		"entrypoint": {Setup: noop, Run: entrypoint.Main},
 		"reproducer": {Setup: noop, Run: reproducer.Main},

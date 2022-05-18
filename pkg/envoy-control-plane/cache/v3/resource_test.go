@@ -32,6 +32,8 @@ const (
 	routeName    = "route0"
 	listenerName = "listener0"
 	runtimeName  = "runtime0"
+	tlsName      = "secret0"
+	rootName     = "root0"
 )
 
 var (
@@ -40,6 +42,7 @@ var (
 	testRoute    = resource.MakeRoute(routeName, clusterName)
 	testListener = resource.MakeHTTPListener(resource.Ads, listenerName, 80, routeName)
 	testRuntime  = resource.MakeRuntime(runtimeName)
+	testSecret   = resource.MakeSecrets(tlsName, rootName)
 )
 
 func TestValidate(t *testing.T) {
@@ -136,7 +139,7 @@ func TestGetResourceReferences(t *testing.T) {
 		},
 	}
 	for _, cs := range cases {
-		names := cache.GetResourceReferences(cache.IndexResourcesByName([]types.Resource{cs.in}))
+		names := cache.GetResourceReferences(cache.IndexResourcesByName([]types.ResourceWithTtl{{Resource: cs.in}}))
 		if !reflect.DeepEqual(names, cs.out) {
 			t.Errorf("GetResourceReferences(%v) => got %v, want %v", cs.in, names, cs.out)
 		}
