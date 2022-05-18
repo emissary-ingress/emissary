@@ -89,7 +89,7 @@ func (src *istioCertSource) Watch(ctx context.Context) (IstioCertWatcher, error)
 }
 
 // Changed returns the channel where Istio certificates will appear.
-func (istio *istioCertWatcher) Changed() chan IstioCertUpdate {
+func (istio *istioCertWatcher) Changed() <-chan IstioCertUpdate {
 	return istio.updateChannel
 }
 
@@ -106,7 +106,7 @@ type istioCertWatchManager struct {
 
 // Changed returns a channel to listen on for change notifications dealing with
 // Istio cert stuff.
-func (imgr *istioCertWatchManager) Changed() chan IstioCertUpdate {
+func (imgr *istioCertWatchManager) Changed() <-chan IstioCertUpdate {
 	return imgr.watcher.Changed()
 }
 

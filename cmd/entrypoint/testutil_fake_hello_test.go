@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/datawire/ambassador/v2/cmd/ambex"
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
+	"github.com/datawire/ambassador/v2/pkg/ambex"
 	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	v3cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
 	"github.com/datawire/ambassador/v2/pkg/kates"

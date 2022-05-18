@@ -50,8 +50,7 @@ import (
 // Differences from kubectl:
 //
 //  - You can also use a Client to update the status of a resource.
-//  - The Client struct cannot perform an apply operation.
-//  - The Client provides Read/write coherence (more about this below).
+//  - The Client provides read/write coherence (more about this below).
 //  - The Client provides load shedding via event coalescing for watches.
 //  - The Client provides bootstrapping of multiple watches.
 //
@@ -103,10 +102,17 @@ type ClientConfig struct {
 
 // The NewClient function constructs a new client with the supplied ClientConfig.
 func NewClient(options ClientConfig) (*Client, error) {
-	return NewClientFromConfigFlags(config(options))
+	return NewClientFromConfigFlags(options.toConfigFlags())
 }
 
-func NewClientFromFlagSet(flags *pflag.FlagSet) (*Client, error) {
+// NewClientFactory adds flags to a flagset (i.e. before flagset.Parse()), and returns a function to
+// be called after flagset.Parse() that uses the parsed flags to construct a *Client.
+func NewClientFactory(flags *pflag.FlagSet) func() (*Client, error) {
+	if flags.Parsed() {
+		// panic is OK because this is a programming error.
+		panic("kates.NewClientFactory(flagset) must be called before flagset.Parse()")
+	}
+
 	config := NewConfigFlags(false)
 
 	// We can disable or enable flags by setting them to
@@ -116,7 +122,13 @@ func NewClientFromFlagSet(flags *pflag.FlagSet) (*Client, error) {
 	// genericclioptions.NewConfigFlags().
 
 	config.AddFlags(flags)
-	return NewClientFromConfigFlags(config)
+
+	return func() (*Client, error) {
+		if !flags.Parsed() {
+			return nil, fmt.Errorf("kates client factory must be called after flagset.Parse()")
+		}
+		return NewClientFromConfigFlags(config)
+	}
 }
 
 func NewClientFromConfigFlags(config *ConfigFlags) (*Client, error) {
@@ -196,6 +208,12 @@ func InCluster() bool {
 	return os.Getenv("KUBERNETES_SERVICE_HOST") != "" &&
 		os.Getenv("KUBERNETES_SERVICE_PORT") != "" &&
 		err == nil && !fi.IsDir()
+}
+
+// CurrentNamespace returns the namespace that is used if none is otherwise specified.
+func (c *Client) CurrentNamespace() (string, error) {
+	ns, _, err := c.config.ToRawKubeConfigLoader().Namespace()
+	return ns, err
 }
 
 // DynamicInterface is an accessor method to the k8s dynamic client
@@ -568,6 +586,15 @@ func (lw *lw) Watch(opts ListOptions) (watch.Interface, error) {
 }
 
 // ==
+
+// IsNamespaced returns whether a (fully-qualified) GVK is namespaced.
+func (c *Client) IsNamespaced(gvk GroupVersionKind) (bool, error) {
+	mapping, err := c.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	if err != nil {
+		return false, err
+	}
+	return mapping.Scope.Name() == meta.RESTScopeNameNamespace, nil
+}
 
 func (c *Client) cliFor(mapping *meta.RESTMapping, namespace string) dynamic.ResourceInterface {
 	cli := c.cli.Resource(mapping.Resource)
@@ -1158,33 +1185,18 @@ func unKey(u *Unstructured) string {
 	return string(u.GetUID())
 }
 
-func config(options ClientConfig) *ConfigFlags {
-	flags := pflag.NewFlagSet("KubeInfo", pflag.ContinueOnError)
+func (options ClientConfig) toConfigFlags() *ConfigFlags {
 	result := NewConfigFlags(false)
 
-	// We can disable or enable flags by setting them to
-	// nil/non-nil prior to calling .AddFlags().
-	//
-	// .Username and .Password are already disabled by default in
-	// genericclioptions.NewConfigFlags().
-
-	result.AddFlags(flags)
-
-	var args []string
 	if options.Kubeconfig != "" {
-		args = append(args, "--kubeconfig", options.Kubeconfig)
+		result.KubeConfig = &options.Kubeconfig
 	}
 	if options.Context != "" {
-		args = append(args, "--context", options.Context)
+		result.Context = &options.Context
 	}
 	if options.Namespace != "" {
-		args = append(args, "--namespace", options.Namespace)
+		result.Namespace = &options.Namespace
 	}
 
-	if err := flags.Parse(args); err != nil {
-		// Args is constructed by us, we should never get an
-		// error, so it's ok to panic.
-		panic(err)
-	}
 	return result
 }

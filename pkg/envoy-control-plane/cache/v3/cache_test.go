@@ -9,6 +9,7 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
 	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
 	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
+	ttl_helper "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/ttl/v2"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/stretchr/testify/assert"
@@ -19,9 +20,9 @@ const (
 )
 
 func TestResponseGetDiscoveryResponse(t *testing.T) {
-	routes := []types.Resource{&route.RouteConfiguration{Name: resourceName}}
+	routes := []types.ResourceWithTtl{{Resource: &route.RouteConfiguration{Name: resourceName}}}
 	resp := cache.RawResponse{
-		Request:   discovery.DiscoveryRequest{TypeUrl: resource.RouteType},
+		Request:   &discovery.DiscoveryRequest{TypeUrl: resource.RouteType},
 		Version:   "v",
 		Resources: routes,
 	}
@@ -30,6 +31,10 @@ func TestResponseGetDiscoveryResponse(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, discoveryResponse.VersionInfo, resp.Version)
 	assert.Equal(t, len(discoveryResponse.Resources), 1)
+
+	cachedResponse, err := resp.GetDiscoveryResponse()
+	assert.Nil(t, err)
+	assert.Same(t, discoveryResponse, cachedResponse)
 
 	r := &route.RouteConfiguration{}
 	err = ptypes.UnmarshalAny(discoveryResponse.Resources[0], r)
@@ -47,7 +52,7 @@ func TestPassthroughResponseGetDiscoveryResponse(t *testing.T) {
 		VersionInfo: "v",
 	}
 	resp := cache.PassthroughResponse{
-		Request:           discovery.DiscoveryRequest{TypeUrl: resource.RouteType},
+		Request:           &discovery.DiscoveryRequest{TypeUrl: resource.RouteType},
 		DiscoveryResponse: dr,
 	}
 
@@ -61,4 +66,29 @@ func TestPassthroughResponseGetDiscoveryResponse(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, r.Name, resourceName)
 	assert.Equal(t, discoveryResponse, dr)
+}
+
+func TestHeartbeatResponseGetDiscoveryResponse(t *testing.T) {
+	routes := []types.ResourceWithTtl{{Resource: &route.RouteConfiguration{Name: resourceName}}}
+	resp := cache.RawResponse{
+		Request:   &discovery.DiscoveryRequest{TypeUrl: resource.RouteType},
+		Version:   "v",
+		Resources: routes,
+		Heartbeat: true,
+	}
+
+	discoveryResponse, err := resp.GetDiscoveryResponse()
+	assert.Nil(t, err)
+	assert.Equal(t, discoveryResponse.VersionInfo, resp.Version)
+	assert.Equal(t, len(discoveryResponse.Resources), 1)
+	assert.True(t, ttl_helper.IsTTLResource(discoveryResponse.Resources[0]))
+
+	cachedResponse, err := resp.GetDiscoveryResponse()
+	assert.Nil(t, err)
+	assert.Same(t, discoveryResponse, cachedResponse)
+
+	r := &route.RouteConfiguration{}
+	err = ptypes.UnmarshalAny(discoveryResponse.Resources[0], r)
+	assert.Nil(t, err)
+	assert.Equal(t, r.Name, resourceName)
 }

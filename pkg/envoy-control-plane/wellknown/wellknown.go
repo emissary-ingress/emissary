@@ -99,6 +99,8 @@ const (
 	Zipkin = "envoy.tracers.zipkin"
 	// DynamicOT tracer name
 	DynamicOT = "envoy.tracers.dynamic_ot"
+	// Datadog tracer name
+	Datadog = "envoy.tracers.datadog"
 )
 
 // Stats sink names

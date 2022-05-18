@@ -81,7 +81,7 @@ deploy: push preflight-cluster
 	$(MAKE) deploy-only
 .PHONY: deploy
 
-deploy-only: preflight-dev-kubeconfig $(tools/kubectl) $(OSS_HOME)/manifests/emissary/emissary-crds.yaml $(boguschart_dir)
+deploy-only: preflight-dev-kubeconfig $(tools/kubectl) build-output/yaml-$(patsubst v%,%,$(VERSION)) $(boguschart_dir)
 	mkdir -p $(OSS_HOME)/build/helm/ && \
 	($(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) create ns ambassador || true) && \
 	helm template ambassador --output-dir $(OSS_HOME)/build/helm -n ambassador $(boguschart_dir) \
@@ -90,7 +90,7 @@ deploy-only: preflight-dev-kubeconfig $(tools/kubectl) $(OSS_HOME)/manifests/emi
 		--set replicaCount=1 \
 		--set enableAES=false \
 		--set image.fullImageOverride=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) && \
-	$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) apply -f $(OSS_HOME)/manifests/emissary/emissary-crds.yaml && \
+	$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) apply -f build-output/yaml-$(patsubst v%,%,$(VERSION))/emissary-crds.yaml
 	$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) -n emissary-system wait --for condition=available --timeout=90s deploy emissary-apiext && \
 	$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) apply -f $(OSS_HOME)/build/helm/emissary-ingress/templates && \
 	rm -rf $(OSS_HOME)/build/helm

@@ -17,13 +17,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/datawire/ambassador/v2/pkg/api/agent"
-	"github.com/datawire/ambassador/v2/pkg/dtest"
-	"github.com/datawire/ambassador/v2/pkg/k8s"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/kubeapply"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dlog"
+	"github.com/datawire/dtest"
 )
 
 // This test is supposed to be a very lightweight end to end test.
@@ -39,7 +38,7 @@ func TestAgentE2E(t *testing.T) {
 	// applies all k8s yaml to dtest cluter
 	// ambassador, ambassador-agent, rbac, crds, and a fake agentcom that implements the grpc
 	// server for the agent
-	setup(t, ctx, kubeconfig, cli)
+	setup(t, ctx, cli)
 
 	// eh lets make sure the agent came up
 	time.Sleep(time.Second * 3)
@@ -67,7 +66,7 @@ func TestAgentE2E(t *testing.T) {
 	assert.Empty(t, ambSnapshot.Kubernetes.ArgoRollouts, "rollouts found in snapshot")
 	assert.Empty(t, ambSnapshot.Kubernetes.ArgoApplications, "applications found in snapshot")
 
-	applyArgoResources(t, ctx, kubeconfig, cli)
+	applyArgoResources(t, ctx, cli)
 	hasArgo = true
 	reportSnapshot, ambSnapshot = getAgentComSnapshots(t, ctx, kubeconfig, cli, hasArgo)
 	assert.NotEmpty(t, ambSnapshot.Kubernetes.ArgoRollouts, "No argo rollouts found in snapshot")
@@ -160,11 +159,9 @@ func snapshotIsSane(ambSnapshot *snapshotTypes.Snapshot, t *testing.T, hasArgo b
 
 	return true
 }
-func applyArgoResources(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Client) {
-	kubeinfo := k8s.NewKubeInfo(kubeconfig, "", "")
+func applyArgoResources(t *testing.T, ctx context.Context, kubeinfo *kates.Client) {
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/argo-rollouts-crd.yaml"))
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/argo-application-crd.yaml"))
-	time.Sleep(3 * time.Second)
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/argo-rollouts.yaml"))
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/argo-application.yaml"))
 }
@@ -215,7 +212,7 @@ func yamlFilename(t *testing.T, inFilename, image string) string {
 	return outFilename
 }
 
-func setup(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Client) {
+func setup(t *testing.T, ctx context.Context, kubeinfo *kates.Client) {
 	require.NoError(t, needsDockerBuilds(ctx, map[string]string{
 		"AMBASSADOR_DOCKER_IMAGE": "docker/emissary.docker.push.remote",
 		"KAT_SERVER_DOCKER_IMAGE": "docker/kat-server.docker.push.remote",
@@ -226,8 +223,6 @@ func setup(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Clie
 
 	crdFile := yamlFilename(t, "../../manifests/emissary/emissary-crds.yaml.in", image)
 	aesFile := yamlFilename(t, "../../manifests/emissary/emissary-emissaryns.yaml.in", image)
-
-	kubeinfo := k8s.NewKubeInfo(kubeconfig, "", "")
 
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, crdFile))
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/namespace.yaml"))
@@ -264,7 +259,7 @@ func setup(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Clie
 		},
 	})
 	require.NoError(t, err)
-	require.NoError(t, cli.Patch(ctx, dep, kates.StrategicMergePatchType, []byte(patch), dep))
+	require.NoError(t, kubeinfo.Patch(ctx, dep, kates.StrategicMergePatchType, []byte(patch), dep))
 
 	time.Sleep(3 * time.Second)
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/sample-config.yaml"))

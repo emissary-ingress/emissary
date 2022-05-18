@@ -72,7 +72,7 @@ type statusInfo struct {
 // ResponseWatch is a watch record keeping both the request and an open channel for the response.
 type ResponseWatch struct {
 	// Request is the original request for the watch.
-	Request Request
+	Request *Request
 
 	// Response is the channel to push responses to.
 	Response chan Response

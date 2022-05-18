@@ -56,6 +56,8 @@ func (h *HTTPGateway) ServeHTTP(req *http.Request) ([]byte, int, error) {
 		typeURL = resource.SecretType
 	case resource.FetchRuntimes:
 		typeURL = resource.RuntimeType
+	case resource.FetchExtensionConfigs:
+		typeURL = resource.ExtensionConfigType
 	default:
 		return nil, http.StatusNotFound, fmt.Errorf("no endpoint")
 	}

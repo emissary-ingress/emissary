@@ -10,8 +10,8 @@ import (
 
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 
-	"github.com/datawire/ambassador/v2/cmd/ambex"
 	"github.com/datawire/ambassador/v2/pkg/acp"
+	"github.com/datawire/ambassador/v2/pkg/ambex"
 	"github.com/datawire/ambassador/v2/pkg/debug"
 	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
 	"github.com/datawire/ambassador/v2/pkg/gateway"

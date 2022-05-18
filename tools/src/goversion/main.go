@@ -57,7 +57,7 @@ func main() {
 	argparser.RunE = func(cmd *cobra.Command, args []string) error {
 		commitish := "HEAD"
 		if len(args) == 1 {
-			commitish = args[1]
+			commitish = args[0]
 		}
 		desc, err := Describe(cmd.Context(), commitish, argDirPrefix)
 		if err != nil {
