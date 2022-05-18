@@ -9,6 +9,7 @@
 package v2
 
 import (
+	"fmt"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/conversion"
@@ -656,5 +657,57 @@ func Convert_v3alpha1_TCPMappingSpec_To_v2_TCPMappingSpec(in *v3alpha1.TCPMappin
 		in.TLS, in.Service, in.V2ExplicitTLS,
 		&out.TLS, &out.Service)
 
+	return nil
+}
+
+func Convert_v2_TracingServiceSpec_To_v3alpha1_TracingServiceSpec(in *TracingServiceSpec, out *v3alpha1.TracingServiceSpec, s conversion.Scope) error {
+	if err := autoConvert_v2_TracingServiceSpec_To_v3alpha1_TracingServiceSpec(in, out, s); err != nil {
+		return err
+	}
+	// WARNING: in.TagHeaders requires manual conversion: does not exist in peer-type
+	// if only tag_headers are set, translate to custom_tags.
+	// if both are set, ignore tag_headers.
+	if in.TagHeaders != nil {
+		if in.V3CustomTags == nil {
+			out.CustomTags = []v3alpha1.TracingCustomTag{}
+			for _, tag := range in.TagHeaders {
+				out.CustomTags = append(out.CustomTags, v3alpha1.TracingCustomTag{
+					Tag: tag,
+					Header: &v3alpha1.TracingCustomTagTypeRequestHeader{
+						Name: tag,
+					},
+				})
+			}
+		}
+	}
+	return nil
+}
+
+func Convert_v3alpha1_TracingServiceSpec_To_v2_TracingServiceSpec(in *v3alpha1.TracingServiceSpec, out *TracingServiceSpec, s conversion.Scope) error {
+	in = in.DeepCopy()
+	// if only tag_headers are set, translate to custom_tags.
+	// if both are set, log a warning and ignore tag_headers.
+	if in.DeprecatedTagHeaders != nil {
+		if in.CustomTags == nil {
+			in.CustomTags = []v3alpha1.TracingCustomTag{}
+			for _, tag := range in.DeprecatedTagHeaders {
+				in.CustomTags = append(in.CustomTags, v3alpha1.TracingCustomTag{
+					Tag: tag,
+					Header: &v3alpha1.TracingCustomTagTypeRequestHeader{
+						Name: tag,
+					},
+				})
+			}
+		} else {
+			// TODO: Use dlog logger
+			fmt.Printf("CustomTags and TagHeaders cannot be set at the same time in a TracingService. ignoring TagHeaders since it is deprecated.")
+		}
+	}
+
+	if err := autoConvert_v3alpha1_TracingServiceSpec_To_v2_TracingServiceSpec(in, out, s); err != nil {
+		return err
+	}
+	// WARNING: in.DeprecatedTagHeaders requires manual conversion: does not exist in peer-type
+	// see above
 	return nil
 }
