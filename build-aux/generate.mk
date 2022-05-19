@@ -366,12 +366,14 @@ $(OSS_HOME)/k8s-config/%/helm-expanded.yaml: \
   $(OSS_HOME)/k8s-config/%/values.yaml \
   $(boguschart_dir)
 	helm template --namespace=$(helm.namespace.$*) --values=$(@D)/values.yaml $(or $(helm.name.$*),$*) $(boguschart_dir) >$@
-
 $(OSS_HOME)/k8s-config/%/output.yaml: \
   $(OSS_HOME)/k8s-config/%/helm-expanded.yaml \
   $(OSS_HOME)/k8s-config/%/require.yaml \
   $(tools/filter-yaml)
 	$(tools/filter-yaml) $(filter %/helm-expanded.yaml,$^) $(filter %/require.yaml,$^) >$@
+k8s-config.clean:
+	rm -f k8s-config/*/helm-expanded.yaml k8s-config/*/output.yaml
+clean: k8s-config.clean
 
 $(OSS_HOME)/manifests/emissary/%.yaml.in: $(OSS_HOME)/k8s-config/%/output.yaml
 	cp $< $@
@@ -390,14 +392,21 @@ $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_
 
 $(OSS_HOME)/build-aux/pip-show.txt: docker/base-pip.docker.tag.local
 	docker run --rm "$$(cat docker/base-pip.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
+clean: build-aux/pip-show.txt.rm
 
 $(OSS_HOME)/build-aux/go-version.txt: docker/base-python/Dockerfile
 	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
+clean: build-aux/go-version.txt.rm
+
 $(OSS_HOME)/build-aux/py-version.txt: docker/base-python/Dockerfile
 	{ grep -o 'python3=\S*' | cut -d= -f2; } < $< > $@
+clean: build-aux/py-version.txt.rm
 
 $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
+build-aux/go.src.tar.gz.clean:
+	rm -f build-aux/go1*.src.tar.gz
+clobber: build-aux/go.src.tar.gz.clean
 
 $(OSS_HOME)/DEPENDENCIES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz

@@ -205,6 +205,7 @@ python/ambassador.version: $(tools/write-ifchanged) FORCE
 	  echo $(patsubst v%,%,$(VERSION)); \
 	  git rev-parse HEAD; \
 	} | $(tools/write-ifchanged) $@
+clean: python/ambassador.version.rm
 
 # Give Make a hint about which pattern rules to apply.  Honestly, I'm
 # not sure why Make isn't figuring it out on its own, but it isn't.
@@ -224,6 +225,8 @@ docker/.base-envoy.docker.stamp: FORCE
 	  fi; \
 	  echo $(ENVOY_DOCKER_TAG) >$@; \
 	}
+clobber: docker/base-envoy.docker.clean
+
 docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.local %/base-envoy.docker.tag.local %/base-pip.docker.tag.local python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
 	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
 	@printf "    ${BLU}base=$$(sed -n 2p $*/base.docker.tag.local)${END}\n"
@@ -237,6 +240,7 @@ docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.loc
 	    --build-arg=builderbase="$$(sed -n 2p $*/base-pip.docker.tag.local)" \
 	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
 	    --iidfile=$@; }
+clean: docker/$(LCNAME).docker.clean
 
 REPO=$(BUILDER_NAME)
 
@@ -328,6 +332,7 @@ build-aux/.pytest-kat.txt.stamp: $(OSS_HOME)/venv push-pytest-images FORCE
 	. venv/bin/activate && set -o pipefail && pytest --collect-only python/tests/kat 2>&1 | sed -En 's/.*<Function (.*)>/\1/p' | sed 's/[].].*//' | sort -u > $@
 build-aux/pytest-kat.txt: build-aux/%: build-aux/.%.stamp $(tools/copy-ifchanged)
 	$(tools/copy-ifchanged) $< $@
+clean: build-aux/.pytest-kat.txt.stamp.rm build-aux/pytest-kat.txt.rm
 pytest-kat-envoy3-g%: build-aux/pytest-kat.txt $(tools/py-split-tests)
 	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $* 3 <build-aux/pytest-kat.txt)' python/tests/kat"
 pytest-kat-envoy2: push-pytest-images # doing this all at once is too much for CI...
@@ -374,6 +379,7 @@ $(OSS_HOME)/venv: python/requirements.txt python/requirements-dev.txt
 	$@/bin/pip3 install -r python/requirements.txt
 	$@/bin/pip3 install -r python/requirements-dev.txt
 	$@/bin/pip3 install -e $(OSS_HOME)/python
+clobber: venv.rm-r
 
 GOTEST_ARGS ?= -race -count=1 -timeout 30m
 GOTEST_ARGS += -parallel=150 # The ./pkg/envoy-control-plane/cache/v{2,3}/ tests require high parallelism to reliably work
