@@ -52,3 +52,5 @@ jobs:
              { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true },
              { "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}
             ]
+      - uses: ./.github/actions/after-job
+        if: always()

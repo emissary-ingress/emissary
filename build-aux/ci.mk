@@ -11,3 +11,7 @@ ci/setup-k3d: $(tools/k3d) $(tools/kubectl)
 	while ! $(tools/kubectl) get serviceaccount default >/dev/null; do sleep 1; done
 	$(tools/kubectl) version
 .PHONY: ci/setup-k3d
+
+ci/teardown-k3d: $(tools/k3d)
+	$(tools/k3d) cluster delete || true
+.PHONY: ci/teardown-k3d

@@ -23,6 +23,8 @@ jobs:
       - shell: bash
         run: |
           make lint
+      - uses: ./.github/actions/after-job
+        if: always()
 
   generate: ####################################################################
     runs-on: ubuntu-latest
@@ -59,6 +61,8 @@ jobs:
           make generate
       - uses: ./.github/actions/git-dirty-check
         name: "Check Git not dirty from 'make generate' (again!)"
+      - uses: ./.github/actions/after-job
+        if: always()
 
   check-envoy-version: #########################################################
     runs-on: ubuntu-latest
@@ -85,6 +89,8 @@ jobs:
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - run: make check-envoy-version
+      - uses: ./.github/actions/after-job
+        if: always()
 
   # Tests ######################################################################
   check-gotest:
@@ -112,9 +118,7 @@ jobs:
           export TEST_XML_DIR=/tmp/test-logs/xml/
           mkdir -p ${TEST_XML_DIR}
           make gotest
-      - uses: ./.github/actions/git-dirty-check
-        name: "Check git not dirty from testing"
-      - uses: ./.github/actions/collect-logs
+      - uses: ./.github/actions/after-job
         if: always()
   check-pytest:
     runs-on: ubuntu-latest
@@ -173,9 +177,7 @@ jobs:
             export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
             mkdir -p ${TEST_XML_DIR}
             make pytest-${{ matrix.test }}
-      - uses: ./.github/actions/git-dirty-check
-        name: "Check git not dirty from testing"
-      - uses: ./.github/actions/collect-logs
+      - uses: ./.github/actions/after-job
         if: always()
         with:
           jobname: check-pytest-${{ matrix.test }}
@@ -219,9 +221,7 @@ jobs:
             export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
             mkdir -p ${TEST_XML_DIR}
             make pytest-${{ matrix.test }}
-      - uses: ./.github/actions/git-dirty-check
-        name: "Check git not dirty from testing"
-      - uses: ./.github/actions/collect-logs
+      - uses: ./.github/actions/after-job
         if: always()
         with:
           jobname: check-pytest-${{ matrix.test }}
@@ -257,9 +257,7 @@ jobs:
           export DEV_KUBECONFIG=~/.kube/config
 
           make test-chart
-      - uses: ./.github/actions/git-dirty-check
-        name: "Check git not dirty from testing"
-      - uses: ./.github/actions/collect-logs
+      - uses: ./.github/actions/after-job
         if: always()
 
   build: #######################################################################
@@ -293,8 +291,8 @@ jobs:
         shell: bash
         run: |
           make push-dev
-      - uses: ./.github/actions/git-dirty-check
-        name: "Check git not dirty (from make push + make push-dev)"
+      - uses: ./.github/actions/after-job
+        if: always()
 
   ##############################################################################
   pass:
