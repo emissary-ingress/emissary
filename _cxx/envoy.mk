@@ -127,9 +127,7 @@ $(OSS_HOME)/_cxx/envoy-build-image.txt: $(OSS_HOME)/_cxx/envoy $(tools/write-ifc
 	    popd; \
 	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(tools/write-ifchanged) $@; \
 	}
-$(OSS_HOME)/_cxx/envoy-build-image.txt.clean: %.clean:
-	rm -f $*
-clean: $(OSS_HOME)/_cxx/envoy-build-image.txt.clean
+clean: $(OSS_HOME)/_cxx/envoy-build-image.txt.rm
 
 $(OSS_HOME)/_cxx/envoy-build-container.txt: $(OSS_HOME)/_cxx/envoy-build-image.txt FORCE
 	@PS4=; set -ex; { \
@@ -200,9 +198,7 @@ $(OSS_HOME)/docker/base-envoy/envoy-static-stripped: %-stripped: % FORCE
 	        rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/tmp/$(@F) $@; \
 	    fi; \
 	}
-$(OSS_HOME)/docker/base-envoy/envoy-static.clean $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.clean: %.clean:
-	rm -f $*
-clobber: $(OSS_HOME)/docker/base-envoy/envoy-static.clean $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.clean
+clobber: $(OSS_HOME)/docker/base-envoy/envoy-static.rm $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.rm
 
 check-envoy: ## Run the Envoy test suite
 check-envoy: $(ENVOY_BASH.deps)
