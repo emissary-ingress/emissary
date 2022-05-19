@@ -29,6 +29,9 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 images: python/ambassador.version
 push: python/ambassador.version
 
+# Assume that any rule ending with '.clean' is phony.
+.PHONY: %.clean
+
 include $(OSS_HOME)/builder/builder.mk
 include $(OSS_HOME)/_cxx/envoy.mk
 include $(OSS_HOME)/charts/ambassador/Makefile
