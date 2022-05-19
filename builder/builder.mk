@@ -341,7 +341,7 @@ build-output/bin/envoy: docker/base-envoy.docker.tag.local
 	mkdir -p $(@D)
 	{ \
 	  echo '#!/bin/bash'; \
-	  echo "docker run -v $(OSS_HOME):$(OSS_HOME) -v /var/:/var/ -v /tmp/:/tmp/ -t --entrypoint /usr/local/bin/envoy-static-stripped $$(cat docker/base-envoy.docker) \"\$$@\""; \
+	  echo "docker run --rm -v $(OSS_HOME):$(OSS_HOME) -v /var/:/var/ -v /tmp/:/tmp/ -t --entrypoint /usr/local/bin/envoy-static-stripped $$(cat docker/base-envoy.docker) \"\$$@\""; \
 	} > $@
 	chmod +x $@
 
