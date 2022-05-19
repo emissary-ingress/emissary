@@ -200,7 +200,7 @@ $(OSS_HOME)/docker/base-envoy/envoy-static-stripped: %-stripped: % FORCE
 	        rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/tmp/$(@F) $@; \
 	    fi; \
 	}
-$(OSS_HOME)/docker/base-envoy/envoy-static.clean $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.clean: %.clean
+$(OSS_HOME)/docker/base-envoy/envoy-static.clean $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.clean: %.clean:
 	rm -f $*
 clobber: $(OSS_HOME)/docker/base-envoy/envoy-static.clean $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.clean
 
