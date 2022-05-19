@@ -93,7 +93,7 @@ Most (but not all) of the snippets include `common.mk`, which
     recipe for `my-test.tap`.
 
     Because of `make check`'s use of `test-suite.tap`, `common.mk`
-    also goes head and has `make clean` run `rm -f test-suite.tap`.
+    also goes ahead and has `make clean` run `rm -f test-suite.tap`.
 
     With the exceptions of `make check` and `make clean`, `common.mk`
     only provides empty definitions; it is up to your `Makefile`, or

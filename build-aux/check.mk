@@ -1,7 +1,7 @@
 include build-aux/tools.mk
 
 #
-# Auxiliar Docker images needed for the tests
+# Auxiliary Docker images needed for the tests
 
 # Keep this list in-sync with python/tests/integration/manifests.py
 push-pytest-images: docker/emissary.docker.push.remote

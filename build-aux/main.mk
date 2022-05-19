@@ -45,7 +45,7 @@ $(foreach img,$(_ocibuild-images),docker/.$(img).docker.stamp): docker/.%.docker
 # defined in check.mk, rather than here.
 
 # base: Base OS; none of our specific stuff.  Used for auxiliar test images
-# that don't need Emissary-specif stuff.
+# that don't need Emissary-specific stuff.
 docker/.base.img.tar.stamp: FORCE $(tools/crane) docker/base-python/Dockerfile
 	$(tools/crane) pull $(shell gawk '$$1 == "FROM" { print $$2; quit; }' < docker/base-python/Dockerfile) $@ || test -e $@
 
