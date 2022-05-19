@@ -443,6 +443,7 @@ docker/run/%: docker/builder-base.docker
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v $${DEV_KUBECONFIG}:$${DEV_KUBECONFIG} \
 		-v $${PWD}:$${PWD} \
+		--rm \
 		-it \
 		--init \
 		--cap-add=NET_ADMIN \
@@ -485,7 +486,7 @@ extract-bin-envoy: docker/base-envoy.docker.tag.local
 	@printf "Extracting envoy binary to $(OSS_HOME)/bin/envoy\n"
 	@echo "#!/bin/bash" > $(OSS_HOME)/bin/envoy
 	@echo "" >> $(OSS_HOME)/bin/envoy
-	@echo "docker run -v $(OSS_HOME):$(OSS_HOME) -v /var/:/var/ -v /tmp/:/tmp/ -t --entrypoint /usr/local/bin/envoy-static-stripped $$(cat docker/base-envoy.docker) \"\$$@\"" >> $(OSS_HOME)/bin/envoy
+	@echo "docker run --rm -v $(OSS_HOME):$(OSS_HOME) -v /var/:/var/ -v /tmp/:/tmp/ -t --entrypoint /usr/local/bin/envoy-static-stripped $$(cat docker/base-envoy.docker) \"\$$@\"" >> $(OSS_HOME)/bin/envoy
 	@chmod +x $(OSS_HOME)/bin/envoy
 .PHONY: extract-bin-envoy
 
