@@ -117,7 +117,6 @@ $(OSS_HOME)/_cxx/envoy: FORCE
 	}
 $(OSS_HOME)/_cxx/envoy.clean: %.clean:
 	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $*)
-.PHONY: $(OSS_HOME)/_cxx/envoy.clean
 clobber: $(OSS_HOME)/_cxx/envoy.clean
 
 $(OSS_HOME)/_cxx/envoy-build-image.txt: $(OSS_HOME)/_cxx/envoy $(tools/write-ifchanged) FORCE
@@ -130,7 +129,6 @@ $(OSS_HOME)/_cxx/envoy-build-image.txt: $(OSS_HOME)/_cxx/envoy $(tools/write-ifc
 	}
 $(OSS_HOME)/_cxx/envoy-build-image.txt.clean: %.clean:
 	rm -f $*
-.PHONY: $(OSS_HOME)/_cxx/envoy-build-image.txt.clean
 clean: $(OSS_HOME)/_cxx/envoy-build-image.txt.clean
 
 $(OSS_HOME)/_cxx/envoy-build-container.txt: $(OSS_HOME)/_cxx/envoy-build-image.txt FORCE
@@ -147,7 +145,6 @@ $(OSS_HOME)/_cxx/envoy-build-container.txt.clean: %.clean:
 	if [ -e $* ]; then docker kill $$(cat $*) || true; fi
 	rm -f $*
 	if docker volume inspect envoy-build &>/dev/null; then docker volume rm envoy-build >/dev/null; fi
-.PHONY: $(OSS_HOME)/_cxx/envoy-build-container.txt.clean
 clean: $(OSS_HOME)/_cxx/envoy-build-container.txt.clean
 
 #
@@ -205,7 +202,6 @@ $(OSS_HOME)/docker/base-envoy/envoy-static-stripped: %-stripped: % FORCE
 	}
 $(OSS_HOME)/docker/base-envoy/envoy-static.clean $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.clean: %.clean
 	rm -f $*
-.PHONY: $(OSS_HOME)/docker/base-envoy/envoy-static.clean $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.clean
 clobber: $(OSS_HOME)/docker/base-envoy/envoy-static.clean $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.clean
 
 check-envoy: ## Run the Envoy test suite

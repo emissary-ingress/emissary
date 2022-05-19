@@ -4,6 +4,9 @@ include build-aux/var.mk
 #
 # Utility rules
 
+# Assume that any rule ending with '.clean' is phony.
+.PHONY: %.clean
+
 # For files that should only-maybe update when the rule runs, put ".stamp" on
 # the left-side of the ":", and just go ahead and update it within the rule.
 #
