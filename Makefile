@@ -32,6 +32,14 @@ push: python/ambassador.version
 # Assume that any rule ending with '.clean' is phony.
 .PHONY: %.clean
 
+# Also provide a basic *.clean implementation... well, it'd be.  But
+# because of what I'm convinced is a bug in Make, it is confusing this
+# %.clean rule with the %.docker.clean rule.  So I named this one
+# `%.rm`.  But I'd have liked to name it `%.clean`.
+%.rm:
+	rm -f $*
+.PHONY: %.rm
+
 include $(OSS_HOME)/builder/builder.mk
 include $(OSS_HOME)/_cxx/envoy.mk
 include $(OSS_HOME)/charts/ambassador/Makefile
