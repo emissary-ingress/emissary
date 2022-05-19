@@ -7,6 +7,14 @@ include build-aux/var.mk
 # Assume that any rule ending with '.clean' is phony.
 .PHONY: %.clean
 
+# Also provide a basic *.clean implementation... well, it'd be.  But
+# because of what I'm convinced is a bug in Make, it is confusing this
+# %.clean rule with the %.docker.clean rule.  So I named this one
+# `%.rm`.  But I'd have liked to name it `%.clean`.
+%.rm:
+	rm -f $*
+.PHONY: %.rm
+
 # For files that should only-maybe update when the rule runs, put ".stamp" on
 # the left-side of the ":", and just go ahead and update it within the rule.
 #
