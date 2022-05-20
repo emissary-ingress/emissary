@@ -117,7 +117,6 @@ $(OSS_HOME)/_cxx/envoy: FORCE
 	}
 $(OSS_HOME)/_cxx/envoy.clean: %.clean:
 	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $*)
-.PHONY: $(OSS_HOME)/_cxx/envoy.clean
 clobber: $(OSS_HOME)/_cxx/envoy.clean
 
 $(OSS_HOME)/_cxx/envoy-build-image.txt: $(OSS_HOME)/_cxx/envoy $(tools/write-ifchanged) FORCE
@@ -128,10 +127,7 @@ $(OSS_HOME)/_cxx/envoy-build-image.txt: $(OSS_HOME)/_cxx/envoy $(tools/write-ifc
 	    popd; \
 	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(tools/write-ifchanged) $@; \
 	}
-$(OSS_HOME)/_cxx/envoy-build-image.txt.clean: %.clean:
-	rm -f $*
-.PHONY: $(OSS_HOME)/_cxx/envoy-build-image.txt.clean
-clean: $(OSS_HOME)/_cxx/envoy-build-image.txt.clean
+clean: $(OSS_HOME)/_cxx/envoy-build-image.txt.rm
 
 $(OSS_HOME)/_cxx/envoy-build-container.txt: $(OSS_HOME)/_cxx/envoy-build-image.txt FORCE
 	@PS4=; set -ex; { \
@@ -147,7 +143,6 @@ $(OSS_HOME)/_cxx/envoy-build-container.txt.clean: %.clean:
 	if [ -e $* ]; then docker kill $$(cat $*) || true; fi
 	rm -f $*
 	if docker volume inspect envoy-build &>/dev/null; then docker volume rm envoy-build >/dev/null; fi
-.PHONY: $(OSS_HOME)/_cxx/envoy-build-container.txt.clean
 clean: $(OSS_HOME)/_cxx/envoy-build-container.txt.clean
 
 #
@@ -203,10 +198,7 @@ $(OSS_HOME)/docker/base-envoy/envoy-static-stripped: %-stripped: % FORCE
 	        rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/tmp/$(@F) $@; \
 	    fi; \
 	}
-$(OSS_HOME)/docker/base-envoy/envoy-static.clean $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.clean: %.clean
-	rm -f $*
-.PHONY: $(OSS_HOME)/docker/base-envoy/envoy-static.clean $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.clean
-clobber: $(OSS_HOME)/docker/base-envoy/envoy-static.clean $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.clean
+clobber: $(OSS_HOME)/docker/base-envoy/envoy-static.rm $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.rm
 
 check-envoy: ## Run the Envoy test suite
 check-envoy: $(ENVOY_BASH.deps)
@@ -299,7 +291,7 @@ update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-
 	@PS4=; set -ex; { \
 	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker pull $(ENVOY_FULL_DOCKER_TAG); then \
 	        echo 'Already up-to-date: $(ENVOY_FULL_DOCKER_TAG)'; \
-	        ENVOY_VERSION_OUTPUT=$$(docker run -it --entrypoint envoy-static $(ENVOY_FULL_DOCKER_TAG) --version | grep "version:"); \
+	        ENVOY_VERSION_OUTPUT=$$(docker run --rm -it --entrypoint envoy-static $(ENVOY_FULL_DOCKER_TAG) --version | grep "version:"); \
 	        ENVOY_VERSION_EXPECTED="envoy-static .*version:.* $(ENVOY_COMMIT)/.*"; \
 	        if ! echo "$$ENVOY_VERSION_OUTPUT" | grep "$$ENVOY_VERSION_EXPECTED"; then \
 	            { set +x; } &>/dev/null; \
@@ -317,7 +309,7 @@ update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-
 	        fi; \
 	        docker build --build-arg=base=$$(cat $(OSS_HOME)/_cxx/envoy-build-image.txt) -f $(OSS_HOME)/docker/base-envoy/Dockerfile -t $(ENVOY_FULL_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy; \
 	        if [ '$(ENVOY_COMMIT)' != '-' ]; then \
-	            ENVOY_VERSION_OUTPUT=$$(docker run -it --entrypoint envoy-static $(ENVOY_FULL_DOCKER_TAG) --version | grep "version:"); \
+	            ENVOY_VERSION_OUTPUT=$$(docker run --rm -it --entrypoint envoy-static $(ENVOY_FULL_DOCKER_TAG) --version | grep "version:"); \
 	            ENVOY_VERSION_EXPECTED="envoy-static .*version:.* $(ENVOY_COMMIT)/.*"; \
 	            if ! echo "$$ENVOY_VERSION_OUTPUT" | grep "$$ENVOY_VERSION_EXPECTED"; then \
 	                { set +x; } &>/dev/null; \
@@ -334,7 +326,7 @@ update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-
 	@PS4=; set -ex; { \
 	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker pull $(ENVOY_DOCKER_TAG); then \
 	        echo 'Already up-to-date: $(ENVOY_DOCKER_TAG)'; \
-	        ENVOY_VERSION_OUTPUT=$$(docker run -it --entrypoint envoy-static-stripped $(ENVOY_DOCKER_TAG) --version | grep "version:"); \
+	        ENVOY_VERSION_OUTPUT=$$(docker run --rm -it --entrypoint envoy-static-stripped $(ENVOY_DOCKER_TAG) --version | grep "version:"); \
 	        ENVOY_VERSION_EXPECTED="envoy-static-stripped .*version:.* $(ENVOY_COMMIT)/.*"; \
 	        if ! echo "$$ENVOY_VERSION_OUTPUT" | grep "$$ENVOY_VERSION_EXPECTED"; then \
 	            { set +x; } &>/dev/null; \
@@ -352,7 +344,7 @@ update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-
 	        fi; \
 	        docker build -f $(OSS_HOME)/docker/base-envoy/Dockerfile.stripped -t $(ENVOY_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy; \
 	        if [ '$(ENVOY_COMMIT)' != '-' ]; then \
-	            ENVOY_VERSION_OUTPUT=$$(docker run -it --entrypoint envoy-static-stripped $(ENVOY_DOCKER_TAG) --version | grep "version:"); \
+	            ENVOY_VERSION_OUTPUT=$$(docker run --rm -it --entrypoint envoy-static-stripped $(ENVOY_DOCKER_TAG) --version | grep "version:"); \
 	            ENVOY_VERSION_EXPECTED="envoy-static-stripped .*version:.* $(ENVOY_COMMIT)/.*"; \
 	            if ! echo "$$ENVOY_VERSION_OUTPUT" | grep "$$ENVOY_VERSION_EXPECTED"; then \
 	                { set +x; } &>/dev/null; \

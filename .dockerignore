@@ -16,12 +16,8 @@
 !ambex
 !watt
 !kubestatus
-!bin_linux_amd64/
 !go.mod
 !go.sum
-bin/
-bin_linux_amd64/.go-build/
-bin_linux_amd64/*-static
 python/tests/
 **/__pycache__/
 python/ambassador.egg-info

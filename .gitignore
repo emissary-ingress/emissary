@@ -28,8 +28,6 @@ __pycache__
 *.local.sh
 
 # binaries
-/bin
-/bin_*/
 /charts/docgen
 
 # helm chart
@@ -108,6 +106,9 @@ ambassador-secrets-deployment.yaml
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2022-05-19
+/bin
+/bin_*/
 # 2022-04-18
 /build-aux/version-hack.stamp.mk
 /manifests/emissary/*.yaml

@@ -1,7 +1,8 @@
-name: 'Collect Testing Logs'
-description: 'test-logs, coverage, pods'
+name: 'Collect Logs'
+description: >-
+  Store any log files as artifacts.
 inputs:
-  name:
+  jobname:
     default: ${{ github.job }}
 runs:
   using: "composite"
@@ -49,6 +50,6 @@ runs:
     - name: "Upload Logs"
       uses: actions/upload-artifact@v2
       with:
-        name: logs-${{ inputs.name }}
+        name: logs-${{ inputs.jobname }}
         path: /tmp/test-logs
         if-no-files-found: ignore
