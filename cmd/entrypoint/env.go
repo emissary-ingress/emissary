@@ -165,12 +165,7 @@ func GetEnvoyFlags() []string {
 	if concurrency != "" {
 		result = append(result, "--concurrency", concurrency)
 	}
-	envoyAPIVersion := GetEnvoyAPIVersion()
-	if strings.ToUpper(envoyAPIVersion) == "V3" {
-		result = append(result, "--bootstrap-version", "3")
-	} else {
-		result = append(result, "--bootstrap-version", "2")
-	}
+
 	return result
 }
 

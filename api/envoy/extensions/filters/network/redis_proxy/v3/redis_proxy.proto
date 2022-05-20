@@ -7,7 +7,6 @@ import "envoy/config/core/v3/base.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/wrappers.proto";
 
-import "envoy/annotations/deprecation.proto";
 import "udpa/annotations/migrate.proto";
 import "udpa/annotations/sensitive.proto";
 import "udpa/annotations/status.proto";
@@ -17,6 +16,7 @@ import "validate/validate.proto";
 option java_package = "io.envoyproxy.envoy.extensions.filters.network.redis_proxy.v3";
 option java_outer_classname = "RedisProxyProto";
 option java_multiple_files = true;
+option go_package = "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/redis_proxy/v3;redis_proxyv3";
 option (udpa.annotations.file_status).package_version_status = ACTIVE;
 
 // [#protodoc-title: Redis Proxy]
@@ -243,7 +243,7 @@ message RedisProxy {
   // * ``get abc:users`` would retrieve the key 'abc:users' from cluster_b.
   // * ``get ab:users`` would retrieve the key 'ab:users' from cluster_a.
   // * ``get z:users`` would return a NoUpstreamHost error. A :ref:`catch-all
-  //   route<envoy_api_field_extensions.filters.network.redis_proxy.v3.RedisProxy.PrefixRoutes.catch_all_route>`
+  //   route<envoy_v3_api_field_extensions.filters.network.redis_proxy.v3.RedisProxy.PrefixRoutes.catch_all_route>`
   //   would have retrieved the key from that cluster instead.
   //
   // See the :ref:`configuration section
@@ -304,7 +304,7 @@ message RedisProxy {
 }
 
 // RedisProtocolOptions specifies Redis upstream protocol options. This object is used in
-// :ref:`typed_extension_protocol_options<envoy_api_field_config.cluster.v3.Cluster.typed_extension_protocol_options>`,
+// :ref:`typed_extension_protocol_options<envoy_v3_api_field_config.cluster.v3.Cluster.typed_extension_protocol_options>`,
 // keyed by the name `envoy.filters.network.redis_proxy`.
 message RedisProtocolOptions {
   option (udpa.annotations.versioning).previous_message_type =

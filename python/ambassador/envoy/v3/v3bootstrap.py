@@ -49,9 +49,7 @@ class V3Bootstrap(dict):
                 'layers': [
                     {
                         'name': 'static_layer',
-                        'static_layer': {
-                            're2.max_program_size.error_level': 200,
-                        }
+                        'static_layer': {}
                     }
                 ]
             }

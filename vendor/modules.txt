@@ -58,15 +58,13 @@ github.com/asaskevich/govalidator
 ## explicit
 github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1
-# github.com/cncf/udpa/go v0.0.0-20220112060539-c52dc94e7fbe
-## explicit; go 1.11
-github.com/cncf/udpa/go/udpa/annotations
-github.com/cncf/udpa/go/xds/core/v3
 # github.com/cncf/xds/go v0.0.0-20220121163655-4a2b9fdd466b
 ## explicit; go 1.11
 github.com/cncf/xds/go/udpa/annotations
 github.com/cncf/xds/go/xds/annotations/v3
 github.com/cncf/xds/go/xds/core/v3
+github.com/cncf/xds/go/xds/type/matcher/v3
+github.com/cncf/xds/go/xds/type/v3
 # github.com/datawire/dlib v1.2.5-0.20211116212847-0316f8d7af2b
 ## explicit; go 1.15
 github.com/datawire/dlib/dcontext
@@ -318,6 +316,9 @@ github.com/stretchr/testify/require
 # github.com/xlab/treeprint v1.1.0
 ## explicit; go 1.13
 github.com/xlab/treeprint
+# go.opentelemetry.io/proto/otlp v0.7.0
+## explicit; go 1.15
+go.opentelemetry.io/proto/otlp/common/v1
 # go.starlark.net v0.0.0-20220203230714-bb14e151c28f
 ## explicit; go 1.13
 go.starlark.net/internal/compile
