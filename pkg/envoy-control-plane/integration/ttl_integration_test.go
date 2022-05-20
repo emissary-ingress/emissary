@@ -6,9 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	envoy_config_core_v3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
@@ -29,7 +30,7 @@ func (log logger) Infof(format string, args ...interface{})  { log.t.Logf(format
 func (log logger) Warnf(format string, args ...interface{})  { log.t.Logf(format, args...) }
 func (log logger) Errorf(format string, args ...interface{}) { log.t.Logf(format, args...) }
 
-func TestTtlResponse(t *testing.T) {
+func TestTTLResponse(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -41,11 +42,11 @@ func TestTtlResponse(t *testing.T) {
 	grpcServer := grpc.NewServer()
 	endpointservice.RegisterEndpointDiscoveryServiceServer(grpcServer, server)
 
-	l, err := net.Listen("tcp", ":9999")
+	l, err := net.Listen("tcp", ":9999") // nolint:gosec
 	assert.NoError(t, err)
 
 	go func() {
-		grpcServer.Serve(l)
+		assert.NoError(t, grpcServer.Serve(l))
 	}()
 	defer grpcServer.Stop()
 
@@ -67,10 +68,13 @@ func TestTtlResponse(t *testing.T) {
 
 	oneSecond := time.Second
 	cla := &envoy_config_endpoint_v3.ClusterLoadAssignment{ClusterName: "resource"}
-	err = snapshotCache.SetSnapshot("test", cache.NewSnapshotWithTtls("1", []types.ResourceWithTtl{{
-		Resource: cla,
-		Ttl:      &oneSecond,
-	}}, nil, nil, nil, nil, nil))
+	snap, _ := cache.NewSnapshotWithTTLs("1", map[resource.Type][]types.ResourceWithTTL{
+		resource.EndpointType: {{
+			Resource: cla,
+			TTL:      &oneSecond,
+		}},
+	})
+	err = snapshotCache.SetSnapshot(context.Background(), "test", snap)
 	assert.NoError(t, err)
 
 	timeout := time.NewTimer(5 * time.Second)
@@ -119,7 +123,7 @@ func isFullResponseWithTTL(t *testing.T, response *envoy_service_discovery_v3.Di
 	assert.Len(t, response.Resources, 1)
 	r := response.Resources[0]
 	resource := &envoy_service_discovery_v3.Resource{}
-	err := ptypes.UnmarshalAny(r, resource)
+	err := anypb.UnmarshalTo(r, resource, proto.UnmarshalOptions{})
 	assert.NoError(t, err)
 
 	assert.NotNil(t, resource.Ttl)
@@ -132,7 +136,7 @@ func isHeartbeatResponseWithTTL(t *testing.T, response *envoy_service_discovery_
 	assert.Len(t, response.Resources, 1)
 	r := response.Resources[0]
 	resource := &envoy_service_discovery_v3.Resource{}
-	err := ptypes.UnmarshalAny(r, resource)
+	err := anypb.UnmarshalTo(r, resource, proto.UnmarshalOptions{})
 	assert.NoError(t, err)
 
 	assert.NotNil(t, resource.Ttl)

@@ -15,26 +15,21 @@
 package server
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path"
 
-	"github.com/golang/protobuf/jsonpb"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
-	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/log"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
 )
 
 // HTTPGateway is a custom implementation of [gRPC gateway](https://github.com/grpc-ecosystem/grpc-gateway)
 // specialized to Envoy xDS API.
 type HTTPGateway struct {
-	// Log is an optional log for errors in response write
-	Log log.Logger
-
 	// Server is the underlying gRPC server
 	Server Server
 }
@@ -52,6 +47,8 @@ func (h *HTTPGateway) ServeHTTP(req *http.Request) ([]byte, int, error) {
 		typeURL = resource.ListenerType
 	case resource.FetchRoutes:
 		typeURL = resource.RouteType
+	case resource.FetchScopedRoutes:
+		typeURL = resource.ScopedRouteType
 	case resource.FetchSecrets:
 		typeURL = resource.SecretType
 	case resource.FetchRuntimes:
@@ -73,7 +70,7 @@ func (h *HTTPGateway) ServeHTTP(req *http.Request) ([]byte, int, error) {
 
 	// parse as JSON
 	out := &discovery.DiscoveryRequest{}
-	err = jsonpb.UnmarshalString(string(body), out)
+	err = protojson.Unmarshal(body, out)
 	if err != nil {
 		return nil, http.StatusBadRequest, fmt.Errorf("cannot parse JSON body: " + err.Error())
 	}
@@ -90,10 +87,10 @@ func (h *HTTPGateway) ServeHTTP(req *http.Request) ([]byte, int, error) {
 		return nil, http.StatusInternalServerError, fmt.Errorf("fetch error: " + err.Error())
 	}
 
-	buf := &bytes.Buffer{}
-	if err := (&jsonpb.Marshaler{OrigName: true}).Marshal(buf, res); err != nil {
+	b, err := protojson.MarshalOptions{UseProtoNames: true}.Marshal(res)
+	if err != nil {
 		return nil, http.StatusInternalServerError, fmt.Errorf("marshal error: " + err.Error())
 	}
 
-	return buf.Bytes(), http.StatusOK, nil
+	return b, http.StatusOK, nil
 }

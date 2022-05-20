@@ -21,12 +21,14 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
-	"github.com/golang/protobuf/ptypes/any"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/stream/v3"
-	ttl "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/ttl/v3"
+
+	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
 )
 
 // Request is an alias for the discovery request type.
@@ -37,32 +39,27 @@ type DeltaRequest = discovery.DeltaDiscoveryRequest
 
 // ConfigWatcher requests watches for configuration resources by a node, last
 // applied version identifier, and resource names hint. The watch should send
-// the responses when they are ready. The watch can be cancelled by the
+// the responses when they are ready. The watch can be canceled by the
 // consumer, in effect terminating the watch for the request.
 // ConfigWatcher implementation must be thread-safe.
 type ConfigWatcher interface {
 	// CreateWatch returns a new open watch from a non-empty request.
 	// An individual consumer normally issues a single open watch by each type URL.
 	//
-	// Value channel produces requested resources, once they are available.  If
-	// the channel is closed prior to cancellation of the watch, an unrecoverable
-	// error has occurred in the producer, and the consumer should close the
-	// corresponding stream.
+	// The provided channel produces requested resources as responses, once they are available.
 	//
 	// Cancel is an optional function to release resources in the producer. If
 	// provided, the consumer may call this function multiple times.
-	CreateWatch(*Request) (value chan Response, cancel func())
+	CreateWatch(*Request, stream.StreamState, chan Response) (cancel func())
 
 	// CreateDeltaWatch returns a new open incremental xDS watch.
 	//
-	// Value channel produces requested resources, or spontaneous updates in accordance
-	// with the incremental xDS specification. If the channel is closed
-	// prior to cancellation of the watch, an unrecoverable error has occurred in the producer,
-	// and the consumer should close the corresponding stream.
+	// The provided channel produces requested resources as responses, or spontaneous updates in accordance
+	// with the incremental xDS specification.
 	//
 	// Cancel is an optional function to release resources in the producer. If
 	// provided, the consumer may call this function multiple times.
-	CreateDeltaWatch(*DeltaRequest, *stream.StreamState) (value chan DeltaResponse, cancel func())
+	CreateDeltaWatch(*DeltaRequest, stream.StreamState, chan DeltaResponse) (cancel func())
 }
 
 // ConfigFetcher fetches configuration resources from cache
@@ -87,6 +84,9 @@ type Response interface {
 
 	// Get the version in the Response.
 	GetVersion() (string, error)
+
+	// Get the context provided during response creation.
+	GetContext() context.Context
 }
 
 // DeltaResponse is a wrapper around Envoy's DeltaDiscoveryResponse
@@ -104,6 +104,9 @@ type DeltaResponse interface {
 	// Get the version map of the internal cache.
 	// The version map consists of updated version mappings after this response is applied
 	GetNextVersionMap() map[string]string
+
+	// Get the context provided during response creation
+	GetContext() context.Context
 }
 
 // RawResponse is a pre-serialized xDS response containing the raw resources to
@@ -117,12 +120,16 @@ type RawResponse struct {
 	Version string
 
 	// Resources to be included in the response.
-	Resources []types.ResourceWithTtl
+	Resources []types.ResourceWithTTL
 
 	// Whether this is a heartbeat response. For xDS versions that support TTL, this
 	// will be converted into a response that doesn't contain the actual resource protobuf.
 	// This allows for more lightweight updates that server only to update the TTL timer.
 	Heartbeat bool
+
+	// Context provided at the time of response creation. This allows associating additional
+	// information with a generated response.
+	Ctx context.Context
 
 	// marshaledResponse holds an atomic reference to the serialized discovery response.
 	marshaledResponse atomic.Value
@@ -145,6 +152,10 @@ type RawDeltaResponse struct {
 	// NextVersionMap consists of updated version mappings after this response is applied
 	NextVersionMap map[string]string
 
+	// Context provided at the time of response creation. This allows associating additional
+	// information with a generated response.
+	Ctx context.Context
+
 	// Marshaled Resources to be included in the response.
 	marshaledResponse atomic.Value
 }
@@ -152,16 +163,18 @@ type RawDeltaResponse struct {
 var _ Response = &RawResponse{}
 var _ DeltaResponse = &RawDeltaResponse{}
 
-// PassthroughResponse is a pre constructed xDS response that need not go through marshalling transformations.
+// PassthroughResponse is a pre constructed xDS response that need not go through marshaling transformations.
 type PassthroughResponse struct {
 	// Request is the original request.
 	Request *discovery.DiscoveryRequest
 
-	// The discovery response that needs to be sent as is, without any marshalling transformations.
+	// The discovery response that needs to be sent as is, without any marshaling transformations.
 	DiscoveryResponse *discovery.DiscoveryResponse
+
+	ctx context.Context
 }
 
-// DeltaPassthroughResponse is a pre constructed xDS response that need not go through marshalling transformations.
+// DeltaPassthroughResponse is a pre constructed xDS response that need not go through marshaling transformations.
 type DeltaPassthroughResponse struct {
 	// Request is the latest delta request on the stream
 	DeltaRequest *discovery.DeltaDiscoveryRequest
@@ -169,26 +182,26 @@ type DeltaPassthroughResponse struct {
 	// NextVersionMap consists of updated version mappings after this response is applied
 	NextVersionMap map[string]string
 
-	// This discovery response that needs to be sent as is, without any marshalling transformations
+	// This discovery response that needs to be sent as is, without any marshaling transformations
 	DeltaDiscoveryResponse *discovery.DeltaDiscoveryResponse
+
+	ctx context.Context
 }
 
 var _ Response = &PassthroughResponse{}
 var _ DeltaResponse = &DeltaPassthroughResponse{}
 
-// GetDiscoveryResponse performs the marshalling the first time its called and uses the cached response subsequently.
-// This is necessary because the marshalled response does not change across the calls.
-// This caching behavior is important in high throughput scenarios because grpc marshalling has a cost and it drives the cpu utilization under load.
+// GetDiscoveryResponse performs the marshaling the first time its called and uses the cached response subsequently.
+// This is necessary because the marshaled response does not change across the calls.
+// This caching behavior is important in high throughput scenarios because grpc marshaling has a cost and it drives the cpu utilization under load.
 func (r *RawResponse) GetDiscoveryResponse() (*discovery.DiscoveryResponse, error) {
-
 	marshaledResponse := r.marshaledResponse.Load()
 
 	if marshaledResponse == nil {
-
-		marshaledResources := make([]*any.Any, len(r.Resources))
+		marshaledResources := make([]*anypb.Any, len(r.Resources))
 
 		for i, resource := range r.Resources {
-			maybeTtldResource, resourceType, err := ttl.MaybeCreateTtlResourceIfSupported(resource, GetResourceName(resource.Resource), r.Request.TypeUrl, r.Heartbeat)
+			maybeTtldResource, resourceType, err := r.maybeCreateTTLResource(resource)
 			if err != nil {
 				return nil, err
 			}
@@ -196,7 +209,7 @@ func (r *RawResponse) GetDiscoveryResponse() (*discovery.DiscoveryResponse, erro
 			if err != nil {
 				return nil, err
 			}
-			marshaledResources[i] = &any.Any{
+			marshaledResources[i] = &anypb.Any{
 				TypeUrl: resourceType,
 				Value:   marshaledResource,
 			}
@@ -214,9 +227,9 @@ func (r *RawResponse) GetDiscoveryResponse() (*discovery.DiscoveryResponse, erro
 	return marshaledResponse.(*discovery.DiscoveryResponse), nil
 }
 
-// GetDeltaDiscoveryResponse performs the marshalling the first time its called and uses the cached response subsequently.
-// We can do this because the marshalled response does not change across the calls.
-// This caching behavior is important in high throughput scenarios because grpc marshalling has a cost and it drives the cpu utilization under load.
+// GetDeltaDiscoveryResponse performs the marshaling the first time its called and uses the cached response subsequently.
+// We can do this because the marshaled response does not change across the calls.
+// This caching behavior is important in high throughput scenarios because grpc marshaling has a cost and it drives the cpu utilization under load.
 func (r *RawDeltaResponse) GetDeltaDiscoveryResponse() (*discovery.DeltaDiscoveryResponse, error) {
 	marshaledResponse := r.marshaledResponse.Load()
 
@@ -235,7 +248,7 @@ func (r *RawDeltaResponse) GetDeltaDiscoveryResponse() (*discovery.DeltaDiscover
 			}
 			marshaledResources[i] = &discovery.Resource{
 				Name: name,
-				Resource: &any.Any{
+				Resource: &anypb.Any{
 					TypeUrl: r.DeltaRequest.TypeUrl,
 					Value:   marshaledResource,
 				},
@@ -260,6 +273,10 @@ func (r *RawResponse) GetRequest() *discovery.DiscoveryRequest {
 	return r.Request
 }
 
+func (r *RawResponse) GetContext() context.Context {
+	return r.Ctx
+}
+
 // GetDeltaRequest returns the original DeltaRequest
 func (r *RawDeltaResponse) GetDeltaRequest() *discovery.DeltaDiscoveryRequest {
 	return r.DeltaRequest
@@ -278,6 +295,34 @@ func (r *RawDeltaResponse) GetSystemVersion() (string, error) {
 // NextVersionMap returns the version map which consists of updated version mappings after this response is applied
 func (r *RawDeltaResponse) GetNextVersionMap() map[string]string {
 	return r.NextVersionMap
+}
+
+func (r *RawDeltaResponse) GetContext() context.Context {
+	return r.Ctx
+}
+
+var deltaResourceTypeURL = "type.googleapis.com/" + string(proto.MessageName(&discovery.Resource{}))
+
+func (r *RawResponse) maybeCreateTTLResource(resource types.ResourceWithTTL) (types.Resource, string, error) {
+	if resource.TTL != nil {
+		wrappedResource := &discovery.Resource{
+			Name: GetResourceName(resource.Resource),
+			Ttl:  durationpb.New(*resource.TTL),
+		}
+
+		if !r.Heartbeat {
+			any, err := anypb.New(resource.Resource)
+			if err != nil {
+				return nil, "", err
+			}
+			any.TypeUrl = r.Request.TypeUrl
+			wrappedResource.Resource = any
+		}
+
+		return wrappedResource, deltaResourceTypeURL, nil
+	}
+
+	return resource.Resource, r.Request.TypeUrl, nil
 }
 
 // GetDiscoveryResponse returns the final passthrough Discovery Response.
@@ -307,6 +352,9 @@ func (r *PassthroughResponse) GetVersion() (string, error) {
 	}
 	return "", fmt.Errorf("DiscoveryResponse is nil")
 }
+func (r *PassthroughResponse) GetContext() context.Context {
+	return r.ctx
+}
 
 // GetSystemVersion returns the response version.
 func (r *DeltaPassthroughResponse) GetSystemVersion() (string, error) {
@@ -319,4 +367,8 @@ func (r *DeltaPassthroughResponse) GetSystemVersion() (string, error) {
 // NextVersionMap returns the version map from a DeltaPassthroughResponse
 func (r *DeltaPassthroughResponse) GetNextVersionMap() map[string]string {
 	return r.NextVersionMap
+}
+
+func (r *DeltaPassthroughResponse) GetContext() context.Context {
+	return r.ctx
 }

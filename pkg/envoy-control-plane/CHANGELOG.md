@@ -1,5 +1,32 @@
 # Changelog
 
+## Release v0.10.0
+
+### Added
+
+- Added snapshot support in the Linear cache (#437) 
+- Added CI linting support (#455)
+- Incremental xDS support for Linear and Mux caches (#459)
+- Added Extension Configs support (#417)
+- Added a default cache logger (#483)
+- Added Scoped Routes Discovery Service - SRDS (#495)
+
+### Changed
+
+- Removed linearization in server API to preserve cache ordering (#443)
+- SetSnapshot now takes a `context` (#474)
+- Delta xDS now responds immediately for the first wildcard request in a delta stream if the corresponding snapshot exists and the response is empty (#473)
+- Reworked snapshot API to faciliate additional xDS resources without changes (#484)
+- Delta xDS won't delete non-existent resources in wildcard mode (#488)
+- Simple cache now holds a read lock when cancelling a snapshot watch (#507)
+
+### Fixed
+
+- Delta xDS not registering another watch after resource sent (#458)
+- Fixed data race in Linear cache (#502)
+- State of the World now tracks known resource names per caller stream (#508)
+
+
 ## Release v0.9.9
 
 ### Added
@@ -22,9 +49,6 @@
 - Fix a potential goroutine leak in stream handler (#430)
 
 ## Release v0.9.8
-
-### Added
-- Support for setting TTL on resources and configuring resource heartbeating
 
 ### Changed
 

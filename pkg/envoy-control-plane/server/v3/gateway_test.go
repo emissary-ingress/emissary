@@ -29,41 +29,32 @@ import (
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
 )
 
-type logger struct {
-	t *testing.T
-}
-
-func (log logger) Debugf(format string, args ...interface{}) { log.t.Logf(format, args...) }
-func (log logger) Infof(format string, args ...interface{})  { log.t.Logf(format, args...) }
-func (log logger) Warnf(format string, args ...interface{})  { log.t.Logf(format, args...) }
-func (log logger) Errorf(format string, args ...interface{}) { log.t.Logf(format, args...) }
-
 func TestGateway(t *testing.T) {
 	config := makeMockConfigWatcher()
 	config.responses = map[string][]cache.Response{
 		resource.ClusterType: {
 			&cache.RawResponse{
 				Version:   "2",
-				Resources: []types.ResourceWithTtl{{Resource: cluster}},
+				Resources: []types.ResourceWithTTL{{Resource: cluster}},
 				Request:   &discovery.DiscoveryRequest{TypeUrl: resource.ClusterType},
 			},
 		},
 		resource.RouteType: {
 			&cache.RawResponse{
 				Version:   "3",
-				Resources: []types.ResourceWithTtl{{Resource: route}},
+				Resources: []types.ResourceWithTTL{{Resource: route}},
 				Request:   &discovery.DiscoveryRequest{TypeUrl: resource.RouteType},
 			},
 		},
 		resource.ListenerType: {
 			&cache.RawResponse{
 				Version:   "4",
-				Resources: []types.ResourceWithTtl{{Resource: listener}},
+				Resources: []types.ResourceWithTTL{{Resource: httpListener}, {Resource: httpScopedListener}},
 				Request:   &discovery.DiscoveryRequest{TypeUrl: resource.ListenerType},
 			},
 		},
 	}
-	gtw := server.HTTPGateway{Log: logger{t: t}, Server: server.NewServer(context.Background(), config, nil)}
+	gtw := server.HTTPGateway{Server: server.NewServer(context.Background(), config, nil)}
 
 	failCases := []struct {
 		path   string
@@ -101,6 +92,9 @@ func TestGateway(t *testing.T) {
 			t.Fatal(err)
 		}
 		resp, code, err := gtw.ServeHTTP(req)
+		if err == nil {
+			t.Errorf("ServeHTTP succeeded, but should have failed")
+		}
 		if resp != nil {
 			t.Errorf("handler returned wrong response")
 		}
@@ -115,6 +109,9 @@ func TestGateway(t *testing.T) {
 			t.Fatal(err)
 		}
 		resp, code, err := gtw.ServeHTTP(req)
+		if err != nil {
+			t.Fatal(err)
+		}
 		if resp == nil {
 			t.Errorf("handler returned wrong response")
 		}

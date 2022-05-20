@@ -105,7 +105,7 @@ type DeltaResponseWatch struct {
 	Response chan DeltaResponse
 
 	// VersionMap for the stream
-	StreamState *stream.StreamState
+	StreamState stream.StreamState
 }
 
 // newStatusInfo initializes a status info data structure.
@@ -148,8 +148,8 @@ func (info *statusInfo) GetLastDeltaWatchRequestTime() time.Time {
 	return info.lastDeltaWatchRequestTime
 }
 
-// GetDeltaVersionMap will pull the version map out of a specific watch
-func (info *statusInfo) GetDeltaStreamState(watchID int64) *stream.StreamState {
+// GetDeltaStreamState will pull the stream state with the version map out of a specific watch
+func (info *statusInfo) GetDeltaStreamState(watchID int64) stream.StreamState {
 	info.mu.RLock()
 	defer info.mu.RUnlock()
 	return info.deltaWatches[watchID].StreamState

@@ -355,14 +355,17 @@ func (d *Dispatcher) buildSnapshot(ctx context.Context) {
 
 	listeners, routes := d.buildRouteConfigurations()
 
-	snapshotV3 := ecp_v3_cache.NewSnapshot(d.version,
-		endpoints,
-		clusters,
-		routes,
-		listeners,
-		nil, // runtimes
-		nil, // secrets
-	)
+	snapshotResources := map[ecp_v3_resource.Type][]ecp_cache_types.Resource{
+		ecp_v3_resource.EndpointType: endpoints,
+		ecp_v3_resource.ClusterType:  clusters,
+		ecp_v3_resource.RouteType:    routes,
+		ecp_v3_resource.ListenerType: listeners,
+	}
+
+	snapshotV3, err := ecp_v3_cache.NewSnapshot(d.version, snapshotResources)
+	if err != nil {
+		dlog.Errorf(ctx, "Dispatcher Snapshot Error: %v", err)
+	}
 
 	if err := snapshotV3.Consistent(); err != nil {
 		bs, _ := json.MarshalIndent(snapshotV3, "", "  ")

@@ -17,9 +17,9 @@ package conversion_test
 import (
 	"testing"
 
-	"github.com/golang/protobuf/proto"
-	pstruct "github.com/golang/protobuf/ptypes/struct"
 	"github.com/google/go-cmp/cmp"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
 	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
@@ -35,11 +35,11 @@ func TestConversion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error %v", err)
 	}
-	pbst := map[string]*pstruct.Value{
-		"version_info": {Kind: &pstruct.Value_StringValue{StringValue: "test"}},
-		"node": {Kind: &pstruct.Value_StructValue{StructValue: &pstruct.Struct{
-			Fields: map[string]*pstruct.Value{
-				"id": {Kind: &pstruct.Value_StringValue{StringValue: "proxy"}},
+	pbst := map[string]*structpb.Value{
+		"version_info": {Kind: &structpb.Value_StringValue{StringValue: "test"}},
+		"node": {Kind: &structpb.Value_StructValue{StructValue: &structpb.Struct{
+			Fields: map[string]*structpb.Value{
+				"id": {Kind: &structpb.Value_StringValue{StringValue: "proxy"}},
 			},
 		}}},
 	}

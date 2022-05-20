@@ -86,9 +86,13 @@ const (
 	// ProxyProtocol listener filter
 	ProxyProtocol = "envoy.filters.listener.proxy_protocol"
 	// TlsInspector listener filter
-	TlsInspector = "envoy.filters.listener.tls_inspector"
+	TlsInspector = "envoy.filters.listener.tls_inspector" // nolint:golint,revive
+	// TLSInspector listener filter
+	TLSInspector = "envoy.filters.listener.tls_inspector" // nolint:golint,revive
 	// HttpInspector listener filter
-	HttpInspector = "envoy.filters.listener.http_inspector"
+	HttpInspector = "envoy.filters.listener.http_inspector" // nolint:golint,revive
+	// HTTPInspector listener filter
+	HTTPInspector = "envoy.filters.listener.http_inspector"
 )
 
 // Tracing provider names
@@ -130,7 +134,9 @@ const (
 	// TransportSocket RawBuffer
 	TransportSocketRawBuffer = "envoy.transport_sockets.raw_buffer"
 	// TransportSocket Tls
-	TransportSocketTls = "envoy.transport_sockets.tls"
+	TransportSocketTls = "envoy.transport_sockets.tls" // nolint:golint,revive
+	// TransportSocketTLS labels the "envoy.transport_sockets.tls" filter.
+	TransportSocketTLS = "envoy.transport_sockets.tls"
 	// TransportSocket Quic
 	TransportSocketQuic = "envoy.transport_sockets.quic"
 )

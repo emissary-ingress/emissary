@@ -30,6 +30,7 @@ import (
 	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
 	discoverygrpc "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
 	endpointservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/endpoint/v3"
+	extensionconfigservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/extension/v3"
 	listenerservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/listener/v3"
 	routeservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/route/v3"
 	runtimeservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/runtime/v3"
@@ -43,10 +44,12 @@ type Server interface {
 	endpointservice.EndpointDiscoveryServiceServer
 	clusterservice.ClusterDiscoveryServiceServer
 	routeservice.RouteDiscoveryServiceServer
+	routeservice.ScopedRoutesDiscoveryServiceServer
 	listenerservice.ListenerDiscoveryServiceServer
 	discoverygrpc.AggregatedDiscoveryServiceServer
 	secretservice.SecretDiscoveryServiceServer
 	runtimeservice.RuntimeDiscoveryServiceServer
+	extensionconfigservice.ExtensionConfigDiscoveryServiceServer
 
 	rest.Server
 	sotw.Server
@@ -68,7 +71,7 @@ type CallbackFuncs struct {
 	DeltaStreamOpenFunc     func(context.Context, int64, string) error
 	DeltaStreamClosedFunc   func(int64)
 	StreamRequestFunc       func(int64, *discovery.DiscoveryRequest) error
-	StreamResponseFunc      func(int64, *discovery.DiscoveryRequest, *discovery.DiscoveryResponse)
+	StreamResponseFunc      func(context.Context, int64, *discovery.DiscoveryRequest, *discovery.DiscoveryResponse)
 	StreamDeltaRequestFunc  func(int64, *discovery.DeltaDiscoveryRequest) error
 	StreamDeltaResponseFunc func(int64, *discovery.DeltaDiscoveryRequest, *discovery.DeltaDiscoveryResponse)
 	FetchRequestFunc        func(context.Context, *discovery.DiscoveryRequest) error
@@ -95,7 +98,7 @@ func (c CallbackFuncs) OnStreamClosed(streamID int64) {
 
 // OnDeltaStreamOpen invokes DeltaStreamOpenFunc.
 func (c CallbackFuncs) OnDeltaStreamOpen(ctx context.Context, streamID int64, typeURL string) error {
-	if c.StreamOpenFunc != nil {
+	if c.DeltaStreamOpenFunc != nil {
 		return c.DeltaStreamOpenFunc(ctx, streamID, typeURL)
 	}
 
@@ -104,7 +107,7 @@ func (c CallbackFuncs) OnDeltaStreamOpen(ctx context.Context, streamID int64, ty
 
 // OnDeltaStreamClosed invokes DeltaStreamClosedFunc.
 func (c CallbackFuncs) OnDeltaStreamClosed(streamID int64) {
-	if c.StreamClosedFunc != nil {
+	if c.DeltaStreamClosedFunc != nil {
 		c.DeltaStreamClosedFunc(streamID)
 	}
 }
@@ -119,9 +122,9 @@ func (c CallbackFuncs) OnStreamRequest(streamID int64, req *discovery.DiscoveryR
 }
 
 // OnStreamResponse invokes StreamResponseFunc.
-func (c CallbackFuncs) OnStreamResponse(streamID int64, req *discovery.DiscoveryRequest, resp *discovery.DiscoveryResponse) {
+func (c CallbackFuncs) OnStreamResponse(ctx context.Context, streamID int64, req *discovery.DiscoveryRequest, resp *discovery.DiscoveryResponse) {
 	if c.StreamResponseFunc != nil {
-		c.StreamResponseFunc(streamID, req, resp)
+		c.StreamResponseFunc(ctx, streamID, req, resp)
 	}
 }
 
@@ -195,6 +198,10 @@ func (s *server) StreamRoutes(stream routeservice.RouteDiscoveryService_StreamRo
 	return s.StreamHandler(stream, resource.RouteType)
 }
 
+func (s *server) StreamScopedRoutes(stream routeservice.ScopedRoutesDiscoveryService_StreamScopedRoutesServer) error {
+	return s.StreamHandler(stream, resource.ScopedRouteType)
+}
+
 func (s *server) StreamListeners(stream listenerservice.ListenerDiscoveryService_StreamListenersServer) error {
 	return s.StreamHandler(stream, resource.ListenerType)
 }
@@ -205,6 +212,10 @@ func (s *server) StreamSecrets(stream secretservice.SecretDiscoveryService_Strea
 
 func (s *server) StreamRuntime(stream runtimeservice.RuntimeDiscoveryService_StreamRuntimeServer) error {
 	return s.StreamHandler(stream, resource.RuntimeType)
+}
+
+func (s *server) StreamExtensionConfigs(stream extensionconfigservice.ExtensionConfigDiscoveryService_StreamExtensionConfigsServer) error {
+	return s.StreamHandler(stream, resource.ExtensionConfigType)
 }
 
 // Fetch is the universal fetch method.
@@ -236,6 +247,14 @@ func (s *server) FetchRoutes(ctx context.Context, req *discovery.DiscoveryReques
 	return s.Fetch(ctx, req)
 }
 
+func (s *server) FetchScopedRoutes(ctx context.Context, req *discovery.DiscoveryRequest) (*discovery.DiscoveryResponse, error) {
+	if req == nil {
+		return nil, status.Errorf(codes.Unavailable, "empty request")
+	}
+	req.TypeUrl = resource.ScopedRouteType
+	return s.Fetch(ctx, req)
+}
+
 func (s *server) FetchListeners(ctx context.Context, req *discovery.DiscoveryRequest) (*discovery.DiscoveryResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.Unavailable, "empty request")
@@ -260,6 +279,14 @@ func (s *server) FetchRuntime(ctx context.Context, req *discovery.DiscoveryReque
 	return s.Fetch(ctx, req)
 }
 
+func (s *server) FetchExtensionConfigs(ctx context.Context, req *discovery.DiscoveryRequest) (*discovery.DiscoveryResponse, error) {
+	if req == nil {
+		return nil, status.Errorf(codes.Unavailable, "empty request")
+	}
+	req.TypeUrl = resource.ExtensionConfigType
+	return s.Fetch(ctx, req)
+}
+
 func (s *server) DeltaStreamHandler(stream stream.DeltaStream, typeURL string) error {
 	return s.delta.DeltaStreamHandler(stream, typeURL)
 }
@@ -280,6 +307,10 @@ func (s *server) DeltaRoutes(stream routeservice.RouteDiscoveryService_DeltaRout
 	return s.DeltaStreamHandler(stream, resource.RouteType)
 }
 
+func (s *server) DeltaScopedRoutes(stream routeservice.ScopedRoutesDiscoveryService_DeltaScopedRoutesServer) error {
+	return s.DeltaStreamHandler(stream, resource.ScopedRouteType)
+}
+
 func (s *server) DeltaListeners(stream listenerservice.ListenerDiscoveryService_DeltaListenersServer) error {
 	return s.DeltaStreamHandler(stream, resource.ListenerType)
 }
@@ -290,4 +321,8 @@ func (s *server) DeltaSecrets(stream secretservice.SecretDiscoveryService_DeltaS
 
 func (s *server) DeltaRuntime(stream runtimeservice.RuntimeDiscoveryService_DeltaRuntimeServer) error {
 	return s.DeltaStreamHandler(stream, resource.RuntimeType)
+}
+
+func (s *server) DeltaExtensionConfigs(stream extensionconfigservice.ExtensionConfigDiscoveryService_DeltaExtensionConfigsServer) error {
+	return s.DeltaStreamHandler(stream, resource.ExtensionConfigType)
 }
