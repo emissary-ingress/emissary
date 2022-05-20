@@ -138,7 +138,9 @@ class V3RouteVariants:
             "headers": [
                 {
                     "name": "x-forwarded-proto"
-                    "exact_match": "http",
+                    "string_match": {
+                        "exact":  "http",
+                    }
                 }
             ],
             "prefix": "/foo/",
@@ -237,7 +239,9 @@ class V3RouteVariants:
         if value:
             headers_copy.append({
                 "name": "x-forwarded-proto",
-                "exact_match": value
+                "string_match": {
+                    "exact": value
+                }
             })
 
         # Don't bother writing headers_copy back if it's empty.

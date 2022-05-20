@@ -92,6 +92,7 @@ import (
 	// Envoy API v3
 	// Be sure to import the package of any types that're referenced with "@type" in our
 	// generated Envoy config, even if that package is otherwise not used by ambex.
+
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/accesslog/v3"
 	v3bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
 	v3clusterconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
@@ -112,6 +113,7 @@ import (
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/rbac/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/response_map/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/router/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/listener/tls_inspector/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/tcp_proxy/v3"
 	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/cluster/v3"

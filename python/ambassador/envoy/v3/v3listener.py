@@ -179,7 +179,10 @@ class V3Listener(dict):
                 # etc.
                 self._tls_ok = True
                 self.listener_filters.append({
-                    'name': 'envoy.filters.listener.tls_inspector'
+                    'name': 'envoy.filters.listener.tls_inspector',
+                    'typed_config': {
+                        '@type': 'type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector'
+                    }
                 })
 
             if proto == "TCP":

@@ -432,28 +432,30 @@ def V3HTTPFilter_cors(cors: IRCORS, v3config: 'V3Config'):
     del cors    # silence unused-variable warning
     del v3config  # silence unused-variable warning
 
-    return { 'name': 'envoy.filters.http.cors' }
+    return { 
+        'name': 'envoy.filters.http.cors',
+        'typed_config': {
+            '@type': 'type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors',
+        }
+     }
 
 
 @V3HTTPFilter.when("ir.router")
 def V3HTTPFilter_router(router: IRFilter, v3config: 'V3Config'):
     del v3config  # silence unused-variable warning
 
-    od: Dict[str, Any] = { 'name': 'envoy.filters.http.router' }
-
-    # Use this config base if we actually need to set config fields below. We don't set
-    # this on `od` by default because it would be an error to end up returning a typed
-    # config that has no real config fields, only a type.
-    typed_config_base = {
-        '@type': 'type.googleapis.com/envoy.extensions.filters.http.router.v3.Router',
+    od: Dict[str, Any] = { 
+        'name': 'envoy.filters.http.router',
+        'typed_config': {
+            '@type': 'type.googleapis.com/envoy.extensions.filters.http.router.v3.Router',
+        }
     }
+    
 
     if router.ir.tracing:
-        typed_config = od.setdefault('typed_config', typed_config_base)
         typed_config['start_child_span'] = True
 
     if parse_bool(router.ir.ambassador_module.get('suppress_envoy_headers', 'false')):
-        typed_config = od.setdefault('typed_config', typed_config_base)
         typed_config['suppress_envoy_headers'] = True
 
     return od
