@@ -79,7 +79,7 @@ func NewEnvoyController(address string) *EnvoyController {
 // Configure will update the envoy configuration and block until the reconfiguration either succeeds
 // or signals an error.
 func (e *EnvoyController) Configure(node, version string, snapshot ecp_v3_cache.Snapshot) (*status.Status, error) {
-	err := e.configCache.SetSnapshot(node, snapshot)
+	err := e.configCache.SetSnapshot(context.TODO(), node, snapshot)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +225,7 @@ func (e *EnvoyController) OnStreamRequest(sid int64, req *v3discovery.DiscoveryR
 }
 
 // OnStreamResponse is called immediately prior to sending a response on a stream.
-func (e *EnvoyController) OnStreamResponse(sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
+func (e *EnvoyController) OnStreamResponse(ctx context.Context, sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
 	e.Infof("Stream response[%v]: %v -> %v", sid, req.TypeUrl, res.Nonce)
 	func() {
 		e.cond.L.Lock()

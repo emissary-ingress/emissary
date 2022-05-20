@@ -102,7 +102,7 @@ limitations under the License
 
       <div class="row">
         <div class="col-12">
-          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.8.0/api-v2/api/v2/route/route.proto">Routes</a>
+          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.22.0/api-v3/config/route/v3/route.proto">Routes</a>
 
           {% for route in route_info %}
           <div class="row">
@@ -154,7 +154,7 @@ limitations under the License
 
       <div class="row">
         <div class="col-12">
-          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.8.0/api-v2/api/v2/cds.proto">Clusters</a>
+          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.22.0/api-v3/config/cluster/v3/cluster.proto">Clusters</a>
 
           <div class="row">
             {% for cluster in cluster_info.values() | sort(attribute = 'name') %}

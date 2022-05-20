@@ -1949,7 +1949,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 vconf_clusters.append(copy.deepcopy(vconf_clusters[10]))
 
             # Check for cluster-name weirdness.
-            _v2_clusters = {}
+            _v3_clusters = {}
             _problems = []
 
             for name in sorted(ir.clusters.keys()):
@@ -1959,9 +1959,9 @@ class AmbassadorEventWatcher(threading.Thread):
             for cluster in validation_config['static_resources']['clusters']:
                 name = cluster['name']
 
-                if name in _v2_clusters:
-                    _problems.append(f"V2 dup cluster {name}")
-                _v2_clusters[name] = True
+                if name in _v3_clusters:
+                    _problems.append(f"V3 dup cluster {name}")
+                _v3_clusters[name] = True
 
             if _problems:
                 self.logger.error("ENVOY CONFIG PROBLEMS:\n%s", "\n".join(_problems))
@@ -1985,7 +1985,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
                 bad_dict = {
                     "ir": ir.as_dict(),
-                    "v2": config,
+                    "v3": config,
                     "validation": validation_config,
                     "problems": _problems,
                     "snapshot": bad_snapshot,

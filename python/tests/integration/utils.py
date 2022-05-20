@@ -1,20 +1,10 @@
-import logging
-import json
 import os
-import subprocess
 import requests
 import socket
-import tempfile
 import time
 from collections import namedtuple
-from retry import retry
 
-import json
 import yaml
-
-from ambassador import Cache, IR
-from ambassador.compile import Compile
-from ambassador.utils import NullSecretHandler
 
 import tests.integration.manifests as integration_manifests
 from tests.manifests import cleartext_host_manifest

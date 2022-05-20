@@ -2,7 +2,7 @@ from tests.utils import econf_compile, econf_foreach_cluster, module_and_mapping
 
 import pytest
 
-def _test_common_http_protocol_options(yaml, expectations={}, envoy_version="V2"):
+def _test_common_http_protocol_options(yaml, expectations={}, envoy_version="V3"):
     econf = econf_compile(yaml, envoy_version=envoy_version)
 
     def check(cluster):

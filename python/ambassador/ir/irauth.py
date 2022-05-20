@@ -144,7 +144,8 @@ class IRAuth (IRFilter):
         self["cluster_idle_timeout_ms"] = module.get("cluster_idle_timeout_ms", None)
         self["cluster_max_connection_lifetime_ms"] = module.get("cluster_max_connection_lifetime_ms", None)
         self["add_auth_headers"] = module.get("add_auth_headers", {})
-        self["protocol_version"] = module.get("protocol_version", "v2")
+        # envoy/we no longer support v2 protocol and will ignore the input from the CRD's
+        self["protocol_version"] = "v3"
         self.__to_header_list('allowed_headers', module)
         self.__to_header_list('allowed_request_headers', module)
         self.__to_header_list('allowed_authorization_headers', module)

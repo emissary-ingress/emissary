@@ -14,7 +14,6 @@
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, ValuesView
 from typing import cast as typecast
 
-import json
 import logging
 import os
 
@@ -479,11 +478,9 @@ class IR:
                 # to shred any cached cluster with this mangled_name, because the mangled_name
                 # can change as new clusters appear! This is obviously not ideal.
                 #
-                # XXX This is doubly a hack because it's duplicating this magic format from
-                # v2cluster.py and v3cluster.py.
-                self.cache.invalidate(f"V2-{cluster.cache_key}")
+                # XXX This is doubly a hack because it's duplicating this magic format from v3cluster.py.
                 self.cache.invalidate(f"V3-{cluster.cache_key}")
-                self.cache.dump("Invalidate clusters V2-%s, V3-%s", cluster.cache_key, cluster.cache_key)
+                self.cache.dump("Invalidate clusters V3-%s", cluster.cache_key)
 
                 # OK. Finally, we can update the envoy_name.
                 cluster['envoy_name'] = mangled_name

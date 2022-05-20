@@ -56,7 +56,7 @@ spec:
   prefix: /test/
   service: test:9999
 """
-    econf = _get_envoy_config(yaml, version='V2')
+    econf = _get_envoy_config(yaml, version='V3')
     expected = 96
     key_found = False
 

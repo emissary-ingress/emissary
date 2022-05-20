@@ -55,7 +55,8 @@ class IRRateLimit (IRFilter):
         self.name = "rate_limit"    # Force this, just in case.
         self.namespace = config.get("namespace", self.namespace)
         self.domain = config.get('domain', ir.ambassador_module.default_label_domain)
-        self.protocol_version = config.get("protocol_version", "v2")
+        # envoy/we only support v3 so we will ignore configuration
+        self.protocol_version = "v3"
 
         # XXX host_rewrite actually isn't in the schema right now.
         self.host_rewrite = config.get('host_rewrite', None)

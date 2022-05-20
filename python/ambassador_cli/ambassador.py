@@ -152,7 +152,6 @@ class CLISecretHandler(SecretHandler):
 @click.option('--nopretty',    is_flag=True, help="If set, do not pretty print the dumped JSON")
 @click.option('--aconf',       is_flag=True, help="If set, dump the Ambassador config")
 @click.option('--ir',          is_flag=True, help="If set, dump the IR")
-@click.option('--v2',          is_flag=True, help="If set, dump the Envoy V2 config")
 @click.option('--v3',          is_flag=True, help="If set, dump the Envoy V3 config")
 @click.option('--diag',        is_flag=True, help="If set, dump the Diagnostics overview")
 @click.option('--everything',  is_flag=True, help="If set, dump everything")
@@ -160,7 +159,7 @@ class CLISecretHandler(SecretHandler):
 @click.option('--profile',     is_flag=True, help="If set, profile with the cProfile module")
 def dump(config_dir_path: str, *,
          secret_dir_path=None, watt=False, debug=False, debug_scout=False, k8s=False, recurse=False,
-         stats=False, nopretty=False, everything=False, aconf=False, ir=False, v2=False, v3=False, diag=False,
+         stats=False, nopretty=False, everything=False, aconf=False, ir=False, v3=False, diag=False,
          features=False, profile=False):
     """
     Dump various forms of an Ambassador configuration for debugging
@@ -186,21 +185,18 @@ def dump(config_dir_path: str, *,
     if everything:
         aconf = True
         ir = True
-        v2 = True
         v3 = True
         diag = True
         features = True
-    elif not (aconf or ir or v2 or v3 or diag or features):
+    elif not (aconf or ir or v3 or diag or features):
         aconf = True
         ir = True
-        v2 = True
         v3 = False
         diag = False
         features = False
 
     dump_aconf = aconf
     dump_ir = ir
-    dump_v2 = v2
     dump_v3 = v3
     dump_diag = diag
     dump_features = features
@@ -233,9 +229,6 @@ def dump(config_dir_path: str, *,
         load_timer = Timer("load fetched resources")
         with load_timer:
             aconf.load_all(fetcher.sorted())
-
-        # aconf.post_error("Error from string, boo yah")
-        # aconf.post_error(RichStatus.fromError("Error from RichStatus"))
 
         irgen_timer = Timer("ir generation")
         with irgen_timer:
@@ -275,15 +268,6 @@ def dump(config_dir_path: str, *,
         with features_timer:
             if dump_features:
                 od['features'] = ir.features()
-
-        # scout = Scout()
-        # scout_args = {}
-        #
-        # if ir and not os.environ.get("AMBASSADOR_DISABLE_FEATURES", None):
-        #     scout_args["features"] = ir.features()
-        #
-        # result = scout.report(action="dump", mode="cli", **scout_args)
-        # show_notices(result)
 
         dump_timer = Timer("dump JSON")
 

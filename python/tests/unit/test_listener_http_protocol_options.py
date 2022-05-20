@@ -2,7 +2,7 @@ from tests.utils import econf_compile, econf_foreach_hcm, module_and_mapping_man
 
 import pytest
 
-def _test_listener_http_protocol_options(yaml, expectations={}, envoy_version="V2"):
+def _test_listener_http_protocol_options(yaml, expectations={}, envoy_version="v3"):
     econf = econf_compile(yaml, envoy_version=envoy_version)
 
     # Make sure expectations pass for each HCM in the compiled config
@@ -40,7 +40,6 @@ def test_proper_case_and_enable_http_10():
     for v in SUPPORTED_ENVOY_VERSIONS:
         _test_listener_http_protocol_options(yaml, expectations={'accept_http_10': True, 'header_key_format': {'proper_case_words': {}}}, envoy_version=v)
 
-# Compiler tests for allowing chunked length, the following setting is only supported in Envoy's V3 API so we dont need to test the V2 API
 @pytest.mark.compilertest
 def test_allow_chunked_length_false():
     yaml = module_and_mapping_manifests(["allow_chunked_length: false"], [])

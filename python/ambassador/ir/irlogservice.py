@@ -44,7 +44,7 @@ class IRLogService(IRResource):
         self.protocol_version = config.get('protocol_version', 'v2')
         self.driver = config.get('driver')
         # These defaults come from Envoy:
-        # https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/accesslog/v2/als.proto#envoy-api-msg-config-accesslog-v2-commongrpcaccesslogconfig
+        # https://www.envoyproxy.io/docs/envoy/v1.22.0/api-v3/extensions/access_loggers/grpc/v3/als.proto#envoy-v3-api-msg-extensions-access-loggers-grpc-v3-commongrpcaccesslogconfig
         self.flush_interval_byte_size = config.get('flush_interval_byte_size', 16384)
         self.flush_interval_time = config.get('flush_interval_time', 1)
 

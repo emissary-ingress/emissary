@@ -262,7 +262,7 @@ def V3HTTPFilter_authv1(auth: IRAuth, v3config: 'V3Config'):
         }
 
     if auth.proto == "grpc":
-        protocol_version = auth.get('protocol_version', 'v2')
+        protocol_version = auth.get('protocol_version', 'v3')
         auth_info = {
             'name': 'envoy.filters.http.ext_authz',
             'typed_config': {
@@ -444,13 +444,11 @@ def V3HTTPFilter_cors(cors: IRCORS, v3config: 'V3Config'):
 def V3HTTPFilter_router(router: IRFilter, v3config: 'V3Config'):
     del v3config  # silence unused-variable warning
 
-    od: Dict[str, Any] = { 
-        'name': 'envoy.filters.http.router',
-        'typed_config': {
-            '@type': 'type.googleapis.com/envoy.extensions.filters.http.router.v3.Router',
-        }
-    }
-    
+    od: Dict[str, Any] = { 'name': 'envoy.filters.http.router' }
+
+    typed_config = od.setdefault('typed_config', {
+        '@type': 'type.googleapis.com/envoy.extensions.filters.http.router.v3.Router',
+    })
 
     if router.ir.tracing:
         typed_config['start_child_span'] = True

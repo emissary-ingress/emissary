@@ -138,7 +138,7 @@ class Madness:
 
         with self.econf_timer:
             with _pr:
-                econf = EnvoyConfig.generate(_ir, "V2", cache=_cache)
+                econf = EnvoyConfig.generate(_ir, "V3", cache=_cache)
 
         if summarize:
             self.summarize()

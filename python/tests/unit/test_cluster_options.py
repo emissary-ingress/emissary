@@ -5,7 +5,7 @@ import pytest
 
 # Tests if `setting` exists within the cluster config and has `expected` as the value for that setting
 # Use `exists` to test if you expect a setting to not exist
-def _test_cluster_setting(yaml, setting, expected, exists=True, envoy_version="V2"):
+def _test_cluster_setting(yaml, setting, expected, exists=True, envoy_version="V3"):
     econf = econf_compile(yaml, envoy_version=envoy_version)
 
     def check(cluster):
@@ -18,7 +18,7 @@ def _test_cluster_setting(yaml, setting, expected, exists=True, envoy_version="V
     econf_foreach_cluster(econf, check)
 
 # Tests a setting in a cluster that has it's own fields. Example: common_http_protocol_options has multiple subfields
-def _test_cluster_subfields(yaml, setting, expectations={}, exists=True, envoy_version="V2"):
+def _test_cluster_subfields(yaml, setting, expectations={}, exists=True, envoy_version="V3"):
     econf = econf_compile(yaml, envoy_version=envoy_version)
 
     def check(cluster):

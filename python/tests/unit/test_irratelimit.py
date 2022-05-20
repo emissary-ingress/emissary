@@ -146,7 +146,7 @@ spec:
   domain: otherdomain
   timeout_ms: 500
   tls: rl-tls-context
-  protocol_version: v2
+  protocol_version: v3
 """.format(SERVICE_NAME)
     config['rate_limit_service']['grpc_service']['envoy_grpc']['cluster_name'] = 'cluster_{}_someotherns'.format(SERVICE_NAME)
     config['timeout'] = '0.500s'

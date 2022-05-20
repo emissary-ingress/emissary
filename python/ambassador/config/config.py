@@ -76,6 +76,7 @@ class Config:
         'logservice': "log_services",
     }
 
+    # These are supported CRD Versions and not to be confused with Envoy Transport Protocol versions
     SupportedVersions: ClassVar[Dict[str, str]] = {
         "v2": "is deprecated, consider upgrading",
         "v3alpha1": "ok",

@@ -55,7 +55,7 @@ spec:
   hostname: "*"
   service: test:9999
 """
-    econf = _get_envoy_config(yaml, version='V2')
+    econf = _get_envoy_config(yaml, version='V3')
     expected = 5242880
     key_found = False
 
@@ -128,7 +128,7 @@ spec:
   hostname: "*"
   service: test:9999
 """
-    econf = _get_envoy_config(yaml, version='V2')
+    econf = _get_envoy_config(yaml, version='V3')
 
     conf = econf.as_dict()
 
@@ -176,7 +176,7 @@ spec:
   hostname: "*"
   service: test:9999
 """
-    econf = _get_envoy_config(yaml, version='V2')
+    econf = _get_envoy_config(yaml, version='V3')
 
     conf = econf.as_dict()
 

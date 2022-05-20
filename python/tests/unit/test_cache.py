@@ -71,7 +71,7 @@ class Builder:
             name = metadata['name']
             namespace = metadata['namespace']
 
-            key = f"{kind}-v2-{name}-{namespace}"
+            key = f"{kind}-v3-{name}-{namespace}"
 
             dtype = "add"
 
@@ -110,7 +110,7 @@ class Builder:
             name = metadata['name']
             namespace = metadata['namespace']
 
-            key = f"{kind}-v2-{name}-{namespace}"
+            key = f"{kind}-v3-{name}-{namespace}"
 
             if key in self.resources:
                 del(self.resources[key])
@@ -129,7 +129,7 @@ class Builder:
                     "deltaType": "delete"
                 }
 
-    def build(self, version='V2') -> Tuple[IR, EnvoyConfig]:
+    def build(self, version='V3') -> Tuple[IR, EnvoyConfig]:
         # Do a build, return IR & econf, but also stash them in self.builds.
 
         watt: Dict[str, Any] = {
@@ -270,17 +270,17 @@ def test_circular_link():
 
     # This Can't Happen(tm) in Ambassador, but it's important that it not go
     # off the rails. Find a Mapping...
-    mapping_key = "Mapping-v2-foo-4-default"
+    mapping_key = "Mapping-v3-foo-4-default"
     m = builder.cache[mapping_key]
 
-    # ...then walk the link chain until we get to a V2-Cluster.
+    # ...then walk the link chain until we get to a V3-Cluster.
     worklist = [ m.cache_key ]
     cluster_key: Optional[str] = None
 
     while worklist:
         key = worklist.pop(0)
 
-        if key.startswith('V2-Cluster'):
+        if key.startswith('V3-Cluster'):
             cluster_key = key
             break
 
@@ -288,11 +288,11 @@ def test_circular_link():
             for owned in builder.cache.links[key]:
                 worklist.append(owned)
 
-    assert cluster_key is not None, f"No V2-Cluster linked from {m}?"
+    assert cluster_key is not None, f"No V3-Cluster linked from {m}?"
 
     c = builder.cache[cluster_key]
 
-    assert c is not None, f"No V2-Cluster in the cache for {c}"
+    assert c is not None, f"No V3-Cluster in the cache for {c}"
 
     builder.cache.link(c, m)
     builder.cache.invalidate(mapping_key)
@@ -321,7 +321,7 @@ def test_simple_targets():
 
     builder.check_last("immediate rebuild")
 
-    builder.invalidate("Mapping-v2-foo-4-default")
+    builder.invalidate("Mapping-v3-foo-4-default")
 
     builder.build()
 
@@ -338,8 +338,8 @@ def test_smashed_targets():
     builder.check_last("immediate rebuild")
 
     # Invalidate two things that share common links.
-    builder.invalidate("Mapping-v2-foo-4-default")
-    builder.invalidate("Mapping-v2-foo-6-default")
+    builder.invalidate("Mapping-v3-foo-4-default")
+    builder.invalidate("Mapping-v3-foo-6-default")
 
     builder.build()
 

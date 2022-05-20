@@ -2,25 +2,17 @@ import logging
 import json
 import os
 import subprocess
-import requests
-import socket
 import tempfile
-import time
 from collections import namedtuple
 from retry import retry
 from OpenSSL import crypto
 from base64 import b64encode
 
 import json
-import yaml
 
 from ambassador import Cache, IR
 from ambassador.compile import Compile
 from ambassador.utils import NullSecretHandler
-
-from tests.manifests import cleartext_host_manifest
-from tests.kubeutils import apply_kube_artifacts
-from tests.runutils import run_and_assert
 
 logger = logging.getLogger("ambassador")
 
@@ -119,9 +111,8 @@ def compile_with_cachecheck(yaml, envoy_version="V3", errors_ok=False):
     # Compile with and without a cache. Neither should produce errors.
     cache = Cache(logger)
     secret_handler = _secret_handler()
-    r1 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, envoy_version=envoy_version)
-    r2 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, cache=cache,
-            envoy_version=envoy_version)
+    r1 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler)
+    r2 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, cache=cache)
 
     if not errors_ok:
         _require_no_errors(r1["ir"])

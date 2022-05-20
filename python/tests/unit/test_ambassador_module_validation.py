@@ -1,8 +1,10 @@
 from typing import List, Tuple
 
 import logging
-
 import pytest
+
+from ambassador import Cache, IR
+from ambassador.compile import Compile
 
 logging.basicConfig(
     level=logging.INFO,
@@ -11,9 +13,6 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger("ambassador")
-
-from ambassador import Cache, IR
-from ambassador.compile import Compile
 
 def require_no_errors(ir: IR):
     assert ir.aconf.errors == {}
