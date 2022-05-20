@@ -135,22 +135,46 @@ func testSemanticSet(t *testing.T, inputFile string, expectedFile string) {
 	require.Equal(t, expectedJSON, actualJSON, "Mismatch!")
 }
 
-func TestHostSemanticsMinimal(t *testing.T) {
-	testSemanticSet(t, "testdata/hostsem-minimal.yaml", "testdata/hostsem-minimal-expected.json")
-}
+func TestHostSemantics(t *testing.T) {
+	type testCase struct {
+		name         string
+		inputFile    string
+		expectedFile string
+	}
 
-func TestHostSemanticsBasic(t *testing.T) {
-	testSemanticSet(t, "testdata/hostsem-basic.yaml", "testdata/hostsem-basic-expected.json")
-}
+	testcases := []testCase{
+		{
+			name:         "Minimal",
+			inputFile:    "testdata/hostsem-minimal.yaml",
+			expectedFile: "testdata/hostsem-minimal-expected.json",
+		},
+		{
+			name:         "Basic",
+			inputFile:    "testdata/hostsem-basic.yaml",
+			expectedFile: "testdata/hostsem-basic-expected.json",
+		},
+		{
+			name:         "CleartextOnly",
+			inputFile:    "testdata/hostsem-cleartextonly.yaml",
+			expectedFile: "testdata/hostsem-cleartextonly-expected.json",
+		},
+		{
+			name:         "Disjoint",
+			inputFile:    "testdata/hostsem-disjoint-hosts.yaml",
+			expectedFile: "testdata/hostsem-disjoint-hosts-expected.json",
+		},
+		{
+			name:         "HostSelector",
+			inputFile:    "testdata/hostsem-hostsel.yaml",
+			expectedFile: "testdata/hostsem-hostsel-expected.json",
+		},
+	}
 
-func TestHostSemanticsCleartextOnly(t *testing.T) {
-	testSemanticSet(t, "testdata/hostsem-cleartextonly.yaml", "testdata/hostsem-cleartextonly-expected.json")
-}
+	for i, tc := range testcases {
+		testCaseName := fmt.Sprintf("TestHostSemantics-%d: %s", i, tc.name)
 
-func TestHostSemanticsDisjoint(t *testing.T) {
-	testSemanticSet(t, "testdata/hostsem-disjoint-hosts.yaml", "testdata/hostsem-disjoint-hosts-expected.json")
-}
-
-func TestHostSemanticsHostSelector(t *testing.T) {
-	testSemanticSet(t, "testdata/hostsem-hostsel.yaml", "testdata/hostsem-hostsel-expected.json")
+		t.Run(testCaseName, func(tt *testing.T) {
+			testSemanticSet(tt, tc.inputFile, tc.expectedFile)
+		})
+	}
 }

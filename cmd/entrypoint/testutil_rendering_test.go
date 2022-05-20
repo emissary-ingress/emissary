@@ -311,26 +311,22 @@ func RenderEnvoyConfig(t *testing.T, envoyConfig *apiv3_bootstrap.Bootstrap) ([]
 								hName := h.Name
 								prefixMatch := h.GetPrefixMatch()
 								suffixMatch := h.GetSuffixMatch()
-								exactMatch := h.GetExactMatch()
+								stringMatch := h.GetStringMatch()
 
 								regexMatch := ""
 								srm := h.GetSafeRegexMatch()
 
 								if srm != nil {
 									regexMatch = srm.Regex
-									// } else {
-									// 	regexMatch = h.GetRegexMatch()
 								}
 
-								// summary := fmt.Sprintf("%#v", h)
-
-								if exactMatch != "" {
+								if stringMatch.GetExact() != "" {
 									if hName == "x-forwarded-proto" {
-										scheme = exactMatch
+										scheme = stringMatch.GetExact()
 										continue
 									}
 
-									authority = exactMatch
+									authority = stringMatch.GetExact()
 									authorityMatch = "=="
 								} else if prefixMatch != "" {
 									authority = prefixMatch + "*"
