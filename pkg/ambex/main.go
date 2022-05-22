@@ -75,7 +75,7 @@ import (
 	// Be sure to import the package of any types that're referenced with "@type" in our
 	// generated Envoy config, even if that package is otherwise not used by ambex.
 	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/auth"
+	v2auth "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/auth"
 	v2core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/accesslog/v2"
 	v2bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v2"
@@ -320,6 +320,7 @@ func update(
 	dirs []string,
 	edsEndpoints map[string]*v2.ClusterLoadAssignment,
 	edsEndpointsV3 map[string]*v3endpointconfig.ClusterLoadAssignment,
+	sdsSecretsV2 []*v2auth.Secret,
 	sdsSecretsV3 []*v3tlsconfig.Secret,
 	fastpathSnapshot *FastpathSnapshot,
 	updates chan<- Update,
@@ -328,6 +329,7 @@ func update(
 	routes := []ecp_cache_types.Resource{}    // v2.RouteConfiguration
 	listeners := []ecp_cache_types.Resource{} // v2.Listener
 	runtimes := []ecp_cache_types.Resource{}  // discovery.Runtime
+	secrets := []ecp_cache_types.Resource{}   // v2auth.Secret
 
 	clustersv3 := []ecp_cache_types.Resource{}  // v3.Cluster
 	routesv3 := []ecp_cache_types.Resource{}    // v3.RouteConfiguration
@@ -475,9 +477,14 @@ func update(
 	endpoints := JoinEdsClusters(ctx, clusters, edsEndpoints)
 	endpointsv3 := JoinEdsClustersV3(ctx, clustersv3, edsEndpointsV3)
 
-	for _, secret := range sdsSecretsV3 {
-		dlog.Warnf(ctx, "Updating with secret %s", secret.Name)
-		secretsv3 = append(secretsv3, secret)
+	for _, secretv2 := range sdsSecretsV2 {
+		dlog.Warnf(ctx, "Updating with V2 secret %s", secretv2.Name)
+		secrets = append(secrets, secretv2)
+	}
+
+	for _, secretv3 := range sdsSecretsV3 {
+		dlog.Warnf(ctx, "Updating with V3 secret %s", secretv3.Name)
+		secretsv3 = append(secretsv3, secretv3)
 	}
 
 	// Create a new configuration snapshot from everything we have just loaded from disk.
@@ -492,7 +499,7 @@ func update(
 		routes,
 		listeners,
 		runtimes,
-		nil, // secrets
+		secrets,
 	)
 
 	if err := snapshot.Consistent(); err != nil {
@@ -508,7 +515,7 @@ func update(
 		routesv3,
 		listenersv3,
 		runtimesv3,
-		secretsv3, // secrets
+		secretsv3,
 	)
 
 	if err := snapshotv3.Consistent(); err != nil {
@@ -717,6 +724,7 @@ func Main(
 		var fastpathSnapshot *FastpathSnapshot
 		edsEndpoints := map[string]*v2.ClusterLoadAssignment{}
 		edsEndpointsV3 := map[string]*v3endpointconfig.ClusterLoadAssignment{}
+		sdsSecretsV2 := []*v2auth.Secret{}
 		sdsSecretsV3 := []*v3tlsconfig.Secret{}
 
 		// We always start by updating with a totally empty snapshot.
@@ -733,6 +741,7 @@ func Main(
 			args.dirs,
 			edsEndpoints,
 			edsEndpointsV3,
+			sdsSecretsV2,
 			sdsSecretsV3,
 			fastpathSnapshot,
 			updates,
@@ -756,6 +765,7 @@ func Main(
 					args.dirs,
 					edsEndpoints,
 					edsEndpointsV3,
+					sdsSecretsV2,
 					sdsSecretsV3,
 					fastpathSnapshot,
 					updates,
@@ -770,7 +780,8 @@ func Main(
 					edsEndpointsV3 = fpSnap.Endpoints.ToMap_v3()
 				}
 				if fpSnap.Secrets != nil {
-					sdsSecretsV3 = fpSnap.Secrets
+					sdsSecretsV2 = fpSnap.Secrets.ToV2List(ctx)
+					sdsSecretsV3 = fpSnap.Secrets.ToV3List(ctx)
 				}
 				fastpathSnapshot = fpSnap
 				err := update(
@@ -783,6 +794,7 @@ func Main(
 					args.dirs,
 					edsEndpoints,
 					edsEndpointsV3,
+					sdsSecretsV2,
 					sdsSecretsV3,
 					fastpathSnapshot,
 					updates,
@@ -802,6 +814,7 @@ func Main(
 					args.dirs,
 					edsEndpoints,
 					edsEndpointsV3,
+					sdsSecretsV2,
 					sdsSecretsV3,
 					fastpathSnapshot,
 					updates,
