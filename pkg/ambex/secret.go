@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	v2auth "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/auth"
+	v2core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
 	v3core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
 	v3tlsconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/transport_sockets/tls/v3"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
@@ -13,19 +15,20 @@ import (
 
 type Secret struct {
 	Name             string
+	Type             v1.SecretType
 	PrivateKey       []byte
 	CertificateChain []byte
 	CACertChain      []byte
 }
 
 type Secrets struct {
-	Secrets []*v3tlsconfig.Secret
+	Secrets []*Secret
 }
 
 // MakeSecrets takes all the Secrets in a snapshot and packages them up for
 // consumption by ambex.
-func MakeSecrets(ctx context.Context, k8sSnapshot *snapshotTypes.KubernetesSnapshot) []*v3tlsconfig.Secret {
-	secrets := []*v3tlsconfig.Secret{}
+func MakeSecrets(ctx context.Context, k8sSnapshot *snapshotTypes.KubernetesSnapshot) *Secrets {
+	secrets := []*Secret{}
 
 	for _, secret := range k8sSnapshot.Secrets {
 		name := secret.GetName()
@@ -37,48 +40,134 @@ func MakeSecrets(ctx context.Context, k8sSnapshot *snapshotTypes.KubernetesSnaps
 
 		fullName := fmt.Sprintf("secret/%s/%s", namespace, name)
 
-		var v3secret v3tlsconfig.Secret
-
 		if secret.Type == v1.SecretTypeTLS {
 			dlog.Warnf(ctx, "%s: TLS", fullName)
 
 			privateKey := secret.Data["tls.key"]
 			certificate := secret.Data["tls.crt"]
 
-			v3secret = v3tlsconfig.Secret{
-				Name: fullName,
-				Type: &v3tlsconfig.Secret_TlsCertificate{
-					TlsCertificate: &v3tlsconfig.TlsCertificate{
-						PrivateKey: &v3core.DataSource{
-							Specifier: &v3core.DataSource_InlineBytes{InlineBytes: privateKey},
+			secrets = append(secrets, &Secret{
+				Name:             fullName,
+				Type:             secret.Type,
+				PrivateKey:       privateKey,
+				CertificateChain: certificate,
+			})
+		} else if secret.Type == v1.SecretTypeOpaque {
+			dlog.Warnf(ctx, "%s: Opaque", fullName)
+
+			caCertificate := secret.Data["user.key"]
+
+			secrets = append(secrets, &Secret{
+				Name:        fullName,
+				Type:        secret.Type,
+				CACertChain: caCertificate,
+			})
+		}
+	}
+
+	return &Secrets{Secrets: secrets}
+}
+
+func (secrets *Secrets) ToV2List(ctx context.Context) []*v2auth.Secret {
+	v2secrets := make([]*v2auth.Secret, 0, len(secrets.Secrets))
+
+	for _, secret := range secrets.Secrets {
+		var v2secret v2auth.Secret
+
+		if secret.Type == v1.SecretTypeTLS {
+			dlog.Warnf(ctx, "%s: TLS", secret.Name)
+
+			v2secret = v2auth.Secret{
+				Name: secret.Name,
+				Type: &v2auth.Secret_TlsCertificate{
+					TlsCertificate: &v2auth.TlsCertificate{
+						PrivateKey: &v2core.DataSource{
+							Specifier: &v2core.DataSource_InlineBytes{
+								InlineBytes: secret.PrivateKey,
+							},
 						},
-						CertificateChain: &v3core.DataSource{
-							Specifier: &v3core.DataSource_InlineBytes{InlineBytes: certificate},
+						CertificateChain: &v2core.DataSource{
+							Specifier: &v2core.DataSource_InlineBytes{
+								InlineBytes: secret.CertificateChain,
+							},
 						},
 					},
 				},
 			}
 		} else if secret.Type == v1.SecretTypeOpaque {
-			dlog.Warnf(ctx, "%s: Opaque", fullName)
-			caCertificate := secret.Data["user.key"]
+			dlog.Warnf(ctx, "%s: Opaque", secret.Name)
 
-			v3secret = v3tlsconfig.Secret{
-				Name: fullName,
-				Type: &v3tlsconfig.Secret_ValidationContext{
-					ValidationContext: &v3tlsconfig.CertificateValidationContext{
-						TrustedCa: &v3core.DataSource{
-							Specifier: &v3core.DataSource_InlineBytes{InlineBytes: caCertificate},
+			v2secret = v2auth.Secret{
+				Name: secret.Name,
+				Type: &v2auth.Secret_ValidationContext{
+					ValidationContext: &v2auth.CertificateValidationContext{
+						TrustedCa: &v2core.DataSource{
+							Specifier: &v2core.DataSource_InlineBytes{
+								InlineBytes: secret.CACertChain,
+							},
 						},
 					},
 				},
 			}
 		} else {
-			dlog.Errorf(ctx, "%s: unknown %s", fullName, secret.Type)
+			dlog.Errorf(ctx, "%s: unknown %s", secret.Name, secret.Type)
 			continue
 		}
 
-		secrets = append(secrets, &v3secret)
+		v2secrets = append(v2secrets, &v2secret)
 	}
 
-	return secrets
+	return v2secrets
+}
+
+func (secrets *Secrets) ToV3List(ctx context.Context) []*v3tlsconfig.Secret {
+	v3secrets := make([]*v3tlsconfig.Secret, 0, len(secrets.Secrets))
+
+	for _, secret := range secrets.Secrets {
+		var v3secret v3tlsconfig.Secret
+
+		if secret.Type == v1.SecretTypeTLS {
+			dlog.Warnf(ctx, "%s: TLS", secret.Name)
+
+			v3secret = v3tlsconfig.Secret{
+				Name: secret.Name,
+				Type: &v3tlsconfig.Secret_TlsCertificate{
+					TlsCertificate: &v3tlsconfig.TlsCertificate{
+						PrivateKey: &v3core.DataSource{
+							Specifier: &v3core.DataSource_InlineBytes{
+								InlineBytes: secret.PrivateKey,
+							},
+						},
+						CertificateChain: &v3core.DataSource{
+							Specifier: &v3core.DataSource_InlineBytes{
+								InlineBytes: secret.CertificateChain,
+							},
+						},
+					},
+				},
+			}
+		} else if secret.Type == v1.SecretTypeOpaque {
+			dlog.Warnf(ctx, "%s: Opaque", secret.Name)
+
+			v3secret = v3tlsconfig.Secret{
+				Name: secret.Name,
+				Type: &v3tlsconfig.Secret_ValidationContext{
+					ValidationContext: &v3tlsconfig.CertificateValidationContext{
+						TrustedCa: &v3core.DataSource{
+							Specifier: &v3core.DataSource_InlineBytes{
+								InlineBytes: secret.CACertChain,
+							},
+						},
+					},
+				},
+			}
+		} else {
+			dlog.Errorf(ctx, "%s: unknown %s", secret.Name, secret.Type)
+			continue
+		}
+
+		v3secrets = append(v3secrets, &v3secret)
+	}
+
+	return v3secrets
 }
