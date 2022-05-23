@@ -150,7 +150,7 @@ boguschart_dir = build-output/chart-2.0.0-bogus_7.0.0-bogus.d
 boguschart_tgz = $(patsubst %.d,%.tgz,$(boguschart_dir))
 
 # YAML manifests
-build-output/yaml-%: $(shell find $(CURDIR)/manifests/emissary/ -type d -o -name '*.yaml.in') $(var.)DEV_REGISTRY $(var.)RELEASE_REGISTRY
+build-output/yaml-%: $(shell find $(CURDIR)/manifests/emissary -type d -o -name '*.yaml.in') $(var.)DEV_REGISTRY $(var.)RELEASE_REGISTRY
 ifeq ($(CI),)
 	rm -rf $@
 else
