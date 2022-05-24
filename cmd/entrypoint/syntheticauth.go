@@ -72,6 +72,7 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 			}
 		}
 	}
+	// TODO if there are v3 authServices, still remove any that are not `v3`
 
 	// Also loop over the annotations and remove authservices that are not v3. We do
 	// this by looping over each entry in the annotations map, removing all the non-v3
@@ -132,18 +133,23 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 
 		*deltas = newDeltas
 		sh.k8sSnapshot.AuthServices = authServices
-	} else if len(authServices) >= 1 && syntheticAuthExists {
-		dlog.Debugf(ctx, "[WATCHER]: Valid AuthServices using protocol_version: v3 detected alongside the Synthetic AuthService, removing Synthetic...")
-		// One or more Valid AuthServices are present. The synthetic AuthService exists and needs to be removed now.
+	} else if len(authServices) >= 1 {
+		// Write back the list of valid AuthServices.
 		sh.k8sSnapshot.AuthServices = authServices
-		var newDeltas []*kates.Delta
-		*deltas = append(*deltas, &kates.Delta{
-			TypeMeta:   syntheticAuth.TypeMeta,
-			ObjectMeta: syntheticAuth.ObjectMeta,
-			DeltaType:  kates.ObjectDelete,
-		})
 
-		*deltas = newDeltas
+		// The synthetic AuthService needs to be removed since one or more valid AuthServices are present.
+		if syntheticAuthExists {
+			dlog.Debugf(ctx, "[WATCHER]: Valid AuthServices using protocol_version: v3 detected alongside the Synthetic AuthService, removing Synthetic...")
+			// One or more Valid AuthServices are present. The synthetic AuthService exists and needs to be removed now.
+			var newDeltas []*kates.Delta
+			*deltas = append(*deltas, &kates.Delta{
+				TypeMeta:   syntheticAuth.TypeMeta,
+				ObjectMeta: syntheticAuth.ObjectMeta,
+				DeltaType:  kates.ObjectDelete,
+			})
+
+			*deltas = newDeltas
+		}
 	}
 
 	return nil
