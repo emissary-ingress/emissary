@@ -377,14 +377,15 @@ class IR:
         IRLogServiceFactory.load_all(self, aconf)
 
         # After the Ambassador and TLS modules are done, we need to set up the
-        # filter chains. Note that order of the filters matters. Start with auth,
-        # since it needs to be able to override everything...
-        self.save_filter(IRAuth(self, aconf))
+        # filter chains. Note that order of the filters matters. Start with CORS,
+        # so that preflights will work even for things behind auth.
 
-        # ...then deal with the non-configurable cors filter...
         self.save_filter(IRFilter(ir=self, aconf=aconf,
                                   rkey="ir.cors", kind="ir.cors", name="cors",
                                   config={}))
+
+        # Next is auth...
+        self.save_filter(IRAuth(self, aconf))
 
         # ...then the ratelimit filter...
         if self.ratelimit:

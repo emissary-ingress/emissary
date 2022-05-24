@@ -97,9 +97,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: It is now possible to set `propagation_modes` in the `TracingService` config when using
   lightstep as the driver. (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!) ([#4179])
 
+- Bugfix: When CORS is specified (either in a `Mapping` or in the `Ambassador` `Module`), CORS
+  processing will happen before authentication. This corrects a problem where XHR to authenticated
+  endpoints would fail.
+
 [#4179]: https://github.com/emissary-ingress/emissary/pull/4179
 
-## [2.2.2] TBD
+## [2.2.2] February 25, 2022
 [2.2.2]: https://github.com/emissary-ingress/emissary/compare/v2.2.1...v2.2.2
 
 ### Emissary-ingress and Ambassador Edge Stack
