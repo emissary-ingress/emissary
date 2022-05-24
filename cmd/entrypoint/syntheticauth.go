@@ -21,10 +21,7 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 		return nil
 	}
 	// We also dont want to do anything with AuthServices if the Docker demo mode is running
-	isDemoMode, err := IsDemoMode()
-	if err != nil {
-		return err
-	} else if isDemoMode {
+	if envbool("AMBASSADOR_DEMO_MODE") {
 		return nil
 	}
 
