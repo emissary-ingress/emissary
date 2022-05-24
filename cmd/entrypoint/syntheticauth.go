@@ -9,6 +9,21 @@ import (
 	"github.com/datawire/dlib/dlog"
 )
 
+// Iterates over the annotations in a snapshot to check if any AuthServices are present.
+func annotationsContainAuthService(annotations map[string]snapshot.AnnotationList) bool {
+	for _, list := range annotations {
+		for _, obj := range list {
+			switch obj.(type) {
+			case *v3alpha1.AuthService:
+				return true
+			default:
+				continue
+			}
+		}
+	}
+	return false
+}
+
 // This is a gross hack to remove all AuthServices using protocol_version: v2 only when running Edge-Stack and then inject an
 // AuthService with protocol_version: v3 if needed. The purpose of this hack is to prevent Edge-Stack 2.3 from
 // using any other AuthService than the default one running as part of amb-sidecar and force the protocol version to v3.
@@ -61,54 +76,39 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 	// Also loop over the annotations and remove authservices that are not v3. We do
 	// this by looping over each entry in the annotations map, removing all the non-v3
 	// AuthService entries, and then removing any keys that end up with empty lists.
-	//
-	// keysToDelete tracks keys to delete, since I never trust deleting things from
-	// collections while iterating over them.
-	keysToDelete := make([]string, 0)
 
 	// OK. Loop over all the keys and their corrauthServicesesponding lists of annotations...
-	for key, list := range sh.k8sSnapshot.Annotations {
-		// ...and build up our edited list of things.
-		editedList := snapshot.AnnotationList{}
+	if annotationsContainAuthService(sh.k8sSnapshot.Annotations) {
+		for key, list := range sh.k8sSnapshot.Annotations {
+			// ...and build up our edited list of things.
+			editedList := snapshot.AnnotationList{}
 
-		for _, obj := range list {
-			switch annotationObj := obj.(type) {
-			case *v3alpha1.AuthService:
-				// This _is_ an AuthService, so we'll check its protocol version.
-				// Anything other than v3 gets tossed.
-				//
-				// Note also that AuthServices other than getambassador.io/v3 cannot
-				// have a protocol_version, but whatever -- that'll be something not
-				// equal to v3, so it'll get tossed, and that's what we want.
-				if annotationObj.Spec.ProtocolVersion == "v3" {
-					// Whoa, it's a v3! Keep it.
+			for _, obj := range list {
+				switch annotationObj := obj.(type) {
+				case *v3alpha1.AuthService:
+					// This _is_ an AuthService, so we'll check its protocol version.
+					// Anything other than v3 gets tossed.
+					if annotationObj.Spec.ProtocolVersion == "v3" {
+						// Whoa, it's a v3! Keep it.
+						editedList = append(editedList, annotationObj)
+						authServices = append(authServices, annotationObj)
+						injectSyntheticAuth = false
+					}
+				default:
+					// This isn't an AuthService at all, so we'll keep it.
 					editedList = append(editedList, annotationObj)
-					authServices = append(authServices, annotationObj)
-					injectSyntheticAuth = false
 				}
-			default:
-				// This isn't an AuthService at all, so we'll keep it.
-				//
-				// XXX There's optimization to do here: if there are no AuthServices
-				// in our list, we needn't edit it at all. Something to circle back to
-				// later.
-				editedList = append(editedList, annotationObj)
+			}
+
+			// Once here, is our editedList is empty?
+			if len(editedList) == 0 {
+				// Yes. Delete the whole key for this list.
+				delete(sh.k8sSnapshot.Annotations, key)
+			} else {
+				// Nope, not empty. Save the edited list.
+				sh.k8sSnapshot.Annotations[key] = editedList
 			}
 		}
-
-		// Once here, is our editedList is empty?
-		if len(editedList) == 0 {
-			// Yes. Delete the whole key for this list.
-			keysToDelete = append(keysToDelete, key)
-		} else {
-			// Nope, not empty. Save the edited list.
-			sh.k8sSnapshot.Annotations[key] = editedList
-		}
-	}
-
-	// Finally, delete any keys that ended up with empty lists.
-	for _, key := range keysToDelete {
-		delete(sh.k8sSnapshot.Annotations, key)
 	}
 
 	if injectSyntheticAuth {
