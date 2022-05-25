@@ -152,6 +152,9 @@ type TLSConfig struct {
 	ECDHCurves            []string `json:"ecdh_curves,omitempty"`
 	RedirectCleartextFrom *int     `json:"redirect_cleartext_from,omitempty"`
 	SNI                   string   `json:"sni,omitempty"`
+
+	// +k8s:conversion-gen:rename=CRLSecret
+	V3CRLSecret string `json:"v3CRLSecret,omitempty"`
 }
 
 // The first value listed in the Enum marker becomes the "zero" value,

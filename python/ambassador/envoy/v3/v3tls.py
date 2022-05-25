@@ -127,6 +127,7 @@ class V3TLSContext(Dict):
             ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
             ( 'private_key_file', self.update_cert_zero, 'private_key' ),
             ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
+            ( 'crl_file', self.update_validation, 'crl' ),
         ]:
             if secretinfokey in ctx['secret_info']:
                 handler(hkey, ctx['secret_info'][secretinfokey])
