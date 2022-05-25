@@ -70,6 +70,7 @@ following Free and Open Source software:
     github.com/jonboulle/clockwork                                                             v0.1.0                                       Apache License 2.0
     github.com/josharian/intern                                                                v1.0.1-0.20211109044230-42b52b674af5         MIT license
     github.com/json-iterator/go                                                                v1.1.12                                      MIT license
+    github.com/kballard/go-shellquote                                                          v0.0.0-20180428030007-95032a82bc51           MIT license
     github.com/liggitt/tabwriter                                                               v0.0.0-20181228230101-89fcab3d43de           3-clause BSD license
     github.com/mailru/easyjson                                                                 v0.7.7                                       MIT license
     github.com/mattn/go-colorable                                                              v0.1.12                                      MIT license
