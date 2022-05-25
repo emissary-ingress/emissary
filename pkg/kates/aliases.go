@@ -147,7 +147,6 @@ var Int = intstr.Int
 // client related aliases
 
 type ConfigFlags = genericclioptions.ConfigFlags
-type IOStreams = genericclioptions.IOStreams
 
 var NewConfigFlags = genericclioptions.NewConfigFlags
 
