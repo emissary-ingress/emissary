@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
 	"github.com/datawire/ambassador/v2/pkg/kubeapply"
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dlog"
@@ -18,12 +18,8 @@ func K8sApply(ctx context.Context, ver KubeVersion, files ...string) {
 		os.Setenv("DOCKER_REGISTRY", DockerRegistry(ctx))
 	}
 	kubeconfig := KubeVersionConfig(ctx, ver)
-	kubeclient, err := kates.NewClient(kates.ClientConfig{Kubeconfig: kubeconfig})
+	err := kubeapply.Kubeapply(ctx, k8s.NewKubeInfo(kubeconfig, "", ""), 300*time.Second, false, false, files...)
 	if err != nil {
-		dlog.Errorln(ctx, err)
-		os.Exit(1)
-	}
-	if err := kubeapply.Kubeapply(ctx, kubeclient, 300*time.Second, false, false, files...); err != nil {
 		dlog.Println(ctx)
 		dlog.Println(ctx, err)
 		dlog.Printf(ctx,
