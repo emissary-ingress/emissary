@@ -141,6 +141,7 @@ type TLSConfig struct {
 	PrivateKeyFile        string   `json:"private_key_file,omitempty"`
 	CASecret              string   `json:"ca_secret,omitempty"`
 	CAcertChainFile       string   `json:"cacert_chain_file,omitempty"`
+	CRLSecret             string   `json:"crl_secret,omitempty"`
 	AlpnProtocols         string   `json:"alpn_protocols,omitempty"`
 	CertRequired          *bool    `json:"cert_required,omitempty"`
 	MinTLSVersion         string   `json:"min_tls_version,omitempty"`

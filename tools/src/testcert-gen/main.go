@@ -273,7 +273,7 @@ func genCert(args CertArgs) ([]byte, error) {
 		// If you ever extend this program to generate certs with non-RSA keys, be aware
 		// that x509.KeyUsageKeyEncipherment is an RSA-specific thing.
 		// https://github.com/golang/go/blob/go1.17.3/src/crypto/tls/generate_cert.go#L88-L93
-		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment | x509.KeyUsageCRLSign,
 		ExtKeyUsage:           []x509.ExtKeyUsage{}, // We'll adjust this below.
 		BasicConstraintsValid: true,
 	}
