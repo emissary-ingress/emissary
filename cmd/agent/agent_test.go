@@ -162,6 +162,7 @@ func snapshotIsSane(ambSnapshot *snapshotTypes.Snapshot, t *testing.T, hasArgo b
 func applyArgoResources(t *testing.T, ctx context.Context, kubeinfo *kates.Client) {
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/argo-rollouts-crd.yaml"))
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/argo-application-crd.yaml"))
+	time.Sleep(3 * time.Second)
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/argo-rollouts.yaml"))
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/argo-application.yaml"))
 }

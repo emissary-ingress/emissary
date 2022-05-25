@@ -191,7 +191,7 @@ func (w *Waiter) Wait(ctx context.Context, deadline time.Time) (bool, error) {
 					if err := w.client.Get(ctx, r, &r); err != nil {
 						return false, err
 					}
-					if Ready(w.client, r) {
+					if Ready(r) {
 						qKind := w.qKind(r)
 						qName, err := w.qName(r)
 						if err != nil {
