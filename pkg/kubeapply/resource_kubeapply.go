@@ -22,9 +22,9 @@ import (
 	"github.com/datawire/dlib/dexec"
 )
 
-var readyChecks = map[string]func(*kates.Client, kates.Object) bool{
-	"": func(_ *kates.Client, _ kates.Object) bool { return false },
-	"Deployment": func(_ *kates.Client, _r kates.Object) bool {
+var readyChecks = map[string]func(kates.Object) bool{
+	"": func(_ kates.Object) bool { return false },
+	"Deployment": func(_r kates.Object) bool {
 		var r kates.Deployment
 		if err := kates_internal.Convert(_r, &r); err != nil {
 			return false
@@ -39,10 +39,10 @@ var readyChecks = map[string]func(*kates.Client, kates.Object) bool{
 		}
 		return r.Status.ReadyReplicas > 0
 	},
-	"Service": func(_ *kates.Client, r kates.Object) bool {
+	"Service": func(r kates.Object) bool {
 		return true
 	},
-	"Pod": func(_ *kates.Client, _r kates.Object) bool {
+	"Pod": func(_r kates.Object) bool {
 		var r kates.Pod
 		if err := kates_internal.Convert(_r, &r); err != nil {
 			return false
@@ -54,27 +54,27 @@ var readyChecks = map[string]func(*kates.Client, kates.Object) bool{
 		}
 		return true
 	},
-	"Namespace": func(_ *kates.Client, _r kates.Object) bool {
+	"Namespace": func(_r kates.Object) bool {
 		var r kates.Namespace
 		if err := kates_internal.Convert(_r, &r); err != nil {
 			return false
 		}
 		return r.Status.Phase == "Active"
 	},
-	"ServiceAccount": func(_ *kates.Client, _r kates.Object) bool {
+	"ServiceAccount": func(_r kates.Object) bool {
 		var r kates.ServiceAccount
 		if err := kates_internal.Convert(_r, &r); err != nil {
 			return false
 		}
 		return len(r.Secrets) > 0
 	},
-	"ClusterRole": func(_ *kates.Client, r kates.Object) bool {
+	"ClusterRole": func(r kates.Object) bool {
 		return true
 	},
-	"ClusterRoleBinding": func(_ *kates.Client, r kates.Object) bool {
+	"ClusterRoleBinding": func(r kates.Object) bool {
 		return true
 	},
-	"CustomResourceDefinition": func(client *kates.Client, _r kates.Object) bool {
+	"CustomResourceDefinition": func(_r kates.Object) bool {
 		var r kates.CustomResourceDefinition
 		if err := kates_internal.Convert(_r, &r); err != nil {
 			return false
@@ -84,22 +84,7 @@ var readyChecks = map[string]func(*kates.Client, kates.Object) bool{
 			return false
 		}
 		last := conditions[len(conditions)-1]
-		if last.Status != "True" {
-			return false
-		}
-		if err := client.InvalidateCache(); err != nil {
-			return false
-		}
-		resources, err := client.ServerResources()
-		if err != nil {
-			return false
-		}
-		for _, resource := range resources {
-			if resource.Group == r.Spec.Group && resource.Kind == r.Spec.Names.Kind {
-				return true
-			}
-		}
-		return false
+		return last.Status == "True"
 	},
 }
 
@@ -114,13 +99,13 @@ func ReadyImplemented(r kates.Object) bool {
 // Ready returns whether or not this resource is ready; if this
 // package does not know how to check whether the resource is ready,
 // then it returns true.
-func Ready(kubeclient *kates.Client, r kates.Object) bool {
+func Ready(r kates.Object) bool {
 	kind := r.GetObjectKind().GroupVersionKind().Kind
 	fn, fnOK := readyChecks[kind]
 	if !fnOK {
 		return true
 	}
-	return fn(kubeclient, r)
+	return fn(r)
 }
 
 func isTemplate(input []byte) bool {
