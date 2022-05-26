@@ -326,6 +326,10 @@ func findSecretRefs(ctx context.Context, resource kates.Object, secretNamespacin
 		if r.Spec.TLS != nil {
 			// Host.spec.tls.caSecret is the thing to worry about here.
 			secretRef(r.GetNamespace(), r.Spec.TLS.CASecret, secretNamespacing, action)
+
+			if r.Spec.TLS.CRLSecret != "" {
+				secretRef(r.GetNamespace(), r.Spec.TLS.CRLSecret, secretNamespacing, action)
+			}
 		}
 
 		// Host.spec.tlsSecret and Host.spec.acmeProvider.privateKeySecret are native-Kubernetes-style
@@ -357,6 +361,13 @@ func findSecretRefs(ctx context.Context, resource kates.Object, secretNamespacin
 				secretNamespacing = *r.Spec.SecretNamespacing
 			}
 			secretRef(r.GetNamespace(), r.Spec.CASecret, secretNamespacing, action)
+		}
+
+		if r.Spec.CRLSecret != "" {
+			if r.Spec.SecretNamespacing != nil {
+				secretNamespacing = *r.Spec.SecretNamespacing
+			}
+			secretRef(r.GetNamespace(), r.Spec.CRLSecret, secretNamespacing, action)
 		}
 
 	case *amb.Module:

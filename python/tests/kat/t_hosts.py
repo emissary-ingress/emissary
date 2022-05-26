@@ -5,6 +5,7 @@ from tests.integration.manifests import namespace_manifest
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 from tests.selfsigned import TLSCerts
+from tests.utils import create_crl_pem_b64
 
 from ambassador import Config
 
@@ -247,6 +248,139 @@ spec:
                            "tls: protocol version not supported"])
 
         yield Query(self.url("target/cleartext", scheme="http"), expected=301)
+
+
+class HostCRDManualContextCRL(AmbassadorTest):
+    """
+    A single Host with a manually-specified TLS secret, a manually-specified TLSContext and
+    a manually specified mTLS config with CRL list too.
+    """
+    target: ServiceType
+
+    def init(self):
+        if Config.envoy_api_version == "V2":
+            self.skip_node = True
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
+
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return self.format('''
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: {self.name.k8s}-listener
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  port: 8443
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: SELF
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-server-manual-crl-secret
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["ambassador.example.com"].k8s_crt+'''
+  tls.key: '''+TLSCerts["ambassador.example.com"].k8s_key+'''
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-ca-manual-crl-secret
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["master.datawire.io"].k8s_crt+'''
+  tls.key: ""
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-crl-manual-crl-secret
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: Opaque
+data:
+  crl.pem: '''+create_crl_pem_b64(TLSCerts["master.datawire.io"].pubcert, TLSCerts["master.datawire.io"].privkey, [TLSCerts["presto.example.com"].pubcert])+'''
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-manual-crl-host
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: ambassador.example.com
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      hostname: {self.path.k8s}-manual-crl-hostname
+  tlsSecret:
+    name: {self.path.k8s}-server-manual-crl-secret
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: {self.path.k8s}-manual-crl-host-context
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hosts:
+  - ambassador.example.com
+  ca_secret: {self.path.k8s}-ca-manual-crl-secret
+  secret: {self.path.k8s}-server-manual-crl-secret
+  cert_required: true
+  crl_secret: {self.path.k8s}-crl-manual-crl-secret
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-target-mapping
+  labels:
+    hostname: {self.path.k8s}-manual-crl-hostname
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: ambassador.example.com
+  prefix: /
+  service: {self.target.path.fqdn}
+''') + super().manifests()
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        base = {
+            'url': self.url(""),
+            'ca_cert': TLSCerts["master.datawire.io"].pubcert,
+            'headers': {"Host": "ambassador.example.com"},
+            'sni': True,  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+        }
+
+        yield Query(**base,
+                    error="tls: certificate required")
+
+        yield Query(**base,
+                    client_crt=TLSCerts["presto.example.com"].pubcert,
+                    client_key=TLSCerts["presto.example.com"].privkey,
+                    error="tls: revoked certificate")
+
+    def requirements(self):
+        yield ("pod", self.path.k8s)
 
 
 class HostCRDSeparateTLSContext(AmbassadorTest):
@@ -1096,6 +1230,247 @@ spec:
             query.client_cert = TLSCerts["presto.example.com"].pubcert
             query.client_key = TLSCerts["presto.example.com"].privkey
             yield (r[0], query)
+
+
+class HostCRDClientCertCRLEmptyList(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        if Config.envoy_api_version == "V2":
+            self.skip_node = True
+        self.target = HTTP()
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
+
+    def manifests(self) -> str:
+        # Similar to HostCRDClientCertSameNamespace, except we also
+        # include a Certificate Revocation List in the TLS config
+        return namespace_manifest("alt3-namespace") + self.format('''
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: ambassador-listener-8443    # This name is to match existing test stuff
+  namespace: alt3-namespace
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  port: 8443
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: SELF
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+  namespace: alt3-namespace
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: ambassador.example.com
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: {self.path.k8s}.server
+  tls:
+    ca_secret: {self.path.k8s}-ca
+    cert_required: true
+    crl_secret: {self.path.k8s}-crl
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-ca
+  namespace: alt3-namespace
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["master.datawire.io"].k8s_crt+'''
+  tls.key: ""
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-crl
+  namespace: alt3-namespace
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: Opaque
+data:
+  crl.pem: '''+create_crl_pem_b64(TLSCerts["master.datawire.io"].pubcert, TLSCerts["master.datawire.io"].privkey, [])+'''
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}.server
+  namespace: alt3-namespace
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["ambassador.example.com"].k8s_crt+'''
+  tls.key: '''+TLSCerts["ambassador.example.com"].k8s_key+'''
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
+  prefix: /
+  service: {self.target.path.fqdn}
+''') +  super().manifests()
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        base = {
+            'url': self.url(""),
+            'ca_cert': TLSCerts["master.datawire.io"].pubcert,
+            'headers': {"Host": "ambassador.example.com"},
+            'sni': True,  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+        }
+
+        yield Query(**base,
+                    error="tls: certificate required")
+
+        yield Query(**base,
+                    client_crt=TLSCerts["presto.example.com"].pubcert,
+                    client_key=TLSCerts["presto.example.com"].privkey)
+
+    def requirements(self):
+        yield ("pod", self.path.k8s)
+
+
+class HostCRDClientCertCRLRevokeList(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        if Config.envoy_api_version == "V2":
+            self.skip_node = True
+        self.target = HTTP()
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
+
+    def manifests(self) -> str:
+        # Similar to HostCRDClientCertSameNamespace, except we also
+        # include a Certificate Revocation List in the TLS config
+        return namespace_manifest("alt4-namespace") + self.format('''
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: ambassador-listener-8443    # This name is to match existing test stuff
+  namespace: alt4-namespace
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  port: 8443
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: SELF
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+  namespace: alt4-namespace
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: ambassador.example.com
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: {self.path.k8s}.server
+  tls:
+    ca_secret: {self.path.k8s}-ca
+    cert_required: true
+    crl_secret: {self.path.k8s}-crl
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-ca
+  namespace: alt4-namespace
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["master.datawire.io"].k8s_crt+'''
+  tls.key: ""
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-crl
+  namespace: alt4-namespace
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: Opaque
+data:
+  crl.pem: '''+create_crl_pem_b64(TLSCerts["master.datawire.io"].pubcert, TLSCerts["master.datawire.io"].privkey, [TLSCerts["presto.example.com"].pubcert])+'''
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}.server
+  namespace: alt4-namespace
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["ambassador.example.com"].k8s_crt+'''
+  tls.key: '''+TLSCerts["ambassador.example.com"].k8s_key+'''
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
+  prefix: /
+  service: {self.target.path.fqdn}
+''') +  super().manifests()
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        base = {
+            'url': self.url(""),
+            'ca_cert': TLSCerts["master.datawire.io"].pubcert,
+            'headers': {"Host": "ambassador.example.com"},
+            'sni': True,  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+        }
+
+        yield Query(**base,
+                    error="tls: certificate required")
+
+        yield Query(**base,
+                    client_crt=TLSCerts["presto.example.com"].pubcert,
+                    client_key=TLSCerts["presto.example.com"].privkey,
+                    error="tls: revoked certificate")
+
+    def requirements(self):
+        yield ("pod", self.path.k8s)
 
 
 class HostCRDRootRedirectCongratulations(AmbassadorTest):

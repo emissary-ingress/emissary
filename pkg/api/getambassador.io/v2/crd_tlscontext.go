@@ -44,6 +44,9 @@ type TLSContextSpec struct {
 	SecretNamespacing     *bool    `json:"secret_namespacing,omitempty"`
 	RedirectCleartextFrom *int     `json:"redirect_cleartext_from,omitempty"`
 	SNI                   string   `json:"sni,omitempty"`
+
+	// +k8s:conversion-gen:rename=CRLSecret
+	V3CRLSecret string `json:"v3CRLSecret,omitempty"`
 }
 
 // TLSContext is the Schema for the tlscontexts API

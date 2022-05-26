@@ -729,13 +729,17 @@ class IR:
             #
             # (We include 'user_key' here because ACME private keys use that, and they
             # should not generate errors.)
-            if aconf_secret.get('tls_crt') or aconf_secret.get('cert-chain_pem') or aconf_secret.get('user_key'):
+            # (We include 'crl_pem' here because CRL secrets use that, and they
+            # should not generate errors.)
+            if aconf_secret.get('tls_crt') or aconf_secret.get('cert-chain_pem') or aconf_secret.get('user_key') or aconf_secret.get('crl_pem'):
                 secret_info = SecretInfo.from_aconf_secret(aconf_secret)
                 secret_name = secret_info.name
                 secret_namespace = secret_info.namespace
 
                 self.logger.debug('saving "%s.%s" (from %s) in secret_info', secret_name, secret_namespace, secret_key)
                 self.secret_info[f'{secret_name}.{secret_namespace}'] = secret_info
+            else:
+                self.logger.debug('not saving secret_info from %s because there is no public half', secret_key)
 
     def save_tls_context(self, ctx: IRTLSContext) -> None:
         extant_ctx = self.tls_contexts.get(ctx.name, None)
@@ -1005,6 +1009,7 @@ class IR:
 
         tls_termination_count = 0   # TLS termination contexts
         tls_origination_count = 0   # TLS origination contexts
+        tls_crl_file_count = 0      # CRL files used
 
         using_tls_module = False
         using_tls_contexts = False
@@ -1022,6 +1027,9 @@ class IR:
                     if secret_info.get('cacert_chain_file', None):
                         tls_origination_count += 1
 
+                    if secret_info.get('crl_file', None):
+                        tls_crl_file_count += 1
+
                 if ctx.get('_legacy', False):
                     using_tls_module = True
 
@@ -1029,6 +1037,7 @@ class IR:
         od['tls_using_contexts'] = using_tls_contexts
         od['tls_termination_count'] = tls_termination_count
         od['tls_origination_count'] = tls_origination_count
+        od['tls_crl_file_count'] = tls_crl_file_count
 
         for key in [ 'diagnostics', 'liveness_probe', 'readiness_probe', 'statsd' ]:
             od[key] = self.ambassador_module.get(key, {}).get('enabled', False)
