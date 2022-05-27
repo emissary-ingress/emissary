@@ -104,6 +104,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   processing will happen before authentication. This corrects a problem where XHR to authenticated
   endpoints would fail.
 
+- Bugfix: In 2.x releases of Emissary-ingress when there are multiple `Mapping`s that have the same
+  `metadata.name` across multiple namespaces, their old config would not properly be removed from
+  the cache when their config was updated. This resulted in an inability to update configuration for
+  groups of `Mapping`s that share the same name until the Emissary-ingress pods restarted.
+
 [#4179]: https://github.com/emissary-ingress/emissary/pull/4179
 [#1743]: https://github.com/emissary-ingress/emissary/issues/1743
 

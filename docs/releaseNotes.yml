@@ -62,6 +62,13 @@ items:
           When CORS is specified (either in a <code>Mapping</code> or in the <code>Ambassador</code>
           <code>Module</code>), CORS processing will happen before authentication. This corrects a
           problem where XHR to authenticated endpoints would fail.
+      - title: Correctly handle caching Mappings with the same name in different namespaces
+        type: bugfix
+        body: >-
+          In 2.x releases of $productName$ when there are multiple <code>Mapping</code>s that have the same
+          <code>metadata.name</code> across multiple namespaces, their old config would not properly be removed
+          from the cache when their config was updated. This resulted in an inability to update configuration
+          for groups of <code>Mapping</code>s that share the same name until the $productName$ pods restarted.
 
   - version: 2.2.2
     date: '2022-02-25'
