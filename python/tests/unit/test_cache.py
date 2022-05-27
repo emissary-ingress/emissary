@@ -263,6 +263,7 @@ class Builder:
         return node
 
 
+@pytest.mark.compilertest
 def test_circular_link():
     builder = Builder(logger, "cache_test_1.yaml")
     builder.build()
@@ -300,6 +301,7 @@ def test_circular_link():
     builder.check_last("after invalidating circular links")
 
 
+@pytest.mark.compilertest
 def test_multiple_rebuilds():
     builder = Builder(logger, "cache_test_1.yaml")
 
@@ -310,6 +312,7 @@ def test_multiple_rebuilds():
             builder.check_last(f"rebuild {i-1} -> {i}")
 
 
+@pytest.mark.compilertest
 def test_simple_targets():
     builder = Builder(logger, "cache_test_1.yaml")
 
@@ -325,6 +328,7 @@ def test_simple_targets():
     builder.check_last("after delete foo-4")
 
 
+@pytest.mark.compilertest
 def test_smashed_targets():
     builder = Builder(logger, "cache_test_2.yaml")
 
@@ -342,6 +346,7 @@ def test_smashed_targets():
     builder.check_last("after invalidating foo-4 and foo-6")
 
 
+@pytest.mark.compilertest
 def test_delta_1():
     builder1 = Builder(logger, "cache_test_1.yaml")
     builder2 = Builder(logger, "cache_test_1.yaml", enable_cache=False)
@@ -365,6 +370,7 @@ def test_delta_1():
     builder3.check("final", b3, b1)
 
 
+@pytest.mark.compilertest
 def test_delta_2():
     builder1 = Builder(logger, "cache_test_2.yaml")
     builder2 = Builder(logger, "cache_test_2.yaml", enable_cache=False)
@@ -388,6 +394,7 @@ def test_delta_2():
     builder3.check("final", b3, b1)
 
 
+@pytest.mark.compilertest
 def test_delta_3():
     builder1 = Builder(logger, "cache_test_1.yaml")
     builder2 = Builder(logger, "cache_test_1.yaml", enable_cache=False)
@@ -416,6 +423,7 @@ def test_delta_3():
     builder3.check("final", b3, b1)
 
 
+@pytest.mark.compilertest
 def test_delete_4():
     builder1 = Builder(logger, "cache_test_1.yaml")
     builder2 = Builder(logger, "cache_test_1.yaml", enable_cache=False)
@@ -439,6 +447,8 @@ def test_delete_4():
 
     builder3.check("final", b3, b1)
 
+
+@pytest.mark.compilertest
 def test_long_cluster_1():
     # Create a cache for Mappings whose cluster names are too long
     # to be envoy cluster names and must be truncated.
@@ -463,8 +473,8 @@ def test_long_cluster_1():
 
     print("test_long_cluster_1 done")
 
-MadnessVerifier = Callable[[Tuple[IR, EnvoyConfig]], bool]
 
+@pytest.mark.compilertest
 def test_mappings_same_name_delta():
     # Tests that multiple Mappings with the same name (but in different namespaces)
     # are properly added/removed from the cache when they are updated.
@@ -477,7 +487,7 @@ def test_mappings_same_name_delta():
     # to ensure their clusters were generated properly.
     cluster1_ok, cluster2_ok = False
     for cluster in econf['static_resources']['clusters']:
-        cname = cluster.get('per_connection_buffer_limit_bytes', None)
+        cname = cluster.get('name', None)
         assert cname is not None, \
             f"Error, cluster missing cluster name in econf"
         # The 6666 in the cluster name comes from the Mapping.spec.service's port
@@ -498,7 +508,7 @@ def test_mappings_same_name_delta():
 
     cluster1_ok, cluster2_ok = False
     for cluster in econf['static_resources']['clusters']:
-        cname = cluster.get('per_connection_buffer_limit_bytes', None)
+        cname = cluster.get('name', None)
         assert cname is not None, \
             f"Error, cluster missing cluster name in econf"
         # We can check the cluster name to identify if the clusters were updated properly
@@ -512,6 +522,9 @@ def test_mappings_same_name_delta():
         if cluster1_ok and cluster2_ok:
             break
     assert cluster1_ok and cluster2_ok, 'clusters could not be found with the correct econf after updating their config'
+
+
+MadnessVerifier = Callable[[Tuple[IR, EnvoyConfig]], bool]
 
 
 class MadnessMapping:
@@ -660,7 +673,7 @@ class MadnessOp:
 
         return match
 
-
+@pytest.mark.compilertest
 def test_cache_madness():
     builder1 = Builder(logger, "/dev/null")
     builder2 = Builder(logger, "/dev/null", enable_cache=False)
