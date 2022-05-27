@@ -30,7 +30,7 @@ class Builder:
     def __init__(self, logger: logging.Logger, yaml_file: str,
                  enable_cache=True) -> None:
         self.logger = logger
-        
+
         self.test_dir = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "test_cache_data"
@@ -149,7 +149,7 @@ class Builder:
 
             if kind not in watt['Kubernetes']:
                 watt['Kubernetes'][kind] = []
-            
+
             watt['Kubernetes'][kind].append(rsrc)
 
         watt_json = json.dumps(watt, sort_keys=True, indent=4)
@@ -465,6 +465,54 @@ def test_long_cluster_1():
 
 MadnessVerifier = Callable[[Tuple[IR, EnvoyConfig]], bool]
 
+def test_mappings_same_name_delta():
+    # Tests that multiple Mappings with the same name (but in different namespaces)
+    # are properly added/removed from the cache when they are updated.
+    builder = Builder(logger, "cache_test_4.yaml")
+    b = builder.build()
+    econf = b[1]
+    econf = econf.as_dict()
+
+    # loop through all the clusters in the resulting envoy config and pick out two Mappings from our test set (first and lase)
+    # to ensure their clusters were generated properly.
+    cluster1_ok, cluster2_ok = False
+    for cluster in econf['static_resources']['clusters']:
+        cname = cluster.get('per_connection_buffer_limit_bytes', None)
+        assert cname is not None, \
+            f"Error, cluster missing cluster name in econf"
+        # The 6666 in the cluster name comes from the Mapping.spec.service's port
+        if cname == "cluster_bar_0_example_com_6666_bar0":
+            cluster1_ok = True
+        elif cname == "cluster_bar_9_example_com_6666_bar9":
+            cluster2_ok = True
+        if cluster1_ok and cluster2_ok:
+            break
+    assert cluster1_ok and cluster2_ok, 'clusters could not be found with the correct envoy config'
+
+    # Update the yaml for these Mappings to simulate a reconfiguration
+    # We should properly remove the cache entries for these clusters when that happens.
+    builder.apply_yaml("cache_test_5.yaml")
+    b = builder.build()
+    econf = b[1]
+    econf = econf.as_dict()
+
+    cluster1_ok, cluster2_ok = False
+    for cluster in econf['static_resources']['clusters']:
+        cname = cluster.get('per_connection_buffer_limit_bytes', None)
+        assert cname is not None, \
+            f"Error, cluster missing cluster name in econf"
+        # We can check the cluster name to identify if the clusters were updated properly
+        # because in the deltas for the yaml we applied, we changed the port to 7777
+        # If there was an issue removing the initial ones from the cache then we should see
+        # 6666 in this field and not find the cluster names below.
+        if cname == "cluster_bar_0_example_com_7777_bar0":
+            cluster1_ok = True
+        elif cname == "cluster_bar_9_example_com_7777_bar9":
+            cluster2_ok = True
+        if cluster1_ok and cluster2_ok:
+            break
+    assert cluster1_ok and cluster2_ok, 'clusters could not be found with the correct econf after updating their config'
+
 
 class MadnessMapping:
     name: str
@@ -478,7 +526,7 @@ class MadnessMapping:
 
         # This is only OK for service names without any weirdnesses.
         self.cluster = "cluster_" + re.sub(r'[^0-9A-Za-z_]', '_', self.service) + "_default"
-    
+
     def __str__(self) -> str:
         return f"MadnessMapping {self.name}: {self.pfx} => {self.service}"
 
@@ -506,7 +554,7 @@ class MadnessOp:
         self.op = op
         self.mapping = mapping
         self.verifiers = verifiers
-    
+
     def __str__(self) -> str:
         return self.name
 
@@ -525,7 +573,7 @@ class MadnessOp:
             verifiers.append(self._cluster_absent)
         else:
             raise Exception(f"Unknown op {self.op}")
-        
+
         logger.info("======== builder1:")
         logger.info("INPUT: %s" % builder1.current_yaml())
 
@@ -570,7 +618,7 @@ class MadnessOp:
     def _cluster_absent(self, b: Tuple[IR, EnvoyConfig]) -> bool:
         ir, econf = b
 
-        ir_has_cluster = ir.has_cluster(self.mapping.cluster) 
+        ir_has_cluster = ir.has_cluster(self.mapping.cluster)
         assert not ir_has_cluster, f"{self.name}: needed no IR cluster {self.mapping.cluster}, but found it"
 
         return not ir_has_cluster
@@ -657,7 +705,7 @@ def test_cache_madness():
 
         if mapping in current_mappings:
             del(current_mappings[mapping])
-            op = MadnessOp(name=f"delete {mapping.pfx} -> {mapping.service}", op="delete", mapping=mapping, 
+            op = MadnessOp(name=f"delete {mapping.pfx} -> {mapping.service}", op="delete", mapping=mapping,
                            verifiers=[ lambda b: op.check_group(b, current_mappings) ])
         else:
             current_mappings[mapping] = True
@@ -670,7 +718,7 @@ def test_cache_madness():
         # if not op.exec(builder1, None, dumpfile=f"ir{i}"):
         if not op.exec(builder1, builder2, dumpfile=f"ir{i}"):
             break
-        
+
 
 if __name__ == '__main__':
     pytest.main(sys.argv)
