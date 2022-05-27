@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+import os
+
 from typing import List, TYPE_CHECKING
 
 from .v3listener import V3Listener
@@ -19,21 +21,23 @@ from .v3listener import V3Listener
 if TYPE_CHECKING:
     from . import V3Config # pragma: no cover
 
+# The defaults can be changed by using those 3 env vars:
+# AMBASSADOR_READY_PORT: Port number (default 8002)
+# AMBASSADOR_READY_IP: Listener IP address (default 127.0.0.1)
+# AMBASSADOR_READY_LOG: true/false (default true)
+ambassador_ready_port = int(os.getenv("AMBASSADOR_READY_PORT", "8002"))
+if ambassador_ready_port not in range(1, 32767):
+    ambassador_ready_port = 8002
+ambassador_ready_ip = os.getenv("AMBASSADOR_READY_IP", "127.0.0.1")
+ambassador_ready_log = os.getenv("AMBASSADOR_READY_LOG", "true") in ("yes", "true", "t", "1")
+
 
 class V3Ready(dict):
 
     @classmethod
     def generate(cls, config: 'V3Config') -> None:
-        # Inject the ready listener to the list of listeners if enabled
-        rport = config.ir.aconf.module_lookup('ambassador', 'ready_port', -1)
-        if rport <= 0:
-            config.ir.logger.info(f"V3Ready: ==== disabled")
-            return
-
-        rip = config.ir.aconf.module_lookup('ambassador', 'ready_ip', '127.0.0.1')
-        rlog = config.ir.aconf.module_lookup('ambassador', 'ready_log', True)
-
-        config.ir.logger.info(f"V3Ready: ==== listen on %s:%s" % (rip, rport))
+        # Inject the ready listener to the list of listeners
+        config.ir.logger.info(f"V3Ready: ==== listen on %s:%s" % (ambassador_ready_ip, ambassador_ready_port))
 
         typed_config = {
             '@type': 'type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager',
@@ -60,15 +64,15 @@ class V3Ready(dict):
                 }
             ]
         }
-        if rlog:
+        if ambassador_ready_log:
             typed_config['access_log'] = cls.access_log(config)
 
         ready_listener = {
-            'name': 'ambassador-listener-ready-%s-%s' % (rip, rport),
+            'name': 'ambassador-listener-ready-%s-%s' % (ambassador_ready_ip, ambassador_ready_port),
             'address': {
                 'socket_address': {
-                    'address': rip,
-                    'port_value': rport,
+                    'address': ambassador_ready_ip,
+                    'port_value': ambassador_ready_port,
                     'protocol': 'TCP'
                 }
             },
