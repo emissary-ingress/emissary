@@ -17,6 +17,7 @@ import (
 	"github.com/datawire/dlib/derror"
 	"github.com/datawire/dlib/dlog"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 // checkSecret checks whether a secret is valid, and adds it to the list of secrets
@@ -281,6 +282,21 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 		// ...and for Edge Stack, we _always_ have an implicit reference to the
 		// license secret.
 		secretRef(GetLicenseSecretNamespace(), GetLicenseSecretName(), false, action)
+		// We also want to grab any secrets referenced by edge-stack filters for use in edge-stack
+		// the Filters are unstructured because emissary does not have their type definition
+		for _, f := range sh.k8sSnapshot.Filters {
+			secretName, secretNamespace := findFilterSecret(f)
+			if secretName != "" {
+				if secretNamespace != "" {
+					// We found a filter that has a secret with a specific namespace
+					secretRef(secretNamespace, secretName, false, action)
+				} else {
+					// We found a filter that has a secret but no specific namespace
+					// We will just use the namespace of the filter in this scenario.
+					secretRef(f.GetNamespace(), secretName, false, action)
+				}
+			}
+		}
 	}
 
 	// OK! After all that, go copy all the matching secrets from FSSecrets and
@@ -311,6 +327,43 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 		}
 	}
 	return nil
+}
+
+// Returns secretName, secretNamespace from a provided (unstructured) filter if it contains a secret
+// Returns empty strings when the secret name and/or namespace could not be found
+func findFilterSecret(filter *unstructured.Unstructured) (string, string) {
+	// Just making extra sure this is actually a Filter
+	if filter.GetKind() != "Filter" && filter.GetKind() != "Filters" {
+		return "", ""
+	}
+	// Only Oauth2 Filters have secrets, although they dont need to have them.
+	// Yes this is disgusting. It is what it is...
+	filterContents := filter.UnstructuredContent()
+	filterSpec := filterContents["spec"]
+	if filterSpec != nil {
+		oauthFilter := filterSpec.(map[string]interface{})["OAuth2"]
+		if oauthFilter != nil {
+			secretName, secretNamespace := "", ""
+			// Check if we have a secretName
+			oauthSecretName := oauthFilter.(map[string]interface{})["secretName"]
+			if oauthSecretName != nil {
+				switch sName := oauthSecretName.(type) {
+				case string:
+					secretName = sName
+				}
+			}
+			// Check if we have a secretNamespace
+			oauthSecretNS := oauthFilter.(map[string]interface{})["secretNamespace"]
+			if oauthSecretNS != nil {
+				switch sNS := oauthSecretNS.(type) {
+				case string:
+					secretNamespace = sNS
+				}
+			}
+			return secretName, secretNamespace
+		}
+	}
+	return "", ""
 }
 
 // Find all the secrets a given Ambassador resource references.
