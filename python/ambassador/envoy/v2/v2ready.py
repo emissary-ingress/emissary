@@ -21,16 +21,15 @@ from .v2listener import V2Listener
 if TYPE_CHECKING:
     from . import V2Config # pragma: no cover
 
-# The defaults can be changed by using those 3 env vars:
+# The defaults can be changed by using those 2 env vars:
 # AMBASSADOR_READY_PORT: Port number (default 8002)
-# AMBASSADOR_READY_IP: Listener IP address (default 127.0.0.1)
 # AMBASSADOR_READY_LOG: true/false (default true)
 ambassador_ready_port = int(os.getenv("AMBASSADOR_READY_PORT", "8002"))
 if ambassador_ready_port not in range(1, 32767):
     ambassador_ready_port = 8002
-ambassador_ready_ip = os.getenv("AMBASSADOR_READY_IP", "127.0.0.1")
 # Note: Matches strconv.ParseBool for the go side
 ambassador_ready_log = os.getenv("AMBASSADOR_READY_LOG", "true") in ("true", "t", "1")
+ambassador_ready_ip = "127.0.0.1"
 
 
 class V2Ready(dict):
