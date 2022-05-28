@@ -60,10 +60,6 @@ github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1
 # github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5
 ## explicit
-github.com/chai2010/gettext-go/gettext
-github.com/chai2010/gettext-go/gettext/mo
-github.com/chai2010/gettext-go/gettext/plural
-github.com/chai2010/gettext-go/gettext/po
 # github.com/cncf/xds/go v0.0.0-20220121163655-4a2b9fdd466b
 ## explicit; go 1.11
 github.com/cncf/xds/go/udpa/annotations

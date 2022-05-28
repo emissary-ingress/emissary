@@ -82,6 +82,23 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [3.0.0] TBD
+[3.0.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v3.0.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: Emissary-ingress has been upgraded to Envoy 1.22.2 which provides security, performance and
+  feature enhancements. You can read more about them here: <a
+  href="https://www.envoyproxy.io/docs/envoy/v1.22.2/version_history/current">Envoy Proxy 1.22.2
+  Release Notes</a>
+  This is a major jump in Envoy versions from the current of 1.17 in EdgeStack
+  2.X. Most of the changes are under the hood and allow  Emissary-ingress to adopt new features in
+  the future. However, one major change that will effect users is the removal of V2 Transport
+  Protocol support. You
+
+- Change: Envoy 1.22 no longer supports V2 Transport Protocol which means $produceName$ only
+  supports the Envoy V3 Transport Protocol. All external filters will need to be upgraded to V3.
+
 ## [2.3.1] June 09, 2022
 [2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1
 

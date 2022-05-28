@@ -32,8 +32,23 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 3.0.0
+    date: "TBD"
+    notes:
+      - title: Upgrade to Envoy 1.22
+        type: change
+        body: >-
+          $productName$ has been upgraded to Envoy 1.22.2 which provides security, performance and feature enhancements. You can read more about them here: <a href="https://www.envoyproxy.io/docs/envoy/v1.22.2/version_history/current">Envoy Proxy 1.22.2 Release Notes</a>
+
+          This is a major jump in Envoy versions from the current of 1.17 in EdgeStack 2.X. Most of the changes are under the hood and allow  $productName$ to adopt new features in the future. However, one major change that will effect users is the removal of V2 Transport Protocol support.
+
+      - title: Envoy V2 Transport Protocol API Support Removed
+        type: change
+        body: >-
+          Envoy 1.22 no longer supports V2 Transport Protocol which means $produceName$ only supports the Envoy V3 Transport Protocol. All external filters will need to be upgraded to V3.
+        docs: topics/using/filters/external
   - version: 2.3.1
-    date: '2022-06-09'
+    date: "2022-06-09"
     notes:
       - title: fix regression in tracing service config
         type: bugfix
@@ -54,7 +69,7 @@ items:
           redirects</a>, and does not use Envoy's built-in OAuth2 filter.
         docs: https://groups.google.com/g/envoy-announce/c/8nP3Kn4jV7k
   - version: 2.3.0
-    date: '2022-06-06'
+    date: "2022-06-06"
     notes:
       - title: Remove unused packages
         type: security
@@ -114,7 +129,7 @@ items:
           to configure Envoy.
 
   - version: 2.2.2
-    date: '2022-02-25'
+    date: "2022-02-25"
     notes:
       - title: TLS Secret validation is now opt-in
         type: change
@@ -141,7 +156,7 @@ items:
             link: https://github.com/emissary-ingress/emissary/pull/4122
 
   - version: 2.2.1
-    date: '2022-02-22'
+    date: "2022-02-22"
     notes:
       - title: Envoy V2 API deprecation
         type: change
@@ -157,7 +172,7 @@ items:
         docs: ../../../argo/latest/howtos/manage-rollouts-using-cloud
 
   - version: 2.2.0
-    date: '2022-02-10'
+    date: "2022-02-10"
     notes:
       - title: Envoy V2 API deprecation
         type: change
@@ -190,8 +205,8 @@ items:
           instance was not actually left doing debugging logging, for example.
           (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!)
         github:
-        - title: "#3906"
-          link: https://github.com/emissary-ingress/emissary/issues/3906
+          - title: "#3906"
+            link: https://github.com/emissary-ingress/emissary/issues/3906
         docs: topics/running/statistics/8877-metrics/
 
       - title: Envoy configuration % escaping
@@ -202,10 +217,10 @@ items:
           custom user content can now contain '%' symbols escaped as '%%'.
         docs: topics/running/custom-error-responses
         github:
-        - title: "DW Envoy: 74"
-          link: https://github.com/datawire/envoy/pull/74
-        - title: "Upstream Envoy: 19383"
-          link: https://github.com/envoyproxy/envoy/pull/19383
+          - title: "DW Envoy: 74"
+            link: https://github.com/datawire/envoy/pull/74
+          - title: "Upstream Envoy: 19383"
+            link: https://github.com/envoyproxy/envoy/pull/19383
         image: ./v2.2.0-percent-escape.png
 
       - title: Stream metrics from Envoy to Ambassador Cloud
@@ -213,8 +228,8 @@ items:
         body: >-
           Support for streaming Envoy metrics about the clusters to Ambassador Cloud.
         github:
-        - title: "#4053"
-          link: https://github.com/emissary-ingress/emissary/pull/4053
+          - title: "#4053"
+            link: https://github.com/emissary-ingress/emissary/pull/4053
         docs: https://github.com/emissary-ingress/emissary/pull/4053
 
       - title: Support received commands to pause, continue and abort a Rollout via Agent directives
@@ -236,8 +251,8 @@ items:
           accepted for configuration. A Secret that contains an invalid TLS certificate will be logged
           as an invalid resource.
         github:
-        - title: "#3821"
-          link: https://github.com/emissary-ingress/emissary/issues/3821
+          - title: "#3821"
+            link: https://github.com/emissary-ingress/emissary/issues/3821
         docs: ../topics/running/tls
         image: ./v2.2.0-tls-cert-validation.png
 
@@ -251,7 +266,7 @@ items:
 
   - version: 2.1.2
     prevVersion: 2.1.0
-    date: '2022-01-25'
+    date: "2022-01-25"
     notes:
       - title: Envoy V2 API deprecation
         type: change
@@ -308,8 +323,8 @@ items:
           Any <code>Mapping</code> that uses the <code>host_redirect</code> field is now properly discovered and used. Thanks
           to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix!
         github:
-        - title: "#3709"
-          link: https://github.com/emissary-ingress/emissary/issues/3709
+          - title: "#3709"
+            link: https://github.com/emissary-ingress/emissary/issues/3709
         docs: https://github.com/emissary-ingress/emissary/issues/3709
 
       - title: Correctly handle DNS wildcards when associating Hosts and Mappings
@@ -359,7 +374,7 @@ items:
           some situations a validation error would not be reported.
 
   - version: 2.1.1
-    date: 'N/A'
+    date: "N/A"
     notes:
       - title: Never issued
         type: change
@@ -369,7 +384,7 @@ items:
           Emissary-ingress 2.1.0.</i>
 
   - version: 2.1.0
-    date: '2021-12-16'
+    date: "2021-12-16"
     notes:
       - title: Not recommended; upgrade to 2.1.2 instead
         type: change
@@ -401,8 +416,8 @@ items:
           <code>Mapping</code>s together). This has been corrected, so that all such
           updates correctly take effect.
         github:
-        - title: "#3945"
-          link: https://github.com/emissary-ingress/emissary/issues/3945
+          - title: "#3945"
+            link: https://github.com/emissary-ingress/emissary/issues/3945
         docs: https://github.com/emissary-ingress/emissary/issues/3945
         image: ./v2.1.0-canary.png
 
@@ -421,8 +436,8 @@ items:
           data. This bug was introduced in 1.14.0. The fix restores the default behavior of
           not sending compressed data to upstream services.
         github:
-        - title: "#3818"
-          link: https://github.com/emissary-ingress/emissary/issues/3818
+          - title: "#3818"
+            link: https://github.com/emissary-ingress/emissary/issues/3818
         docs: https://github.com/emissary-ingress/emissary/issues/3818
         image: ./v2.1.0-gzip-enabled.png
 
@@ -446,7 +461,7 @@ items:
           have now been removed, resolving CVE-2020-29651.
 
   - version: 2.0.5
-    date: '2021-11-08'
+    date: "2021-11-08"
     notes:
       - title: AuthService circuit breakers
         type: feature
@@ -474,13 +489,13 @@ items:
           <code>mappingSelector</code>; a future version of $productName$ will remove the
           <code>selector</code> element.
         github:
-        - title: "#3902"
-          link: https://github.com/emissary-ingress/emissary/issues/3902
+          - title: "#3902"
+            link: https://github.com/emissary-ingress/emissary/issues/3902
         docs: https://github.com/emissary-ingress/emissary/issues/3902
         image: ./v2.0.5-mappingselector.png
 
   - version: 2.0.4
-    date: '2021-10-19'
+    date: "2021-10-19"
     notes:
       - title: General availability!
         type: feature
@@ -554,8 +569,8 @@ items:
           The release now shows its actual released version number, rather than
           the internal development version number.
         github:
-        - title: "#3854"
-          link: https://github.com/emissary-ingress/emissary/issues/3854
+          - title: "#3854"
+            link: https://github.com/emissary-ingress/emissary/issues/3854
         docs: https://github.com/emissary-ingress/emissary/issues/3854
         image: ./v2.0.4-version.png
 
@@ -565,8 +580,8 @@ items:
           Large configurations no longer cause $productName$ to be unable
           to communicate with Ambassador Cloud.
         github:
-        - title: "#3593"
-          link: https://github.com/emissary-ingress/emissary/issues/3593
+          - title: "#3593"
+            link: https://github.com/emissary-ingress/emissary/issues/3593
         docs: https://github.com/emissary-ingress/emissary/issues/3593
 
       - title: Listeners correctly support l7Depth
@@ -578,7 +593,7 @@ items:
         image: ./v2.0.4-l7depth.png
 
   - version: 2.0.3-ea
-    date: '2021-09-16'
+    date: "2021-09-16"
     notes:
       - title: Developer Preview!
         body: We're pleased to introduce $productName$ 2.0.3 as a <b>developer preview</b>. The 2.X family introduces a number of changes to allow $productName$ to more gracefully handle larger installations, reduce global configuration to better handle multitenant or multiorganizational installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
@@ -591,10 +606,10 @@ items:
         type: feature
         docs: topics/running/running/
         github:
-        - title: "#3686"
-          link: https://github.com/emissary-ingress/emissary/issues/3686
-        - title: "#3666"
-          link: https://github.com/emissary-ingress/emissary/issues/3666
+          - title: "#3686"
+            link: https://github.com/emissary-ingress/emissary/issues/3686
+          - title: "#3666"
+            link: https://github.com/emissary-ingress/emissary/issues/3666
 
       - title: AmbassadorMapping supports setting the DNS type
         body: You can now set <code>dns_type</code> in the <code>AmbassadorMapping</code> to configure how Envoy will use the DNS for the service.
@@ -606,11 +621,11 @@ items:
         type: bugfix
         docs: https://github.com/emissary-ingress/emissary/issues/3707
         github:
-        - title: "#3707"
-          link: https://github.com/emissary-ingress/emissary/issues/3707
+          - title: "#3707"
+            link: https://github.com/emissary-ingress/emissary/issues/3707
 
   - version: 2.0.2-ea
-    date: '2021-08-24'
+    date: "2021-08-24"
     notes:
       - title: Developer Preview!
         body: We're pleased to introduce $productName$ 2.0.2 as a <b>developer preview</b>. The 2.X family introduces a number of changes to allow $productName$ to more gracefully handle larger installations, reduce global configuration to better handle multitenant or multiorganizational installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
@@ -716,8 +731,8 @@ items:
         body: Each <code>AmbassadorHost</code> can specify its <code>requestPolicy.insecure.action</code> independently of any other <code>AmbassadorHost</code>, allowing for HTTP routing as flexible as HTTPS routing.
         docs: topics/running/host-crd/#secure-and-insecure-requests
         github:
-        - title: "#2888"
-          link: https://github.com/datawire/ambassador/issues/2888
+          - title: "#2888"
+            link: https://github.com/datawire/ambassador/issues/2888
         image: ./edge-stack-2.0.0-insecure_action_hosts.png
         type: bugfix
 
@@ -781,7 +796,7 @@ items:
         type: change
 
   - version: 1.14.3
-    date: '2022-02-25'
+    date: "2022-02-25"
     notes:
       - title: Envoy security updates
         type: security
@@ -791,7 +806,7 @@ items:
         docs: https://groups.google.com/g/envoy-announce/c/bIUgEDKHl4g
 
   - version: 1.14.2
-    date: '2021-09-29'
+    date: "2021-09-29"
     notes:
       - title: Mappings support controlling DNS refresh with DNS TTL
         type: feature
@@ -816,7 +831,7 @@ items:
         docs: topics/running/ambassador/#modify-default-buffer-size
 
   - version: 1.14.1
-    date: '2021-08-24'
+    date: "2021-08-24"
     notes:
       - title: Envoy security updates
         type: change
@@ -853,7 +868,7 @@ items:
         docs: https://github.com/emissary-ingress/emissary/pull/3650
 
   - version: 1.13.10
-    date: '2021-07-28'
+    date: "2021-07-28"
     notes:
       - title: Fix for CORS origins configuration on the Mapping resource
         type: bugfix
@@ -904,7 +919,7 @@ items:
         image: ../images/edge-stack-1.13.10-consul-cert-log.png
 
   - version: 1.13.9
-    date: '2021-06-30'
+    date: "2021-06-30"
     notes:
       - title: Fix for TCPMappings
         body: >-
@@ -914,7 +929,7 @@ items:
         docs: topics/using/tcpmappings/
 
   - version: 1.13.8
-    date: '2021-06-08'
+    date: "2021-06-08"
     notes:
       - title: Fix Ambassador Cloud Service Details
         body: >-
@@ -933,7 +948,7 @@ items:
         docs: https://www.getambassador.io/docs/argo
 
   - version: 1.13.7
-    date: '2021-06-03'
+    date: "2021-06-03"
     notes:
       - title: JSON logging support
         body: >-
@@ -960,7 +975,7 @@ items:
         type: change
 
   - version: 1.13.6
-    date: '2021-05-24'
+    date: "2021-05-24"
     notes:
       - title: Quieter logs in legacy mode
         type: bugfix
@@ -969,7 +984,7 @@ items:
           when using <code>AMBASSADOR_LEGACY_MODE=true</code>.
 
   - version: 1.13.5
-    date: '2021-05-13'
+    date: "2021-05-13"
     notes:
       - title: Correctly support proper_case and preserve_external_request_id
         type: bugfix
@@ -988,7 +1003,7 @@ items:
         docs: topics/running/ingress-controller
 
   - version: 1.13.4
-    date: '2021-05-11'
+    date: "2021-05-11"
     notes:
       - title: Envoy 1.15.5
         body: >-
@@ -997,5 +1012,4 @@ items:
         image: ../images/edge-stack-1.13.4.png
         docs: topics/running/ambassador/#rejecting-client-requests-with-escaped-slashes
         type: security
-
 # Don't go any further back than 1.13.4.
