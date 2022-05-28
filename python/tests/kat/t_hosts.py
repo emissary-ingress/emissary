@@ -258,8 +258,6 @@ class HostCRDManualContextCRL(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        if Config.envoy_api_version == "V2":
-            self.skip_node = True
         self.add_default_http_listener = False
         self.add_default_https_listener = False
 
@@ -1236,8 +1234,6 @@ class HostCRDClientCertCRLEmptyList(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        if Config.envoy_api_version == "V2":
-            self.skip_node = True
         self.target = HTTP()
         self.add_default_http_listener = False
         self.add_default_https_listener = False
@@ -1356,8 +1352,6 @@ class HostCRDClientCertCRLRevokeList(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        if Config.envoy_api_version == "V2":
-            self.skip_node = True
         self.target = HTTP()
         self.add_default_http_listener = False
         self.add_default_https_listener = False

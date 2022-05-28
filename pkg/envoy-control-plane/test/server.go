@@ -12,9 +12,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 
+	server "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/v3"
+
 	gcplogger "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/log"
-	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
-	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/v2"
 )
 
 const (

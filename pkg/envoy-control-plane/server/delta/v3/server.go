@@ -9,11 +9,11 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
-	discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/stream/v3"
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/stream/v3"
 )
 
 // Server is a wrapper interface which is meant to hold the proper stream handler for each xDS protocol.

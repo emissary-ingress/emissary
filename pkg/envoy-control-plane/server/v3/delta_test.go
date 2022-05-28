@@ -11,12 +11,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
-	rsrc "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/stream/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v3"
+	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+	rsrc "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/stream/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
 )
 
 func (config *mockConfigWatcher) CreateDeltaWatch(req *discovery.DeltaDiscoveryRequest, state stream.StreamState, out chan cache.DeltaResponse) func() {

@@ -15,6 +15,7 @@ import (
 	"github.com/emissary-ingress/emissary/v3/pkg/acp"
 	"github.com/emissary-ingress/emissary/v3/pkg/ambex"
 	"github.com/emissary-ingress/emissary/v3/pkg/debug"
+	ecp_v3_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/gateway"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"

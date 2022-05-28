@@ -10,18 +10,18 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	v2_metrics "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/metrics/v2"
+	v3_metrics "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/metrics/v3"
 )
 
 type server struct{}
 
-var _ v2_metrics.MetricsServiceServer = &server{}
+var _ v3_metrics.MetricsServiceServer = &server{}
 
 func main() {
 	ctx := context.Background()
 
 	grpcMux := grpc.NewServer()
-	v2_metrics.RegisterMetricsServiceServer(grpcMux, &server{})
+	v3_metrics.RegisterMetricsServiceServer(grpcMux, &server{})
 
 	sc := &dhttp.ServerConfig{
 		Handler: grpcMux,
@@ -37,7 +37,7 @@ func main() {
 	dlog.Print(ctx, "shut down without error")
 }
 
-func (s *server) StreamMetrics(stream v2_metrics.MetricsService_StreamMetricsServer) error {
+func (s *server) StreamMetrics(stream v3_metrics.MetricsService_StreamMetricsServer) error {
 	dlog.Println(stream.Context(), "Started stream")
 	for {
 		in, err := stream.Recv()

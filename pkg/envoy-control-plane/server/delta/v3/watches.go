@@ -1,9 +1,9 @@
 package delta
 
 import (
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/stream/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/stream/v3"
 )
 
 // watches for all delta xDS resource types

@@ -66,7 +66,7 @@ def Compile(logger: logging.Logger, input_text: str,
     out: Dict[str, Union[IR, EnvoyConfig]] = { "ir": ir }
 
     if ir:
-        out["V3"] = EnvoyConfig.generate(ir, "V3", cache=cache)
+        out["v3"] = EnvoyConfig.generate(ir, "V3", cache=cache)
 
     return out
 

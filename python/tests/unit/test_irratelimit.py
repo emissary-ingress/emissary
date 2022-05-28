@@ -66,7 +66,7 @@ def _get_ratelimit_default_conf():
 
 @pytest.mark.compilertest
 def test_irratelimit_defaults():
-    default_config = _get_ratelimit_default_conf_v3()
+    default_config = _get_ratelimit_default_conf()
 
     # Test all defaults
     yaml = """

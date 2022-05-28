@@ -18,7 +18,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/stream/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/stream/v3"
 )
 
 // MuxCache multiplexes across several caches using a classification function.

@@ -109,7 +109,6 @@ copy_gold tracingexternalauthtest
 copy_gold tracingtest
 copy_gold tracingtestsampling
 copy_gold tracingtestshorttraceid
-copy_gold tracingtestzipkinv1
 copy_gold tracingtestzipkinv2
 copy_gold unsaferegexmapping
 copy_gold xfpredirect

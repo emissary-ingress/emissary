@@ -126,7 +126,7 @@ class IRBaseMapping (IRResource):
         )
 
     @classmethod
-    def make_cache_key(cls, kind: str, name: str, namespace: str, version: str="v2") -> str:
+    def make_cache_key(cls, kind: str, name: str, namespace: str, version: str="v3") -> str:
         # Why is this split on the name necessary?
         # the name of a Mapping when we fetch it from the aconf will match the metadata.name of
         # the Mapping that the config comes from _only if_ it is the only Mapping with that exact name.

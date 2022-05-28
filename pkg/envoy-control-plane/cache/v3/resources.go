@@ -1,6 +1,6 @@
 package cache
 
-import "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
+import "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
 
 // Resources is a versioned group of resources.
 type Resources struct {

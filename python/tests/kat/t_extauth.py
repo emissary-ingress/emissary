@@ -110,7 +110,7 @@ auth_context_extensions:
         assert "baz" in self.results[0].backend.request.headers
         assert self.results[0].status == 401
         assert self.results[0].headers["Server"] == ["envoy"]
-        assert self.results[0].headers['X-Grpc-Service-Protocol-Version'] == ['v2']
+        assert self.results[0].headers['X-Grpc-Service-Protocol-Version'] == ['v3']
 
         # [1] Verifies that Location header is returned from Envoy.
         assert self.results[1].backend.name == self.auth.path.k8s
@@ -118,7 +118,7 @@ auth_context_extensions:
         assert self.results[1].backend.request.headers["requested-location"] == ["foo"]
         assert self.results[1].status == 302
         assert self.results[1].headers["Location"] == ["foo"]
-        assert self.results[1].headers['X-Grpc-Service-Protocol-Version'] == ['v2']
+        assert self.results[1].headers['X-Grpc-Service-Protocol-Version'] == ['v3']
 
         # [2] Verifies Envoy returns whitelisted headers input by the user.
         assert self.results[2].backend.name == self.auth.path.k8s
@@ -128,7 +128,7 @@ auth_context_extensions:
         assert self.results[2].status == 401
         assert self.results[2].headers["Server"] == ["envoy"]
         assert self.results[2].headers["X-Foo"] == ["foo"]
-        assert self.results[2].headers['X-Grpc-Service-Protocol-Version'] == ['v2']
+        assert self.results[2].headers['X-Grpc-Service-Protocol-Version'] == ['v3']
 
         # [3] Verifies default whitelisted Authorization request header.
         assert self.results[3].backend.request.headers["requested-status"] == ["200"]
@@ -139,7 +139,7 @@ auth_context_extensions:
         assert self.results[3].status == 200
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
-        assert self.results[3].backend.request.headers['x-grpc-service-protocol-version'] == ['v2']
+        assert self.results[3].backend.request.headers['x-grpc-service-protocol-version'] == ['v3']
 
         # [4] Verifies that auth_context_extension is passed along by Envoy.
         assert self.results[4].status == 200
@@ -881,21 +881,20 @@ use_websocket: true
 class AuthenticationGRPCVerTest(AmbassadorTest):
 
     target: ServiceType
-    specified_protocol_version: Literal['v2', 'v3', 'default']
-    expected_protocol_version: Literal['v2', 'v3']
+    specified_protocol_version: Literal['v3', 'default']
+    expected_protocol_version: Literal['v3']
     auth: ServiceType
 
     @classmethod
     def variants(cls) -> Generator[Node, None, None]:
-        for protocol_version in ['v2', 'v3', 'default']:
+        for protocol_version in ['v3', 'default']:
             yield cls(protocol_version, name="{self.specified_protocol_version}")
 
-    def init(self, protocol_version: Literal['v2', 'v3', 'default']):
+    def init(self, protocol_version: Literal['v3', 'default']):
         self.target = HTTP()
         self.specified_protocol_version = protocol_version
-        self.expected_protocol_version = "v2" if protocol_version == "default" else protocol_version
-        if Config.envoy_api_version == "V2" and self.expected_protocol_version == "v3":
-            self.skip_node = True
+        self.expected_protocol_version = "v3" if protocol_version == "default" else protocol_version
+
         self.auth = AGRPC(name="auth", protocol_version=self.expected_protocol_version)
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:

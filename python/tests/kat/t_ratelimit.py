@@ -163,27 +163,26 @@ tls: ratelimit-tls-context
         assert self.results[2].headers["Hello"] == [ "Foo" ]
         assert self.results[2].headers["Hi"] == [ "Baz" ]
         assert self.results[2].headers["Content-Type"] == [ "application/json" ]
-        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v2" ]
+        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v3" ]
 
 
 class RateLimitVerTest(AmbassadorTest):
     # debug = True
     target: ServiceType
-    specified_protocol_version: Literal['v2', 'v3', 'default']
-    expected_protocol_version: Literal['v2', 'v3']
+    specified_protocol_version: Literal['v3', 'default']
+    expected_protocol_version: Literal['v3']
     rls: ServiceType
 
     @classmethod
     def variants(cls) -> Generator[Node, None, None]:
-        for protocol_version in ['v2', 'v3', 'default']:
+        for protocol_version in ['v3', 'default']:
             yield cls(protocol_version, name="{self.specified_protocol_version}")
 
-    def init(self, protocol_version: Literal['v2', 'v3', 'default']):
+    def init(self, protocol_version: Literal['v3', 'default']):
         self.target = HTTP()
         self.specified_protocol_version = protocol_version
-        self.expected_protocol_version = "v2" if protocol_version == "default" else protocol_version
-        if Config.envoy_api_version == "V2" and self.expected_protocol_version == "v3":
-            self.skip_node = True
+        self.expected_protocol_version = "v3" if protocol_version == "default" else protocol_version
+
         self.rls = RLSGRPC(protocol_version=self.expected_protocol_version)
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:

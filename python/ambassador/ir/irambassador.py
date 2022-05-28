@@ -410,7 +410,7 @@ class IRAmbassador (IRResource):
         ]:
             if cur and cur.get("enabled", False):
                 name = "internal_%s_probe_mapping" % name
-                cache_key = "InternalMapping-v2-%s-default" % name
+                cache_key = "InternalMapping-v3-%s-default" % name
 
                 mapping = ir.cache_fetch(cache_key)
 

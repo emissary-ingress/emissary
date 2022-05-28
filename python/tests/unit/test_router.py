@@ -15,11 +15,6 @@ def _test_router(yaml, expectations={}):
                 if http_filter['name'] != 'envoy.filters.http.router':
                     continue
 
-                # If we expect nothing, then the typed config should be missing entirely.
-                if len(expectations) == 0:
-                    assert 'typed_config' not in http_filter
-                    break
-
                 assert 'typed_config' in http_filter
                 typed_config = http_filter['typed_config']
                 assert typed_config['@type'] == 'type.googleapis.com/envoy.extensions.filters.http.router.v3.Router'
