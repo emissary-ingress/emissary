@@ -456,11 +456,17 @@ items:
         type: change
         body: >-
           The <code>x.getambassador.io/v3alpha1</code> API version has become the
-          <code>getambassador.io/v3alpha1</code> API version. The <code>Ambassador-</code>
-          prefixes from <code>x.getambassador.io/v3alpha1</code> resources have been
-          removed for ease of migration. <b>Note that <code>getambassador.io/v3alpha1</code>
-          is the only supported API version for 2.0.4</b> &mdash; full support for
-          <code>getambassador.io/v2</code> will arrive soon in a later 2.X version.
+          <code>getambassador.io/v3alpha1</code> API version.  The <code>Ambassador-</code> prefixes
+          from <code>x.getambassador.io/v3alpha1</code> resource kind names
+          (e.g. <code>AmbassadorHost</code>) have been removed for ease of migration from
+          $productName$ 1.x.  As with previous 2.0.x releases, you <b>must</b> supply a
+          <code>Host</code> (<code>AmbassadorHost</code> in previous 2.0.x releases) resource to
+          terminate TLS: unlike in 1.x it is no longer sufficient to define a
+          <code>TLSContext</code> (although <code>TLSContext</code>s are still the best way to
+          define TLS configuration information to be shared across multiple <code>Host</code>s).
+          <b>Note that <code>getambassador.io/v3alpha1</code> is the only supported API version for
+          2.0.4</b> &mdash; full support for <code>getambassador.io/v2</code> will arrive soon in a
+          later 2.X version.
         docs: about/changes-2.x
         image: ./v2.0.4-v3alpha1.png
 

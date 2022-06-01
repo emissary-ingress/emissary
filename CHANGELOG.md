@@ -39,16 +39,6 @@ will support only the Envoy V3 API. The `AMBASSADOR_ENVOY_API_VERSION` environme
 also be removed. Note that Emissary-ingress has been using the Envoy V3 API as its default since
 v1.14.0.
 
-#### TLS Termination and the `Host` CRD
-
-As of Emissary-ingress v2.0.4, you _must_ supply a `Host` CRD to terminate TLS: it is not
-sufficient to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS
-configuration information to be shared across multiple `Host`s). The minimal configuration for
-TLS termination is now a certificate stored in a Kubernetes `Secret`, and a `Host` referring to
-that `Secret`.
-
-For Emissary-ingress v2.0.0 - v2.0.3, you must supply an `AmbassadorHost` CRD.
-
 #### `Ingress` Resources and Namespaces
 
 In a future version of Emissary-ingress, **no sooner than Emissary-ingress v2.1.0**, TLS
@@ -321,10 +311,14 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 ### Emissary-ingress and Ambassador Edge Stack
 
 - Change: The `x.getambassador.io/v3alpha1` API version has become the `getambassador.io/v3alpha1`
-  API version. The `Ambassador-` prefixes from `x.getambassador.io/v3alpha1` resources have been
-  removed for ease of migration. **Note that `getambassador.io/v3alpha1` is the only supported API
-  version for 2.0.4** &mdash; full support for `getambassador.io/v2` will arrive soon in a later 2.X
-  version.
+  API version.  The `Ambassador-` prefixes from `x.getambassador.io/v3alpha1` resource kind names
+  (e.g. `AmbassadorHost`) have been removed for ease of migration from Emissary-ingress 1.x.  As
+  with previous 2.0.x releases, you **must** supply a `Host` (`AmbassadorHost` in previous 2.0.x
+  releases) resource to terminate TLS: unlike in 1.x it is no longer sufficient to define a
+  `TLSContext` (although `TLSContext`s are still the best way to define TLS configuration
+  information to be shared across multiple `Host`s). **Note that `getambassador.io/v3alpha1` is the
+  only supported API version for 2.0.4** &mdash; full support for `getambassador.io/v2` will arrive
+  soon in a later 2.X version.
 
 - Feature: The `getambassador.io/v3alpha1` API version and the published chart and manifests have
   been updated to support Kubernetes 1.22. Thanks to <a href="https://github.com/imoisharma">Mohit

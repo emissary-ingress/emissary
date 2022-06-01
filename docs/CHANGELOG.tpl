@@ -39,16 +39,6 @@ will support only the Envoy V3 API. The `AMBASSADOR_ENVOY_API_VERSION` environme
 also be removed. Note that Emissary-ingress has been using the Envoy V3 API as its default since
 v1.14.0.
 
-#### TLS Termination and the `Host` CRD
-
-As of Emissary-ingress v2.0.4, you _must_ supply a `Host` CRD to terminate TLS: it is not
-sufficient to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS
-configuration information to be shared across multiple `Host`s). The minimal configuration for
-TLS termination is now a certificate stored in a Kubernetes `Secret`, and a `Host` referring to
-that `Secret`.
-
-For Emissary-ingress v2.0.0 - v2.0.3, you must supply an `AmbassadorHost` CRD.
-
 #### `Ingress` Resources and Namespaces
 
 In a future version of Emissary-ingress, **no sooner than Emissary-ingress v2.1.0**, TLS
