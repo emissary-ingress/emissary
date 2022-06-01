@@ -285,17 +285,7 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 		// We also want to grab any secrets referenced by edge-stack filters for use in edge-stack
 		// the Filters are unstructured because emissary does not have their type definition
 		for _, f := range sh.k8sSnapshot.Filters {
-			secretName, secretNamespace := findFilterSecret(f)
-			if secretName != "" {
-				if secretNamespace != "" {
-					// We found a filter that has a secret with a specific namespace
-					secretRef(secretNamespace, secretName, false, action)
-				} else {
-					// We found a filter that has a secret but no specific namespace
-					// We will just use the namespace of the filter in this scenario.
-					secretRef(f.GetNamespace(), secretName, false, action)
-				}
-			}
+			findFilterSecret(f, action)
 		}
 	}
 
@@ -331,21 +321,31 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 
 // Returns secretName, secretNamespace from a provided (unstructured) filter if it contains a secret
 // Returns empty strings when the secret name and/or namespace could not be found
-func findFilterSecret(filter *unstructured.Unstructured) (string, string) {
+func findFilterSecret(filter *unstructured.Unstructured, action func(snapshotTypes.SecretRef)) {
 	// Just making extra sure this is actually a Filter
 	if filter.GetKind() != "Filter" && filter.GetKind() != "Filters" {
-		return "", ""
+		return
 	}
 	// Only Oauth2 Filters have secrets, although they dont need to have them.
+	// This is overly contrived because Filters are unstructured to emissary since we dont have the type definitions
 	// Yes this is disgusting. It is what it is...
 	filterContents := filter.UnstructuredContent()
 	filterSpec := filterContents["spec"]
 	if filterSpec != nil {
-		oauthFilter := filterSpec.(map[string]interface{})["OAuth2"]
+		mapOauth, success := filterSpec.(map[string]interface{})
+		// We need to check if all these type assertions fail since we shouldnt rely on CRD validation to protect us from a panic state
+		if !success {
+			return
+		}
+		oauthFilter := mapOauth["OAuth2"]
 		if oauthFilter != nil {
 			secretName, secretNamespace := "", ""
 			// Check if we have a secretName
-			oauthSecretName := oauthFilter.(map[string]interface{})["secretName"]
+			mapSecretName, success := oauthFilter.(map[string]interface{})
+			if !success {
+				return
+			}
+			oauthSecretName := mapSecretName["secretName"]
 			if oauthSecretName != nil {
 				switch sName := oauthSecretName.(type) {
 				case string:
@@ -353,17 +353,30 @@ func findFilterSecret(filter *unstructured.Unstructured) (string, string) {
 				}
 			}
 			// Check if we have a secretNamespace
-			oauthSecretNS := oauthFilter.(map[string]interface{})["secretNamespace"]
+			mapSecretNS, success := oauthFilter.(map[string]interface{})
+			if !success {
+				return
+			}
+			oauthSecretNS := mapSecretNS["secretNamespace"]
 			if oauthSecretNS != nil {
 				switch sNS := oauthSecretNS.(type) {
 				case string:
 					secretNamespace = sNS
 				}
 			}
-			return secretName, secretNamespace
+			if secretName != "" {
+				if secretNamespace != "" {
+					// We found a filter that has a secret with a specific namespace
+					secretRef(secretNamespace, secretName, false, action)
+				} else {
+					// We found a filter that has a secret but no specific namespace
+					// We will just use the namespace of the filter in this scenario.
+					secretRef(filter.GetNamespace(), secretName, false, action)
+				}
+			}
 		}
 	}
-	return "", ""
+	return
 }
 
 // Find all the secrets a given Ambassador resource references.
