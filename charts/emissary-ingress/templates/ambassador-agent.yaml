@@ -240,8 +240,28 @@ spec:
           value: {{ .Values.agent.rpcAddress }}
         - name: AES_SNAPSHOT_URL
           value: "http://{{ include "ambassador.fullname" . }}-admin.{{ include "ambassador.namespace" . }}:{{ .Values.adminService.snapshotPort }}/snapshot-external"
-  {{ if .Values.progressDeadlines }}
-  {{ if hasKey .Values.progressDeadlines "agent" }}
+      {{- with .Values.agent.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+      {{- end -}}
+    {{- with .Values.agent.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+    {{- end -}}
+    {{- with .Values.agent.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end -}}
+    {{- with .Values.agent.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end -}}
+    {{- with .Values.agent.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+    {{- end -}}
+  {{- if .Values.progressDeadlines }}
+  {{- if hasKey .Values.progressDeadlines "agent" }}
   progressDeadlineSeconds: {{ .Values.progressDeadlines.agent }}
   {{- end }}
   {{- end }}

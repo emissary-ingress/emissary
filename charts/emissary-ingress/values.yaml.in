@@ -395,6 +395,16 @@ agent:
     # Leave blank to use image.repository and image.tag
     tag:
     repository:
+  # CPU/memory resource requests/limits
+  resources: {}
+  # NodeSelector for ambassador agent
+  nodeSelector: {}
+  # Tolerations for ambassador agent
+  tolerations: []
+  # Affinity for ambassador agent
+  affinity: {}
+  # Topology Spread Constraints for ambassador agent
+  topologySpreadConstraints: []
 
 deploymentTool: ''
 
