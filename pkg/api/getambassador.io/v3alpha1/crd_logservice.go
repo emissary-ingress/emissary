@@ -39,6 +39,8 @@ type LogServiceSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
 	Service string `json:"service,omitempty"`
+	// +kubebuilder:validation:Enum={"v2","v3"}
+	ProtocolVersion string `json:"protocol_version,omitempty"`
 	// +kubebuilder:validation:Enum={"tcp","http"}
 	Driver                string          `json:"driver,omitempty"`
 	DriverConfig          *DriverConfig   `json:"driver_config,omitempty"`

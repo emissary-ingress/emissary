@@ -1,4 +1,4 @@
-from typing import Generator, Tuple, Union
+from typing import Generator, Literal, Tuple, Union
 
 import json
 
@@ -6,13 +6,26 @@ from kat.harness import Query
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP, ALSGRPC, Node
 
+from ambassador import Config
+
 
 class LogServiceTest(AmbassadorTest):
     target: ServiceType
+    specified_protocol_version: Literal['v2', 'v3', 'default']
+    expected_protocol_version: Literal['v2', 'v3']
     als: ServiceType
 
-    def init(self):
+    @classmethod
+    def variants(cls) -> Generator[Node, None, None]:
+        for protocol_version in ['v2', 'v3', 'default']:
+            yield cls(protocol_version, name="{self.specified_protocol_version}")
+
+    def init(self, protocol_version: Literal['v2', 'v3', 'default']):
         self.target = HTTP()
+        self.specified_protocol_version = protocol_version
+        self.expected_protocol_version = "v2" if protocol_version == "default" else protocol_version
+        if Config.envoy_api_version == "V2" and self.expected_protocol_version == "v3":
+            self.skip_node = True
         self.als = ALSGRPC()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -38,7 +51,7 @@ driver_config:
       during_request: false
 flush_interval_time: 1
 flush_interval_byte_size: 1
-      """)
+""") + ("" if self.specified_protocol_version == "default" else f"protocol_version: '{self.specified_protocol_version}'")
         yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -57,14 +70,16 @@ service: {self.target.path.fqdn}
 
     def check(self):
         logs = self.results[3].json
-        assert logs['alsv2-http']
-        assert not logs['alsv2-tcp']
-        assert not logs['alsv3-http']
-        assert not logs['alsv3-tcp']
+        expkey = f"als{self.expected_protocol_version}-http"
+        assert logs[expkey]
+        for key in ['alsv2-http', 'alsv2-tcp', 'alsv3-http', 'alsv3-tcp']:
+            if key == expkey:
+                continue
+            assert not logs[key]
 
-        assert len(logs['alsv2-http']) == 2
-        assert logs['alsv2-http'][0]['request']['original_path'] == '/target/foo'
-        assert logs['alsv2-http'][1]['request']['original_path'] == '/target/bar'
+        assert len(logs[expkey]) == 2
+        assert logs[expkey][0]['request']['original_path'] == '/target/foo'
+        assert logs[expkey][1]['request']['original_path'] == '/target/bar'
 
 
 class LogServiceLongServiceNameTest(AmbassadorTest):

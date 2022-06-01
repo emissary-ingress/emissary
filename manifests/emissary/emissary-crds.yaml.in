@@ -1815,6 +1815,11 @@ spec:
                 type: boolean
               service:
                 type: string
+              v3ProtocolVersion:
+                enum:
+                - v2
+                - v3
+                type: string
               v3StatsName:
                 type: string
             type: object
@@ -1884,6 +1889,11 @@ spec:
                   to be ''true''.  It is silly to have a required field with only
                   one valid value, we should just remove the thing.'
                 type: boolean
+              protocol_version:
+                enum:
+                - v2
+                - v3
+                type: string
               service:
                 type: string
               stats_name:

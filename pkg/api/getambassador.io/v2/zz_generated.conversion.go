@@ -3067,6 +3067,10 @@ func autoConvert_v2_LogServiceSpec_To_v3alpha1_LogServiceSpec(in *LogServiceSpec
 		*out = *in
 	}
 	if true {
+		in, out := &in.V3ProtocolVersion, &out.ProtocolVersion
+		*out = *in
+	}
+	if true {
 		in, out := &in.Driver, &out.Driver
 		*out = *in
 	}
@@ -3123,6 +3127,10 @@ func autoConvert_v3alpha1_LogServiceSpec_To_v2_LogServiceSpec(in *v3alpha1.LogSe
 	}
 	if true {
 		in, out := &in.Service, &out.Service
+		*out = *in
+	}
+	if true {
+		in, out := &in.ProtocolVersion, &out.V3ProtocolVersion
 		*out = *in
 	}
 	if true {

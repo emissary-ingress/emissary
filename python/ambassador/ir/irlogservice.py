@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Literal, Optional, TYPE_CHECKING
 
 from ..config import Config
 from ..utils import RichStatus
@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 class IRLogService(IRResource):
     cluster: Optional[IRCluster]
     service: str
+    protocol_version: Literal['v2', 'v3']
     driver: str
     driver_config: dict
     flush_interval_byte_size: int
@@ -40,6 +41,7 @@ class IRLogService(IRResource):
         self.namespace = config.get("namespace", self.namespace)
         self.cluster = None
         self.grpc = config.get('grpc', False)
+        self.protocol_version = config.get('protocol_version', 'v2')
         self.driver = config.get('driver')
         # These defaults come from Envoy:
         # https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/accesslog/v2/als.proto#envoy-api-msg-config-accesslog-v2-commongrpcaccesslogconfig
@@ -87,6 +89,7 @@ class IRLogService(IRResource):
         assert(self.cluster)
 
         return {
+            "transport_api_version": self.protocol_version.upper(),
             "log_name": self.name,
             "grpc_service": {
                 "envoy_grpc": {

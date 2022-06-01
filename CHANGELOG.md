@@ -94,6 +94,12 @@ This change is being made because the `HTTP_JSON_V1` API was deprecated in Envoy
 - Feature: It is now possible to set `crl_secret` in `Host` and `TLSContext` resources to check peer
   certificates against a certificate revocation list. ([#1743])
 
+- Feature: Previously, a `LogService` would always have Emissary-ingress communicate with the
+  external log servie using the `envoy.service.accesslog.v2.AccessLogService` API.  It is now
+  possible for the `LogService` to specify `protocol_version: v3` to use the newer
+  `envoy.service.accesslog.v3.AccessLogService` API instead.  This functionality is not available if
+  you set the `AMBASSADOR_ENVOY_API_VERSION=V2` environment variable.
+
 - Bugfix: When CORS is specified (either in a `Mapping` or in the `Ambassador` `Module`), CORS
   processing will happen before authentication. This corrects a problem where XHR to authenticated
   endpoints would fail.

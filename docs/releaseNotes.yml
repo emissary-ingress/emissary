@@ -56,6 +56,16 @@ items:
         github:
           - title: "#1743"
             link: https://github.com/emissary-ingress/emissary/issues/1743
+      - title: Added support for the LogService v3 transport protocol
+        type: feature
+        body: >-
+          Previously, a <code>LogService</code> would always have $productName$ communicate with the
+          external log servie using the <code>envoy.service.accesslog.v2.AccessLogService</code>
+          API.  It is now possible for the <code>LogService</code> to specify
+          <code>protocol_version: v3</code> to use the newer
+          <code>envoy.service.accesslog.v3.AccessLogService</code> API instead.  This functionality
+          is not available if you set the <code>AMBASSADOR_ENVOY_API_VERSION=V2</code> environment
+          variable.
       - title: CORS now happens before auth
         type: bugfix
         body: >-
