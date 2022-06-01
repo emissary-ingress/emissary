@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -285,7 +286,10 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 		// We also want to grab any secrets referenced by edge-stack filters for use in edge-stack
 		// the Filters are unstructured because emissary does not have their type definition
 		for _, f := range sh.k8sSnapshot.Filters {
-			findFilterSecret(f, action)
+			err := FindFilterSecret(f, action)
+			if err != nil {
+				dlog.Errorf(ctx, "Error gathering secret reference from Filter: %v", err)
+			}
 		}
 	}
 
@@ -321,10 +325,10 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 
 // Returns secretName, secretNamespace from a provided (unstructured) filter if it contains a secret
 // Returns empty strings when the secret name and/or namespace could not be found
-func findFilterSecret(filter *unstructured.Unstructured, action func(snapshotTypes.SecretRef)) {
+func FindFilterSecret(filter *unstructured.Unstructured, action func(snapshotTypes.SecretRef)) error {
 	// Just making extra sure this is actually a Filter
 	if filter.GetKind() != "Filter" && filter.GetKind() != "Filters" {
-		return
+		return errors.New("Non-Filter object in Snapshot.Filters")
 	}
 	// Only Oauth2 Filters have secrets, although they dont need to have them.
 	// This is overly contrived because Filters are unstructured to emissary since we dont have the type definitions
@@ -334,8 +338,9 @@ func findFilterSecret(filter *unstructured.Unstructured, action func(snapshotTyp
 	if filterSpec != nil {
 		mapOauth, success := filterSpec.(map[string]interface{})
 		// We need to check if all these type assertions fail since we shouldnt rely on CRD validation to protect us from a panic state
+		// I cant imagine a scenario where this would realisticly happen, but we generate a unique log message for tracability and skip processing it
 		if !success {
-			return
+			return errors.New("Filter object detected with a bogus \"spec\" field")
 		}
 		oauthFilter := mapOauth["OAuth2"]
 		if oauthFilter != nil {
@@ -343,7 +348,7 @@ func findFilterSecret(filter *unstructured.Unstructured, action func(snapshotTyp
 			// Check if we have a secretName
 			mapSecretName, success := oauthFilter.(map[string]interface{})
 			if !success {
-				return
+				return errors.New("Filter object detected with a bogus \"secretName\" field")
 			}
 			oauthSecretName := mapSecretName["secretName"]
 			if oauthSecretName != nil {
@@ -355,7 +360,7 @@ func findFilterSecret(filter *unstructured.Unstructured, action func(snapshotTyp
 			// Check if we have a secretNamespace
 			mapSecretNS, success := oauthFilter.(map[string]interface{})
 			if !success {
-				return
+				return errors.New("Filter object detected with a bogus \"secretNamespace\" field")
 			}
 			oauthSecretNS := mapSecretNS["secretNamespace"]
 			if oauthSecretNS != nil {
@@ -376,7 +381,7 @@ func findFilterSecret(filter *unstructured.Unstructured, action func(snapshotTyp
 			}
 		}
 	}
-	return
+	return nil
 }
 
 // Find all the secrets a given Ambassador resource references.
