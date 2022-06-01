@@ -46,7 +46,7 @@ spec:
     spec:
       containers:
       - name: stenography
-        image: securityinsanity/stenography:latest
+        image: securityinsanity/stenography:latest  # https://github.com/Mythra/stenography
         env:
         - name: PORT
           value: "25565"
@@ -185,7 +185,7 @@ spec:
     spec:
       containers:
       - name: stenography
-        image: securityinsanity/stenography:latest
+        image: securityinsanity/stenography:latest  # https://github.com/Mythra/stenography
         env:
         - name: PORT
           value: "25565"
