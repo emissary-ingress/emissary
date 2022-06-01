@@ -4,56 +4,16 @@ import json
 
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, HTTP, AHTTP, Node
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, ALSGRPC, Node
 
 
 class LogServiceTest(AmbassadorTest):
-    def init(self):
-        self.extra_ports = [25565]
-        self.target = HTTP()
+    target: ServiceType
+    als: ServiceType
 
-    def manifests(self) -> str:
-        return self.format("""
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: stenography
-spec:
-  selector:
-    app: stenography
-  ports:
-  - port: 25565
-    name: http
-    targetPort: http
-  type: ClusterIP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: stenography
-spec:
-  selector:
-    matchLabels:
-      app: stenography
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: stenography
-    spec:
-      containers:
-      - name: stenography
-        image: securityinsanity/stenography:latest  # https://github.com/Mythra/stenography
-        env:
-        - name: PORT
-          value: "25565"
-        ports:
-        - name: http
-          containerPort: 25565
-""") + super().manifests()
+    def init(self):
+        self.target = HTTP()
+        self.als = ALSGRPC()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
@@ -61,7 +21,8 @@ spec:
 apiVersion: getambassador.io/v3alpha1
 kind: LogService
 name: custom-http-logging
-service: stenography:25565
+service: {self.als.path.fqdn}
+grpc: true
 driver: http
 driver_config:
   additional_log_headers:
@@ -82,116 +43,57 @@ flush_interval_byte_size: 1
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
-name:  config__dump
+name:  accesslog_target_mapping
 hostname: "*"
-prefix: /config_dump
-rewrite: /config_dump
-service: http://127.0.0.1:8001
+prefix: /target/
+service: {self.target.path.fqdn}
 """)
 
-    def requirements(self):
-        yield from super().requirements()
-        yield ("url", Query(self.url("config_dump")))
-
     def queries(self):
-        yield Query(self.url("config_dump"), phase=2)
+        yield Query(f"http://{self.als.path.fqdn}/logs", method='DELETE', phase=1)
+        yield Query(self.url("target/foo"), phase=2)
+        yield Query(self.url("target/bar"), phase=3)
+        yield Query(f"http://{self.als.path.fqdn}/logs", phase=4)
 
     def check(self):
-        found_bootstrap_dump = False
-        found_clusters_dump = False
-        found_listeners_dump = False
-        body = json.loads(self.results[0].body)
-        for config_obj in body.get('configs'):
-            if config_obj.get('@type') == 'type.googleapis.com/envoy.admin.v3.BootstrapConfigDump':
-                found_bootstrap_dump = True
-                clusters = config_obj.get('bootstrap').get('static_resources').get('clusters')
-                found_stenography = False
-                assert len(clusters) > 0, "No clusters found"
-                for cluster in clusters:
-                    if cluster.get('name') == 'cluster_logging_stenography_25565_default':
-                        found_stenography = True
-                        break
-                assert found_stenography
+        logs = self.results[3].json
+        assert logs['alsv2-http']
+        assert not logs['alsv2-tcp']
+        assert not logs['alsv3-http']
+        assert not logs['alsv3-tcp']
 
-            if config_obj.get('@type') == 'type.googleapis.com/envoy.admin.v3.ClustersConfigDump':
-                found_clusters_dump = True
-                clusters = config_obj.get('static_clusters')
-                found_stenography = False
-                assert len(clusters) > 0, "No clusters found"
-                for cluster in clusters:
-                    if cluster.get('cluster').get('name') == 'cluster_logging_stenography_25565_default':
-                        found_stenography = True
-                        break
-                assert found_stenography
-
-            if config_obj.get('@type') == 'type.googleapis.com/envoy.admin.v3.ListenersConfigDump':
-                found_listeners_dump = True
-                for listener in config_obj.get('dynamic_listeners'):
-                    for filter_chain in listener.get('active_state').get('listener').get('filter_chains'):
-                        for filter_obj in filter_chain.get('filters'):
-                            access_logs = filter_obj.get('typed_config').get('access_log')
-                            found_configured_access_log = False
-                            assert len(
-                                access_logs) > 0, "No access log configurations found in any listeners filter chains"
-                            for access_log in access_logs:
-                                if access_log.get('name') == 'envoy.access_loggers.http_grpc' and access_log.get(
-                                    'typed_config').get('common_config').get('grpc_service').get('envoy_grpc').get(
-                                    'cluster_name') == 'cluster_logging_stenography_25565_default':
-                                    found_configured_access_log = True
-                                    break
-                            assert found_configured_access_log
-
-        assert found_listeners_dump, "Could not find listeners config dump. Did the config dump endpoint work? Did we change Envoy API versions?"
-        assert found_clusters_dump, "Could not find clusters config dump. Did the config dump endpoint work? Did we change Envoy API versions?"
-        assert found_bootstrap_dump, "Could not find bootstrap config dump. Did the config dump endpoint work? Did we change Envoy API versions?"
+        assert len(logs['alsv2-http']) == 2
+        assert logs['alsv2-http'][0]['request']['original_path'] == '/target/foo'
+        assert logs['alsv2-http'][1]['request']['original_path'] == '/target/bar'
 
 
-class LogServiceTestLongServiceName(AmbassadorTest):
+class LogServiceLongServiceNameTest(AmbassadorTest):
+    target: ServiceType
+    als: ServiceType
+
     def init(self):
-        self.extra_ports = [25565]
         self.target = HTTP()
+        self.als = ALSGRPC()
 
     def manifests(self) -> str:
         return self.format("""
 ---
-apiVersion: v1
 kind: Service
+apiVersion: v1
 metadata:
-  name: stenographylongservicenamewithnearly60characterss
+  name: logservicelongservicename-longnamewithnearly60characters
 spec:
   selector:
-    app: stenography-longservicename
+    backend: {self.als.path.k8s}
   ports:
-  - port: 25565
-    name: http
-    targetPort: http
-  type: ClusterIP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: stenography-longservicename
-spec:
-  selector:
-    matchLabels:
-      app: stenography-longservicename
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: stenography-longservicename
-    spec:
-      containers:
-      - name: stenography
-        image: securityinsanity/stenography:latest  # https://github.com/Mythra/stenography
-        env:
-        - name: PORT
-          value: "25565"
-        ports:
-        - name: http
-          containerPort: 25565
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8443
 """) + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -200,7 +102,8 @@ spec:
 apiVersion: getambassador.io/v3alpha1
 kind: LogService
 name: custom-http-logging
-service: stenographylongservicenamewithnearly60characterss:25565
+service: logservicelongservicename-longnamewithnearly60characters
+grpc: true
 driver: http
 driver_config:
   additional_log_headers:
@@ -221,65 +124,25 @@ flush_interval_byte_size: 1
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
-name:  config__dump-longservicename
+name:  accesslog_target_mapping
 hostname: "*"
-prefix: /config_dump
-rewrite: /config_dump
-service: http://127.0.0.1:8001
+prefix: /target/
+service: {self.target.path.fqdn}
 """)
 
-    def requirements(self):
-        yield from super().requirements()
-        yield ("url", Query(self.url("config_dump")))
-
     def queries(self):
-        yield Query(self.url("config_dump"), phase=2)
+        yield Query(f"http://{self.als.path.fqdn}/logs", method='DELETE', phase=1)
+        yield Query(self.url("target/foo"), phase=2)
+        yield Query(self.url("target/bar"), phase=3)
+        yield Query(f"http://{self.als.path.fqdn}/logs", phase=4)
 
     def check(self):
-        found_bootstrap_dump = False
-        found_clusters_dump = False
-        found_listeners_dump = False
-        body = json.loads(self.results[0].body)
-        for config_obj in body.get('configs'):
-            if config_obj.get('@type') == 'type.googleapis.com/envoy.admin.v3.BootstrapConfigDump':
-                found_bootstrap_dump = True
-                clusters = config_obj.get('bootstrap').get('static_resources').get('clusters')
-                found_stenography = False
-                assert len(clusters) > 0, "No clusters found"
-                for cluster in clusters:
-                    if cluster.get('name') == 'cluster_logging_stenographylongservicena-0':
-                        found_stenography = True
-                        break
-                assert found_stenography
+        logs = self.results[3].json
+        assert logs['alsv2-http']
+        assert not logs['alsv2-tcp']
+        assert not logs['alsv3-http']
+        assert not logs['alsv3-tcp']
 
-            if config_obj.get('@type') == 'type.googleapis.com/envoy.admin.v3.ClustersConfigDump':
-                found_clusters_dump = True
-                clusters = config_obj.get('static_clusters')
-                found_stenography = False
-                assert len(clusters) > 0, "No clusters found"
-                for cluster in clusters:
-                    if cluster.get('cluster').get('name') == 'cluster_logging_stenographylongservicena-0':
-                        found_stenography = True
-                        break
-                assert found_stenography
-
-            if config_obj.get('@type') == 'type.googleapis.com/envoy.admin.v3.ListenersConfigDump':
-                found_listeners_dump = True
-                for listener in config_obj.get('dynamic_listeners'):
-                    for filter_chain in listener.get('active_state').get('listener').get('filter_chains'):
-                        for filter_obj in filter_chain.get('filters'):
-                            access_logs = filter_obj.get('typed_config').get('access_log')
-                            found_configured_access_log = False
-                            assert len(
-                                access_logs) > 0, "No access log configurations found in any listeners filter chains"
-                            for access_log in access_logs:
-                                if access_log.get('name') == 'envoy.access_loggers.http_grpc' and access_log.get(
-                                    'typed_config').get('common_config').get('grpc_service').get('envoy_grpc').get(
-                                    'cluster_name') == 'cluster_logging_stenographylongservicena-0':
-                                    found_configured_access_log = True
-                                    break
-                            assert found_configured_access_log
-
-        assert found_listeners_dump, "Could not find listeners config dump. Did the config dump endpoint work? Did we change Envoy API versions?"
-        assert found_clusters_dump, "Could not find clusters config dump. Did the config dump endpoint work? Did we change Envoy API versions?"
-        assert found_bootstrap_dump, "Could not find bootstrap config dump. Did the config dump endpoint work? Did we change Envoy API versions?"
+        assert len(logs['alsv2-http']) == 2
+        assert logs['alsv2-http'][0]['request']['original_path'] == '/target/foo'
+        assert logs['alsv2-http'][1]['request']['original_path'] == '/target/bar'

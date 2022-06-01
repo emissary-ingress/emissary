@@ -478,6 +478,17 @@ class RLSGRPC(ServiceType):
     def requirements(self):
         yield ("pod", self.path.k8s)
 
+class ALSGRPC(ServiceType):
+    skip_variant: ClassVar[bool] = True
+
+    def __init__(self, *args, **kwargs) -> None:
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = integration_manifests.load("grpc_als_backend")
+        super().__init__(*args, **kwargs)
+
+    def requirements(self):
+        yield ("pod", self.path.k8s)
+
 @abstract_test
 class MappingTest(Test):
 

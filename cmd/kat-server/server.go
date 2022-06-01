@@ -99,6 +99,16 @@ func main() {
 		}
 
 		listeners = append(listeners, s)
+	case "grpc_als":
+		s = &srv.GRPCALS{
+			HTTPListener: srv.HTTPListener{
+				CleartextPort: Port,
+				TLSPort:       SSLPort,
+				TLSCert:       Crt,
+				TLSKey:        Key,
+			},
+		}
+		listeners = append(listeners, s)
 	case "grpc_agent":
 		s = &srv.GRPCAgent{
 			Port: Port,
