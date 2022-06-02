@@ -56,19 +56,41 @@ items:
         github:
           - title: "#1743"
             link: https://github.com/emissary-ingress/emissary/issues/1743
+      - title: Added support for the LogService v3 transport protocol
+        type: feature
+        body: >-
+          Previously, a <code>LogService</code> would always have $productName$ communicate with the
+          external log servie using the <code>envoy.service.accesslog.v2.AccessLogService</code>
+          API.  It is now possible for the <code>LogService</code> to specify
+          <code>protocol_version: v3</code> to use the newer
+          <code>envoy.service.accesslog.v3.AccessLogService</code> API instead.  This functionality
+          is not available if you set the <code>AMBASSADOR_ENVOY_API_VERSION=V2</code> environment
+          variable.
       - title: CORS now happens before auth
         type: bugfix
         body: >-
           When CORS is specified (either in a <code>Mapping</code> or in the <code>Ambassador</code>
           <code>Module</code>), CORS processing will happen before authentication. This corrects a
           problem where XHR to authenticated endpoints would fail.
-      - title: Correctly handle caching Mappings with the same name in different namespaces
+      - title: Correctly handle caching of Mappings with the same name in different namespaces
         type: bugfix
         body: >-
           In 2.x releases of $productName$ when there are multiple <code>Mapping</code>s that have the same
           <code>metadata.name</code> across multiple namespaces, their old config would not properly be removed
           from the cache when their config was updated. This resulted in an inability to update configuration
           for groups of <code>Mapping</code>s that share the same name until the $productName$ pods restarted.
+      - title: Fix support for Zipkin API-v1 with Envoy xDS-v3
+        type: bugfix
+        body: >-
+          It is now possible for a <code>TracingService</code> to specify
+          <code>collector_endpoint_version: HTTP_JSON_V1</code> when using xDS v3 to configure Envoy
+          (which has been the default since $productName$ 1.14.0).  The <code>HTTP_JSON_V1</code>
+          value configures Envoy to speak to Zipkin using Zipkin's old API-v1, while the
+          <code>HTTP_JSON</code> value configures Envoy to speak to Zipkin using Zipkin's new
+          API-v2.  In previous versions of $productName$ it was only possible to use
+          <code>HTTP_JSON_V1</code> when explicitly setting the
+          <code>AMBASSADOR_ENVOY_API_VERSION=V2</code> environment variable to force use of xDS v2
+          to configure Envoy.
 
   - version: 2.2.2
     date: '2022-02-25'
@@ -456,11 +478,17 @@ items:
         type: change
         body: >-
           The <code>x.getambassador.io/v3alpha1</code> API version has become the
-          <code>getambassador.io/v3alpha1</code> API version. The <code>Ambassador-</code>
-          prefixes from <code>x.getambassador.io/v3alpha1</code> resources have been
-          removed for ease of migration. <b>Note that <code>getambassador.io/v3alpha1</code>
-          is the only supported API version for 2.0.4</b> &mdash; full support for
-          <code>getambassador.io/v2</code> will arrive soon in a later 2.X version.
+          <code>getambassador.io/v3alpha1</code> API version.  The <code>Ambassador-</code> prefixes
+          from <code>x.getambassador.io/v3alpha1</code> resource kind names
+          (e.g. <code>AmbassadorHost</code>) have been removed for ease of migration from
+          $productName$ 1.x.  As with previous 2.0.x releases, you <b>must</b> supply a
+          <code>Host</code> (<code>AmbassadorHost</code> in previous 2.0.x releases) resource to
+          terminate TLS: unlike in 1.x it is no longer sufficient to define a
+          <code>TLSContext</code> (although <code>TLSContext</code>s are still the best way to
+          define TLS configuration information to be shared across multiple <code>Host</code>s).
+          <b>Note that <code>getambassador.io/v3alpha1</code> is the only supported API version for
+          2.0.4</b> &mdash; full support for <code>getambassador.io/v2</code> will arrive soon in a
+          later 2.X version.
         docs: about/changes-2.x
         image: ./v2.0.4-v3alpha1.png
 

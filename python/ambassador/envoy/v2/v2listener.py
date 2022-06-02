@@ -279,6 +279,7 @@ class V2Listener(dict):
 
         for al in self.config.ir.log_services.values():
             access_log_obj: Dict[str, Any] = { "common_config": al.get_common_config() }
+            del access_log_obj['common_config']['transport_api_version'] # can't specify the version with xDS v2
             req_headers = []
             resp_headers = []
             trailer_headers = []

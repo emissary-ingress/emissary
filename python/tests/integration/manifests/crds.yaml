@@ -1773,6 +1773,11 @@ spec:
                 type: boolean
               service:
                 type: string
+              v3ProtocolVersion:
+                enum:
+                - v2
+                - v3
+                type: string
               v3StatsName:
                 type: string
             type: object
@@ -1833,9 +1838,20 @@ spec:
               flush_interval_byte_size:
                 type: integer
               flush_interval_time:
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}s`/`SecondDuration`
+                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               grpc:
+                description: 'TODO(lukeshu): In v3alpha2, drop this LogService.spec.grpc.  Due
+                  to sloppy implementation it is required to be present, and required
+                  to be ''true''.  It is silly to have a required field with only
+                  one valid value, we should just remove the thing.'
                 type: boolean
+              protocol_version:
+                enum:
+                - v2
+                - v3
+                type: string
               service:
                 type: string
               stats_name:

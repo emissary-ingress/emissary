@@ -669,8 +669,6 @@ class TracingTestZipkinV1(AmbassadorTest):
     """
 
     def init(self):
-        if Config.envoy_api_version == "V3":
-            self.skip_node = True
         self.target = HTTP()
 
     def manifests(self) -> str:
