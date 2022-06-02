@@ -1837,6 +1837,10 @@ spec:
                   fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               grpc:
+                description: 'TODO(lukeshu): In v3alpha2, drop this LogService.spec.grpc.  Due
+                  to sloppy implementation it is required to be present, and required
+                  to be ''true''.  It is silly to have a required field with only
+                  one valid value, we should just remove the thing.'
                 type: boolean
               service:
                 type: string
