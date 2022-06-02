@@ -40,11 +40,11 @@ type LogServiceSpec struct {
 
 	Service string `json:"service,omitempty"`
 	// +kubebuilder:validation:Enum={"tcp","http"}
-	Driver                string        `json:"driver,omitempty"`
-	DriverConfig          *DriverConfig `json:"driver_config,omitempty"`
-	FlushIntervalTime     *int          `json:"flush_interval_time,omitempty"`
-	FlushIntervalByteSize *int          `json:"flush_interval_byte_size,omitempty"`
-	GRPC                  *bool         `json:"grpc,omitempty"`
+	Driver                string          `json:"driver,omitempty"`
+	DriverConfig          *DriverConfig   `json:"driver_config,omitempty"`
+	FlushIntervalTime     *SecondDuration `json:"flush_interval_time,omitempty"`
+	FlushIntervalByteSize *int            `json:"flush_interval_byte_size,omitempty"`
+	GRPC                  *bool           `json:"grpc,omitempty"`
 
 	// +k8s:conversion-gen:rename=StatsName
 	V3StatsName string `json:"v3StatsName,omitempty"`

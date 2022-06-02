@@ -1875,6 +1875,8 @@ spec:
               flush_interval_byte_size:
                 type: integer
               flush_interval_time:
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}s`/`SecondDuration`
+                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               grpc:
                 type: boolean
