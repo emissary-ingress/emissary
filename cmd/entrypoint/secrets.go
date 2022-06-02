@@ -5,11 +5,13 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
-	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
+
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
@@ -17,8 +19,6 @@ import (
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/derror"
 	"github.com/datawire/dlib/dlog"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 // checkSecret checks whether a secret is valid, and adds it to the list of secrets
@@ -283,8 +283,8 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 		// ...and for Edge Stack, we _always_ have an implicit reference to the
 		// license secret.
 		secretRef(GetLicenseSecretNamespace(), GetLicenseSecretName(), false, action)
-		// We also want to grab any secrets referenced by edge-stack filters for use in edge-stack
-		// the Filters are unstructured because emissary does not have their type definition
+		// We also want to grab any secrets referenced by Edge-Stack filters for use in Edge-Stack
+		// the Filters are unstructured because Emissary does not have their type definition
 		for _, f := range sh.k8sSnapshot.Filters {
 			err := findFilterSecret(f, action)
 			if err != nil {
@@ -327,48 +327,51 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 // Returns empty strings when the secret name and/or namespace could not be found
 func findFilterSecret(filter *unstructured.Unstructured, action func(snapshotTypes.SecretRef)) error {
 	// Just making extra sure this is actually a Filter
-	if filter.GetKind() != "Filter" && filter.GetKind() != "Filters" {
-		return errors.New("Non-Filter object in Snapshot.Filters")
+	if filter.GetKind() != "Filter" {
+		return fmt.Errorf("non-Filter object in Snapshot.Filters: %s", filter.GetKind())
 	}
-	// Only Oauth2 Filters have secrets, although they dont need to have them.
-	// This is overly contrived because Filters are unstructured to emissary since we dont have the type definitions
+	// Only OAuth2 Filters have secrets, although they don't need to have them.
+	// This is overly contrived because Filters are unstructured to Emissary since we don't have the type definitions
 	// Yes this is disgusting. It is what it is...
 	filterContents := filter.UnstructuredContent()
 	filterSpec := filterContents["spec"]
 	if filterSpec != nil {
-		mapOauth, ok := filterSpec.(map[string]interface{})
+		mapOAuth, ok := filterSpec.(map[string]interface{})
 		// We need to check if all these type assertions fail since we shouldnt rely on CRD validation to protect us from a panic state
 		// I cant imagine a scenario where this would realisticly happen, but we generate a unique log message for tracability and skip processing it
 		if !ok {
-			return errors.New("Filter object detected with a bogus \"spec\" field")
+			// We bail early any time we detect bogus contents for any of these fields
+			// and let the APIServer, apiext, and amb-sidecar handle the error reporting
+			return nil
 		}
-		oauthFilter := mapOauth["OAuth2"]
-		if oauthFilter != nil {
+		oAuthFilter := mapOAuth["OAuth2"]
+		if oAuthFilter != nil {
 			secretName, secretNamespace := "", ""
 			// Check if we have a secretName
-			mapOauth, ok := oauthFilter.(map[string]interface{})
+			mapOAuth, ok := oAuthFilter.(map[string]interface{})
 			if !ok {
-				return errors.New("Filter object detected with a bogus \"OAuth2\" field")
-			}
-			oauthSecretName := mapOauth["secretName"]
-			// This is a weird check, but we have to handle the case where secretName is not provided, and when its explicitly set to ""
-			if sName, ok := oauthSecretName.(string); ok && sName != "" {
-				secretName = sName
-			} else {
-				if !ok && oauthSecretName != nil {
-					return errors.New("Filter object detected with a bogus \"secretName\" field")
-				}
-				// bail early since no secret provided and not an error
 				return nil
 			}
-			oauthSecretNS := mapOauth["secretNamespace"]
-			if sNS, ok := oauthSecretNS.(string); ok && sNS != "" {
-				secretNamespace = sNS
-			} else {
-				if !ok && oauthSecretNS != nil {
-					return errors.New("Filter object detected with a bogus \"secretNamespace\" field")
-				}
+			sName := mapOAuth["secretName"]
+			if sName == nil {
+				return nil
+			}
+			secretName, ok = sName.(string)
+			// This is a weird check, but we have to handle the case where secretName is not provided, and when its explicitly set to ""
+			if !ok || secretName == "" {
+				// Bail out early since there is no secret
+				return nil
+			}
+			sNamespace := mapOAuth["secretNamespace"]
+			if sNamespace == nil {
 				secretNamespace = filter.GetNamespace()
+			} else {
+				secretNamespace, ok = sNamespace.(string)
+				if !ok {
+					return nil
+				} else if secretNamespace == "" {
+					secretNamespace = filter.GetNamespace()
+				}
 			}
 			secretRef(secretNamespace, secretName, false, action)
 		}
