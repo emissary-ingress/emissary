@@ -32,52 +32,53 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
 
 ## UPCOMING BREAKING CHANGES
 
-#### Envoy V2 API
+### Emissary 3.0.0
 
-In *Emissary-ingress v2.2.0*, support for the Envoy V2 API will be removed, and Emissary-ingress
-will support only the Envoy V3 API. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will
-also be removed. Note that Emissary-ingress has been using the Envoy V3 API as its default since
-v1.14.0.
+ - **No `protocol_version: v2`**: Support for specifying `protocol_version: v2` in `AuthService`,
+   `RateLimitService`, and `LogService` resources will be removed.  These resources each have a
+   `protocol_version` field that controls whether Envoy speaks the `v2` transport API or the `v3`
+   transport API when speaking to that service.  Due to Envoy's removal of all v2 Envoy APIs, the
+   `v2` value will no longer be supported.  Note that `protocol_version: v2` is the default in
+   current versions of Emissary.
 
-#### `Ingress` Resources and Namespaces
+   Users who use these resource types but don't explicitly say `protocol_version: v3` will need to
+   adjust their service implementations to understand the v3 protocols, and then update Emissary
+   resources to say `protocol_version` before upgrading to Emissary-ingress 3.0.0.
 
-In a future version of Emissary-ingress, **no sooner than Emissary-ingress v2.1.0**, TLS
-secrets in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
+ - **No `regex_type: unsafe`**: The `regex_type` field will be removed from the `ambassador`
+   `Module`, meaning that it will not be possible to instruct Envoy to use the [ECMAScript Regex][]
+   engine rather than the default [RE2][] engine.
 
-#### Regex Matching
+   Users who rely on the specific ECMAScript Regex syntax will need to rewrite their regular
+   expressions with RE2 syntax before upgrading to Emissary-ingress 3.0.0.
 
-In a future version of Emissary-ingress, **no sooner than Ambassador v2.1.0**, the `regex_type`
-and `regex_max_size` fields will be removed from the `ambassador` `Module`, and Ambassador Edge
-Stack will support only Envoy `safe_regex` matching. Note that `safe_regex` matching has been
-the default for all 1.X releases of Emissary-ingress.
+ - **No Zipkin `collector_endpoint_version: HTTP_JSON_V1`**: Support for specifying
+   `collector_endpoint_version: HTTP_JSON_V1` for a Zipkin `TracingService` will be removed.  The
+   `HTTP_JSON_V1` value corresponds to Zipkin's old API-v1, while the `HTTP_JSON` value corresponds
+   to the Zipkin's new API-v2.
 
-This change is being made the original Envay `regex` matcher was [deprecated in favor of safe_regex]
-in Envoy v1.12.0, then removed entirely from the Envoy V3 APIs. Additionally, setting
-[max_program_size was deprecated] in Envoy v1.15.0. As such, `regex_type: unsafe` and setting
-`regex_max_size` are no longer supported unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`.
+   For current versions of Emissary-ingress (>=1.14.0 and <3.0.0), the behavior is that if the
+   `TracingService` does not specify which Zipkin API to use, it will normally default to using
+   `HTTP_JSON`, but can be made to default to `HTTP_JSON_V1` by setting the
+   `AMBASSADOR_ENVOY_API_VERSION=V2` environment variable.  In Emissary-ingress 3.0.0 this
+   environment variable will no longer have any impact on what the default Zipkin API is, and
+   explicitly setting the API in the `TracingService` will no longer support the `HTTP_JSON_V1`
+   value.
 
-Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/type/matcher/v3/regex.proto.html) for more information.
+   Users who rely on `HTTP_JSON_V1` will need to migrate their Emissary-ingress 2.3 install to use
+   to either `HTTP_JSON` or `HTTP_PROTO` before upgrading to Emissary-ingress 3.0.0.
 
-[deprecated in favor of safe_regex]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.12.0.html?highlight=regex#deprecated
-[max_program_size was deprecated]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.15.0.html?highlight=max_program_size
+With the removal of `regex_type: unsafe` and `collector_endpoint_version: HTTP_JSON_V1`, there will
+be no more user-visible effects of the `AMBASSADOR_ENVOY_API_VERSION` environment variable, and so
+it will be removed; but as it won't be user-visible this isn't considered a breaking change.
 
-#### Zipkin Collector Versions
+[ECMASCript Regex]: https://en.cppreference.com/w/cpp/regex/ecmascript
+[RE2]: https://github.com/google/re2
 
-In Emissary-ingress 3.0.0, support for specifying `collector_endpoint_version: HTTP_JSON_V1` for a
-Zipkin `TracingService` will be removed.  The `HTTP_JSON_V1` value corresponds to Zipkin's old
-API-v1, while the `HTTP_JSON` value corresponds to the Zipkin's new API-v2.
+### Emissary 3.0.0 or later
 
-For current versions of Emissary-ingress (>=1.14.0 and <3.0.0), the behavior is that if the
-`TracingService` does not specify which Zipkin API to use, it will normally default to using
-`HTTP_JSON`, but can be made to default to `HTTP_JSON_V1` by setting the
-`AMBASSADOR_ENVOY_API_VERSION=V2` environment variable.  In Emissary-ingress 3.0.0 this environment
-variable will no longer have any impact on what the default Zipkin API is, and explicitly setting
-the API in the `TracingService` will no longer support the `HTTP_JSON_V1` value.
-
-Users who rely on `HTTP_JSON_V1` will need to migrate their Emissary-ingress 2.3 install to use to
-either `HTTP_JSON` or `HTTP_PROTO` before upgrading to Emissary-ingress 3.0.0.
-
-This change is being made because the `HTTP_JSON_V1` API was deprecated in Envoy v1.12.0.
+ - In a future version of Emissary-ingress, **no sooner than Emissary-ingress v3.0.0**, TLS secrets
+   in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 ## RELEASE NOTES
 {{ $relnotes := (datasource "relnotes") -}}
