@@ -286,7 +286,7 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 		// We also want to grab any secrets referenced by edge-stack filters for use in edge-stack
 		// the Filters are unstructured because emissary does not have their type definition
 		for _, f := range sh.k8sSnapshot.Filters {
-			err := FindFilterSecret(f, action)
+			err := findFilterSecret(f, action)
 			if err != nil {
 				dlog.Errorf(ctx, "Error gathering secret reference from Filter: %v", err)
 			}
@@ -325,7 +325,7 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 
 // Returns secretName, secretNamespace from a provided (unstructured) filter if it contains a secret
 // Returns empty strings when the secret name and/or namespace could not be found
-func FindFilterSecret(filter *unstructured.Unstructured, action func(snapshotTypes.SecretRef)) error {
+func findFilterSecret(filter *unstructured.Unstructured, action func(snapshotTypes.SecretRef)) error {
 	// Just making extra sure this is actually a Filter
 	if filter.GetKind() != "Filter" && filter.GetKind() != "Filters" {
 		return errors.New("Non-Filter object in Snapshot.Filters")
@@ -336,49 +336,41 @@ func FindFilterSecret(filter *unstructured.Unstructured, action func(snapshotTyp
 	filterContents := filter.UnstructuredContent()
 	filterSpec := filterContents["spec"]
 	if filterSpec != nil {
-		mapOauth, success := filterSpec.(map[string]interface{})
+		mapOauth, ok := filterSpec.(map[string]interface{})
 		// We need to check if all these type assertions fail since we shouldnt rely on CRD validation to protect us from a panic state
 		// I cant imagine a scenario where this would realisticly happen, but we generate a unique log message for tracability and skip processing it
-		if !success {
+		if !ok {
 			return errors.New("Filter object detected with a bogus \"spec\" field")
 		}
 		oauthFilter := mapOauth["OAuth2"]
 		if oauthFilter != nil {
 			secretName, secretNamespace := "", ""
 			// Check if we have a secretName
-			mapSecretName, success := oauthFilter.(map[string]interface{})
-			if !success {
-				return errors.New("Filter object detected with a bogus \"secretName\" field")
+			mapOauth, ok := oauthFilter.(map[string]interface{})
+			if !ok {
+				return errors.New("Filter object detected with a bogus \"OAuth2\" field")
 			}
-			oauthSecretName := mapSecretName["secretName"]
-			if oauthSecretName != nil {
-				switch sName := oauthSecretName.(type) {
-				case string:
-					secretName = sName
+			oauthSecretName := mapOauth["secretName"]
+			// This is a weird check, but we have to handle the case where secretName is not provided, and when its explicitly set to ""
+			if sName, ok := oauthSecretName.(string); ok && sName != "" {
+				secretName = sName
+			} else {
+				if !ok && oauthSecretName != nil {
+					return errors.New("Filter object detected with a bogus \"secretName\" field")
 				}
+				// bail early since no secret provided and not an error
+				return nil
 			}
-			// Check if we have a secretNamespace
-			mapSecretNS, success := oauthFilter.(map[string]interface{})
-			if !success {
-				return errors.New("Filter object detected with a bogus \"secretNamespace\" field")
-			}
-			oauthSecretNS := mapSecretNS["secretNamespace"]
-			if oauthSecretNS != nil {
-				switch sNS := oauthSecretNS.(type) {
-				case string:
-					secretNamespace = sNS
+			oauthSecretNS := mapOauth["secretNamespace"]
+			if sNS, ok := oauthSecretNS.(string); ok && sNS != "" {
+				secretNamespace = sNS
+			} else {
+				if !ok && oauthSecretNS != nil {
+					return errors.New("Filter object detected with a bogus \"secretNamespace\" field")
 				}
+				secretNamespace = filter.GetNamespace()
 			}
-			if secretName != "" {
-				if secretNamespace != "" {
-					// We found a filter that has a secret with a specific namespace
-					secretRef(secretNamespace, secretName, false, action)
-				} else {
-					// We found a filter that has a secret but no specific namespace
-					// We will just use the namespace of the filter in this scenario.
-					secretRef(filter.GetNamespace(), secretName, false, action)
-				}
-			}
+			secretRef(secretNamespace, secretName, false, action)
 		}
 	}
 	return nil
