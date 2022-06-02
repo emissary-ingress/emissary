@@ -33,7 +33,7 @@
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
   - version: 2.3.0
-    date: 'TBD'
+    date: '2022-06-06'
     notes:
       - title: Remove unused packages
         type: security
@@ -60,8 +60,8 @@ items:
         type: feature
         body: >-
           Previously, a <code>LogService</code> would always have $productName$ communicate with the
-          external log servie using the <code>envoy.service.accesslog.v2.AccessLogService</code>
-          API.  It is now possible for the <code>LogService</code> to specify
+          external log service using the <code>envoy.service.accesslog.v2.AccessLogService</code>
+          API. It is now possible for the <code>LogService</code> to specify
           <code>protocol_version: v3</code> to use the newer
           <code>envoy.service.accesslog.v3.AccessLogService</code> API instead.  This functionality
           is not available if you set the <code>AMBASSADOR_ENVOY_API_VERSION=V2</code> environment
@@ -87,7 +87,7 @@ items:
           (which has been the default since $productName$ 1.14.0).  The <code>HTTP_JSON_V1</code>
           value configures Envoy to speak to Zipkin using Zipkin's old API-v1, while the
           <code>HTTP_JSON</code> value configures Envoy to speak to Zipkin using Zipkin's new
-          API-v2.  In previous versions of $productName$ it was only possible to use
+          API-v2. In previous versions of $productName$ it was only possible to use
           <code>HTTP_JSON_V1</code> when explicitly setting the
           <code>AMBASSADOR_ENVOY_API_VERSION=V2</code> environment variable to force use of xDS v2
           to configure Envoy.

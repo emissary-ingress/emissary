@@ -66,7 +66,7 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
    value.
 
    Users who rely on `HTTP_JSON_V1` will need to migrate their Emissary-ingress 2.3 install to use
-   to either `HTTP_JSON` or `HTTP_PROTO` before upgrading to Emissary-ingress 3.0.0.
+   either `HTTP_JSON` or `HTTP_PROTO` before upgrading to Emissary-ingress 3.0.0.
 
 With the removal of `regex_type: unsafe` and `collector_endpoint_version: HTTP_JSON_V1`, there will
 be no more user-visible effects of the `AMBASSADOR_ENVOY_API_VERSION` environment variable, and so
@@ -82,7 +82,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
-## [2.3.0] TBD
+## [2.3.0] June 06, 2022
 [2.3.0]: https://github.com/emissary-ingress/emissary/compare/v2.2.2...v2.3.0
 
 ### Emissary-ingress and Ambassador Edge Stack
@@ -96,7 +96,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   certificates against a certificate revocation list. ([#1743])
 
 - Feature: Previously, a `LogService` would always have Emissary-ingress communicate with the
-  external log servie using the `envoy.service.accesslog.v2.AccessLogService` API.  It is now
+  external log service using the `envoy.service.accesslog.v2.AccessLogService` API. It is now
   possible for the `LogService` to specify `protocol_version: v3` to use the newer
   `envoy.service.accesslog.v3.AccessLogService` API instead.  This functionality is not available if
   you set the `AMBASSADOR_ENVOY_API_VERSION=V2` environment variable.
@@ -114,7 +114,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   HTTP_JSON_V1` when using xDS v3 to configure Envoy (which has been the default since
   Emissary-ingress 1.14.0).  The `HTTP_JSON_V1` value configures Envoy to speak to Zipkin using
   Zipkin's old API-v1, while the `HTTP_JSON` value configures Envoy to speak to Zipkin using
-  Zipkin's new API-v2.  In previous versions of Emissary-ingress it was only possible to use
+  Zipkin's new API-v2. In previous versions of Emissary-ingress it was only possible to use
   `HTTP_JSON_V1` when explicitly setting the `AMBASSADOR_ENVOY_API_VERSION=V2` environment variable
   to force use of xDS v2 to configure Envoy.
 
