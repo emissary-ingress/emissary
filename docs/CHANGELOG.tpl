@@ -63,17 +63,21 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 #### Zipkin Collector Versions
 
-In a future version of Emissary-ingress, **no sooner than Emissary-ingress v2.1.0**, support
-for the [HTTP_JSON_V1] Zipkin collector version will be removed.
+In Emissary-ingress 3.0.0, support for specifying `collector_endpoint_version: HTTP_JSON_V1` for a
+Zipkin `TracingService` will be removed.  The `HTTP_JSON_V1` value corresponds to Zipkin's old
+API-v1, while the `HTTP_JSON` value corresponds to the Zipkin's new API-v2.
 
-This change is being made because the HTTP_JSON_V1 collector was deprecated in Envoy v1.12.0, then
-removed entirely from the Envoy V3 APIs. As such, the HTTP_JSON_V1 collector is no longer supported
-unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`. You must migrate to either the HTTP_JSON or
-the HTTP_PROTO collector unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`.
+For current versions of Emissary-ingress (>=1.14.0 and <3.0.0), the behavior is that if the
+`TracingService` does not specify which Zipkin API to use, it will normally default to using
+`HTTP_JSON`, but can be made to default to `HTTP_JSON_V1` by setting the
+`AMBASSADOR_ENVOY_API_VERSION=V2` environment variable.  In Emissary-ingress 3.0.0 this environment
+variable will no longer have any impact on what the default Zipkin API is, and explicitly setting
+the API in the `TracingService` will no longer support the `HTTP_JSON_V1` value.
 
-Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version) for more information.
+Users who rely on `HTTP_JSON_V1` will need to migrate their Emissary-ingress 2.3 install to use to
+either `HTTP_JSON` or `HTTP_PROTO` before upgrading to Emissary-ingress 3.0.0.
 
-[HTTP_JSON_V1]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version
+This change is being made because the `HTTP_JSON_V1` API was deprecated in Envoy v1.12.0.
 
 ## RELEASE NOTES
 {{ $relnotes := (datasource "relnotes") -}}

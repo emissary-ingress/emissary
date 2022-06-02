@@ -69,6 +69,18 @@ items:
           <code>metadata.name</code> across multiple namespaces, their old config would not properly be removed
           from the cache when their config was updated. This resulted in an inability to update configuration
           for groups of <code>Mapping</code>s that share the same name until the $productName$ pods restarted.
+      - title: Fix support for Zipkin API-v1 with Envoy xDS-v3
+        type: bugfix
+        body: >-
+          It is now possible for a <code>TracingService</code> to specify
+          <code>collector_endpoint_version: HTTP_JSON_V1</code> when using xDS v3 to configure Envoy
+          (which has been the default since $productName$ 1.14.0).  The <code>HTTP_JSON_V1</code>
+          value configures Envoy to speak to Zipkin using Zipkin's old API-v1, while the
+          <code>HTTP_JSON</code> value configures Envoy to speak to Zipkin using Zipkin's new
+          API-v2.  In previous versions of $productName$ it was only possible to use
+          <code>HTTP_JSON_V1</code> when explicitly setting the
+          <code>AMBASSADOR_ENVOY_API_VERSION=V2</code> environment variable to force use of xDS v2
+          to configure Envoy.
 
   - version: 2.2.2
     date: '2022-02-25'
