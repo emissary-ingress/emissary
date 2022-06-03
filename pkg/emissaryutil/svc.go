@@ -78,18 +78,21 @@ func NormalizeServiceName(ir GlobalResolverConfig, svcStr, mappingNamespace, res
 	// Kubernetes Resolvers _require_ subdomains to correctly handle namespaces.
 	wantQualified := !ir.UseAmbassadorNamespaceForServiceResolution() && strings.HasPrefix(resolverKind, "Kubernetes")
 
-	isQualified := strings.Contains(hostname, ".") || hostname == "localhost"
+	isQualified := strings.ContainsAny(hostname, ".:") || hostname == "localhost"
 
 	if mappingNamespace != "" && mappingNamespace != ir.AmbassadorNamespace() && wantQualified && !isQualified {
 		hostname += "." + mappingNamespace
 	}
 
 	ret := hostname
-	if port != 0 {
-		ret = net.JoinHostPort(ret, fmt.Sprintf("%d", port))
+	if strings.Contains(ret, ":") {
+		ret = "[" + ret + "]"
 	}
 	if scheme != "" {
 		ret = scheme + "://" + ret
+	}
+	if port != 0 {
+		ret = fmt.Sprintf("%s:%d", ret, port)
 	}
 	return ret, nil
 }

@@ -60,12 +60,14 @@ def normalize_service_name(ir: 'IR', in_service: str, mapping_namespace: Optiona
     # Kubernetes Resolvers _require_ subdomains to correctly handle namespaces.
     want_qualified = not ir.ambassador_module.use_ambassador_namespace_for_service_resolution and resolver_kind.startswith('Kubernetes')
 
-    is_qualified = "." in hostname or "localhost" == hostname
+    is_qualified = "." in hostname or ":" in hostname or "localhost" == hostname
 
     if mapping_namespace and mapping_namespace != ir.ambassador_namespace and want_qualified and not is_qualified:
         hostname += "."+mapping_namespace
 
     out_service = hostname
+    if ':' in out_service:
+        out_service = f"[{out_service}]"
     if scheme:
         out_service = f"{scheme}://{out_service}"
     if port:

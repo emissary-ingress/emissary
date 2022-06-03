@@ -69,6 +69,16 @@ def test_qualify_service():
     assert qualify_service_name(ir, "backoffice.otherns:80", "default") == "backoffice.otherns:80"
     assert qualify_service_name(ir, "backoffice.otherns:80", "otherns") == "backoffice.otherns:80"
 
+    assert qualify_service_name(ir, "[fe80::e022:9cff:fecc:c7c4]", None) == "[fe80::e022:9cff:fecc:c7c4]"
+    assert qualify_service_name(ir, "[fe80::e022:9cff:fecc:c7c4]", "default") == "[fe80::e022:9cff:fecc:c7c4]"
+    assert qualify_service_name(ir, "[fe80::e022:9cff:fecc:c7c4]", "other") == "[fe80::e022:9cff:fecc:c7c4]"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4]", None) == "https://[fe80::e022:9cff:fecc:c7c4]"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4]", "default") == "https://[fe80::e022:9cff:fecc:c7c4]"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4]", "other") == "https://[fe80::e022:9cff:fecc:c7c4]"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4]:443", None) == "https://[fe80::e022:9cff:fecc:c7c4]:443"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4]:443", "default") == "https://[fe80::e022:9cff:fecc:c7c4]:443"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4]:443", "other") == "https://[fe80::e022:9cff:fecc:c7c4]:443"
+
     assert normalize_service_name(ir, "backoffice:80", None, 'ConsulResolver') == "backoffice:80"
     assert normalize_service_name(ir, "backoffice:80", "default", 'ConsulResolver') == "backoffice:80"
     assert normalize_service_name(ir, "backoffice:80", "otherns", 'ConsulResolver') == "backoffice:80"

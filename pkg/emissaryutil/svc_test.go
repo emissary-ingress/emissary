@@ -72,6 +72,16 @@ func TestQualifyService(t *testing.T) {
 		{Input: qualifyServiceName("backoffice.otherns:80", "default"), Output: "backoffice.otherns:80"},
 		{Input: qualifyServiceName("backoffice.otherns:80", "otherns"), Output: "backoffice.otherns:80"},
 
+		{Input: qualifyServiceName("[fe80::e022:9cff:fecc:c7c4]", ""), Output: "[fe80::e022:9cff:fecc:c7c4]"},
+		{Input: qualifyServiceName("[fe80::e022:9cff:fecc:c7c4]", "default"), Output: "[fe80::e022:9cff:fecc:c7c4]"},
+		{Input: qualifyServiceName("[fe80::e022:9cff:fecc:c7c4]", "other"), Output: "[fe80::e022:9cff:fecc:c7c4]"},
+		{Input: qualifyServiceName("https://[fe80::e022:9cff:fecc:c7c4]", ""), Output: "https://[fe80::e022:9cff:fecc:c7c4]"},
+		{Input: qualifyServiceName("https://[fe80::e022:9cff:fecc:c7c4]", "default"), Output: "https://[fe80::e022:9cff:fecc:c7c4]"},
+		{Input: qualifyServiceName("https://[fe80::e022:9cff:fecc:c7c4]", "other"), Output: "https://[fe80::e022:9cff:fecc:c7c4]"},
+		{Input: qualifyServiceName("https://[fe80::e022:9cff:fecc:c7c4]:443", ""), Output: "https://[fe80::e022:9cff:fecc:c7c4]:443"},
+		{Input: qualifyServiceName("https://[fe80::e022:9cff:fecc:c7c4]:443", "default"), Output: "https://[fe80::e022:9cff:fecc:c7c4]:443"},
+		{Input: qualifyServiceName("https://[fe80::e022:9cff:fecc:c7c4]:443", "other"), Output: "https://[fe80::e022:9cff:fecc:c7c4]:443"},
+
 		{Input: normalizeServiceName("backoffice:80", "", "ConsulResolver"), Output: "backoffice:80"},
 		{Input: normalizeServiceName("backoffice:80", "default", "ConsulResolver"), Output: "backoffice:80"},
 		{Input: normalizeServiceName("backoffice:80", "otherns", "ConsulResolver"), Output: "backoffice:80"},
