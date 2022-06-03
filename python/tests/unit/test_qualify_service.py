@@ -31,6 +31,10 @@ def qualify_service_name(ir: 'IR', service: str, namespace: Optional[str], rkey:
     return normalize_service_name(ir, service, namespace, 'KubernetesTestResolver', rkey=rkey)
 
 def test_qualify_service():
+    """
+    Note: This has a Go equivalent in github.com/datawire/ambassador/v2/pkg/emissaryutil.  Please
+    keep them in-sync.
+    """
     aconf = Config()
 
     fetcher = ResourceFetcher(logger, aconf)

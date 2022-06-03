@@ -18,6 +18,8 @@ def would_confuse_urlparse(url: str) -> bool:
     instead of as a URL ("[scheme:]//authority[:port]/path").  We don't want to
     interpret "myhost:8080" as "ParseResult(scheme='myhost', path='8080')"!
 
+    Note: This has a Go equivalent in github.com/datawire/ambassador/v2/pkg/emissaryutil.  Please
+    keep them in-sync.
     """
     if url.find(':') > 0 and url.lstrip(scheme_chars).startswith("://"):
         # has a scheme
@@ -28,6 +30,10 @@ def would_confuse_urlparse(url: str) -> bool:
     return True
 
 def normalize_service_name(ir: 'IR', in_service: str, mapping_namespace: Optional[str], resolver_kind: str, rkey: Optional[str]=None) -> str:
+    """
+    Note: This has a Go equivalent in github.com/datawire/ambassador/v2/pkg/emissaryutil.  Please
+    keep them in-sync.
+    """
     try:
         parsed = urlparse(f"//{in_service}" if would_confuse_urlparse(in_service) else in_service)
 
