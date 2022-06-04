@@ -96,3 +96,24 @@ func NormalizeServiceName(ir GlobalResolverConfig, svcStr, mappingNamespace, res
 	}
 	return ret, nil
 }
+
+func netipParseAddr(s string) (net.IP, error) {
+	// TODO(lukeshu): Once we upgrade to Go 1.18, delete this function in favor of
+	// net/netip.ParseAddr().  We use this instead of net.ParseIP in order to handle IPv6 zones.
+	ip := net.ParseIP(strings.SplitN(s, "%", 2)[0])
+	if ip == nil {
+		return nil, fmt.Errorf("not an IP: %q", s)
+	}
+	return ip, nil
+}
+
+func IsLocalhost(hostname string) bool {
+	if hostname == "localhost" {
+		return true
+	}
+	ip, err := netipParseAddr(hostname)
+	if err != nil {
+		return false
+	}
+	return ip.IsLoopback()
+}

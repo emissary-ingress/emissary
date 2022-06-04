@@ -312,3 +312,32 @@ func TestQualifyService(t *testing.T) {
 		})
 	}
 }
+
+func TestIsLocalhost(t *testing.T) {
+	t.Parallel()
+	testcases := map[string]bool{
+		"localhost":  true,
+		"localhost4": false, // don't rely on non-standard things sometimes in /etc/hosts
+		"localhost6": false, // don't rely on non-standard things sometimes in /etc/hosts
+
+		"127.0.0.1":  true,
+		"127.0.0.01": false, // RFC 3986 URL parsing says to not treat it as an IPv4 if there are leading zeros (but is what we consume a URL?)
+		"2130706433": false, // RFC 3986 URL parsing says to not treat it as an IPv4 unless it's dotted-quad (but is what we consume a URL?)
+		"127.1":      false, // RFC 3986 URL parsing says to not treat it as an IPv4 unless it's dotted-quad (but is what we consume a URL?)
+
+		"127.2.3.4": true,
+
+		"::1":        true,
+		"::1%lo":     true,
+		"::0:0:1":    true,
+		"::00:00:01": true,
+	}
+	for hostname, exp := range testcases {
+		hostname := hostname
+		exp := exp
+		t.Run(hostname, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, exp, IsLocalhost(hostname))
+		})
+	}
+}
