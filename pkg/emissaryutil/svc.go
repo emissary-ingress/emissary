@@ -84,7 +84,7 @@ func NormalizeServiceName(ir GlobalResolverConfig, svcStr, mappingNamespace, res
 		hostname += "." + mappingNamespace
 	}
 
-	ret := hostname
+	ret := url.PathEscape(hostname)
 	if strings.Contains(ret, ":") {
 		ret = "[" + ret + "]"
 	}

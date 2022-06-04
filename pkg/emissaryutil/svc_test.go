@@ -7,6 +7,36 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestParseServiceName(t *testing.T) {
+	t.Parallel()
+	testcases := map[string]struct {
+		Scheme   string
+		Hostname string
+		Port     uint16
+		Err      string
+	}{
+		"[fe80::e022:9cff:fecc:c7c4%zone]":   {"", "", 0, `service "[fe80::e022:9cff:fecc:c7c4%zone]": parse "//[fe80::e022:9cff:fecc:c7c4%zone]": invalid URL escape "%zo"`},
+		"[fe80::e022:9cff:fecc:c7c4%25zone]": {"", "fe80::e022:9cff:fecc:c7c4%zone", 0, ``},
+		"https://[::1%25lo]:443":             {"https", "::1%lo", 443, ``},
+	}
+	for input, exp := range testcases {
+		input := input
+		exp := exp
+		t.Run(input, func(t *testing.T) {
+			t.Parallel()
+			scheme, hostname, port, err := ParseServiceName(input)
+			assert.Equal(t, exp.Scheme, scheme)
+			assert.Equal(t, exp.Hostname, hostname)
+			assert.Equal(t, exp.Port, port)
+			if exp.Err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, exp.Err)
+			}
+		})
+	}
+}
+
 type testGlobalResolverConfig struct {
 	ambassadorNamespace                        string
 	useAmbassadorNamespaceForServiceResolution bool
@@ -81,6 +111,7 @@ func TestQualifyService(t *testing.T) {
 		{Input: qualifyServiceName("https://[fe80::e022:9cff:fecc:c7c4]:443", ""), Output: "https://[fe80::e022:9cff:fecc:c7c4]:443"},
 		{Input: qualifyServiceName("https://[fe80::e022:9cff:fecc:c7c4]:443", "default"), Output: "https://[fe80::e022:9cff:fecc:c7c4]:443"},
 		{Input: qualifyServiceName("https://[fe80::e022:9cff:fecc:c7c4]:443", "other"), Output: "https://[fe80::e022:9cff:fecc:c7c4]:443"},
+		{Input: qualifyServiceName("https://[fe80::e022:9cff:fecc:c7c4%25zone]:443", "other"), Output: "https://[fe80::e022:9cff:fecc:c7c4%25zone]:443"},
 
 		{Input: normalizeServiceName("backoffice:80", "", "ConsulResolver"), Output: "backoffice:80"},
 		{Input: normalizeServiceName("backoffice:80", "default", "ConsulResolver"), Output: "backoffice:80"},
@@ -264,6 +295,7 @@ func TestQualifyService(t *testing.T) {
 		{Input: normalizeServiceName("https://fe80::e022:9cff:fecc:c7c4", "otherns", "ConsulResolver"), Err: `service "https://fe80::e022:9cff:fecc:c7c4": parse "https://fe80::e022:9cff:fecc:c7c4": invalid port ":c7c4" after host`},
 		{Input: normalizeServiceName("https://bad-service:-1", "otherns", "ConsulResolver"), Err: `service "https://bad-service:-1": parse "https://bad-service:-1": invalid port ":-1" after host`},
 		{Input: normalizeServiceName("https://bad-service:70000", "otherns", "ConsulResolver"), Err: `service "https://bad-service:70000": port 70000: strconv.ParseUint: parsing "70000": value out of range`},
+		{Input: qualifyServiceName("https://[fe80::e022:9cff:fecc:c7c4%zone]:443", "other"), Err: `service "https://[fe80::e022:9cff:fecc:c7c4%zone]:443": parse "https://[fe80::e022:9cff:fecc:c7c4%zone]:443": invalid URL escape "%zo"`},
 	}
 	for i, tc := range testcases {
 		tc := tc // capture loop variable

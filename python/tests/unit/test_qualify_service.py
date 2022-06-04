@@ -78,6 +78,7 @@ def test_qualify_service():
     assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4]:443", None) == "https://[fe80::e022:9cff:fecc:c7c4]:443"
     assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4]:443", "default") == "https://[fe80::e022:9cff:fecc:c7c4]:443"
     assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4]:443", "other") == "https://[fe80::e022:9cff:fecc:c7c4]:443"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4%25zone]:443", "other") == "https://[fe80::e022:9cff:fecc:c7c4%25zone]:443"
 
     assert normalize_service_name(ir, "backoffice:80", None, 'ConsulResolver') == "backoffice:80"
     assert normalize_service_name(ir, "backoffice:80", "default", 'ConsulResolver') == "backoffice:80"
@@ -266,12 +267,13 @@ def test_qualify_service():
     assert normalize_service_name(ir, "https://fe80::e022:9cff:fecc:c7c4", "otherns", 'ConsulResolver') == "https://fe80::e022:9cff:fecc:c7c4"
     assert normalize_service_name(ir, "https://bad-service:-1", "otherns", 'ConsulResolver') == "https://bad-service:-1"
     assert normalize_service_name(ir, "https://bad-service:70000", "otherns", 'ConsulResolver') == "https://bad-service:70000"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4%zone]:443", "other") == "https://[fe80::e022:9cff:fecc:c7c4%zone]:443"
 
     errors = ir.aconf.errors
     assert "-global-" in errors
     errors = errors["-global-"]
 
-    assert len(errors) == 16
+    assert len(errors) == 17
 
     # Ugg, different versions of Python have different error messages.  Let's recognize the "Port could not be cast to
     # integer value as" to keep pytest working on peoples up-to-date laptops with Python 3.8, and let's recognize
@@ -331,6 +333,9 @@ def test_qualify_service():
 
     assert not errors[15]["ok"]
     assert errors[15]["error"] == "Malformed service 'https://bad-service:70000': Port out of range 0-65535"
+
+    assert not errors[16]["ok"]
+    assert errors[16]["error"] == "Malformed service 'https://[fe80::e022:9cff:fecc:c7c4%zone]:443': Invalid percent-escape in hostname: %zo"
 
 if __name__ == '__main__':
     pytest.main(sys.argv)
