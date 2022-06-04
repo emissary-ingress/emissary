@@ -2,11 +2,9 @@ package entrypoint
 
 import (
 	"context"
-	"net"
-	"net/url"
-	"strings"
 
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/emissaryutil"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
@@ -29,22 +27,8 @@ func annotationsContainAuthService(annotations map[string]snapshot.AnnotationLis
 
 // Checks if the provided string is a loopback IP address with port 8500
 func IsLocalhost8500(svcStr string) bool {
-	if strings.Contains(svcStr, ":") && !strings.HasPrefix(strings.TrimLeft(svcStr, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-."), "://") {
-		svcStr = "bogus://" + svcStr
-	}
-	svcURL, _ := url.Parse(svcStr)
-	if svcURL == nil {
-		return false
-	}
-	if port, _ := net.LookupPort("ip", svcURL.Port()); port != 8500 {
-		return false
-	}
-	// while net.ParseIP() would be sufficient for most cases, it does not resolve "localhost:8500" so we use LookupIP instead
-	ips, _ := net.LookupIP(svcURL.Hostname())
-	if len(ips) == 0 {
-		return false
-	}
-	return ips[0].IsLoopback()
+	_, hostname, port, err := emissaryutil.ParseServiceName(svcStr)
+	return err == nil && port == 8500 && emissaryutil.IsLocalhost(hostname)
 }
 
 // This is a gross hack to remove all AuthServices using protocol_version: v2 only when running Edge-Stack and then inject an
