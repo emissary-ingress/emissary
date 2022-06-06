@@ -3,13 +3,13 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
-## Next Release
+## v7.4.0
 
+- Update change Emissary chart image to version v2.3.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 - Add "lifecycle" option to main container. This can be used, for example, to add a lifecycle.preStop hook. Thanks to [Eric Totten](https://github.com/etotten) for the contribution!
-- Add `ambassador_id` to listener manifests rendered when using `createDefaultListeners: true` with `AMBASSADOR_ID` set in environment variables.
-
+- Add `ambassador_id` to listener manifests rendered when using `createDefaultListeners: true` with `AMBASSADOR_ID` set in environment variables. Thanks to [Jennifer Reed](https://github.com/ServerNinja) for the contribution!
 - Feature: Added configurable IngressClass resource to be compliant with Kubernetes 1.22+ ingress specification.
-
+  
 ## v7.2.2
 
 - Update Emissary chart image to version v2.1.2: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)

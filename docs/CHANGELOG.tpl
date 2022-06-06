@@ -66,7 +66,7 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
    value.
 
    Users who rely on `HTTP_JSON_V1` will need to migrate their Emissary-ingress 2.3 install to use
-   to either `HTTP_JSON` or `HTTP_PROTO` before upgrading to Emissary-ingress 3.0.0.
+   either `HTTP_JSON` or `HTTP_PROTO` before upgrading to Emissary-ingress 3.0.0.
 
 With the removal of `regex_type: unsafe` and `collector_endpoint_version: HTTP_JSON_V1`, there will
 be no more user-visible effects of the `AMBASSADOR_ENVOY_API_VERSION` environment variable, and so

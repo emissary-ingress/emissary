@@ -192,9 +192,9 @@ clobber: clean
 
 clean: build-output.rm-r
 
-python.clean: %.clean: python/ambassador.egg-info.rm-r
+python.clean releng.clean: %.clean: python/ambassador.egg-info.rm-r
 	find $* -name __pycache__ -exec rm -rf -- {} +
-clean: python.clean
+clean: python.clean releng.clean
 
 cmd.clean pkg.clean: %.clean:
 	find $* -name '*.yaml.o' -delete
