@@ -902,6 +902,8 @@ spec:
                     type: integer
                   sni:
                     type: string
+                  v3CRLSecret:
+                    type: string
                 type: object
               tlsContext:
                 description: "Name of the TLSContext the Host resource is linked with.
@@ -1217,6 +1219,8 @@ spec:
                     items:
                       type: string
                     type: array
+                  crl_secret:
+                    type: string
                   ecdh_curves:
                     items:
                       type: string
@@ -3592,6 +3596,8 @@ spec:
                 type: boolean
               sni:
                 type: string
+              v3CRLSecret:
+                type: string
             type: object
         type: object
     served: true
@@ -3639,6 +3645,8 @@ spec:
                 items:
                   type: string
                 type: array
+              crl_secret:
+                type: string
               ecdh_curves:
                 items:
                   type: string

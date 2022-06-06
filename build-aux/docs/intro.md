@@ -46,10 +46,7 @@ Most (but not all) of the snippets include `common.mk`, which
     - `GOOS`, `GOARCH`: Operating system name, and CPU architecture.
       `GO` is included in the variable names to indicate that they use
       the same names as `go env` (as opposed to using `uname
-      -s`/`uname -m` names, or something else).  Most of the time,
-      these are the host OS or architecture.  But, when inside of
-      recipes for files in `bin_OS_ARCH/` directories, they are set to
-      that OS and architecture.
+      -s`/`uname -m` names, or something else).
     - `NL`: a single newline character, since that's hard to type in Make
     - `SPACE`: a single space character, since that's hard to type in
       Make
@@ -95,11 +92,8 @@ Most (but not all) of the snippets include `common.mk`, which
     See [`testing.md`](./testing.md) for information about writing the
     recipe for `my-test.tap`.
 
-    Because of the special semantics around `$(GOOS)` and `$(GOARCH)`
-    in `bin_OS_ARCH/` directories, `common.mk` goes ahead and has
-    `make clean` run `rm -rf -- bin_*`.  Because of `make check`'s use
-    of `test-suite.tap`, `common.mk` also goes head and has `make
-    clean` run `rm -f test-suite.tap`.
+    Because of `make check`'s use of `test-suite.tap`, `common.mk`
+    also goes ahead and has `make clean` run `rm -f test-suite.tap`.
 
     With the exceptions of `make check` and `make clean`, `common.mk`
     only provides empty definitions; it is up to your `Makefile`, or

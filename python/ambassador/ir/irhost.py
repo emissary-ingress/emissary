@@ -143,6 +143,8 @@ class IRHost(IRResource):
                             'certChainFile': 'cert_chain_file',
                             'privateKeyFile': 'private_key_file',
                             'cacertChainFile': 'cacert_chain_file',
+                            'crlSecret': 'crl_secret',
+                            'crlFile': 'crl_file',
                             'caSecret': 'ca_secret',
                             # 'sni': 'sni' (this field is not required in snake-camel but adding for completeness)
                         }
@@ -385,7 +387,7 @@ class IRHost(IRResource):
             # "hostname" or "host", the Mapping code normalizes to "host" internally.
 
             # It's possible for group.host_redirect to be None instead of missing, and it's also
-            # conceivably possible for group.host_redirect.host to be "", which we'd rather be 
+            # conceivably possible for group.host_redirect.host to be "", which we'd rather be
             # None. Hence we do this two-line dance to massage the various cases.
             host_redirect = (group.get('host_redirect') or {}).get('host')
             group_glob = group.get('host') or host_redirect  # NOT A TYPO: see above.

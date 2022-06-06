@@ -114,6 +114,20 @@ class IRBaseMapping (IRResource):
 
     @classmethod
     def make_cache_key(cls, kind: str, name: str, namespace: str, version: str="v2") -> str:
+        # Why is this split on the name necessary?
+        # the name of a Mapping when we fetch it from the aconf will match the metadata.name of
+        # the Mapping that the config comes from _only if_ it is the only Mapping with that exact name.
+        # If there are multiple Mappings with the same name in different namespaces then the name
+        # becomes `name.namespace` for all mappings of the same name after the first one.
+        # The first one just gets to be `name` for "reasons".
+        #
+        # This behaviour is needed by other places in the code, but for the cache key, we need it to match the
+        # below format regardless of how many Mappings there are with that name. This is necessary for the cache
+        # specifically because there are places where we interact with the cache that have access to the
+        # metadata.name and metadata.namespace of the Mapping, but do not have access to the aconf representation
+        # of the Mapping name and thus have no way of knowing whether a specific name is mangled due to multiple
+        # Mappings sharing the same name or not.
+        name = name.split(".")[0]
         return f"{kind}-{version}-{name}-{namespace}"
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:

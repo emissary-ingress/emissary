@@ -20,7 +20,10 @@ class IRTLSContext(IRResource):
         'private_key_file',
 
         'ca_secret',
-        'cacert_chain_file'
+        'cacert_chain_file',
+
+        'crl_secret',
+        'crl_file',
     }
 
     AllowedKeys: ClassVar = {
@@ -218,6 +221,23 @@ class IRTLSContext(IRResource):
 
         self.ir.logger.debug("TLSContext - successfully processed the cert_chain_file, private_key_file, and cacert_chain_file: %s" % self.secret_info)
 
+        # OK. Repeat for the crl_secret.
+        crl_secret = self.secret_info.get('crl_secret')
+        if crl_secret:
+            # They gave a secret name for the certificate revocation list. Try loading it.
+            crls = self.resolve_secret(crl_secret)
+
+            self.ir.logger.debug("resolve_secrets: IR returned secret %s as %s" % (crl_secret, crls))
+
+            if not crls:
+                # This is definitively an error: they mentioned a secret, it can't be loaded,
+                # give up.
+                self.post_error("TLSContext %s found no certificate revocation list in %s" % (self.name, crls.name))
+                secret_valid = False
+            else:
+                self.ir.logger.debug("TLSContext %s saved certificate revocation list secret %s" % (self.name, crls.name))
+                self.secret_info['crl_file'] = crls.user_path
+
         # OK. Repeat for the ca_secret_name.
         ca_secret_name = self.secret_info.get('ca_secret')
 
@@ -272,7 +292,7 @@ class IRTLSContext(IRResource):
         errors = 0
 
         # self.ir.logger.debug("resolve_secrets before path checks: %s" % self.as_json())
-        for key in [ 'cert_chain_file', 'private_key_file', 'cacert_chain_file' ]:
+        for key in [ 'cert_chain_file', 'private_key_file', 'cacert_chain_file', 'crl_file' ]:
             path = self.secret_info.get(key, None)
 
             if path:
@@ -280,7 +300,7 @@ class IRTLSContext(IRResource):
                 if not fc(path):
                     self.post_error("TLSContext %s found no %s '%s'" % (self.name, key, path))
                     errors += 1
-            elif key != 'cacert_chain_file' and self.get('hosts', None):
+            elif (not(key == 'cacert_chain_file' or key == 'crl_file')) and self.get('hosts', None):
                 self.post_error("TLSContext %s is missing %s" % (self.name, key))
                 errors += 1
 

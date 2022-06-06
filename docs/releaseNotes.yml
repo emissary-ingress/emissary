@@ -48,9 +48,30 @@ items:
         github:
           - title: "#4179"
             link: https://github.com/emissary-ingress/emissary/pull/4179
+      - title: Added support for TLS certificate revocation list
+        type: feature
+        body: >-
+          It is now possible to set `crl_secret` in `Host` and `TLSContext` resources
+          to check peer certificates against a certificate revocation list.
+        github:
+          - title: "#1743"
+            link: https://github.com/emissary-ingress/emissary/issues/1743
+      - title: CORS now happens before auth
+        type: bugfix
+        body: >-
+          When CORS is specified (either in a <code>Mapping</code> or in the <code>Ambassador</code>
+          <code>Module</code>), CORS processing will happen before authentication. This corrects a
+          problem where XHR to authenticated endpoints would fail.
+      - title: Correctly handle caching Mappings with the same name in different namespaces
+        type: bugfix
+        body: >-
+          In 2.x releases of $productName$ when there are multiple <code>Mapping</code>s that have the same
+          <code>metadata.name</code> across multiple namespaces, their old config would not properly be removed
+          from the cache when their config was updated. This resulted in an inability to update configuration
+          for groups of <code>Mapping</code>s that share the same name until the $productName$ pods restarted.
 
   - version: 2.2.2
-    date: 'TBD'
+    date: '2022-02-25'
     notes:
       - title: TLS Secret validation is now opt-in
         type: change

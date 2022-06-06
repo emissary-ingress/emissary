@@ -1,7 +1,7 @@
 include build-aux/tools.mk
 
 #
-# Auxiliar Docker images needed for the tests
+# Auxiliary Docker images needed for the tests
 
 # Keep this list in-sync with python/tests/integration/manifests.py
 push-pytest-images: docker/emissary.docker.push.remote
@@ -16,6 +16,7 @@ push-pytest-images: docker/kat-server.docker.push.remote
 test_svcs = auth shadow stats
 $(foreach svc,$(test_svcs),docker/.test-$(svc).docker.stamp): docker/.%.docker.stamp: docker/%/Dockerfile FORCE
 	docker build --iidfile=$@ $(<D)
+clean: $(foreach svc,$(test_svcs),docker/test-$(svc).docker.clean)
 
 # kat-client.docker
 docker/kat-client.go.layer.tar: $(tools/ocibuild) $(tools/write-ifchanged) FORCE
@@ -53,6 +54,7 @@ docker/.kat-server.img.tar.stamp: $(tools/ocibuild) docker/base.img.tar docker/k
 	  --config.Cmd='kat-server' \
 	  --tag=emissary.local/kat-server:latest \
 	  <($(tools/ocibuild) layer squash $(filter %.layer.tar,$^)); } > $@
+docker/kat-server.img.tar.clean: docker/kat-server.rm-r
 
 #
 # Helm tests
@@ -63,6 +65,7 @@ test-chart-values.yaml: docker/emissary.docker.push.remote
 	  sed -E -n '2s/^(.*):.*/  repository: \1/p' < $<; \
 	  sed -E -n '2s/.*:/  tag: /p' < $<; \
 	} >$@
+clean: test-chart-values.yaml.rm
 build-output/chart-%/ci: build-output/chart-% test-chart-values.yaml
 	rm -rf $@
 	cp -a $@.in $@
@@ -77,3 +80,12 @@ endif
 	$(tools/kubectl) --kubeconfig=$(DEV_KUBECONFIG) --namespace=emissary-system wait --timeout=90s --for=condition=available Deployments/emissary-apiext
 	cd $(chart_dir) && KUBECONFIG=$(DEV_KUBECONFIG) $(abspath $(tools/ct)) install --config=./ct.yaml
 .PHONY: test-chart
+
+#
+# Other
+
+clean: .pytest_cache.rm-r .coverage.rm
+
+dtest.clean:
+	docker container list --filter=label=scope=dtest --quiet | xargs -r docker container kill
+clean: dtest.clean

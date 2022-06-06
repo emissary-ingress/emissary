@@ -22,6 +22,7 @@ lint:
 		exit $$r; \
 	}
 .PHONY: lint
+clean: .dmypy.json.rm .mypy_cache.rm-r
 
 golint: $(tools/golangci-lint)
 	@PS4=; set -x; r=0; { \

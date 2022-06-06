@@ -378,6 +378,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 	var endpoints *ambex.Endpoints
 	var dispSnapshot *ecp_v2_cache.Snapshot
 	changed, err := func() (bool, error) {
+		dlog.Debugf(ctx, "[WATCHER]: processing cluster changes detected by the kubernetes watcher")
 		sh.mutex.Lock()
 		defer sh.mutex.Unlock()
 
@@ -392,7 +393,12 @@ func (sh *SnapshotHolder) K8sUpdate(
 			})
 		})
 
-		if !changed || err != nil {
+		if err != nil {
+			dlog.Errorf(ctx, "[WATCHER]: ERROR calculating changes in an update to the cluster config: %v", err)
+			return false, err
+		}
+		if !changed {
+			dlog.Debugf(ctx, "[WATCHER]: K8sUpdate did not detected any change to the resources relevant to this instance of Ambassador")
 			return false, err
 		}
 
@@ -425,7 +431,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 
 		parseAnnotationsTimer.Time(func() {
 			if err := sh.k8sSnapshot.PopulateAnnotations(ctx); err != nil {
-				dlog.Errorf(ctx, "error parsing annotations: %v", err)
+				dlog.Errorf(ctx, "[WATCHER]: ERROR parsing annotations in configuration change: %v", err)
 			}
 		})
 
@@ -433,18 +439,21 @@ func (sh *SnapshotHolder) K8sUpdate(
 			err = ReconcileSecrets(ctx, sh)
 		})
 		if err != nil {
+			dlog.Errorf(ctx, "[WATCHER]: ERROR reconciling Secrets: %v", err)
 			return false, err
 		}
 		reconcileConsulTimer.Time(func() {
 			err = ReconcileConsul(ctx, consulWatcher, sh.k8sSnapshot)
 		})
 		if err != nil {
+			dlog.Errorf(ctx, "[WATCHER]: ERROR reconciling Consul resources: %v", err)
 			return false, err
 		}
 		reconcileAuthServicesTimer.Time(func() {
 			err = ReconcileAuthServices(ctx, sh, &deltas)
 		})
 		if err != nil {
+			dlog.Errorf(ctx, "[WATCHER]: ERROR reconciling AuthServices: %v", err)
 			return false, err
 		}
 
@@ -452,7 +461,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 		// Check if the set of endpoints we are interested in has changed. If so we need to send
 		// endpoint info again even if endpoints have not changed.
 		if sh.endpointRoutingInfo.watchesChanged() {
-			dlog.Infof(ctx, "watches changed: %v", sh.endpointRoutingInfo.endpointWatches)
+			dlog.Infof(ctx, "[WATCHER]: endpoint watches changed: %v", sh.endpointRoutingInfo.endpointWatches)
 			endpointsChanged = true
 		}
 
@@ -503,10 +512,10 @@ func (sh *SnapshotHolder) K8sUpdate(
 			}
 			_, dispSnapshot = sh.dispatcher.GetSnapshot(ctx)
 		}
-
 		return true, nil
 	}()
 	if err != nil {
+		dlog.Errorf(ctx, "[WATCHER]: ERROR checking changes from a cluster config update: %v", err)
 		return changed, err
 	}
 
@@ -517,7 +526,6 @@ func (sh *SnapshotHolder) K8sUpdate(
 		}
 		fastpathProcessor(ctx, fastpath)
 	}
-
 	return changed, nil
 }
 
