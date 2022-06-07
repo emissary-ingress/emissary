@@ -25,7 +25,7 @@ kind: Mapping
 grpc: True
 hostname: "*"
 prefix: /echo.EchoService/
-rewrite: /echo.EchoService/
+rewrite: ""   # This means to leave the prefix unaltered.
 name:  {self.target.path.k8s}
 service: {self.target.path.k8s}
 """)
@@ -74,23 +74,22 @@ metadata:
     name: my-endpoint
 spec:
     ambassador_id: ["endpointgrpctest"]
-''') + super().manifests()
-
-    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
-grpc: True
-hostname: "*"
-prefix: /echo.EchoService/
-rewrite: /echo.EchoService/
-name:  {self.target.path.k8s}
-service: {self.target.path.k8s}
-resolver: my-endpoint
-load_balancer:
-  policy: round_robin
-""")
+metadata:
+    name: {self.target.path.k8s}
+spec:
+    ambassador_id: ["endpointgrpctest"]
+    grpc: True
+    hostname: "*"
+    prefix: /echo.EchoService/
+    rewrite: ""   # This means to leave the prefix unaltered.
+    service: {self.target.path.k8s}
+    resolver: my-endpoint
+    load_balancer:
+        policy: round_robin
+''') + super().manifests()
 
     def queries(self):
         # [0]
