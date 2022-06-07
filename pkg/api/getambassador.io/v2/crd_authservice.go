@@ -30,6 +30,12 @@ type AuthServiceIncludeBody struct {
 
 	// +kubebuilder:validation:Required
 	AllowPartial bool `json:"allow_partial,omitempty"`
+
+	// AsBytes (default=false) controls whether to transmit the body as bytes (true) or as a
+	// string (false). Request data that is not valid UTF-8 cannot be transmitted as a string,
+	// and will result in a 403 UAEX response if AsBytes is not set to true.
+	// +k8s:conversion-gen:rename=AsBytes
+	V3AsBytes bool `json:"v3AsBytes,omitempty"`
 }
 
 // Why isn't this just an int??

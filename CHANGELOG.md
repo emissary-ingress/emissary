@@ -128,6 +128,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Bugfix: The Ambassador Agent now correctly supports requests to cancel a rollout.
 
+- Feature: A new field `as_bytes` has been added to `AuthService.spec.include_body` to allow sending
+  request bodies containing binary data to an `AuthService`.
+
 ## [2.2.0] February 10, 2022
 [2.2.0]: https://github.com/emissary-ingress/emissary/compare/v2.1.2...v2.2.0
 

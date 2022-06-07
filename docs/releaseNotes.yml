@@ -92,6 +92,13 @@ items:
           The Ambassador Agent now correctly supports requests to cancel a rollout.
         docs: ../../../argo/latest/howtos/manage-rollouts-using-cloud
 
+      - title: Support for including request bodies with binary data on requests to AuthService
+        type: feature
+        body: >-
+          A new field <code>as_bytes</code> has been added to <code>AuthService.spec.include_body</code> to allow
+          sending request bodies containing binary data to an <code>AuthService</code>.
+        docs: https://www.getambassador.io/docs/edge-stack/latest/topics/using/authservice/#authservice-settings
+
   - version: 2.2.0
     date: '2022-02-10'
     notes:

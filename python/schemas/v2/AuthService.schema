@@ -1,0 +1,158 @@
+{
+    "id": "https://getambassador.io/schemas/mapping.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "auth_service"
+    ],
+    "properties": {
+        "add_auth_headers": {
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "add_linkerd_headers": {
+            "type": "boolean"
+        },
+        "allow_request_body": {
+            "type": "boolean"
+        },
+        "allowed_authorization_headers": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "allowed_request_headers": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ambassador_id": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v2"
+            ]
+        },
+        "auth_service": {
+            "type": "string"
+        },
+        "failure_mode_allow": {
+            "type": "boolean"
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "include_body": {
+            "type": "object",
+            "required": [
+                "max_bytes",
+                "allow_partial"
+            ],
+            "properties": {
+                "allow_partial": {
+                    "type": "boolean"
+                },
+                "as_bytes": {
+                    "type": "boolean"
+                },
+                "max_bytes": {
+                    "type": "integer"
+                }
+            },
+            "additionalProperties": false
+        },
+        "kind": {
+            "type": "string"
+        },
+        "metadata_labels": {
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "path_prefix": {
+            "type": "string"
+        },
+        "proto": {
+            "oneOf": [
+                {
+                    "enum": [
+                        "http"
+                    ]
+                },
+                {
+                    "enum": [
+                        "grpc"
+                    ]
+                }
+            ]
+        },
+        "protocol_version": {
+            "type": "string",
+            "enum": [
+                "v2",
+                "v3"
+            ]
+        },
+        "status_on_error": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                }
+            }
+        },
+        "timeout_ms": {
+            "type": "integer"
+        },
+        "tls": {
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "boolean"
+                }
+            ]
+        }
+    },
+    "additionalProperties": false
+}
