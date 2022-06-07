@@ -574,3 +574,161 @@ spec:
 	t.Setenv("EDGE_STACK", "")
 
 }
+
+// This AuthService points at 127.0.0.1:8500, but it does not have protocol_version: v3. It also has additional fields set.
+// The correct action is to create a SyntheticAuth copy of this AuthService with the same fields but with protocol_version: v3
+func TestSyntheticAuthCopyFields(t *testing.T) {
+	t.Setenv("EDGE_STACK", "true")
+
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
+
+	err := f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v2
+kind: AuthService
+metadata:
+  name: edge-stack-auth-test
+  namespace: foo
+spec:
+  auth_service: 127.0.0.1:8500
+  proto: "grpc"
+  timeout_ms: 12345
+
+`)
+	assert.NoError(t, err)
+	f.Flush()
+
+	// Use the predicate above to check that the snapshot contains the Synthetic AuthService
+	// The AuthService has protocol_Version: v3, but it is missing the protocol_version: v3 field.
+	// We expect the synthetic AuthService to be injected, but later we will check that the synthetic AuthService has
+	// Our custom timeout_ms field
+	snap, err := f.GetSnapshot(HasAuthService("default", "synthetic-edge-stack-auth"))
+	assert.NoError(t, err)
+	assert.NotNil(t, snap)
+
+	// The snapshot should only have the synthetic AuthService
+	assert.Equal(t, "synthetic-edge-stack-auth", snap.Kubernetes.AuthServices[0].Name)
+	// In edge-stack we should only ever have 1 AuthService.
+	assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
+
+	// Even though it is the synthetic AuthService, we should have the custom timeout_ms and v3 protocol version
+	for _, authService := range snap.Kubernetes.AuthServices {
+		assert.Equal(t, int64(12345), authService.Spec.Timeout.Duration.Milliseconds())
+		assert.Equal(t, "v3", authService.Spec.ProtocolVersion)
+	}
+
+	// Check for an ext_authz cluster name matching the synthetic AuthService.
+	// the namespace for this extauthz cluster should be default (since that is the namespace of the synthetic AuthService)
+	isAuthCluster := func(c *v3cluster.Cluster) bool {
+		return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_default")
+	}
+
+	// Grab the next Envoy config that has an Edge Stack auth cluster on 127.0.0.1:8500
+	envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+		return FindCluster(envoy, isAuthCluster) != nil
+	})
+	require.NoError(t, err)
+
+	// Make sure an Envoy Config containing a extauth cluster for the AuthService that was defined
+	assert.NotNil(t, envoyConfig)
+
+	t.Setenv("EDGE_STACK", "")
+}
+
+// This AuthService does not point at 127.0.0.1:8500, so despite not having protocol_version: v3, we leave it alone
+// The strict enforcement of protocol_version: v3 is only important for the AuthService that points at edge-stack
+func TestSyntheticAuthCustomAuthService(t *testing.T) {
+	t.Setenv("EDGE_STACK", "true")
+
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
+
+	err := f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v2
+kind: AuthService
+metadata:
+  name: edge-stack-auth-test
+  namespace: foo
+spec:
+  auth_service: dummy-service
+  proto: "grpc"
+`)
+
+	assert.NoError(t, err)
+	f.Flush()
+
+	// Use the predicate above to check that the snapshot contains the AuthService defined above
+	// The AuthService has protocol_Version: v3 so it should not be removed/replaced by the synthetic AuthService
+	// injected by syntheticauth.go
+	snap, err := f.GetSnapshot(HasAuthService("foo", "edge-stack-auth-test"))
+	assert.NoError(t, err)
+	assert.NotNil(t, snap)
+
+	assert.Equal(t, "edge-stack-auth-test", snap.Kubernetes.AuthServices[0].Name)
+	// In edge-stack we should only ever have 1 AuthService.
+	assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
+
+	for _, authService := range snap.Kubernetes.AuthServices {
+		assert.Equal(t, "dummy-service", authService.Spec.AuthService)
+	}
+
+	// Check for an ext_authz cluster name matching the provided AuthService (Http_Filters are harder to check since they always have the same name)
+	// the namespace for this extauthz cluster should be foo (since that is the namespace of the valid AuthService above)
+	isAuthCluster := func(c *v3cluster.Cluster) bool {
+		return strings.Contains(c.Name, "cluster_extauth_dummy_service_foo")
+	}
+
+	// Grab the next Envoy config that has an Edge Stack auth cluster on 127.0.0.1:8500
+	envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+		return FindCluster(envoy, isAuthCluster) != nil
+	})
+	require.NoError(t, err)
+
+	// Make sure an Envoy Config containing a extauth cluster for the AuthService that was defined
+	assert.NotNil(t, envoyConfig)
+
+	t.Setenv("EDGE_STACK", "")
+}
+
+// When deciding if we need to inject a synthetic AuthService or not, we need to be able to reliably determine if that
+// AuthService points at a localhost:8500 or not
+func TestIsLocalhost8500(t *testing.T) {
+	t.Parallel()
+
+	type subtest struct {
+		inputAddr string
+		expected  bool
+	}
+
+	subtests := []subtest{
+		{inputAddr: "127.0.0.1:8500", expected: true},
+		{inputAddr: "localhost:8500", expected: true},
+		{inputAddr: "127.1.2.3:8500", expected: true},
+		// IPv6:
+		{inputAddr: "http://[0::1]:8500", expected: true},
+		{inputAddr: "http://[0:0:0::1]:8500", expected: true},
+		{inputAddr: "http://[::0:0:0:1]:8500", expected: true},
+
+		{inputAddr: "127.0.0.1:850", expected: false},
+		{inputAddr: "127.0.0.1:8080", expected: false},
+		{inputAddr: "192.168.2.10:8500", expected: false},
+		{inputAddr: "", expected: false},
+		// IPv6:
+		{inputAddr: "http://[0::1]:8400", expected: false},
+		{inputAddr: "http://[0::2]:8500", expected: false},
+		{inputAddr: "http://[0::2]:8080", expected: false},
+		{inputAddr: "http://[0:0:0::2]:8500", expected: false},
+		{inputAddr: "http://[0:0:0::1]:8080", expected: false},
+		{inputAddr: "http://[::0:0:0:2]:8500", expected: false},
+		{inputAddr: "http://[::0:0:0:2]:8080", expected: false},
+	}
+
+	for _, subtest := range subtests {
+		subtest := subtest // capture loop variable
+		t.Run(subtest.inputAddr, func(t *testing.T) {
+			t.Parallel()
+			res := entrypoint.IsLocalhost8500(subtest.inputAddr)
+			assert.Equal(t, subtest.expected, res)
+		})
+	}
+}

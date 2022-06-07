@@ -166,6 +166,9 @@ spec:
               add_linkerd_headers:
                 type: boolean
               allow_request_body:
+                description: 'TODO(lukeshu): In v3alpha2, drop allow_request_body
+                  in favor of include_body. allow_request_body has been deprecated
+                  for a long time.'
                 type: boolean
               allowed_authorization_headers:
                 items:

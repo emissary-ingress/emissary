@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/emissaryutil"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
@@ -22,6 +23,12 @@ func annotationsContainAuthService(annotations map[string]snapshot.AnnotationLis
 		}
 	}
 	return false
+}
+
+// Checks if the provided string is a loopback IP address with port 8500
+func IsLocalhost8500(svcStr string) bool {
+	_, hostname, port, err := emissaryutil.ParseServiceName(svcStr)
+	return err == nil && port == 8500 && emissaryutil.IsLocalhost(hostname)
 }
 
 // This is a gross hack to remove all AuthServices using protocol_version: v2 only when running Edge-Stack and then inject an
@@ -62,16 +69,29 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 	var authServices []*v3alpha1.AuthService
 	syntheticAuthExists := false
 	for _, authService := range sh.k8sSnapshot.AuthServices {
-		// Keep any AuthServices already using protocol_version: v3
-		if authService.Spec.ProtocolVersion == "v3" {
-			injectSyntheticAuth = false
-			if authService.ObjectMeta.Name == "synthetic-edge-stack-auth" {
-				syntheticAuthExists = true
+		// check if the AuthService points at 127.0.0.1:8500 (edge-stack)
+		if IsLocalhost8500(authService.Spec.AuthService) {
+			// If it does point at localhost, make sure it is v3, otherwise we need to inject the synthetic AuthService
+			if authService.Spec.ProtocolVersion == "v3" {
+				injectSyntheticAuth = false
+				if authService.ObjectMeta.Name == "synthetic-edge-stack-auth" {
+					syntheticAuthExists = true
+				} else {
+					authServices = append(authServices, authService)
+				}
 			} else {
-				authServices = append(authServices, authService)
+				// In the event that there is an AuthService that does not have protocol_version: v3
+				// Then we use the spec of that AuthService as the Synthetic v3 AuthService we will inject later
+				syntheticAuth.Spec = authService.Spec
+				syntheticAuth.Spec.ProtocolVersion = "v3"
 			}
+		} else {
+			// By default we keep any custom AuthServices that do not point at localhost
+			authServices = append(authServices, authService)
+			injectSyntheticAuth = false
 		}
 	}
+
 	// TODO if there are v3 authServices, still remove any that are not `v3`
 
 	// Also loop over the annotations and remove authservices that are not v3. We do
@@ -87,12 +107,26 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 			for _, obj := range list {
 				switch annotationObj := obj.(type) {
 				case *v3alpha1.AuthService:
-					// This _is_ an AuthService, so we'll check its protocol version.
-					// Anything other than v3 gets tossed.
-					if annotationObj.Spec.ProtocolVersion == "v3" {
-						// Whoa, it's a v3! Keep it.
-						editedList = append(editedList, annotationObj)
+					if IsLocalhost8500(annotationObj.Spec.AuthService) {
+						// If it does point at localhost, make sure it is v3, otherwise we need to inject the synthetic AuthService
+						if annotationObj.Spec.ProtocolVersion == "v3" {
+							injectSyntheticAuth = false
+							if annotationObj.ObjectMeta.Name == "synthetic-edge-stack-auth" {
+								syntheticAuthExists = true
+							} else {
+								authServices = append(authServices, annotationObj)
+								editedList = append(editedList, annotationObj)
+							}
+						} else {
+							// In the event that there is an AuthService that does not have protocol_version: v3
+							// Then we use the spec of that AuthService as the Synthetic v3 AuthService we will inject later
+							syntheticAuth.Spec = annotationObj.Spec
+							syntheticAuth.Spec.ProtocolVersion = "v3"
+						}
+					} else {
+						// By default we keep any custom AuthServices that do not point at localhost
 						authServices = append(authServices, annotationObj)
+						editedList = append(editedList, annotationObj)
 						injectSyntheticAuth = false
 					}
 				default:
