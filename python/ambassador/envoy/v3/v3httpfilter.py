@@ -273,6 +273,7 @@ def V3HTTPFilter_authv1(auth: IRAuth, v3config: 'V3Config'):
                     },
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
+                'include_peer_certificate': True,
                 'transport_api_version': protocol_version.replace("alpha", "").upper(),
             }
         }
