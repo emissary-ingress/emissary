@@ -5,6 +5,7 @@ from kat.harness import Query, EDGE_STACK
 from abstract_tests import AmbassadorTest, HTTP, ServiceType, Node
 from tests.selfsigned import TLSCerts
 from tests.integration.manifests import namespace_manifest
+from tests.utils import create_crl_pem_b64
 
 
 bug_404_routes = True              # Do we erroneously send 404 responses directly instead of redirect-to-tls first?
@@ -271,6 +272,87 @@ service: {self.target.path.fqdn}
             query.client_cert_required = True
             query.ca_cert = TLSCerts["master.datawire.io"].pubcert
             yield (r[0], query)
+
+
+class ClientCertificateAuthenticationContextCRL(AmbassadorTest):
+
+    def init(self):
+        self.xfail = "FIXME: IHA"  # This test should cover TLSContext with a crl_secret
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return self.format(f"""
+---
+apiVersion: v1
+metadata:
+  name: ccauthctxcrl-client-secret
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+data:
+  tls.crt: {TLSCerts["master.datawire.io"].k8s_crt}
+kind: Secret
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ccauthctxcrl-server-secret
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: {TLSCerts["ambassador.example.com"].k8s_crt}
+  tls.key: {TLSCerts["ambassador.example.com"].k8s_key}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ccauthctxcrl-crl-secret
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: Opaque
+data:
+  crl.pem: {create_crl_pem_b64(TLSCerts["master.datawire.io"].pubcert, TLSCerts["master.datawire.io"].privkey, [TLSCerts["presto.example.com"].pubcert])}
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: ccauthctxcrl-tls
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [{self.ambassador_id}]
+  hosts: [ "*" ]
+  secret: ccauthctxcrl-server-secret
+  ca_secret: ccauthctxcrl-client-secret
+  crl_secret: ccauthctxcrl-crl-secret
+  cert_required: True
+""") + super().manifests()
+
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
+        yield self, self.format("""
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+name:  {self.target.path.k8s}
+prefix: /
+service: {self.target.path.fqdn}
+hostname: "*"
+""")
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        yield Query(self.url(self.name + "/"), insecure=True,
+                    client_crt=TLSCerts["presto.example.com"].pubcert,
+                    client_key=TLSCerts["presto.example.com"].privkey,
+                    client_cert_required=True,
+                    ca_cert=TLSCerts["master.datawire.io"].pubcert,
+                    error=[ "tls: revoked certificate" ])
+
+    def requirements(self):
+        yield ("pod", self.path.k8s)
 
 
 class TLSOriginationSecret(AmbassadorTest):

@@ -2,7 +2,7 @@ from typing import Generator, Tuple, Union
 
 import json
 
-from kat.harness import Query
+from kat.harness import Query, EDGE_STACK
 
 from abstract_tests import AmbassadorTest, HTTP, AHTTP, Node
 
@@ -344,6 +344,8 @@ config:
 class TracingExternalAuthTest(AmbassadorTest):
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
 
@@ -667,8 +669,6 @@ class TracingTestZipkinV1(AmbassadorTest):
     """
 
     def init(self):
-        if Config.envoy_api_version == "V3":
-            self.skip_node = True
         self.target = HTTP()
 
     def manifests(self) -> str:

@@ -2,10 +2,34 @@ package entrypoint
 
 import (
 	"context"
-	//"github.com/datawire/dlib/derror"
+
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/emissaryutil"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/datawire/dlib/dlog"
 )
+
+// Iterates over the annotations in a snapshot to check if any AuthServices are present.
+func annotationsContainAuthService(annotations map[string]snapshot.AnnotationList) bool {
+	for _, list := range annotations {
+		for _, obj := range list {
+			switch obj.(type) {
+			case *v3alpha1.AuthService:
+				return true
+			default:
+				continue
+			}
+		}
+	}
+	return false
+}
+
+// Checks if the provided string is a loopback IP address with port 8500
+func IsLocalhost8500(svcStr string) bool {
+	_, hostname, port, err := emissaryutil.ParseServiceName(svcStr)
+	return err == nil && port == 8500 && emissaryutil.IsLocalhost(hostname)
+}
 
 // This is a gross hack to remove all AuthServices using protocol_version: v2 only when running Edge-Stack and then inject an
 // AuthService with protocol_version: v3 if needed. The purpose of this hack is to prevent Edge-Stack 2.3 from
@@ -18,7 +42,13 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 	} else if !isEdgeStack {
 		return nil
 	}
+	// We also dont want to do anything with AuthServices if the Docker demo mode is running
+	if envbool("AMBASSADOR_DEMO_MODE") {
+		return nil
+	}
 
+	// Construct a synthetic AuthService to be injected if we dont find any valid AuthServices
+	injectSyntheticAuth := true
 	syntheticAuth := &v3alpha1.AuthService{
 		TypeMeta: kates.TypeMeta{
 			Kind:       "AuthService",
@@ -39,14 +69,85 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 	var authServices []*v3alpha1.AuthService
 	syntheticAuthExists := false
 	for _, authService := range sh.k8sSnapshot.AuthServices {
-		// Keep any AuthServices already using protocol_version: v3
-		if authService.ObjectMeta.Name == "synthetic-edge-stack-auth" {
-			syntheticAuthExists = true
-		} else if authService.Spec.ProtocolVersion == "v3" {
+		// check if the AuthService points at 127.0.0.1:8500 (edge-stack)
+		if IsLocalhost8500(authService.Spec.AuthService) {
+			// If it does point at localhost, make sure it is v3, otherwise we need to inject the synthetic AuthService
+			if authService.Spec.ProtocolVersion == "v3" {
+				injectSyntheticAuth = false
+				if authService.ObjectMeta.Name == "synthetic-edge-stack-auth" {
+					syntheticAuthExists = true
+				} else {
+					authServices = append(authServices, authService)
+				}
+			} else {
+				// In the event that there is an AuthService that does not have protocol_version: v3
+				// Then we use the spec of that AuthService as the Synthetic v3 AuthService we will inject later
+				syntheticAuth.Spec = authService.Spec
+				syntheticAuth.Spec.ProtocolVersion = "v3"
+			}
+		} else {
+			// By default we keep any custom AuthServices that do not point at localhost
 			authServices = append(authServices, authService)
+			injectSyntheticAuth = false
 		}
 	}
-	if len(authServices) == 0 && !syntheticAuthExists {
+
+	// TODO if there are v3 authServices, still remove any that are not `v3`
+
+	// Also loop over the annotations and remove authservices that are not v3. We do
+	// this by looping over each entry in the annotations map, removing all the non-v3
+	// AuthService entries, and then removing any keys that end up with empty lists.
+
+	// OK. Loop over all the keys and their corrauthServicesesponding lists of annotations...
+	if annotationsContainAuthService(sh.k8sSnapshot.Annotations) {
+		for key, list := range sh.k8sSnapshot.Annotations {
+			// ...and build up our edited list of things.
+			editedList := snapshot.AnnotationList{}
+
+			for _, obj := range list {
+				switch annotationObj := obj.(type) {
+				case *v3alpha1.AuthService:
+					if IsLocalhost8500(annotationObj.Spec.AuthService) {
+						// If it does point at localhost, make sure it is v3, otherwise we need to inject the synthetic AuthService
+						if annotationObj.Spec.ProtocolVersion == "v3" {
+							injectSyntheticAuth = false
+							if annotationObj.ObjectMeta.Name == "synthetic-edge-stack-auth" {
+								syntheticAuthExists = true
+							} else {
+								authServices = append(authServices, annotationObj)
+								editedList = append(editedList, annotationObj)
+							}
+						} else {
+							// In the event that there is an AuthService that does not have protocol_version: v3
+							// Then we use the spec of that AuthService as the Synthetic v3 AuthService we will inject later
+							syntheticAuth.Spec = annotationObj.Spec
+							syntheticAuth.Spec.ProtocolVersion = "v3"
+						}
+					} else {
+						// By default we keep any custom AuthServices that do not point at localhost
+						authServices = append(authServices, annotationObj)
+						editedList = append(editedList, annotationObj)
+						injectSyntheticAuth = false
+					}
+				default:
+					// This isn't an AuthService at all, so we'll keep it.
+					editedList = append(editedList, annotationObj)
+				}
+			}
+
+			// Once here, is our editedList is empty?
+			if len(editedList) == 0 {
+				// Yes. Delete the whole key for this list.
+				delete(sh.k8sSnapshot.Annotations, key)
+			} else {
+				// Nope, not empty. Save the edited list.
+				sh.k8sSnapshot.Annotations[key] = editedList
+			}
+		}
+	}
+
+	if injectSyntheticAuth {
+		dlog.Debugf(ctx, "[WATCHER]: No valid AuthServices with protocol_version: v3 detected, injecting Synthetic AuthService")
 		// There are no valid AuthServices with protocol_version: v3. A synthetic one needs to be injected.
 		authServices = append(authServices, syntheticAuth)
 
@@ -66,17 +167,23 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 
 		*deltas = newDeltas
 		sh.k8sSnapshot.AuthServices = authServices
-	} else if len(authServices) >= 1 && syntheticAuthExists {
-		// One or more Valid AuthServices are present. The synthetic AuthService exists and needs to be removed now.
+	} else if len(authServices) >= 1 {
+		// Write back the list of valid AuthServices.
 		sh.k8sSnapshot.AuthServices = authServices
-		var newDeltas []*kates.Delta
-		*deltas = append(*deltas, &kates.Delta{
-			TypeMeta:   syntheticAuth.TypeMeta,
-			ObjectMeta: syntheticAuth.ObjectMeta,
-			DeltaType:  kates.ObjectDelete,
-		})
 
-		*deltas = newDeltas
+		// The synthetic AuthService needs to be removed since one or more valid AuthServices are present.
+		if syntheticAuthExists {
+			dlog.Debugf(ctx, "[WATCHER]: Valid AuthServices using protocol_version: v3 detected alongside the Synthetic AuthService, removing Synthetic...")
+			// One or more Valid AuthServices are present. The synthetic AuthService exists and needs to be removed now.
+			var newDeltas []*kates.Delta
+			*deltas = append(*deltas, &kates.Delta{
+				TypeMeta:   syntheticAuth.TypeMeta,
+				ObjectMeta: syntheticAuth.ObjectMeta,
+				DeltaType:  kates.ObjectDelete,
+			})
+
+			*deltas = newDeltas
+		}
 	}
 
 	return nil

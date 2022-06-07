@@ -50,7 +50,8 @@ import (
 // Differences from kubectl:
 //
 //  - You can also use a Client to update the status of a resource.
-//  - The Client provides read/write coherence (more about this below).
+//  - The Client struct cannot perform an apply operation.
+//  - The Client provides Read/write coherence (more about this below).
 //  - The Client provides load shedding via event coalescing for watches.
 //  - The Client provides bootstrapping of multiple watches.
 //
@@ -208,12 +209,6 @@ func InCluster() bool {
 	return os.Getenv("KUBERNETES_SERVICE_HOST") != "" &&
 		os.Getenv("KUBERNETES_SERVICE_PORT") != "" &&
 		err == nil && !fi.IsDir()
-}
-
-// CurrentNamespace returns the namespace that is used if none is otherwise specified.
-func (c *Client) CurrentNamespace() (string, error) {
-	ns, _, err := c.config.ToRawKubeConfigLoader().Namespace()
-	return ns, err
 }
 
 // DynamicInterface is an accessor method to the k8s dynamic client
@@ -586,15 +581,6 @@ func (lw *lw) Watch(opts ListOptions) (watch.Interface, error) {
 }
 
 // ==
-
-// IsNamespaced returns whether a (fully-qualified) GVK is namespaced.
-func (c *Client) IsNamespaced(gvk GroupVersionKind) (bool, error) {
-	mapping, err := c.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
-	if err != nil {
-		return false, err
-	}
-	return mapping.Scope.Name() == meta.RESTScopeNameNamespace, nil
-}
 
 func (c *Client) cliFor(mapping *meta.RESTMapping, namespace string) dynamic.ResourceInterface {
 	cli := c.cli.Resource(mapping.Resource)

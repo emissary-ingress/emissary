@@ -264,6 +264,29 @@ func (d MillisecondDuration) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.Milliseconds())
 }
 
+// +kubebuilder:validation:Type="integer"
+type SecondDuration struct {
+	time.Duration `json:"-"`
+}
+
+func (d *SecondDuration) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		d.Duration = 0
+		return nil
+	}
+
+	var intval int64
+	if err := json.Unmarshal(data, &intval); err != nil {
+		return err
+	}
+	d.Duration = time.Duration(intval) * time.Second
+	return nil
+}
+
+func (d SecondDuration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(int64(d.Seconds()))
+}
+
 // UntypedDict is relatively opaque as a Go type, but it preserves its
 // contents in a roundtrippable way.
 //

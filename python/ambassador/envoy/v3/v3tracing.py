@@ -42,18 +42,12 @@ class V3Tracing(dict):
         # appended above.
         if name.lower() == 'envoy.zipkin':
             driver_config['@type'] = 'type.googleapis.com/envoy.config.trace.v3.ZipkinConfig'
-            # The collector_endpoint is mandatory now.
-            if not driver_config.get('collector_endpoint'):
-                driver_config['collector_endpoint'] = '/api/v2/spans'
-
-            # This is also now required if you don't want your listener rejected
+            # In xDS v3 the old Zipkin-v1 API can only be specified as the implicit default; it
+            # cannot be specified explicitly.
             # https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.12.0.html?highlight=http_json_v1
             # https://github.com/envoyproxy/envoy/blob/ae1ed1fa74f096dabe8dd5b19fc70333621b0309/api/envoy/config/trace/v3/zipkin.proto#L27
-            if 'collector_endpoint_version' not in driver_config:
-                driver_config['collector_endpoint_version'] = 'HTTP_JSON'
-            # Make 128-bit traceid the default
-            if not 'trace_id_128bit' in driver_config:
-                driver_config['trace_id_128bit'] = True
+            if driver_config['collector_endpoint_version'] == 'HTTP_JSON_V1':
+                del driver_config['collector_endpoint_version']
         elif name.lower() == 'envoy.tracers.datadog':
             driver_config['@type'] = 'type.googleapis.com/envoy.config.trace.v3.DatadogConfig'
             if not driver_config.get('service_name'):

@@ -49,14 +49,15 @@ jobs:
             git push --set-upstream origin "$merge_branch"
           fi
 
-          if url=$(gh pr view --json=url --jq=.url); then
+          url=$(gh pr list --limit=1 --head="$merge_branch" --state=open --json=url --jq='.[0].url')
+          if [[ -n "$url" ]]; then
             echo "::set-output name=verb::Updated"
           else
             gh pr create \
               --title="[${next_ver}] Repatriate from ${this_ver}" \
               --body="This PR merges ${this_branch} in to ${next_branch}." \
               --base="$next_branch"
-            url=$(gh pr view --json=url --jq=.url)
+            url=$(gh pr list --limit=1 --head="$merge_branch" --state=open --json=url --jq='.[0].url')
             echo "::set-output name=verb::Created"
           fi
           echo "::set-output name=pr_url::${url}"
@@ -73,3 +74,5 @@ jobs:
             [{ "title": "Repository", "value": "${{ github.repository }}", "short": true },
              { "title": "Branch", "value": "${{ github.ref }}", "short": true},
              { "title": "Pull Request", "value": "${{ steps.step-create-pr.outputs.pr_url }}"}]
+      - uses: ./.github/actions/after-job
+        if: always()

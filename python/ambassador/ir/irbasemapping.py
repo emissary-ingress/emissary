@@ -1,8 +1,9 @@
 import json
+import re
 
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
-from urllib.parse import scheme_chars, urlparse
+from urllib.parse import scheme_chars, urlparse, quote as urlquote, unquote as urlunquote
 
 from ..config import Config
 from ..utils import dump_json
@@ -18,6 +19,8 @@ def would_confuse_urlparse(url: str) -> bool:
     instead of as a URL ("[scheme:]//authority[:port]/path").  We don't want to
     interpret "myhost:8080" as "ParseResult(scheme='myhost', path='8080')"!
 
+    Note: This has a Go equivalent in github.com/datawire/ambassador/v2/pkg/emissaryutil.  Please
+    keep them in-sync.
     """
     if url.find(':') > 0 and url.lstrip(scheme_chars).startswith("://"):
         # has a scheme
@@ -28,12 +31,20 @@ def would_confuse_urlparse(url: str) -> bool:
     return True
 
 def normalize_service_name(ir: 'IR', in_service: str, mapping_namespace: Optional[str], resolver_kind: str, rkey: Optional[str]=None) -> str:
+    """
+    Note: This has a Go equivalent in github.com/datawire/ambassador/v2/pkg/emissaryutil.  Please
+    keep them in-sync.
+    """
     try:
         parsed = urlparse(f"//{in_service}" if would_confuse_urlparse(in_service) else in_service)
 
-        hostname = parsed.hostname
-        if not hostname:
+        if not parsed.hostname:
             raise ValueError("No hostname")
+        # urlib.parse.unquote is permissive, but we want to be strict
+        bad_seqs = [seq for seq in re.findall(r'%.{,2}', parsed.hostname) if not re.fullmatch(r'%[0-9a-fA-F]{2}', seq)]
+        if bad_seqs:
+            raise ValueError(f"Invalid percent-escape in hostname: {bad_seqs[0]}")
+        hostname = urlunquote(parsed.hostname)
         scheme = parsed.scheme
         port = parsed.port
     except ValueError as e:
@@ -54,12 +65,14 @@ def normalize_service_name(ir: 'IR', in_service: str, mapping_namespace: Optiona
     # Kubernetes Resolvers _require_ subdomains to correctly handle namespaces.
     want_qualified = not ir.ambassador_module.use_ambassador_namespace_for_service_resolution and resolver_kind.startswith('Kubernetes')
 
-    is_qualified = "." in hostname or "localhost" == hostname
+    is_qualified = "." in hostname or ":" in hostname or "localhost" == hostname
 
     if mapping_namespace and mapping_namespace != ir.ambassador_namespace and want_qualified and not is_qualified:
         hostname += "."+mapping_namespace
 
-    out_service = hostname
+    out_service = urlquote(hostname, safe="!$&'()*+,;=:[]<>\"") # match 'encodeHost' behavior of Go stdlib net/url/url.go
+    if ':' in out_service:
+        out_service = f"[{out_service}]"
     if scheme:
         out_service = f"{scheme}://{out_service}"
     if port:
@@ -114,6 +127,20 @@ class IRBaseMapping (IRResource):
 
     @classmethod
     def make_cache_key(cls, kind: str, name: str, namespace: str, version: str="v2") -> str:
+        # Why is this split on the name necessary?
+        # the name of a Mapping when we fetch it from the aconf will match the metadata.name of
+        # the Mapping that the config comes from _only if_ it is the only Mapping with that exact name.
+        # If there are multiple Mappings with the same name in different namespaces then the name
+        # becomes `name.namespace` for all mappings of the same name after the first one.
+        # The first one just gets to be `name` for "reasons".
+        #
+        # This behaviour is needed by other places in the code, but for the cache key, we need it to match the
+        # below format regardless of how many Mappings there are with that name. This is necessary for the cache
+        # specifically because there are places where we interact with the cache that have access to the
+        # metadata.name and metadata.namespace of the Mapping, but do not have access to the aconf representation
+        # of the Mapping name and thus have no way of knowing whether a specific name is mangled due to multiple
+        # Mappings sharing the same name or not.
+        name = name.split(".")[0]
         return f"{kind}-{version}-{name}-{namespace}"
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:

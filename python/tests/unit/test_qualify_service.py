@@ -31,6 +31,10 @@ def qualify_service_name(ir: 'IR', service: str, namespace: Optional[str], rkey:
     return normalize_service_name(ir, service, namespace, 'KubernetesTestResolver', rkey=rkey)
 
 def test_qualify_service():
+    """
+    Note: This has a Go equivalent in github.com/datawire/ambassador/v2/pkg/emissaryutil.  Please
+    keep them in-sync.
+    """
     aconf = Config()
 
     fetcher = ResourceFetcher(logger, aconf)
@@ -64,6 +68,17 @@ def test_qualify_service():
     assert qualify_service_name(ir, "backoffice.otherns:80", None) == "backoffice.otherns:80"
     assert qualify_service_name(ir, "backoffice.otherns:80", "default") == "backoffice.otherns:80"
     assert qualify_service_name(ir, "backoffice.otherns:80", "otherns") == "backoffice.otherns:80"
+
+    assert qualify_service_name(ir, "[fe80::e022:9cff:fecc:c7c4]", None) == "[fe80::e022:9cff:fecc:c7c4]"
+    assert qualify_service_name(ir, "[fe80::e022:9cff:fecc:c7c4]", "default") == "[fe80::e022:9cff:fecc:c7c4]"
+    assert qualify_service_name(ir, "[fe80::e022:9cff:fecc:c7c4]", "other") == "[fe80::e022:9cff:fecc:c7c4]"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4]", None) == "https://[fe80::e022:9cff:fecc:c7c4]"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4]", "default") == "https://[fe80::e022:9cff:fecc:c7c4]"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4]", "other") == "https://[fe80::e022:9cff:fecc:c7c4]"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4]:443", None) == "https://[fe80::e022:9cff:fecc:c7c4]:443"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4]:443", "default") == "https://[fe80::e022:9cff:fecc:c7c4]:443"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4]:443", "other") == "https://[fe80::e022:9cff:fecc:c7c4]:443"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4%25zone]:443", "other") == "https://[fe80::e022:9cff:fecc:c7c4%25zone]:443"
 
     assert normalize_service_name(ir, "backoffice:80", None, 'ConsulResolver') == "backoffice:80"
     assert normalize_service_name(ir, "backoffice:80", "default", 'ConsulResolver') == "backoffice:80"
@@ -252,12 +267,13 @@ def test_qualify_service():
     assert normalize_service_name(ir, "https://fe80::e022:9cff:fecc:c7c4", "otherns", 'ConsulResolver') == "https://fe80::e022:9cff:fecc:c7c4"
     assert normalize_service_name(ir, "https://bad-service:-1", "otherns", 'ConsulResolver') == "https://bad-service:-1"
     assert normalize_service_name(ir, "https://bad-service:70000", "otherns", 'ConsulResolver') == "https://bad-service:70000"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4%zone]:443", "other") == "https://[fe80::e022:9cff:fecc:c7c4%zone]:443"
 
     errors = ir.aconf.errors
     assert "-global-" in errors
     errors = errors["-global-"]
 
-    assert len(errors) == 16
+    assert len(errors) == 17
 
     # Ugg, different versions of Python have different error messages.  Let's recognize the "Port could not be cast to
     # integer value as" to keep pytest working on peoples up-to-date laptops with Python 3.8, and let's recognize
@@ -317,6 +333,9 @@ def test_qualify_service():
 
     assert not errors[15]["ok"]
     assert errors[15]["error"] == "Malformed service 'https://bad-service:70000': Port out of range 0-65535"
+
+    assert not errors[16]["ok"]
+    assert errors[16]["error"] == "Malformed service 'https://[fe80::e022:9cff:fecc:c7c4%zone]:443': Invalid percent-escape in hostname: %zo"
 
 if __name__ == '__main__':
     pytest.main(sys.argv)

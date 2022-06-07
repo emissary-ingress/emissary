@@ -157,6 +157,9 @@ spec:
               add_linkerd_headers:
                 type: boolean
               allow_request_body:
+                description: 'TODO(lukeshu): In v3alpha2, drop allow_request_body
+                  in favor of include_body. allow_request_body has been deprecated
+                  for a long time.'
                 type: boolean
               allowed_authorization_headers:
                 items:
@@ -872,6 +875,8 @@ spec:
                     type: integer
                   sni:
                     type: string
+                  v3CRLSecret:
+                    type: string
                 type: object
               tlsContext:
                 description: "Name of the TLSContext the Host resource is linked with.
@@ -1188,6 +1193,8 @@ spec:
                     items:
                       type: string
                     type: array
+                  crl_secret:
+                    type: string
                   ecdh_curves:
                     items:
                       type: string
@@ -1769,6 +1776,11 @@ spec:
                 type: boolean
               service:
                 type: string
+              v3ProtocolVersion:
+                enum:
+                - v2
+                - v3
+                type: string
               v3StatsName:
                 type: string
             type: object
@@ -1829,9 +1841,20 @@ spec:
               flush_interval_byte_size:
                 type: integer
               flush_interval_time:
+                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}s`/`SecondDuration`
+                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               grpc:
+                description: 'TODO(lukeshu): In v3alpha2, drop this LogService.spec.grpc.  Due
+                  to sloppy implementation it is required to be present, and required
+                  to be ''true''.  It is silly to have a required field with only
+                  one valid value, we should just remove the thing.'
                 type: boolean
+              protocol_version:
+                enum:
+                - v2
+                - v3
+                type: string
               service:
                 type: string
               stats_name:
@@ -3446,6 +3469,8 @@ spec:
                 type: boolean
               sni:
                 type: string
+              v3CRLSecret:
+                type: string
             type: object
             x-kubernetes-preserve-unknown-fields: true
         type: object
@@ -3494,6 +3519,8 @@ spec:
                 items:
                   type: string
                 type: array
+              crl_secret:
+                type: string
               ecdh_curves:
                 items:
                   type: string

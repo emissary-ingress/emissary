@@ -27,6 +27,7 @@ class SecretProcessor (ManagedKubernetesProcessor):
         'cert-chain.pem',  # type="istio.io/key-and-cert"
         'key.pem',         # type="istio.io/key-and-cert"
         'root-cert.pem',   # type="istio.io/key-and-cert"
+        'crl.pem',         # type="Opaque", used for TLS CRL
     ]
 
     def __init__(self, manager: ResourceManager) -> None:
