@@ -74,24 +74,26 @@ class IRTracing(IRResource):
         # envoyv2 untyped "config" field. We actually use a "typed_config" in the final Envoy
         # config, see envoy/v2/v2tracer.py.
         driver_config = config.get("config", {})
-        # fill defaults
-        if not driver_config.get('collector_endpoint'):
-            driver_config['collector_endpoint'] = {
-                'V2': '/api/v1/spans',
-                'V3': '/api/v2/spans',
-            }[aconf.envoy_api_version]
-        if not driver_config.get('collector_endpoint_version'):
-            driver_config['collector_endpoint_version'] = {
-                'V2': 'HTTP_JSON_V1',
-                'V3': 'HTTP_JSON',
-            }[aconf.envoy_api_version]
-        if not 'trace_id_128bit' in driver_config:
-            # Make 128-bit traceid the default
-            driver_config['trace_id_128bit'] = True
-        # validate
-        if driver_config['collector_endpoint_version'] not in ['HTTP_JSON_V1', 'HTTP_JSON', 'HTTP_PROTO']:
-            self.post_error(RichStatus.fromError("collector_endpoint_version must be one of 'HTTP_JSON_V1, HTTP_JSON, HTTP_PROTO'"))
-            return False
+
+        if driver == "zipkin":
+            # fill zipkin defaults
+            if not driver_config.get('collector_endpoint'):
+                driver_config['collector_endpoint'] = {
+                    'V2': '/api/v1/spans',
+                    'V3': '/api/v2/spans',
+                }[aconf.envoy_api_version]
+            if not driver_config.get('collector_endpoint_version'):
+                driver_config['collector_endpoint_version'] = {
+                    'V2': 'HTTP_JSON_V1',
+                    'V3': 'HTTP_JSON',
+                }[aconf.envoy_api_version]
+            if not 'trace_id_128bit' in driver_config:
+                # Make 128-bit traceid the default
+                driver_config['trace_id_128bit'] = True
+            # validate
+            if driver_config['collector_endpoint_version'] not in ['HTTP_JSON_V1', 'HTTP_JSON', 'HTTP_PROTO']:
+                self.post_error(RichStatus.fromError("collector_endpoint_version must be one of 'HTTP_JSON_V1, HTTP_JSON, HTTP_PROTO'"))
+                return False
 
         # OK, we have a valid config.
         self.sourced_by(config)

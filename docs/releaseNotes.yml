@@ -32,6 +32,18 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 2.3.1
+    date: "TBD"
+    notes:
+      - title: fix regression in tracing service config
+        type: bugfix
+        body: >-
+          A regression was introduced in 2.3.0 that leaked zipkin default config fields into the configuration
+          for the other drivers (lightstep, etc...). This caused $productName$ to crash on startup. This issue has been resolved
+          to ensure that the defaults are only applied when driver is <code>zipkin</code>
+        github:
+          - title: "#4267"
+            link: https://github.com/emissary-ingress/emissary/issues/4267
   - version: 2.3.0
     date: '2022-06-06'
     notes:

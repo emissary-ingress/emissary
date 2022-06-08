@@ -82,6 +82,18 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [2.3.1] TBD
+[2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: A regression was introduced in 2.3.0 that leaked zipkin default config fields into the
+  configuration for the other drivers (lightstep, etc...). This caused Emissary-ingress to crash on
+  startup. This issue has been resolved to ensure that the defaults are only applied when driver is
+  `zipkin` ([#4267])
+
+[#4267]: https://github.com/emissary-ingress/emissary/issues/4267
+
 ## [2.3.0] June 06, 2022
 [2.3.0]: https://github.com/emissary-ingress/emissary/compare/v2.2.2...v2.3.0
 
