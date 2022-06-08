@@ -45,23 +45,27 @@ type TraceConfig struct {
 	ServiceName              string            `json:"service_name,omitempty"`
 }
 
+// TracingCustomTagTypeLiteral provides a data structure for capturing envoy's `type.tracing.v3.CustomTag.Literal`
 type TracingCustomTagTypeLiteral struct {
 	// +kubebuilder:validation:Required
 	Value string `json:"value"`
 }
 
+// TracingCustomTagTypeEnvironment provides a data structure for capturing envoy's `type.tracing.v3.CustomTag.Environment`
 type TracingCustomTagTypeEnvironment struct {
 	// +kubebuilder:validation:Required
 	Name         string  `json:"name"`
 	DefaultValue *string `json:"default_value,omitempty"`
 }
 
+// TracingCustomTagTypeRequestHeader provides a data structure for capturing envoy's `type.tracing.v3.CustomTag.Header`
 type TracingCustomTagTypeRequestHeader struct {
 	// +kubebuilder:validation:Required
 	Name         string  `json:"name"`
 	DefaultValue *string `json:"default_value,omitempty"`
 }
 
+// TracingCustomTag provides a data structure for capturing envoy's `type.tracing.v3.CustomTag`
 type TracingCustomTag struct {
 	// +kubebuilder:validation:Required
 	Tag string `json:"tag"`

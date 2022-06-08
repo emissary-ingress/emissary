@@ -667,7 +667,7 @@ func Convert_v2_TracingServiceSpec_To_v3alpha1_TracingServiceSpec(in *TracingSer
 	// WARNING: in.TagHeaders requires manual conversion: does not exist in peer-type
 	// if only tag_headers are set, translate to custom_tags.
 	// if both are set, ignore tag_headers.
-	if in.TagHeaders != nil &&  in.V3CustomTags == nil {
+	if in.TagHeaders != nil && in.V3CustomTags == nil {
 		out.CustomTags = []v3alpha1.TracingCustomTag{}
 		for _, tag := range in.TagHeaders {
 			out.CustomTags = append(out.CustomTags, v3alpha1.TracingCustomTag{
