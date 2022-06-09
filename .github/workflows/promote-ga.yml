@@ -31,8 +31,11 @@ jobs:
           make release/promote-oss/to-ga
       - uses: ./.github/actions/after-job
         if: always()
+      - id: check-slack-webhook
+        name: Assign slack webhook variable
+        run: echo '::set-output name=slack_webhook_url::${{secrets.SLACK_WEBHOOK_URL}}'
       - name: Slack notification
-        if: secrets.SLACK_WEBHOOK_URL && always()
+        if: steps.check-slack-webhook.outputs.slack_webhook_url && always()
         uses: edge/simple-slack-notify@master
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -67,8 +70,11 @@ jobs:
         id: step-create-gh-release
         run: |
           make release/ga/create-gh-release
+      - id: check-slack-webhook
+        name: Assign slack webhook variable
+        run: echo '::set-output name=slack_webhook_url::${{secrets.SLACK_WEBHOOK_URL}}'
       - name: Slack notification
-        if: secrets.SLACK_WEBHOOK_URL && always()
+        if: steps.check-slack-webhook.outputs.slack_webhook_url && always()
         uses: edge/simple-slack-notify@master
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
