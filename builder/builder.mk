@@ -342,7 +342,7 @@ push-dev: docker/$(LCNAME).docker.tag.local
 	docker tag $$(cat docker/$(LCNAME).docker) $(DEV_REGISTRY)/$(LCNAME):$(subst +,-,$(BUILD_VERSION))
 	docker push $(DEV_REGISTRY)/$(LCNAME):$(subst +,-,$(BUILD_VERSION))
 
-ifneq ($(IS_PRIVATE),,)
+ifneq ($(IS_PRIVATE),)
 	@echo '$@: not pushing to S3 because this is a private repo'
 else
 	@printf "$(CYN)==> $(GRN)recording $(BLU)$$(git rev-parse HEAD)$(GRN) => $(BLU)$(subst +,-,$(BUILD_VERSION))$(GRN) in S3...$(END)\n" ;\
