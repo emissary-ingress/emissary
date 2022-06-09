@@ -342,12 +342,12 @@ push-dev: docker/$(LCNAME).docker.tag.local
 	docker tag $$(cat docker/$(LCNAME).docker) $(DEV_REGISTRY)/$(LCNAME):$(subst +,-,$(BUILD_VERSION))
 	docker push $(DEV_REGISTRY)/$(LCNAME):$(subst +,-,$(BUILD_VERSION))
 
+ifneq ($(IS_PRIVATE),,)
+	@echo '$@: not pushing to S3 because this is a private repo'
+else
 	@printf "$(CYN)==> $(GRN)recording $(BLU)$$(git rev-parse HEAD)$(GRN) => $(BLU)$(subst +,-,$(BUILD_VERSION))$(GRN) in S3...$(END)\n" ;\
 	echo '$(subst +,-,$(BUILD_VERSION))' | aws s3 cp - s3://datawire-static-files/dev-builds/$$(git rev-parse HEAD)
 
-ifneq ($(IS_PRIVATE),,)
-	@echo "push-dev: not pushing manifests because this is a private repo"
-else
 	{ chartsuffix='$(subst +,-,$(BUILD_VERSION))'; \
 	  chartsuffix=$${chartsuffix#*-}; \
 	  $(MAKE) \
