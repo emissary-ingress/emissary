@@ -266,13 +266,6 @@ push-dev: docker/$(LCNAME).docker.tag.local
 	@printf '$(CYN)==> $(GRN)pushing $(BLU)%s$(GRN) as $(BLU)$(GRN)...$(END)\n' '$(LCNAME)' '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
 	docker tag $$(cat docker/$(LCNAME).docker) '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
 	docker push '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
-
-ifneq ($(IS_PRIVATE),)
-	@echo '$@: not pushing to S3 because this is a private repo'
-else
-	@printf '$(CYN)==> $(GRN)recording $(BLU)%s$(GRN) => $(BLU)%s$(GRN) in S3...$(END)\n' "$$(git rev-parse HEAD)" $(patsubst v%,%,$(VERSION))
-	echo '$(patsubst v%,%,$(VERSION))' | aws s3 cp - 's3://$(AWS_S3_BUCKET)/dev-builds/'"$$(git rev-parse HEAD)"
-endif
 .PHONY: push-dev
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
@@ -511,18 +504,12 @@ release/promote-oss/.main: $(tools/docker-promote)
 	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(patsubst v%,%,$(VERSION))" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
 .PHONY: release/promote-oss/.main
 
-release/promote-oss/to-rc:
+release/promote-oss/to-rc: $(tools/devversion)
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION=%s does not look like an RC tag\n' "$(VERSION)"; exit 1)
 	@set -e; { \
-	  commit=$$(git rev-parse HEAD) ;\
-	  $(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key dev-builds ;\
-	  dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
-	  if [ -z "$$dev_version" ]; then \
-	    printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
-	    exit 1 ;\
-	  fi ;\
-	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
+	  dev_version=$$($(tools/devversion)); \
+	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN).$(END)\n"; \
 	  $(MAKE) release/promote-oss/.main \
 	    PROMOTE_FROM_VERSION="$$dev_version" \
 	    PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
@@ -540,18 +527,12 @@ endif
 
 # To be run from a checkout at the tag you are promoting _from_.
 # This is normally run from CI by creating the GA tag.
-release/promote-oss/to-ga:
+release/promote-oss/to-ga: $(tools/devversion)
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: VERSION=%s does not look like a GA tag\n' "$(VERSION)"; exit 1)
 	@set -e; { \
-	  commit=$$(git rev-parse HEAD) ;\
-	  $(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key dev-builds ; \
-	  dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
-	  if [ -z "$$dev_version" ]; then \
-	    printf "$(RED)==> found no passed dev version for $$commit in S3...$(END)\n" ;\
-	    exit 1 ;\
-	  fi ;\
-	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
+	  dev_version=$$($(tools/devversion)); \
+	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN).$(END)\n"; \
 	  $(MAKE) release/promote-oss/.main \
 	    PROMOTE_FROM_VERSION="$$dev_version" \
 	    PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
