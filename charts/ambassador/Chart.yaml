@@ -1,9 +1,9 @@
 apiVersion: v1
-appVersion: 1.14.4-rc.0
-ossVersion: 1.14.4-rc.0
+appVersion: 1.14.4-rc.1
+ossVersion: 1.14.4-rc.1
 description: A Helm chart for Datawire Ambassador
 name: ambassador
-version: 6.9.5-rc.0
+version: 6.9.5-rc.1
 icon: https://www.getambassador.io/images/logo.png
 home: https://www.getambassador.io/
 sources:
