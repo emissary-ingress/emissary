@@ -32,7 +32,7 @@ jobs:
       - uses: ./.github/actions/after-job
         if: always()
       - name: Slack notification
-        if: always()
+        if: secrets.SLACK_WEBHOOK_URL && always()
         uses: edge/simple-slack-notify@master
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -68,7 +68,7 @@ jobs:
         run: |
           make release/ga/create-gh-release
       - name: Slack notification
-        if: always()
+        if: secrets.SLACK_WEBHOOK_URL && always()
         uses: edge/simple-slack-notify@master
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

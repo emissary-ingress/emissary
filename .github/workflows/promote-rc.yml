@@ -32,7 +32,7 @@ jobs:
           echo "::set-output name=version::$(go run ./tools/src/goversion | sed s/^v//)"
           echo "::set-output name=chart_version::$(go run ./tools/src/goversion --dir-prefix=chart | sed s/^v//)"
       - name: Slack notification
-        if: always()
+        if: secrets.SLACK_WEBHOOK_URL && always()
         uses: edge/simple-slack-notify@master
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

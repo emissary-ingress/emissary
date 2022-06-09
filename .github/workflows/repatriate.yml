@@ -62,7 +62,7 @@ jobs:
           fi
           echo "::set-output name=pr_url::${url}"
       - name: Slack notification
-        if: always()
+        if: secrets.SLACK_WEBHOOK_URL && always()
         uses: edge/simple-slack-notify@master
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
