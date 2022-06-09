@@ -700,10 +700,10 @@ AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(BUILD_VERSION)
 
 export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
 
-RELEASE_TYPE=$$($(BUILDER) release-type)
-RELEASE_VERSION=$$($(BUILDER) release-version)
-BUILD_VERSION=$$($(BUILDER) version)
-IS_DIRTY=$$($(BUILDER) is-dirty)
+RELEASE_TYPE    = $(shell $(BUILDER) release-type)
+RELEASE_VERSION = $(shell $(BUILDER) release-version)
+BUILD_VERSION   = $(shell $(BUILDER) version)
+IS_DIRTY        = $(shell $(BUILDER) is-dirty)
 
 # 'rc' is a deprecated alias for 'release/bits', kept around for the
 # moment to avoid pain with needing to update apro.git in lockstep.
