@@ -329,40 +329,36 @@ push: docker/kat-server.docker.push.remote
 .PHONY: push
 
 push-dev: docker/$(LCNAME).docker.tag.local
-	@set -e; { \
-		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "push-dev: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
-		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
-		if [ $$check -lt 1 ]; then \
-			printf "$(RED)push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2 ;\
-			exit 1 ;\
-		fi ;\
-		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/\+/-/') ;\
-		chartsuffix=$${suffix#*-} ; \
-		for image in $(LCNAME); do \
-			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
-			printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
-			docker tag $$(cat docker/$$image.docker) $$tag && \
-			docker push $$tag ;\
-		done ;\
-		commit=$$(git rev-parse HEAD) ;\
-		printf "$(CYN)==> $(GRN)recording $(BLU)$$commit$(GRN) => $(BLU)$$suffix$(GRN) in S3...$(END)\n" ;\
-		echo "$$suffix" | aws s3 cp - s3://datawire-static-files/dev-builds/$$commit ;\
-		if [ $(IS_PRIVATE) ] ; then \
-			echo "push-dev: not pushing manifests because this is a private repo" ;\
-			exit 0 ; \
-		fi ; \
-		$(MAKE) \
-			CHART_VERSION_SUFFIX=-$$chartsuffix \
-			IMAGE_TAG=$${suffix} \
-			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
-			chart-push-ci ; \
-		$(MAKE) update-yaml --always-make; \
-		$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests  ; \
-		$(MAKE) clean-manifests ; \
-	}
+	@if [ -n "$(IS_DIRTY)" ]; then \
+	  echo "push-dev: tree must be clean" >&2; \
+	  exit 1; \
+	fi
+	@if [ "$$(echo $(BUILD_VERSION) | grep -c -e -dev)" -lt 1 ]; then \
+	  printf "$(RED)push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2; \
+	  exit 1; \
+	fi
+
+	@printf "$(CYN)==> $(GRN)pushing $(BLU)$(LCNAME)$(GRN) as $(BLU)$(DEV_REGISTRY)/$(LCNAME):$(subst +,-,$(BUILD_VERSION))$(GRN)...$(END)\n"
+	docker tag $$(cat docker/$(LCNAME).docker) $(DEV_REGISTRY)/$(LCNAME):$(subst +,-,$(BUILD_VERSION))
+	docker push $(DEV_REGISTRY)/$(LCNAME):$(subst +,-,$(BUILD_VERSION))
+
+	@printf "$(CYN)==> $(GRN)recording $(BLU)$$(git rev-parse HEAD)$(GRN) => $(BLU)$(subst +,-,$(BUILD_VERSION))$(GRN) in S3...$(END)\n" ;\
+	echo '$(subst +,-,$(BUILD_VERSION))' | aws s3 cp - s3://datawire-static-files/dev-builds/$$(git rev-parse HEAD)
+
+ifneq ($(IS_PRIVATE),,)
+	@echo "push-dev: not pushing manifests because this is a private repo"
+else
+	{ chartsuffix='$(subst +,-,$(BUILD_VERSION))'; \
+	  chartsuffix=$${chartsuffix#*-}; \
+	  $(MAKE) \
+	    CHART_VERSION_SUFFIX=-$$chartsuffix \
+	    IMAGE_TAG=$(subst +,-,$(BUILD_VERSION)) \
+	    IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
+	    chart-push-ci; }
+	$(MAKE) update-yaml --always-make
+	$(MAKE) VERSION_OVERRIDE=$(subst +,-,$(BUILD_VERSION)) push-manifests
+	$(MAKE) clean-manifests
+endif
 .PHONY: push-dev
 
 push-nightly: docker/$(LCNAME).docker.tag.local
