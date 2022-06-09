@@ -475,26 +475,26 @@ AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(patsubst v%,%,$(VERSION))
 export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
 
 release/promote-oss/.main: $(tools/docker-promote)
-	@[[ "$(VERSION)"              =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "Must set VERSION to a vSEMVER value"; exit 1)
-	@[[ -n "$(PROMOTE_FROM_VERSION)" ]] || (echo "MUST SET PROMOTE_FROM_VERSION"; exit 1)
-	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET PROMOTE_TO_VERSION" ; exit 1)
-	@case "$(PROMOTE_CHANNEL)" in \
-	  ""|wip|early|test|hotfix) true ;; \
-	  *) echo "Unknown PROMOTE_CHANNEL $(PROMOTE_CHANNEL)" >&2 ; exit 1;; \
+	@[[ '$(PROMOTE_FROM_VERSION)' =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo >&2 'Must set PROMOTE_FROM_VERSION to a vSEMVER value'; exit 1)
+	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo >&2 'Must set PROMOTE_TO_VERSION to a vSEMVER value' ; exit 1)
+	@[[ -n '$(PROMOTE_FROM_REPO)'                                     ]] || (echo >&2 'Must set PROMOTE_FROM_REPO' ; exit 1)
+	@[[ -n '$(PROMOTE_TO_REPO)'                                       ]] || (echo >&2 'Must set PROMOTE_TO_REPO' ; exit 1)
+	@case '$(PROMOTE_CHANNEL)' in \
+	  ''|wip|early|test|hotfix) true;; \
+	  *) echo >&2 'Unknown PROMOTE_CHANNEL $(PROMOTE_CHANNEL)'; exit 1;; \
 	esac
-	@[[ -n '$(or $(PROMOTE_FROM_REPO),$(RELEASE_REGISTRY))' ]] || (echo "Must set PROMOTE_FROM_REPO or RELEASE_REGISTRY" ; exit 1)
 
-	@printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel=$(BLU)%s$(GRN))$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)'
+	@printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel='$(BLU)%s$(GRN)')$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)'
 
-	@printf '  $(CYN)$(or $(PROMOTE_FROM_REPO),$(RELEASE_REGISTRY))/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n'
-	$(tools/docker-promote) $(or $(PROMOTE_FROM_REPO),$(RELEASE_REGISTRY))/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
-	docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
+	@printf '  pushing $(CYN)$(PROMOTE_TO_REPO):$(PROMOTE_FROM_VERSION)$(END)...\n'
+	$(tools/docker-promote) $(PROMOTE_FROM_REPO):$(PROMOTE_FROM_VERSION) $(PROMOTE_TO_REPO):$(PROMOTE_TO_VERSION)
+	docker push $(PROMOTE_TO_REPO):$(PROMOTE_TO_VERSION)
 
-	@printf '  $(CYN)https://s3.amazonaws.com/$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
-	printf '%s' "$(patsubst v%,%,$(VERSION))" | aws s3 cp - s3://$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
+	@printf '  pushing $(CYN)https://s3.amazonaws.com/$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt$(END)...\n'
+	printf '%s' "$(patsubst v%,%,$(PROMOTE_TO_VERSION))" | aws s3 cp - s3://$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
 
-	@printf '  $(CYN)s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json$(END)\n'
-	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(patsubst v%,%,$(VERSION))" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
+	@printf '  pushing $(CYN)s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json$(END)...\n'
+	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(patsubst v%,%,$(PROMOTE_TO_VERSION))" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
 .PHONY: release/promote-oss/.main
 
 release/promote-oss/to-rc: $(tools/devversion)
@@ -505,9 +505,10 @@ release/promote-oss/to-rc: $(tools/devversion)
 	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN).$(END)\n"; \
 	  $(MAKE) release/promote-oss/.main \
 	    PROMOTE_FROM_VERSION="$$dev_version" \
-	    PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-	    PROMOTE_TO_VERSION="$(patsubst v%,%,$(VERSION))" \
-	    PROMOTE_CHANNEL=test ; \
+	    PROMOTE_TO_VERSION='$(VERSION)' \
+	    PROMOTE_FROM_REPO='$(DEV_REGISTRY)/$(REPO)' \
+	    PROMOTE_TO_REPO='$(RELEASE_REGISTRY)/$(REPO)' \
+	    PROMOTE_CHANNEL='test'; \
 	}
 ifneq ($(IS_PRIVATE),)
 	echo "Not publishing charts or manifests because in a private repo" >&2
@@ -528,10 +529,10 @@ release/promote-oss/to-ga: $(tools/devversion)
 	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN).$(END)\n"; \
 	  $(MAKE) release/promote-oss/.main \
 	    PROMOTE_FROM_VERSION="$$dev_version" \
-	    PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-	    PROMOTE_TO_VERSION="$(patsubst v%,%,$(VERSION))" \
-	    PROMOTE_CHANNEL= \
-	    ; \
+	    PROMOTE_TO_VERSION='$(VERSION)' \
+	    PROMOTE_FROM_REPO='$(DEV_REGISTRY)/$(REPO)' \
+	    PROMOTE_TO_REPO='$(RELEASE_REGISTRY)/$(REPO)' \
+	    PROMOTE_CHANNEL=''; \
 	}
 ifneq ($(IS_PRIVATE),)
 	echo "Not publishing charts or manifests because in a private repo" >&2
