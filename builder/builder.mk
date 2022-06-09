@@ -478,24 +478,17 @@ release/promote-oss/.main: $(tools/docker-promote)
 	@[[ "$(VERSION)"              =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "Must set VERSION to a vSEMVER value"; exit 1)
 	@[[ -n "$(PROMOTE_FROM_VERSION)" ]] || (echo "MUST SET PROMOTE_FROM_VERSION"; exit 1)
 	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET PROMOTE_TO_VERSION" ; exit 1)
-	@set -e; { \
-		case "$(PROMOTE_CHANNEL)" in \
-			""|wip|early|test|hotfix) true ;; \
-			*) echo "Unknown PROMOTE_CHANNEL $(PROMOTE_CHANNEL)" >&2 ; exit 1;; \
-		esac ; \
-		printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel=$(BLU)%s$(GRN))$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)' ; \
-		pullregistry=$(PROMOTE_FROM_REPO) ; \
-		if [[ -z "$${pullregistry}" ]] ; then \
-			pullregistry=$(RELEASE_REGISTRY) ;\
-		fi ; \
-		if [[ -z "$${pullregistry}" ]] ; then \
-			echo "Must set PROMOTE_FROM_REPO or RELEASE_REGISTRY" ; \
-			exit 1; \
-		fi ; \
-		printf '  $(CYN)$${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n' ; \
-		$(tools/docker-promote) $${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) && \
-		docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) ;\
-	}
+	@case "$(PROMOTE_CHANNEL)" in \
+	  ""|wip|early|test|hotfix) true ;; \
+	  *) echo "Unknown PROMOTE_CHANNEL $(PROMOTE_CHANNEL)" >&2 ; exit 1;; \
+	esac
+	@[[ -n '$(or $(PROMOTE_FROM_REPO),$(RELEASE_REGISTRY))' ]] || (echo "Must set PROMOTE_FROM_REPO or RELEASE_REGISTRY" ; exit 1)
+
+	@printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel=$(BLU)%s$(GRN))$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)'
+
+	@printf '  $(CYN)$(or $(PROMOTE_FROM_REPO),$(RELEASE_REGISTRY))/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n'
+	$(tools/docker-promote) $(or $(PROMOTE_FROM_REPO),$(RELEASE_REGISTRY))/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
+	docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
 
 	@printf '  $(CYN)https://s3.amazonaws.com/$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
 	printf '%s' "$(patsubst v%,%,$(VERSION))" | aws s3 cp - s3://$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
