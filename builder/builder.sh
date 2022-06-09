@@ -325,16 +325,15 @@ module_version() {
         GIT_VERSION=$(echo $GIT_DESCRIPTION | cut -d- -f1)
         GIT_REST=$(echo $GIT_DESCRIPTION | cut -d- -f2-)
         if [[ ${GIT_REST} =~ ^[a-z] ]] && [[ ${GIT_REST} =~ - ]]; then
-            # git describe isn't exactly at an rc or ea tag
-            # so let's filter those out when getting the git description
+            # git describe isn't exactly at an rc tag so let's filter those out
+            # when getting the git description
             GIT_DESCRIPTION=$(git describe --tags --match 'v*' --exclude '*-*')
             GIT_VERSION=$(echo $GIT_DESCRIPTION | cut -d- -f1)
             GIT_REST=$(echo $GIT_DESCRIPTION | cut -d- -f2-)
         fi
 
         # If the first character of GIT_REST is alphabetic, we should be looking
-        # at an "-rc" or "-ea" tag or the like, and there should not be another -
-        # in it.
+        # at an "-rc" tag or the like, and there should not be another "-" in it.
         if [[ ${GIT_REST} =~ ^[a-z] ]]; then
             if [[ ${GIT_REST} =~ - ]]; then
                 echo "GIT_VERSION $GIT_VERSION is not understood" >&2

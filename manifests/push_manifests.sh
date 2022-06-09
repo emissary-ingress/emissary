@@ -27,7 +27,7 @@ log "Publishing manifest version ${version}"
 
 if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
     # if this is a stable version, working directory must be clean
-    # otherwise this is an rc, ea or test version and we don't care
+    # otherwise this is an rc or test version and we don't care
     if [ -n "$(git status --porcelain)" ] ; then
         abort "working tree is dirty, aborting"
     fi
