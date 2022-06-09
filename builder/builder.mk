@@ -498,6 +498,10 @@ else
 
 	@printf '  pushing $(CYN)s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json$(END)...\n'
 	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(patsubst v%,%,$(PROMOTE_TO_VERSION))" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
+
+	{ $(MAKE) \
+	  push-manifests \
+	  publish-docs-yaml; }
 endif
 .PHONY: release/promote-oss/.main
 
@@ -514,13 +518,6 @@ release/promote-oss/to-rc: $(tools/devversion)
 	    PROMOTE_TO_REPO='$(RELEASE_REGISTRY)/$(REPO)' \
 	    PROMOTE_CHANNEL='test'; \
 	}
-ifneq ($(IS_PRIVATE),)
-	echo "Not publishing charts or manifests because in a private repo" >&2
-else
-	{ $(MAKE) \
-	  push-manifests \
-	  publish-docs-yaml; }
-endif
 .PHONY: release/promote-oss/to-rc
 
 # To be run from a checkout at the tag you are promoting _from_.
@@ -538,13 +535,6 @@ release/promote-oss/to-ga: $(tools/devversion)
 	    PROMOTE_TO_REPO='$(RELEASE_REGISTRY)/$(REPO)' \
 	    PROMOTE_CHANNEL=''; \
 	}
-ifneq ($(IS_PRIVATE),)
-	echo "Not publishing charts or manifests because in a private repo" >&2
-else
-	{ $(MAKE) \
-	  push-manifests \
-	  publish-docs-yaml; }
-endif
 .PHONY: release/promote-oss/to-ga
 
 # `make release/ga-check` is meant to be run by a human maintainer to
