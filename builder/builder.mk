@@ -490,11 +490,15 @@ release/promote-oss/.main: $(tools/docker-promote)
 	$(tools/docker-promote) $(PROMOTE_FROM_REPO):$(PROMOTE_FROM_VERSION) $(PROMOTE_TO_REPO):$(PROMOTE_TO_VERSION)
 	docker push $(PROMOTE_TO_REPO):$(PROMOTE_TO_VERSION)
 
+ifneq ($(IS_PRIVATE),)
+	@echo '$@: not pushing to S3 because this is a private repo'
+else
 	@printf '  pushing $(CYN)https://s3.amazonaws.com/$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt$(END)...\n'
 	printf '%s' "$(patsubst v%,%,$(PROMOTE_TO_VERSION))" | aws s3 cp - s3://$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
 
 	@printf '  pushing $(CYN)s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json$(END)...\n'
 	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(patsubst v%,%,$(PROMOTE_TO_VERSION))" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
+endif
 .PHONY: release/promote-oss/.main
 
 release/promote-oss/to-rc: $(tools/devversion)
