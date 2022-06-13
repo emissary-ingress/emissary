@@ -32,7 +32,7 @@
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
   - version: 1.14.4
-    date: '2022-06-09'
+    date: '2022-06-13'
     notes:
       - title: Envoy security updates
         type: security
