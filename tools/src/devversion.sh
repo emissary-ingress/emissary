@@ -67,14 +67,14 @@ main() {
     deadline=$(( start_time + timeout_secs ))
     while (( $(date +%s) < deadline )); do
         local vsemver
-        "${0%/*}"/goversion --all | grep '^v2\.' | while read -r vsemver; do
+        while read -r vsemver; do
             msg 'checking %q...' "$vsemver"
             if docker pull "${docker_repo}:${vsemver#v}" &>/dev/null; then
                 msg 'found %q!' "$vsemver"
                 printf '%s\n' "$vsemver"
                 return 0
             fi
-        done
+        done < <("${0%/*}"/goversion --all | grep '^v2\.')
         msg 'backing off for %ds then retrying...' "$backoff_secs"
         sleep "$backoff_secs"
     done
