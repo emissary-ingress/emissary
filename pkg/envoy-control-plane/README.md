@@ -39,7 +39,7 @@ feedback, we might decided to revisit this aspect at a later point in time.
 
 ## Requirements
 
-1. Go 1.12+
+1. Go 1.11+
 
 ## Quick start
 
@@ -58,7 +58,10 @@ in the same environment as the circle ci. This makes sure to produce a consisten
     ./build/run_docker.sh make integration
     ```
 
-## Xds Api versioning
+1. Take a look at the [example server](internal/example/README.md).
+
+
+## XDS API versioning
 
 The Envoy xDS APIs follow a well defined [versioning scheme](https://www.envoyproxy.io/docs/envoy/latest/configuration/overview/versioning).
 Due to lack of generics and function overloading in golang, creating a new version unfortunately involves code duplication.
@@ -70,53 +73,31 @@ Make sure to run `make build` and `make test` to identify and fix failures.
 
 When v2 version is frozen in the future, we will change the experience such that changes will need to happen to v3 and autogen will create the v2 version instead.
 
+## Resource caching
+
+Because Envoy clients are assumed to be ephemeral, and thus, can come and go
+away arbitrarily, the server relies on a configuration cache to minimize the
+client load on the server. There are several caches available in this
+repository:
+
+- `Simple` cache is a snapshot-based cache that maintains a consistent view of
+  the configuration for each group of proxies. It supports running as an ADS
+  server or as regular dis-aggregated xDS servers. In ADS mode, the cache can
+  hold responses until the complete set of referenced resources is requested
+  (e.g. the entire set of RDS as referenced by LDS). Holding the response
+  enables an atomic update of xDS collections.
+
+- `Linear` is an eventually consistent cache for a single type URL collection.
+  The cache maintains a single linear version history and a version vector for
+  the resources in the cache. For each request, it compares the request version
+  against latest versions for the requested resources, and responds with any
+  updated resources. This cache assumes the resources are entirely opaque.
+
+- `Mux` cache is a simple cache combinator. It allows mixing multiple caches
+  for different type URLs, e.g use a simple cache for LDS/RDS/CDS and a linear
+  cache for EDS.
+
 ## Usage
 
-Register services on the gRPC server as follows.
+The [example server](internal/example/README.md) demonstrates how to integrate the go-control-plane with your code.
 
-```go
-import (
-	"context"
-	"google.golang.org/grpc"
-	"net"
-
-	api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
-	"github.com/envoyproxy/go-control-plane/pkg/cache/v2"
-	xds "github.com/envoyproxy/go-control-plane/pkg/server/v2"
-)
-
-func main() {
-	snapshotCache := cache.NewSnapshotCache(false, cache.IDHash{}, nil)
-	server := xds.NewServer(context.Background(), snapshotCache, nil)
-	grpcServer := grpc.NewServer()
-	lis, _ := net.Listen("tcp", ":8080")
-
-	discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, server)
-	api.RegisterEndpointDiscoveryServiceServer(grpcServer, server)
-	api.RegisterClusterDiscoveryServiceServer(grpcServer, server)
-	api.RegisterRouteDiscoveryServiceServer(grpcServer, server)
-	api.RegisterListenerDiscoveryServiceServer(grpcServer, server)
-	go func() {
-		if err := grpcServer.Serve(lis); err != nil {
-			// error handling
-		}
-	}()
-}
-```
-
-As mentioned in [Scope](https://github.com/envoyproxy/go-control-plane/blob/master/README.md#scope), you need to cache Envoy configurations.
-Generate the key based on the node information as follows and cache the configurations.
-
-```go
-import (
-	"github.com/envoyproxy/go-control-plane/pkg/cache/v2"
- 	"github.com/envoyproxy/go-control-plane/pkg/cache/types"
-)
-
-var clusters, endpoints, routes, listeners, runtimes []types.Resource
-
-snapshotCache := cache.NewSnapshotCache(false, cache.IDHash{}, nil)
-snapshot := cache.NewSnapshot("1.0", endpoints, clusters, routes, listeners, runtimes)
-_ = snapshotCache.SetSnapshot("node1", snapshot)
-```

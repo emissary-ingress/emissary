@@ -66,6 +66,17 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [1.14.4] June 13, 2022
+[1.14.4]: https://github.com/emissary-ingress/emissary/compare/v1.14.3...v1.14.4
+
+### Emissary Ingress and Ambassador Edge Stack
+
+- Security: We have backported patches from the Envoy 1.19.5 security update to Emissary-ingress's
+  1.17-based Envoy, addressing CVE-2022-29224 and CVE-2022-29225.  Emissary-ingress is not affected
+  by CVE-2022-29226, CVE-2022-29227, or CVE-2022-29228; as it <a
+  href="https://github.com/emissary-ingress/emissary/issues/2846">does not support internal
+  redirects</a>, and does not use Envoy's built-in OAuth2 filter.
+
 ## [1.14.3] February 24, 2022
 [1.14.3]: https://github.com/emissary-ingress/emissary/compare/v1.14.2...v1.14.3
 

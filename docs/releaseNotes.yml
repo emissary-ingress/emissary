@@ -31,6 +31,19 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 1.14.4
+    date: '2022-06-13'
+    notes:
+      - title: Envoy security updates
+        type: security
+        body: >-
+          We have backported patches from the Envoy 1.19.5 security update to $productName$'s
+          1.17-based Envoy, addressing CVE-2022-29224 and CVE-2022-29225.  $productName$ is not
+          affected by CVE-2022-29226, CVE-2022-29227, or CVE-2022-29228; as it <a
+          href="https://github.com/emissary-ingress/emissary/issues/2846">does not support internal
+          redirects</a>, and does not use Envoy's built-in OAuth2 filter.
+        docs: https://groups.google.com/g/envoy-announce/c/8nP3Kn4jV7k
+
   - version: 1.14.3
     date: '2022-02-24'
     notes:

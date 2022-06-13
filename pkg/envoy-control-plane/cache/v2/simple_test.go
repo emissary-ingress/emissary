@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sync"
 	"testing"
 	"time"
 
@@ -51,7 +52,19 @@ var (
 		[]types.Resource{testCluster},
 		[]types.Resource{testRoute},
 		[]types.Resource{testListener},
-		[]types.Resource{testRuntime})
+		[]types.Resource{testRuntime},
+		[]types.Resource{testSecret[0]})
+
+	ttl       = 2 * time.Second
+	heartbeat = time.Second
+
+	snapshotWithTtl = cache.NewSnapshotWithTtls(version,
+		[]types.ResourceWithTtl{{Resource: testEndpoint, Ttl: &ttl}},
+		[]types.ResourceWithTtl{{Resource: testCluster}},
+		[]types.ResourceWithTtl{{Resource: testRoute}},
+		[]types.ResourceWithTtl{{Resource: testListener}},
+		[]types.ResourceWithTtl{{Resource: testRuntime}},
+		[]types.ResourceWithTtl{{Resource: testSecret[0]}})
 
 	names = map[string][]string{
 		rsrc.EndpointType: {clusterName},
@@ -79,6 +92,94 @@ func (log logger) Infof(format string, args ...interface{})  { log.t.Logf(format
 func (log logger) Warnf(format string, args ...interface{})  { log.t.Logf(format, args...) }
 func (log logger) Errorf(format string, args ...interface{}) { log.t.Logf(format, args...) }
 
+func TestSnapshotCacheWithTtl(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	c := cache.NewSnapshotCacheWithHeartbeating(ctx, true, group{}, logger{t: t}, time.Second)
+
+	if _, err := c.GetSnapshot(key); err == nil {
+		t.Errorf("unexpected snapshot found for key %q", key)
+	}
+
+	if err := c.SetSnapshot(key, snapshotWithTtl); err != nil {
+		t.Fatal(err)
+	}
+
+	snap, err := c.GetSnapshot(key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(snap, snapshotWithTtl) {
+		t.Errorf("expect snapshot: %v, got: %v", snapshotWithTtl, snap)
+	}
+
+	wg := sync.WaitGroup{}
+	// All the resources should respond immediately when version is not up to date.
+	for _, typ := range testTypes {
+		wg.Add(1)
+		t.Run(typ, func(t *testing.T) {
+			defer wg.Done()
+			value, _ := c.CreateWatch(&discovery.DiscoveryRequest{TypeUrl: typ, ResourceNames: names[typ]})
+			select {
+			case out := <-value:
+				if gotVersion, _ := out.GetVersion(); gotVersion != version {
+					t.Errorf("got version %q, want %q", gotVersion, version)
+				}
+				if !reflect.DeepEqual(cache.IndexResourcesByName(out.(*cache.RawResponse).Resources), snapshotWithTtl.GetResourcesAndTtl(typ)) {
+					t.Errorf("get resources %v, want %v", out.(*cache.RawResponse).Resources, snapshotWithTtl.GetResourcesAndTtl(typ))
+				}
+			case <-time.After(2 * time.Second):
+				t.Errorf("failed to receive snapshot response")
+			}
+		})
+	}
+	wg.Wait()
+
+	// Once everything is up to date, only the TTL'd resource should send out updates.
+	wg = sync.WaitGroup{}
+	updatesByType := map[string]int{}
+	for _, typ := range testTypes {
+		wg.Add(1)
+		go func(typ string) {
+			defer wg.Done()
+
+			end := time.After(5 * time.Second)
+			for {
+				value, cancel := c.CreateWatch(&discovery.DiscoveryRequest{TypeUrl: typ, ResourceNames: names[typ], VersionInfo: version})
+
+				select {
+				case out := <-value:
+					if gotVersion, _ := out.GetVersion(); gotVersion != version {
+						t.Errorf("got version %q, want %q", gotVersion, version)
+					}
+					if !reflect.DeepEqual(cache.IndexResourcesByName(out.(*cache.RawResponse).Resources), snapshotWithTtl.GetResourcesAndTtl(typ)) {
+						t.Errorf("get resources %v, want %v", out.(*cache.RawResponse).Resources, snapshotWithTtl.GetResources(typ))
+					}
+
+					if !reflect.DeepEqual(cache.IndexResourcesByName(out.(*cache.RawResponse).Resources), snapshotWithTtl.GetResourcesAndTtl(typ)) {
+						t.Errorf("get resources %v, want %v", out.(*cache.RawResponse).Resources, snapshotWithTtl.GetResources(typ))
+					}
+
+					updatesByType[typ]++
+				case <-end:
+					cancel()
+					return
+				}
+			}
+		}(typ)
+	}
+
+	wg.Wait()
+
+	if len(updatesByType) != 1 {
+		t.Errorf("expected to only receive updates for TTL'd type, got %v", updatesByType)
+	}
+	// Avoid an exact match on number of triggers to avoid this being flaky.
+	if updatesByType[rsrc.EndpointType] < 2 {
+		t.Errorf("expected at least two TTL updates for endpoints, got %d", updatesByType[rsrc.EndpointType])
+	}
+}
+
 func TestSnapshotCache(t *testing.T) {
 	c := cache.NewSnapshotCache(true, group{}, logger{t: t})
 
@@ -100,7 +201,7 @@ func TestSnapshotCache(t *testing.T) {
 
 	// try to get endpoints with incorrect list of names
 	// should not receive response
-	value, _ := c.CreateWatch(discovery.DiscoveryRequest{TypeUrl: rsrc.EndpointType, ResourceNames: []string{"none"}})
+	value, _ := c.CreateWatch(&discovery.DiscoveryRequest{TypeUrl: rsrc.EndpointType, ResourceNames: []string{"none"}})
 	select {
 	case out := <-value:
 		t.Errorf("watch for endpoints and mismatched names => got %v, want none", out)
@@ -109,14 +210,14 @@ func TestSnapshotCache(t *testing.T) {
 
 	for _, typ := range testTypes {
 		t.Run(typ, func(t *testing.T) {
-			value, _ := c.CreateWatch(discovery.DiscoveryRequest{TypeUrl: typ, ResourceNames: names[typ]})
+			value, _ := c.CreateWatch(&discovery.DiscoveryRequest{TypeUrl: typ, ResourceNames: names[typ]})
 			select {
 			case out := <-value:
 				if gotVersion, _ := out.GetVersion(); gotVersion != version {
 					t.Errorf("got version %q, want %q", gotVersion, version)
 				}
-				if !reflect.DeepEqual(cache.IndexResourcesByName(out.(cache.RawResponse).Resources), snapshot.GetResources(typ)) {
-					t.Errorf("get resources %v, want %v", out.(cache.RawResponse).Resources, snapshot.GetResources(typ))
+				if !reflect.DeepEqual(cache.IndexResourcesByName(out.(*cache.RawResponse).Resources), snapshot.GetResourcesAndTtl(typ)) {
+					t.Errorf("get resources %v, want %v", out.(*cache.RawResponse).Resources, snapshot.GetResourcesAndTtl(typ))
 				}
 			case <-time.After(time.Second):
 				t.Fatal("failed to receive snapshot response")
@@ -133,7 +234,7 @@ func TestSnapshotCacheFetch(t *testing.T) {
 
 	for _, typ := range testTypes {
 		t.Run(typ, func(t *testing.T) {
-			resp, err := c.Fetch(context.Background(), discovery.DiscoveryRequest{TypeUrl: typ, ResourceNames: names[typ]})
+			resp, err := c.Fetch(context.Background(), &discovery.DiscoveryRequest{TypeUrl: typ, ResourceNames: names[typ]})
 			if err != nil || resp == nil {
 				t.Fatal("unexpected error or null response")
 			}
@@ -145,13 +246,13 @@ func TestSnapshotCacheFetch(t *testing.T) {
 
 	// no response for missing snapshot
 	if resp, err := c.Fetch(context.Background(),
-		discovery.DiscoveryRequest{TypeUrl: rsrc.ClusterType, Node: &core.Node{Id: "oof"}}); resp != nil || err == nil {
+		&discovery.DiscoveryRequest{TypeUrl: rsrc.ClusterType, Node: &core.Node{Id: "oof"}}); resp != nil || err == nil {
 		t.Errorf("missing snapshot: response is not nil %v", resp)
 	}
 
 	// no response for latest version
 	if resp, err := c.Fetch(context.Background(),
-		discovery.DiscoveryRequest{TypeUrl: rsrc.ClusterType, VersionInfo: version}); resp != nil || err == nil {
+		&discovery.DiscoveryRequest{TypeUrl: rsrc.ClusterType, VersionInfo: version}); resp != nil || err == nil {
 		t.Errorf("latest version: response is not nil %v", resp)
 	}
 }
@@ -160,7 +261,7 @@ func TestSnapshotCacheWatch(t *testing.T) {
 	c := cache.NewSnapshotCache(true, group{}, logger{t: t})
 	watches := make(map[string]chan cache.Response)
 	for _, typ := range testTypes {
-		watches[typ], _ = c.CreateWatch(discovery.DiscoveryRequest{TypeUrl: typ, ResourceNames: names[typ]})
+		watches[typ], _ = c.CreateWatch(&discovery.DiscoveryRequest{TypeUrl: typ, ResourceNames: names[typ]})
 	}
 	if err := c.SetSnapshot(key, snapshot); err != nil {
 		t.Fatal(err)
@@ -172,8 +273,8 @@ func TestSnapshotCacheWatch(t *testing.T) {
 				if gotVersion, _ := out.GetVersion(); gotVersion != version {
 					t.Errorf("got version %q, want %q", gotVersion, version)
 				}
-				if !reflect.DeepEqual(cache.IndexResourcesByName(out.(cache.RawResponse).Resources), snapshot.GetResources(typ)) {
-					t.Errorf("get resources %v, want %v", out.(cache.RawResponse).Resources, snapshot.GetResources(typ))
+				if !reflect.DeepEqual(cache.IndexResourcesByName(out.(*cache.RawResponse).Resources), snapshot.GetResourcesAndTtl(typ)) {
+					t.Errorf("get resources %v, want %v", out.(*cache.RawResponse).Resources, snapshot.GetResourcesAndTtl(typ))
 				}
 			case <-time.After(time.Second):
 				t.Fatal("failed to receive snapshot response")
@@ -183,7 +284,7 @@ func TestSnapshotCacheWatch(t *testing.T) {
 
 	// open new watches with the latest version
 	for _, typ := range testTypes {
-		watches[typ], _ = c.CreateWatch(discovery.DiscoveryRequest{TypeUrl: typ, ResourceNames: names[typ], VersionInfo: version})
+		watches[typ], _ = c.CreateWatch(&discovery.DiscoveryRequest{TypeUrl: typ, ResourceNames: names[typ], VersionInfo: version})
 	}
 	if count := c.GetStatusInfo(key).GetNumWatches(); count != len(testTypes) {
 		t.Errorf("watches should be created for the latest version: %d", count)
@@ -205,8 +306,8 @@ func TestSnapshotCacheWatch(t *testing.T) {
 		if gotVersion, _ := out.GetVersion(); gotVersion != version2 {
 			t.Errorf("got version %q, want %q", gotVersion, version2)
 		}
-		if !reflect.DeepEqual(cache.IndexResourcesByName(out.(cache.RawResponse).Resources), snapshot2.Resources[types.Endpoint].Items) {
-			t.Errorf("get resources %v, want %v", out.(cache.RawResponse).Resources, snapshot2.Resources[types.Endpoint].Items)
+		if !reflect.DeepEqual(cache.IndexResourcesByName(out.(*cache.RawResponse).Resources), snapshot2.Resources[types.Endpoint].Items) {
+			t.Errorf("get resources %v, want %v", out.(*cache.RawResponse).Resources, snapshot2.Resources[types.Endpoint].Items)
 		}
 	case <-time.After(time.Second):
 		t.Fatal("failed to receive snapshot response")
@@ -229,7 +330,7 @@ func TestConcurrentSetWatch(t *testing.T) {
 					if cancel != nil {
 						cancel()
 					}
-					_, cancel = c.CreateWatch(discovery.DiscoveryRequest{
+					_, cancel = c.CreateWatch(&discovery.DiscoveryRequest{
 						Node:    &core.Node{Id: id},
 						TypeUrl: rsrc.EndpointType,
 					})
@@ -242,7 +343,7 @@ func TestConcurrentSetWatch(t *testing.T) {
 func TestSnapshotCacheWatchCancel(t *testing.T) {
 	c := cache.NewSnapshotCache(true, group{}, logger{t: t})
 	for _, typ := range testTypes {
-		_, cancel := c.CreateWatch(discovery.DiscoveryRequest{TypeUrl: typ, ResourceNames: names[typ]})
+		_, cancel := c.CreateWatch(&discovery.DiscoveryRequest{TypeUrl: typ, ResourceNames: names[typ]})
 		cancel()
 	}
 	// should be status info for the node

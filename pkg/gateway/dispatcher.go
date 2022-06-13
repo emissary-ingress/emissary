@@ -220,7 +220,7 @@ func (d *Dispatcher) GetSnapshot() (string, *cache.Snapshot) {
 func (d *Dispatcher) GetListener(name string) *v2.Listener {
 	_, snap := d.GetSnapshot()
 	for _, rsrc := range snap.Resources[types.Listener].Items {
-		l := rsrc.(*v2.Listener)
+		l := rsrc.Resource.(*v2.Listener)
 		if l.Name == name {
 			return l
 		}
@@ -234,7 +234,7 @@ func (d *Dispatcher) GetListener(name string) *v2.Listener {
 func (d *Dispatcher) GetRouteConfiguration(name string) *v2.RouteConfiguration {
 	_, snap := d.GetSnapshot()
 	for _, rsrc := range snap.Resources[types.Route].Items {
-		r := rsrc.(*v2.RouteConfiguration)
+		r := rsrc.Resource.(*v2.RouteConfiguration)
 		if r.Name == name {
 			return r
 		}
@@ -368,7 +368,15 @@ func (d *Dispatcher) buildSnapshot() {
 
 	listeners, routes := d.buildRouteConfigurations()
 
-	snapshot := cache.NewSnapshot(d.version, endpoints, clusters, routes, listeners, nil)
+	snapshot := cache.NewSnapshot(
+		d.version,
+		endpoints,
+		clusters,
+		routes,
+		listeners,
+		nil, // runtimes
+		nil, // secrets
+	)
 	if err := snapshot.Consistent(); err != nil {
 		bs, _ := json.MarshalIndent(snapshot, "", "  ")
 		dlog.Errorf(context.Background(), "Dispatcher Snapshot inconsistency: %v: %s", err, bs)
