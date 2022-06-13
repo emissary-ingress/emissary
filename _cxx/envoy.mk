@@ -7,6 +7,8 @@ YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
 ENVOY_TEST_LABEL ?= //test/...
 # Set RSYNC_EXTRAS=Pv or something to increase verbosity.
 RSYNC_EXTRAS ?=
+# Set to non-empty to enable compiling Envoy in FIPS mode.
+FIPS_MODE ?=
 
 #
 # Variables that are meant to be set by editing this file
