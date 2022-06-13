@@ -510,6 +510,12 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
     3. Don't push the build of Envoy to a Docker cache (since you're
        still actively working on it).
 
+3. To build Envoy in FIPS mode, set the following variable:
+
+   ```shell
+   export FIPS_MODE=true
+   ```
+   
 #### 3. Hacking on Envoy
 
 Modify the sources in `./_cxx/envoy/`.
