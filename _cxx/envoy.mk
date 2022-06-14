@@ -13,7 +13,7 @@ RSYNC_EXTRAS ?=
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,https://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= 4ce93dc3ace00ae9108b179d0afaceac13f4602a
+  ENVOY_COMMIT ?= 8151e9a87cde33721a1b1f864d0c54ae72e4aa78
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
@@ -54,12 +54,40 @@ include $(OSS_HOME)/build-aux/prelude.mk
 # for builder.mk...
 export ENVOY_DOCKER_TAG
 
+old_envoy_commits = $(shell { \
+	  { \
+	    git log --patch --format='' -G'^ *ENVOY_COMMIT' -- _cxx/envoy.mk; \
+	    git log --patch --format='' -G'^ *ENVOY_COMMIT' -- cxx/envoy.mk; \
+	    git log --patch --format='' -G'^ *ENVOY_COMMIT' -- Makefile; \
+	  } | sed -En 's/^.*ENVOY_COMMIT *\?= *//p'; \
+	  git log --patch --format='' -G'^ *ENVOY_BASE_IMAGE' 511ca54c3004019758980ba82f708269c373ba28 -- Makefile | sed -n 's/^. *ENVOY_BASE_IMAGE.*-g//p'; \
+	  git log --patch --format='' -G'FROM.*envoy.*:' 7593e7dca9aea2f146ddfd5a3676bcc30ee25aff -- Dockerfile | sed -n '/FROM.*envoy.*:/s/.*://p' | sed -e 's/ .*//' -e 's/.*-g//' -e 's/.*-//' -e '/^latest$$/d'; \
+	} | uniq)
+lost_history += 251b7d345 # mentioned in a605b62ee (wip - patched and fixed authentication, Gabriel, 2019-04-04)
+lost_history += 27770bf3d # mentioned in 026dc4cd4 (updated envoy image, Gabriel, 2019-04-04)
 check-envoy-version: ## Check that Envoy version has been pushed to the right places
 check-envoy-version: $(OSS_HOME)/_cxx/envoy
-	# First, we're going to check whether the envoy commit is tagged, which
+	# First, we're going to check whether the Envoy commit is tagged, which
 	# is one of the things that has to happen before landing a PR that bumps
 	# the ENVOY_COMMIT.
-	cd $< && unset GIT_DIR GIT_WORK_TREE && git describe --tags --exact-match
+	#
+	# We strictly check for tags matching 'datawire-*' to remove the
+	# temptation to jump the gun and create an 'ambassador-*' or
+	# 'emissary-*' tag before we know that's actually the commit that will
+	# be in the released Ambassador/Emissary.
+	#
+	# Also, don't just check the tip of the PR ('HEAD'), also check that all
+	# intermediate commits in the PR are also (ancestors of?) a tag.  We
+	# don't want history to get lost!
+	set -e; { \
+	  cd $<; unset GIT_DIR GIT_WORK_TREE; \
+	  for commit in HEAD $(filter-out $(lost_history),$(old_envoy_commits)); do \
+	   echo "=> checking Envoy commit $$commit"; \
+	   desc=$$(git describe --tags --contains --match='datawire-*' "$$commit"); \
+	   [[ "$$desc" == datawire-* ]]; \
+	   echo "   got $$desc"; \
+	  done; \
+	}
 	# Now, we're going to check that the Envoy Docker images have been
 	# pushed to all of the mirrors, which is another thing that has to
 	# happen before landing a PR that bumps the ENVOY_COMMIT.

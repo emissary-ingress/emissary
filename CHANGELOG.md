@@ -82,6 +82,24 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [2.3.1] June 09, 2022
+[2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: A regression was introduced in 2.3.0 that leaked zipkin default config fields into the
+  configuration for the other drivers (lightstep, etc...). This caused Emissary-ingress to crash on
+  startup. This issue has been resolved to ensure that the defaults are only applied when driver is
+  `zipkin` ([#4267])
+
+- Security: We have backported patches from the Envoy 1.19.5 security update to Emissary-ingress's
+  1.17-based Envoy, addressing CVE-2022-29224 and CVE-2022-29225.  Emissary-ingress is not affected
+  by CVE-2022-29226, CVE-2022-29227, or CVE-2022-29228; as it <a
+  href="https://github.com/emissary-ingress/emissary/issues/2846">does not support internal
+  redirects</a>, and does not use Envoy's built-in OAuth2 filter.
+
+[#4267]: https://github.com/emissary-ingress/emissary/issues/4267
+
 ## [2.3.0] June 06, 2022
 [2.3.0]: https://github.com/emissary-ingress/emissary/compare/v2.2.2...v2.3.0
 
