@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/dlib/dexec"
+	amb "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 )
 
 func envbool(name string) bool {

@@ -8,9 +8,9 @@ package envoy_api_v2_core
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/annotations"
-	_type "github.com/datawire/ambassador/v2/pkg/api/envoy/type"
-	matcher "github.com/datawire/ambassador/v2/pkg/api/envoy/type/matcher"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/annotations"
+	_type "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type"
+	matcher "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/matcher"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	any "github.com/golang/protobuf/ptypes/any"

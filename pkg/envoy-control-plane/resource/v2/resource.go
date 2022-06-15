@@ -3,10 +3,10 @@ package resource
 import (
 	"github.com/golang/protobuf/ptypes"
 
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	listener "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/listener"
-	hcm "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/conversion"
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/listener"
+	hcm "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/conversion"
 )
 
 // Resource types in xDS v2.

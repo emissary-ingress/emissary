@@ -8,12 +8,12 @@ package envoy_config_route_v3
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/annotations"
-	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
-	v31 "github.com/datawire/ambassador/v2/pkg/api/envoy/type/matcher/v3"
-	v34 "github.com/datawire/ambassador/v2/pkg/api/envoy/type/metadata/v3"
-	v33 "github.com/datawire/ambassador/v2/pkg/api/envoy/type/tracing/v3"
-	v32 "github.com/datawire/ambassador/v2/pkg/api/envoy/type/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/annotations"
+	v3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	v31 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/matcher/v3"
+	v34 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/metadata/v3"
+	v33 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/tracing/v3"
+	v32 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/v3"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	any "github.com/golang/protobuf/ptypes/any"

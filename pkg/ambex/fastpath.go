@@ -1,7 +1,7 @@
 package ambex
 
 import (
-	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
+	ecp_v2_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v2"
 )
 
 // FastpathSnapshot holds envoy configuration that bypasses python.

@@ -13,14 +13,14 @@ import (
 	"google.golang.org/grpc"
 
 	// envoy api v2
-	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	apiv2_core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	apiv2_discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
+	apiv2 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	apiv2_core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	apiv2_discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v2"
 
 	// envoy control plane
-	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
-	ecp_v2_server "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v2"
+	ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	ecp_v2_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v2"
+	ecp_v2_server "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v2"
 
 	// first-party-libraries
 	"github.com/datawire/dlib/dhttp"

@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	alf "github.com/datawire/ambassador/v2/pkg/api/envoy/data/accesslog/v2"
-	accessloggrpc "github.com/datawire/ambassador/v2/pkg/api/envoy/service/accesslog/v2"
+	alf "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/data/accesslog/v2"
+	accessloggrpc "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/accesslog/v2"
 )
 
 // AccessLogService buffers access logs from the remote Envoy nodes.

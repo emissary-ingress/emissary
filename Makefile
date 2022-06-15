@@ -20,15 +20,15 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
   endif
 
   VERSION := $(or $(VERSION),$(shell go run ./tools/src/goversion))
-  $(if $(filter v2.%,$(VERSION)),\
-    ,$(error VERSION variable is invalid: It must be a v2.* string, but is '$(VERSION)'))
+  $(if $(filter v3.%,$(VERSION)),\
+    ,$(error VERSION variable is invalid: It must be a v3.* string, but is '$(VERSION)'))
   $(if $(findstring +,$(VERSION)),\
     $(error VERSION variable is invalid: It must not contain + characters, but is '$(VERSION)'),)
   export VERSION
 
   CHART_VERSION := $(or $(CHART_VERSION),$(shell go run ./tools/src/goversion --dir-prefix=chart))
-  $(if $(filter v7.%,$(CHART_VERSION)),\
-    ,$(error CHART_VERSION variable is invalid: It must be a v7.* string, but is '$(CHART_VERSION)'))
+  $(if $(filter v8.%,$(CHART_VERSION)),\
+    ,$(error CHART_VERSION variable is invalid: It must be a v8.* string, but is '$(CHART_VERSION)'))
   export CHART_VERSION
 
   $(info [make] VERSION=$(VERSION))

@@ -9,8 +9,8 @@ package envoy_service_ratelimit_v2
 import (
 	context "context"
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	ratelimit "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/ratelimit"
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	ratelimit "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/ratelimit"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	_struct "github.com/golang/protobuf/ptypes/struct"

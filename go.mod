@@ -1,4 +1,4 @@
-module github.com/datawire/ambassador/v2
+module github.com/emissary-ingress/emissary/v3
 
 go 1.17
 

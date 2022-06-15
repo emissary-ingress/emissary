@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/datawire/ambassador/v2/pkg/ambex"
-	"github.com/datawire/ambassador/v2/pkg/consulwatch"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/ambex"
+	"github.com/emissary-ingress/emissary/v3/pkg/consulwatch"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 func makeEndpoints(ctx context.Context, ksnap *snapshot.KubernetesSnapshot, consulEndpoints map[string]consulwatch.Endpoints) *ambex.Endpoints {

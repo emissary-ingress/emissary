@@ -17,7 +17,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 
-	v4alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v4alpha"
+	v4alpha "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v4alpha"
 )
 
 // ensure the imports are used

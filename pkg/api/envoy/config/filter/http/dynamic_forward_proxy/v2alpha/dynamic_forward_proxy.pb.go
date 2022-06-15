@@ -8,7 +8,7 @@ package envoy_config_filter_http_dynamic_forward_proxy_v2alpha
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v2alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/config/common/dynamic_forward_proxy/v2alpha"
+	v2alpha "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/common/dynamic_forward_proxy/v2alpha"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

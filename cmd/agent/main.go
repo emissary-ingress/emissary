@@ -10,12 +10,12 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/klog/v2"
 
-	"github.com/datawire/ambassador/v2/cmd/entrypoint"
-	"github.com/datawire/ambassador/v2/pkg/agent"
-	"github.com/datawire/ambassador/v2/pkg/busy"
-	"github.com/datawire/ambassador/v2/pkg/logutil"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
+	"github.com/emissary-ingress/emissary/v3/pkg/agent"
+	"github.com/emissary-ingress/emissary/v3/pkg/busy"
+	"github.com/emissary-ingress/emissary/v3/pkg/logutil"
 )
 
 // internal k8s service

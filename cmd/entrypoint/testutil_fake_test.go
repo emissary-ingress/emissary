@@ -13,16 +13,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/ambassador/v2/cmd/entrypoint/internal/testqueue"
-	"github.com/datawire/ambassador/v2/pkg/ambex"
-	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
-	"github.com/datawire/ambassador/v2/pkg/consulwatch"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint/internal/testqueue"
+	"github.com/emissary-ingress/emissary/v3/pkg/ambex"
+	v3bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
+	amb "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/consulwatch"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 // The Fake struct is a test harness for edgestack. Its goals are to help us fill out our test

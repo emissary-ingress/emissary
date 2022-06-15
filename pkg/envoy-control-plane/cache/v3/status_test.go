@@ -19,7 +19,7 @@ import (
 	"reflect"
 	"testing"
 
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
 )
 
 func TestIDHash(t *testing.T) {

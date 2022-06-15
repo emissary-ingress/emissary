@@ -19,21 +19,21 @@ package server
 import (
 	"context"
 	"errors"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/rest/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/sotw/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/rest/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/sotw/v3"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	clusterservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/cluster/v3"
-	discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
-	discoverygrpc "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
-	endpointservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/endpoint/v3"
-	listenerservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/listener/v3"
-	routeservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/route/v3"
-	runtimeservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/runtime/v3"
-	secretservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/secret/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
+	clusterservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/cluster/v3"
+	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
+	discoverygrpc "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
+	endpointservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/endpoint/v3"
+	listenerservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/listener/v3"
+	routeservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/route/v3"
+	runtimeservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/runtime/v3"
+	secretservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/secret/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
 )
 
 // Server is a collection of handlers for streaming discovery requests.

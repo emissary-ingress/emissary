@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/ambassador/v2/cmd/entrypoint/internal/testqueue"
+	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint/internal/testqueue"
 	"github.com/stretchr/testify/require"
 )
 

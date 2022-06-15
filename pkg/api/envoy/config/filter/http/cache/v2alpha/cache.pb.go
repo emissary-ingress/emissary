@@ -8,8 +8,8 @@ package envoy_config_filter_http_cache_v2alpha
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	route "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/route"
-	matcher "github.com/datawire/ambassador/v2/pkg/api/envoy/type/matcher"
+	route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/route"
+	matcher "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/matcher"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	any "github.com/golang/protobuf/ptypes/any"

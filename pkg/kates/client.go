@@ -37,8 +37,8 @@ import (
 	// k8s plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	kates_internal "github.com/datawire/ambassador/v2/pkg/kates_internal"
 	"github.com/datawire/dlib/dlog"
+	kates_internal "github.com/emissary-ingress/emissary/v3/pkg/kates_internal"
 )
 
 // The Client struct provides an interface to interact with the kubernetes api-server. You can think

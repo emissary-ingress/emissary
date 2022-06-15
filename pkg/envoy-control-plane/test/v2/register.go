@@ -18,15 +18,15 @@ package test
 import (
 	"google.golang.org/grpc"
 
-	clusterservice "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	endpointservice "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	listenerservice "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	routeservice "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	accessloggrpc "github.com/datawire/ambassador/v2/pkg/api/envoy/service/accesslog/v2"
-	discoverygrpc "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
-	runtimeservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
-	secretservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v2"
+	clusterservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	endpointservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	listenerservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	routeservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	accessloggrpc "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/accesslog/v2"
+	discoverygrpc "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v2"
+	runtimeservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v2"
+	secretservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v2"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v2"
 )
 
 // RegisterAccessLogServer starts an accessloggrpc service.

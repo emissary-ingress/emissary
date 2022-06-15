@@ -18,7 +18,7 @@ import (
 	status "google.golang.org/grpc/status"
 
 	// first party (protobuf)
-	pb "github.com/datawire/ambassador/v2/pkg/api/kat"
+	pb "github.com/emissary-ingress/emissary/v3/pkg/api/kat"
 
 	// first party
 	"github.com/datawire/dlib/dgroup"

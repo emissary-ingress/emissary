@@ -8,7 +8,7 @@ package envoy_service_discovery_v3
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
+	v3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
 	proto "github.com/golang/protobuf/proto"
 	any "github.com/golang/protobuf/ptypes/any"
 	duration "github.com/golang/protobuf/ptypes/duration"

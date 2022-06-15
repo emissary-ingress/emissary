@@ -8,9 +8,9 @@ package envoy_api_v2_listener
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	auth "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/auth"
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	_type "github.com/datawire/ambassador/v2/pkg/api/envoy/type"
+	auth "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/auth"
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	_type "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	any "github.com/golang/protobuf/ptypes/any"

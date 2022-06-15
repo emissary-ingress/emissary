@@ -12,19 +12,19 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	// envoy api v2
-	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	apiv2_core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	apiv2_listener "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/listener"
-	apiv2_httpman "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
+	apiv2 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
+	apiv2_core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	apiv2_listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/listener"
+	apiv2_httpman "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
 
 	// envoy control plane
-	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	ecp_wellknown "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+	ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	ecp_wellknown "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
 
 	// first-party libraries
-	"github.com/datawire/ambassador/v2/pkg/gateway"
-	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/gateway"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 func assertErrorContains(t *testing.T, err error, msg string) {

@@ -1,7 +1,7 @@
 package ttl
 
 import (
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
 	"github.com/golang/protobuf/ptypes/any"
 )
 

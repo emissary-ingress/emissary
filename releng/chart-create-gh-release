@@ -11,7 +11,7 @@ from lib.uiutil import run, run_txtcapture
 def main() -> int:
     chart_version = getenv("CHART_VERSION")
     if not (chart_version and chart_version.startswith("v") and re_ga.match(chart_version[1:])):
-        sys.stderr.write(f'Usage: CHART_VERSION=v7.Y.Z {os.path.basename(sys.argv[0])}\n')
+        sys.stderr.write(f'Usage: CHART_VERSION=v8.Y.Z {os.path.basename(sys.argv[0])}\n')
         return 2
 
     content_gittag = f"chart/{chart_version}"

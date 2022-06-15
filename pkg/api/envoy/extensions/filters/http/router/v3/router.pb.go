@@ -8,7 +8,7 @@ package envoy_extensions_filters_http_router_v3
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/accesslog/v3"
+	v3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/accesslog/v3"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"

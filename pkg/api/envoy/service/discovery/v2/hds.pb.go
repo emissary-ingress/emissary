@@ -9,8 +9,8 @@ package envoy_service_discovery_v2
 import (
 	context "context"
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/endpoint"
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/endpoint"
 	proto "github.com/golang/protobuf/proto"
 	duration "github.com/golang/protobuf/ptypes/duration"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
