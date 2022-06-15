@@ -485,7 +485,8 @@ def test_mappings_same_name_delta():
 
     # loop through all the clusters in the resulting envoy config and pick out two Mappings from our test set (first and lase)
     # to ensure their clusters were generated properly.
-    cluster1_ok, cluster2_ok = False
+    cluster1_ok = False
+    cluster2_ok = False
     for cluster in econf['static_resources']['clusters']:
         cname = cluster.get('name', None)
         assert cname is not None, \
@@ -506,7 +507,8 @@ def test_mappings_same_name_delta():
     econf = b[1]
     econf = econf.as_dict()
 
-    cluster1_ok, cluster2_ok = False
+    cluster1_ok = False
+    cluster2_ok = False
     for cluster in econf['static_resources']['clusters']:
         cname = cluster.get('name', None)
         assert cname is not None, \
