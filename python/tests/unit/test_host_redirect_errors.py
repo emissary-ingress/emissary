@@ -142,7 +142,7 @@ spec:
     r1 = Compile(logger, yaml, k8s=True)
     r2 = Compile(logger, yaml, k8s=True, cache=cache)
 
-    # XXX Why are these showing up as "-global-"?
+    # FIXME(lukeshu): These should not show up as "-global-".
     require_errors(r1["ir"], [
         ( "-global-", "cannot accept mapping-2 without host_redirect after mapping-1 with host_redirect")
     ])
