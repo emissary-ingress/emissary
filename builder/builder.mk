@@ -283,7 +283,7 @@ pytest: push-pytest-images
 pytest: $(tools/kubestatus)
 pytest: $(tools/kubectl)
 pytest: $(OSS_HOME)/venv
-pytest: build-output/bin/envoy
+pytest: docker/base-envoy.docker.tag.local
 pytest: proxy
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
@@ -294,19 +294,20 @@ pytest: proxy
 	set -e; { \
 	  . $(OSS_HOME)/venv/bin/activate; \
 	  export SOURCE_ROOT=$(CURDIR); \
-	  export ENVOY_PATH=$(CURDIR)/build-output/bin/envoy; \
+	  export ENVOY_DOCKER_TAG=$$(cat docker/base-envoy.docker); \
 	  export KUBESTATUS_PATH=$(CURDIR)/tools/bin/kubestatus; \
 	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=$(or $(TEST_XML_DIR),/tmp/test-data)/pytest.xml --tb=short -rP $(PYTEST_ARGS); \
 	}
 .PHONY: pytest
 
-pytest-unit: build-output/bin/envoy $(OSS_HOME)/venv
+pytest-unit: $(OSS_HOME)/venv
+pytest-unit: docker/base-envoy.docker.tag.local
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
 	mkdir -p $(or $(TEST_XML_DIR),/tmp/test-data)
 	set -e; { \
 	  . $(OSS_HOME)/venv/bin/activate; \
 	  export SOURCE_ROOT=$(CURDIR); \
-	  export ENVOY_PATH=$(CURDIR)/build-output/bin/envoy; \
+	  export ENVOY_DOCKER_TAG=$$(cat docker/base-envoy.docker); \
 	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=$(or $(TEST_XML_DIR),/tmp/test-data)/pytest.xml --tb=short -rP $(PYTEST_ARGS) python/tests/unit; \
 	}
 .PHONY: pytest-unit
@@ -334,14 +335,6 @@ pytest-kat-envoy2: push-pytest-images # doing this all at once is too much for C
 pytest-kat-envoy2-g%: build-aux/pytest-kat.txt $(tools/py-split-tests)
 	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $* 3 <build-aux/pytest-kat.txt)' python/tests/kat"
 .PHONY: pytest-kat-%
-
-build-output/bin/envoy: docker/base-envoy.docker.tag.local
-	mkdir -p $(@D)
-	{ \
-	  echo '#!/bin/bash'; \
-	  echo "docker run --rm -v $(OSS_HOME):$(OSS_HOME) -v /var/:/var/ -v /tmp/:/tmp/ -t --entrypoint /usr/local/bin/envoy-static-stripped $$(cat docker/base-envoy.docker) \"\$$@\""; \
-	} > $@
-	chmod +x $@
 
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)

@@ -24,8 +24,6 @@ from tests.runutils import run_and_assert
 
 logger = logging.getLogger("ambassador")
 
-ENVOY_PATH = os.environ.get('ENVOY_PATH', '/usr/local/bin/envoy')
-
 SUPPORTED_ENVOY_VERSIONS = ["V2", "V3"]
 
 def zipkin_tracing_service_manifest():
@@ -224,16 +222,24 @@ def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):
     assert found_cluster
 
 def assert_valid_envoy_config(config_dict, v2=False):
-    with tempfile.NamedTemporaryFile() as temp:
-        temp.write(bytes(json.dumps(config_dict), encoding = 'utf-8'))
-        temp.flush()
-        f_name = temp.name
-        cmd = [ENVOY_PATH, '--config-path', f_name, '--mode', 'validate']
+    with tempfile.TemporaryDirectory() as tmpdir:
+        econf = open(os.path.join(tmpdir, 'econf.json'), 'xt')
+        econf.write(json.dumps(config_dict))
+        econf.close()
+        cmd = [
+            'docker', 'run',
+            '--rm',
+            f"--volume={tmpdir}:/ambassador:ro",
+            os.environ.get('ENVOY_DOCKER_TAG'),
+            '/usr/local/bin/envoy-static-stripped',
+            '--config-path', '/ambassador/econf.json',
+            '--mode', 'validate',
+        ]
         if v2:
             cmd.append('--bootstrap-version 2')
         p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if p.returncode != 0:
-            print(p.stdout)
+            print(p.stdout.decode())
         p.check_returncode()
 
 
