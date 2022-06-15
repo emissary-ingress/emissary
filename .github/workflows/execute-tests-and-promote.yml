@@ -159,24 +159,20 @@ jobs:
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - name: make pytest-${{ matrix.test }}
-        uses: nick-invision/retry@v2.4.0
-        with:
-          max_attempts: 3
-          timeout_minutes: 20
-          command: |
-            export USE_LOCAL_K3S_CLUSTER=1
-            sudo sysctl -w fs.file-max=1600000
-            sudo sysctl -w fs.inotify.max_user_instances=4096
+        run: |
+          export USE_LOCAL_K3S_CLUSTER=1
+          sudo sysctl -w fs.file-max=1600000
+          sudo sysctl -w fs.inotify.max_user_instances=4096
 
-            make ci/setup-k3d K3D_CLUSTER_NAME=amb-ci
+          make ci/setup-k3d K3D_CLUSTER_NAME=amb-ci
 
-            export DEV_KUBE_NO_PVC=yes
-            export KAT_REQ_LIMIT=900
-            export TEST_XML_DIR=/tmp/test-logs/xml/
-            export DEV_KUBECONFIG=~/.kube/config
-            export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
-            mkdir -p ${TEST_XML_DIR}
-            make pytest-${{ matrix.test }}
+          export DEV_KUBE_NO_PVC=yes
+          export KAT_REQ_LIMIT=900
+          export TEST_XML_DIR=/tmp/test-logs/xml/
+          export DEV_KUBECONFIG=~/.kube/config
+          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
+          mkdir -p ${TEST_XML_DIR}
+          make pytest-${{ matrix.test }}
       - uses: ./.github/actions/after-job
         if: always()
         with:
@@ -206,21 +202,17 @@ jobs:
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - name: make pytest-${{ matrix.test }}
-        uses: nick-invision/retry@v2.4.0
-        with:
-          max_attempts: 3
-          timeout_minutes: 20
-          command: |
-            sudo sysctl -w fs.file-max=1600000
-            sudo sysctl -w fs.inotify.max_user_instances=4096
+        run: |
+          sudo sysctl -w fs.file-max=1600000
+          sudo sysctl -w fs.inotify.max_user_instances=4096
 
-            export DEV_KUBE_NO_PVC=yes
-            export KAT_REQ_LIMIT=900
-            export TEST_XML_DIR=/tmp/test-logs/xml/
-            export DEV_KUBECONFIG=~/.kube/config
-            export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
-            mkdir -p ${TEST_XML_DIR}
-            make pytest-${{ matrix.test }}
+          export DEV_KUBE_NO_PVC=yes
+          export KAT_REQ_LIMIT=900
+          export TEST_XML_DIR=/tmp/test-logs/xml/
+          export DEV_KUBECONFIG=~/.kube/config
+          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
+          mkdir -p ${TEST_XML_DIR}
+          make pytest-${{ matrix.test }}
       - uses: ./.github/actions/after-job
         if: always()
         with:

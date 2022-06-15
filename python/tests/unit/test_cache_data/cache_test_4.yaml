@@ -1,54 +1,4 @@
 ---
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: bar0
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: bar1
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: bar2
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: bar3
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: bar4
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: bar5
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: bar6
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: bar7
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: bar8
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: bar9
----
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
@@ -147,4 +97,3 @@ metadata:
 spec:
   prefix: /bar-9/
   service: bar-9.example.com:6666
-

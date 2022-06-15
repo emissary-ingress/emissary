@@ -120,8 +120,8 @@ class Config:
     fatal_errors: int
     object_errors: int
 
-    def __init__(self, logger:logging.Logger=None, schema_dir_path: Optional[str]=None) -> None:
-        self.logger = logger or logging.getLogger("ambassador.config")
+    def __init__(self, schema_dir_path: Optional[str]=None) -> None:
+        self.logger = logging.getLogger("ambassador.config")
 
         if not schema_dir_path:
             # Note that this "resource_filename" has to do with setuptool packages, not

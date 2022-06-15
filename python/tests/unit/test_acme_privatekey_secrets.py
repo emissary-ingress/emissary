@@ -1,28 +1,16 @@
-from typing import Any, Dict, List, Optional, Union, TextIO, TYPE_CHECKING
+from typing import Optional, Tuple
 
+import hashlib
+import io
+import json
 import logging
 import os
 
-import hashlib
-import json
-
 import pytest
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s test %(levelname)s: %(message)s",
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-logger = logging.getLogger("ambassador")
-logger.setLevel(logging.DEBUG)
 
 from ambassador import Config, IR
 from ambassador.fetch import ResourceFetcher
-from ambassador.utils import SecretHandler, SecretInfo, SavedSecret
-
-if TYPE_CHECKING:
-    from ambassador.ir import IRResource # pragma: no cover
+from ambassador.utils import SecretHandler, SavedSecret
 
 # MemorySecretHandler is a degenerate SecretHandler that doesn't actually
 # cache anything to disk. It will never load a secret that isn't already
@@ -73,8 +61,8 @@ class MemorySecretHandler (SecretHandler):
         return SavedSecret(name, namespace, tls_crt_path, tls_key_path, user_key_path, root_crt_path, cert_data)
 
 
-def _get_ir_config(watt):
-    aconf = Config(logger=logger)
+def _get_config_and_ir(logger: logging.Logger, watt: str) -> Tuple[Config, IR]:
+    aconf = Config()
     fetcher = ResourceFetcher(logger, aconf)
     fetcher.parse_watt(watt)
     aconf.load_all(fetcher.sorted())
@@ -85,23 +73,45 @@ def _get_ir_config(watt):
     assert ir
     return aconf, ir
 
+def _get_errors(caplog: pytest.LogCaptureFixture, logger_name: str, watt_data_filename: str):
+    watt_data = open(watt_data_filename).read()
+
+    aconf, ir = _get_config_and_ir(
+        logging.getLogger(logger_name),
+        watt_data)
+
+    log_errors = [rec for rec in caplog.record_tuples if rec[0] == logger_name and rec[1] > logging.INFO]
+
+    aconf_errors = aconf.errors
+    if "-global-" in aconf_errors:
+        # We expect some global errors related to us not being a real Emissary instance, such as
+        # "Pod labels are not mounted in the container".  Ignore those.
+        del aconf_errors["-global-"]
+
+    return log_errors, aconf_errors
 
 @pytest.mark.compilertest
-def test_acme_privatekey_secrets():
-    test_data_dir = os.path.join(
+def test_acme_privatekey_secrets(caplog: pytest.LogCaptureFixture):
+    caplog.set_level(logging.DEBUG)
+
+    nl = "\n"
+    tab = "\t"
+
+    # What this test is really about is ensuring that test-acme-private-key-snapshot.json doesn't
+    # emit any errors.  But, in order to validate the test itself and ensure that the test is
+    # checking for errors in the correct place, we'll also run against a bad version of that file
+    # and check that we *do* see errors.
+
+    badsnap_log_errors, badsnap_aconf_errors = _get_errors(caplog, "test_acme_privatekey_secrets-bad", os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        "test_general_data"
-    )
+        "test_general_data",
+        "test-acme-private-key-snapshot-bad.json"))
+    assert badsnap_log_errors
+    assert not badsnap_aconf_errors, "Wanted no aconf errors but got:%s" % "".join([f"{nl}    {err}" for err in badsnap_aconf_errors])
 
-    test_data_file = os.path.join(test_data_dir, "test-acme-private-key-snapshot.json")
-    watt_data = open(test_data_file).read()
-
-    aconf, ir = _get_ir_config(watt_data)
-
-    # Remember, you'll see no log output unless the test fails!
-    logger.debug("---- ACONF")
-    logger.debug(json.dumps(aconf.as_dict(), indent=2, sort_keys=True))
-    logger.debug("---- IR")
-    logger.debug(json.dumps(ir.as_dict(), indent=2, sort_keys=True))
-
-    assert not aconf.errors, "Wanted no errors but got:\n    %s" % "\n    ".join(aconf.errors)
+    goodsnap_log_errors, goodsnap_aconf_errors = _get_errors(caplog, "test_acme_privatekey_secrets", os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "test_general_data",
+        "test-acme-private-key-snapshot.json"))
+    assert not goodsnap_log_errors, "Wanted no logged errors bug got:%s" % "".join([f"{nl}    {logging.getLevelName(rec[1])}{tab}{rec[0]}:{rec[2]}" for rec in goodsnap_log_errors])
+    assert not goodsnap_aconf_errors, "Wanted no aconf errors but got:%s" % "".join([f"{nl}    {err}" for err in goodsnap_aconf_errors])
