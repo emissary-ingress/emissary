@@ -300,7 +300,7 @@ spec:
                 watt_list.append(obj)
 
             # Remove annotations from the snapshot; we'll process them separately.
-            annotations = watt_k8s.pop('annotations') or {}
+            annotations = watt_k8s.pop('annotations', {})
 
             # These objects have to be processed first, in order, as they depend
             # on each other.
