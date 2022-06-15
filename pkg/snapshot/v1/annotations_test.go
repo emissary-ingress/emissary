@@ -46,6 +46,30 @@ service: quote:80
 		},
 	}
 
+	svcWithEmptyAnnotation := &kates.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Service",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "svc-empty",
+			Namespace: "ambassador",
+			Annotations: map[string]string{
+				"getambassador.io/config": "",
+			},
+		},
+	}
+
+	svcWithMissingAnnotation := &kates.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Service",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        "svc-missing",
+			Namespace:   "ambassador",
+			Annotations: map[string]string{},
+		},
+	}
+
 	ingHost := `
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -114,7 +138,7 @@ prefix: /blah/`
 	}
 
 	ks := &snapshotTypes.KubernetesSnapshot{
-		Services:  []*kates.Service{svc, ambSvc},
+		Services:  []*kates.Service{svc, ambSvc, svcWithEmptyAnnotation, svcWithMissingAnnotation},
 		Ingresses: []*snapshotTypes.Ingress{{Ingress: *ingress}},
 		Hosts:     []*amb.Host{ignoredHost},
 	}
@@ -123,6 +147,7 @@ prefix: /blah/`
 
 	err := ks.PopulateAnnotations(ctx)
 	assert.NoError(t, err)
+	assert.Equal(t, len(ks.Services), 4)
 	assert.Equal(t, map[string]snapshotTypes.AnnotationList{
 		"Service/svc.ambassador": {
 			&amb.Mapping{
