@@ -22,9 +22,10 @@ import json
 import logging
 import os
 
+from functools import singledispatchmethod
+
 import jsonschema
 
-from multi import multi
 from pkg_resources import Requirement, resource_filename
 from google.protobuf import json_format
 
@@ -345,25 +346,17 @@ class Config:
 
         self.logger.log(log_level, "%s: NOTICE: %s" % (rkey, msg))
 
-    @multi
-    def post_error(self, msg: Union[RichStatus, str], resource: Optional[Resource]=None, rkey: Optional[str]=None, log_level=logging.INFO) -> str:
-        del resource    # silence warnings
-        del rkey
+    @singledispatchmethod
+    def post_error(self, msg: Union[RichStatus, str], resource: Optional[Resource]=None, rkey: Optional[str]=None, log_level=logging.INFO) -> None:
+        assert False
 
-        if isinstance(msg, RichStatus):
-            return 'RichStatus'
-        elif isinstance(msg, str):
-            return 'string'
-        else:
-            return type(msg).__name__
-
-    @post_error.when('string')
+    @post_error.register
     def post_error_string(self, msg: str, resource: Optional[Resource]=None, rkey: Optional[str]=None, log_level=logging.INFO):
         rc = RichStatus.fromError(msg)
 
         self.post_error(rc, resource=resource, log_level=log_level)
 
-    @post_error.when('RichStatus')
+    @post_error.register
     def post_error_richstatus(self, rc: RichStatus, resource: Optional[Resource]=None, rkey: Optional[str]=None, log_level=logging.INFO):
         if resource is None:
             resource = self.current_resource

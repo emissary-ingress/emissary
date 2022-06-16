@@ -2,12 +2,12 @@ from typing import ClassVar, Dict, List, Optional, Tuple, TYPE_CHECKING
 from typing import cast as typecast
 
 from ..config import Config
-from ..envoy.v2.v2cidrrange import CIDRRange
 
 from .irresource import IRResource
 from .irfilter import IRFilter
 
 if TYPE_CHECKING:
+    from ..envoy.v2.v2cidrrange import CIDRRange
     from .ir import IR # pragma: no cover
 
 
@@ -19,7 +19,7 @@ class IRIPAllowDeny(IRFilter):
 
     parent: IRResource
     action: str
-    principals: List[Tuple[str, CIDRRange]]
+    principals: List[Tuple[str, 'CIDRRange']]
 
     EnvoyTypeMap: ClassVar[Dict[str, str]] = {
         "remote": "remote_ip",
@@ -89,6 +89,7 @@ class IRIPAllowDeny(IRFilter):
         # or the like, where the key in the dict specifies how Envoy will handle the
         # IP match, and the value is a CIDRRange spec.
 
+        from ..envoy.v2.v2cidrrange import CIDRRange
         for pdict in principals:
             # If we have more than one thing in the dict, that's an error.
 

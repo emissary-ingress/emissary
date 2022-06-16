@@ -3,9 +3,10 @@ import sys
 
 from abc import ABC
 from collections import OrderedDict
+from functools import singledispatch
 from hashlib import sha256
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
 from packaging import version
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
 
 import base64
 import fnmatch
@@ -24,7 +25,6 @@ from ambassador.utils import parse_bool
 from yaml.scanner import ScannerError as YAMLScanError
 
 import tests.integration.manifests as integration_manifests
-from multi import multi
 from .parser import dump, load, Tag
 from tests.manifests import httpbin_manifests, websocket_echo_server_manifests, cleartext_host_manifest, default_listener_manifest
 from tests.kubeutils import apply_kube_artifacts
@@ -675,21 +675,17 @@ class Test(Node):
             return self.parent.ambassador_id
 
 
-@multi
-def encode_body(obj):
-    yield type(obj)
-
-@encode_body.when(bytes)  # type: ignore
-def encode_body(b):
-    return base64.encodebytes(b).decode("utf-8")
-
-@encode_body.when(str)  # type: ignore
-def encode_body(s):
-    return encode_body(s.encode("utf-8"))
-
-@encode_body.default   # type: ignore
+@singledispatch
 def encode_body(obj):
     return encode_body(json.dumps(obj))
+
+@encode_body.register
+def encode_body_bytes(b: bytes):
+    return base64.encodebytes(b).decode("utf-8")
+
+@encode_body.register
+def encode_body_str(s: str):
+    return encode_body(s.encode("utf-8"))
 
 class Query:
 
@@ -1766,12 +1762,15 @@ class Runner:
 
         assert False, "requirements not satisfied in %s seconds" % limit
 
-    @multi
-    def _ready(self, kind, _):
-        return kind
+    def _ready(self, kind, requirements):
+        fn = {
+            "pod": self._ready_pod,
+            "url": self._ready_url,
+        }[kind]
 
-    @_ready.when("pod")  # type: ignore
-    def _ready(self, _, requirements):
+        return fn(kind, requirements)
+
+    def _ready_pod(self, _, requirements):
         pods = self._pods(self.scope)
         not_ready = []
 
@@ -1785,8 +1784,7 @@ class Runner:
 
         return (True, None)
 
-    @_ready.when("url")  # type: ignore
-    def _ready(self, _, requirements):
+    def _ready_url(self, _, requirements):
         queries = []
 
         for node, q in requirements:
