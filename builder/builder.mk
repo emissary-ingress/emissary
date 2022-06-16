@@ -343,6 +343,7 @@ mypy: $(OSS_HOME)/venv
 	  time mypy \
 	    --cache-fine-grained \
 	    --ignore-missing-imports \
+	    --check-untyped-defs \
 	    ./python/; \
 	}
 .PHONY: mypy
