@@ -133,5 +133,6 @@ class IRTracing(IRResource):
         self.cluster = cluster
 
     def finalize(self):
+        assert self.cluster
         self.ir.logger.debug("tracing cluster envoy name: %s" % self.cluster.envoy_name)
         self.driver_config['collector_cluster'] = self.cluster.envoy_name

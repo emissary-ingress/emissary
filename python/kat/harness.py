@@ -627,7 +627,9 @@ class Node(ABC):
 
 class Test(Node):
 
-    results: Sequence['Result']
+    results: List['Result'] = []
+    pending: List['Query'] = []
+    queried: List['Query'] = []
 
     __test__ = False
 
@@ -1181,12 +1183,6 @@ class Runner:
                     if t.has_local_result():
                         # print(f"{t.name}: SKIP due to local result")
                         continue
-
-                    if t in expanded_up:
-                        pre_query: Callable = getattr(t, "pre_query", None)
-
-                        if pre_query:
-                            pre_query()
 
                 self._query(expanded_up)
             except:

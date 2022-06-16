@@ -195,7 +195,7 @@ def test_locks():
                         fetch_envoy_stats=mocker.slow_fetch_stats)
 
     def slow_background():
-        esm.update() == True
+        esm.update()
 
     def check_get_stats():
         start = time.perf_counter()

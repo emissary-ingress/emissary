@@ -213,6 +213,10 @@ class WatchHook:
                         # At the moment, we stuff the resolver's datacenter into the association
                         # ID for this watch. The ResourceFetcher relies on that.
 
+                        assert resolver.datacenter
+                        assert resolver.address
+                        assert svc.hostname
+
                         self.consul_watches.append(
                             {
                                 "id": resolver.datacenter,

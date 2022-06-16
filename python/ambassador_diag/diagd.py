@@ -898,6 +898,7 @@ def handle_fs():
 def handle_events():
     if not app.local_scout:
         return 'Local Scout is not enabled\n', 400
+    assert isinstance(app.scout._scout, LocalScout)
 
     event_dump = [
         ( x['local_scout_timestamp'], x['mode'], x['action'], x ) for x in app.scout._scout.events
@@ -960,6 +961,7 @@ def show_overview(reqid=None):
     # to compute -- we don't want to call it more than once here, so we cache
     # its value.
     diag = app.diag
+    assert diag
 
     if app.verbose:
         app.logger.debug("OV %s: DIAG" % reqid)
@@ -1096,12 +1098,14 @@ def show_intermediate(source=None, reqid=None):
     # to compute -- we don't want to call it more than once here, so we cache
     # its value.
     diag = app.diag
+    assert diag
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
 
     estats = app.estatsmgr.get_stats()
     result = diag.lookup(request, source, estats)
+    assert result
 
     if app.verbose:
         app.logger.debug("RESULT %s" % dump_json(result, pretty=True))
