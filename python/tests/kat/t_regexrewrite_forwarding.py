@@ -29,8 +29,12 @@ regex_rewrite:
         yield Query(self.url("ffoo/"), expected=404)
 
     def check(self):
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.headers['x-envoy-original-path'][0] == f'/foo/bar'
         assert self.results[0].backend.request.url.path == "/foo/bar"
+        assert self.results[1].backend
+        assert self.results[1].backend.request
         assert self.results[1].backend.request.headers['x-envoy-original-path'][0] == f'/foo/baz'
         assert self.results[1].backend.request.url.path == "/baz/foo"
 
@@ -61,7 +65,11 @@ regex_rewrite:
         yield Query(self.url("foo/"), expected=200)
 
     def check(self):
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.headers['x-envoy-original-path'][0] == f'/foo/123456789/list'
         assert self.results[0].backend.request.url.path == "/bar/123456789"
+        assert self.results[1].backend
+        assert self.results[1].backend.request
         assert self.results[1].backend.request.headers['x-envoy-original-path'][0] == f'/foo/987654321/list'
         assert self.results[1].backend.request.url.path == "/bar/987654321"

@@ -164,12 +164,16 @@ add_request_headers:
                     error=[ "tls: certificate required", "write: connection reset by peer" ])
 
     def check(self):
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.headers["x-forwarded-client-cert"] == \
             ["Hash=c2d41a5977dcd28a3ba21f59ed5508cc6538defa810843d8a593e668306c8c4f;Subject=\"CN=presto.example.com,OU=Engineering,O=Presto,L=Bangalore,ST=KA,C=IN\""]
         assert self.results[0].backend.request.headers["x-cert-start"] == ["2019-01-10T19:19:52.000Z"], \
                 "unexpected x-cert-start value: %s" % self.results[0].backend.request.headers["x-cert-start"]
         assert self.results[0].backend.request.headers["x-cert-end"] == ["2118-12-17T19:19:52.000Z"], \
                 "unexpected x-cert-end value: %s" % self.results[0].backend.request.headers["x-cert-end"]
+        assert self.results[1].backend
+        assert self.results[1].backend.request
         assert self.results[0].backend.request.headers["x-cert-start-custom"] == ["Jan 10 19:19:52 2019 UTC"], \
                 "unexpected x-cert-start-custom value: %s" % self.results[1].backend.request.headers["x-cert-start-custom"]
         assert self.results[0].backend.request.headers["x-cert-end-custom"] == ["Dec 17 19:19:52 2118 UTC"], \
@@ -417,6 +421,8 @@ tls: upstream-files
 
     def check(self):
         for r in self.results:
+            assert r.backend
+            assert r.backend.request
             assert r.backend.request.tls.enabled
 
 
@@ -553,6 +559,7 @@ service: {self.target.path.fqdn}
         yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), phase=2)
 
     def check(self):
+        assert self.results[0].backend
         errors = self.results[0].backend.response
 
         expected = set({
@@ -1190,7 +1197,11 @@ max_tls_version: v1.2
                             "read: connection reset by peer"])  # The TLS inspector just closes the connection. Wow.
 
     def check(self):
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         tls_0_version = self.results[0].backend.request.tls.negotiated_protocol_version
+        assert self.results[1].backend
+        assert self.results[1].backend.request
         tls_1_version = self.results[1].backend.request.tls.negotiated_protocol_version
 
         # See comment in queries for why these are None. They should be v1.2 and v1.1 respectively.
@@ -1294,7 +1305,11 @@ max_tls_version: v1.3
                             "tls: protocol version not supported" ])
 
     def check(self):
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         tls_0_version = self.results[0].backend.request.tls.negotiated_protocol_version
+        assert self.results[1].backend
+        assert self.results[1].backend.request
         tls_1_version = self.results[1].backend.request.tls.negotiated_protocol_version
 
         # Hmmm. Why does Envoy prefer 1.2 to 1.3 here?? This may be a client thing -- have to
@@ -1395,6 +1410,8 @@ ecdh_curves:
                     error="tls: handshake failure",)
 
     def check(self):
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         tls_0_version = self.results[0].backend.request.tls.negotiated_protocol_version
 
         assert tls_0_version == "v1.2", f"requesting TLS v1.2 got TLS {tls_0_version}"

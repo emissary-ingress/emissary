@@ -552,6 +552,7 @@ class Node(ABC):
         if self.parent is ancestor:
             return Name(self.name, namespace=self.namespace)
         else:
+            assert self.parent
             return Name(self.parent.relpath(ancestor) + "." + self.name, namespace=self.namespace)
 
     @property
@@ -731,6 +732,7 @@ class Query:
         self.grpc_type = grpc_type
 
     def as_json(self):
+        assert self.parent
         result = {
             "test": self.parent.path,
             "id": id(self),

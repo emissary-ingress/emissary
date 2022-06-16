@@ -94,6 +94,10 @@ def test_stats():
     esm.update()
     stats = esm.get_stats()
 
+    assert stats.created is not None
+    assert stats.last_attempt is not None
+    assert stats.last_update is not None
+
     assert stats.last_attempt >= stats.created
     assert stats.last_update > stats.last_attempt
     assert stats.update_errors == 0

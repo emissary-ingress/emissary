@@ -253,6 +253,8 @@ remove_request_headers:
 
     def check(self):
         # [0]
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         assert len(self.results[0].backend.request.headers['l5d-dst-override']) > 0
         assert self.results[0].backend.request.headers['l5d-dst-override'] == ["{}:80".format(self.target.path.fqdn)]
         assert len(self.results[0].backend.request.headers['fruit']) > 0
@@ -262,6 +264,8 @@ remove_request_headers:
         assert 'x-evilness' not in self.results[0].backend.request.headers
 
         # [1]
+        assert self.results[1].backend
+        assert self.results[1].backend.request
         assert 'l5d-dst-override' not in self.results[1].backend.request.headers
         assert len(self.results[1].backend.request.headers['fruit']) > 0
         assert self.results[1].backend.request.headers['fruit'] == [ 'orange']
@@ -270,6 +274,8 @@ remove_request_headers:
         assert self.results[1].backend.request.headers['x-evilness'] == [ 'more evilness' ]
 
         # [2]
+        assert self.results[2].backend
+        assert self.results[2].backend.request
         assert len(self.results[2].backend.request.headers['l5d-dst-override']) > 0
         assert self.results[2].backend.request.headers['l5d-dst-override'] == ["{}:80".format(self.target_add_linkerd_header_only.path.fqdn)]
         assert len(self.results[2].backend.request.headers['x-evil-header']) > 0

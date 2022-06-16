@@ -50,7 +50,9 @@ headers:
         yield Query(self.parent.url(self.name + "/"), headers={"X-Route": "target2"})
 
     def check(self):
+        assert self.results[0].backend
         assert self.results[0].backend.name == self.target.path.k8s, f"r0 wanted {self.target.path.k8s} got {self.results[0].backend.name}"
+        assert self.results[1].backend
         assert self.results[1].backend.name == self.target2.path.k8s, f"r1 wanted {self.target2.path.k8s} got {self.results[1].backend.name}"
 
 class HeaderRoutingAuth(ServiceType):
@@ -168,13 +170,17 @@ headers:
 
     def check(self):
         # [0] should be a 403 from auth
+        assert self.results[0].backend
         assert self.results[0].backend.name == self.auth.path.k8s, f"r0 wanted {self.auth.path.k8s} got {self.results[0].backend.name}"
 
         # [1] should go to target2
+        assert self.results[1].backend
         assert self.results[1].backend.name == self.target2.path.k8s, f"r1 wanted {self.target2.path.k8s} got {self.results[1].backend.name}"
 
         # [2] should go to target1
+        assert self.results[2].backend
         assert self.results[2].backend.name == self.target1.path.k8s, f"r2 wanted {self.target1.path.k8s} got {self.results[2].backend.name}"
 
         # [3] should be a 403 from auth
+        assert self.results[3].backend
         assert self.results[3].backend.name == self.auth.path.k8s, f"r3 wanted {self.auth.path.k8s} got {self.results[3].backend.name}"

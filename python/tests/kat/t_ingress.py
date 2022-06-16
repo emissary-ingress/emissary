@@ -71,6 +71,7 @@ spec:
         for r in self.results:
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
+                assert r.backend.request
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here
@@ -140,6 +141,7 @@ spec:
         for r in self.results:
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
+                assert r.backend.request
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here
@@ -210,6 +212,7 @@ spec:
         for r in self.results:
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
+                assert r.backend.request
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here
@@ -472,6 +475,7 @@ spec:
         for r in self.results:
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
+                assert r.backend.request
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here

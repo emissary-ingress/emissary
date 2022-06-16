@@ -268,11 +268,13 @@ class Builder:
 def test_circular_link(tmp_path):
     builder = Builder(logger, tmp_path, "cache_test_1.yaml")
     builder.build()
+    assert builder.cache
 
     # This Can't Happen(tm) in Ambassador, but it's important that it not go
     # off the rails. Find a Mapping...
     mapping_key = "Mapping-v2-foo-4-default"
     m = builder.cache[mapping_key]
+    assert m
 
     # ...then walk the link chain until we get to a V2-Cluster.
     worklist = [ m.cache_key ]

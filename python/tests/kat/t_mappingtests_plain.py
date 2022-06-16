@@ -55,6 +55,7 @@ service: http://{self.target.path.fqdn}
         for r in self.results:
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
+                assert r.backend.request
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
 
@@ -98,6 +99,7 @@ spec:
         for r in self.results:
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
+                assert r.backend.request
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
 # Disabled SimpleMappingIngressDefaultBackend since adding a default fallback mapping would break other
@@ -190,6 +192,7 @@ spec:
         for r in self.results:
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
+                assert r.backend.request
                 assert r.backend.request.headers['x-envoy-original-path'][0] in (f'/{self.name}/', f'/{self.name}-nested/')
 
 
@@ -365,6 +368,8 @@ service: https://{self.target.path.fqdn}
 
     def check(self):
         for r in self.results:
+            assert r.backend
+            assert r.backend.request
             assert r.backend.request.tls.enabled
 
 
@@ -538,6 +543,7 @@ weight: {self.weight}
         hist: Dict[str, int] = {}
 
         for r in self.results:
+            assert r.backend
             hist[r.backend.name] = hist.get(r.backend.name, 0) + 1
 
         if self.weight == 0:
@@ -609,7 +615,9 @@ weight: {self.weight}
         hist: Dict[str, int] = {}
 
         for r in self.results:
+            assert r.backend
             hist[r.backend.name] = hist.get(r.backend.name, 0) + 1
+            assert r.backend.request
             assert r.backend.request.host in request_hosts, f'Expected host {request_hosts}, got {r.backend.request.host}'
 
         if self.weight == 0:
@@ -780,6 +788,7 @@ add_request_headers:
     def check(self):
         for r in self.results:
             if r.backend:
+                assert r.backend.request
                 assert r.backend.request.headers['zoo'] == ['Zoo']
                 assert r.backend.request.headers['aoo'] == ['AooA','aoo']
                 assert r.backend.request.headers['boo'] == ['BooB','boo']

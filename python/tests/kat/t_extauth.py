@@ -102,7 +102,9 @@ auth_context_extensions:
 
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
+        assert self.results[0].backend
         assert self.results[0].backend.name == self.auth.path.k8s
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.url.path == "/target/"
         assert self.results[0].backend.request.headers["x-envoy-internal"]== ["true"]
         assert self.results[0].backend.request.headers["x-forwarded-proto"]== ["http"]
@@ -113,7 +115,9 @@ auth_context_extensions:
         assert self.results[0].headers['X-Grpc-Service-Protocol-Version'] == ['v2']
 
         # [1] Verifies that Location header is returned from Envoy.
+        assert self.results[1].backend
         assert self.results[1].backend.name == self.auth.path.k8s
+        assert self.results[1].backend.request
         assert self.results[1].backend.request.headers["requested-status"] == ["302"]
         assert self.results[1].backend.request.headers["requested-location"] == ["foo"]
         assert self.results[1].status == 302
@@ -121,7 +125,9 @@ auth_context_extensions:
         assert self.results[1].headers['X-Grpc-Service-Protocol-Version'] == ['v2']
 
         # [2] Verifies Envoy returns whitelisted headers input by the user.
+        assert self.results[2].backend
         assert self.results[2].backend.name == self.auth.path.k8s
+        assert self.results[2].backend.request
         assert self.results[2].backend.request.headers["requested-status"] == ["401"]
         assert self.results[2].backend.request.headers["requested-header"] == ["x-foo"]
         assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
@@ -131,6 +137,8 @@ auth_context_extensions:
         assert self.results[2].headers['X-Grpc-Service-Protocol-Version'] == ['v2']
 
         # [3] Verifies default whitelisted Authorization request header.
+        assert self.results[3].backend
+        assert self.results[3].backend.request
         assert self.results[3].backend.request.headers["requested-status"] == ["200"]
         assert self.results[3].backend.request.headers["requested-header"] == ["Authorization"]
         assert self.results[3].backend.request.headers["authorization"] == ["foo-11111"]
@@ -145,6 +153,8 @@ auth_context_extensions:
         assert self.results[4].status == 200
         assert self.results[4].headers["Server"] == ["envoy"]
         assert self.results[4].headers["Authorization"] == ["foo-22222"]
+        assert self.results[4].backend
+        assert self.results[4].backend.request
         context_ext = json.loads(self.results[4].backend.request.headers["x-request-context-extensions"][0])
         assert context_ext["first"] == "first element"
         assert context_ext["second"] == "second element"
@@ -153,6 +163,8 @@ auth_context_extensions:
         assert self.results[5].status == 200
         assert self.results[5].headers["Server"] == ["envoy"]
         assert self.results[5].headers["Authorization"] == ["foo-33333"]
+        assert self.results[5].backend
+        assert self.results[5].backend.request
         context_ext = json.loads(self.results[5].backend.request.headers["x-request-context-extensions"][0])
         assert context_ext["context"] == "auth-context-name"
         assert context_ext["data"] == "auth-data"
@@ -236,6 +248,8 @@ service: {self.target.path.fqdn}
     def check(self):
         # [0] Verifies that the authorization server received the partial message body.
         extauth_res1 = json.loads(self.results[0].headers["Extauth"][0])
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.headers["requested-status"] == ["200"]
         assert self.results[0].status == 200
         assert self.results[0].headers["Server"] == ["envoy"]
@@ -243,12 +257,16 @@ service: {self.target.path.fqdn}
 
         # [1] Verifies that the authorization server received the full message body.
         extauth_res2 = json.loads(self.results[1].headers["Extauth"][0])
+        assert self.results[1].backend
+        assert self.results[1].backend.request
         assert self.results[1].backend.request.headers["requested-status"] == ["200"]
         assert self.results[1].status == 200
         assert self.results[1].headers["Server"] == ["envoy"]
         assert extauth_res2["request"]["headers"]["auth-request-body"] == ["body"]
 
         # [2] Verifies that the authorization server received added headers
+        assert self.results[2].backend
+        assert self.results[2].backend.request
         assert self.results[2].backend.request.headers["requested-status"] == ["401"]
         assert self.results[2].backend.request.headers["x-added-auth"] == ["auth-added"]
         assert self.results[2].status == 401
@@ -354,7 +372,9 @@ service: {self.target.path.fqdn}
 
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
+        assert self.results[0].backend
         assert self.results[0].backend.name == self.auth.path.k8s
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.url.path == "/extauth/target/"
         assert self.results[0].backend.request.headers["x-forwarded-proto"]== ["http"]
         assert self.results[0].backend.request.headers["content-length"]== ["0"]
@@ -365,7 +385,9 @@ service: {self.target.path.fqdn}
         assert self.results[0].headers["Server"] == ["envoy"]
 
         # [1] Verifies that Location header is returned from Envoy.
+        assert self.results[1].backend
         assert self.results[1].backend.name == self.auth.path.k8s
+        assert self.results[1].backend.request
         assert self.results[1].backend.request.headers["requested-status"] == ["302"]
         assert self.results[1].backend.request.headers["requested-header"] == ["location"]
         assert self.results[1].backend.request.headers["location"] == ["foo"]
@@ -375,7 +397,9 @@ service: {self.target.path.fqdn}
         assert self.results[1].headers["Set-Cookie"] == ["foo=foo", "bar=bar", "baz=baz"]
 
         # [2] Verifies Envoy returns whitelisted headers input by the user.
+        assert self.results[2].backend
         assert self.results[2].backend.name == self.auth.path.k8s
+        assert self.results[2].backend.request
         assert self.results[2].backend.request.headers["requested-status"] == ["401"]
         assert self.results[2].backend.request.headers["requested-header"] == ["X-Foo"]
         assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
@@ -384,7 +408,9 @@ service: {self.target.path.fqdn}
         assert self.results[2].headers["X-Foo"] == ["foo"]
 
         # [3] Verifies that envoy does not return not whitelisted headers.
+        assert self.results[3].backend
         assert self.results[3].backend.name == self.auth.path.k8s
+        assert self.results[3].backend.request
         assert self.results[3].backend.request.headers["requested-status"] == ["401"]
         assert self.results[3].backend.request.headers["requested-header"] == ["X-Bar"]
         assert self.results[3].backend.request.headers["x-bar"] == ["bar"]
@@ -393,6 +419,8 @@ service: {self.target.path.fqdn}
         assert "X-Bar" not in self.results[3].headers
 
         # [4] Verifies default whitelisted Authorization request header.
+        assert self.results[4].backend
+        assert self.results[4].backend.request
         assert self.results[4].backend.request.headers["requested-status"] == ["200"]
         assert self.results[4].backend.request.headers["requested-header"] == ["Authorization"]
         assert self.results[4].backend.request.headers["authorization"] == ["foo-11111"]
@@ -467,12 +495,16 @@ service: {self.target.path.fqdn}
     def check(self):
         # [0] Verifies that the authorization server received the partial message body.
         extauth_res1 = json.loads(self.results[0].headers["Extauth"][0])
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.headers["requested-status"] == ["200"]
         assert self.results[0].status == 200
         assert self.results[0].headers["Server"] == ["envoy"]
 
         # [1] Verifies that the authorization server received the full message body.
         extauth_res2 = json.loads(self.results[1].headers["Extauth"][0])
+        assert self.results[1].backend
+        assert self.results[1].backend.request
         assert self.results[1].backend.request.headers["requested-status"] == ["503"]
         assert self.results[1].headers["Server"] == ["envoy"]
 
@@ -605,6 +637,8 @@ bypass_auth: true
 
         # [0] Verifies all request headers sent to the authorization server.
         assert self.check_backend_name(self.results[0])
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.url.path == "/extauth/target/0"
         assert self.results[0].backend.request.headers["x-forwarded-proto"]== ["http"]
         assert self.results[0].backend.request.headers["content-length"]== ["0"]
@@ -616,6 +650,8 @@ bypass_auth: true
 
         # [1] Verifies that Location header is returned from Envoy.
         assert self.check_backend_name(self.results[1])
+        assert self.results[1].backend
+        assert self.results[1].backend.request
         assert self.results[1].backend.request.headers["requested-status"] == ["302"]
         assert self.results[1].backend.request.headers["requested-header"] == ["location"]
         assert self.results[1].backend.request.headers["location"] == ["foo"]
@@ -625,6 +661,8 @@ bypass_auth: true
 
         # [2] Verifies Envoy returns whitelisted headers input by the user.
         assert self.check_backend_name(self.results[2])
+        assert self.results[2].backend
+        assert self.results[2].backend.request
         assert self.results[2].backend.request.headers["requested-status"] == ["401"]
         assert self.results[2].backend.request.headers["requested-header"] == ["X-Foo"]
         assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
@@ -634,6 +672,8 @@ bypass_auth: true
 
         # [3] Verifies that envoy does not return not whitelisted headers.
         assert self.check_backend_name(self.results[3])
+        assert self.results[3].backend
+        assert self.results[3].backend.request
         assert self.results[3].backend.request.headers["requested-status"] == ["401"]
         assert self.results[3].backend.request.headers["requested-header"] == ["X-Bar"]
         assert self.results[3].backend.request.headers["x-bar"] == ["bar"]
@@ -642,7 +682,9 @@ bypass_auth: true
         assert "X-Bar" not in self.results[3].headers
 
         # [4] Verifies default whitelisted Authorization request header.
+        assert self.results[4].backend
         assert self.results[4].backend.name == self.target.path.k8s      # this response is from an auth success
+        assert self.results[4].backend.request
         assert self.results[4].backend.request.headers["requested-status"] == ["200"]
         assert self.results[4].backend.request.headers["requested-header"] == ["Authorization"]
         assert self.results[4].backend.request.headers["authorization"] == ["foo-11111"]
@@ -659,18 +701,22 @@ bypass_auth: true
         # the extauth service (on success) won't actually alter other things going upstream.
         r5 = self.results[5]
         assert r5
+        assert r5.backend
         assert r5.backend.name == self.target.path.k8s      # this response is from an auth success
 
         assert r5.status == 200
         assert r5.headers["Server"] == ["envoy"]
 
+        assert r5.backend.request
         eahdr = r5.backend.request.headers["extauth"]
         assert eahdr, "no extauth header was returned?"
         assert eahdr[0], "an empty extauth header element was returned?"
 
         # [6] Verifies that Envoy bypasses external auth when disabled for a mapping.
+        assert self.results[6].backend
         assert self.results[6].backend.name == self.target.path.k8s      # ensure the request made it to the backend
         assert not self.check_backend_name(self.results[6])      # ensure the request did not go to the auth service
+        assert self.results[6].backend.request
         assert self.results[6].backend.request.headers["requested-status"] == ["200"]
         assert self.results[6].status == 200
         assert self.results[6].headers["Server"] == ["envoy"]
@@ -767,7 +813,9 @@ service: {self.target.path.fqdn}
 
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
+        assert self.results[0].backend
         assert self.results[0].backend.name == self.auth.path.k8s, f'wanted backend {self.auth.path.k8s}, got {self.results[0].backend.name}'
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.url.path == "/extauth/target/"
         assert self.results[0].backend.request.headers["content-length"]== ["0"]
         assert "x-forwarded-for" in self.results[0].backend.request.headers
@@ -777,7 +825,9 @@ service: {self.target.path.fqdn}
         assert self.results[0].headers["Server"] == ["envoy"]
 
         # [1] Verifies that Location header is returned from Envoy.
+        assert self.results[1].backend
         assert self.results[1].backend.name == self.auth.path.k8s
+        assert self.results[1].backend.request
         assert self.results[1].backend.request.headers["requested-status"] == ["302"]
         assert self.results[1].backend.request.headers["requested-header"] == ["location"]
         assert self.results[1].backend.request.headers["requested-location"] == ["foo"]
@@ -786,7 +836,9 @@ service: {self.target.path.fqdn}
         assert self.results[1].headers["Location"] == ["foo"]
 
         # [2] Verifies Envoy returns whitelisted headers input by the user.
+        assert self.results[2].backend
         assert self.results[2].backend.name == self.auth.path.k8s
+        assert self.results[2].backend.request
         assert self.results[2].backend.request.headers["requested-status"] == ["401"]
         assert self.results[2].backend.request.headers["requested-header"] == ["X-Foo"]
         assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
@@ -795,7 +847,9 @@ service: {self.target.path.fqdn}
         assert self.results[2].headers["X-Foo"] == ["foo"]
 
         # [3] Verifies that envoy does not return not whitelisted headers.
+        assert self.results[3].backend
         assert self.results[3].backend.name == self.auth.path.k8s
+        assert self.results[3].backend.request
         assert self.results[3].backend.request.headers["requested-status"] == ["401"]
         assert self.results[3].backend.request.headers["requested-header"] == ["X-Bar"]
         assert self.results[3].backend.request.headers["x-bar"] == ["bar"]
@@ -804,6 +858,8 @@ service: {self.target.path.fqdn}
         assert "X-Bar" in self.results[3].headers
 
         # [4] Verifies default whitelisted Authorization request header.
+        assert self.results[4].backend
+        assert self.results[4].backend.request
         assert self.results[4].backend.request.headers["requested-status"] == ["200"]
         assert self.results[4].backend.request.headers["requested-header"] == ["Authorization"]
         assert self.results[4].backend.request.headers["authorization"] == ["foo-11111"]
@@ -821,6 +877,8 @@ service: {self.target.path.fqdn}
         assert r5.status == 200
         assert r5.headers["Server"] == ["envoy"]
 
+        assert r5.backend
+        assert r5.backend.request
         eahdr = r5.backend.request.headers["extauth"]
         assert eahdr, "no extauth header was returned?"
         assert eahdr[0], "an empty extauth header element was returned?"
@@ -943,7 +1001,9 @@ service: {self.target.path.fqdn}
 
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
+        assert self.results[0].backend
         assert self.results[0].backend.name == self.auth.path.k8s
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.url.path == "/target/"
         assert self.results[0].backend.request.headers["x-forwarded-proto"]== ["http"]
         assert "user-agent" in self.results[0].backend.request.headers
@@ -953,7 +1013,9 @@ service: {self.target.path.fqdn}
         assert self.results[0].headers['X-Grpc-Service-Protocol-Version'] == [self.expected_protocol_version]
 
         # [1] Verifies that Location header is returned from Envoy.
+        assert self.results[1].backend
         assert self.results[1].backend.name == self.auth.path.k8s
+        assert self.results[1].backend.request
         assert self.results[1].backend.request.headers["requested-status"] == ["302"]
         assert self.results[1].backend.request.headers["requested-location"] == ["foo"]
         assert self.results[1].status == 302
@@ -961,7 +1023,9 @@ service: {self.target.path.fqdn}
         assert self.results[1].headers['X-Grpc-Service-Protocol-Version'] == [self.expected_protocol_version]
 
         # [2] Verifies Envoy returns whitelisted headers input by the user.
+        assert self.results[2].backend
         assert self.results[2].backend.name == self.auth.path.k8s
+        assert self.results[2].backend.request
         assert self.results[2].backend.request.headers["requested-status"] == ["401"]
         assert self.results[2].backend.request.headers["requested-header"] == ["x-foo"]
         assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
@@ -971,6 +1035,8 @@ service: {self.target.path.fqdn}
         assert self.results[2].headers['X-Grpc-Service-Protocol-Version'] == [self.expected_protocol_version]
 
         # [3] Verifies default whitelisted Authorization request header.
+        assert self.results[3].backend
+        assert self.results[3].backend.request
         assert self.results[3].backend.request.headers["requested-status"] == ["200"]
         assert self.results[3].backend.request.headers["requested-header"] == ["Authorization"]
         assert self.results[3].backend.request.headers["authorization"] == ["foo-11111"]

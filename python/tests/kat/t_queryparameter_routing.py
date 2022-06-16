@@ -38,7 +38,9 @@ query_parameters:
         yield Query(self.url("target/?test_param=target2"), expected=200)
 
     def check(self):
+        assert self.results[0].backend
         assert self.results[0].backend.name == self.target1.path.k8s, f"r0 wanted {self.target1.path.k8s} got {self.results[0].backend.name}"
+        assert self.results[1].backend
         assert self.results[1].backend.name == self.target2.path.k8s, f"r1 wanted {self.target2.path.k8s} got {self.results[1].backend.name}"
 
 class QueryParameterRoutingWithRegexTest(AmbassadorTest):
@@ -68,6 +70,7 @@ regex_query_parameters:
         yield Query(self.url("target/?test_param=HeLlO"), expected=404)
 
     def check(self):
+        assert self.results[0].backend
         assert self.results[0].backend.name == self.target.path.k8s, f"r0 wanted {self.target.path.k8s} got {self.results[0].backend.name}"
 
 class QueryParameterPresentRoutingTest(AmbassadorTest):
@@ -94,4 +97,5 @@ regex_query_parameters:
         yield Query(self.url("target/"), expected=404)
 
     def check(self):
+        assert self.results[0].backend
         assert self.results[0].backend.name == self.target.path.k8s, f"r0 wanted {self.target.path.k8s} got {self.results[0].backend.name}"

@@ -31,6 +31,8 @@ service: http://{self.target.path.fqdn}
         yield Query(self.url("target/"), headers={"x-request-id": "hello"})
 
     def check(self):
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.headers['x-request-id'] == ['hello']
 
 class XRequestIdHeaderDefaultTest(AmbassadorTest):
@@ -60,6 +62,8 @@ service: http://{self.target.path.fqdn}
         yield Query(self.url("target/"), headers={"X-Request-Id": "hello"})
 
     def check(self):
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.headers['x-request-id'] != ['hello']
 
 
@@ -88,6 +92,8 @@ service: http://{self.target.path.fqdn}
 
     def check(self):
         print("results[0]=%s" % repr(self.results[0]))
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         headers = self.results[0].backend.request.headers
 
         # All known Envoy headers should be set. The original path header is
@@ -126,6 +132,8 @@ service: http://{self.target.path.fqdn}
 
     def check(self):
         print("results[0]=%s" % repr(self.results[0]))
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         headers = self.results[0].backend.request.headers
 
         # No Envoy headers should be set

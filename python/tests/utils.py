@@ -228,12 +228,14 @@ def assert_valid_envoy_config(config_dict, extra_dirs=[], v2=False):
         econf = open(os.path.join(tmpdir, 'econf.json'), 'xt')
         econf.write(json.dumps(config_dict))
         econf.close()
+        img = os.environ.get('ENVOY_DOCKER_TAG')
+        assert img
         cmd = [
             'docker', 'run',
             '--rm',
             f"--volume={tmpdir}:/ambassador:ro",
             *[f"--volume={extra_dir}:{extra_dir}:ro" for extra_dir in extra_dirs],
-            os.environ.get('ENVOY_DOCKER_TAG'),
+            img,
             '/usr/local/bin/envoy-static-stripped',
             '--config-path', '/ambassador/econf.json',
             '--mode', 'validate',
