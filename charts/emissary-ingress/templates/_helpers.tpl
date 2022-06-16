@@ -3,10 +3,12 @@
 Expand the name of the chart.
 */}}
 {{- define "ambassador.name" -}}
-{{- if contains "ambassador" .Release.Name -}}
+{{- if .Values.nameOverride -}}
+{{- .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else if contains "ambassador" .Release.Name -}}
 {{- .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- .Chart.Name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
 
