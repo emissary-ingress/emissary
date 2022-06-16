@@ -500,7 +500,7 @@ class CanaryMapping(MappingTest):
             for w in (0, 10, 50, 100):
                 yield cls(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
 
-    # XXX This type: ignore is here because we're deliberately overriding the 
+    # XXX This type: ignore is here because we're deliberately overriding the
     # parent's init to have a different signature... but it's also intimately
     # (nay, incestuously) related to the variant()'s yield() above, and I really
     # don't want to deal with that right now. So. We'll deal with it later.
@@ -567,7 +567,7 @@ class CanaryDiffMapping(MappingTest):
             for w in (0, 10, 50, 100):
                 yield cls(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
 
-    # XXX This type: ignore is here because we're deliberately overriding the 
+    # XXX This type: ignore is here because we're deliberately overriding the
     # parent's init to have a different signature... but it's also intimately
     # (nay, incestuously) related to the variant()'s yield() above, and I really
     # don't want to deal with that right now. So. We'll deal with it later.

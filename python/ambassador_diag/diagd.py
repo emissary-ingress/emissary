@@ -1105,12 +1105,16 @@ def show_intermediate(source=None, reqid=None):
 
     ddict = collect_errors_and_notices(request, reqid, "detail %s" % source, diag)
 
-    tvars = dict(system=system_info(app),
-                 envoy_status=envoy_status(estats),
-                 loginfo=app.estatsmgr.loginfo,
-                 notices=app.notices.notices,
-                 method=method, resource=resource,
-                 **result, **ddict)
+    tvars = {
+        'system': system_info(app),
+        'envoy_status': envoy_status(estats),
+        'loginfo': app.estatsmgr.loginfo,
+        'notices': app.notices.notices,
+        'method': method,
+        'resource': resource,
+        **result,
+        **ddict,
+    }
 
     if request.args.get('json', None):
         key = request.args.get('filter', None)

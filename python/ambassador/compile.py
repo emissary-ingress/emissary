@@ -73,4 +73,3 @@ def Compile(logger: logging.Logger, input_text: str,
         out[envoy_version.lower()] = EnvoyConfig.generate(ir, envoy_version.upper(), cache=cache)
 
     return out
-

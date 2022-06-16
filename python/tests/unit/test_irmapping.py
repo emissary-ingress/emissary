@@ -54,4 +54,3 @@ docs:
     assert(len(slowsvc_mappings) == 1)
     print(slowsvc_mappings[0].as_dict())
     assert(slowsvc_mappings[0].docs['timeout_ms'] == 8000)
-

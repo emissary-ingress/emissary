@@ -154,7 +154,7 @@ In the same terminal session you can run the following command:
 # docker must be able to login to your registry and you have to have push permissions
 make push
 
-# you can view the newly tag images by running 
+# you can view the newly tag images by running
 docker images | grep <your -registry>
 
 # alternatively, we have two make targets that provide information as well
@@ -218,7 +218,7 @@ Before contributing be sure to read our [Code of Conduct](CODE_OF_CONDUCT.md) an
    git rebase master
 
    # if you previously pushed your changes to Github then your rebase will require you to force push
-   git push origin <your-dev-branch> -f 
+   git push origin <your-dev-branch> -f
    ```
 
 4. **Code changes must have associated documentation updates.**
