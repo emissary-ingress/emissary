@@ -10,7 +10,7 @@ from collections import namedtuple
 from retry import retry
 from OpenSSL import crypto
 from base64 import b64encode
-from typing import List
+from typing import List, Literal, cast
 
 import json
 import yaml
@@ -127,8 +127,9 @@ def compile_with_cachecheck(yaml, envoy_version="V3", errors_ok=False):
         _require_no_errors(r2["ir"])
 
     # Both should produce equal Envoy config as sorted json.
-    r1j = json.dumps(r1[envoy_version.lower()].as_dict(), sort_keys=True, indent=2)
-    r2j = json.dumps(r2[envoy_version.lower()].as_dict(), sort_keys=True, indent=2)
+    ev_key = cast(Literal["v2", "v3"], envoy_version.lower())
+    r1j = json.dumps(r1[ev_key].as_dict(), sort_keys=True, indent=2)
+    r2j = json.dumps(r2[ev_key].as_dict(), sort_keys=True, indent=2)
     assert r1j == r2j
 
     # All good.

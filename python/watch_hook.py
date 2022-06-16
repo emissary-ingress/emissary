@@ -222,22 +222,22 @@ class WatchHook:
                             }
                         )
                     elif resolver.kind == 'KubernetesEndpointResolver':
-                        host = svc.hostname
+                        hostname = svc.hostname
                         namespace = Config.ambassador_namespace
 
-                        if not host:
+                        if not hostname:
                             # This is really kind of impossible.
                             self.logger.error(f"KubernetesEndpointResolver {res_name} has no 'hostname'")
                             continue
 
-                        if "." in host:
-                            (host, namespace) = host.split(".", 2)[0:2]
+                        if "." in hostname:
+                            (hostname, namespace) = hostname.split(".", 2)[0:2]
 
-                        self.logger.debug(f'...kube endpoints: svc {svc.hostname} -> host {host} namespace {namespace}')
+                        self.logger.debug(f'...kube endpoints: svc {svc.hostname} -> host {hostname} namespace {namespace}')
 
                         self.add_kube_watch(f"endpoint", "endpoints", namespace,
                                             label_selector=global_label_selector,
-                                            field_selector=f"metadata.name={host}")
+                                            field_selector=f"metadata.name={hostname}")
 
         for secret_key, secret_info in self.fake.secret_recorder.needed.items():
             self.logger.debug(f'need secret {secret_info.name}.{secret_info.namespace}')
@@ -273,7 +273,7 @@ class WatchHook:
 
                 self.add_kube_watch("Knative ingresses", "ingresses.networking.internal.knative.dev", None)
 
-        self.watchset = {
+        self.watchset: Dict[str, List[Dict[str, str]]] = {
             "kubernetes-watches": self.kube_watches,
             "consul-watches": self.consul_watches
         }

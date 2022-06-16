@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Literal, Optional, Union, cast
+from typing_extensions import TypedDict, NotRequired
 
 import logging
 
@@ -24,11 +25,17 @@ from .envoy import EnvoyConfig
 from .fetch import ResourceFetcher
 from .utils import SecretHandler, NullSecretHandler, Timer
 
+class _CompileResult(TypedDict):
+    ir: IR
+    v2: NotRequired[EnvoyConfig]
+    v3: NotRequired[EnvoyConfig]
+
 def Compile(logger: logging.Logger, input_text: str,
             cache: Optional[Cache]=None,
             file_checker: Optional[IRFileChecker]=None,
             secret_handler: Optional[SecretHandler]=None,
-            k8s=False, envoy_version="V2") -> Dict[str, Union[IR, EnvoyConfig]]:
+            k8s: bool=False,
+            envoy_version="V2") -> _CompileResult:
     """
     Compile is a helper function to take a bunch of YAML and compile it into an
     IR and, optionally, an Envoy config.
@@ -67,9 +74,10 @@ def Compile(logger: logging.Logger, input_text: str,
 
     ir = IR(aconf, cache=cache, file_checker=file_checker, secret_handler=secret_handler)
 
-    out: Dict[str, Union[IR, EnvoyConfig]] = { "ir": ir }
+    out: _CompileResult = { "ir": ir }
 
     if ir:
-        out[envoy_version.lower()] = EnvoyConfig.generate(ir, envoy_version.upper(), cache=cache)
+        ev_key = cast(Literal["v2", "v3"], envoy_version.lower())
+        out[ev_key] = EnvoyConfig.generate(ir, envoy_version.upper(), cache=cache)
 
     return out

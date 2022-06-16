@@ -1,4 +1,4 @@
-from typing import Generator, Tuple, Union
+from typing import Dict, Generator, Tuple, Union
 
 from kat.harness import EDGE_STACK, variants, Query
 
@@ -535,7 +535,7 @@ weight: {self.weight}
             yield Query(self.parent.url(self.name + "/"))
 
     def check(self):
-        hist = {}
+        hist: Dict[str, int] = {}
 
         for r in self.results:
             hist[r.backend.name] = hist.get(r.backend.name, 0) + 1
@@ -606,7 +606,7 @@ weight: {self.weight}
     def check(self):
         request_hosts = ['canary.1.example.com', 'canary.2.example.com']
 
-        hist = {}
+        hist: Dict[str, int] = {}
 
         for r in self.results:
             hist[r.backend.name] = hist.get(r.backend.name, 0) + 1

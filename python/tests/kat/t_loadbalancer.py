@@ -1,4 +1,4 @@
-from typing import Generator, Tuple, Union
+from typing import Dict, Generator, Tuple, Union
 
 import os
 
@@ -276,42 +276,42 @@ service: globalloadbalancing-service
         generic_cookie_queries = self.results[250:300]
 
         # generic header queries - no cookie, no header
-        generic_dict = {}
+        generic_dict: Dict[str, int] = {}
         for result in generic_queries:
             generic_dict[result.backend.name] = \
                 generic_dict[result.backend.name] + 1 if result.backend.name in generic_dict else 1
         assert len(generic_dict) == 3
 
         # header queries - no cookie - no sticky expected
-        header_dict = {}
+        header_dict: Dict[str, int] = {}
         for result in header_queries:
             header_dict[result.backend.name] = \
                 header_dict[result.backend.name] + 1 if result.backend.name in header_dict else 1
         assert len(header_dict) == 3
 
         # cookie queries - no headers - sticky expected
-        cookie_dict = {}
+        cookie_dict: Dict[str, int] = {}
         for result in cookie_queries:
             cookie_dict[result.backend.name] = \
                 cookie_dict[result.backend.name] + 1 if result.backend.name in cookie_dict else 1
         assert len(cookie_dict) == 1
 
         # generic header queries - no cookie, no header
-        generic_generic_dict = {}
+        generic_generic_dict: Dict[str, int] = {}
         for result in generic_generic_queries:
             generic_generic_dict[result.backend.name] = \
                 generic_generic_dict[result.backend.name] + 1 if result.backend.name in generic_generic_dict else 1
         assert len(generic_generic_dict) == 3
 
         # header queries - no cookie - sticky expected
-        generic_header_dict = {}
+        generic_header_dict: Dict[str, int] = {}
         for result in generic_header_queries:
             generic_header_dict[result.backend.name] = \
                 generic_header_dict[result.backend.name] + 1 if result.backend.name in generic_header_dict else 1
         assert len(generic_header_dict) == 1
 
         # cookie queries - no headers - no sticky expected
-        generic_cookie_dict = {}
+        generic_cookie_dict: Dict[str, int] = {}
         for result in generic_cookie_queries:
             generic_cookie_dict[result.backend.name] = \
                 generic_cookie_dict[result.backend.name] + 1 if result.backend.name in generic_cookie_dict else 1
@@ -459,21 +459,21 @@ load_balancer:
             cookie_no_ttl_queries = self.results[250+i:300+i]
 
             # generic header queries
-            generic_header_dict = {}
+            generic_header_dict: Dict[str, int] = {}
             for result in generic_header_queries:
                 generic_header_dict[result.backend.name] =\
                     generic_header_dict[result.backend.name] + 1 if result.backend.name in generic_header_dict else 1
             assert len(generic_header_dict) == 3
 
             # header queries
-            header_dict = {}
+            header_dict: Dict[str, int] = {}
             for result in header_queries:
                 header_dict[result.backend.name] = \
                     header_dict[result.backend.name] + 1 if result.backend.name in header_dict else 1
             assert len(header_dict) == 1
 
             # source IP queries
-            source_ip_dict = {}
+            source_ip_dict: Dict[str, int] = {}
             for result in source_ip_queries:
                 source_ip_dict[result.backend.name] = \
                         source_ip_dict[result.backend.name] + 1 if result.backend.name in source_ip_dict else 1
@@ -481,7 +481,7 @@ load_balancer:
             assert list(source_ip_dict.values())[0] == 50
 
             # generic cookie queries - results must include Set-Cookie header
-            generic_cookie_dict = {}
+            generic_cookie_dict: Dict[str, int] = {}
             for result in generic_cookie_queries:
                 assert 'Set-Cookie' in result.headers
                 assert len(result.headers['Set-Cookie']) == 1
@@ -494,7 +494,7 @@ load_balancer:
             assert len(generic_cookie_dict) == 3
 
             # cookie queries
-            cookie_dict = {}
+            cookie_dict: Dict[str, int] = {}
             for result in cookie_queries:
                 assert 'Set-Cookie' not in result.headers
 
@@ -503,7 +503,7 @@ load_balancer:
             assert len(cookie_dict) == 1
 
             # cookie no TTL queries
-            cookie_no_ttl_dict = {}
+            cookie_no_ttl_dict: Dict[str, int] = {}
             for result in cookie_no_ttl_queries:
                 assert 'Set-Cookie' not in result.headers
 

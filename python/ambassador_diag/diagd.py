@@ -17,6 +17,7 @@ import copy
 import subprocess
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, TYPE_CHECKING
 from typing import cast as typecast
+from typing_extensions import TypedDict, NotRequired
 
 import datetime
 import difflib
@@ -51,6 +52,7 @@ from flask import json as flask_json
 import gunicorn.app.base
 
 from ambassador import Cache, Config, IR, EnvoyConfig, Diagnostics, Scout, Version
+from ambassador.ambscout import LocalScout
 from ambassador.reconfig_stats import ReconfigStats
 from ambassador.ir.irambassador import IRAmbassador
 from ambassador.ir.irbasemapping import IRBaseMapping
@@ -158,6 +160,7 @@ class DiagApp (Flask):
     watcher: 'AmbassadorEventWatcher'
     stats_updater: Optional[PeriodicTrigger]
     scout_checker: Optional[PeriodicTrigger]
+    timer_logger: Optional[PeriodicTrigger]
     last_request_info: Dict[str, int]
     last_request_time: Optional[datetime.datetime]
     latest_snapshot: str
@@ -1337,7 +1340,7 @@ class AmbassadorEventWatcher(threading.Thread):
         self.env_good = False       # Is our environment currently believed to be OK?
         self.failure_list: List[str] = [ 'unhealthy at boot' ]     # What's making our environment not OK?
 
-    def post(self, cmd: str, arg: Optional[Union[str, Tuple[str, Optional[IR]]]]) -> Tuple[int, str]:
+    def post(self, cmd: str, arg: Optional[Union[str, Tuple[str, Optional[IR]], Tuple[str, str]]]) -> Tuple[int, str]:
         rqueue: queue.Queue = queue.Queue()
 
         self.events.put((cmd, arg, rqueue))
@@ -1735,7 +1738,13 @@ class AmbassadorEventWatcher(threading.Thread):
 
         self.logger.debug(f'CHIME: {action_key}')
 
-        chime_args = {
+        class ChimeArgs(TypedDict):
+            no_cache: NotRequired[Optional[bool]]
+            ir: NotRequired[Optional[IR]]
+            failures: NotRequired[Optional[List[str]]]
+            action_key: NotRequired[Optional[str]]
+
+        chime_args: ChimeArgs = {
             'no_cache': no_cache,
             'failures': self.failure_list
         }

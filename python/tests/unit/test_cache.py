@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional, OrderedDict, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 import difflib
 import json
@@ -481,8 +481,7 @@ def test_mappings_same_name_delta(tmp_path):
     # are properly added/removed from the cache when they are updated.
     builder = Builder(logger, tmp_path, "cache_test_4.yaml")
     b = builder.build()
-    econf = b[1]
-    econf = econf.as_dict()
+    econf = b[1].as_dict()
 
     # loop through all the clusters in the resulting envoy config and pick out two Mappings from our test set (first and lase)
     # to ensure their clusters were generated properly.
@@ -505,8 +504,7 @@ def test_mappings_same_name_delta(tmp_path):
     # We should properly remove the cache entries for these clusters when that happens.
     builder.apply_yaml("cache_test_5.yaml")
     b = builder.build()
-    econf = b[1]
-    econf = econf.as_dict()
+    econf = b[1].as_dict()
 
     cluster1_ok = False
     cluster2_ok = False
@@ -710,7 +708,7 @@ def test_cache_madness(tmp_path):
         MadnessMapping("mapping5", "/foo/", "service5"),
     ]
 
-    current_mappings: OrderedDict[MadnessMapping, bool] = {}
+    current_mappings: Dict[MadnessMapping, bool] = {}
 
     # grunge = [ all_mappings[i] for i in [ 0, 3, 2 ] ]
 
