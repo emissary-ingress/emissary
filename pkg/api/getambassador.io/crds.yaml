@@ -3822,6 +3822,8 @@ spec:
                 type: array
               v3CustomTags:
                 items:
+                  description: TracingCustomTag provides a data structure for capturing
+                    envoy's `type.tracing.v3.CustomTag`
                   properties:
                     environment:
                       description: Environment explicitly specifies the protocol stack
@@ -3935,6 +3937,8 @@ spec:
                 type: object
               custom_tags:
                 items:
+                  description: TracingCustomTag provides a data structure for capturing
+                    envoy's `type.tracing.v3.CustomTag`
                   properties:
                     environment:
                       description: Environment explicitly specifies the protocol stack
