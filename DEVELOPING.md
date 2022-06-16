@@ -833,14 +833,12 @@ We strongly recommend using an editor that can do realtime type checking
 can do this now) and also running the type checker by hand before submitting
 anything:
 
-- `make mypy` will start check all the Ambassador code
+- `make mypy` will check all the Ambassador code
 
-Since `make mypy` uses the daemon for caching, it should be very fast after
-the first run. Ambassador code should produce *no* warnings and *no* errors.
+Ambassador code should produce *no* warnings and *no* errors.
 
-If you're concerned that the cache is somehow wrong (or if you just want the
-daemon to not be there any more), `make mypy-clean` will stop the daemon
-and clear the cache.
+If you're concerned that the mypy cache is somehow wrong, delete the
+`.mypy_cache/` directory to clear the cache.
 
 ### How do I get the source code for a release?
 
