@@ -147,7 +147,7 @@ class DiagApp (Flask):
     report_action_keys: bool
     verbose: bool
     notice_path: str
-    logger: logging.Logger
+    logger: logging.Logger  # type: ignore # FIXME(lukeshu): Mypy's probably right on this one, but it'd be a lot of work to fix
     aconf: Config
     ir: Optional[IR]
     econf: Optional[EnvoyConfig]

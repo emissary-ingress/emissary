@@ -342,7 +342,6 @@ mypy: $(OSS_HOME)/venv
 	  . $(OSS_HOME)/venv/bin/activate; \
 	  time mypy \
 	    --cache-fine-grained \
-	    --follow-imports=skip \
 	    --ignore-missing-imports \
 	    ./python/; \
 	}
