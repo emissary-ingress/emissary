@@ -170,6 +170,8 @@ func applyArgoResources(t *testing.T, ctx context.Context, kubeconfig string, cl
 }
 
 func needsDockerBuilds(ctx context.Context, var2file map[string]string) error {
+	// TODO(lukeshu): Consider unifying envoytest.GetLocalEnvoyImage() with
+	// agent_test.go:needsDockerBuilds().
 	var targets []string
 	for varname, filename := range var2file {
 		if os.Getenv(varname) == "" {

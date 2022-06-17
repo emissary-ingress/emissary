@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -25,15 +26,42 @@ func GetLoopbackAddr(ctx context.Context, port int) (string, error) {
 }
 
 func GetLoopbackIp(ctx context.Context) (string, error) {
-	if _, err := dexec.LookPath("envoy"); err == nil {
-		return "127.0.0.1", nil
-	}
 	cmd := dexec.CommandContext(ctx, "docker", "network", "inspect", "bridge", "--format={{(index .IPAM.Config 0).Gateway}}")
 	bs, err := cmd.Output()
 	if err != nil {
 		return "", errors.Wrapf(err, "error finding loopback ip")
 	}
 	return strings.TrimSpace(string(bs)), nil
+}
+
+func getOSSHome(ctx context.Context) (string, error) {
+	dat, err := dexec.CommandContext(ctx, "git", "rev-parse", "--show-toplevel").Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(dat)), nil
+}
+
+func getLocalEnvoyImage(ctx context.Context) (string, error) {
+	// TODO(lukeshu): Consider unifying GetLocalEnvoyImage() with
+	// agent_test.go:needsDockerBuilds().
+	if env := os.Getenv("ENVOY_DOCKER_TAG"); env != "" { // Same env-var as tests/utils.py:assert_valid_envoy_config()
+		return env, nil
+	}
+
+	ossHome, err := getOSSHome(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	if err := dexec.CommandContext(ctx, "make", "-C", ossHome, "docker/base-envoy.docker.tag.local").Run(); err != nil {
+		return "", err
+	}
+	dat, err := os.ReadFile(filepath.Join(ossHome, "docker/base-envoy.docker"))
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(dat)), nil
 }
 
 var (
@@ -52,37 +80,49 @@ func getDevNull() (*os.File, error) {
 	return cacheDevNull, err
 }
 
+func LocalEnvoyCmd(ctx context.Context, dockerFlags, envoyFlags []string) (*dexec.Cmd, error) {
+	image, err := getLocalEnvoyImage(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	cmdline := []string{"docker", "run", "--rm"}
+	cmdline = append(cmdline, dockerFlags...)
+	cmdline = append(cmdline, image, "/usr/local/bin/envoy-static-stripped")
+	cmdline = append(cmdline, envoyFlags...)
+
+	cmd := dexec.CommandContext(ctx, cmdline[0], cmdline[1:]...)
+	if os.Getenv("DEV_SHUTUP_ENVOY") != "" {
+		devNull, _ := getDevNull()
+		cmd.Stdout = devNull
+		cmd.Stderr = devNull
+	}
+	return cmd, nil
+}
+
 // RunEnvoy runs and waits on  an envoy docker container that is configured to connect to the supplied ads
 // address and expose the supplied portmaps. A Cleanup function is registered to shutdown the
 // container at the end of the test suite.
 func RunEnvoy(ctx context.Context, adsAddress string, portmaps ...string) error {
-	var args []string
-	if _, err := dexec.LookPath("envoy"); err == nil {
-		args = append(args, "envoy")
-	} else {
-		args = append(args,
-			"docker", "run",
-			"--rm",
-			"--interactive",
-		)
-		for _, pm := range portmaps {
-			args = append(args,
-				"--publish="+pm)
-		}
-		args = append(args, "--entrypoint", "envoy", "docker.io/datawire/aes:1.6.2")
+	dockerFlags := []string{
+		"--interactive",
+	}
+	for _, pm := range portmaps {
+		dockerFlags = append(dockerFlags,
+			"--publish="+pm)
 	}
 
 	host, port, err := net.SplitHostPort(adsAddress)
 	if err != nil {
 		return err
 	}
-	args = append(args, "--config-yaml", fmt.Sprintf(bootstrap, host, port))
+	envoyFlags := []string{
+		"--config-yaml", fmt.Sprintf(bootstrap, host, port),
+	}
 
-	cmd := dexec.CommandContext(ctx, args[0], args[1:]...)
-	if os.Getenv("DEV_SHUTUP_ENVOY") != "" {
-		devNull, _ := getDevNull()
-		cmd.Stdout = devNull
-		cmd.Stderr = devNull
+	cmd, err := LocalEnvoyCmd(ctx, dockerFlags, envoyFlags)
+	if err != nil {
+		return err
 	}
 
 	return cmd.Run()
@@ -101,6 +141,7 @@ const bootstrap = `
       {
         "name": "static_layer",
         "static_layer": {
+          "envoy.reloadable_features.enable_deprecated_v2_api": true,
           "envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match": true,
           "envoy.deprecated_features:envoy.api.v2.route.RouteMatch.regex": true,
           "envoy.deprecated_features:envoy.config.filter.http.ext_authz.v2.ExtAuthz.use_alpha": true,
