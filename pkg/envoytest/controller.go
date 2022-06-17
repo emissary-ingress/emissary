@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"testing"
 
 	// third-party libraries
 	"google.golang.org/genproto/googleapis/rpc/status"
@@ -79,7 +78,7 @@ func NewEnvoyController(address string) *EnvoyController {
 
 // Configure will update the envoy configuration and block until the reconfiguration either succeeds
 // or signals an error.
-func (e *EnvoyController) Configure(node, version string, snapshot ecp_v2_cache.Snapshot) (*status.Status, error) {
+func (e *EnvoyController) Configure(ctx context.Context, node, version string, snapshot ecp_v2_cache.Snapshot) (*status.Status, error) {
 	err := e.configCache.SetSnapshot(node, snapshot)
 	if err != nil {
 		return nil, err
@@ -103,7 +102,10 @@ func (e *EnvoyController) Configure(node, version string, snapshot ecp_v2_cache.
 	}
 
 	for _, t := range typeURLs {
-		status := e.waitFor(version, t)
+		status, err := e.waitFor(ctx, version, t)
+		if err != nil {
+			return nil, err
+		}
 		if status != nil {
 			return status, nil
 		}
@@ -114,10 +116,29 @@ func (e *EnvoyController) Configure(node, version string, snapshot ecp_v2_cache.
 
 // waitFor blocks until the supplied version and typeURL are acknowledged by envoy. It returns the
 // status if there is an error and nil if the configuration is successfully accepted by envoy.
-func (e *EnvoyController) waitFor(version string, typeURL string) *status.Status {
-	var retStatus *status.Status
+func (e *EnvoyController) waitFor(ctx context.Context, version string, typeURL string) (*status.Status, error) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer func() {
+		cancel()
+	}()
+	go func() {
+		<-ctx.Done()
+		e.cond.L.Lock()
+		defer e.cond.L.Unlock()
+		e.cond.Broadcast()
+	}()
+
+	var (
+		retStatus *status.Status
+		retErr    error
+	)
 
 	condition := func() bool {
+		// If the Context was canceled, then go ahead and bail early.
+		if err := ctx.Err(); err != nil {
+			retErr = err
+			return true
+		}
 		// See if our 'version' has a result yet.
 		result, ok := e.results[version]
 		if !ok {
@@ -145,7 +166,7 @@ func (e *EnvoyController) waitFor(version string, typeURL string) *status.Status
 	for !condition() {
 		e.cond.Wait()
 	}
-	return retStatus
+	return retStatus, retErr
 }
 
 // Run the ADS server.
@@ -168,30 +189,7 @@ func (e *EnvoyController) Run(ctx context.Context) error {
 	sc := &dhttp.ServerConfig{
 		Handler: grpcMux,
 	}
-	if err := sc.ListenAndServe(ctx, e.address); err != nil && err != context.Canceled {
-		return err
-	}
-	return nil
-}
-
-// SetupEnvoyController will create and run an EnvoyController with the supplied address as well as
-// registering a Cleanup function to shutdown the EnvoyController.
-func SetupEnvoyController(t *testing.T, address string) *EnvoyController {
-	e := NewEnvoyController(address)
-	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
-	done := make(chan struct{})
-	t.Cleanup(func() {
-		cancel()
-		<-done
-	})
-	go func() {
-		err := e.Run(ctx)
-		if err != nil {
-			t.Errorf("envoy controller exited with error: %+v", err)
-		}
-		close(done)
-	}()
-	return e
+	return sc.ListenAndServe(ctx, e.address)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
