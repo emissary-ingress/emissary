@@ -8,6 +8,7 @@ import random
 import re
 import sys
 import yaml
+from pathlib import Path
 
 import pytest
 
@@ -27,7 +28,7 @@ from ambassador.utils import SecretHandler, NullSecretHandler, Timer
 
 
 class Builder:
-    def __init__(self, logger: logging.Logger, yaml_file: str,
+    def __init__(self, logger: logging.Logger, tmpdir: Path, yaml_file: str,
                  enable_cache=True) -> None:
         self.logger = logger
 
@@ -50,7 +51,7 @@ class Builder:
 
         # Load the initial YAML.
         self.apply_yaml(yaml_file, allow_updates=False)
-        self.secret_handler = NullSecretHandler(logger, "/tmp/secrets/src", "/tmp/secrets/cache", "0")
+        self.secret_handler = NullSecretHandler(logger, str(tmpdir/"secrets"/"src"), str(tmpdir/"secrets"/"cache"), "0")
 
         # Save builds to make this simpler to call.
         self.builds: List[Tuple[IR, EnvoyConfig]] = []
@@ -264,8 +265,8 @@ class Builder:
 
 
 @pytest.mark.compilertest
-def test_circular_link():
-    builder = Builder(logger, "cache_test_1.yaml")
+def test_circular_link(tmp_path):
+    builder = Builder(logger, tmp_path, "cache_test_1.yaml")
     builder.build()
 
     # This Can't Happen(tm) in Ambassador, but it's important that it not go
@@ -302,8 +303,8 @@ def test_circular_link():
 
 
 @pytest.mark.compilertest
-def test_multiple_rebuilds():
-    builder = Builder(logger, "cache_test_1.yaml")
+def test_multiple_rebuilds(tmp_path):
+    builder = Builder(logger, tmp_path, "cache_test_1.yaml")
 
     for i in range(10):
         builder.build()
@@ -313,8 +314,8 @@ def test_multiple_rebuilds():
 
 
 @pytest.mark.compilertest
-def test_simple_targets():
-    builder = Builder(logger, "cache_test_1.yaml")
+def test_simple_targets(tmp_path):
+    builder = Builder(logger, tmp_path, "cache_test_1.yaml")
 
     builder.build()
     builder.build()
@@ -329,8 +330,8 @@ def test_simple_targets():
 
 
 @pytest.mark.compilertest
-def test_smashed_targets():
-    builder = Builder(logger, "cache_test_2.yaml")
+def test_smashed_targets(tmp_path):
+    builder = Builder(logger, tmp_path, "cache_test_2.yaml")
 
     builder.build()
     builder.build()
@@ -347,9 +348,9 @@ def test_smashed_targets():
 
 
 @pytest.mark.compilertest
-def test_delta_1():
-    builder1 = Builder(logger, "cache_test_1.yaml")
-    builder2 = Builder(logger, "cache_test_1.yaml", enable_cache=False)
+def test_delta_1(tmp_path):
+    builder1 = Builder(logger, tmp_path, "cache_test_1.yaml")
+    builder2 = Builder(logger, tmp_path, "cache_test_1.yaml", enable_cache=False)
 
     b1 = builder1.build()
     b2 = builder2.build()
@@ -364,16 +365,16 @@ def test_delta_1():
 
     builder1.check("after delta", b1, b2, strip_cache_keys=True)
 
-    builder3 = Builder(logger, "cache_result_1.yaml")
+    builder3 = Builder(logger, tmp_path, "cache_result_1.yaml")
     b3 = builder3.build()
 
     builder3.check("final", b3, b1)
 
 
 @pytest.mark.compilertest
-def test_delta_2():
-    builder1 = Builder(logger, "cache_test_2.yaml")
-    builder2 = Builder(logger, "cache_test_2.yaml", enable_cache=False)
+def test_delta_2(tmp_path):
+    builder1 = Builder(logger, tmp_path, "cache_test_2.yaml")
+    builder2 = Builder(logger, tmp_path, "cache_test_2.yaml", enable_cache=False)
 
     b1 = builder1.build()
     b2 = builder2.build()
@@ -388,16 +389,16 @@ def test_delta_2():
 
     builder1.check("after delta", b1, b2, strip_cache_keys=True)
 
-    builder3 = Builder(logger, "cache_result_2.yaml")
+    builder3 = Builder(logger, tmp_path, "cache_result_2.yaml")
     b3 = builder3.build()
 
     builder3.check("final", b3, b1)
 
 
 @pytest.mark.compilertest
-def test_delta_3():
-    builder1 = Builder(logger, "cache_test_1.yaml")
-    builder2 = Builder(logger, "cache_test_1.yaml", enable_cache=False)
+def test_delta_3(tmp_path):
+    builder1 = Builder(logger, tmp_path, "cache_test_1.yaml")
+    builder2 = Builder(logger, tmp_path, "cache_test_1.yaml", enable_cache=False)
 
     b1 = builder1.build()
     b2 = builder2.build()
@@ -417,16 +418,16 @@ def test_delta_3():
 
     builder1.check("after deltas", b1, b2, strip_cache_keys=True)
 
-    builder3 = Builder(logger, "cache_result_3.yaml")
+    builder3 = Builder(logger, tmp_path, "cache_result_3.yaml")
     b3 = builder3.build()
 
     builder3.check("final", b3, b1)
 
 
 @pytest.mark.compilertest
-def test_delete_4():
-    builder1 = Builder(logger, "cache_test_1.yaml")
-    builder2 = Builder(logger, "cache_test_1.yaml", enable_cache=False)
+def test_delete_4(tmp_path):
+    builder1 = Builder(logger, tmp_path, "cache_test_1.yaml")
+    builder2 = Builder(logger, tmp_path, "cache_test_1.yaml", enable_cache=False)
 
     b1 = builder1.build()
     b2 = builder2.build()
@@ -442,18 +443,18 @@ def test_delete_4():
 
     builder1.check("after deletion", b1, b2, strip_cache_keys=True)
 
-    builder3 = Builder(logger, "cache_result_4.yaml")
+    builder3 = Builder(logger, tmp_path, "cache_result_4.yaml")
     b3 = builder3.build()
 
     builder3.check("final", b3, b1)
 
 
 @pytest.mark.compilertest
-def test_long_cluster_1():
+def test_long_cluster_1(tmp_path):
     # Create a cache for Mappings whose cluster names are too long
     # to be envoy cluster names and must be truncated.
-    builder1 = Builder(logger, "cache_test_3.yaml")
-    builder2 = Builder(logger, "cache_test_3.yaml", enable_cache=False)
+    builder1 = Builder(logger, tmp_path, "cache_test_3.yaml")
+    builder2 = Builder(logger, tmp_path, "cache_test_3.yaml", enable_cache=False)
 
     b1 = builder1.build()
     b2 = builder2.build()
@@ -475,10 +476,10 @@ def test_long_cluster_1():
 
 
 @pytest.mark.compilertest
-def test_mappings_same_name_delta():
+def test_mappings_same_name_delta(tmp_path):
     # Tests that multiple Mappings with the same name (but in different namespaces)
     # are properly added/removed from the cache when they are updated.
-    builder = Builder(logger, "cache_test_4.yaml")
+    builder = Builder(logger, tmp_path, "cache_test_4.yaml")
     b = builder.build()
     econf = b[1]
     econf = econf.as_dict()
@@ -563,12 +564,14 @@ class MadnessOp:
     op: str
     mapping: MadnessMapping
     verifiers: List[MadnessVerifier]
+    tmpdir: Path
 
-    def __init__(self, name: str, op: str, mapping: MadnessMapping, verifiers: List[MadnessVerifier]) -> None:
+    def __init__(self, name: str, op: str, mapping: MadnessMapping, verifiers: List[MadnessVerifier], tmpdir: Path) -> None:
         self.name = name
         self.op = op
         self.mapping = mapping
         self.verifiers = verifiers
+        self.tmpdir = tmpdir
 
     def __str__(self) -> str:
         return self.name
@@ -604,8 +607,8 @@ class MadnessOp:
         logger.info("IR: %s" % json.dumps(b2[0].as_dict(), indent=2, sort_keys=True))
 
         if dumpfile:
-            json.dump(b1[0].as_dict(), open(f"/tmp/{dumpfile}-1.json", "w"), indent=2, sort_keys=True)
-            json.dump(b2[0].as_dict(), open(f"/tmp/{dumpfile}-2.json", "w"), indent=2, sort_keys=True)
+            json.dump(b1[0].as_dict(), open(str(self.tmpdir/f"{dumpfile}-1.json"), "w"), indent=2, sort_keys=True)
+            json.dump(b2[0].as_dict(), open(str(self.tmpdir/f"{dumpfile}-2.json"), "w"), indent=2, sort_keys=True)
 
         if not builder1.check(self.name, b1, b2, strip_cache_keys=True):
             return False
@@ -676,9 +679,9 @@ class MadnessOp:
         return match
 
 @pytest.mark.compilertest
-def test_cache_madness():
-    builder1 = Builder(logger, "/dev/null")
-    builder2 = Builder(logger, "/dev/null", enable_cache=False)
+def test_cache_madness(tmp_path):
+    builder1 = Builder(logger, tmp_path, "/dev/null")
+    builder2 = Builder(logger, tmp_path, "/dev/null", enable_cache=False)
 
     logger.info("======== builder1:")
     logger.info("INPUT: %s" % builder1.current_yaml())
@@ -721,11 +724,13 @@ def test_cache_madness():
         if mapping in current_mappings:
             del(current_mappings[mapping])
             op = MadnessOp(name=f"delete {mapping.pfx} -> {mapping.service}", op="delete", mapping=mapping,
-                           verifiers=[ lambda b: op.check_group(b, current_mappings) ])
+                           verifiers=[ lambda b: op.check_group(b, current_mappings) ],
+                           tmpdir=tmp_path)
         else:
             current_mappings[mapping] = True
             op = MadnessOp(name=f"apply {mapping.pfx} -> {mapping.service}", op="apply", mapping=mapping,
-                           verifiers=[ lambda b: op.check_group(b, current_mappings) ])
+                           verifiers=[ lambda b: op.check_group(b, current_mappings) ],
+                           tmpdir=tmp_path)
 
         print("==== EXEC %d: %s => %s" % (i, op, sorted([ m.service for m in current_mappings.keys() ])))
         logger.info("======== EXEC %d: %s", i, op)

@@ -1,5 +1,6 @@
 import logging
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -303,15 +304,15 @@ def test_errorresponse_onemapper_onstatuscode_jsonformat():
 
 
 @pytest.mark.compilertest
-def test_errorresponse_onemapper_onstatuscode_textformatsource():
+def test_errorresponse_onemapper_onstatuscode_textformatsource(tmp_path: Path):
     _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
-            '400', 'badness', '/tmp/badness', 'text/plain')
+            '400', 'badness', str(tmp_path/'badness'), 'text/plain')
     _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
-            '404', 'badness', '/tmp/notfound.dat', 'application/specialsauce')
+            '404', 'badness', str(tmp_path/'notfound.dat'), 'application/specialsauce')
     _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
-            '429', '2fast', '/tmp/2fast.html', 'text/html' )
+            '429', '2fast', str(tmp_path/'2fast.html'), 'text/html' )
     _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
-            '503', 'something went wrong', '/tmp/503.html', 'text/html; charset=UTF-8' )
+            '503', 'something went wrong', str(tmp_path/'503.html'), 'text/html; charset=UTF-8' )
 
 
 @pytest.mark.compilertest

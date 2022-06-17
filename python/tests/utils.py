@@ -10,6 +10,7 @@ from collections import namedtuple
 from retry import retry
 from OpenSSL import crypto
 from base64 import b64encode
+from typing import List
 
 import json
 import yaml
@@ -221,7 +222,7 @@ def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):
             break
     assert found_cluster
 
-def assert_valid_envoy_config(config_dict, v2=False):
+def assert_valid_envoy_config(config_dict, extra_dirs=[], v2=False):
     with tempfile.TemporaryDirectory() as tmpdir:
         econf = open(os.path.join(tmpdir, 'econf.json'), 'xt')
         econf.write(json.dumps(config_dict))
@@ -230,6 +231,7 @@ def assert_valid_envoy_config(config_dict, v2=False):
             'docker', 'run',
             '--rm',
             f"--volume={tmpdir}:/ambassador:ro",
+            *[f"--volume={extra_dir}:{extra_dir}:ro" for extra_dir in extra_dirs],
             os.environ.get('ENVOY_DOCKER_TAG'),
             '/usr/local/bin/envoy-static-stripped',
             '--config-path', '/ambassador/econf.json',
