@@ -295,7 +295,7 @@ pytest: proxy
 	  export SOURCE_ROOT=$(CURDIR); \
 	  export ENVOY_DOCKER_TAG=$$(cat docker/base-envoy.docker); \
 	  export KUBESTATUS_PATH=$(CURDIR)/tools/bin/kubestatus; \
-	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --tb=short -rP $(PYTEST_ARGS); \
+	  pytest --tb=short -rP $(PYTEST_ARGS); \
 	}
 .PHONY: pytest
 
@@ -306,7 +306,7 @@ pytest-unit: docker/base-envoy.docker.tag.local
 	  . $(OSS_HOME)/venv/bin/activate; \
 	  export SOURCE_ROOT=$(CURDIR); \
 	  export ENVOY_DOCKER_TAG=$$(cat docker/base-envoy.docker); \
-	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --tb=short -rP $(PYTEST_ARGS) python/tests/unit; \
+	  pytest --tb=short -rP $(PYTEST_ARGS) python/tests/unit; \
 	}
 .PHONY: pytest-unit
 

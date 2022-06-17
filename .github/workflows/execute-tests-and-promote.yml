@@ -206,6 +206,7 @@ jobs:
           export KAT_REQ_LIMIT=900
           export DEV_KUBECONFIG=~/.kube/config
           export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
+          export PYTEST_ARGS=' --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html '
           make pytest-${{ matrix.test }}
       - uses: ./.github/actions/after-job
         if: always()
