@@ -290,25 +290,23 @@ pytest: proxy
 	@echo "DEV_KUBECONFIG=$$DEV_KUBECONFIG"
 	@echo "KAT_RUN_MODE=$$KAT_RUN_MODE"
 	@echo "PYTEST_ARGS=$$PYTEST_ARGS"
-	mkdir -p $(or $(TEST_XML_DIR),/tmp/test-data)
 	set -e; { \
 	  . $(OSS_HOME)/venv/bin/activate; \
 	  export SOURCE_ROOT=$(CURDIR); \
 	  export ENVOY_DOCKER_TAG=$$(cat docker/base-envoy.docker); \
 	  export KUBESTATUS_PATH=$(CURDIR)/tools/bin/kubestatus; \
-	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=$(or $(TEST_XML_DIR),/tmp/test-data)/pytest.xml --tb=short -rP $(PYTEST_ARGS); \
+	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --tb=short -rP $(PYTEST_ARGS); \
 	}
 .PHONY: pytest
 
 pytest-unit: $(OSS_HOME)/venv
 pytest-unit: docker/base-envoy.docker.tag.local
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
-	mkdir -p $(or $(TEST_XML_DIR),/tmp/test-data)
 	set -e; { \
 	  . $(OSS_HOME)/venv/bin/activate; \
 	  export SOURCE_ROOT=$(CURDIR); \
 	  export ENVOY_DOCKER_TAG=$$(cat docker/base-envoy.docker); \
-	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=$(or $(TEST_XML_DIR),/tmp/test-data)/pytest.xml --tb=short -rP $(PYTEST_ARGS) python/tests/unit; \
+	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --tb=short -rP $(PYTEST_ARGS) python/tests/unit; \
 	}
 .PHONY: pytest-unit
 
