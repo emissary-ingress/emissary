@@ -221,6 +221,7 @@ spec:
                 - grpc
                 type: string
               protocol_version:
+                description: ProtocolVersion is the envoy api transport protocol version
                 enum:
                 - v2
                 - v3
@@ -1851,6 +1852,7 @@ spec:
                   one valid value, we should just remove the thing.'
                 type: boolean
               protocol_version:
+                description: ProtocolVersion is the envoy api transport protocol version
                 enum:
                 - v2
                 - v3
@@ -3083,6 +3085,7 @@ spec:
               domain:
                 type: string
               protocol_version:
+                description: ProtocolVersion is the envoy api transport protocol version
                 enum:
                 - v2
                 - v3

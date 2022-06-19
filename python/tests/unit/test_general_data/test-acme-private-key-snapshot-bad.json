@@ -1370,6 +1370,7 @@
         "spec": {
           "auth_service": "127.0.0.1:8500",
           "proto": "grpc",
+          "protocol_version": "v3",
           "allow_request_body": false,
           "status_on_error": {
             "code": 504
@@ -1421,7 +1422,8 @@
           ]
         },
         "spec": {
-          "service": "127.0.0.1:8500"
+          "service": "127.0.0.1:8500",
+          "protocol_version": "v3"
         }
       }
     ],

@@ -91,7 +91,6 @@ class V3Config (EnvoyConfig):
                     {
                         'name': 'static_layer',
                         'static_layer': {
-                            'envoy.reloadable_features.enable_deprecated_v2_api': True,
                             'envoy.deprecated_features:envoy.config.trace.v3.ZipkinConfig.hidden_envoy_deprecated_HTTP_JSON_V1': True,
                             're2.max_program_size.error_level': 200,
                         }

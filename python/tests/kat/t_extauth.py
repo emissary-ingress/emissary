@@ -1,4 +1,4 @@
-from typing import Generator, Literal, Tuple, Union
+from typing import Generator, Literal, Tuple, Union, cast
 
 import json
 import pytest
@@ -49,6 +49,7 @@ name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
 timeout_ms: 5000
 proto: grpc
+protocol_version: "v3"
 """)
         yield self, self.format("""
 ---
@@ -112,7 +113,7 @@ auth_context_extensions:
         assert "baz" in self.results[0].backend.request.headers
         assert self.results[0].status == 401
         assert self.results[0].headers["Server"] == ["envoy"]
-        assert self.results[0].headers['Kat-Resp-Extauth-Protocol-Version'] == ['v2']
+        assert self.results[0].headers['Kat-Resp-Extauth-Protocol-Version'] == ['v3']
 
         # [1] Verifies that Location header is returned from Envoy.
         assert self.results[1].backend
@@ -122,7 +123,7 @@ auth_context_extensions:
         assert self.results[1].backend.request.headers["kat-req-extauth-requested-location"] == ["foo"]
         assert self.results[1].status == 302
         assert self.results[1].headers["Location"] == ["foo"]
-        assert self.results[1].headers['Kat-Resp-Extauth-Protocol-Version'] == ['v2']
+        assert self.results[1].headers['Kat-Resp-Extauth-Protocol-Version'] == ['v3']
 
         # [2] Verifies Envoy returns whitelisted headers input by the user.
         assert self.results[2].backend
@@ -134,7 +135,7 @@ auth_context_extensions:
         assert self.results[2].status == 401
         assert self.results[2].headers["Server"] == ["envoy"]
         assert self.results[2].headers["X-Foo"] == ["foo"]
-        assert self.results[2].headers['Kat-Resp-Extauth-Protocol-Version'] == ['v2']
+        assert self.results[2].headers['Kat-Resp-Extauth-Protocol-Version'] == ['v3']
 
         # [3] Verifies default whitelisted Authorization request header.
         assert self.results[3].backend
@@ -147,7 +148,7 @@ auth_context_extensions:
         assert self.results[3].status == 200
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
-        assert self.results[3].backend.request.headers['kat-resp-extauth-protocol-version'] == ['v2']
+        assert self.results[3].backend.request.headers['kat-resp-extauth-protocol-version'] == ['v3']
 
         # [4] Verifies that auth_context_extension is passed along by Envoy.
         assert self.results[4].status == 200
@@ -940,7 +941,7 @@ class AuthenticationGRPCVerTest(AmbassadorTest):
 
     target: ServiceType
     specified_protocol_version: Literal['v2', 'v3', 'default']
-    expected_protocol_version: Literal['v2', 'v3']
+    expected_protocol_version: Literal['v3', 'invalid']
     auth: ServiceType
 
     @classmethod
@@ -951,8 +952,8 @@ class AuthenticationGRPCVerTest(AmbassadorTest):
     def init(self, protocol_version: Literal['v2', 'v3', 'default']):
         self.target = HTTP()
         self.specified_protocol_version = protocol_version
-        self.expected_protocol_version = "v2" if protocol_version == "default" else protocol_version
-        self.auth = AGRPC(name="auth", protocol_version=self.expected_protocol_version)
+        self.expected_protocol_version = cast(Literal['v3', 'invalid'], protocol_version if protocol_version in ['v3'] else 'invalid')
+        self.auth = AGRPC(name="auth", protocol_version=(self.expected_protocol_version if self.expected_protocol_version != 'invalid' else 'v3'))
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
@@ -980,24 +981,31 @@ service: {self.target.path.fqdn}
         # [0]
         yield Query(self.url("target/"), headers={"kat-req-extauth-requested-status": "401",
                                                   "baz": "baz",
-                                                  "request-header": "baz"}, expected=401)
+                                                  "kat-req-extauth-request-header": "baz"},
+                    expected=(500 if self.expected_protocol_version == 'invalid' else 401))
 
         # [1]
         yield Query(self.url("target/"), headers={"kat-req-extauth-requested-status": "302",
-                                                  "kat-req-extauth-requested-location": "foo"}, expected=302)
+                                                  "kat-req-extauth-requested-location": "foo"},
+                    expected=(500 if self.expected_protocol_version == 'invalid' else 302))
 
         # [2]
         yield Query(self.url("target/"), headers={"kat-req-extauth-requested-status": "401",
                                                   "x-foo": "foo",
-                                                  "kat-req-extauth-requested-header": "x-foo"}, expected=401)
+                                                  "kat-req-extauth-requested-header": "x-foo"},
+                    expected=(500 if self.expected_protocol_version == 'invalid' else 401))
         # [3]
         yield Query(self.url("target/"), headers={"kat-req-extauth-requested-status": "200",
                                                   "authorization": "foo-11111",
                                                   "foo" : "foo",
                                                   "kat-req-extauth-append": "foo=bar;baz=bar",
-                                                  "kat-req-http-requested-header": "Authorization"}, expected=200)
+                                                  "kat-req-http-requested-header": "Authorization"},
+                    expected=(500 if self.expected_protocol_version == 'invalid' else 200))
 
     def check(self):
+        if self.expected_protocol_version == 'invalid':
+            return
+
         # [0] Verifies all request headers sent to the authorization server.
         assert self.results[0].backend
         assert self.results[0].backend.name == self.auth.path.k8s

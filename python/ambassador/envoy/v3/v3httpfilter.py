@@ -213,7 +213,41 @@ def V3HTTPFilter_authv1(auth: IRAuth, v3config: 'V3Config'):
 
     auth_info: Dict[str, Any] = {}
 
-    if auth.proto == "http":
+    if errors := auth.ir.aconf.errors.get(auth.rkey):
+        # FWIW, this mimics Ambassador Edge Stack's default error response format; see
+        # apro.git/cmd/amb-sidecar/filters/handler/middleware.NewErrorResponse().
+        #
+        # TODO(lukeshu): Set a better error message; it should probably include a stringification of
+        # 'errors'.  But that's kinda tricky because while we have "json_escape()" in the Python
+        # stdlib, we don't have a "lua_escape()"; and I'm on a tight deadline.
+        auth_info = {
+            'name': 'envoy.filters.http.lua',
+            'typed_config': {
+                '@type': 'type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua',
+                'inline_code': """
+function envoy_on_request(request_handle)
+   local path = request_handle:headers():get(':path')
+   if path == '/ambassador/v0/check_alive' or path == '/ambassador/v0/check_ready'
+   then
+      -- TODO(lukeshu): Consider setting bypass_auth on the synthetic Mappings, rather than
+      -- special-casing this here.  I can't really justify this special case, other than: "I'm in a
+      -- rush and this makes KAT happy."
+      return
+   end
+   request_handle:respond(
+      {[":status"] = "500",
+       ["content-type"] = "application/json"},
+      '{'..
+      '  "message": "the """+auth.rkey+""" AuthService is misconfigured; see the logs for more information",'..
+      '  "request_id": "'..request_handle:headers():get('x-request-id')..'",'..
+      '  "status_code": 500,'..
+      '}')
+end
+""",
+            },
+        }
+
+    elif auth.proto == "http":
         allowed_authorization_headers = []
         headers_to_add = []
 
@@ -267,8 +301,7 @@ def V3HTTPFilter_authv1(auth: IRAuth, v3config: 'V3Config'):
             }
         }
 
-    if auth.proto == "grpc":
-        protocol_version = auth.get('protocol_version', 'v2')
+    elif auth.proto == "grpc":
         auth_info = {
             'name': 'envoy.filters.http.ext_authz',
             'typed_config': {
@@ -279,11 +312,11 @@ def V3HTTPFilter_authv1(auth: IRAuth, v3config: 'V3Config'):
                     },
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
-                'transport_api_version': protocol_version.replace("alpha", "").upper(),
+                'transport_api_version': auth.protocol_version.upper(),
             }
         }
 
-    if auth_info:
+    if auth_info['name'] == 'envoy.filters.http.ext_authz':
         auth_info['typed_config']['clear_route_cache'] = True
 
         if body_info:
@@ -296,11 +329,8 @@ def V3HTTPFilter_authv1(auth: IRAuth, v3config: 'V3Config'):
             status_on_error: Optional[Dict[str, int]] = auth.get('status_on_error')
             auth_info['typed_config']["status_on_error"] = status_on_error
 
-        return auth_info
+    return auth_info
 
-    # If here, something's gone horribly wrong.
-    auth.post_error("Protocol '%s' is not supported, auth not enabled" % auth.proto)
-    return None
 
 
 # Careful: this function returns None to indicate that no Envoy response_map

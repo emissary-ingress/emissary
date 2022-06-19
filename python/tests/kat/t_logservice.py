@@ -1,4 +1,4 @@
-from typing import Generator, Literal, Tuple, Union
+from typing import Generator, Literal, Tuple, Union, cast
 
 import json
 
@@ -12,7 +12,7 @@ from ambassador import Config
 class LogServiceTest(AmbassadorTest):
     target: ServiceType
     specified_protocol_version: Literal['v2', 'v3', 'default']
-    expected_protocol_version: Literal['v2', 'v3']
+    expected_protocol_version: Literal['v3', 'invalid']
     als: ServiceType
 
     @classmethod
@@ -20,10 +20,10 @@ class LogServiceTest(AmbassadorTest):
         for protocol_version in ['v2', 'v3', 'default']:
             yield cls(protocol_version, name="{self.specified_protocol_version}")
 
-    def init(self, protocol_version: Literal['v2', 'v3', 'default']):
+    def init(self, protocol_version: Literal['v3', 'default']):
         self.target = HTTP()
         self.specified_protocol_version = protocol_version
-        self.expected_protocol_version = "v2" if protocol_version == "default" else protocol_version
+        self.expected_protocol_version = cast(Literal['v3', 'invalid'], protocol_version if protocol_version in ['v3'] else 'invalid')
         self.als = ALSGRPC()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -69,12 +69,16 @@ service: {self.target.path.fqdn}
     def check(self):
         logs = self.results[3].json
         expkey = f"als{self.expected_protocol_version}-http"
-        assert logs[expkey]
         for key in ['alsv2-http', 'alsv2-tcp', 'alsv3-http', 'alsv3-tcp']:
             if key == expkey:
                 continue
             assert not logs[key]
 
+        if self.expected_protocol_version == 'invalid':
+            assert expkey not in logs
+            return
+
+        assert logs[expkey]
         assert len(logs[expkey]) == 2
         assert logs[expkey][0]['request']['original_path'] == '/target/foo'
         assert logs[expkey][1]['request']['original_path'] == '/target/bar'
@@ -117,6 +121,7 @@ kind: LogService
 name: custom-http-logging
 service: logservicelongservicename-longnamewithnearly60characters
 grpc: true
+protocol_version: "v3"
 driver: http
 driver_config:
   additional_log_headers:
@@ -151,11 +156,12 @@ service: {self.target.path.fqdn}
 
     def check(self):
         logs = self.results[3].json
-        assert logs['alsv2-http']
+        assert not logs['alsv2-http']
         assert not logs['alsv2-tcp']
-        assert not logs['alsv3-http']
+        assert logs['alsv3-http']
         assert not logs['alsv3-tcp']
 
-        assert len(logs['alsv2-http']) == 2
-        assert logs['alsv2-http'][0]['request']['original_path'] == '/target/foo'
-        assert logs['alsv2-http'][1]['request']['original_path'] == '/target/bar'
+
+        assert len(logs['alsv3-http']) == 2
+        assert logs['alsv3-http'][0]['request']['original_path'] == '/target/foo'
+        assert logs['alsv3-http'][1]['request']['original_path'] == '/target/bar'

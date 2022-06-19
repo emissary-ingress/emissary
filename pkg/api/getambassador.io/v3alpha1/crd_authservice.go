@@ -62,6 +62,9 @@ type AuthServiceSpec struct {
 	FailureModeAllow  *bool                     `json:"failure_mode_allow,omitempty"`
 	IncludeBody       *AuthServiceIncludeBody   `json:"include_body,omitempty"`
 	StatusOnError     *AuthServiceStatusOnError `json:"status_on_error,omitempty"`
+
+	// ProtocolVersion is the envoy api transport protocol version
+	//
 	// +kubebuilder:validation:Enum={"v2","v3"}
 	ProtocolVersion string            `json:"protocol_version,omitempty"`
 	StatsName       string            `json:"stats_name,omitempty"`

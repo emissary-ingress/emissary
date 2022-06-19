@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Literal, Optional, TYPE_CHECKING
 from typing import cast as typecast
 
 from ..config import Config
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
 class IRAuth (IRFilter):
     cluster: Optional[IRCluster]
+    protocol_version: Literal['v2', 'v3']
 
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.auth",
@@ -144,10 +145,16 @@ class IRAuth (IRFilter):
         self["cluster_idle_timeout_ms"] = module.get("cluster_idle_timeout_ms", None)
         self["cluster_max_connection_lifetime_ms"] = module.get("cluster_max_connection_lifetime_ms", None)
         self["add_auth_headers"] = module.get("add_auth_headers", {})
-        self["protocol_version"] = module.get("protocol_version", "v2")
         self.__to_header_list('allowed_headers', module)
         self.__to_header_list('allowed_request_headers', module)
         self.__to_header_list('allowed_authorization_headers', module)
+
+        if self["proto"] not in ["grpc", "http"]:
+            self.post_error(f'AuthService: proto_version {self["proto"]} is unsupported, proto must be "grpc" or "http"')
+
+        self.protocol_version = module.get("protocol_version", "v2")
+        if self["proto"] == "grpc" and self.protocol_version not in ["v3"]:
+            self.post_error(f'AuthService: protocol_version {self.protocol_version} is unsupported, protocol_version must be "v3"')
 
         status_on_error = module.get('status_on_error', None)
         if status_on_error:
