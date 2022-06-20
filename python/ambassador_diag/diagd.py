@@ -17,6 +17,7 @@ import copy
 import subprocess
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, TYPE_CHECKING
 from typing import cast as typecast
+from typing_extensions import TypedDict, NotRequired
 
 import datetime
 import difflib
@@ -51,6 +52,7 @@ from flask import json as flask_json
 import gunicorn.app.base
 
 from ambassador import Cache, Config, IR, EnvoyConfig, Diagnostics, Scout, Version
+from ambassador.ambscout import LocalScout
 from ambassador.reconfig_stats import ReconfigStats
 from ambassador.ir.irambassador import IRAmbassador
 from ambassador.ir.irbasemapping import IRBaseMapping
@@ -147,7 +149,7 @@ class DiagApp (Flask):
     report_action_keys: bool
     verbose: bool
     notice_path: str
-    logger: logging.Logger
+    logger: logging.Logger  # type: ignore # FIXME(lukeshu): Mypy's probably right on this one, but it'd be a lot of work to fix
     aconf: Config
     ir: Optional[IR]
     econf: Optional[EnvoyConfig]
@@ -158,6 +160,7 @@ class DiagApp (Flask):
     watcher: 'AmbassadorEventWatcher'
     stats_updater: Optional[PeriodicTrigger]
     scout_checker: Optional[PeriodicTrigger]
+    timer_logger: Optional[PeriodicTrigger]
     last_request_info: Dict[str, int]
     last_request_time: Optional[datetime.datetime]
     latest_snapshot: str
@@ -895,6 +898,7 @@ def handle_fs():
 def handle_events():
     if not app.local_scout:
         return 'Local Scout is not enabled\n', 400
+    assert isinstance(app.scout._scout, LocalScout)
 
     event_dump = [
         ( x['local_scout_timestamp'], x['mode'], x['action'], x ) for x in app.scout._scout.events
@@ -957,6 +961,7 @@ def show_overview(reqid=None):
     # to compute -- we don't want to call it more than once here, so we cache
     # its value.
     diag = app.diag
+    assert diag
 
     if app.verbose:
         app.logger.debug("OV %s: DIAG" % reqid)
@@ -1093,24 +1098,30 @@ def show_intermediate(source=None, reqid=None):
     # to compute -- we don't want to call it more than once here, so we cache
     # its value.
     diag = app.diag
+    assert diag
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
 
     estats = app.estatsmgr.get_stats()
     result = diag.lookup(request, source, estats)
+    assert result
 
     if app.verbose:
         app.logger.debug("RESULT %s" % dump_json(result, pretty=True))
 
     ddict = collect_errors_and_notices(request, reqid, "detail %s" % source, diag)
 
-    tvars = dict(system=system_info(app),
-                 envoy_status=envoy_status(estats),
-                 loginfo=app.estatsmgr.loginfo,
-                 notices=app.notices.notices,
-                 method=method, resource=resource,
-                 **result, **ddict)
+    tvars = {
+        'system': system_info(app),
+        'envoy_status': envoy_status(estats),
+        'loginfo': app.estatsmgr.loginfo,
+        'notices': app.notices.notices,
+        'method': method,
+        'resource': resource,
+        **result,
+        **ddict,
+    }
 
     if request.args.get('json', None):
         key = request.args.get('filter', None)
@@ -1333,7 +1344,7 @@ class AmbassadorEventWatcher(threading.Thread):
         self.env_good = False       # Is our environment currently believed to be OK?
         self.failure_list: List[str] = [ 'unhealthy at boot' ]     # What's making our environment not OK?
 
-    def post(self, cmd: str, arg: Optional[Union[str, Tuple[str, Optional[IR]]]]) -> Tuple[int, str]:
+    def post(self, cmd: str, arg: Optional[Union[str, Tuple[str, Optional[IR]], Tuple[str, str]]]) -> Tuple[int, str]:
         rqueue: queue.Queue = queue.Queue()
 
         self.events.put((cmd, arg, rqueue))
@@ -1731,7 +1742,13 @@ class AmbassadorEventWatcher(threading.Thread):
 
         self.logger.debug(f'CHIME: {action_key}')
 
-        chime_args = {
+        class ChimeArgs(TypedDict):
+            no_cache: NotRequired[Optional[bool]]
+            ir: NotRequired[Optional[IR]]
+            failures: NotRequired[Optional[List[str]]]
+            action_key: NotRequired[Optional[str]]
+
+        chime_args: ChimeArgs = {
             'no_cache': no_cache,
             'failures': self.failure_list
         }

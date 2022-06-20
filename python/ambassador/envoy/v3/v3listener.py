@@ -25,7 +25,6 @@ from ...ir.irtcpmappinggroup import IRTCPMappingGroup
 
 from ...utils import dump_json, parse_bool
 
-from .v3httpfilter import V3HTTPFilter
 from .v3route import V3Route, DictifiedV3Route, V3RouteVariants, v3prettyroute, hostglob_matches
 from .v3tls import V3TLSContext
 
@@ -386,6 +385,7 @@ class V3Listener(dict):
         }
 
         # Assemble base HTTP filters
+        from .v3httpfilter import V3HTTPFilter
         for f in self.config.ir.filters:
             v3hf: dict = V3HTTPFilter(f, self.config)
 

@@ -1,6 +1,8 @@
 from typing import Optional, TYPE_CHECKING
 
 import logging
+from pathlib import Path
+
 import pytest
 
 from tests.selfsigned import TLSCerts
@@ -40,7 +42,7 @@ def get_mirrored_config(ads_config):
 
 
 @pytest.mark.compilertest
-def test_shadow_v3():
+def test_shadow_v3(tmp_path: Path):
     aconf = Config()
 
     yaml = '''
@@ -86,7 +88,7 @@ spec:
     aconf.load_all(fetcher.sorted())
 
 
-    secret_handler = MockSecretHandler(logger, "mockery", "/tmp/ambassador/snapshots", "v1")
+    secret_handler = MockSecretHandler(logger, "mockery", str(tmp_path/"ambassador"/"snapshots"), "v1")
     ir = IR(aconf, file_checker=lambda path: True, secret_handler=secret_handler)
 
     assert ir
@@ -103,12 +105,12 @@ spec:
     assert mirror_policy['cluster'] == 'cluster_shadow_httpbin_shadow_default'
     assert mirror_policy['runtime_fraction']['default_value']['numerator'] == 10
     assert mirror_policy['runtime_fraction']['default_value']['denominator'] == 'HUNDRED'
-    assert_valid_envoy_config(ads_config)
-    assert_valid_envoy_config(bootstrap_config)
+    assert_valid_envoy_config(ads_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")])
+    assert_valid_envoy_config(bootstrap_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")])
 
 
 @pytest.mark.compilertest
-def test_shadow_v2():
+def test_shadow_v2(tmp_path: Path):
     aconf = Config()
 
     yaml = '''
@@ -154,7 +156,7 @@ spec:
     aconf.load_all(fetcher.sorted())
 
 
-    secret_handler = MockSecretHandler(logger, "mockery", "/tmp/ambassador/snapshots", "v1")
+    secret_handler = MockSecretHandler(logger, "mockery", str(tmp_path/"ambassador"/"snapshots"), "v1")
     ir = IR(aconf, file_checker=lambda path: True, secret_handler=secret_handler)
 
     assert ir
@@ -170,5 +172,5 @@ spec:
     assert mirror_policy['cluster'] == 'cluster_shadow_httpbin_shadow_default'
     assert mirror_policy['runtime_fraction']['default_value']['numerator'] == 10
     assert mirror_policy['runtime_fraction']['default_value']['denominator'] == 'HUNDRED'
-    assert_valid_envoy_config(ads_config, v2=True)
-    assert_valid_envoy_config(bootstrap_config, v2=True)
+    assert_valid_envoy_config(ads_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")], v2=True)
+    assert_valid_envoy_config(bootstrap_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")], v2=True)

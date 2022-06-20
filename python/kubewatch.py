@@ -17,6 +17,8 @@ import logging
 import os
 import uuid
 
+from typing import Dict, List
+
 from pathlib import Path
 
 from kubernetes import client, config
@@ -139,9 +141,9 @@ def check_ingress_classes():
             # Here, we extracted (read copy/pasted) a sample call from k8s_v1b1.list_ingress_for_all_namespaces()
             # where we use the rest ApiClient to read ingressclasses.
 
-            path_params = {}
-            query_params = []
-            header_params = {}
+            path_params: Dict[str, str] = {}
+            query_params: List[str] = []
+            header_params: Dict[str, str] = {}
 
             header_params['Accept'] = api_client. \
                 select_header_accept(['application/json',
@@ -177,9 +179,9 @@ def get_api_resources(group, version):
             # Here, we extracted (read copy/pasted) a sample call from ApisApi().get_api_versions()
             # where we use the rest ApiClient to list api resources specific to a group.
 
-            path_params = {}
-            query_params = []
-            header_params = {}
+            path_params: Dict[str, str] = {}
+            query_params: List[str] = []
+            header_params: Dict[str, str] = {}
 
             header_params['Accept'] = api_client. \
                 select_header_accept(['application/json'])

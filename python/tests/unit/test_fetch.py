@@ -233,6 +233,7 @@ class TestAmbassadorProcessor:
         assert len(aconf.errors) == 0
 
         mappings = aconf.get_config('mappings')
+        assert mappings
         assert len(mappings) == 1
 
         mapping = next(iter(mappings.values()))
@@ -254,6 +255,7 @@ class TestAmbassadorProcessor:
         assert len(aconf.errors) == 0
 
         mappings = aconf.get_config('mappings')
+        assert mappings
         assert len(mappings) == 1
 
         mapping = next(iter(mappings.values()))

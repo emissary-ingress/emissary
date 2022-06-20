@@ -16,21 +16,21 @@ from typing import cast as typecast
 
 import logging
 
-from multi import multi
+from functools import singledispatch
+
+from .v2config import V2Config
+
 from ...ir.irauth import IRAuth
 from ...ir.irerrorresponse import IRErrorResponse
 from ...ir.irbuffer import IRBuffer
 from ...ir.irgzip import IRGzip
 from ...ir.irfilter import IRFilter
 from ...ir.irratelimit import IRRateLimit
-from ...ir.ircors import IRCORS
 from ...ir.ircluster import IRCluster
+from ...ir.iripallowdeny import IRIPAllowDeny
 
 from ...utils import parse_bool
 from ...utils import ParsedService as Service
-
-if TYPE_CHECKING:
-    from . import V2Config
 
 # Static header keys normally used in the context of an authorization request.
 AllowedRequestHeaders = frozenset([
@@ -82,13 +82,22 @@ def header_pattern_key(x: Dict[str, str]) -> List[Tuple[str, str]]:
     return sorted([ (k, v) for k, v in x.items() ])
 
 
-@multi
+@singledispatch
 def V2HTTPFilter(irfilter: IRFilter, v2config: 'V2Config'):
-    del v2config  # silence unused-variable warning
+    # Fallback for the filters that don't have their own IR* type and therefor can't participate in
+    # @singledispatch.
+    fn = {
+        "ir.grpc_http1_bridge": V2HTTPFilter_grpc_http1_bridge,
+        "ir.grpc_web": V2HTTPFilter_grpc_web,
+        "ir.grpc_stats": V2HTTPFilter_grpc_stats,
+        "ir.cors": V2HTTPFilter_cors,
+        "ir.router": V2HTTPFilter_router,
+        "ir.lua_scripts": V2HTTPFilter_lua,
+    }[irfilter.kind]
 
-    return irfilter.kind
+    return fn(irfilter, v2config)
 
-@V2HTTPFilter.when("IRBuffer")
+@V2HTTPFilter.register
 def V2HTTPFilter_buffer(buffer: IRBuffer, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
@@ -100,7 +109,7 @@ def V2HTTPFilter_buffer(buffer: IRBuffer, v2config: 'V2Config'):
         }
     }
 
-@V2HTTPFilter.when("IRGzip")
+@V2HTTPFilter.register
 def V2HTTPFilter_gzip(gzip: IRGzip, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
@@ -119,7 +128,6 @@ def V2HTTPFilter_gzip(gzip: IRGzip, v2config: 'V2Config'):
         }
     }
 
-@V2HTTPFilter.when("ir.grpc_http1_bridge")
 def V2HTTPFilter_grpc_http1_bridge(irfilter: IRFilter, v2config: 'V2Config'):
     del irfilter  # silence unused-variable warning
     del v2config  # silence unused-variable warning
@@ -128,7 +136,6 @@ def V2HTTPFilter_grpc_http1_bridge(irfilter: IRFilter, v2config: 'V2Config'):
         'name': 'envoy.filters.http.grpc_http1_bridge'
     }
 
-@V2HTTPFilter.when("ir.grpc_web")
 def V2HTTPFilter_grpc_web(irfilter: IRFilter, v2config: 'V2Config'):
     del irfilter  # silence unused-variable warning
     del v2config  # silence unused-variable warning
@@ -137,7 +144,6 @@ def V2HTTPFilter_grpc_web(irfilter: IRFilter, v2config: 'V2Config'):
         'name': 'envoy.filters.http.grpc_web'
     }
 
-@V2HTTPFilter.when("ir.grpc_stats")
 def V2HTTPFilter_grpc_stats(irfilter: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
@@ -162,7 +168,7 @@ def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
 
     return server_uri
 
-@V2HTTPFilter.when("IRAuth")
+@V2HTTPFilter.register
 def V2HTTPFilter_authv1(auth: IRAuth, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
@@ -287,7 +293,7 @@ def V2HTTPFilter_authv1(auth: IRAuth, v2config: 'V2Config'):
 #
 # By not instantiating the filter in those cases, we prevent adding a useless
 # filter onto the chain.
-@V2HTTPFilter.when("IRErrorResponse")
+@V2HTTPFilter.register
 def V2HTTPFilter_error_response(error_response: IRErrorResponse, v2config: 'V2Config'):
     # Error response configuration can come from the Ambassador module, on a
     # a Mapping, or both. We need to use the response_map filter if either one
@@ -339,7 +345,7 @@ def V2HTTPFilter_error_response(error_response: IRErrorResponse, v2config: 'V2Co
     return None
 
 
-@V2HTTPFilter.when("IRRateLimit")
+@V2HTTPFilter.register
 def V2HTTPFilter_ratelimit(ratelimit: IRRateLimit, v2config: 'V2Config'):
     config = dict(ratelimit.config)
 
@@ -359,8 +365,8 @@ def V2HTTPFilter_ratelimit(ratelimit: IRRateLimit, v2config: 'V2Config'):
     }
 
 
-@V2HTTPFilter.when("IRIPAllowDeny")
-def V2HTTPFilter_ipallowdeny(irfilter: IRFilter, v2config: 'V2Config'):
+@V2HTTPFilter.register
+def V2HTTPFilter_ipallowdeny(irfilter: IRIPAllowDeny, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     # Go ahead and convert the irfilter to its dictionary form; it's
@@ -411,15 +417,13 @@ def V2HTTPFilter_ipallowdeny(irfilter: IRFilter, v2config: 'V2Config'):
     }
 
 
-@V2HTTPFilter.when("ir.cors")
-def V2HTTPFilter_cors(cors: IRCORS, v2config: 'V2Config'):
+def V2HTTPFilter_cors(cors: IRFilter, v2config: 'V2Config'):
     del cors    # silence unused-variable warning
     del v2config  # silence unused-variable warning
 
     return { 'name': 'envoy.filters.http.cors' }
 
 
-@V2HTTPFilter.when("ir.router")
 def V2HTTPFilter_router(router: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
@@ -443,7 +447,6 @@ def V2HTTPFilter_router(router: IRFilter, v2config: 'V2Config'):
     return od
 
 
-@V2HTTPFilter.when("ir.lua_scripts")
 def V2HTTPFilter_lua(irfilter: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 

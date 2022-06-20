@@ -1,6 +1,7 @@
 import copy
 import logging
 import sys
+from typing import List
 
 import pytest
 
@@ -14,6 +15,7 @@ logger = logging.getLogger("ambassador")
 
 from ambassador import Config, IR
 from ambassador.fetch import ResourceFetcher
+from ambassador.ir.irbasemappinggroup import IRBaseMappingGroup
 from ambassador.utils import NullSecretHandler
 
 def _get_ir_config(yaml):
@@ -46,7 +48,7 @@ docs:
 """
 
     conf = _get_ir_config(yaml)
-    all_mappings = []
+    all_mappings: List[IRBaseMappingGroup] = []
     for i in conf.groups.values():
         all_mappings = all_mappings + i.mappings
 
@@ -54,4 +56,3 @@ docs:
     assert(len(slowsvc_mappings) == 1)
     print(slowsvc_mappings[0].as_dict())
     assert(slowsvc_mappings[0].docs['timeout_ms'] == 8000)
-

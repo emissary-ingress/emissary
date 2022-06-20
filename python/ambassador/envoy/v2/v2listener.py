@@ -25,7 +25,6 @@ from ...ir.irtcpmappinggroup import IRTCPMappingGroup
 
 from ...utils import dump_json, parse_bool
 
-from .v2httpfilter import V2HTTPFilter
 from .v2route import V2Route, DictifiedV2Route, V2RouteVariants, v2prettyroute, hostglob_matches
 from .v2tls import V2TLSContext
 
@@ -383,6 +382,7 @@ class V2Listener(dict):
         }
 
         # Assemble base HTTP filters
+        from .v2httpfilter import V2HTTPFilter
         for f in self.config.ir.filters:
             v2hf: dict = V2HTTPFilter(f, self.config)
 

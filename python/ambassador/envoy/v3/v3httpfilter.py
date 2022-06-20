@@ -16,21 +16,21 @@ from typing import cast as typecast
 
 import logging
 
-from multi import multi
+from functools import singledispatch
+
+from .v3config import V3Config
+
 from ...ir.irauth import IRAuth
 from ...ir.irerrorresponse import IRErrorResponse
 from ...ir.irbuffer import IRBuffer
 from ...ir.irgzip import IRGzip
 from ...ir.irfilter import IRFilter
 from ...ir.irratelimit import IRRateLimit
-from ...ir.ircors import IRCORS
 from ...ir.ircluster import IRCluster
+from ...ir.iripallowdeny import IRIPAllowDeny
 
 from ...utils import parse_bool
 from ...utils import ParsedService as Service
-
-if TYPE_CHECKING:
-    from . import V3Config
 
 # Static header keys normally used in the context of an authorization request.
 AllowedRequestHeaders = frozenset([
@@ -82,13 +82,22 @@ def header_pattern_key(x: Dict[str, str]) -> List[Tuple[str, str]]:
     return sorted([ (k, v) for k, v in x.items() ])
 
 
-@multi
+@singledispatch
 def V3HTTPFilter(irfilter: IRFilter, v3config: 'V3Config'):
-    del v3config  # silence unused-variable warning
+    # Fallback for the filters that don't have their own IR* type and therefor can't participate in
+    # @singledispatch.
+    fn = {
+        "ir.grpc_http1_bridge": V3HTTPFilter_grpc_http1_bridge,
+        "ir.grpc_web": V3HTTPFilter_grpc_web,
+        "ir.grpc_stats": V3HTTPFilter_grpc_stats,
+        "ir.cors": V3HTTPFilter_cors,
+        "ir.router": V3HTTPFilter_router,
+        "ir.lua_scripts": V3HTTPFilter_lua,
+    }[irfilter.kind]
 
-    return irfilter.kind
+    return fn(irfilter, v3config)
 
-@V3HTTPFilter.when("IRBuffer")
+@V3HTTPFilter.register
 def V3HTTPFilter_buffer(buffer: IRBuffer, v3config: 'V3Config'):
     del v3config  # silence unused-variable warning
 
@@ -100,7 +109,7 @@ def V3HTTPFilter_buffer(buffer: IRBuffer, v3config: 'V3Config'):
         }
     }
 
-@V3HTTPFilter.when("IRGzip")
+@V3HTTPFilter.register
 def V3HTTPFilter_gzip(gzip: IRGzip, v3config: 'V3Config'):
     del v3config  # silence unused-variable warning
     common_config = {
@@ -130,7 +139,6 @@ def V3HTTPFilter_gzip(gzip: IRGzip, v3config: 'V3Config'):
         }
     }
 
-@V3HTTPFilter.when("ir.grpc_http1_bridge")
 def V3HTTPFilter_grpc_http1_bridge(irfilter: IRFilter, v3config: 'V3Config'):
     del irfilter  # silence unused-variable warning
     del v3config  # silence unused-variable warning
@@ -139,7 +147,6 @@ def V3HTTPFilter_grpc_http1_bridge(irfilter: IRFilter, v3config: 'V3Config'):
         'name': 'envoy.filters.http.grpc_http1_bridge'
     }
 
-@V3HTTPFilter.when("ir.grpc_web")
 def V3HTTPFilter_grpc_web(irfilter: IRFilter, v3config: 'V3Config'):
     del irfilter  # silence unused-variable warning
     del v3config  # silence unused-variable warning
@@ -148,7 +155,6 @@ def V3HTTPFilter_grpc_web(irfilter: IRFilter, v3config: 'V3Config'):
         'name': 'envoy.filters.http.grpc_web'
     }
 
-@V3HTTPFilter.when("ir.grpc_stats")
 def V3HTTPFilter_grpc_stats(irfilter: IRFilter, v3config: 'V3Config'):
     del v3config  # silence unused-variable warning
     config = typecast(Dict[str, Any], irfilter.config_dict())
@@ -177,7 +183,7 @@ def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
 
     return server_uri
 
-@V3HTTPFilter.when("IRAuth")
+@V3HTTPFilter.register
 def V3HTTPFilter_authv1(auth: IRAuth, v3config: 'V3Config'):
     del v3config  # silence unused-variable warning
 
@@ -303,7 +309,7 @@ def V3HTTPFilter_authv1(auth: IRAuth, v3config: 'V3Config'):
 #
 # By not instantiating the filter in those cases, we prevent adding a useless
 # filter onto the chain.
-@V3HTTPFilter.when("IRErrorResponse")
+@V3HTTPFilter.register
 def V3HTTPFilter_error_response(error_response: IRErrorResponse, v3config: 'V3Config'):
     # Error response configuration can come from the Ambassador module, on a
     # a Mapping, or both. We need to use the response_map filter if either one
@@ -355,7 +361,7 @@ def V3HTTPFilter_error_response(error_response: IRErrorResponse, v3config: 'V3Co
     return None
 
 
-@V3HTTPFilter.when("IRRateLimit")
+@V3HTTPFilter.register
 def V3HTTPFilter_ratelimit(ratelimit: IRRateLimit, v3config: 'V3Config'):
     config = dict(ratelimit.config)
 
@@ -375,8 +381,8 @@ def V3HTTPFilter_ratelimit(ratelimit: IRRateLimit, v3config: 'V3Config'):
     }
 
 
-@V3HTTPFilter.when("IRIPAllowDeny")
-def V3HTTPFilter_ipallowdeny(irfilter: IRFilter, v3config: 'V3Config'):
+@V3HTTPFilter.register
+def V3HTTPFilter_ipallowdeny(irfilter: IRIPAllowDeny, v3config: 'V3Config'):
     del v3config  # silence unused-variable warning
 
     # Go ahead and convert the irfilter to its dictionary form; it's
@@ -427,15 +433,13 @@ def V3HTTPFilter_ipallowdeny(irfilter: IRFilter, v3config: 'V3Config'):
     }
 
 
-@V3HTTPFilter.when("ir.cors")
-def V3HTTPFilter_cors(cors: IRCORS, v3config: 'V3Config'):
+def V3HTTPFilter_cors(cors: IRFilter, v3config: 'V3Config'):
     del cors    # silence unused-variable warning
     del v3config  # silence unused-variable warning
 
     return { 'name': 'envoy.filters.http.cors' }
 
 
-@V3HTTPFilter.when("ir.router")
 def V3HTTPFilter_router(router: IRFilter, v3config: 'V3Config'):
     del v3config  # silence unused-variable warning
 
@@ -459,7 +463,6 @@ def V3HTTPFilter_router(router: IRFilter, v3config: 'V3Config'):
     return od
 
 
-@V3HTTPFilter.when("ir.lua_scripts")
 def V3HTTPFilter_lua(irfilter: IRFilter, v3config: 'V3Config'):
     del v3config  # silence unused-variable warning
 

@@ -259,7 +259,9 @@ service: https://{self.target3.path.fqdn}
         ]:
             r = self.results[idx]
             wanted_fqdn = target.path.fqdn
+            assert r.backend
             backend_fqdn = target.get_fqdn(r.backend.name)
+            assert r.backend.request
             tls_enabled = r.backend.request.tls.enabled
 
             assert backend_fqdn == wanted_fqdn, f'{idx}: backend {backend_fqdn} != expected {wanted_fqdn}'

@@ -108,7 +108,9 @@ tag_headers:
 
     def check(self):
         for i in range(100):
-            assert self.results[i].backend.name == self.target.path.k8s
+            result = self.results[i]
+            assert result.backend
+            assert result.backend.name == self.target.path.k8s
 
         print(f"self.results[100] = {self.results[100]}")
         assert self.results[100].backend is not None and self.results[100].backend.name == "raw", \
@@ -116,6 +118,7 @@ tag_headers:
         assert len(self.results[100].backend.response) == 1
         assert self.results[100].backend.response[0] == 'tracingtest-default'
 
+        assert self.results[101].backend
         assert self.results[101].backend.name == "raw"
 
         tracelist = { x: True for x in self.results[101].backend.response }
@@ -123,6 +126,8 @@ tag_headers:
         assert 'router cluster_tracingtest_http_default egress' in tracelist
 
         # Look for the host that we actually queried, since that's what appears in the spans.
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.host in tracelist
 
         # Ensure we generate 128-bit traceids by default
@@ -226,7 +231,9 @@ driver: zipkin
 
     def check(self):
         for i in range(100):
-            assert self.results[i].backend.name == self.target.path.k8s
+            result = self.results[i]
+            assert result.backend
+            assert result.backend.name == self.target.path.k8s
 
         print(f"self.results[100] = {self.results[100]}")
         assert self.results[100].backend is not None and self.results[100].backend.name == "raw", \
@@ -234,6 +241,7 @@ driver: zipkin
         assert len(self.results[100].backend.response) == 1
         assert self.results[100].backend.response[0] == 'tracingtestlongclustername-default'
 
+        assert self.results[101].backend
         assert self.results[101].backend.name == "raw"
 
         tracelist = { x: True for x in self.results[101].backend.response }
@@ -241,6 +249,8 @@ driver: zipkin
         assert 'router cluster_tracingtestlongclustername_http_default egress' in tracelist
 
         # Look for the host that we actually queried, since that's what appears in the spans.
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.host in tracelist
 
         # Ensure we generate 128-bit traceids by default
@@ -430,6 +440,8 @@ allowed_request_headers:
 
     def check(self):
         extauth_res = json.loads(self.results[0].headers["Extauth"][0])
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         request_headers = self.results[0].backend.request.headers
 
         assert self.results[0].status == 200
@@ -641,7 +653,9 @@ config:
 
     def check(self):
         for i in range(100):
-            assert self.results[i].backend.name == self.target.path.k8s
+            result = self.results[i]
+            assert result.backend
+            assert result.backend.name == self.target.path.k8s
 
         print(f"self.results[100] = {self.results[100]}")
         assert self.results[100].backend is not None and self.results[100].backend.name == "raw", \
@@ -649,6 +663,7 @@ config:
         assert len(self.results[100].backend.response) == 1
         assert self.results[100].backend.response[0] == 'tracingtestzipkinv2-default'
 
+        assert self.results[101].backend
         assert self.results[101].backend.name == "raw"
 
         tracelist = { x: True for x in self.results[101].backend.response }
@@ -656,6 +671,8 @@ config:
         assert 'router cluster_tracingtestzipkinv2_http_default egress' in tracelist
 
         # Look for the host that we actually queried, since that's what appears in the spans.
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.host in tracelist
 
         # Ensure we generate 128-bit traceids by default
@@ -761,7 +778,9 @@ config:
 
     def check(self):
         for i in range(100):
-            assert self.results[i].backend.name == self.target.path.k8s
+            result = self.results[i]
+            assert result.backend
+            assert result.backend.name == self.target.path.k8s
 
         print(f"self.results[100] = {self.results[100]}")
         assert self.results[100].backend is not None and self.results[100].backend.name == "raw", \
@@ -769,6 +788,7 @@ config:
         assert len(self.results[100].backend.response) == 1
         assert self.results[100].backend.response[0] == 'tracingtestzipkinv1-default'
 
+        assert self.results[101].backend
         assert self.results[101].backend.name == "raw"
 
         tracelist = { x: True for x in self.results[101].backend.response }
@@ -776,6 +796,8 @@ config:
         assert 'router cluster_tracingtestzipkinv1_http_default egress' in tracelist
 
         # Look for the host that we actually queried, since that's what appears in the spans.
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         assert self.results[0].backend.request.host in tracelist
 
         # Ensure we generate 128-bit traceids by default

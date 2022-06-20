@@ -10,6 +10,7 @@ from collections import namedtuple
 from retry import retry
 from OpenSSL import crypto
 from base64 import b64encode
+from typing import List, Literal, cast
 
 import json
 import yaml
@@ -23,8 +24,6 @@ from tests.kubeutils import apply_kube_artifacts
 from tests.runutils import run_and_assert
 
 logger = logging.getLogger("ambassador")
-
-ENVOY_PATH = os.environ.get('ENVOY_PATH', '/usr/local/bin/envoy')
 
 SUPPORTED_ENVOY_VERSIONS = ["V2", "V3"]
 
@@ -128,8 +127,9 @@ def compile_with_cachecheck(yaml, envoy_version="V3", errors_ok=False):
         _require_no_errors(r2["ir"])
 
     # Both should produce equal Envoy config as sorted json.
-    r1j = json.dumps(r1[envoy_version.lower()].as_dict(), sort_keys=True, indent=2)
-    r2j = json.dumps(r2[envoy_version.lower()].as_dict(), sort_keys=True, indent=2)
+    ev_key = cast(Literal["v2", "v3"], envoy_version.lower())
+    r1j = json.dumps(r1[ev_key].as_dict(), sort_keys=True, indent=2)
+    r2j = json.dumps(r2[ev_key].as_dict(), sort_keys=True, indent=2)
     assert r1j == r2j
 
     # All good.
@@ -223,17 +223,28 @@ def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):
             break
     assert found_cluster
 
-def assert_valid_envoy_config(config_dict, v2=False):
-    with tempfile.NamedTemporaryFile() as temp:
-        temp.write(bytes(json.dumps(config_dict), encoding = 'utf-8'))
-        temp.flush()
-        f_name = temp.name
-        cmd = [ENVOY_PATH, '--config-path', f_name, '--mode', 'validate']
+def assert_valid_envoy_config(config_dict, extra_dirs=[], v2=False):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        econf = open(os.path.join(tmpdir, 'econf.json'), 'xt')
+        econf.write(json.dumps(config_dict))
+        econf.close()
+        img = os.environ.get('ENVOY_DOCKER_TAG')
+        assert img
+        cmd = [
+            'docker', 'run',
+            '--rm',
+            f"--volume={tmpdir}:/ambassador:ro",
+            *[f"--volume={extra_dir}:{extra_dir}:ro" for extra_dir in extra_dirs],
+            img,
+            '/usr/local/bin/envoy-static-stripped',
+            '--config-path', '/ambassador/econf.json',
+            '--mode', 'validate',
+        ]
         if v2:
             cmd.append('--bootstrap-version 2')
         p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if p.returncode != 0:
-            print(p.stdout)
+            print(p.stdout.decode())
         p.check_returncode()
 
 

@@ -247,8 +247,7 @@ def test_qualify_service():
     assert normalize_service_name(ir, "//foo.ns:1234", "otherns", 'ConsulResolver') == "foo.ns:1234" # we tell people "URL-ish", actually support URL-ish
     assert normalize_service_name(ir, "foo.ns:1234", "otherns", 'ConsulResolver') == "foo.ns:1234"
 
-    errors = ir.aconf.errors
-    assert not errors
+    assert not ir.aconf.errors
 
     assert qualify_service_name(ir, "https://bad-service:443:443", "otherns") == "https://bad-service:443:443"
     assert qualify_service_name(ir, "https://bad-service:443:443", "otherns", rkey="test-rkey") == "https://bad-service:443:443"
@@ -269,9 +268,9 @@ def test_qualify_service():
     assert normalize_service_name(ir, "https://bad-service:70000", "otherns", 'ConsulResolver') == "https://bad-service:70000"
     assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4%zone]:443", "other") == "https://[fe80::e022:9cff:fecc:c7c4%zone]:443"
 
-    errors = ir.aconf.errors
-    assert "-global-" in errors
-    errors = errors["-global-"]
+    aconf_errors = ir.aconf.errors
+    assert "-global-" in aconf_errors
+    errors = aconf_errors["-global-"]
 
     assert len(errors) == 17
 

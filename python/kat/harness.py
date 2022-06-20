@@ -3,9 +3,10 @@ import sys
 
 from abc import ABC
 from collections import OrderedDict
+from functools import singledispatch
 from hashlib import sha256
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
 from packaging import version
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union, cast
 
 import base64
 import fnmatch
@@ -24,8 +25,7 @@ from ambassador.utils import parse_bool
 from yaml.scanner import ScannerError as YAMLScanError
 
 import tests.integration.manifests as integration_manifests
-from multi import multi
-from .parser import dump, load, Tag
+from .parser import dump, load, Tag, SequenceView
 from tests.manifests import httpbin_manifests, websocket_echo_server_manifests, cleartext_host_manifest, default_listener_manifest
 from tests.kubeutils import apply_kube_artifacts
 
@@ -283,7 +283,9 @@ def variants(cls, *args, **kwargs) -> Tuple[Any]:
 
 
 class Name(str):
-    def __new__(cls, value, namespace=None):
+    namespace: Optional[str]
+
+    def __new__(cls, value, namespace: Optional[str]=None):
         s = super().__new__(cls, value)
         s.namespace = namespace
         return s
@@ -302,6 +304,7 @@ class Name(str):
         return r
 
 class NodeLocal(threading.local):
+    current: Optional['Node']
 
     def __init__(self):
         self.current = None
@@ -325,7 +328,7 @@ def _argprocess(o):
 
 class Node(ABC):
 
-    parent: 'Node'
+    parent: Optional['Node']
     children: List['Node']
     name: Name
     ambassador_id: str
@@ -336,7 +339,7 @@ class Node(ABC):
     def __init__(self, *args, **kwargs) -> None:
         # If self.skip is set to true, this node is skipped
         self.skip_node = False
-        self.xfail = None
+        self.xfail: Optional[str] = None
 
         name = kwargs.pop("name", None)
 
@@ -542,13 +545,14 @@ class Node(ABC):
         yield cls()
 
     @property
-    def path(self) -> str:
+    def path(self) -> Name:
         return self.relpath(None)
 
     def relpath(self, ancestor):
         if self.parent is ancestor:
             return Name(self.name, namespace=self.namespace)
         else:
+            assert self.parent
             return Name(self.parent.relpath(ancestor) + "." + self.name, namespace=self.namespace)
 
     @property
@@ -623,7 +627,9 @@ class Node(ABC):
 
 class Test(Node):
 
-    results: Sequence['Result']
+    results: List['Result'] = []
+    pending: List['Query'] = []
+    queried: List['Query'] = []
 
     __test__ = False
 
@@ -675,21 +681,17 @@ class Test(Node):
             return self.parent.ambassador_id
 
 
-@multi
-def encode_body(obj):
-    yield type(obj)
-
-@encode_body.when(bytes)  # type: ignore
-def encode_body(b):
-    return base64.encodebytes(b).decode("utf-8")
-
-@encode_body.when(str)  # type: ignore
-def encode_body(s):
-    return encode_body(s.encode("utf-8"))
-
-@encode_body.default   # type: ignore
+@singledispatch
 def encode_body(obj):
     return encode_body(json.dumps(obj))
+
+@encode_body.register
+def encode_body_bytes(b: bytes):
+    return base64.encodebytes(b).decode("utf-8")
+
+@encode_body.register
+def encode_body_str(s: str):
+    return encode_body(s.encode("utf-8"))
 
 class Query:
 
@@ -732,8 +734,10 @@ class Query:
         self.grpc_type = grpc_type
 
     def as_json(self):
+        assert self.parent
         result = {
-            "test": self.parent.path, "id": id(self),
+            "test": self.parent.path,
+            "id": id(self),
             "url": self.url,
             "insecure": self.insecure
         }
@@ -772,6 +776,7 @@ class Query:
 
 
 class Result:
+    body: Optional[bytes]
 
     def __init__(self, query, res):
         self.query = query
@@ -975,7 +980,7 @@ class BackendResult:
         self.response = bres
 
         if isinstance(bres, dict):
-            self.name = bres.get("backend")
+            self.name = cast(str, bres.get("backend"))
             self.request = BackendRequest(bres["request"]) if "request" in bres else None
             self.response = BackendResponse(bres["response"]) if "response" in bres else None
 
@@ -1179,12 +1184,6 @@ class Runner:
                         # print(f"{t.name}: SKIP due to local result")
                         continue
 
-                    if t in expanded_up:
-                        pre_query: Callable = getattr(t, "pre_query", None)
-
-                        if pre_query:
-                            pre_query()
-
                 self._query(expanded_up)
             except:
                 traceback.print_exc()
@@ -1352,7 +1351,7 @@ class Runner:
         # First up, get the full manifest and save it to disk.
         manifests, namespaces = self.get_manifests_and_namespaces(selected)
 
-        configs = OrderedDict()
+        configs: Dict[Node, List[Tuple[str, SequenceView]]] = OrderedDict()
         for n in (n for n in self.nodes if n in selected and not n.xfail):
             configs[n] = []
             for cfg in n.config():
@@ -1368,14 +1367,14 @@ class Runner:
                     target = cfg[0]
 
                     try:
-                        yaml = load(n.path, cfg[1], Tag.MAPPING)
+                        yaml_view = load(n.path, cfg[1], Tag.MAPPING)
 
                         if n.ambassador_id:
-                            for obj in yaml:
+                            for obj in yaml_view:
                                 if "ambassador_id" not in obj:
                                     obj["ambassador_id"] = [n.ambassador_id]
 
-                        configs[n].append((target, yaml))
+                        configs[n].append((target, yaml_view))
                     except YAMLScanError as e:
                         raise Exception("Parse Error: %s, input text:\n%s" % (e, cfg[1]))
 
@@ -1672,8 +1671,8 @@ class Runner:
 
         return printable
 
-    def _wait(self, selected):
-        requirements = []
+    def _wait(self, selected: Sequence[Node]):
+        requirements: List[Tuple[Node, str, Query]] = []
 
         for node in selected:
             if node.xfail:
@@ -1703,7 +1702,7 @@ class Runner:
                 # print(f"{node_name} add req ({node_name}, {kind}, {self._req_str(kind, req)})")
                 requirements.append((node, kind, req))
 
-        homogenous = {}
+        homogenous: Dict[str, List[Tuple[Node, Query]]] = {}
 
         for node, kind, name in requirements:
             if kind not in homogenous:
@@ -1766,12 +1765,15 @@ class Runner:
 
         assert False, "requirements not satisfied in %s seconds" % limit
 
-    @multi
-    def _ready(self, kind, _):
-        return kind
+    def _ready(self, kind, requirements):
+        fn = {
+            "pod": self._ready_pod,
+            "url": self._ready_url,
+        }[kind]
 
-    @_ready.when("pod")  # type: ignore
-    def _ready(self, _, requirements):
+        return fn(kind, requirements)
+
+    def _ready_pod(self, _, requirements):
         pods = self._pods(self.scope)
         not_ready = []
 
@@ -1785,8 +1787,7 @@ class Runner:
 
         return (True, None)
 
-    @_ready.when("url")  # type: ignore
-    def _ready(self, _, requirements):
+    def _ready_url(self, _, requirements):
         queries = []
 
         for node, q in requirements:

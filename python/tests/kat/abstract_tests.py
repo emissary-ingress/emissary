@@ -305,7 +305,8 @@ class AmbassadorTest(Test):
             envs.append("AMBASSADOR_DEBUG=%s" % ":".join(amb_debug))
 
         envs.extend(self.env)
-        [command.extend(["-e", env]) for env in envs]
+        for env in envs:
+            command.extend(["-e", env])
 
         ports = ["%s:8877" % (8877 + self.index), "%s:8001" % (8001 + self.index), "%s:8080" % (8080 + self.index), "%s:8443" % (8443 + self.index)]
 
@@ -313,10 +314,12 @@ class AmbassadorTest(Test):
             for port in self.extra_ports:
                 ports.append(f'{port}:{port}')
 
-        [command.extend(["-p", port]) for port in ports]
+        for port_str in ports:
+            command.extend(["-p", port_str])
 
         volumes = ["%s:/var/run/secrets/kubernetes.io/serviceaccount" % secret_dir]
-        [command.extend(["-v", volume]) for volume in volumes]
+        for volume in volumes:
+            command.extend(["-v", volume])
 
         command.append(image)
 

@@ -36,6 +36,8 @@ class AddRequestHeaders(OptionTest):
     def check(self):
         for r in self.parent.results:
             for k, v in self.value.items():
+                assert r.backend
+                assert r.backend.request
                 actual = r.backend.request.headers.get(k.lower())
                 if isinstance(v,dict):
                     assert actual == [v["value"]], (actual, [v["value"]])
@@ -104,10 +106,12 @@ class CORS(OptionTest):
 
     def check(self):
         # can assert about self.parent.results too
+        assert self.results[0].backend
         assert self.results[0].backend.name == self.parent.target.path.k8s
         # Uh. Is it OK that this is case-sensitive?
         assert "Access-Control-Allow-Origin" not in self.results[0].headers
 
+        assert self.results[1].backend
         assert self.results[1].backend.name == self.parent.target.path.k8s
         # Uh. Is it OK that this is case-sensitive?
         assert self.results[1].headers["Access-Control-Allow-Origin"] == [ "https://www.test-cors.org" ]
@@ -137,6 +141,8 @@ class AutoHostRewrite(OptionTest):
 
     def check(self):
         for r in self.parent.results:
+            assert r.backend
+            assert r.backend.request
             request_host = r.backend.request.host
             response_host = self.parent.get_fqdn(r.backend.name)
 
@@ -164,6 +170,8 @@ class Rewrite(OptionTest):
             pytest.xfail("this is broken")
 
         for r in self.parent.results:
+            assert r.backend
+            assert r.backend.request
             assert r.backend.request.url.path == self.value
 
 

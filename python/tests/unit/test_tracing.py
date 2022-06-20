@@ -1,6 +1,8 @@
 from typing import Optional, TYPE_CHECKING
 
 import logging
+from pathlib import Path
+
 import pytest
 
 from tests.selfsigned import TLSCerts
@@ -45,7 +47,7 @@ spec:
 """
 
 @pytest.mark.compilertest
-def test_tracing_config_v3():
+def test_tracing_config_v3(tmp_path: Path):
     aconf = Config()
 
     yaml = module_and_mapping_manifests(None, []) + "\n" + lightstep_tracing_service_manifest()
@@ -54,7 +56,7 @@ def test_tracing_config_v3():
 
     aconf.load_all(fetcher.sorted())
 
-    secret_handler = MockSecretHandler(logger, "mockery", "/tmp/ambassador/snapshots", "v1")
+    secret_handler = MockSecretHandler(logger, "mockery", str(tmp_path/"ambassador"/"snapshots"), "v1")
     ir = IR(aconf, file_checker=lambda path: True, secret_handler=secret_handler)
 
     assert ir
@@ -76,12 +78,12 @@ def test_tracing_config_v3():
     }
 
     ads_config.pop('@type', None)
-    assert_valid_envoy_config(ads_config)
-    assert_valid_envoy_config(bootstrap_config)
+    assert_valid_envoy_config(ads_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")])
+    assert_valid_envoy_config(bootstrap_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")])
 
 
 @pytest.mark.compilertest
-def test_tracing_config_v2():
+def test_tracing_config_v2(tmp_path: Path):
     aconf = Config()
 
     yaml = module_and_mapping_manifests(None, []) + "\n" + lightstep_tracing_service_manifest()
@@ -90,7 +92,7 @@ def test_tracing_config_v2():
 
     aconf.load_all(fetcher.sorted())
 
-    secret_handler = MockSecretHandler(logger, "mockery", "/tmp/ambassador/snapshots", "v1")
+    secret_handler = MockSecretHandler(logger, "mockery", str(tmp_path/"ambassador"/"snapshots"), "v1")
     ir = IR(aconf, file_checker=lambda path: True, secret_handler=secret_handler)
 
     assert ir
@@ -112,6 +114,5 @@ def test_tracing_config_v2():
     }
 
     ads_config.pop('@type', None)
-    assert_valid_envoy_config(ads_config, v2=True)
-    assert_valid_envoy_config(bootstrap_config, v2=True)
-
+    assert_valid_envoy_config(ads_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")], v2=True)
+    assert_valid_envoy_config(bootstrap_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")], v2=True)

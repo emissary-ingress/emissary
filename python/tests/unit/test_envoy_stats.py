@@ -94,6 +94,10 @@ def test_stats():
     esm.update()
     stats = esm.get_stats()
 
+    assert stats.created is not None
+    assert stats.last_attempt is not None
+    assert stats.last_update is not None
+
     assert stats.last_attempt >= stats.created
     assert stats.last_update > stats.last_attempt
     assert stats.update_errors == 0
@@ -191,7 +195,7 @@ def test_locks():
                         fetch_envoy_stats=mocker.slow_fetch_stats)
 
     def slow_background():
-        esm.update() == True
+        esm.update()
 
     def check_get_stats():
         start = time.perf_counter()

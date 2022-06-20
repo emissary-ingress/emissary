@@ -37,6 +37,7 @@ service: http://127.0.0.1:8001
     def check(self):
         expected_val = '30s'
         actual_val = ''
+        assert self.results[0].body
         body = json.loads(self.results[0].body)
         for config_obj in body.get('configs'):
           if config_obj.get('@type') == 'type.googleapis.com/envoy.admin.v3.ListenersConfigDump':

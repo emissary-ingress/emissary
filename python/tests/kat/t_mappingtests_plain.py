@@ -1,4 +1,4 @@
-from typing import Generator, Tuple, Union
+from typing import Dict, Generator, Tuple, Union
 
 from kat.harness import EDGE_STACK, variants, Query
 
@@ -55,6 +55,7 @@ service: http://{self.target.path.fqdn}
         for r in self.results:
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
+                assert r.backend.request
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
 
@@ -98,6 +99,7 @@ spec:
         for r in self.results:
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
+                assert r.backend.request
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
 # Disabled SimpleMappingIngressDefaultBackend since adding a default fallback mapping would break other
@@ -190,6 +192,7 @@ spec:
         for r in self.results:
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
+                assert r.backend.request
                 assert r.backend.request.headers['x-envoy-original-path'][0] in (f'/{self.name}/', f'/{self.name}-nested/')
 
 
@@ -365,6 +368,8 @@ service: https://{self.target.path.fqdn}
 
     def check(self):
         for r in self.results:
+            assert r.backend
+            assert r.backend.request
             assert r.backend.request.tls.enabled
 
 
@@ -500,7 +505,7 @@ class CanaryMapping(MappingTest):
             for w in (0, 10, 50, 100):
                 yield cls(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
 
-    # XXX This type: ignore is here because we're deliberately overriding the 
+    # XXX This type: ignore is here because we're deliberately overriding the
     # parent's init to have a different signature... but it's also intimately
     # (nay, incestuously) related to the variant()'s yield() above, and I really
     # don't want to deal with that right now. So. We'll deal with it later.
@@ -535,9 +540,10 @@ weight: {self.weight}
             yield Query(self.parent.url(self.name + "/"))
 
     def check(self):
-        hist = {}
+        hist: Dict[str, int] = {}
 
         for r in self.results:
+            assert r.backend
             hist[r.backend.name] = hist.get(r.backend.name, 0) + 1
 
         if self.weight == 0:
@@ -567,7 +573,7 @@ class CanaryDiffMapping(MappingTest):
             for w in (0, 10, 50, 100):
                 yield cls(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
 
-    # XXX This type: ignore is here because we're deliberately overriding the 
+    # XXX This type: ignore is here because we're deliberately overriding the
     # parent's init to have a different signature... but it's also intimately
     # (nay, incestuously) related to the variant()'s yield() above, and I really
     # don't want to deal with that right now. So. We'll deal with it later.
@@ -606,10 +612,12 @@ weight: {self.weight}
     def check(self):
         request_hosts = ['canary.1.example.com', 'canary.2.example.com']
 
-        hist = {}
+        hist: Dict[str, int] = {}
 
         for r in self.results:
+            assert r.backend
             hist[r.backend.name] = hist.get(r.backend.name, 0) + 1
+            assert r.backend.request
             assert r.backend.request.host in request_hosts, f'Expected host {request_hosts}, got {r.backend.request.host}'
 
         if self.weight == 0:
@@ -780,6 +788,7 @@ add_request_headers:
     def check(self):
         for r in self.results:
             if r.backend:
+                assert r.backend.request
                 assert r.backend.request.headers['zoo'] == ['Zoo']
                 assert r.backend.request.headers['aoo'] == ['AooA','aoo']
                 assert r.backend.request.headers['boo'] == ['BooB','boo']
