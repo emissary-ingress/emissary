@@ -130,7 +130,7 @@ class Builder:
                     "deltaType": "delete"
                 }
 
-    def build(self, version='V2') -> Tuple[IR, EnvoyConfig]:
+    def build(self) -> Tuple[IR, EnvoyConfig]:
         # Do a build, return IR & econf, but also stash them in self.builds.
 
         watt: Dict[str, Any] = {
@@ -191,7 +191,7 @@ class Builder:
 
         assert ir, "could not create an IR"
 
-        econf = EnvoyConfig.generate(ir, version, cache=self.cache)
+        econf = EnvoyConfig.generate(ir, cache=self.cache)
 
         assert econf, "could not create an econf"
 
@@ -283,7 +283,7 @@ def test_circular_link(tmp_path):
     while worklist:
         key = worklist.pop(0)
 
-        if key.startswith('V2-Cluster'):
+        if key.startswith('V3-Cluster'):
             cluster_key = key
             break
 
@@ -291,11 +291,11 @@ def test_circular_link(tmp_path):
             for owned in builder.cache.links[key]:
                 worklist.append(owned)
 
-    assert cluster_key is not None, f"No V2-Cluster linked from {m}?"
+    assert cluster_key is not None, f"No V3-Cluster linked from {m}?"
 
     c = builder.cache[cluster_key]
 
-    assert c is not None, f"No V2-Cluster in the cache for {c}"
+    assert c is not None, f"No V3-Cluster in the cache for {c}"
 
     builder.cache.link(c, m)
     builder.cache.invalidate(mapping_key)

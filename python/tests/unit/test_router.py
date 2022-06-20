@@ -1,37 +1,33 @@
-from tests.utils import econf_compile, econf_foreach_hcm, module_and_mapping_manifests, zipkin_tracing_service_manifest, SUPPORTED_ENVOY_VERSIONS
+from tests.utils import econf_compile, econf_foreach_hcm, module_and_mapping_manifests, zipkin_tracing_service_manifest
 
 import pytest
 
 def _test_router(yaml, expectations={}):
-    for v in SUPPORTED_ENVOY_VERSIONS:
-        econf = econf_compile(yaml, envoy_version=v)
+    econf = econf_compile(yaml)
 
-        def check(typed_config):
-            http_filters = typed_config['http_filters']
-            assert len(http_filters) == 2
+    def check(typed_config):
+        http_filters = typed_config['http_filters']
+        assert len(http_filters) == 2
 
-            # Find the typed router config, and run our uexpecations over that.
-            for http_filter in http_filters:
-                if http_filter['name'] != 'envoy.filters.http.router':
-                    continue
+        # Find the typed router config, and run our uexpecations over that.
+        for http_filter in http_filters:
+            if http_filter['name'] != 'envoy.filters.http.router':
+                continue
 
-                # If we expect nothing, then the typed config should be missing entirely.
-                if len(expectations) == 0:
-                    assert 'typed_config' not in http_filter
-                    break
-
-                assert 'typed_config' in http_filter
-                typed_config = http_filter['typed_config']
-                if v == 'V2':
-                    assert typed_config['@type'] == 'type.googleapis.com/envoy.config.filter.http.router.v2.Router'
-                else:
-                    assert typed_config['@type'] == 'type.googleapis.com/envoy.extensions.filters.http.router.v3.Router'
-                for key, expected in expectations.items():
-                    print("checking key %s" % key)
-                    assert key in typed_config
-                    assert typed_config[key] == expected
+            # If we expect nothing, then the typed config should be missing entirely.
+            if len(expectations) == 0:
+                assert 'typed_config' not in http_filter
                 break
-        econf_foreach_hcm(econf, check, envoy_version=v)
+
+            assert 'typed_config' in http_filter
+            typed_config = http_filter['typed_config']
+            assert typed_config['@type'] == 'type.googleapis.com/envoy.extensions.filters.http.router.v3.Router'
+            for key, expected in expectations.items():
+                print("checking key %s" % key)
+                assert key in typed_config
+                assert typed_config[key] == expected
+            break
+    econf_foreach_hcm(econf, check)
 
 @pytest.mark.compilertest
 def test_suppress_envoy_headers():

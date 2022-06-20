@@ -18,7 +18,7 @@ spec:
   service: star
 """
 
-    r = compile_with_cachecheck(test_yaml, envoy_version="v3", errors_ok=True)
+    r = compile_with_cachecheck(test_yaml, errors_ok=True)
 
     ir = r["ir"]
 
@@ -51,7 +51,7 @@ spec:
   service: star
 """
 
-    r = compile_with_cachecheck(test_yaml, envoy_version="v3", errors_ok=True)
+    r = compile_with_cachecheck(test_yaml, errors_ok=True)
 
     ir = r["ir"]
 
@@ -83,7 +83,7 @@ spec:
   service: star
 """
 
-    r = compile_with_cachecheck(test_yaml, envoy_version="v3", errors_ok=True)
+    r = compile_with_cachecheck(test_yaml, errors_ok=True)
 
     ir = r["ir"]
 
@@ -117,7 +117,7 @@ spec:
   service: star
 """
 
-    r = compile_with_cachecheck(test_yaml, envoy_version="v3", errors_ok=True)
+    r = compile_with_cachecheck(test_yaml, errors_ok=True)
 
     ir = r["ir"]
 
@@ -152,7 +152,7 @@ spec:
   service: star
 """
 
-    r = compile_with_cachecheck(test_yaml, envoy_version="v3", errors_ok=True)
+    r = compile_with_cachecheck(test_yaml, errors_ok=True)
 
     ir = r["ir"]
 
@@ -185,7 +185,7 @@ spec:
   service: star
 """
 
-    r = compile_with_cachecheck(test_yaml, envoy_version="v3", errors_ok=True)
+    r = compile_with_cachecheck(test_yaml, errors_ok=True)
 
     ir = r["ir"]
 
@@ -219,7 +219,7 @@ spec:
   service: star
 """
 
-    r = compile_with_cachecheck(test_yaml, envoy_version="v3", errors_ok=True)
+    r = compile_with_cachecheck(test_yaml, errors_ok=True)
 
     ir = r["ir"]
 
@@ -254,7 +254,7 @@ spec:
   service: star
 """
 
-    r = compile_with_cachecheck(test_yaml, envoy_version="v3", errors_ok=True)
+    r = compile_with_cachecheck(test_yaml, errors_ok=True)
 
     ir = r["ir"]
 
@@ -290,7 +290,7 @@ spec:
   service: star
 """
 
-    r = compile_with_cachecheck(test_yaml, envoy_version="v3", errors_ok=True)
+    r = compile_with_cachecheck(test_yaml, errors_ok=True)
 
     ir = r["ir"]
 

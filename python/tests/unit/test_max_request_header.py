@@ -17,7 +17,7 @@ from ambassador.utils import NullSecretHandler
 from tests.utils import default_listener_manifests
 
 
-def _get_envoy_config(yaml, version='V3'):
+def _get_envoy_config(yaml):
     aconf = Config()
     fetcher = ResourceFetcher(logger, aconf)
     fetcher.parse_yaml(default_listener_manifests() + yaml, k8s=True)
@@ -30,7 +30,7 @@ def _get_envoy_config(yaml, version='V3'):
 
     assert ir
 
-    return EnvoyConfig.generate(ir, version)
+    return EnvoyConfig.generate(ir)
 
 
 @pytest.mark.compilertest
@@ -56,7 +56,7 @@ spec:
   prefix: /test/
   service: test:9999
 """
-    econf = _get_envoy_config(yaml, version='V2')
+    econf = _get_envoy_config(yaml)
     expected = 96
     key_found = False
 

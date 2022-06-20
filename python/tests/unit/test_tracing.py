@@ -61,7 +61,7 @@ def test_tracing_config_v3(tmp_path: Path):
 
     assert ir
 
-    econf = EnvoyConfig.generate(ir, "V3")
+    econf = EnvoyConfig.generate(ir)
 
     bootstrap_config, ads_config, _ = econf.split_config()
     assert "tracing" in bootstrap_config
@@ -97,7 +97,7 @@ def test_tracing_config_v2(tmp_path: Path):
 
     assert ir
 
-    econf = EnvoyConfig.generate(ir, "V2")
+    econf = EnvoyConfig.generate(ir)
 
     bootstrap_config, ads_config, _ = econf.split_config()
     assert "tracing" in bootstrap_config
@@ -105,7 +105,7 @@ def test_tracing_config_v2(tmp_path: Path):
         "http": {
             "name": "envoy.lightstep",
             "typed_config": {
-                "@type": "type.googleapis.com/envoy.config.trace.v2.LightstepConfig",
+                "@type": "type.googleapis.com/envoy.config.trace.v3.LightstepConfig",
                 "access_token_file": "/lightstep-credentials/access-token",
                 "collector_cluster": "cluster_tracing_lightstep_80_ambassador",
                 "propagation_modes": ["ENVOY", "TRACE_CONTEXT"]
@@ -114,5 +114,5 @@ def test_tracing_config_v2(tmp_path: Path):
     }
 
     ads_config.pop('@type', None)
-    assert_valid_envoy_config(ads_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")], v2=True)
-    assert_valid_envoy_config(bootstrap_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")], v2=True)
+    assert_valid_envoy_config(ads_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")])
+    assert_valid_envoy_config(bootstrap_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")])

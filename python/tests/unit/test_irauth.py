@@ -30,7 +30,7 @@ def _get_ext_auth_config(yaml):
     return False
 
 
-def _get_envoy_config(yaml, version='V3'):
+def _get_envoy_config(yaml):
     aconf = Config()
     fetcher = ResourceFetcher(logger, aconf)
     fetcher.parse_yaml(default_listener_manifests() + yaml, k8s=True)
@@ -43,13 +43,11 @@ def _get_envoy_config(yaml, version='V3'):
 
     assert ir
 
-    return EnvoyConfig.generate(ir, version)
+    return EnvoyConfig.generate(ir)
 
 
 @pytest.mark.compilertest
 def test_irauth_grpcservice_version_v2():
-    if EDGE_STACK:
-        pytest.xfail("XFailing for now, custom AuthServices not supported in Edge Stack")
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -62,7 +60,7 @@ spec:
   protocol_version: "v2"
   proto: grpc
 """
-    econf = _get_envoy_config(yaml, version='V2')
+    econf = _get_envoy_config(yaml)
 
     conf = econf.as_dict()
     ext_auth_config = _get_ext_auth_config(conf)
@@ -70,9 +68,9 @@ spec:
     assert ext_auth_config
 
     assert ext_auth_config['typed_config']['grpc_service']['envoy_grpc']['cluster_name'] == 'cluster_extauth_someservice_default'
+    assert ext_auth_config['typed_config']['transport_api_version'] == 'V2'
 
 
-@pytest.mark.compilertest
 def test_irauth_grpcservice_version_v3():
     yaml = """
 ---
@@ -86,7 +84,7 @@ spec:
   protocol_version: "v3"
   proto: grpc
 """
-    econf = _get_envoy_config(yaml, version='V3')
+    econf = _get_envoy_config(yaml)
 
     conf = econf.as_dict()
     ext_auth_config = _get_ext_auth_config(conf)
@@ -112,32 +110,7 @@ spec:
   auth_service: someservice
   proto: grpc
 """
-    econf = _get_envoy_config(yaml, version='V2')
-
-    conf = econf.as_dict()
-    ext_auth_config = _get_ext_auth_config(conf)
-
-    assert ext_auth_config
-
-    assert ext_auth_config['typed_config']['grpc_service']['envoy_grpc']['cluster_name'] == 'cluster_extauth_someservice_default'
-
-
-@pytest.mark.compilertest
-def test_irauth_grpcservice_version_default_v3():
-    if EDGE_STACK:
-        pytest.xfail("XFailing for now, custom AuthServices not supported in Edge Stack")
-    yaml = """
----
-apiVersion: getambassador.io/v3alpha1
-kind: AuthService
-metadata:
-  name:  mycoolauthservice
-  namespace: default
-spec:
-  auth_service: someservice
-  proto: grpc
-"""
-    econf = _get_envoy_config(yaml, version='V3')
+    econf = _get_envoy_config(yaml)
 
     conf = econf.as_dict()
     ext_auth_config = _get_ext_auth_config(conf)

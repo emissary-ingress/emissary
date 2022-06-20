@@ -478,7 +478,7 @@ class DiagApp (Flask):
         cache = Cache(self.logger)
         scc = SecretHandler(app.logger, "check_cache", app.snapshot_path, "check")
         ir = IR(self.aconf, secret_handler=scc, cache=cache)
-        econf = EnvoyConfig.generate(ir, Config.envoy_api_version, cache=cache)
+        econf = EnvoyConfig.generate(ir, cache=cache)
 
         # This is testing code.
         # name = list(ir.clusters.keys())[0]
@@ -1572,8 +1572,8 @@ class AmbassadorEventWatcher(threading.Thread):
         open(ir_path, "w").write(ir.as_json())
 
         with self.app.econf_timer:
-            self.logger.debug("generating envoy configuration with api version %s" % Config.envoy_api_version)
-            econf = EnvoyConfig.generate(ir, Config.envoy_api_version, cache=self.app.cache)
+            self.logger.debug("generating envoy configuration")
+            econf = EnvoyConfig.generate(ir, cache=self.app.cache)
 
         # DON'T generate the Diagnostics here, because that turns out to be expensive.
         # Instead, we'll just reset app.diag to None, then generate it on-demand when
@@ -2022,8 +2022,6 @@ class AmbassadorEventWatcher(threading.Thread):
             output.write(config_json)
 
         command = ['envoy', '--service-node', 'test-id', '--service-cluster', ir.ambassador_nodename, '--config-path', econf_validation_path, '--mode', 'validate']
-        if Config.envoy_api_version == "V2":
-            command.extend(["--bootstrap-version", "2"])
 
         v_exit = 0
         v_encoded = ''.encode('utf-8')

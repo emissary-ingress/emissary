@@ -7,7 +7,7 @@ from .irresource import IRResource
 from .irfilter import IRFilter
 
 if TYPE_CHECKING:
-    from ..envoy.v2.v2cidrrange import CIDRRange
+    from ..envoy.v3.v3cidrrange import CIDRRange
     from .ir import IR # pragma: no cover
 
 
@@ -89,7 +89,7 @@ class IRIPAllowDeny(IRFilter):
         # or the like, where the key in the dict specifies how Envoy will handle the
         # IP match, and the value is a CIDRRange spec.
 
-        from ..envoy.v2.v2cidrrange import CIDRRange
+        from ..envoy.v3.v3cidrrange import CIDRRange
         for pdict in principals:
             # If we have more than one thing in the dict, that's an error.
 

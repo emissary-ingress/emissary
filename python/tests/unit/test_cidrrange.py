@@ -11,8 +11,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador.envoy.v2.v2cidrrange import CIDRRange
-from ambassador.envoy.v3.v3cidrrange import CIDRRange as CIDRRangeV3
+from ambassador.envoy.v3.v3cidrrange import CIDRRange
 
 @pytest.mark.compilertest
 def test_cidrrange():
@@ -60,7 +59,7 @@ def test_cidrrange_v3():
         ( "2001:2000::/99",         True,   "2001:2000::",  99,     None ),
         ( "2001:2000::/199",        False,  None,           None,   "Invalid prefix length for IPv6 address 2001:2000::/199" )
     ]:
-        c = CIDRRangeV3(spec)
+        c = CIDRRange(spec)
 
         if wanted_result:
             assert bool(c), f"{spec} should be a valid CIDRRange but is not: {c.error}"

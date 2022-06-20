@@ -32,7 +32,7 @@ def _get_rl_config(yaml):
     return False
 
 
-def _get_envoy_config(yaml, version='V2'):
+def _get_envoy_config(yaml):
     aconf = Config()
     fetcher = ResourceFetcher(logger, aconf)
     fetcher.parse_yaml(default_listener_manifests() + yaml, k8s=True)
@@ -44,10 +44,10 @@ def _get_envoy_config(yaml, version='V2'):
     ir = IR(aconf, file_checker=lambda path: True, secret_handler=secret_handler)
 
     assert ir
-    return EnvoyConfig.generate(ir, version)
+    return EnvoyConfig.generate(ir)
 
 
-def _get_ratelimit_default_conf_v3():
+def _get_ratelimit_default_conf():
     return {
         '@type': 'type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit',
         'domain': 'ambassador',
@@ -64,25 +64,9 @@ def _get_ratelimit_default_conf_v3():
     }
 
 
-def _get_ratelimit_default_conf_v2():
-    return {
-        '@type': 'type.googleapis.com/envoy.config.filter.http.rate_limit.v2.RateLimit',
-        'domain': 'ambassador',
-        'request_type': 'both',
-        'timeout': '0.020s',
-        'rate_limit_service': {
-            'grpc_service': {
-                'envoy_grpc': {
-                    'cluster_name': 'cluster_{}_default'.format(SERVICE_NAME)
-                }
-            }
-        }
-    }
-
-
 @pytest.mark.compilertest
 def test_irratelimit_defaultsv3():
-    default_config = _get_ratelimit_default_conf_v3()
+    default_config = _get_ratelimit_default_conf()
 
     # Test all defaults
     yaml = """
@@ -94,7 +78,7 @@ metadata:
 spec:
   service: {}
 """.format(SERVICE_NAME)
-    econf = _get_envoy_config(yaml, version='V3')
+    econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
 
     assert conf
@@ -104,7 +88,7 @@ spec:
 
 @pytest.mark.compilertest
 def test_irratelimit_defaults():
-    default_config = _get_ratelimit_default_conf_v2()
+    default_config = _get_ratelimit_default_conf()
 
     # Test all defaults
     yaml = """
@@ -138,10 +122,10 @@ spec:
   service: {}
   protocol_version: "v3"
 """.format(SERVICE_NAME)
-    config = _get_ratelimit_default_conf_v3()
+    config = _get_ratelimit_default_conf()
     config['rate_limit_service']['transport_api_version'] = 'V3'
 
-    econf = _get_envoy_config(yaml, version='V3')
+    econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
 
     assert conf
@@ -163,7 +147,9 @@ spec:
   service: {}
   protocol_version: "v2"
 """.format(SERVICE_NAME)
-    config = _get_ratelimit_default_conf_v2()
+    config = _get_ratelimit_default_conf()
+    config['rate_limit_service']['transport_api_version'] = 'V2'
+
     econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
 
@@ -189,7 +175,6 @@ spec: {}
 
     assert not conf
 
-
 @pytest.mark.compilertest
 def test_irratelimit_error_v3():
     # Test error no svc name
@@ -202,7 +187,7 @@ metadata:
   namespace: default
 spec: {}
 """
-    econf = _get_envoy_config(yaml, version='V3')
+    econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
 
     assert not conf
@@ -212,7 +197,7 @@ spec: {}
 def test_irratelimit_overrides():
 
     # Test all other overrides
-    config = _get_ratelimit_default_conf_v2()
+    config = _get_ratelimit_default_conf()
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -232,36 +217,6 @@ spec:
     config['domain'] = 'otherdomain'
 
     econf = _get_envoy_config(yaml)
-    conf = _get_rl_config(econf.as_dict())
-
-    assert conf
-    assert conf.get('typed_config') == config
-
-
-@pytest.mark.compilertest
-def test_irratelimit_overrides_v3():
-
-    # Test all other overrides
-    config = _get_ratelimit_default_conf_v3()
-    yaml = """
----
-apiVersion: getambassador.io/v3alpha1
-kind: RateLimitService
-metadata:
-  name: myrls
-  namespace: someotherns
-spec:
-  service: {}
-  domain: otherdomain
-  timeout_ms: 500
-  tls: rl-tls-context
-  protocol_version: v2
-""".format(SERVICE_NAME)
-    config['rate_limit_service']['grpc_service']['envoy_grpc']['cluster_name'] = 'cluster_{}_someotherns'.format(SERVICE_NAME)
-    config['timeout'] = '0.500s'
-    config['domain'] = 'otherdomain'
-
-    econf = _get_envoy_config(yaml, version='V3')
     conf = _get_rl_config(econf.as_dict())
 
     assert conf

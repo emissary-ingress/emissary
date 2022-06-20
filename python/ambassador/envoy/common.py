@@ -85,15 +85,9 @@ class EnvoyConfig:
         return dump_json(sanitize_pre_json(self.as_dict()), pretty=True)
 
     @classmethod
-    def generate(cls, ir: 'IR', version: str="V3", cache: Optional[Cache]=None) -> 'EnvoyConfig':
-        assert version in ["V2", "V3"]
-
-        if version == "V3":
-            from . import V3Config
-            return V3Config(ir, cache=cache)
-
-        from . import V2Config
-        return V2Config(ir, cache=cache)
+    def generate(cls, ir: 'IR', cache: Optional[Cache]=None) -> 'EnvoyConfig':
+        from . import V3Config
+        return V3Config(ir, cache=cache)
 
 
 class EnvoyRoute:

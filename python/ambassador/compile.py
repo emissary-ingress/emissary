@@ -27,15 +27,13 @@ from .utils import SecretHandler, NullSecretHandler, Timer
 
 class _CompileResult(TypedDict):
     ir: IR
-    v2: NotRequired[EnvoyConfig]
-    v3: NotRequired[EnvoyConfig]
+    xds: NotRequired[EnvoyConfig]
 
 def Compile(logger: logging.Logger, input_text: str,
             cache: Optional[Cache]=None,
             file_checker: Optional[IRFileChecker]=None,
             secret_handler: Optional[SecretHandler]=None,
-            k8s: bool=False,
-            envoy_version="V2") -> _CompileResult:
+            k8s: bool=False) -> _CompileResult:
     """
     Compile is a helper function to take a bunch of YAML and compile it into an
     IR and, optionally, an Envoy config.
@@ -44,15 +42,12 @@ def Compile(logger: logging.Logger, input_text: str,
 
     {
         "ir": the IR data structure
+        "xds": the Envoy config
     }
-
-    IFF v2 is True, there will be a toplevel "v2" key whose value is the Envoy
-    V2 config.
 
     :param input_text: The input text (WATT snapshot JSON or K8s YAML per 'k8s')
     :param k8s: If true, input_text is K8s YAML, otherwise it's WATT snapshot JSON
     :param ir: Generate the IR IFF True
-    :param v2: Generate the V2 Envoy config IFF True
     """
 
     if not file_checker:
@@ -77,7 +72,6 @@ def Compile(logger: logging.Logger, input_text: str,
     out: _CompileResult = { "ir": ir }
 
     if ir:
-        ev_key = cast(Literal["v2", "v3"], envoy_version.lower())
-        out[ev_key] = EnvoyConfig.generate(ir, envoy_version.upper(), cache=cache)
+        out['xds'] = EnvoyConfig.generate(ir, cache=cache)
 
     return out

@@ -16,7 +16,7 @@ from ambassador.utils import NullSecretHandler
 
 from tests.utils import default_listener_manifests
 
-def _get_envoy_config(yaml, version='V3'):
+def _get_envoy_config(yaml):
     aconf = Config()
     fetcher = ResourceFetcher(logger, aconf)
     fetcher.parse_yaml(default_listener_manifests() + yaml, k8s=True)
@@ -26,7 +26,7 @@ def _get_envoy_config(yaml, version='V3'):
 
     assert ir
 
-    econf = EnvoyConfig.generate(ir, version)
+    econf = EnvoyConfig.generate(ir)
     assert econf, "could not create an econf"
 
     return econf
@@ -55,7 +55,7 @@ spec:
   hostname: "*"
   service: test:9999
 """
-    econf = _get_envoy_config(yaml, version='V2')
+    econf = _get_envoy_config(yaml)
     expected = 5242880
     key_found = False
 
@@ -128,7 +128,7 @@ spec:
   hostname: "*"
   service: test:9999
 """
-    econf = _get_envoy_config(yaml, version='V2')
+    econf = _get_envoy_config(yaml)
 
     conf = econf.as_dict()
 
@@ -159,7 +159,7 @@ spec:
     for listener in conf['static_resources']['listeners']:
         per_connection_buffer_limit_bytes = listener.get('per_connection_buffer_limit_bytes', None)
         assert per_connection_buffer_limit_bytes is None, \
-            f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener.name}" 
+            f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener.name}"
 
 # Tests that the default value of per_connection_buffer_limit_bytes is disabled when there is not Module config for it (and that there are no issues when we dont make a listener).
 @pytest.mark.compilertest
@@ -176,7 +176,7 @@ spec:
   hostname: "*"
   service: test:9999
 """
-    econf = _get_envoy_config(yaml, version='V2')
+    econf = _get_envoy_config(yaml)
 
     conf = econf.as_dict()
 
@@ -207,4 +207,4 @@ spec:
     for listener in conf['static_resources']['listeners']:
         per_connection_buffer_limit_bytes = listener.get('per_connection_buffer_limit_bytes', None)
         assert per_connection_buffer_limit_bytes is None, \
-            f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener.name}" 
+            f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener.name}"

@@ -42,7 +42,7 @@ def get_mirrored_config(ads_config):
 
 
 @pytest.mark.compilertest
-def test_shadow_v3(tmp_path: Path):
+def test_shadow(tmp_path: Path):
     aconf = Config()
 
     yaml = '''
@@ -93,7 +93,7 @@ spec:
 
     assert ir
 
-    econf = EnvoyConfig.generate(ir, "V3")
+    econf = EnvoyConfig.generate(ir)
 
     bootstrap_config, ads_config, _ = econf.split_config()
     ads_config.pop('@type', None)
@@ -107,70 +107,3 @@ spec:
     assert mirror_policy['runtime_fraction']['default_value']['denominator'] == 'HUNDRED'
     assert_valid_envoy_config(ads_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")])
     assert_valid_envoy_config(bootstrap_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")])
-
-
-@pytest.mark.compilertest
-def test_shadow_v2(tmp_path: Path):
-    aconf = Config()
-
-    yaml = '''
----
-apiVersion: getambassador.io/v3alpha1
-kind: Listener
-metadata:
-  name: ambassador-listener-8080
-  namespace: default
-spec:
-  port: 8080
-  protocol: HTTPS
-  securityModel: XFP
-  hostBinding:
-    namespace:
-      from: ALL
----
-apiVersion: getambassador.io/v3alpha1
-kind: Mapping
-metadata:
-  name: httpbin-mapping
-  namespace: default
-spec:
-  service: httpbin
-  hostname: "*"
-  prefix: /httpbin/
----
-apiVersion: getambassador.io/v3alpha1
-kind: Mapping
-metadata:
-  name: httpbin-mapping-shadow
-  namespace: default
-spec:
-  service: httpbin-shadow
-  hostname: "*"
-  prefix: /httpbin/
-  shadow: true
-  weight: 10
-'''
-    fetcher = ResourceFetcher(logger, aconf)
-    fetcher.parse_yaml(yaml, k8s=True)
-
-    aconf.load_all(fetcher.sorted())
-
-
-    secret_handler = MockSecretHandler(logger, "mockery", str(tmp_path/"ambassador"/"snapshots"), "v1")
-    ir = IR(aconf, file_checker=lambda path: True, secret_handler=secret_handler)
-
-    assert ir
-
-    econf = EnvoyConfig.generate(ir, "V2")
-
-    bootstrap_config, ads_config, _ = econf.split_config()
-    ads_config.pop('@type', None)
-
-    mirrored_config = get_mirrored_config(ads_config)
-    assert 'request_mirror_policy' in mirrored_config['route']
-    mirror_policy = mirrored_config['route']['request_mirror_policy']
-    assert mirror_policy['cluster'] == 'cluster_shadow_httpbin_shadow_default'
-    assert mirror_policy['runtime_fraction']['default_value']['numerator'] == 10
-    assert mirror_policy['runtime_fraction']['default_value']['denominator'] == 'HUNDRED'
-    assert_valid_envoy_config(ads_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")], v2=True)
-    assert_valid_envoy_config(bootstrap_config, extra_dirs=[str(tmp_path/"ambassador"/"snapshots")], v2=True)

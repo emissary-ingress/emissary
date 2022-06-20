@@ -91,7 +91,6 @@ class AmbassadorTest(Test):
     is_ambassador = True
     allow_edge_stack_redirect = False
     edge_stack_cleartext_host = True
-    envoy_api_version: Optional[str] = None
 
     env: List[str] = []
 
@@ -148,12 +147,7 @@ class AmbassadorTest(Test):
       value: "yes"
 """
 
-        if self.envoy_api_version is not None:
-            self.manifest_envs += f"""
-    - name: AMBASSADOR_ENVOY_API_VERSION
-      value: "{self.envoy_api_version}"
-"""
-        elif os.environ.get('AMBASSADOR_ENVOY_API_VERSION', '') != '':
+        if os.environ.get('AMBASSADOR_ENVOY_API_VERSION', '') != '':
             self.manifest_envs += """
     - name: AMBASSADOR_ENVOY_API_VERSION
       value: "%s"

@@ -1,22 +1,21 @@
-from tests.utils import econf_compile, econf_foreach_hcm, module_and_mapping_manifests, SUPPORTED_ENVOY_VERSIONS
+from tests.utils import econf_compile, econf_foreach_hcm, module_and_mapping_manifests
 
 import pytest
 
 def _test_listener_common_http_protocol_options(yaml, expectations={}):
-    for v in SUPPORTED_ENVOY_VERSIONS:
-        # Compile an envoy config
-        econf = econf_compile(yaml, envoy_version=v)
+    # Compile an envoy config
+    econf = econf_compile(yaml)
 
-        # Make sure expectations pass for each HCM in the compiled config
-        def check(typed_config):
-            for key, expected in expectations.items():
-                if expected is None:
-                    assert key not in typed_config['common_http_protocol_options']
-                else:
-                    assert key in typed_config['common_http_protocol_options']
-                    assert typed_config['common_http_protocol_options'][key] == expected
-            return True
-        econf_foreach_hcm(econf, check, envoy_version=v)
+    # Make sure expectations pass for each HCM in the compiled config
+    def check(typed_config):
+        for key, expected in expectations.items():
+            if expected is None:
+                assert key not in typed_config['common_http_protocol_options']
+            else:
+                assert key in typed_config['common_http_protocol_options']
+                assert typed_config['common_http_protocol_options'][key] == expected
+        return True
+    econf_foreach_hcm(econf, check)
 
 @pytest.mark.compilertest
 def test_headers_with_underscores_action_unset():

@@ -32,6 +32,28 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 3.0.0
+    date: 'TBD'
+    notes:
+      - title: Envoy xDS v2 API removal, removal of ECMAScript regexes
+        type: change
+        body: >-
+          $productName$ can no longer be made to configure Envoy using the v2 xDS configuration API;
+          it now always uses the v3 xDS API to configure Envoy.  This change should be mostly
+          invisible to users, with one notable exception: It removes support for <code>regex_type:
+          unsafe</code>.
+
+          The <code>regex_type</code> field will is removed from the <code>ambassador</code>
+          <code>Module</code>, meaning that it is not be possible to instruct Envoy to use the <a
+          href="https://en.cppreference.com/w/cpp/regex/ecmascript">ECMAScript Regex</a> engine
+          rather than the default <a href="https://github.com/google/re2">RE2</a> engine.
+
+          Users who rely on the specific ECMAScript Regex syntax will need to rewrite their regular
+          expressions with RE2 syntax before upgrading to $productName$ 3.0.0.
+
+          Note that the <code>AMBASSADOR_ENVOY_API_VERSION</code> environment variable is now a
+          misnomer, as it no longer configures which xDS API version is used, but it still affects
+          what the default protocol used for a <code>TracingService</code> that points at Zipkin.
   - version: 2.3.1
     date: '2022-06-09'
     notes:
