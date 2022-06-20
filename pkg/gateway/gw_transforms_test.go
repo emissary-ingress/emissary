@@ -1,6 +1,8 @@
 package gateway_test
 
 import (
+	"context"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -10,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 
+	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoytest"
 	"github.com/emissary-ingress/emissary/v3/pkg/gateway"
@@ -18,18 +21,37 @@ import (
 
 func TestGatewayMatches(t *testing.T) {
 	t.Parallel()
+
 	ctx := dlog.NewTestContext(t, false)
-	envoytest.SetupRequestLogger(t, ":9000", ":9002")
-	e := envoytest.SetupEnvoyController(t, ":8003")
-	addr, err := envoytest.GetLoopbackAddr(ctx, 8003)
-	require.NoError(t, err)
-	envoytest.SetupEnvoy(t, addr, "8080:8080")
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{
+		EnableWithSoftness: true,
+		ShutdownOnNonError: true,
+	})
 
-	d := makeDispatcher(t)
+	grp.Go("upstream", func(ctx context.Context) error {
+		var reqLogger envoytest.RequestLogger
+		return reqLogger.ListenAndServeHTTP(ctx, ":9000", ":9002")
+	})
+	e := envoytest.NewEnvoyController(":8003")
+	grp.Go("envoyController", func(ctx context.Context) error {
+		return e.Run(ctx)
+	})
+	grp.Go("envoy", func(ctx context.Context) error {
+		addr, err := envoytest.GetLoopbackAddr(ctx, 8003)
+		if err != nil {
+			return err
+		}
+		return envoytest.RunEnvoy(ctx, addr, "8080:8080")
+	})
+	grp.Go("downstream", func(ctx context.Context) error {
+		d, err := makeDispatcher()
+		if err != nil {
+			return err
+		}
 
-	// One rule for each type of path match (exact, prefix, regex) and each type of header match
-	// (exact and regex).
-	err = d.UpsertYaml(`
+		// One rule for each type of path match (exact, prefix, regex) and each type of header match
+		// (exact and regex).
+		if err := d.UpsertYaml(`
 ---
 kind: Gateway
 apiVersion: networking.x-k8s.io/v1alpha1
@@ -87,57 +109,68 @@ spec:
     forwardTo:
     - serviceName: foo-backend-1
       weight: 100
-`)
+`); err != nil {
+			return err
+		}
 
-	require.NoError(t, err)
+		loopbackIp, err := envoytest.GetLoopbackIp(ctx)
+		if err != nil {
+			return err
+		}
 
-	loopbackIp, err := envoytest.GetLoopbackIp(ctx)
-	require.NoError(t, err)
+		if err := d.Upsert(makeEndpoint("default", "foo-backend-1", loopbackIp, 9000)); err != nil {
+			return err
+		}
+		if err := d.Upsert(makeEndpoint("default", "foo-backend-2", loopbackIp, 9001)); err != nil {
+			return err
+		}
 
-	err = d.Upsert(makeEndpoint("default", "foo-backend-1", loopbackIp, 9000))
-	require.NoError(t, err)
-	err = d.Upsert(makeEndpoint("default", "foo-backend-2", loopbackIp, 9001))
-	require.NoError(t, err)
+		version, snapshot := d.GetSnapshot(ctx)
+		if status, err := e.Configure(ctx, "test-id", version, *snapshot); err != nil {
+			return err
+		} else if status != nil {
+			return fmt.Errorf("envoy error: %s", status.Message)
+		}
 
-	version, snapshot := d.GetSnapshot(ctx)
-	status, err := e.Configure("test-id", version, *snapshot)
-	require.NoError(t, err)
-	if status != nil {
-		t.Fatalf("envoy error: %s", status.Message)
-	}
+		// Sometimes envoy seems to acknowledge the configuration before listening on the port. (This is
+		// weird because sometimes envoy sends back an error indicating that it cannot bind to the
+		// port. Either way, we need to check that we can actually connect before running the rest of
+		// the tests.
+		if err := checkReady(ctx, "http://127.0.0.1:8080/"); err != nil {
+			return err
+		}
 
-	// Sometimes envoy seems to acknowledge the configuration before listening on the port. (This is
-	// weird because sometimes envoy sends back an error indicating that it cannot bind to the
-	// port. Either way, we need to check that we can actually connect before running the rest of
-	// the tests.
-	checkReady(t, "http://127.0.0.1:8080/")
+		assertGet(&err, ctx, "http://127.0.0.1:8080/exact", 200, "Hello World")
+		assertGet(&err, ctx, "http://127.0.0.1:8080/exact/foo", 404, "")
+		assertGet(&err, ctx, "http://127.0.0.1:8080/prefix", 200, "Hello World")
+		assertGet(&err, ctx, "http://127.0.0.1:8080/prefix/foo", 200, "Hello World")
 
-	assertGet(t, "http://127.0.0.1:8080/exact", 200, "Hello World")
-	assertGet(t, "http://127.0.0.1:8080/exact/foo", 404, "")
-	assertGet(t, "http://127.0.0.1:8080/prefix", 200, "Hello World")
-	assertGet(t, "http://127.0.0.1:8080/prefix/foo", 200, "Hello World")
+		assertGet(&err, ctx, "http://127.0.0.1:8080/regular_expression", 200, "Hello World")
+		assertGet(&err, ctx, "http://127.0.0.1:8080/regular_expression_a", 200, "Hello World")
+		assertGet(&err, ctx, "http://127.0.0.1:8080/regular_expression_aaaaaaaa", 200, "Hello World")
+		assertGet(&err, ctx, "http://127.0.0.1:8080/regular_expression_aaAaaaAa", 200, "Hello World")
+		assertGet(&err, ctx, "http://127.0.0.1:8080/regular_expression_aaAaaaAab", 404, "")
 
-	assertGet(t, "http://127.0.0.1:8080/regular_expression", 200, "Hello World")
-	assertGet(t, "http://127.0.0.1:8080/regular_expression_a", 200, "Hello World")
-	assertGet(t, "http://127.0.0.1:8080/regular_expression_aaaaaaaa", 200, "Hello World")
-	assertGet(t, "http://127.0.0.1:8080/regular_expression_aaAaaaAa", 200, "Hello World")
-	assertGet(t, "http://127.0.0.1:8080/regular_expression_aaAaaaAab", 404, "")
+		assertGetHeader(&err, ctx, "http://127.0.0.1:8080", "exact", "foo", 200, "Hello World")
+		assertGetHeader(&err, ctx, "http://127.0.0.1:8080", "exact", "bar", 404, "")
+		assertGetHeader(&err, ctx, "http://127.0.0.1:8080", "regular_expression", "foo", 200, "Hello World")
+		assertGetHeader(&err, ctx, "http://127.0.0.1:8080", "regular_expression", "foo_aaaaAaaaa", 200, "Hello World")
+		assertGetHeader(&err, ctx, "http://127.0.0.1:8080", "regular_expression", "foo_aaaaAaaaab", 404, "")
+		assertGetHeader(&err, ctx, "http://127.0.0.1:8080", "regular_expression", "bar", 404, "")
 
-	assertGetHeader(t, "http://127.0.0.1:8080", "exact", "foo", 200, "Hello World")
-	assertGetHeader(t, "http://127.0.0.1:8080", "exact", "bar", 404, "")
-	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "foo", 200, "Hello World")
-	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "foo_aaaaAaaaa", 200, "Hello World")
-	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "foo_aaaaAaaaab", 404, "")
-	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "bar", 404, "")
+		return err
+	})
+	assert.NoError(t, grp.Wait())
 }
 
 func TestBadMatchTypes(t *testing.T) {
 	t.Parallel()
-	d := makeDispatcher(t)
+	d, err := makeDispatcher()
+	require.NoError(t, err)
 
 	// One rule for each type of path match (exact, prefix, regex) and each type of header match
 	// (exact and regex).
-	err := d.UpsertYaml(`
+	err = d.UpsertYaml(`
 ---
 kind: HTTPRoute
 apiVersion: networking.x-k8s.io/v1alpha1
@@ -178,21 +211,28 @@ spec:
 	assertErrorContains(t, err, `processing HTTPRoute:default:my-route: unknown header match type: Bleh`)
 }
 
-func makeDispatcher(t *testing.T) *gateway.Dispatcher {
+func makeDispatcher() (*gateway.Dispatcher, error) {
 	d := gateway.NewDispatcher()
-	err := d.Register("Gateway", func(untyped kates.Object) (*gateway.CompiledConfig, error) {
+
+	if err := d.Register("Gateway", func(untyped kates.Object) (*gateway.CompiledConfig, error) {
 		return gateway.Compile_Gateway(untyped.(*gw.Gateway))
-	})
-	require.NoError(t, err)
-	err = d.Register("HTTPRoute", func(untyped kates.Object) (*gateway.CompiledConfig, error) {
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := d.Register("HTTPRoute", func(untyped kates.Object) (*gateway.CompiledConfig, error) {
 		return gateway.Compile_HTTPRoute(untyped.(*gw.HTTPRoute))
-	})
-	require.NoError(t, err)
-	err = d.Register("Endpoints", func(untyped kates.Object) (*gateway.CompiledConfig, error) {
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := d.Register("Endpoints", func(untyped kates.Object) (*gateway.CompiledConfig, error) {
 		return gateway.Compile_Endpoints(untyped.(*kates.Endpoints))
-	})
-	require.NoError(t, err)
-	return d
+	}); err != nil {
+		return nil, err
+	}
+
+	return d, nil
 }
 
 func makeEndpoint(namespace, name, ip string, port int) *kates.Endpoints {
@@ -206,39 +246,67 @@ func makeEndpoint(namespace, name, ip string, port int) *kates.Endpoints {
 	}
 }
 
-func checkReady(t *testing.T, url string) {
+func checkReady(ctx context.Context, url string) error {
 	delay := 10 * time.Millisecond
 	for {
 		if delay > 10*time.Second {
-			require.Fail(t, "url never became ready", url)
+			return fmt.Errorf("url never became ready: %v", url)
 		}
 		_, err := http.Get(url)
 		if err != nil {
-			t.Logf("error %v, retrying...", err)
+			dlog.Infof(ctx, "error %v, retrying...", err)
 			time.Sleep(delay)
 			delay = delay * 2
 		}
-		return
+		return nil
 	}
 }
 
-func assertGet(t *testing.T, url string, code int, expected string) {
-	resp, err := http.Get(url)
-	require.NoError(t, err)
-	require.Equal(t, code, resp.StatusCode)
-	actual, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, err)
-	assert.Equal(t, expected, string(actual))
+func get(ctx context.Context, url string, expectedCode int, expectedBody string, headers map[string]string) error {
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return err
+	}
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != expectedCode {
+		return fmt.Errorf("expected HTTP status code %d but got %d",
+			expectedCode, resp.StatusCode)
+	}
+	actualBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	if string(actualBody) != expectedBody {
+		return fmt.Errorf("expected body %q but got %q",
+			expectedBody, string(actualBody))
+	}
+	return nil
 }
 
-func assertGetHeader(t *testing.T, url, header, value string, code int, expected string) {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	require.NoError(t, err)
-	req.Header.Set(header, value)
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	require.Equal(t, code, resp.StatusCode)
-	actual, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, err)
-	assert.Equal(t, expected, string(actual))
+func assertGet(errPtr *error, ctx context.Context, url string, code int, expected string) {
+	if *errPtr != nil {
+		return
+	}
+	err := get(ctx, url, code, expected, nil)
+	if err != nil && *errPtr == nil {
+		*errPtr = err
+	}
+}
+
+func assertGetHeader(errPtr *error, ctx context.Context, url, header, value string, code int, expected string) {
+	if *errPtr != nil {
+		return
+	}
+	err := get(ctx, url, code, expected, map[string]string{
+		header: value,
+	})
+	if err != nil && *errPtr == nil {
+		*errPtr = err
+	}
 }
