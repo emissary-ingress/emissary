@@ -24,18 +24,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
+	"runtime/pprof"
 	"time"
 
-	cachev2 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v2"
-	cachev3 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
-	serverv2 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v2"
-	serverv3 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test"
-	testv2 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/v2"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/resource/v3"
 	testv3 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/v3"
-
-	resourcev2 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/resource/v2"
-	resourcev3 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/resource/v3"
 )
 
 var (
@@ -52,15 +49,19 @@ var (
 	requests int
 	updates  int
 
-	mode          string
-	clusters      int
-	httpListeners int
-	tcpListeners  int
-	runtimes      int
-	tls           bool
-	mux           bool
+	mode                string
+	clusters            int
+	httpListeners       int
+	scopedHTTPListeners int
+	tcpListeners        int
+	runtimes            int
+	tls                 bool
+	mux                 bool
+	extensionNum        int
 
 	nodeID string
+
+	pprofEnabled bool
 )
 
 func init() {
@@ -87,7 +88,7 @@ func init() {
 	// upstream server
 	flag.UintVar(&basePort, "base", 9000, "Envoy Proxy listener port")
 
-	// The control plane accesslog server port (currently unused)
+	// The control plane accesslog server port
 	flag.UintVar(&alsPort, "als", 18090, "Control plane accesslog server port")
 
 	//
@@ -96,7 +97,7 @@ func init() {
 
 	// Tell Envoy to request configurations from the control plane using
 	// this protocol
-	flag.StringVar(&mode, "xds", resourcev2.Ads, "Management protocol to test (ADS, xDS, REST)")
+	flag.StringVar(&mode, "xds", resource.Ads, "Management protocol to test (ADS, xDS, REST, DELTA, DELTA-ADS)")
 
 	// Tell Envoy to use this Node ID
 	flag.StringVar(&nodeID, "nodeID", "test-id", "Node ID")
@@ -133,11 +134,23 @@ func init() {
 
 	// Test this many HTTP listeners per snapshot
 	flag.IntVar(&httpListeners, "http", 2, "Number of HTTP listeners (and RDS configs)")
+	// Test this many scoped HTTP listeners per snapshot
+	flag.IntVar(&scopedHTTPListeners, "scopedhttp", 2, "Number of HTTP listeners (and SRDS configs)")
 	// Test this many TCP listeners per snapshot
 	flag.IntVar(&tcpListeners, "tcp", 2, "Number of TCP pass-through listeners")
 
 	// Enable a muxed cache with partial snapshots
 	flag.BoolVar(&mux, "mux", false, "Enable muxed linear cache for EDS")
+
+	// Number of ExtensionConfig
+	flag.IntVar(&extensionNum, "extension", 1, "Number of Extension")
+	//
+	// These parameters control the the use of the pprof profiler
+	//
+
+	// Enable use of the pprof profiler
+	flag.BoolVar(&pprofEnabled, "pprof", false, "Enable use of the pprof profiler")
+
 }
 
 // main returns code 1 if any of the batches failed to pass all requests
@@ -145,63 +158,61 @@ func main() {
 	flag.Parse()
 	ctx := context.Background()
 
+	if pprofEnabled {
+		runtime.SetBlockProfileRate(1)
+		for _, prof := range []string{"block", "goroutine", "mutex"} {
+			log.Printf("turn on pprof %s profiler", prof)
+			if pprof.Lookup(prof) == nil {
+				pprof.NewProfile(prof)
+			}
+		}
+	}
+
 	// create a cache
 	signal := make(chan struct{})
-	cbv2 := &testv2.Callbacks{Signal: signal, Debug: debug}
-	cbv3 := &testv3.Callbacks{Signal: signal, Debug: debug}
-
-	configv2 := cachev2.NewSnapshotCache(mode == resourcev2.Ads, cachev2.IDHash{}, logger{})
-	configv3 := cachev3.NewSnapshotCache(mode == resourcev2.Ads, cachev3.IDHash{}, logger{})
-	srv2 := serverv2.NewServer(context.Background(), configv2, cbv2)
+	cb := &testv3.Callbacks{Signal: signal, Debug: debug}
 
 	// mux integration
-	var configCachev3 cachev3.Cache = configv3
+	// nil for logger uses default logger
+	config := cache.NewSnapshotCache(mode == resource.Ads, cache.IDHash{}, nil)
+	var configCache cache.Cache = config
 	typeURL := "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment"
-	eds := cachev3.NewLinearCache(typeURL)
+	eds := cache.NewLinearCache(typeURL)
 	if mux {
-		configCachev3 = &cachev3.MuxCache{
-			Classify: func(req cachev3.Request) string {
+		configCache = &cache.MuxCache{
+			Classify: func(req *cache.Request) string {
 				if req.TypeUrl == typeURL {
 					return "eds"
 				}
 				return "default"
 			},
-			Caches: map[string]cachev3.Cache{
-				"default": configv3,
+			Caches: map[string]cache.Cache{
+				"default": config,
 				"eds":     eds,
 			},
 		}
 	}
-	srv3 := serverv3.NewServer(context.Background(), configCachev3, cbv3)
-	alsv2 := &testv2.AccessLogService{}
-	alsv3 := &testv3.AccessLogService{}
+	srv := server.NewServer(context.Background(), configCache, cb)
+	als := &testv3.AccessLogService{}
 
 	// create a test snapshot
-	snapshotsv2 := resourcev2.TestSnapshot{
-		Xds:              mode,
-		UpstreamPort:     uint32(upstreamPort),
-		BasePort:         uint32(basePort),
-		NumClusters:      clusters,
-		NumHTTPListeners: httpListeners,
-		NumTCPListeners:  tcpListeners,
-		TLS:              tls,
-		NumRuntimes:      runtimes,
-	}
-	snapshotsv3 := resourcev3.TestSnapshot{
-		Xds:              mode,
-		UpstreamPort:     uint32(upstreamPort),
-		BasePort:         uint32(basePort),
-		NumClusters:      clusters,
-		NumHTTPListeners: httpListeners,
-		NumTCPListeners:  tcpListeners,
-		TLS:              tls,
-		NumRuntimes:      runtimes,
+	snapshots := resource.TestSnapshot{
+		Xds:                    mode,
+		UpstreamPort:           uint32(upstreamPort),
+		BasePort:               uint32(basePort),
+		NumClusters:            clusters,
+		NumHTTPListeners:       httpListeners,
+		NumScopedHTTPListeners: scopedHTTPListeners,
+		NumTCPListeners:        tcpListeners,
+		TLS:                    tls,
+		NumRuntimes:            runtimes,
+		NumExtension:           extensionNum,
 	}
 
 	// start the xDS server
-	go test.RunAccessLogServer(ctx, alsv2, alsv3, alsPort)
-	go test.RunManagementServer(ctx, srv2, srv3, port)
-	go test.RunManagementGateway(ctx, srv2, srv3, gatewayPort, logger{})
+	go test.RunAccessLogServer(ctx, als, alsPort)
+	go test.RunManagementServer(ctx, srv, port)
+	go test.RunManagementGateway(ctx, srv, gatewayPort)
 
 	log.Println("waiting for the first request...")
 	select {
@@ -211,38 +222,31 @@ func main() {
 		log.Println("timeout waiting for the first request")
 		os.Exit(1)
 	}
-	log.Printf("initial snapshot %+v\n", snapshotsv2)
+	log.Printf("initial snapshot %+v\n", snapshots)
 	log.Printf("executing sequence updates=%d request=%d\n", updates, requests)
 
 	for i := 0; i < updates; i++ {
-		snapshotsv2.Version = fmt.Sprintf("v%d", i)
-		log.Printf("update snapshot %v\n", snapshotsv2.Version)
-		snapshotsv3.Version = fmt.Sprintf("v%d", i)
-		log.Printf("update snapshot %v\n", snapshotsv3.Version)
+		snapshots.Version = fmt.Sprintf("v%d", i)
+		log.Printf("update snapshot %v\n", snapshots.Version)
 
-		snapshotv2 := snapshotsv2.Generate()
-		snapshotv3 := snapshotsv3.Generate()
-		if err := snapshotv2.Consistent(); err != nil {
-			log.Printf("snapshot inconsistency: %+v\n", snapshotv2)
-		}
-		if err := snapshotv3.Consistent(); err != nil {
-			log.Printf("snapshot inconsistency: %+v\n", snapshotv3)
+		snapshot := snapshots.Generate()
+		if err := snapshot.Consistent(); err != nil {
+			log.Printf("snapshot inconsistency: %+v\n%+v\n", snapshot, err)
 		}
 
-		err := configv2.SetSnapshot(nodeID, snapshotv2)
+		err := config.SetSnapshot(context.Background(), nodeID, snapshot)
 		if err != nil {
-			log.Printf("snapshot error %q for %+v\n", err, snapshotv2)
+			log.Printf("snapshot error %q for %+v\n", err, snapshot)
 			os.Exit(1)
 		}
 
-		err = configv3.SetSnapshot(nodeID, snapshotv3)
-		if err != nil {
-			log.Printf("snapshot error %q for %+v\n", err, snapshotv3)
-			os.Exit(1)
-		}
 		if mux {
-			for name, res := range snapshotv3.GetResources(typeURL) {
-				eds.UpdateResource(name, res)
+			for name, res := range snapshot.GetResources(typeURL) {
+				if err := eds.UpdateResource(name, res); err != nil {
+					log.Printf("update error %q for %+v\n", err, name)
+					os.Exit(1)
+
+				}
 			}
 		}
 
@@ -261,23 +265,30 @@ func main() {
 			}
 		}
 
-		alsv2.Dump(func(s string) {
+		als.Dump(func(s string) {
 			if debug {
 				log.Println(s)
 			}
 		})
-		cbv2.Report()
-
-		alsv3.Dump(func(s string) {
-			if debug {
-				log.Println(s)
-			}
-		})
-		cbv3.Report()
+		cb.Report()
 
 		if !pass {
 			log.Printf("failed all requests in a run %d\n", i)
 			os.Exit(1)
+		}
+	}
+
+	if pprofEnabled {
+		for _, prof := range []string{"block", "goroutine", "mutex"} {
+			p := pprof.Lookup(prof)
+			filePath := fmt.Sprintf("%s_profile_%s.pb.gz", prof, mode)
+			log.Printf("storing %s profile for %s in %s", prof, mode, filePath)
+			f, err := os.Create(filePath)
+			if err != nil {
+				log.Fatalf("could not create %s profile %s: %s", prof, filePath, err)
+			}
+			p.WriteTo(f, 1) // nolint:errcheck
+			f.Close()
 		}
 	}
 
@@ -287,7 +298,7 @@ func main() {
 // callEcho calls upstream echo service on all listener ports and returns an error
 // if any of the listeners returned an error.
 func callEcho() (int, int) {
-	total := httpListeners + tcpListeners
+	total := httpListeners + scopedHTTPListeners + tcpListeners
 	ok, failed := 0, 0
 	ch := make(chan error, total)
 
@@ -297,7 +308,7 @@ func callEcho() (int, int) {
 			client := http.Client{
 				Timeout: 100 * time.Millisecond,
 				Transport: &http.Transport{
-					TLSClientConfig: &cryptotls.Config{InsecureSkipVerify: true},
+					TLSClientConfig: &cryptotls.Config{InsecureSkipVerify: true}, // nolint:gosec
 				},
 			}
 			proto := "http"
@@ -309,9 +320,13 @@ func callEcho() (int, int) {
 				ch <- err
 				return
 			}
-			defer req.Body.Close()
 			body, err := ioutil.ReadAll(req.Body)
 			if err != nil {
+				req.Body.Close()
+				ch <- err
+				return
+			}
+			if err := req.Body.Close(); err != nil {
 				ch <- err
 				return
 			}
@@ -334,26 +349,4 @@ func callEcho() (int, int) {
 			return ok, failed
 		}
 	}
-}
-
-type logger struct{}
-
-func (logger logger) Debugf(format string, args ...interface{}) {
-	if debug {
-		log.Printf(format+"\n", args...)
-	}
-}
-
-func (logger logger) Infof(format string, args ...interface{}) {
-	if debug {
-		log.Printf(format+"\n", args...)
-	}
-}
-
-func (logger logger) Warnf(format string, args ...interface{}) {
-	log.Printf(format+"\n", args...)
-}
-
-func (logger logger) Errorf(format string, args ...interface{}) {
-	log.Printf(format+"\n", args...)
 }

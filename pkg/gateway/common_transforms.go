@@ -3,37 +3,36 @@ package gateway
 import (
 	"fmt"
 
-	v2 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
-	v2core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
-	v2endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/endpoint"
+	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
-// Compile_Endpoints transforms a kubernetes endpoints resource into a v2.ClusterLoadAssignment
+// Compile_Endpoints transforms a kubernetes endpoints resource into a v3endpoint.ClusterLoadAssignment
 func Compile_Endpoints(endpoints *kates.Endpoints) (*CompiledConfig, error) {
 	var clas []*CompiledLoadAssignment
 
 	for _, subset := range endpoints.Subsets {
 		for _, port := range subset.Ports {
-			var lbEndpoints []*v2endpoint.LbEndpoint
+			var lbEndpoints []*v3endpoint.LbEndpoint
 			for _, addr := range subset.Addresses {
 				lbEndpoints = append(lbEndpoints, makeLbEndpoint("TCP", addr.IP, int(port.Port)))
 			}
 			path := fmt.Sprintf("k8s/%s/%s/%d", endpoints.Namespace, endpoints.Name, port.Port)
 			clas = append(clas, &CompiledLoadAssignment{
 				CompiledItem: NewCompiledItem(SourceFromResource(endpoints)),
-				LoadAssignment: &v2.ClusterLoadAssignment{
+				LoadAssignment: &v3endpoint.ClusterLoadAssignment{
 					ClusterName: path,
-					Endpoints:   []*v2endpoint.LocalityLbEndpoints{{LbEndpoints: lbEndpoints}},
+					Endpoints:   []*v3endpoint.LocalityLbEndpoints{{LbEndpoints: lbEndpoints}},
 				},
 			})
 			if len(subset.Ports) == 1 {
 				path := fmt.Sprintf("k8s/%s/%s", endpoints.Namespace, endpoints.Name)
 				clas = append(clas, &CompiledLoadAssignment{
 					CompiledItem: NewCompiledItem(SourceFromResource(endpoints)),
-					LoadAssignment: &v2.ClusterLoadAssignment{
+					LoadAssignment: &v3endpoint.ClusterLoadAssignment{
 						ClusterName: path,
-						Endpoints:   []*v2endpoint.LocalityLbEndpoints{{LbEndpoints: lbEndpoints}},
+						Endpoints:   []*v3endpoint.LocalityLbEndpoints{{LbEndpoints: lbEndpoints}},
 					},
 				})
 			}
@@ -47,16 +46,16 @@ func Compile_Endpoints(endpoints *kates.Endpoints) (*CompiledConfig, error) {
 }
 
 // makeLbEndpoint takes a protocol, ip, and port and makes an envoy LbEndpoint.
-func makeLbEndpoint(protocol, ip string, port int) *v2endpoint.LbEndpoint {
-	return &v2endpoint.LbEndpoint{
-		HostIdentifier: &v2endpoint.LbEndpoint_Endpoint{
-			Endpoint: &v2endpoint.Endpoint{
-				Address: &v2core.Address{
-					Address: &v2core.Address_SocketAddress{
-						SocketAddress: &v2core.SocketAddress{
-							Protocol:      v2core.SocketAddress_Protocol(v2core.SocketAddress_Protocol_value[protocol]),
+func makeLbEndpoint(protocol, ip string, port int) *v3endpoint.LbEndpoint {
+	return &v3endpoint.LbEndpoint{
+		HostIdentifier: &v3endpoint.LbEndpoint_Endpoint{
+			Endpoint: &v3endpoint.Endpoint{
+				Address: &v3core.Address{
+					Address: &v3core.Address_SocketAddress{
+						SocketAddress: &v3core.SocketAddress{
+							Protocol:      v3core.SocketAddress_Protocol(v3core.SocketAddress_Protocol_value[protocol]),
 							Address:       ip,
-							PortSpecifier: &v2core.SocketAddress_PortValue{PortValue: uint32(port)},
+							PortSpecifier: &v3core.SocketAddress_PortValue{PortValue: uint32(port)},
 							Ipv4Compat:    true,
 						},
 					},

@@ -69,3 +69,8 @@ func TestNilLoggerFuncs(t *testing.T) {
 	xdsLogger.Warnf("warn")
 	xdsLogger.Errorf("error")
 }
+
+func TestDefaultLogger(t *testing.T) {
+	logger := NewDefaultLogger()
+	assert.NotNil(t, logger)
+}

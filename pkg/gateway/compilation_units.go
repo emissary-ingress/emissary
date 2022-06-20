@@ -1,8 +1,10 @@
 package gateway
 
 import (
-	v2 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
-	route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/route"
+	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
+	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
+	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
+	v3route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
 
@@ -39,7 +41,7 @@ type CompiledConfig struct {
 // which routes to supply to the listener.
 type CompiledListener struct {
 	CompiledItem
-	Listener *v2.Listener
+	Listener *v3listener.Listener
 
 	// The predicate determines which routes belong to which listeners. If the listener specifies
 	// and Rds configuration, this Predicate and the Domains below will be used to construct a
@@ -56,7 +58,7 @@ type CompiledRoute struct {
 	// source such as labels kind, namespace, name, etc.
 	HTTPRoute *gw.HTTPRoute
 
-	Routes      []*route.Route
+	Routes      []*v3route.Route
 	ClusterRefs []*ClusterRef
 }
 
@@ -73,11 +75,11 @@ type ClusterRef struct {
 // CompiledCluster decorates an envoy v2.Cluster.
 type CompiledCluster struct {
 	CompiledItem
-	Cluster *v2.Cluster
+	Cluster *v3cluster.Cluster
 }
 
 // CompiledLoadAssignment decorates an envoy v2.ClusterLoadAssignment.
 type CompiledLoadAssignment struct {
 	CompiledItem
-	LoadAssignment *v2.ClusterLoadAssignment
+	LoadAssignment *v3endpoint.ClusterLoadAssignment
 }
