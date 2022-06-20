@@ -6,6 +6,8 @@ import (
 	envoyMetrics "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/metrics/v3"
 	io_prometheus_client "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc/peer"
+	"net"
 	"testing"
 	"time"
 )
@@ -46,6 +48,7 @@ func agentMetricsSetupTest() (*MockClient, *Agent) {
 		comm: &RPCComm{
 			client: clientMock,
 		},
+		metricStack: map[string][]*io_prometheus_client.MetricFamily{},
 	}
 
 	return clientMock, stubbedAgent
@@ -53,26 +56,36 @@ func agentMetricsSetupTest() (*MockClient, *Agent) {
 
 func TestMetricsRelayHandler(t *testing.T) {
 
-	t.Run("will relay the metrics", func(t *testing.T) {
+	t.Run("will relay metrics from the stack", func(t *testing.T) {
 		//given
 		clientMock, stubbedAgent := agentMetricsSetupTest()
-		ctx := dlog.NewTestContext(t, true)
+		ctx := peer.NewContext(dlog.NewTestContext(t, true), &peer.Peer{
+			Addr: &net.IPAddr{
+				IP: net.ParseIP("192.168.0.1"),
+			},
+		})
+		stubbedAgent.metricStack["192.168.0.1"] = []*io_prometheus_client.MetricFamily{acceptedMetric}
 
 		//when
 		stubbedAgent.MetricsRelayHandler(ctx, &envoyMetrics.StreamMetricsMessage{
-			Identifier:   nil,
+			Identifier: nil,
+			// ignored since time to report.
 			EnvoyMetrics: []*io_prometheus_client.MetricFamily{ignoredMetric, acceptedMetric},
 		})
 
 		//then
 		assert.Equal(t, []*agent.StreamMetricsMessage{{
 			EnvoyMetrics: []*io_prometheus_client.MetricFamily{acceptedMetric},
-		}}, clientMock.SentMetrics)
+		}}, clientMock.SentMetrics, "metrics should be propagated to cloud")
 	})
 	t.Run("will not relay the metrics since it is in cool down period.", func(t *testing.T) {
 		//given
 		clientMock, stubbedAgent := agentMetricsSetupTest()
-		ctx := dlog.NewTestContext(t, true)
+		ctx := peer.NewContext(dlog.NewTestContext(t, true), &peer.Peer{
+			Addr: &net.IPAddr{
+				IP: net.ParseIP("192.168.0.1"),
+			},
+		})
 		stubbedAgent.metricsBackoffUntil = time.Now().Add(defaultMinReportPeriod)
 
 		//when
@@ -82,6 +95,9 @@ func TestMetricsRelayHandler(t *testing.T) {
 		})
 
 		//then
-		assert.Equal(t, 0, len(clientMock.SentMetrics))
+		assert.Equal(t, stubbedAgent.metricStack["192.168.0.1"],
+			[]*io_prometheus_client.MetricFamily{acceptedMetric},
+			"metrics should be added to the stack")
+		assert.Equal(t, 0, len(clientMock.SentMetrics), "nothing send to cloud")
 	})
 }
