@@ -344,7 +344,9 @@ resolvers: # +doc-gen:break
 #
 # Note: The Module can only be named ambassador. There can only be one Module
 # installed per-namespace.
-module: {}
+module:
+  diagnostics:
+    enabled: false
 
 # DEPRECATED: Enabling the prometheus exporter creates a sidecar and configures ambassador to use it
 #

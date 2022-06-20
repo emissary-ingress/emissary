@@ -5,6 +5,15 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+(no changes yet)
+
+## v8.0.0
+
+- Change: The default for the `module` value has changed to disable
+  the `/ambassador/v0/` → `127.0.0.1:8877` synthetic Mapping by
+  default.  We have long recommended to turn this off for production
+  use; it is now off by default.
+
 - Bugfix: The default values no trigger the creation of an
   "emissary-test-ready" Pod.  This Pod was meant to only be created
   when running the chart's test suite; it was not meant to be created

@@ -54,6 +54,16 @@ items:
           Note that the <code>AMBASSADOR_ENVOY_API_VERSION</code> environment variable is now a
           misnomer, as it no longer configures which xDS API version is used, but it still affects
           what the default protocol used for a <code>TracingService</code> that points at Zipkin.
+      - title: Default YAML disables the diagnostics interface
+        type: change
+        body: >-
+          In the standard published <code>.yaml</code> files, now included is a <code>Module</code>
+          resource that disables the <code>/ambassador/v0/</code> → <code>127.0.0.1:8878</code>
+          synthetic mapping.  We have long recommended to turn this off for production use; it is
+          now off in the standard YAML.  The associated Helm chart release also now disables it by
+          default.  A later apiVersion (<code>getambassador.io/v3alpha2</code> or later) will likely
+          change the <code>Module</code> CRD so that it is disabled if unspecified; but in the
+          mean-time, the default install procedure will now specify it to be disabled.
       - title: No longer publish obsolete YAML manifest files
         type: change
         body: >-

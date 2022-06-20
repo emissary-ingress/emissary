@@ -92,6 +92,13 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   variable is now a misnomer, as it no longer configures which xDS API version is used, but it still
   affects what the default protocol used for a `TracingService` that points at Zipkin.
 
+- Change: In the standard published `.yaml` files, now included is a `Module` resource that disables
+  the `/ambassador/v0/` → `127.0.0.1:8878` synthetic mapping.  We have long recommended to turn
+  this off for production use; it is now off in the standard YAML.  The associated Helm chart
+  release also now disables it by default.  A later apiVersion (`getambassador.io/v3alpha2` or
+  later) will likely change the `Module` CRD so that it is disabled if unspecified; but in the
+  mean-time, the default install procedure will now specify it to be disabled.
+
 - Change: This release does not include the publishing of `emissary-emissaryns-agent.yaml`,
   `emissary-defaultns-agent.yaml`, `emissary-emissaryns-migration.yaml`, or
   `emissary-defaultns-migration.yaml` files.  All four of these files existed solely as part of the

@@ -4,5 +4,6 @@ deploymentTool: kat
 serviceAccount:
   extra: "«serviceAccountExtra»♯: null"
 
+module: null
 agent:
   enabled: false
