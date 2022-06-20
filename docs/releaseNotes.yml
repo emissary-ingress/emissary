@@ -51,9 +51,8 @@ items:
           Users who rely on the specific ECMAScript Regex syntax will need to rewrite their regular
           expressions with RE2 syntax before upgrading to $productName$ 3.0.0.
 
-          Note that the <code>AMBASSADOR_ENVOY_API_VERSION</code> environment variable is now a
-          misnomer, as it no longer configures which xDS API version is used, but it still affects
-          what the default protocol used for a <code>TracingService</code> that points at Zipkin.
+          As the xDS version is no longer configurable and the range of supported Zipkin protocols
+          is reduced (see below), the AMBASSADOR_ENVOY_API_VERSION environment variable has been removed.
       - title: Support for protocol_version v2 is removed
         type: change
         body: >-
@@ -63,6 +62,14 @@ items:
           value of <code>v2</code> will cause an error to be posted. Therefore, you will need to set it
           to <code>protocol_version: "v3"</code>. If upgrading from a previous version you will want
           to set it to "v3" and ensure it is working before upgrading to $productName$ 3.Y.
+      - title: Support for Zipkin HTTP_JSON_V1 protocol is removed
+        type: change
+        body: >-
+          With the upgrade to Envoy 1.22, the <code>zipkin</code> driver for the <code>TraceService</code>
+          no longer supports setting the <code>collector_endpoint_version: HTTP_JSON_V1</code>. This was removed
+          in Envoy 1.20 - <a href="https://github.com/envoyproxy/envoy/commit/db74e313b3651588e59c671af45077714ac32cef" />.
+          The new default will be <code>collector_endpoint_version: HTTP_JSON</code>, regardless of the
+          <code>AMBASSADOR_ENVOY_API_VERSION</code> environment variable.
       - title: Default YAML disables the diagnostics interface
         type: change
         body: >-

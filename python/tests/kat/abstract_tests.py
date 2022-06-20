@@ -147,12 +147,6 @@ class AmbassadorTest(Test):
       value: "yes"
 """
 
-        if os.environ.get('AMBASSADOR_ENVOY_API_VERSION', '') != '':
-            self.manifest_envs += """
-    - name: AMBASSADOR_ENVOY_API_VERSION
-      value: "%s"
-""" % os.environ["AMBASSADOR_ENVOY_API_VERSION"]
-
         eports = ""
 
         if self.extra_ports:

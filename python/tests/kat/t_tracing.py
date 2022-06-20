@@ -766,11 +766,11 @@ config:
         for i in range(100):
               yield Query(self.url("target/"), phase=1)
 
-
-        # ...then ask the Zipkin for services and spans. Including debug=True in these queries
-        # is particularly helpful.
-        yield Query("http://zipkin-v1:9411/api/v2/services", phase=check_phase)
+        # result 100
+        yield Query("http://zipkin-v1:9411/api/v2/services", phase=check_phase) 
+        # result 101
         yield Query("http://zipkin-v1:9411/api/v2/spans?serviceName=tracingtestzipkinv1-default", phase=check_phase)
+        # result 102
         yield Query("http://zipkin-v1:9411/api/v2/traces?serviceName=tracingtestzipkinv1-default", phase=check_phase)
 
         # The diagnostics page should load properly
@@ -782,25 +782,15 @@ config:
             assert result.backend
             assert result.backend.name == self.target.path.k8s
 
-        print(f"self.results[100] = {self.results[100]}")
-        assert self.results[100].backend is not None and self.results[100].backend.name == "raw", \
-                f"unexpected self.results[100] = {self.results[100]}"
-        assert len(self.results[100].backend.response) == 1
-        assert self.results[100].backend.response[0] == 'tracingtestzipkinv1-default'
+        # verify no services were captured
+        services = self.results[100].json
+        assert len(services) == 0
 
-        assert self.results[101].backend
-        assert self.results[101].backend.name == "raw"
+        # verify no spans were captured
+        spans = self.results[101].json
+        assert len(spans) == 0
 
-        tracelist = { x: True for x in self.results[101].backend.response }
+        # verify no traces were captured
+        traces = self.results[102].json
+        assert len(traces) == 0
 
-        assert 'router cluster_tracingtestzipkinv1_http_default egress' in tracelist
-
-        # Look for the host that we actually queried, since that's what appears in the spans.
-        assert self.results[0].backend
-        assert self.results[0].backend.request
-        assert self.results[0].backend.request.host in tracelist
-
-        # Ensure we generate 128-bit traceids by default
-        trace = self.results[102].json[0][0]
-        traceId = trace['traceId']
-        assert len(traceId) == 32

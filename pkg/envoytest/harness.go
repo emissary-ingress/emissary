@@ -145,7 +145,6 @@ const bootstrap = `
           "envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match": true,
           "envoy.deprecated_features:envoy.api.v2.route.RouteMatch.regex": true,
           "envoy.deprecated_features:envoy.config.filter.http.ext_authz.v2.ExtAuthz.use_alpha": true,
-          "envoy.deprecated_features:envoy.config.trace.v2.ZipkinConfig.HTTP_JSON_V1": true,
           "envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher": false
         }
       }

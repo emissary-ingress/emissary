@@ -88,9 +88,9 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   Users who rely on the specific
   ECMAScript Regex syntax will need to rewrite their regular expressions with RE2 syntax before
   upgrading to Emissary-ingress 3.0.0.
-  Note that the `AMBASSADOR_ENVOY_API_VERSION` environment
-  variable is now a misnomer, as it no longer configures which xDS API version is used, but it still
-  affects what the default protocol used for a `TracingService` that points at Zipkin.
+  As the xDS version is no longer configurable and the range of
+  supported Zipkin protocols is reduced (see below), the AMBASSADOR_ENVOY_API_VERSION environment
+  variable has been removed.
 
 - Change: With the ugprade to Envoy 1.22, Emissary-ingress no longer supports the V2 transport
   protocol. The `AuthService`, `LogService` and the `RateLimitService` will only support the v3
@@ -98,6 +98,12 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   error to be posted. Therefore, you will need to set it to `protocol_version: "v3"`. If upgrading
   from a previous version you will want to set it to "v3" and ensure it is working before upgrading
   to Emissary-ingress 3.Y.
+
+- Change: With the upgrade to Envoy 1.22, the `zipkin` driver for the `TraceService` no longer
+  supports setting the `collector_endpoint_version: HTTP_JSON_V1`. This was removed in Envoy 1.20 -
+  <a href="https://github.com/envoyproxy/envoy/commit/db74e313b3651588e59c671af45077714ac32cef" />.
+  The new default will be `collector_endpoint_version: HTTP_JSON`, regardless of the
+  `AMBASSADOR_ENVOY_API_VERSION` environment variable.
 
 - Change: In the standard published `.yaml` files, now included is a `Module` resource that disables
   the `/ambassador/v0/` → `127.0.0.1:8878` synthetic mapping.  We have long recommended to turn
