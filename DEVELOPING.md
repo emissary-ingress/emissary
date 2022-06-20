@@ -834,7 +834,7 @@ We strongly recommend using an editor that can do realtime type checking
 can do this now) and also running the type checker by hand before submitting
 anything:
 
-- `make mypy` will check all the Ambassador code
+- `make lint/mypy` will check all the Ambassador code
 
 Ambassador code should produce *no* warnings and *no* errors.
 

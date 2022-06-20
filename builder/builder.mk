@@ -354,17 +354,6 @@ build-output/bin/envoy: docker/base-envoy.docker.tag.local
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
-mypy: $(OSS_HOME)/venv
-	set -e; { \
-	  . $(OSS_HOME)/venv/bin/activate; \
-	  time mypy \
-	    --cache-fine-grained \
-	    --follow-imports=skip \
-	    --ignore-missing-imports \
-	    ./python/; \
-	}
-.PHONY: mypy
-
 $(OSS_HOME)/venv: python/requirements.txt python/requirements-dev.txt
 	rm -rf $@
 	python3 -m venv $@
