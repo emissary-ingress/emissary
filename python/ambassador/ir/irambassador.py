@@ -130,7 +130,9 @@ class IRAmbassador (IRResource):
             listener_idle_timeout_ms=None,
             liveness_probe={"enabled": True},
             readiness_probe={"enabled": True},
-            diagnostics={"enabled": True},
+            diagnostics={"enabled": True},  # TODO(lukeshu): In getambassador.io/v3alpha2, change
+                                            # the default to {"enabled": False}.  See the related
+                                            # comment in crd_module.go.
             use_proxy_proto=False,
             enable_http10=False,
             proper_case=False,
@@ -419,7 +421,7 @@ class IRAmbassador (IRResource):
                     # key must be an IRBaseMapping, but let's assert that rather than casting.
                     assert(isinstance(mapping, IRBaseMapping))
                 else:
-                    mapping = IRHTTPMapping(ir, aconf, kind="InternalMapping", 
+                    mapping = IRHTTPMapping(ir, aconf, kind="InternalMapping",
                                             rkey=self.rkey, name=name, location=self.location,
                                             timeout_ms=10000, hostname="*", **cur)
                     mapping.referenced_by(self)
@@ -495,4 +497,3 @@ class IRAmbassador (IRResource):
 
         if ipa:
             self['ip_allow_deny'] = ipa
-

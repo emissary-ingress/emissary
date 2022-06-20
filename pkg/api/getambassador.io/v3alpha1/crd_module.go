@@ -23,9 +23,17 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// TODO(lukeshu): In v3alpha2, get rid of unnecessary nesting and move `ModuleSpec.config.*` to
+// `ModuleSpec.*`.
 type ModuleSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
+	// TODO(lukeshu): In v3alpha2, change the default from `diagnostics.enabled=true` to
+	// `diagnostics.enabled=false`.  This needs conversion support in apiext.  See the related
+	// comment in irambassador.py.
+	//
+	// TODO(lukeshu): Structurally type ModuleSpec.Config.
+	//
 	// +kubebuilder:validation:Required
 	Config UntypedDict `json:"config,omitempty"`
 }
