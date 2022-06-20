@@ -15,7 +15,7 @@ barePod: false
 
 test:
   # If true, Create test Pod to verify the Ambassador service works correctly (Only created on helm test)
-  enabled: true
+  enabled: false
   # Image to use for the test Pod
   image: busybox
 

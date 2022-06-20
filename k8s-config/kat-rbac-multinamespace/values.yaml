@@ -3,3 +3,6 @@ namespaceOverride: «self.namespace»
 deploymentTool: kat
 serviceAccount:
   extra: "«serviceAccountExtra»♯: null"
+
+agent:
+  enabled: false

@@ -33,3 +33,6 @@ volumeMounts:
   - mountPath: /tmp/
     name: scratchpad
 resources: null
+
+agent:
+  enabled: false

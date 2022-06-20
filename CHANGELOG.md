@@ -92,6 +92,13 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   variable is now a misnomer, as it no longer configures which xDS API version is used, but it still
   affects what the default protocol used for a `TracingService` that points at Zipkin.
 
+- Change: This release does not include the publishing of `emissary-emissaryns-agent.yaml`,
+  `emissary-defaultns-agent.yaml`, `emissary-emissaryns-migration.yaml`, or
+  `emissary-defaultns-migration.yaml` files.  All four of these files existed solely as part of the
+  migration process from 1;y, but since 2.2.0 the `*-migration.yaml` files have not been part of the
+  migration instructions, and while the `*-agent.yaml` files remained part of the instructions they
+  were actually unnescessary.
+
 ## [2.3.1] June 09, 2022
 [2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1
 

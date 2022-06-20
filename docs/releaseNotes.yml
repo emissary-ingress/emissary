@@ -54,6 +54,17 @@ items:
           Note that the <code>AMBASSADOR_ENVOY_API_VERSION</code> environment variable is now a
           misnomer, as it no longer configures which xDS API version is used, but it still affects
           what the default protocol used for a <code>TracingService</code> that points at Zipkin.
+      - title: No longer publish obsolete YAML manifest files
+        type: change
+        body: >-
+          This release does not include the publishing of
+          <code>emissary-emissaryns-agent.yaml</code>, <code>emissary-defaultns-agent.yaml</code>,
+          <code>emissary-emissaryns-migration.yaml</code>, or
+          <code>emissary-defaultns-migration.yaml</code> files.  All four of these files existed
+          solely as part of the migration process from 1;y, but since 2.2.0 the
+          <code>*-migration.yaml</code> files have not been part of the migration instructions, and
+          while the <code>*-agent.yaml</code> files remained part of the instructions they were
+          actually unnescessary.
   - version: 2.3.1
     date: '2022-06-09'
     notes:
