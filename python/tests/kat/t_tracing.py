@@ -427,8 +427,8 @@ name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
 path_prefix: "/extauth"
 allowed_request_headers:
-- Requested-Status
-- Requested-Header
+- Kat-Req-Extauth-Requested-Status
+- Kat-Req-Extauth-Requested-Header
 """)
 
     def requirements(self):
@@ -436,7 +436,7 @@ allowed_request_headers:
         yield ("url", Query("http://zipkin-auth:9411/api/v2/services"))
 
     def queries(self):
-        yield Query(self.url("target/"), headers={"Requested-Status": "200"}, expected=200)
+        yield Query(self.url("target/"), headers={"Kat-Req-Extuath-Requested-Status": "200"}, expected=200)
 
     def check(self):
         extauth_res = json.loads(self.results[0].headers["Extauth"][0])

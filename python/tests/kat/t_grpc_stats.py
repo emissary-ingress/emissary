@@ -47,13 +47,13 @@ service: http://127.0.0.1:8877
         # [0]
         for i in range(10):
             yield Query(self.url("echo.EchoService/Echo"),
-                        headers={ "content-type": "application/grpc", "requested-status": "0" },
+                        headers={ "content-type": "application/grpc", "kat-req-echo-requested-status": "0" },
                         grpc_type="real",
                         phase=1)
 
         for i in range(10):
             yield Query(self.url("echo.EchoService/Echo"),
-                        headers={ "content-type": "application/grpc", "requested-status": "13" },
+                        headers={ "content-type": "application/grpc", "kat-req-echo-requested-status": "13" },
                         grpc_type="real",
                         phase=1)
 
@@ -145,13 +145,13 @@ service: http://127.0.0.1:8877
         # [0]
         for i in range(10):
             yield Query(self.url("echo.EchoService/Echo"),
-                        headers={ "content-type": "application/grpc", "requested-status": "0" },
+                        headers={ "content-type": "application/grpc", "kat-req-echo-requested-status": "0" },
                         grpc_type="real",
                         phase=1)
 
         for i in range(10):
             yield Query(self.url("echo.EchoService/Echo"),
-                        headers={ "content-type": "application/grpc", "requested-status": "13" },
+                        headers={ "content-type": "application/grpc", "kat-req-echo-requested-status": "13" },
                         grpc_type="real",
                         phase=1)
 
@@ -236,13 +236,13 @@ service: http://127.0.0.1:8877
         # [0]
         for i in range(10):
             yield Query(self.url("echo.EchoService/Echo"),
-                        headers={ "content-type": "application/grpc", "requested-status": "0" },
+                        headers={ "content-type": "application/grpc", "kat-req-echo-requested-status": "0" },
                         grpc_type="real",
                         phase=1)
 
         for i in range(10):
             yield Query(self.url("echo.EchoService/Echo"),
-                        headers={ "content-type": "application/grpc", "requested-status": "13" },
+                        headers={ "content-type": "application/grpc", "kat-req-echo-requested-status": "13" },
                         grpc_type="real",
                         phase=1)
 

@@ -33,12 +33,12 @@ labels:
   ambassador:
     - request_label_group:
       - request_headers:
-          key: x-ambassador-test-allow
-          header_name: "x-ambassador-test-allow"
+          key: kat-req-rls-allow
+          header_name: "kat-req-rls-allow"
           omit_if_not_present: true
       - request_headers:
-          key: x-ambassador-test-headers-append
-          header_name: "x-ambassador-test-headers-append"
+          key: kat-req-rls-headers-append
+          header_name: "kat-req-rls-headers-append"
           omit_if_not_present: true
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -88,16 +88,16 @@ timeout_ms: 500
         # [1]
         # Header instructing dummy ratelimit-service to allow request
         yield Query(self.url("target/"), expected=200, headers={
-            'x-ambassador-test-allow': 'true',
-            'x-ambassador-test-headers-append': 'no header',
+            'kat-req-rls-allow': 'true',
+            'kat-req-rls-headers-append': 'no header',
         })
 
         # [2]
         # Header instructing dummy ratelimit-service to reject request with
         # a custom response body
         yield Query(self.url("target/"), expected=429, headers={
-            'x-ambassador-test-allow': 'over my dead body',
-            'x-ambassador-test-headers-append': 'Hello=Foo; Hi=Baz',
+            'kat-req-rls-allow': 'over my dead body',
+            'kat-req-rls-headers-append': 'Hello=Foo; Hi=Baz',
         })
 
     def check(self):
@@ -108,7 +108,7 @@ timeout_ms: 500
         assert self.results[2].headers["Hello"] == [ "Foo" ]
         assert self.results[2].headers["Hi"] == [ "Baz" ]
         assert self.results[2].headers["Content-Type"] == [ "application/json" ]
-        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v2" ]
+        assert self.results[2].headers["Kat-Resp-Rls-Protocol-Version"] == [ "v2" ]
 
 class RateLimitV1Test(AmbassadorTest):
     # debug = True
@@ -133,12 +133,12 @@ labels:
   ambassador:
     - request_label_group:
       - request_headers:
-          key: x-ambassador-test-allow
-          header_name: "x-ambassador-test-allow"
+          key: kat-req-rls-allow
+          header_name: "kat-req-rls-allow"
           omit_if_not_present: true
       - request_headers:
-          key: x-ambassador-test-headers-append
-          header_name: "x-ambassador-test-headers-append"
+          key: kat-req-rls-headers-append
+          header_name: "kat-req-rls-headers-append"
           omit_if_not_present: true
 """)
 
@@ -159,15 +159,15 @@ timeout_ms: 500
         # [1]
         # Header instructing dummy ratelimit-service to allow request
         yield Query(self.url("target/"), expected=200, headers={
-            'x-ambassador-test-allow': 'true',
-            'x-ambassador-test-headers-append': 'no header',
+            'kat-req-rls-allow': 'true',
+            'kat-req-rls-headers-append': 'no header',
         })
 
         # [2]
         # Header instructing dummy ratelimit-service to reject request
         yield Query(self.url("target/"), expected=429, headers={
-            'x-ambassador-test-allow': 'over my dead body',
-            'x-ambassador-test-headers-append': 'Hello=Foo; Hi=Baz',
+            'kat-req-rls-allow': 'over my dead body',
+            'kat-req-rls-headers-append': 'Hello=Foo; Hi=Baz',
         })
 
     def check(self):
@@ -178,7 +178,7 @@ timeout_ms: 500
         assert self.results[2].headers["Hello"] == [ "Foo" ]
         assert self.results[2].headers["Hi"] == [ "Baz" ]
         assert self.results[2].headers["Content-Type"] == [ "application/json" ]
-        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v2" ]
+        assert self.results[2].headers["Kat-Resp-Rls-Protocol-Version"] == [ "v2" ]
 
 class RateLimitV1WithTLSTest(AmbassadorTest):
     # debug = True
@@ -222,12 +222,12 @@ labels:
   ambassador:
     - request_label_group:
       - request_headers:
-          key: x-ambassador-test-allow
-          header_name: "x-ambassador-test-allow"
+          key: kat-req-rls-allow
+          header_name: "kat-req-rls-allow"
           omit_if_not_present: true
       - request_headers:
-          key: x-ambassador-test-headers-append
-          header_name: "x-ambassador-test-headers-append"
+          key: kat-req-rls-headers-append
+          header_name: "kat-req-rls-headers-append"
           omit_if_not_present: true
 """)
 
@@ -247,13 +247,13 @@ tls: ratelimit-tls-context
 
         # Header instructing dummy ratelimit-service to allow request
         yield Query(self.url("target/"), expected=200, headers={
-            'x-ambassador-test-allow': 'true'
+            'kat-req-rls-allow': 'true'
         })
 
         # Header instructing dummy ratelimit-service to reject request
         yield Query(self.url("target/"), expected=429, headers={
-            'x-ambassador-test-allow': 'nope',
-            'x-ambassador-test-headers-append': 'Hello=Foo; Hi=Baz'
+            'kat-req-rls-allow': 'nope',
+            'kat-req-rls-headers-append': 'Hello=Foo; Hi=Baz'
         })
 
     def check(self):
@@ -264,7 +264,7 @@ tls: ratelimit-tls-context
         assert self.results[2].headers["Hello"] == [ "Foo" ]
         assert self.results[2].headers["Hi"] == [ "Baz" ]
         assert self.results[2].headers["Content-Type"] == [ "application/json" ]
-        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v2" ]
+        assert self.results[2].headers["Kat-Resp-Rls-Protocol-Version"] == [ "v2" ]
 
 
 class RateLimitVerTest(AmbassadorTest):
@@ -300,12 +300,12 @@ labels:
   ambassador:
     - request_label_group:
       - request_headers:
-          key: x-ambassador-test-allow
-          header_name: "x-ambassador-test-allow"
+          key: kat-req-rls-allow
+          header_name: "kat-req-rls-allow"
           omit_if_not_present: true
       - request_headers:
-          key: x-ambassador-test-headers-append
-          header_name: "x-ambassador-test-headers-append"
+          key: kat-req-rls-headers-append
+          header_name: "kat-req-rls-headers-append"
           omit_if_not_present: true
 """)
 
@@ -326,15 +326,15 @@ timeout_ms: 500
         # [1]
         # Header instructing dummy ratelimit-service to allow request
         yield Query(self.url("target/"), expected=200, headers={
-            'x-ambassador-test-allow': 'true',
-            'x-ambassador-test-headers-append': 'no header',
+            'kat-req-rls-allow': 'true',
+            'kat-req-rls-headers-append': 'no header',
         })
 
         # [2]
         # Header instructing dummy ratelimit-service to reject request
         yield Query(self.url("target/"), expected=429, headers={
-            'x-ambassador-test-allow': 'over my dead body',
-            'x-ambassador-test-headers-append': 'Hello=Foo; Hi=Baz',
+            'kat-req-rls-allow': 'over my dead body',
+            'kat-req-rls-headers-append': 'Hello=Foo; Hi=Baz',
         })
 
     def check(self):
@@ -345,4 +345,4 @@ timeout_ms: 500
         assert self.results[2].headers["Hello"] == [ "Foo" ]
         assert self.results[2].headers["Hi"] == [ "Baz" ]
         assert self.results[2].headers["Content-Type"] == [ "application/json" ]
-        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ self.expected_protocol_version ]
+        assert self.results[2].headers["Kat-Resp-Rls-Protocol-Version"] == [ self.expected_protocol_version ]

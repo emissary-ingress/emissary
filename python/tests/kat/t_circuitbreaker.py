@@ -150,7 +150,7 @@ service: cbstatsd-sink
 
         # Run 200 queries in phase 2, after the reset...
         for i in range(200):
-            yield Query(self.url(self.name) + '-pr/', headers={ "Requested-Backend-Delay": "1000" },
+            yield Query(self.url(self.name) + '-pr/', headers={ "Kat-Req-Http-Requested-Backend-Delay": "1000" },
                         ignore_result=True, phase=2)
 
         # ...then 200 more queries in phase 3. Why the split? Because we get flakes if we
@@ -158,7 +158,7 @@ service: cbstatsd-sink
         # that time out).
 
         for i in range(200):
-            yield Query(self.url(self.name) + '-pr/', headers={ "Requested-Backend-Delay": "1000" },
+            yield Query(self.url(self.name) + '-pr/', headers={ "Kat-Req-Http-Requested-Backend-Delay": "1000" },
                         ignore_result=True, phase=3)
 
         # Dump the results in phase 4, after the queries.
@@ -268,10 +268,10 @@ config:
 
     def queries(self):
         for i in range(200):
-            yield Query(self.url(self.name) + '-pr/', headers={ "Requested-Backend-Delay": "1000" },
+            yield Query(self.url(self.name) + '-pr/', headers={ "Kat-Req-Http-Requested-Backend-Delay": "1000" },
                         ignore_result=True, phase=1)
         for i in range(200):
-            yield Query(self.url(self.name) + '-normal/', headers={ "Requested-Backend-Delay": "1000" },
+            yield Query(self.url(self.name) + '-normal/', headers={ "Kat-Req-Http-Requested-Backend-Delay": "1000" },
                         ignore_result=True, phase=1)
 
     def check(self):
@@ -350,10 +350,10 @@ circuit_breakers:
 
     def queries(self):
         for i in range(200):
-            yield Query(self.url(self.name, port=6789) , headers={ "Requested-Backend-Delay": "1000" },
+            yield Query(self.url(self.name, port=6789) , headers={ "Kat-Req-Http-Requested-Backend-Delay": "1000" },
                         ignore_result=True, phase=1)
         for i in range(200):
-            yield Query(self.url(self.name, port=6790) , headers={ "Requested-Backend-Delay": "1000" },
+            yield Query(self.url(self.name, port=6790) , headers={ "Kat-Req-Http-Requested-Backend-Delay": "1000" },
                         ignore_result=True, phase=1)
 
     def check(self):

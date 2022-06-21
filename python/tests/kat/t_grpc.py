@@ -33,13 +33,13 @@ service: {self.target.path.k8s}
     def queries(self):
         # [0]
         yield Query(self.url("echo.EchoService/Echo"),
-                    headers={ "content-type": "application/grpc", "requested-status": "0" },
+                    headers={ "content-type": "application/grpc", "kat-req-echo-requested-status": "0" },
                     expected=200,
                     grpc_type="real")
 
         # [1]
         yield Query(self.url("echo.EchoService/Echo"),
-                    headers={ "content-type": "application/grpc", "requested-status": "7" },
+                    headers={ "content-type": "application/grpc", "kat-req-echo-requested-status": "7" },
                     expected=200,
                     grpc_type="real")
 
@@ -94,13 +94,13 @@ spec:
     def queries(self):
         # [0]
         yield Query(self.url("echo.EchoService/Echo"),
-                    headers={ "content-type": "application/grpc", "requested-status": "0" },
+                    headers={ "content-type": "application/grpc", "kat-req-echo-requested-status": "0" },
                     expected=200,
                     grpc_type="real")
 
         # [1]
         yield Query(self.url("echo.EchoService/Echo"),
-                    headers={ "content-type": "application/grpc", "requested-status": "7" },
+                    headers={ "content-type": "application/grpc", "kat-req-echo-requested-status": "7" },
                     expected=200,
                     grpc_type="real")
 

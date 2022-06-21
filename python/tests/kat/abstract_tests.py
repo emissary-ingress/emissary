@@ -436,7 +436,7 @@ class EGRPC(ServiceType):
     def requirements(self):
         yield ("url", Query("http://%s/echo.EchoService/Echo" % self.path.fqdn,
                             headers={ "content-type": "application/grpc",
-                                      "requested-status": "0" },
+                                      "kat-req-echo-requested-status": "0" },
                             expected=200,
                             grpc_type="real"))
 

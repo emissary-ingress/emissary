@@ -126,7 +126,7 @@ func (g *GRPC) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResponse, e
 	}
 
 	// Check header and delay response.
-	if h, ok := md["Requested-Backend-Delay"]; ok {
+	if h, ok := md["kat-req-echo-requested-backend-delay"]; ok {
 		if v, err := strconv.Atoi(h[0]); err == nil {
 			dlog.Printf(ctx, "Delaying response by %v ms", v)
 			time.Sleep(time.Duration(v) * time.Millisecond)
@@ -137,15 +137,13 @@ func (g *GRPC) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResponse, e
 	response.Headers["date"] = time.Now().Format(time.RFC1123)
 
 	// Sets client requested metadata.
-	if len(md["requested-headers"]) > 0 {
-		for _, v := range md["requested-headers"] {
-			if len(md[v]) > 0 {
-				s := strings.Join(md[v], ",")
-				response.Headers[v] = s
-				p := metadata.Pairs(v, s)
-				if err := grpc.SendHeader(ctx, p); err != nil {
-					return nil, err
-				}
+	for _, v := range md["kat-req-echo-requested-headers"] {
+		if len(md[v]) > 0 {
+			s := strings.Join(md[v], ",")
+			response.Headers[v] = s
+			p := metadata.Pairs(v, s)
+			if err := grpc.SendHeader(ctx, p); err != nil {
+				return nil, err
 			}
 		}
 	}
@@ -162,13 +160,13 @@ func (g *GRPC) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResponse, e
 		dlog.Printf(ctx, "setting response: %s\n", string(data))
 	}
 
-	// Checks if requested-status is a valid and not OK gRPC status.
-	if len(md["requested-status"]) > 0 {
-		val, err := strconv.Atoi(md["requested-status"][0])
+	// Checks if kat-req-echo-requested-status is a valid and not OK gRPC status.
+	if len(md["kat-req-echo-requested-status"]) > 0 {
+		val, err := strconv.Atoi(md["kat-req-echo-requested-status"][0])
 		if err == nil {
 			if val < 18 || val > 0 {
 				// Return response and the not OK status.
-				return echoRES, status.Error(codes.Code(val), "requested-error")
+				return echoRES, status.Error(codes.Code(val), "kat-req-echo-requested-status")
 			}
 		}
 	}

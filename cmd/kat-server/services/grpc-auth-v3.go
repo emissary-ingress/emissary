@@ -97,23 +97,26 @@ func (g *GRPCAuthV3) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckRe
 			val = []byte(fmt.Sprintf("Error: %v", err))
 		}
 
-		rs.AddHeader(false, "x-request-context-extensions", string(val))
+		rs.AddHeader(false, "kat-resp-extauth-context-extensions", string(val))
 	}
 
 	// Sets requested HTTP status.
-	rs.SetStatus(ctx, rheader["requested-status"])
+	rs.SetStatus(ctx, rheader["kat-req-extauth-requested-status"])
 
-	rs.AddHeader(false, "x-grpc-service-protocol-version", g.ProtocolVersion)
+	rs.AddHeader(false, "kat-resp-extauth-protocol-version", g.ProtocolVersion)
 
 	// Sets requested headers.
-	for _, key := range strings.Split(rheader["requested-header"], ",") {
-		if val := rheader[key]; len(val) > 0 {
-			rs.AddHeader(false, key, val)
+	// Don't bother if we'll be returning a pb.CheckResponse_OkResponse; it'd be a no-op in that case.
+	if rs.status != http.StatusOK && rs.status != 0 {
+		for _, key := range strings.Split(strings.ToLower(rheader["kat-req-extauth-requested-header"]), ",") {
+			if val := rheader[key]; val != "" {
+				rs.AddHeader(false, key, val)
+			}
 		}
 	}
 
 	// Append requested headers.
-	for _, token := range strings.Split(rheader["x-grpc-auth-append"], ";") {
+	for _, token := range strings.Split(rheader["kat-req-extauth-append"], ";") {
 		header := strings.Split(strings.TrimSpace(token), "=")
 		if len(header) > 1 {
 			dlog.Printf(ctx, "appending header %s : %s", header[0], header[1])
@@ -122,14 +125,14 @@ func (g *GRPCAuthV3) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckRe
 	}
 
 	// Sets requested Cookies.
-	for _, v := range strings.Split(rheader["requested-cookie"], ",") {
+	for _, v := range strings.Split(rheader["kat-req-extauth-requested-cookie"], ",") {
 		val := strings.Trim(v, " ")
 		rs.AddHeader(false, "Set-Cookie", fmt.Sprintf("%s=%s", val, val))
 	}
 
 	// Sets requested location.
-	if len(rheader["requested-location"]) > 0 {
-		rs.AddHeader(false, "Location", rheader["requested-location"])
+	if loc := rheader["kat-req-extauth-requested-location"]; loc != "" {
+		rs.AddHeader(false, "Location", loc)
 	}
 
 	// Parses request headers.

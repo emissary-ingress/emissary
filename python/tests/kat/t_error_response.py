@@ -80,21 +80,21 @@ error_response_overrides:
         # [0]
         yield Query(self.url("does-not-exist/"), expected=404)
         # [1]
-        yield Query(self.url("target/"), headers={"requested-status": "401"}, expected=401)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "401"}, expected=401)
         # [2]
-        yield Query(self.url("target/"), headers={"requested-status": "403"}, expected=403)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "403"}, expected=403)
         # [3]
-        yield Query(self.url("target/"), headers={"requested-status": "404"}, expected=404)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "404"}, expected=404)
         # [4]
-        yield Query(self.url("target/"), headers={"requested-status": "418"}, expected=418)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "418"}, expected=418)
         # [5]
-        yield Query(self.url("target/"), headers={"requested-status": "500"}, expected=500)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "500"}, expected=500)
         # [6]
-        yield Query(self.url("target/"), headers={"requested-status": "501"}, expected=501)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "501"}, expected=501)
         # [7]
-        yield Query(self.url("target/"), headers={"requested-status": "503"}, expected=503)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "503"}, expected=503)
         # [8]
-        yield Query(self.url("target/"), headers={"requested-status": "504"}, expected=504)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "504"}, expected=504)
         # [9]
         yield Query(self.url("target/"))
         # [10]
@@ -229,21 +229,21 @@ spec:
         # [0]
         yield Query(self.url("does-not-exist/"), expected=404)
         # [1]
-        yield Query(self.url("target/"), headers={"requested-status": "401"}, expected=401)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "401"}, expected=401)
         # [2]
-        yield Query(self.url("target/"), headers={"requested-status": "403"}, expected=403)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "403"}, expected=403)
         # [3]
-        yield Query(self.url("target/"), headers={"requested-status": "404"}, expected=404)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "404"}, expected=404)
         # [4]
-        yield Query(self.url("target/"), headers={"requested-status": "418"}, expected=418)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "418"}, expected=418)
         # [5]
-        yield Query(self.url("target/"), headers={"requested-status": "500"}, expected=500)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "500"}, expected=500)
         # [6]
-        yield Query(self.url("target/"), headers={"requested-status": "501"}, expected=501)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "501"}, expected=501)
         # [7]
-        yield Query(self.url("target/"), headers={"requested-status": "503"}, expected=503)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "503"}, expected=503)
         # [8]
-        yield Query(self.url("target/"), headers={"requested-status": "504"}, expected=504)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "504"}, expected=504)
         # [9]
         yield Query(self.url("target/"))
         # [10]
@@ -351,10 +351,10 @@ service: {self.target.path.fqdn}
         yield Query(self.url("does-not-exist/"), expected=404)
 
         # [1]
-        yield Query(self.url("target/"), headers={"requested-status": "429"}, expected=429)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "429"}, expected=429)
 
         # [2]
-        yield Query(self.url("target/"), headers={"requested-status": "504"}, expected=504)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "504"}, expected=504)
 
     def check(self):
         # [0]
@@ -419,8 +419,8 @@ service: {self.target.path.fqdn}
 
     def queries(self):
         yield Query(self.url("does-not-exist/"), expected=404)
-        yield Query(self.url("target/"), headers={"requested-status": "429"}, expected=429)
-        yield Query(self.url("target/"), headers={"requested-status": "401"}, expected=401)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "429"}, expected=429)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "401"}, expected=401)
 
     def check(self):
         # [0]
@@ -486,13 +486,13 @@ service: {self.target.path.fqdn}
 
     def queries(self):
         # [0]
-        yield Query(self.url("target/"), headers={"requested-status": "500"}, expected=500)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "500"}, expected=500)
 
         # [1]
-        yield Query(self.url("target/"), headers={"requested-status": "503"}, expected=503)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "503"}, expected=503)
 
         # [2]
-        yield Query(self.url("target/"), headers={"requested-status": "504"}, expected=504)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "504"}, expected=504)
 
     def check(self):
         # [0] Sorry for using /etc/issue...
@@ -587,25 +587,25 @@ bypass_error_response_overrides: true
 
     def queries(self):
         # [0]
-        yield Query(self.url("bypass/"), headers={"requested-status": "404"}, expected=404)
+        yield Query(self.url("bypass/"), headers={"kat-req-http-requested-status": "404"}, expected=404)
         # [1]
-        yield Query(self.url("target/"), headers={"requested-status": "404"}, expected=404)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "404"}, expected=404)
         # [2]
-        yield Query(self.url("target/bypass/"), headers={"requested-status": "418"}, expected=418)
+        yield Query(self.url("target/bypass/"), headers={"kat-req-http-requested-status": "418"}, expected=418)
         # [3]
-        yield Query(self.url("target/"), headers={"requested-status": "418"}, expected=418)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "418"}, expected=418)
         # [4]
         yield Query(self.url("target/invalidservice"), expected=503)
         # [5]
         yield Query(self.url("bypass/invalidservice"), expected=503)
         # [6]
-        yield Query(self.url("bypass/"), headers={"requested-status": "503"}, expected=503)
+        yield Query(self.url("bypass/"), headers={"kat-req-http-requested-status": "503"}, expected=503)
         # [7]
-        yield Query(self.url("target/"), headers={"requested-status": "503"}, expected=503)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "503"}, expected=503)
         # [8]
-        yield Query(self.url("bypass/"), headers={"requested-status": "200"})
+        yield Query(self.url("bypass/"), headers={"kat-req-http-requested-status": "200"})
         # [9]
-        yield Query(self.url("target/"), headers={"requested-status": "200"})
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "200"})
 
     def check(self):
         # [0]
@@ -704,11 +704,11 @@ bypass_error_response_overrides: true
 
     def queries(self):
         # [0]
-        yield Query(self.url("target/"), headers={"requested-status": "404"}, expected=404)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "404"}, expected=404)
         # [1]
-        yield Query(self.url("bypass/"), headers={"requested-status": "404"}, expected=404)
+        yield Query(self.url("bypass/"), headers={"kat-req-http-requested-status": "404"}, expected=404)
         # [2]
-        yield Query(self.url("target/"), headers={"requested-status": "404"}, expected=404)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "404"}, expected=404)
 
     def check(self):
         # [0]
@@ -782,11 +782,11 @@ error_response_overrides:
         # [0]
         yield Query(self.url("does-not-exist/"), expected=404)
         # [1]
-        yield Query(self.url("target/"), headers={"requested-status": "404"}, expected=404)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "404"}, expected=404)
         # [2]
-        yield Query(self.url("bypass/"), headers={"requested-status": "404"}, expected=404)
+        yield Query(self.url("bypass/"), headers={"kat-req-http-requested-status": "404"}, expected=404)
         # [3]
-        yield Query(self.url("overrides/"), headers={"requested-status": "404"}, expected=404)
+        yield Query(self.url("overrides/"), headers={"kat-req-http-requested-status": "404"}, expected=404)
 
     def check(self):
         # [0] does not match the error response mapping, so no 404 response.
@@ -873,31 +873,31 @@ error_response_overrides:
 
     def queries(self):
         # [0] Should match module's on_response_code 401
-        yield Query(self.url("target/"), headers={"requested-status": "401"}, expected=401)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "401"}, expected=401)
 
         # [1] Should match mapping-specific on_response_code 401
-        yield Query(self.url("override/401/"), headers={"requested-status": "401"}, expected=401)
+        yield Query(self.url("override/401/"), headers={"kat-req-http-requested-status": "401"}, expected=401)
 
         # [2] Should match mapping-specific on_response_code 503
-        yield Query(self.url("override/503/"), headers={"requested-status": "503"}, expected=503)
+        yield Query(self.url("override/503/"), headers={"kat-req-http-requested-status": "503"}, expected=503)
 
         # [3] Should not match mapping-specific rule, therefore no rewrite
-        yield Query(self.url("override/401/"), headers={"requested-status": "503"}, expected=503)
+        yield Query(self.url("override/401/"), headers={"kat-req-http-requested-status": "503"}, expected=503)
 
         # [4] Should not match mapping-specific rule, therefore no rewrite
-        yield Query(self.url("override/503/"), headers={"requested-status": "401"}, expected=401)
+        yield Query(self.url("override/503/"), headers={"kat-req-http-requested-status": "401"}, expected=401)
 
         # [5] Should not match mapping-specific rule, therefore no rewrite
-        yield Query(self.url("override/401/"), headers={"requested-status": "504"}, expected=504)
+        yield Query(self.url("override/401/"), headers={"kat-req-http-requested-status": "504"}, expected=504)
 
         # [6] Should not match mapping-specific rule, therefore no rewrite
-        yield Query(self.url("override/503/"), headers={"requested-status": "504"}, expected=504)
+        yield Query(self.url("override/503/"), headers={"kat-req-http-requested-status": "504"}, expected=504)
 
         # [7] Should match module's on_response_code 503
-        yield Query(self.url("target/"), headers={"requested-status": "503"}, expected=503)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "503"}, expected=503)
 
         # [8] Should match module's on_response_code 504
-        yield Query(self.url("target/"), headers={"requested-status": "504"}, expected=504)
+        yield Query(self.url("target/"), headers={"kat-req-http-requested-status": "504"}, expected=504)
 
     def check(self):
         # [0] Module's 401 rule with custom header
@@ -1035,7 +1035,7 @@ spec:
     def queries(self):
         for x in self._queries:
             yield Query(self.url(x['url']),
-                        headers={"requested-status": str(x['status'])},
+                        headers={"kat-req-http-requested-status": str(x['status'])},
                         expected=x['status'])
 
     def check(self):

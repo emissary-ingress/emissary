@@ -40,7 +40,7 @@ service: {self.target.path.k8s}
         yield Query(self.url("echo.EchoService/Echo"),
                     headers={ "content-type": "application/grpc-web-text",
                               "accept": "application/grpc-web-text",
-                              "requested-status": "0" },
+                              "kat-req-echo-requested-status": "0" },
                     expected=200,
                     grpc_type="web")
 
@@ -48,7 +48,7 @@ service: {self.target.path.k8s}
         yield Query(self.url("echo.EchoService/Echo"),
                     headers={ "content-type": "application/grpc-web-text",
                               "accept": "application/grpc-web-text",
-                              "requested-status": "7" },
+                              "kat-req-echo-requested-status": "7" },
                     expected=200,
                     grpc_type="web")
 

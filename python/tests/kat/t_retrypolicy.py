@@ -52,10 +52,10 @@ config:
 """)
 
     def queries(self):
-        yield Query(self.url(self.name + '-normal/'), headers={"Requested-Backend-Delay": "0"}, expected=200)
-        yield Query(self.url(self.name + '-normal/'), headers={"Requested-Status": "500"}, expected=500)
-        yield Query(self.url(self.name + '-retry/'), headers={"Requested-Status": "500", "Requested-Backend-Delay": "2000"}, expected=504)
-        yield Query(self.url(self.name + '-normal/'), headers={"Requested-Status": "409", "Requested-Backend-Delay": "2000"}, expected=504)
+        yield Query(self.url(self.name + '-normal/'), headers={"Kat-Req-Http-Requested-Backend-Delay": "0"}, expected=200)
+        yield Query(self.url(self.name + '-normal/'), headers={"Kat-Req-Http-Requested-Status": "500"}, expected=500)
+        yield Query(self.url(self.name + '-retry/'), headers={"Kat-Req-Http-Requested-Status": "500", "Kat-Req-Http-Requested-Backend-Delay": "2000"}, expected=504)
+        yield Query(self.url(self.name + '-normal/'), headers={"Kat-Req-Http-Requested-Status": "409", "Kat-Req-Http-Requested-Backend-Delay": "2000"}, expected=504)
 
     def get_timestamp(self, hdr):
         m = re.match(r'^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,6})', hdr)

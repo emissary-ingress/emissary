@@ -91,7 +91,7 @@ func (g *GRPCRLSV3) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest)
 
 	// Sets overallCode. If x-ambassador-test-allow is present and has value "true", then
 	// respond with OK. In any other case, respond with OVER_LIMIT.
-	if allowValue := descEntries["x-ambassador-test-allow"]; allowValue == "true" {
+	if allowValue := descEntries["kat-req-rls-allow"]; allowValue == "true" {
 		rs.SetOverallCode(pb.RateLimitResponse_OK)
 	} else {
 		rs.SetOverallCode(pb.RateLimitResponse_OVER_LIMIT)
@@ -100,7 +100,7 @@ func (g *GRPCRLSV3) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest)
 		// so we append them here, if they exist.
 
 		// Append requested headers.
-		for _, token := range strings.Split(descEntries["x-ambassador-test-headers-append"], ";") {
+		for _, token := range strings.Split(descEntries["kat-req-rls-headers-append"], ";") {
 			header := strings.Split(strings.TrimSpace(token), "=")
 			if len(header) > 1 {
 				dlog.Printf(ctx, "appending header %s : %s", header[0], header[1])
@@ -110,7 +110,7 @@ func (g *GRPCRLSV3) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest)
 
 		// Set the content-type header, since we're returning json
 		rs.AddHeader(true, "content-type", "application/json")
-		rs.AddHeader(true, "x-grpc-service-protocol-version", g.ProtocolVersion)
+		rs.AddHeader(true, "kat-resp-rls-protocol-version", g.ProtocolVersion)
 
 		// Sets results body.
 		results := make(map[string]interface{})
