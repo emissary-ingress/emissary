@@ -337,17 +337,6 @@ pytest-kat-envoy2-g%: build-aux/pytest-kat.txt $(tools/py-split-tests)
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
-mypy: $(OSS_HOME)/venv
-	set -e; { \
-	  . $(OSS_HOME)/venv/bin/activate; \
-	  time mypy \
-	    --cache-fine-grained \
-	    --ignore-missing-imports \
-	    --check-untyped-defs \
-	    ./python/; \
-	}
-.PHONY: mypy
-
 $(OSS_HOME)/venv: python/requirements.txt python/requirements-dev.txt
 	rm -rf $@
 	python3 -m venv $@
