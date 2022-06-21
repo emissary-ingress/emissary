@@ -23,8 +23,8 @@ import (
 	"github.com/datawire/dlib/dlog"
 )
 
-// GRPCRLS server object (all fields are required).
-type GRPCRLS struct {
+// GRPCRLSV2 server object (all fields are required).
+type GRPCRLSV2 struct {
 	Port            int16
 	Backend         string
 	SecurePort      int16
@@ -35,8 +35,8 @@ type GRPCRLS struct {
 }
 
 // Start initializes the HTTP server.
-func (g *GRPCRLS) Start(ctx context.Context) <-chan bool {
-	dlog.Printf(ctx, "GRPCRLS: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
+func (g *GRPCRLSV2) Start(ctx context.Context) <-chan bool {
+	dlog.Printf(ctx, "GRPCRLSV2: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
 	grpcHandler := grpc.NewServer()
 	dlog.Printf(ctx, "registering v2 service")
@@ -77,8 +77,8 @@ func (g *GRPCRLS) Start(ctx context.Context) <-chan bool {
 }
 
 // Check checks the request object.
-func (g *GRPCRLS) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest) (*pb.RateLimitResponse, error) {
-	rs := &RLSResponse{}
+func (g *GRPCRLSV2) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest) (*pb.RateLimitResponse, error) {
+	rs := &RLSResponseV2{}
 
 	dlog.Printf(ctx, "shouldRateLimit descriptors: %v\n", r.Descriptors)
 
@@ -134,8 +134,8 @@ func (g *GRPCRLS) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest) (
 	return rs.GetResponse(), nil
 }
 
-// RLSResponse constructs an rls response object.
-type RLSResponse struct {
+// RLSResponseV2 constructs an rls response object.
+type RLSResponseV2 struct {
 	headers     []*core.HeaderValueOption
 	body        string
 	overallCode pb.RateLimitResponse_Code
@@ -143,7 +143,7 @@ type RLSResponse struct {
 
 // AddHeader adds a header to the response. When append param is true, Envoy will
 // append the value to an existent request header instead of overriding it.
-func (r *RLSResponse) AddHeader(a bool, k, v string) {
+func (r *RLSResponseV2) AddHeader(a bool, k, v string) {
 	val := &core.HeaderValueOption{
 		Header: &core.HeaderValue{
 			Key:   k,
@@ -155,7 +155,7 @@ func (r *RLSResponse) AddHeader(a bool, k, v string) {
 }
 
 // GetHTTPHeaderMap returns HTTP header mapping of the response header-options.
-func (r *RLSResponse) GetHTTPHeaderMap() *http.Header {
+func (r *RLSResponseV2) GetHTTPHeaderMap() *http.Header {
 	h := &http.Header{}
 	for _, v := range r.headers {
 		h.Add(v.Header.Key, v.Header.Value)
@@ -164,22 +164,22 @@ func (r *RLSResponse) GetHTTPHeaderMap() *http.Header {
 }
 
 // SetBody sets the rls response message body.
-func (r *RLSResponse) SetBody(s string) {
+func (r *RLSResponseV2) SetBody(s string) {
 	r.body = s
 }
 
 // SetOverallCode sets the rls response HTTP status code.
-func (r *RLSResponse) SetOverallCode(code pb.RateLimitResponse_Code) {
+func (r *RLSResponseV2) SetOverallCode(code pb.RateLimitResponse_Code) {
 	r.overallCode = code
 }
 
 // GetOverallCode returns the rls response HTTP status code.
-func (r *RLSResponse) GetOverallCode() pb.RateLimitResponse_Code {
+func (r *RLSResponseV2) GetOverallCode() pb.RateLimitResponse_Code {
 	return r.overallCode
 }
 
 // GetResponse returns the gRPC rls response object.
-func (r *RLSResponse) GetResponse() *pb.RateLimitResponse {
+func (r *RLSResponseV2) GetResponse() *pb.RateLimitResponse {
 	rs := &pb.RateLimitResponse{}
 	rs.OverallCode = r.overallCode
 	rs.RawBody = []byte(r.body)

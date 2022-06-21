@@ -1,28 +1,34 @@
 package services
 
 import (
+	// stdlib
 	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
 
+	// third party
 	"google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
-	"github.com/datawire/dlib/dlog"
+	// first party (protobuf)
 	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
 	pb "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/auth/v3"
 	envoy_type "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/v3"
+
+	// first party
+	"github.com/datawire/dlib/dgroup"
+	"github.com/datawire/dlib/dhttp"
+	"github.com/datawire/dlib/dlog"
 )
 
-// GRPCAUTHV3 server object (all fields are required).
-type GRPCAUTHV3 struct {
+// GRPCAuthV3 server object (all fields are required).
+type GRPCAuthV3 struct {
 	Port            int16
 	Backend         string
 	SecurePort      int16
@@ -33,70 +39,65 @@ type GRPCAUTHV3 struct {
 }
 
 // Start initializes the HTTP server.
-func (g *GRPCAUTHV3) Start(ctx context.Context) <-chan bool {
-	dlog.Printf(ctx, "GRPCAUTHV3: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
+func (g *GRPCAuthV3) Start(ctx context.Context) <-chan bool {
+	dlog.Printf(ctx, "GRPCAuthV3: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
-	exited := make(chan bool)
-	proto := "tcp"
+	grpcHandler := grpc.NewServer()
+	dlog.Printf(ctx, "registering v3 service")
+	pb.RegisterAuthorizationServer(grpcHandler, g)
 
-	go func() {
-		port := fmt.Sprintf(":%v", g.Port)
+	cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
+	if err != nil {
+		dlog.Error(ctx, err)
+		panic(err) // TODO: do something better
+	}
 
-		ln, err := net.Listen(proto, port)
-		if err != nil {
-			dlog.Error(ctx, err)
-			panic(err) // TODO: do something better
-		}
+	sc := &dhttp.ServerConfig{
+		Handler: grpcHandler,
+		TLSConfig: &tls.Config{
+			Certificates: []tls.Certificate{cer},
+		},
+	}
 
-		s := grpc.NewServer()
-		dlog.Printf(ctx, "registering v3 service")
-		pb.RegisterAuthorizationServer(s, g)
-		if err := s.Serve(ln); err != nil {
-			panic(err) // TODO: do something better
-		}
-
-		defer ln.Close()
-		close(exited)
-	}()
-
-	go func() {
-		cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
-		if err != nil {
-			dlog.Error(ctx, err)
-			panic(err) // TODO: do something better
-		}
-
-		config := &tls.Config{Certificates: []tls.Certificate{cer}}
-		port := fmt.Sprintf(":%v", g.SecurePort)
-		ln, err := tls.Listen(proto, port, config)
-		if err != nil {
-			dlog.Error(ctx, err)
-			panic(err) // TODO: do something better
-		}
-
-		s := grpc.NewServer()
-		dlog.Printf(ctx, "registering v2 service")
-		pb.RegisterAuthorizationServer(s, g)
-		if err := s.Serve(ln); err != nil {
-			panic(err) // TODO: do something better
-		}
-
-		defer ln.Close()
-		close(exited)
-	}()
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
+	grp.Go("cleartext", func(ctx context.Context) error {
+		return sc.ListenAndServe(ctx, fmt.Sprintf(":%v", g.Port))
+	})
+	grp.Go("tls", func(ctx context.Context) error {
+		return sc.ListenAndServeTLS(ctx, fmt.Sprintf(":%v", g.SecurePort), "", "")
+	})
 
 	dlog.Print(ctx, "starting gRPC authorization service")
+
+	exited := make(chan bool)
+	go func() {
+		if err := grp.Wait(); err != nil {
+			dlog.Error(ctx, err)
+			panic(err) // TODO: do something better
+		}
+		close(exited)
+	}()
 	return exited
 }
 
 // Check checks the request object.
-func (g *GRPCAUTHV3) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResponse, error) {
+func (g *GRPCAuthV3) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResponse, error) {
 	rs := &ResponseV3{}
 
 	rheader := r.GetAttributes().GetRequest().GetHttp().GetHeaders()
 	rbody := r.GetAttributes().GetRequest().GetHttp().GetBody()
 	if len(rbody) > 0 {
 		rheader["body"] = rbody
+	}
+
+	rContextExtensions := r.GetAttributes().GetContextExtensions()
+	if rContextExtensions != nil {
+		val, err := json.Marshal(rContextExtensions)
+		if err != nil {
+			val = []byte(fmt.Sprintf("Error: %v", err))
+		}
+
+		rs.AddHeader(false, "x-request-context-extensions", string(val))
 	}
 
 	// Sets requested HTTP status.
