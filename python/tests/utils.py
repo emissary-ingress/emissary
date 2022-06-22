@@ -69,6 +69,63 @@ spec:
       from: ALL
 """
 
+def default_http3_listener_manifest():
+  return """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: listener-http3-8443
+  namespace: default
+spec:
+  port: 8443
+  protocolStack:
+    - TLS
+    - HTTP
+    - UDP
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL  
+  """
+
+def default_udp_listener_manifest():
+  return """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: listener-udp-8443
+  namespace: default
+spec:
+  port: 8443
+  protocolStack:
+    - TLS
+    - UDP
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL  
+  """
+def default_tcp_listener_manifest():
+  return """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: listener-tcp-8443
+  namespace: default
+spec:
+  port: 8443
+  protocolStack:
+    - TLS
+    - TCP
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL  
+  """
+
 def module_and_mapping_manifests(module_confs, mapping_confs):
     yaml = default_listener_manifests() + """
 ---

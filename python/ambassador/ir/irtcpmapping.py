@@ -89,7 +89,7 @@ class IRTCPMapping (IRBaseMapping):
 
     def bind_to(self) -> str:
         bind_addr = self.get('address') or '0.0.0.0'
-        return "%s-%s" % (bind_addr, self.port)
+        return f"tcp-{bind_addr}-{self.port}"
 
     def _group_id(self) -> str:
         # Yes, we're using a cryptographic hash here. Cope. [ :) ]

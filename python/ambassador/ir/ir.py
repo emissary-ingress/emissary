@@ -91,7 +91,7 @@ class IR:
     hosts: Dict[str, IRHost]
     invalid: List[Dict]
     invalidate_groups_for: List[str]
-    # The key for listeners is "{bindaddr}-{port}" (see IRListener.bind_to())
+    # The key for listeners is "{socket_protocol}-{bindaddr}-{port}" (see IRListener.bind_to())
     listeners: Dict[str, IRListener]
     log_services: Dict[str, IRLogService]
     ratelimit: Optional[IRRateLimit]
@@ -327,6 +327,29 @@ class IR:
 
         # After TLSContexts, grab Listeners...
         ListenerFactory.load_all(self, aconf)
+
+        # Now that we know all of the listeners, we can check to see if there are any shared bindings
+        # accross protocols (TCP & UDP sharing same addres & port). When a TCP/HTTP listener binds
+        # to the same address and port of the UPD/HTTP Listener then it will be marked as http3_enabled=True.
+        # This causes the `alt-svc` header to be auto-injected into http responses on the TCP/HTTP responses.
+        # The alt-service header notifies clients (browsers, curl, libraries) that they can upgrade
+        # TCP connections to UDP (HTTP/3) connections.
+        #
+        # Note: at first glance it would seem this logic should sit inside the Listener class but
+        # we wait until all the listeners are loaded so that we can check for the existance of a
+        # "companion" TCP Listener. If a UDP listener was the first to be parsed then
+        # we wouldn't know at that time. Thus we need to wait until after all of them have been loaded.
+        udp_listeners  = (l for l in self.listeners.values() if l.socket_protocol == "UDP")
+        for udp_listener in udp_listeners:
+            ## this matches the `listener.bind_to` for the tcp listener
+            tcp_listener_key = f"tcp-{udp_listener.bind_address}-{udp_listener.port}"
+            tcp_listener = self.listeners.get(tcp_listener_key, None)
+
+            if tcp_listener is not None:
+                tcp_listener.http3_enabled = True
+
+                if "HTTP" in tcp_listener.protocolStack:
+                    tcp_listener.http3_enabled = True
 
         # ...then grab whatever we know about Hosts...
         HostFactory.load_all(self, aconf)
@@ -876,10 +899,10 @@ class IR:
 
         extant_listener = self.listeners.get(listener_key, None)
         is_valid = True
-
         if extant_listener:
-            self.post_error("Duplicate listener %s on %s:%d; keeping definition from %s" %
-                            (listener.name, listener.bind_address, listener.port, extant_listener.location))
+            err_msg = f"Duplicate listener {listener.name} on {listener.socket_protocol.lower()}://{listener.bind_address}:{listener.port};" \
+                      f" keeping definition from {extant_listener.location}"
+            self.post_error(err_msg)
             is_valid = False
 
         if is_valid:

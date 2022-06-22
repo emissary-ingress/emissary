@@ -193,8 +193,6 @@ class IRResource (Resource):
             raise Exception("post_error cannot be called before __init__")
 
         self.ir.post_error(error, resource=self, log_level=log_level)
-        # super().post_error(error)
-        # self.ir.logger.error("%s: %s" % (self, error))
 
     def skip_key(self, k: str) -> bool:
         if k.startswith('__') or k.startswith("_IRResource__"):

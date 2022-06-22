@@ -102,12 +102,10 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
 
         self.referenced_by(mapping)
 
-        # self.ir.logger.debug("%s: group now %s" % (self, self.as_json()))
-
     # Deliberately matches IRListener.bind_to()
     def bind_to(self) -> str:
         bind_addr = self.get('address') or Config.envoy_bind_address
-        return f"{bind_addr}-{self.port}"
+        return f"tcp-{bind_addr}-{self.port}"
 
     def add_cluster_for_mapping(self, mapping: IRBaseMapping,
                                 marker: Optional[str] = None) -> IRCluster:
