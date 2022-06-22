@@ -10,16 +10,19 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 
-	// envoy api v2
-	apiv2 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2"
-	apiv2_core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
-	apiv2_discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v2"
+	// envoy api v3
+	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/cluster/v3"
+	v3discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
+	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/endpoint/v3"
+	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/listener/v3"
+	v3route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/route/v3"
 
 	// envoy control plane
-	ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
-	ecp_v2_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v2"
+	ecp_v3_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
 	ecp_log "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/log"
-	ecp_v2_server "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v2"
+	ecp_v3_resource "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
+	ecp_v3_server "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
 
 	// first-party-libraries
 	"github.com/datawire/dlib/dhttp"
@@ -32,7 +35,7 @@ import (
 type EnvoyController struct {
 	address string
 
-	configCache ecp_v2_cache.SnapshotCache
+	configCache ecp_v3_cache.SnapshotCache
 
 	cond        *sync.Cond            // Protects the 'results' and 'outstanding'
 	results     map[string]*errorInfo // Maps config version to error info related to that config
@@ -68,7 +71,8 @@ func NewEnvoyController(address string) *EnvoyController {
 		results:     map[string]*errorInfo{},
 		outstanding: map[string]ackInfo{},
 	}
-	ret.configCache = ecp_v2_cache.NewSnapshotCache(
+
+	ret.configCache = ecp_v3_cache.NewSnapshotCache(
 		true,              // ads
 		ecNodeHash{},      // hash
 		ecLogger{ec: ret}, // logger
@@ -78,8 +82,8 @@ func NewEnvoyController(address string) *EnvoyController {
 
 // Configure will update the envoy configuration and block until the reconfiguration either succeeds
 // or signals an error.
-func (e *EnvoyController) Configure(ctx context.Context, node, version string, snapshot ecp_v2_cache.Snapshot) (*status.Status, error) {
-	err := e.configCache.SetSnapshot(node, snapshot)
+func (e *EnvoyController) Configure(ctx context.Context, node, version string, snapshot ecp_v3_cache.Snapshot) (*status.Status, error) {
+	err := e.configCache.SetSnapshot(ctx, node, snapshot)
 	if err != nil {
 		return nil, err
 	}
@@ -88,17 +92,18 @@ func (e *EnvoyController) Configure(ctx context.Context, node, version string, s
 	// requested in order to figure out how to properly check that the entire snapshot was
 	// acked/nacked.
 	var typeURLs []string
-	if len(snapshot.Resources[ecp_cache_types.Endpoint].Items) > 0 {
-		typeURLs = append(typeURLs, "type.googleapis.com/envoy.api.v2.ClusterLoadAssignment")
+
+	if len(snapshot.GetResources(ecp_v3_resource.EndpointType)) > 0 {
+		typeURLs = append(typeURLs, ecp_v3_resource.EndpointType)
 	}
-	if len(snapshot.Resources[ecp_cache_types.Cluster].Items) > 0 {
-		typeURLs = append(typeURLs, "type.googleapis.com/envoy.api.v2.Cluster")
+	if len(snapshot.GetResources(ecp_v3_resource.ClusterType)) > 0 {
+		typeURLs = append(typeURLs, ecp_v3_resource.ClusterType)
 	}
-	if len(snapshot.Resources[ecp_cache_types.Route].Items) > 0 {
-		typeURLs = append(typeURLs, "type.googleapis.com/envoy.api.v2.RouteConfiguration")
+	if len(snapshot.GetResources(ecp_v3_resource.RouteType)) > 0 {
+		typeURLs = append(typeURLs, ecp_v3_resource.RouteType)
 	}
-	if len(snapshot.Resources[ecp_cache_types.Listener].Items) > 0 {
-		typeURLs = append(typeURLs, "type.googleapis.com/envoy.api.v2.Listener")
+	if len(snapshot.GetResources(ecp_v3_resource.ListenerType)) > 0 {
+		typeURLs = append(typeURLs, ecp_v3_resource.ListenerType)
 	}
 
 	for _, t := range typeURLs {
@@ -174,17 +179,17 @@ func (e *EnvoyController) Run(ctx context.Context) error {
 	// The callbacks don't have access to a context, so we'll capture this one for them to use.
 	e.logCtx = ctx
 
-	srv := ecp_v2_server.NewServer(ctx,
+	srv := ecp_v3_server.NewServer(ctx,
 		e.configCache,      // config
 		ecCallbacks{ec: e}, // calbacks
 	)
 
 	grpcMux := grpc.NewServer()
-	apiv2_discovery.RegisterAggregatedDiscoveryServiceServer(grpcMux, srv)
-	apiv2.RegisterEndpointDiscoveryServiceServer(grpcMux, srv)
-	apiv2.RegisterClusterDiscoveryServiceServer(grpcMux, srv)
-	apiv2.RegisterRouteDiscoveryServiceServer(grpcMux, srv)
-	apiv2.RegisterListenerDiscoveryServiceServer(grpcMux, srv)
+	v3discovery.RegisterAggregatedDiscoveryServiceServer(grpcMux, srv)
+	v3endpoint.RegisterEndpointDiscoveryServiceServer(grpcMux, srv)
+	v3cluster.RegisterClusterDiscoveryServiceServer(grpcMux, srv)
+	v3route.RegisterRouteDiscoveryServiceServer(grpcMux, srv)
+	v3listener.RegisterListenerDiscoveryServiceServer(grpcMux, srv)
 
 	sc := &dhttp.ServerConfig{
 		Handler: grpcMux,
@@ -196,10 +201,10 @@ func (e *EnvoyController) Run(ctx context.Context) error {
 
 type ecNodeHash struct{}
 
-var _ ecp_v2_cache.NodeHash = ecNodeHash{}
+var _ ecp_v3_cache.NodeHash = ecNodeHash{}
 
-// ID implements ecp_v2_cache.NodeHash.
-func (ecNodeHash) ID(node *apiv2_core.Node) string {
+// ID implements ecp_v3_cache.NodeHash.
+func (ecNodeHash) ID(node *v3core.Node) string {
 	if node == nil {
 		return "unknown"
 	}
@@ -212,21 +217,21 @@ type ecCallbacks struct {
 	ec *EnvoyController
 }
 
-var _ ecp_v2_server.Callbacks = ecCallbacks{}
+var _ ecp_v3_server.Callbacks = ecCallbacks{}
 
-// OnStreamOpen implements ecp_v2_server.Callbacks.
+// OnStreamOpen implements ecp_v3_server.Callbacks.
 func (ecc ecCallbacks) OnStreamOpen(_ context.Context, sid int64, stype string) error {
 	//e.Infof("Stream open[%v]: %v", sid, stype)
 	return nil
 }
 
-// OnStreamClosed implements ecp_v2_server.Callbacks.
+// OnStreamClosed implements ecp_v3_server.Callbacks.
 func (ecc ecCallbacks) OnStreamClosed(sid int64) {
 	//e.Infof("Stream closed[%v]", sid)
 }
 
 // OnStreamRequest implements ecp_v2_server.Callbacks.
-func (ecc ecCallbacks) OnStreamRequest(sid int64, req *apiv2.DiscoveryRequest) error {
+func (ecc ecCallbacks) OnStreamRequest(sid int64, req *v3discovery.DiscoveryRequest) error {
 	//e.Infof("Stream request[%v]: %v", sid, req.TypeURL)
 
 	ecc.ec.cond.L.Lock()
@@ -246,8 +251,8 @@ func (ecc ecCallbacks) OnStreamRequest(sid int64, req *apiv2.DiscoveryRequest) e
 	return nil
 }
 
-// OnStreamResponse implements ecp_v2_server.Callbacks.
-func (ecc ecCallbacks) OnStreamResponse(sid int64, req *apiv2.DiscoveryRequest, res *apiv2.DiscoveryResponse) {
+// OnStreamResponse implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnStreamResponse(ctx context.Context, sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
 	//e.Infof("Stream response[%v]: %v -> %v", sid, req.TypeURL, res.Nonce)
 
 	ecc.ec.cond.L.Lock()
@@ -258,15 +263,33 @@ func (ecc ecCallbacks) OnStreamResponse(sid int64, req *apiv2.DiscoveryRequest, 
 
 }
 
-// OnFetchRequest implements ecp_v2_server.Callbacks.
-func (ecc ecCallbacks) OnFetchRequest(_ context.Context, r *apiv2.DiscoveryRequest) error {
+// OnFetchRequest implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnFetchRequest(_ context.Context, r *v3discovery.DiscoveryRequest) error {
 	//e.Infof("Fetch request: %v", r)
 	return nil
 }
 
-// OnFetchResponse implements ecp_v2_server.Callbacks.
-func (ecc ecCallbacks) OnFetchResponse(req *apiv2.DiscoveryRequest, res *apiv2.DiscoveryResponse) {
+// OnFetchResponse implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
 	//e.Infof("Fetch response: %v -> %v", req, res)
+}
+
+// OnDeltaStreamOpen implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnDeltaStreamOpen(ctx context.Context, sid int64, stype string) error {
+	return nil
+}
+
+// OnDeltaStreamClosed implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnDeltaStreamClosed(sid int64) {
+}
+
+// OnStreamDeltaRequest implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnStreamDeltaRequest(sid int64, req *v3discovery.DeltaDiscoveryRequest) error {
+	return nil
+}
+
+// OnStreamDelatResponse implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnStreamDeltaResponse(sid int64, req *v3discovery.DeltaDiscoveryRequest, res *v3discovery.DeltaDiscoveryResponse) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////

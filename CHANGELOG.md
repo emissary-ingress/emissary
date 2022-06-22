@@ -77,6 +77,11 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Change: The envoy version included in Emissary-ingress has been upgraded from 1.17 to latest patch
+  release of 1.22. This provides $produceName$ with the latest security patches, performances
+  enhancments, and features offered by the envoy proxy. One notable change that will effect users is
+  the removal of support for V2 tranport protocol. See below for more information.
+
 - Change: Emissary-ingress can no longer be made to configure Envoy using the v2 xDS configuration
   API; it now always uses the v3 xDS API to configure Envoy.  This change should be mostly invisible
   to users, with one notable exception: It removes support for `regex_type: unsafe`.
@@ -88,9 +93,9 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   Users who rely on the specific
   ECMAScript Regex syntax will need to rewrite their regular expressions with RE2 syntax before
   upgrading to Emissary-ingress 3.0.0.
-  Note that the `AMBASSADOR_ENVOY_API_VERSION` environment
-  variable is now a misnomer, as it no longer configures which xDS API version is used, but it still
-  affects what the default protocol used for a `TracingService` that points at Zipkin.
+  As the xDS version is no longer configurable and the range of
+  supported Zipkin protocols is reduced (see below), the AMBASSADOR_ENVOY_API_VERSION environment
+  variable has been removed.
 
 - Change: With the ugprade to Envoy 1.22, Emissary-ingress no longer supports the V2 transport
   protocol. The `AuthService`, `LogService` and the `RateLimitService` will only support the v3
@@ -98,6 +103,12 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   error to be posted. Therefore, you will need to set it to `protocol_version: "v3"`. If upgrading
   from a previous version you will want to set it to "v3" and ensure it is working before upgrading
   to Emissary-ingress 3.Y.
+
+- Change: With the upgrade to Envoy 1.22, the `zipkin` driver for the `TraceService` no longer
+  supports setting the `collector_endpoint_version: HTTP_JSON_V1`. This was removed in Envoy 1.20 -
+  <a href="https://github.com/envoyproxy/envoy/commit/db74e313b3651588e59c671af45077714ac32cef" />.
+  The new default will be `collector_endpoint_version: HTTP_JSON`, regardless of the
+  `AMBASSADOR_ENVOY_API_VERSION` environment variable.
 
 - Change: In the standard published `.yaml` files, now included is a `Module` resource that disables
   the `/ambassador/v0/` → `127.0.0.1:8878` synthetic mapping.  We have long recommended to turn
@@ -112,6 +123,21 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   migration process from 1;y, but since 2.2.0 the `*-migration.yaml` files have not been part of the
   migration instructions, and while the `*-agent.yaml` files remained part of the instructions they
   were actually unnescessary.
+
+- Change: The previous version of Emissary-ingress was based on Envoy 1.17 and when using grpc_stats
+  with `all_methods` or `services` set, it would output metrics in the following format
+  `envoy_cluster_grpc_{ServiceName}_{statname}`. When neither of these fields are set it would be
+  aggregated to `envoy_cluster_grpc_{statname}`.
+  The new behavior since Envoy 1.18 will produce
+  metrics in the following format `envoy_cluster_grpc_{MethodName}_statsname` and
+  `envoy_cluster_grpc_statsname`.
+  After further investigation we found that Envoy doesn't properly
+  parse service names such as `cncf.telepresence.Manager/Status`. In the future, we will work
+  upstream Envoy to get this parsing logic fixed to ensure consistent metric naming.
+
+- Bugfix: Previously setting `grpc_stats` in the `ambassador` `Module` without setting either
+  `grpc_stats.services` or `grpc_stats.all_methods` would result in crashing. Now it behaves as if
+  `grpc_stats.all_methods=false`.
 
 ## [2.3.1] June 09, 2022
 [2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1
