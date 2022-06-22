@@ -32,9 +32,12 @@ class GRPCStatsTest(AmbassadorTest):
                 'envoy_cluster_grpc_EchoService_request_message_count',
                 'envoy_cluster_grpc_EchoService_response_message_count',
                 'envoy_cluster_grpc_EchoService_success',
+                'envoy_cluster_grpc_EchoService_failure',
                 'envoy_cluster_grpc_EchoService_total',
                 # present only when enable_upstream_stats is true
-                'envoy_cluster_grpc_EchoService_upstream_rq_time',
+                'envoy_cluster_grpc_EchoService_upstream_rq_time_bucket',
+                'envoy_cluster_grpc_EchoService_upstream_rq_time_count',
+                'envoy_cluster_grpc_EchoService_upstream_rq_time_sum',
             ]
             self.absent_metrics = [
                 # since all_methods is true, we should not see the generic metrics
@@ -61,6 +64,7 @@ class GRPCStatsTest(AmbassadorTest):
                 'envoy_cluster_grpc_EchoService_request_message_count',
                 'envoy_cluster_grpc_EchoService_response_message_count',
                 'envoy_cluster_grpc_EchoService_success',
+                'envoy_cluster_grpc_EchoService_failure',
                 'envoy_cluster_grpc_EchoService_total',
             ]
             self.absent_metrics = [
@@ -89,6 +93,7 @@ class GRPCStatsTest(AmbassadorTest):
                 'envoy_cluster_grpc_request_message_count',
                 'envoy_cluster_grpc_response_message_count',
                 'envoy_cluster_grpc_success',
+                'envoy_cluster_grpc_failure',
                 'envoy_cluster_grpc_total',
             ]
             self.absent_metrics = [
@@ -151,10 +156,18 @@ service: http://127.0.0.1:8877
 
 
     def check(self):
-        stats = self.results[-1].text
+        stats = {pair[0]: pair[1]
+                 for pair in [line.rsplit(" ", maxsplit=1)
+                              for line in self.results[-1].text.split("\n") if line.startswith("envoy_cluster_grpc")]}
+        stats_shortnames = set(key.split("{")[0] for key in stats.keys())
+
+        print(f'stats_shortnames are: {repr(stats_shortnames)}')
 
         for metric in self.present_metrics:
-            assert metric in stats, f'coult not find metric: {metric}'
+            assert metric in stats_shortnames, f'coult not find metric: {metric}'
 
         for metric in self.absent_metrics:
-            assert metric not in stats, f'metric {metric} should not be present'
+            assert not any(shortname.startswith(metric) for shortname in stats_shortnames), f'metric {metric} should not be present'
+
+        for metric in stats_shortnames:
+            assert metric in self.present_metrics, f"found metric {metric} but it isn't in self.present_metrics"
