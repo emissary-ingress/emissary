@@ -1,20 +1,26 @@
 package services
 
 import (
+	// stdlib
 	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 	"strings"
 
+	// third party
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
-	"github.com/datawire/dlib/dlog"
+	// first party (protobuf)
 	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
 	pb "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/ratelimit/v3"
+
+	// first party
+	"github.com/datawire/dlib/dgroup"
+	"github.com/datawire/dlib/dhttp"
+	"github.com/datawire/dlib/dlog"
 )
 
 // GRPCRLSV3 server object (all fields are required).
@@ -32,57 +38,41 @@ type GRPCRLSV3 struct {
 func (g *GRPCRLSV3) Start(ctx context.Context) <-chan bool {
 	dlog.Printf(ctx, "GRPCRLSV3: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
-	exited := make(chan bool)
-	proto := "tcp"
+	grpcHandler := grpc.NewServer()
+	dlog.Printf(ctx, "registering v3 service")
+	pb.RegisterRateLimitServiceServer(grpcHandler, g)
 
-	go func() {
-		port := fmt.Sprintf(":%v", g.Port)
+	cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
+	if err != nil {
+		dlog.Error(ctx, err)
+		panic(err) // TODO: do something better
+	}
 
-		ln, err := net.Listen(proto, port)
-		if err != nil {
-			dlog.Error(ctx, err)
-			panic(err) // TODO: do something better
-		}
+	sc := &dhttp.ServerConfig{
+		Handler: grpcHandler,
+		TLSConfig: &tls.Config{
+			Certificates: []tls.Certificate{cer},
+		},
+	}
 
-		s := grpc.NewServer()
-		dlog.Printf(ctx, "registering v3 service")
-		pb.RegisterRateLimitServiceServer(s, g)
-		if err := s.Serve(ln); err != nil {
-			panic(err) // TODO: do something better
-		}
-
-		defer ln.Close()
-		close(exited)
-	}()
-
-	go func() {
-		cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
-		if err != nil {
-			dlog.Error(ctx, err)
-			panic(err) // TODO: do something better
-		}
-
-		config := &tls.Config{Certificates: []tls.Certificate{cer}}
-		port := fmt.Sprintf(":%v", g.SecurePort)
-		ln, err := tls.Listen(proto, port, config)
-		if err != nil {
-			dlog.Error(ctx, err)
-			panic(err)
-			// TODO: do something better
-		}
-
-		s := grpc.NewServer()
-		dlog.Printf(ctx, "registering v3 service")
-		pb.RegisterRateLimitServiceServer(s, g)
-		if err := s.Serve(ln); err != nil {
-			panic(err) // TODO: do something better
-		}
-
-		defer ln.Close()
-		close(exited)
-	}()
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
+	grp.Go("cleartext", func(ctx context.Context) error {
+		return sc.ListenAndServe(ctx, fmt.Sprintf(":%v", g.Port))
+	})
+	grp.Go("tls", func(ctx context.Context) error {
+		return sc.ListenAndServeTLS(ctx, fmt.Sprintf(":%v", g.SecurePort), "", "")
+	})
 
 	dlog.Print(ctx, "starting gRPC rls service")
+
+	exited := make(chan bool)
+	go func() {
+		if err := grp.Wait(); err != nil {
+			dlog.Error(ctx, err)
+			panic(err) // TODO: do something better
+		}
+		close(exited)
+	}()
 	return exited
 }
 
@@ -101,7 +91,7 @@ func (g *GRPCRLSV3) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest)
 
 	// Sets overallCode. If x-ambassador-test-allow is present and has value "true", then
 	// respond with OK. In any other case, respond with OVER_LIMIT.
-	if allowValue := descEntries["x-ambassador-test-allow"]; allowValue == "true" {
+	if allowValue := descEntries["kat-req-rls-allow"]; allowValue == "true" {
 		rs.SetOverallCode(pb.RateLimitResponse_OK)
 	} else {
 		rs.SetOverallCode(pb.RateLimitResponse_OVER_LIMIT)
@@ -110,7 +100,7 @@ func (g *GRPCRLSV3) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest)
 		// so we append them here, if they exist.
 
 		// Append requested headers.
-		for _, token := range strings.Split(descEntries["x-ambassador-test-headers-append"], ";") {
+		for _, token := range strings.Split(descEntries["kat-req-rls-headers-append"], ";") {
 			header := strings.Split(strings.TrimSpace(token), "=")
 			if len(header) > 1 {
 				dlog.Printf(ctx, "appending header %s : %s", header[0], header[1])
@@ -120,7 +110,7 @@ func (g *GRPCRLSV3) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest)
 
 		// Set the content-type header, since we're returning json
 		rs.AddHeader(true, "content-type", "application/json")
-		rs.AddHeader(true, "x-grpc-service-protocol-version", g.ProtocolVersion)
+		rs.AddHeader(true, "kat-resp-rls-protocol-version", g.ProtocolVersion)
 
 		// Sets results body.
 		results := make(map[string]interface{})

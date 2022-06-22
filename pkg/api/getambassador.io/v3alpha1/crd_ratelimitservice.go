@@ -33,6 +33,9 @@ type RateLimitServiceSpec struct {
 	Timeout *MillisecondDuration `json:"timeout_ms,omitempty"`
 	Domain  string               `json:"domain,omitempty"`
 	TLS     string               `json:"tls,omitempty"`
+
+	// ProtocolVersion is the envoy api transport protocol version
+	//
 	// +kubebuilder:validation:Enum={"v2","v3"}
 	ProtocolVersion string `json:"protocol_version,omitempty"`
 	StatsName       string `json:"stats_name,omitempty"`

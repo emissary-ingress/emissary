@@ -635,8 +635,7 @@ spec:
 	t.Setenv("EDGE_STACK", "")
 }
 
-// This AuthService does not point at 127.0.0.1:8500, so despite not having protocol_version: v3, we leave it alone
-// The strict enforcement of protocol_version: v3 is only important for the AuthService that points at edge-stack
+// This AuthService does not point at 127.0.0.1:8500, we leave it alone rather than adding a synthetic one
 func TestSyntheticAuthCustomAuthService(t *testing.T) {
 	t.Setenv("EDGE_STACK", "true")
 
@@ -652,6 +651,7 @@ metadata:
 spec:
   auth_service: dummy-service
   proto: "grpc"
+  protocol_version: "v3"
 `)
 
 	assert.NoError(t, err)

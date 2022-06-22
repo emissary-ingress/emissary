@@ -11,7 +11,6 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger("ambassador")
-# logger.setLevel(logging.DEBUG)
 
 from ambassador import Config, IR, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
@@ -54,7 +53,7 @@ def _get_ratelimit_default_conf():
         'request_type': 'both',
         'timeout': '0.020s',
         'rate_limit_service': {
-            'transport_api_version': 'V2',
+            'transport_api_version': 'V3',
             'grpc_service': {
                 'envoy_grpc': {
                     'cluster_name': 'cluster_{}_default'.format(SERVICE_NAME)
@@ -65,30 +64,7 @@ def _get_ratelimit_default_conf():
 
 
 @pytest.mark.compilertest
-def test_irratelimit_defaultsv3():
-    default_config = _get_ratelimit_default_conf()
-
-    # Test all defaults
-    yaml = """
-apiVersion: getambassador.io/v3alpha1
-kind: RateLimitService
-metadata:
-  name: myrls
-  namespace: default
-spec:
-  service: {}
-""".format(SERVICE_NAME)
-    econf = _get_envoy_config(yaml)
-    conf = _get_rl_config(econf.as_dict())
-
-    assert conf
-
-    assert conf.get('typed_config') == default_config
-
-
-@pytest.mark.compilertest
 def test_irratelimit_defaults():
-    default_config = _get_ratelimit_default_conf()
 
     # Test all defaults
     yaml = """
@@ -100,17 +76,21 @@ metadata:
 spec:
   service: {}
 """.format(SERVICE_NAME)
+
     econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
 
-    assert conf
+    assert conf == False
 
-    assert conf.get('typed_config') == default_config
+    errors =  econf.ir.aconf.errors
+    assert 'ir.ratelimit' in errors
+    assert errors['ir.ratelimit'][0]['error'] == 'RateLimitService: protocol_version v2 is unsupported, protocol_version must be "v3"'
+
 
 
 @pytest.mark.compilertest
 def test_irratelimit_grpcsvc_version_v3():
-    # Test protocol_version override
+
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -122,20 +102,19 @@ spec:
   service: {}
   protocol_version: "v3"
 """.format(SERVICE_NAME)
-    config = _get_ratelimit_default_conf()
-    config['rate_limit_service']['transport_api_version'] = 'V3'
 
     econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
 
     assert conf
+    assert conf.get('typed_config') == _get_ratelimit_default_conf()
 
-    assert conf.get('typed_config') == config
+    assert 'ir.ratelimit' not in econf.ir.aconf.errors
 
 
 @pytest.mark.compilertest
 def test_irratelimit_grpcsvc_version_v2():
-    # Test protocol_version override
+
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -147,20 +126,21 @@ spec:
   service: {}
   protocol_version: "v2"
 """.format(SERVICE_NAME)
-    config = _get_ratelimit_default_conf()
-    config['rate_limit_service']['transport_api_version'] = 'V2'
 
     econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
 
-    assert conf
+    assert conf == False
 
-    assert conf.get('typed_config') == config
+    errors =  econf.ir.aconf.errors
+    assert 'ir.ratelimit' in errors
+    assert errors['ir.ratelimit'][0]['error'] == 'RateLimitService: protocol_version v2 is unsupported, protocol_version must be "v3"'
 
 
 @pytest.mark.compilertest
 def test_irratelimit_error():
-    # Test error no svc name
+    """ Test error no valid spec with service name """
+
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -170,34 +150,22 @@ metadata:
   namespace: default
 spec: {}
 """
+
     econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
 
     assert not conf
 
-@pytest.mark.compilertest
-def test_irratelimit_error_v3():
-    # Test error no svc name
-    yaml = """
----
-apiVersion: getambassador.io/v3alpha1
-kind: RateLimitService
-metadata:
-  name: myrls
-  namespace: default
-spec: {}
-"""
-    econf = _get_envoy_config(yaml)
-    conf = _get_rl_config(econf.as_dict())
+    errors =  econf.ir.aconf.errors
+    assert 'ir.ratelimit' in errors
+    assert errors['ir.ratelimit'][0]['error'] == 'service is required in RateLimitService'
 
-    assert not conf
 
 
 @pytest.mark.compilertest
 def test_irratelimit_overrides():
+    """ Test that default are properly overriden """
 
-    # Test all other overrides
-    config = _get_ratelimit_default_conf()
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -210,8 +178,11 @@ spec:
   domain: otherdomain
   timeout_ms: 500
   tls: rl-tls-context
-  protocol_version: v2
+  protocol_version: v3
 """.format(SERVICE_NAME)
+
+
+    config = _get_ratelimit_default_conf()
     config['rate_limit_service']['grpc_service']['envoy_grpc']['cluster_name'] = 'cluster_{}_someotherns'.format(SERVICE_NAME)
     config['timeout'] = '0.500s'
     config['domain'] = 'otherdomain'
@@ -221,3 +192,6 @@ spec:
 
     assert conf
     assert conf.get('typed_config') == config
+
+    errors =  econf.ir.aconf.errors
+    assert 'ir.ratelimit' not in errors

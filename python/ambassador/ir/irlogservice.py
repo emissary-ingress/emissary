@@ -41,10 +41,15 @@ class IRLogService(IRResource):
         self.namespace = config.get("namespace", self.namespace)
         self.cluster = None
         self.grpc = config.get('grpc', False)
+
         self.protocol_version = config.get('protocol_version', 'v2')
+        if self.protocol_version == "v2":
+            self.post_error(f'LogService: protocol_version {self.protocol_version} is unsupported, protocol_version must be "v3"')
+            return False
+
         self.driver = config.get('driver')
         # These defaults come from Envoy:
-        # https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/accesslog/v2/als.proto#envoy-api-msg-config-accesslog-v2-commongrpcaccesslogconfig
+        # https://www.envoyproxy.io/docs/envoy/v1.22.2/api-v3/extensions/access_loggers/grpc/v3/als.proto#extensions-access-loggers-grpc-v3-commongrpcaccesslogconfig
         self.flush_interval_byte_size = config.get('flush_interval_byte_size', 16384)
         self.flush_interval_time = config.get('flush_interval_time', 1)
 
@@ -118,6 +123,6 @@ class IRLogServiceFactory:
 
                 if extant_srv:
                     ir.post_error("Duplicate LogService %s; keeping definition from %s" % (srv.name, extant_srv.location))
-                else:
+                elif srv.is_active():
                     ir.log_services[srv.name] = srv
                     ir.save_resource(srv)

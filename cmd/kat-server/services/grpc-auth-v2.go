@@ -27,8 +27,8 @@ import (
 	"github.com/datawire/dlib/dlog"
 )
 
-// GRPCAUTH server object (all fields are required).
-type GRPCAUTH struct {
+// GRPCAuthV2 server object (all fields are required).
+type GRPCAuthV2 struct {
 	Port            int16
 	Backend         string
 	SecurePort      int16
@@ -39,8 +39,8 @@ type GRPCAUTH struct {
 }
 
 // Start initializes the HTTP server.
-func (g *GRPCAUTH) Start(ctx context.Context) <-chan bool {
-	dlog.Printf(ctx, "GRPCAUTH: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
+func (g *GRPCAuthV2) Start(ctx context.Context) <-chan bool {
+	dlog.Printf(ctx, "GRPCAuthV2: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
 	grpcHandler := grpc.NewServer()
 	dlog.Printf(ctx, "registering v2 service")
@@ -81,8 +81,8 @@ func (g *GRPCAUTH) Start(ctx context.Context) <-chan bool {
 }
 
 // Check checks the request object.
-func (g *GRPCAUTH) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResponse, error) {
-	rs := &Response{}
+func (g *GRPCAuthV2) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResponse, error) {
+	rs := &ResponseV2{}
 
 	rheader := r.GetAttributes().GetRequest().GetHttp().GetHeaders()
 	rbody := r.GetAttributes().GetRequest().GetHttp().GetBody()
@@ -97,23 +97,26 @@ func (g *GRPCAUTH) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResp
 			val = []byte(fmt.Sprintf("Error: %v", err))
 		}
 
-		rs.AddHeader(false, "x-request-context-extensions", string(val))
+		rs.AddHeader(false, "kat-resp-extauth-context-extensions", string(val))
 	}
 
 	// Sets requested HTTP status.
-	rs.SetStatus(ctx, rheader["requested-status"])
+	rs.SetStatus(ctx, rheader["kat-req-extauth-requested-status"])
 
-	rs.AddHeader(false, "x-grpc-service-protocol-version", g.ProtocolVersion)
+	rs.AddHeader(false, "kat-resp-extauth-protocol-version", g.ProtocolVersion)
 
 	// Sets requested headers.
-	for _, key := range strings.Split(rheader["requested-header"], ",") {
-		if val := rheader[key]; len(val) > 0 {
-			rs.AddHeader(false, key, val)
+	// Don't bother if we'll be returning a pb.CheckResponse_OkResponse; it'd be a no-op in that case.
+	if rs.status != http.StatusOK && rs.status != 0 {
+		for _, key := range strings.Split(strings.ToLower(rheader["kat-req-extauth-requested-header"]), ",") {
+			if val := rheader[key]; val != "" {
+				rs.AddHeader(false, key, val)
+			}
 		}
 	}
 
 	// Append requested headers.
-	for _, token := range strings.Split(rheader["x-grpc-auth-append"], ";") {
+	for _, token := range strings.Split(rheader["kat-req-extauth-append"], ";") {
 		header := strings.Split(strings.TrimSpace(token), "=")
 		if len(header) > 1 {
 			dlog.Printf(ctx, "appending header %s : %s", header[0], header[1])
@@ -122,14 +125,14 @@ func (g *GRPCAUTH) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResp
 	}
 
 	// Sets requested Cookies.
-	for _, v := range strings.Split(rheader["requested-cookie"], ",") {
+	for _, v := range strings.Split(rheader["kat-req-extauth-requested-cookie"], ",") {
 		val := strings.Trim(v, " ")
 		rs.AddHeader(false, "Set-Cookie", fmt.Sprintf("%s=%s", val, val))
 	}
 
 	// Sets requested location.
-	if len(rheader["requested-location"]) > 0 {
-		rs.AddHeader(false, "Location", rheader["requested-location"])
+	if loc := rheader["kat-req-extauth-requested-location"]; loc != "" {
+		rs.AddHeader(false, "Location", loc)
 	}
 
 	// Parses request headers.
@@ -180,8 +183,8 @@ func (g *GRPCAUTH) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResp
 	return rs.GetResponse(), nil
 }
 
-// Response constructs an authorization response object.
-type Response struct {
+// ResponseV2 constructs an authorization response object.
+type ResponseV2 struct {
 	headers []*core.HeaderValueOption
 	body    string
 	status  uint32
@@ -189,7 +192,7 @@ type Response struct {
 
 // AddHeader adds a header to the response. When append param is true, Envoy will
 // append the value to an existent request header instead of overriding it.
-func (r *Response) AddHeader(a bool, k, v string) {
+func (r *ResponseV2) AddHeader(a bool, k, v string) {
 	val := &core.HeaderValueOption{
 		Header: &core.HeaderValue{
 			Key:   k,
@@ -201,7 +204,7 @@ func (r *Response) AddHeader(a bool, k, v string) {
 }
 
 // GetHTTPHeaderMap returns HTTP header mapping of the response header-options.
-func (r *Response) GetHTTPHeaderMap() *http.Header {
+func (r *ResponseV2) GetHTTPHeaderMap() *http.Header {
 	h := &http.Header{}
 	for _, v := range r.headers {
 		h.Add(v.Header.Key, v.Header.Value)
@@ -210,12 +213,12 @@ func (r *Response) GetHTTPHeaderMap() *http.Header {
 }
 
 // SetBody sets the authorization response message body.
-func (r *Response) SetBody(s string) {
+func (r *ResponseV2) SetBody(s string) {
 	r.body = s
 }
 
 // SetStatus sets the authorization response HTTP status code.
-func (r *Response) SetStatus(ctx context.Context, s string) {
+func (r *ResponseV2) SetStatus(ctx context.Context, s string) {
 	if len(s) == 0 {
 		s = "200"
 	}
@@ -231,12 +234,12 @@ func (r *Response) SetStatus(ctx context.Context, s string) {
 }
 
 // GetStatus returns the authorization response HTTP status code.
-func (r *Response) GetStatus() uint32 {
+func (r *ResponseV2) GetStatus() uint32 {
 	return r.status
 }
 
 // GetResponse returns the gRPC authorization response object.
-func (r *Response) GetResponse() *pb.CheckResponse {
+func (r *ResponseV2) GetResponse() *pb.CheckResponse {
 	rs := &pb.CheckResponse{}
 	switch {
 	// Ok respose.

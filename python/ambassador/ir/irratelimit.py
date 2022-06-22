@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Literal, Optional, TYPE_CHECKING
 
 from ..config import Config
 from ..utils import RichStatus
@@ -11,13 +11,15 @@ if TYPE_CHECKING:
 
 
 class IRRateLimit (IRFilter):
+    protocol_version: Literal['v2', 'v3']
+
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.ratelimit",
                  kind: str="IRRateLimit",
                  name: str="rate_limit",    # This is a key for Envoy! You can't just change it.
                  namespace: Optional[str] = None,
                  **kwargs) -> None:
-        # print("IRRateLimit __init__ (%s %s %s)" % (kind, name, kwargs))
+
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, namespace=namespace, type='decoder'
@@ -55,7 +57,11 @@ class IRRateLimit (IRFilter):
         self.name = "rate_limit"    # Force this, just in case.
         self.namespace = config.get("namespace", self.namespace)
         self.domain = config.get('domain', ir.ambassador_module.default_label_domain)
+
         self.protocol_version = config.get("protocol_version", "v2")
+        if self.protocol_version == "v2":
+            self.post_error(f'RateLimitService: protocol_version {self.protocol_version} is unsupported, protocol_version must be "v3"')
+            return False
 
         # XXX host_rewrite actually isn't in the schema right now.
         self.host_rewrite = config.get('host_rewrite', None)
