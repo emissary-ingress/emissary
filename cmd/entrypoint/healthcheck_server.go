@@ -104,17 +104,14 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) er
 	// the magic catchall path.
 	sm.HandleFunc("/", reverseProxy.ServeHTTP)
 
-	// Create a listener by hand, so that we can listen on TCP v4. If we don't
-	// explicitly say "tcp4" here, we seem to listen _only_ on v6, and Bad Things
-	// Happen.
-	//
-	// XXX Why, exactly, is this? That's a lovely question -- we _should_ be OK
-	// here on a proper dualstack system, but apparently we don't have a proper
-	// dualstack system? It's quite bizarre, but Kubernetes won't become ready
-	// without this.
-	//
-	// XXX In fact, should we set up another Listener for v6??
-	listener, err := net.Listen("tcp4", ":8877")
+	// Set up listener.
+	// The default value for networkInterface is ANY.
+	// It means in case of any wildcard address, the listener will try to listen on both IPv4 and IPv6
+	// If you want to specify AF explicitly,
+	// you can set the AMBASSADOR_HEALTHCHECK_IP_FAMILY environment variable to IPV4_ONLY or IPV6_ONLY respectively
+	addr := net.JoinHostPort(GetHealthcheckHost(), GetHealthcheckPort())
+	networkInterface := getNetworkInterface()
+	listener, err := net.Listen(networkInterface, addr)
 	if err != nil {
 		return err
 	}
@@ -124,4 +121,15 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) er
 	}
 
 	return s.Serve(ctx, listener)
+}
+
+func getNetworkInterface() string {
+	ipFamily := GetHealthcheckIpFamily()
+	switch ipFamily {
+	case "IPV4_ONLY":
+		return "tcp4"
+	case "IPV6_ONLY":
+		return "tcp6"
+	}
+	return "tcp"
 }
