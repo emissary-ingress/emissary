@@ -124,6 +124,21 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   migration instructions, and while the `*-agent.yaml` files remained part of the instructions they
   were actually unnescessary.
 
+- Change: The previous version of Emissary-ingress was based on Envoy 1.17 and when using grpc_stats
+  with `all_methods` or `services` set, it would output metrics in the following format
+  `envoy_cluster_grpc_{ServiceName}_{statname}`. When neither of these fields are set it would be
+  aggregated to `envoy_cluster_grpc_{statname}`.
+  The new behavior since Envoy 1.18 will produce
+  metrics in the following format `envoy_cluster_grpc_{MethodName}_statsname` and
+  `envoy_cluster_grpc_statsname`.
+  After further investigation we found that Envoy doesn't properly
+  parse service names such as `cncf.telepresence.Manager/Status`. In the future, we will work
+  upstream Envoy to get this parsing logic fixed to ensure consistent metric naming.
+
+- Bugfix: Previously setting `grpc_stats` in the `ambassador` `Module` without setting either
+  `grpc_stats.services` or `grpc_stats.all_methods` would result in crashing. Now it behaves as if
+  `grpc_stats.all_methods=false`.
+
 ## [2.3.1] June 09, 2022
 [2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1
 

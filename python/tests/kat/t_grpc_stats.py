@@ -66,14 +66,14 @@ service: http://127.0.0.1:8877
         stats = self.results[-1].text
 
         metrics = [
-            'envoy_cluster_grpc_EchoService_0',
-            'envoy_cluster_grpc_EchoService_13',
-            'envoy_cluster_grpc_EchoService_request_message_count',
-            'envoy_cluster_grpc_EchoService_response_message_count',
-            'envoy_cluster_grpc_EchoService_success',
-            'envoy_cluster_grpc_EchoService_total',
+            'envoy_cluster_grpc_Echo_0',
+            'envoy_cluster_grpc_Echo_13',
+            'envoy_cluster_grpc_Echo_request_message_count',
+            'envoy_cluster_grpc_Echo_response_message_count',
+            'envoy_cluster_grpc_Echo_success',
+            'envoy_cluster_grpc_Echo_total',
             # present only when enable_upstream_stats is true
-            'envoy_cluster_grpc_EchoService_upstream_rq_time'
+            'envoy_cluster_grpc_Echo_upstream_rq_time'
         ]
 
         # these metrics SHOULD NOT be there based on the filter config
@@ -164,12 +164,12 @@ service: http://127.0.0.1:8877
         stats = self.results[-1].text
 
         metrics = [
-            'envoy_cluster_grpc_EchoService_0',
-            'envoy_cluster_grpc_EchoService_13',
-            'envoy_cluster_grpc_EchoService_request_message_count',
-            'envoy_cluster_grpc_EchoService_response_message_count',
-            'envoy_cluster_grpc_EchoService_success',
-            'envoy_cluster_grpc_EchoService_total',
+            'envoy_cluster_grpc_Echo_0',
+            'envoy_cluster_grpc_Echo_13',
+            'envoy_cluster_grpc_Echo_request_message_count',
+            'envoy_cluster_grpc_Echo_response_message_count',
+            'envoy_cluster_grpc_Echo_success',
+            'envoy_cluster_grpc_Echo_total',
         ]
 
         # these metrics SHOULD NOT be there based on the filter config

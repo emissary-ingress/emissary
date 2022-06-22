@@ -251,32 +251,21 @@ class IRAmbassador (IRResource):
             self.grpc_web.sourced_by(amod)
             ir.save_filter(self.grpc_web)
 
-        if amod and ('grpc_stats' in amod):
-            grpc_stats = amod.grpc_stats
-
+        if amod and (grpc_stats := amod.get('grpc_stats')) is not None:
+            # grpc_stats = { 'all_methods': False} if amod.grpc_stats is None else amod.grpc_stats
             # default config with safe values
-            config = {
-                'individual_method_stats_allowlist': {
-                    'services': []
-                },
-                'stats_for_all_methods': False,
+            config: Dict[str, Any] = {
                 'enable_upstream_stats': False
             }
 
-            if ('services' in grpc_stats):
+            # Only one of config['individual_method_stats_allowlist'] or
+            # config['stats_for_all_methods'] can be set.
+            if 'services' in grpc_stats:
                 config['individual_method_stats_allowlist'] = {
                     'services': grpc_stats['services']
                 }
-                # remove stats_for_all_methods key from config. only one of individual_method_stats_allowlist or
-                # stats_for_all_methods can be set
-                config.pop('stats_for_all_methods')
-
-            # if 'services' is present, ignore 'all_methods'
-            if ('all_methods' in grpc_stats) and ('services' not in grpc_stats):
-                config['stats_for_all_methods'] = bool(grpc_stats['all_methods'])
-                # remove individual_method_stats_allowlist key from config. only one of individual_method_stats_allowlist or
-                # stats_for_all_methods can be set
-                config.pop('individual_method_stats_allowlist')
+            else:
+                config['stats_for_all_methods'] = bool(grpc_stats.get('all_methods', False))
 
             if ('upstream_stats' in grpc_stats):
                 config['enable_upstream_stats'] = bool(grpc_stats['upstream_stats'])
