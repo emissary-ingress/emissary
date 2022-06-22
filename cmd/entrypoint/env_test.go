@@ -30,3 +30,50 @@ func TestGetEnvoyFlags(t *testing.T) {
 	assert.True(t, foundFlag)
 	assert.True(t, foundValue)
 }
+
+func TestGetHealthCheckIPNetworkFamily(t *testing.T) {
+	type testCase struct {
+		description string
+		inputFamily string
+		expected    string
+	}
+
+	testcases := []testCase{
+		{
+			description: "non-supported value",
+			inputFamily: "not-a-good-value",
+			expected:    "tcp",
+		},
+		{
+			description: "ipv6 only",
+			inputFamily: "IPV6_ONLY",
+			expected:    "tcp6",
+		},
+		{
+			description: "ipv4 only",
+			inputFamily: "IPV4_ONLY",
+			expected:    "tcp4",
+		},
+		{
+			description: "case-insensitve",
+			inputFamily: "ipv4_oNly",
+			expected:    "tcp4",
+		},
+		{
+			description: "env var not set",
+			inputFamily: "",
+			expected:    "tcp",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.description, func(t *testing.T) {
+			if tc.inputFamily != "" {
+				t.Setenv("AMBASSADOR_HEALTHCHECK_IP_FAMILY", tc.inputFamily)
+			}
+
+			result := getHealthCheckIPNetworkFamily()
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}

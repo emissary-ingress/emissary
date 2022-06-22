@@ -102,6 +102,17 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   unhealthy. The healthy pods will continue to receive traffic normally while the unhealthy pods
   will not receive any traffic until they recover by passing the health check.
 
+- Feature: The healthcheck server's bind address, bind port and IP family can now be configured
+  using environment variables:
+  - `AMBASSADOR_HEALTHCHECK_BIND_ADDRESS`: The address to bind the
+  healthcheck server to.
+  - `AMBASSADOR_HEALTHCHECK_BIND_PORT`: The port to bind the healthcheck
+  server to.
+  - `AMBASSADOR_HEALTHCHECK_IP_FAMILY`: The IP family to use for the healthcheck
+  server.
+  This allows the healthcheck server to be configured to use IPv6-only k8s environments. 
+  (Thanks to <a href="https://github.com/TimonOmsk">Dmitry Golushko</a>!).
+
 ## [3.3.0] November 02, 2022
 [3.3.0]: https://github.com/emissary-ingress/emissary/compare/v3.2.0...v3.3.0
 
