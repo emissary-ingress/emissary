@@ -972,6 +972,16 @@ class NullSecretHandler(SecretHandler):
         return SecretInfo(secret_name, namespace, "fake-secret", "fake-tls-crt", "fake-tls-key", "fake-user-key",
                           decode_b64=False)
 
+class EmptySecretHandler(SecretHandler):
+    def __init__(self, logger: logging.Logger, source_root: Optional[str], cache_dir: Optional[str], version: str) -> None:
+        """
+        Returns a None to simulate no provided secrets
+        """
+        super().__init__(logger, "", "", version)
+
+    def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
+        return None
+
 
 class FSSecretHandler(SecretHandler):
     # XXX NO LONGER USED

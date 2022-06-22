@@ -139,6 +139,10 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   `grpc_stats.services` or `grpc_stats.all_methods` would result in crashing. Now it behaves as if
   `grpc_stats.all_methods=false`.
 
+- Feature: With the ugprade to Envoy 1.22, Emissary-ingress can now be configured to listen for
+  HTTP/3 connections using QUIC and the UDP network protocol. It currently only supports for
+  connections between downstream clients and Emissary-ingress.
+
 ## [2.3.1] June 09, 2022
 [2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1
 
