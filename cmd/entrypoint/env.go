@@ -297,3 +297,36 @@ func GetSidecarUrl() string {
 func IsKnativeEnabled() bool {
 	return strings.ToLower(env("AMBASSADOR_KNATIVE_SUPPORT", "")) == "true"
 }
+
+// getHealthCheckHost will return address that the health check server will bind to.
+// If not provided it will default to all interfaces (`0.0.0.0`).
+func getHealthCheckHost() string {
+	return env("AMBASSADOR_HEALTHCHECK_BIND_ADDRESS", "0.0.0.0")
+}
+
+// getHealthCheckPort will return the port that the health check server will bind to.
+// If not provided it will default to port `8877`
+func getHealthCheckPort() string {
+	return env("AMBASSADOR_HEALTHCHECK_BIND_PORT", "8877")
+}
+
+// getHealthCheckIPNetworkFamily will return the network IP family that the health checker server
+// will listen on. Set the AMBASSADOR_HEALTHCHECK_IP_FAMILIY environment variable to
+// "ANY", "IPV4_ONLY" or "IPV6_ONLY".
+//
+// Here is a list of supported values and how they translate to the supported
+// net.Listen networks:
+//   - ANY => tcp (default)
+//   - IPV4_ONLY => tcp4
+//   - IPV6_ONLY => tcp6
+func getHealthCheckIPNetworkFamily() string {
+	ipFamily := strings.ToUpper(env("AMBASSADOR_HEALTHCHECK_IP_FAMILY", "ANY"))
+
+	switch ipFamily {
+	case "IPV4_ONLY":
+		return "tcp4"
+	case "IPV6_ONLY":
+		return "tcp6"
+	}
+	return "tcp"
+}
