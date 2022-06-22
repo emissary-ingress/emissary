@@ -35,6 +35,14 @@ items:
   - version: 3.0.0
     date: 'TBD'
     notes:
+      - title: Envoy upgraded to 1.22
+        type: change
+        body: >-
+          The envoy version included in $productName$ has been upgraded from 1.17 to latest patch
+          release of 1.22. This provides $produceName$ with the latest security patches, performances enhancments,
+          and features offered by the envoy proxy. One notable change that will effect users is the removal
+          of support for V2 tranport protocol. See below for more information.
+        docs: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.22/v1.22.0
       - title: Envoy xDS v2 API removal, removal of ECMAScript regexes
         type: change
         body: >-

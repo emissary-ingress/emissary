@@ -128,6 +128,7 @@ func RunEnvoy(ctx context.Context, adsAddress string, portmaps ...string) error 
 	return cmd.Run()
 }
 
+// TODO(lance) - this makes the test brittle and breaks when we change bootstrap configuration
 // This is the bootstrap we use for starting envoy. This is hardcoded for now, but we may want to
 // make it configurable for fancier tests in the future.
 const bootstrap = `
@@ -141,11 +142,8 @@ const bootstrap = `
       {
         "name": "static_layer",
         "static_layer": {
-          "envoy.reloadable_features.enable_deprecated_v2_api": true,
-          "envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match": true,
-          "envoy.deprecated_features:envoy.api.v2.route.RouteMatch.regex": true,
-          "envoy.deprecated_features:envoy.config.filter.http.ext_authz.v2.ExtAuthz.use_alpha": true,
-          "envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher": false
+          "envoy.reloadable_features.no_extension_lookup_by_name": false,
+          "re2.max_program_size.error_level": 200
         }
       }
     ]
@@ -159,13 +157,16 @@ const bootstrap = `
             "cluster_name": "ads_cluster"
           }
         }
-      ]
+      ],
+		  "transport_api_version": "V3"
     },
     "cds_config": {
-      "ads": {}
+      "ads": {},
+		  "resource_api_version": "V3"
     },
     "lds_config": {
-      "ads": {}
+      "ads": {},
+		  "resource_api_version": "V3"
     }
   },
   "static_resources": {

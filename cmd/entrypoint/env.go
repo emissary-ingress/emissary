@@ -165,7 +165,6 @@ func GetEnvoyFlags() []string {
 	if concurrency != "" {
 		result = append(result, "--concurrency", concurrency)
 	}
-	result = append(result, "--bootstrap-version", "3")
 	return result
 }
 
