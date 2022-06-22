@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, Generator, List, Literal, Tuple, Union
+from typing import Any, Dict, Generator, List, Literal, Optional, Tuple, Union
 
 from kat.harness import Query
 from abstract_tests import AmbassadorTest, ServiceType, EGRPC, Node
@@ -15,16 +15,23 @@ class GRPCStatsTest(AmbassadorTest):
 
     @classmethod
     def variants(cls) -> Generator[Node, None, None]:
-        for cfgname in ['everything', 'onlyselectedservices', 'noupstreamallmethodsfalseinvalidkeys']:
-            yield cls(cfgname=cfgname, name="{self.variant_name}")
+        for upstream_stats in [True, False, None]:
+            for invalid_keys in [True, False]:
+                for cfgname in ['allmethodstrue', 'allmethodsfalse', 'services', 'both']:
+                    yield cls(cfgname=cfgname,
+                              upstream_stats=upstream_stats,
+                              invalid_keys=invalid_keys,
+                              name="{self.variant_name}")
 
-    def init(self, cfgname: Literal['everything', 'onlyselectedservices', 'noupstreamallmethodsfalseinvalidkeys']):
+    def init(self,
+             cfgname: Literal['allmethodstrue', 'allmethodsfalse', 'services', 'both'],
+             upstream_stats: Optional[bool],
+             invalid_keys: bool):
         self.target = EGRPC()
         self.variant_name = cfgname
-        if cfgname == 'everything':
+        if cfgname == 'allmethodstrue':
             self.cfg = {
                 'all_methods': True,
-                'upstream_stats': True,
             }
             self.present_metrics = [
                 'envoy_cluster_grpc_EchoService_0',
@@ -34,10 +41,6 @@ class GRPCStatsTest(AmbassadorTest):
                 'envoy_cluster_grpc_EchoService_success',
                 'envoy_cluster_grpc_EchoService_failure',
                 'envoy_cluster_grpc_EchoService_total',
-                # present only when enable_upstream_stats is true
-                'envoy_cluster_grpc_EchoService_upstream_rq_time_bucket',
-                'envoy_cluster_grpc_EchoService_upstream_rq_time_count',
-                'envoy_cluster_grpc_EchoService_upstream_rq_time_sum',
             ]
             self.absent_metrics = [
                 # since all_methods is true, we should not see the generic metrics
@@ -48,9 +51,8 @@ class GRPCStatsTest(AmbassadorTest):
                 'envoy_cluster_grpc_success',
                 'envoy_cluster_grpc_total',
             ]
-        elif cfgname == 'onlyselectedservices':
+        elif cfgname == 'services' or cfgname == 'both':
             self.cfg = {
-                'all_methods': True,  # this will be ignored
                 'services': [
                     {
                         'name': 'echo.EchoService',
@@ -58,6 +60,8 @@ class GRPCStatsTest(AmbassadorTest):
                     },
                 ],
             }
+            if cfgname == 'both':
+                self.cfg['all_methods'] = True,  # this will be ignored
             self.present_metrics = [
                 'envoy_cluster_grpc_EchoService_0',
                 'envoy_cluster_grpc_EchoService_13',
@@ -68,8 +72,6 @@ class GRPCStatsTest(AmbassadorTest):
                 'envoy_cluster_grpc_EchoService_total',
             ]
             self.absent_metrics = [
-                # upstream stats is disabled
-                'envoy_cluster_grpc_upstream_rq_time',
                 # the generic metrics shouldn't be present since all the methods being called are on
                 # the allowed list
                 'envoy_cluster_grpc_0',
@@ -79,11 +81,9 @@ class GRPCStatsTest(AmbassadorTest):
                 'envoy_cluster_grpc_success',
                 'envoy_cluster_grpc_total',
             ]
-        elif cfgname == 'noupstreamallmethodsfalseinvalidkeys':
+        elif cfgname == 'allmethodsfalse':
             self.cfg = {
                 'all_methods': False,
-                'upstream_stats': False,
-                'i_will_not_break_envoy': True
             }
             # stat_all_methods is disabled and the list of services is empty, so we should only see
             # generic metrics
@@ -97,11 +97,34 @@ class GRPCStatsTest(AmbassadorTest):
                 'envoy_cluster_grpc_total',
             ]
             self.absent_metrics = [
-                'envoy_cluster_grpc_upstream_rq_time',
-                'envoy_cluster_grpc_EchoService_0'
+                'envoy_cluster_grpc_EchoService_0',
             ]
         else:
             assert False, f"invalid cfgname={repr(cfgname)}"
+
+        self.variant_name += f"-upstream{str(upstream_stats).lower()}"
+        if upstream_stats is not None:
+            self.cfg['upstream_stats'] = upstream_stats
+        if upstream_stats:
+            extra = []
+            for metric in self.present_metrics:
+                if metric.endswith("_total"):
+                    base = metric.removesuffix("_total")
+                    extra += [
+                        base+"_upstream_rq_time_bucket",
+                        base+"_upstream_rq_time_count",
+                        base+"_upstream_rq_time_sum",
+                    ]
+            self.present_metrics += extra
+        else:
+            self.absent_metrics += [
+                'upstream',
+                'envoy_cluster_grpc_upstream_rq_time',
+            ]
+
+        if invalid_keys:
+            self.variant_name += "-invalidkeys"
+            self.cfg['i_will_not_break_envoy'] = True
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, f"""
@@ -167,7 +190,7 @@ service: http://127.0.0.1:8877
             assert metric in stats_shortnames, f'coult not find metric: {metric}'
 
         for metric in self.absent_metrics:
-            assert not any(shortname.startswith(metric) for shortname in stats_shortnames), f'metric {metric} should not be present'
+            assert not any(metric in shortname for shortname in stats_shortnames), f'metric {metric} should not be present'
 
         for metric in stats_shortnames:
             assert metric in self.present_metrics, f"found metric {metric} but it isn't in self.present_metrics"
