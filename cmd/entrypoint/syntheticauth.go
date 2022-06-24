@@ -40,6 +40,7 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 	if err != nil {
 		return err
 	} else if !isEdgeStack {
+		dlog.Debugf(ctx, "[WATCHER]: Is not EdgeStack so not going to reconcile Services")
 		return nil
 	}
 	// We also dont want to do anything with AuthServices if the Docker demo mode is running
@@ -68,6 +69,8 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 
 	var authServices []*v3alpha1.AuthService
 	syntheticAuthExists := false
+
+	dlog.Debugf(ctx, "[WATCHER]: Number of AuthServices in snapshot - %d", len(sh.k8sSnapshot.AuthServices))
 	for _, authService := range sh.k8sSnapshot.AuthServices {
 		// check if the AuthService points at 127.0.0.1:8500 (edge-stack)
 		if IsLocalhost8500(authService.Spec.AuthService) {
@@ -86,6 +89,7 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 				syntheticAuth.Spec.ProtocolVersion = "v3"
 			}
 		} else {
+			dlog.Debugf(ctx, "[WATCHER]: Keeping custom Auth service name: %s namespace: %s", authService.ObjectMeta.Name, authService.ObjectMeta.Namespace)
 			// By default we keep any custom AuthServices that do not point at localhost
 			authServices = append(authServices, authService)
 			injectSyntheticAuth = false
@@ -168,6 +172,7 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 		*deltas = newDeltas
 		sh.k8sSnapshot.AuthServices = authServices
 	} else if len(authServices) >= 1 {
+		dlog.Debugf(ctx, "[WATCHER] setting authservices back to list of customer services.")
 		// Write back the list of valid AuthServices.
 		sh.k8sSnapshot.AuthServices = authServices
 

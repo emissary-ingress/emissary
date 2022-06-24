@@ -214,6 +214,7 @@ def V3HTTPFilter_authv1(auth: IRAuth, v3config: 'V3Config'):
     auth_info: Dict[str, Any] = {}
 
     if errors := auth.ir.aconf.errors.get(auth.rkey):
+        print(errors)
         # FWIW, this mimics Ambassador Edge Stack's default error response format; see
         # apro.git/cmd/amb-sidecar/filters/handler/middleware.NewErrorResponse().
         #
