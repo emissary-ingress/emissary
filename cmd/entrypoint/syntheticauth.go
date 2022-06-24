@@ -42,10 +42,6 @@ func ReconcileAuthServices(ctx context.Context, sh *SnapshotHolder, deltas *[]*k
 	} else if !isEdgeStack {
 		return nil
 	}
-	// We also dont want to do anything with AuthServices if the Docker demo mode is running
-	if envbool("AMBASSADOR_DEMO_MODE") {
-		return nil
-	}
 
 	// Construct a synthetic AuthService to be injected if we dont find any valid AuthServices
 	injectSyntheticAuth := true

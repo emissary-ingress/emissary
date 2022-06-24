@@ -77,8 +77,6 @@ import (
 // manager (e.g. kubernetes) is expected to take note and restart if
 // appropriate.
 
-const envAmbassadorDemoMode string = "AMBASSADOR_DEMO_MODE"
-
 func Main(ctx context.Context, Version string, args ...string) error {
 	// Setup logging according to AES_LOG_LEVEL
 	busy.SetLogLevel(logutil.DefaultLogLevel)
@@ -105,8 +103,6 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		// Demo mode!
 		dlog.Infof(ctx, "DEMO MODE")
 		demoMode = true
-		// Set an environment variable so that other parts of the code can check if demo mode is active (mainly used for disabling synthetic authservice injection)
-		os.Setenv(envAmbassadorDemoMode, "true")
 	}
 
 	clusterID := GetClusterID(ctx)
