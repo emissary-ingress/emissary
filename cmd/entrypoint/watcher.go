@@ -56,7 +56,7 @@ func WatchAllTheThings(
 	interestingTypes := GetInterestingTypes(ctx, serverTypeList)
 	queries := GetQueries(ctx, interestingTypes)
 
-	ambassadorMeta := getAmbassadorMeta(GetAmbassadorId(), clusterID, version, client)
+	ambassadorMeta := getAmbassadorMeta(GetAmbassadorID(), clusterID, version, client)
 
 	// **** SETUP DONE for the Kubernetes Watcher
 

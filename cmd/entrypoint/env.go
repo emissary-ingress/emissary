@@ -19,7 +19,7 @@ func GetAgentService() string {
 	return ""
 }
 
-func GetAmbassadorId() string {
+func GetAmbassadorID() string {
 	id := os.Getenv("AMBASSADOR_ID")
 	if id != "" {
 		return id
@@ -67,7 +67,7 @@ func GetEnvoyBootstrapFile() string {
 	return env("ENVOY_BOOTSTRAP_FILE", path.Join(GetAmbassadorConfigBaseDir(), "bootstrap-ads.json"))
 }
 
-func GetEnvoyBaseId() string {
+func GetEnvoyBaseID() string {
 	return env("AMBASSADOR_ENVOY_BASE_ID", "0")
 }
 
@@ -153,7 +153,7 @@ func isDebug(name string) bool {
 }
 
 func GetEnvoyFlags() []string {
-	result := []string{"-c", GetEnvoyBootstrapFile(), "--base-id", GetEnvoyBaseId()}
+	result := []string{"-c", GetEnvoyBootstrapFile(), "--base-id", GetEnvoyBaseID()}
 	svc := GetAgentService()
 	if svc != "" {
 		result = append(result, "--drain-time-s", "1")
