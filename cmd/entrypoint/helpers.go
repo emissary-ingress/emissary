@@ -78,7 +78,7 @@ func include(id amb.AmbassadorID) bool {
 
 	// It's not "_automatic_", so we have to actually do the work. Grab
 	// our AmbassadorID...
-	me := GetAmbassadorId()
+	me := GetAmbassadorID()
 
 	// ...force an empty AmbassadorID to "default", per the documentation...
 	if len(id) == 0 {

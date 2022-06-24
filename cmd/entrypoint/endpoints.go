@@ -78,7 +78,7 @@ func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s 
 			if _, isInvalid := a.(*kates.Unstructured); isInvalid {
 				continue
 			}
-			if include(GetAmbId(ctx, a)) {
+			if include(GetAmbID(ctx, a)) {
 				eri.checkResourcePhase1(ctx, a, "annotation")
 			}
 		}
@@ -128,7 +128,7 @@ func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s 
 			if _, isInvalid := a.(*kates.Unstructured); isInvalid {
 				continue
 			}
-			if include(GetAmbId(ctx, a)) {
+			if include(GetAmbID(ctx, a)) {
 				eri.checkResourcePhase2(ctx, a, "annotation")
 			}
 		}

@@ -190,7 +190,7 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 			if _, isInvalid := a.(*kates.Unstructured); isInvalid {
 				continue
 			}
-			if include(GetAmbId(ctx, a)) {
+			if include(GetAmbID(ctx, a)) {
 				resources = append(resources, a)
 			}
 		}
