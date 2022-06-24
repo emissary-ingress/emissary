@@ -85,8 +85,8 @@ spec:
 	}
 }
 
-// This tests with a provided AuthService that has no protocol_version (which defaults to v2).  The
-// synthetic AuthService should be created instead.
+// This tests with a provided AuthService that has no protocol_version (which defaults to v2).  It
+// should get forcibly overridden to be v3.
 func TestSyntheticAuthReplace(t *testing.T) {
 	for _, apiVersion := range []string{"v2", "v3alpha1"} {
 		apiVersion := apiVersion // capture loop variable
@@ -109,26 +109,25 @@ spec:
 			assert.NoError(t, err)
 			f.Flush()
 
-			// Use the predicate above to check that the snapshot contains the
-			// AuthService defined above.  The AuthService does not have
-			// `protocol_version: v3` so it should be removed and replaced by the
-			// synthetic AuthService injected by syntheticauth.go
-			snap, err := f.GetSnapshot(HasAuthService("default", "synthetic-edge-stack-auth"))
+			// The AuthService does not have `protocol_version: v3` so it should be
+			// forcibly edited to say `protocol_version: v3` by syntheticauth.go
+			snap, err := f.GetSnapshot(HasAuthService("foo", "edge-stack-auth-test"))
 			assert.NoError(t, err)
 			assert.NotNil(t, snap)
 
 			// In edge-stack we should only ever have 1 AuthService.
 			assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
-			// The snapshot should only have the synthetic AuthService and not the one
-			// defined above.
-			assert.Equal(t, "synthetic-edge-stack-auth", snap.Kubernetes.AuthServices[0].Name)
+			// The snapshot should only have the one defined above.
+			assert.Equal(t, "edge-stack-auth-test", snap.Kubernetes.AuthServices[0].Name)
+			// The protocol version should be forcibly set to v3.
+			assert.Equal(t, "v3", snap.Kubernetes.AuthServices[0].Spec.ProtocolVersion)
 
 			// Check for an ext_authz cluster name matching the provided AuthService
 			// (Http_Filters are harder to check since they always have the same name).
-			// The namespace for this extauthz cluster should be default (since that is
-			// the namespace of the synthetic AuthService).
+			// The namespace for this extauthz cluster should be "foo" (since that is
+			// the namespace of the AuthService).
 			isAuthCluster := func(c *v3cluster.Cluster) bool {
-				return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_default")
+				return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_foo")
 			}
 
 			// Grab the next Envoy config that has an Edge Stack auth cluster on
@@ -187,8 +186,8 @@ spec:
 
 			// Check for an ext_authz cluster name matching the provided AuthService
 			// (Http_Filters are harder to check since they always have the same name).
-			// The namespace for this extauthz cluster should be foo (since that is the
-			// namespace of the valid AuthService above).
+			// The namespace for this extauthz cluster should be "foo" (since that is
+			// the namespace of the valid AuthService above).
 			isAuthCluster := func(c *v3cluster.Cluster) bool {
 				return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_foo")
 			}
@@ -224,7 +223,7 @@ metadata:
   namespace: foo
 spec:
   auth_service: 127.0.0.1:8500
-  protocol_version: "v4"
+  protocol_version: "vBogus"
   proto: "grpc"
   bogus_field: "foo"
 `)
@@ -234,14 +233,14 @@ spec:
 	// Use the predicate above to check that the snapshot contains the synthetic AuthService.
 	// The AuthService has `protocol_version: v3`, but it has a bogus field so it should not be
 	// validated and instead we inject the synthetic AuthService.
-	snap, err := f.GetSnapshot(HasAuthService("default", "synthetic-edge-stack-auth"))
+	snap, err := f.GetSnapshot(HasAuthService("default", "synthetic_edge_stack_auth"))
 	assert.NoError(t, err)
 	assert.NotNil(t, snap)
 
 	// In edge-stack we should only ever have 1 AuthService.
 	assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
 	// The snapshot should only have the synthetic AuthService and not the one defined above.
-	assert.Equal(t, "synthetic-edge-stack-auth", snap.Kubernetes.AuthServices[0].Name)
+	assert.Equal(t, "synthetic_edge_stack_auth", snap.Kubernetes.AuthServices[0].Name)
 
 	// Check for an ext_authz cluster name matching the synthetic AuthService.  The namespace
 	// for this extauthz cluster should be default (since that is the namespace of the synthetic
@@ -372,21 +371,21 @@ metadata:
 spec:
   auth_service: 127.0.0.1:8500
   proto: "grpc"
-  bogus_field: "foo"
+  protocol_version: "vBogus"
 `)
 	assert.NoError(t, err)
 
 	// Use the predicate above to check that the snapshot contains the synthetic AuthService.
-	// The AuthService has `protocol_version: v3`, but it has a bogus field so it should not be
-	// validated and instead we inject the synthetic AuthService.
-	snap, err := f.GetSnapshot(HasAuthService("default", "synthetic-edge-stack-auth"))
+	// The user-provided AuthService is invalid and so it should be ignored and instead we
+	// inject the synthetic AuthService.
+	snap, err := f.GetSnapshot(HasAuthService("default", "synthetic_edge_stack_auth"))
 	assert.NoError(t, err)
 	assert.NotNil(t, snap)
 
 	// We should only have 1 AuthService.
 	assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
 	// The snapshot should only have the synthetic AuthService and not the one defined above.
-	assert.Equal(t, "synthetic-edge-stack-auth", snap.Kubernetes.AuthServices[0].Name)
+	assert.Equal(t, "synthetic_edge_stack_auth", snap.Kubernetes.AuthServices[0].Name)
 
 	// Check for an ext_authz cluster name matching the synthetic AuthService.  The namespace
 	// for this extauthz cluster should be default (since that is the namespace of the synthetic
@@ -404,8 +403,6 @@ spec:
 	// Make sure an Envoy Config containing a extauth cluster for the AuthService that was
 	// defined.
 	assert.NotNil(t, envoyConfig)
-
-	t.Setenv("EDGE_STACK", "")
 
 	// Updating the yaml for that AuthService to include `protocol_version: v3` should make it
 	// valid and then remove our synthetic AuthService and allow the now valid AuthService to be
@@ -454,8 +451,8 @@ spec:
 }
 
 // This AuthService points at 127.0.0.1:8500, but it does not have `protocol_version: v3`.  It also
-// has additional fields set.  The correct action is to create a SyntheticAuth copy of this
-// AuthService with the same fields but with `protocol_version: v3`.
+// has additional fields set.  The correct action is to edit the AuthService to say
+// `protocol_version: v3`.
 func TestSyntheticAuthCopyFields(t *testing.T) {
 	t.Setenv("EDGE_STACK", "true")
 
@@ -477,31 +474,24 @@ spec:
 	assert.NoError(t, err)
 	f.Flush()
 
-	// Use the predicate above to check that the snapshot contains the synthetic AuthService.
-	// The AuthService has `protocol_version: v3`, but it is missing the `protocol_version: v3`
-	// field.  We expect the synthetic AuthService to be injected, but later we will check that
-	// the synthetic AuthService has Our custom timeout_ms field.
-	snap, err := f.GetSnapshot(HasAuthService("default", "synthetic-edge-stack-auth"))
+	// Use the predicate above to check that the snapshot contains the AuthService.
+	snap, err := f.GetSnapshot(HasAuthService("foo", "edge-stack-auth-test"))
 	assert.NoError(t, err)
 	assert.NotNil(t, snap)
 
 	// In edge-stack we should only ever have 1 AuthService.
 	assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
-	// The snapshot should only have the synthetic AuthService
-	assert.Equal(t, "synthetic-edge-stack-auth", snap.Kubernetes.AuthServices[0].Name)
-
-	// Even though it is the synthetic AuthService, we should have the custom timeout_ms and v3
-	// protocol version.
-	for _, authService := range snap.Kubernetes.AuthServices {
-		assert.Equal(t, int64(12345), authService.Spec.Timeout.Duration.Milliseconds())
-		assert.Equal(t, "v3", authService.Spec.ProtocolVersion)
-	}
+	// It should be that user-provided AuthService...
+	assert.Equal(t, "edge-stack-auth-test", snap.Kubernetes.AuthServices[0].Name)
+	assert.Equal(t, int64(12345), snap.Kubernetes.AuthServices[0].Spec.Timeout.Duration.Milliseconds())
+	// ... but with `protocol_version: v3` set.
+	assert.Equal(t, "v3", snap.Kubernetes.AuthServices[0].Spec.ProtocolVersion)
 
 	// Check for an ext_authz cluster name matching the synthetic AuthService.  The namespace
 	// for this extauthz cluster should be default (since that is the namespace of the synthetic
 	// AuthService).
 	isAuthCluster := func(c *v3cluster.Cluster) bool {
-		return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_default")
+		return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_foo")
 	}
 
 	// Grab the next Envoy config that has an Edge Stack auth cluster on 127.0.0.1:8500
