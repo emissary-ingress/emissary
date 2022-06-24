@@ -217,7 +217,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 }
 
 func clusterIDFromRootID(rootID string) string {
-	clusterUrl := fmt.Sprintf("d6e_id://%s/%s", rootID, GetAmbassadorId())
+	clusterUrl := fmt.Sprintf("d6e_id://%s/%s", rootID, GetAmbassadorID())
 	uid := uuid.NewSHA1(uuid.NameSpaceURL, []byte(clusterUrl))
 
 	return strings.ToLower(uid.String())
