@@ -72,15 +72,15 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
-## [3.0.0] TBD
+## [3.0.0] June 27, 2022
 [3.0.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v3.0.0
 
 ### Emissary-ingress and Ambassador Edge Stack
 
-- Change: The envoy version included in Emissary-ingress has been upgraded from 1.17 to latest patch
-  release of 1.22. This provides $produceName$ with the latest security patches, performances
-  enhancments, and features offered by the envoy proxy. One notable change that will effect users is
-  the removal of support for V2 tranport protocol. See below for more information.
+- Change: The envoy version included in Emissary-ingress has been upgraded from 1.17 to the latest
+  patch release of 1.22. This provides Emissary-ingress with the latest security patches,
+  performances enhancments, and features offered by the envoy proxy. One notable change that will
+  effect users is the removal of support for V2 tranport protocol. See below for more information.
 
 - Change: Emissary-ingress can no longer be made to configure Envoy using the v2 xDS configuration
   API; it now always uses the v3 xDS API to configure Envoy.  This change should be mostly invisible
