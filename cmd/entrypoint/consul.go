@@ -20,16 +20,18 @@ type consulMapping struct {
 }
 
 func ReconcileConsul(ctx context.Context, consulWatcher *consulWatcher, s *snapshotTypes.KubernetesSnapshot) error {
+	envAmbID := GetAmbassadorID()
+
 	var mappings []consulMapping
 	for _, list := range s.Annotations {
 		for _, a := range list {
 			switch m := a.(type) {
 			case *amb.Mapping:
-				if include(m.Spec.AmbassadorID) {
+				if m.Spec.AmbassadorID.Matches(envAmbID) {
 					mappings = append(mappings, consulMapping{Service: m.Spec.Service, Resolver: m.Spec.Resolver})
 				}
 			case *amb.TCPMapping:
-				if include(m.Spec.AmbassadorID) {
+				if m.Spec.AmbassadorID.Matches(envAmbID) {
 					mappings = append(mappings, consulMapping{Service: m.Spec.Service, Resolver: m.Spec.Resolver})
 				}
 			}
@@ -38,19 +40,19 @@ func ReconcileConsul(ctx context.Context, consulWatcher *consulWatcher, s *snaps
 
 	var resolvers []*amb.ConsulResolver
 	for _, cr := range s.ConsulResolvers {
-		if include(cr.Spec.AmbassadorID) {
+		if cr.Spec.AmbassadorID.Matches(envAmbID) {
 			resolvers = append(resolvers, cr)
 		}
 	}
 
 	for _, m := range s.Mappings {
-		if include(m.Spec.AmbassadorID) {
+		if m.Spec.AmbassadorID.Matches(envAmbID) {
 			mappings = append(mappings, consulMapping{Service: m.Spec.Service, Resolver: m.Spec.Resolver})
 		}
 	}
 
 	for _, tm := range s.TCPMappings {
-		if include(tm.Spec.AmbassadorID) {
+		if tm.Spec.AmbassadorID.Matches(envAmbID) {
 			mappings = append(mappings, consulMapping{Service: tm.Spec.Service, Resolver: tm.Spec.Resolver})
 		}
 	}

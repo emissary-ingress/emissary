@@ -63,6 +63,8 @@ func newEndpointRoutingInfo() endpointRoutingInfo {
 }
 
 func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) {
+	envAmbID := GetAmbassadorID()
+
 	// Reset our state except for the previous endpoint watches. We keep them so we can detect if
 	// the set of things we are interested in has changed.
 	eri.resolverTypes = map[string]ResolverType{}
@@ -78,7 +80,7 @@ func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s 
 			if _, isInvalid := a.(*kates.Unstructured); isInvalid {
 				continue
 			}
-			if include(GetAmbID(ctx, a)) {
+			if GetAmbID(ctx, a).Matches(envAmbID) {
 				eri.checkResourcePhase1(ctx, a, "annotation")
 			}
 		}
@@ -89,25 +91,25 @@ func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s 
 	// need to test every resource, and no need to walk over things we're not
 	// interested in.
 	for _, m := range s.Modules {
-		if include(m.Spec.AmbassadorID) {
+		if m.Spec.AmbassadorID.Matches(envAmbID) {
 			eri.checkModule(ctx, m, "CRD")
 		}
 	}
 
 	for _, r := range s.KubernetesServiceResolvers {
-		if include(r.Spec.AmbassadorID) {
+		if r.Spec.AmbassadorID.Matches(envAmbID) {
 			eri.saveResolver(ctx, r.GetName(), KubernetesServiceResolver, "CRD")
 		}
 	}
 
 	for _, r := range s.KubernetesEndpointResolvers {
-		if include(r.Spec.AmbassadorID) {
+		if r.Spec.AmbassadorID.Matches(envAmbID) {
 			eri.saveResolver(ctx, r.GetName(), KubernetesEndpointResolver, "CRD")
 		}
 	}
 
 	for _, r := range s.ConsulResolvers {
-		if include(r.Spec.AmbassadorID) {
+		if r.Spec.AmbassadorID.Matches(envAmbID) {
 			eri.saveResolver(ctx, r.GetName(), ConsulResolver, "CRD")
 		}
 	}
@@ -128,20 +130,20 @@ func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s 
 			if _, isInvalid := a.(*kates.Unstructured); isInvalid {
 				continue
 			}
-			if include(GetAmbID(ctx, a)) {
+			if GetAmbID(ctx, a).Matches(envAmbID) {
 				eri.checkResourcePhase2(ctx, a, "annotation")
 			}
 		}
 	}
 
 	for _, m := range s.Mappings {
-		if include(m.Spec.AmbassadorID) {
+		if m.Spec.AmbassadorID.Matches(envAmbID) {
 			eri.checkMapping(ctx, m, "CRD")
 		}
 	}
 
 	for _, t := range s.TCPMappings {
-		if include(t.Spec.AmbassadorID) {
+		if t.Spec.AmbassadorID.Matches(envAmbID) {
 			eri.checkTCPMapping(ctx, t, "CRD")
 		}
 	}
