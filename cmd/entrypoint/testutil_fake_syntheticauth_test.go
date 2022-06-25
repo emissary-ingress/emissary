@@ -59,9 +59,9 @@ spec:
 			assert.NoError(t, err)
 			assert.NotNil(t, snap)
 
-			assert.Equal(t, "edge-stack-auth-test", snap.Kubernetes.AuthServices[0].Name)
 			// In edge-stack we should only ever have 1 AuthService.
 			assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
+			assert.Equal(t, "edge-stack-auth-test", snap.Kubernetes.AuthServices[0].Name)
 
 			// Check for an ext_authz cluster name matching the provided AuthService
 			// (Http_Filters are harder to check since they always have the same name).
@@ -117,11 +117,11 @@ spec:
 			assert.NoError(t, err)
 			assert.NotNil(t, snap)
 
+			// In edge-stack we should only ever have 1 AuthService.
+			assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
 			// The snapshot should only have the synthetic AuthService and not the one
 			// defined above.
 			assert.Equal(t, "synthetic-edge-stack-auth", snap.Kubernetes.AuthServices[0].Name)
-			// In edge-stack we should only ever have 1 AuthService.
-			assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
 
 			// Check for an ext_authz cluster name matching the provided AuthService
 			// (Http_Filters are harder to check since they always have the same name).
@@ -181,9 +181,9 @@ spec:
 			assert.NoError(t, err)
 			assert.NotNil(t, snap)
 
-			assert.Equal(t, "edge-stack-auth-test", snap.Kubernetes.AuthServices[0].Name)
 			// In edge-stack we should only ever have 1 AuthService.
 			assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
+			assert.Equal(t, "edge-stack-auth-test", snap.Kubernetes.AuthServices[0].Name)
 
 			// Check for an ext_authz cluster name matching the provided AuthService
 			// (Http_Filters are harder to check since they always have the same name).
@@ -238,10 +238,10 @@ spec:
 	assert.NoError(t, err)
 	assert.NotNil(t, snap)
 
-	// The snapshot should only have the synthetic AuthService and not the one defined above.
-	assert.Equal(t, "synthetic-edge-stack-auth", snap.Kubernetes.AuthServices[0].Name)
 	// In edge-stack we should only ever have 1 AuthService.
 	assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
+	// The snapshot should only have the synthetic AuthService and not the one defined above.
+	assert.Equal(t, "synthetic-edge-stack-auth", snap.Kubernetes.AuthServices[0].Name)
 
 	// Check for an ext_authz cluster name matching the synthetic AuthService.  The namespace
 	// for this extauthz cluster should be default (since that is the namespace of the synthetic
@@ -332,10 +332,10 @@ spec:
 	assert.NoError(t, err)
 	assert.NotNil(t, snap)
 
-	// The snapshot should only have the synthetic AuthService and not the one defined above.
-	assert.Equal(t, "edge-stack-auth-test", snap.Kubernetes.AuthServices[0].Name)
 	// In edge-stack we should only ever have 1 AuthService.
 	assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
+	// The snapshot should only have the synthetic AuthService and not the one defined above.
+	assert.Equal(t, "edge-stack-auth-test", snap.Kubernetes.AuthServices[0].Name)
 
 	// Check for an ext_authz cluster name matching the provided AuthService (Http_Filters are
 	// harder to check since they always have the same name).  The namespace for this extauthz
@@ -387,10 +387,10 @@ spec:
 	assert.NoError(t, err)
 	assert.NotNil(t, snap)
 
-	// The snapshot should only have the synthetic AuthService and not the one defined above.
-	assert.Equal(t, "synthetic-edge-stack-auth", snap.Kubernetes.AuthServices[0].Name)
 	// We should only have 1 AuthService.
 	assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
+	// The snapshot should only have the synthetic AuthService and not the one defined above.
+	assert.Equal(t, "synthetic-edge-stack-auth", snap.Kubernetes.AuthServices[0].Name)
 
 	// Check for an ext_authz cluster name matching the synthetic AuthService.  The namespace
 	// for this extauthz cluster should be default (since that is the namespace of the synthetic
@@ -435,9 +435,9 @@ spec:
 	assert.NoError(t, err)
 	assert.NotNil(t, snap)
 
-	assert.Equal(t, "edge-stack-auth-test", snap.Kubernetes.AuthServices[0].Name)
 	// In edge-stack we should only ever have 1 AuthService.
 	assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
+	assert.Equal(t, "edge-stack-auth-test", snap.Kubernetes.AuthServices[0].Name)
 
 	// Check for an ext_authz cluster name matching the provided AuthService (Http_Filters are
 	// harder to check since they always have the same name).  The namespace for this extauthz
@@ -492,10 +492,10 @@ spec:
 	assert.NoError(t, err)
 	assert.NotNil(t, snap)
 
-	// The snapshot should only have the synthetic AuthService
-	assert.Equal(t, "synthetic-edge-stack-auth", snap.Kubernetes.AuthServices[0].Name)
 	// In edge-stack we should only ever have 1 AuthService.
 	assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
+	// The snapshot should only have the synthetic AuthService
+	assert.Equal(t, "synthetic-edge-stack-auth", snap.Kubernetes.AuthServices[0].Name)
 
 	// Even though it is the synthetic AuthService, we should have the custom timeout_ms and v3
 	// protocol version.
@@ -553,9 +553,9 @@ spec:
 	assert.NoError(t, err)
 	assert.NotNil(t, snap)
 
-	assert.Equal(t, "edge-stack-auth-test", snap.Kubernetes.AuthServices[0].Name)
 	// In edge-stack we should only ever have 1 AuthService.
 	assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
+	assert.Equal(t, "edge-stack-auth-test", snap.Kubernetes.AuthServices[0].Name)
 
 	for _, authService := range snap.Kubernetes.AuthServices {
 		assert.Equal(t, "dummy-service", authService.Spec.AuthService)
