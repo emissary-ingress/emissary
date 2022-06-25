@@ -29,15 +29,16 @@ func HasAuthService(namespace, name string) func(snapshot *snapshot.Snapshot) bo
 // Tests the synthetic auth generation when a valid AuthService is created.  This AuthService has
 // `protocol_version: v3` and should not be replaced by the synthetic AuthService.
 func TestSyntheticAuthValid(t *testing.T) {
-	if true {
-		if true {
+	for _, apiVersion := range []string{"v2", "v3alpha1"} {
+		apiVersion := apiVersion // capture loop variable
+		t.Run(apiVersion, func(t *testing.T) {
 			t.Setenv("EDGE_STACK", "true")
 
 			f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 
 			err := f.UpsertYAML(`
 ---
-apiVersion: getambassador.io/v3alpha1
+apiVersion: getambassador.io/` + apiVersion + `
 kind: AuthService
 metadata:
   name: edge-stack-auth-test
@@ -80,81 +81,23 @@ spec:
 			// Make sure an Envoy Config containing a extauth cluster for the
 			// AuthService that was defined.
 			assert.NotNil(t, envoyConfig)
-		}
-	}
-}
-
-// Tests the synthetic auth generation when a valid AuthService is created as a getambassador.io/v2
-// resource.  This AuthService has `protocol_version: v3` and should not be replaced by the
-// synthetic AuthService.
-func TestSyntheticAuthValidV2(t *testing.T) {
-	if true {
-		if true {
-			t.Setenv("EDGE_STACK", "true")
-
-			f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
-
-			err := f.UpsertYAML(`
----
-apiVersion: getambassador.io/v2
-kind: AuthService
-metadata:
-  name: edge-stack-auth-test
-  namespace: foo
-spec:
-  auth_service: 127.0.0.1:8500
-  protocol_version: "v3"
-  proto: "grpc"
-`)
-			assert.NoError(t, err)
-			f.Flush()
-
-			// Use the predicate above to check that the snapshot contains the
-			// AuthService defined above.  The AuthService has `protocol_version: v3` so
-			// it should not be removed/replaced by the synthetic AuthService injected
-			// by syntheticauth.go
-			snap, err := f.GetSnapshot(HasAuthService("foo", "edge-stack-auth-test"))
-			assert.NoError(t, err)
-			assert.NotNil(t, snap)
-
-			assert.Equal(t, "edge-stack-auth-test", snap.Kubernetes.AuthServices[0].Name)
-			// In edge-stack we should only ever have 1 AuthService.
-			assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
-
-			// Check for an ext_authz cluster name matching the provided AuthService
-			// (Http_Filters are harder to check since they always have the same name).
-			// The namespace for this extauthz cluster should be foo (since that is the
-			// namespace of the valid AuthService above).
-			isAuthCluster := func(c *v3cluster.Cluster) bool {
-				return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_foo")
-			}
-
-			// Grab the next Envoy config that has an Edge Stack auth cluster on
-			// 127.0.0.1:8500
-			envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
-				return FindCluster(envoy, isAuthCluster) != nil
-			})
-			require.NoError(t, err)
-
-			// Make sure an Envoy Config containing a extauth cluster for the
-			// AuthService that was defined.
-			assert.NotNil(t, envoyConfig)
-		}
+		})
 	}
 }
 
 // This tests with a provided AuthService that has no protocol_version (which defaults to v2).  The
 // synthetic AuthService should be created instead.
 func TestSyntheticAuthReplace(t *testing.T) {
-	if true {
-		if true {
+	for _, apiVersion := range []string{"v2", "v3alpha1"} {
+		apiVersion := apiVersion // capture loop variable
+		t.Run(apiVersion, func(t *testing.T) {
 			t.Setenv("EDGE_STACK", "true")
 
 			f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 
 			err := f.UpsertYAML(`
 ---
-apiVersion: getambassador.io/v3alpha1
+apiVersion: getambassador.io/` + apiVersion + `
 kind: AuthService
 metadata:
   name: edge-stack-auth-test
@@ -198,66 +141,7 @@ spec:
 			// Make sure an Envoy Config containing a extauth cluster for the
 			// AuthService that was defined.
 			assert.NotNil(t, envoyConfig)
-		}
-	}
-}
-
-// This tests with a provided AuthService that has no protocol_version (which defaults to v2).  The
-// synthetic AuthService should be created instead.
-func TestSyntheticAuthReplaceV2(t *testing.T) {
-	if true {
-		if true {
-			t.Setenv("EDGE_STACK", "true")
-
-			f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
-
-			err := f.UpsertYAML(`
----
-apiVersion: getambassador.io/v2
-kind: AuthService
-metadata:
-  name: edge-stack-auth-test
-  namespace: foo
-spec:
-  auth_service: 127.0.0.1:8500
-  proto: "grpc"
-`)
-			assert.NoError(t, err)
-			f.Flush()
-
-			// Use the predicate above to check that the snapshot contains the
-			// AuthService defined above.  The AuthService does not have
-			// `protocol_version: v3` so it should be removed and replaced by the
-			// synthetic AuthService injected by syntheticauth.go
-			snap, err := f.GetSnapshot(HasAuthService("default", "synthetic-edge-stack-auth"))
-			assert.NoError(t, err)
-			assert.NotNil(t, snap)
-
-			// The snapshot should only have the synthetic AuthService and not the one
-			// defined above.
-			assert.Equal(t, "synthetic-edge-stack-auth", snap.Kubernetes.AuthServices[0].Name)
-			// In edge-stack we should only ever have 1 AuthService.
-			assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
-
-			// Check for an ext_authz cluster name matching the provided AuthService
-			// (Http_Filters are harder to check since they always have the same name).
-			// The namespace for this extauthz cluster should be default (since that is
-			// the namespace of the synthetic AuthService).
-			isAuthCluster := func(c *v3cluster.Cluster) bool {
-				return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_default")
-			}
-
-			// Grab the next Envoy config that has an Edge Stack auth cluster on
-			// 127.0.0.1:8500
-			envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
-				return FindCluster(envoy, isAuthCluster) != nil
-			})
-			require.NoError(t, err)
-
-			// Make sure an Envoy Config containing a extauth cluster for the
-			// AuthService that was defined.
-			assert.NotNil(t, envoyConfig)
-		}
+		})
 	}
 }
 
@@ -266,15 +150,16 @@ spec:
 // a bogus value because the bogus field will be dropped when it is loaded and we will be left with
 // a valid AuthService.
 func TestSyntheticAuthBogusField(t *testing.T) {
-	if true {
-		if true {
+	for _, apiVersion := range []string{"v2", "v3alpha1"} {
+		apiVersion := apiVersion // capture loop variable
+		t.Run(apiVersion, func(t *testing.T) {
 			t.Setenv("EDGE_STACK", "true")
 
 			f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 
 			err := f.UpsertYAML(`
 ---
-apiVersion: getambassador.io/v3alpha1
+apiVersion: getambassador.io/` + apiVersion + `
 kind: AuthService
 metadata:
   name: edge-stack-auth-test
@@ -318,67 +203,7 @@ spec:
 			// Make sure an Envoy Config containing a extauth cluster for the
 			// AuthService that was defined.
 			assert.NotNil(t, envoyConfig)
-		}
-	}
-}
-
-// Tests the synthetic auth generation when an invalid AuthService is created as a
-// getambassador.io/v2 resource.  This AuthService has `protocol_version: v3` and should be replaced
-// by the synthetic AuthService because it contains a bogus field and is not valid.
-func TestSyntheticAuthBogusFieldV2(t *testing.T) {
-	if true {
-		if true {
-			t.Setenv("EDGE_STACK", "true")
-
-			f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
-
-			err := f.UpsertYAML(`
----
-apiVersion: getambassador.io/v2
-kind: AuthService
-metadata:
-  name: edge-stack-auth-test
-  namespace: foo
-spec:
-  auth_service: 127.0.0.1:8500
-  protocol_version: "v3"
-  proto: "grpc"
-  bogus_field: "foo"
-`)
-			assert.NoError(t, err)
-			f.Flush()
-
-			// Use the predicate above to check that the snapshot contains the
-			// AuthService defined above.  The AuthService has `protocol_version: v3` so
-			// it should not be removed/replaced by the synthetic AuthService injected
-			// by syntheticauth.go
-			snap, err := f.GetSnapshot(HasAuthService("foo", "edge-stack-auth-test"))
-			assert.NoError(t, err)
-			assert.NotNil(t, snap)
-
-			assert.Equal(t, "edge-stack-auth-test", snap.Kubernetes.AuthServices[0].Name)
-			// In edge-stack we should only ever have 1 AuthService.
-			assert.Equal(t, 1, len(snap.Kubernetes.AuthServices))
-
-			// Check for an ext_authz cluster name matching the provided AuthService
-			// (Http_Filters are harder to check since they always have the same name).
-			// The namespace for this extauthz cluster should be foo (since that is the
-			// namespace of the valid AuthService above).
-			isAuthCluster := func(c *v3cluster.Cluster) bool {
-				return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_foo")
-			}
-
-			// Grab the next Envoy config that has an Edge Stack auth cluster on
-			// 127.0.0.1:8500
-			envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
-				return FindCluster(envoy, isAuthCluster) != nil
-			})
-			require.NoError(t, err)
-
-			// Make sure an Envoy Config containing a extauth cluster for the
-			// AuthService that was defined.
-			assert.NotNil(t, envoyConfig)
-		}
+		})
 	}
 }
 
