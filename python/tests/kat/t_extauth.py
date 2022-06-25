@@ -1004,6 +1004,13 @@ service: {self.target.path.fqdn}
 
     def check(self):
         if self.expected_protocol_version == 'invalid':
+            for i, result in enumerate(self.results):
+                # Verify the basic structure of the HTTP 500's JSON body.
+                assert result.json, f"self.results[{i}] does not have a JSON body"
+                assert result.json['status_code'] == 500, f"self.results[{i}] JSON body={repr(result.json)} does not have status_code=500"
+                assert result.json['request_id'], f"self.results[{i}] JSON body={repr(result.json)} does not have request_id"
+                assert self.path.k8s in result.json['message'], f"self.results[{i}] JSON body={repr(result.json)} does not have thing-containing-the-annotation-containing-the-AuthService name {repr(self.path.k8s)} in message"
+                assert 'AuthService' in result.json['message'], f"self.results[{i}] JSON body={repr(result.json)} does not have type 'AuthService' in message"
             return
 
         # [0] Verifies all request headers sent to the authorization server.
