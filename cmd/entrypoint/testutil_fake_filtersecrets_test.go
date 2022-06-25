@@ -67,7 +67,6 @@ type: Opaque
 			snap, err := f.GetSnapshot(hasSecret("namespaced-secret", "bar"))
 			require.NoError(t, err)
 			assert.NotNil(t, snap)
-			t.Setenv("EDGE_STACK", "")
 		})
 	}
 }
@@ -112,7 +111,6 @@ type: Opaque
 			snap, err := f.GetSnapshot(hasSecret("namespaced-secret", "foo"))
 			require.NoError(t, err)
 			assert.NotNil(t, snap)
-			t.Setenv("EDGE_STACK", "")
 		})
 	}
 }

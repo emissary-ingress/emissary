@@ -72,8 +72,6 @@ spec:
 
 	// Make sure an Envoy Config containing a extauth cluster for the AuthService that was defined
 	assert.NotNil(t, envoyConfig)
-
-	t.Setenv("EDGE_STACK", "")
 }
 
 // Tests the synthetic auth generation when a valid AuthService is created as a getambassador.io/v2 resource
@@ -123,8 +121,6 @@ spec:
 
 	// Make sure an Envoy Config containing a extauth cluster for the AuthService that was defined
 	assert.NotNil(t, envoyConfig)
-
-	t.Setenv("EDGE_STACK", "")
 }
 
 // This tests with a provided AuthService that has no protocol_version (which defaults to v2)
@@ -174,8 +170,6 @@ spec:
 
 	// Make sure an Envoy Config containing a extauth cluster for the AuthService that was defined
 	assert.NotNil(t, envoyConfig)
-
-	t.Setenv("EDGE_STACK", "")
 }
 
 // This tests with a provided AuthService that has no protocol_version (which defaults to v2)
@@ -225,8 +219,6 @@ spec:
 
 	// Make sure an Envoy Config containing a extauth cluster for the AuthService that was defined
 	assert.NotNil(t, envoyConfig)
-
-	t.Setenv("EDGE_STACK", "")
 }
 
 // Tests the synthetic auth generation when an invalid AuthService is created as a getambassador.io/v2 resource
@@ -278,8 +270,6 @@ spec:
 
 	// Make sure an Envoy Config containing a extauth cluster for the AuthService that was defined
 	assert.NotNil(t, envoyConfig)
-
-	t.Setenv("EDGE_STACK", "")
 }
 
 // Tests the synthetic auth generation when an invalid AuthService is created as a getambassador.io/v2 resource
@@ -330,9 +320,6 @@ spec:
 
 	// Make sure an Envoy Config containing a extauth cluster for the AuthService that was defined
 	assert.NotNil(t, envoyConfig)
-
-	t.Setenv("EDGE_STACK", "")
-
 }
 
 // Tests the synthetic auth generation when an invalid AuthService (because the protocol_version is invalid for the supported enums)
@@ -383,8 +370,6 @@ spec:
 
 	// Make sure an Envoy Config containing a extauth cluster for the AuthService that was defined
 	assert.NotNil(t, envoyConfig)
-
-	t.Setenv("EDGE_STACK", "")
 }
 
 // Tests the synthetic auth generation when an invalid AuthService is created and edited several times in succession.
@@ -474,8 +459,6 @@ spec:
 
 	// Make sure an Envoy Config containing a extauth cluster for the AuthService that was defined
 	assert.NotNil(t, envoyConfig)
-
-	t.Setenv("EDGE_STACK", "")
 }
 
 // Tests the synthetic auth generation by first creating an invalid AuthService and confirming that the synthetic AuthService gets injected.
@@ -570,9 +553,6 @@ spec:
 
 	// Make sure an Envoy Config containing a extauth cluster for the AuthService that was defined
 	assert.NotNil(t, envoyConfig)
-
-	t.Setenv("EDGE_STACK", "")
-
 }
 
 // This AuthService points at 127.0.0.1:8500, but it does not have protocol_version: v3. It also has additional fields set.
@@ -631,8 +611,6 @@ spec:
 
 	// Make sure an Envoy Config containing a extauth cluster for the AuthService that was defined
 	assert.NotNil(t, envoyConfig)
-
-	t.Setenv("EDGE_STACK", "")
 }
 
 // This AuthService does not point at 127.0.0.1:8500, we leave it alone rather than adding a synthetic one
@@ -686,8 +664,6 @@ spec:
 
 	// Make sure an Envoy Config containing a extauth cluster for the AuthService that was defined
 	assert.NotNil(t, envoyConfig)
-
-	t.Setenv("EDGE_STACK", "")
 }
 
 // When deciding if we need to inject a synthetic AuthService or not, we need to be able to reliably determine if that
