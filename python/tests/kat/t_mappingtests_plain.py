@@ -1,6 +1,6 @@
 from typing import Dict, Generator, Tuple, Union
 
-from abstract_tests import HTTP, AmbassadorTest, MappingTest, Node, OptionTest, ServiceType
+from abstract_tests import HTTP, AmbassadorTest, HTTPBin, MappingTest, Node, OptionTest, ServiceType
 from ambassador.constants import Constants
 from kat.harness import EDGE_STACK, Query, variants
 
@@ -706,10 +706,8 @@ class AddRespHeadersMapping(MappingTest):
     parent: AmbassadorTest
     target: ServiceType
 
-    @classmethod
-    def variants(cls) -> Generator[Node, None, None]:
-        for st in variants(ServiceType):
-            yield cls(st, name="{self.target.name}")
+    def init(self):
+        MappingTest.init(self, HTTPBin())
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format(
@@ -720,7 +718,7 @@ kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
-service: httpbin.plain-namespace
+service: {self.target.path.fqdn}
 add_response_headers:
     koo:
         append: False
@@ -786,10 +784,8 @@ class RemoveReqHeadersMapping(MappingTest):
     parent: AmbassadorTest
     target: ServiceType
 
-    @classmethod
-    def variants(cls) -> Generator[Node, None, None]:
-        for st in variants(ServiceType):
-            yield cls(st, name="{self.target.name}")
+    def init(self):
+        MappingTest.init(self, HTTPBin())
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format(
@@ -800,7 +796,7 @@ kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
-service: httpbin.plain-namespace
+service: {self.target.path.fqdn}
 remove_request_headers:
 - zoo
 - aoo

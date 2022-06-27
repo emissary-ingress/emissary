@@ -515,6 +515,18 @@ class ALSGRPC(ServiceType):
         yield ("pod", self.path.k8s)
 
 
+class HTTPBin(ServiceType):
+    skip_variant: ClassVar[bool] = True
+
+    def __init__(self, *args, **kwargs) -> None:
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = integration_manifests.load("httpbin_backend")
+        super().__init__(*args, **kwargs)
+
+    def requirements(self):
+        yield ("url", Query("http://%s/status/200" % self.path.fqdn))
+
+
 @abstract_test
 class MappingTest(Test):
 

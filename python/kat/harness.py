@@ -39,7 +39,6 @@ from tests.kubeutils import apply_kube_artifacts
 from tests.manifests import (
     cleartext_host_manifest,
     default_listener_manifest,
-    httpbin_manifests,
     websocket_echo_server_manifests,
 )
 
@@ -1783,12 +1782,9 @@ class Runner:
                 raise RuntimeError("Could not apply manifests")
             self.applied_manifests = True
 
-        # Finally, install httpbin and the websocket-echo-server.
-        print(
-            f"applying http_manifests + websocket_echo_server_manifests to namespaces: {namespaces}"
-        )
+        # Finally, install the websocket-echo-server.
+        print(f"applying websocket_echo_server_manifests to namespaces: {namespaces}")
         for namespace in namespaces:
-            apply_kube_artifacts(namespace, httpbin_manifests)
             apply_kube_artifacts(namespace, websocket_echo_server_manifests)
 
         for n in self.nodes:
