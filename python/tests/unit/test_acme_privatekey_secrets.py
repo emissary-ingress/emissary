@@ -121,7 +121,7 @@ def test_acme_privatekey_secrets(caplog: pytest.LogCaptureFixture):
         "test_acme_privatekey_secrets-bad",
         os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "test_general_data",
+            "testdata",
             "test-acme-private-key-snapshot-bad.json",
         ),
     )
@@ -135,7 +135,7 @@ def test_acme_privatekey_secrets(caplog: pytest.LogCaptureFixture):
         "test_acme_privatekey_secrets",
         os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "test_general_data",
+            "testdata",
             "test-acme-private-key-snapshot.json",
         ),
     )
