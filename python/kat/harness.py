@@ -305,7 +305,7 @@ def variants(cls, *args, **kwargs) -> Tuple[Any]:
 
 class Name(NamedTuple):
     name: str
-    namespace: Optional[str]
+    namespace: str
 
     @property
     def k8s(self) -> str:
@@ -313,12 +313,7 @@ class Name(NamedTuple):
 
     @property
     def fqdn(self) -> str:
-        r = self.k8s
-
-        if self.namespace and (self.namespace != "default"):
-            r += "." + self.namespace
-
-        return r
+        return ".".join([self.k8s, self.namespace, "svc", "cluster", "local"])
 
 
 class NodeLocal(threading.local):
@@ -606,12 +601,6 @@ class Node(ABC):
 
     def format(self, st, **kwargs):
         return integration_manifests.format(st, self=self, **kwargs)
-
-    def get_fqdn(self, name: str) -> str:
-        if self.namespace and (self.namespace != "default"):
-            return f"{name}.{self.namespace}"
-        else:
-            return name
 
     @functools.lru_cache()
     def matches(self, pattern):

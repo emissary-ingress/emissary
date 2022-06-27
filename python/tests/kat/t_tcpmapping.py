@@ -300,7 +300,7 @@ service: https://{self.target3.path.fqdn}
     # to.)
 
     def check(self):
-        for idx, target, tls_wanted in [
+        for idx, target, expected_tls in [
             (0, self.target1, True),
             (1, self.target2, True),
             (2, self.target1, False),
@@ -308,16 +308,13 @@ service: https://{self.target3.path.fqdn}
             (4, self.target3, True),
             # ( 5, self.target1 ),
         ]:
+            expected_host = target.path.k8s
             r = self.results[idx]
-            wanted_fqdn = target.path.fqdn
-            assert r.backend
-            backend_fqdn = target.get_fqdn(r.backend.name)
-            assert r.backend.request
-            tls_enabled = r.backend.request.tls.enabled
 
-            assert (
-                backend_fqdn == wanted_fqdn
-            ), f"{idx}: backend {backend_fqdn} != expected {wanted_fqdn}"
-            assert (
-                tls_enabled == tls_wanted
-            ), f"{idx}: TLS status {tls_enabled} != wanted {tls_wanted}"
+            assert r.backend
+            actual_host = r.backend.name
+            assert r.backend.request
+            actual_tls = r.backend.request.tls.enabled
+
+            assert actual_host == expected_host
+            assert actual_tls == expected_tls

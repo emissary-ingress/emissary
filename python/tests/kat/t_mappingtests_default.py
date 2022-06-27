@@ -339,7 +339,7 @@ spec:
   ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /{self.name}-1/
-  service: {self.target.path.fqdn}.default
+  service: {self.target.path.fqdn}
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -350,7 +350,7 @@ spec:
   ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /{self.name}-2/
-  service: {self.target.path.fqdn}.default
+  service: {self.target.path.fqdn}
 """
             )
             + super().manifests()
