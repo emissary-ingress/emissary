@@ -1,6 +1,6 @@
 from typing import Generator, Tuple, Union
 
-from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
+from abstract_tests import HTTP, AmbassadorTest, HTTPBin, Node, ServiceType
 from ambassador.constants import Constants
 from kat.harness import EDGE_STACK, Query, variants
 from tests.integration.manifests import namespace_manifest
@@ -61,7 +61,7 @@ class MergeSlashesDisabled(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.target = HTTP()
+        self.target = HTTPBin()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format(
@@ -73,7 +73,7 @@ name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
-service: httpbin.default
+service: {self.target.path.fqdn}
 """
         )
 
@@ -93,7 +93,7 @@ class MergeSlashesEnabled(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.target = HTTP()
+        self.target = HTTPBin()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format(
@@ -111,7 +111,7 @@ name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
-service: httpbin.default
+service: {self.target.path.fqdn}
 """
         )
 
@@ -131,7 +131,7 @@ class RejectRequestsWithEscapedSlashesDisabled(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.target = HTTP()
+        self.target = HTTPBin()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format(
@@ -143,7 +143,7 @@ name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
-service: httpbin.default
+service: {self.target.path.fqdn}
 """
         )
 
@@ -166,7 +166,7 @@ class RejectRequestsWithEscapedSlashesEnabled(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.target = HTTP()
+        self.target = HTTPBin()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format(
@@ -184,7 +184,7 @@ name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
-service: httpbin
+service: {self.target.path.fqdn}
 """
         )
 
@@ -359,7 +359,7 @@ class LongClusterNameMapping(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.target = HTTP()
+        self.target = HTTPBin()
 
     def manifests(self) -> str:
         return (
@@ -372,7 +372,7 @@ metadata:
   name: thisisaverylongservicenameoverwithsixythreecharacters123456789
 spec:
   type: ExternalName
-  externalName: httpbin.default.svc.cluster.local
+  externalName: {self.target.path.fqdn}
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
