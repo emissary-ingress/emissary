@@ -300,7 +300,7 @@ service: https://{self.target3.path.fqdn}
     # to.)
 
     def check(self):
-        for idx, target, tls_wanted in [
+        for idx, target, expected_tls in [
             (0, self.target1, True),
             (1, self.target2, True),
             (2, self.target1, False),
@@ -308,17 +308,16 @@ service: https://{self.target3.path.fqdn}
             (4, self.target3, True),
             # ( 5, self.target1 ),
         ]:
+            expected_host = target.path.k8s
             r = self.results[idx]
-            wanted_fqdn = target.path.fqdn
-            backend_fqdn = target.get_fqdn(r.backend.name)
-            tls_enabled = r.backend.request.tls.enabled
 
-            assert (
-                backend_fqdn == wanted_fqdn
-            ), f"{idx}: backend {backend_fqdn} != expected {wanted_fqdn}"
-            assert (
-                tls_enabled == tls_wanted
-            ), f"{idx}: TLS status {tls_enabled} != wanted {tls_wanted}"
+            assert r.backend
+            actual_host = r.backend.name
+            assert r.backend.request
+            actual_tls = r.backend.request.tls.enabled
+
+            assert actual_host == expected_host
+            assert actual_tls == expected_tls
 
 
 class TCPMappingBasicTest(AmbassadorTest):
@@ -336,7 +335,7 @@ class TCPMappingBasicTest(AmbassadorTest):
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
@@ -370,7 +369,7 @@ class TCPMappingCrossNamespaceTest(AmbassadorTest):
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
@@ -403,7 +402,7 @@ class TCPMappingTLSOriginationBoolTest(AmbassadorTest):
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
@@ -442,7 +441,7 @@ class TCPMappingTLSOriginationV2SchemeTest(AmbassadorTest):
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}-1
+  name: {self.path.k8s}-1
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
@@ -451,7 +450,7 @@ spec:
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}-2
+  name: {self.path.k8s}-2
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6790
@@ -490,7 +489,7 @@ class TCPMappingTLSOriginationV3SchemeTest(AmbassadorTest):
 apiVersion: getambassador.io/v3alpha1
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}-1
+  name: {self.path.k8s}-1
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
@@ -523,7 +522,7 @@ class TCPMappingTLSOriginationContextTest(AmbassadorTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}-clientcert
+  name: {self.path.k8s}-clientcert
 type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["presto.example.com"].k8s_crt}
@@ -532,21 +531,21 @@ data:
 apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
-  name: {self.name.k8s}-tlsclient
+  name: {self.path.k8s}-tlsclient
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  secret: {self.name.k8s}-clientcert
+  secret: {self.path.k8s}-clientcert
   sni: my-funny-name
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
   service: {self.target.path.fqdn}:443
-  tls: {self.name.k8s}-tlsclient
+  tls: {self.path.k8s}-tlsclient
 """
             + super().manifests()
         )
@@ -575,7 +574,7 @@ class TCPMappingTLSOriginationContextWithDotTest(AmbassadorTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}-clientcert
+  name: {self.path.k8s}-clientcert
 type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["presto.example.com"].k8s_crt}
@@ -584,21 +583,21 @@ data:
 apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
-  name: {self.name.k8s}.tlsclient
+  name: {self.path.k8s}.tlsclient
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  secret: {self.name.k8s}-clientcert
+  secret: {self.path.k8s}-clientcert
   sni: my-hilarious-name
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
   service: {self.target.path.fqdn}:443
-  tls: {self.name.k8s}.tlsclient
+  tls: {self.path.k8s}.tlsclient
 """
             + super().manifests()
         )
@@ -632,7 +631,7 @@ class TCPMappingTLSOriginationContextCrossNamespaceTest(AmbassadorTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}-clientcert
+  name: {self.path.k8s}-clientcert
   namespace: other-namespace
 type: kubernetes.io/tls
 data:
@@ -642,22 +641,22 @@ data:
 apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
-  name: {self.name.k8s}-tlsclient
+  name: {self.path.k8s}-tlsclient
   namespace: other-namespace
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  secret: {self.name.k8s}-clientcert
+  secret: {self.path.k8s}-clientcert
   sni: my-hysterical-name
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
   service: {self.target.path.fqdn}:443
-  tls: {self.name.k8s}-tlsclient
+  tls: {self.path.k8s}-tlsclient
 """
             + super().manifests()
         )
@@ -720,7 +719,7 @@ class TCPMappingTLSTerminationBasicTest(TCPMappingTLSTerminationTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}-servercert
+  name: {self.path.k8s}-servercert
 type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
@@ -732,10 +731,10 @@ data:
 apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
-  name: {self.name.k8s}-tlsserver
+  name: {self.path.k8s}-tlsserver
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  secret: {self.name.k8s}-servercert
+  secret: {self.path.k8s}-servercert
   hosts: [ "tls-context-host-2" ]
 """
                 if self.tls_src == "tlscontext"
@@ -744,12 +743,12 @@ spec:
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
-  name: {self.name.k8s}-tlsserver
+  name: {self.path.k8s}-tlsserver
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   hostname: "tls-context-host-2"
   tlsSecret:
-    name: {self.name.k8s}-servercert
+    name: {self.path.k8s}-servercert
 """
             )
             + f"""
@@ -757,7 +756,7 @@ spec:
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
@@ -796,7 +795,7 @@ class TCPMappingTLSTerminationCrossNamespaceTest(TCPMappingTLSTerminationTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}-servercert
+  name: {self.path.k8s}-servercert
   namespace: other-namespace
 type: kubernetes.io/tls
 data:
@@ -809,11 +808,11 @@ data:
 apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
-  name: {self.name.k8s}-tlsserver
+  name: {self.path.k8s}-tlsserver
   namespace: other-namespace
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  secret: {self.name.k8s}-servercert
+  secret: {self.path.k8s}-servercert
   hosts: [ "tls-context-host-2" ]
 """
                 if self.tls_src == "tlscontext"
@@ -822,13 +821,13 @@ spec:
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
-  name: {self.name.k8s}-tlsserver
+  name: {self.path.k8s}-tlsserver
   namespace: other-namespace
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   hostname: "tls-context-host-2"
   tlsSecret:
-    name: {self.name.k8s}-servercert
+    name: {self.path.k8s}-servercert
 """
             )
             + f"""
@@ -836,7 +835,7 @@ spec:
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
@@ -878,7 +877,7 @@ class TCPMappingSNISharedContextTest(TCPMappingTLSTerminationTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}-servercert
+  name: {self.path.k8s}-servercert
 type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["*.domain.com"].k8s_crt}
@@ -890,10 +889,10 @@ data:
 apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
-  name: {self.name.k8s}-tlsserver
+  name: {self.path.k8s}-tlsserver
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  secret: {self.name.k8s}-servercert
+  secret: {self.path.k8s}-servercert
   hosts:
     - "a.domain.com"
     - "b.domain.com"
@@ -904,12 +903,12 @@ spec:
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
-  name: {self.name.k8s}-tlsserver
+  name: {self.path.k8s}-tlsserver
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   hostname: "*.domain.com"
   tlsSecret:
-    name: {self.name.k8s}-servercert
+    name: {self.path.k8s}-servercert
   requestPolicy:
     insecure:
       action: Route
@@ -921,7 +920,7 @@ spec:
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}-a
+  name: {self.path.k8s}-a
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
@@ -931,7 +930,7 @@ spec:
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}-b
+  name: {self.path.k8s}-b
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
@@ -979,7 +978,7 @@ class TCPMappingSNISeparateContextsTest(TCPMappingTLSTerminationTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}-servercert-a
+  name: {self.path.k8s}-servercert-a
 type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["tls-context-host-1"].k8s_crt}
@@ -988,7 +987,7 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}-servercert-b
+  name: {self.path.k8s}-servercert-b
 type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
@@ -1000,19 +999,19 @@ data:
 apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
-  name: {self.name.k8s}-tlsserver-a
+  name: {self.path.k8s}-tlsserver-a
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  secret: {self.name.k8s}-servercert-a
+  secret: {self.path.k8s}-servercert-a
   hosts: [tls-context-host-1]
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
-  name: {self.name.k8s}-tlsserver-b
+  name: {self.path.k8s}-tlsserver-b
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  secret: {self.name.k8s}-servercert-b
+  secret: {self.path.k8s}-servercert-b
   hosts: [tls-context-host-2]
 """
                 if self.tls_src == "tlscontext"
@@ -1021,22 +1020,22 @@ spec:
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
-  name: {self.name.k8s}-tlsserver-a
+  name: {self.path.k8s}-tlsserver-a
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   hostname: "tls-context-host-1"
   tlsSecret:
-    name: {self.name.k8s}-servercert-a
+    name: {self.path.k8s}-servercert-a
 ---
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
-  name: {self.name.k8s}-tlsserver-b
+  name: {self.path.k8s}-tlsserver-b
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   hostname: "tls-context-host-2"
   tlsSecret:
-    name: {self.name.k8s}-servercert-b
+    name: {self.path.k8s}-servercert-b
 """
             )
             + f"""
@@ -1044,7 +1043,7 @@ spec:
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}-a
+  name: {self.path.k8s}-a
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
@@ -1054,7 +1053,7 @@ spec:
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}-b
+  name: {self.path.k8s}-b
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
@@ -1110,7 +1109,7 @@ class TCPMappingSNIWithHTTPTest(AmbassadorTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["tls-context-host-1"].k8s_crt}
@@ -1126,13 +1125,13 @@ spec:
   acmeProvider:
     authority: none
   tlsSecret:
-    name: {self.name.k8s}
+    name: {self.path.k8s}
 # TCPMapping #########################################################
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}-servercert
+  name: {self.path.k8s}-servercert
 type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
@@ -1144,10 +1143,10 @@ data:
 apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
-  name: {self.name.k8s}-tlsserver
+  name: {self.path.k8s}-tlsserver
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  secret: {self.name.k8s}-servercert
+  secret: {self.path.k8s}-servercert
   hosts: [ "tls-context-host-2" ]
 """
                 if self.tls_src == "tlscontext"
@@ -1156,12 +1155,12 @@ spec:
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
-  name: {self.name.k8s}-tlsserver
+  name: {self.path.k8s}-tlsserver
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   hostname: "tls-context-host-2"
   tlsSecret:
-    name: {self.name.k8s}-servercert
+    name: {self.path.k8s}-servercert
 """
             )
             + f"""
@@ -1169,7 +1168,7 @@ spec:
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 8443
@@ -1210,7 +1209,7 @@ class TCPMappingAddressTest(AmbassadorTest):
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}-local-only
+  name: {self.path.k8s}-local-only
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
@@ -1220,7 +1219,7 @@ spec:
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}-proxy
+  name: {self.path.k8s}-proxy
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6790
@@ -1260,7 +1259,7 @@ class TCPMappingWeightTest(AmbassadorTest):
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}-70
+  name: {self.path.k8s}-70
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
@@ -1270,7 +1269,7 @@ spec:
 apiVersion: getambassador.io/v2
 kind: TCPMapping
 metadata:
-  name: {self.name.k8s}-30
+  name: {self.path.k8s}-30
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789

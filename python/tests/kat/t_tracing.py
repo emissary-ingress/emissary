@@ -143,7 +143,9 @@ tag_headers:
 
         tracelist = set(x for x in self.results[101].backend.response)
         print(f"tracelist = {tracelist}")
-        assert "router cluster_tracingtest_http_default egress" in tracelist
+        assert (
+            "router cluster_tracingtest_http_default_svc_cluster_local_default egress" in tracelist
+        )
 
         # Look for the host that we actually queried, since that's what appears in the spans.
         assert self.results[0].backend.request.host in tracelist
@@ -238,7 +240,9 @@ driver: zipkin
 
         tracelist = set(x for x in self.results[101].backend.response)
         print(f"tracelist = {tracelist}")
-        assert "router cluster_tracingtestlongclustername_http_default egress" in tracelist
+        assert (
+            "router cluster_tracingtestlongclustername_http_-2dc66d6d73240537-0 egress" in tracelist
+        )
 
         # Look for the host that we actually queried, since that's what appears in the spans.
         assert self.results[0].backend.request.host in tracelist
@@ -516,7 +520,9 @@ config:
 
         tracelist = set(x for x in self.results[101].backend.response)
         print(f"tracelist = {tracelist}")
-        assert "router cluster_tracingtestzipkinv2_http_default egress" in tracelist
+        assert (
+            "router cluster_tracingtestzipkinv2_http_default-606ec0a62fedc99c-0 egress" in tracelist
+        )
 
         # Look for the host that we actually queried, since that's what appears in the spans.
         assert self.results[0].backend.request.host in tracelist

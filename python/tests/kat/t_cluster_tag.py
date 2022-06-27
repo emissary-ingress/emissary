@@ -85,7 +85,7 @@ spec:
 
     def assert_cluster(self, cluster, target_ip):
         assert cluster is not None
-        assert cluster["targets"][0]["ip"] == target_ip
+        assert cluster["targets"][0]["ip"] == target_ip + ".default.svc.cluster.local"
 
     def queries(self):
         yield Query(self.url("ambassador/v0/diag/?json=true"))
@@ -94,24 +94,32 @@ spec:
         result = self.results[0]
         clusters = result.json["cluster_info"]
 
-        cluster_1 = clusters["cluster_clustertagtest_http_target1_default"]
+        cluster_1 = clusters[
+            "cluster_clustertagtest_http_target1_default_svc_cluster_local_default"
+        ]
         self.assert_cluster(cluster_1, "clustertagtest-http-target1")
 
-        cluster_2 = clusters["cluster_tag_1_clustertagtest_http_target1_default"]
+        cluster_2 = clusters[
+            "cluster_tag_1_clustertagtest_http_target1_default_svc_cluster_local_default"
+        ]
         self.assert_cluster(cluster_2, "clustertagtest-http-target1")
 
-        cluster_3 = clusters["cluster_tag_2_clustertagtest_http_target1_default"]
+        cluster_3 = clusters[
+            "cluster_tag_2_clustertagtest_http_target1_default_svc_cluster_local_default"
+        ]
         self.assert_cluster(cluster_3, "clustertagtest-http-target1")
 
-        cluster_4 = clusters["cluster_tag_2_clustertagtest_http_target2_default"]
+        cluster_4 = clusters[
+            "cluster_tag_2_clustertagtest_http_target2_default_svc_cluster_local_default"
+        ]
         self.assert_cluster(cluster_4, "clustertagtest-http-target2")
 
         cluster_5 = clusters[
-            "cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target1_default"
+            "cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target1_default_svc_cluster_local_default"
         ]
         self.assert_cluster(cluster_5, "clustertagtest-http-target1")
 
         cluster_6 = clusters[
-            "cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target2_default"
+            "cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target2_default_svc_cluster_local_default"
         ]
         self.assert_cluster(cluster_6, "clustertagtest-http-target2")
