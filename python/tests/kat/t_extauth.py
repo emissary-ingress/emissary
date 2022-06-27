@@ -473,7 +473,7 @@ service: {self.target.path.fqdn}
         assert self.results[4].backend.request.headers["requested-header"] == ["Authorization"]
         assert self.results[4].backend.request.headers["authorization"] == ["foo-11111"]
         assert self.results[4].backend.request.headers["l5d-dst-override"] == [
-            "authenticationhttpbufferedtest-http:80"
+            f"{self.target.path.fqdn}:80"
         ]
         assert self.results[4].status == 200
         assert self.results[4].headers["Server"] == ["envoy"]
