@@ -29,7 +29,7 @@ class Builder:
     def __init__(self, logger: logging.Logger, yaml_file: str, enable_cache=True) -> None:
         self.logger = logger
 
-        self.test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_cache_data")
+        self.test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "testdata")
 
         self.cache: Optional[Cache] = None
 
