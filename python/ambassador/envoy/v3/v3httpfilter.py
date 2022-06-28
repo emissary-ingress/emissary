@@ -237,11 +237,11 @@ function envoy_on_request(request_handle)
    request_handle:respond(
       {[":status"] = "500",
        ["content-type"] = "application/json"},
-      '{'..
-      '  "message": "the """+auth.rkey+""" AuthService is misconfigured; see the logs for more information",'..
-      '  "request_id": "'..request_handle:headers():get('x-request-id')..'",'..
-      '  "status_code": 500,'..
-      '}')
+      '{\\n'..
+      '  "message": "the """+auth.rkey+""" AuthService is misconfigured; see the logs for more information",\\n'..
+      '  "request_id": "'..request_handle:headers():get('x-request-id')..'",\\n'..
+      '  "status_code": 500\\n'..
+      '}\\n')
 end
 """,
             },

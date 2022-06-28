@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/datawire/dlib/dexec"
-	amb "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 )
 
 func envbool(name string) bool {
@@ -63,34 +62,4 @@ func convert(in interface{}, out interface{}) error {
 	}
 
 	return nil
-}
-
-// Should we pay attention to a given AmbassadorID set?
-//
-// XXX Yes, amb.AmbassadorID is a singular name for a plural type. Sigh.
-func include(id amb.AmbassadorID) bool {
-	// We always pay attention to the "_automatic_" ID -- it gives us a
-	// to easily always include certain configuration resources for Edge
-	// Stack.
-	if len(id) == 1 && id[0] == "_automatic_" {
-		return true
-	}
-
-	// It's not "_automatic_", so we have to actually do the work. Grab
-	// our AmbassadorID...
-	me := GetAmbassadorId()
-
-	// ...force an empty AmbassadorID to "default", per the documentation...
-	if len(id) == 0 {
-		id = amb.AmbassadorID{"default"}
-	}
-
-	// ...and then see if our AmbassadorID is in the list.
-	for _, name := range id {
-		if me == name {
-			return true
-		}
-	}
-
-	return false
 }

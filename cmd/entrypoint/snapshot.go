@@ -19,8 +19,8 @@ func NewKubernetesSnapshot() *snapshotTypes.KubernetesSnapshot {
 	return a
 }
 
-// GetAmbId extracts the AmbassadorId from the kubernetes resource.
-func GetAmbId(ctx context.Context, resource kates.Object) amb.AmbassadorID {
+// GetAmbID extracts the AmbassadorID from the kubernetes resource.
+func GetAmbID(ctx context.Context, resource kates.Object) amb.AmbassadorID {
 	switch r := resource.(type) {
 	case *amb.Host:
 		var id amb.AmbassadorID
