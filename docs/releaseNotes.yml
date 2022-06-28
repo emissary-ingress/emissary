@@ -32,6 +32,22 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 3.1.0
+    date: 'TBD'
+    notes:
+      - title: Register secrets used with an API Key filter.
+        type: change
+        body: >-
+          Emissary will register a secret into its internal machinery if it is used by
+          an API Key filter, since the value has to be read at filter creation.
+
+    edgeStackNotes:
+      - title: Support for API Key filters.
+        type: feature
+        body: >-
+          You can now define a new type of filter to enforce API Keys on top of your services,
+          and provide a Kubernetes secrets as a source for the list of all the keys.
+
   - version: 3.0.0
     date: '2022-06-27'
     notes:
