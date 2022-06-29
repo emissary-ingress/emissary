@@ -6,7 +6,6 @@ from kat.harness import Runner, EDGE_STACK
 from abstract_tests import AmbassadorTest
 
 # Import all the real tests from other files, to make it easier to pick and choose during development.
-
 import t_basics
 import t_bufferlimitbytes
 import t_chunked_length
@@ -34,11 +33,8 @@ import t_logservice
 import t_lua_scripts
 import t_max_req_header_kb
 import t_no_ui
-# mapping tests executed in the default namespace
-import t_mappingtests_default
-# t_plain include t_mappingtests_plain and t_optiontests as imports
-# these tests require each other and need to be executed as a set
-import t_plain
+import t_mappingtests_default # mapping tests executed in the default namespace
+import t_plain # t_plain include t_mappingtests_plain and t_optiontests as imports; these tests require each other and need to be executed as a set
 import t_queryparameter_routing
 import t_ratelimit
 import t_redirect
@@ -46,8 +42,7 @@ import t_regexrewrite_forwarding
 import t_request_header
 import t_retrypolicy
 #import t_shadow
-# t_stats has tests for statsd and dogstatsd. It's too flaky to run all the time.
-# import t_stats
+#import t_stats # t_stats has tests for statsd and dogstatsd. It's too flaky to run all the time.
 import t_tcpmapping
 import t_tls
 import t_tracing
