@@ -1,12 +1,11 @@
-from typing import Literal, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, Optional
 from typing import cast as typecast
 
 from ..config import Config
-from ..utils import RichStatus
 from ..resource import Resource
-
-from .irfilter import IRFilter
+from ..utils import RichStatus
 from .ircluster import IRCluster
+from .irfilter import IRFilter
 from .irretrypolicy import IRRetryPolicy
 
 if TYPE_CHECKING:

@@ -1,7 +1,6 @@
 from typing import ClassVar, FrozenSet, Optional
 
 from ..config import Config
-
 from .dependency import IngressClassesDependency, SecretDependency, ServiceDependency
 from .k8sobject import KubernetesGVK, KubernetesObject
 from .k8sprocessor import ManagedKubernetesProcessor

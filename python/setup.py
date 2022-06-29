@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-import setuptools
-from setuptools import setup, find_packages
-
 import os
+
+import setuptools
+from setuptools import find_packages, setup
 
 # from ambassador.VERSION import Version
 Version = "0.0.0-dev"

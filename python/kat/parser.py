@@ -1,15 +1,16 @@
 from enum import Enum, auto
 from io import StringIO
 from typing import Any, Callable, Mapping, Sequence, Type
+
 from yaml import (
+    MappingNode,
+    Node,
+    ScalarNode,
+    SequenceNode,
+    add_representer,
     compose,
     compose_all,
     dump_all,
-    MappingNode,
-    SequenceNode,
-    ScalarNode,
-    Node,
-    add_representer,
 )
 
 

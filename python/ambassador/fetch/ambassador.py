@@ -1,6 +1,5 @@
-from typing import FrozenSet
-
 import itertools
+from typing import FrozenSet
 
 from .k8sobject import KubernetesGVK, KubernetesObject
 from .k8sprocessor import ManagedKubernetesProcessor

@@ -1,14 +1,13 @@
-from typing import Any, Dict, List, Tuple
-
 import difflib
 import json
 import logging
 import os
 import random
 import sys
-import yaml
+from typing import Any, Dict, List, Tuple
 
 import pytest
+import yaml
 
 logging.basicConfig(
     level=logging.INFO,
@@ -18,9 +17,9 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import Cache, IR
-from ambassador.utils import NullSecretHandler
+from ambassador import IR, Cache
 from ambassador.compile import Compile
+from ambassador.utils import NullSecretHandler
 
 
 def require_no_errors(ir: IR):

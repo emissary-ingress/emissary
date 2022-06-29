@@ -1,5 +1,5 @@
+from abstract_tests import HTTP, AmbassadorTest, ServiceType
 from kat.harness import Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
 
 
 class LuaTest(AmbassadorTest):

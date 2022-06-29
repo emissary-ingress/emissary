@@ -1,7 +1,6 @@
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from ..config import Config
-
 from .irresource import IRResource
 
 if TYPE_CHECKING:

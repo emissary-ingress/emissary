@@ -11,21 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
-from typing import cast as typecast
-
-from os import environ
-
 import logging
 import sys
+from os import environ
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from typing import cast as typecast
 
 from ...ir.irhost import IRHost
 from ...ir.irlistener import IRListener
 from ...ir.irtcpmappinggroup import IRTCPMappingGroup
-
 from ...utils import dump_json, parse_bool
-
-from .v3route import V3Route, DictifiedV3Route, V3RouteVariants, v3prettyroute, hostglob_matches
+from .v3route import DictifiedV3Route, V3Route, V3RouteVariants, hostglob_matches, v3prettyroute
 from .v3tls import V3TLSContext
 
 if TYPE_CHECKING:

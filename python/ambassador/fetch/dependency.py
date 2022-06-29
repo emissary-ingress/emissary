@@ -1,3 +1,5 @@
+import dataclasses
+from collections import defaultdict
 from typing import (
     Any,
     Collection,
@@ -10,9 +12,6 @@ from typing import (
     Type,
     TypeVar,
 )
-
-from collections import defaultdict
-import dataclasses
 
 from .k8sobject import KubernetesObject
 

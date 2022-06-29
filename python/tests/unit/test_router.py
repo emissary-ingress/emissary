@@ -1,11 +1,11 @@
+import pytest
+
 from tests.utils import (
     econf_compile,
     econf_foreach_hcm,
     module_and_mapping_manifests,
     zipkin_tracing_service_manifest,
 )
-
-import pytest
 
 
 def _test_router(yaml, expectations={}):

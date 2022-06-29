@@ -1,7 +1,9 @@
+import os
+
+import pytest
+
 from tests.utils import econf_compile, econf_foreach_cluster, module_and_mapping_manifests
 
-import os
-import pytest
 
 # Tests if `setting` exists within the cluster config and has `expected` as the value for that setting
 # Use `exists` to test if you expect a setting to not exist

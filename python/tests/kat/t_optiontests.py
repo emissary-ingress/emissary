@@ -1,11 +1,10 @@
+import json
 from typing import ClassVar, Dict, Generator, Sequence, Tuple, Union
 
-import json
 import pytest
 
+from abstract_tests import MappingTest, Node, OptionTest
 from kat.harness import Query, Test
-
-from abstract_tests import MappingTest, OptionTest, Node
 
 # This is the place to add new OptionTests.
 

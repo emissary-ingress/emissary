@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Callable, Dict, List, Optional, Union, TYPE_CHECKING
-from typing import cast as typecast
-
 import os
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Union
+from typing import cast as typecast
 
 from ...ir.irtlscontext import IRTLSContext
 

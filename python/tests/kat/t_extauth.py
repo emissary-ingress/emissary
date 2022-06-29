@@ -1,15 +1,13 @@
+import json
+import os
 from typing import Generator, Literal, Tuple, Union, cast
 
-import json
 import pytest
-import os
 
-from kat.harness import Query, EDGE_STACK
-
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, AHTTP, AGRPC, Node
-from tests.selfsigned import TLSCerts
-
+from abstract_tests import AGRPC, AHTTP, HTTP, AmbassadorTest, Node, ServiceType
 from ambassador import Config
+from kat.harness import EDGE_STACK, Query
+from tests.selfsigned import TLSCerts
 
 
 class AuthenticationGRPCTest(AmbassadorTest):

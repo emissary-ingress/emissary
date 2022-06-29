@@ -1,8 +1,7 @@
 from typing import Generator, Tuple, Union
 
+from abstract_tests import HTTP, AmbassadorTest, MappingTest, Node, ServiceType
 from kat.harness import Query
-
-from abstract_tests import AmbassadorTest, MappingTest, HTTP, ServiceType, Node
 
 
 class ShadowTestCANFLAKE(MappingTest):

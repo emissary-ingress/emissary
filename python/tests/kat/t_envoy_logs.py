@@ -1,11 +1,11 @@
+import re
 from typing import Generator, Tuple, Union
 
-import pytest, re
+import pytest
 
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
 from kat.harness import EDGE_STACK
-
 from kat.utils import ShellCommand
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 
 
 class EnvoyLogTest(AmbassadorTest):

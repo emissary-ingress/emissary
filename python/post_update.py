@@ -1,9 +1,9 @@
-import sys
-
 import os
+import sys
 import urllib
 
 import requests
+
 from ambassador.utils import parse_bool
 
 

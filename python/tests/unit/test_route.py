@@ -1,6 +1,6 @@
-from tests.utils import econf_compile, econf_foreach_hcm, module_and_mapping_manifests
-
 import pytest
+
+from tests.utils import econf_compile, econf_foreach_hcm, module_and_mapping_manifests
 
 
 def _test_route(yaml, expectations={}):

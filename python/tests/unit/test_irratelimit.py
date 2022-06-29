@@ -12,10 +12,9 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import Config, IR, EnvoyConfig
+from ambassador import IR, Config, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
-
 from tests.utils import default_listener_manifests
 
 SERVICE_NAME = "coolsvcname"

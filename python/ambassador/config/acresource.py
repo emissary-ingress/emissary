@@ -1,5 +1,5 @@
 # from typing import List
-from typing import Optional, Type, TypeVar, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Type, TypeVar
 from typing import cast as typecast
 
 from ..resource import Resource
