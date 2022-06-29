@@ -29,15 +29,15 @@ from .v3tracing import V3Tracing
 from .v3ratelimit import V3RateLimit
 
 if TYPE_CHECKING:
-    from ...ir import IR # pragma: no cover
-    from ...ir.irserviceresolver import ClustermapEntry # pragma: no cover
+    from ...ir import IR  # pragma: no cover
+    from ...ir.irserviceresolver import ClustermapEntry  # pragma: no cover
 
 
 # #############################################################################
 # ## v3config.py -- the Envoy V3 configuration engine
 #
 #
-class V3Config (EnvoyConfig):
+class V3Config(EnvoyConfig):
     admin: V3Admin
     tracing: Optional[V3Tracing]
     ratelimit: Optional[V3RateLimit]
@@ -49,7 +49,7 @@ class V3Config (EnvoyConfig):
     static_resources: V3StaticResources
     clustermap: Dict[str, Any]
 
-    def __init__(self, ir: 'IR', cache: Optional[Cache]=None) -> None:
+    def __init__(self, ir: "IR", cache: Optional[Cache] = None) -> None:
         ir.logger.info("EnvoyConfig: Generating V3")
 
         # Init our superclass...
@@ -74,30 +74,26 @@ class V3Config (EnvoyConfig):
     def as_dict(self) -> Dict[str, Any]:
         bootstrap_config, ads_config, clustermap = self.split_config()
 
-        d = {
-            'bootstrap': bootstrap_config,
-            'clustermap': clustermap,
-            **ads_config
-        }
+        d = {"bootstrap": bootstrap_config, "clustermap": clustermap, **ads_config}
 
         return d
 
-    def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, 'ClustermapEntry']]:
+    def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, "ClustermapEntry"]]:
         ads_config = {
-            '@type': '/envoy.config.bootstrap.v3.Bootstrap',
-            'static_resources': self.static_resources,
-            'layered_runtime': {
-                'layers': [
+            "@type": "/envoy.config.bootstrap.v3.Bootstrap",
+            "static_resources": self.static_resources,
+            "layered_runtime": {
+                "layers": [
                     {
-                        'name': 'static_layer',
-                        'static_layer': {
-                            'envoy.reloadable_features.enable_deprecated_v2_api': True,
-                            'envoy.deprecated_features:envoy.config.trace.v3.ZipkinConfig.hidden_envoy_deprecated_HTTP_JSON_V1': True,
-                            're2.max_program_size.error_level': 200,
-                        }
+                        "name": "static_layer",
+                        "static_layer": {
+                            "envoy.reloadable_features.enable_deprecated_v2_api": True,
+                            "envoy.deprecated_features:envoy.config.trace.v3.ZipkinConfig.hidden_envoy_deprecated_HTTP_JSON_V1": True,
+                            "re2.max_program_size.error_level": 200,
+                        },
                     }
                 ]
-            }
+            },
         }
 
         bootstrap_config = dict(self.bootstrap)

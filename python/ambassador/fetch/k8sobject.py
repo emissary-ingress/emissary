@@ -22,35 +22,35 @@ class KubernetesGVK:
         # These are backward-indexed to support apiVersion: v1, which has a
         # version but no group.
         try:
-            return self.api_version.split('/', 1)[-2]
+            return self.api_version.split("/", 1)[-2]
         except IndexError:
             return None
 
     @property
     def version(self) -> str:
-        return self.api_version.split('/', 1)[-1]
+        return self.api_version.split("/", 1)[-1]
 
     @property
     def domain(self) -> str:
         if self.api_group:
-            return f'{self.kind.lower()}.{self.api_group}'
+            return f"{self.kind.lower()}.{self.api_group}"
         else:
             return self.kind.lower()
 
     @classmethod
-    def for_ambassador(cls, kind: str, version: str = 'v2') -> KubernetesGVK:
-        if 'alpha' in version:
-            return cls(f'getambassador.io/{version}', kind)
+    def for_ambassador(cls, kind: str, version: str = "v2") -> KubernetesGVK:
+        if "alpha" in version:
+            return cls(f"getambassador.io/{version}", kind)
         else:
-            return cls(f'getambassador.io/{version}', kind)
+            return cls(f"getambassador.io/{version}", kind)
 
     @classmethod
     def for_knative_networking(cls, kind: str) -> KubernetesGVK:
-        return cls('networking.internal.knative.dev/v1alpha1', kind)
+        return cls("networking.internal.knative.dev/v1alpha1", kind)
 
 
 @enum.unique
-class KubernetesObjectScope (enum.Enum):
+class KubernetesObjectScope(enum.Enum):
     CLUSTER = enum.auto()
     NAMESPACE = enum.auto()
 
@@ -71,14 +71,18 @@ class KubernetesObjectKey:
 
     @property
     def scope(self) -> KubernetesObjectScope:
-        return KubernetesObjectScope.CLUSTER if self.namespace is None else KubernetesObjectScope.NAMESPACE
+        return (
+            KubernetesObjectScope.CLUSTER
+            if self.namespace is None
+            else KubernetesObjectScope.NAMESPACE
+        )
 
     @classmethod
     def from_object_reference(cls, ref: Dict[str, Any]) -> KubernetesObjectKey:
-        return cls(KubernetesGVK('v1', ref['kind']), ref.get('namespace'), ref['name'])
+        return cls(KubernetesGVK("v1", ref["kind"]), ref.get("namespace"), ref["name"])
 
 
-class KubernetesObject (collections.abc.Mapping):
+class KubernetesObject(collections.abc.Mapping):
     """
     Represents a raw object from Kubernetes.
     """
@@ -90,7 +94,7 @@ class KubernetesObject (collections.abc.Mapping):
             self.gvk
             self.name
         except KeyError:
-            raise ValueError('delegate is not a valid Kubernetes object')
+            raise ValueError("delegate is not a valid Kubernetes object")
 
     def __getitem__(self, key: str) -> Any:
         return self.delegate[key]
@@ -103,7 +107,7 @@ class KubernetesObject (collections.abc.Mapping):
 
     @property
     def gvk(self) -> KubernetesGVK:
-        return KubernetesGVK(self['apiVersion'], self['kind'])
+        return KubernetesGVK(self["apiVersion"], self["kind"])
 
     @property
     def kind(self) -> str:
@@ -111,21 +115,23 @@ class KubernetesObject (collections.abc.Mapping):
 
     @property
     def metadata(self) -> Dict[str, Any]:
-        return self['metadata']
+        return self["metadata"]
 
     @property
     def namespace(self) -> str:
-        val = self.metadata.get('namespace')
-        if val == '_automatic_':
+        val = self.metadata.get("namespace")
+        if val == "_automatic_":
             val = Config.ambassador_namespace
         elif val is None:
-            raise AttributeError(f'{self.__class__.__name__} {self.gvk.domain} {self.name} has no namespace (it is cluster-scoped)')
+            raise AttributeError(
+                f"{self.__class__.__name__} {self.gvk.domain} {self.name} has no namespace (it is cluster-scoped)"
+            )
 
         return val
 
     @property
     def name(self) -> str:
-        return self.metadata['name']
+        return self.metadata["name"]
 
     @property
     def key(self) -> KubernetesObjectKey:
@@ -142,24 +148,24 @@ class KubernetesObject (collections.abc.Mapping):
 
     @property
     def generation(self) -> int:
-        return self.metadata.get('generation', 1)
+        return self.metadata.get("generation", 1)
 
     @property
     def annotations(self) -> Dict[str, str]:
-        return self.metadata.get('annotations', {})
+        return self.metadata.get("annotations", {})
 
     @property
     def ambassador_id(self) -> str:
-        return self.annotations.get('getambassador.io/ambassador-id', 'default')
+        return self.annotations.get("getambassador.io/ambassador-id", "default")
 
     @property
     def labels(self) -> Dict[str, str]:
-        return self.metadata.get('labels', {})
+        return self.metadata.get("labels", {})
 
     @property
     def spec(self) -> Dict[str, Any]:
-        return self.get('spec', {})
+        return self.get("spec", {})
 
     @property
     def status(self) -> Dict[str, Any]:
-        return self.get('status', {})
+        return self.get("status", {})

@@ -29,15 +29,15 @@ from .v2tracing import V2Tracing
 from .v2ratelimit import V2RateLimit
 
 if TYPE_CHECKING:
-    from ...ir import IR # pragma: no cover
-    from ...ir.irserviceresolver import ClustermapEntry # pragma: no cover
+    from ...ir import IR  # pragma: no cover
+    from ...ir.irserviceresolver import ClustermapEntry  # pragma: no cover
 
 
 # #############################################################################
 # ## v2config.py -- the Envoy V2 configuration engine
 #
 #
-class V2Config (EnvoyConfig):
+class V2Config(EnvoyConfig):
     admin: V2Admin
     tracing: Optional[V2Tracing]
     ratelimit: Optional[V2RateLimit]
@@ -49,7 +49,7 @@ class V2Config (EnvoyConfig):
     static_resources: V2StaticResources
     clustermap: Dict[str, Any]
 
-    def __init__(self, ir: 'IR', cache: Optional[Cache]=None) -> None:
+    def __init__(self, ir: "IR", cache: Optional[Cache] = None) -> None:
         ir.logger.info("EnvoyConfig: Generating V2")
 
         # Init our superclass...
@@ -74,45 +74,40 @@ class V2Config (EnvoyConfig):
     def as_dict(self) -> Dict[str, Any]:
         bootstrap_config, ads_config, clustermap = self.split_config()
 
-        d = {
-            'bootstrap': bootstrap_config,
-            'clustermap': clustermap,
-            **ads_config
-        }
+        d = {"bootstrap": bootstrap_config, "clustermap": clustermap, **ads_config}
 
         return d
 
-    def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, 'ClustermapEntry']]:
+    def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, "ClustermapEntry"]]:
         ads_config = {
-            '@type': '/envoy.config.bootstrap.v2.Bootstrap',
-            'static_resources': self.static_resources,
-            'layered_runtime': {
-                'layers': [
+            "@type": "/envoy.config.bootstrap.v2.Bootstrap",
+            "static_resources": self.static_resources,
+            "layered_runtime": {
+                "layers": [
                     {
-                        'name': 'static_layer',
-                        'static_layer': {
+                        "name": "static_layer",
+                        "static_layer": {
                             # For now, we enable the deprecated & disallowed_by_default "HTTP_JSON_V1" Zipkin
                             # collector_endpoint_version because it repesents the Zipkin v1 API, while the
                             # non-deprecated options HTTP_JSON and HTTP_PROTO are the Zipkin v2 API; switching
                             # top one of them would change how Envoy talks to the outside world.
-                            'envoy.deprecated_features:envoy.config.trace.v2.ZipkinConfig.HTTP_JSON_V1': True,
+                            "envoy.deprecated_features:envoy.config.trace.v2.ZipkinConfig.HTTP_JSON_V1": True,
                             # We haven't yet told users that we'll be deprecating `regex_type: unsafe`.
-                            'envoy.deprecated_features:envoy.api.v2.route.RouteMatch.regex': True,         # HTTP path
-                            'envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match': True, # HTTP header
-                            'envoy.reloadable_features.enable_deprecated_v2_api': True,
+                            "envoy.deprecated_features:envoy.api.v2.route.RouteMatch.regex": True,  # HTTP path
+                            "envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match": True,  # HTTP header
+                            "envoy.reloadable_features.enable_deprecated_v2_api": True,
                             # Envoy 1.14.1 disabled the use of lowercase string matcher for headers matching in HTTP-based.
                             # Following setting toggled it to be consistent with old behavior.
                             # AuthenticationTest (v0) is a good example that expects the old behavior.
-                            'envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher': False,
-                            'envoy.deprecated_features.allow_deprecated_gzip_http_filter': True,
+                            "envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher": False,
+                            "envoy.deprecated_features.allow_deprecated_gzip_http_filter": True,
                             # enable all deprecated features for v2 since we're also EOL-ing it in
                             # edigissary
-                            'envoy.features.enable_all_deprecated_feature': True
-
-                        }
+                            "envoy.features.enable_all_deprecated_feature": True,
+                        },
                     }
                 ]
-            }
+            },
         }
 
         bootstrap_config = dict(self.bootstrap)

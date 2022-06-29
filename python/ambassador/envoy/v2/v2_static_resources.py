@@ -15,19 +15,21 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from . import V2Config # pragma: no cover
+    from . import V2Config  # pragma: no cover
 
 
 class V2StaticResources(dict):
-    def __init__(self, config: 'V2Config') -> None:
+    def __init__(self, config: "V2Config") -> None:
         super().__init__()
 
-        self.update({
-            'listeners': [ l.as_dict() for l in config.listeners ],
-            'clusters': config.clusters,
-        })
+        self.update(
+            {
+                "listeners": [l.as_dict() for l in config.listeners],
+                "clusters": config.clusters,
+            }
+        )
 
     @classmethod
-    def generate(cls, config: 'V2Config') -> None:
+    def generate(cls, config: "V2Config") -> None:
         # We needn't use config.save_element here -- this is just a wrapper element.
         config.static_resources = V2StaticResources(config)

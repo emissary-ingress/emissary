@@ -2,6 +2,7 @@ from typing import Optional, Union
 
 from ipaddress import ip_address, IPv4Address, IPv6Address
 
+
 class CIDRRange:
     """
     A CIDRRange is an IP address (either v4 or v6) plus a prefix length. It
@@ -33,9 +34,9 @@ class CIDRRange:
         pfx_len: Optional[int] = None
         addr: Optional[Union[IPv4Address, IPv6Address]] = None
 
-        if '/' in spec:
+        if "/" in spec:
             # CIDR range! Try to separate the address and its length.
-            address, lenstr = spec.split('/', 1)
+            address, lenstr = spec.split("/", 1)
 
             try:
                 pfx_len = int(lenstr)
@@ -71,9 +72,7 @@ class CIDRRange:
         is not None, and the prefix_len is not None.
         """
 
-        return ((not self.error) and
-                (self.address is not None) and
-                (self.prefix_len is not None))
+        return (not self.error) and (self.address is not None) and (self.prefix_len is not None)
 
     def __str__(self) -> str:
         if self:
@@ -87,7 +86,4 @@ class CIDRRange:
         an Envoy config as an envoy.api.v3.core.CidrRange.
         """
 
-        return {
-            "address_prefix": self.address,
-            "prefix_len": self.prefix_len
-        }
+        return {"address_prefix": self.address, "prefix_len": self.prefix_len}

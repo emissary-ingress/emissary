@@ -15,25 +15,22 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from . import V2Config # pragma: no cover
+    from . import V2Config  # pragma: no cover
 
 
 class V2Admin(dict):
-    def __init__(self, config: 'V2Config') -> None:
+    def __init__(self, config: "V2Config") -> None:
         super().__init__()
 
         aport = config.ir.ambassador_module.admin_port
 
-        self.update({
-            'access_log_path': '/tmp/admin_access_log',
-            'address': {
-                'socket_address': {
-                    'address': '127.0.0.1',
-                    'port_value': aport
-                }
+        self.update(
+            {
+                "access_log_path": "/tmp/admin_access_log",
+                "address": {"socket_address": {"address": "127.0.0.1", "port_value": aport}},
             }
-        })
+        )
 
     @classmethod
-    def generate(cls, config: 'V2Config') -> None:
-        config.admin = config.save_element('admin', config.ir.ambassador_module, V2Admin(config))
+    def generate(cls, config: "V2Config") -> None:
+        config.admin = config.save_element("admin", config.ir.ambassador_module, V2Admin(config))

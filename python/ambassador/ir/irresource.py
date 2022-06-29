@@ -8,55 +8,61 @@ from ..resource import Resource
 from ..utils import RichStatus
 
 if TYPE_CHECKING:
-    from .ir import IR # pragma: no cover
+    from .ir import IR  # pragma: no cover
 
 
-class IRResource (Resource):
+class IRResource(Resource):
     """
     A resource within the IR.
     """
 
     @staticmethod
-    def helper_sort_keys(res: 'IRResource', k: str) -> Tuple[str, List[str]]:
+    def helper_sort_keys(res: "IRResource", k: str) -> Tuple[str, List[str]]:
         return k, list(sorted(res[k].keys()))
 
     @staticmethod
-    def helper_rkey(res: 'IRResource', k: str) -> Tuple[str, str]:
-        return '_rkey', res[k]
+    def helper_rkey(res: "IRResource", k: str) -> Tuple[str, str]:
+        return "_rkey", res[k]
 
     @staticmethod
-    def helper_list(res: 'IRResource', k: str) -> Tuple[str, list]:
-        return k, list([ x.as_dict() for x in res[k] ])
+    def helper_list(res: "IRResource", k: str) -> Tuple[str, list]:
+        return k, list([x.as_dict() for x in res[k]])
 
-    __as_dict_helpers: Dict[str, Any] = {
-        "apiVersion": "drop",
-        "logger": "drop",
-        "ir": "drop"
-    }
+    __as_dict_helpers: Dict[str, Any] = {"apiVersion": "drop", "logger": "drop", "ir": "drop"}
 
     _active: bool
     _errored: bool
     _cache_key: Optional[str]
 
-    def __init__(self, ir: 'IR', aconf: Config,
-                 rkey: str,
-                 kind: str,
-                 name: str,
-                 namespace: Optional[str]=None,
-                 metadata_labels: Optional[Dict[str, str]]=None,
-                 location: str = "--internal--",
-                 apiVersion: str="ambassador/ir",
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        ir: "IR",
+        aconf: Config,
+        rkey: str,
+        kind: str,
+        name: str,
+        namespace: Optional[str] = None,
+        metadata_labels: Optional[Dict[str, str]] = None,
+        location: str = "--internal--",
+        apiVersion: str = "ambassador/ir",
+        **kwargs
+    ) -> None:
         # print("IRResource __init__ (%s %s)" % (kind, name))
 
         if not namespace:
             namespace = ir.ambassador_namespace
         self.namespace = namespace
 
-        super().__init__(rkey=rkey, location=location,
-                         kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
-                         apiVersion=apiVersion,
-                         **kwargs)
+        super().__init__(
+            rkey=rkey,
+            location=location,
+            kind=kind,
+            name=name,
+            namespace=namespace,
+            metadata_labels=metadata_labels,
+            apiVersion=apiVersion,
+            **kwargs
+        )
         self.ir = ir
         self.logger = ir.logger
 
@@ -79,13 +85,15 @@ class IRResource (Resource):
     # XXX WTFO, I hear you cry. Why is this "type: ignore here?" So here's the deal:
     # mypy doesn't like it if you override just the getter of a property that has a
     # setter, too, and I cannot figure out how else to shut it up.
-    @property   # type: ignore
+    @property  # type: ignore
     def cache_key(self) -> str:
         # If you ask for the cache key and it's not set, that is an error.
-        assert(self._cache_key is not None)
+        assert self._cache_key is not None
         return self._cache_key
 
-    def lookup_default(self, key: str, default_value: Optional[Any]=None, lookup_class: Optional[str]=None) -> Any:
+    def lookup_default(
+        self, key: str, default_value: Optional[Any] = None, lookup_class: Optional[str] = None
+    ) -> Any:
         """
         Look up a key in the Ambassador module's "defaults" element.
 
@@ -111,14 +119,14 @@ class IRResource (Resource):
         :return: Any
         """
 
-        defaults = self.ir.ambassador_module.get('defaults', {})
+        defaults = self.ir.ambassador_module.get("defaults", {})
 
         lclass = lookup_class
 
         if not lclass:
-            lclass = self.get('default_class', None)
+            lclass = self.get("default_class", None)
 
-        if lclass and (lclass != '/'):
+        if lclass and (lclass != "/"):
             # Case 1.
             classdict = defaults.get(lclass, None)
 
@@ -132,7 +140,13 @@ class IRResource (Resource):
         # We didn't find anything in either case. Return the default value.
         return default_value
 
-    def lookup(self, key: str, *args, default_class: Optional[str]=None, default_key: Optional[str]=None) -> Any:
+    def lookup(
+        self,
+        key: str,
+        *args,
+        default_class: Optional[str] = None,
+        default_key: Optional[str] = None
+    ) -> Any:
         """
         Look up a key in this IRResource, with a fallback to the Ambassador module's "defaults"
         element.
@@ -162,7 +176,9 @@ class IRResource (Resource):
             if not default_key:
                 default_key = key
 
-            value = self.lookup_default(default_key, default_value=default_value, lookup_class=default_class)
+            value = self.lookup_default(
+                default_key, default_value=default_value, lookup_class=default_class
+            )
 
         return value
 
@@ -178,11 +194,11 @@ class IRResource (Resource):
     def __bool__(self) -> bool:
         return self._active and not self._errored
 
-    def setup(self, ir: 'IR', aconf: Config) -> bool:
+    def setup(self, ir: "IR", aconf: Config) -> bool:
         # If you don't override setup, you end up with an IRResource that's always active.
         return True
 
-    def add_mappings(self, ir: 'IR', aconf: Config) -> None:
+    def add_mappings(self, ir: "IR", aconf: Config) -> None:
         # If you don't override add_mappings, uh, no mappings will get added.
         pass
 
@@ -197,10 +213,10 @@ class IRResource (Resource):
         # self.ir.logger.error("%s: %s" % (self, error))
 
     def skip_key(self, k: str) -> bool:
-        if k.startswith('__') or k.startswith("_IRResource__"):
+        if k.startswith("__") or k.startswith("_IRResource__"):
             return True
 
-        if self.__as_dict_helpers.get(k, None) == 'drop':
+        if self.__as_dict_helpers.get(k, None) == "drop":
             return True
 
         return False
@@ -231,8 +247,8 @@ class IRResource (Resource):
         normalized_service = service
 
         if service.lower().startswith("http://"):
-            normalized_service = service[len("http://"):]
+            normalized_service = service[len("http://") :]
         elif service.lower().startswith("https://"):
-            normalized_service = service[len("https://"):]
+            normalized_service = service[len("https://") :]
 
         return normalized_service

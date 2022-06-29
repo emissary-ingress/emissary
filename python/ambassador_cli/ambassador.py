@@ -39,17 +39,25 @@ from ambassador import Scout, Config, IR, Diagnostics, Version
 from ambassador.fetch import ResourceFetcher
 from ambassador.envoy import EnvoyConfig, V2Config, V3Config
 
-from ambassador.utils import RichStatus, SecretHandler, SecretInfo, NullSecretHandler, Timer, parse_json, dump_json
+from ambassador.utils import (
+    RichStatus,
+    SecretHandler,
+    SecretInfo,
+    NullSecretHandler,
+    Timer,
+    parse_json,
+    dump_json,
+)
 
 if TYPE_CHECKING:
-    from ambassador.ir import IRResource # pragma: no cover
+    from ambassador.ir import IRResource  # pragma: no cover
 
 __version__ = Version
 
 logging.basicConfig(
     level=logging.INFO,
     format="%%(asctime)s ambassador-cli %s %%(levelname)s: %%(message)s" % __version__,
-    datefmt="%Y-%m-%d %H:%M:%S"
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 logger = logging.getLogger("ambassador")
@@ -61,8 +69,7 @@ def handle_exception(what, e, **kwargs):
     scout = Scout()
     result = scout.report(action=what, mode="cli", exception=str(e), traceback=tb, **kwargs)
 
-    logger.debug("Scout %s, result: %s" %
-                 ("enabled" if scout._scout else "disabled", result))
+    logger.debug("Scout %s, result: %s" % ("enabled" if scout._scout else "disabled", result))
 
     logger.error("%s: %s\n%s" % (what, e, tb))
 
@@ -70,12 +77,12 @@ def handle_exception(what, e, **kwargs):
 
 
 def show_notices(result: dict, printer=logger.log):
-    notices = result.get('notices', [])
+    notices = result.get("notices", [])
 
     for notice in notices:
-        lvl = logging.getLevelName(notice.get('level', 'ERROR'))
+        lvl = logging.getLevelName(notice.get("level", "ERROR"))
 
-        printer(lvl, notice.get('message', '?????'))
+        printer(lvl, notice.get("message", "?????"))
 
 
 def stdout_printer(lvl, msg):
@@ -107,7 +114,7 @@ def showid():
 
     print("Ambassador Scout installation ID %s" % scout.install_id)
 
-    result= scout.report(action="showid", mode="cli")
+    result = scout.report(action="showid", mode="cli")
     show_notices(result, printer=stdout_printer)
 
 
@@ -126,42 +133,70 @@ class CLISecretHandler(SecretHandler):
         # "ssl-certificate.mynamespace"
     )
 
-    def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
+    def load_secret(
+        self, resource: "IRResource", secret_name: str, namespace: str
+    ) -> Optional[SecretInfo]:
         # Only allow a secret to be _loaded_ if it's marked Loadable.
 
         key = f"{secret_name}.{namespace}"
 
         if key in CLISecretHandler.LoadableSecrets:
             self.logger.info(f"CLISecretHandler: loading {key}")
-            return SecretInfo(secret_name, namespace, "mocked-loadable-secret",
-                              "-mocked-cert-", "-mocked-key-", decode_b64=False)
+            return SecretInfo(
+                secret_name,
+                namespace,
+                "mocked-loadable-secret",
+                "-mocked-cert-",
+                "-mocked-key-",
+                decode_b64=False,
+            )
 
         self.logger.debug(f"CLISecretHandler: cannot load {key}")
         return None
 
 
 @click.command()
-@click.argument('config_dir_path', type=click.Path())
-@click.option('--secret-dir-path', type=click.Path(), help="Directory into which to save secrets")
-@click.option('--watt',        is_flag=True, help="If set, input must be a WATT snapshot")
-@click.option('--debug',       is_flag=True, help="If set, generate debugging output")
-@click.option('--debug_scout', is_flag=True, help="If set, generate debugging output")
-@click.option('--k8s',         is_flag=True, help="If set, assume configuration files are annotated K8s manifests")
-@click.option('--recurse',     is_flag=True, help="If set, recurse into directories below config_dir_path")
-@click.option('--stats',       is_flag=True, help="If set, dump statistics to stderr")
-@click.option('--nopretty',    is_flag=True, help="If set, do not pretty print the dumped JSON")
-@click.option('--aconf',       is_flag=True, help="If set, dump the Ambassador config")
-@click.option('--ir',          is_flag=True, help="If set, dump the IR")
-@click.option('--v2',          is_flag=True, help="If set, dump the Envoy V2 config")
-@click.option('--v3',          is_flag=True, help="If set, dump the Envoy V3 config")
-@click.option('--diag',        is_flag=True, help="If set, dump the Diagnostics overview")
-@click.option('--everything',  is_flag=True, help="If set, dump everything")
-@click.option('--features',    is_flag=True, help="If set, dump the feature set")
-@click.option('--profile',     is_flag=True, help="If set, profile with the cProfile module")
-def dump(config_dir_path: str, *,
-         secret_dir_path=None, watt=False, debug=False, debug_scout=False, k8s=False, recurse=False,
-         stats=False, nopretty=False, everything=False, aconf=False, ir=False, v2=False, v3=False, diag=False,
-         features=False, profile=False):
+@click.argument("config_dir_path", type=click.Path())
+@click.option("--secret-dir-path", type=click.Path(), help="Directory into which to save secrets")
+@click.option("--watt", is_flag=True, help="If set, input must be a WATT snapshot")
+@click.option("--debug", is_flag=True, help="If set, generate debugging output")
+@click.option("--debug_scout", is_flag=True, help="If set, generate debugging output")
+@click.option(
+    "--k8s", is_flag=True, help="If set, assume configuration files are annotated K8s manifests"
+)
+@click.option(
+    "--recurse", is_flag=True, help="If set, recurse into directories below config_dir_path"
+)
+@click.option("--stats", is_flag=True, help="If set, dump statistics to stderr")
+@click.option("--nopretty", is_flag=True, help="If set, do not pretty print the dumped JSON")
+@click.option("--aconf", is_flag=True, help="If set, dump the Ambassador config")
+@click.option("--ir", is_flag=True, help="If set, dump the IR")
+@click.option("--v2", is_flag=True, help="If set, dump the Envoy V2 config")
+@click.option("--v3", is_flag=True, help="If set, dump the Envoy V3 config")
+@click.option("--diag", is_flag=True, help="If set, dump the Diagnostics overview")
+@click.option("--everything", is_flag=True, help="If set, dump everything")
+@click.option("--features", is_flag=True, help="If set, dump the feature set")
+@click.option("--profile", is_flag=True, help="If set, profile with the cProfile module")
+def dump(
+    config_dir_path: str,
+    *,
+    secret_dir_path=None,
+    watt=False,
+    debug=False,
+    debug_scout=False,
+    k8s=False,
+    recurse=False,
+    stats=False,
+    nopretty=False,
+    everything=False,
+    aconf=False,
+    ir=False,
+    v2=False,
+    v3=False,
+    diag=False,
+    features=False,
+    profile=False,
+):
     """
     Dump various forms of an Ambassador configuration for debugging
 
@@ -181,7 +216,7 @@ def dump(config_dir_path: str, *,
         logger.setLevel(logging.DEBUG)
 
     if debug_scout:
-        logging.getLogger('ambassador.scout').setLevel(logging.DEBUG)
+        logging.getLogger("ambassador.scout").setLevel(logging.DEBUG)
 
     if everything:
         aconf = True
@@ -246,25 +281,25 @@ def dump(config_dir_path: str, *,
         aconf_timer = Timer("aconf")
         with aconf_timer:
             if dump_aconf:
-                od['aconf'] = aconf.as_dict()
+                od["aconf"] = aconf.as_dict()
 
         ir_timer = Timer("ir")
         with ir_timer:
             if dump_ir:
-                od['ir'] = ir.as_dict()
+                od["ir"] = ir.as_dict()
 
         v2_timer = Timer("v2")
         with v2_timer:
             if dump_v2:
                 v2config = V2Config(ir)
                 diagconfig = v2config
-                od['v2'] = v2config.as_dict()
+                od["v2"] = v2config.as_dict()
         v3_timer = Timer("v3")
         with v3_timer:
             if dump_v3:
                 v3config = V3Config(ir)
                 diagconfig = v3config
-                od['v3'] = v3config.as_dict()
+                od["v3"] = v3config.as_dict()
         diag_timer = Timer("diag")
         with diag_timer:
             if dump_diag:
@@ -275,15 +310,15 @@ def dump(config_dir_path: str, *,
                 econfv3 = typecast(EnvoyConfig, diagconfigv3)
                 diag = Diagnostics(ir, econf)
                 diagv3 = Diagnostics(ir, econfv3)
-                od['diag'] = diag.as_dict()
-                od['elements'] = econf.elements
-                od['diagv3'] = diagv3.as_dict()
-                od['elementsv3'] = econfv3.elements
+                od["diag"] = diag.as_dict()
+                od["elements"] = econf.elements
+                od["diagv3"] = diagv3.as_dict()
+                od["elementsv3"] = econfv3.elements
 
         features_timer = Timer("features")
         with features_timer:
             if dump_features:
-                od['features'] = ir.features()
+                od["features"] = ir.features()
 
         # scout = Scout()
         # scout_args = {}
@@ -311,16 +346,16 @@ def dump(config_dir_path: str, *,
         vhost_count = 0
         filter_chain_count = 0
         filter_count = 0
-        apiversion = 'v2' if v2 else 'v3'
+        apiversion = "v2" if v2 else "v3"
         if apiversion in od:
-            for listener in od[apiversion]['static_resources']['listeners']:
-                for fc in listener['filter_chains']:
+            for listener in od[apiversion]["static_resources"]["listeners"]:
+                for fc in listener["filter_chains"]:
                     filter_chain_count += 1
-                    for f in fc['filters']:
+                    for f in fc["filters"]:
                         filter_count += 1
-                        for vh in f['typed_config']['route_config']['virtual_hosts']:
+                        for vh in f["typed_config"]["route_config"]["virtual_hosts"]:
                             vhost_count += 1
-                            route_count += len(vh['routes'])
+                            route_count += len(vh["routes"])
 
         if stats:
             sys.stderr.write("STATS:\n")
@@ -329,7 +364,9 @@ def dump(config_dir_path: str, *,
             sys.stderr.write("  filter chains: %d\n" % filter_chain_count)
             sys.stderr.write("  filters:       %d\n" % filter_count)
             sys.stderr.write("  routes:        %d\n" % route_count)
-            sys.stderr.write("  routes/vhosts: %.3f\n" % float(float(route_count)/float(vhost_count)))
+            sys.stderr.write(
+                "  routes/vhosts: %.3f\n" % float(float(route_count) / float(vhost_count))
+            )
             sys.stderr.write("TIMERS:\n")
             sys.stderr.write("  fetch resources:  %.3fs\n" % fetch_timer.average)
             sys.stderr.write("  load resources:   %.3fs\n" % load_timer.average)
@@ -343,8 +380,7 @@ def dump(config_dir_path: str, *,
             sys.stderr.write("  ----------------------\n")
             sys.stderr.write("  total: %.3fs\n" % total_timer.average)
     except Exception as e:
-        handle_exception("EXCEPTION from dump", e,
-                         config_dir_path=config_dir_path)
+        handle_exception("EXCEPTION from dump", e, config_dir_path=config_dir_path)
         _rc = 1
 
     if _profile:
@@ -355,7 +391,7 @@ def dump(config_dir_path: str, *,
 
 
 @click.command()
-@click.argument('config_dir_path', type=click.Path())
+@click.argument("config_dir_path", type=click.Path())
 def validate(config_dir_path: str):
     """
     Validate an Ambassador configuration. This is an extension of "config" that
@@ -367,18 +403,43 @@ def validate(config_dir_path: str):
 
 
 @click.command()
-@click.argument('config_dir_path',  type=click.Path())
-@click.argument('output_json_path', type=click.Path())
-@click.option('--debug',            is_flag=True,      help="If set, generate debugging output")
-@click.option('--debug-scout',      is_flag=True,      help="If set, generate debugging output when talking to Scout")
-@click.option('--check',            is_flag=True,      help="If set, generate configuration only if it doesn't already exist")
-@click.option('--k8s',              is_flag=True,      help="If set, assume configuration files are annotated K8s manifests")
-@click.option('--exit-on-error',    is_flag=True,      help="If set, will exit with status 1 on any configuration error")
-@click.option('--ir',               type=click.Path(), help="Pathname to which to dump the IR (not dumped if not present)")
-@click.option('--aconf',            type=click.Path(), help="Pathname to which to dump the aconf (not dumped if not present)")
-def config(config_dir_path: str, output_json_path: str, *,
-           debug=False, debug_scout=False, check=False, k8s=False, ir=None, aconf=None,
-           exit_on_error=False):
+@click.argument("config_dir_path", type=click.Path())
+@click.argument("output_json_path", type=click.Path())
+@click.option("--debug", is_flag=True, help="If set, generate debugging output")
+@click.option(
+    "--debug-scout", is_flag=True, help="If set, generate debugging output when talking to Scout"
+)
+@click.option(
+    "--check", is_flag=True, help="If set, generate configuration only if it doesn't already exist"
+)
+@click.option(
+    "--k8s", is_flag=True, help="If set, assume configuration files are annotated K8s manifests"
+)
+@click.option(
+    "--exit-on-error",
+    is_flag=True,
+    help="If set, will exit with status 1 on any configuration error",
+)
+@click.option(
+    "--ir", type=click.Path(), help="Pathname to which to dump the IR (not dumped if not present)"
+)
+@click.option(
+    "--aconf",
+    type=click.Path(),
+    help="Pathname to which to dump the aconf (not dumped if not present)",
+)
+def config(
+    config_dir_path: str,
+    output_json_path: str,
+    *,
+    debug=False,
+    debug_scout=False,
+    check=False,
+    k8s=False,
+    ir=None,
+    aconf=None,
+    exit_on_error=False,
+):
     """
     Generate an Envoy configuration
 
@@ -391,7 +452,7 @@ def config(config_dir_path: str, output_json_path: str, *,
         logger.setLevel(logging.DEBUG)
 
     if debug_scout:
-        logging.getLogger('ambassador.scout').setLevel(logging.DEBUG)
+        logging.getLogger("ambassador.scout").setLevel(logging.DEBUG)
 
     try:
         logger.debug("CHECK MODE  %s" % check)
@@ -443,7 +504,7 @@ def config(config_dir_path: str, output_json_path: str, *,
 
             # If exit_on_error is set, log _errors and exit with status 1
             if exit_on_error and aconf.errors:
-                raise Exception("errors in: {0}".format(', '.join(aconf.errors.keys())))
+                raise Exception("errors in: {0}".format(", ".join(aconf.errors.keys())))
 
             secret_handler = NullSecretHandler(logger, config_dir_path, config_dir_path, "0")
 
@@ -469,8 +530,12 @@ def config(config_dir_path: str, output_json_path: str, *,
         result = scout.report(action="config", mode="cli")
         show_notices(result)
     except Exception as e:
-        handle_exception("EXCEPTION from config", e,
-                         config_dir_path=config_dir_path, output_json_path=output_json_path)
+        handle_exception(
+            "EXCEPTION from config",
+            e,
+            config_dir_path=config_dir_path,
+            output_json_path=output_json_path,
+        )
 
         # This is fatal.
         sys.exit(1)
@@ -494,8 +559,20 @@ def showid_callback(ctx: click.core.Context, param: click.Parameter, value: bool
     no_args_is_help=False,
     commands=[config, dump, validate],
 )
-@click.option('--version', is_flag=True, expose_value=False, callback=version_callback, help="Show the Emissary version number and exit.")
-@click.option('--showid', is_flag=True, expose_value=False, callback=showid_callback, help="Show the cluster ID and exit.")
+@click.option(
+    "--version",
+    is_flag=True,
+    expose_value=False,
+    callback=version_callback,
+    help="Show the Emissary version number and exit.",
+)
+@click.option(
+    "--showid",
+    is_flag=True,
+    expose_value=False,
+    callback=showid_callback,
+    help="Show the cluster ID and exit.",
+)
 def main():
     """Generate an Envoy config, or manage an Ambassador deployment. Use
 

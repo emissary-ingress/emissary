@@ -10,7 +10,9 @@ class ClusterTagTest(AmbassadorTest):
         self.target_2 = HTTP(name="target2")
 
     def manifests(self) -> str:
-        return self.format('''
+        return (
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -76,7 +78,10 @@ spec:
   prefix: /mapping-6/
   service: {self.target_2.path.fqdn}
   cluster_tag: some-really-long-tag-that-is-really-long
-''') + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def assert_cluster(self, cluster, target_ip):
         assert cluster is not None
@@ -101,8 +106,12 @@ spec:
         cluster_4 = clusters["cluster_tag_2_clustertagtest_http_target2_default"]
         self.assert_cluster(cluster_4, "clustertagtest-http-target2")
 
-        cluster_5 = clusters["cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target1_default"]
+        cluster_5 = clusters[
+            "cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target1_default"
+        ]
         self.assert_cluster(cluster_5, "clustertagtest-http-target1")
 
-        cluster_6 = clusters["cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target2_default"]
+        cluster_6 = clusters[
+            "cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target2_default"
+        ]
         self.assert_cluster(cluster_6, "clustertagtest-http-target2")

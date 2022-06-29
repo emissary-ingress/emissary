@@ -18,11 +18,11 @@ from typing import cast as typecast
 from ...ir.irratelimit import IRRateLimit
 
 if TYPE_CHECKING:
-    from . import V3Config # pragma: no cover
+    from . import V3Config  # pragma: no cover
 
 
 class V3RateLimit(dict):
-    def __init__(self, config: 'V3Config') -> None:
+    def __init__(self, config: "V3Config") -> None:
         # We should never be instantiated unless there is, in fact, defined ratelimit stuff.
         assert config.ir.ratelimit
 
@@ -30,19 +30,17 @@ class V3RateLimit(dict):
 
         ratelimit = typecast(IRRateLimit, config.ir.ratelimit)
 
-        assert(ratelimit.cluster.envoy_name)
+        assert ratelimit.cluster.envoy_name
 
         protocol_version = ratelimit.protocol_version
-        self['transport_api_version'] = protocol_version.replace("alpha", "").upper()
-        self['grpc_service'] = {
-            'envoy_grpc': {
-                'cluster_name': ratelimit.cluster.envoy_name
-            }
-        }
+        self["transport_api_version"] = protocol_version.replace("alpha", "").upper()
+        self["grpc_service"] = {"envoy_grpc": {"cluster_name": ratelimit.cluster.envoy_name}}
 
     @classmethod
-    def generate(cls, config: 'V3Config') -> None:
+    def generate(cls, config: "V3Config") -> None:
         config.ratelimit = None
 
         if config.ir.ratelimit:
-            config.ratelimit = config.save_element('ratelimit', config.ir.ratelimit, V3RateLimit(config))
+            config.ratelimit = config.save_element(
+                "ratelimit", config.ir.ratelimit, V3RateLimit(config)
+            )

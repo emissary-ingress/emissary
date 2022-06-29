@@ -13,4 +13,3 @@
 # limitations under the License
 
 from .v2config import V2Config
-

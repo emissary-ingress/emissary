@@ -17,10 +17,10 @@ from .irgzip import IRGzip
 from .irfilter import IRFilter
 
 if TYPE_CHECKING:
-    from .ir import IR # pragma: no cover
+    from .ir import IR  # pragma: no cover
 
 
-class IRAmbassador (IRResource):
+class IRAmbassador(IRResource):
 
     # All the AModTransparentKeys are copied from the incoming Ambassador resource
     # into the IRAmbassador object partway through IRAmbassador.finalize().
@@ -28,57 +28,57 @@ class IRAmbassador (IRResource):
     # PLEASE KEEP THIS LIST SORTED.
 
     AModTransparentKeys: ClassVar = [
-        'add_linkerd_headers',
-        'admin_port',
-        'auth_enabled',
-        'allow_chunked_length',
-        'buffer_limit_bytes',
-        'circuit_breakers',
-        'cluster_idle_timeout_ms',
-        'cluster_max_connection_lifetime_ms',
-        'cluster_request_timeout_ms',
-        'debug_mode',
+        "add_linkerd_headers",
+        "admin_port",
+        "auth_enabled",
+        "allow_chunked_length",
+        "buffer_limit_bytes",
+        "circuit_breakers",
+        "cluster_idle_timeout_ms",
+        "cluster_max_connection_lifetime_ms",
+        "cluster_request_timeout_ms",
+        "debug_mode",
         # Do not include defaults, that's handled manually in setup.
-        'default_label_domain',
-        'default_labels',
-        'diagnostics',
-        'enable_http10',
-        'enable_ipv4',
-        'enable_ipv6',
-        'envoy_log_format',
-        'envoy_log_path',
-        'envoy_log_type',
-        'forward_client_cert_details',
+        "default_label_domain",
+        "default_labels",
+        "diagnostics",
+        "enable_http10",
+        "enable_ipv4",
+        "enable_ipv6",
+        "envoy_log_format",
+        "envoy_log_path",
+        "envoy_log_type",
+        "forward_client_cert_details",
         # Do not include envoy_validation_timeout; we let finalize() type-check it.
         # Do not include ip_allow or ip_deny; we let finalize() type-check them.
-        'headers_with_underscores_action',
-        'keepalive',
-        'listener_idle_timeout_ms',
-        'liveness_probe',
-        'load_balancer',
-        'max_request_headers_kb',
-        'merge_slashes',
-        'reject_requests_with_escaped_slashes',
-        'preserve_external_request_id',
-        'proper_case',
-        'prune_unreachable_routes',
-        'readiness_probe',
-        'regex_max_size',
-        'regex_type',
-        'resolver',
-        'error_response_overrides',
-        'header_case_overrides',
-        'server_name',
-        'service_port',
-        'set_current_client_cert_details',
-        'statsd',
-        'strip_matching_host_port',
-        'suppress_envoy_headers',
-        'use_ambassador_namespace_for_service_resolution',
-        'use_proxy_proto',
-        'use_remote_address',
-        'x_forwarded_proto_redirect',
-        'xff_num_trusted_hops',
+        "headers_with_underscores_action",
+        "keepalive",
+        "listener_idle_timeout_ms",
+        "liveness_probe",
+        "load_balancer",
+        "max_request_headers_kb",
+        "merge_slashes",
+        "reject_requests_with_escaped_slashes",
+        "preserve_external_request_id",
+        "proper_case",
+        "prune_unreachable_routes",
+        "readiness_probe",
+        "regex_max_size",
+        "regex_type",
+        "resolver",
+        "error_response_overrides",
+        "header_case_overrides",
+        "server_name",
+        "service_port",
+        "set_current_client_cert_details",
+        "statsd",
+        "strip_matching_host_port",
+        "suppress_envoy_headers",
+        "use_ambassador_namespace_for_service_resolution",
+        "use_proxy_proto",
+        "use_remote_address",
+        "x_forwarded_proto_redirect",
+        "xff_num_trusted_hops",
     ]
 
     service_port: int
@@ -108,16 +108,24 @@ class IRAmbassador (IRResource):
     # large enough to exceed this threshold.
     default_validation_timeout: ClassVar[int] = 60
 
-    def __init__(self, ir: 'IR', aconf: Config,
-                 rkey: str="ir.ambassador",
-                 kind: str="IRAmbassador",
-                 name: str="ir.ambassador",
-                 use_remote_address: bool=True,
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        ir: "IR",
+        aconf: Config,
+        rkey: str = "ir.ambassador",
+        kind: str = "IRAmbassador",
+        name: str = "ir.ambassador",
+        use_remote_address: bool = True,
+        **kwargs
+    ) -> None:
         # print("IRAmbassador __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
+            ir=ir,
+            aconf=aconf,
+            rkey=rkey,
+            kind=kind,
+            name=name,
             service_port=Constants.SERVICE_PORT_HTTP,
             admin_port=Constants.ADMIN_PORT,
             auth_enabled=None,
@@ -134,7 +142,7 @@ class IRAmbassador (IRResource):
             use_proxy_proto=False,
             enable_http10=False,
             proper_case=False,
-            prune_unreachable_routes=True,          # default True; can be updated in finalize()
+            prune_unreachable_routes=True,  # default True; can be updated in finalize()
             use_remote_address=use_remote_address,
             x_forwarded_proto_redirect=False,
             load_balancer=None,
@@ -151,7 +159,7 @@ class IRAmbassador (IRResource):
         self.ip_allow_deny: Optional[IRIPAllowDeny] = None
         self._finalized = False
 
-    def setup(self, ir: 'IR', aconf: Config) -> bool:
+    def setup(self, ir: "IR", aconf: Config) -> bool:
         # The heavy lifting here is mostly in the finalize() method, so that when we do fallback
         # lookups for TLS configuration stuff, the defaults are present in the Ambassador module.
         #
@@ -160,12 +168,12 @@ class IRAmbassador (IRResource):
         # We're interested in the 'ambassador' module from the Config, if any...
         amod = aconf.get_module("ambassador")
 
-        if amod and 'defaults' in amod:
-            self['defaults'] = amod['defaults']
+        if amod and "defaults" in amod:
+            self["defaults"] = amod["defaults"]
 
         return True
 
-    def finalize(self, ir: 'IR', aconf: Config) -> bool:
+    def finalize(self, ir: "IR", aconf: Config) -> bool:
         self._finalized = True
 
         # Check TLSContext resources to see if we should enable TLS termination.
@@ -176,17 +184,19 @@ class IRAmbassador (IRResource):
                 # Welllll this ain't good.
                 ctx.set_active(False)
                 to_delete.append(ctx_name)
-            elif ctx.get('hosts', None):
+            elif ctx.get("hosts", None):
                 # This is a termination context
-                self.logger.debug("TLSContext %s is a termination context, enabling TLS termination" % ctx.name)
+                self.logger.debug(
+                    "TLSContext %s is a termination context, enabling TLS termination" % ctx.name
+                )
                 self.service_port = Constants.SERVICE_PORT_HTTPS
 
-                if ctx.get('ca_cert', None):
+                if ctx.get("ca_cert", None):
                     # Client-side TLS is enabled.
                     self.logger.debug("TLSContext %s enables client certs!" % ctx.name)
 
         for ctx_name in to_delete:
-            del(ir.tls_contexts[ctx_name])
+            del ir.tls_contexts[ctx_name]
 
         # After that, walk the AModTransparentKeys and copy all those things from the
         # input into our IRAmbassador.
@@ -202,98 +212,103 @@ class IRAmbassador (IRResource):
                     self[key] = amod[key]
 
             # If we have an envoy_validation_timeout...
-            if 'envoy_validation_timeout' in amod:
+            if "envoy_validation_timeout" in amod:
                 # ...then set our timeout from it.
                 try:
-                    self.envoy_validation_timeout = int(amod['envoy_validation_timeout'])
+                    self.envoy_validation_timeout = int(amod["envoy_validation_timeout"])
                 except ValueError:
                     self.post_error("envoy_validation_timeout must be an integer number of seconds")
 
         # If we don't have a default label domain, force it to 'ambassador'.
-        if not self.get('default_label_domain'):
-            self.default_label_domain = 'ambassador'
+        if not self.get("default_label_domain"):
+            self.default_label_domain = "ambassador"
 
         # Likewise, if we have no default labels, force an empty dict (it makes life easier
         # on other modules).
-        if not self.get('default_labels'):
+        if not self.get("default_labels"):
             self.default_labels: Dict[str, Any] = {}
 
         # Next up: diag port & services.
         diag_service = "127.0.0.1:%d" % Constants.DIAG_PORT
 
         for name, cur, dflt in [
-            ("liveness",    self.liveness_probe,  IRAmbassador.default_liveness_probe),
-            ("readiness",   self.readiness_probe, IRAmbassador.default_readiness_probe),
-            ("diagnostics", self.diagnostics,     IRAmbassador.default_diagnostics)
+            ("liveness", self.liveness_probe, IRAmbassador.default_liveness_probe),
+            ("readiness", self.readiness_probe, IRAmbassador.default_readiness_probe),
+            ("diagnostics", self.diagnostics, IRAmbassador.default_diagnostics),
         ]:
             if cur and cur.get("enabled", False):
-                if not cur.get('prefix', None):
-                    cur['prefix'] = dflt['prefix']
+                if not cur.get("prefix", None):
+                    cur["prefix"] = dflt["prefix"]
 
-                if not cur.get('rewrite', None):
-                    cur['rewrite'] = dflt['rewrite']
+                if not cur.get("rewrite", None):
+                    cur["rewrite"] = dflt["rewrite"]
 
-                if not cur.get('service', None):
-                    cur['service'] = diag_service
+                if not cur.get("service", None):
+                    cur["service"] = diag_service
 
-        if amod and ('enable_grpc_http11_bridge' in amod):
-            self.grpc_http11_bridge = IRFilter(ir=ir, aconf=aconf,
-                                               kind='ir.grpc_http1_bridge',
-                                               name='grpc_http1_bridge',
-                                               config=dict())
+        if amod and ("enable_grpc_http11_bridge" in amod):
+            self.grpc_http11_bridge = IRFilter(
+                ir=ir,
+                aconf=aconf,
+                kind="ir.grpc_http1_bridge",
+                name="grpc_http1_bridge",
+                config=dict(),
+            )
             self.grpc_http11_bridge.sourced_by(amod)
             ir.save_filter(self.grpc_http11_bridge)
 
-        if amod and ('enable_grpc_web' in amod):
-            self.grpc_web = IRFilter(ir=ir, aconf=aconf, kind='ir.grpc_web', name='grpc_web', config=dict())
+        if amod and ("enable_grpc_web" in amod):
+            self.grpc_web = IRFilter(
+                ir=ir, aconf=aconf, kind="ir.grpc_web", name="grpc_web", config=dict()
+            )
             self.grpc_web.sourced_by(amod)
             ir.save_filter(self.grpc_web)
 
-        if amod and ('grpc_stats' in amod):
+        if amod and ("grpc_stats" in amod):
             grpc_stats = amod.grpc_stats
 
             # default config with safe values
             config = {
-                'individual_method_stats_allowlist': {
-                    'services': []
-                },
-                'stats_for_all_methods': False,
-                'enable_upstream_stats': False
+                "individual_method_stats_allowlist": {"services": []},
+                "stats_for_all_methods": False,
+                "enable_upstream_stats": False,
             }
 
-            if ('services' in grpc_stats):
-                config['individual_method_stats_allowlist'] = {
-                    'services': grpc_stats['services']
-                }
+            if "services" in grpc_stats:
+                config["individual_method_stats_allowlist"] = {"services": grpc_stats["services"]}
                 # remove stats_for_all_methods key from config. only one of individual_method_stats_allowlist or
                 # stats_for_all_methods can be set
-                config.pop('stats_for_all_methods')
+                config.pop("stats_for_all_methods")
 
             # if 'services' is present, ignore 'all_methods'
-            if ('all_methods' in grpc_stats) and ('services' not in grpc_stats):
-                config['stats_for_all_methods'] = bool(grpc_stats['all_methods'])
+            if ("all_methods" in grpc_stats) and ("services" not in grpc_stats):
+                config["stats_for_all_methods"] = bool(grpc_stats["all_methods"])
                 # remove individual_method_stats_allowlist key from config. only one of individual_method_stats_allowlist or
                 # stats_for_all_methods can be set
-                config.pop('individual_method_stats_allowlist')
+                config.pop("individual_method_stats_allowlist")
 
-            if ('upstream_stats' in grpc_stats):
-                config['enable_upstream_stats'] = bool(grpc_stats['upstream_stats'])
+            if "upstream_stats" in grpc_stats:
+                config["enable_upstream_stats"] = bool(grpc_stats["upstream_stats"])
 
-            self.grpc_stats = IRFilter(ir=ir, aconf=aconf,
-                                       kind='ir.grpc_stats',
-                                       name='grpc_stats',
-                                       config=config)
+            self.grpc_stats = IRFilter(
+                ir=ir, aconf=aconf, kind="ir.grpc_stats", name="grpc_stats", config=config
+            )
             self.grpc_stats.sourced_by(amod)
             ir.save_filter(self.grpc_stats)
 
-        if amod and ('lua_scripts' in amod):
-            self.lua_scripts = IRFilter(ir=ir, aconf=aconf, kind='ir.lua_scripts', name='lua_scripts',
-                                        config={'inline_code': amod.lua_scripts})
+        if amod and ("lua_scripts" in amod):
+            self.lua_scripts = IRFilter(
+                ir=ir,
+                aconf=aconf,
+                kind="ir.lua_scripts",
+                name="lua_scripts",
+                config={"inline_code": amod.lua_scripts},
+            )
             self.lua_scripts.sourced_by(amod)
             ir.save_filter(self.lua_scripts)
 
         # Gzip.
-        if amod and ('gzip' in amod):
+        if amod and ("gzip" in amod):
             self.gzip = IRGzip(ir=ir, aconf=aconf, location=self.location, **amod.gzip)
 
             if self.gzip:
@@ -301,8 +316,8 @@ class IRAmbassador (IRResource):
             else:
                 return False
 
-         # Buffer.
-        if amod and ('buffer' in amod):
+        # Buffer.
+        if amod and ("buffer" in amod):
             self.buffer = IRBuffer(ir=ir, aconf=aconf, location=self.location, **amod.buffer)
 
             if self.buffer:
@@ -310,11 +325,11 @@ class IRAmbassador (IRResource):
             else:
                 return False
 
-        if amod and ('keepalive' in amod):
-            self.keepalive = amod['keepalive']
+        if amod and ("keepalive" in amod):
+            self.keepalive = amod["keepalive"]
 
         # Finally, default CORS stuff.
-        if amod and ('cors' in amod):
+        if amod and ("cors" in amod):
             self.cors = IRCORS(ir=ir, aconf=aconf, location=self.location, **amod.cors)
 
             if self.cors:
@@ -322,8 +337,10 @@ class IRAmbassador (IRResource):
             else:
                 return False
 
-        if amod and ('retry_policy' in amod):
-            self.retry_policy = IRRetryPolicy(ir=ir, aconf=aconf, location=self.location, **amod.retry_policy)
+        if amod and ("retry_policy" in amod):
+            self.retry_policy = IRRetryPolicy(
+                ir=ir, aconf=aconf, location=self.location, **amod.retry_policy
+            )
 
             if self.retry_policy:
                 self.retry_policy.referenced_by(self)
@@ -331,10 +348,10 @@ class IRAmbassador (IRResource):
                 return False
 
         if amod:
-            if 'ip_allow' in amod:
+            if "ip_allow" in amod:
                 self.handle_ip_allow_deny(allow=True, principals=amod.ip_allow)
 
-            if 'ip_deny' in amod:
+            if "ip_deny" in amod:
                 self.handle_ip_allow_deny(allow=False, principals=amod.ip_deny)
 
             if self.ip_allow_deny is not None:
@@ -344,69 +361,96 @@ class IRAmbassador (IRResource):
                 # Ambassador module.
                 self.ip_allow_deny = None
 
-        if self.get('load_balancer', None) is not None:
-            if not IRHTTPMapping.validate_load_balancer(self['load_balancer']):
-                self.post_error("Invalid load_balancer specified: {}".format(self['load_balancer']))
+        if self.get("load_balancer", None) is not None:
+            if not IRHTTPMapping.validate_load_balancer(self["load_balancer"]):
+                self.post_error("Invalid load_balancer specified: {}".format(self["load_balancer"]))
                 return False
 
-        if self.get('circuit_breakers', None) is not None:
-            if not IRBaseMapping.validate_circuit_breakers(self.ir, self['circuit_breakers']):
-                self.post_error("Invalid circuit_breakers specified: {}".format(self['circuit_breakers']))
+        if self.get("circuit_breakers", None) is not None:
+            if not IRBaseMapping.validate_circuit_breakers(self.ir, self["circuit_breakers"]):
+                self.post_error(
+                    "Invalid circuit_breakers specified: {}".format(self["circuit_breakers"])
+                )
                 return False
 
-        if self.get('envoy_log_type') == 'text':
-            if self.get('envoy_log_format', None) is not None and not isinstance(self.get('envoy_log_format'), str):
+        if self.get("envoy_log_type") == "text":
+            if self.get("envoy_log_format", None) is not None and not isinstance(
+                self.get("envoy_log_format"), str
+            ):
                 self.post_error(
                     "envoy_log_type 'text' requires a string in envoy_log_format: {}, invalidating...".format(
-                        self.get('envoy_log_format')))
-                self['envoy_log_format'] = ""
+                        self.get("envoy_log_format")
+                    )
+                )
+                self["envoy_log_format"] = ""
                 return False
-        elif self.get('envoy_log_type') == 'json':
-            if self.get('envoy_log_format', None) is not None and not isinstance(self.get('envoy_log_format'), dict):
+        elif self.get("envoy_log_type") == "json":
+            if self.get("envoy_log_format", None) is not None and not isinstance(
+                self.get("envoy_log_format"), dict
+            ):
                 self.post_error(
                     "envoy_log_type 'json' requires a dictionary in envoy_log_format: {}, invalidating...".format(
-                        self.get('envoy_log_format')))
-                self['envoy_log_format'] = {}
+                        self.get("envoy_log_format")
+                    )
+                )
+                self["envoy_log_format"] = {}
                 return False
         else:
-            self.post_error("Invalid log_type specified: {}. Supported: json, text".format(self.get('envoy_log_type')))
+            self.post_error(
+                "Invalid log_type specified: {}. Supported: json, text".format(
+                    self.get("envoy_log_type")
+                )
+            )
             return False
 
-        if self.get('forward_client_cert_details') is not None:
+        if self.get("forward_client_cert_details") is not None:
             # https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto#envoy-v3-api-enum-extensions-filters-network-http-connection-manager-v3-httpconnectionmanager-forwardclientcertdetails
-            valid_values = ('SANITIZE', 'FORWARD_ONLY', 'APPEND_FORWARD', 'SANITIZE_SET', 'ALWAYS_FORWARD_ONLY')
+            valid_values = (
+                "SANITIZE",
+                "FORWARD_ONLY",
+                "APPEND_FORWARD",
+                "SANITIZE_SET",
+                "ALWAYS_FORWARD_ONLY",
+            )
 
-            value = self.get('forward_client_cert_details')
+            value = self.get("forward_client_cert_details")
             if value not in valid_values:
                 self.post_error(
                     "'forward_client_cert_details' may not be set to '{}'; it may only be set to one of: {}".format(
-                        value, ', '.join(valid_values)))
+                        value, ", ".join(valid_values)
+                    )
+                )
                 return False
 
-        cert_details = self.get('set_current_client_cert_details')
+        cert_details = self.get("set_current_client_cert_details")
         if cert_details:
             # https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto#envoy-v3-api-msg-extensions-filters-network-http-connection-manager-v3-httpconnectionmanager-setcurrentclientcertdetails
-            valid_keys = ('subject', 'cert', 'chain', 'dns', 'uri')
+            valid_keys = ("subject", "cert", "chain", "dns", "uri")
 
             for k, v in cert_details.items():
                 if k not in valid_keys:
                     self.post_error(
                         "'set_current_client_cert_details' may not contain key '{}'; it may only contain keys: {}".format(
-                            k, ', '.join(valid_keys)))
+                            k, ", ".join(valid_keys)
+                        )
+                    )
                     return False
 
                 if v not in (True, False):
                     self.post_error(
-                        "'set_current_client_cert_details' value for key '{}' may only be 'true' or 'false', not '{}'".format(k, v))
+                        "'set_current_client_cert_details' value for key '{}' may only be 'true' or 'false', not '{}'".format(
+                            k, v
+                        )
+                    )
                     return False
 
         return True
 
-    def add_mappings(self, ir: 'IR', aconf: Config):
+    def add_mappings(self, ir: "IR", aconf: Config):
         for name, cur in [
-            ( "liveness",    self.liveness_probe ),
-            ( "readiness",   self.readiness_probe ),
-            ( "diagnostics", self.diagnostics )
+            ("liveness", self.liveness_probe),
+            ("readiness", self.readiness_probe),
+            ("diagnostics", self.diagnostics),
         ]:
             if cur and cur.get("enabled", False):
                 name = "internal_%s_probe_mapping" % name
@@ -417,11 +461,19 @@ class IRAmbassador (IRResource):
                 if mapping is not None:
                     # Cache hit. We know a priori that anything in the cache under a Mapping
                     # key must be an IRBaseMapping, but let's assert that rather than casting.
-                    assert(isinstance(mapping, IRBaseMapping))
+                    assert isinstance(mapping, IRBaseMapping)
                 else:
-                    mapping = IRHTTPMapping(ir, aconf, kind="InternalMapping", 
-                                            rkey=self.rkey, name=name, location=self.location,
-                                            timeout_ms=10000, hostname="*", **cur)
+                    mapping = IRHTTPMapping(
+                        ir,
+                        aconf,
+                        kind="InternalMapping",
+                        rkey=self.rkey,
+                        name=name,
+                        location=self.location,
+                        timeout_ms=10000,
+                        hostname="*",
+                        **cur
+                    )
                     mapping.referenced_by(self)
 
                 ir.add_mapping(aconf, mapping)
@@ -461,7 +513,7 @@ class IRAmbassador (IRResource):
     def get_default_label_domain(self) -> str:
         return self.default_label_domain
 
-    def get_default_labels(self, domain: Optional[str]=None) -> Optional[List]:
+    def get_default_labels(self, domain: Optional[str] = None) -> Optional[List]:
         if not domain:
             domain = self.get_default_label_domain()
 
@@ -469,7 +521,7 @@ class IRAmbassador (IRResource):
 
         self.logger.debug("default_labels info for %s: %s" % (domain, domain_info))
 
-        return domain_info.get('defaults')
+        return domain_info.get("defaults")
 
     def handle_ip_allow_deny(self, allow: bool, principals: List[str]) -> None:
         """
@@ -484,15 +536,18 @@ class IRAmbassador (IRResource):
         :param principals: list of IP addresses or CIDR ranges to match
         """
 
-        if self.get('ip_allow_deny') is not None:
+        if self.get("ip_allow_deny") is not None:
             self.post_error("ip_allow and ip_deny may not both be set")
             return
 
-        ipa = IRIPAllowDeny(self.ir, self.ir.aconf, rkey=self.rkey,
-                            parent=self,
-                            action="ALLOW" if allow else "DENY",
-                            principals=principals)
+        ipa = IRIPAllowDeny(
+            self.ir,
+            self.ir.aconf,
+            rkey=self.rkey,
+            parent=self,
+            action="ALLOW" if allow else "DENY",
+            principals=principals,
+        )
 
         if ipa:
-            self['ip_allow_deny'] = ipa
-
+            self["ip_allow_deny"] = ipa

@@ -2,6 +2,7 @@ from typing import Any, Dict, Callable, Optional, Set, Tuple, TYPE_CHECKING
 
 import logging
 
+
 class Cacheable(dict):
     """
     A dictionary that is specifically cacheable, by way of its added
@@ -27,7 +28,7 @@ CacheEntry = Tuple[Cacheable, Optional[DeletionHandler]]
 CacheLink = Set[str]
 
 
-class Cache():
+class Cache:
     """
     A cache of Cacheables, supporting add/delete/fetch and also linking
     an owning Cacheable to an owned Cacheable. Deletion is cascaded: if you
@@ -55,8 +56,7 @@ class Cache():
     def fn_name(fn: Optional[Callable]) -> str:
         return fn.__name__ if (fn and fn.__name__) else "-none-"
 
-    def add(self, rsrc: Cacheable,
-            on_delete: Optional[DeletionHandler]=None) -> None:
+    def add(self, rsrc: Cacheable, on_delete: Optional[DeletionHandler] = None) -> None:
         """
         Adds an entry to the cache, if it's not already present. If
         on_delete is not None, it will called when rsrc is removed from
@@ -105,7 +105,7 @@ class Cache():
         self.logger.debug(f"CACHE: linking {owner_key} -> {owned_key}")
 
         links = self.links.setdefault(owner_key, set())
-        links.update([ owned_key ])
+        links.update([owned_key])
 
     def invalidate(self, key: str) -> None:
         """
@@ -126,7 +126,7 @@ class Cache():
 
         self.invalidate_calls += 1
 
-        worklist = [ key ]
+        worklist = [key]
 
         # Under the hood, "invalidating" something from this cache is really
         # deleting it, so we'll use "to_delete" for the set of things we're going
@@ -167,10 +167,10 @@ class Cache():
             self.logger.debug(f"CACHE: DEL {key}: smiting!")
 
             self.invalidated_objects += 1
-            del(self.cache[key])
+            del self.cache[key]
 
             if key in self.links:
-                del(self.links[key])
+                del self.links[key]
 
             rsrc, on_delete = rdh
 
@@ -245,8 +245,7 @@ class NullCache(Cache):
         self.reset_stats()
         pass
 
-    def add(self, rsrc: Cacheable,
-            on_delete: Optional[DeletionHandler]=None) -> None:
+    def add(self, rsrc: Cacheable, on_delete: Optional[DeletionHandler] = None) -> None:
         pass
 
     def link(self, owner: Cacheable, owned: Cacheable) -> None:

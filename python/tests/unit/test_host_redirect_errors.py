@@ -13,7 +13,7 @@ import pytest
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s test %(levelname)s: %(message)s",
-    datefmt='%Y-%m-%d %H:%M:%S'
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 logger = logging.getLogger("ambassador")
@@ -22,8 +22,10 @@ from ambassador import Cache, IR
 from ambassador.utils import NullSecretHandler
 from ambassador.compile import Compile
 
+
 def require_no_errors(ir: IR):
     assert ir.aconf.errors == {}
+
 
 def require_errors(ir: IR, errors: List[Tuple[str, str]]):
     flattened_ir_errors: List[str] = []
@@ -32,11 +34,10 @@ def require_errors(ir: IR, errors: List[Tuple[str, str]]):
         for error in ir.aconf.errors[key]:
             flattened_ir_errors.append(f"{key}: {error['error']}")
 
-    flattened_wanted_errors: List[str] = [
-        f"{key}: {error}" for key, error in errors
-    ]
+    flattened_wanted_errors: List[str] = [f"{key}: {error}" for key, error in errors]
 
     assert sorted(flattened_ir_errors) == sorted(flattened_wanted_errors)
+
 
 @pytest.mark.compilertest
 def test_hr_good_1():
@@ -72,6 +73,7 @@ spec:
     require_no_errors(r1["ir"])
     require_no_errors(r2["ir"])
 
+
 @pytest.mark.compilertest
 def test_hr_error_1():
     yaml = """
@@ -104,13 +106,26 @@ spec:
     r2 = Compile(logger, yaml, k8s=True, cache=cache)
 
     # XXX Why are these showing up tagged with "mapping-1.default.1" rather than "mapping-2.default.1"?
-    require_errors(r1["ir"], [
-        ( "mapping-1.default.1", "cannot accept mapping-2 as second host_redirect after mapping-1")
-    ])
+    require_errors(
+        r1["ir"],
+        [
+            (
+                "mapping-1.default.1",
+                "cannot accept mapping-2 as second host_redirect after mapping-1",
+            )
+        ],
+    )
 
-    require_errors(r2["ir"], [
-        ( "mapping-1.default.1", "cannot accept mapping-2 as second host_redirect after mapping-1")
-    ])
+    require_errors(
+        r2["ir"],
+        [
+            (
+                "mapping-1.default.1",
+                "cannot accept mapping-2 as second host_redirect after mapping-1",
+            )
+        ],
+    )
+
 
 @pytest.mark.compilertest
 def test_hr_error_2():
@@ -143,13 +158,26 @@ spec:
     r2 = Compile(logger, yaml, k8s=True, cache=cache)
 
     # FIXME(lukeshu): These should not show up as "-global-".
-    require_errors(r1["ir"], [
-        ( "-global-", "cannot accept mapping-2 without host_redirect after mapping-1 with host_redirect")
-    ])
+    require_errors(
+        r1["ir"],
+        [
+            (
+                "-global-",
+                "cannot accept mapping-2 without host_redirect after mapping-1 with host_redirect",
+            )
+        ],
+    )
 
-    require_errors(r2["ir"], [
-        ( "-global-", "cannot accept mapping-2 without host_redirect after mapping-1 with host_redirect")
-    ])
+    require_errors(
+        r2["ir"],
+        [
+            (
+                "-global-",
+                "cannot accept mapping-2 without host_redirect after mapping-1 with host_redirect",
+            )
+        ],
+    )
+
 
 @pytest.mark.compilertest
 def test_hr_error_3():
@@ -182,13 +210,26 @@ spec:
     r2 = Compile(logger, yaml, k8s=True, cache=cache)
 
     # XXX Why are these showing up tagged with "mapping-1.default.1" rather than "mapping-2.default.1"?
-    require_errors(r1["ir"], [
-        ( "mapping-1.default.1", "cannot accept mapping-2 with host_redirect after mappings without host_redirect (eg mapping-1)")
-    ])
+    require_errors(
+        r1["ir"],
+        [
+            (
+                "mapping-1.default.1",
+                "cannot accept mapping-2 with host_redirect after mappings without host_redirect (eg mapping-1)",
+            )
+        ],
+    )
 
-    require_errors(r2["ir"], [
-        ( "mapping-1.default.1", "cannot accept mapping-2 with host_redirect after mappings without host_redirect (eg mapping-1)")
-    ])
+    require_errors(
+        r2["ir"],
+        [
+            (
+                "mapping-1.default.1",
+                "cannot accept mapping-2 with host_redirect after mappings without host_redirect (eg mapping-1)",
+            )
+        ],
+    )
+
 
 @pytest.mark.compilertest
 def test_hr_error_4():
@@ -242,9 +283,21 @@ spec:
     r1 = Compile(logger, yaml, k8s=True)
     r2 = Compile(logger, yaml, k8s=True, cache=cache)
 
-    for r in [ r1, r2 ]:
-        require_errors(r["ir"], [
-            ( "mapping-1.default.1", "Cannot specify both path_redirect and prefix_redirect. Using path_redirect and ignoring prefix_redirect."),
-            ( "mapping-2.default.1", "Cannot specify both path_redirect and regex_redirect. Using path_redirect and ignoring regex_redirect."),
-            ( "mapping-3.default.1", "Cannot specify both prefix_redirect and regex_redirect. Using prefix_redirect and ignoring regex_redirect.")
-        ])
+    for r in [r1, r2]:
+        require_errors(
+            r["ir"],
+            [
+                (
+                    "mapping-1.default.1",
+                    "Cannot specify both path_redirect and prefix_redirect. Using path_redirect and ignoring prefix_redirect.",
+                ),
+                (
+                    "mapping-2.default.1",
+                    "Cannot specify both path_redirect and regex_redirect. Using path_redirect and ignoring regex_redirect.",
+                ),
+                (
+                    "mapping-3.default.1",
+                    "Cannot specify both prefix_redirect and regex_redirect. Using prefix_redirect and ignoring regex_redirect.",
+                ),
+            ],
+        )
