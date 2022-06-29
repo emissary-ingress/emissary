@@ -6,8 +6,6 @@ from kat.harness import Query
 # Note that there's also a CORS OptionTest in t_optiontests.py.
 
 
-
-
 class GlobalCORSTest(AmbassadorTest):
     target: ServiceType
 
