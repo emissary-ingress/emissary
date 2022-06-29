@@ -8,7 +8,7 @@ from .irfilter import IRFilter
 
 if TYPE_CHECKING:
     from ..envoy.v3.v3cidrrange import CIDRRange
-    from .ir import IR # pragma: no cover
+    from .ir import IR  # pragma: no cover
 
 
 class IRIPAllowDeny(IRFilter):
@@ -19,20 +19,21 @@ class IRIPAllowDeny(IRFilter):
 
     parent: IRResource
     action: str
-    principals: List[Tuple[str, 'CIDRRange']]
+    principals: List[Tuple[str, "CIDRRange"]]
 
-    EnvoyTypeMap: ClassVar[Dict[str, str]] = {
-        "remote": "remote_ip",
-        "peer": "direct_remote_ip"
-    }
+    EnvoyTypeMap: ClassVar[Dict[str, str]] = {"remote": "remote_ip", "peer": "direct_remote_ip"}
 
-    def __init__(self, ir: 'IR', aconf: Config,
-                 rkey: str="ir.ipallowdeny",
-                 name: str="ir.ipallowdeny",
-                 kind: str="IRIPAllowDeny",
-                 parent: IRResource=None,
-                 action: str=None,
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        ir: "IR",
+        aconf: Config,
+        rkey: str = "ir.ipallowdeny",
+        name: str = "ir.ipallowdeny",
+        kind: str = "IRIPAllowDeny",
+        parent: IRResource = None,
+        action: str = None,
+        **kwargs,
+    ) -> None:
         """
         Initialize an IRIPAllowDeny. In addition to the usual IRFilter parameters,
         parent and action are required:
@@ -49,10 +50,17 @@ class IRIPAllowDeny(IRFilter):
         assert action is not None
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
-            parent=parent, action=action, **kwargs)
+            ir=ir,
+            aconf=aconf,
+            rkey=rkey,
+            kind=kind,
+            name=name,
+            parent=parent,
+            action=action,
+            **kwargs,
+        )
 
-    def setup(self, ir: 'IR', aconf: Config) -> bool:
+    def setup(self, ir: "IR", aconf: Config) -> bool:
         """
         Set up an IRIPAllowDeny based on the action and principals passed into
         __init__.
@@ -90,6 +98,7 @@ class IRIPAllowDeny(IRFilter):
         # IP match, and the value is a CIDRRange spec.
 
         from ..envoy.v3.v3cidrrange import CIDRRange
+
         for pdict in principals:
             # If we have more than one thing in the dict, that's an error.
 
@@ -97,7 +106,9 @@ class IRIPAllowDeny(IRFilter):
 
             for kind, spec in pdict.items():
                 if not first:
-                    self.parent.post_error(f"ip{self.action.lower()} principals must be separate list elements")
+                    self.parent.post_error(
+                        f"ip{self.action.lower()} principals must be separate list elements"
+                    )
                     break
 
                 first = False
@@ -105,7 +116,9 @@ class IRIPAllowDeny(IRFilter):
                 envoy_kind = IRIPAllowDeny.EnvoyTypeMap.get(kind, None)
 
                 if not envoy_kind:
-                    self.parent.post_error(f"ip{self.action.lower()} principal type {kind} unknown: must be peer or remote")
+                    self.parent.post_error(
+                        f"ip{self.action.lower()} principal type {kind} unknown: must be peer or remote"
+                    )
                     continue
 
                 cidrrange = CIDRRange(spec)
@@ -113,7 +126,9 @@ class IRIPAllowDeny(IRFilter):
                 if cidrrange:
                     self.principals.append((envoy_kind, cidrrange))
                 else:
-                    self.parent.post_error(f"ip_{self.action.lower()} principal {spec} is not valid: {cidrrange.error}")
+                    self.parent.post_error(
+                        f"ip_{self.action.lower()} principal {spec} is not valid: {cidrrange.error}"
+                    )
 
         if len(self.principals) > 0:
             return True
@@ -121,11 +136,11 @@ class IRIPAllowDeny(IRFilter):
             return False
 
     def __str__(self) -> str:
-        pstrs = [ str(x) for x in self.principals ]
+        pstrs = [str(x) for x in self.principals]
         return f"<IPAllowDeny {self.action}: {', '.join(pstrs)}>"
 
     def as_dict(self) -> dict:
         return {
             "action": self.action,
-            "principals": [ { kind: block.as_dict() } for kind, block in self.principals ]
+            "principals": [{kind: block.as_dict()} for kind, block in self.principals],
         }

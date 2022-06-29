@@ -6,8 +6,8 @@ from ..config import Config
 from .irfilter import IRFilter
 
 if TYPE_CHECKING:
-    from .ir import IR # pragma: no cover
-    from .ir.irresource import IRResource # pragma: no cover
+    from .ir import IR  # pragma: no cover
+    from .ir.irresource import IRResource  # pragma: no cover
 
 import re
 
@@ -15,30 +15,72 @@ import re
 # Use a whitelist to validate that any command operators in error response body are supported by envoy
 # TODO: remove this after support for escaping "%" lands in envoy
 ALLOWED_ENVOY_FMT_TOKENS = [
-    "START_TIME", "REQUEST_HEADERS_BYTES", "BYTES_RECEIVED",
-    "PROTOCOL", "RESPONSE_CODE", "RESPONSE_CODE_DETAILS",
-    "CONNECTION_TERMINATION_DETAILS", "RESPONSE_HEADERS_BYTES",
-    "RESPONSE_TRAILERS_BYTES", "BYTES_SENT", "UPSTREAM_WIRE_BYTES_SENT",
-    "UPSTREAM_WIRE_BYTES_RECEIVED", "UPSTREAM_HEADER_BYTES_SENT",
-    "UPSTREAM_HEADER_BYTES_RECEIVED", "DOWNSTREAM_WIRE_BYTES_SENT",
-    "DOWNSTREAM_WIRE_BYTES_RECEIVED", "DOWNSTREAM_HEADER_BYTES_SENT",
-    "DOWNSTREAM_HEADER_BYTES_RECEIVED", "DURATION", "REQUEST_DURATION",
-    "REQUEST_TX_DURATION", "RESPONSE_DURATION", "RESPONSE_TX_DURATION",
-    "RESPONSE_FLAGS", "ROUTE_NAME", "UPSTREAM_HOST", "UPSTREAM_CLUSTER",
-    "UPSTREAM_LOCAL_ADDRESS", "UPSTREAM_TRANSPORT_FAILURE_REASON",
-    "DOWNSTREAM_REMOTE_ADDRESS", "DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT",
-    "DOWNSTREAM_DIRECT_REMOTE_ADDRESS", "DOWNSTREAM_DIRECT_REMOTE_ADDRESS_WITHOUT_PORT",
-    "DOWNSTREAM_LOCAL_ADDRESS", "DOWNSTREAM_LOCAL_ADDRESS_WITHOUT_PORT",
-    "CONNECTION_ID", "GRPC_STATUS", "DOWNSTREAM_LOCAL_PORT", "REQ",
-    "RESP", "TRAILER", "DYNAMIC_METADATA", "CLUSTER_METADATA",
-    "FILTER_STATE", "REQUESTED_SERVER_NAME", "DOWNSTREAM_LOCAL_URI_SAN",
-    "DOWNSTREAM_PEER_URI_SAN", "DOWNSTREAM_LOCAL_SUBJECT", "DOWNSTREAM_PEER_SUBJECT",
-    "DOWNSTREAM_PEER_ISSUER", "DOWNSTREAM_TLS_SESSION_ID", "DOWNSTREAM_TLS_CIPHER",
-    "DOWNSTREAM_TLS_VERSION", "DOWNSTREAM_PEER_FINGERPRINT_256", "DOWNSTREAM_PEER_FINGERPRINT_1",
-    "DOWNSTREAM_PEER_SERIAL", "DOWNSTREAM_PEER_CERT", "DOWNSTREAM_PEER_CERT_V_START",
-    "DOWNSTREAM_PEER_CERT_V_END", "HOSTNAME", "LOCAL_REPLY_BODY", "FILTER_CHAIN_NAME"
+    "START_TIME",
+    "REQUEST_HEADERS_BYTES",
+    "BYTES_RECEIVED",
+    "PROTOCOL",
+    "RESPONSE_CODE",
+    "RESPONSE_CODE_DETAILS",
+    "CONNECTION_TERMINATION_DETAILS",
+    "RESPONSE_HEADERS_BYTES",
+    "RESPONSE_TRAILERS_BYTES",
+    "BYTES_SENT",
+    "UPSTREAM_WIRE_BYTES_SENT",
+    "UPSTREAM_WIRE_BYTES_RECEIVED",
+    "UPSTREAM_HEADER_BYTES_SENT",
+    "UPSTREAM_HEADER_BYTES_RECEIVED",
+    "DOWNSTREAM_WIRE_BYTES_SENT",
+    "DOWNSTREAM_WIRE_BYTES_RECEIVED",
+    "DOWNSTREAM_HEADER_BYTES_SENT",
+    "DOWNSTREAM_HEADER_BYTES_RECEIVED",
+    "DURATION",
+    "REQUEST_DURATION",
+    "REQUEST_TX_DURATION",
+    "RESPONSE_DURATION",
+    "RESPONSE_TX_DURATION",
+    "RESPONSE_FLAGS",
+    "ROUTE_NAME",
+    "UPSTREAM_HOST",
+    "UPSTREAM_CLUSTER",
+    "UPSTREAM_LOCAL_ADDRESS",
+    "UPSTREAM_TRANSPORT_FAILURE_REASON",
+    "DOWNSTREAM_REMOTE_ADDRESS",
+    "DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT",
+    "DOWNSTREAM_DIRECT_REMOTE_ADDRESS",
+    "DOWNSTREAM_DIRECT_REMOTE_ADDRESS_WITHOUT_PORT",
+    "DOWNSTREAM_LOCAL_ADDRESS",
+    "DOWNSTREAM_LOCAL_ADDRESS_WITHOUT_PORT",
+    "CONNECTION_ID",
+    "GRPC_STATUS",
+    "DOWNSTREAM_LOCAL_PORT",
+    "REQ",
+    "RESP",
+    "TRAILER",
+    "DYNAMIC_METADATA",
+    "CLUSTER_METADATA",
+    "FILTER_STATE",
+    "REQUESTED_SERVER_NAME",
+    "DOWNSTREAM_LOCAL_URI_SAN",
+    "DOWNSTREAM_PEER_URI_SAN",
+    "DOWNSTREAM_LOCAL_SUBJECT",
+    "DOWNSTREAM_PEER_SUBJECT",
+    "DOWNSTREAM_PEER_ISSUER",
+    "DOWNSTREAM_TLS_SESSION_ID",
+    "DOWNSTREAM_TLS_CIPHER",
+    "DOWNSTREAM_TLS_VERSION",
+    "DOWNSTREAM_PEER_FINGERPRINT_256",
+    "DOWNSTREAM_PEER_FINGERPRINT_1",
+    "DOWNSTREAM_PEER_SERIAL",
+    "DOWNSTREAM_PEER_CERT",
+    "DOWNSTREAM_PEER_CERT_V_START",
+    "DOWNSTREAM_PEER_CERT_V_END",
+    "HOSTNAME",
+    "LOCAL_REPLY_BODY",
+    "FILTER_CHAIN_NAME",
 ]
-ENVOY_FMT_TOKEN_REGEX = "\%([A-Za-z0-9_]+?)(\([A-Za-z0-9_.]+?((:|\?)[A-Za-z0-9_.]+?)+\))?(:[A-Za-z0-9_]+?)?\%"
+ENVOY_FMT_TOKEN_REGEX = (
+    "\%([A-Za-z0-9_]+?)(\([A-Za-z0-9_.]+?((:|\?)[A-Za-z0-9_.]+?)+\))?(:[A-Za-z0-9_]+?)?\%"
+)
 
 # IRErrorResponse implements custom error response bodies using Envoy's HTTP response_map filter.
 #
@@ -49,7 +91,7 @@ ENVOY_FMT_TOKEN_REGEX = "\%([A-Za-z0-9_]+?)(\([A-Za-z0-9_.]+?((:|\?)[A-Za-z0-9_.
 #
 # The Ambassador module config isn't subject to strict typing at higher layers, so this IR has
 # to pay special attention to the types and format of the incoming config.
-class IRErrorResponse (IRFilter):
+class IRErrorResponse(IRFilter):
 
     # The list of mappers that will make up the final error response config
     _mappers: Optional[List[Dict[str, Any]]]
@@ -60,20 +102,24 @@ class IRErrorResponse (IRFilter):
 
     # The object that references this IRErrorResource.
     # Use by diagnostics to report the exact source of configuration errors.
-    _referenced_by_obj: Optional['IRResource']
+    _referenced_by_obj: Optional["IRResource"]
 
-    def __init__(self, ir: 'IR', aconf: Config, error_response_config: List[Dict[str, Any]],
-                 referenced_by_obj: Optional['IRResource']=None,
-                 rkey: str="ir.error_response",
-                 kind: str="IRErrorResponse",
-                 name: str="error_response",
-                 type: Optional[str] = "decoder",
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        ir: "IR",
+        aconf: Config,
+        error_response_config: List[Dict[str, Any]],
+        referenced_by_obj: Optional["IRResource"] = None,
+        rkey: str = "ir.error_response",
+        kind: str = "IRErrorResponse",
+        name: str = "error_response",
+        type: Optional[str] = "decoder",
+        **kwargs,
+    ) -> None:
         self._ir_config = error_response_config
         self._referenced_by_obj = referenced_by_obj
         self._mappers = None
-        super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, **kwargs)
+        super().__init__(ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, **kwargs)
 
     # Return the final config, or None if there isn't any, either because
     # there was no input config, or none of the input config was valid.
@@ -84,25 +130,25 @@ class IRErrorResponse (IRFilter):
     def config(self) -> Optional[Dict[str, Any]]:
         if not self._mappers:
             return None
-        return {
-            'mappers': self._mappers
-        }
+        return {"mappers": self._mappers}
 
     # Runs setup and always returns true to indicate success. This is safe because
     # _setup is tolerant of missing or invalid config. At the end of setup, the caller
     # should retain this object and use `config()` get the final, good config, if any.
-    def setup(self, ir: 'IR', aconf: Config) -> bool:
+    def setup(self, ir: "IR", aconf: Config) -> bool:
         self._setup(ir, aconf)
         return True
 
-    def _setup(self, ir: 'IR', aconf: Config):
+    def _setup(self, ir: "IR", aconf: Config):
         # Do nothing (and post no errors) if there's no config.
         if not self._ir_config:
             return
 
         # The error_response_overrides config must be an array
         if not isinstance(self._ir_config, list):
-            self.post_error(f"IRErrorResponse: error_response_overrides: field must be an array, got {type(self._ir_config)}")
+            self.post_error(
+                f"IRErrorResponse: error_response_overrides: field must be an array, got {type(self._ir_config)}"
+            )
             return
 
         # Do nothing (and post no errors) if there's config, but it's empty.
@@ -119,7 +165,6 @@ class IRErrorResponse (IRFilter):
             ir.logger.debug("IRErrorResponse: loaded mappers %s" % repr(self._mappers))
             if self._referenced_by_obj is not None:
                 self.referenced_by(self._referenced_by_obj)
-
 
     def _generate_mappers(self) -> Optional[List[Dict[str, Any]]]:
         all_mappers: List[Dict[str, Any]] = []
@@ -139,7 +184,7 @@ class IRErrorResponse (IRFilter):
                 if code < 400 or code >= 600:
                     raise ValueError("field must be an integer >= 400 and < 600")
 
-                status_code_str: str=str(code)
+                status_code_str: str = str(code)
             except ValueError as e:
                 self.post_error(f"IRErrorResponse: on_status_code: %s" % e)
                 continue
@@ -151,7 +196,8 @@ class IRErrorResponse (IRFilter):
                 continue
             if not isinstance(ir_body, dict):
                 self.post_error(
-                        f"IRErrorResponse: body: field must be an object, found %s" % ir_body)
+                    f"IRErrorResponse: body: field must be an object, found %s" % ir_body
+                )
                 continue
 
             # We currently only support filtering using an equality match on status codes.
@@ -168,12 +214,11 @@ class IRErrorResponse (IRFilter):
                                 # has an associated "runtime_key". This is used as a key
                                 # in the runtime config system for changing config values
                                 # without restarting Envoy.
-
                                 # We definitely do not want this value to ever change
                                 # inside of Envoy at runtime, so the best we can do is name
                                 # this key something arbitrary and hopefully unused.
-                                "runtime_key": "_donotsetthiskey"
-                            }
+                                "runtime_key": "_donotsetthiskey",
+                            },
                         }
                     }
                 }
@@ -194,33 +239,38 @@ class IRErrorResponse (IRFilter):
             # Only one of text_format, json_format, or text_format_source may be set.
             # Post an error if we found more than one these fields set.
             formats_set: int = 0
-            for f in [ ir_text_format_source, ir_text_format, ir_json_format ]:
+            for f in [ir_text_format_source, ir_text_format, ir_json_format]:
                 if f is not None:
                     formats_set += 1
             if formats_set > 1:
                 self.post_error(
-                        "IRErrorResponse: only one of \"text_format\", \"json_format\", "
-                        +"or \"text_format_source\" may be set, found %d of these fields set." %
-                        formats_set)
+                    'IRErrorResponse: only one of "text_format", "json_format", '
+                    + 'or "text_format_source" may be set, found %d of these fields set.'
+                    % formats_set
+                )
                 continue
 
             body_format_override: Dict[str, Any] = {}
 
             if ir_text_format_source is not None:
                 # Verify that the text_format_source field is an object with a string filename.
-                if not isinstance(ir_text_format_source, dict) or \
-                        not isinstance(ir_text_format_source.get('filename', None), str):
+                if not isinstance(ir_text_format_source, dict) or not isinstance(
+                    ir_text_format_source.get("filename", None), str
+                ):
                     self.post_error(
-                            f"IRErrorResponse: text_format_source field must be an object with a single filename field, found \"{ir_text_format_source}\"")
+                        f'IRErrorResponse: text_format_source field must be an object with a single filename field, found "{ir_text_format_source}"'
+                    )
                     continue
 
                 body_format_override["text_format_source"] = ir_text_format_source
                 try:
-                    fmt_file = open(ir_text_format_source["filename"], mode='r')
+                    fmt_file = open(ir_text_format_source["filename"], mode="r")
                     format_body = fmt_file.read()
                     fmt_file.close()
                 except OSError:
-                    self.post_error("IRErrorResponse: text_format_source field references a file that does not exist")
+                    self.post_error(
+                        "IRErrorResponse: text_format_source field references a file that does not exist"
+                    )
                     continue
 
             elif ir_text_format is not None:
@@ -233,7 +283,9 @@ class IRErrorResponse (IRFilter):
             elif ir_json_format is not None:
                 # Verify that the json_format field is an object
                 if not isinstance(ir_json_format, dict):
-                    self.post_error(f"IRErrorResponse: json_format field must be an object, found \"{ir_json_format}\"")
+                    self.post_error(
+                        f'IRErrorResponse: json_format field must be an object, found "{ir_json_format}"'
+                    )
                     continue
 
                 # Envoy requires string values for json_format. Validate that every field in the
@@ -253,7 +305,7 @@ class IRErrorResponse (IRFilter):
                             sanitized[k] = str(v)
                             format_body += f"{k}: {str(v)}, "
                         else:
-                            error = f"IRErrorResponse: json_format only supports string values, and type \"{type(v)}\" for key \"{k}\" cannot be implicitly converted to string"
+                            error = f'IRErrorResponse: json_format only supports string values, and type "{type(v)}" for key "{k}" cannot be implicitly converted to string'
                             break
                 except ValueError as e:
                     # This really shouldn't be possible, because the string casts we do above
@@ -267,7 +319,8 @@ class IRErrorResponse (IRFilter):
                 body_format_override["json_format"] = sanitized
             else:
                 self.post_error(
-                        f"IRErrorResponse: could not find a valid format field in body \"{ir_body}\"")
+                    f'IRErrorResponse: could not find a valid format field in body "{ir_body}"'
+                )
                 continue
 
             if ir_content_type is not None:

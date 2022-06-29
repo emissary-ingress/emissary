@@ -4,10 +4,10 @@ from typing import cast as typecast
 
 from ..resource import Resource
 
-R = TypeVar('R', bound=Resource)
+R = TypeVar("R", bound=Resource)
 
 
-class ACResource (Resource):
+class ACResource(Resource):
     """
     A resource that we're going to use as part of the Ambassador configuration.
 
@@ -49,14 +49,19 @@ class ACResource (Resource):
     name: str
     apiVersion: str
 
-    def __init__(self, rkey: str, location: str, *,
-                 kind: str,
-                 name: Optional[str]=None,
-                 namespace: Optional[str]=None,
-                 metadata_labels: Optional[str]=None,
-                 apiVersion: Optional[str]="getambassador.io/v0",
-                 serialization: Optional[str]=None,
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        rkey: str,
+        location: str,
+        *,
+        kind: str,
+        name: Optional[str] = None,
+        namespace: Optional[str] = None,
+        metadata_labels: Optional[str] = None,
+        apiVersion: Optional[str] = "getambassador.io/v0",
+        serialization: Optional[str] = None,
+        **kwargs
+    ) -> None:
 
         if not rkey:
             raise Exception("ACResource requires rkey")
@@ -79,28 +84,36 @@ class ACResource (Resource):
 
         # print("ACResource __init__ (%s %s)" % (kind, name))
 
-        super().__init__(rkey=rkey, location=location,
-                         kind=kind, name=name, namespace=namespace,
-                         apiVersion=typecast(str, apiVersion),
-                         serialization=serialization,
-                         **kwargs)
+        super().__init__(
+            rkey=rkey,
+            location=location,
+            kind=kind,
+            name=name,
+            namespace=namespace,
+            apiVersion=typecast(str, apiVersion),
+            serialization=serialization,
+            **kwargs
+        )
 
     # XXX It kind of offends me that we need this, exactly. Meta-ize this maybe?
     @classmethod
-    def from_resource(cls: Type[R], other: R,
-                      rkey: Optional[str]=None,
-                      location: Optional[str]=None,
-                      kind: Optional[str]=None,
-                      serialization: Optional[str]=None,
-                      name: Optional[str]=None,
-                      namespace: Optional[str]=None,
-                      metadata_labels: Optional[str] = None,
-                      apiVersion: Optional[str]=None,
-                      **kwargs) -> R:
+    def from_resource(
+        cls: Type[R],
+        other: R,
+        rkey: Optional[str] = None,
+        location: Optional[str] = None,
+        kind: Optional[str] = None,
+        serialization: Optional[str] = None,
+        name: Optional[str] = None,
+        namespace: Optional[str] = None,
+        metadata_labels: Optional[str] = None,
+        apiVersion: Optional[str] = None,
+        **kwargs
+    ) -> R:
         new_name = name or other.name
         new_apiVersion = apiVersion or other.apiVersion
         new_namespace = namespace or other.namespace
-        new_metadata_labels = metadata_labels or other.get('metadata_labels', None)
+        new_metadata_labels = metadata_labels or other.get("metadata_labels", None)
 
         # mypy 0.730 is Just Flat Wrong here. It tries to be "more strict" about
         # super(), which is fine, but it also flags this particular super() call
@@ -111,34 +124,44 @@ class ACResource (Resource):
         # cls is _not_ an instance at all, it's a class, so isinstance() will
         # fail at runtime. So we only do the assertion if TYPE_CHECKING. Grrrr.
         if TYPE_CHECKING:
-            assert(isinstance(cls, Resource)) # pragma: no cover
+            assert isinstance(cls, Resource)  # pragma: no cover
 
-        return super().from_resource(other, rkey=rkey, location=location, kind=kind,
-                                     name=new_name, apiVersion=new_apiVersion, namespace=new_namespace,
-                                     metadata_labels=new_metadata_labels, serialization=serialization, **kwargs)
+        return super().from_resource(
+            other,
+            rkey=rkey,
+            location=location,
+            kind=kind,
+            name=new_name,
+            apiVersion=new_apiVersion,
+            namespace=new_namespace,
+            metadata_labels=new_metadata_labels,
+            serialization=serialization,
+            **kwargs
+        )
 
     # ACResource.INTERNAL is the magic ACResource we use to represent something created by
     # Ambassador's internals.
     @classmethod
-    def internal_resource(cls) -> 'ACResource':
+    def internal_resource(cls) -> "ACResource":
         return ACResource(
-            "--internal--", "--internal--",
+            "--internal--",
+            "--internal--",
             kind="Internal",
             name="Ambassador Internals",
             version="getambassador.io/v0",
-            description="The '--internal--' source marks objects created by Ambassador's internal logic."
+            description="The '--internal--' source marks objects created by Ambassador's internal logic.",
         )
 
     # ACResource.DIAGNOSTICS is the magic ACResource we use to represent something created by
     # Ambassador's diagnostics logic. (We could use ACResource.INTERNAL here, but explicitly
     # calling out diagnostics stuff actually helps with, well, diagnostics.)
     @classmethod
-    def diagnostics_resource(cls) -> 'ACResource':
+    def diagnostics_resource(cls) -> "ACResource":
         return ACResource(
-            "--diagnostics--", "--diagnostics--",
+            "--diagnostics--",
+            "--diagnostics--",
             kind="Diagnostics",
             name="Ambassador Diagnostics",
             version="getambassador.io/v0",
-            description="The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output."
+            description="The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
         )
-

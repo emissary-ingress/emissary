@@ -43,7 +43,9 @@ class IPAllow(AmbassadorTest):
         self.add_default_https_listener = False
 
     def manifests(self) -> str:
-        return self.format('''
+        return (
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Listener
@@ -82,10 +84,14 @@ spec:
   prefix: /localhost/
   rewrite: /target/             # See NOTE above
   service: 127.0.0.1:8080       # See NOTE above
-''') + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format('''
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -95,7 +101,8 @@ config:
   ip_allow:
     - peer:   127.0.0.1      # peer address must be localhost
     - remote: 99.99.0.0/16   # honors PROXY and XFF
-''')
+"""
+        )
 
     def queries(self):
         # 0. Straightforward: hit /target/ and /localhost/ with nothing special, get 403s.
@@ -108,15 +115,23 @@ config:
 
         # 2. Hit /target/ and /localhost/ with X-Forwarded-For specifying something bad, get a 403.
         yield Query(self.url("target/20"), headers={"X-Forwarded-For": "99.98.0.1"}, expected=403)
-        yield Query(self.url("localhost/21"), headers={"X-Forwarded-For": "99.98.0.1"}, expected=403)
+        yield Query(
+            self.url("localhost/21"), headers={"X-Forwarded-For": "99.98.0.1"}, expected=403
+        )
 
         # Done. Note that the /localhost/ endpoint is wrapping around to make a localhost call back
         # to Ambassador to check the peer: principal -- see the NOTE above.
 
     def requirements(self):
         # We're replacing super()'s requirements deliberately here. Without X-Forwarded-For they can't work.
-        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"X-Forwarded-For": "99.99.0.1"}))
-        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"X-Forwarded-For": "99.99.0.1"}))
+        yield (
+            "url",
+            Query(self.url("ambassador/v0/check_ready"), headers={"X-Forwarded-For": "99.99.0.1"}),
+        )
+        yield (
+            "url",
+            Query(self.url("ambassador/v0/check_alive"), headers={"X-Forwarded-For": "99.99.0.1"}),
+        )
 
 
 class IPDeny(AmbassadorTest):
@@ -128,7 +143,9 @@ class IPDeny(AmbassadorTest):
         self.add_default_https_listener = False
 
     def manifests(self) -> str:
-        return self.format('''
+        return (
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Listener
@@ -167,10 +184,14 @@ spec:
   prefix: /localhost/
   rewrite: /target/             # See NOTE above
   service: 127.0.0.1:8080       # See NOTE above
-''') + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format('''
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -180,26 +201,37 @@ config:
   ip_deny:
     - peer:   127.0.0.1      # peer address cannot be localhost (weird, huh?)
     - remote: 99.98.0.0/16   # honors PROXY and XFF
-''')
+"""
+        )
 
     def queries(self):
         # 0. Straightforward: hit /target/ and /localhost/ with nothing special, get 403s.
         yield Query(self.url("target/00"), expected=200)
-        yield Query(self.url("localhost/01"), expected=403) # This should _never_ work.
+        yield Query(self.url("localhost/01"), expected=403)  # This should _never_ work.
 
         # 1. Hit /target/ and /localhost/ with X-Forwarded-For specifying something bad, get 403s.
         yield Query(self.url("target/10"), headers={"X-Forwarded-For": "99.98.0.1"}, expected=403)
-        yield Query(self.url("localhost/11"), headers={"X-Forwarded-For": "99.98.0.1"}, expected=403)
+        yield Query(
+            self.url("localhost/11"), headers={"X-Forwarded-For": "99.98.0.1"}, expected=403
+        )
 
         # 2. Hit /target/ with X-Forwarded-For specifying something not so bad, get a 200. /localhost/
         #    will _still_ get a 403 though.
         yield Query(self.url("target/20"), headers={"X-Forwarded-For": "99.99.0.1"}, expected=200)
-        yield Query(self.url("localhost/21"), headers={"X-Forwarded-For": "99.99.0.1"}, expected=403)
+        yield Query(
+            self.url("localhost/21"), headers={"X-Forwarded-For": "99.99.0.1"}, expected=403
+        )
 
         # Done. Note that the /localhost/ endpoint is wrapping around to make a localhost call back
         # to Ambassador to check the peer: principal -- see the NOTE above.
 
     def requirements(self):
         # We're replacing super()'s requirements deliberately here. Without X-Forwarded-For they can't work.
-        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"X-Forwarded-For": "99.99.0.1"}))
-        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"X-Forwarded-For": "99.99.0.1"}))
+        yield (
+            "url",
+            Query(self.url("ambassador/v0/check_ready"), headers={"X-Forwarded-For": "99.99.0.1"}),
+        )
+        yield (
+            "url",
+            Query(self.url("ambassador/v0/check_alive"), headers={"X-Forwarded-For": "99.99.0.1"}),
+        )

@@ -14,4 +14,3 @@
 
 from .irresource import IRResource
 from .ir import IR
-
