@@ -1,18 +1,15 @@
 #!/usr/bin/python
 
-from ambassador.utils import ParsedService as Service
-
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
-
-import sys
-
 import json
 import logging
 import os
+import sys
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
-from ambassador import Config, IR
+from ambassador import IR, Config
 from ambassador.fetch import ResourceFetcher
-from ambassador.utils import SecretInfo, SavedSecret, SecretHandler, dump_json
+from ambassador.utils import ParsedService as Service
+from ambassador.utils import SavedSecret, SecretHandler, SecretInfo, dump_json
 
 if TYPE_CHECKING:
     from ambassador.ir.irresource import IRResource  # pragma: no cover

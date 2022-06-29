@@ -1,13 +1,12 @@
+import base64
+import os
+import shutil
+import subprocess
+import sys
 from typing import Any, ClassVar, Generator, List, Optional, Sequence, Tuple, Union
 from typing import cast as typecast
 
-import sys
-
-import base64
-import os
 import pytest
-import shutil
-import subprocess
 import yaml
 
 # These type: ignores are because, weirdly, the yaml.CSafe* variants don't share
@@ -22,7 +21,7 @@ except AttributeError:
     pass
 
 import tests.integration.manifests as integration_manifests
-from kat.harness import abstract_test, sanitize, Name, Node, Test, Query
+from kat.harness import Name, Node, Query, Test, abstract_test, sanitize
 from kat.utils import ShellCommand
 
 AMBASSADOR_LOCAL = """

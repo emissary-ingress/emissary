@@ -3,6 +3,7 @@ import logging
 import sys
 
 import pytest
+
 from kat.harness import EDGE_STACK
 from tests.utils import econf_foreach_cluster
 
@@ -15,10 +16,9 @@ logging.basicConfig(
 logger = logging.getLogger("ambassador")
 # logger.setLevel(logging.DEBUG)
 
-from ambassador import Config, IR, EnvoyConfig
+from ambassador import IR, Config, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
-
 from tests.utils import default_listener_manifests
 
 

@@ -1,11 +1,10 @@
-from typing import ClassVar, Dict, List, Optional, TYPE_CHECKING
-
 import base64
 import logging
 import os
+from typing import TYPE_CHECKING, ClassVar, Dict, List, Optional
 
-from ..utils import SavedSecret
 from ..config import Config
+from ..utils import SavedSecret
 from .irresource import IRResource
 
 if TYPE_CHECKING:

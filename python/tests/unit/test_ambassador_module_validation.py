@@ -1,6 +1,5 @@
-from typing import List, Tuple
-
 import logging
+from typing import List, Tuple
 
 import pytest
 
@@ -12,7 +11,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import Cache, IR
+from ambassador import IR, Cache
 from ambassador.compile import Compile
 
 

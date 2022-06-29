@@ -1,14 +1,11 @@
 from typing import Generator, Tuple, Union
 
-from kat.harness import Query, EDGE_STACK
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
+from ambassador import Config
+from kat.harness import EDGE_STACK, Query
 from tests.integration.manifests import namespace_manifest
-
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 from tests.selfsigned import TLSCerts
 from tests.utils import create_crl_pem_b64
-
-from ambassador import Config
-
 
 # STILL TO ADD:
 # Host referencing a Secret in another namespace?

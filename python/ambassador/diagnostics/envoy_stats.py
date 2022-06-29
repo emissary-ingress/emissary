@@ -12,15 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Callable, Dict, List, Optional, Union
-
 import logging
-import requests
 import threading
 import time
-
 from dataclasses import dataclass
 from dataclasses import field as dc_field
+from typing import Any, Callable, Dict, List, Optional, Union
+
+import requests
 
 
 def percentage(x: float, y: float) -> int:

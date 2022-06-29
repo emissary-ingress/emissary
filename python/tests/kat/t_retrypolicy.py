@@ -1,11 +1,9 @@
+import re
+from datetime import datetime
 from typing import Generator, Tuple, Union
 
-import re
-
-from datetime import datetime
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
 from kat.harness import Query
-
-from abstract_tests import AmbassadorTest, HTTP, ServiceType, Node
 
 
 class RetryPolicyTest(AmbassadorTest):

@@ -1,10 +1,9 @@
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ..config import Config
 from ..utils import RichStatus
-
-from .irfilter import IRFilter
 from .ircluster import IRCluster
+from .irfilter import IRFilter
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover

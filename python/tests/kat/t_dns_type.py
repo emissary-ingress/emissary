@@ -1,8 +1,9 @@
+import json
 from typing import Generator, Tuple, Union
 
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
 from kat.harness import Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
-import json
+
 
 # tests that using logical_dns does not impact requests
 # strict_dns is already the default setting so we only need to validate it's config pytest

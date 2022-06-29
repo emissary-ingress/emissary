@@ -1,7 +1,6 @@
-from typing import ContextManager, List, Optional
-
 import contextlib
 import dataclasses
+from typing import ContextManager, List, Optional
 
 
 @dataclasses.dataclass

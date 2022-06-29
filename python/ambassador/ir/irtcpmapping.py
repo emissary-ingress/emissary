@@ -1,13 +1,12 @@
+import hashlib
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Union
+
 from ambassador.utils import RichStatus
-from typing import Any, ClassVar, Dict, List, Optional, Type, Union, TYPE_CHECKING
 
 from ..config import Config
-
 from .irbasemapping import IRBaseMapping, normalize_service_name
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irtcpmappinggroup import IRTCPMappingGroup
-
-import hashlib
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover

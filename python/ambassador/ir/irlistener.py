@@ -1,15 +1,13 @@
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
-
 import copy
 import json
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 from ..config import Config
 from ..utils import dump_json
-
 from .irhost import IRHost
 from .irresource import IRResource
-from .irtlscontext import IRTLSContext
 from .irtcpmappinggroup import IRTCPMappingGroup
+from .irtlscontext import IRTLSContext
 from .irutils import selector_matches
 
 if TYPE_CHECKING:

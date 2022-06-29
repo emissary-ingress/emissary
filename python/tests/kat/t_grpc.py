@@ -1,8 +1,7 @@
 from typing import Generator, Tuple, Union
 
+from abstract_tests import EGRPC, AmbassadorTest, Node, ServiceType
 from kat.harness import Query
-
-from abstract_tests import AmbassadorTest, ServiceType, EGRPC, Node
 
 
 class AcceptanceGrpcTest(AmbassadorTest):

@@ -1,8 +1,7 @@
 from typing import Generator, Tuple, Union
 
+from abstract_tests import EGRPC, AmbassadorTest, Node
 from kat.harness import Query
-
-from abstract_tests import AmbassadorTest, EGRPC, Node
 
 
 class AcceptanceGrpcStatsTest(AmbassadorTest):

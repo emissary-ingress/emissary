@@ -1,13 +1,11 @@
 from typing import FrozenSet
 
 from ..config import Config
-
+from ..utils import dump_json
 from .dependency import SecretDependency
 from .k8sobject import KubernetesGVK, KubernetesObject
 from .k8sprocessor import ManagedKubernetesProcessor
 from .resource import NormalizedResource, ResourceManager
-
-from ..utils import dump_json
 
 
 class SecretProcessor(ManagedKubernetesProcessor):

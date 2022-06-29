@@ -2,8 +2,8 @@ import copy
 import os
 from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
-from ..utils import SavedSecret, dump_json
 from ..config import Config
+from ..utils import SavedSecret, dump_json
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
 from .irutils import hostglob_matches, selector_matches

@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, Optional, Union
-
 import logging
+from typing import Any, Dict, Optional, Union
 
 from .cache import Cache
 from .config import Config
-from .ir import IR
-from .ir.ir import IRFileChecker
 from .envoy import EnvoyConfig
 from .fetch import ResourceFetcher
-from .utils import SecretHandler, NullSecretHandler, Timer
+from .ir import IR
+from .ir.ir import IRFileChecker
+from .utils import NullSecretHandler, SecretHandler, Timer
 
 
 def Compile(

@@ -1,11 +1,9 @@
 from typing import Dict, Generator, Literal, Tuple, Union
 
-from kat.harness import Query
-
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
-from tests.selfsigned import TLSCerts
-from kat.harness import abstract_test
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
+from kat.harness import Query, abstract_test
 from tests.integration.manifests import namespace_manifest
+from tests.selfsigned import TLSCerts
 
 # An AmbassadorTest subclass will actually create a running Ambassador.
 # "self" in this class will refer to the Ambassador.

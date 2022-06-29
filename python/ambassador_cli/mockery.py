@@ -21,10 +21,6 @@
 # tool at Datawire.
 ########
 
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
-
-import sys
-
 import difflib
 import errno
 import filecmp
@@ -35,17 +31,20 @@ import logging
 import os
 import shlex
 import shutil
+import sys
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 import click
+
 from watch_hook import WatchHook
 
 # Use this instead of click.option
 click_option = functools.partial(click.option, show_default=True)
 click_option_no_default = functools.partial(click.option, show_default=False)
 
-from ambassador import Config, IR, Diagnostics, EnvoyConfig
+from ambassador import IR, Config, Diagnostics, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
-from ambassador.utils import parse_yaml, SecretHandler, SecretInfo, dump_json, parse_bool
+from ambassador.utils import SecretHandler, SecretInfo, dump_json, parse_bool, parse_yaml
 from kat.utils import ShellCommand
 
 if TYPE_CHECKING:

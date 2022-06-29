@@ -1,14 +1,12 @@
 import hashlib
 from base64 import b64decode
-from typing import List, Generator, Tuple, Union
+from typing import Generator, List, Tuple, Union
 
-from kat.harness import Query, EDGE_STACK
-
-from abstract_tests import AmbassadorTest, HTTP, ServiceType, Node
-from tests.selfsigned import TLSCerts
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
+from kat.harness import EDGE_STACK, Query
 from tests.integration.manifests import namespace_manifest
+from tests.selfsigned import TLSCerts
 from tests.utils import create_crl_pem_b64
-
 
 bug_404_routes = (
     True  # Do we erroneously send 404 responses directly instead of redirect-to-tls first?

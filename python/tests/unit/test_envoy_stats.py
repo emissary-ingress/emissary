@@ -1,11 +1,9 @@
-from typing import Optional
-
-import sys
-
 import logging
 import os
+import sys
 import threading
 import time
+from typing import Optional
 
 import pytest
 
@@ -17,7 +15,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador.diagnostics import EnvoyStatsMgr, EnvoyStats
+from ambassador.diagnostics import EnvoyStats, EnvoyStatsMgr
 
 
 class EnvoyStatsMocker:

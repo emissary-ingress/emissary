@@ -1,14 +1,15 @@
+import json
+
+import pytest
+
 from tests.utils import (
+    SUPPORTED_ENVOY_VERSIONS,
+    EnvoyHCMInfo,
+    EnvoyTCPInfo,
     econf_compile,
     econf_foreach_listener,
     econf_foreach_listener_chain,
-    EnvoyHCMInfo,
-    EnvoyTCPInfo,
-    SUPPORTED_ENVOY_VERSIONS,
 )
-
-import pytest
-import json
 
 # This manifest set is from a test setup Flynn used when testing this by hand.
 manifests = """

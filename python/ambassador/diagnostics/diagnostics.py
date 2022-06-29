@@ -12,19 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Optional, Tuple
-from typing import cast as typecast
-
 import json
 import logging
 import re
+from typing import Any, Dict, List, Optional, Tuple
+from typing import cast as typecast
 
+from ..envoy import EnvoyConfig
 from ..ir import IR
 from ..ir.irbasemappinggroup import IRBaseMappingGroup
 from ..ir.irhttpmappinggroup import IRHTTPMappingGroup
-from ..envoy import EnvoyConfig
-from .envoy_stats import EnvoyStats
 from ..utils import dump_json
+from .envoy_stats import EnvoyStats
 
 
 class DiagSource(dict):

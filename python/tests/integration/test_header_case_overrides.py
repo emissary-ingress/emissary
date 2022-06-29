@@ -1,15 +1,15 @@
 import json
 import logging
-import time
 import sys
+import time
 
 import pytest
 import requests
 
-from tests.integration.utils import install_ambassador, create_httpbin_mapping
+from tests.integration.utils import create_httpbin_mapping, install_ambassador
 from tests.kubeutils import apply_kube_artifacts
-from tests.runutils import run_and_assert
 from tests.manifests import httpbin_manifests
+from tests.runutils import run_and_assert
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,10 +19,10 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import Config, IR
-from ambassador.ir.irerrorresponse import IRErrorResponse
+from ambassador import IR, Config
 from ambassador.envoy import EnvoyConfig
 from ambassador.fetch import ResourceFetcher
+from ambassador.ir.irerrorresponse import IRErrorResponse
 from ambassador.utils import NullSecretHandler
 
 headerecho_manifests = """

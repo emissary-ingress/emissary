@@ -1,12 +1,9 @@
 from typing import Generator, Tuple, Union
 
-from kat.harness import Query, EDGE_STACK
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
+from kat.harness import EDGE_STACK, Query
 from tests.integration.manifests import namespace_manifest
-
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
-
 from tests.selfsigned import TLSCerts
-
 
 #####
 # XXX This file is annoying.

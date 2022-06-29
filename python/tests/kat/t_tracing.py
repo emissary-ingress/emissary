@@ -1,12 +1,9 @@
+import json
 from typing import Generator, Tuple, Union
 
-import json
-
-from kat.harness import Query, EDGE_STACK
-
-from abstract_tests import AmbassadorTest, HTTP, AHTTP, Node
-
+from abstract_tests import AHTTP, HTTP, AmbassadorTest, Node
 from ambassador import Config
+from kat.harness import EDGE_STACK, Query
 
 # The phase that we should wait until before performing test checks. Normally
 # this would be phase 2, which is 10 seconds after the first wave of queries,

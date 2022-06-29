@@ -1,7 +1,7 @@
 from typing import ClassVar, Generator, Tuple, Union
 
-from kat.harness import variants, Query, EDGE_STACK
-from abstract_tests import AmbassadorTest, MappingTest, ServiceType, HTTP, Node
+from abstract_tests import HTTP, AmbassadorTest, MappingTest, Node, ServiceType
+from kat.harness import EDGE_STACK, Query, variants
 
 
 class HeaderRoutingTest(MappingTest):

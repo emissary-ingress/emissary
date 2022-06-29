@@ -1,11 +1,11 @@
+import pytest
+
 from tests.utils import (
+    SUPPORTED_ENVOY_VERSIONS,
     econf_compile,
     econf_foreach_hcm,
     module_and_mapping_manifests,
-    SUPPORTED_ENVOY_VERSIONS,
 )
-
-import pytest
 
 
 def _test_route(yaml, expectations={}):

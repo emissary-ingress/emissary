@@ -3,9 +3,8 @@ from typing import Generator, Tuple, Union
 
 import yaml
 
-from kat.harness import Query, EDGE_STACK
-
-from abstract_tests import AmbassadorTest, assert_default_errors, HTTP, Node, ServiceType
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType, assert_default_errors
+from kat.harness import EDGE_STACK, Query
 from tests.integration.manifests import namespace_manifest
 
 

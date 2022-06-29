@@ -19,34 +19,31 @@
 # etc.
 ########
 
-from typing import ClassVar, Optional, Set, TYPE_CHECKING
-from typing import cast as typecast
-
-import sys
-
 import cProfile
 import json
 import logging
 import os
-import orjson
 import pstats
 import signal
+import sys
 import traceback
+from typing import TYPE_CHECKING, ClassVar, Optional, Set
+from typing import cast as typecast
 
 import click
+import orjson
 
-from ambassador import Scout, Config, IR, Diagnostics, Version
-from ambassador.fetch import ResourceFetcher
+from ambassador import IR, Config, Diagnostics, Scout, Version
 from ambassador.envoy import EnvoyConfig, V2Config, V3Config
-
+from ambassador.fetch import ResourceFetcher
 from ambassador.utils import (
+    NullSecretHandler,
     RichStatus,
     SecretHandler,
     SecretInfo,
-    NullSecretHandler,
     Timer,
-    parse_json,
     dump_json,
+    parse_json,
 )
 
 if TYPE_CHECKING:

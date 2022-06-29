@@ -1,7 +1,8 @@
 import os
-from tests.utils import assert_valid_envoy_config, econf_compile, module_and_mapping_manifests
 
 import pytest
+
+from tests.utils import assert_valid_envoy_config, econf_compile, module_and_mapping_manifests
 
 
 def _test_bootstrap(yaml, v2, expectations={}):

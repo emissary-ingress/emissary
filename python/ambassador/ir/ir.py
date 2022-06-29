@@ -11,42 +11,37 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, ValuesView
-from typing import cast as typecast
-
 import json
 import logging
 import os
-
 from ipaddress import ip_address
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, ValuesView
+from typing import cast as typecast
 
-from ..constants import Constants
-
-from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo, dump_json, parse_bool
 from ..cache import Cache, NullCache
 from ..config import Config
+from ..constants import Constants
 from ..fetch import ResourceFetcher
-
-from .irresource import IRResource
+from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo, dump_json, parse_bool
+from ..VERSION import Commit, Version
 from .irambassador import IRAmbassador
 from .irauth import IRAuth
-from .irfilter import IRFilter
-from .ircluster import IRCluster
-from .irbasemappinggroup import IRBaseMappingGroup
 from .irbasemapping import IRBaseMapping
+from .irbasemappinggroup import IRBaseMappingGroup
+from .ircluster import IRCluster
+from .irerrorresponse import IRErrorResponse
+from .irfilter import IRFilter
+from .irhost import HostFactory, IRHost
 from .irhttpmapping import IRHTTPMapping
-from .irhost import IRHost, HostFactory
+from .irlistener import IRListener, ListenerFactory
+from .irlogservice import IRLogService, IRLogServiceFactory
 from .irmappingfactory import MappingFactory
 from .irratelimit import IRRateLimit
-from .irerrorresponse import IRErrorResponse
-from .irtls import TLSModuleFactory, IRAmbassadorTLS
-from .irlistener import ListenerFactory, IRListener
-from .irlogservice import IRLogService, IRLogServiceFactory
-from .irtracing import IRTracing
-from .irtlscontext import IRTLSContext, TLSContextFactory
+from .irresource import IRResource
 from .irserviceresolver import IRServiceResolver, IRServiceResolverFactory, SvcEndpointSet
-
-from ..VERSION import Version, Commit
+from .irtls import IRAmbassadorTLS, TLSModuleFactory
+from .irtlscontext import IRTLSContext, TLSContextFactory
+from .irtracing import IRTracing
 
 #############################################################################
 ## ir.py -- the Ambassador Intermediate Representation (IR)

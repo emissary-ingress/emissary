@@ -13,63 +13,60 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
+import concurrent.futures
 import copy
-import subprocess
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, TYPE_CHECKING
-from typing import cast as typecast
-
 import datetime
 import difflib
 import functools
 import json
-import orjson
 import logging
 import multiprocessing
 import os
 import queue
 import re
 import signal
+import subprocess
 import sys
 import threading
 import time
 import traceback
 import uuid
-import requests
-import jsonpatch
-
-from expiringdict import ExpiringDict
-from prometheus_client import CollectorRegistry, ProcessCollector, generate_latest, Info, Gauge
-from pythonjsonlogger import jsonlogger
-
-import concurrent.futures
-
-from pkg_resources import Requirement, resource_filename
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import cast as typecast
 
 import click
-from flask import Flask, render_template, send_from_directory, request, jsonify, Response
-from flask import json as flask_json
 import gunicorn.app.base
+import jsonpatch
+import orjson
+import requests
+from expiringdict import ExpiringDict
+from flask import Flask, Response
+from flask import json as flask_json
+from flask import jsonify, render_template, request, send_from_directory
+from pkg_resources import Requirement, resource_filename
+from prometheus_client import CollectorRegistry, Gauge, Info, ProcessCollector, generate_latest
+from pythonjsonlogger import jsonlogger
 
-from ambassador import Cache, Config, IR, EnvoyConfig, Diagnostics, Scout, Version
-from ambassador.reconfig_stats import ReconfigStats
+from ambassador import IR, Cache, Config, Diagnostics, EnvoyConfig, Scout, Version
+from ambassador.constants import Constants
+from ambassador.diagnostics import EnvoyStats, EnvoyStatsMgr
+from ambassador.fetch import ResourceFetcher
 from ambassador.ir.irambassador import IRAmbassador
 from ambassador.ir.irbasemapping import IRBaseMapping
+from ambassador.reconfig_stats import ReconfigStats
 from ambassador.utils import (
-    SystemInfo,
-    Timer,
+    FSSecretHandler,
+    KubewatchSecretHandler,
     PeriodicTrigger,
     SavedSecret,
-    load_url_contents,
-    parse_json,
+    SecretHandler,
+    SystemInfo,
+    Timer,
     dump_json,
+    load_url_contents,
     parse_bool,
+    parse_json,
 )
-from ambassador.utils import SecretHandler, KubewatchSecretHandler, FSSecretHandler, parse_bool
-from ambassador.fetch import ResourceFetcher
-
-from ambassador.diagnostics import EnvoyStatsMgr, EnvoyStats
-
-from ambassador.constants import Constants
 
 if TYPE_CHECKING:
     from ambassador.ir.irtlscontext import IRTLSContext  # pragma: no cover

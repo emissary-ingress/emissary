@@ -13,27 +13,27 @@ logger = logging.getLogger("ambassador")
 
 from ambassador import Config
 from ambassador.fetch import ResourceFetcher
+from ambassador.fetch.ambassador import AmbassadorProcessor
 from ambassador.fetch.dependency import (
     DependencyManager,
-    ServiceDependency,
-    SecretDependency,
     IngressClassesDependency,
+    SecretDependency,
+    ServiceDependency,
 )
-from ambassador.fetch.location import LocationManager
-from ambassador.fetch.resource import NormalizedResource, ResourceManager
 from ambassador.fetch.k8sobject import (
     KubernetesGVK,
-    KubernetesObjectScope,
-    KubernetesObjectKey,
     KubernetesObject,
+    KubernetesObjectKey,
+    KubernetesObjectScope,
 )
 from ambassador.fetch.k8sprocessor import (
-    KubernetesProcessor,
     AggregateKubernetesProcessor,
     CountingKubernetesProcessor,
     DeduplicatingKubernetesProcessor,
+    KubernetesProcessor,
 )
-from ambassador.fetch.ambassador import AmbassadorProcessor
+from ambassador.fetch.location import LocationManager
+from ambassador.fetch.resource import NormalizedResource, ResourceManager
 from ambassador.fetch.service import ServiceProcessor
 from ambassador.utils import parse_yaml
 

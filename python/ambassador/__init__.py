@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+from .ambscout import AmbScout as Scout
+from .ambscout import ScoutNotice
 from .cache import Cache
 from .config import Config
-from .ir import IR
-from .ambscout import AmbScout as Scout, ScoutNotice
 from .diagnostics import Diagnostics
 from .envoy import EnvoyConfig
-from .VERSION import Version, Commit
+from .ir import IR
+from .VERSION import Commit, Version

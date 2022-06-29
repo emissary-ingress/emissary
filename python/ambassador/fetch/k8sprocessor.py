@@ -1,12 +1,10 @@
-from typing import FrozenSet, List, Mapping, Set
-
 import collections
 import logging
+from typing import FrozenSet, List, Mapping, Set
 
 from ..config import Config
-
 from .dependency import DependencyInjector
-from .k8sobject import KubernetesGVK, KubernetesObjectScope, KubernetesObjectKey, KubernetesObject
+from .k8sobject import KubernetesGVK, KubernetesObject, KubernetesObjectKey, KubernetesObjectScope
 from .resource import ResourceManager
 
 

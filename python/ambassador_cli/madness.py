@@ -1,14 +1,13 @@
-from typing import Optional, Tuple, Union
-
 import cProfile
 import difflib
 import logging
 import pstats
+from typing import Optional, Tuple, Union
 
-from ambassador import Cache, Config, IR, EnvoyConfig
-from ambassador.ir.ir import IRFileChecker
+from ambassador import IR, Cache, Config, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
-from ambassador.utils import SecretHandler, NullSecretHandler, Timer
+from ambassador.ir.ir import IRFileChecker
+from ambassador.utils import NullSecretHandler, SecretHandler, Timer
 
 # Types
 OptionalStats = Optional[pstats.Stats]

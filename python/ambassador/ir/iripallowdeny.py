@@ -1,11 +1,10 @@
-from typing import ClassVar, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar, Dict, List, Optional, Tuple
 from typing import cast as typecast
 
 from ..config import Config
 from ..envoy.v2.v2cidrrange import CIDRRange
-
-from .irresource import IRResource
 from .irfilter import IRFilter
+from .irresource import IRResource
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover

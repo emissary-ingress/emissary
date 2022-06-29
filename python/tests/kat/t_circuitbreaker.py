@@ -4,7 +4,7 @@ from typing import Generator, Tuple, Union
 import pytest
 
 import tests.integration.manifests as integration_manifests
-from abstract_tests import AmbassadorTest, HTTP, ServiceType, Node
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
 from kat.harness import Query
 
 STATSD_MANIFEST = """

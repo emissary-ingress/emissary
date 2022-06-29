@@ -53,7 +53,8 @@
 #      def fib(x):
 #          return fib(x-1) + fib(x-2)
 
-import functools, inspect
+import functools
+import inspect
 
 
 def _error(multifun, keys, args, kwargs):

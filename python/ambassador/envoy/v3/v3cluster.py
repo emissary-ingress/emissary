@@ -13,13 +13,11 @@
 # limitations under the License
 
 import urllib
-from typing import Dict, List, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, List, Union
 
 from ...cache import Cacheable
-from ...ir.ircluster import IRCluster
 from ...config import Config
-
-
+from ...ir.ircluster import IRCluster
 from .v3tls import V3TLSContext
 
 if TYPE_CHECKING:

@@ -1,8 +1,7 @@
-from typing import Any, Optional
-
 import os
-import time
 import sys
+import time
+from typing import Any, Optional
 
 import pexpect
 import pytest

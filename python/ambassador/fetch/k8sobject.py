@@ -1,9 +1,9 @@
 from __future__ import annotations
-from typing import Any, Dict, Iterator, Optional
 
 import collections.abc
 import dataclasses
 import enum
+from typing import Any, Dict, Iterator, Optional
 
 from ..config import Config
 

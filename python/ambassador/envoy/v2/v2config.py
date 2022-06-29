@@ -12,21 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
-
 import json
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 from ...cache import Cache, NullCache
-
 from ..common import EnvoyConfig, sanitize_pre_json
+from .v2_static_resources import V2StaticResources
 from .v2admin import V2Admin
 from .v2bootstrap import V2Bootstrap
-from .v2route import V2Route, V2RouteVariants
-from .v2listener import V2Listener
 from .v2cluster import V2Cluster
-from .v2_static_resources import V2StaticResources
-from .v2tracing import V2Tracing
+from .v2listener import V2Listener
 from .v2ratelimit import V2RateLimit
+from .v2route import V2Route, V2RouteVariants
+from .v2tracing import V2Tracing
 
 if TYPE_CHECKING:
     from ...ir import IR  # pragma: no cover

@@ -1,15 +1,12 @@
+import dataclasses
 from typing import Dict, FrozenSet, List, Optional
 
-import dataclasses
-
 from ..config import Config
-
+from ..utils import dump_json
 from .dependency import ServiceDependency
-from .k8sobject import KubernetesGVK, KubernetesObjectKey, KubernetesObject
+from .k8sobject import KubernetesGVK, KubernetesObject, KubernetesObjectKey
 from .k8sprocessor import AggregateKubernetesProcessor, ManagedKubernetesProcessor
 from .resource import NormalizedResource, ResourceManager
-
-from ..utils import dump_json
 
 
 @dataclasses.dataclass(frozen=True)

@@ -1,20 +1,18 @@
-from typing import Any, ClassVar, Dict, List, Optional, TYPE_CHECKING
-
-from ..constants import Constants
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional
 
 from ..config import Config
-
-from .irresource import IRResource
-from .iripallowdeny import IRIPAllowDeny
+from ..constants import Constants
 from .irbasemapping import IRBaseMapping
+from .irbuffer import IRBuffer
+from .ircors import IRCORS
+from .irfilter import IRFilter
+from .irgzip import IRGzip
 from .irhttpmapping import IRHTTPMapping
+from .iripallowdeny import IRIPAllowDeny
+from .irresource import IRResource
+from .irretrypolicy import IRRetryPolicy
 from .irtls import IRAmbassadorTLS
 from .irtlscontext import IRTLSContext
-from .ircors import IRCORS
-from .irretrypolicy import IRRetryPolicy
-from .irbuffer import IRBuffer
-from .irgzip import IRGzip
-from .irfilter import IRFilter
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover

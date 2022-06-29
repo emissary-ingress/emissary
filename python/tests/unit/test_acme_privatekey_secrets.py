@@ -1,16 +1,16 @@
-from typing import Optional, Tuple
-
 import hashlib
 import io
 import json
 import logging
 import os
+from typing import Optional, Tuple
 
 import pytest
 
-from ambassador import Config, IR
+from ambassador import IR, Config
 from ambassador.fetch import ResourceFetcher
-from ambassador.utils import SecretHandler, SavedSecret
+from ambassador.utils import SavedSecret, SecretHandler
+
 
 # MemorySecretHandler is a degenerate SecretHandler that doesn't actually
 # cache anything to disk. It will never load a secret that isn't already

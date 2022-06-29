@@ -11,28 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-import socket
-
-from typing import Any, ClassVar, Dict, Iterable, List, Optional, Tuple, Union, TYPE_CHECKING
-from typing import cast as typecast
-
 import collections
 import importlib
 import json
 import logging
 import os
+import socket
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
+from typing import cast as typecast
 
 import jsonschema
+from google.protobuf import json_format
+from pkg_resources import Requirement, resource_filename
 
 from multi import multi
-from pkg_resources import Requirement, resource_filename
-from google.protobuf import json_format
-
-from ..utils import RichStatus, dump_json, parse_bool
 
 from ..resource import Resource
-from .acresource import ACResource
+from ..utils import RichStatus, dump_json, parse_bool
 from .acmapping import ACMapping
+from .acresource import ACResource
 
 if TYPE_CHECKING:
     from ambassador.fetch.fetcher import ResourceFetcher

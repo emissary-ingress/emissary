@@ -2,7 +2,7 @@ import os
 from typing import Generator, Tuple, Union
 
 import tests.integration.manifests as integration_manifests
-from abstract_tests import DEV, AmbassadorTest, HTTP, Node
+from abstract_tests import DEV, HTTP, AmbassadorTest, Node
 from kat.harness import Query
 
 STATSD_TEST_CLUSTER = "statsdtest_http"

@@ -1,6 +1,6 @@
-from typing import Optional, TYPE_CHECKING
-
 import logging
+from typing import TYPE_CHECKING, Optional
+
 import pytest
 
 from tests.selfsigned import TLSCerts
@@ -14,7 +14,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import Config, IR
+from ambassador import IR, Config
 from ambassador.envoy import EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import SecretHandler, SecretInfo

@@ -1,11 +1,11 @@
+import pytest
+
 from tests.utils import (
+    SUPPORTED_ENVOY_VERSIONS,
     econf_compile,
     econf_foreach_cluster,
     module_and_mapping_manifests,
-    SUPPORTED_ENVOY_VERSIONS,
 )
-
-import pytest
 
 
 def _test_common_http_protocol_options(yaml, expectations={}, envoy_version="V2"):
