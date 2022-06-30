@@ -3,6 +3,7 @@
 from base64 import b64encode
 from typing import Dict, List, NamedTuple, Optional
 
+
 class Cert(NamedTuple):
     names: List[str]
     pubcert: str
@@ -10,21 +11,24 @@ class Cert(NamedTuple):
 
     @property
     def k8s_crt(self) -> str:
-        return b64encode((self.pubcert+"\n").encode('utf-8')).decode('utf-8')
+        return b64encode((self.pubcert + "\n").encode("utf-8")).decode("utf-8")
 
     @property
     def k8s_key(self) -> str:
-        return b64encode((self.privkey+"\n").encode('utf-8')).decode('utf-8')
+        return b64encode((self.privkey + "\n").encode("utf-8")).decode("utf-8")
+
 
 def strip(s: str) -> str:
     return "\n".join(l.strip() for l in s.split("\n") if l.strip())
+
 
 _TLSCerts: List[Cert] = [
     Cert(
         names=["master.datawire.io"],
         # Note: This cert is also used to sign several other certs in
         # this file (as the issuer).
-        pubcert=strip("""
+        pubcert=strip(
+            """
             -----BEGIN CERTIFICATE-----
             MIID8zCCAtugAwIBAgIRAIBtMsh/xwUcw6m3hSPuJP4wDQYJKoZIhvcNAQELBQAw
             eDELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAk1BMQ8wDQYDVQQHEwZCb3N0b24xGDAW
@@ -49,8 +53,10 @@ _TLSCerts: List[Cert] = [
             6JVnpZi+8XyWWHV0LUtLYx7ZRFUMTf0QdBeh4jLHcKozFSXBk52AFJTfd1wVs7EX
             1hOoYbcTbQ==
             -----END CERTIFICATE-----
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             -----BEGIN PRIVATE KEY-----
             MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC/gqEHyomZn0Xd
             0pLj1FuZ4fwlNuqMM7lIwu+T8bjrjs2/1A/oJpdp5Uhp0YtPT3zbKmywV3TjfWAz
@@ -79,9 +85,9 @@ _TLSCerts: List[Cert] = [
             SVx+QqH6cMtBK6tSdjJT2KuOfqkzA7tK6SzmApaZTZiz8XM3MooYDj86EJ93l8EH
             xvKPa17iyHPUWNTHy9NuTA==
             -----END PRIVATE KEY-----
-            """)
+            """
+        ),
     ),
-
     Cert(
         names=["presto.example.com"],
         # Note:
@@ -89,7 +95,8 @@ _TLSCerts: List[Cert] = [
         #     (rather than being self-signed).
         #  2. This cert is a client cert (rather than being a server
         #     cert).
-        pubcert=strip("""
+        pubcert=strip(
+            """
             -----BEGIN CERTIFICATE-----
             MIID8TCCAtmgAwIBAgIQHjsjEOZ4SEEVcrnClDnBPjANBgkqhkiG9w0BAQsFADB4
             MQswCQYDVQQGEwJVUzELMAkGA1UECBMCTUExDzANBgNVBAcTBkJvc3RvbjEYMBYG
@@ -114,8 +121,10 @@ _TLSCerts: List[Cert] = [
             4gpi/Fe5t6hpjGu2AiUQ4CGxUeAYVMl62WDefAFMjOL1nj0KeszCh9BcVKEg2LaD
             MbHj/1Q=
             -----END CERTIFICATE-----
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             -----BEGIN PRIVATE KEY-----
             MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDjKEqZ9hpEasow
             ovCgiL59bFxxFeMFUOMvvn2PjFjZaZ1mwDQ4aS6E+dT3Znu8ysRbYiivUN4mQlRG
@@ -144,12 +153,13 @@ _TLSCerts: List[Cert] = [
             fNnQ+OIW34GWz7pojjvVgirlFVmrT9gV6OXJBmh9aGvQN0En8qxZVQouo/UUkwoO
             4gpH/If2ar0U3JDIU+d87o0=
             -----END PRIVATE KEY-----
-            """)
+            """
+        ),
     ),
-
     Cert(
         names=["ratelimit.datawire.io"],
-        pubcert=strip("""
+        pubcert=strip(
+            """
             -----BEGIN CERTIFICATE-----
             MIID2jCCAsKgAwIBAgIRAKlRg3DeRR97bt/PNtG2qw0wDQYJKoZIhvcNAQELBQAw
             ezELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAk1BMQ8wDQYDVQQHEwZCb3N0b24xGDAW
@@ -173,8 +183,10 @@ _TLSCerts: List[Cert] = [
             5+mskjzbXGkjzsicklr7Nkji2VlsfOTCQudacamYj11D8YhYOzrqd0wh9DtAQD5a
             44RUfY8jf7fdqK4ZkaDhFXfQzE/iZ5WjVD6h5aAD
             -----END CERTIFICATE-----
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             -----BEGIN PRIVATE KEY-----
             MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC8qWCqEKRCm0sh
             t61TNnXQ7d16g62up3wZmfGKltN3SxNF2PIRA9ij67l9vNUiklOb4BpgNCEVH3pc
@@ -203,14 +215,15 @@ _TLSCerts: List[Cert] = [
             DyFlHyWTrFwoDBYy4d7cNgDJnaIN2qBY36GDyL2x7/DyKd5+CQN07XWuOmnGrzIo
             6ABc+KN1kmXbr9VteFRagAI=
             -----END PRIVATE KEY-----
-            """)
+            """
+        ),
     ),
-
     Cert(
         names=["ambassador.example.com"],
         # Note: This cert is signed by the "master.datawire.io" cert
         # (rather than being self-signed).
-        pubcert=strip("""
+        pubcert=strip(
+            """
             -----BEGIN CERTIFICATE-----
             MIID+jCCAuKgAwIBAgIRAMQO4rSR9giQAjULkZVYJd0wDQYJKoZIhvcNAQELBQAw
             eDELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAk1BMQ8wDQYDVQQHEwZCb3N0b24xGDAW
@@ -235,8 +248,10 @@ _TLSCerts: List[Cert] = [
             1r/e4SLxS8diOQyrwXwn5dqPH713qjnuhk7fFRSa1aa6aFZvsBmqBEykBeVJtErI
             BUI4H1BdGgQsOuX/nbk=
             -----END CERTIFICATE-----
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             -----BEGIN PRIVATE KEY-----
             MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC7IW+b05L3KzjY
             3p4OPsynN/8OGztOANqVOXgjQfoe0eQ9KXSMRLccirWOgQHDUlnpuArPpwxmFx8a
@@ -265,12 +280,13 @@ _TLSCerts: List[Cert] = [
             f/0OyEC+Y9lQB1/ka8BSjpIfM2L0FWDHJUsGOKZ+C+KlGZpRgF8YDFZHdwmWOokL
             GhN8OjQwTBEo9hm21z14qvAC
             -----END PRIVATE KEY-----
-            """)
+            """
+        ),
     ),
-
     Cert(
         names=["tls-context-host-2"],
-        pubcert=strip("""
+        pubcert=strip(
+            """
             -----BEGIN CERTIFICATE-----
             MIID0TCCArmgAwIBAgIRAL/XZdKaUkBM0tuy0P4+UNEwDQYJKoZIhvcNAQELBQAw
             eDELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAk1BMQ8wDQYDVQQHEwZCb3N0b24xGDAW
@@ -294,8 +310,10 @@ _TLSCerts: List[Cert] = [
             r6cDMXyBph9J29kPgu4QuAcGInwYqmB5jLJB2FW1mOzg5eG4WW7ZFLDBvA9SnUQP
             LCNz4+dspzQ8mkD5b+lhuHmY0ywd
             -----END CERTIFICATE-----
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             -----BEGIN PRIVATE KEY-----
             MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCvElDztAzQnaMM
             RON6bUrHF16J+WpbST37tGUqN/HtpY0SnwQw9n/1otvshAHWfcwf08z6EsjGbdWF
@@ -324,12 +342,13 @@ _TLSCerts: List[Cert] = [
             Nwq6gHnTGSbrM+WAa78lvYD6arIW6fD8MvCQXWMN4J1FVk86H2vXhaSObOTls9+D
             OGSk6BLtLUX79aY4TfNg0yk=
             -----END PRIVATE KEY-----
-            """)
+            """
+        ),
     ),
-
     Cert(
         names=["tls-context-host-1"],
-        pubcert=strip("""
+        pubcert=strip(
+            """
             -----BEGIN CERTIFICATE-----
             MIID0TCCArmgAwIBAgIRAKLpGzzKxkWzv1M5uTQKopwwDQYJKoZIhvcNAQELBQAw
             eDELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAk1BMQ8wDQYDVQQHEwZCb3N0b24xGDAW
@@ -353,8 +372,10 @@ _TLSCerts: List[Cert] = [
             39dj1MiqRdOoc7R6oKwyFwASd922pLwTXmovV93gg4hJAXCw7m8a8GB1gPt710j0
             GTueVtWpvLIGu5TB23vCmQBgcmJP
             -----END CERTIFICATE-----
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             -----BEGIN PRIVATE KEY-----
             MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCx8cmKaWjjSlUB
             ayOHdSO/sZ5idQ4+IyOiHLraBCk5Sy2cRbSPyo4/kuHD31JldwK5tr7Bt2o2eQDI
@@ -383,12 +404,13 @@ _TLSCerts: List[Cert] = [
             /DlPdOnqrlBhY3TdmVk60j7IM8182GKjcMImfFoMjot/oZlKxrq+PcsVoIHeOQL6
             b6gCAPn1RvigtZtc5EUILDfG
             -----END PRIVATE KEY-----
-            """)
+            """
+        ),
     ),
-
     Cert(
         names=["localhost"],
-        pubcert=strip("""
+        pubcert=strip(
+            """
             -----BEGIN CERTIFICATE-----
             MIIDtTCCAp2gAwIBAgIQBmwf1lv4+/h6sWcQkb0rdzANBgkqhkiG9w0BAQsFADBv
             MQswCQYDVQQGEwJVUzELMAkGA1UECBMCTUExDzANBgNVBAcTBkJvc3RvbjEYMBYG
@@ -411,8 +433,10 @@ _TLSCerts: List[Cert] = [
             eNA6OuaIk6RTwTSDfGP0aLOUs9YTITez2zG+bIDxL1jgULj2z5APVjsq97BJpAxP
             zXNRz2CDAv3axyY2uO63k1NNSbJaFx4t+9QhfyzfBIEsmvx1k5W9k1g=
             -----END CERTIFICATE-----
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             -----BEGIN PRIVATE KEY-----
             MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCepF6M43h8NXG8
             kW++17KVQENYCMqZAZfe1rT2O9x1anp+9i8gEmBL8DTfobFAIOKNmOb2vRG6r5K1
@@ -441,21 +465,22 @@ _TLSCerts: List[Cert] = [
             dYfI6Lw45AhpQsANPM2dB5ak+3TJGr2RvpSIF6M0+CA69A+VL7NOeBt0acXZv9p7
             rSbwm9Ewfog/UaoT+fUUfcs=
             -----END PRIVATE KEY-----
-            """)
+            """
+        ),
     ),
-
     Cert(
         names=[
             "a.domain.com",
             "b.domain.com",
             "*.domain.com",
-            #"localhost",  # don't clash with the other "localhost" cert
+            # "localhost",  # don't clash with the other "localhost" cert
             "127.0.0.1",
-            "0:0:0:0:0:0:0:1"
+            "0:0:0:0:0:0:0:1",
         ],
         # Note: This cert is signed by a cert not present in this file
         # (rather than being self-signed).
-        pubcert=strip("""
+        pubcert=strip(
+            """
             -----BEGIN CERTIFICATE-----
             MIIEADCCAuigAwIBAgIRAJ3dtx28bAfwdex3/R/ETrAwDQYJKoZIhvcNAQELBQAw
             cjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAk1BMQ8wDQYDVQQHEwZCb3N0b24xGDAW
@@ -480,8 +505,10 @@ _TLSCerts: List[Cert] = [
             bZNZImIIvzD6Osl7TwQf8AziWDlgEKhLrxEuRUeb15+HVXUx7XSPxPtHByRCozxA
             PZHq6TsBZAaoCzAOP9uxC9JcQJA=
             -----END CERTIFICATE-----
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             -----BEGIN PRIVATE KEY-----
             MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDgabCrcf2+DxEX
             qNp2Y+mml1u5XjbaWZX8t14H0yp7hrB4nLg63z4HGqapZZvaPR/xemPTYaQZYiSZ
@@ -510,12 +537,13 @@ _TLSCerts: List[Cert] = [
             OqTouIFDHW+jluzNa++cT2FVM2Tj5G9uKwVxS3SfITfZEHRmfoxwWmrmn+wgz+do
             NuVfL7r0erO8V2bLW2ASEDs=
             -----END PRIVATE KEY-----
-            """)
-       ),
-
+            """
+        ),
+    ),
     Cert(
         names=["acook"],
-        pubcert=strip("""
+        pubcert=strip(
+            """
             -----BEGIN CERTIFICATE-----
             MIIDqjCCApKgAwIBAgIRAKcrynhenFaTcxKOdiGvT6QwDQYJKoZIhvcNAQELBQAw
             azELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAk1BMQ8wDQYDVQQHEwZCb3N0b24xGDAW
@@ -538,8 +566,10 @@ _TLSCerts: List[Cert] = [
             cTXNk8q9anHFFASQ2o4RFMUaKTMXf5OtrZ41x/aGznJ6LM3OpPhRSITPD9Nhosja
             uKD5HptKkoH+RW74nmDZbUPoOWl4OcG9EXvTm1PG
             -----END CERTIFICATE-----
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             -----BEGIN PRIVATE KEY-----
             MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDAg4ssHk+na8yg
             Sofzl8O4hIcISKs61iFX002Vo4MxyLPbydxvKvekYHrA/CKbzJfNsECX0V1+waFP
@@ -568,8 +598,9 @@ _TLSCerts: List[Cert] = [
             Kwa//xmc5pgnSmGaUE1XKN59iMJBYzC7CaljdxtuZSipLhZhZfWS3IZqnJYQyjI8
             mBtaOgOj5lu1xVKdSm/8Gp4=
             -----END PRIVATE KEY-----
-            """)
+            """
         ),
+    ),
 ]
 
-TLSCerts: Dict[str, Cert] = { k: v for v in _TLSCerts for k in v.names }
+TLSCerts: Dict[str, Cert] = {k: v for v in _TLSCerts for k in v.names}
