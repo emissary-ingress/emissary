@@ -22,10 +22,14 @@ from tests.kubeutils import apply_kube_artifacts
 from tests.runutils import run_and_assert
 
 # Assume that both of these are on the PATH if not explicitly set
-KUBESTATUS_PATH = os.environ.get('KUBESTATUS_PATH', 'kubestatus')
+KUBESTATUS_PATH = os.environ.get("KUBESTATUS_PATH", "kubestatus")
+
 
 def install_crds() -> None:
-    apply_kube_artifacts(namespace='emissary-system', artifacts=integration_manifests.crd_manifests())
+    apply_kube_artifacts(
+        namespace="emissary-system", artifacts=integration_manifests.crd_manifests()
+    )
+
 
 def install_ambassador(namespace, single_namespace=True, envs=None, debug=None):
     """
@@ -61,50 +65,64 @@ def install_ambassador(namespace, single_namespace=True, envs=None, debug=None):
     install_crds()
 
     print("Wait for apiext to be running...")
-    run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=available', 'deploy', 'emissary-apiext', '-n', 'emissary-system'])
+    run_and_assert(
+        [
+            "tools/bin/kubectl",
+            "wait",
+            "--timeout=90s",
+            "--for=condition=available",
+            "deploy",
+            "emissary-apiext",
+            "-n",
+            "emissary-system",
+        ]
+    )
 
     # Proceed to install Ambassador now
     final_yaml = []
 
-    rbac_manifest_name = 'rbac_namespace_scope' if single_namespace else 'rbac_cluster_scope'
+    rbac_manifest_name = "rbac_namespace_scope" if single_namespace else "rbac_cluster_scope"
 
     # Hackish fakes of actual KAT structures -- it's _far_ too much work to synthesize
     # actual KAT Nodes and Paths.
-    fakeNode = namedtuple('fakeNode', [ 'namespace', 'path', 'ambassador_id' ])
-    fakePath = namedtuple('fakePath', [ 'k8s' ])
+    fakeNode = namedtuple("fakeNode", ["namespace", "path", "ambassador_id"])
+    fakePath = namedtuple("fakePath", ["k8s"])
 
-    ambassador_yaml = list(yaml.safe_load_all(
-        integration_manifests.format(
-            "\n".join([
-                integration_manifests.load(rbac_manifest_name),
-                integration_manifests.load('ambassador'),
-                (cleartext_host_manifest % namespace),
-            ]),
-            capabilities_block="",
-            envs="",
-            extra_ports="",
-            self=fakeNode(
-                namespace=namespace,
-                ambassador_id='default',
-                path=fakePath(k8s='ambassador')
-            ),
-    )))
+    ambassador_yaml = list(
+        yaml.safe_load_all(
+            integration_manifests.format(
+                "\n".join(
+                    [
+                        integration_manifests.load(rbac_manifest_name),
+                        integration_manifests.load("ambassador"),
+                        (cleartext_host_manifest % namespace),
+                    ]
+                ),
+                capabilities_block="",
+                envs="",
+                extra_ports="",
+                self=fakeNode(
+                    namespace=namespace, ambassador_id="default", path=fakePath(k8s="ambassador")
+                ),
+            )
+        )
+    )
 
     for manifest in ambassador_yaml:
-        kind = manifest.get('kind', None)
-        metadata = manifest.get('metadata', {})
-        name = metadata.get('name', None)
+        kind = manifest.get("kind", None)
+        metadata = manifest.get("metadata", {})
+        name = metadata.get("name", None)
 
         if (kind == "Pod") and (name == "ambassador"):
             # Force AMBASSADOR_ID to match ours.
             #
             # XXX This is not likely to work without single_namespace=True.
-            for envvar in manifest['spec']['containers'][0]['env']:
-                if envvar.get('name', '') == 'AMBASSADOR_ID':
-                    envvar['value'] = 'default'
+            for envvar in manifest["spec"]["containers"][0]["env"]:
+                if envvar.get("name", "") == "AMBASSADOR_ID":
+                    envvar["value"] = "default"
 
             # add new envs, if any
-            manifest['spec']['containers'][0]['env'].extend(envs)
+            manifest["spec"]["containers"][0]["env"].extend(envs)
 
     # print("INSTALLING AMBASSADOR: manifests:")
     # print(yaml.safe_dump_all(ambassador_yaml))
@@ -116,20 +134,19 @@ def update_envs(envs, name, value):
     found = False
 
     for e in envs:
-        if e['name'] == name:
-            e['value'] = value
+        if e["name"] == name:
+            e["value"] = value
             found = True
             break
 
     if not found:
-        envs.append({
-            'name': name,
-            'value': value
-        })
+        envs.append({"name": name, "value": value})
 
 
 def create_namespace(namespace):
-    apply_kube_artifacts(namespace=namespace, artifacts=integration_manifests.namespace_manifest(namespace))
+    apply_kube_artifacts(
+        namespace=namespace, artifacts=integration_manifests.namespace_manifest(namespace)
+    )
 
 
 def create_qotm_mapping(namespace):
@@ -147,6 +164,7 @@ spec:
 """
 
     apply_kube_artifacts(namespace=namespace, artifacts=qotm_mapping)
+
 
 def create_httpbin_mapping(namespace):
     httpbin_mapping = f"""

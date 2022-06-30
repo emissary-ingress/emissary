@@ -20,7 +20,8 @@ class HostHeaderMappingStripMatchingHostPort(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -34,7 +35,8 @@ name:  {self.name}
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 host: myhostname.com
-""")
+"""
+        )
 
     def queries(self):
         # Sanity test that a missing or incorrect hostname does not route, and it does route with a correct hostname.
@@ -43,10 +45,15 @@ host: myhostname.com
         yield Query(self.url(self.name + "/"), headers={"Host": "myhostname.com"})
         # Test that a host header with a port value that does match the listener's configured port is correctly
         # stripped for the purpose of routing, and matches the mapping.
-        yield Query(self.url(self.name + "/"), headers={"Host": "myhostname.com:" + str(Constants.SERVICE_PORT_HTTP)})
+        yield Query(
+            self.url(self.name + "/"),
+            headers={"Host": "myhostname.com:" + str(Constants.SERVICE_PORT_HTTP)},
+        )
         # Test that a host header with a port value that does _not_ match the listener's configured does not have its
         # port value stripped for the purpose of routing, so it does not match the mapping.
-        yield Query(self.url(self.name + "/"), headers={"Host": "myhostname.com:11875"}, expected=404)
+        yield Query(
+            self.url(self.name + "/"), headers={"Host": "myhostname.com:11875"}, expected=404
+        )
 
 
 # This has to be an `AmbassadorTest` because we're going to set up a Module that
@@ -59,7 +66,8 @@ class MergeSlashesDisabled(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -68,7 +76,8 @@ hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
 service: httpbin.default
-""")
+"""
+        )
 
     def queries(self):
         yield Query(self.url(self.name + "/status/200"))
@@ -89,7 +98,8 @@ class MergeSlashesEnabled(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -104,7 +114,8 @@ hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
 service: httpbin.default
-""")
+"""
+        )
 
     def queries(self):
         yield Query(self.url(self.name + "/status/200"))
@@ -113,6 +124,7 @@ service: httpbin.default
         yield Query(self.url("/" + self.name + "/status/200"))
         yield Query(self.url("/" + self.name + "//status/200"))
         yield Query(self.url(self.name + "//status/200"))
+
 
 # This has to be an `AmbassadorTest` because we're going to set up a Module that
 # needs to apply to just this test. If this were a MappingTest, then the Module
@@ -124,7 +136,8 @@ class RejectRequestsWithEscapedSlashesDisabled(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -133,7 +146,8 @@ hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
 service: httpbin.default
-""")
+"""
+        )
 
     def queries(self):
         # Sanity test that escaped slashes are not rejected by default. The upstream
@@ -143,8 +157,8 @@ service: httpbin.default
 
     def check(self):
         # We should have observed this 404 upstream from httpbin. The presence of this header verifies that.
-        print ("headers=%s", repr(self.results[0].headers))
-        assert 'X-Envoy-Upstream-Service-Time' in self.results[0].headers
+        print("headers=%s", repr(self.results[0].headers))
+        assert "X-Envoy-Upstream-Service-Time" in self.results[0].headers
 
 
 # This has to be an `AmbassadorTest` because we're going to set up a Module that
@@ -157,7 +171,8 @@ class RejectRequestsWithEscapedSlashesEnabled(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -172,7 +187,8 @@ hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
 service: httpbin
-""")
+"""
+        )
 
     def queries(self):
         # Expect that requests with escaped slashes are rejected by Envoy. We know this is rejected
@@ -183,7 +199,8 @@ service: httpbin
     def check(self):
         # We should have not have observed this 400 upstream from httpbin. The absence of this header
         # suggests that (though does not prove, in theory).
-        assert 'X-Envoy-Upstream-Service-Time' not in self.results[0].headers
+        assert "X-Envoy-Upstream-Service-Time" not in self.results[0].headers
+
 
 class LinkerdHeaderMapping(AmbassadorTest):
     target: ServiceType
@@ -194,7 +211,8 @@ class LinkerdHeaderMapping(AmbassadorTest):
         self.target_add_linkerd_header_only = HTTP(name="addlinkerdonly")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -239,49 +257,66 @@ add_request_headers:
         value: banana
 remove_request_headers:
 - x-evilness
-""")
+"""
+        )
 
     def queries(self):
         # [0] expect Linkerd headers set through mapping
-        yield Query(self.url("target/"), headers={ "x-evil-header": "evilness", "x-evilness": "more evilness" }, expected=200)
+        yield Query(
+            self.url("target/"),
+            headers={"x-evil-header": "evilness", "x-evilness": "more evilness"},
+            expected=200,
+        )
 
         # [1] expect no Linkerd headers
-        yield Query(self.url("target_no_header/"), headers={ "x-evil-header": "evilness", "x-evilness": "more evilness" }, expected=200)
+        yield Query(
+            self.url("target_no_header/"),
+            headers={"x-evil-header": "evilness", "x-evilness": "more evilness"},
+            expected=200,
+        )
 
         # [2] expect Linkerd headers only
-        yield Query(self.url("target_add_linkerd_header_only/"), headers={ "x-evil-header": "evilness", "x-evilness": "more evilness" }, expected=200)
+        yield Query(
+            self.url("target_add_linkerd_header_only/"),
+            headers={"x-evil-header": "evilness", "x-evilness": "more evilness"},
+            expected=200,
+        )
 
     def check(self):
         # [0]
         assert self.results[0].backend
         assert self.results[0].backend.request
-        assert len(self.results[0].backend.request.headers['l5d-dst-override']) > 0
-        assert self.results[0].backend.request.headers['l5d-dst-override'] == ["{}:80".format(self.target.path.fqdn)]
-        assert len(self.results[0].backend.request.headers['fruit']) > 0
-        assert self.results[0].backend.request.headers['fruit'] == [ 'banana']
-        assert len(self.results[0].backend.request.headers['x-evil-header']) > 0
-        assert self.results[0].backend.request.headers['x-evil-header'] == [ 'evilness' ]
-        assert 'x-evilness' not in self.results[0].backend.request.headers
+        assert len(self.results[0].backend.request.headers["l5d-dst-override"]) > 0
+        assert self.results[0].backend.request.headers["l5d-dst-override"] == [
+            "{}:80".format(self.target.path.fqdn)
+        ]
+        assert len(self.results[0].backend.request.headers["fruit"]) > 0
+        assert self.results[0].backend.request.headers["fruit"] == ["banana"]
+        assert len(self.results[0].backend.request.headers["x-evil-header"]) > 0
+        assert self.results[0].backend.request.headers["x-evil-header"] == ["evilness"]
+        assert "x-evilness" not in self.results[0].backend.request.headers
 
         # [1]
         assert self.results[1].backend
         assert self.results[1].backend.request
-        assert 'l5d-dst-override' not in self.results[1].backend.request.headers
-        assert len(self.results[1].backend.request.headers['fruit']) > 0
-        assert self.results[1].backend.request.headers['fruit'] == [ 'orange']
-        assert 'x-evil-header' not in self.results[1].backend.request.headers
-        assert len(self.results[1].backend.request.headers['x-evilness']) > 0
-        assert self.results[1].backend.request.headers['x-evilness'] == [ 'more evilness' ]
+        assert "l5d-dst-override" not in self.results[1].backend.request.headers
+        assert len(self.results[1].backend.request.headers["fruit"]) > 0
+        assert self.results[1].backend.request.headers["fruit"] == ["orange"]
+        assert "x-evil-header" not in self.results[1].backend.request.headers
+        assert len(self.results[1].backend.request.headers["x-evilness"]) > 0
+        assert self.results[1].backend.request.headers["x-evilness"] == ["more evilness"]
 
         # [2]
         assert self.results[2].backend
         assert self.results[2].backend.request
-        assert len(self.results[2].backend.request.headers['l5d-dst-override']) > 0
-        assert self.results[2].backend.request.headers['l5d-dst-override'] == ["{}:80".format(self.target_add_linkerd_header_only.path.fqdn)]
-        assert len(self.results[2].backend.request.headers['x-evil-header']) > 0
-        assert self.results[2].backend.request.headers['x-evil-header'] == [ 'evilness' ]
-        assert len(self.results[2].backend.request.headers['x-evilness']) > 0
-        assert self.results[2].backend.request.headers['x-evilness'] == [ 'more evilness' ]
+        assert len(self.results[2].backend.request.headers["l5d-dst-override"]) > 0
+        assert self.results[2].backend.request.headers["l5d-dst-override"] == [
+            "{}:80".format(self.target_add_linkerd_header_only.path.fqdn)
+        ]
+        assert len(self.results[2].backend.request.headers["x-evil-header"]) > 0
+        assert self.results[2].backend.request.headers["x-evil-header"] == ["evilness"]
+        assert len(self.results[2].backend.request.headers["x-evilness"]) > 0
+        assert self.results[2].backend.request.headers["x-evilness"] == ["more evilness"]
 
 
 class SameMappingDifferentNamespaces(AmbassadorTest):
@@ -291,9 +326,11 @@ class SameMappingDifferentNamespaces(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return namespace_manifest('same-mapping-1') + \
-            namespace_manifest('same-mapping-2') + \
-            self.format('''
+        return (
+            namespace_manifest("same-mapping-1")
+            + namespace_manifest("same-mapping-2")
+            + self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -316,7 +353,10 @@ spec:
   hostname: "*"
   prefix: /{self.name}-2/
   service: {self.target.path.fqdn}.default
-''') + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def queries(self):
         yield Query(self.url(self.name + "-1/"))
@@ -330,7 +370,9 @@ class LongClusterNameMapping(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return self.format('''
+        return (
+            self.format(
+                """
 ---
 apiVersion: v1
 kind: Service
@@ -349,7 +391,10 @@ spec:
   hostname: "*"
   prefix: /{self.name}-1/
   service: thisisaverylongservicenameoverwithsixythreecharacters123456789
-''') + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def queries(self):
         yield Query(self.url(self.name + "-1/"))

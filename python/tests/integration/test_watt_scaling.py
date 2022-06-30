@@ -85,7 +85,7 @@ spec:
         delete_kube_artifacts(namespace=namespace, artifacts=qotm_mapping)
 
     def test_rapid_additions_and_deletions(self):
-        namespace = 'watt-rapid'
+        namespace = "watt-rapid"
 
         # Install Ambassador
         install_ambassador(namespace=namespace)
@@ -100,8 +100,32 @@ spec:
         self.apply_qotm_endpoint_manifests(namespace=namespace)
 
         # Now let's wait for ambassador and QOTM pods to become ready
-        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
-        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=qotm', '-n', namespace])
+        run_and_assert(
+            [
+                "tools/bin/kubectl",
+                "wait",
+                "--timeout=90s",
+                "--for=condition=Ready",
+                "pod",
+                "-l",
+                "service=ambassador",
+                "-n",
+                namespace,
+            ]
+        )
+        run_and_assert(
+            [
+                "tools/bin/kubectl",
+                "wait",
+                "--timeout=90s",
+                "--for=condition=Ready",
+                "pod",
+                "-l",
+                "service=qotm",
+                "-n",
+                namespace,
+            ]
+        )
 
         # Assume we can reach Ambassador through telepresence
         qotm_host = "ambassador." + namespace
@@ -144,5 +168,5 @@ def test_watt():
     watt_test.test_rapid_additions_and_deletions()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pytest.main(sys.argv)

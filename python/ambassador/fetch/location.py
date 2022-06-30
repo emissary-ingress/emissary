@@ -13,7 +13,7 @@ class Location:
     filename: Optional[str] = None
     ocount: int = 1
 
-    def filename_default(self, default: str = 'anonymous YAML') -> str:
+    def filename_default(self, default: str = "anonymous YAML") -> str:
         return self.filename or default
 
     def __str__(self) -> str:
@@ -65,8 +65,8 @@ class LocationManager:
         filename.
         """
         previous_filename = self.current.filename
-        if self.current.filename and not self.current.filename.endswith(':annotation'):
-            self.current.filename += ':annotation'
+        if self.current.filename and not self.current.filename.endswith(":annotation"):
+            self.current.filename += ":annotation"
 
         @contextlib.contextmanager
         def cleaner():

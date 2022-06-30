@@ -20,20 +20,24 @@ from .acresource import ACResource
 ## pragma.py -- the pragma configuration object for Ambassador
 
 
-class ACPragma (ACResource):
+class ACPragma(ACResource):
     """
     ACPragmas are ACResources with a bunch of extra stuff.
 
     TODO: moar docstring.
     """
 
-    def __init__(self, rkey: str, location: str="-pragma-", *,
-                 name: str="-pragma-",
-                 kind: str="Pragma",
-                 apiVersion: Optional[str]=None,
-                 serialization: Optional[str]=None,
-
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        rkey: str,
+        location: str = "-pragma-",
+        *,
+        name: str = "-pragma-",
+        kind: str = "Pragma",
+        apiVersion: Optional[str] = None,
+        serialization: Optional[str] = None,
+        **kwargs
+    ) -> None:
         """
         Initialize an ACPragma from the raw fields of its ACResource.
         """
@@ -42,8 +46,12 @@ class ACPragma (ACResource):
 
         # First init our superclass...
 
-        super().__init__(rkey, location,
-                         kind=kind, name=name,
-                         apiVersion=apiVersion,
-                         serialization=serialization,
-                         **kwargs)
+        super().__init__(
+            rkey,
+            location,
+            kind=kind,
+            name=name,
+            apiVersion=apiVersion,
+            serialization=serialization,
+            **kwargs
+        )

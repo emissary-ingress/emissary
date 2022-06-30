@@ -28,14 +28,15 @@ from ambassador.VERSION import Version
 
 __version__ = Version
 ambassador_id = os.getenv("AMBASSADOR_ID", "default")
-ambassador_namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
+ambassador_namespace = os.environ.get("AMBASSADOR_NAMESPACE", "default")
 ambassador_single_namespace = bool("AMBASSADOR_SINGLE_NAMESPACE" in os.environ)
-ambassador_basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
+ambassador_basedir = os.environ.get("AMBASSADOR_CONFIG_BASE_DIR", "/ambassador")
 
 logging.basicConfig(
     level=logging.INFO,  # if appDebug else logging.INFO,
-    format="%%(asctime)s kubewatch [%%(process)d T%%(threadName)s] %s %%(levelname)s: %%(message)s" % __version__,
-    datefmt="%Y-%m-%d %H:%M:%S"
+    format="%%(asctime)s kubewatch [%%(process)d T%%(threadName)s] %s %%(levelname)s: %%(message)s"
+    % __version__,
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 # logging.getLogger("datawire.scout").setLevel(logging.DEBUG)
@@ -104,9 +105,9 @@ def check_crd_type(crd):
         status = True
     except client.rest.ApiException as e:
         if e.status == 404:
-            logger.debug(f'CRD type definition not found for {crd}')
+            logger.debug(f"CRD type definition not found for {crd}")
         else:
-            logger.debug(f'CRD type definition unreadable for {crd}: {e.reason}')
+            logger.debug(f"CRD type definition unreadable for {crd}: {e.reason}")
 
     return status
 
@@ -124,7 +125,7 @@ def check_ingresses():
                 k8s_v1b1.list_ingress_for_all_namespaces()
             status = True
         except ApiException as e:
-            logger.debug(f'Ingress check got {e.status}')
+            logger.debug(f"Ingress check got {e.status}")
 
     return status
 
@@ -145,26 +146,31 @@ def check_ingress_classes():
             query_params: List[str] = []
             header_params: Dict[str, str] = {}
 
-            header_params['Accept'] = api_client. \
-                select_header_accept(['application/json',
-                                      'application/yaml',
-                                      'application/vnd.kubernetes.protobuf',
-                                      'application/json;stream=watch',
-                                      'application/vnd.kubernetes.protobuf;stream=watch'])
+            header_params["Accept"] = api_client.select_header_accept(
+                [
+                    "application/json",
+                    "application/yaml",
+                    "application/vnd.kubernetes.protobuf",
+                    "application/json;stream=watch",
+                    "application/vnd.kubernetes.protobuf;stream=watch",
+                ]
+            )
 
-            header_params['Content-Type'] = api_client. \
-                select_header_content_type(['*/*'])
+            header_params["Content-Type"] = api_client.select_header_content_type(["*/*"])
 
-            auth_settings = ['BearerToken']
+            auth_settings = ["BearerToken"]
 
-            api_client.call_api('/apis/networking.k8s.io/v1beta1/ingressclasses', 'GET',
-                                path_params,
-                                query_params,
-                                header_params,
-                                auth_settings=auth_settings)
+            api_client.call_api(
+                "/apis/networking.k8s.io/v1beta1/ingressclasses",
+                "GET",
+                path_params,
+                query_params,
+                header_params,
+                auth_settings=auth_settings,
+            )
             status = True
         except ApiException as e:
-            logger.debug(f'IngressClass check got {e.status}')
+            logger.debug(f"IngressClass check got {e.status}")
 
     return status
 
@@ -183,20 +189,22 @@ def get_api_resources(group, version):
             query_params: List[str] = []
             header_params: Dict[str, str] = {}
 
-            header_params['Accept'] = api_client. \
-                select_header_accept(['application/json'])
+            header_params["Accept"] = api_client.select_header_accept(["application/json"])
 
-            auth_settings = ['BearerToken']
+            auth_settings = ["BearerToken"]
 
-            (data) = api_client.call_api(f'/apis/{group}/{version}', 'GET',
-                                         path_params,
-                                         query_params,
-                                         header_params,
-                                         auth_settings=auth_settings,
-                                         response_type='V1APIResourceList')
+            (data) = api_client.call_api(
+                f"/apis/{group}/{version}",
+                "GET",
+                path_params,
+                query_params,
+                header_params,
+                auth_settings=auth_settings,
+                response_type="V1APIResourceList",
+            )
             return data[0]
         except ApiException as e:
-            logger.error(f'get_api_resources {e.status}')
+            logger.error(f"get_api_resources {e.status}")
 
     return None
 
@@ -218,7 +226,9 @@ def main(debug):
     found = None
     root_id = None
 
-    cluster_id = os.environ.get('AMBASSADOR_CLUSTER_ID', os.environ.get('AMBASSADOR_SCOUT_ID', None))
+    cluster_id = os.environ.get(
+        "AMBASSADOR_CLUSTER_ID", os.environ.get("AMBASSADOR_SCOUT_ID", None)
+    )
     wanted = ambassador_namespace if ambassador_single_namespace else "default"
 
     # Go ahead and try connecting to Kube.
@@ -261,112 +271,110 @@ def main(debug):
 
         required_crds = [
             (
-                '.ambassador_ignore_crds', 'Main CRDs',
+                ".ambassador_ignore_crds",
+                "Main CRDs",
                 [
-                    'authservices.getambassador.io',
-                    'mappings.getambassador.io',
-                    'modules.getambassador.io',
-                    'ratelimitservices.getambassador.io',
-                    'tcpmappings.getambassador.io',
-                    'tlscontexts.getambassador.io',
-                    'tracingservices.getambassador.io'
-                ]
+                    "authservices.getambassador.io",
+                    "mappings.getambassador.io",
+                    "modules.getambassador.io",
+                    "ratelimitservices.getambassador.io",
+                    "tcpmappings.getambassador.io",
+                    "tlscontexts.getambassador.io",
+                    "tracingservices.getambassador.io",
+                ],
             ),
             (
-                '.ambassador_ignore_crds_2', 'Resolver CRDs',
+                ".ambassador_ignore_crds_2",
+                "Resolver CRDs",
                 [
-                    'consulresolvers.getambassador.io',
-                    'kubernetesendpointresolvers.getambassador.io',
-                    'kubernetesserviceresolvers.getambassador.io'
-                ]
+                    "consulresolvers.getambassador.io",
+                    "kubernetesendpointresolvers.getambassador.io",
+                    "kubernetesserviceresolvers.getambassador.io",
+                ],
             ),
-            (
-                '.ambassador_ignore_crds_3', 'Host CRDs',
-                [
-                    'hosts.getambassador.io'
-                ]
-            ),
-            (
-                '.ambassador_ignore_crds_4', 'LogService CRDs',
-                [
-                    'logservices.getambassador.io'
-                ]
-            ),
-            (
-                '.ambassador_ignore_crds_5', 'DevPortal CRDs',
-                [
-                    'devportals.getambassador.io'
-                ]
-            )
+            (".ambassador_ignore_crds_3", "Host CRDs", ["hosts.getambassador.io"]),
+            (".ambassador_ignore_crds_4", "LogService CRDs", ["logservices.getambassador.io"]),
+            (".ambassador_ignore_crds_5", "DevPortal CRDs", ["devportals.getambassador.io"]),
         ]
 
         # Flynn would say "Ew.", but we need to patch this till https://github.com/kubernetes-client/python/issues/376
         # and https://github.com/kubernetes-client/gen/issues/52 are fixed \_(0.0)_/
-        client.models.V1beta1CustomResourceDefinitionStatus.accepted_names = \
-            property(hack_accepted_names, hack_accepted_names_setter)
+        client.models.V1beta1CustomResourceDefinitionStatus.accepted_names = property(
+            hack_accepted_names, hack_accepted_names_setter
+        )
 
-        client.models.V1beta1CustomResourceDefinitionStatus.conditions = \
-            property(hack_conditions, hack_conditions_setter)
+        client.models.V1beta1CustomResourceDefinitionStatus.conditions = property(
+            hack_conditions, hack_conditions_setter
+        )
 
-        client.models.V1beta1CustomResourceDefinitionStatus.stored_versions = \
-            property(hack_stored_versions, hack_stored_versions_setter)
+        client.models.V1beta1CustomResourceDefinitionStatus.stored_versions = property(
+            hack_stored_versions, hack_stored_versions_setter
+        )
 
         known_api_resources = []
         api_resources = get_api_resources("getambassador.io", "v2")
         if api_resources:
-            known_api_resources = list(map(lambda r: r.name + '.getambassador.io', api_resources.resources))
+            known_api_resources = list(
+                map(lambda r: r.name + ".getambassador.io", api_resources.resources)
+            )
 
         for touchfile, description, required in required_crds:
             for crd in required:
                 if not crd in known_api_resources:
                     touch_file(touchfile)
 
-                    logger.debug(f'{description} are not available.' +
-                                 ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
-                                 ' then restart the Ambassador pod.')
+                    logger.debug(
+                        f"{description} are not available."
+                        + " To enable CRD support, configure the Ambassador CRD type definitions and RBAC,"
+                        + " then restart the Ambassador pod."
+                    )
                     # logger.debug(f'touched {touchpath}')
 
         if not check_ingress_classes():
-            touch_file('.ambassador_ignore_ingress_class')
+            touch_file(".ambassador_ignore_ingress_class")
 
-            logger.debug(f'Ambassador does not have permission to read IngressClass resources.' +
-                         ' To enable IngressClass support, configure RBAC to allow Ambassador to read IngressClass'
-                         ' resources, then restart the Ambassador pod.')
+            logger.debug(
+                f"Ambassador does not have permission to read IngressClass resources."
+                + " To enable IngressClass support, configure RBAC to allow Ambassador to read IngressClass"
+                " resources, then restart the Ambassador pod."
+            )
 
         if not check_ingresses():
-            touch_file('.ambassador_ignore_ingress')
+            touch_file(".ambassador_ignore_ingress")
 
-            logger.debug(f'Ambassador does not have permission to read Ingress resources.' +
-                         ' To enable Ingress support, configure RBAC to allow Ambassador to read Ingress resources,' +
-                         ' then restart the Ambassador pod.')
+            logger.debug(
+                f"Ambassador does not have permission to read Ingress resources."
+                + " To enable Ingress support, configure RBAC to allow Ambassador to read Ingress resources,"
+                + " then restart the Ambassador pod."
+            )
 
         # Check for our operator's CRD now
-        if check_crd_type('ambassadorinstallations.getambassador.io'):
-            touch_file('.ambassadorinstallations_ok')
-            logger.debug('ambassadorinstallations.getambassador.io CRD available')
+        if check_crd_type("ambassadorinstallations.getambassador.io"):
+            touch_file(".ambassadorinstallations_ok")
+            logger.debug("ambassadorinstallations.getambassador.io CRD available")
         else:
-            logger.debug('ambassadorinstallations.getambassador.io CRD not available')
+            logger.debug("ambassadorinstallations.getambassador.io CRD not available")
 
         # Have we been asked to do Knative support?
-        if os.environ.get('AMBASSADOR_KNATIVE_SUPPORT', '').lower() == 'true':
+        if os.environ.get("AMBASSADOR_KNATIVE_SUPPORT", "").lower() == "true":
             # Yes. Check for their CRD types.
 
-            if check_crd_type('clusteringresses.networking.internal.knative.dev'):
-                touch_file('.knative_clusteringress_ok')
-                logger.debug('Knative clusteringresses available')
+            if check_crd_type("clusteringresses.networking.internal.knative.dev"):
+                touch_file(".knative_clusteringress_ok")
+                logger.debug("Knative clusteringresses available")
             else:
-                logger.debug('Knative clusteringresses not available')
+                logger.debug("Knative clusteringresses not available")
 
-            if check_crd_type('ingresses.networking.internal.knative.dev'):
-                touch_file('.knative_ingress_ok')
-                logger.debug('Knative ingresses available')
+            if check_crd_type("ingresses.networking.internal.knative.dev"):
+                touch_file(".knative_ingress_ok")
+                logger.debug("Knative ingresses available")
             else:
-                logger.debug('Knative ingresses not available')
+                logger.debug("Knative ingresses not available")
     else:
         # If we couldn't talk to Kube, log that, but broadly we'll expect our caller
         # to DTRT around CRDs.
 
-        logger.debug('Kubernetes is not available, so not doing CRD check')
+        logger.debug("Kubernetes is not available, so not doing CRD check")
 
     # Finally, spit out the cluster ID for our caller.
     logger.debug("cluster ID is %s (from %s)" % (cluster_id, found))
