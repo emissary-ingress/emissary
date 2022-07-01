@@ -36,7 +36,7 @@ class Endpoints:
     labels: Dict[str, str]
 
 
-class InternalServiceProcessor (ManagedKubernetesProcessor):
+class InternalServiceProcessor(ManagedKubernetesProcessor):
     """
     An internal Kubernetes object processor for services. Used by the
     ServiceProcessor aggregate class.
@@ -54,14 +54,14 @@ class InternalServiceProcessor (ManagedKubernetesProcessor):
         self.discovered_services = {}
 
     def kinds(self) -> FrozenSet[KubernetesGVK]:
-        return frozenset([KubernetesGVK('v1', 'Service')])
+        return frozenset([KubernetesGVK("v1", "Service")])
 
     def _is_ambassador_service(self, obj: KubernetesObject) -> bool:
-        selector = obj.spec.get('selector', {})
+        selector = obj.spec.get("selector", {})
         # self.logger.info(f"is_ambassador_service checking {obj.labels} - {selector}")
 
         # Every Ambassador service must have the label 'app.kubernetes.io/component: ambassador-service'
-        if obj.labels.get('app.kubernetes.io/component', "").lower() != 'ambassador-service':
+        if obj.labels.get("app.kubernetes.io/component", "").lower() != "ambassador-service":
             return False
 
         # This service must be in the same namespace as the Ambassador deployment.
@@ -88,12 +88,14 @@ class InternalServiceProcessor (ManagedKubernetesProcessor):
         #
         # Again, we're trusting that the input isn't overly bloated on that latter bit.
 
-        chart_version = obj.labels.get('helm.sh/chart')
+        chart_version = obj.labels.get("helm.sh/chart")
         if chart_version and not self.helm_chart:
             self.helm_chart = chart_version
 
-        if not obj.spec.get('ports'):
-            self.logger.debug(f"not saving Kubernetes Service {obj.name}.{obj.namespace} with no ports")
+        if not obj.spec.get("ports"):
+            self.logger.debug(
+                f"not saving Kubernetes Service {obj.name}.{obj.namespace} with no ports"
+            )
         else:
             self.discovered_services[obj.key] = obj
 
@@ -102,7 +104,7 @@ class InternalServiceProcessor (ManagedKubernetesProcessor):
                 self.service_dep.ambassador_service = obj
 
 
-class InternalEndpointsProcessor (ManagedKubernetesProcessor):
+class InternalEndpointsProcessor(ManagedKubernetesProcessor):
     """
     This processor discovers endpoints, extracts information we care about, and
     stores the data for referencing by another processor.
@@ -116,12 +118,14 @@ class InternalEndpointsProcessor (ManagedKubernetesProcessor):
         self.discovered_endpoints = {}
 
     def kinds(self) -> FrozenSet[KubernetesGVK]:
-        return frozenset([KubernetesGVK('v1', 'Endpoints')])
+        return frozenset([KubernetesGVK("v1", "Endpoints")])
 
     def _process(self, obj: KubernetesObject) -> None:
-        resource_subsets = obj.get('subsets')
+        resource_subsets = obj.get("subsets")
         if not resource_subsets:
-            self.logger.debug(f"ignoring Kubernetes Endpoints {obj.name}.{obj.namespace} with no subsets")
+            self.logger.debug(
+                f"ignoring Kubernetes Endpoints {obj.name}.{obj.namespace} with no subsets"
+            )
             return
 
         # K8s Endpoints resources are _stupid_ in that they give you a vector of
@@ -146,34 +150,38 @@ class InternalEndpointsProcessor (ManagedKubernetesProcessor):
 
             addresses: List[EndpointAddress] = []
 
-            for address in subset.get('addresses', []):
-                ip = address.get('ip')
+            for address in subset.get("addresses", []):
+                ip = address.get("ip")
                 if not ip:
                     continue
 
                 target_ref: Optional[KubernetesObjectKey] = None
                 try:
-                    target_ref = KubernetesObjectKey.from_object_reference(address.get('targetRef', {}))
+                    target_ref = KubernetesObjectKey.from_object_reference(
+                        address.get("targetRef", {})
+                    )
                 except KeyError:
                     pass
 
-                addresses.append(EndpointAddress(ip, node=address.get('nodeName'), target=target_ref))
+                addresses.append(
+                    EndpointAddress(ip, node=address.get("nodeName"), target=target_ref)
+                )
 
             # If we got no addresses, there's no point in messing with ports.
             if len(addresses) == 0:
                 continue
 
-            ports = subset.get('ports', [])
+            ports = subset.get("ports", [])
 
             # A service can reference a port either by name or by port number.
             port_dict: Dict[str, int] = {}
 
             for port in ports:
-                port_name = port.get('name', None)
-                port_number = port.get('port', None)
-                port_proto = port.get('protocol', 'TCP').upper()
+                port_name = port.get("name", None)
+                port_number = port.get("port", None)
+                port_proto = port.get("protocol", "TCP").upper()
 
-                if port_proto != 'TCP':
+                if port_proto != "TCP":
                     continue
 
                 if port_number is None:
@@ -186,13 +194,15 @@ class InternalEndpointsProcessor (ManagedKubernetesProcessor):
                     port_dict[port_name] = port_number
 
             if not port_dict:
-                self.logger.debug(f"ignoring K8s Endpoints {obj.name}.{obj.namespace} with no routable ports")
+                self.logger.debug(
+                    f"ignoring K8s Endpoints {obj.name}.{obj.namespace} with no routable ports"
+                )
                 continue
 
             self.discovered_endpoints[obj.key] = Endpoints(addresses, port_dict, obj.labels)
 
 
-class ServiceProcessor (ManagedKubernetesProcessor):
+class ServiceProcessor(ManagedKubernetesProcessor):
     """
     This processor handles Service and Endpoints objects and creates relevant
     Ambassador service resources.
@@ -251,7 +261,7 @@ class ServiceProcessor (ManagedKubernetesProcessor):
         # self.logger.debug("==== FINALIZE START\n%s" % dump_json(od, pretty=True))
 
         for k8s_svc in self.services.discovered_services.values():
-            key = f'{k8s_svc.name}.{k8s_svc.namespace}'
+            key = f"{k8s_svc.name}.{k8s_svc.namespace}"
 
             target_ports = {}
             target_addrs = []
@@ -259,7 +269,9 @@ class ServiceProcessor (ManagedKubernetesProcessor):
 
             if not self.watch_only:
                 # If we're not in watch mode, try to find endpoints for this service.
-                k8s_ep_key = KubernetesObjectKey(KubernetesGVK('v1', 'Endpoints'), k8s_svc.namespace, k8s_svc.name)
+                k8s_ep_key = KubernetesObjectKey(
+                    KubernetesGVK("v1", "Endpoints"), k8s_svc.namespace, k8s_svc.name
+                )
                 k8s_ep = self.endpoints.discovered_endpoints.get(k8s_ep_key)
 
                 # OK, Kube is weird. The way all this works goes like this:
@@ -294,20 +306,22 @@ class ServiceProcessor (ManagedKubernetesProcessor):
 
                 if not k8s_ep:
                     # No endpoints at all, so we're done with this service.
-                    self.logger.debug(f'{key}: no endpoints at all')
+                    self.logger.debug(f"{key}: no endpoints at all")
                 else:
                     idx = -1
 
-                    for port in k8s_svc.spec.get('ports', []):
+                    for port in k8s_svc.spec.get("ports", []):
                         idx += 1
 
                         k8s_target: Optional[int] = None
 
-                        src_port = port.get('port', None)
+                        src_port = port.get("port", None)
 
                         if not src_port:
                             # WTFO. This is impossible.
-                            self.logger.error(f"Kubernetes service {key} has no port number at index {idx}?")
+                            self.logger.error(
+                                f"Kubernetes service {key} has no port number at index {idx}?"
+                            )
                             continue
 
                         if len(k8s_ep.ports) == 1:
@@ -315,7 +329,9 @@ class ServiceProcessor (ManagedKubernetesProcessor):
                             k8s_target = next(iter(k8s_ep.ports.values()))
                             target_ports[src_port] = k8s_target
 
-                            self.logger.debug(f'{key} port {src_port}: single endpoint port {k8s_target}')
+                            self.logger.debug(
+                                f"{key} port {src_port}: single endpoint port {k8s_target}"
+                            )
                             continue
 
                         # Hmmm, we need to try to actually map whatever ports are listed for
@@ -324,13 +340,19 @@ class ServiceProcessor (ManagedKubernetesProcessor):
                         found_key = False
                         fallback: Optional[int] = None
 
-                        for attr in ['targetPort', 'name', 'port']:
-                            port_key = port.get(attr)   # This could be a name or a number, in general.
+                        for attr in ["targetPort", "name", "port"]:
+                            port_key = port.get(
+                                attr
+                            )  # This could be a name or a number, in general.
 
                             if port_key:
                                 found_key = True
 
-                                if not fallback and (port_key != 'name') and str(port_key).isdigit():
+                                if (
+                                    not fallback
+                                    and (port_key != "name")
+                                    and str(port_key).isdigit()
+                                ):
                                     # fallback can only be digits.
                                     fallback = port_key
 
@@ -338,14 +360,20 @@ class ServiceProcessor (ManagedKubernetesProcessor):
                                 k8s_target = k8s_ep.ports.get(str(port_key), None)
 
                                 if k8s_target:
-                                    self.logger.debug(f'{key} port {src_port} #{idx}: {attr} {port_key} -> {k8s_target}')
+                                    self.logger.debug(
+                                        f"{key} port {src_port} #{idx}: {attr} {port_key} -> {k8s_target}"
+                                    )
                                     break
                                 else:
-                                    self.logger.debug(f'{key} port {src_port} #{idx}: {attr} {port_key} -> miss')
+                                    self.logger.debug(
+                                        f"{key} port {src_port} #{idx}: {attr} {port_key} -> miss"
+                                    )
 
                         if not found_key:
                             # WTFO. This is impossible.
-                            self.logger.error(f"Kubernetes service {key} port {src_port} has an empty port spec at index {idx}?")
+                            self.logger.error(
+                                f"Kubernetes service {key} port {src_port} has an empty port spec at index {idx}?"
+                            )
                             continue
 
                         if not k8s_target:
@@ -355,7 +383,9 @@ class ServiceProcessor (ManagedKubernetesProcessor):
                             # It's actually impossible for fallback to be unset, but WTF.
                             k8s_target = fallback or src_port
 
-                            self.logger.debug(f'{key} port {src_port} #{idx}: falling back to {k8s_target}')
+                            self.logger.debug(
+                                f"{key} port {src_port} #{idx}: falling back to {k8s_target}"
+                            )
 
                         target_ports[src_port] = k8s_target
 
@@ -372,30 +402,31 @@ class ServiceProcessor (ManagedKubernetesProcessor):
             # OK! If we have no target addresses, just use service routing.
             if not target_addrs:
                 if not self.watch_only:
-                    self.logger.debug(f'{key} falling back to service routing')
+                    self.logger.debug(f"{key} falling back to service routing")
                 target_addrs = [key]
 
             for src_port, target_port in target_ports.items():
-                svc_endpoints[src_port] = [{
-                    'ip': target_addr,
-                    'port': target_port
-                } for target_addr in target_addrs]
+                svc_endpoints[src_port] = [
+                    {"ip": target_addr, "port": target_port} for target_addr in target_addrs
+                ]
 
             spec = {
-                'ambassador_id': Config.ambassador_id,
-                'endpoints': svc_endpoints,
+                "ambassador_id": Config.ambassador_id,
+                "endpoints": svc_endpoints,
             }
 
             if self.services.helm_chart:
-                spec['helm_chart'] = self.services.helm_chart
+                spec["helm_chart"] = self.services.helm_chart
 
-            self.manager.emit(NormalizedResource.from_data(
-                'Service',
-                k8s_svc.name,
-                namespace=k8s_svc.namespace,
-                labels=k8s_svc.labels,
-                spec=spec,
-                rkey=f'k8s-{k8s_svc.name}-{k8s_svc.namespace}',
-            ))
+            self.manager.emit(
+                NormalizedResource.from_data(
+                    "Service",
+                    k8s_svc.name,
+                    namespace=k8s_svc.namespace,
+                    labels=k8s_svc.labels,
+                    spec=spec,
+                    rkey=f"k8s-{k8s_svc.name}-{k8s_svc.namespace}",
+                )
+            )
 
         # self.logger.debug("==== FINALIZE END\n%s" % dump_json(od, pretty=True))

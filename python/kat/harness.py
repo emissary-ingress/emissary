@@ -3,9 +3,10 @@ import sys
 
 from abc import ABC
 from collections import OrderedDict
+from functools import singledispatch
 from hashlib import sha256
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
 from packaging import version
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union, cast
 
 import base64
 import fnmatch
@@ -24,9 +25,13 @@ from ambassador.utils import parse_bool
 from yaml.scanner import ScannerError as YAMLScanError
 
 import tests.integration.manifests as integration_manifests
-from multi import multi
-from .parser import dump, load, Tag
-from tests.manifests import httpbin_manifests, websocket_echo_server_manifests, cleartext_host_manifest, default_listener_manifest
+from .parser import dump, load, Tag, SequenceView
+from tests.manifests import (
+    httpbin_manifests,
+    websocket_echo_server_manifests,
+    cleartext_host_manifest,
+    default_listener_manifest,
+)
 from tests.kubeutils import apply_kube_artifacts
 
 import yaml as pyyaml
@@ -42,10 +47,10 @@ except AttributeError:
 
 # Run mode can be local (don't do any Envoy stuff), envoy (only do Envoy stuff),
 # or all (allow both). Default is all.
-RUN_MODE = os.environ.get('KAT_RUN_MODE', 'all').lower()
+RUN_MODE = os.environ.get("KAT_RUN_MODE", "all").lower()
 
 # We may have a SOURCE_ROOT override from the environment
-SOURCE_ROOT = os.environ.get('SOURCE_ROOT', '')
+SOURCE_ROOT = os.environ.get("SOURCE_ROOT", "")
 
 # Figure out if we're running in Edge Stack or what.
 if os.path.exists("/buildroot/apro.version"):
@@ -56,7 +61,7 @@ else:
     # If we do not see concrete evidence of running in an apro builder shell,
     # then try to decide if the user wants us to assume we're running Edge Stack
     # from an environment variable. And if that isn't set, just assume OSS.
-    EDGE_STACK = parse_bool(os.environ.get('EDGE_STACK', 'false'))
+    EDGE_STACK = parse_bool(os.environ.get("EDGE_STACK", "false"))
 
 if EDGE_STACK:
     # Hey look, we're running inside Edge Stack!
@@ -83,7 +88,9 @@ def run(cmd):
 
 
 def kube_version_json():
-    result = subprocess.Popen('tools/bin/kubectl version -o json', stdout=subprocess.PIPE, shell=True)
+    result = subprocess.Popen(
+        "tools/bin/kubectl version -o json", stdout=subprocess.PIPE, shell=True
+    )
     stdout, _ = result.communicate()
     return json.loads(stdout)
 
@@ -101,7 +108,7 @@ def strip_version(ver: str):
         return int(ver)
     except ValueError as e:
         # GKE returns weird versions with '+' in the end
-        if ver[-1] == '+':
+        if ver[-1] == "+":
             return int(ver[:-1])
 
         # If we still have not taken care of this, raise the error
@@ -112,11 +119,11 @@ def kube_server_version(version_json=None):
     if not version_json:
         version_json = kube_version_json()
 
-    server_json = version_json.get('serverVersion', {})
+    server_json = version_json.get("serverVersion", {})
 
     if server_json:
-        server_major = strip_version(server_json.get('major', None))
-        server_minor = strip_version(server_json.get('minor', None))
+        server_major = strip_version(server_json.get("major", None))
+        server_minor = strip_version(server_json.get("minor", None))
 
         return f"{server_major}.{server_minor}"
     else:
@@ -127,18 +134,20 @@ def kube_client_version(version_json=None):
     if not version_json:
         version_json = kube_version_json()
 
-    client_json = version_json.get('clientVersion', {})
+    client_json = version_json.get("clientVersion", {})
 
     if client_json:
-        client_major = strip_version(client_json.get('major', None))
-        client_minor = strip_version(client_json.get('minor', None))
+        client_major = strip_version(client_json.get("major", None))
+        client_minor = strip_version(client_json.get("minor", None))
 
         return f"{client_major}.{client_minor}"
     else:
         return None
 
 
-def is_kube_server_client_compatible(debug_desc: str, requested_server_version: str, requested_client_version: str) -> bool:
+def is_kube_server_client_compatible(
+    debug_desc: str, requested_server_version: str, requested_client_version: str
+) -> bool:
     is_cluster_compatible = True
     kube_json = kube_version_json()
 
@@ -167,20 +176,20 @@ def is_kube_server_client_compatible(debug_desc: str, requested_server_version: 
 
 
 def is_ingress_class_compatible() -> bool:
-    return is_kube_server_client_compatible('IngressClass', '1.18', '1.14')
+    return is_kube_server_client_compatible("IngressClass", "1.18", "1.14")
 
 
 def is_knative_compatible() -> bool:
     # Skip KNative immediately for run_mode local.
-    if RUN_MODE == 'local':
+    if RUN_MODE == "local":
         return False
 
-    return is_kube_server_client_compatible('Knative', '1.14', '1.14')
+    return is_kube_server_client_compatible("Knative", "1.14", "1.14")
 
 
 def get_digest(data: str) -> str:
     s = sha256()
-    s.update(data.encode('utf-8'))
+    s.update(data.encode("utf-8"))
     return s.hexdigest()
 
 
@@ -192,7 +201,7 @@ def has_changed(data: str, path: str) -> Tuple[bool, str]:
 
     prev_data = None
     changed = True
-    reason = f'no {path} present'
+    reason = f"no {path} present"
 
     if os.path.exists(path):
         with open(path) as f:
@@ -208,10 +217,10 @@ def has_changed(data: str, path: str) -> Tuple[bool, str]:
 
     if data:
         if data != prev_data:
-            reason = f'different data in {path}'
+            reason = f"different data in {path}"
         else:
             changed = False
-            reason = f'same data in {path}'
+            reason = f"same data in {path}"
 
         if changed:
             # print(f'has_changed: updating {path}')
@@ -221,22 +230,24 @@ def has_changed(data: str, path: str) -> Tuple[bool, str]:
     # For now, we always have to reapply with split testing.
     if not changed:
         changed = True
-        reason = 'always reapply for split test'
+        reason = "always reapply for split test"
 
     return (changed, reason)
 
 
 COUNTERS: Dict[Type, int] = {}
 
-SANITIZATIONS = OrderedDict((
-    ("://", "SCHEME"),
-    (":", "COLON"),
-    (" ", "SPACE"),
-    ("/t", "TAB"),
-    (".", "DOT"),
-    ("?", "QMARK"),
-    ("/", "SLASH"),
-))
+SANITIZATIONS = OrderedDict(
+    (
+        ("://", "SCHEME"),
+        (":", "COLON"),
+        (" ", "SPACE"),
+        ("/t", "TAB"),
+        (".", "DOT"),
+        ("?", "QMARK"),
+        ("/", "SLASH"),
+    )
+)
 
 
 def sanitize(obj):
@@ -250,8 +261,8 @@ def sanitize(obj):
                 obj = obj.replace(k, "-" + v + "-")
         return obj
     elif isinstance(obj, dict):
-        if 'value' in obj:
-            return obj['value']
+        if "value" in obj:
+            return obj["value"]
         else:
             return "-".join("%s-%s" % (sanitize(k), sanitize(v)) for k, v in sorted(obj.items()))
     else:
@@ -283,7 +294,9 @@ def variants(cls, *args, **kwargs) -> Tuple[Any]:
 
 
 class Name(str):
-    def __new__(cls, value, namespace=None):
+    namespace: Optional[str]
+
+    def __new__(cls, value, namespace: Optional[str] = None):
         s = super().__new__(cls, value)
         s.namespace = namespace
         return s
@@ -296,12 +309,14 @@ class Name(str):
     def fqdn(self):
         r = self.k8s
 
-        if self.namespace and (self.namespace != 'default'):
-            r += '.' + self.namespace
+        if self.namespace and (self.namespace != "default"):
+            r += "." + self.namespace
 
         return r
 
+
 class NodeLocal(threading.local):
+    current: Optional["Node"]
 
     def __init__(self):
         self.current = None
@@ -325,8 +340,8 @@ def _argprocess(o):
 
 class Node(ABC):
 
-    parent: 'Node'
-    children: List['Node']
+    parent: Optional["Node"]
+    children: List["Node"]
     name: Name
     ambassador_id: str
     namespace: str = None  # type: ignore
@@ -336,12 +351,12 @@ class Node(ABC):
     def __init__(self, *args, **kwargs) -> None:
         # If self.skip is set to true, this node is skipped
         self.skip_node = False
-        self.xfail = None
+        self.xfail: Optional[str] = None
 
         name = kwargs.pop("name", None)
 
-        if 'namespace' in kwargs:
-            self.namespace = kwargs.pop('namespace', None)
+        if "namespace" in kwargs:
+            self.namespace = kwargs.pop("namespace", None)
 
         _clone: Node = kwargs.pop("_clone", None)
 
@@ -387,16 +402,22 @@ class Node(ABC):
 
         names = {}  # type: ignore
         for c in self.children:
-            assert c.name not in names, ("test %s of type %s has duplicate children: %s of type %s, %s" %
-                                         (self.name, self.__class__.__name__, c.name, c.__class__.__name__,
-                                          names[c.name].__class__.__name__))
+            assert (
+                c.name not in names
+            ), "test %s of type %s has duplicate children: %s of type %s, %s" % (
+                self.name,
+                self.__class__.__name__,
+                c.name,
+                c.__class__.__name__,
+                names[c.name].__class__.__name__,
+            )
             names[c.name] = c
 
     def clone(self, name=None):
         return self.__class__(_clone=self, name=name)
 
-    def find_local_result(self, stop_at_first_ambassador: bool=False) -> Optional[Dict[str, str]]:
-        test_name = self.format('{self.path.k8s}')
+    def find_local_result(self, stop_at_first_ambassador: bool = False) -> Optional[Dict[str, str]]:
+        test_name = self.format("{self.path.k8s}")
 
         # print(f"{test_name} {type(self)} FIND_LOCAL_RESULT")
 
@@ -405,12 +426,12 @@ class Node(ABC):
         n: Optional[Node] = self
 
         while n:
-            node_name = n.format('{self.path.k8s}')
+            node_name = n.format("{self.path.k8s}")
             parent = n.parent
-            parent_name = parent.format('{self.path.k8s}') if parent else "-none-"
+            parent_name = parent.format("{self.path.k8s}") if parent else "-none-"
 
-            end_result = getattr(n, 'local_result', None)
-            result_str = end_result['result'] if end_result else '-none-'
+            end_result = getattr(n, "local_result", None)
+            result_str = end_result["result"] if end_result else "-none-"
             # print(f"{test_name}: {'ambassador' if n.is_ambassador else 'node'} {node_name}, parent {parent_name}, local_result = {result_str}")
 
             if end_result is not None:
@@ -425,14 +446,11 @@ class Node(ABC):
         return end_result
 
     def check_local(self, gold_root: str, k8s_yaml_path: str) -> Tuple[bool, bool]:
-        testname = self.format('{self.path.k8s}')
+        testname = self.format("{self.path.k8s}")
 
         if self.xfail:
             # XFail early -- but still return True, True so that we don't try to run Envoy on it.
-            self.local_result = {
-                'result': 'xfail',
-                'reason': self.xfail
-            }
+            self.local_result = {"result": "xfail", "reason": self.xfail}
             # print(f"==== XFAIL: {testname} local: {self.xfail}")
             return (True, True)
 
@@ -444,11 +462,11 @@ class Node(ABC):
             print(f"{testname} ({type(self)}) is an Ambassador but has no ambassador_id?")
             return (False, False)
 
-        ambassador_namespace = getattr(self, 'namespace', 'default')
-        ambassador_single_namespace = getattr(self, 'single_namespace', False)
+        ambassador_namespace = getattr(self, "namespace", "default")
+        ambassador_single_namespace = getattr(self, "single_namespace", False)
 
-        no_local_mode: bool = getattr(self, 'no_local_mode', False)
-        skip_local_reason: Optional[str] = getattr(self, 'skip_local_instead_of_xfail', None)
+        no_local_mode: bool = getattr(self, "no_local_mode", False)
+        skip_local_reason: Optional[str] = getattr(self, "skip_local_instead_of_xfail", None)
 
         # print(f"{testname}: ns {ambassador_namespace} ({'single' if ambassador_single_namespace else 'multi'})")
 
@@ -463,16 +481,23 @@ class Node(ABC):
             # it, bring it up-to-date with the environment created in abstract_tests.py
             envstuff = ["env", f"AMBASSADOR_NAMESPACE={ambassador_namespace}"]
 
-            cmd = ["mockery", "--debug", k8s_yaml_path,
-                   "-w", "python /ambassador/watch_hook.py",
-                   "--kat", self.ambassador_id,
-                   "--diff", gold_path]
+            cmd = [
+                "mockery",
+                "--debug",
+                k8s_yaml_path,
+                "-w",
+                "python /ambassador/watch_hook.py",
+                "--kat",
+                self.ambassador_id,
+                "--diff",
+                gold_path,
+            ]
 
             if ambassador_single_namespace:
                 envstuff.append("AMBASSADOR_SINGLE_NAMESPACE=yes")
                 cmd += ["-n", ambassador_namespace]
 
-            if not getattr(self, 'allow_edge_stack_redirect', False):
+            if not getattr(self, "allow_edge_stack_redirect", False):
                 envstuff.append("AMBASSADOR_NO_TLS_REDIRECT=yes")
 
             cmd = envstuff + cmd
@@ -481,15 +506,11 @@ class Node(ABC):
 
             if w.status():
                 print(f"==== GOOD: {testname} local against {gold_path}")
-                self.local_result = {'result': "pass"}
+                self.local_result = {"result": "pass"}
             else:
                 print(f"==== FAIL: {testname} local against {gold_path}")
 
-                self.local_result = {
-                    'result': 'fail',
-                    'stdout': w.stdout,
-                    'stderr': w.stderr
-                }
+                self.local_result = {"result": "fail", "stdout": w.stdout, "stderr": w.stderr}
 
             return (True, True)
         else:
@@ -503,8 +524,8 @@ class Node(ABC):
 
                 if local_result:
                     self.local_result = {
-                        'result': 'skip',
-                        'reason': f"subsumed by {skip_local_reason} -- {local_result['result']}"
+                        "result": "skip",
+                        "reason": f"subsumed by {skip_local_reason} -- {local_result['result']}",
                     }
                     # print(f"==== {self.local_result['result'].upper()} {testname} {self.local_result['reason']}")
                     return (True, True)
@@ -515,16 +536,18 @@ class Node(ABC):
             if RUN_MODE == "local":
                 if skip_local_reason:
                     self.local_result = {
-                        'result': 'skip',
+                        "result": "skip",
                         # 'reason': f"subsumed by {skip_local_reason} without result in local mode"
                     }
-                    print(f"==== {self.local_result['result'].upper()} {testname} {self.local_result['reason']}")
+                    print(
+                        f"==== {self.local_result['result'].upper()} {testname} {self.local_result['reason']}"
+                    )
                     return (True, True)
                 else:
                     # XFail -- but still return True, True so that we don't try to run Envoy on it.
                     self.local_result = {
-                        'result': 'xfail',
-                        'reason': f"missing local cache {gold_path}"
+                        "result": "xfail",
+                        "reason": f"missing local cache {gold_path}",
                     }
                     # print(f"==== {self.local_result['result'].upper()} {testname} {self.local_result['reason']}")
                     return (True, True)
@@ -542,13 +565,14 @@ class Node(ABC):
         yield cls()
 
     @property
-    def path(self) -> str:
+    def path(self) -> Name:
         return self.relpath(None)
 
     def relpath(self, ancestor):
         if self.parent is ancestor:
             return Name(self.name, namespace=self.namespace)
         else:
+            assert self.parent
             return Name(self.parent.relpath(ancestor) + "." + self.name, namespace=self.namespace)
 
     @property
@@ -576,8 +600,8 @@ class Node(ABC):
         return integration_manifests.format(st, self=self, **kwargs)
 
     def get_fqdn(self, name: str) -> str:
-        if self.namespace and (self.namespace != 'default'):
-            return f'{name}.{self.namespace}'
+        if self.namespace and (self.namespace != "default"):
+            return f"{name}.{self.namespace}"
         else:
             return name
 
@@ -596,34 +620,38 @@ class Node(ABC):
     # log_kube_artifacts writes various logs about our underlying Kubernetes objects to
     # a place where the artifact publisher can find them. See run-tests.sh.
     def log_kube_artifacts(self):
-        if not getattr(self, 'already_logged', False):
+        if not getattr(self, "already_logged", False):
             self.already_logged = True
 
-            print(f'logging kube artifacts for {self.path.k8s}')
+            print(f"logging kube artifacts for {self.path.k8s}")
             sys.stdout.flush()
 
             DEV = os.environ.get("AMBASSADOR_DEV", "0").lower() in ("1", "yes", "true")
 
-            log_path = f'/tmp/kat-logs-{self.path.k8s}'
+            log_path = f"/tmp/kat-logs-{self.path.k8s}"
 
             if DEV:
-                os.system(f'docker logs {self.path.k8s} >{log_path} 2>&1')
+                os.system(f"docker logs {self.path.k8s} >{log_path} 2>&1")
             else:
-                os.system(f'tools/bin/kubectl logs -n {self.namespace} {self.path.k8s} >{log_path} 2>&1')
+                os.system(
+                    f"tools/bin/kubectl logs -n {self.namespace} {self.path.k8s} >{log_path} 2>&1"
+                )
 
-                event_path = f'/tmp/kat-events-{self.path.k8s}'
+                event_path = f"/tmp/kat-events-{self.path.k8s}"
 
-                fs1 = f'involvedObject.name={self.path.k8s}'
-                fs2 = f'involvedObject.namespace={self.namespace}'
+                fs1 = f"involvedObject.name={self.path.k8s}"
+                fs2 = f"involvedObject.namespace={self.namespace}"
 
                 cmd = f'tools/bin/kubectl get events -o json --field-selector "{fs1}" --field-selector "{fs2}"'
                 os.system(f'echo ==== "{cmd}" >{event_path}')
-                os.system(f'{cmd} >>{event_path} 2>&1')
+                os.system(f"{cmd} >>{event_path} 2>&1")
 
 
 class Test(Node):
 
-    results: Sequence['Result']
+    results: List["Result"] = []
+    pending: List["Query"] = []
+    queried: List["Query"] = []
 
     __test__ = False
 
@@ -640,28 +668,28 @@ class Test(Node):
         pass
 
     def handle_local_result(self) -> bool:
-        test_name = self.format('{self.path.k8s}')
+        test_name = self.format("{self.path.k8s}")
 
         # print(f"{test_name} {type(self)} HANDLE_LOCAL_RESULT")
 
         end_result = self.find_local_result()
 
         if end_result is not None:
-            result_type = end_result['result']
+            result_type = end_result["result"]
 
-            if result_type == 'pass':
+            if result_type == "pass":
                 pass
-            elif result_type == 'skip':
-                pytest.skip(end_result['reason'])
-            elif result_type == 'fail':
-                sys.stdout.write(end_result['stdout'])
+            elif result_type == "skip":
+                pytest.skip(end_result["reason"])
+            elif result_type == "fail":
+                sys.stdout.write(end_result["stdout"])
 
-                if os.environ.get('KAT_VERBOSE', None):
-                    sys.stderr.write(end_result['stderr'])
+                if os.environ.get("KAT_VERBOSE", None):
+                    sys.stderr.write(end_result["stderr"])
 
                 pytest.fail("local check failed")
-            elif result_type == 'xfail':
-                pytest.xfail(end_result['reason'])
+            elif result_type == "xfail":
+                pytest.xfail(end_result["reason"])
 
             return True
 
@@ -675,28 +703,49 @@ class Test(Node):
             return self.parent.ambassador_id
 
 
-@multi
-def encode_body(obj):
-    yield type(obj)
-
-@encode_body.when(bytes)  # type: ignore
-def encode_body(b):
-    return base64.encodebytes(b).decode("utf-8")
-
-@encode_body.when(str)  # type: ignore
-def encode_body(s):
-    return encode_body(s.encode("utf-8"))
-
-@encode_body.default   # type: ignore
+@singledispatch
 def encode_body(obj):
     return encode_body(json.dumps(obj))
 
-class Query:
 
-    def __init__(self, url, expected=None, method="GET", headers=None, messages=None, insecure=False, skip=None,
-                 xfail=None, phase=1, debug=False, sni=False, error=None, client_crt=None, client_key=None,
-                 client_cert_required=False, ca_cert=None, grpc_type=None, cookies=None, ignore_result=False, body=None,
-                 minTLSv="", maxTLSv="", cipherSuites=[], ecdhCurves=[]):
+@encode_body.register
+def encode_body_bytes(b: bytes):
+    return base64.encodebytes(b).decode("utf-8")
+
+
+@encode_body.register
+def encode_body_str(s: str):
+    return encode_body(s.encode("utf-8"))
+
+
+class Query:
+    def __init__(
+        self,
+        url,
+        expected=None,
+        method="GET",
+        headers=None,
+        messages=None,
+        insecure=False,
+        skip=None,
+        xfail=None,
+        phase=1,
+        debug=False,
+        sni=False,
+        error=None,
+        client_crt=None,
+        client_key=None,
+        client_cert_required=False,
+        ca_cert=None,
+        grpc_type=None,
+        cookies=None,
+        ignore_result=False,
+        body=None,
+        minTLSv="",
+        maxTLSv="",
+        cipherSuites=[],
+        ecdhCurves=[],
+    ):
         self.method = method
         self.url = url
         self.headers = headers
@@ -732,10 +781,12 @@ class Query:
         self.grpc_type = grpc_type
 
     def as_json(self):
+        assert self.parent
         result = {
-            "test": self.parent.path, "id": id(self),
+            "test": self.parent.path,
+            "id": id(self),
             "url": self.url,
-            "insecure": self.insecure
+            "insecure": self.insecure,
         }
         if self.sni:
             result["sni"] = self.sni
@@ -772,6 +823,7 @@ class Query:
 
 
 class Result:
+    body: Optional[bytes]
 
     def __init__(self, query, res):
         self.query = query
@@ -806,7 +858,7 @@ class Result:
                 errors = self.query.error
 
                 if isinstance(self.query.error, str):
-                    errors = [ self.query.error ]
+                    errors = [self.query.error]
 
                 if self.error is not None:
                     for error in errors:
@@ -815,30 +867,36 @@ class Result:
                             break
 
                 assert found, "{}: expected error to contain any of {}; got {} instead".format(
-                    self.query.url, ", ".join([ "'%s'" % x for x in errors ]),
-                    ("'%s'" % self.error) if self.error else "no error"
+                    self.query.url,
+                    ", ".join(["'%s'" % x for x in errors]),
+                    ("'%s'" % self.error) if self.error else "no error",
                 )
             else:
                 if self.query.expected != self.status:
                     self.parent.log_kube_artifacts()
 
-                assert self.query.expected == self.status, \
-                       "%s: expected status code %s, got %s instead with error %s" % (
-                           self.query.url, self.query.expected, self.status, self.error)
+                assert (
+                    self.query.expected == self.status
+                ), "%s: expected status code %s, got %s instead with error %s" % (
+                    self.query.url,
+                    self.query.expected,
+                    self.status,
+                    self.error,
+                )
 
     def as_dict(self) -> Dict[str, Any]:
         od = {
-            'query': self.query.as_json(),
-            'status': self.status,
-            'error': self.error,
-            'headers': self.headers,
+            "query": self.query.as_json(),
+            "status": self.status,
+            "error": self.error,
+            "headers": self.headers,
         }
 
         if self.backend and self.backend.name:
-            od['backend'] = self.backend.as_dict()
+            od["backend"] = self.backend.as_dict()
         else:
-            od['json'] = self.json
-            od['text'] = self.text
+            od["json"] = self.json
+            od["text"] = self.text
 
         return od
 
@@ -882,9 +940,18 @@ class Result:
 
 
 class BackendURL:
-
-    def __init__(self, fragment=None, host=None, opaque=None, path=None, query=None, rawQuery=None,
-                 scheme=None, username=None, password=None):
+    def __init__(
+        self,
+        fragment=None,
+        host=None,
+        opaque=None,
+        path=None,
+        query=None,
+        rawQuery=None,
+        scheme=None,
+        username=None,
+        password=None,
+    ):
         self.fragment = fragment
         self.host = host
         self.opaque = opaque
@@ -895,22 +962,21 @@ class BackendURL:
         self.username = username
         self.password = password
 
-    def as_dict(self) -> Dict['str', Any]:
+    def as_dict(self) -> Dict["str", Any]:
         return {
-            'fragment': self.fragment,
-            'host': self.host,
-            'opaque': self.opaque,
-            'path': self.path,
-            'query': self.query,
-            'rawQuery': self.rawQuery,
-            'scheme': self.scheme,
-            'username': self.username,
-            'password': self.password,
+            "fragment": self.fragment,
+            "host": self.host,
+            "opaque": self.opaque,
+            "path": self.path,
+            "query": self.query,
+            "rawQuery": self.rawQuery,
+            "scheme": self.scheme,
+            "username": self.username,
+            "password": self.password,
         }
 
 
 class BackendRequest:
-
     def __init__(self, req):
         self.url = BackendURL(**req.get("url"))
         self.headers = req.get("headers", {})
@@ -919,21 +985,20 @@ class BackendRequest:
 
     def as_dict(self) -> Dict[str, Any]:
         od = {
-            'headers': self.headers,
-            'host': self.host,
+            "headers": self.headers,
+            "host": self.host,
         }
 
         if self.url:
-            od['url'] = self.url.as_dict()
+            od["url"] = self.url.as_dict()
 
         if self.tls:
-            od['tls'] = self.tls.as_dict()
+            od["tls"] = self.tls.as_dict()
 
         return od
 
 
 class BackendTLS:
-
     def __init__(self, tls):
         self.enabled = tls["enabled"]
         self.server_name = tls.get("server-name")
@@ -943,21 +1008,20 @@ class BackendTLS:
 
     def as_dict(self) -> Dict[str, Any]:
         return {
-            'enabled': self.enabled,
-            'server_name': self.server_name,
-            'version': self.version,
-            'negotiated_protocol': self.negotiated_protocol,
-            'negotiated_protocol_version': self.negotiated_protocol_version,
+            "enabled": self.enabled,
+            "server_name": self.server_name,
+            "version": self.version,
+            "negotiated_protocol": self.negotiated_protocol,
+            "negotiated_protocol_version": self.negotiated_protocol_version,
         }
 
 
 class BackendResponse:
-
     def __init__(self, resp):
         self.headers = resp.get("headers", {})
 
     def as_dict(self) -> Dict[str, Any]:
-        return { 'headers': self.headers }
+        return {"headers": self.headers}
 
 
 def dictify(obj):
@@ -968,27 +1032,24 @@ def dictify(obj):
 
 
 class BackendResult:
-
     def __init__(self, bres):
         self.name = "raw"
         self.request = None
         self.response = bres
 
         if isinstance(bres, dict):
-            self.name = bres.get("backend")
+            self.name = cast(str, bres.get("backend"))
             self.request = BackendRequest(bres["request"]) if "request" in bres else None
             self.response = BackendResponse(bres["response"]) if "response" in bres else None
 
     def as_dict(self) -> Dict[str, Any]:
-        od = {
-            'name': self.name
-        }
+        od = {"name": self.name}
 
         if self.request:
-            od['request'] = dictify(self.request)
+            od["request"] = dictify(self.request)
 
         if self.response:
-            od['response'] = dictify(self.response)
+            od["response"] = dictify(self.response)
 
         return od
 
@@ -1006,6 +1067,7 @@ def label(yaml, scope):
 
 CLIENT_GO = "kat_client"
 
+
 def run_queries(name: str, queries: Sequence[Query]) -> Sequence[Result]:
     jsonified = []
     byid = {}
@@ -1014,28 +1076,33 @@ def run_queries(name: str, queries: Sequence[Query]) -> Sequence[Result]:
         jsonified.append(q.as_json())
         byid[id(q)] = q
 
-    path_urls = f'/tmp/kat-client-{name}-urls.json'
-    path_results = f'/tmp/kat-client-{name}-results.json'
-    path_log = f'/tmp/kat-client-{name}.log'
+    path_urls = f"/tmp/kat-client-{name}-urls.json"
+    path_results = f"/tmp/kat-client-{name}-results.json"
+    path_log = f"/tmp/kat-client-{name}.log"
 
-    with open(path_urls, 'w') as f:
+    with open(path_urls, "w") as f:
         json.dump(jsonified, f)
 
     # run(f"{CLIENT_GO} -input {path_urls} -output {path_results} 2> {path_log}")
-    res = ShellCommand.run('Running queries',
-            f"tools/bin/kubectl exec -n default -i kat /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'",
-            shell=True)
+    res = ShellCommand.run(
+        "Running queries",
+        f"tools/bin/kubectl exec -n default -i kat /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'",
+        shell=True,
+    )
 
     if not res:
-        ret = [Result(q, {"error":"Command execution error"}) for q in queries]
+        ret = [Result(q, {"error": "Command execution error"}) for q in queries]
         return ret
 
-    with open(path_results, 'r') as f:
+    with open(path_results, "r") as f:
         content = f.read()
         try:
             json_results = json.loads(content)
         except Exception as e:
-            ret = [Result(q, {"error":"Could not parse JSON content after running KAT queries"}) for q in queries]
+            ret = [
+                Result(q, {"error": "Could not parse JSON content after running KAT queries"})
+                for q in queries
+            ]
             return ret
 
     results = []
@@ -1058,10 +1125,10 @@ class Superpod:
         self.next_clear = 8080
         self.next_tls = 8443
         self.service_names: Dict[int, str] = {}
-        self.name = 'superpod-%s' % (self.namespace or 'default')
+        self.name = "superpod-%s" % (self.namespace or "default")
 
     def allocate(self, service_name) -> List[int]:
-        ports = [ self.next_clear, self.next_tls ]
+        ports = [self.next_clear, self.next_tls]
         self.service_names[self.next_clear] = service_name
         self.service_names[self.next_tls] = service_name
 
@@ -1071,42 +1138,45 @@ class Superpod:
         return ports
 
     def get_manifest_list(self) -> List[Dict[str, Any]]:
-        manifest = load('superpod', integration_manifests.format(integration_manifests.load("superpod_pod")), Tag.MAPPING)
+        manifest = load(
+            "superpod",
+            integration_manifests.format(integration_manifests.load("superpod_pod")),
+            Tag.MAPPING,
+        )
 
         assert len(manifest) == 1, "SUPERPOD manifest must have exactly one object"
 
         m = manifest[0]
 
-        template = m['spec']['template']
+        template = m["spec"]["template"]
 
         ports: List[Dict[str, int]] = []
-        envs: List[Dict[str, Union[str, int]]] = template['spec']['containers'][0]['env']
+        envs: List[Dict[str, Union[str, int]]] = template["spec"]["containers"][0]["env"]
 
         for p in sorted(self.service_names.keys()):
-            ports.append({ 'containerPort': p })
-            envs.append({ 'name': f'BACKEND_{p}', 'value': self.service_names[p] })
+            ports.append({"containerPort": p})
+            envs.append({"name": f"BACKEND_{p}", "value": self.service_names[p]})
 
-        template['spec']['containers'][0]['ports'] = ports
+        template["spec"]["containers"][0]["ports"] = ports
 
-        if 'metadata' not in m:
-            m['metadata'] = {}
+        if "metadata" not in m:
+            m["metadata"] = {}
 
-        metadata = m['metadata']
-        metadata['name'] = self.name
+        metadata = m["metadata"]
+        metadata["name"] = self.name
 
-        m['spec']['selector']['matchLabels']['backend'] = self.name
-        template['metadata']['labels']['backend'] = self.name
+        m["spec"]["selector"]["matchLabels"]["backend"] = self.name
+        template["metadata"]["labels"]["backend"] = self.name
 
         if self.namespace:
             # Fix up the namespace.
-            if 'namespace' not in metadata:
-                metadata['namespace'] = self.namespace
+            if "namespace" not in metadata:
+                metadata["namespace"] = self.namespace
 
         return list(manifest)
 
 
 class Runner:
-
     def __init__(self, *classes, scope=None):
         self.scope = scope or "-".join(c.__name__ for c in classes)
         self.roots = tuple(v for c in classes for v in variants(c))
@@ -1123,7 +1193,11 @@ class Runner:
             if t.xfail:
                 pytest.xfail(t.xfail)
             else:
-                selected = set(item.callspec.getparam('t') for item in request.session.items if item.function == test)
+                selected = set(
+                    item.callspec.getparam("t")
+                    for item in request.session.items
+                    if item.function == test
+                )
 
                 with capsys.disabled():
                     self.setup(selected)
@@ -1179,12 +1253,6 @@ class Runner:
                         # print(f"{t.name}: SKIP due to local result")
                         continue
 
-                    if t in expanded_up:
-                        pre_query: Callable = getattr(t, "pre_query", None)
-
-                        if pre_query:
-                            pre_query()
-
                 self._query(expanded_up)
             except:
                 traceback.print_exc()
@@ -1208,11 +1276,11 @@ class Runner:
 
             while cur:
                 if not nsp:
-                    nsp = getattr(cur, 'namespace', None)
+                    nsp = getattr(cur, "namespace", None)
                     # print(f'... {cur.name} has namespace {nsp}')
 
                 if not ambassador_id:
-                    ambassador_id = getattr(cur, 'ambassador_id', None)
+                    ambassador_id = getattr(cur, "ambassador_id", None)
                     # print(f'... {cur.name} has ambassador_id {ambassador_id}')
 
                 if nsp and ambassador_id:
@@ -1222,7 +1290,7 @@ class Runner:
                 cur = cur.parent
 
             # OK. Does this node want to use a superpod?
-            if getattr(n, 'use_superpod', False):
+            if getattr(n, "use_superpod", False):
                 # Yup. OK. Do we already have a superpod for this namespace?
                 superpod = superpods.get(nsp, None)  # type: ignore
 
@@ -1237,22 +1305,24 @@ class Runner:
                 yaml = n.format(integration_manifests.load("backend_service"))
                 manifest = load(n.path, yaml, Tag.MAPPING)
 
-                assert len(manifest) == 1, "backend_service.yaml manifest must have exactly one object"
+                assert (
+                    len(manifest) == 1
+                ), "backend_service.yaml manifest must have exactly one object"
 
                 m = manifest[0]
 
                 # Update the manifest's selector...
-                m['spec']['selector']['backend'] = superpod.name
+                m["spec"]["selector"]["backend"] = superpod.name
 
                 # ...and labels if needed...
                 if ambassador_id:
-                    m['metadata']['labels'] = { 'kat-ambassador-id': ambassador_id }
+                    m["metadata"]["labels"] = {"kat-ambassador-id": ambassador_id}
 
                 # ...and target ports.
                 superpod_ports = superpod.allocate(n.path.k8s)
 
-                m['spec']['ports'][0]['targetPort'] = superpod_ports[0]
-                m['spec']['ports'][1]['targetPort'] = superpod_ports[1]
+                m["spec"]["ports"][0]["targetPort"] = superpod_ports[0]
+                m["spec"]["ports"][1]["targetPort"] = superpod_ports[1]
             else:
                 # The non-superpod case...
                 yaml = n.manifests()
@@ -1261,9 +1331,9 @@ class Runner:
                     is_plain_test = n.path.k8s.startswith("plain-")
 
                     if n.is_ambassador and not is_plain_test:
-                        add_default_http_listener = getattr(n, 'add_default_http_listener', True)
-                        add_default_https_listener = getattr(n, 'add_default_https_listener', True)
-                        add_cleartext_host = getattr(n, 'edge_stack_cleartext_host', False)
+                        add_default_http_listener = getattr(n, "add_default_http_listener", True)
+                        add_default_https_listener = getattr(n, "add_default_https_listener", True)
+                        add_cleartext_host = getattr(n, "edge_stack_cleartext_host", False)
 
                         if add_default_http_listener:
                             # print(f"{n.path.k8s} adding default HTTP Listener")
@@ -1271,7 +1341,7 @@ class Runner:
                                 "namespace": nsp,
                                 "port": 8080,
                                 "protocol": "HTTPS",
-                                "securityModel": "XFP"
+                                "securityModel": "XFP",
                             }
 
                         if add_default_https_listener:
@@ -1280,7 +1350,7 @@ class Runner:
                                 "namespace": nsp,
                                 "port": 8443,
                                 "protocol": "HTTPS",
-                                "securityModel": "XFP"
+                                "securityModel": "XFP",
                             }
 
                         if EDGE_STACK and add_cleartext_host:
@@ -1294,7 +1364,7 @@ class Runner:
                     try:
                         manifest = load(n.path, yaml, Tag.MAPPING)
                     except Exception as e:
-                        print(f'parse failure! {e}')
+                        print(f"parse failure! {e}")
                         print(yaml)
 
             if manifest:
@@ -1302,20 +1372,20 @@ class Runner:
 
                 # Make sure namespaces and labels are properly set.
                 for m in manifest:
-                    if 'metadata' not in m:
-                        m['metadata'] = {}
+                    if "metadata" not in m:
+                        m["metadata"] = {}
 
-                    metadata = m['metadata']
+                    metadata = m["metadata"]
 
-                    if 'labels' not in metadata:
-                        metadata['labels'] = {}
+                    if "labels" not in metadata:
+                        metadata["labels"] = {}
 
                     if ambassador_id:
-                        metadata['labels']['kat-ambassador-id'] = ambassador_id
+                        metadata["labels"]["kat-ambassador-id"] = ambassador_id
 
                     if nsp:
-                        if 'namespace' not in metadata:
-                            metadata['namespace'] = nsp
+                        if "namespace" not in metadata:
+                            metadata["namespace"] = nsp
 
                 # ...and, finally, save the manifest list.
                 manifests[n] = list(manifest)
@@ -1328,7 +1398,7 @@ class Runner:
         return manifests, namespaces
 
     def do_local_checks(self, selected, fname) -> bool:
-        if RUN_MODE == 'envoy':
+        if RUN_MODE == "envoy":
             print("Local mode not allowed, continuing to Envoy mode")
             return False
 
@@ -1352,7 +1422,7 @@ class Runner:
         # First up, get the full manifest and save it to disk.
         manifests, namespaces = self.get_manifests_and_namespaces(selected)
 
-        configs = OrderedDict()
+        configs: Dict[Node, List[Tuple[str, SequenceView]]] = OrderedDict()
         for n in (n for n in self.nodes if n in selected and not n.xfail):
             configs[n] = []
             for cfg in n.config():
@@ -1368,14 +1438,14 @@ class Runner:
                     target = cfg[0]
 
                     try:
-                        yaml = load(n.path, cfg[1], Tag.MAPPING)
+                        yaml_view = load(n.path, cfg[1], Tag.MAPPING)
 
                         if n.ambassador_id:
-                            for obj in yaml:
+                            for obj in yaml_view:
                                 if "ambassador_id" not in obj:
                                     obj["ambassador_id"] = [n.ambassador_id]
 
-                        configs[n].append((target, yaml))
+                        configs[n].append((target, yaml_view))
                     except YAMLScanError as e:
                         raise Exception("Parse Error: %s, input text:\n%s" % (e, cfg[1]))
 
@@ -1423,7 +1493,7 @@ class Runner:
             return True
 
         # Something didn't work out quite right.
-        print(f'Continuing with Kube tests...')
+        print(f"Continuing with Kube tests...")
         # print(f"ids_to_strip {self.ids_to_strip}")
 
         # XXX It is _so stupid_ that we're reparsing the whole manifest here.
@@ -1437,31 +1507,31 @@ class Runner:
         for obj in xxx_crap:
             keep = True
 
-            kind = '-nokind-'
-            name = '-noname-'
+            kind = "-nokind-"
+            name = "-noname-"
             metadata: Dict[str, Any] = {}
             labels: Dict[str, str] = {}
             id_to_check: Optional[str] = None
 
-            if 'kind' in obj:
-                kind = obj['kind']
+            if "kind" in obj:
+                kind = obj["kind"]
 
-            if 'metadata' in obj:
-                metadata = obj['metadata']
+            if "metadata" in obj:
+                metadata = obj["metadata"]
 
-            if 'name' in metadata:
-                name = metadata['name']
+            if "name" in metadata:
+                name = metadata["name"]
 
-            if 'labels' in metadata:
-                labels = metadata['labels']
+            if "labels" in metadata:
+                labels = metadata["labels"]
 
-            if 'kat-ambassador-id' in labels:
-                id_to_check = labels['kat-ambassador-id']
+            if "kat-ambassador-id" in labels:
+                id_to_check = labels["kat-ambassador-id"]
 
             # print(f"metadata {metadata} id_to_check {id_to_check} obj {obj}")
 
             # Keep namespaces, just in case.
-            if kind == 'Namespace':
+            if kind == "Namespace":
                 keep = True
             else:
                 if id_to_check and (id_to_check in self.ids_to_strip):
@@ -1519,15 +1589,15 @@ class Runner:
                 for version in crd["spec"]["versions"]:
                     if "schema" in version:
                         version["schema"] = {
-                            'openAPIV3Schema': {
-                                'type': 'object',
-                                'properties': {
-                                    'apiVersion': { 'type': 'string' },
-                                    'kind':       { 'type': 'string' },
-                                    'metadata':   { 'type': 'object' },
-                                    'spec': {
-                                        'type': 'object',
-                                        'x-kubernetes-preserve-unknown-fields': True,
+                            "openAPIV3Schema": {
+                                "type": "object",
+                                "properties": {
+                                    "apiVersion": {"type": "string"},
+                                    "kind": {"type": "string"},
+                                    "metadata": {"type": "object"},
+                                    "spec": {
+                                        "type": "object",
+                                        "x-kubernetes-preserve-unknown-fields": True,
                                     },
                                 },
                             },
@@ -1542,16 +1612,24 @@ class Runner:
         changed, reason = has_changed(final_crds, "/tmp/k8s-CRDs.yaml")
 
         if changed:
-            print(f'CRDS changed ({reason}), applying.')
+            print(f"CRDS changed ({reason}), applying.")
             if not ShellCommand.run_with_retry(
-                    'Apply CRDs',
-                    'tools/bin/kubectl', 'apply', '-f', '/tmp/k8s-CRDs.yaml',
-                    retries=5, sleep_seconds=10):
+                "Apply CRDs",
+                "tools/bin/kubectl",
+                "apply",
+                "-f",
+                "/tmp/k8s-CRDs.yaml",
+                retries=5,
+                sleep_seconds=10,
+            ):
                 raise RuntimeError("Failed applying CRDs")
 
             tries_left = 10
 
-            while os.system('tools/bin/kubectl get crd mappings.getambassador.io > /dev/null 2>&1') != 0:
+            while (
+                os.system("tools/bin/kubectl get crd mappings.getambassador.io > /dev/null 2>&1")
+                != 0
+            ):
                 tries_left -= 1
 
                 if tries_left <= 0:
@@ -1560,27 +1638,48 @@ class Runner:
                 print("sleeping for CRDs... (%d)" % tries_left)
                 time.sleep(5)
         else:
-            print(f'CRDS unchanged {reason}, skipping apply.')
+            print(f"CRDS unchanged {reason}, skipping apply.")
 
         # Next up: the KAT pod.
         kat_client_manifests = integration_manifests.load("kat_client_pod")
         if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
-            kat_client_manifests = integration_manifests.namespace_manifest("default") + kat_client_manifests
-        changed, reason = has_changed(integration_manifests.format(kat_client_manifests), "/tmp/k8s-kat-pod.yaml")
+            kat_client_manifests = (
+                integration_manifests.namespace_manifest("default") + kat_client_manifests
+            )
+        changed, reason = has_changed(
+            integration_manifests.format(kat_client_manifests), "/tmp/k8s-kat-pod.yaml"
+        )
 
         if changed:
-            print(f'KAT pod definition changed ({reason}), applying')
-            if not ShellCommand.run_with_retry('Apply KAT pod',
-                    'tools/bin/kubectl', 'apply', '-f' , '/tmp/k8s-kat-pod.yaml', '-n', 'default',
-                    retries=5, sleep_seconds=10):
-                raise RuntimeError('Could not apply manifest for KAT pod')
+            print(f"KAT pod definition changed ({reason}), applying")
+            if not ShellCommand.run_with_retry(
+                "Apply KAT pod",
+                "tools/bin/kubectl",
+                "apply",
+                "-f",
+                "/tmp/k8s-kat-pod.yaml",
+                "-n",
+                "default",
+                retries=5,
+                sleep_seconds=10,
+            ):
+                raise RuntimeError("Could not apply manifest for KAT pod")
 
             tries_left = 3
             time.sleep(1)
 
             while True:
-                if ShellCommand.run("wait for KAT pod",
-                                    'tools/bin/kubectl', '-n', 'default', 'wait', '--timeout=30s', '--for=condition=Ready', 'pod', 'kat'):
+                if ShellCommand.run(
+                    "wait for KAT pod",
+                    "tools/bin/kubectl",
+                    "-n",
+                    "default",
+                    "wait",
+                    "--timeout=30s",
+                    "--for=condition=Ready",
+                    "pod",
+                    "kat",
+                ):
                     print("KAT pod ready")
                     break
 
@@ -1592,28 +1691,47 @@ class Runner:
                 print("sleeping for KAT pod... (%d)" % tries_left)
                 time.sleep(5)
         else:
-            print(f'KAT pod definition unchanged {reason}, skipping apply.')
+            print(f"KAT pod definition unchanged {reason}, skipping apply.")
 
         # Use a dummy pod to get around the !*@&#$!*@&# DockerHub rate limit.
         # XXX Better: switch to GCR.
         dummy_pod = integration_manifests.load("dummy_pod")
         if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
             dummy_pod = integration_manifests.namespace_manifest("default") + dummy_pod
-        changed, reason = has_changed(integration_manifests.format(dummy_pod), "/tmp/k8s-dummy-pod.yaml")
+        changed, reason = has_changed(
+            integration_manifests.format(dummy_pod), "/tmp/k8s-dummy-pod.yaml"
+        )
 
         if changed:
-            print(f'Dummy pod definition changed ({reason}), applying')
-            if not ShellCommand.run_with_retry('Apply dummy pod',
-                    'tools/bin/kubectl', 'apply', '-f' , '/tmp/k8s-dummy-pod.yaml', '-n', 'default',
-                    retries=5, sleep_seconds=10):
-                raise RuntimeError('Could not apply manifest for dummy pod')
+            print(f"Dummy pod definition changed ({reason}), applying")
+            if not ShellCommand.run_with_retry(
+                "Apply dummy pod",
+                "tools/bin/kubectl",
+                "apply",
+                "-f",
+                "/tmp/k8s-dummy-pod.yaml",
+                "-n",
+                "default",
+                retries=5,
+                sleep_seconds=10,
+            ):
+                raise RuntimeError("Could not apply manifest for dummy pod")
 
             tries_left = 3
             time.sleep(1)
 
             while True:
-                if ShellCommand.run("wait for dummy pod",
-                                    'tools/bin/kubectl', '-n', 'default', 'wait', '--timeout=30s', '--for=condition=Ready', 'pod', 'dummy-pod'):
+                if ShellCommand.run(
+                    "wait for dummy pod",
+                    "tools/bin/kubectl",
+                    "-n",
+                    "default",
+                    "wait",
+                    "--timeout=30s",
+                    "--for=condition=Ready",
+                    "pod",
+                    "dummy-pod",
+                ):
                     print("Dummy pod ready")
                     break
 
@@ -1625,29 +1743,53 @@ class Runner:
                 print("sleeping for dummy pod... (%d)" % tries_left)
                 time.sleep(5)
         else:
-            print(f'Dummy pod definition unchanged {reason}, skipping apply.')
+            print(f"Dummy pod definition unchanged {reason}, skipping apply.")
 
         # # Clear out old stuff.
         if os.environ.get("DEV_CLEAN_K8S_RESOURCES", False):
             print("Clearing cluster...")
-            ShellCommand.run('clear old Kubernetes namespaces',
-                             'tools/bin/kubectl', 'delete', 'namespaces', '-l', 'scope=AmbassadorTest',
-                             verbose=True)
-            ShellCommand.run('clear old Kubernetes pods etc.',
-                             'tools/bin/kubectl', 'delete', 'all', '-l', 'scope=AmbassadorTest', '--all-namespaces',
-                             verbose=True)
+            ShellCommand.run(
+                "clear old Kubernetes namespaces",
+                "tools/bin/kubectl",
+                "delete",
+                "namespaces",
+                "-l",
+                "scope=AmbassadorTest",
+                verbose=True,
+            )
+            ShellCommand.run(
+                "clear old Kubernetes pods etc.",
+                "tools/bin/kubectl",
+                "delete",
+                "all",
+                "-l",
+                "scope=AmbassadorTest",
+                "--all-namespaces",
+                verbose=True,
+            )
 
         # XXX: better prune selector label
         if manifest_changed:
             print(f"manifest changed ({manifest_reason}), applying...")
-            if not ShellCommand.run_with_retry('Applying k8s manifests',
-                    'tools/bin/kubectl', 'apply', '--prune', '-l', 'scope=%s' % self.scope, '-f', fname,
-                    retries=5, sleep_seconds=10):
-                raise RuntimeError('Could not apply manifests')
+            if not ShellCommand.run_with_retry(
+                "Applying k8s manifests",
+                "tools/bin/kubectl",
+                "apply",
+                "--prune",
+                "-l",
+                "scope=%s" % self.scope,
+                "-f",
+                fname,
+                retries=5,
+                sleep_seconds=10,
+            ):
+                raise RuntimeError("Could not apply manifests")
             self.applied_manifests = True
 
         # Finally, install httpbin and the websocket-echo-server.
-        print(f"applying http_manifests + websocket_echo_server_manifests to namespaces: {namespaces}")
+        print(
+            f"applying http_manifests + websocket_echo_server_manifests to namespaces: {namespaces}"
+        )
         for namespace in namespaces:
             apply_kube_artifacts(namespace, httpbin_manifests)
             apply_kube_artifacts(namespace, websocket_echo_server_manifests)
@@ -1667,20 +1809,20 @@ class Runner:
     def _req_str(kind, req) -> str:
         printable = req
 
-        if kind == 'url':
+        if kind == "url":
             printable = req.url
 
         return printable
 
-    def _wait(self, selected):
-        requirements = []
+    def _wait(self, selected: Sequence[Node]):
+        requirements: List[Tuple[Node, str, Query]] = []
 
         for node in selected:
             if node.xfail:
                 continue
 
             node_name = node.format("{self.path.k8s}")
-            ambassador_id = getattr(node, 'ambassador_id', None)
+            ambassador_id = getattr(node, "ambassador_id", None)
 
             # print(f"{node_name} {ambassador_id}")
 
@@ -1703,7 +1845,7 @@ class Runner:
                 # print(f"{node_name} add req ({node_name}, {kind}, {self._req_str(kind, req)})")
                 requirements.append((node, kind, req))
 
-        homogenous = {}
+        homogenous: Dict[str, List[Tuple[Node, Query]]] = {}
 
         for node, kind, name in requirements:
             if kind not in homogenous:
@@ -1711,7 +1853,7 @@ class Runner:
 
             homogenous[kind].append((node, name))
 
-        kinds = [ "pod", "url" ]
+        kinds = ["pod", "url"]
         delay = 5
         start = time.time()
         limit = int(os.environ.get("KAT_REQ_LIMIT", "900"))
@@ -1739,7 +1881,7 @@ class Runner:
 
                 if not is_ready:
                     holdouts[kind] = _holdouts
-                    delay = int(min(delay*2, 10))
+                    delay = int(min(delay * 2, 10))
                     print("sleeping %ss..." % delay)
                     sys.stdout.flush()
                     time.sleep(delay)
@@ -1758,20 +1900,23 @@ class Runner:
             _holdouts = holdouts.get(kind, [])
 
             if _holdouts:
-                print(f'  {kind}:')
+                print(f"  {kind}:")
 
                 for node, text in _holdouts:
-                    print(f'    {node.path.k8s} ({text})')
+                    print(f"    {node.path.k8s} ({text})")
                     node.log_kube_artifacts()
 
         assert False, "requirements not satisfied in %s seconds" % limit
 
-    @multi
-    def _ready(self, kind, _):
-        return kind
+    def _ready(self, kind, requirements):
+        fn = {
+            "pod": self._ready_pod,
+            "url": self._ready_url,
+        }[kind]
 
-    @_ready.when("pod")  # type: ignore
-    def _ready(self, _, requirements):
+        return fn(kind, requirements)
+
+    def _ready_pod(self, _, requirements):
         pods = self._pods(self.scope)
         not_ready = []
 
@@ -1785,8 +1930,7 @@ class Runner:
 
         return (True, None)
 
-    @_ready.when("url")  # type: ignore
-    def _ready(self, _, requirements):
+    def _ready_url(self, _, requirements):
         queries = []
 
         for node, q in requirements:
@@ -1803,21 +1947,34 @@ class Runner:
 
         if not_ready:
             first = not_ready[0]
-            print("%d not ready (%s: %s) " % (len(not_ready), first.query.url, first.status or first.error), end="")
-            return (False, [ (x.query.parent, "%s -- %s" % (x.query.url, x.status or x.error)) for x in not_ready ])
+            print(
+                "%d not ready (%s: %s) "
+                % (len(not_ready), first.query.url, first.status or first.error),
+                end="",
+            )
+            return (
+                False,
+                [
+                    (x.query.parent, "%s -- %s" % (x.query.url, x.status or x.error))
+                    for x in not_ready
+                ],
+            )
         else:
             return (True, None)
 
     def _pods(self, scope=None):
-        scope_for_path = scope if scope else 'global'
-        label_for_scope = f'-l scope={scope}' if scope else ''
+        scope_for_path = scope if scope else "global"
+        label_for_scope = f"-l scope={scope}" if scope else ""
 
-        fname = f'/tmp/pods-{scope_for_path}.json'
-        if not ShellCommand.run_with_retry('Getting pods',
-            f'tools/bin/kubectl get pod {label_for_scope} --all-namespaces -o json > {fname}',
-            shell=True, retries=5, sleep_seconds=10):
-            raise RuntimeError('Could not get pods')
-
+        fname = f"/tmp/pods-{scope_for_path}.json"
+        if not ShellCommand.run_with_retry(
+            "Getting pods",
+            f"tools/bin/kubectl get pod {label_for_scope} --all-namespaces -o json > {fname}",
+            shell=True,
+            retries=5,
+            sleep_seconds=10,
+        ):
+            raise RuntimeError("Could not get pods")
 
         with open(fname) as f:
             raw_pods = json.load(f)
@@ -1832,7 +1989,7 @@ class Runner:
             all_ready = True
 
             for status in cstats:
-                ready = status.get('ready', False)
+                ready = status.get("ready", False)
 
                 if not ready:
                     all_ready = False
@@ -1846,7 +2003,7 @@ class Runner:
         queries = []
 
         for t in self.tests:
-            t_name = t.format('{self.path.k8s}')
+            t_name = t.format("{self.path.k8s}")
 
             if t in selected:
                 t.pending = []
@@ -1859,7 +2016,7 @@ class Runner:
                 # print(f"{t_name}: SKIP QUERY due to local result")
                 continue
 
-            ambassador_id = getattr(t, 'ambassador_id', None)
+            ambassador_id = getattr(t, "ambassador_id", None)
 
             if ambassador_id and ambassador_id in self.ids_to_strip:
                 # print(f"{t_name}: SKIP QUERY due to ambassador_id {ambassador_id}")
@@ -1877,7 +2034,9 @@ class Runner:
         for phase in phases:
             if not first:
                 phase_delay = int(os.environ.get("KAT_PHASE_DELAY", 10))
-                print("Waiting for {} seconds before starting phase {}...".format(phase_delay, phase))
+                print(
+                    "Waiting for {} seconds before starting phase {}...".format(phase_delay, phase)
+                )
                 time.sleep(phase_delay)
 
             first = False
@@ -1887,7 +2046,7 @@ class Runner:
             print("Querying %s urls in phase %s..." % (len(phase_queries), phase), end="")
             sys.stdout.flush()
 
-            results = run_queries(f'phase{phase}', phase_queries)
+            results = run_queries(f"phase{phase}", phase_queries)
 
             print(" done.")
 
@@ -1896,7 +2055,10 @@ class Runner:
                 t.queried.append(r.query)
 
                 if getattr(t, "debug", False) or getattr(r.query, "debug", False):
-                    print("%s result: %s" % (t.name, json.dumps(r.as_dict(), sort_keys=True, indent=4)))
+                    print(
+                        "%s result: %s"
+                        % (t.name, json.dumps(r.as_dict(), sort_keys=True, indent=4))
+                    )
 
                 t.results.append(r)
                 t.pending.remove(r.query)

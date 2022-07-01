@@ -1,7 +1,7 @@
 package gateway_test
 
 import (
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 

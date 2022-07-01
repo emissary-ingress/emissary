@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/datawire/ambassador/v2/cmd/entrypoint"
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 func TestStore(t *testing.T) {

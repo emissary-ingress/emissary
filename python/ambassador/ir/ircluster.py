@@ -26,8 +26,8 @@ from .irresource import IRResource
 from .irtlscontext import IRTLSContext
 
 if TYPE_CHECKING:
-    from .ir import IR # pragma: no cover
-    from .ir.irserviceresolver import IRServiceResolver # pragma: no cover
+    from .ir import IR  # pragma: no cover
+    from .ir.irserviceresolver import IRServiceResolver  # pragma: no cover
 
 #############################################################################
 ## ircluster.py -- the ircluster configuration object for Ambassador
@@ -38,36 +38,37 @@ if TYPE_CHECKING:
 ## entity.
 
 
-class IRCluster (IRResource):
-    def __init__(self, ir: 'IR', aconf: Config, parent_ir_resource: 'IRResource',
-                 location: str,  # REQUIRED
-
-                 service: str,   # REQUIRED
-                 resolver: Optional[str] = None,
-                 connect_timeout_ms: Optional[int] = 3000,
-                 cluster_idle_timeout_ms: Optional[int] = None,
-                 cluster_max_connection_lifetime_ms: Optional[int] = None,
-                 marker: Optional[str] = None,  # extra marker for this context name
-                 stats_name: Optional[str] = None, # Override the stats name for this cluster
-
-                 ctx_name: Optional[Union[str, bool]]=None,
-                 host_rewrite: Optional[str]=None,
-
-                 dns_type: Optional[str]="strict_dns",
-                 enable_ipv4: Optional[bool]=None,
-                 enable_ipv6: Optional[bool]=None,
-                 lb_type: str="round_robin",
-                 grpc: Optional[bool] = False,
-                 allow_scheme: Optional[bool] = True,
-                 load_balancer: Optional[dict] = None,
-                 keepalive: Optional[dict] = None,
-                 circuit_breakers: Optional[list] = None,
-                 respect_dns_ttl: Optional[bool] = False,
-
-                 rkey: str="-override-",
-                 kind: str="IRCluster",
-                 apiVersion: str="getambassador.io/v0",   # Not a typo! See below.
-                 **kwargs) -> None:
+class IRCluster(IRResource):
+    def __init__(
+        self,
+        ir: "IR",
+        aconf: Config,
+        parent_ir_resource: "IRResource",
+        location: str,  # REQUIRED
+        service: str,  # REQUIRED
+        resolver: Optional[str] = None,
+        connect_timeout_ms: Optional[int] = 3000,
+        cluster_idle_timeout_ms: Optional[int] = None,
+        cluster_max_connection_lifetime_ms: Optional[int] = None,
+        marker: Optional[str] = None,  # extra marker for this context name
+        stats_name: Optional[str] = None,  # Override the stats name for this cluster
+        ctx_name: Optional[Union[str, bool]] = None,
+        host_rewrite: Optional[str] = None,
+        dns_type: Optional[str] = "strict_dns",
+        enable_ipv4: Optional[bool] = None,
+        enable_ipv6: Optional[bool] = None,
+        lb_type: str = "round_robin",
+        grpc: Optional[bool] = False,
+        allow_scheme: Optional[bool] = True,
+        load_balancer: Optional[dict] = None,
+        keepalive: Optional[dict] = None,
+        circuit_breakers: Optional[list] = None,
+        respect_dns_ttl: Optional[bool] = False,
+        rkey: str = "-override-",
+        kind: str = "IRCluster",
+        apiVersion: str = "getambassador.io/v0",  # Not a typo! See below.
+        **kwargs,
+    ) -> None:
         # Step one: look at the service and such and figure out a cluster name
         # and TLS origination info.
 
@@ -87,7 +88,7 @@ class IRCluster (IRResource):
         # if we're originating TLS, 80 if not.
 
         originate_tls: bool = False
-        name_fields: List[str] = [ 'cluster' ]
+        name_fields: List[str] = ["cluster"]
         ctx: Optional[IRTLSContext] = None
         errors: List[str] = []
         unknown_breakers = 0
@@ -122,41 +123,47 @@ class IRCluster (IRResource):
         # TODO: lots of duplication of here, need to replace with broken down functions
 
         if allow_scheme and service.lower().startswith("https://"):
-            service = service[len("https://"):]
+            service = service[len("https://") :]
 
             originate_tls = True
-            name_fields.append('otls')
+            name_fields.append("otls")
 
         elif allow_scheme and service.lower().startswith("http://"):
-            service = service[ len("http://"): ]
+            service = service[len("http://") :]
 
             if ctx:
-                errors.append("Originate-TLS context %s being used even though service %s lists HTTP" %
-                              (ctx_name, service))
+                errors.append(
+                    "Originate-TLS context %s being used even though service %s lists HTTP"
+                    % (ctx_name, service)
+                )
                 originate_tls = True
-                name_fields.append('otls')
+                name_fields.append("otls")
             else:
                 originate_tls = False
 
         elif ctx:
             # No scheme (or schemes are ignored), but we have a context.
             originate_tls = True
-            name_fields.append('otls')
+            name_fields.append("otls")
             name_fields.append(ctx.name)
 
-        if '://' in service:
+        if "://" in service:
             # WTF is this?
-            idx = service.index('://')
+            idx = service.index("://")
             scheme = service[0:idx]
 
             if allow_scheme:
-                errors.append("service %s has unknown scheme %s, assuming %s" %
-                              (service, scheme, "HTTPS" if originate_tls else "HTTP"))
+                errors.append(
+                    "service %s has unknown scheme %s, assuming %s"
+                    % (service, scheme, "HTTPS" if originate_tls else "HTTP")
+                )
             else:
-                errors.append("ignoring scheme %s for service %s, since it is being used for a non-HTTP mapping" %
-                              (scheme, service))
+                errors.append(
+                    "ignoring scheme %s for service %s, since it is being used for a non-HTTP mapping"
+                    % (scheme, service)
+                )
 
-            service = service[idx + 3:]
+            service = service[idx + 3 :]
 
         # XXX Should this be checking originate_tls? Why does it do that?
         if originate_tls and host_rewrite:
@@ -166,12 +173,15 @@ class IRCluster (IRResource):
         # parser, because it's kind of stupid.
 
         ir.logger.debug("cluster setup: service %s otls %s ctx %s" % (service, originate_tls, ctx))
-        p = urllib.parse.urlparse('random://' + service)
+        p = urllib.parse.urlparse("random://" + service)
 
         # Is there any junk after the host?
 
         if p.path or p.params or p.query or p.fragment:
-            errors.append("service %s has extra URL components; ignoring everything but the host and port" % service)
+            errors.append(
+                "service %s has extra URL components; ignoring everything but the host and port"
+                % service
+            )
 
         # p is read-only, so break stuff out.
 
@@ -183,14 +193,20 @@ class IRCluster (IRResource):
         # Do we actually have a hostname?
         if not hostname:
             # We don't. That ain't good.
-            errors.append("service %s has no hostname and will be ignored; please re-configure" % service)
+            errors.append(
+                "service %s has no hostname and will be ignored; please re-configure" % service
+            )
             self.ignore_cluster = True
             hostname = "unknown"
 
         try:
             port = p.port
         except ValueError as e:
-            errors.append("found invalid port for service {}. Please specify a valid port between 0 and 65535 - {}. Service {} cluster will be ignored, please re-configure".format(service, e, service))
+            errors.append(
+                "found invalid port for service {}. Please specify a valid port between 0 and 65535 - {}. Service {} cluster will be ignored, please re-configure".format(
+                    service, e, service
+                )
+            )
             self.ignore_cluster = True
             port = 0
 
@@ -206,14 +222,14 @@ class IRCluster (IRResource):
         # Is there a circuit breaker involved here?
         if circuit_breakers:
             for breaker in circuit_breakers:
-                name = breaker.get('_name', None)
+                name = breaker.get("_name", None)
 
                 if name:
                     name_fields.append(name)
                 else:
                     # This is "impossible", but... let it go I guess?
                     errors.append(f"{service}: unvalidated circuit breaker {breaker}!")
-                    name_fields.append(f'cbu{unknown_breakers}')
+                    name_fields.append(f"cbu{unknown_breakers}")
                     unknown_breakers += 1
 
         # The Ambassador module will always have a load_balancer (which may be None).
@@ -229,7 +245,9 @@ class IRCluster (IRResource):
         if self.endpoints_required(load_balancer):
             if not Config.enable_endpoints:
                 # Bzzt.
-                errors.append(f"{service}: endpoint routing is not enabled, falling back to {global_load_balancer}")
+                errors.append(
+                    f"{service}: endpoint routing is not enabled, falling back to {global_load_balancer}"
+                )
                 load_balancer = global_load_balancer
             else:
                 enable_endpoints = True
@@ -238,27 +256,27 @@ class IRCluster (IRResource):
                     # This is used only for cluster naming; it doesn't need to be a real
                     # load balancer policy.
 
-                    lb_type = load_balancer.get('policy', 'default')
+                    lb_type = load_balancer.get("policy", "default")
 
-                    key_fields = ['er', lb_type.lower()]
+                    key_fields = ["er", lb_type.lower()]
 
                     # XXX Should we really include these things?
-                    if 'header' in load_balancer:
-                        key_fields.append('hdr')
-                        key_fields.append(load_balancer['header'])
+                    if "header" in load_balancer:
+                        key_fields.append("hdr")
+                        key_fields.append(load_balancer["header"])
 
-                    if 'cookie' in load_balancer:
-                        key_fields.append('cookie')
-                        key_fields.append(load_balancer['cookie']['name'])
+                    if "cookie" in load_balancer:
+                        key_fields.append("cookie")
+                        key_fields.append(load_balancer["cookie"]["name"])
 
-                    if 'source_ip' in load_balancer:
-                        key_fields.append('srcip')
+                    if "source_ip" in load_balancer:
+                        key_fields.append("srcip")
 
                     name_fields.append("-".join(key_fields))
 
         # Finally we can construct the cluster name.
         name = "_".join(name_fields)
-        name = re.sub(r'[^0-9A-Za-z_]', '_', name)
+        name = re.sub(r"[^0-9A-Za-z_]", "_", name)
 
         # OK. Build our default args.
         #
@@ -266,27 +284,31 @@ class IRCluster (IRResource):
 
         if enable_ipv4 is None:
             enable_ipv4 = ir.ambassador_module.enable_ipv4
-            ir.logger.debug("%s: copying enable_ipv4 %s from Ambassador Module" % (name, enable_ipv4))
+            ir.logger.debug(
+                "%s: copying enable_ipv4 %s from Ambassador Module" % (name, enable_ipv4)
+            )
 
         if enable_ipv6 is None:
             enable_ipv6 = ir.ambassador_module.enable_ipv6
-            ir.logger.debug("%s: copying enable_ipv6 %s from Ambassador Module" % (name, enable_ipv6))
+            ir.logger.debug(
+                "%s: copying enable_ipv6 %s from Ambassador Module" % (name, enable_ipv6)
+            )
 
         new_args: Dict[str, Any] = {
             "type": dns_type,
             "lb_type": lb_type,
-            "urls": [ url ],  # TODO: Should we completely eliminate `urls` in favor of `targets`?
+            "urls": [url],  # TODO: Should we completely eliminate `urls` in favor of `targets`?
             "load_balancer": load_balancer,
             "keepalive": keepalive,
             "circuit_breakers": circuit_breakers,
             "service": service,
-            'enable_ipv4': enable_ipv4,
-            'enable_ipv6': enable_ipv6,
-            'enable_endpoints': enable_endpoints,
-            'connect_timeout_ms': connect_timeout_ms,
-            'cluster_idle_timeout_ms': cluster_idle_timeout_ms,
-            'cluster_max_connection_lifetime_ms': cluster_max_connection_lifetime_ms,
-            'respect_dns_ttl': respect_dns_ttl,
+            "enable_ipv4": enable_ipv4,
+            "enable_ipv6": enable_ipv6,
+            "enable_endpoints": enable_endpoints,
+            "connect_timeout_ms": connect_timeout_ms,
+            "cluster_idle_timeout_ms": cluster_idle_timeout_ms,
+            "cluster_max_connection_lifetime_ms": cluster_max_connection_lifetime_ms,
+            "respect_dns_ttl": respect_dns_ttl,
         }
 
         # If we have a stats_name, use it. If not, default it to the service to make life
@@ -294,23 +316,23 @@ class IRCluster (IRResource):
         # to underscores, just in case.
 
         if stats_name:
-            new_args['stats_name'] = stats_name
+            new_args["stats_name"] = stats_name
         else:
-            new_args['stats_name'] = re.sub(r'[^0-9A-Za-z_]', '_', service)
+            new_args["stats_name"] = re.sub(r"[^0-9A-Za-z_]", "_", service)
 
         if grpc:
-            new_args['grpc'] = True
+            new_args["grpc"] = True
 
         if host_rewrite:
-            new_args['host_rewrite'] = host_rewrite
+            new_args["host_rewrite"] = host_rewrite
 
         if originate_tls:
             if ctx:
-                new_args['tls_context'] = typecast(IRTLSContext, ctx)
+                new_args["tls_context"] = typecast(IRTLSContext, ctx)
             else:
-                new_args['tls_context'] = IRTLSContext.null_context(ir=ir)
+                new_args["tls_context"] = IRTLSContext.null_context(ir=ir)
 
-        if rkey == '-override-':
+        if rkey == "-override-":
             rkey = name
 
         # Stash the resolver, hostname, and port for setup.
@@ -320,13 +342,18 @@ class IRCluster (IRResource):
         self._port = port
         self._is_sidecar = False
 
-        if self._hostname == '127.0.0.1' and self._port == 8500:
+        if self._hostname == "127.0.0.1" and self._port == 8500:
             self._is_sidecar = True
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, location=location,
-            kind=kind, name=name, apiVersion=apiVersion,
-            **new_args
+            ir=ir,
+            aconf=aconf,
+            rkey=rkey,
+            location=location,
+            kind=kind,
+            name=name,
+            apiVersion=apiVersion,
+            **new_args,
         )
 
         if ctx:
@@ -336,14 +363,16 @@ class IRCluster (IRResource):
             for error in errors:
                 ir.post_error(error, resource=self)
 
-    def setup(self, ir: 'IR', aconf: Config) -> bool:
+    def setup(self, ir: "IR", aconf: Config) -> bool:
         self._cache_key = f"Cluster-{self.name}"
 
         if self.ignore_cluster:
             return False
 
         # Resolve our actual targets.
-        targets = ir.resolve_targets(self, self._resolver, self._hostname, self._namespace, self._port)
+        targets = ir.resolve_targets(
+            self, self._resolver, self._hostname, self._namespace, self._port
+        )
 
         self.targets = targets
 
@@ -359,10 +388,12 @@ class IRCluster (IRResource):
         required = False
 
         if load_balancer:
-            lb_policy = load_balancer.get('policy')
+            lb_policy = load_balancer.get("policy")
 
-            if lb_policy in ['round_robin', 'least_request', 'ring_hash', 'maglev']:
-                self.logger.debug("Endpoints are required for load balancing policy {}".format(lb_policy))
+            if lb_policy in ["round_robin", "least_request", "ring_hash", "maglev"]:
+                self.logger.debug(
+                    "Endpoints are required for load balancing policy {}".format(lb_policy)
+                )
                 required = True
 
         return required
@@ -372,19 +403,32 @@ class IRCluster (IRResource):
 
         return self.urls
 
-    def merge(self, other: 'IRCluster') -> bool:
+    def merge(self, other: "IRCluster") -> bool:
         # Is this mergeable?
 
         mismatches = []
 
-        for key in [ 'type', 'lb_type', 'host_rewrite',
-                     'tls_context', 'originate_tls', 'grpc', 'connect_timeout_ms', 'cluster_idle_timeout_ms', 'cluster_max_connection_lifetime_ms' ]:
+        for key in [
+            "type",
+            "lb_type",
+            "host_rewrite",
+            "tls_context",
+            "originate_tls",
+            "grpc",
+            "connect_timeout_ms",
+            "cluster_idle_timeout_ms",
+            "cluster_max_connection_lifetime_ms",
+        ]:
             if self.get(key, None) != other.get(key, None):
                 mismatches.append(key)
 
         if mismatches:
-            self.post_error(RichStatus.fromError("cannot merge cluster %s: mismatched attributes %s" %
-                                                 (other.name, ", ".join(mismatches))))
+            self.post_error(
+                RichStatus.fromError(
+                    "cannot merge cluster %s: mismatched attributes %s"
+                    % (other.name, ", ".join(mismatches))
+                )
+            )
             return False
 
         # All good.
@@ -399,12 +443,16 @@ class IRCluster (IRResource):
             if self.targets == None:
                 self.targets = other.targets
             else:
-                self.targets = typecast(List[Dict[str, Union[int, str]]], self.targets) + other.targets
+                self.targets = (
+                    typecast(List[Dict[str, Union[int, str]]], self.targets) + other.targets
+                )
 
         return True
 
-    def get_resolver(self) -> 'IRServiceResolver':
+    def get_resolver(self) -> "IRServiceResolver":
         return self.ir.resolve_resolver(self, self._resolver)
 
     def clustermap_entry(self) -> Dict:
-        return self.get_resolver().clustermap_entry(self.ir, self, self._hostname, self._namespace, self._port)
+        return self.get_resolver().clustermap_entry(
+            self.ir, self, self._hostname, self._namespace, self._port
+        )

@@ -12,7 +12,7 @@ import (
 	conv_net_v1 "k8s.io/kubernetes/pkg/apis/networking/v1"
 	conv_net_v1beta1 "k8s.io/kubernetes/pkg/apis/networking/v1beta1"
 
-	kates_internal "github.com/datawire/ambassador/v2/pkg/kates_internal"
+	kates_internal "github.com/emissary-ingress/emissary/v3/pkg/kates_internal"
 	k8s_metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8s_runtime "k8s.io/apimachinery/pkg/runtime"
 )

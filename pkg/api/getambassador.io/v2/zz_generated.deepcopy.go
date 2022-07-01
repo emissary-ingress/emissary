@@ -21,7 +21,7 @@ package v2
 
 import (
 	"encoding/json"
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"

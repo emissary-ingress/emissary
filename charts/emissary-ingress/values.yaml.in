@@ -15,7 +15,7 @@ barePod: false
 
 test:
   # If true, Create test Pod to verify the Ambassador service works correctly (Only created on helm test)
-  enabled: true
+  enabled: false
   # Image to use for the test Pod
   image: busybox
 
@@ -344,7 +344,9 @@ resolvers: # +doc-gen:break
 #
 # Note: The Module can only be named ambassador. There can only be one Module
 # installed per-namespace.
-module: {}
+module:
+  diagnostics:
+    enabled: false
 
 # DEPRECATED: Enabling the prometheus exporter creates a sidecar and configures ambassador to use it
 #

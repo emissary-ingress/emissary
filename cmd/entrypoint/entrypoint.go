@@ -14,14 +14,14 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/datawire/ambassador/v2/pkg/acp"
-	"github.com/datawire/ambassador/v2/pkg/ambex"
-	"github.com/datawire/ambassador/v2/pkg/busy"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/logutil"
-	"github.com/datawire/ambassador/v2/pkg/memory"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/acp"
+	"github.com/emissary-ingress/emissary/v3/pkg/ambex"
+	"github.com/emissary-ingress/emissary/v3/pkg/busy"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/logutil"
+	"github.com/emissary-ingress/emissary/v3/pkg/memory"
 )
 
 // This is the main ambassador entrypoint. It launches and manages two other
@@ -77,8 +77,6 @@ import (
 // manager (e.g. kubernetes) is expected to take note and restart if
 // appropriate.
 
-const envAmbassadorDemoMode string = "AMBASSADOR_DEMO_MODE"
-
 func Main(ctx context.Context, Version string, args ...string) error {
 	// Setup logging according to AES_LOG_LEVEL
 	busy.SetLogLevel(logutil.DefaultLogLevel)
@@ -105,8 +103,6 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		// Demo mode!
 		dlog.Infof(ctx, "DEMO MODE")
 		demoMode = true
-		// Set an environment variable so that other parts of the code can check if demo mode is active (mainly used for disabling synthetic authservice injection)
-		os.Setenv(envAmbassadorDemoMode, "true")
 	}
 
 	clusterID := GetClusterID(ctx)
@@ -221,7 +217,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 }
 
 func clusterIDFromRootID(rootID string) string {
-	clusterUrl := fmt.Sprintf("d6e_id://%s/%s", rootID, GetAmbassadorId())
+	clusterUrl := fmt.Sprintf("d6e_id://%s/%s", rootID, GetAmbassadorID())
 	uid := uuid.NewSHA1(uuid.NameSpaceURL, []byte(clusterUrl))
 
 	return strings.ToLower(uid.String())

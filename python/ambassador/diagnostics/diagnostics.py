@@ -27,11 +27,11 @@ from .envoy_stats import EnvoyStats
 from ..utils import dump_json
 
 
-class DiagSource (dict):
+class DiagSource(dict):
     pass
 
 
-class DiagCluster (dict):
+class DiagCluster(dict):
     """
     A DiagCluster represents what Envoy thinks about the health of a cluster.
     DO NOT JUST PASS AN IRCluster into DiagCluster; turn it into a dict with
@@ -43,19 +43,19 @@ class DiagCluster (dict):
 
     def update_health(self, other: dict) -> None:
         for from_key, to_key in [
-            ( 'health', '_health' ),
-            ( 'hmetric', '_hmetric' ),
-            ( 'hcolor', '_hcolor' )
+            ("health", "_health"),
+            ("hmetric", "_hmetric"),
+            ("hcolor", "_hcolor"),
         ]:
             if from_key in other:
                 self[to_key] = other[from_key]
 
     def default_missing(self) -> dict:
         for key, default in [
-            ('service', 'unknown service!'),
-            ('weight', 100),
-            ('_hmetric', 'unknown'),
-            ('_hcolor', 'orange')
+            ("service", "unknown service!"),
+            ("weight", 100),
+            ("_hmetric", "unknown"),
+            ("_hcolor", "orange"),
         ]:
             if not self.get(key, None):
                 self[key] = default
@@ -64,12 +64,14 @@ class DiagCluster (dict):
 
     @classmethod
     def unknown_cluster(cls):
-        return DiagCluster({
-            'service': 'unknown service!',
-            '_health': 'unknown cluster!',
-            '_hmetric': 'unknown',
-            '_hcolor': 'orange'
-        })
+        return DiagCluster(
+            {
+                "service": "unknown service!",
+                "_health": "unknown cluster!",
+                "_hmetric": "unknown",
+                "_hcolor": "orange",
+            }
+        )
 
 
 class DiagClusters:
@@ -86,7 +88,7 @@ class DiagClusters:
 
         if clusters:
             for cluster in typecast(List[dict], clusters):
-                self[cluster['name']] = DiagCluster(cluster)
+                self[cluster["name"]] = DiagCluster(cluster)
 
     def __getitem__(self, key: str) -> DiagCluster:
         if key not in self.clusters:
@@ -109,37 +111,40 @@ class DiagResult:
     A DiagResult is the result of a diagnostics request, whether for an
     overview or for a particular key.
     """
-    def __init__(self, diag: 'Diagnostics', estat: EnvoyStats, request) -> None:
+
+    def __init__(self, diag: "Diagnostics", estat: EnvoyStats, request) -> None:
         self.diag = diag
         self.logger = self.diag.logger
         self.estat = estat
 
         # Go ahead and grab Envoy cluster stats for all possible clusters.
         # XXX This might be a bit silly.
-        self.cluster_names = [ cluster.envoy_name for cluster in self.diag.clusters.values() ]
-        self.cstats = { name: self.estat.cluster_stats(name) for name in self.cluster_names }
+        self.cluster_names = [cluster.envoy_name for cluster in self.diag.clusters.values()]
+        self.cstats = {name: self.estat.cluster_stats(name) for name in self.cluster_names}
 
         # Save the request host and scheme. We'll need them later.
-        self.request_host = request.headers.get('Host', '*')
-        self.request_scheme = request.headers.get('X-Forwarded-Proto', 'http').lower()
+        self.request_host = request.headers.get("Host", "*")
+        self.request_scheme = request.headers.get("X-Forwarded-Proto", "http").lower()
 
         # All of these things reflect _only_ resources that are relevant to the request
         # we're handling -- e.g. if you ask for a particular group, you'll only get the
         # clusters that are part of that group.
-        self.clusters: Dict[str, DiagCluster] = {}          # Envoy clusters
-        self.routes: List[dict] = []                        # Envoy routes
-        self.element_keys: Dict[str, bool] = {}             # Active element keys
-        self.ambassador_resources: Dict[str, str] = {}      # Actually serializations of Ambassador config resources
-        self.envoy_resources: Dict[str, dict] = {}          # Envoy config resources
+        self.clusters: Dict[str, DiagCluster] = {}  # Envoy clusters
+        self.routes: List[dict] = []  # Envoy routes
+        self.element_keys: Dict[str, bool] = {}  # Active element keys
+        self.ambassador_resources: Dict[
+            str, str
+        ] = {}  # Actually serializations of Ambassador config resources
+        self.envoy_resources: Dict[str, dict] = {}  # Envoy config resources
 
     def as_dict(self) -> Dict[str, Any]:
         return {
-            'cluster_stats': self.cstats,
-            'cluster_info': self.clusters,
-            'route_info': self.routes,
-            'active_elements': sorted(self.element_keys.keys()),
-            'ambassador_resources': self.ambassador_resources,
-            'envoy_resources': self.envoy_resources
+            "cluster_stats": self.cstats,
+            "cluster_info": self.clusters,
+            "route_info": self.routes,
+            "active_elements": sorted(self.element_keys.keys()),
+            "ambassador_resources": self.ambassador_resources,
+            "envoy_resources": self.envoy_resources,
         }
 
     def include_element(self, key: str) -> None:
@@ -163,7 +168,7 @@ class DiagResult:
         :param obj: object for which to include referencing keys
         """
 
-        for element_key in obj['_referenced_by']:
+        for element_key in obj["_referenced_by"]:
             self.include_element(element_key)
 
     def include_cluster(self, cluster: dict) -> DiagCluster:
@@ -181,7 +186,7 @@ class DiagResult:
         :return: the DiagCluster for this cluster
         """
 
-        c_name = cluster['name']
+        c_name = cluster["name"]
 
         if c_name not in self.clusters:
             self.clusters[c_name] = DiagCluster(cluster)
@@ -207,48 +212,50 @@ class DiagResult:
 
         # self.logger.debug("GROUP %s" % group.as_json())
 
-        prefix = group['prefix'] if 'prefix' in group else group['regex']
-        rewrite = group.get('rewrite', "/")
-        method = '*'
+        prefix = group["prefix"] if "prefix" in group else group["regex"]
+        rewrite = group.get("rewrite", "/")
+        method = "*"
         host = None
 
         route_clusters: List[DiagCluster] = []
 
-        for mapping in group.get('mappings', []):
-            cluster = mapping['cluster']
+        for mapping in group.get("mappings", []):
+            cluster = mapping["cluster"]
 
             mapping_cluster = self.include_cluster(cluster.as_dict())
-            mapping_cluster.update({'weight': mapping.get('weight', 100)})
+            mapping_cluster.update({"weight": mapping.get("weight", 100)})
 
             # self.logger.debug("GROUP %s CLUSTER %s %d%% (%s)" %
             #                   (group['group_id'], c_name, mapping['weight'], mapping_cluster))
 
             route_clusters.append(mapping_cluster)
 
-        host_redir = group.get('host_redirect', None)
+        host_redir = group.get("host_redirect", None)
 
         if host_redir:
             # XXX Stupid hackery here. redirect_cluster should be a real
             # IRCluster object.
-            redirect_cluster = self.include_cluster({
-                'name': host_redir['name'],
-                'service': host_redir['service'],
-                'weight': 100,
-                'type_label': 'redirect',
-                '_referenced_by': [ host_redir['rkey'] ]
-            })
+            redirect_cluster = self.include_cluster(
+                {
+                    "name": host_redir["name"],
+                    "service": host_redir["service"],
+                    "weight": 100,
+                    "type_label": "redirect",
+                    "_referenced_by": [host_redir["rkey"]],
+                }
+            )
 
             route_clusters.append(redirect_cluster)
 
             self.logger.debug("host_redirect route: %s" % group)
             self.logger.debug("host_redirect cluster: %s" % redirect_cluster)
 
-        shadows = group.get('shadows', [])
+        shadows = group.get("shadows", [])
 
         for shadow in shadows:
             # Shadows have a real cluster object.
-            shadow_dict = shadow['cluster'].as_dict()
-            shadow_dict['type_label'] = 'shadow'
+            shadow_dict = shadow["cluster"].as_dict()
+            shadow_dict["type_label"] = "shadow"
 
             shadow_cluster = self.include_cluster(shadow_dict)
             route_clusters.append(shadow_cluster)
@@ -258,41 +265,46 @@ class DiagResult:
 
         headers = []
 
-        for header in group.get('headers', []):
-            hdr_name = header.get('name', None)
-            hdr_value = header.get('value', None)
+        for header in group.get("headers", []):
+            hdr_name = header.get("name", None)
+            hdr_value = header.get("value", None)
 
-            if hdr_name == ':authority':
+            if hdr_name == ":authority":
                 host = hdr_value
-            elif hdr_name == ':method':
+            elif hdr_name == ":method":
                 method = hdr_value
             else:
                 headers.append(header)
 
         sep = "" if prefix.startswith("/") else "/"
-        route_key = "%s://%s%s%s" % (self.request_scheme, host if host else self.request_host, sep, prefix)
+        route_key = "%s://%s%s%s" % (
+            self.request_scheme,
+            host if host else self.request_host,
+            sep,
+            prefix,
+        )
 
         route_info = {
-            '_route': group.as_dict(),
-            '_source': group['location'],
-            '_group_id': group['group_id'],
-            'key': route_key,
-            'prefix': prefix,
-            'rewrite': rewrite,
-            'method': method,
-            'headers': headers,
-            'clusters': [ x.default_missing() for x in route_clusters ],
-            'host': host if host else '*',
+            "_route": group.as_dict(),
+            "_source": group["location"],
+            "_group_id": group["group_id"],
+            "key": route_key,
+            "prefix": prefix,
+            "rewrite": rewrite,
+            "method": method,
+            "headers": headers,
+            "clusters": [x.default_missing() for x in route_clusters],
+            "host": host if host else "*",
         }
 
-        if 'precedence' in group:
-            route_info['precedence'] = group['precedence']
+        if "precedence" in group:
+            route_info["precedence"] = group["precedence"]
 
-        metadata_labels = group.get('metadata_labels') or {}
-        diag_class = metadata_labels.get('ambassador_diag_class') or None
+        metadata_labels = group.get("metadata_labels") or {}
+        diag_class = metadata_labels.get("ambassador_diag_class") or None
 
         if diag_class:
-            route_info['diag_class'] = diag_class
+            route_info["diag_class"] = diag_class
 
         self.routes.append(route_info)
         self.include_referenced_elements(group)
@@ -308,7 +320,7 @@ class DiagResult:
             amb_el_info = self.diag.ambassador_elements.get(key, None)
 
             if amb_el_info:
-                serialization = amb_el_info.get('serialization', None)
+                serialization = amb_el_info.get("serialization", None)
 
                 if serialization:
                     self.ambassador_resources[key] = serialization
@@ -342,12 +354,9 @@ class Diagnostics:
 
     source_map: Dict[str, Dict[str, bool]]
 
-    reKeyIndex = re.compile(r'\.(\d+)$')
+    reKeyIndex = re.compile(r"\.(\d+)$")
 
-    filter_map = {
-        'IRAuth': 'AuthService',
-        'IRRateLimit': 'RateLimitService'
-    }
+    filter_map = {"IRAuth": "AuthService", "IRRateLimit": "RateLimitService"}
 
     def __init__(self, ir: IR, econf: EnvoyConfig) -> None:
         self.logger = logging.getLogger("ambassador.diagnostics")
@@ -383,25 +392,27 @@ class Diagnostics:
         warn_ratelimit = False
 
         for filter in self.ir.filters:
-            if filter.kind == 'IRAuth':
-                proto = filter.get('proto') or 'http'
+            if filter.kind == "IRAuth":
+                proto = filter.get("proto") or "http"
 
-                if proto.lower() != 'http':
+                if proto.lower() != "http":
                     warn_auth = True
 
-            if filter.kind == 'IRRateLimit':
+            if filter.kind == "IRRateLimit":
                 warn_ratelimit = True
 
         things_to_warn = []
 
         if warn_auth:
-            things_to_warn.append('AuthServices')
+            things_to_warn.append("AuthServices")
 
         if warn_ratelimit:
-            things_to_warn.append('RateLimitServices')
+            things_to_warn.append("RateLimitServices")
 
         if things_to_warn:
-            self.ir.aconf.post_notice(f'A future Ambassador version will change the GRPC protocol version for {" and ".join(things_to_warn)}. See the CHANGELOG for details.')
+            self.ir.aconf.post_notice(
+                f'A future Ambassador version will change the GRPC protocol version for {" and ".join(things_to_warn)}. See the CHANGELOG for details.'
+            )
 
         # # Warn people about the default port change.
         # if self.ir.ambassador_module.service_port < 1024:
@@ -443,39 +454,37 @@ class Diagnostics:
 
         # Next up, walk the list of Ambassador sources.
         for key, rsrc in self.ir.aconf.sources.items():
-            uqkey = key     # Unqualified key, e.g. ambassador.yaml
-            fqkey = uqkey   # Fully-qualified key, e.g. ambassador.yaml.1
+            uqkey = key  # Unqualified key, e.g. ambassador.yaml
+            fqkey = uqkey  # Fully-qualified key, e.g. ambassador.yaml.1
 
             key_index = None
 
-            if 'rkey' in rsrc:
+            if "rkey" in rsrc:
                 uqkey, key_index = self.split_key(rsrc.rkey)
 
             if key_index is not None:
                 fqkey = "%s.%s" % (uqkey, key_index)
 
-            location, _ = self.split_key(rsrc.get('location', key))
+            location, _ = self.split_key(rsrc.get("location", key))
 
-            self.logger.debug("  %s (%s): UQ %s, FQ %s, LOC %s" % (key, rsrc, uqkey, fqkey, location))
+            self.logger.debug(
+                "  %s (%s): UQ %s, FQ %s, LOC %s" % (key, rsrc, uqkey, fqkey, location)
+            )
 
             self.remember_source(uqkey, fqkey, location, rsrc.rkey)
 
             ambassador_element: dict = self.ambassador_elements.setdefault(
-                fqkey,
-                {
-                    'location': location,
-                    'kind': rsrc.kind
-                }
+                fqkey, {"location": location, "kind": rsrc.kind}
             )
 
             if uqkey and (uqkey != fqkey):
-                ambassador_element['parent'] = uqkey
+                ambassador_element["parent"] = uqkey
 
-            serialization = rsrc.get('serialization', None)
+            serialization = rsrc.get("serialization", None)
             if serialization:
                 if ambassador_element["kind"] == "Secret":
                     serialization = "kind: Secret\ndata: (elided by Ambassador)\n"
-                ambassador_element['serialization'] = serialization
+                ambassador_element["serialization"] = serialization
 
         # Next up, the Envoy elements.
         for kind, elements in self.econf.elements.items():
@@ -485,15 +494,21 @@ class Diagnostics:
 
                 element_dict = self.envoy_elements.setdefault(fqkey, {})
                 element_list = element_dict.setdefault(kind, [])
-                element_list.append({ k: v for k, v in envoy_element.items() if k[0] != '_' })
+                element_list.append({k: v for k, v in envoy_element.items() if k[0] != "_"})
 
         # Always generate the full group set so that we can look up groups.
-        self.groups = { 'grp-%s' % group.group_id: group for group in self.ir.groups.values()
-                        if group.location != "--diagnostics--" }
+        self.groups = {
+            "grp-%s" % group.group_id: group
+            for group in self.ir.groups.values()
+            if group.location != "--diagnostics--"
+        }
 
         # Always generate the full cluster set so that we can look up clusters.
-        self.clusters = { cluster.name: cluster for cluster in self.ir.clusters.values()
-                          if cluster.location != "--diagnostics--" }
+        self.clusters = {
+            cluster.name: cluster
+            for cluster in self.ir.clusters.values()
+            if cluster.location != "--diagnostics--"
+        }
 
         # Build up our Ambassador services too (auth, ratelimit, tracing).
         self.ambassador_services = []
@@ -506,7 +521,9 @@ class Diagnostics:
                 self.add_ambassador_service(filt, type_name)
 
         if self.ir.tracing:
-            self.add_ambassador_service(self.ir.tracing, 'TracingService (%s)' % self.ir.tracing.driver)
+            self.add_ambassador_service(
+                self.ir.tracing, "TracingService (%s)" % self.ir.tracing.driver
+            )
 
         self.ambassador_resolvers = []
         used_resolvers: Dict[str, List[str]] = {}
@@ -535,13 +552,15 @@ class Diagnostics:
         svc_weight = 100.0 / len(urls)
 
         for url in urls:
-            self.ambassador_services.append({
-                'type': type_name,
-                '_source': svc.location,
-                'name': url,
-                'cluster': cluster.envoy_name,
-                '_service_weight': svc_weight
-            })
+            self.ambassador_services.append(
+                {
+                    "type": type_name,
+                    "_source": svc.location,
+                    "name": url,
+                    "cluster": cluster.envoy_name,
+                    "_service_weight": svc_weight,
+                }
+            )
 
     def add_ambassador_resolver(self, resolver, group_list) -> None:
         """
@@ -551,12 +570,14 @@ class Diagnostics:
         :param group_list: list of groups that use this resolver
         """
 
-        self.ambassador_resolvers.append({
-            'kind': resolver.kind,
-            '_source': resolver.location,
-            'name': resolver.name,
-            'groups': group_list
-        })
+        self.ambassador_resolvers.append(
+            {
+                "kind": resolver.kind,
+                "_source": resolver.location,
+                "name": resolver.name,
+                "groups": group_list,
+            }
+        )
 
     @staticmethod
     def split_key(key) -> Tuple[str, Optional[str]]:
@@ -573,56 +594,56 @@ class Diagnostics:
         m = Diagnostics.reKeyIndex.search(key)
 
         if m:
-            key_base = key[:m.start()]
+            key_base = key[: m.start()]
             key_index = m.group(1)
 
         return key_base, key_index
 
     def as_dict(self) -> dict:
         return {
-            'source_map': self.source_map,
-            'ambassador_services': self.ambassador_services,
-            'ambassador_resolvers': self.ambassador_resolvers,
-            'ambassador_elements': self.ambassador_elements,
-            'envoy_elements': self.envoy_elements,
-            'errors': self.errors,
-            'notices': self.notices,
-            'groups': { key: self.flattened(value) for key, value in self.groups.items() },
+            "source_map": self.source_map,
+            "ambassador_services": self.ambassador_services,
+            "ambassador_resolvers": self.ambassador_resolvers,
+            "ambassador_elements": self.ambassador_elements,
+            "envoy_elements": self.envoy_elements,
+            "errors": self.errors,
+            "notices": self.notices,
+            "groups": {key: self.flattened(value) for key, value in self.groups.items()},
             # 'clusters': { key: value.as_dict() for key, value in self.clusters.items() },
-            'tlscontexts': [ x.as_dict() for x in self.ir.tls_contexts.values() ]
+            "tlscontexts": [x.as_dict() for x in self.ir.tls_contexts.values()],
         }
 
     def flattened(self, group: IRBaseMappingGroup) -> dict:
-        flattened = { k: v for k, v in group.as_dict().items() if k != 'mappings' }
+        flattened = {k: v for k, v in group.as_dict().items() if k != "mappings"}
         flattened_mappings = []
 
-        for m in group['mappings']:
+        for m in group["mappings"]:
             fm = {
-                "_active": m['_active'],
-                "_errored": m['_errored'],
-                "_rkey": m['rkey'],
-                "location": m['location'],
-                "name": m['name'],
-                "cluster_service": m.get('cluster', {}).get("service"),
-                "cluster_name": m.get('cluster', {}).get("envoy_name"),
+                "_active": m["_active"],
+                "_errored": m["_errored"],
+                "_rkey": m["rkey"],
+                "location": m["location"],
+                "name": m["name"],
+                "cluster_service": m.get("cluster", {}).get("service"),
+                "cluster_name": m.get("cluster", {}).get("envoy_name"),
             }
 
-            if flattened['kind'] == 'IRHTTPMappingGroup':
-                fm['prefix'] = m.get('prefix')
+            if flattened["kind"] == "IRHTTPMappingGroup":
+                fm["prefix"] = m.get("prefix")
 
-            rewrite = m.get('rewrite', None)
+            rewrite = m.get("rewrite", None)
 
             if rewrite:
-                fm['rewrite'] = rewrite
+                fm["rewrite"] = rewrite
 
-            host = m.get('host', None)
+            host = m.get("host", None)
 
             if host:
-                fm['host'] = host
+                fm["host"] = host
 
             flattened_mappings.append(fm)
 
-        flattened['mappings'] = flattened_mappings
+        flattened["mappings"] = flattened_mappings
 
         return flattened
 
@@ -642,8 +663,9 @@ class Diagnostics:
         src_map = self.source_map.setdefault(src_key, {})
         src_map[dest_key] = True
 
-    def remember_source(self, uqkey: str, fqkey: Optional[str], location: Optional[str],
-                        dest_key: str) -> None:
+    def remember_source(
+        self, uqkey: str, fqkey: Optional[str], location: Optional[str], dest_key: str
+    ) -> None:
         """
         Populate the source map in various ways. A mapping from uqkey to dest_key is
         always added; mappings for fqkey and location are added if they are unique

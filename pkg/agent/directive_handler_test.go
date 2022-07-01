@@ -3,9 +3,9 @@ package agent_test
 import (
 	"testing"
 
-	"github.com/datawire/ambassador/v2/pkg/agent"
-	agentTypes "github.com/datawire/ambassador/v2/pkg/api/agent"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/agent"
+	agentTypes "github.com/emissary-ingress/emissary/v3/pkg/api/agent"
 )
 
 func TestHandleDirective(t *testing.T) {

@@ -154,7 +154,7 @@ In the same terminal session you can run the following command:
 # docker must be able to login to your registry and you have to have push permissions
 make push
 
-# you can view the newly tag images by running 
+# you can view the newly tag images by running
 docker images | grep <your -registry>
 
 # alternatively, we have two make targets that provide information as well
@@ -218,7 +218,7 @@ Before contributing be sure to read our [Code of Conduct](CODE_OF_CONDUCT.md) an
    git rebase master
 
    # if you previously pushed your changes to Github then your rebase will require you to force push
-   git push origin <your-dev-branch> -f 
+   git push origin <your-dev-branch> -f
    ```
 
 4. **Code changes must have associated documentation updates.**
@@ -430,7 +430,7 @@ formats:
 Given an input source, running
 
 ```bash
-ambassador dump --ir --v2 [$input_flags] $input > test.json
+ambassador dump --ir --xds [$input_flags] $input > test.json
 ```
 
 will dump the Ambassador IR and v2 Envoy configuration into `test.json`. Here
@@ -839,14 +839,12 @@ We strongly recommend using an editor that can do realtime type checking
 can do this now) and also running the type checker by hand before submitting
 anything:
 
-- `make mypy` will start check all the Ambassador code
+- `make lint/mypy` will check all the Ambassador code
 
-Since `make mypy` uses the daemon for caching, it should be very fast after
-the first run. Ambassador code should produce *no* warnings and *no* errors.
+Ambassador code should produce *no* warnings and *no* errors.
 
-If you're concerned that the cache is somehow wrong (or if you just want the
-daemon to not be there any more), `make mypy-clean` will stop the daemon
-and clear the cache.
+If you're concerned that the mypy cache is somehow wrong, delete the
+`.mypy_cache/` directory to clear the cache.
 
 ### How do I get the source code for a release?
 

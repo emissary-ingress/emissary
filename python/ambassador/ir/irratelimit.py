@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Literal, Optional, TYPE_CHECKING
 
 from ..config import Config
 from ..utils import RichStatus
@@ -7,23 +7,28 @@ from .irfilter import IRFilter
 from .ircluster import IRCluster
 
 if TYPE_CHECKING:
-    from .ir import IR # pragma: no cover
+    from .ir import IR  # pragma: no cover
 
 
-class IRRateLimit (IRFilter):
-    def __init__(self, ir: 'IR', aconf: Config,
-                 rkey: str="ir.ratelimit",
-                 kind: str="IRRateLimit",
-                 name: str="rate_limit",    # This is a key for Envoy! You can't just change it.
-                 namespace: Optional[str] = None,
-                 **kwargs) -> None:
-        # print("IRRateLimit __init__ (%s %s %s)" % (kind, name, kwargs))
+class IRRateLimit(IRFilter):
+    protocol_version: Literal["v2", "v3"]
+
+    def __init__(
+        self,
+        ir: "IR",
+        aconf: Config,
+        rkey: str = "ir.ratelimit",
+        kind: str = "IRRateLimit",
+        name: str = "rate_limit",  # This is a key for Envoy! You can't just change it.
+        namespace: Optional[str] = None,
+        **kwargs,
+    ) -> None:
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, namespace=namespace, type='decoder'
+            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, namespace=namespace, type="decoder"
         )
 
-    def setup(self, ir: 'IR', aconf: Config) -> bool:
+    def setup(self, ir: "IR", aconf: Config) -> bool:
         config_info = aconf.get_config("ratelimit_configs")
 
         if not config_info:
@@ -42,8 +47,9 @@ class IRRateLimit (IRFilter):
         service = config.get("service", None)
 
         if not service:
-            self.post_error(RichStatus.fromError("service is required in RateLimitService",
-                                                 module=config))
+            self.post_error(
+                RichStatus.fromError("service is required in RateLimitService", module=config)
+            )
             return False
 
         ir.logger.debug("IRRateLimit: ratelimit using service %s" % service)
@@ -51,14 +57,20 @@ class IRRateLimit (IRFilter):
         # OK, we have a valid config.
 
         self.service = service
-        self.ctx_name = config.get('tls', None)
-        self.name = "rate_limit"    # Force this, just in case.
+        self.ctx_name = config.get("tls", None)
+        self.name = "rate_limit"  # Force this, just in case.
         self.namespace = config.get("namespace", self.namespace)
-        self.domain = config.get('domain', ir.ambassador_module.default_label_domain)
+        self.domain = config.get("domain", ir.ambassador_module.default_label_domain)
+
         self.protocol_version = config.get("protocol_version", "v2")
+        if self.protocol_version == "v2":
+            self.post_error(
+                f'RateLimitService: protocol_version {self.protocol_version} is unsupported, protocol_version must be "v3"'
+            )
+            return False
 
         # XXX host_rewrite actually isn't in the schema right now.
-        self.host_rewrite = config.get('host_rewrite', None)
+        self.host_rewrite = config.get("host_rewrite", None)
 
         # Should we use the shiny new data_plane_proto? Default false right now.
         # XXX Needs to be configurable.
@@ -67,8 +79,8 @@ class IRRateLimit (IRFilter):
         # Filter config.
         self.config = {
             "domain": self.domain,
-            "timeout_ms": config.get('timeout_ms', 20),
-            "request_type": "both"  # XXX configurability!
+            "timeout_ms": config.get("timeout_ms", 20),
+            "request_type": "both",  # XXX configurability!
         }
 
         self.sourced_by(config)
@@ -76,7 +88,7 @@ class IRRateLimit (IRFilter):
 
         return True
 
-    def add_mappings(self, ir: 'IR', aconf: Config):
+    def add_mappings(self, ir: "IR", aconf: Config):
         cluster = ir.add_cluster(
             IRCluster(
                 ir=ir,
@@ -85,9 +97,9 @@ class IRRateLimit (IRFilter):
                 location=self.location,
                 service=self.service,
                 grpc=True,
-                host_rewrite=self.get('host_rewrite', None),
-                ctx_name=self.get('ctx_name', None),
-                stats_name=self.get("stats_name", None)
+                host_rewrite=self.get("host_rewrite", None),
+                ctx_name=self.get("ctx_name", None),
+                stats_name=self.get("stats_name", None),
             )
         )
 

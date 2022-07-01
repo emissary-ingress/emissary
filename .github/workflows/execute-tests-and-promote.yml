@@ -22,6 +22,9 @@ jobs:
         uses: ./.github/actions/setup-deps
       - shell: bash
         run: |
+          make lint-deps
+      - shell: bash
+        run: |
           make lint
       - uses: ./.github/actions/after-job
         if: always()
@@ -115,8 +118,6 @@ jobs:
         run: |
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
-          export TEST_XML_DIR=/tmp/test-logs/xml/
-          mkdir -p ${TEST_XML_DIR}
           make gotest
       - uses: ./.github/actions/after-job
         if: always()
@@ -134,12 +135,11 @@ jobs:
       matrix:
         test:
           - integration
-          - kat-envoy2-g1
-          - kat-envoy2-g2
-          - kat-envoy2-g3
-          - kat-envoy3-g1
-          - kat-envoy3-g2
-          - kat-envoy3-g3
+          - kat-envoy3-1-of-5
+          - kat-envoy3-2-of-5
+          - kat-envoy3-3-of-5
+          - kat-envoy3-4-of-5
+          - kat-envoy3-5-of-5
           # FIXME(lukeshu): KAT_RUN_MODE=local is disabled because it
           # needs fixed for a world where annotations are already
           # unfolded in the snapshot.
@@ -159,24 +159,18 @@ jobs:
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - name: make pytest-${{ matrix.test }}
-        uses: nick-invision/retry@v2.4.0
-        with:
-          max_attempts: 3
-          timeout_minutes: 20
-          command: |
-            export USE_LOCAL_K3S_CLUSTER=1
-            sudo sysctl -w fs.file-max=1600000
-            sudo sysctl -w fs.inotify.max_user_instances=4096
+        run: |
+          export USE_LOCAL_K3S_CLUSTER=1
+          sudo sysctl -w fs.file-max=1600000
+          sudo sysctl -w fs.inotify.max_user_instances=4096
 
-            make ci/setup-k3d K3D_CLUSTER_NAME=amb-ci
+          make ci/setup-k3d K3D_CLUSTER_NAME=amb-ci
 
-            export DEV_KUBE_NO_PVC=yes
-            export KAT_REQ_LIMIT=900
-            export TEST_XML_DIR=/tmp/test-logs/xml/
-            export DEV_KUBECONFIG=~/.kube/config
-            export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
-            mkdir -p ${TEST_XML_DIR}
-            make pytest-${{ matrix.test }}
+          export DEV_KUBE_NO_PVC=yes
+          export KAT_REQ_LIMIT=900
+          export DEV_KUBECONFIG=~/.kube/config
+          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
+          make pytest-${{ matrix.test }}
       - uses: ./.github/actions/after-job
         if: always()
         with:
@@ -206,21 +200,16 @@ jobs:
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - name: make pytest-${{ matrix.test }}
-        uses: nick-invision/retry@v2.4.0
-        with:
-          max_attempts: 3
-          timeout_minutes: 20
-          command: |
-            sudo sysctl -w fs.file-max=1600000
-            sudo sysctl -w fs.inotify.max_user_instances=4096
+        run: |
+          sudo sysctl -w fs.file-max=1600000
+          sudo sysctl -w fs.inotify.max_user_instances=4096
 
-            export DEV_KUBE_NO_PVC=yes
-            export KAT_REQ_LIMIT=900
-            export TEST_XML_DIR=/tmp/test-logs/xml/
-            export DEV_KUBECONFIG=~/.kube/config
-            export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
-            mkdir -p ${TEST_XML_DIR}
-            make pytest-${{ matrix.test }}
+          export DEV_KUBE_NO_PVC=yes
+          export KAT_REQ_LIMIT=900
+          export DEV_KUBECONFIG=~/.kube/config
+          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
+          export PYTEST_ARGS=' --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html '
+          make pytest-${{ matrix.test }}
       - uses: ./.github/actions/after-job
         if: always()
         with:
@@ -228,10 +217,6 @@ jobs:
   check-chart:
     runs-on: ubuntu-latest
     env:
-      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
-      AWS_EC2_METADATA_DISABLED: true
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
@@ -263,10 +248,6 @@ jobs:
   build: #######################################################################
     runs-on: ubuntu-latest
     env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
-      AWS_EC2_METADATA_DISABLED: true
-      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}

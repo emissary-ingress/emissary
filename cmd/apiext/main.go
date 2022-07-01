@@ -9,13 +9,13 @@ import (
 	k8sRuntime "k8s.io/apimachinery/pkg/runtime"
 	k8sRuntimeUtil "k8s.io/apimachinery/pkg/util/runtime"
 
-	v2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
-	"github.com/datawire/ambassador/v2/pkg/busy"
-	"github.com/datawire/ambassador/v2/pkg/k8s"
-	"github.com/datawire/ambassador/v2/pkg/logutil"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
+	v2 "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v2"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/busy"
+	"github.com/emissary-ingress/emissary/v3/pkg/k8s"
+	"github.com/emissary-ingress/emissary/v3/pkg/logutil"
 )
 
 // PodNamespace is borrowed from
@@ -37,7 +37,7 @@ func PodNamespace() string {
 	return "default"
 }
 
-// Main is a `github.com/datawire/ambassador/v2/pkg/busy`-compatible wrapper around 'Run()', using
+// Main is a `github.com/emissary-ingress/emissary/v3/pkg/busy`-compatible wrapper around 'Run()', using
 // values appropriate for the stock Emissary.
 func Main(ctx context.Context, version string, args ...string) error {
 	dlog.Infof(ctx, "Emissary Ingress apiext (version %q)", version)

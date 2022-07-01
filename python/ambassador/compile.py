@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Literal, Optional, Union, cast
+from typing_extensions import TypedDict, NotRequired
 
 import logging
 
@@ -24,11 +25,20 @@ from .envoy import EnvoyConfig
 from .fetch import ResourceFetcher
 from .utils import SecretHandler, NullSecretHandler, Timer
 
-def Compile(logger: logging.Logger, input_text: str,
-            cache: Optional[Cache]=None,
-            file_checker: Optional[IRFileChecker]=None,
-            secret_handler: Optional[SecretHandler]=None,
-            k8s=False, envoy_version="V2") -> Dict[str, Union[IR, EnvoyConfig]]:
+
+class _CompileResult(TypedDict):
+    ir: IR
+    xds: NotRequired[EnvoyConfig]
+
+
+def Compile(
+    logger: logging.Logger,
+    input_text: str,
+    cache: Optional[Cache] = None,
+    file_checker: Optional[IRFileChecker] = None,
+    secret_handler: Optional[SecretHandler] = None,
+    k8s: bool = False,
+) -> _CompileResult:
     """
     Compile is a helper function to take a bunch of YAML and compile it into an
     IR and, optionally, an Envoy config.
@@ -37,15 +47,12 @@ def Compile(logger: logging.Logger, input_text: str,
 
     {
         "ir": the IR data structure
+        "xds": the Envoy config
     }
-
-    IFF v2 is True, there will be a toplevel "v2" key whose value is the Envoy
-    V2 config.
 
     :param input_text: The input text (WATT snapshot JSON or K8s YAML per 'k8s')
     :param k8s: If true, input_text is K8s YAML, otherwise it's WATT snapshot JSON
     :param ir: Generate the IR IFF True
-    :param v2: Generate the V2 Envoy config IFF True
     """
 
     if not file_checker:
@@ -67,10 +74,9 @@ def Compile(logger: logging.Logger, input_text: str,
 
     ir = IR(aconf, cache=cache, file_checker=file_checker, secret_handler=secret_handler)
 
-    out: Dict[str, Union[IR, EnvoyConfig]] = { "ir": ir }
+    out: _CompileResult = {"ir": ir}
 
     if ir:
-        out[envoy_version.lower()] = EnvoyConfig.generate(ir, envoy_version.upper(), cache=cache)
+        out["xds"] = EnvoyConfig.generate(ir, cache=cache)
 
     return out
-

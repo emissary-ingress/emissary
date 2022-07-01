@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/yaml"
 
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v2"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 )
 
 func marshalNormalized(t *testing.T, typed interface{}) string {

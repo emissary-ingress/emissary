@@ -10,7 +10,7 @@ import (
 	//nolint:depguard // So we can turn off buffering if we're not debug logging
 	"github.com/sirupsen/logrus"
 
-	"github.com/datawire/ambassador/v2/pkg/busy"
+	"github.com/emissary-ingress/emissary/v3/pkg/busy"
 )
 
 func LogLevelIsAtLeastDebug() bool {

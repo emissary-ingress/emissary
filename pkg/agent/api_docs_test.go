@@ -7,11 +7,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/datawire/ambassador/v2/pkg/agent"
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/agent"
+	amb "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 func TestAPIDocsStore(t *testing.T) {

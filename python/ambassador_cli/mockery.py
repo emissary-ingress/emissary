@@ -55,12 +55,13 @@ KubeResource = Dict[str, Any]
 KubeList = List[KubeResource]
 WattDict = Dict[str, KubeList]
 
+
 class LabelSpec:
     def __init__(self, serialization: str) -> None:
-        if '=' not in serialization:
+        if "=" not in serialization:
             raise Exception(f"label serialization must be key=value, not {serialization}")
 
-        (key, value) = serialization.split('=', 1)
+        (key, value) = serialization.split("=", 1)
 
         self.key = key
         self.value = value
@@ -74,12 +75,12 @@ class LabelSpec:
 
 class FieldSpec:
     def __init__(self, serialization: str) -> None:
-        if '=' not in serialization:
+        if "=" not in serialization:
             raise Exception(f"field serialization must be key=value, not {serialization}")
 
-        (key, value) = serialization.split('=', 1)
+        (key, value) = serialization.split("=", 1)
 
-        self.elements = key.split('.')
+        self.elements = key.split(".")
         self.value = value
 
     def __str__(self) -> str:
@@ -102,32 +103,39 @@ class WatchResult:
         self.kind = kind
         self.watch_id = watch_id
 
+
 class WatchSpec:
-    def __init__(self, logger: logging.Logger, kind: str, namespace: Optional[str],
-                 labels: Optional[str], fields: Optional[str]=None,
-                 bootstrap: Optional[bool]=False):
+    def __init__(
+        self,
+        logger: logging.Logger,
+        kind: str,
+        namespace: Optional[str],
+        labels: Optional[str],
+        fields: Optional[str] = None,
+        bootstrap: Optional[bool] = False,
+    ):
         self.logger = logger
         self.kind = kind
-        self.match_kinds = { self.kind.lower(): True }
+        self.match_kinds = {self.kind.lower(): True}
         self.namespace = namespace
         self.labels: Optional[List[LabelSpec]] = None
         self.fields: Optional[List[FieldSpec]] = None
         self.bootstrap = bootstrap
 
-        if self.kind == 'ingresses':
-            self.match_kinds['ingress'] = True
+        if self.kind == "ingresses":
+            self.match_kinds["ingress"] = True
 
         if labels:
-            self.labels = [ LabelSpec(l) for l in labels.split(',') ]
+            self.labels = [LabelSpec(l) for l in labels.split(",")]
 
         if fields:
-            self.fields = [ FieldSpec(f) for f in fields.split(',') ]
+            self.fields = [FieldSpec(f) for f in fields.split(",")]
 
     def _labelstr(self) -> str:
-        return ",".join([ str(x) for x in self.labels or [] ])
+        return ",".join([str(x) for x in self.labels or []])
 
     def _fieldstr(self) -> str:
-        return ",".join([ str(x) for x in self.fields or [] ])
+        return ",".join([str(x) for x in self.fields or []])
 
     @staticmethod
     def _star(s: Optional[str]) -> str:
@@ -137,7 +145,7 @@ class WatchSpec:
         s = f"{self.kind}|{self._star(self.namespace)}|{self._star(self._fieldstr())}|{self._star(self._labelstr())}"
 
         if self.bootstrap:
-            s += ' (bootstrap)'
+            s += " (bootstrap)"
 
         return f"<{s}>"
 
@@ -148,18 +156,18 @@ class WatchSpec:
             return f"{self.kind}|{self._star(self.namespace)}|{self._star(self._fieldstr())}|{self._star(self._labelstr())}"
 
     def match(self, obj: KubeResource) -> Optional[WatchResult]:
-        kind: Optional[str] = obj.get('kind') or None
-        metadata: Dict[str, Any] = obj.get('metadata') or {}
-        name: Optional[str] = metadata.get('name') or None
-        namespace: str = metadata.get('namespace') or 'default'
-        labels: Dict[str, str] = metadata.get('labels') or {}
+        kind: Optional[str] = obj.get("kind") or None
+        metadata: Dict[str, Any] = obj.get("metadata") or {}
+        name: Optional[str] = metadata.get("name") or None
+        namespace: str = metadata.get("namespace") or "default"
+        labels: Dict[str, str] = metadata.get("labels") or {}
 
         if not kind or not name:
             self.logger.error(f"K8s object requires kind and name: {obj}")
             return None
 
         # self.logger.debug(f"match {self}: check {obj}")
-        match_kind_str = ','.join(sorted(self.match_kinds.keys()))
+        match_kind_str = ",".join(sorted(self.match_kinds.keys()))
 
         # OK. Does the kind match up?
         if kind.lower() not in self.match_kinds:
@@ -194,8 +202,15 @@ class WatchSpec:
 
 
 class Mockery:
-    def __init__(self, logger: logging.Logger, debug: bool, sources: List[str],
-                 labels: Optional[str], namespace: Optional[str], watch: str) -> None:
+    def __init__(
+        self,
+        logger: logging.Logger,
+        debug: bool,
+        sources: List[str],
+        labels: Optional[str],
+        namespace: Optional[str],
+        watch: str,
+    ) -> None:
         self.logger = logger
         self.debug = debug
         self.sources = sources
@@ -211,7 +226,7 @@ class Mockery:
                 kind=source,
                 namespace=self.namespace,
                 labels=labels,
-                bootstrap=True
+                bootstrap=True,
             )
 
             if not self.maybe_add(bootstrap_watch):
@@ -238,8 +253,8 @@ class Mockery:
             self.logger.debug(f"{repr(spec)}")
 
         for obj in manifest:
-            metadata = obj.get('metadata') or {}
-            name = metadata.get('name')
+            metadata = obj.get("metadata") or {}
+            name = metadata.get("name")
 
             if not name:
                 self.logger.debug(f"skipping unnamed object {obj}")
@@ -262,7 +277,7 @@ class Mockery:
         for kind in collected.keys():
             watt_k8s[kind] = list(collected[kind].values())
 
-        self.snapshot = dump_json({ 'Consul': {}, 'Kubernetes': watt_k8s }, pretty=True)
+        self.snapshot = dump_json({"Consul": {}, "Kubernetes": watt_k8s}, pretty=True)
 
         return watt_k8s
 
@@ -279,11 +294,11 @@ class Mockery:
             for w in wh.watchset.get("kubernetes-watches") or []:
                 potential = WatchSpec(
                     logger=self.logger,
-                    kind=w['kind'],
-                    namespace=w.get('namespace'),
-                    labels=w.get('label-selector'),
-                    fields=w.get('field-selector'),
-                    bootstrap=False
+                    kind=w["kind"],
+                    namespace=w.get("namespace"),
+                    labels=w.get("label-selector"),
+                    fields=w.get("field-selector"),
+                    bootstrap=False,
                 )
 
                 if self.maybe_add(potential):
@@ -293,76 +308,132 @@ class Mockery:
 
 
 class MockSecretHandler(SecretHandler):
-    def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
+    def load_secret(
+        self, resource: "IRResource", secret_name: str, namespace: str
+    ) -> Optional[SecretInfo]:
         # Allow an environment variable to state whether we're in Edge Stack. But keep the
         # existing condition as sufficient, so that there is less of a chance of breaking
         # things running in a container with this file present.
-        if parse_bool(os.environ.get('EDGE_STACK', 'false')) or os.path.exists('/ambassador/.edge_stack'):
-            if ((secret_name == "fallback-self-signed-cert") and
-                (namespace == Config.ambassador_namespace)):
+        if parse_bool(os.environ.get("EDGE_STACK", "false")) or os.path.exists(
+            "/ambassador/.edge_stack"
+        ):
+            if (secret_name == "fallback-self-signed-cert") and (
+                namespace == Config.ambassador_namespace
+            ):
                 # This is Edge Stack. Force the fake TLS secret.
 
-                self.logger.info(f"MockSecretHandler: mocking fallback secret {secret_name}.{namespace}")
-                return SecretInfo(secret_name, namespace, "mocked-fallback-secret",
-                                  "-fallback-cert-", "-fallback-key-", decode_b64=False)
+                self.logger.info(
+                    f"MockSecretHandler: mocking fallback secret {secret_name}.{namespace}"
+                )
+                return SecretInfo(
+                    secret_name,
+                    namespace,
+                    "mocked-fallback-secret",
+                    "-fallback-cert-",
+                    "-fallback-key-",
+                    decode_b64=False,
+                )
 
         self.logger.debug(f"MockSecretHandler: cannot load {secret_name}.{namespace}")
         return None
 
-@click.command(help="Mock the watt/watch_hook/diagd cycle to generate an IR from a Kubernetes YAML manifest.")
-@click_option('--debug/--no-debug', default=True,
-              help="enable debugging")
-@click_option('-n', '--namespace', type=click.STRING,
-              help="namespace to watch [default: all namespaces])")
-@click_option('-s', '--source', type=click.STRING, multiple=True,
-              help="define initial source types [default: all Ambassador resources]")
-@click_option('--labels', type=click.STRING, multiple=True,
-              help="define initial label selector")
-@click_option('--force-pod-labels/--no-force-pod-labels', default=True,
-              help="copy initial label selector to /tmp/ambassador-pod-info/labels")
-@click_option('--kat-name', '--kat', type=click.STRING,
-              help="emulate a running KAT test with this name")
-@click_option('-w', '--watch', type=click.STRING, default="python /ambassador/watch_hook.py",
-              help="define a watch hook")
-@click_option('--diff-path', '--diff', type=click.STRING,
-              help="directory to diff against")
-@click_option('--include-ir/--no-include-ir', '--ir/--no-ir', default=False,
-              help="include IR in diff when using --diff-path")
-@click_option('--include-aconf/--no-include-aconf', '--aconf/--no-aconf', default=False,
-              help="include AConf in diff when using --diff-path")
-@click_option('--update/--no-update', default=False,
-              help="update the diff path when finished")
-@click.argument('k8s-yaml-paths', nargs=-1)
-def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update: bool,
-         source: List[str], labels: List[str], namespace: Optional[str], watch: str,
-         include_ir: bool, include_aconf: bool,
-         diff_path: Optional[str]=None, kat_name: Optional[str]=None) -> None:
+
+@click.command(
+    help="Mock the watt/watch_hook/diagd cycle to generate an IR from a Kubernetes YAML manifest."
+)
+@click_option("--debug/--no-debug", default=True, help="enable debugging")
+@click_option(
+    "-n", "--namespace", type=click.STRING, help="namespace to watch [default: all namespaces])"
+)
+@click_option(
+    "-s",
+    "--source",
+    type=click.STRING,
+    multiple=True,
+    help="define initial source types [default: all Ambassador resources]",
+)
+@click_option("--labels", type=click.STRING, multiple=True, help="define initial label selector")
+@click_option(
+    "--force-pod-labels/--no-force-pod-labels",
+    default=True,
+    help="copy initial label selector to /tmp/ambassador-pod-info/labels",
+)
+@click_option(
+    "--kat-name", "--kat", type=click.STRING, help="emulate a running KAT test with this name"
+)
+@click_option(
+    "-w",
+    "--watch",
+    type=click.STRING,
+    default="python /ambassador/watch_hook.py",
+    help="define a watch hook",
+)
+@click_option("--diff-path", "--diff", type=click.STRING, help="directory to diff against")
+@click_option(
+    "--include-ir/--no-include-ir",
+    "--ir/--no-ir",
+    default=False,
+    help="include IR in diff when using --diff-path",
+)
+@click_option(
+    "--include-aconf/--no-include-aconf",
+    "--aconf/--no-aconf",
+    default=False,
+    help="include AConf in diff when using --diff-path",
+)
+@click_option("--update/--no-update", default=False, help="update the diff path when finished")
+@click.argument("k8s-yaml-paths", nargs=-1)
+def main(
+    k8s_yaml_paths: List[str],
+    debug: bool,
+    force_pod_labels: bool,
+    update: bool,
+    source: List[str],
+    labels: List[str],
+    namespace: Optional[str],
+    watch: str,
+    include_ir: bool,
+    include_aconf: bool,
+    diff_path: Optional[str] = None,
+    kat_name: Optional[str] = None,
+) -> None:
     loglevel = logging.DEBUG if debug else logging.INFO
 
     logging.basicConfig(
         level=loglevel,
         format="%(asctime)s mockery %(levelname)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    logger = logging.getLogger('mockery')
+    logger = logging.getLogger("mockery")
 
     logger.debug(f"reading from {k8s_yaml_paths}")
 
     if not source:
         source = [
-            "Host", "service", "ingresses",
-            "AuthService", "Listener", "LogService", "Mapping", "Module", "RateLimitService",
-            "TCPMapping", "TLSContext", "TracingService",
-            "ConsulResolver", "KubernetesEndpointResolver", "KubernetesServiceResolver"
+            "Host",
+            "service",
+            "ingresses",
+            "AuthService",
+            "Listener",
+            "LogService",
+            "Mapping",
+            "Module",
+            "RateLimitService",
+            "TCPMapping",
+            "TLSContext",
+            "TracingService",
+            "ConsulResolver",
+            "KubernetesEndpointResolver",
+            "KubernetesServiceResolver",
         ]
 
     if namespace:
-        os.environ['AMBASSADOR_NAMESPACE'] = namespace
+        os.environ["AMBASSADOR_NAMESPACE"] = namespace
 
     # Make labels a list, instead of a tuple.
     labels = list(labels)
-    labels_to_force = { l: True for l in labels or [] }
+    labels_to_force = {l: True for l in labels or []}
 
     if kat_name:
         logger.debug(f"KAT name {kat_name}")
@@ -378,8 +449,8 @@ def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update:
             labels_to_force[kat_amb_id_label] = True
             labels.append(kat_amb_id_label)
 
-        os.environ['AMBASSADOR_ID'] = kat_name
-        os.environ['AMBASSADOR_LABEL_SELECTOR'] = kat_amb_id_label
+        os.environ["AMBASSADOR_ID"] = kat_name
+        os.environ["AMBASSADOR_LABEL_SELECTOR"] = kat_amb_id_label
 
         # Forcibly override the cached ambassador_id.
         Config.ambassador_id = kat_name
@@ -391,7 +462,7 @@ def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update:
     logger.debug(f"sources {', '.join(source)}")
 
     for key in sorted(os.environ.keys()):
-        if key.startswith('AMBASSADOR'):
+        if key.startswith("AMBASSADOR"):
             logger.debug(f"${key}={os.environ[key]}")
 
     if force_pod_labels:
@@ -407,7 +478,7 @@ def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update:
                 outfile.write("\n")
 
     # Pull in the YAML.
-    input_yaml = ''.join([ open(x, "r").read() for x in k8s_yaml_paths ])
+    input_yaml = "".join([open(x, "r").read() for x in k8s_yaml_paths])
     manifest = parse_yaml(input_yaml)
 
     w = Mockery(logger, debug, source, ",".join(labels), namespace, watch)
@@ -465,14 +536,16 @@ def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update:
 
     open("/tmp/ambassador/snapshots/ir.json", "w", encoding="utf-8").write(ir.as_json())
 
-    econf = EnvoyConfig.generate(ir, Config.envoy_api_version)
+    econf = EnvoyConfig.generate(ir)
     bootstrap_config, ads_config, clustermap = econf.split_config()
 
-    ads_config.pop('@type', None)
+    ads_config.pop("@type", None)
     with open("/tmp/ambassador/snapshots/econf.json", "w", encoding="utf-8") as outfile:
         outfile.write(dump_json(ads_config, pretty=True))
 
-    with open(f"/tmp/ambassador/snapshots/econf-{Config.ambassador_id}.json", "w", encoding="utf-8") as outfile:
+    with open(
+        f"/tmp/ambassador/snapshots/econf-{Config.ambassador_id}.json", "w", encoding="utf-8"
+    ) as outfile:
         outfile.write(dump_json(ads_config, pretty=True))
 
     with open("/tmp/ambassador/snapshots/bootstrap.json", "w", encoding="utf-8") as outfile:
@@ -487,18 +560,30 @@ def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update:
         diffs = False
 
         pairs_to_check = [
-            (os.path.join(diff_path, 'snapshots', 'econf.json'), '/tmp/ambassador/snapshots/econf.json'),
-            (os.path.join(diff_path, 'bootstrap-ads.json'), '/tmp/ambassador/snapshots/bootstrap.json')
+            (
+                os.path.join(diff_path, "snapshots", "econf.json"),
+                "/tmp/ambassador/snapshots/econf.json",
+            ),
+            (
+                os.path.join(diff_path, "bootstrap-ads.json"),
+                "/tmp/ambassador/snapshots/bootstrap.json",
+            ),
         ]
 
         if include_ir:
             pairs_to_check.append(
-                ( os.path.join(diff_path, 'snapshots', 'ir.json'), '/tmp/ambassador/snapshots/ir.json' )
+                (
+                    os.path.join(diff_path, "snapshots", "ir.json"),
+                    "/tmp/ambassador/snapshots/ir.json",
+                )
             )
 
         if include_aconf:
             pairs_to_check.append(
-                ( os.path.join(diff_path, 'snapshots', 'aconf.json'), '/tmp/ambassador/snapshots/aconf.json' )
+                (
+                    os.path.join(diff_path, "snapshots", "aconf.json"),
+                    "/tmp/ambassador/snapshots/aconf.json",
+                )
             )
 
         for gold_path, check_path in pairs_to_check:
@@ -511,12 +596,14 @@ def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update:
                 gold_lines = open(gold_path, "r", encoding="utf-8").readlines()
                 check_lines = open(check_path, "r", encoding="utf-8").readlines()
 
-                for line in difflib.unified_diff(gold_lines, check_lines, fromfile=gold_path, tofile=check_path):
+                for line in difflib.unified_diff(
+                    gold_lines, check_lines, fromfile=gold_path, tofile=check_path
+                ):
                     sys.stdout.write(line)
 
         if diffs:
             sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

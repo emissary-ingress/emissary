@@ -10,6 +10,7 @@ resources:
   - { kind: ClusterRole,        name: emissary-ingress-crd                                       }
   - { kind: ClusterRole,        name: emissary-ingress-watch                                     }
   - { kind: Deployment,         name: emissary-ingress,                    namespace: *namespace }
+  - { kind: Module,             name: ambassador,                          namespace: *namespace }
   - { kind: ServiceAccount,     name: emissary-ingress-agent,              namespace: *namespace }
   - { kind: ClusterRoleBinding, name: emissary-ingress-agent                                     }
   - { kind: ClusterRole,        name: emissary-ingress-agent                                     }

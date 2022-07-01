@@ -113,17 +113,21 @@ class StatsdTest(AmbassadorTest):
       value: 'true'
 """
 
-        return self.format(integration_manifests.load("rbac_cluster_scope") + integration_manifests.load("ambassador"),
-                           envs=envs,
-                           extra_ports="",
-                           capabilities_block="") + \
-               GRAPHITE_CONFIG.format(
-                   'statsd-sink',
-                   integration_manifests.get_images()['test-stats'],
-                   f"{STATSD_TEST_CLUSTER}:{ALT_STATSD_TEST_CLUSTER}")
+        return self.format(
+            integration_manifests.load("rbac_cluster_scope")
+            + integration_manifests.load("ambassador"),
+            envs=envs,
+            extra_ports="",
+            capabilities_block="",
+        ) + GRAPHITE_CONFIG.format(
+            "statsd-sink",
+            integration_manifests.get_images()["test-stats"],
+            f"{STATSD_TEST_CLUSTER}:{ALT_STATSD_TEST_CLUSTER}",
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format("""
+        yield self.target, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -156,7 +160,8 @@ hostname: "*"
 prefix: /metrics
 rewrite: /metrics
 service: http://127.0.0.1:8877
-""")
+"""
+        )
 
     def requirements(self):
         yield from super().requirements()
@@ -175,25 +180,29 @@ service: http://127.0.0.1:8877
         stats = self.results[-2].json or {}
 
         cluster_stats = stats.get(STATSD_TEST_CLUSTER, {})
-        rq_total = cluster_stats.get('upstream_rq_total', -1)
-        rq_200 = cluster_stats.get('upstream_rq_200', -1)
+        rq_total = cluster_stats.get("upstream_rq_total", -1)
+        rq_200 = cluster_stats.get("upstream_rq_200", -1)
 
-        assert rq_total == 1000, f'{STATSD_TEST_CLUSTER}: expected 1000 total calls, got {rq_total}'
-        assert rq_200 > 990, f'{STATSD_TEST_CLUSTER}: expected 1000 successful calls, got {rq_200}'
+        assert rq_total == 1000, f"{STATSD_TEST_CLUSTER}: expected 1000 total calls, got {rq_total}"
+        assert rq_200 > 990, f"{STATSD_TEST_CLUSTER}: expected 1000 successful calls, got {rq_200}"
 
         cluster_stats = stats.get(ALT_STATSD_TEST_CLUSTER, {})
-        rq_total = cluster_stats.get('upstream_rq_total', -1)
-        rq_200 = cluster_stats.get('upstream_rq_200', -1)
+        rq_total = cluster_stats.get("upstream_rq_total", -1)
+        rq_200 = cluster_stats.get("upstream_rq_200", -1)
 
-        assert rq_total == 1000, f'{ALT_STATSD_TEST_CLUSTER}: expected 1000 total calls, got {rq_total}'
-        assert rq_200 > 990, f'{ALT_STATSD_TEST_CLUSTER}: expected 1000 successful calls, got {rq_200}'
+        assert (
+            rq_total == 1000
+        ), f"{ALT_STATSD_TEST_CLUSTER}: expected 1000 total calls, got {rq_total}"
+        assert (
+            rq_200 > 990
+        ), f"{ALT_STATSD_TEST_CLUSTER}: expected 1000 successful calls, got {rq_200}"
 
         # self.results[-1] is the text dump from Envoy's '/metrics' endpoint.
         metrics = self.results[-1].text
 
         # Somewhere in here, we want to see a metric explicitly for both our "real"
         # cluster and our alt cluster, returning a 200. Are they there?
-        wanted_metric = 'envoy_cluster_internal_upstream_rq'
+        wanted_metric = "envoy_cluster_internal_upstream_rq"
         wanted_status = 'envoy_response_code="200"'
         wanted_cluster_name = f'envoy_cluster_name="{STATSD_TEST_CLUSTER}"'
         alt_wanted_cluster_name = f'envoy_cluster_name="{ALT_STATSD_TEST_CLUSTER}"'
@@ -210,8 +219,12 @@ service: http://127.0.0.1:8877
                 print(f"line '{line}'")
                 found_alt = True
 
-        assert found_normal, f"wanted {STATSD_TEST_CLUSTER} in Prometheus metrics, but didn't find it"
-        assert found_alt, f"wanted {ALT_STATSD_TEST_CLUSTER} in Prometheus metrics, but didn't find it"
+        assert (
+            found_normal
+        ), f"wanted {STATSD_TEST_CLUSTER} in Prometheus metrics, but didn't find it"
+        assert (
+            found_alt
+        ), f"wanted {ALT_STATSD_TEST_CLUSTER} in Prometheus metrics, but didn't find it"
 
 
 class DogstatsdTest(AmbassadorTest):
@@ -230,17 +243,21 @@ class DogstatsdTest(AmbassadorTest):
       value: 'true'
 """
 
-        return self.format(integration_manifests.load("rbac_cluster_scope") + integration_manifests.load('ambassador'),
-                           envs=envs,
-                           extra_ports="",
-                           capabilities_block="") + \
-               DOGSTATSD_CONFIG.format(
-                   'dogstatsd-sink',
-                   integration_manifests.get_images()['test-stats'],
-                   DOGSTATSD_TEST_CLUSTER)
+        return self.format(
+            integration_manifests.load("rbac_cluster_scope")
+            + integration_manifests.load("ambassador"),
+            envs=envs,
+            extra_ports="",
+            capabilities_block="",
+        ) + DOGSTATSD_CONFIG.format(
+            "dogstatsd-sink",
+            integration_manifests.get_images()["test-stats"],
+            DOGSTATSD_TEST_CLUSTER,
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format("""
+        yield self.target, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -257,7 +274,8 @@ hostname: "*"
 prefix: /reset/
 rewrite: /RESET/
 service: dogstatsd-sink
-""")
+"""
+        )
 
     def requirements(self):
         yield from super().requirements()
@@ -273,8 +291,8 @@ service: dogstatsd-sink
         stats = self.results[-1].json or {}
 
         cluster_stats = stats.get(DOGSTATSD_TEST_CLUSTER, {})
-        rq_total = cluster_stats.get('upstream_rq_total', -1)
-        rq_200 = cluster_stats.get('upstream_rq_200', -1)
+        rq_total = cluster_stats.get("upstream_rq_total", -1)
+        rq_200 = cluster_stats.get("upstream_rq_200", -1)
 
-        assert rq_total == 1000, f'expected 1000 total calls, got {rq_total}'
-        assert rq_200 > 990, f'expected 1000 successful calls, got {rq_200}'
+        assert rq_total == 1000, f"expected 1000 total calls, got {rq_total}"
+        assert rq_200 > 990, f"expected 1000 successful calls, got {rq_200}"

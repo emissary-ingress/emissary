@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	agentapi "github.com/datawire/ambassador/v2/pkg/api/agent"
 	"github.com/datawire/dlib/dlog"
+	agentapi "github.com/emissary-ingress/emissary/v3/pkg/api/agent"
 )
 
 type DirectiveHandler interface {

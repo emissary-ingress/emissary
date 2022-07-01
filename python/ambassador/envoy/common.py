@@ -22,9 +22,10 @@ from ..cache import Cache
 from ..utils import dump_json
 
 if TYPE_CHECKING:
-    from ..ir import IR, IRResource # pragma: no cover
-    from ..ir.irhttpmappinggroup import IRHTTPMappingGroup # pragma: no cover
-    from ..ir.irserviceresolver import ClustermapEntry # pragma: no cover
+    from ..ir import IR, IRResource  # pragma: no cover
+    from ..ir.irhttpmappinggroup import IRHTTPMappingGroup  # pragma: no cover
+    from ..ir.irserviceresolver import ClustermapEntry  # pragma: no cover
+
 
 def sanitize_pre_json(input):
     # Removes all potential null values
@@ -39,16 +40,17 @@ def sanitize_pre_json(input):
             sanitize_pre_json(item)
     return input
 
+
 class EnvoyConfig:
     """
     Base class for Envoy configuration that permits fetching configuration
     for various elements to show in diagnostics.
     """
 
-    ir: 'IR'
+    ir: "IR"
     elements: Dict[str, Dict[str, Any]]
 
-    def __init__(self, ir: 'IR') -> None:
+    def __init__(self, ir: "IR") -> None:
         self.ir = ir
         self.elements = {}
 
@@ -64,7 +66,7 @@ class EnvoyConfig:
         eldict = self.elements.get(kind, {})
         return eldict.pop(key, default)
 
-    def save_element(self, kind: str, resource: 'IRResource', obj: Any):
+    def save_element(self, kind: str, resource: "IRResource", obj: Any):
         self.add_element(kind, resource.rkey, obj)
         self.add_element(kind, resource.location, obj)
         return obj
@@ -74,7 +76,7 @@ class EnvoyConfig:
         pass
 
     @abstractmethod
-    def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, 'ClustermapEntry']]:
+    def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, "ClustermapEntry"]]:
         pass
 
     @abstractmethod
@@ -85,28 +87,23 @@ class EnvoyConfig:
         return dump_json(sanitize_pre_json(self.as_dict()), pretty=True)
 
     @classmethod
-    def generate(cls, ir: 'IR', version: str="V3", cache: Optional[Cache]=None) -> 'EnvoyConfig':
-        assert version in ["V2", "V3"]
+    def generate(cls, ir: "IR", cache: Optional[Cache] = None) -> "EnvoyConfig":
+        from . import V3Config
 
-        if version == "V3":
-            from . import V3Config
-            return V3Config(ir, cache=cache)
-
-        from . import V2Config
-        return V2Config(ir, cache=cache)
+        return V3Config(ir, cache=cache)
 
 
 class EnvoyRoute:
-    def __init__(self, group: 'IRHTTPMappingGroup'):
-        self.prefix = 'prefix'
-        self.path = 'path'
-        self.regex = 'regex'
+    def __init__(self, group: "IRHTTPMappingGroup"):
+        self.prefix = "prefix"
+        self.path = "path"
+        self.regex = "regex"
         self.envoy_route = self._get_envoy_route(group)
 
-    def _get_envoy_route(self, group: 'IRHTTPMappingGroup') -> str:
-        if group.get('prefix_regex', False):
+    def _get_envoy_route(self, group: "IRHTTPMappingGroup") -> str:
+        if group.get("prefix_regex", False):
             return self.regex
-        if group.get('prefix_exact', False):
+        if group.get("prefix_exact", False):
             return self.path
         else:
             return self.prefix

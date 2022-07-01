@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/kates/k8s_resource_types"
-	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
+	amb "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates/k8s_resource_types"
+	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 func getModuleSpec(t *testing.T, rawconfig string) amb.UntypedDict {
@@ -43,6 +43,30 @@ service: quote:80
 			Annotations: map[string]string{
 				"getambassador.io/config": mapping,
 			},
+		},
+	}
+
+	svcWithEmptyAnnotation := &kates.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Service",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "svc-empty",
+			Namespace: "ambassador",
+			Annotations: map[string]string{
+				"getambassador.io/config": "",
+			},
+		},
+	}
+
+	svcWithMissingAnnotation := &kates.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Service",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        "svc-missing",
+			Namespace:   "ambassador",
+			Annotations: map[string]string{},
 		},
 	}
 
@@ -114,7 +138,7 @@ prefix: /blah/`
 	}
 
 	ks := &snapshotTypes.KubernetesSnapshot{
-		Services:  []*kates.Service{svc, ambSvc},
+		Services:  []*kates.Service{svc, ambSvc, svcWithEmptyAnnotation, svcWithMissingAnnotation},
 		Ingresses: []*snapshotTypes.Ingress{{Ingress: *ingress}},
 		Hosts:     []*amb.Host{ignoredHost},
 	}
@@ -123,6 +147,7 @@ prefix: /blah/`
 
 	err := ks.PopulateAnnotations(ctx)
 	assert.NoError(t, err)
+	assert.Equal(t, len(ks.Services), 4)
 	assert.Equal(t, map[string]snapshotTypes.AnnotationList{
 		"Service/svc.ambassador": {
 			&amb.Mapping{

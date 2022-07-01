@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v3"
+	envoyMetrics "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/metrics/v3"
 	io_prometheus_client "github.com/prometheus/client_model/go"
 	"io/ioutil"
 	"net/http"
@@ -17,10 +17,10 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/datawire/ambassador/v2/pkg/api/agent"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/agent"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 const defaultMinReportPeriod = 30 * time.Second

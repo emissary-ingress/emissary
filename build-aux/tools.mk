@@ -32,6 +32,7 @@ go-mod-tidy/tools/%:
 # =============
 #
 tools/copy-ifchanged      = $(tools.bindir)/copy-ifchanged
+tools/devversion          = $(tools.bindir)/devversion
 tools/docker-promote      = $(tools.bindir)/docker-promote
 tools/move-ifchanged      = $(tools.bindir)/move-ifchanged
 tools/tap-driver          = $(tools.bindir)/tap-driver
@@ -176,5 +177,10 @@ $(tools/ct).d/home: %/home: %/dir.txt
 	rm -rf $@
 	mkdir $@ $@/.ct
 	cp "$$(cat $<)"/etc/* $@/.ct || (rm -rf $@; exit 1)
+
+# Inter-tool dependencies
+# =======================
+#
+$(tools/devversion): $(tools/goversion)
 
 endif

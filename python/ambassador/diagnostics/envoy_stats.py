@@ -22,11 +22,13 @@ import time
 from dataclasses import dataclass
 from dataclasses import field as dc_field
 
+
 def percentage(x: float, y: float) -> int:
     if y == 0:
         return 0
     else:
         return int(((x * 100) / y) + 0.5)
+
 
 @dataclass(frozen=True)
 class EnvoyStats:
@@ -77,7 +79,7 @@ class EnvoyStats:
         return (time.time() - epoch) <= self.max_ready_age
 
     def time_since_boot(self) -> float:
-        """ Return the number of seconds since Envoy booted. """
+        """Return the number of seconds since Envoy booted."""
         return time.time() - self.created
 
     def time_since_update(self) -> Optional[float]:
@@ -95,11 +97,11 @@ class EnvoyStats:
         if not self.last_update:
             # No updates.
             return {
-                'valid': False,
-                'reason': "No stats updates have succeeded",
-                'health': "no stats yet",
-                'hmetric': 'startup',
-                'hcolor': 'grey'
+                "valid": False,
+                "reason": "No stats updates have succeeded",
+                "health": "no stats yet",
+                "hmetric": "startup",
+                "hcolor": "grey",
             }
 
         # OK, we should be OK.
@@ -108,40 +110,29 @@ class EnvoyStats:
 
         if name not in cstat:
             return {
-                'valid': False,
-                'reason': "Cluster %s is not defined" % name,
-                'health': "undefined cluster",
-                'hmetric': 'undefined cluster',
-                'hcolor': 'orange',
+                "valid": False,
+                "reason": "Cluster %s is not defined" % name,
+                "health": "undefined cluster",
+                "hmetric": "undefined cluster",
+                "hcolor": "orange",
             }
 
         cstat = dict(**cstat[name])
-        cstat.update({
-            'valid': True,
-            'reason': "Cluster %s updated at %d" % (name, when)
-        })
+        cstat.update({"valid": True, "reason": "Cluster %s updated at %d" % (name, when)})
 
-        pct = cstat.get('healthy_percent', None)
+        pct = cstat.get("healthy_percent", None)
 
         if pct != None:
-            color = 'green'
+            color = "green"
 
             if pct < 70:
-                color = 'red'
+                color = "red"
             elif pct < 90:
-                color = 'yellow'
+                color = "yellow"
 
-            cstat.update({
-                'health': "%d%% healthy" % pct,
-                'hmetric': int(pct),
-                'hcolor': color
-            })
+            cstat.update({"health": "%d%% healthy" % pct, "hmetric": int(pct), "hcolor": color})
         else:
-            cstat.update({
-                'health': "no requests yet",
-                'hmetric': 'waiting',
-                'hcolor': 'grey'
-            })
+            cstat.update({"health": "no requests yet", "hmetric": "waiting", "hcolor": "grey"})
 
         return cstat
 
@@ -149,11 +140,17 @@ class EnvoyStats:
 LogLevelFetcher = Callable[[Optional[str]], Optional[str]]
 EnvoyStatsFetcher = Callable[[], Optional[str]]
 
+
 class EnvoyStatsMgr:
     # fetch_log_levels and fetch_envoy_stats are debugging hooks
-    def __init__(self, logger: logging.Logger, max_live_age: int=120, max_ready_age: int=120,
-                 fetch_log_levels: Optional[LogLevelFetcher] = None,
-                 fetch_envoy_stats: Optional[EnvoyStatsFetcher] = None) -> None:
+    def __init__(
+        self,
+        logger: logging.Logger,
+        max_live_age: int = 120,
+        max_ready_age: int = 120,
+        fetch_log_levels: Optional[LogLevelFetcher] = None,
+        fetch_envoy_stats: Optional[EnvoyStatsFetcher] = None,
+    ) -> None:
         self.logger = logger
         self.loginfo: Dict[str, Union[str, List[str]]] = {}
 
@@ -164,9 +161,7 @@ class EnvoyStatsMgr:
         self.fetch_envoy_stats = fetch_envoy_stats or self._fetch_envoy_stats
 
         self.stats = EnvoyStats(
-            created=time.time(),
-            max_live_age=max_live_age,
-            max_ready_age=max_ready_age
+            created=time.time(), max_live_age=max_live_age, max_ready_age=max_ready_age
         )
 
     def _fetch_log_levels(self, level: Optional[str]) -> Optional[str]:
@@ -201,7 +196,7 @@ class EnvoyStatsMgr:
             self.logger.warning("EnvoyStats.update failed: %s" % e)
             return None
 
-    def update_log_levels(self, last_attempt: float, level: Optional[str]=None) -> bool:
+    def update_log_levels(self, last_attempt: float, level: Optional[str] = None) -> bool:
         """
         Heavy lifting around updating the Envoy log levels.
 
@@ -225,11 +220,11 @@ class EnvoyStatsMgr:
                     max_ready_age=self.stats.max_ready_age,
                     created=self.stats.created,
                     last_update=self.stats.last_update,
-                    last_attempt=last_attempt,                      # THIS IS A CHANGE
-                    update_errors=self.stats.update_errors + 1,     # THIS IS A CHANGE
+                    last_attempt=last_attempt,  # THIS IS A CHANGE
+                    update_errors=self.stats.update_errors + 1,  # THIS IS A CHANGE
                     requests=self.stats.requests,
                     clusters=self.stats.clusters,
-                    envoy=self.stats.envoy
+                    envoy=self.stats.envoy,
                 )
 
                 self.stats = new_stats
@@ -242,8 +237,8 @@ class EnvoyStatsMgr:
             if not line:
                 continue
 
-            if line.startswith('  '):
-                ( logtype, level ) = line[2:].split(": ")
+            if line.startswith("  "):
+                (logtype, level) = line[2:].split(": ")
 
                 x = levels.setdefault(level, {})
                 x[logtype] = True
@@ -253,9 +248,9 @@ class EnvoyStatsMgr:
         loginfo: Dict[str, Union[str, List[str]]]
 
         if len(levels.keys()) == 1:
-            loginfo = { 'all': list(levels.keys())[0] }
+            loginfo = {"all": list(levels.keys())[0]}
         else:
-            loginfo = { x: list(levels[x].keys()) for x in levels.keys() }
+            loginfo = {x: list(levels[x].keys()) for x in levels.keys()}
 
         with self.access_lock:
             self.loginfo = loginfo
@@ -278,11 +273,11 @@ class EnvoyStatsMgr:
             r = requests.get("http://127.0.0.1:8001/stats/prometheus")
         except OSError as e:
             self.logger.warning("EnvoyStats.get_prometheus_state failed: %s" % e)
-            return ''
+            return ""
 
         if r.status_code != 200:
             self.logger.warning("EnvoyStats.get_prometheus_state failed: %s" % r.text)
-            return ''
+            return ""
         return r.text
 
     def update_envoy_stats(self, last_attempt: float) -> None:
@@ -306,11 +301,11 @@ class EnvoyStatsMgr:
                 max_ready_age=self.stats.max_ready_age,
                 created=self.stats.created,
                 last_update=self.stats.last_update,
-                last_attempt=last_attempt,                    # THIS IS A CHANGE
-                update_errors=self.stats.update_errors + 1,   # THIS IS A CHANGE
+                last_attempt=last_attempt,  # THIS IS A CHANGE
+                update_errors=self.stats.update_errors + 1,  # THIS IS A CHANGE
                 requests=self.stats.requests,
                 clusters=self.stats.clusters,
-                envoy=self.stats.envoy
+                envoy=self.stats.envoy,
             )
 
             with self.access_lock:
@@ -318,7 +313,7 @@ class EnvoyStatsMgr:
                 return
 
         # Parse stats into a hierarchy.
-        envoy_stats: Dict[str, Any] = {}    # Ew.
+        envoy_stats: Dict[str, Any] = {}  # Ew.
 
         for line in text.split("\n"):
             if not line:
@@ -326,7 +321,7 @@ class EnvoyStatsMgr:
 
             # self.logger.info('line: %s' % line)
             key, value = line.split(":")
-            keypath = key.split('.')
+            keypath = key.split(".")
 
             node = envoy_stats
 
@@ -360,8 +355,8 @@ class EnvoyStatsMgr:
 
             requests_total = ingress_stats.get("downstream_rq_total", 0)
 
-            requests_4xx = ingress_stats.get('downstream_rq_4xx', 0)
-            requests_5xx = ingress_stats.get('downstream_rq_5xx', 0)
+            requests_4xx = ingress_stats.get("downstream_rq_4xx", 0)
+            requests_5xx = ingress_stats.get("downstream_rq_5xx", 0)
             requests_bad = requests_4xx + requests_5xx
 
             requests_ok = requests_total - requests_bad
@@ -375,8 +370,8 @@ class EnvoyStatsMgr:
             }
 
         if "cluster" in envoy_stats:
-            for cluster_name in envoy_stats['cluster']:
-                cluster = envoy_stats['cluster'][cluster_name]
+            for cluster_name in envoy_stats["cluster"]:
+                cluster = envoy_stats["cluster"][cluster_name]
 
                 # # Toss any _%d -- that's madness with our Istio code at the moment.
                 # cluster_name = re.sub('_\d+$', '', cluster_name)
@@ -388,22 +383,22 @@ class EnvoyStatsMgr:
 
                 healthy_percent: Optional[int]
 
-                healthy_members = cluster['membership_healthy']
-                total_members = cluster['membership_total']
+                healthy_members = cluster["membership_healthy"]
+                total_members = cluster["membership_total"]
                 healthy_percent = percentage(healthy_members, total_members)
 
-                update_attempts = cluster['update_attempt']
-                update_successes = cluster['update_success']
+                update_attempts = cluster["update_attempt"]
+                update_successes = cluster["update_success"]
                 update_percent = percentage(update_successes, update_attempts)
 
                 # Weird.
                 # upstream_ok = cluster.get('upstream_rq_2xx', 0)
                 # upstream_total = cluster.get('upstream_rq_pending_total', 0)
-                upstream_total = cluster.get('upstream_rq_completed', 0)
+                upstream_total = cluster.get("upstream_rq_completed", 0)
 
-                upstream_4xx = cluster.get('upstream_rq_4xx', 0)
-                upstream_5xx = cluster.get('upstream_rq_5xx', 0)
-                upstream_bad = upstream_5xx # used to include 4XX here, but that seems wrong.
+                upstream_4xx = cluster.get("upstream_rq_4xx", 0)
+                upstream_5xx = cluster.get("upstream_rq_5xx", 0)
+                upstream_bad = upstream_5xx  # used to include 4XX here, but that seems wrong.
 
                 upstream_ok = upstream_total - upstream_bad
 
@@ -417,18 +412,16 @@ class EnvoyStatsMgr:
                     # self.logger.debug("cluster %s has had no requests" % cluster_name)
 
                 active_clusters[cluster_name] = {
-                    'healthy_members': healthy_members,
-                    'total_members': total_members,
-                    'healthy_percent': healthy_percent,
-
-                    'update_attempts': update_attempts,
-                    'update_successes': update_successes,
-                    'update_percent': update_percent,
-
-                    'upstream_ok': upstream_ok,
-                    'upstream_4xx': upstream_4xx,
-                    'upstream_5xx': upstream_5xx,
-                    'upstream_bad': upstream_bad
+                    "healthy_members": healthy_members,
+                    "total_members": total_members,
+                    "healthy_percent": healthy_percent,
+                    "update_attempts": update_attempts,
+                    "update_successes": update_successes,
+                    "update_percent": update_percent,
+                    "upstream_ok": upstream_ok,
+                    "upstream_4xx": upstream_4xx,
+                    "upstream_5xx": upstream_5xx,
+                    "upstream_bad": upstream_bad,
                 }
 
         # OK, we're now officially finished with all the hard stuff.
@@ -439,12 +432,12 @@ class EnvoyStatsMgr:
             max_live_age=self.stats.max_live_age,
             max_ready_age=self.stats.max_ready_age,
             created=self.stats.created,
-            last_update=last_update,                    # THIS IS A CHANGE
-            last_attempt=last_attempt,                  # THIS IS A CHANGE
+            last_update=last_update,  # THIS IS A CHANGE
+            last_attempt=last_attempt,  # THIS IS A CHANGE
             update_errors=self.stats.update_errors,
-            requests=requests_info,                     # THIS IS A CHANGE
-            clusters=active_clusters,                   # THIS IS A CHANGE
-            envoy=envoy_stats                           # THIS IS A CHANGE
+            requests=requests_info,  # THIS IS A CHANGE
+            clusters=active_clusters,  # THIS IS A CHANGE
+            envoy=envoy_stats,  # THIS IS A CHANGE
         )
 
         # Make sure we hold the access_lock while messing with self.stats!

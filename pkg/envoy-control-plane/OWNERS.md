@@ -5,5 +5,5 @@ right place.
 
 * Kuat Yessenov ([kyessenov](https://github.com/kyessenov)) (kuat@google.com)
 * Yangmin Zhu ([yangminzhu](https://github.com/yangminzhu)) (ymzhu@google.com)
-* Jyoti Mahapatra ([jyotimahapatra](https://github.com/jyotimahapatra)) (jmahapatra@lyft.com)
-* Jess Yuen ([jessicayuen](https://github.com/jessicayuen)) (jyuen@lyft.com)
+* Snow Pettersen ([snowp](https://github.com/snowp)) (snowp@lyft.com)
+* Alec Holmes ([alecholmez](https://github.com/alecholmez)) (alec.holmes@greymatter.io)

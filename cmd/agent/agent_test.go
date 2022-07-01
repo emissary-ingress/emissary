@@ -16,14 +16,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/datawire/ambassador/v2/pkg/api/agent"
-	"github.com/datawire/ambassador/v2/pkg/dtest"
-	"github.com/datawire/ambassador/v2/pkg/k8s"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/kubeapply"
-	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/agent"
+	"github.com/emissary-ingress/emissary/v3/pkg/dtest"
+	"github.com/emissary-ingress/emissary/v3/pkg/k8s"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kubeapply"
+	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 // This test is supposed to be a very lightweight end to end test.
@@ -170,6 +170,8 @@ func applyArgoResources(t *testing.T, ctx context.Context, kubeconfig string, cl
 }
 
 func needsDockerBuilds(ctx context.Context, var2file map[string]string) error {
+	// TODO(lukeshu): Consider unifying envoytest.GetLocalEnvoyImage() with
+	// agent_test.go:needsDockerBuilds().
 	var targets []string
 	for varname, filename := range var2file {
 		if os.Getenv(varname) == "" {

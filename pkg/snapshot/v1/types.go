@@ -3,9 +3,9 @@ package snapshot
 import (
 	"encoding/json"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
-	"github.com/datawire/ambassador/v2/pkg/consulwatch"
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	amb "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/consulwatch"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
 

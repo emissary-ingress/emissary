@@ -15,7 +15,7 @@ FIPS_MODE ?=
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,https://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= 4ce93dc3ace00ae9108b179d0afaceac13f4602a
+  ENVOY_COMMIT ?= f96adbeb45342bb8b37345df11fc395aa4b1fcda
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
@@ -35,7 +35,7 @@ FIPS_MODE ?=
 # which commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an
 # automated way!  Still look at the commit yourself to make sure it seems sane; blindly trusting
 # machines is bad, mmkay?
-ENVOY_GO_CONTROL_PLANE_COMMIT = f1f47757da33f7507078cf7e9e60915418c7bd10
+ENVOY_GO_CONTROL_PLANE_COMMIT = v0.10.1
 
 # Set ENVOY_DOCKER_REPO to the list of mirrors that we should
 # sanity-check that things get pushed to.
@@ -56,12 +56,40 @@ include $(OSS_HOME)/build-aux/prelude.mk
 # for builder.mk...
 export ENVOY_DOCKER_TAG
 
+old_envoy_commits = $(shell { \
+	  { \
+	    git log --patch --format='' -G'^ *ENVOY_COMMIT' -- _cxx/envoy.mk; \
+	    git log --patch --format='' -G'^ *ENVOY_COMMIT' -- cxx/envoy.mk; \
+	    git log --patch --format='' -G'^ *ENVOY_COMMIT' -- Makefile; \
+	  } | sed -En 's/^.*ENVOY_COMMIT *\?= *//p'; \
+	  git log --patch --format='' -G'^ *ENVOY_BASE_IMAGE' 511ca54c3004019758980ba82f708269c373ba28 -- Makefile | sed -n 's/^. *ENVOY_BASE_IMAGE.*-g//p'; \
+	  git log --patch --format='' -G'FROM.*envoy.*:' 7593e7dca9aea2f146ddfd5a3676bcc30ee25aff -- Dockerfile | sed -n '/FROM.*envoy.*:/s/.*://p' | sed -e 's/ .*//' -e 's/.*-g//' -e 's/.*-//' -e '/^latest$$/d'; \
+	} | uniq)
+lost_history += 251b7d345 # mentioned in a605b62ee (wip - patched and fixed authentication, Gabriel, 2019-04-04)
+lost_history += 27770bf3d # mentioned in 026dc4cd4 (updated envoy image, Gabriel, 2019-04-04)
 check-envoy-version: ## Check that Envoy version has been pushed to the right places
 check-envoy-version: $(OSS_HOME)/_cxx/envoy
-	# First, we're going to check whether the envoy commit is tagged, which
+	# First, we're going to check whether the Envoy commit is tagged, which
 	# is one of the things that has to happen before landing a PR that bumps
 	# the ENVOY_COMMIT.
-	cd $< && unset GIT_DIR GIT_WORK_TREE && git describe --tags --exact-match
+	#
+	# We strictly check for tags matching 'datawire-*' to remove the
+	# temptation to jump the gun and create an 'ambassador-*' or
+	# 'emissary-*' tag before we know that's actually the commit that will
+	# be in the released Ambassador/Emissary.
+	#
+	# Also, don't just check the tip of the PR ('HEAD'), also check that all
+	# intermediate commits in the PR are also (ancestors of?) a tag.  We
+	# don't want history to get lost!
+	set -e; { \
+	  cd $<; unset GIT_DIR GIT_WORK_TREE; \
+	  for commit in HEAD $(filter-out $(lost_history),$(old_envoy_commits)); do \
+	   echo "=> checking Envoy commit $$commit"; \
+	   desc=$$(git describe --tags --contains --match='datawire-*' "$$commit"); \
+	   [[ "$$desc" == datawire-* ]]; \
+	   echo "   got $$desc"; \
+	  done; \
+	}
 	# Now, we're going to check that the Envoy Docker images have been
 	# pushed to all of the mirrors, which is another thing that has to
 	# happen before landing a PR that bumps the ENVOY_COMMIT.
@@ -223,16 +251,16 @@ envoy-shell: $(ENVOY_BASH.deps)
 # These targets are depended on by `make generate` in `build-aux/generate.mk`.
 
 # Raw protobufs
-$(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb: $(OSS_HOME)/api/%: $(OSS_HOME)/_cxx/envoy
+$(OSS_HOME)/api/envoy: $(OSS_HOME)/api/%: $(OSS_HOME)/_cxx/envoy
 	rsync --recursive --delete --delete-excluded --prune-empty-dirs --include='*/' --include='*.proto' --exclude='*' $</api/$*/ $@
 
 # Go generated from the protobufs
 $(OSS_HOME)/_cxx/envoy/build_go: $(ENVOY_BASH.deps) FORCE
 	$(call ENVOY_BASH.cmd, \
-	    $(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generateProtobufs; generateProtobufs("/root/envoy/build_go")'; \
+	    $(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generate_protobufs; generate_protobufs("@envoy_api//...", "/root/envoy/build_go", "envoy_api")'; \
 	)
 	test -d $@ && touch $@
-$(OSS_HOME)/pkg/api/pb $(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(OSS_HOME)/_cxx/envoy/build_go
+$(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(OSS_HOME)/_cxx/envoy/build_go
 	rm -rf $@
 	@PS4=; set -ex; { \
 	  unset GIT_DIR GIT_WORK_TREE; \
@@ -242,8 +270,7 @@ $(OSS_HOME)/pkg/api/pb $(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(OSS_H
 	  find "$$tmpdir" -type f \
 	    -exec chmod 644 {} + \
 	    -exec sed -E -i.bak \
-	      -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/v2/pkg/api/envoy,g' \
-	      -e 's,github\.com/envoyproxy/go-control-plane/pb,github.com/datawire/ambassador/v2/pkg/api/pb,g' \
+	      -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/emissary-ingress/emissary/v3/pkg/api/envoy,g' \
 	      -- {} +; \
 	  find "$$tmpdir" -name '*.bak' -delete; \
 	  mv "$$tmpdir/$*" $@; \
@@ -278,8 +305,8 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	  cd $(OSS_HOME)/_cxx/go-control-plane; \
 	  cp -r $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg/* "$$tmpdir"; \
 	  find "$$tmpdir" -name '*.go' -exec sed -E -i.bak \
-	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/datawire/ambassador/v2/pkg/envoy-control-plane,g' \
-	    -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/v2/pkg/api/envoy,g' \
+	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane,g' \
+	    -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/emissary-ingress/emissary/v3/pkg/api/envoy,g' \
 	    -- {} +; \
 	  find "$$tmpdir" -name '*.bak' -delete; \
 	  mv "$$tmpdir" $(abspath $@); \

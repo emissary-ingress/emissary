@@ -7,9 +7,9 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/datawire/ambassador/v2/pkg/k8s"
-	kates_internal "github.com/datawire/ambassador/v2/pkg/kates_internal"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/k8s"
+	kates_internal "github.com/emissary-ingress/emissary/v3/pkg/kates_internal"
 )
 
 // Waiter takes some YAML and waits for all of the resources described

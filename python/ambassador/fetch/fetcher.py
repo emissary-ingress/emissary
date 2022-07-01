@@ -9,7 +9,12 @@ import re
 from ..config import ACResource, Config
 from ..utils import parse_yaml, parse_json, dump_json, parse_bool
 
-from .dependency import DependencyManager, IngressClassesDependency, SecretDependency, ServiceDependency
+from .dependency import (
+    DependencyManager,
+    IngressClassesDependency,
+    SecretDependency,
+    ServiceDependency,
+)
 from .resource import NormalizedResource, ResourceManager
 from .k8sobject import KubernetesGVK, KubernetesObject
 from .k8sprocessor import (
@@ -51,7 +56,7 @@ AnyDict = Dict[str, Any]
 # - Endpoint resources probably have just a name, a service name, and an endpoint
 #   address.
 
-k8sLabelMatcher = re.compile(r'([\w\-_./]+)=\"(.+)\"')
+k8sLabelMatcher = re.compile(r"([\w\-_./]+)=\"(.+)\"")
 
 
 class ResourceFetcher:
@@ -59,25 +64,40 @@ class ResourceFetcher:
     k8s_processor: KubernetesProcessor
     invalid: List[Dict]
 
-    def __init__(self, logger: logging.Logger, aconf: 'Config',
-                 skip_init_dir: bool=False, watch_only=False) -> None:
+    def __init__(
+        self, logger: logging.Logger, aconf: "Config", skip_init_dir: bool = False, watch_only=False
+    ) -> None:
         self.aconf = aconf
         self.logger = logger
-        self.manager = ResourceManager(self.logger, self.aconf, DependencyManager([
-            ServiceDependency(),
-            SecretDependency(),
-            IngressClassesDependency(),
-        ]))
+        self.manager = ResourceManager(
+            self.logger,
+            self.aconf,
+            DependencyManager(
+                [
+                    ServiceDependency(),
+                    SecretDependency(),
+                    IngressClassesDependency(),
+                ]
+            ),
+        )
 
-        self.k8s_processor = DeduplicatingKubernetesProcessor(AggregateKubernetesProcessor([
-            CountingKubernetesProcessor(self.aconf, KubernetesGVK.for_knative_networking('Ingress'), 'knative_ingress'),
-            AmbassadorProcessor(self.manager),
-            SecretProcessor(self.manager),
-            IngressClassProcessor(self.manager),
-            IngressProcessor(self.manager),
-            ServiceProcessor(self.manager, watch_only=watch_only),
-            KnativeIngressProcessor(self.manager),
-        ]))
+        self.k8s_processor = DeduplicatingKubernetesProcessor(
+            AggregateKubernetesProcessor(
+                [
+                    CountingKubernetesProcessor(
+                        self.aconf,
+                        KubernetesGVK.for_knative_networking("Ingress"),
+                        "knative_ingress",
+                    ),
+                    AmbassadorProcessor(self.manager),
+                    SecretProcessor(self.manager),
+                    IngressClassProcessor(self.manager),
+                    IngressProcessor(self.manager),
+                    ServiceProcessor(self.manager, watch_only=watch_only),
+                    KnativeIngressProcessor(self.manager),
+                ]
+            )
+        )
 
         self.alerted_about_labels = False
 
@@ -105,17 +125,20 @@ class ResourceFetcher:
             # Check /ambassador/init-config for initialization resources -- note NOT
             # $AMBASSADOR_CONFIG_BASE_DIR/init-config! This is compile-time stuff that
             # doesn't move around if you change the configuration base.
-            init_dir = '/ambassador/init-config'
+            init_dir = "/ambassador/init-config"
 
             automatic_manifests = []
             edge_stack_mappings_path = os.path.join(init_dir, "edge-stack-mappings.yaml")
-            if parse_bool(os.environ.get('EDGE_STACK', 'false')) and not os.path.exists(edge_stack_mappings_path):
+            if parse_bool(os.environ.get("EDGE_STACK", "false")) and not os.path.exists(
+                edge_stack_mappings_path
+            ):
                 # HACK
                 # If we're running in Edge Stack via environment variable and the magic "edge-stack-mappings.yaml" file doesn't
                 # exist in its well known location, then go ahead and add it. This should _not_ be necessary under
                 # normal circumstances where Edge Stack is running in its container. We do this so that tests can
                 # run outside of a container with this environment variable set.
-                automatic_manifests.append('''
+                automatic_manifests.append(
+                    """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -132,10 +155,17 @@ spec:
   rewrite: ""
   service: "127.0.0.1:8500"
   precedence: 1000000
-''')
+"""
+                )
 
             if os.path.isdir(init_dir) or len(automatic_manifests) > 0:
-                self.load_from_filesystem(init_dir, k8s=True, recurse=True, finalize=False, automatic_manifests=automatic_manifests)
+                self.load_from_filesystem(
+                    init_dir,
+                    k8s=True,
+                    recurse=True,
+                    finalize=False,
+                    automatic_manifests=automatic_manifests,
+                )
 
     @property
     def elements(self) -> List[ACResource]:
@@ -145,13 +175,18 @@ spec:
     def location(self) -> str:
         return str(self.manager.locations.current)
 
-    def load_from_filesystem(self, config_dir_path, recurse: bool=False,
-                             k8s: bool=False, finalize: bool=True,
-                             automatic_manifests: List[str]=[]):
+    def load_from_filesystem(
+        self,
+        config_dir_path,
+        recurse: bool = False,
+        k8s: bool = False,
+        finalize: bool = True,
+        automatic_manifests: List[str] = [],
+    ):
         inputs: List[Tuple[str, str]] = []
 
         if os.path.isdir(config_dir_path):
-            dirs = [ config_dir_path ]
+            dirs = [config_dir_path]
 
             while dirs:
                 dirpath = dirs.pop(0)
@@ -168,7 +203,7 @@ spec:
                         # self.logger.debug("%s: SKIP non-file" % filepath)
                         continue
 
-                    if not filename.lower().endswith('.yaml'):
+                    if not filename.lower().endswith(".yaml"):
                         # self.logger.debug("%s: SKIP non-YAML" % filepath)
                         continue
 
@@ -182,7 +217,10 @@ spec:
         elif len(automatic_manifests) == 0:
             # The config_dir_path wasn't a directory nor a file, and there are
             # no automatic manifests. Nothing to do.
-            self.logger.debug("no init directory/file at path %s and no automatic manifests, doing nothing" % config_dir_path)
+            self.logger.debug(
+                "no init directory/file at path %s and no automatic manifests, doing nothing"
+                % config_dir_path
+            )
 
         for filepath, filename in inputs:
             self.logger.debug("reading %s (%s)" % (filename, filepath))
@@ -203,8 +241,14 @@ spec:
         if finalize:
             self.finalize()
 
-    def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str] = None,
-                   filename: Optional[str] = None, finalize: bool = True) -> None:
+    def parse_yaml(
+        self,
+        serialization: str,
+        k8s=False,
+        rkey: Optional[str] = None,
+        filename: Optional[str] = None,
+        finalize: bool = True,
+    ) -> None:
         # self.logger.info(f"RF YAML: {serialization}")
 
         # Expand environment variables allowing interpolation in manifests.
@@ -228,32 +272,44 @@ spec:
         if finalize:
             self.finalize()
 
-    def parse_watt(self, serialization: str, finalize: bool=True) -> None:
-        basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
+    def parse_watt(self, serialization: str, finalize: bool = True) -> None:
+        basedir = os.environ.get("AMBASSADOR_CONFIG_BASE_DIR", "/ambassador")
 
-        if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds')):
-            self.aconf.post_error("Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+        if os.path.isfile(os.path.join(basedir, ".ambassador_ignore_crds")):
+            self.aconf.post_error(
+                "Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."
+            )
 
-        if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_2')):
-            self.aconf.post_error("Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador, but ConsulResolver, KubernetesEndpointResolver, and KubernetesServiceResolver resources will be ignored...")
+        if os.path.isfile(os.path.join(basedir, ".ambassador_ignore_crds_2")):
+            self.aconf.post_error(
+                "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador, but ConsulResolver, KubernetesEndpointResolver, and KubernetesServiceResolver resources will be ignored..."
+            )
 
-        if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_3')):
-            self.aconf.post_error("Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador, but Host resources will be ignored...")
+        if os.path.isfile(os.path.join(basedir, ".ambassador_ignore_crds_3")):
+            self.aconf.post_error(
+                "Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador, but Host resources will be ignored..."
+            )
 
-        if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_4')):
-            self.aconf.post_error("Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador, but LogService resources will be ignored...")
+        if os.path.isfile(os.path.join(basedir, ".ambassador_ignore_crds_4")):
+            self.aconf.post_error(
+                "Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador, but LogService resources will be ignored..."
+            )
 
-        if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_5')):
-            self.aconf.post_error("Ambassador could not find the DevPortal CRD definition. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador, but DevPortal resources will be ignored...")
+        if os.path.isfile(os.path.join(basedir, ".ambassador_ignore_crds_5")):
+            self.aconf.post_error(
+                "Ambassador could not find the DevPortal CRD definition. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador, but DevPortal resources will be ignored..."
+            )
 
         # We could be posting errors about the missing IngressClass resource, but given it's new in K8s 1.18
         # and we assume most users would be worried about it when running on older clusters, we'll rely on
         # Ambassador logs "Ambassador does not have permission to read IngressClass resources" for the moment.
-        #if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_ingress_class')):
+        # if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_ingress_class')):
         #    self.aconf.post_error("Ambassador is not permitted to read IngressClass resources. Please visit https://www.getambassador.io/user-guide/ingress-controller/ for more information. You can continue using Ambassador, but IngressClass resources will be ignored...")
 
-        if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_ingress')):
-            self.aconf.post_error("Ambassador is not permitted to read Ingress resources. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/running/ingress-controller/#ambassador-as-an-ingress-controller for more information. You can continue using Ambassador, but Ingress resources will be ignored...")
+        if os.path.isfile(os.path.join(basedir, ".ambassador_ignore_ingress")):
+            self.aconf.post_error(
+                "Ambassador is not permitted to read Ingress resources. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/running/ingress-controller/#ambassador-as-an-ingress-controller for more information. You can continue using Ambassador, but Ingress resources will be ignored..."
+            )
 
         # Expand environment variables allowing interpolation in manifests.
         serialization = os.path.expandvars(serialization)
@@ -264,10 +320,10 @@ spec:
             watt_dict = parse_json(serialization)
 
             # Grab deltas if they're present...
-            self.deltas = watt_dict.get('Deltas', [])
+            self.deltas = watt_dict.get("Deltas", [])
 
             # ...then it's off to deal with Kubernetes.
-            watt_k8s = watt_dict.get('Kubernetes', {})
+            watt_k8s = watt_dict.get("Kubernetes", {})
 
             # First, though, let's fold any invalid objects into the main watt_k8s
             # tree. They're in the "Invalid" dict simply because we don't fully trust
@@ -278,10 +334,10 @@ spec:
             # processed??? It's because they have error information that we need to
             # propagate to the user, and this is the simplest way to do that.
 
-            self.invalid: List[Dict] = watt_dict.get('Invalid') or []
+            self.invalid: List[Dict] = watt_dict.get("Invalid") or []
 
             for obj in self.invalid:
-                kind = obj.get('kind', None)
+                kind = obj.get("kind", None)
 
                 if not kind:
                     # Can't work with this at _all_.
@@ -300,7 +356,7 @@ spec:
                 watt_list.append(obj)
 
             # Remove annotations from the snapshot; we'll process them separately.
-            annotations = watt_k8s.pop('annotations') or {}
+            annotations = watt_k8s.pop("annotations", {})
 
             # These objects have to be processed first, in order, as they depend
             # on each other.
@@ -317,13 +373,13 @@ spec:
                     # self.logger.debug(f"Handling Kubernetes {key}...")
                     with self.manager.locations.push_reset():
                         self.handle_k8s(obj)
-                        if 'errors' not in obj:
+                        if "errors" not in obj:
                             ann_parent_key = f"{obj['kind']}/{obj['metadata']['name']}.{obj['metadata'].get('namespace')}"
-                            for ann_obj in (annotations.get(ann_parent_key) or []):
+                            for ann_obj in annotations.get(ann_parent_key) or []:
                                 self.handle_annotation(ann_parent_key, ann_obj)
 
-            watt_consul = watt_dict.get('Consul', {})
-            consul_endpoints = watt_consul.get('Endpoints', {})
+            watt_consul = watt_dict.get("Consul", {})
+            consul_endpoints = watt_consul.get("Endpoints", {})
 
             for consul_rkey, consul_object in consul_endpoints.items():
                 self.handle_consul_service(consul_rkey, consul_object)
@@ -334,10 +390,12 @@ spec:
             self.finalize()
 
     def load_pod_labels(self):
-        pod_labels_path = '/tmp/ambassador-pod-info/labels'
+        pod_labels_path = "/tmp/ambassador-pod-info/labels"
         if not os.path.isfile(pod_labels_path):
             if not self.alerted_about_labels:
-                self.aconf.post_error(f"Pod labels are not mounted in the Ambassador container; Kubernetes Ingress support is likely to be limited")
+                self.aconf.post_error(
+                    f"Pod labels are not mounted in the Ambassador container; Kubernetes Ingress support is likely to be limited"
+                )
                 self.alerted_about_labels = True
 
             return False
@@ -379,16 +437,15 @@ spec:
             return
 
         with self.manager.locations.mark_annotated():
-            rkey = parent_key.split('/', 1)[1]
+            rkey = parent_key.split("/", 1)[1]
             self.manager.emit(NormalizedResource.from_kubernetes_object(obj, rkey=rkey))
 
     # Handler for Consul services
-    def handle_consul_service(self,
-                              consul_rkey: str, consul_object: AnyDict) -> None:
+    def handle_consul_service(self, consul_rkey: str, consul_object: AnyDict) -> None:
         # resource_identifier = f'consul-{consul_rkey}'
 
-        endpoints = consul_object.get('Endpoints', [])
-        name = consul_object.get('Service', consul_rkey)
+        endpoints = consul_object.get("Endpoints", [])
+        name = consul_object.get("Service", consul_rkey)
 
         if len(endpoints) < 1:
             # Bzzt.
@@ -404,34 +461,34 @@ spec:
         normalized_endpoints: Dict[str, List[Dict[str, Any]]] = {}
 
         for ep in endpoints:
-            ep_addr = ep.get('Address')
-            ep_port = ep.get('Port')
+            ep_addr = ep.get("Address")
+            ep_port = ep.get("Port")
 
             if not ep_addr or not ep_port:
-                self.logger.debug(f"ignoring Consul service {name} endpoint {ep['ID']} missing address info")
+                self.logger.debug(
+                    f"ignoring Consul service {name} endpoint {ep['ID']} missing address info"
+                )
                 continue
 
             # Consul services don't have the weird indirections that Kube services do, so just
             # lump all the endpoints together under the same source port of '*'.
-            svc_eps = normalized_endpoints.setdefault('*', [])
-            svc_eps.append({
-                'ip': ep_addr,
-                'port': ep_port,
-                'target_kind': 'Consul'
-            })
+            svc_eps = normalized_endpoints.setdefault("*", [])
+            svc_eps.append({"ip": ep_addr, "port": ep_port, "target_kind": "Consul"})
 
         spec = {
-            'ambassador_id': Config.ambassador_id,
-            'datacenter': consul_object.get('Id') or 'dc1',
-            'endpoints': normalized_endpoints,
+            "ambassador_id": Config.ambassador_id,
+            "datacenter": consul_object.get("Id") or "dc1",
+            "endpoints": normalized_endpoints,
         }
 
-        self.manager.emit(NormalizedResource.from_data(
-            'Service',
-            name,
-            spec=spec,
-            rkey=f"consul-{name}-{spec['datacenter']}",
-        ))
+        self.manager.emit(
+            NormalizedResource.from_data(
+                "Service",
+                name,
+                spec=spec,
+                rkey=f"consul-{name}-{spec['datacenter']}",
+            )
+        )
 
     def finalize(self) -> None:
         self.k8s_processor.finalize()

@@ -13,9 +13,16 @@ from uuid import uuid4
 
 
 class Scout:
-
-    def __init__(self, app, version, install_id=None,
-                 id_plugin=None, id_plugin_args={}, scout_host="metriton.datawire.io", **kwargs):
+    def __init__(
+        self,
+        app,
+        version,
+        install_id=None,
+        id_plugin=None,
+        id_plugin_args={},
+        scout_host="metriton.datawire.io",
+        **kwargs
+    ):
         """
         Create a new Scout instance for later reports.
 
@@ -72,7 +79,7 @@ class Scout:
             if plugin_response:
                 if "install_id" in plugin_response:
                     self.install_id = plugin_response["install_id"]
-                    del(plugin_response["install_id"])
+                    del plugin_response["install_id"]
 
                 if plugin_response:
                     self.metadata = Scout.__merge_dicts(self.metadata, plugin_response)
@@ -88,28 +95,28 @@ class Scout:
         self.disabled = Scout.__is_disabled()
 
     def report(self, **kwargs):
-        result = {'latest_version': self.version}
+        result = {"latest_version": self.version}
 
         if self.disabled:
             return result
 
         merged_metadata = Scout.__merge_dicts(self.metadata, kwargs)
 
-        headers = {
-            'User-Agent': self.user_agent
-        }
+        headers = {"User-Agent": self.user_agent}
 
         payload = {
-            'application': self.app,
-            'version': self.version,
-            'install_id': self.install_id,
-            'user_agent': self.create_user_agent(),
-            'metadata': merged_metadata
+            "application": self.app,
+            "version": self.version,
+            "install_id": self.install_id,
+            "user_agent": self.create_user_agent(),
+            "metadata": merged_metadata,
         }
 
         self.logger.debug("Scout: report payload: %s" % json.dumps(payload, indent=4))
 
-        url = ("https://" if self.use_https else "http://") + "{}/scout".format(self.scout_host).lower()
+        url = ("https://" if self.use_https else "http://") + "{}/scout".format(
+            self.scout_host
+        ).lower()
 
         try:
             resp = requests.post(url, json=payload, headers=headers, timeout=1)
@@ -120,14 +127,14 @@ class Scout:
                 result = Scout.__merge_dicts(result, resp.json())
         except OSError as e:
             self.logger.warning("Scout: could not post report: %s" % e)
-            result['exception'] = 'could not post report: %s' % e
+            result["exception"] = "could not post report: %s" % e
         except Exception as e:
             # If scout is down or we are getting errors just proceed as if nothing happened. It should not impact the
             # user at all.
             tb = "\n".join(traceback.format_exception(*sys.exc_info()))
 
-            result['exception'] = e
-            result['traceback'] = tb
+            result["exception"] = e
+            result["traceback"] = tb
 
         if "new_install" in self.metadata:
             del self.metadata["new_install"]
@@ -136,11 +143,8 @@ class Scout:
 
     def create_user_agent(self):
         result = "{0}/{1} ({2}; {3}; python {4})".format(
-            self.app,
-            self.version,
-            platform.system(),
-            platform.release(),
-            platform.python_version()).lower()
+            self.app, self.version, platform.system(), platform.release(), platform.python_version()
+        ).lower()
 
         return result
 
@@ -156,12 +160,12 @@ class Scout:
 
         id_file = os.path.join(config_root, "id")
         if not os.path.isfile(id_file):
-            with open(id_file, 'w') as f:
+            with open(id_file, "w") as f:
                 install_id = str(uuid4())
                 self.metadata["new_install"] = True
                 f.write(install_id)
         else:
-            with open(id_file, 'r') as f:
+            with open(id_file, "r") as f:
                 install_id = f.read()
 
         return install_id
@@ -211,17 +215,17 @@ class Scout:
         if not map_name:
             map_name = "scout.config.{0}".format(app)
 
-        kube_host = os.environ.get('KUBERNETES_SERVICE_HOST', None)
+        kube_host = os.environ.get("KUBERNETES_SERVICE_HOST", None)
 
         try:
-            kube_port = int(os.environ.get('KUBERNETES_SERVICE_PORT', 443))
+            kube_port = int(os.environ.get("KUBERNETES_SERVICE_PORT", 443))
         except ValueError:
             scout.logger.debug("Scout: KUBERNETES_SERVICE_PORT isn't numeric, defaulting to 443")
             kube_port = 443
 
         kube_proto = "https" if (kube_port == 443) else "http"
 
-        kube_token = os.environ.get('KUBERNETES_ACCESS_TOKEN', None)
+        kube_token = os.environ.get("KUBERNETES_ACCESS_TOKEN", None)
 
         if not kube_host:
             # We're not running in Kubernetes. Fall back to the usual filesystem stuff.
@@ -243,7 +247,7 @@ class Scout:
 
         base_url = "%s://%s:%s" % (kube_proto, kube_host, kube_port)
         url_path = "api/v1/namespaces/%s/configmaps" % namespace
-        auth_headers = { "Authorization": "Bearer " + kube_token }
+        auth_headers = {"Authorization": "Bearer " + kube_token}
         install_id = None
 
         cm_url = "%s/%s" % (base_url, url_path)
@@ -269,25 +273,25 @@ class Scout:
 
                     if install_id:
                         scout.logger.debug("Scout: got install_id %s from map" % install_id)
-                        plugin_response = { "install_id": install_id }
+                        plugin_response = {"install_id": install_id}
         except OSError as e:
-            scout.logger.debug("Scout: could not read configmap (map %s, namespace %s): %s" %
-                               (map_name, namespace, e))
+            scout.logger.debug(
+                "Scout: could not read configmap (map %s, namespace %s): %s"
+                % (map_name, namespace, e)
+            )
 
         if not install_id:
             # No extant install_id. Try to create a new one.
             install_id = str(uuid4())
 
             cm = {
-                "apiVersion":"v1",
-                "kind":"ConfigMap",
-                "metadata":{
+                "apiVersion": "v1",
+                "kind": "ConfigMap",
+                "metadata": {
                     "name": map_name,
                     "namespace": namespace,
                 },
-                "data": {
-                    "install_id": install_id
-                }
+                "data": {"install_id": install_id},
             }
 
             scout.logger.debug("Scout: saving new install_id %s" % install_id)
@@ -300,15 +304,16 @@ class Scout:
                     saved = True
                     scout.logger.debug("Scout: saved install_id %s" % install_id)
 
-                    plugin_response = {
-                        "install_id": install_id,
-                        "new_install": True
-                    }
+                    plugin_response = {"install_id": install_id, "new_install": True}
                 else:
-                    scout.logger.error("Scout: could not save install_id: {0}, {1}".format(r.status_code, r.text))
+                    scout.logger.error(
+                        "Scout: could not save install_id: {0}, {1}".format(r.status_code, r.text)
+                    )
             except OSError as e:
-                logging.debug("Scout: could not write configmap (map %s, namespace %s): %s" %
-                              (map_name, namespace, e))
+                logging.debug(
+                    "Scout: could not write configmap (map %s, namespace %s): %s"
+                    % (map_name, namespace, e)
+                )
 
         scout.logger.debug("Scout: plugin_response %s" % json.dumps(plugin_response))
         return plugin_response

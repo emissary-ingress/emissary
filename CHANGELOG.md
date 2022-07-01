@@ -45,13 +45,6 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
    adjust their service implementations to understand the v3 protocols, and then update Emissary
    resources to say `protocol_version` before upgrading to Emissary-ingress 3.0.0.
 
- - **No `regex_type: unsafe`**: The `regex_type` field will be removed from the `ambassador`
-   `Module`, meaning that it will not be possible to instruct Envoy to use the [ECMAScript Regex][]
-   engine rather than the default [RE2][] engine.
-
-   Users who rely on the specific ECMAScript Regex syntax will need to rewrite their regular
-   expressions with RE2 syntax before upgrading to Emissary-ingress 3.0.0.
-
  - **No Zipkin `collector_endpoint_version: HTTP_JSON_V1`**: Support for specifying
    `collector_endpoint_version: HTTP_JSON_V1` for a Zipkin `TracingService` will be removed.  The
    `HTTP_JSON_V1` value corresponds to Zipkin's old API-v1, while the `HTTP_JSON` value corresponds
@@ -72,15 +65,101 @@ With the removal of `regex_type: unsafe` and `collector_endpoint_version: HTTP_J
 be no more user-visible effects of the `AMBASSADOR_ENVOY_API_VERSION` environment variable, and so
 it will be removed; but as it won't be user-visible this isn't considered a breaking change.
 
-[ECMASCript Regex]: https://en.cppreference.com/w/cpp/regex/ecmascript
-[RE2]: https://github.com/google/re2
-
 ### Emissary 3.0.0 or later
 
  - In a future version of Emissary-ingress, **no sooner than Emissary-ingress v3.0.0**, TLS secrets
    in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 ## RELEASE NOTES
+
+## [3.0.0] June 27, 2022
+[3.0.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v3.0.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: The envoy version included in Emissary-ingress has been upgraded from 1.17 to the latest
+  patch release of 1.22. This provides Emissary-ingress with the latest security patches,
+  performances enhancments, and features offered by the envoy proxy. One notable change that will
+  effect users is the removal of support for V2 tranport protocol. See below for more information.
+
+- Change: Emissary-ingress can no longer be made to configure Envoy using the v2 xDS configuration
+  API; it now always uses the v3 xDS API to configure Envoy.  This change should be mostly invisible
+  to users, with one notable exception: It removes support for `regex_type: unsafe`.
+  The
+  `regex_type` field will is removed from the `ambassador` `Module`, meaning that it is not be
+  possible to instruct Envoy to use the <a
+  href="https://en.cppreference.com/w/cpp/regex/ecmascript">ECMAScript Regex</a> engine rather than
+  the default <a href="https://github.com/google/re2">RE2</a> engine.
+  Users who rely on the specific
+  ECMAScript Regex syntax will need to rewrite their regular expressions with RE2 syntax before
+  upgrading to Emissary-ingress 3.0.0.
+  As the xDS version is no longer configurable and the range of
+  supported Zipkin protocols is reduced (see below), the AMBASSADOR_ENVOY_API_VERSION environment
+  variable has been removed.
+
+- Change: With the ugprade to Envoy 1.22, Emissary-ingress no longer supports the V2 transport
+  protocol. The `AuthService`, `LogService` and the `RateLimitService` will only support the v3
+  protocol_version. If protocol_version is not specified, the default value of `v2` will cause an
+  error to be posted. Therefore, you will need to set it to `protocol_version: "v3"`. If upgrading
+  from a previous version you will want to set it to "v3" and ensure it is working before upgrading
+  to Emissary-ingress 3.Y.
+
+- Change: With the upgrade to Envoy 1.22, the `zipkin` driver for the `TraceService` no longer
+  supports setting the `collector_endpoint_version: HTTP_JSON_V1`. This was removed in Envoy 1.20 -
+  <a href="https://github.com/envoyproxy/envoy/commit/db74e313b3651588e59c671af45077714ac32cef" />.
+  The new default will be `collector_endpoint_version: HTTP_JSON`, regardless of the
+  `AMBASSADOR_ENVOY_API_VERSION` environment variable.
+
+- Change: In the standard published `.yaml` files, now included is a `Module` resource that disables
+  the `/ambassador/v0/` → `127.0.0.1:8878` synthetic mapping.  We have long recommended to turn
+  this off for production use; it is now off in the standard YAML.  The associated Helm chart
+  release also now disables it by default.  A later apiVersion (`getambassador.io/v3alpha2` or
+  later) will likely change the `Module` CRD so that it is disabled if unspecified; but in the
+  mean-time, the default install procedure will now specify it to be disabled.
+
+- Change: This release does not include the publishing of `emissary-emissaryns-agent.yaml`,
+  `emissary-defaultns-agent.yaml`, `emissary-emissaryns-migration.yaml`, or
+  `emissary-defaultns-migration.yaml` files.  All four of these files existed solely as part of the
+  migration process from 1;y, but since 2.2.0 the `*-migration.yaml` files have not been part of the
+  migration instructions, and while the `*-agent.yaml` files remained part of the instructions they
+  were actually unnescessary.
+
+- Change: The previous version of Emissary-ingress was based on Envoy 1.17 and when using grpc_stats
+  with `all_methods` or `services` set, it would output metrics in the following format
+  `envoy_cluster_grpc_{ServiceName}_{statname}`. When neither of these fields are set it would be
+  aggregated to `envoy_cluster_grpc_{statname}`.
+  The new behavior since Envoy 1.18 will produce
+  metrics in the following format `envoy_cluster_grpc_{MethodName}_statsname` and
+  `envoy_cluster_grpc_statsname`.
+  After further investigation we found that Envoy doesn't properly
+  parse service names such as `cncf.telepresence.Manager/Status`. In the future, we will work
+  upstream Envoy to get this parsing logic fixed to ensure consistent metric naming.
+
+- Bugfix: Previously setting `grpc_stats` in the `ambassador` `Module` without setting either
+  `grpc_stats.services` or `grpc_stats.all_methods` would result in crashing. Now it behaves as if
+  `grpc_stats.all_methods=false`.
+
+- Feature: With the ugprade to Envoy 1.22, Emissary-ingress can now be configured to listen for
+  HTTP/3 connections using QUIC and the UDP network protocol. It currently only supports for
+  connections between downstream clients and Emissary-ingress.
+
+## [2.3.1] June 09, 2022
+[2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: A regression was introduced in 2.3.0 that leaked zipkin default config fields into the
+  configuration for the other drivers (lightstep, etc...). This caused Emissary-ingress to crash on
+  startup. This issue has been resolved to ensure that the defaults are only applied when driver is
+  `zipkin` ([#4267])
+
+- Security: We have backported patches from the Envoy 1.19.5 security update to Emissary-ingress's
+  1.17-based Envoy, addressing CVE-2022-29224 and CVE-2022-29225.  Emissary-ingress is not affected
+  by CVE-2022-29226, CVE-2022-29227, or CVE-2022-29228; as it <a
+  href="https://github.com/emissary-ingress/emissary/issues/2846">does not support internal
+  redirects</a>, and does not use Envoy's built-in OAuth2 filter.
+
+[#4267]: https://github.com/emissary-ingress/emissary/issues/4267
 
 ## [2.3.0] June 06, 2022
 [2.3.0]: https://github.com/emissary-ingress/emissary/compare/v2.2.2...v2.3.0

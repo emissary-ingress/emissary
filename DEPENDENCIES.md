@@ -1,4 +1,4 @@
-The Go module "github.com/datawire/ambassador/v2" incorporates the
+The Go module "github.com/emissary-ingress/emissary/v3" incorporates the
 following Free and Open Source software:
 
     Name                                                                                       Version                                      License(s)
@@ -22,7 +22,6 @@ following Free and Open Source software:
     github.com/armon/go-metrics                                                                v0.3.10                                      MIT license
     github.com/asaskevich/govalidator                                                          v0.0.0-20210307081110-f21760c49a8d           MIT license
     github.com/census-instrumentation/opencensus-proto                                         v0.3.0                                       Apache License 2.0
-    github.com/cncf/udpa/go                                                                    v0.0.0-20220112060539-c52dc94e7fbe           Apache License 2.0
     github.com/cncf/xds/go                                                                     v0.0.0-20220121163655-4a2b9fdd466b           Apache License 2.0
     github.com/datawire/dlib                                                                   v1.2.5-0.20211116212847-0316f8d7af2b         Apache License 2.0
     github.com/datawire/dtest                                                                  v0.0.0-20210928162311-722b199c4c2f           Apache License 2.0
@@ -94,6 +93,7 @@ following Free and Open Source software:
     github.com/spf13/pflag                                                                     v1.0.5                                       3-clause BSD license
     github.com/stretchr/testify                                                                v1.7.0                                       MIT license
     github.com/xlab/treeprint                                                                  v1.1.0                                       MIT license
+    go.opentelemetry.io/proto/otlp                                                             v0.7.0                                       Apache License 2.0
     go.starlark.net                                                                            v0.0.0-20220203230714-bb14e151c28f           3-clause BSD license
     golang.org/x/crypto                                                                        v0.0.0-20220131195533-30dcbda58838           3-clause BSD license
     golang.org/x/mod                                                                           v0.5.1                                       3-clause BSD license
@@ -194,6 +194,7 @@ libraries:
     six                 1.16.0     MIT license
     toml                0.10.2     MIT license
     tomli               1.2.2      MIT license
+    typing-extensions   4.2.0      Python Software Foundation license
     urllib3             1.26.8     MIT license
     webencodings        0.5.1      3-clause BSD license
     websocket-client    1.2.3      Apache License 2.0

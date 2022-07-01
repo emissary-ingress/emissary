@@ -6,7 +6,7 @@ from ..config import Config
 from ..utils import RichStatus
 
 if TYPE_CHECKING:
-    from .ir import IR # pragma: no cover
+    from .ir import IR  # pragma: no cover
 
 
 class IRTracing(IRResource):
@@ -18,23 +18,25 @@ class IRTracing(IRResource):
     host_rewrite: Optional[str]
     sampling: dict
 
-    def __init__(self, ir: 'IR', aconf: Config,
-                 rkey: str = "ir.tracing",
-                 kind: str = "ir.tracing",
-                 name: str = "tracing",
-                 namespace: Optional[str] = None,
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        ir: "IR",
+        aconf: Config,
+        rkey: str = "ir.tracing",
+        kind: str = "ir.tracing",
+        name: str = "tracing",
+        namespace: Optional[str] = None,
+        **kwargs
+    ) -> None:
         del kwargs  # silence unused-variable warning
 
-        super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, namespace=namespace
-        )
+        super().__init__(ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, namespace=namespace)
         self.cluster = None
 
-    def setup(self, ir: 'IR', aconf: Config) -> bool:
+    def setup(self, ir: "IR", aconf: Config) -> bool:
         # Some of the validations might go away if JSON Schema is doing the validations, but need to check on that
 
-        config_info = aconf.get_config('tracing_configs')
+        config_info = aconf.get_config("tracing_configs")
 
         if not config_info:
             ir.logger.debug("IRTracing: no tracing config, bailing")
@@ -45,18 +47,21 @@ class IRTracing(IRResource):
         number_configs = len(configs)
         if number_configs != 1:
             self.post_error(
-                RichStatus.fromError("exactly one TracingService is supported, got {}".format(number_configs),
-                                     module=aconf))
+                RichStatus.fromError(
+                    "exactly one TracingService is supported, got {}".format(number_configs),
+                    module=aconf,
+                )
+            )
             return False
 
         config = list(configs)[0]
 
-        service = config.get('service')
+        service = config.get("service")
         if not service:
             self.post_error(RichStatus.fromError("service field is required in TracingService"))
             return False
 
-        driver = config.get('driver')
+        driver = config.get("driver")
         if not driver:
             self.post_error(RichStatus.fromError("driver field is required in TracingService"))
             return False
@@ -74,24 +79,24 @@ class IRTracing(IRResource):
         # envoyv2 untyped "config" field. We actually use a "typed_config" in the final Envoy
         # config, see envoy/v2/v2tracer.py.
         driver_config = config.get("config", {})
-        # fill defaults
-        if not driver_config.get('collector_endpoint'):
-            driver_config['collector_endpoint'] = {
-                'V2': '/api/v1/spans',
-                'V3': '/api/v2/spans',
-            }[aconf.envoy_api_version]
-        if not driver_config.get('collector_endpoint_version'):
-            driver_config['collector_endpoint_version'] = {
-                'V2': 'HTTP_JSON_V1',
-                'V3': 'HTTP_JSON',
-            }[aconf.envoy_api_version]
-        if not 'trace_id_128bit' in driver_config:
-            # Make 128-bit traceid the default
-            driver_config['trace_id_128bit'] = True
-        # validate
-        if driver_config['collector_endpoint_version'] not in ['HTTP_JSON_V1', 'HTTP_JSON', 'HTTP_PROTO']:
-            self.post_error(RichStatus.fromError("collector_endpoint_version must be one of 'HTTP_JSON_V1, HTTP_JSON, HTTP_PROTO'"))
-            return False
+
+        if driver == "zipkin":
+            # fill zipkin defaults
+            if not driver_config.get("collector_endpoint"):
+                driver_config["collector_endpoint"] = "/api/v2/spans"
+            if not driver_config.get("collector_endpoint_version"):
+                driver_config["collector_endpoint_version"] = "HTTP_JSON"
+            if not "trace_id_128bit" in driver_config:
+                # Make 128-bit traceid the default
+                driver_config["trace_id_128bit"] = True
+            # validate
+            if driver_config["collector_endpoint_version"] not in ["HTTP_JSON", "HTTP_PROTO"]:
+                self.post_error(
+                    RichStatus.fromError(
+                        "collector_endpoint_version must be one of HTTP_JSON, HTTP_PROTO'"
+                    )
+                )
+                return False
 
         # OK, we have a valid config.
         self.sourced_by(config)
@@ -101,18 +106,18 @@ class IRTracing(IRResource):
         self.grpc = grpc
         self.cluster = None
         self.driver_config = driver_config
-        self.tag_headers = config.get('tag_headers', [])
-        self.sampling = config.get('sampling', {})
+        self.tag_headers = config.get("tag_headers", [])
+        self.sampling = config.get("sampling", {})
 
         # XXX host_rewrite actually isn't in the schema right now.
-        self.host_rewrite = config.get('host_rewrite', None)
+        self.host_rewrite = config.get("host_rewrite", None)
 
         # Remember that the config references us.
         self.referenced_by(config)
 
         return True
 
-    def add_mappings(self, ir: 'IR', aconf: Config):
+    def add_mappings(self, ir: "IR", aconf: Config):
         cluster = ir.add_cluster(
             IRCluster(
                 ir=ir,
@@ -120,10 +125,10 @@ class IRTracing(IRResource):
                 parent_ir_resource=self,
                 location=self.location,
                 service=self.service,
-                host_rewrite=self.get('host_rewrite', None),
-                marker='tracing',
+                host_rewrite=self.get("host_rewrite", None),
+                marker="tracing",
                 grpc=self.grpc,
-                stats_name=self.get("stats_name", None)
+                stats_name=self.get("stats_name", None),
             )
         )
 
@@ -131,5 +136,6 @@ class IRTracing(IRResource):
         self.cluster = cluster
 
     def finalize(self):
+        assert self.cluster
         self.ir.logger.debug("tracing cluster envoy name: %s" % self.cluster.envoy_name)
-        self.driver_config['collector_cluster'] = self.cluster.envoy_name
+        self.driver_config["collector_cluster"] = self.cluster.envoy_name

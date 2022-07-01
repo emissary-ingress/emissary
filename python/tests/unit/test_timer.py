@@ -8,6 +8,7 @@ from ambassador.utils import Timer
 
 epsilon = 0.0001
 
+
 def feq(x: float, y: float) -> bool:
     return abs(x - y) <= epsilon
 
@@ -120,5 +121,5 @@ def test_Timer():
     assert feq(t1.average, 150), f"t1.average must be 150, got {t1.average}"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pytest.main(sys.argv)

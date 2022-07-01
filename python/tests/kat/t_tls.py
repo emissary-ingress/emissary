@@ -8,7 +8,9 @@ from tests.integration.manifests import namespace_manifest
 from tests.utils import create_crl_pem_b64
 
 
-bug_404_routes = True              # Do we erroneously send 404 responses directly instead of redirect-to-tls first?
+bug_404_routes = (
+    True  # Do we erroneously send 404 responses directly instead of redirect-to-tls first?
+)
 
 
 class TLSContextsTest(AmbassadorTest):
@@ -26,7 +28,8 @@ class TLSContextsTest(AmbassadorTest):
         self.xfail = "FIXME: IHA"
 
     def manifests(self) -> str:
-        return f"""
+        return (
+            f"""
 ---
 apiVersion: v1
 metadata:
@@ -37,10 +40,13 @@ data:
   tls.crt: {TLSCerts["master.datawire.io"].k8s_crt}
 kind: Secret
 type: Opaque
-""" + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -50,35 +56,43 @@ config:
   upstream:
     enabled: True
     secret: test-tlscontexts-secret
-""")
+"""
+        )
 
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name:  {self.target.path.k8s}
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
-""")
+"""
+        )
 
     def scheme(self) -> str:
         return "https"
 
     def queries(self):
-        yield Query(self.url(self.name + "/"), error=['connection refused', 'connection reset by peer', 'EOF', 'request canceled'])
+        yield Query(
+            self.url(self.name + "/"),
+            error=["connection refused", "connection reset by peer", "EOF", "request canceled"],
+        )
 
     def requirements(self):
-        yield from (r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("http://"))
+        yield from (
+            r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("http://")
+        )
 
 
 class ClientCertificateAuthentication(AmbassadorTest):
-
     def init(self):
         self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return f"""
+        return (
+            f"""
 ---
 apiVersion: v1
 metadata:
@@ -100,10 +114,13 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["ambassador.example.com"].k8s_crt}
   tls.key: {TLSCerts["ambassador.example.com"].k8s_key}
-""" + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -125,9 +142,11 @@ config:
     enabled: True
     secret: test-clientcert-client-secret
     cert_required: True
-""")
+"""
+        )
 
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -139,42 +158,74 @@ add_request_headers:
   x-cert-end: { value: "%DOWNSTREAM_PEER_CERT_V_END%" }
   x-cert-start-custom: { value: "%DOWNSTREAM_PEER_CERT_V_START(%b %e %H:%M:%S %Y %Z)%" }
   x-cert-end-custom: { value: "%DOWNSTREAM_PEER_CERT_V_END(%b %e %H:%M:%S %Y %Z)%" }
-""")
+"""
+        )
 
     def scheme(self) -> str:
         return "https"
 
     def queries(self):
-        yield Query(self.url(self.name + "/"), insecure=True,
-                    client_crt=TLSCerts["presto.example.com"].pubcert,
-                    client_key=TLSCerts["presto.example.com"].privkey,
-                    client_cert_required=True,
-                    ca_cert=TLSCerts["master.datawire.io"].pubcert)
+        yield Query(
+            self.url(self.name + "/"),
+            insecure=True,
+            client_crt=TLSCerts["presto.example.com"].pubcert,
+            client_key=TLSCerts["presto.example.com"].privkey,
+            client_cert_required=True,
+            ca_cert=TLSCerts["master.datawire.io"].pubcert,
+        )
 
         # In TLS < 1.3, there's not a dedicated alert code for "the client forgot to include a certificate",
         # so we get a generic alert=40 ("handshake_failure"). We also include "write: connection reset by peer"
         # because we've seen cases where Envoy and the client library don't play nicely, so the error report doesn't
         # get back before the connection closes.
-        yield Query(self.url(self.name + "/"), insecure=True, maxTLSv="v1.2",
-                    error=[ "tls: handshake failure", "write: connection reset by peer" ])
+        yield Query(
+            self.url(self.name + "/"),
+            insecure=True,
+            maxTLSv="v1.2",
+            error=["tls: handshake failure", "write: connection reset by peer"],
+        )
 
         # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario. See above for why
         # "write: connection reset by peer " is also accepted.
-        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3",
-                    error=[ "tls: certificate required", "write: connection reset by peer" ])
+        yield Query(
+            self.url(self.name + "/"),
+            insecure=True,
+            minTLSv="v1.3",
+            error=["tls: certificate required", "write: connection reset by peer"],
+        )
 
     def check(self):
-        assert self.results[0].backend.request.headers["x-forwarded-client-cert"] == \
-            ["Hash=c2d41a5977dcd28a3ba21f59ed5508cc6538defa810843d8a593e668306c8c4f;Subject=\"CN=presto.example.com,OU=Engineering,O=Presto,L=Bangalore,ST=KA,C=IN\""]
-        assert self.results[0].backend.request.headers["x-cert-start"] == ["2019-01-10T19:19:52.000Z"], \
-                "unexpected x-cert-start value: %s" % self.results[0].backend.request.headers["x-cert-start"]
-        assert self.results[0].backend.request.headers["x-cert-end"] == ["2118-12-17T19:19:52.000Z"], \
-                "unexpected x-cert-end value: %s" % self.results[0].backend.request.headers["x-cert-end"]
-        assert self.results[0].backend.request.headers["x-cert-start-custom"] == ["Jan 10 19:19:52 2019 UTC"], \
-                "unexpected x-cert-start-custom value: %s" % self.results[1].backend.request.headers["x-cert-start-custom"]
-        assert self.results[0].backend.request.headers["x-cert-end-custom"] == ["Dec 17 19:19:52 2118 UTC"], \
-                "unexpected x-cert-end-custom value: %s" % self.results[0].backend.request.headers["x-cert-end-custom"]
-
+        assert self.results[0].backend
+        assert self.results[0].backend.request
+        assert self.results[0].backend.request.headers["x-forwarded-client-cert"] == [
+            'Hash=c2d41a5977dcd28a3ba21f59ed5508cc6538defa810843d8a593e668306c8c4f;Subject="CN=presto.example.com,OU=Engineering,O=Presto,L=Bangalore,ST=KA,C=IN"'
+        ]
+        assert self.results[0].backend.request.headers["x-cert-start"] == [
+            "2019-01-10T19:19:52.000Z"
+        ], (
+            "unexpected x-cert-start value: %s"
+            % self.results[0].backend.request.headers["x-cert-start"]
+        )
+        assert self.results[0].backend.request.headers["x-cert-end"] == [
+            "2118-12-17T19:19:52.000Z"
+        ], (
+            "unexpected x-cert-end value: %s"
+            % self.results[0].backend.request.headers["x-cert-end"]
+        )
+        assert self.results[1].backend
+        assert self.results[1].backend.request
+        assert self.results[0].backend.request.headers["x-cert-start-custom"] == [
+            "Jan 10 19:19:52 2019 UTC"
+        ], (
+            "unexpected x-cert-start-custom value: %s"
+            % self.results[1].backend.request.headers["x-cert-start-custom"]
+        )
+        assert self.results[0].backend.request.headers["x-cert-end-custom"] == [
+            "Dec 17 19:19:52 2118 UTC"
+        ], (
+            "unexpected x-cert-end-custom value: %s"
+            % self.results[0].backend.request.headers["x-cert-end-custom"]
+        )
 
     def requirements(self):
         for r in super().requirements():
@@ -188,13 +239,14 @@ add_request_headers:
 
 
 class ClientCertificateAuthenticationContext(AmbassadorTest):
-
     def init(self):
         self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return self.format(f"""
+        return (
+            self.format(
+                f"""
 ---
 apiVersion: v1
 metadata:
@@ -229,39 +281,55 @@ spec:
   secret: ccauthctx-server-secret
   ca_secret: ccauthctx-client-secret
   cert_required: True
-""") + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name:  {self.target.path.k8s}
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
-""")
+"""
+        )
 
     def scheme(self) -> str:
         return "https"
 
     def queries(self):
-        yield Query(self.url(self.name + "/"), insecure=True,
-                    client_crt=TLSCerts["presto.example.com"].pubcert,
-                    client_key=TLSCerts["presto.example.com"].privkey,
-                    client_cert_required=True,
-                    ca_cert=TLSCerts["master.datawire.io"].pubcert)
+        yield Query(
+            self.url(self.name + "/"),
+            insecure=True,
+            client_crt=TLSCerts["presto.example.com"].pubcert,
+            client_key=TLSCerts["presto.example.com"].privkey,
+            client_cert_required=True,
+            ca_cert=TLSCerts["master.datawire.io"].pubcert,
+        )
 
         # In TLS < 1.3, there's not a dedicated alert code for "the client forgot to include a certificate",
         # so we get a generic alert=40 ("handshake_failure"). We also include "write: connection reset by peer"
         # because we've seen cases where Envoy and the client library don't play nicely, so the error report doesn't
         # get back before the connection closes.
-        yield Query(self.url(self.name + "/"), insecure=True, maxTLSv="v1.2",
-                error=[ "tls: handshake failure", "write: connection reset by peer" ])
+        yield Query(
+            self.url(self.name + "/"),
+            insecure=True,
+            maxTLSv="v1.2",
+            error=["tls: handshake failure", "write: connection reset by peer"],
+        )
 
         # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario. See above for why
         # "write: connection reset by peer" is also accepted.
-        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3",
-                error=[ "tls: certificate required", "write: connection reset by peer" ])
+        yield Query(
+            self.url(self.name + "/"),
+            insecure=True,
+            minTLSv="v1.3",
+            error=["tls: certificate required", "write: connection reset by peer"],
+        )
 
     def requirements(self):
         for r in super().requirements():
@@ -275,13 +343,14 @@ service: {self.target.path.fqdn}
 
 
 class ClientCertificateAuthenticationContextCRL(AmbassadorTest):
-
     def init(self):
         self.xfail = "FIXME: IHA"  # This test should cover TLSContext with a crl_secret
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return self.format(f"""
+        return (
+            self.format(
+                f"""
 ---
 apiVersion: v1
 metadata:
@@ -327,10 +396,14 @@ spec:
   ca_secret: ccauthctxcrl-client-secret
   crl_secret: ccauthctxcrl-crl-secret
   cert_required: True
-""") + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -338,31 +411,35 @@ name:  {self.target.path.k8s}
 prefix: /
 service: {self.target.path.fqdn}
 hostname: "*"
-""")
+"""
+        )
 
     def scheme(self) -> str:
         return "https"
 
     def queries(self):
-        yield Query(self.url(self.name + "/"), insecure=True,
-                    client_crt=TLSCerts["presto.example.com"].pubcert,
-                    client_key=TLSCerts["presto.example.com"].privkey,
-                    client_cert_required=True,
-                    ca_cert=TLSCerts["master.datawire.io"].pubcert,
-                    error=[ "tls: revoked certificate" ])
+        yield Query(
+            self.url(self.name + "/"),
+            insecure=True,
+            client_crt=TLSCerts["presto.example.com"].pubcert,
+            client_key=TLSCerts["presto.example.com"].privkey,
+            client_cert_required=True,
+            ca_cert=TLSCerts["master.datawire.io"].pubcert,
+            error=["tls: revoked certificate"],
+        )
 
     def requirements(self):
         yield ("pod", self.path.k8s)
 
 
 class TLSOriginationSecret(AmbassadorTest):
-
     def init(self):
         self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return f"""
+        return (
+            f"""
 ---
 apiVersion: v1
 kind: Secret
@@ -374,10 +451,13 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["localhost"].k8s_crt}
   tls.key: {TLSCerts["localhost"].k8s_key}
-""" + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -389,9 +469,11 @@ config:
   upstream-files:
     cert_chain_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt
     private_key_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key
-""")
+"""
+        )
 
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -399,9 +481,11 @@ name:  {self.target.path.k8s}
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
 tls: upstream
-""")
+"""
+        )
 
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -409,7 +493,8 @@ name:  {self.target.path.k8s}-files
 prefix: /{self.name}-files/
 service: {self.target.path.fqdn}
 tls: upstream-files
-""")
+"""
+        )
 
     def queries(self):
         yield Query(self.url(self.name + "/"))
@@ -417,6 +502,8 @@ tls: upstream-files
 
     def check(self):
         for r in self.results:
+            assert r.backend
+            assert r.backend.request
             assert r.backend.request.tls.enabled
 
 
@@ -429,7 +516,8 @@ class TLS(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return f"""
+        return (
+            f"""
 ---
 apiVersion: v1
 kind: Secret
@@ -466,22 +554,24 @@ spec:
   requestPolicy:
     insecure:
       action: Reject
-""" + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-#         # Use self here, not self.target, because we want the TLS module to
-#         # be annotated on the Ambassador itself.
-#         yield self, self.format("""
-# ---
-# apiVersion: getambassador.io/v3alpha1
-# kind: Module
-# name: tls
-# ambassador_id: [{self.ambassador_id}]
-# config:
-#   server:
-#     enabled: True
-#     secret: test-tls-secret
-# """)
+        #         # Use self here, not self.target, because we want the TLS module to
+        #         # be annotated on the Ambassador itself.
+        #         yield self, self.format("""
+        # ---
+        # apiVersion: getambassador.io/v3alpha1
+        # kind: Module
+        # name: tls
+        # ambassador_id: [{self.ambassador_id}]
+        # config:
+        #   server:
+        #     enabled: True
+        #     secret: test-tls-secret
+        # """)
 
         # Use self.target _here_, because we want the mapping to be annotated
         # on the service, not the Ambassador. Also, you don't need to include
@@ -491,14 +581,16 @@ spec:
         # If the test were more complex, we'd probably need to do some sort
         # of mangling for the mapping name and prefix. For this simple test,
         # it's not necessary.
-        yield self.target, self.format("""
+        yield self.target, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name:  tls_target_mapping
 prefix: /tls-target/
 service: {self.target.path.fqdn}
-""")
+"""
+        )
 
     def scheme(self) -> str:
         return "https"
@@ -516,7 +608,8 @@ class TLSInvalidSecret(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -535,16 +628,19 @@ config:
     enabled: True
     secret: test-certs-secret-invalid
     ca_secret: ambassador-certs
-""")
+"""
+        )
 
-        yield self.target, self.format("""
+        yield self.target, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name:  tls_target_mapping
 prefix: /tls-target/
 service: {self.target.path.fqdn}
-""")
+"""
+        )
 
     def scheme(self) -> str:
         return "http"
@@ -553,15 +649,18 @@ service: {self.target.path.fqdn}
         yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), phase=2)
 
     def check(self):
+        assert self.results[0].backend
         errors = self.results[0].backend.response
 
-        expected = set({
-            "TLSContext server found no certificate in secret test-certs-secret-invalid in namespace default, ignoring...",
-            "TLSContext bad-path-info found no cert_chain_file '/nonesuch'",
-            "TLSContext bad-path-info found no private_key_file '/nonesuch'",
-            "TLSContext validation-without-termination found no certificate in secret test-certs-secret-invalid in namespace default, ignoring...",
-            "TLSContext missing-secret-key: 'cert_chain_file' requires 'private_key_file' as well",
-        })
+        expected = set(
+            {
+                "TLSContext server found no certificate in secret test-certs-secret-invalid in namespace default, ignoring...",
+                "TLSContext bad-path-info found no cert_chain_file '/nonesuch'",
+                "TLSContext bad-path-info found no private_key_file '/nonesuch'",
+                "TLSContext validation-without-termination found no certificate in secret test-certs-secret-invalid in namespace default, ignoring...",
+                "TLSContext missing-secret-key: 'cert_chain_file' requires 'private_key_file' as well",
+            }
+        )
 
         current = set({})
         for errsvc, errtext in errors:
@@ -569,7 +668,7 @@ service: {self.target.path.fqdn}
 
         diff = expected - current
 
-        assert len(diff) == 0, f'expected {len(expected)} errors, got {len(errors)}: Missing {diff}'
+        assert len(diff) == 0, f"expected {len(expected)} errors, got {len(errors)}: Missing {diff}"
 
 
 class TLSContextTest(AmbassadorTest):
@@ -583,7 +682,9 @@ class TLSContextTest(AmbassadorTest):
             self.xfail = "XFailing for now"
 
     def manifests(self) -> str:
-        return namespace_manifest("secret-namespace") + f"""
+        return (
+            namespace_manifest("secret-namespace")
+            + f"""
 ---
 apiVersion: v1
 data:
@@ -618,10 +719,13 @@ metadata:
   labels:
     kat-ambassador-id: tlscontexttest
 type: kubernetes.io/tls
-""" + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -629,8 +733,10 @@ name:  {self.name}-same-prefix-1
 prefix: /tls-context-same/
 service: http://{self.target.path.fqdn}
 host: tls-context-host-1
-""")
-        yield self, self.format("""
+"""
+        )
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
@@ -641,8 +747,10 @@ secret: test-tlscontext-secret-1.secret-namespace
 min_tls_version: v1.0
 max_tls_version: v1.3
 redirect_cleartext_from: 8080
-""")
-        yield self, self.format("""
+"""
+        )
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -650,8 +758,10 @@ name:  {self.name}-same-prefix-2
 prefix: /tls-context-same/
 service: http://{self.target.path.fqdn}
 host: tls-context-host-2
-""")
-        yield self, self.format("""
+"""
+        )
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
@@ -661,8 +771,10 @@ hosts:
 secret: test-tlscontext-secret-2
 alpn_protocols: h2,http/1.1
 redirect_cleartext_from: 8080
-""")
-        yield self, self.format("""
+"""
+        )
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -671,17 +783,21 @@ config:
   server:
     enabled: True
     secret: test-tlscontext-secret-0
-""")
-        yield self, self.format("""
+"""
+        )
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name:  {self.name}-other-mapping
 prefix: /{self.name}/
 service: https://{self.target.path.fqdn}
-""")
+"""
+        )
         # Ambassador should not return an error when hostname is not present.
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
@@ -689,9 +805,11 @@ name: {self.name}-no-secret
 min_tls_version: v1.0
 max_tls_version: v1.3
 redirect_cleartext_from: 8080
-""")
+"""
+        )
         # Ambassador should return an error for this configuration.
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
@@ -699,9 +817,11 @@ name: {self.name}-same-context-error
 hosts:
 - tls-context-host-1
 redirect_cleartext_from: 8080
-""")
-      # Ambassador should return an error for this configuration.
-        yield self, self.format("""
+"""
+        )
+        # Ambassador should return an error for this configuration.
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
@@ -709,7 +829,8 @@ name: {self.name}-rcf-error
 hosts:
 - tls-context-host-1
 redirect_cleartext_from: 8081
-""")
+"""
+        )
 
     def scheme(self) -> str:
         return "https"
@@ -724,71 +845,91 @@ redirect_cleartext_from: 8081
 
     def queries(self):
         # 0
-        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"),
-                    headers={"Host": "tls-context-host-2"},
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url("ambassador/v0/diag/?json=true&filter=errors"),
+            headers={"Host": "tls-context-host-2"},
+            insecure=True,
+            sni=True,
+        )
 
         # 1 - Correct host #1
-        yield Query(self.url("tls-context-same/"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=200,
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url("tls-context-same/"),
+            headers={"Host": "tls-context-host-1"},
+            expected=200,
+            insecure=True,
+            sni=True,
+        )
         # 2 - Correct host #2
-        yield Query(self.url("tls-context-same/"),
-                    headers={"Host": "tls-context-host-2"},
-                    expected=200,
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url("tls-context-same/"),
+            headers={"Host": "tls-context-host-2"},
+            expected=200,
+            insecure=True,
+            sni=True,
+        )
 
         # 3 - Incorrect host
-        yield Query(self.url("tls-context-same/"),
-                    headers={"Host": "tls-context-host-3"},
-                    # error=self._go_close_connection_error(self.url("tls-context-same/")),
-                    expected=404,
-                    insecure=True)
+        yield Query(
+            self.url("tls-context-same/"),
+            headers={"Host": "tls-context-host-3"},
+            # error=self._go_close_connection_error(self.url("tls-context-same/")),
+            expected=404,
+            insecure=True,
+        )
 
         # 4 - Incorrect path, correct host
-        yield Query(self.url("tls-context-different/"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=404,
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url("tls-context-different/"),
+            headers={"Host": "tls-context-host-1"},
+            expected=404,
+            insecure=True,
+            sni=True,
+        )
 
         # Other mappings with no host will respond with the fallbock cert.
         # 5 - no Host header, fallback cert from the TLS module
-        yield Query(self.url(self.name + "/"),
-                    # error=self._go_close_connection_error(self.url(self.name + "/")),
-                    insecure=True)
+        yield Query(
+            self.url(self.name + "/"),
+            # error=self._go_close_connection_error(self.url(self.name + "/")),
+            insecure=True,
+        )
 
         # 6 - explicit Host header, fallback cert
-        yield Query(self.url(self.name + "/"),
-                    # error=self._go_close_connection_error(self.url(self.name + "/")),
-                    # sni=True,
-                    headers={"Host": "tls-context-host-3"},
-                    insecure=True)
+        yield Query(
+            self.url(self.name + "/"),
+            # error=self._go_close_connection_error(self.url(self.name + "/")),
+            # sni=True,
+            headers={"Host": "tls-context-host-3"},
+            insecure=True,
+        )
 
         # 7 - explicit Host header 1 wins, we'll get the SNI cert for this overlapping path
-        yield Query(self.url(self.name + "/"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=200,
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url(self.name + "/"),
+            headers={"Host": "tls-context-host-1"},
+            expected=200,
+            insecure=True,
+            sni=True,
+        )
 
         # 8 - explicit Host header 2 wins, we'll get the SNI cert for this overlapping path
-        yield Query(self.url(self.name + "/"),
-                    headers={"Host": "tls-context-host-2"},
-                    expected=200,
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url(self.name + "/"),
+            headers={"Host": "tls-context-host-2"},
+            expected=200,
+            insecure=True,
+            sni=True,
+        )
 
         # 9 - Redirect cleartext from actually redirects.
-        yield Query(self.url("tls-context-same/", scheme="http"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=301,
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url("tls-context-same/", scheme="http"),
+            headers={"Host": "tls-context-host-1"},
+            expected=301,
+            insecure=True,
+            sni=True,
+        )
 
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
@@ -797,11 +938,11 @@ redirect_cleartext_from: 8081
         assert num_errors == 5, "expected 5 errors, got {} -\n{}".format(num_errors, errors)
 
         errors_that_should_be_found = {
-          'TLSContext TLSContextTest-no-secret has no certificate information at all?': False,
-          'TLSContext TLSContextTest-same-context-error has no certificate information at all?': False,
-          'TLSContext TLSContextTest-same-context-error is missing cert_chain_file': False,
-          'TLSContext TLSContextTest-same-context-error is missing private_key_file': False,
-          'TLSContext: TLSContextTest-rcf-error; configured conflicting redirect_from port: 8081': False
+            "TLSContext TLSContextTest-no-secret has no certificate information at all?": False,
+            "TLSContext TLSContextTest-same-context-error has no certificate information at all?": False,
+            "TLSContext TLSContextTest-same-context-error is missing cert_chain_file": False,
+            "TLSContext TLSContextTest-same-context-error is missing private_key_file": False,
+            "TLSContext: TLSContextTest-rcf-error; configured conflicting redirect_from port: 8081": False,
         }
 
         unknown_errors: List[str] = []
@@ -823,8 +964,8 @@ redirect_cleartext_from: 8081
 
         for result in self.results:
             if result.status == 200 and result.query.headers:
-                host_header = result.query.headers['Host']
-                tls_common_name = result.tls[0]['Issuer']['CommonName']
+                host_header = result.query.headers["Host"]
+                tls_common_name = result.tls[0]["Issuer"]["CommonName"]
 
                 # XXX Weirdness with the fallback cert here! You see, if we use host
                 # tls-context-host-3 (or, really, anything except -1 or -2), then the
@@ -833,23 +974,58 @@ redirect_cleartext_from: 8081
                 #
                 # Ew.
 
-                if host_header == 'tls-context-host-3':
-                    host_header = 'localhost'
+                if host_header == "tls-context-host-3":
+                    host_header = "localhost"
 
-                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (idx, host_header, tls_common_name)
+                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (
+                    idx,
+                    host_header,
+                    tls_common_name,
+                )
 
             idx += 1
 
     def requirements(self):
         # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
-        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
-        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
-        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
-        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-2"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-2"},
+                insecure=True,
+                sni=True,
+            ),
+        )
 
 
 class TLSIngressTest(AmbassadorTest):
-
     def init(self):
         self.xfail = "FIXME: IHA"
         self.target = HTTP()
@@ -860,7 +1036,9 @@ class TLSIngressTest(AmbassadorTest):
       value: "diagd"
 """
 
-        return namespace_manifest("secret-namespace-ingress") + f"""
+        return (
+            namespace_manifest("secret-namespace-ingress")
+            + f"""
 ---
 apiVersion: v1
 data:
@@ -943,10 +1121,13 @@ spec:
               number: 80
         path: /tls-context-same/
         pathType: Prefix
-""" + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -955,9 +1136,11 @@ config:
   server:
     enabled: True
     secret: test-tlscontext-secret-ingress-0
-""")
+"""
+        )
 
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -965,7 +1148,8 @@ hostname: "*"
 name:  {self.name}-other-mapping
 prefix: /{self.name}/
 service: https://{self.target.path.fqdn}
-""")
+"""
+        )
 
     def scheme(self) -> str:
         return "https"
@@ -980,64 +1164,82 @@ service: https://{self.target.path.fqdn}
 
     def queries(self):
         # 0
-        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"),
-                    headers={"Host": "tls-context-host-2"},
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url("ambassador/v0/diag/?json=true&filter=errors"),
+            headers={"Host": "tls-context-host-2"},
+            insecure=True,
+            sni=True,
+        )
 
         # 1 - Correct host #1
-        yield Query(self.url("tls-context-same/"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=200,
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url("tls-context-same/"),
+            headers={"Host": "tls-context-host-1"},
+            expected=200,
+            insecure=True,
+            sni=True,
+        )
         # 2 - Correct host #2
-        yield Query(self.url("tls-context-same/"),
-                    headers={"Host": "tls-context-host-2"},
-                    expected=200,
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url("tls-context-same/"),
+            headers={"Host": "tls-context-host-2"},
+            expected=200,
+            insecure=True,
+            sni=True,
+        )
 
         # 3 - Incorrect host
-        yield Query(self.url("tls-context-same/"),
-                    headers={"Host": "tls-context-host-3"},
-                    # error=self._go_close_connection_error(self.url("tls-context-same/")),
-                    expected=404,
-                    insecure=True)
+        yield Query(
+            self.url("tls-context-same/"),
+            headers={"Host": "tls-context-host-3"},
+            # error=self._go_close_connection_error(self.url("tls-context-same/")),
+            expected=404,
+            insecure=True,
+        )
 
         # 4 - Incorrect path, correct host
-        yield Query(self.url("tls-context-different/"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=404,
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url("tls-context-different/"),
+            headers={"Host": "tls-context-host-1"},
+            expected=404,
+            insecure=True,
+            sni=True,
+        )
 
         # Other mappings with no host will respond with the fallbock cert.
         # 5 - no Host header, fallback cert from the TLS module
-        yield Query(self.url(self.name + "/"),
-                    # error=self._go_close_connection_error(self.url(self.name + "/")),
-                    insecure=True)
+        yield Query(
+            self.url(self.name + "/"),
+            # error=self._go_close_connection_error(self.url(self.name + "/")),
+            insecure=True,
+        )
 
         # 6 - explicit Host header, fallback cert
-        yield Query(self.url(self.name + "/"),
-                    # error=self._go_close_connection_error(self.url(self.name + "/")),
-                    # sni=True,
-                    headers={"Host": "tls-context-host-3"},
-                    insecure=True)
+        yield Query(
+            self.url(self.name + "/"),
+            # error=self._go_close_connection_error(self.url(self.name + "/")),
+            # sni=True,
+            headers={"Host": "tls-context-host-3"},
+            insecure=True,
+        )
 
         # 7 - explicit Host header 1 wins, we'll get the SNI cert for this overlapping path
-        yield Query(self.url(self.name + "/"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=200,
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url(self.name + "/"),
+            headers={"Host": "tls-context-host-1"},
+            expected=200,
+            insecure=True,
+            sni=True,
+        )
 
         # 7 - explicit Host header 2 wins, we'll get the SNI cert for this overlapping path
-        yield Query(self.url(self.name + "/"),
-                    headers={"Host": "tls-context-host-2"},
-                    expected=200,
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url(self.name + "/"),
+            headers={"Host": "tls-context-host-2"},
+            expected=200,
+            insecure=True,
+            sni=True,
+        )
 
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
@@ -1049,8 +1251,8 @@ service: https://{self.target.path.fqdn}
 
         for result in self.results:
             if result.status == 200 and result.query.headers:
-                host_header = result.query.headers['Host']
-                tls_common_name = result.tls[0]['Issuer']['CommonName']
+                host_header = result.query.headers["Host"]
+                tls_common_name = result.tls[0]["Issuer"]["CommonName"]
 
                 # XXX Weirdness with the fallback cert here! You see, if we use host
                 # tls-context-host-3 (or, really, anything except -1 or -2), then the
@@ -1059,24 +1261,60 @@ service: https://{self.target.path.fqdn}
                 #
                 # Ew.
 
-                if host_header == 'tls-context-host-3':
-                    host_header = 'localhost'
+                if host_header == "tls-context-host-3":
+                    host_header = "localhost"
 
                 # Yep, that's expected. Since the TLS secret for 'tls-context-host-1' is
                 # not namespaced it should only resolve to the Ingress' own
                 # namespace, and can't use the 'secret.namespace' Ambassador syntax
-                if host_header == 'tls-context-host-1':
-                    host_header = 'localhost'
+                if host_header == "tls-context-host-1":
+                    host_header = "localhost"
 
-                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (idx, host_header, tls_common_name)
+                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (
+                    idx,
+                    host_header,
+                    tls_common_name,
+                )
 
             idx += 1
 
     def requirements(self):
-        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
-        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
-        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
-        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-2"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-2"},
+                insecure=True,
+                sni=True,
+            ),
+        )
 
 
 class TLSContextProtocolMaxVersion(AmbassadorTest):
@@ -1097,7 +1335,8 @@ class TLSContextProtocolMaxVersion(AmbassadorTest):
         self.xfail = "FIXME: IHA"
 
     def manifests(self) -> str:
-        return f"""
+        return (
+            f"""
 ---
 apiVersion: v1
 data:
@@ -1109,10 +1348,13 @@ metadata:
   labels:
     kat-ambassador-id: tlscontextprotocolmaxversion
 type: kubernetes.io/tls
-""" + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -1136,7 +1378,8 @@ hosts:
 secret: secret.max-version
 min_tls_version: v1.1
 max_tls_version: v1.2
-""")
+"""
+        )
 
     def scheme(self) -> str:
         return "https"
@@ -1159,38 +1402,50 @@ max_tls_version: v1.2
         # For now, we're checking for the None result, but, ew.
         # ----
 
-        yield Query(self.url("tls-context-same/"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=200,
-                    insecure=True,
-                    sni=True,
-                    minTLSv="v1.2",
-                    maxTLSv="v1.2")
+        yield Query(
+            self.url("tls-context-same/"),
+            headers={"Host": "tls-context-host-1"},
+            expected=200,
+            insecure=True,
+            sni=True,
+            minTLSv="v1.2",
+            maxTLSv="v1.2",
+        )
 
         # This should give us TLS v1.1
-        yield Query(self.url("tls-context-same/"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=200,
-                    insecure=True,
-                    sni=True,
-                    minTLSv="v1.0",
-                    maxTLSv="v1.1")
+        yield Query(
+            self.url("tls-context-same/"),
+            headers={"Host": "tls-context-host-1"},
+            expected=200,
+            insecure=True,
+            sni=True,
+            minTLSv="v1.0",
+            maxTLSv="v1.1",
+        )
 
         # This should be an error.
-        yield Query(self.url("tls-context-same/"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=200,
-                    insecure=True,
-                    sni=True,
-                    minTLSv="v1.3",
-                    maxTLSv="v1.3",
-                    error=[ "tls: server selected unsupported protocol version 303",
-                            "tls: no supported versions satisfy MinVersion and MaxVersion",
-                            "tls: protocol version not supported",
-                            "read: connection reset by peer"])  # The TLS inspector just closes the connection. Wow.
+        yield Query(
+            self.url("tls-context-same/"),
+            headers={"Host": "tls-context-host-1"},
+            expected=200,
+            insecure=True,
+            sni=True,
+            minTLSv="v1.3",
+            maxTLSv="v1.3",
+            error=[
+                "tls: server selected unsupported protocol version 303",
+                "tls: no supported versions satisfy MinVersion and MaxVersion",
+                "tls: protocol version not supported",
+                "read: connection reset by peer",
+            ],
+        )  # The TLS inspector just closes the connection. Wow.
 
     def check(self):
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         tls_0_version = self.results[0].backend.request.tls.negotiated_protocol_version
+        assert self.results[1].backend
+        assert self.results[1].backend.request
         tls_1_version = self.results[1].backend.request.tls.negotiated_protocol_version
 
         # See comment in queries for why these are None. They should be v1.2 and v1.1 respectively.
@@ -1199,8 +1454,27 @@ max_tls_version: v1.2
 
     def requirements(self):
         # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
-        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True, minTLSv="v1.2"))
-        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True, minTLSv="v1.2"))
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+                minTLSv="v1.2",
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+                minTLSv="v1.2",
+            ),
+        )
+
 
 class TLSContextProtocolMinVersion(AmbassadorTest):
     # Here we're testing that the client can't drop below the minimum TLS version
@@ -1216,7 +1490,8 @@ class TLSContextProtocolMinVersion(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return f"""
+        return (
+            f"""
 ---
 apiVersion: v1
 data:
@@ -1228,10 +1503,13 @@ metadata:
   labels:
     kat-ambassador-id: tlscontextprotocolminversion
 type: kubernetes.io/tls
-""" + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -1249,7 +1527,8 @@ secret: secret.min-version
 secret_namespacing: False
 min_tls_version: v1.2
 max_tls_version: v1.3
-""")
+"""
+        )
 
     def scheme(self) -> str:
         return "https"
@@ -1264,37 +1543,49 @@ max_tls_version: v1.3
 
     def queries(self):
         # This should give v1.3, but it currently seems to give 1.2.
-        yield Query(self.url("tls-context-same/"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=200,
-                    insecure=True,
-                    sni=True,
-                    minTLSv="v1.2",
-                    maxTLSv="v1.3")
+        yield Query(
+            self.url("tls-context-same/"),
+            headers={"Host": "tls-context-host-1"},
+            expected=200,
+            insecure=True,
+            sni=True,
+            minTLSv="v1.2",
+            maxTLSv="v1.3",
+        )
 
         # This should give v1.2
-        yield Query(self.url("tls-context-same/"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=200,
-                    insecure=True,
-                    sni=True,
-                    minTLSv="v1.1",
-                    maxTLSv="v1.2")
+        yield Query(
+            self.url("tls-context-same/"),
+            headers={"Host": "tls-context-host-1"},
+            expected=200,
+            insecure=True,
+            sni=True,
+            minTLSv="v1.1",
+            maxTLSv="v1.2",
+        )
 
         # This should be an error.
-        yield Query(self.url("tls-context-same/"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=200,
-                    insecure=True,
-                    sni=True,
-                    minTLSv="v1.0",
-                    maxTLSv="v1.0",
-                    error=[ "tls: server selected unsupported protocol version 303",
-                            "tls: no supported versions satisfy MinVersion and MaxVersion",
-                            "tls: protocol version not supported" ])
+        yield Query(
+            self.url("tls-context-same/"),
+            headers={"Host": "tls-context-host-1"},
+            expected=200,
+            insecure=True,
+            sni=True,
+            minTLSv="v1.0",
+            maxTLSv="v1.0",
+            error=[
+                "tls: server selected unsupported protocol version 303",
+                "tls: no supported versions satisfy MinVersion and MaxVersion",
+                "tls: protocol version not supported",
+            ],
+        )
 
     def check(self):
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         tls_0_version = self.results[0].backend.request.tls.negotiated_protocol_version
+        assert self.results[1].backend
+        assert self.results[1].backend.request
         tls_1_version = self.results[1].backend.request.tls.negotiated_protocol_version
 
         # Hmmm. Why does Envoy prefer 1.2 to 1.3 here?? This may be a client thing -- have to
@@ -1304,8 +1595,25 @@ max_tls_version: v1.3
 
     def requirements(self):
         # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
-        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
-        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+
 
 class TLSContextCipherSuites(AmbassadorTest):
     # debug = True
@@ -1315,7 +1623,8 @@ class TLSContextCipherSuites(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return f"""
+        return (
+            f"""
 ---
 apiVersion: v1
 data:
@@ -1327,10 +1636,13 @@ metadata:
   labels:
     kat-ambassador-id: tlscontextciphersuites
 type: kubernetes.io/tls
-""" + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -1338,8 +1650,10 @@ name:  {self.name}-same-prefix-1
 prefix: /tls-context-same/
 service: https://{self.target.path.fqdn}
 host: tls-context-host-1
-""")
-        yield self, self.format("""
+"""
+        )
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
@@ -1353,7 +1667,8 @@ cipher_suites:
 - ECDHE-RSA-AES128-GCM-SHA256
 ecdh_curves:
 - P-256
-""")
+"""
+        )
 
     def scheme(self) -> str:
         return "https"
@@ -1367,41 +1682,66 @@ ecdh_curves:
         return "Get {}: EOF".format(url)
 
     def queries(self):
-        yield Query(self.url("tls-context-same/"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=200,
-                    insecure=True,
-                    sni=True,
-                    cipherSuites=["TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"],
-                    maxTLSv="v1.2")
+        yield Query(
+            self.url("tls-context-same/"),
+            headers={"Host": "tls-context-host-1"},
+            expected=200,
+            insecure=True,
+            sni=True,
+            cipherSuites=["TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"],
+            maxTLSv="v1.2",
+        )
 
-        yield Query(self.url("tls-context-same/"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=200,
-                    insecure=True,
-                    sni=True,
-                    cipherSuites=["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"],
-                    maxTLSv="v1.2",
-                    error="tls: handshake failure",)
+        yield Query(
+            self.url("tls-context-same/"),
+            headers={"Host": "tls-context-host-1"},
+            expected=200,
+            insecure=True,
+            sni=True,
+            cipherSuites=["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"],
+            maxTLSv="v1.2",
+            error="tls: handshake failure",
+        )
 
-        yield Query(self.url("tls-context-same/"),
-                    headers={"Host": "tls-context-host-1"},
-                    expected=200,
-                    insecure=True,
-                    sni=True,
-                    cipherSuites=["TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"],
-                    ecdhCurves=["X25519"],
-                    maxTLSv="v1.2",
-                    error="tls: handshake failure",)
+        yield Query(
+            self.url("tls-context-same/"),
+            headers={"Host": "tls-context-host-1"},
+            expected=200,
+            insecure=True,
+            sni=True,
+            cipherSuites=["TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"],
+            ecdhCurves=["X25519"],
+            maxTLSv="v1.2",
+            error="tls: handshake failure",
+        )
 
     def check(self):
+        assert self.results[0].backend
+        assert self.results[0].backend.request
         tls_0_version = self.results[0].backend.request.tls.negotiated_protocol_version
 
         assert tls_0_version == "v1.2", f"requesting TLS v1.2 got TLS {tls_0_version}"
 
     def requirements(self):
-        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
-        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+
 
 class TLSContextIstioSecretTest(AmbassadorTest):
     # debug = True
@@ -1413,7 +1753,9 @@ class TLSContextIstioSecretTest(AmbassadorTest):
             self.xfail = "XFailing for now"
 
     def manifests(self) -> str:
-        return namespace_manifest("secret-namespace") + """
+        return (
+            namespace_manifest("secret-namespace")
+            + """
 ---
 apiVersion: v1
 data:
@@ -1427,10 +1769,13 @@ metadata:
   labels:
     kat-ambassador-id: tlscontextistiosecret
 type: istio.io/key-and-cert
-""" + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -1438,8 +1783,10 @@ name:  {self.name}-istio-prefix-1
 prefix: /tls-context-istio/
 service: https://{self.target.path.fqdn}
 tls: {self.name}-istio-context-1
-""")
-        yield self, self.format("""
+"""
+        )
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
@@ -1447,17 +1794,19 @@ name: {self.name}-istio-context-1
 secret: istio.test-tlscontext-istio-secret-1
 namespace: secret-namespace
 secret_namespacing: False
-""")
+"""
+        )
 
     def queries(self):
         yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), phase=2)
 
     def check(self):
-        assert self.results[0].backend is None, f'expected 0 errors, got {len(self.results[0].backend.response)}: received {self.results[0].backend.response}'
+        assert (
+            self.results[0].backend is None
+        ), f"expected 0 errors, got {len(self.results[0].backend.response)}: received {self.results[0].backend.response}"
 
 
 class TLSCoalescing(AmbassadorTest):
-
     def init(self):
         self.target = HTTP()
 
@@ -1467,7 +1816,8 @@ class TLSCoalescing(AmbassadorTest):
         self.xfail = "FIXME: IHA"
 
     def manifests(self) -> str:
-        return f"""
+        return (
+            f"""
 ---
 apiVersion: v1
 metadata:
@@ -1479,10 +1829,13 @@ data:
   tls.key: {TLSCerts["*.domain.com"].k8s_key}
 kind: Secret
 type: kubernetes.io/tls
-""" + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: tlscoalescing-context
@@ -1492,7 +1845,8 @@ hosts:
 - domain.com
 - a.domain.com
 - b.domain.com
-""")
+"""
+        )
 
     def scheme(self) -> str:
         return "https"
@@ -1506,14 +1860,18 @@ hosts:
         return "Get {}: EOF".format(url)
 
     def queries(self):
-        yield Query(self.url("ambassador/v0/diag/"),
-                    headers={"Host": "a.domain.com"},
-                    insecure=True,
-                    sni=True)
-        yield Query(self.url("ambassador/v0/diag/"),
-                    headers={"Host": "b.domain.com"},
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url("ambassador/v0/diag/"),
+            headers={"Host": "a.domain.com"},
+            insecure=True,
+            sni=True,
+        )
+        yield Query(
+            self.url("ambassador/v0/diag/"),
+            headers={"Host": "b.domain.com"},
+            insecure=True,
+            sni=True,
+        )
 
     def requirements(self):
         yield ("url", Query(self.url("ambassador/v0/check_ready"), insecure=True, sni=True))
@@ -1529,7 +1887,8 @@ class TLSInheritFromModule(AmbassadorTest):
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # These are annotations instead of resources because the name matters.
-        yield self, self.format('''
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -1539,10 +1898,13 @@ config:
   server:
     enabled: True
     redirect_cleartext_from: 8080
-''')
+"""
+        )
 
     def manifests(self) -> str:
-        return self.format('''
+        return (
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
@@ -1563,8 +1925,12 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
 data:
-  tls.crt: '''+TLSCerts["a.domain.com"].k8s_crt+'''
-  tls.key: '''+TLSCerts["a.domain.com"].k8s_key+'''
+  tls.crt: """
+                + TLSCerts["a.domain.com"].k8s_crt
+                + """
+  tls.key: """
+                + TLSCerts["a.domain.com"].k8s_key
+                + """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -1574,25 +1940,42 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   prefix: /foo
   service: {self.target.path.fqdn}
-''') + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def scheme(self) -> str:
         return "https"
 
     def queries(self):
-        yield Query(self.url("foo", scheme="http"), headers={"Host": "a.domain.com"},
-                    expected=301)
-        yield Query(self.url("bar", scheme="http"), headers={"Host": "a.domain.com"},
-                    expected=(404 if bug_404_routes else 301))
-        yield Query(self.url("foo", scheme="https"), headers={"Host": "a.domain.com"}, ca_cert=TLSCerts["a.domain.com"].pubcert, sni=True,
-                    expected=200)
-        yield Query(self.url("bar", scheme="https"), headers={"Host": "a.domain.com"}, ca_cert=TLSCerts["a.domain.com"].pubcert, sni=True,
-                    expected=404)
+        yield Query(self.url("foo", scheme="http"), headers={"Host": "a.domain.com"}, expected=301)
+        yield Query(
+            self.url("bar", scheme="http"),
+            headers={"Host": "a.domain.com"},
+            expected=(404 if bug_404_routes else 301),
+        )
+        yield Query(
+            self.url("foo", scheme="https"),
+            headers={"Host": "a.domain.com"},
+            ca_cert=TLSCerts["a.domain.com"].pubcert,
+            sni=True,
+            expected=200,
+        )
+        yield Query(
+            self.url("bar", scheme="https"),
+            headers={"Host": "a.domain.com"},
+            ca_cert=TLSCerts["a.domain.com"].pubcert,
+            sni=True,
+            expected=404,
+        )
 
     def requirements(self):
         for r in super().requirements():
             query = r[1]
-            query.headers={"Host": "a.domain.com"}
-            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.headers = {"Host": "a.domain.com"}
+            query.sni = (
+                True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            )
             query.ca_cert = TLSCerts["a.domain.com"].pubcert
             yield (r[0], query)
