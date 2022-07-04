@@ -3,7 +3,10 @@ package agent
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"github.com/getkin/kin-openapi/openapi2"
+	"github.com/getkin/kin-openapi/openapi2conv"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -13,13 +16,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/pkg/errors"
-
 	"github.com/datawire/dlib/dlog"
 	amb "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
+	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/pkg/errors"
 )
 
 // APIDocsStore is responsible for collecting the API docs from Mapping resources in a k8s cluster.
@@ -241,6 +243,23 @@ type openAPIDoc struct {
 func newOpenAPI(ctx context.Context, docBytes []byte, baseURL string, prefix string, keepExistingPrefix bool) *openAPIDoc {
 	dlog.Debugf(ctx, "Trying to create new OpenAPI doc: base_url=%q prefix=%q", baseURL, prefix)
 
+	version, err := openAPIVersion(docBytes)
+
+	if err != nil {
+		dlog.Errorln(ctx, "failed to determine open api version:", err)
+		return nil
+	}
+
+	if version == 2 {
+		docBytes, err = convertToOpenAPIV3(docBytes)
+
+		if err != nil {
+			dlog.Errorln(ctx, "failed to convert open api v2 contract to v3:", err)
+			return nil
+
+		}
+	}
+
 	loader := openapi3.NewLoader()
 	doc, err := loader.LoadFromData(docBytes)
 	if err != nil {
@@ -286,17 +305,56 @@ func newOpenAPI(ctx context.Context, docBytes []byte, baseURL string, prefix str
 		}}
 	}
 
-	json, err := doc.MarshalJSON()
+	j, err := doc.MarshalJSON()
 	if err != nil {
 		dlog.Errorln(ctx, "failed to marshal OpenAPI spec:", err)
 		return nil
 	}
 
 	return &openAPIDoc{
-		JSON:    json,
+		JSON:    j,
 		Type:    "OpenAPI",
 		Version: "v3",
 	}
+
+}
+
+func openAPIVersion(docBytes []byte) (int, error) {
+	var genericOpenAPI map[string]interface{}
+
+	if err := json.Unmarshal(docBytes, &genericOpenAPI); err != nil {
+		return -1, fmt.Errorf("failed to unmarshal open api spec: %w", err)
+	}
+
+	_, ok := genericOpenAPI["swagger"]
+
+	if ok {
+		return 2, nil
+	}
+
+	return 3, nil
+}
+
+func convertToOpenAPIV3(docBytes []byte) ([]byte, error) {
+	v2Doc := &openapi2.T{}
+
+	if err := json.Unmarshal(docBytes, v2Doc); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal v2 Openapi contract: %w", err)
+	}
+
+	v3Doc, err := openapi2conv.ToV3(v2Doc)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert v2 Openapi contract: %w", err)
+	}
+
+	docBytes, err = json.Marshal(v3Doc)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal v3 Openapi contract: %w", err)
+	}
+
+	return docBytes, err
 }
 
 func buildMappingRequestHeaders(mappingHeaders map[string]string) []Header {

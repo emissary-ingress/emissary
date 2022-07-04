@@ -286,6 +286,10 @@ func (doc *T) derefPaths(paths map[string]*PathItem, refNameResolver RefNameReso
 		// inline full operations
 		ops.Ref = ""
 
+		for _, param := range ops.Parameters {
+			doc.addParameterToSpec(param, refNameResolver)
+		}
+
 		for _, op := range ops.Operations() {
 			doc.addRequestBodyToSpec(op.RequestBody, refNameResolver)
 			if op.RequestBody != nil && op.RequestBody.Value != nil {
