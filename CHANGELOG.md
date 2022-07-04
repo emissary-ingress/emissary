@@ -72,6 +72,14 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [3.1.0] TBD
+[3.1.0]: https://github.com/emissary-ingress/emissary/compare/v3.0.0...v3.1.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Feature: The agent is now able to parse api contracts using swagger 2, and to convert them to
+  OpenAPI 3, making them available for use in the dev portal.
+
 ## [3.0.0] June 27, 2022
 [3.0.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v3.0.0
 

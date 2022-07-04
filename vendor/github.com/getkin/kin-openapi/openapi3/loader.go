@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"net/url"
 	"path"
 	"path/filepath"
@@ -14,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ghodss/yaml"
+	"github.com/invopop/yaml"
 )
 
 func foundUnresolvedRef(ref string) error {
@@ -31,7 +29,7 @@ type Loader struct {
 	IsExternalRefsAllowed bool
 
 	// ReadFromURIFunc allows overriding the any file/URL reading func
-	ReadFromURIFunc func(loader *Loader, url *url.URL) ([]byte, error)
+	ReadFromURIFunc ReadFromURIFunc
 
 	Context context.Context
 
@@ -121,22 +119,7 @@ func (loader *Loader) readURL(location *url.URL) ([]byte, error) {
 	if f := loader.ReadFromURIFunc; f != nil {
 		return f(loader, location)
 	}
-
-	if location.Scheme != "" && location.Host != "" {
-		resp, err := http.Get(location.String())
-		if err != nil {
-			return nil, err
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode > 399 {
-			return nil, fmt.Errorf("error loading %q: request returned status code %d", location.String(), resp.StatusCode)
-		}
-		return ioutil.ReadAll(resp.Body)
-	}
-	if location.Scheme != "" || location.Host != "" || location.RawQuery != "" {
-		return nil, fmt.Errorf("unsupported URI: %q", location.String())
-	}
-	return ioutil.ReadFile(location.Path)
+	return DefaultReadFromURI(loader, location)
 }
 
 // LoadFromData loads a spec from a byte array

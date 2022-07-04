@@ -1,6 +1,7 @@
 // Copyright 2013 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
+
 package yaml
 
 import (
@@ -133,8 +134,7 @@ func typeFields(t reflect.Type) []field {
 	next := []field{{typ: t}}
 
 	// Count of queued names for current level and the next.
-	count := map[reflect.Type]int{}
-	nextCount := map[reflect.Type]int{}
+	var count, nextCount map[reflect.Type]int
 
 	// Types already visited at an earlier level.
 	visited := map[reflect.Type]bool{}
@@ -419,10 +419,7 @@ func equalFoldRight(s, t []byte) bool {
 		t = t[size:]
 
 	}
-	if len(t) > 0 {
-		return false
-	}
-	return true
+	return len(t) <= 0
 }
 
 // asciiEqualFold is a specialization of bytes.EqualFold for use when
