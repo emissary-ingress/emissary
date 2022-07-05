@@ -136,7 +136,11 @@ func getEnvWithDefault(envVarKey string, defaultValue string) string {
 }
 
 // New returns a new Agent.
-func NewAgent(directiveHandler DirectiveHandler, rolloutsGetterFactory rolloutsGetterFactory) *Agent {
+func NewAgent(
+	directiveHandler DirectiveHandler,
+	rolloutsGetterFactory rolloutsGetterFactory,
+	secretsGetterFactory secretsGetterFactory,
+) *Agent {
 	reportPeriodFromEnv := os.Getenv("AGENT_REPORTING_PERIOD")
 	var reportPeriod time.Duration
 	if reportPeriodFromEnv != "" {
@@ -153,6 +157,7 @@ func NewAgent(directiveHandler DirectiveHandler, rolloutsGetterFactory rolloutsG
 		directiveHandler = &BasicDirectiveHandler{
 			DefaultMinReportPeriod: defaultMinReportPeriod,
 			rolloutsGetterFactory:  rolloutsGetterFactory,
+			secretsGetterFactory:   secretsGetterFactory,
 		}
 	}
 

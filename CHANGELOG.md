@@ -80,11 +80,6 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 - Change: Emissary will register a secret into its internal machinery if it is used by an API Key
   filter, since the value has to be read at filter creation.
 
-### Ambassador Edge Stack only
-
-- Feature: You can now define a new type of filter to enforce API Keys on top of your services, and
-  provide a Kubernetes secrets as a source for the list of all the keys.
-
 ## [3.0.0] June 27, 2022
 [3.0.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v3.0.0
 
