@@ -70,7 +70,7 @@ clobber: docker/base.img.tar.clean
 # than an `ocibuild`, in order to do truly base-OS-specific setup
 # (`apk add`, libc-specific compilation...).
 docker/.base-python.docker.stamp: FORCE docker/base-python/Dockerfile docker/base-python.docker.gen
-	docker/base-python.docker.gen >$@
+	docker/base-python.docker.gen '$(BUILD_ARCH)' >$@
 clobber: docker/base-python.docker.clean
 
 # base-pip: base-python, but with requirements.txt installed.
