@@ -63,6 +63,13 @@ items:
           emissary ingress before sending them to Ambassador cloud. This issue has been resolved to ensure
           that all the nodes composing the emissary ingress cluster are reporting properly.
 
+      - title: Add support for secrets sync
+        type: feature
+        body: >-
+          Adding an option to the directive service in the agent to synchronize secrets. The objective is to allow
+          a third party product to automate the creation of CRDs depending on a secret to work
+          properly.
+
   - version: 3.0.0
     date: '2022-06-27'
     notes:

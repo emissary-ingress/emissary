@@ -27,7 +27,9 @@ const (
 
 func run(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
-	ambAgent := agent.NewAgent(nil, agent.NewArgoRolloutsGetter)
+	ambAgent := agent.NewAgent(
+		nil, agent.NewArgoRolloutsGetter, agent.NewSecretsGetter,
+	)
 
 	// all log things need to happen here because we still allow the agent to run in amb-sidecar
 	// and amb-sidecar should control all the logging if it's kicking off the agent.
