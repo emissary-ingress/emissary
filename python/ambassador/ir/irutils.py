@@ -122,8 +122,8 @@ def hostglob_matches(g1: str, g2: str) -> bool:
         return False
 
     # OK, if we're here, we have a wildcard to check. There are a few cases
-    # here, so we'll start with the easy one: one value starts with "*" and 
-    # the other ends with "*", because those can always overlap as long as 
+    # here, so we'll start with the easy one: one value starts with "*" and
+    # the other ends with "*", because those can always overlap as long as
     # the overlap between isn't empty -- and in this method, we only need to
     # concern ourselves with being sure that there is a possibility of a match
     # to both.
@@ -132,13 +132,13 @@ def hostglob_matches(g1: str, g2: str) -> bool:
         return True
 
     # OK, now we have to actually do some work. Again, we really only have to
-    # be convinced that it's possible for something to match, so e.g. 
+    # be convinced that it's possible for something to match, so e.g.
     #
     # *example.com, example.com
     #
     # is not a valid pair, because that "*" must never match an empty string.
     # However,
-    #  
+    #
     # *example.com, *.example.com
     #
     # is fine, because e.g. "foo.example.com" matches both.
@@ -176,11 +176,13 @@ def selector_matches(logger: logging.Logger, selector: Dict[str, Any], labels: D
         logger.debug("    no incoming labels => False")
         return False
 
-    # every selector label must exist and be equal
+    # For every label in mappingSelector, there must be a label with same value in Mapping itself.
     for k, v in match.items():
-        if labels.get(k) != v:
-            logger.debug("    selector match for %s=%s => False", k, v)
+        if labels.get(k) == v:
+            logger.debug("    selector match for %s=%s => True", k, v)
+        else:
+            logger.debug("    selector miss for %s=%s => False", k, v)
             return False
 
-    logger.debug("    all selectors match => True")
+    logger.debug(f"    all selectors match => True")
     return True
