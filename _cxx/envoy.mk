@@ -7,8 +7,6 @@ YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
 ENVOY_TEST_LABEL ?= //test/...
 # Set RSYNC_EXTRAS=Pv or something to increase verbosity.
 RSYNC_EXTRAS ?=
-# Set to non-empty to enable compiling Envoy in FIPS mode.
-FIPS_MODE ?=
 
 #
 # Variables that are meant to be set by editing this file
@@ -25,6 +23,9 @@ FIPS_MODE ?=
   ENVOY_DOCKER_VERSION ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
   ENVOY_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-$(ENVOY_DOCKER_VERSION)
   ENVOY_FULL_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-full-$(ENVOY_DOCKER_VERSION)
+
+  # Set to non-empty to enable compiling Envoy in FIPS mode.
+  FIPS_MODE ?=
 # END LIST OF VARIABLES REQUIRING `make update-base`.
 
 # How to set ENVOY_GO_CONTROL_PLANE_COMMIT: In github.com/envoyproxy/go-control-plane.git, the majority
@@ -208,7 +209,7 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	            exit 1; \
 	        fi; \
 	        $(call ENVOY_BASH.cmd, \
-	            $(ENVOY_DOCKER_EXEC) bazel build $$(if [ -n '$(FIPS_MODE)' ]; then echo "--define boringssl=fips"; fi) --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //source/exe:envoy-static; \
+	            $(ENVOY_DOCKER_EXEC) bazel build $(if $(FIPS_MODE), --define boringssl=fips) --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //source/exe:envoy-static; \
 	            rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/root/envoy/bazel-bin/source/exe/envoy-static $@; \
 	        ); \
 	    fi; \
