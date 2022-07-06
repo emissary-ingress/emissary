@@ -1,0 +1,806 @@
+{
+    "active_elements": [
+        "ambassador.ambassador.1"
+    ],
+    "ambassador_elements": {
+        "--diagnostics--": {
+            "kind": "Diagnostics",
+            "location": "--diagnostics--"
+        },
+        "--internal--": {
+            "kind": "Internal",
+            "location": "--internal--"
+        },
+        "ambassador.ambassador.1": {
+            "kind": "Module",
+            "location": "ambassador.ambassador",
+            "parent": "ambassador.ambassador",
+            "serialization": "apiVersion: getambassador.io/v3alpha1\nconfig:\n  diagnostics:\n    enabled: false\ngeneration: 1\nkind: Module\nmetadata_labels:\n  ambassador_crd: ambassador.ambassador\n  app.kubernetes.io/component: ambassador-ratelimit\n  app.kubernetes.io/instance: ambassador\n  app.kubernetes.io/managed-by: Helm\n  app.kubernetes.io/name: ambassador\n  app.kubernetes.io/part-of: ambassador\n  helm.sh/chart: emissary-ingress-8.0.0-bogus\n  product: aes\nname: ambassador\nnamespace: ambassador\n"
+        },
+        "k8s-agent-injector-ambassador": {
+            "kind": "Service",
+            "location": "k8s-agent-injector-ambassador",
+            "serialization": "ambassador_id: default\napiVersion: getambassador.io/v3alpha1\nendpoints:\n  443:\n  - ip: 10.42.0.10\n    port: 8443\nhelm_chart: emissary-ingress-8.0.0-bogus\nkind: Service\nmetadata_labels:\n  app: traffic-manager\n  app.kubernetes.io/created-by: telepresence-cli\n  app.kubernetes.io/managed-by: Helm\n  app.kubernetes.io/version: 2.6.8\n  helm.sh/chart: telepresence-2.6.8\n  telepresence: manager\nname: agent-injector\nnamespace: ambassador\n"
+        },
+        "k8s-ambassador-admin-ambassador": {
+            "kind": "Service",
+            "location": "k8s-ambassador-admin-ambassador",
+            "serialization": "ambassador_id: default\napiVersion: getambassador.io/v3alpha1\nendpoints: {}\nhelm_chart: emissary-ingress-8.0.0-bogus\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/instance: ambassador\n  app.kubernetes.io/managed-by: Helm\n  app.kubernetes.io/name: ambassador\n  app.kubernetes.io/part-of: ambassador\n  helm.sh/chart: emissary-ingress-8.0.0-bogus\n  product: aes\n  service: ambassador-admin\nname: ambassador-admin\nnamespace: ambassador\n"
+        },
+        "k8s-ambassador-agent-ambassador": {
+            "kind": "Service",
+            "location": "k8s-ambassador-agent-ambassador",
+            "serialization": "ambassador_id: default\napiVersion: getambassador.io/v3alpha1\nendpoints: {}\nhelm_chart: emissary-ingress-8.0.0-bogus\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/instance: ambassador\n  app.kubernetes.io/managed-by: Helm\n  app.kubernetes.io/name: ambassador-agent\n  app.kubernetes.io/part-of: ambassador\n  helm.sh/chart: emissary-ingress-8.0.0-bogus\n  product: aes\nname: ambassador-agent\nnamespace: ambassador\n"
+        },
+        "k8s-ambassador-ambassador": {
+            "kind": "Service",
+            "location": "k8s-ambassador-ambassador",
+            "serialization": "ambassador_id: default\napiVersion: getambassador.io/v3alpha1\nendpoints: {}\nhelm_chart: emissary-ingress-8.0.0-bogus\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  app.kubernetes.io/instance: ambassador\n  app.kubernetes.io/managed-by: Helm\n  app.kubernetes.io/name: ambassador\n  app.kubernetes.io/part-of: ambassador\n  helm.sh/chart: emissary-ingress-8.0.0-bogus\n  product: aes\nname: ambassador\nnamespace: ambassador\n"
+        },
+        "k8s-emissary-apiext-emissary-system": {
+            "kind": "Service",
+            "location": "k8s-emissary-apiext-emissary-system",
+            "serialization": "ambassador_id: default\napiVersion: getambassador.io/v3alpha1\nendpoints:\n  443:\n  - ip: 10.42.0.2\n    port: 8443\n  - ip: 10.42.0.4\n    port: 8443\n  - ip: 10.42.0.8\n    port: 8443\nhelm_chart: emissary-ingress-8.0.0-bogus\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/instance: emissary-apiext\n  app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml\n  app.kubernetes.io/name: emissary-apiext\n  app.kubernetes.io/part-of: emissary-apiext\nname: emissary-apiext\nnamespace: emissary-system\n"
+        },
+        "k8s-kube-dns-kube-system": {
+            "kind": "Service",
+            "location": "k8s-kube-dns-kube-system",
+            "serialization": "ambassador_id: default\napiVersion: getambassador.io/v3alpha1\nendpoints: {}\nhelm_chart: emissary-ingress-8.0.0-bogus\nkind: Service\nmetadata_labels:\n  k8s-app: kube-dns\n  kubernetes.io/cluster-service: 'true'\n  kubernetes.io/name: CoreDNS\n  objectset.rio.cattle.io/hash: bce283298811743a0386ab510f2f67ef74240c57\nname: kube-dns\nnamespace: kube-system\n"
+        },
+        "k8s-kubernetes-default": {
+            "kind": "Service",
+            "location": "k8s-kubernetes-default",
+            "serialization": "ambassador_id: default\napiVersion: getambassador.io/v3alpha1\nendpoints:\n  443:\n  - ip: 10.88.81.3\n    port: 6443\nhelm_chart: emissary-ingress-8.0.0-bogus\nkind: Service\nmetadata_labels:\n  component: apiserver\n  provider: kubernetes\nname: kubernetes\nnamespace: default\n"
+        },
+        "k8s-metrics-server-kube-system": {
+            "kind": "Service",
+            "location": "k8s-metrics-server-kube-system",
+            "serialization": "ambassador_id: default\napiVersion: getambassador.io/v3alpha1\nendpoints: {}\nhelm_chart: emissary-ingress-8.0.0-bogus\nkind: Service\nmetadata_labels:\n  kubernetes.io/cluster-service: 'true'\n  kubernetes.io/name: Metrics-server\n  objectset.rio.cattle.io/hash: a5d3bc601c871e123fa32b27f549b6ea770bcf4a\nname: metrics-server\nnamespace: kube-system\n"
+        },
+        "k8s-traffic-manager-ambassador": {
+            "kind": "Service",
+            "location": "k8s-traffic-manager-ambassador",
+            "serialization": "ambassador_id: default\napiVersion: getambassador.io/v3alpha1\nendpoints:\n  8081:\n  - ip: 10.42.0.10\n    port: 8081\nhelm_chart: emissary-ingress-8.0.0-bogus\nkind: Service\nmetadata_labels:\n  app: traffic-manager\n  app.kubernetes.io/created-by: telepresence-cli\n  app.kubernetes.io/managed-by: Helm\n  app.kubernetes.io/version: 2.6.8\n  helm.sh/chart: telepresence-2.6.8\n  telepresence: manager\nname: traffic-manager\nnamespace: ambassador\n"
+        }
+    },
+    "ambassador_resolvers": [
+        {
+            "_source": "--internal--",
+            "groups": [
+                "ambassador.ambassador.1",
+                "ambassador.ambassador.1"
+            ],
+            "kind": "KubernetesServiceResolver",
+            "name": "kubernetes-service"
+        }
+    ],
+    "ambassador_resources": {},
+    "ambassador_services": [],
+    "banner_content": null,
+    "cluster_info": {
+        "cluster_127_0_0_1_8877_ambassador": {
+            "_active": true,
+            "_cache_key": "Cluster-cluster_127_0_0_1_8877_ambassador",
+            "_errored": false,
+            "_hcolor": "orange",
+            "_health": "undefined cluster",
+            "_hmetric": "undefined cluster",
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
+            "_namespace": "ambassador",
+            "_port": 8877,
+            "_referenced_by": [
+                "ambassador.ambassador.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_127_0_0_1_8877_ambassador",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "envoy_name": "cluster_127_0_0_1_8877_ambassador",
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "ambassador.ambassador.1",
+            "name": "cluster_127_0_0_1_8877_ambassador",
+            "namespace": "ambassador",
+            "respect_dns_ttl": false,
+            "service": "127.0.0.1:8877",
+            "stats_name": "127_0_0_1_8877",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8877,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ],
+            "weight": 100
+        }
+    },
+    "cluster_stats": {
+        "cluster_127_0_0_1_8877_ambassador": {
+            "hcolor": "orange",
+            "health": "undefined cluster",
+            "hmetric": "undefined cluster",
+            "reason": "Cluster cluster_127_0_0_1_8877_ambassador is not defined",
+            "valid": false
+        }
+    },
+    "envoy_elements": {
+        "ambassador.ambassador.1": {
+            "admin": [
+                {
+                    "access_log_path": "/tmp/admin_access_log",
+                    "address": {
+                        "socket_address": {
+                            "address": "127.0.0.1",
+                            "port_value": 8001
+                        }
+                    }
+                }
+            ],
+            "cluster": [
+                {
+                    "alt_stat_name": "127_0_0_1_8877",
+                    "connect_timeout": "3.000s",
+                    "dns_lookup_family": "V4_ONLY",
+                    "lb_policy": "ROUND_ROBIN",
+                    "load_assignment": {
+                        "cluster_name": "cluster_127_0_0_1_8877_ambassador",
+                        "endpoints": [
+                            {
+                                "lb_endpoints": [
+                                    {
+                                        "endpoint": {
+                                            "address": {
+                                                "socket_address": {
+                                                    "address": "127.0.0.1",
+                                                    "port_value": 8877,
+                                                    "protocol": "TCP"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "name": "cluster_127_0_0_1_8877_ambassador",
+                    "type": "STRICT_DNS"
+                }
+            ],
+            "route": [
+                {
+                    "match": {
+                        "case_sensitive": true,
+                        "prefix": "/ambassador/v0/check_alive",
+                        "runtime_fraction": {
+                            "default_value": {
+                                "denominator": "HUNDRED",
+                                "numerator": 100
+                            },
+                            "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_ambassador"
+                        }
+                    },
+                    "route": {
+                        "cluster": "cluster_127_0_0_1_8877_ambassador",
+                        "prefix_rewrite": "/ambassador/v0/check_alive",
+                        "priority": null,
+                        "timeout": "10.000s"
+                    }
+                }
+            ]
+        },
+        "cluster_127_0_0_1_8877_ambassador": {
+            "cluster": [
+                {
+                    "alt_stat_name": "127_0_0_1_8877",
+                    "connect_timeout": "3.000s",
+                    "dns_lookup_family": "V4_ONLY",
+                    "lb_policy": "ROUND_ROBIN",
+                    "load_assignment": {
+                        "cluster_name": "cluster_127_0_0_1_8877_ambassador",
+                        "endpoints": [
+                            {
+                                "lb_endpoints": [
+                                    {
+                                        "endpoint": {
+                                            "address": {
+                                                "socket_address": {
+                                                    "address": "127.0.0.1",
+                                                    "port_value": 8877,
+                                                    "protocol": "TCP"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "name": "cluster_127_0_0_1_8877_ambassador",
+                    "type": "STRICT_DNS"
+                }
+            ]
+        }
+    },
+    "envoy_resources": {},
+    "envoy_status": {
+        "alive": true,
+        "ready": true,
+        "since_update": "4 seconds ago",
+        "uptime": "7 hours, 34 minutes, 54 seconds"
+    },
+    "errors": [],
+    "groups": {
+        "grp-65f77b4cfda77405d7353cc1c83de745ee74b141": {
+            "_active": true,
+            "_cache_key": "IRHTTPMappingGroup-65f77b4cfda77405d7353cc1c83de745ee74b141",
+            "_errored": false,
+            "_referenced_by": [
+                "ambassador.ambassador.1"
+            ],
+            "_rkey": "ambassador.ambassador.1",
+            "default_class": "httpmapping",
+            "group_id": "65f77b4cfda77405d7353cc1c83de745ee74b141",
+            "group_weight": [
+                0,
+                26,
+                11,
+                0,
+                "/ambassador/v0/check_ready",
+                "GET",
+                ":authority-*"
+            ],
+            "headers": [
+                {
+                    "name": ":authority",
+                    "regex": false,
+                    "value": "*"
+                }
+            ],
+            "host": "*",
+            "kind": "IRHTTPMappingGroup",
+            "location": "ambassador.ambassador.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "ambassador.ambassador.1",
+                    "cluster_name": "cluster_127_0_0_1_8877_ambassador",
+                    "cluster_service": "127.0.0.1:8877",
+                    "host": "*",
+                    "location": "ambassador.ambassador.1",
+                    "name": "internal_readiness_probe_mapping",
+                    "prefix": "/ambassador/v0/check_ready",
+                    "rewrite": "/ambassador/v0/check_ready"
+                }
+            ],
+            "name": "GROUP: internal_readiness_probe_mapping",
+            "namespace": "ambassador",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_ready",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/ambassador/v0/check_ready",
+            "timeout_ms": 10000
+        },
+        "grp-a2c3d327956b3acbfedb3662b5f50528dae653b5": {
+            "_active": true,
+            "_cache_key": "IRHTTPMappingGroup-a2c3d327956b3acbfedb3662b5f50528dae653b5",
+            "_errored": false,
+            "_referenced_by": [
+                "ambassador.ambassador.1"
+            ],
+            "_rkey": "ambassador.ambassador.1",
+            "default_class": "httpmapping",
+            "group_id": "a2c3d327956b3acbfedb3662b5f50528dae653b5",
+            "group_weight": [
+                0,
+                26,
+                11,
+                0,
+                "/ambassador/v0/check_alive",
+                "GET",
+                ":authority-*"
+            ],
+            "headers": [
+                {
+                    "name": ":authority",
+                    "regex": false,
+                    "value": "*"
+                }
+            ],
+            "host": "*",
+            "kind": "IRHTTPMappingGroup",
+            "location": "ambassador.ambassador.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "ambassador.ambassador.1",
+                    "cluster_name": "cluster_127_0_0_1_8877_ambassador",
+                    "cluster_service": "127.0.0.1:8877",
+                    "host": "*",
+                    "location": "ambassador.ambassador.1",
+                    "name": "internal_liveness_probe_mapping",
+                    "prefix": "/ambassador/v0/check_alive",
+                    "rewrite": "/ambassador/v0/check_alive"
+                }
+            ],
+            "name": "GROUP: internal_liveness_probe_mapping",
+            "namespace": "ambassador",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_alive",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/ambassador/v0/check_alive",
+            "timeout_ms": 10000
+        }
+    },
+    "loginfo": {
+        "all": "error"
+    },
+    "notices": [
+        {
+            "level": "NOTICE",
+            "message": "-global-: No TLS termination and no fallback cert -- defaulting to cleartext-only."
+        }
+    ],
+    "route_info": [
+        {
+            "_group_id": "65f77b4cfda77405d7353cc1c83de745ee74b141",
+            "_route": {
+                "_active": true,
+                "_cache_key": "IRHTTPMappingGroup-65f77b4cfda77405d7353cc1c83de745ee74b141",
+                "_errored": false,
+                "_referenced_by": [
+                    "ambassador.ambassador.1"
+                ],
+                "_rkey": "ambassador.ambassador.1",
+                "default_class": "httpmapping",
+                "group_id": "65f77b4cfda77405d7353cc1c83de745ee74b141",
+                "group_weight": [
+                    0,
+                    26,
+                    11,
+                    0,
+                    "/ambassador/v0/check_ready",
+                    "GET",
+                    ":authority-*"
+                ],
+                "headers": [
+                    {
+                        "name": ":authority",
+                        "regex": false,
+                        "value": "*"
+                    }
+                ],
+                "host": "*",
+                "kind": "IRHTTPMappingGroup",
+                "location": "ambassador.ambassador.1",
+                "mappings": [
+                    {
+                        "_active": true,
+                        "_cache_key": "InternalMapping-v2-internal_readiness_probe_mapping-ambassador",
+                        "_errored": false,
+                        "_referenced_by": [
+                            "ambassador.ambassador.1"
+                        ],
+                        "_rkey": "ambassador.ambassador.1",
+                        "_weight": 100,
+                        "add_request_headers": {},
+                        "add_response_headers": {},
+                        "cluster": {
+                            "_active": true,
+                            "_cache_key": "Cluster-cluster_127_0_0_1_8877_ambassador",
+                            "_errored": false,
+                            "_hostname": "127.0.0.1",
+                            "_is_sidecar": false,
+                            "_namespace": "ambassador",
+                            "_port": 8877,
+                            "_referenced_by": [
+                                "ambassador.ambassador.1"
+                            ],
+                            "_resolver": "kubernetes-service",
+                            "_rkey": "cluster_127_0_0_1_8877_ambassador",
+                            "connect_timeout_ms": 3000,
+                            "enable_endpoints": false,
+                            "enable_ipv4": true,
+                            "enable_ipv6": false,
+                            "envoy_name": "cluster_127_0_0_1_8877_ambassador",
+                            "ignore_cluster": false,
+                            "kind": "IRCluster",
+                            "lb_type": "round_robin",
+                            "location": "ambassador.ambassador.1",
+                            "name": "cluster_127_0_0_1_8877_ambassador",
+                            "namespace": "ambassador",
+                            "respect_dns_ttl": false,
+                            "service": "127.0.0.1:8877",
+                            "stats_name": "127_0_0_1_8877",
+                            "targets": [
+                                {
+                                    "ip": "127.0.0.1",
+                                    "port": 8877,
+                                    "target_kind": "IPaddr"
+                                }
+                            ],
+                            "type": "strict_dns",
+                            "urls": [
+                                "tcp://127.0.0.1:8877"
+                            ]
+                        },
+                        "cluster_key": "Cluster-cluster_127_0_0_1_8877_ambassador",
+                        "default_class": "httpmapping",
+                        "group_id": "65f77b4cfda77405d7353cc1c83de745ee74b141",
+                        "headers": [
+                            {
+                                "name": ":authority",
+                                "regex": false,
+                                "value": "*"
+                            }
+                        ],
+                        "host": "*",
+                        "kind": "InternalMapping",
+                        "location": "ambassador.ambassador.1",
+                        "name": "internal_readiness_probe_mapping",
+                        "namespace": "ambassador",
+                        "precedence": 0,
+                        "prefix": "/ambassador/v0/check_ready",
+                        "query_parameters": [],
+                        "regex_rewrite": {},
+                        "resolver": "kubernetes-service",
+                        "rewrite": "/ambassador/v0/check_ready",
+                        "route_weight": [
+                            0,
+                            26,
+                            11,
+                            0,
+                            "/ambassador/v0/check_ready",
+                            "GET",
+                            ":authority-*"
+                        ],
+                        "service": "127.0.0.1:8877",
+                        "timeout_ms": 10000
+                    }
+                ],
+                "name": "GROUP: internal_readiness_probe_mapping",
+                "namespace": "ambassador",
+                "precedence": 0,
+                "prefix": "/ambassador/v0/check_ready",
+                "query_parameters": [],
+                "regex_rewrite": {},
+                "rewrite": "/ambassador/v0/check_ready",
+                "timeout_ms": 10000
+            },
+            "_source": "ambassador.ambassador.1",
+            "clusters": [
+                {
+                    "_active": true,
+                    "_cache_key": "Cluster-cluster_127_0_0_1_8877_ambassador",
+                    "_errored": false,
+                    "_hcolor": "orange",
+                    "_health": "undefined cluster",
+                    "_hmetric": "undefined cluster",
+                    "_hostname": "127.0.0.1",
+                    "_is_sidecar": false,
+                    "_namespace": "ambassador",
+                    "_port": 8877,
+                    "_referenced_by": [
+                        "ambassador.ambassador.1"
+                    ],
+                    "_resolver": "kubernetes-service",
+                    "_rkey": "cluster_127_0_0_1_8877_ambassador",
+                    "connect_timeout_ms": 3000,
+                    "enable_endpoints": false,
+                    "enable_ipv4": true,
+                    "enable_ipv6": false,
+                    "envoy_name": "cluster_127_0_0_1_8877_ambassador",
+                    "ignore_cluster": false,
+                    "kind": "IRCluster",
+                    "lb_type": "round_robin",
+                    "location": "ambassador.ambassador.1",
+                    "name": "cluster_127_0_0_1_8877_ambassador",
+                    "namespace": "ambassador",
+                    "respect_dns_ttl": false,
+                    "service": "127.0.0.1:8877",
+                    "stats_name": "127_0_0_1_8877",
+                    "targets": [
+                        {
+                            "ip": "127.0.0.1",
+                            "port": 8877,
+                            "target_kind": "IPaddr"
+                        }
+                    ],
+                    "type": "strict_dns",
+                    "urls": [
+                        "tcp://127.0.0.1:8877"
+                    ],
+                    "weight": 100
+                }
+            ],
+            "headers": [],
+            "host": "*",
+            "key": "http://*/ambassador/v0/check_ready",
+            "method": "*",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready"
+        },
+        {
+            "_group_id": "a2c3d327956b3acbfedb3662b5f50528dae653b5",
+            "_route": {
+                "_active": true,
+                "_cache_key": "IRHTTPMappingGroup-a2c3d327956b3acbfedb3662b5f50528dae653b5",
+                "_errored": false,
+                "_referenced_by": [
+                    "ambassador.ambassador.1"
+                ],
+                "_rkey": "ambassador.ambassador.1",
+                "default_class": "httpmapping",
+                "group_id": "a2c3d327956b3acbfedb3662b5f50528dae653b5",
+                "group_weight": [
+                    0,
+                    26,
+                    11,
+                    0,
+                    "/ambassador/v0/check_alive",
+                    "GET",
+                    ":authority-*"
+                ],
+                "headers": [
+                    {
+                        "name": ":authority",
+                        "regex": false,
+                        "value": "*"
+                    }
+                ],
+                "host": "*",
+                "kind": "IRHTTPMappingGroup",
+                "location": "ambassador.ambassador.1",
+                "mappings": [
+                    {
+                        "_active": true,
+                        "_cache_key": "InternalMapping-v2-internal_liveness_probe_mapping-ambassador",
+                        "_errored": false,
+                        "_referenced_by": [
+                            "ambassador.ambassador.1"
+                        ],
+                        "_rkey": "ambassador.ambassador.1",
+                        "_weight": 100,
+                        "add_request_headers": {},
+                        "add_response_headers": {},
+                        "cluster": {
+                            "_active": true,
+                            "_cache_key": "Cluster-cluster_127_0_0_1_8877_ambassador",
+                            "_errored": false,
+                            "_hostname": "127.0.0.1",
+                            "_is_sidecar": false,
+                            "_namespace": "ambassador",
+                            "_port": 8877,
+                            "_referenced_by": [
+                                "ambassador.ambassador.1"
+                            ],
+                            "_resolver": "kubernetes-service",
+                            "_rkey": "cluster_127_0_0_1_8877_ambassador",
+                            "connect_timeout_ms": 3000,
+                            "enable_endpoints": false,
+                            "enable_ipv4": true,
+                            "enable_ipv6": false,
+                            "envoy_name": "cluster_127_0_0_1_8877_ambassador",
+                            "ignore_cluster": false,
+                            "kind": "IRCluster",
+                            "lb_type": "round_robin",
+                            "location": "ambassador.ambassador.1",
+                            "name": "cluster_127_0_0_1_8877_ambassador",
+                            "namespace": "ambassador",
+                            "respect_dns_ttl": false,
+                            "service": "127.0.0.1:8877",
+                            "stats_name": "127_0_0_1_8877",
+                            "targets": [
+                                {
+                                    "ip": "127.0.0.1",
+                                    "port": 8877,
+                                    "target_kind": "IPaddr"
+                                }
+                            ],
+                            "type": "strict_dns",
+                            "urls": [
+                                "tcp://127.0.0.1:8877"
+                            ]
+                        },
+                        "cluster_key": "Cluster-cluster_127_0_0_1_8877_ambassador",
+                        "default_class": "httpmapping",
+                        "group_id": "a2c3d327956b3acbfedb3662b5f50528dae653b5",
+                        "headers": [
+                            {
+                                "name": ":authority",
+                                "regex": false,
+                                "value": "*"
+                            }
+                        ],
+                        "host": "*",
+                        "kind": "InternalMapping",
+                        "location": "ambassador.ambassador.1",
+                        "name": "internal_liveness_probe_mapping",
+                        "namespace": "ambassador",
+                        "precedence": 0,
+                        "prefix": "/ambassador/v0/check_alive",
+                        "query_parameters": [],
+                        "regex_rewrite": {},
+                        "resolver": "kubernetes-service",
+                        "rewrite": "/ambassador/v0/check_alive",
+                        "route_weight": [
+                            0,
+                            26,
+                            11,
+                            0,
+                            "/ambassador/v0/check_alive",
+                            "GET",
+                            ":authority-*"
+                        ],
+                        "service": "127.0.0.1:8877",
+                        "timeout_ms": 10000
+                    }
+                ],
+                "name": "GROUP: internal_liveness_probe_mapping",
+                "namespace": "ambassador",
+                "precedence": 0,
+                "prefix": "/ambassador/v0/check_alive",
+                "query_parameters": [],
+                "regex_rewrite": {},
+                "rewrite": "/ambassador/v0/check_alive",
+                "timeout_ms": 10000
+            },
+            "_source": "ambassador.ambassador.1",
+            "clusters": [
+                {
+                    "_active": true,
+                    "_cache_key": "Cluster-cluster_127_0_0_1_8877_ambassador",
+                    "_errored": false,
+                    "_hcolor": "orange",
+                    "_health": "undefined cluster",
+                    "_hmetric": "undefined cluster",
+                    "_hostname": "127.0.0.1",
+                    "_is_sidecar": false,
+                    "_namespace": "ambassador",
+                    "_port": 8877,
+                    "_referenced_by": [
+                        "ambassador.ambassador.1"
+                    ],
+                    "_resolver": "kubernetes-service",
+                    "_rkey": "cluster_127_0_0_1_8877_ambassador",
+                    "connect_timeout_ms": 3000,
+                    "enable_endpoints": false,
+                    "enable_ipv4": true,
+                    "enable_ipv6": false,
+                    "envoy_name": "cluster_127_0_0_1_8877_ambassador",
+                    "ignore_cluster": false,
+                    "kind": "IRCluster",
+                    "lb_type": "round_robin",
+                    "location": "ambassador.ambassador.1",
+                    "name": "cluster_127_0_0_1_8877_ambassador",
+                    "namespace": "ambassador",
+                    "respect_dns_ttl": false,
+                    "service": "127.0.0.1:8877",
+                    "stats_name": "127_0_0_1_8877",
+                    "targets": [
+                        {
+                            "ip": "127.0.0.1",
+                            "port": 8877,
+                            "target_kind": "IPaddr"
+                        }
+                    ],
+                    "type": "strict_dns",
+                    "urls": [
+                        "tcp://127.0.0.1:8877"
+                    ],
+                    "weight": 100
+                }
+            ],
+            "headers": [],
+            "host": "*",
+            "key": "http://*/ambassador/v0/check_alive",
+            "method": "*",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive"
+        }
+    ],
+    "source_map": {
+        "--diagnostics--": {
+            "--diagnostics--": true
+        },
+        "--internal--": {
+            "--internal--": true
+        },
+        "ambassador.ambassador": {
+            "ambassador.ambassador.1": true
+        },
+        "ambassador.ambassador.1": {
+            "ambassador.ambassador.1": true
+        },
+        "k8s-agent-injector-ambassador": {
+            "k8s-agent-injector-ambassador": true
+        },
+        "k8s-ambassador-admin-ambassador": {
+            "k8s-ambassador-admin-ambassador": true
+        },
+        "k8s-ambassador-agent-ambassador": {
+            "k8s-ambassador-agent-ambassador": true
+        },
+        "k8s-ambassador-ambassador": {
+            "k8s-ambassador-ambassador": true
+        },
+        "k8s-emissary-apiext-emissary-system": {
+            "k8s-emissary-apiext-emissary-system": true
+        },
+        "k8s-kube-dns-kube-system": {
+            "k8s-kube-dns-kube-system": true
+        },
+        "k8s-kubernetes-default": {
+            "k8s-kubernetes-default": true
+        },
+        "k8s-metrics-server-kube-system": {
+            "k8s-metrics-server-kube-system": true
+        },
+        "k8s-traffic-manager-ambassador": {
+            "k8s-traffic-manager-ambassador": true
+        }
+    },
+    "system": {
+        "ambassador_id": "default",
+        "ambassador_namespace": "ambassador",
+        "boot_time": "Thu, 30 Jun 2022 12:01:16 GMT",
+        "cluster_id": "54138ecb-1ffa-55cd-a962-f21d6da83348",
+        "debug_mode": false,
+        "endpoints_enabled": true,
+        "env_failures": [
+            "no Mappings",
+            "no TLS contexts"
+        ],
+        "env_good": false,
+        "env_status": {
+            "Error check": {
+                "specifics": [
+                    [
+                        true,
+                        "No errors logged"
+                    ]
+                ],
+                "status": true
+            },
+            "Mappings": {
+                "specifics": [
+                    [
+                        false,
+                        "No Mappings are active"
+                    ]
+                ],
+                "status": false
+            },
+            "TLS": {
+                "specifics": [
+                    [
+                        false,
+                        "No TLSContexts are active"
+                    ]
+                ],
+                "status": false
+            }
+        },
+        "hostname": "ambassador-7c57d6b784-lfxwq",
+        "hr_uptime": "7 hours, 34 minutes, 54 seconds",
+        "knative_enabled": false,
+        "latest_snapshot": "snapshot",
+        "single_namespace": false,
+        "statsd_enabled": false,
+        "version": "3.0.0-dev.0.20220622221628-ce9dc45827e9"
+    },
+    "tlscontexts": []
+}

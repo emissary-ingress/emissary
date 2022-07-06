@@ -24,6 +24,10 @@ import (
 	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
+const (
+	diagnosticsURL = "http://localhost:8877/ambassador/v0/diag/?json=true"
+)
+
 // Take a json formatted string and transform it to kates.Unstructured
 // for easy formatting of Snapshot.Invalid members
 func getUnstructured(objStr string) *kates.Unstructured {
@@ -459,7 +463,7 @@ func TestWatchReportPeriodDirective(t *testing.T) {
 	appCallback := make(chan *GenericCallback)
 
 	go func() {
-		err := a.watch(ctx, "http://localhost:9697", configAcc, podAcc, rolloutCallback, appCallback)
+		err := a.watch(ctx, "http://localhost:9697", "", configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 	dur := durationpb.Duration{
@@ -513,7 +517,7 @@ func TestWatchEmptyDirectives(t *testing.T) {
 	rolloutCallback := make(chan *GenericCallback)
 	appCallback := make(chan *GenericCallback)
 	go func() {
-		err := a.watch(ctx, "http://localhost:9697", configAcc, podAcc, rolloutCallback, appCallback)
+		err := a.watch(ctx, "http://localhost:9697", diagnosticsURL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 
@@ -589,7 +593,7 @@ func TestWatchStopReportingDirective(t *testing.T) {
 
 	// start watch
 	go func() {
-		err := a.watch(ctx, "http://localhost:9697", configAcc, podAcc, rolloutCallback, appCallback)
+		err := a.watch(ctx, "http://localhost:9697", diagnosticsURL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 
@@ -688,7 +692,7 @@ func TestWatchErrorSendingSnapshot(t *testing.T) {
 
 	// start the watch
 	go func() {
-		err := a.watch(ctx, ts.URL, configAcc, podAcc, rolloutCallback, appCallback)
+		err := a.watch(ctx, ts.URL, diagnosticsURL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 
@@ -878,7 +882,7 @@ func TestWatchWithSnapshot(t *testing.T) {
 
 	// start the watch
 	go func() {
-		err := a.watch(ctx, ts.URL, configAcc, podAcc, rolloutCallback, appCallback)
+		err := a.watch(ctx, ts.URL, diagnosticsURL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 
@@ -1021,7 +1025,7 @@ func TestWatchEmptySnapshot(t *testing.T) {
 	rolloutCallback := make(chan *GenericCallback)
 	appCallback := make(chan *GenericCallback)
 	go func() {
-		err := a.watch(ctx, ts.URL, configAcc, podAcc, rolloutCallback, appCallback)
+		err := a.watch(ctx, ts.URL, diagnosticsURL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 	select {

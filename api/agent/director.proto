@@ -24,6 +24,9 @@ service Director {
   // Report a consistent Snapshot of information to the DCP.
   rpc ReportStream(stream RawSnapshotChunk) returns (SnapshotResponse) {}
 
+  // Report a consistent Diagnostics snapshot of information to the DCP.
+  rpc StreamDiagnostics(stream RawDiagnosticsChunk) returns (DiagnosticsResponse) {}
+
   // Stream metrics to the DCP.
   rpc StreamMetrics(stream StreamMetricsMessage) returns (StreamMetricsResponse) {}
 
@@ -80,6 +83,25 @@ message RawSnapshotChunk {
     bytes chunk = 1;
 }
 
+// Diagnostic information from ambassador admin
+message Diagnostics {
+  Identity identity = 1;
+  string message = 2;
+
+  bytes raw_diagnostics = 3;
+  // describes how the raw_diagnostic is encoded
+  string content_type = 4;
+  // api version of Diagnostics
+  string api_version = 5;
+  google.protobuf.Timestamp snapshot_ts = 6;
+}
+
+// RawDiagnosticChunk is a fragment of a JSON serialization of a
+// Diagnostic protobuf object.
+message RawDiagnosticsChunk {
+    bytes chunk = 1;
+}
+
 message Service {
   string name = 1;
   string namespace = 2;
@@ -89,6 +111,12 @@ message Service {
 
 // The Director's response to a Snapshot from the Agent
 message SnapshotResponse {
+  // Empty for now, as the Director only knows how to return success or
+  // an error. In the future this may contain additional information.
+}
+
+// The Director's response to a Diagnostics message from the Agent
+message DiagnosticsResponse {
   // Empty for now, as the Director only knows how to return success or
   // an error. In the future this may contain additional information.
 }
