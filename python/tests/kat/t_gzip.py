@@ -1,8 +1,7 @@
 from typing import Generator, Tuple, Union
 
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
 from kat.harness import Query
-
-from abstract_tests import AmbassadorTest, HTTP, Node, ServiceType
 
 
 class GzipMinimumConfigTest(AmbassadorTest):

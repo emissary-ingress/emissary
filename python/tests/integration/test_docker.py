@@ -1,12 +1,11 @@
-from typing import Optional
-
 import os
 import sys
+import time
+from typing import Optional
 
 import pexpect
 import pytest
 import requests
-import time
 
 DOCKER_IMAGE = os.environ.get("AMBASSADOR_DOCKER_IMAGE", "")
 

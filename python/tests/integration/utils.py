@@ -1,24 +1,22 @@
-import logging
 import json
+import logging
 import os
-import subprocess
-import requests
 import socket
+import subprocess
 import tempfile
 import time
 from collections import namedtuple
+
+import requests
+import yaml
 from retry import retry
 
-import json
-import yaml
-
-from ambassador import Cache, IR
+import tests.integration.manifests as integration_manifests
+from ambassador import IR, Cache
 from ambassador.compile import Compile
 from ambassador.utils import NullSecretHandler
-
-import tests.integration.manifests as integration_manifests
-from tests.manifests import cleartext_host_manifest
 from tests.kubeutils import apply_kube_artifacts
+from tests.manifests import cleartext_host_manifest
 from tests.runutils import run_and_assert
 
 # Assume that both of these are on the PATH if not explicitly set

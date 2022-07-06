@@ -1,40 +1,37 @@
-import subprocess
-import sys
-
-from abc import ABC
-from collections import OrderedDict
-from functools import singledispatch
-from hashlib import sha256
-from packaging import version
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union, cast
-
 import base64
 import fnmatch
 import functools
 import inspect
 import json
 import os
-import pytest
-import time
+import subprocess
+import sys
 import threading
+import time
 import traceback
+from abc import ABC
+from collections import OrderedDict
+from functools import singledispatch
+from hashlib import sha256
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union, cast
 
-from .utils import ShellCommand
-from ambassador.utils import parse_bool
-
+import pytest
+import yaml as pyyaml
+from packaging import version
 from yaml.scanner import ScannerError as YAMLScanError
 
 import tests.integration.manifests as integration_manifests
-from .parser import dump, load, Tag, SequenceView
+from ambassador.utils import parse_bool
+from tests.kubeutils import apply_kube_artifacts
 from tests.manifests import (
-    httpbin_manifests,
-    websocket_echo_server_manifests,
     cleartext_host_manifest,
     default_listener_manifest,
+    httpbin_manifests,
+    websocket_echo_server_manifests,
 )
-from tests.kubeutils import apply_kube_artifacts
 
-import yaml as pyyaml
+from .parser import SequenceView, Tag, dump, load
+from .utils import ShellCommand
 
 pyyaml_loader: Any = pyyaml.SafeLoader
 pyyaml_dumper: Any = pyyaml.SafeDumper

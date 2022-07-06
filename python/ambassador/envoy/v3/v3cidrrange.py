@@ -1,6 +1,5 @@
+from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import Optional, Union
-
-from ipaddress import ip_address, IPv4Address, IPv6Address
 
 
 class CIDRRange:

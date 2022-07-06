@@ -1,10 +1,9 @@
 from typing import Generator, Tuple, Union
 
-# Note that there's also a CORS OptionTest in t_optiontests.py.
-
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, HTTP, Node, ServiceType
+# Note that there's also a CORS OptionTest in t_optiontests.py.
 
 
 class GlobalCORSTest(AmbassadorTest):

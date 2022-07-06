@@ -20,12 +20,11 @@
 # and hand back a compressed tarfile that the user can hand back to Datawire.
 ########
 
-import sys
-
 import functools
 import glob
 import json
 import os
+import sys
 import tarfile
 
 import click

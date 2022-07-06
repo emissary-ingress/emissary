@@ -1,18 +1,16 @@
-from ambassador.utils import RichStatus
-from ambassador.utils import ParsedService as Service
+import hashlib
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Union
 
-from typing import Any, ClassVar, Dict, List, Optional, Type, Union, TYPE_CHECKING
+from ambassador.utils import ParsedService as Service
+from ambassador.utils import RichStatus
 
 from ..config import Config
-
 from .irbasemapping import IRBaseMapping, normalize_service_name
 from .irbasemappinggroup import IRBaseMappingGroup
-from .irhttpmappinggroup import IRHTTPMappingGroup
-from .irerrorresponse import IRErrorResponse
 from .ircors import IRCORS
+from .irerrorresponse import IRErrorResponse
+from .irhttpmappinggroup import IRHTTPMappingGroup
 from .irretrypolicy import IRRetryPolicy
-
-import hashlib
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover

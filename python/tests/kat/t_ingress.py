@@ -1,16 +1,16 @@
-import os
-import sys
-
 import json
-import pytest
+import os
 import subprocess
+import sys
 import time
 
+import pytest
+
+from abstract_tests import HTTP, AmbassadorTest, ServiceType
+from ambassador.utils import parse_bool
 from kat.harness import Query, is_ingress_class_compatible
-from abstract_tests import AmbassadorTest, HTTP, ServiceType
 from tests.integration.manifests import namespace_manifest
 from tests.integration.utils import KUBESTATUS_PATH
-from ambassador.utils import parse_bool
 
 
 class IngressStatusTest1(AmbassadorTest):

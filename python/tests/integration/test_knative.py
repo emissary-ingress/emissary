@@ -1,21 +1,20 @@
 import logging
-from retry import retry
 import os
 import sys
 import time
 
 import pytest
-
-from ambassador import Config, IR
-from ambassador.fetch import ResourceFetcher
-from ambassador.utils import NullSecretHandler, parse_bool
+from retry import retry
 
 import tests.integration.manifests as integration_manifests
+from ambassador import IR, Config
+from ambassador.fetch import ResourceFetcher
+from ambassador.utils import NullSecretHandler, parse_bool
 from kat.harness import is_knative_compatible
-from tests.integration.utils import install_ambassador, get_code_with_retry, create_qotm_mapping
+from tests.integration.utils import create_qotm_mapping, get_code_with_retry, install_ambassador
 from tests.kubeutils import apply_kube_artifacts, delete_kube_artifacts
-from tests.runutils import run_with_retry, run_and_assert
 from tests.manifests import qotm_manifests
+from tests.runutils import run_and_assert, run_with_retry
 
 logger = logging.getLogger("ambassador")
 

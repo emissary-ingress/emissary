@@ -20,13 +20,11 @@
 # very specific to Ambassador.
 ########
 
-from typing import Any, Optional
-
 import functools
 import json
 import re
-
 from collections import OrderedDict
+from typing import Any, Optional
 
 import click
 import dpath.util

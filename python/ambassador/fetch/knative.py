@@ -1,13 +1,12 @@
 from __future__ import annotations
-from typing import Any, ClassVar, Dict, FrozenSet, List, Optional
 
 import datetime
 import itertools
+from typing import Any, ClassVar, Dict, FrozenSet, List, Optional
 
 import durationpy
 
 from ..config import Config
-
 from .dependency import ServiceDependency
 from .k8sobject import KubernetesGVK, KubernetesObject
 from .k8sprocessor import ManagedKubernetesProcessor

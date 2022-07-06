@@ -1,8 +1,7 @@
-from typing import Any, ClassVar, Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional
 from typing import cast as typecast
 
 from ..config import Config
-
 from .irfilter import IRFilter
 
 if TYPE_CHECKING:

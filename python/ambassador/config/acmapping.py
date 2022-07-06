@@ -16,7 +16,6 @@ from typing import Optional
 
 from .acresource import ACResource
 
-
 #############################################################################
 ## mapping.py -- the mapping configuration object for Ambassador
 ##

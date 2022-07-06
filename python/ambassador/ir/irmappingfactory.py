@@ -1,7 +1,6 @@
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Type, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Type, Union
 
 from ..config import Config
-
 from .irbasemapping import IRBaseMapping
 from .irhttpmapping import IRHTTPMapping
 from .irtcpmapping import IRTCPMapping

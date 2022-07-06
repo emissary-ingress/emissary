@@ -12,21 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
-
 import json
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 from ...cache import Cache, NullCache
-
 from ..common import EnvoyConfig, sanitize_pre_json
+from .v3_static_resources import V3StaticResources
 from .v3admin import V3Admin
 from .v3bootstrap import V3Bootstrap
-from .v3route import V3Route, V3RouteVariants
-from .v3listener import V3Listener
 from .v3cluster import V3Cluster
-from .v3_static_resources import V3StaticResources
-from .v3tracing import V3Tracing
+from .v3listener import V3Listener
 from .v3ratelimit import V3RateLimit
+from .v3route import V3Route, V3RouteVariants
+from .v3tracing import V3Tracing
 
 if TYPE_CHECKING:
     from ...ir import IR  # pragma: no cover

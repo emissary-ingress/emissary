@@ -1,13 +1,13 @@
 import json
 import re
-
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
-
-from urllib.parse import scheme_chars, urlparse, quote as urlquote, unquote as urlunquote
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
+from urllib.parse import quote as urlquote
+from urllib.parse import scheme_chars
+from urllib.parse import unquote as urlunquote
+from urllib.parse import urlparse
 
 from ..config import Config
 from ..utils import dump_json
-
 from .irresource import IRResource
 
 if TYPE_CHECKING:

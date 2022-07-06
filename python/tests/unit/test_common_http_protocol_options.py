@@ -1,6 +1,6 @@
-from tests.utils import econf_compile, econf_foreach_cluster, module_and_mapping_manifests
-
 import pytest
+
+from tests.utils import econf_compile, econf_foreach_cluster, module_and_mapping_manifests
 
 
 def _test_common_http_protocol_options(yaml, expectations={}):

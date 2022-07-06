@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict
-
 import logging
+from typing import Any, Dict
 
 ######
 # Utilities for hostglob_matches

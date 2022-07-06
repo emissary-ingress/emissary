@@ -1,11 +1,9 @@
+import os
 from typing import Dict, Generator, Tuple, Union
 
-import os
-
 import tests.integration.manifests as integration_manifests
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
 from kat.harness import Query
-
 
 LOADBALANCER_POD = """
 ---

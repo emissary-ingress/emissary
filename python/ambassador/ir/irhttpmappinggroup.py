@@ -1,13 +1,13 @@
-from ambassador.utils import RichStatus
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
 from typing import cast as typecast
 
-from ..config import Config
+from ambassador.utils import RichStatus
 
-from .irresource import IRResource
-from .ircluster import IRCluster
-from .irbasemappinggroup import IRBaseMappingGroup
+from ..config import Config
 from .irbasemapping import IRBaseMapping
+from .irbasemappinggroup import IRBaseMappingGroup
+from .ircluster import IRCluster
+from .irresource import IRResource
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover
