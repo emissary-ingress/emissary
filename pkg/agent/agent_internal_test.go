@@ -463,7 +463,7 @@ func TestWatchReportPeriodDirective(t *testing.T) {
 	appCallback := make(chan *GenericCallback)
 
 	go func() {
-		err := a.watch(ctx, "http://localhost:9697", "", configAcc, podAcc, rolloutCallback, appCallback)
+		err := a.watch(ctx, "http://localhost:9697", diagnosticsURL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 	dur := durationpb.Duration{
