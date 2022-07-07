@@ -168,7 +168,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	fastpathCh := make(chan *ambex.FastpathSnapshot)
 	group.Go("ambex", func(ctx context.Context) error {
 		return ambex.Main2(ctx, Version, usage.PercentUsed, fastpathCh, "--ads-listen-address",
-			"127.0.0.1:8003", GetEnvoyDir())
+			"127.0.0.1:8003", "--debug", GetEnvoyDir())
 	})
 
 	group.Go("envoy", func(ctx context.Context) error {
