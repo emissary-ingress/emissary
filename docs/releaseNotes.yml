@@ -125,12 +125,6 @@ items:
           With the ugprade to Envoy 1.22, $productName$ can now be configured to listen for HTTP/3
           connections using QUIC and the UDP network protocol. It currently only supports for connections
           between downstream clients and $productName$.
-      - title: Developers can build Envoy in FIPS mode.
-        type: feature
-        body: >-
-          Developers who choose to build their own Envoy image can now specify an option to build
-          it in FIPS mode. This will ensure that envoy uses FIPS certified cryptographic algorithms
-          when handling network connections.
   - version: 2.3.1
     date: '2022-06-09'
     notes:
