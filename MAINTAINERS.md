@@ -9,10 +9,10 @@ Maintainers are listed in alphabetical order.
 
 | Maintainer | GitHub ID | Affiliation |
 | ---------- | --------- | ----------- |
-| Aidan Hahn | [aidanhahn](https://github.com/aidanhahn) | [Ambassador Labs](https://www.github.com/datawire/) |
+| Aidan Hahn | [aidanhahn](https://github.com/aidanhahn) | unaffiliated |
 | Alex Gervais | [alexgervais](https://github.com/alexgervais) | [Ambassador Labs](https://www.github.com/datawire/) |
 | Alice Wasko | [aliceproxy](https://github.com/aliceproxy) | [Ambassador Labs](https://www.github.com/datawire/) |
-| Flynn | [kflynn](https://github.com/kflynn) | [Ambassador Labs](https://www.github.com/datawire/) |
+| Flynn | [kflynn](https://github.com/kflynn) | unaffiliated |
 | Luke Shumaker | [lukeshu](https://github.com/lukeshu) | [Ambassador Labs](https://www.github.com/datawire/) |
 | Rafael Schloming | [rhs](https://github.com/rhs) | [Ambassador Labs](https://www.github.com/datawire/) |
 
