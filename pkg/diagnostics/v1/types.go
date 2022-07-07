@@ -1,5 +1,8 @@
 package diagnostics
 
+const ApiVersion = "v1"
+const ContentTypeJSON = "application/json"
+
 type Diagnostics struct {
 	ActiveElements      []string               `json:"active_elements"`
 	AmbassadorElements  *AmbassadorElements    `json:"ambassador_elements"`
@@ -16,7 +19,7 @@ type Diagnostics struct {
 	Groups              *Groups                `json:"groups"`
 	Loginfo             *Loginfo               `json:"loginfo"`
 	Notices             []*Notice              `json:"notices"`
-	RouteInfo           []interface{}          `json:"route_info"`
+	RouteInfo           []*RouteInfo           `json:"route_info"`
 	SourceMap           map[string]interface{} `json:"source_map"`
 	System              *System                `json:"system"`
 	Tlscontexts         []*TLSContext          `json:"tlscontexts"`
@@ -244,6 +247,157 @@ type Groups map[string]struct {
 
 type Loginfo struct {
 	All string `json:"all"`
+}
+
+type RouteInfo struct {
+	GroupID string `json:"_group_id"`
+	Route   struct {
+		Active       bool          `json:"_active"`
+		CacheKey     string        `json:"_cache_key"`
+		Errored      bool          `json:"_errored"`
+		ReferencedBy []string      `json:"_referenced_by"`
+		Rkey         string        `json:"_rkey"`
+		DefaultClass string        `json:"default_class"`
+		GroupID      string        `json:"group_id"`
+		GroupWeight  []interface{} `json:"group_weight"`
+		Headers      []struct {
+			Name  string `json:"name"`
+			Regex bool   `json:"regex"`
+			Value string `json:"value"`
+		} `json:"headers"`
+		Host     string `json:"host"`
+		Kind     string `json:"kind"`
+		Location string `json:"location"`
+		Mappings []struct {
+			Active            bool   `json:"_active"`
+			CacheKey          string `json:"_cache_key"`
+			Errored           bool   `json:"_errored"`
+			Rkey              string `json:"_rkey"`
+			Weight            int    `json:"_weight"`
+			AddRequestHeaders struct {
+			} `json:"add_request_headers"`
+			AddResponseHeaders struct {
+			} `json:"add_response_headers"`
+			Cluster struct {
+				Active           bool     `json:"_active"`
+				CacheKey         string   `json:"_cache_key"`
+				Errored          bool     `json:"_errored"`
+				Hostname         string   `json:"_hostname"`
+				IsSidecar        bool     `json:"_is_sidecar"`
+				Namespace        string   `json:"_namespace"`
+				Port             int      `json:"_port"`
+				ReferencedBy     []string `json:"_referenced_by"`
+				Resolver         string   `json:"_resolver"`
+				Rkey             string   `json:"_rkey"`
+				ConnectTimeoutMs int      `json:"connect_timeout_ms"`
+				EnableEndpoints  bool     `json:"enable_endpoints"`
+				EnableIpv4       bool     `json:"enable_ipv4"`
+				EnableIpv6       bool     `json:"enable_ipv6"`
+				EnvoyName        string   `json:"envoy_name"`
+				IgnoreCluster    bool     `json:"ignore_cluster"`
+				Kind             string   `json:"kind"`
+				LbType           string   `json:"lb_type"`
+				Location         string   `json:"location"`
+				Name             string   `json:"name"`
+				Namespace0       string   `json:"namespace"`
+				RespectDNSTTL    bool     `json:"respect_dns_ttl"`
+				Service          string   `json:"service"`
+				StatsName        string   `json:"stats_name"`
+				Targets          []struct {
+					IP         string `json:"ip"`
+					Port       int    `json:"port"`
+					TargetKind string `json:"target_kind"`
+				} `json:"targets"`
+				Type string   `json:"type"`
+				Urls []string `json:"urls"`
+			} `json:"cluster"`
+			ClusterKey   string `json:"cluster_key"`
+			DefaultClass string `json:"default_class"`
+			GroupID      string `json:"group_id"`
+			Headers      []struct {
+				Name  string `json:"name"`
+				Regex bool   `json:"regex"`
+				Value string `json:"value"`
+			} `json:"headers"`
+			Host           string `json:"host"`
+			Kind           string `json:"kind"`
+			Location       string `json:"location"`
+			MetadataLabels struct {
+				AmbassadorCrd           string `json:"ambassador_crd"`
+				AppKubernetesIoInstance string `json:"app.kubernetes.io/instance"`
+			} `json:"metadata_labels"`
+			Name            string        `json:"name"`
+			Namespace       string        `json:"namespace"`
+			Precedence      int           `json:"precedence"`
+			Prefix          string        `json:"prefix"`
+			QueryParameters []interface{} `json:"query_parameters"`
+			RegexRewrite    struct {
+			} `json:"regex_rewrite"`
+			Resolver      string        `json:"resolver"`
+			Rewrite       string        `json:"rewrite"`
+			RouteWeight   []interface{} `json:"route_weight"`
+			Serialization string        `json:"serialization"`
+			Service       string        `json:"service"`
+		} `json:"mappings"`
+		MetadataLabels struct {
+			AmbassadorCrd           string `json:"ambassador_crd"`
+			AppKubernetesIoInstance string `json:"app.kubernetes.io/instance"`
+		} `json:"metadata_labels"`
+		Name            string        `json:"name"`
+		Namespace       string        `json:"namespace"`
+		Precedence      int           `json:"precedence"`
+		Prefix          string        `json:"prefix"`
+		QueryParameters []interface{} `json:"query_parameters"`
+		RegexRewrite    struct {
+		} `json:"regex_rewrite"`
+		Rewrite       string `json:"rewrite"`
+		Serialization string `json:"serialization"`
+	} `json:"_route"`
+	Source   string `json:"_source"`
+	Clusters []struct {
+		Active           bool     `json:"_active"`
+		CacheKey         string   `json:"_cache_key"`
+		Errored          bool     `json:"_errored"`
+		Hcolor           string   `json:"_hcolor"`
+		Health           string   `json:"_health"`
+		Hmetric          string   `json:"_hmetric"`
+		Hostname         string   `json:"_hostname"`
+		IsSidecar        bool     `json:"_is_sidecar"`
+		Namespace        string   `json:"_namespace"`
+		Port             int      `json:"_port"`
+		ReferencedBy     []string `json:"_referenced_by"`
+		Resolver         string   `json:"_resolver"`
+		Rkey             string   `json:"_rkey"`
+		ConnectTimeoutMs int      `json:"connect_timeout_ms"`
+		EnableEndpoints  bool     `json:"enable_endpoints"`
+		EnableIpv4       bool     `json:"enable_ipv4"`
+		EnableIpv6       bool     `json:"enable_ipv6"`
+		EnvoyName        string   `json:"envoy_name"`
+		IgnoreCluster    bool     `json:"ignore_cluster"`
+		Kind             string   `json:"kind"`
+		LbType           string   `json:"lb_type"`
+		Location         string   `json:"location"`
+		Name             string   `json:"name"`
+		Namespace0       string   `json:"namespace"`
+		RespectDNSTTL    bool     `json:"respect_dns_ttl"`
+		Service          string   `json:"service"`
+		StatsName        string   `json:"stats_name"`
+		Targets          []struct {
+			IP         string `json:"ip"`
+			Port       int    `json:"port"`
+			TargetKind string `json:"target_kind"`
+		} `json:"targets"`
+		Type   string   `json:"type"`
+		Urls   []string `json:"urls"`
+		Weight int      `json:"weight"`
+	} `json:"clusters"`
+	Headers    []interface{} `json:"headers"`
+	Host       string        `json:"host"`
+	Key        string        `json:"key"`
+	Method     string        `json:"method"`
+	Precedence int           `json:"precedence"`
+	Prefix     string        `json:"prefix"`
+	Rewrite    string        `json:"rewrite"`
 }
 
 type Notice struct {

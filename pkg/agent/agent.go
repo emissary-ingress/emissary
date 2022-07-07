@@ -118,12 +118,11 @@ type Agent struct {
 	rpcExtraHeaders []string
 
 	// diagnostics reporting
+	reportDiagnosticsAllowed    bool // Allow agent to fetch diagnostics and report to cloud
 	diagnosticsReportingStopped bool // Director stopped diagnostics reporting
 	//minDiagnosticsReportPeriod  time.Duration // How frequently do we collect diagnostics
 
 	// The state of reporting
-
-	//diagnosticsReportToSend   *agent.Diagnostics // Diagnostics report that's ready to send
 	diagnosticsReportRunning  atomicBool // Is a report being sent right now?
 	diagnosticsReportComplete chan error // Report() finished with this error
 }
@@ -205,6 +204,11 @@ func (a *Agent) SetMinReportPeriod(ctx context.Context, dur time.Duration) {
 func (a *Agent) SetLastDirectiveID(ctx context.Context, id string) {
 	dlog.Debugf(ctx, "setting last directive ID %s", id)
 	a.lastDirectiveID = id
+}
+
+func (a *Agent) SetReportDiagnosticsAllowed(reportDiagnosticsAllowed bool) {
+	dlog.Debugf(context.Background(), "setting reporting diagnostics to cloud to: %t", reportDiagnosticsAllowed)
+	a.reportDiagnosticsAllowed = reportDiagnosticsAllowed
 }
 
 func getAmbSnapshotInfo(url string) (*snapshotTypes.Snapshot, error) {
@@ -506,13 +510,13 @@ func (a *Agent) watch(ctx context.Context, snapshotURL, diagnosticsURL string, c
 		}
 		a.MaybeReportSnapshot(ctx)
 
-		if !a.diagnosticsReportingStopped && !a.diagnosticsReportRunning.Value() {
-			diagnosticsSnapshot, err := getAmbDiagnosticsInfo(snapshotURL)
+		if !a.diagnosticsReportingStopped && !a.diagnosticsReportRunning.Value() && a.reportDiagnosticsAllowed {
+			diagnostics, err := getAmbDiagnosticsInfo(diagnosticsURL)
 			if err != nil {
 				dlog.Warnf(ctx, "Error getting diagnostics from ambassador %+v", err)
 			}
 			dlog.Debug(ctx, "Received diagnostics in agent")
-			agentDiagnostics, err := a.ProcessDiagnosticsSnapshot(ctx, diagnosticsSnapshot, ambHost)
+			agentDiagnostics, err := a.ProcessDiagnostics(ctx, diagnostics, ambHost)
 			if err != nil {
 				dlog.Warnf(ctx, "error processing diagnostics: %+v", err)
 			}
@@ -745,11 +749,63 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 	return nil
 }
 
-// ProcessDiagnosticsSnapshot translates ambassadors diagnostics into streamable agent diagnostics
-func (a *Agent) ProcessDiagnosticsSnapshot(ctx context.Context, snapshot *diagnosticsTypes.Diagnostics, ambHost string) (*agent.Diagnostics, error) {
-	// implement
+// ProcessDiagnostics translates ambassadors diagnostics into streamable agent diagnostics
+func (a *Agent) ProcessDiagnostics(ctx context.Context, diagnostics *diagnosticsTypes.Diagnostics,
+	ambHost string) (*agent.Diagnostics, error) {
+	if diagnostics == nil {
+		dlog.Warn(ctx, "No diagnostics found, not reporting.")
+		return nil, nil
+	}
 
-	return nil, nil
+	if diagnostics.System == nil {
+		dlog.Warn(ctx, "Missing System information from diagnostics, not reporting.")
+		return nil, nil
+	}
+
+	agentID := GetIdentityFromDiagnostics(diagnostics.System, ambHost)
+	if agentID == nil {
+		dlog.Warnf(ctx, "Could not parse identity info out of diagnostics, not sending.")
+		return nil, nil
+	}
+	// TODO: would the diagnostics agentID be different from the snapshot agentID?
+	a.agentID = agentID
+	// TODO: is this the connection to DCP, so it is similar to snapshot?
+	newConnInfo, err := connInfoFromAddress(a.connAddress)
+	if err != nil {
+		// The user has attempted to turn on the Agent (otherwise GetIdentity
+		// would have returned nil), but there's a problem with the connection
+		// configuration. Rather than processing the entire snapshot and then
+		// failing to send the resulting report, let's just fail now. The user
+		// will see the error in the logs and correct the configuration.
+		return nil, err
+	}
+
+	if a.connInfo == nil || *newConnInfo != *a.connInfo {
+		// The configuration for the Director endpoint has changed: either this
+		// is the first snapshot or the user changed the value.
+		//
+		// Close any existing communications channel so that we can create
+		// a new one with the new endpoint.
+		a.ClearComm()
+
+		// Save the new endpoint information.
+		a.connInfo = newConnInfo
+	}
+
+	rawJsonDiagnostics, err := json.Marshal(diagnostics)
+	if err != nil {
+		return nil, err
+	}
+
+	diagnosticsReport := &agent.Diagnostics{
+		Identity:       agentID,
+		RawDiagnostics: rawJsonDiagnostics,
+		ContentType:    diagnosticsTypes.ContentTypeJSON,
+		ApiVersion:     diagnosticsTypes.ApiVersion,
+		SnapshotTs:     timestamppb.Now(),
+	}
+
+	return diagnosticsReport, nil
 }
 
 var allowedMetricsSuffixes = []string{"upstream_rq_total", "upstream_rq_time", "upstream_rq_5xx"}

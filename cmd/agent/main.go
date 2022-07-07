@@ -61,6 +61,11 @@ func run(cmd *cobra.Command, args []string) error {
 		diagnosticsURL = fmt.Sprintf(DefaultDiagnosticsURLFmt, AdminDiagnosticsPort)
 	}
 
+	reportDiagnostics := os.Getenv("AES_REPORT_DIAGNOSTICS_TO_CLOUD")
+	if reportDiagnostics == "true" {
+		ambAgent.SetReportDiagnosticsAllowed(true)
+	}
+
 	metricsListener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		return err
