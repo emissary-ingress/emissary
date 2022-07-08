@@ -515,7 +515,7 @@
                     "name": "cluster_0_0_0_1_8500_jargon",
                     "namespace": "jargon",
                     "respect_dns_ttl": false,
-                    "service": "0.0.0.0:8500",
+                    "service": "service-1:8500",
                     "stats_name": "0_0_0_1_8500",
                     "targets": [
                         {
@@ -534,7 +534,7 @@
             "diag_class": "private",
             "headers": [],
             "host": "*",
-            "key": "http://*/.ambassador/",
+            "key": "http://*/ambassador/v0/",
             "method": "*",
             "precedence": 1000000,
             "prefix": "/.ambassador/",

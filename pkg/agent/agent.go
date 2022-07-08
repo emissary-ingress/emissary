@@ -516,6 +516,7 @@ func (a *Agent) watch(ctx context.Context, snapshotURL, diagnosticsURL string, c
 				dlog.Warnf(ctx, "Error getting diagnostics from ambassador %+v", err)
 			}
 			dlog.Debug(ctx, "Received diagnostics in agent")
+			// TODO: is ambHost the same between diagnostics and snapshot?
 			agentDiagnostics, err := a.ProcessDiagnostics(ctx, diagnostics, ambHost)
 			if err != nil {
 				dlog.Warnf(ctx, "error processing diagnostics: %+v", err)
