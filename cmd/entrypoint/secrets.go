@@ -360,36 +360,39 @@ func findOAuthFilterSecret(
 	action func(snapshotTypes.SecretRef),
 ) {
 	oAuthFilter := mapFilters["OAuth2"]
-	if oAuthFilter != nil {
-		secretName, secretNamespace := "", ""
-		// Check if we have a secretName
-		mapOAuth, ok := oAuthFilter.(map[string]interface{})
+	if oAuthFilter == nil {
+		return
+	}
+
+	secretName, secretNamespace := "", ""
+	// Check if we have a secretName
+	mapOAuth, ok := oAuthFilter.(map[string]interface{})
+	if !ok {
+		return
+	}
+	sName := mapOAuth["secretName"]
+	if sName == nil {
+		return
+	}
+	secretName, ok = sName.(string)
+	// This is a weird check, but we have to handle the case where secretName is not provided, and when its explicitly set to ""
+	if !ok || secretName == "" {
+		// Bail out early since there is no secret
+		return
+	}
+	sNamespace := mapOAuth["secretNamespace"]
+	if sNamespace == nil {
+		secretNamespace = filterNamespace
+	} else {
+		secretNamespace, ok = sNamespace.(string)
 		if !ok {
 			return
-		}
-		sName := mapOAuth["secretName"]
-		if sName == nil {
-			return
-		}
-		secretName, ok = sName.(string)
-		// This is a weird check, but we have to handle the case where secretName is not provided, and when its explicitly set to ""
-		if !ok || secretName == "" {
-			// Bail out early since there is no secret
-			return
-		}
-		sNamespace := mapOAuth["secretNamespace"]
-		if sNamespace == nil {
+		} else if secretNamespace == "" {
 			secretNamespace = filterNamespace
-		} else {
-			secretNamespace, ok = sNamespace.(string)
-			if !ok {
-				return
-			} else if secretNamespace == "" {
-				secretNamespace = filterNamespace
-			}
 		}
-		secretRef(secretNamespace, secretName, false, action)
 	}
+	secretRef(secretNamespace, secretName, false, action)
+
 }
 
 func findAPIKeyFilterSecret(
@@ -408,7 +411,7 @@ func findAPIKeyFilterSecret(
 		apiKeys := mapKeyFilter["keys"].([]interface{})
 
 		for i := range apiKeys {
-			secretName, secretNamespace := "", ""
+			secretName := ""
 			mapKey, ok := apiKeys[i].(map[string]interface{})
 
 			if !ok {
@@ -427,23 +430,9 @@ func findAPIKeyFilterSecret(
 				continue
 			}
 
-			sNamespace := mapKey["secretNamespace"]
-			if sNamespace == nil {
-				secretNamespace = filterNamespace
-			} else {
-				secretNamespace, ok = sNamespace.(string)
-				if !ok {
-					continue
-				} else if secretNamespace == "" {
-					secretNamespace = filterNamespace
-				}
-			}
-
-			secretRef(secretNamespace, secretName, false, action)
+			secretRef(filterNamespace, secretName, false, action)
 		}
 	}
-
-	return
 }
 
 // Find all the secrets a given Ambassador resource references.
