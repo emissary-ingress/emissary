@@ -509,7 +509,7 @@ func (a *Agent) watch(ctx context.Context, snapshotURL, diagnosticsURL string, c
 			}
 		}
 		a.MaybeReportSnapshot(ctx)
-
+		// TODO: make this as resilient as snapshot taking
 		if !a.diagnosticsReportingStopped && !a.diagnosticsReportRunning.Value() && a.reportDiagnosticsAllowed {
 			diagnostics, err := getAmbDiagnosticsInfo(diagnosticsURL)
 			if err != nil {

@@ -125,7 +125,7 @@ leave-emissary-agent:
 RUN_EMISSARY_AGENT=bin/run-emissary-agent.sh
 $(RUN_EMISSARY_AGENT):
 	@test -e $(EMISSARY_AGENT_ENV) || echo "Environment file $(EMISSARY_AGENT_ENV) does not exist, please run 'make intercept-emissary-agent' to create it."
-	echo "AES_LOG_LEVEL=debug go run ./cmd/busyambassador agent" >> $(RUN_EMISSARY_AGENT)
+	echo 'AES_LOG_LEVEL=debug AES_SNAPSHOT_URL=http://ambassador-admin.ambassador:8005/snapshot-external AES_DIAGNOSTICS_URL="http://ambassador-admin.ambassador:8877/ambassador/v0/diag/?json=true" AES_REPORT_DIAGNOSTICS_TO_CLOUD=true go run ./cmd/busyambassador agent' >> $(RUN_EMISSARY_AGENT)
 	chmod a+x $(RUN_EMISSARY_AGENT)
 
 .PHONY: irun-emissary-agent
