@@ -426,6 +426,7 @@ func update(
 	}
 
 	for _, name := range filenames {
+		dlog.Debugf(ctx, "Decoding file %s", name)
 		m, e := Decode(ctx, name)
 		if e != nil {
 			dlog.Warnf(ctx, "%s: %v", name, e)
@@ -782,6 +783,9 @@ func Main2(
 	}
 
 	dlog.Infof(ctx, "Ambex %s starting, snapdirPath %s", Version, snapdirPath)
+	if (len(args.dirs) != 0) {
+		dlog.Debugf(ctx, "Additional directories: %v", args.dirs)
+	}
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -791,6 +795,7 @@ func Main2(
 
 	if args.watch {
 		for _, d := range args.dirs {
+			dlog.Debugf(ctx, "Watching directory %s", d)
 			if err := watcher.Add(d); err != nil {
 				return err
 			}
@@ -875,6 +880,7 @@ OUTER:
 			// XXX Y'know, redoing this with if would let us ditch that silly label.
 			switch sig {
 			case syscall.SIGHUP:
+				dlog.Debugf(ctx, "Received signal %s: ", syscall.SIGHUP)
 				err := update(
 					ctx,
 					snapdirPath,
@@ -896,7 +902,9 @@ OUTER:
 			}
 		case fpSnap := <-fastpathCh:
 			// Fastpath update. Grab new endpoints and update.
+			dlog.Debug(ctx, "Fastpath update")
 			if fpSnap.Endpoints != nil {
+				dlog.Debug(ctx, "Received new or updated Endpoints")
 				edsEndpoints = fpSnap.Endpoints.ToMap_v2()
 				edsEndpointsV3 = fpSnap.Endpoints.ToMap_v3()
 			}
@@ -919,6 +927,7 @@ OUTER:
 			}
 		case <-watcher.Events:
 			// Non-fastpath update. Just update.
+			dlog.Debug(ctx, "Received event from watcher, updating...")
 			err := update(
 				ctx,
 				snapdirPath,
