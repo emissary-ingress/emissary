@@ -100,4 +100,38 @@ func TestMetricsRelayHandler(t *testing.T) {
 			"metrics should be added to the stack")
 		assert.Equal(t, 0, len(clientMock.SentMetrics), "nothing send to cloud")
 	})
+	t.Run("peer IP is not available", func(t *testing.T) {
+		// given
+		clientMock, stubbedAgent := agentMetricsSetupTest()
+		ctx := dlog.NewTestContext(t, true)
+
+		//when
+		stubbedAgent.MetricsRelayHandler(ctx, &envoyMetrics.StreamMetricsMessage{
+			Identifier:   nil,
+			EnvoyMetrics: []*io_prometheus_client.MetricFamily{acceptedMetric},
+		})
+
+		//then
+		assert.Equal(t, 0, len(stubbedAgent.aggregatedMetrics), "no metrics")
+		assert.Equal(t, 0, len(clientMock.SentMetrics), "nothing send to cloud")
+	})
+	t.Run("not metrics available in aggregatedMetrics", func(t *testing.T) {
+		// given
+		clientMock, stubbedAgent := agentMetricsSetupTest()
+		ctx := peer.NewContext(dlog.NewTestContext(t, true), &peer.Peer{
+			Addr: &net.IPAddr{
+				IP: net.ParseIP("192.168.0.1"),
+			},
+		})
+
+		//when
+		stubbedAgent.MetricsRelayHandler(ctx, &envoyMetrics.StreamMetricsMessage{
+			Identifier:   nil,
+			EnvoyMetrics: []*io_prometheus_client.MetricFamily{},
+		})
+
+		//then
+		assert.Equal(t, 0, len(stubbedAgent.aggregatedMetrics), "no metrics")
+		assert.Equal(t, 0, len(clientMock.SentMetrics), "nothing send to cloud")
+	})
 }

@@ -824,7 +824,7 @@ func (a *Agent) MetricsRelayHandler(
 		p, ok := peer.FromContext(ctx)
 
 		if !ok {
-			dlog.Errorf(ctx, "peer not found in context")
+			dlog.Warnf(ctx, "peer not found in context")
 			return
 		}
 
