@@ -117,7 +117,7 @@ type Agent struct {
 	metricsBackoffUntil time.Time
 
 	// Used to accumulate metrics for a same timestamp before pushing them to the cloud.
-	metricStack map[string][]*io_prometheus_client.MetricFamily
+	aggregatedMetrics map[string][]*io_prometheus_client.MetricFamily
 
 	// Extra headers to inject into RPC requests to ambassador cloud.
 	rpcExtraHeaders []string
@@ -188,7 +188,7 @@ func NewAgent(directiveHandler DirectiveHandler, rolloutsGetterFactory rolloutsG
 		agentWatchFieldSelector:      getEnvWithDefault("AGENT_WATCH_FIELD_SELECTOR", "metadata.namespace!=kube-system"),
 		metricsBackoffUntil:          time.Now().Add(defaultMinReportPeriod),
 		rpcExtraHeaders:              rpcExtraHeaders,
-		metricStack:                  map[string][]*io_prometheus_client.MetricFamily{},
+		aggregatedMetrics:            map[string][]*io_prometheus_client.MetricFamily{},
 	}
 }
 
@@ -821,6 +821,12 @@ func (a *Agent) MetricsRelayHandler(
 	metrics := in.GetEnvoyMetrics()
 
 	if a.comm != nil && !a.reportingStopped {
+		p, ok := peer.FromContext(ctx)
+
+		if !ok {
+			dlog.Errorf(ctx, "peer not found in context")
+			return
+		}
 
 		a.ambassadorAPIKeyMutex.Lock()
 		apikey := a.ambassadorAPIKey
@@ -837,13 +843,6 @@ func (a *Agent) MetricsRelayHandler(
 			}
 		}
 
-		p, ok := peer.FromContext(ctx)
-
-		if !ok {
-			dlog.Errorf(ctx, "peer not found in context")
-			return
-		}
-
 		instanceID := p.Addr.String()
 
 		a.metricsRelayMutex.Lock()
@@ -853,34 +852,36 @@ func (a *Agent) MetricsRelayHandler(
 			dlog.Infof(ctx, "Append %d metric(s) to stack from %s",
 				len(newMetrics), instanceID,
 			)
-			a.metricStack[instanceID] = newMetrics
-		} else {
-			// Otherwise, we reached a new batch of metric, send everything.
-			outMessage := &agent.StreamMetricsMessage{
-				Identity:     a.agentID,
-				EnvoyMetrics: []*io_prometheus_client.MetricFamily{},
-			}
-
-			for key, instanceMetrics := range a.metricStack {
-				outMessage.EnvoyMetrics = append(outMessage.EnvoyMetrics, instanceMetrics...)
-				delete(a.metricStack, key)
-			}
-
-			if relayedMetricCount := len(outMessage.GetEnvoyMetrics()); relayedMetricCount > 0 {
-
-				dlog.Infof(ctx, "Relaying %d metric(s)", relayedMetricCount)
-
-				if err := a.comm.StreamMetrics(ctx, outMessage, apikey); err != nil {
-					dlog.Errorf(ctx, "error streaming metric(s): %+v", err)
-				}
-			}
-
-			// Configure next push.
-			a.metricsBackoffUntil = time.Now().Add(defaultMinReportPeriod)
-
-			dlog.Infof(ctx, "Next metrics relay scheduled for %s",
-				a.metricsBackoffUntil.UTC().String())
+			a.aggregatedMetrics[instanceID] = newMetrics
+			return
 		}
+
+		// Otherwise, we reached a new batch of metric, send everything.
+		outMessage := &agent.StreamMetricsMessage{
+			Identity:     a.agentID,
+			EnvoyMetrics: []*io_prometheus_client.MetricFamily{},
+		}
+
+		for key, instanceMetrics := range a.aggregatedMetrics {
+			outMessage.EnvoyMetrics = append(outMessage.EnvoyMetrics, instanceMetrics...)
+			delete(a.aggregatedMetrics, key)
+		}
+
+		if relayedMetricCount := len(outMessage.GetEnvoyMetrics()); relayedMetricCount > 0 {
+
+			dlog.Infof(ctx, "Relaying %d metric(s)", relayedMetricCount)
+
+			if err := a.comm.StreamMetrics(ctx, outMessage, apikey); err != nil {
+				dlog.Errorf(ctx, "error streaming metric(s): %+v", err)
+			}
+		}
+
+		// Configure next push.
+		a.metricsBackoffUntil = time.Now().Add(defaultMinReportPeriod)
+
+		dlog.Infof(ctx, "Next metrics relay scheduled for %s",
+			a.metricsBackoffUntil.UTC().String())
+
 	}
 }
 

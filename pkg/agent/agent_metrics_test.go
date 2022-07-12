@@ -48,7 +48,7 @@ func agentMetricsSetupTest() (*MockClient, *Agent) {
 		comm: &RPCComm{
 			client: clientMock,
 		},
-		metricStack: map[string][]*io_prometheus_client.MetricFamily{},
+		aggregatedMetrics: map[string][]*io_prometheus_client.MetricFamily{},
 	}
 
 	return clientMock, stubbedAgent
@@ -64,7 +64,7 @@ func TestMetricsRelayHandler(t *testing.T) {
 				IP: net.ParseIP("192.168.0.1"),
 			},
 		})
-		stubbedAgent.metricStack["192.168.0.1"] = []*io_prometheus_client.MetricFamily{acceptedMetric}
+		stubbedAgent.aggregatedMetrics["192.168.0.1"] = []*io_prometheus_client.MetricFamily{acceptedMetric}
 
 		//when
 		stubbedAgent.MetricsRelayHandler(ctx, &envoyMetrics.StreamMetricsMessage{
@@ -95,7 +95,7 @@ func TestMetricsRelayHandler(t *testing.T) {
 		})
 
 		//then
-		assert.Equal(t, stubbedAgent.metricStack["192.168.0.1"],
+		assert.Equal(t, stubbedAgent.aggregatedMetrics["192.168.0.1"],
 			[]*io_prometheus_client.MetricFamily{acceptedMetric},
 			"metrics should be added to the stack")
 		assert.Equal(t, 0, len(clientMock.SentMetrics), "nothing send to cloud")
