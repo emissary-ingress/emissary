@@ -117,12 +117,12 @@ type Agent struct {
 	// Extra headers to inject into RPC requests to ambassador cloud.
 	rpcExtraHeaders []string
 
-	// diagnostics reporting
+	// Diagnostics reporting
 	reportDiagnosticsAllowed    bool // Allow agent to fetch diagnostics and report to cloud
 	diagnosticsReportingStopped bool // Director stopped diagnostics reporting
-	//minDiagnosticsReportPeriod  time.Duration // How frequently do we collect diagnostics
+	// minDiagnosticsReportPeriod  time.Duration // How frequently do we collect diagnostics
 
-	// The state of reporting
+	// The state of diagnostic reporting
 	diagnosticsReportRunning  atomicBool // Is a report being sent right now?
 	diagnosticsReportComplete chan error // Report() finished with this error
 }
@@ -509,14 +509,13 @@ func (a *Agent) watch(ctx context.Context, snapshotURL, diagnosticsURL string, c
 			}
 		}
 		a.MaybeReportSnapshot(ctx)
-		// TODO: make this as resilient as snapshot taking
+
 		if !a.diagnosticsReportingStopped && !a.diagnosticsReportRunning.Value() && a.reportDiagnosticsAllowed {
 			diagnostics, err := getAmbDiagnosticsInfo(diagnosticsURL)
 			if err != nil {
 				dlog.Warnf(ctx, "Error getting diagnostics from ambassador %+v", err)
 			}
 			dlog.Debug(ctx, "Received diagnostics in agent")
-			// TODO: is ambHost the same between diagnostics and snapshot?
 			agentDiagnostics, err := a.ProcessDiagnostics(ctx, diagnostics, ambHost)
 			if err != nil {
 				dlog.Warnf(ctx, "error processing diagnostics: %+v", err)
@@ -592,6 +591,7 @@ func (a *Agent) MaybeReportSnapshot(ctx context.Context) {
 	a.reportToSend = nil // Set when a snapshot yields a fresh report
 }
 
+// ReportDiagnostics ...
 func (a *Agent) ReportDiagnostics(ctx context.Context, agentDiagnostics *agent.Diagnostics) {
 	if a.ambassadorAPIKey == "" {
 		dlog.Debugf(ctx, "CLOUD_CONNECT_TOKEN not set in the environment, not reporting diagnostics")
@@ -650,10 +650,7 @@ func (a *Agent) ReportDiagnostics(ctx context.Context, agentDiagnostics *agent.D
 		a.ambassadorAPIKeyMutex.Unlock()
 		err = a.comm.StreamDiagnostics(ctx, diagnosticsReport, apikey)
 
-	}(ctx, agentDiagnostics, a.minReportPeriod)
-
-	// Update state variables
-	a.reportToSend = nil // Set when a snapshot yields a fresh report
+	}(ctx, agentDiagnostics, a.minReportPeriod) // minReportPeriod is the one set for snapshots
 }
 
 // ProcessSnapshot turns a Watt/Diag Snapshot into a report that the agent can
@@ -765,12 +762,11 @@ func (a *Agent) ProcessDiagnostics(ctx context.Context, diagnostics *diagnostics
 
 	agentID := GetIdentityFromDiagnostics(diagnostics.System, ambHost)
 	if agentID == nil {
-		dlog.Warnf(ctx, "Could not parse identity info out of diagnostics, not sending.")
+		dlog.Warn(ctx, "Could not parse identity info out of diagnostics, not sending.")
 		return nil, nil
 	}
-	// TODO: would the diagnostics agentID be different from the snapshot agentID?
 	a.agentID = agentID
-	// TODO: is this the connection to DCP, so it is similar to snapshot?
+
 	newConnInfo, err := connInfoFromAddress(a.connAddress)
 	if err != nil {
 		// The user has attempted to turn on the Agent (otherwise GetIdentity
