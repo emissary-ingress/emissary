@@ -236,6 +236,7 @@ type Groups map[string]struct {
 	} `json:"metadata_labels"`
 	Name            string        `json:"name"`
 	Namespace       string        `json:"namespace"`
+	Key             string        `json:"key"`
 	Precedence      int           `json:"precedence"`
 	Prefix          string        `json:"prefix"`
 	QueryParameters []interface{} `json:"query_parameters"`
