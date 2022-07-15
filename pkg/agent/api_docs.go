@@ -310,17 +310,32 @@ func parseToOpenAPIV3(docBytes []byte) (*openapi3.T, error) {
 		return nil, fmt.Errorf("failed to load OAS doc: %w", err)
 	}
 
-	err = v3Doc.Validate(loader.Context)
-	if err != nil {
+	v3Err := v3Doc.Validate(loader.Context)
+	if v3Err != nil {
 		v2Doc := &openapi2.T{}
 		if err = json.Unmarshal(docBytes, v2Doc); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal doc to OAS: %w", err)
+			return nil, fmt.Errorf(
+				"failed to unmarshal doc to OAS2 after OAS3 validation failure, v2: %v, v3: %v",
+				v3Err, err,
+			)
 		}
 
 		v3Doc, err = openapi2conv.ToV3(v2Doc)
 
 		if err != nil {
-			return nil, fmt.Errorf("failed to validate OAS contract from doc: %w", err)
+			return nil, fmt.Errorf(
+				"failed to convert OAS2 after OAS3 validation failure, v2: %v, v3: %v",
+				v3Err, err,
+			)
+		}
+
+		err = v3Doc.Validate(loader.Context)
+
+		if err != nil {
+			return nil, fmt.Errorf(
+				"failed to validate either original or converted OAS3 contracts, v2: %v, v3: %v",
+				v3Err, err,
+			)
 		}
 	}
 
