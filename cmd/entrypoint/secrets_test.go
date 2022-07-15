@@ -54,22 +54,9 @@ func TestFindFilterSecrets(t *testing.T) {
 					"secretName":       "namespaced-secret",
 					"secretNamespace":  "bar",
 				},
-				"APIKey": map[string]interface{}{
-					"http_header": "x-api-key",
-					"keys": []interface{}{
-						map[string]interface{}{
-							"value": "super-secret",
-						},
-						map[string]interface{}{
-							"secretName":      "namespaced-secret-api",
-							"secretNamespace": "bar",
-						},
-					},
-				},
 			},
 			expectedRefs: []snapshotTypes.SecretRef{
 				{Namespace: "bar", Name: "namespaced-secret"},
-				{Namespace: "bar", Name: "namespaced-secret-api"},
 			},
 		},
 		"noNamespace": {
@@ -139,18 +126,6 @@ func TestFindFilterSecrets(t *testing.T) {
 					"clientURL":        "https://dummy-client-url.com",
 					"secretName":       "namespaced-secret",
 					"secretNamespace":  true,
-				},
-				"APIKey": map[string]interface{}{
-					"http_header": "x-api-key",
-					"keys": []interface{}{
-						map[string]interface{}{
-							"value": "super-secret",
-						},
-						map[string]interface{}{
-							"secretName":      "my-secret",
-							"secretNamespace": true,
-						},
-					},
 				},
 			},
 			expectedRefs: []snapshotTypes.SecretRef{},
