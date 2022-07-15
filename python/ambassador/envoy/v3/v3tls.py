@@ -48,7 +48,7 @@ class V3TLSContext(Dict):
         "v1.3": "TLSv1_3",
     }
 
-    def __init__(self, ctx: Optional[IRTLSContext]=None, host_rewrite: Optional[str]=None) -> None:
+    def __init__(self, ctx: Optional[IRTLSContext]=None, host_rewrite: Optional[str]=None, isUpstreamContext: Optional[bool]=False) -> None:
         del host_rewrite    # quiesce warning
 
         super().__init__()
@@ -56,7 +56,7 @@ class V3TLSContext(Dict):
         self.is_fallback = False
 
         if ctx:
-            self.add_context(ctx)
+            self.add_context(ctx, isUpstreamContext)
 
     def get_common(self) -> EnvoyCommonTLSContext:
         return self.setdefault('common_tls_context', {})
@@ -145,7 +145,7 @@ class V3TLSContext(Dict):
 
         cert_list.append(src)
 
-    def add_context(self, ctx: IRTLSContext) -> None:
+    def add_context(self, ctx: IRTLSContext, isUpstreamContext: bool) -> None:
         if TYPE_CHECKING:
             # This is needed because otherwise self.__setitem__ confuses things.
             handler: Callable[[str, str], None] # pragma: no cover
@@ -170,6 +170,23 @@ class V3TLSContext(Dict):
                     'name': termination_secret,
                     'sds_config': {
                         'resource_api_version': 'V3',
+                        'api_config_source': {
+                            'api_type': 'GRPC',
+                            'transport_api_version': 'V3',
+                            'grpc_services': [
+                                {
+                                    'google_grpc': {
+                                        'target_uri': 'unix:/tmp/ambex.sock',
+                                        'stat_prefix': 'sdscluster'
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                } if isUpstreamContext else {
+                    'name': termination_secret,
+                    'sds_config': {
+                        'resource_api_version': 'V3',
                         'ads': {}
                     }
                 }
@@ -180,7 +197,24 @@ class V3TLSContext(Dict):
 
             if validation_secret:
                 src = {
-                    'name': validation_secret,
+                    'name': termination_secret,
+                    'sds_config': {
+                        'resource_api_version': 'V3',
+                        'api_config_source': {
+                            'api_type': 'GRPC',
+                            'transport_api_version': 'V3',
+                            'grpc_services': [
+                                {
+                                    'google_grpc': {
+                                        'target_uri': 'unix:/tmp/ambex.sock',
+                                        'stat_prefix': 'sdscluster'
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                } if isUpstreamContext else {
+                    'name': termination_secret,
                     'sds_config': {
                         'resource_api_version': 'V3',
                         'ads': {}

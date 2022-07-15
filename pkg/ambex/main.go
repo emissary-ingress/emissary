@@ -244,11 +244,11 @@ func runManagementServer(ctx context.Context, server ecp_v2_server.Server, serve
 	v2.RegisterListenerDiscoveryServiceServer(grpcServer, server)
 
 	v3discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, serverv3)
+	v3secret.RegisterSecretDiscoveryServiceServer(grpcServer, serverv3)
 	v3endpoint.RegisterEndpointDiscoveryServiceServer(grpcServer, serverv3)
 	v3cluster.RegisterClusterDiscoveryServiceServer(grpcServer, serverv3)
 	v3route.RegisterRouteDiscoveryServiceServer(grpcServer, serverv3)
 	v3listener.RegisterListenerDiscoveryServiceServer(grpcServer, serverv3)
-	v3secret.RegisterSecretDiscoveryServiceServer(grpcServer, serverv3)
 
 	dlog.Infof(ctx, "Listening on %s:%s", adsNetwork, adsAddress)
 
