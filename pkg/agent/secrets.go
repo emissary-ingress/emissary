@@ -60,7 +60,7 @@ func (s *secretSyncCommand) getOps() (ops []map[string]string) {
 				"path": fmt.Sprintf("/data/%s", key),
 			})
 		}
-	default:
+	case secretSyncActionSet:
 		for key, value := range s.secret {
 			ops = append(ops, map[string]string{
 				"op":    "add",
@@ -68,6 +68,8 @@ func (s *secretSyncCommand) getOps() (ops []map[string]string) {
 				"value": string(value),
 			})
 		}
+	default:
+		panic(fmt.Sprintf("action %s is not supported by the secret sync directive", s.action))
 	}
 	return ops
 }
