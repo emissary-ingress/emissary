@@ -82,6 +82,17 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [2.3.2] TBD
+[2.3.2]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v2.3.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: Emissary-ingress would ocasionally start returning 503s on all new requests to the
+  upstream service when a TLS certificate was rotated/renewed while there was active load on the
+  upstream service. These 503s would persist between a few hours to a few days until one of the
+  Emissary-ingress pod was restarted. This bug was encountered most frequently when using Consul and
+  was previously mitigated by the no longer supported legacy mode.
+
 ## [2.3.1] June 09, 2022
 [2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1
 
