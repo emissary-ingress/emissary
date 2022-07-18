@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/datawire/dlib/dlog"
@@ -109,6 +110,7 @@ func (dh *BasicDirectiveHandler) handleSecretSyncCommand(
 	dh.reportCommandResult(ctx, commandID, cmd, err, a)
 
 }
+
 func (dh *BasicDirectiveHandler) handleRolloutCommand(
 	ctx context.Context, cmdSchema *agentapi.RolloutCommand, a *Agent,
 ) {
@@ -150,12 +152,8 @@ func (dh *BasicDirectiveHandler) handleRolloutCommand(
 	dh.reportCommandResult(ctx, commandID, cmd, err, a)
 }
 
-type command interface {
-	String() string
-}
-
 func (dh *BasicDirectiveHandler) reportCommandResult(
-	ctx context.Context, commandID string, cmd command, cmdError error, a *Agent,
+	ctx context.Context, commandID string, cmd fmt.Stringer, cmdError error, a *Agent,
 ) {
 	result := &agentapi.CommandResult{CommandId: commandID, Success: true}
 	if cmdError != nil {
