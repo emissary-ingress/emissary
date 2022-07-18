@@ -163,7 +163,6 @@ class V2TLSContext(Dict):
 
                 cert_list.append(src)
 
-            # Alice TODO perhaps here is a good place to concatenate the cacert_chain_file and crl_file
             validation_secret = ctx['secret_info'].get('cacert_chain_file') or None
 
             if validation_secret:
