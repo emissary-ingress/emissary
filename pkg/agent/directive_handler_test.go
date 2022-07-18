@@ -46,6 +46,4 @@ func TestHandleSecretSyncDirective(t *testing.T) {
 
 	// when
 	dh.HandleDirective(ctx, a, d)
-
-	// then
 }

@@ -14,7 +14,6 @@ import (
 )
 
 func TestRunWithClientFactorySet(t *testing.T) {
-
 	t.Run("No value", func(t *testing.T) {
 		// given
 		cmd := wrapNewCommand("api-keys-staging", secretSyncActionSet, nil)
@@ -29,9 +28,29 @@ func TestRunWithClientFactorySet(t *testing.T) {
 		assert.NoError(t, err, "no error")
 		assert.Equal(t, 3, len(secretGetter.secrets), "no secret created")
 	})
-	t.Run("Success", func(t *testing.T) {
+	t.Run("Success empty secret", func(t *testing.T) {
 		// given
 		cmd := wrapNewCommand("api-keys-staging", secretSyncActionSet, nil)
+		secretGetter := newSecretGetterMock()
+		cmd.secret = map[string][]byte{}
+
+		// when
+		err := cmd.RunWithClientFactory(
+			context.Background(), wrapSecretGetterFactoryMock(secretGetter))
+
+		// then
+		createdSecret := secretGetter.findSecret("api-keys-staging")
+		assert.NoError(t, err, "no error")
+		assert.Equal(t, len(createdSecret.Data), 0)
+		assert.Equal(t, 4, len(secretGetter.secrets), "empty secret created")
+
+	})
+	t.Run("Success", func(t *testing.T) {
+		// given
+		cmd := wrapNewCommand("api-keys-staging", secretSyncActionSet, map[string][]byte{
+			"key-1": []byte("1234"),
+			"key-2": []byte("5678"),
+		})
 		secretGetter := newSecretGetterMock()
 
 		// when
@@ -42,6 +61,7 @@ func TestRunWithClientFactorySet(t *testing.T) {
 		createdSecret := secretGetter.findSecret("api-keys-staging")
 		assert.NoError(t, err, "no error")
 		assert.NotNil(t, createdSecret)
+		assert.Equal(t, 2, len(createdSecret.Data))
 		assert.Equal(t, 4, len(secretGetter.secrets), "new secret created")
 	})
 	t.Run("Already exists", func(t *testing.T) {
@@ -195,7 +215,7 @@ type secretGetterMock struct {
 
 func (s *secretGetterMock) findSecret(name string) *apiv1.Secret {
 	for i := range s.secrets {
-		if s.secrets[i].Name == name {
+		if s.secrets[i].Name == name && s.secrets[i].Namespace == s.Namespace {
 			return s.secrets[i]
 		}
 	}
@@ -264,6 +284,9 @@ func (s *secretGetterMock) Patch(
 	}
 
 	for _, op := range ops {
+		if op["path"] == "/data" {
+			continue
+		}
 		key := strings.Split(op["path"], "/")[2]
 
 		switch op["op"] {

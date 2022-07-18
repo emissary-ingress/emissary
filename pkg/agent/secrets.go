@@ -51,7 +51,16 @@ func (s *secretSyncCommand) RunWithClientFactory(
 	return s.syncSecret(ctx, client)
 }
 
-func (s *secretSyncCommand) getOps() (ops []map[string]string) {
+func (s *secretSyncCommand) getOps(insertRoot bool) (ops []map[string]string) {
+	// if the secret is empty, this is required.
+	if insertRoot {
+		ops = append(ops, map[string]string{
+			"op":    "add",
+			"path":  "/data",
+			"value": "{}",
+		})
+	}
+
 	switch s.action {
 	case secretSyncActionDelete:
 		for key := range s.secret {
@@ -109,7 +118,7 @@ func (s *secretSyncCommand) syncSecret(ctx context.Context, client SecretInterfa
 		return fmt.Errorf("failed to get the secret %s: %w", s.name, err)
 	}
 
-	opsJSON, err := json.Marshal(s.getOps())
+	opsJSON, err := json.Marshal(s.getOps(len(secret.Data) == 0))
 
 	if err != nil {
 		return fmt.Errorf("failed to generate patch ops: %w", err)
