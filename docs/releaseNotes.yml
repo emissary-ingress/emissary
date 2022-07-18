@@ -38,8 +38,8 @@ items:
       - title: Register secrets used with an API Key filter.
         type: change
         body: >-
-          Emissary will register a secret into its internal machinery if it is used by
-          an API Key filter, since the value has to be read at filter creation.
+          Adds a new command to the agent directive service to manage secrets. This allows
+          a third party product to manage CRDs that depend upon a secret.
 
   - version: 3.0.0
     date: '2022-06-27'
