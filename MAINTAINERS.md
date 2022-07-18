@@ -12,7 +12,8 @@ Maintainers are listed in alphabetical order.
 | Aidan Hahn       | [aidanhahn](https://github.com/aidanhahn)     | unaffiliated                                        |
 | Alex Gervais     | [alexgervais](https://github.com/alexgervais) | [Ambassador Labs](https://www.github.com/datawire/) |
 | Alice Wasko      | [aliceproxy](https://github.com/aliceproxy)   | [Ambassador Labs](https://www.github.com/datawire/) |
-| Flynn            | [kflynn](https://github.com/kflynn)           | unaffiliated                                        |
+| Flynn            | [kflynn](https://github.com/kflynn)           | [Buoyant](https://www.buoyant.io)                   |
+| Lance Austin     | [lanceea](https://github.com/lanceea)         | [Ambassador Labs](https://www.github.com/datawire/) |
 | Luke Shumaker    | [lukeshu](https://github.com/lukeshu)         | [Ambassador Labs](https://www.github.com/datawire/) |
 | Rafael Schloming | [rhs](https://github.com/rhs)                 | [Ambassador Labs](https://www.github.com/datawire/) |
 
