@@ -10,8 +10,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 type secretSyncAction string
@@ -21,7 +19,7 @@ const (
 	secretSyncActionDelete = secretSyncAction("DELETE")
 )
 
-type secretInterface interface {
+type SecretInterface interface {
 	Create(ctx context.Context, secret *apiv1.Secret, opts metav1.CreateOptions) (*apiv1.Secret, error)
 	Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error
 	Get(ctx context.Context, name string, opts metav1.GetOptions) (*apiv1.Secret, error)
@@ -29,7 +27,7 @@ type secretInterface interface {
 }
 
 // secretsGetterFactory is a factory for creating SecretsGetter.
-type secretsGetterFactory func(namespace string) (secretInterface, error)
+type secretsGetterFactory func(namespace string) (SecretInterface, error)
 
 type secretSyncCommand struct {
 	name      string
@@ -74,7 +72,7 @@ func (s *secretSyncCommand) getOps() (ops []map[string]string) {
 	return ops
 }
 
-func (s *secretSyncCommand) syncSecret(ctx context.Context, client secretInterface) error {
+func (s *secretSyncCommand) syncSecret(ctx context.Context, client SecretInterface) error {
 	if s.secret == nil && s.action != secretSyncActionDelete {
 		return nil
 	}
@@ -126,14 +124,15 @@ func (s *secretSyncCommand) syncSecret(ctx context.Context, client secretInterfa
 		err := client.Delete(ctx, s.name, metav1.DeleteOptions{})
 
 		if err != nil {
-			return fmt.Errorf("failed to clean up the secre %s: %w", s.name, err)
+			return fmt.Errorf("failed to clean up the secret %s: %w", s.name, err)
 		}
 	}
 
 	return nil
 }
 
-func NewSecretsGetter(namespace string) (secretInterface, error) {
+// NewSecretsGetter instantiates a client to interact with the Kubernetes secret API.
+func NewSecretsGetter(namespace string) (SecretInterface, error) {
 	kubeConfig, err := newK8sRestClient()
 	if err != nil {
 		return nil, err
@@ -145,15 +144,4 @@ func NewSecretsGetter(namespace string) (secretInterface, error) {
 	}
 
 	return clientSet.CoreV1().Secrets(namespace), nil
-}
-
-func newK8sRestClient() (*rest.Config, error) {
-	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		clientcmd.NewDefaultClientConfigLoadingRules(),
-		&clientcmd.ConfigOverrides{},
-	).ClientConfig()
-	if err != nil {
-		return nil, err
-	}
-	return config, nil
 }

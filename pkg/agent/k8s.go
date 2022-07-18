@@ -4,12 +4,15 @@ import (
 	"context"
 	"sync"
 
-	"github.com/datawire/dlib/dlog"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/tools/clientcmd"
+
+	"github.com/datawire/dlib/dlog"
 )
 
 // CallbackEventType defines the possible callback types of events.
@@ -137,4 +140,15 @@ func (dc *DynamicClient) WatchGeneric(ctx context.Context, ns string, gvr *schem
 	go i.Run(ctx.Done())
 	dlog.Infof(ctx, "WatchGeneric: Listening for events from resouce %q", gvr.String())
 	return callbackChan
+}
+
+func newK8sRestClient() (*rest.Config, error) {
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		clientcmd.NewDefaultClientConfigLoadingRules(),
+		&clientcmd.ConfigOverrides{},
+	).ClientConfig()
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
 }
