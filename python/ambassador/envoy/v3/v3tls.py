@@ -193,6 +193,7 @@ class V3TLSContext(Dict):
 
                 cert_list.append(src)
 
+            # Alice TODO perhaps here is a good place to concatenate the cacert_chain_file and crl_file
             validation_secret = ctx['secret_info'].get('cacert_chain_file') or None
 
             if validation_secret:
@@ -223,18 +224,18 @@ class V3TLSContext(Dict):
 
                 common['validation_context_sds_secret_config'] = src
 
-            crl_secret = ctx['secret_info'].get('crl_file') or None
+            # crl_secret = ctx['secret_info'].get('crl_file') or None
 
-            if crl_secret:
-                src = {
-                    'name': crl_secret,
-                    'sds_config': {
-                        'resource_api_version': 'V3',
-                        'ads': {}
-                    }
-                }
+            # if crl_secret:
+            #    src = {
+            #        'name': crl_secret,
+            #        'sds_config': {
+            #            'resource_api_version': 'V3',
+            #            'ads': {}
+            #        }
+            #    }
 
-                cert_list.append(src)
+            #    cert_list.append(src)
 
         # for secretinfokey, handler, hkey in [
         #     ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
