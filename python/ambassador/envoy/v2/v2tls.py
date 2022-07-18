@@ -56,7 +56,7 @@ class V2TLSContext(Dict):
         self.is_fallback = False
 
         if ctx:
-            self.add_context(ctx, isUpstreamContext)
+            self.add_context(ctx, bool(isUpstreamContext))
 
     def get_common(self) -> EnvoyCommonTLSContext:
         return self.setdefault('common_tls_context', {})
@@ -80,14 +80,14 @@ class V2TLSContext(Dict):
     #    # cert_list is of type EnvoyCommonTLSElements right now, so we need to cast it.
     #    return typecast(ListOfCerts, cert_list)
 
-    def update_cert_zero(self, key: str, value: str) -> None:
-        certs = self.get_certs()
+    # def update_cert_zero(self, key: str, value: str) -> None:
+    #     certs = self.get_certs()
 
-        if not certs:
-            certs.append({})
+    #     if not certs:
+    #         certs.append({})
 
-        src: EnvoyCoreSource = { 'filename': value }
-        certs[0][key] = src
+    #     src: EnvoyCoreSource = { 'filename': value }
+    #     certs[0][key] = src
 
     def update_alpn(self, key: str, value: str) -> None:
         common = self.get_common()

@@ -56,7 +56,7 @@ class V3TLSContext(Dict):
         self.is_fallback = False
 
         if ctx:
-            self.add_context(ctx, isUpstreamContext)
+            self.add_context(ctx, bool(isUpstreamContext))
 
     def get_common(self) -> EnvoyCommonTLSContext:
         return self.setdefault('common_tls_context', {})
