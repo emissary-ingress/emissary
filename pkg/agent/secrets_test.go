@@ -179,8 +179,8 @@ func newSecretGetterMock() *secretGetterMock {
 	}
 }
 
-func wrapSecretGetterFactoryMock(secretGetter *secretGetterMock) func(namespace string) (secretInterface, error) {
-	secretGetterFactoryMock := func(namespace string) (secretInterface, error) {
+func wrapSecretGetterFactoryMock(secretGetter *secretGetterMock) func(namespace string) (SecretInterface, error) {
+	secretGetterFactoryMock := func(namespace string) (SecretInterface, error) {
 		secretGetter.Namespace = namespace
 		return secretGetter, nil
 	}
