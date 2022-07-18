@@ -2,6 +2,7 @@ package agent
 
 import (
 	"github.com/emissary-ingress/emissary/v3/pkg/api/agent"
+	diagnosticsTypes "github.com/emissary-ingress/emissary/v3/pkg/diagnostics/v1"
 	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
@@ -15,6 +16,19 @@ func GetIdentity(ambassadorMeta *snapshotTypes.AmbassadorMetaInfo, ambHost strin
 
 	return &agent.Identity{
 		ClusterId: ambassadorMeta.ClusterID,
+		Hostname:  ambHost,
+	}
+}
+
+// GetIdentityFromDiagnostics returns the Agent's DCP Identity, if present
+func GetIdentityFromDiagnostics(ambSystem *diagnosticsTypes.System, ambHost string) *agent.Identity {
+	if ambSystem == nil || ambSystem.ClusterID == "" {
+		// No Ambassador module -> no identity -> no reporting
+		return nil
+	}
+
+	return &agent.Identity{
+		ClusterId: ambSystem.ClusterID,
 		Hostname:  ambHost,
 	}
 }

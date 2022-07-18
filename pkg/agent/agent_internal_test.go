@@ -20,8 +20,13 @@ import (
 
 	"github.com/datawire/dlib/dlog"
 	"github.com/emissary-ingress/emissary/v3/pkg/api/agent"
+	diagnosticsTypes "github.com/emissary-ingress/emissary/v3/pkg/diagnostics/v1"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
+)
+
+const (
+	diagnosticsURL = "http://localhost:8877/ambassador/v0/diag/?json=true"
 )
 
 // Take a json formatted string and transform it to kates.Unstructured
@@ -410,6 +415,125 @@ func TestProcessSnapshot(t *testing.T) {
 	}
 }
 
+func TestProcessDiagnosticsSnapshot(t *testing.T) {
+	t.Parallel()
+	diagnosticsTests := []struct {
+		// name of test (passed to t.Run())
+		testName string
+		// diagnostics to call ProcessDiagnostics with
+		inputDiagnostics *diagnosticsTypes.Diagnostics
+		// expected return value of ProcessSnapshot
+		ret error
+		// expected value of inputDiagnostics after calling ProcessDiagnostics
+		res *agent.Diagnostics
+		// expected value of Agent.connInfo after calling ProcessDiagnostics
+		// in certain circumstances, ProcessDiagnostics resets that info
+		expectedConnInfo *ConnInfo
+		podStore         *podStore
+		assertionFunc    func(*testing.T, *agent.Diagnostics)
+		address          string
+	}{
+		{
+			// Totally nil inputs should not error and not panic, and should not set
+			// snapshot.reportToSend
+			testName:         "nil-diagnostics",
+			inputDiagnostics: nil,
+			ret:              nil,
+			res:              nil,
+		},
+		{
+			// If no system object, we should not try to send
+			testName: "no-system-object",
+			inputDiagnostics: &diagnosticsTypes.Diagnostics{
+				System: nil,
+			},
+			ret: nil,
+			res: nil,
+		},
+		{
+			// If no cluster id, we should not try to send
+			testName: "no-system-object",
+			inputDiagnostics: &diagnosticsTypes.Diagnostics{
+				System: &diagnosticsTypes.System{ClusterID: ""},
+			},
+			ret: nil,
+			res: nil,
+		},
+		{
+			// if we let address be an empty string, the defaults should get set
+			testName: "default-connection-info",
+			inputDiagnostics: &diagnosticsTypes.Diagnostics{
+				System: &diagnosticsTypes.System{ClusterID: "dopecluster"},
+			},
+			// should not error
+			ret: nil,
+			res: &agent.Diagnostics{
+				Identity: &agent.Identity{
+					Version:   "",
+					Hostname:  "ambassador-host",
+					License:   "",
+					ClusterId: "dopecluster",
+					Label:     "",
+				},
+				ContentType: snapshotTypes.ContentTypeJSON,
+				ApiVersion:  snapshotTypes.ApiVersion,
+			},
+			expectedConnInfo: &ConnInfo{hostname: "app.getambassador.io", port: "443", secure: true},
+		},
+		{
+			// ProcessDiagnostics should set the Agent.connInfo to the parsed url from the
+			// ambassador module's DCP config
+			testName: "module-contains-connection-info",
+			address:  "http://somecooladdress:1234",
+			inputDiagnostics: &diagnosticsTypes.Diagnostics{
+				System: &diagnosticsTypes.System{ClusterID: "dopecluster"},
+			},
+			ret: nil,
+			res: &agent.Diagnostics{
+				Identity: &agent.Identity{
+					Version:   "",
+					Hostname:  "ambassador-host",
+					License:   "",
+					ClusterId: "dopecluster",
+					Label:     "",
+				},
+				ContentType: snapshotTypes.ContentTypeJSON,
+				ApiVersion:  snapshotTypes.ApiVersion,
+			},
+			// this matches what's in
+			// `address`
+			expectedConnInfo: &ConnInfo{hostname: "somecooladdress", port: "1234", secure: false},
+		},
+	}
+
+	for _, testcase := range diagnosticsTests {
+		t.Run(testcase.testName, func(t *testing.T) {
+			a := NewAgent(nil, nil)
+			ctx := dlog.NewTestContext(t, false)
+			a.coreStore = &coreStore{podStore: testcase.podStore}
+			a.connAddress = testcase.address
+
+			agentDiagnostics, actualRet := a.ProcessDiagnostics(ctx, testcase.inputDiagnostics, "ambassador-host")
+
+			assert.Equal(t, testcase.ret, actualRet)
+			if testcase.res == nil {
+				assert.Nil(t, agentDiagnostics)
+			} else {
+				assert.NotNil(t, agentDiagnostics)
+				assert.Equal(t, testcase.res.Identity, agentDiagnostics.Identity)
+				assert.Equal(t, testcase.res.ContentType, agentDiagnostics.ContentType)
+				assert.Equal(t, testcase.res.ApiVersion, agentDiagnostics.ApiVersion)
+			}
+			if testcase.expectedConnInfo != nil {
+				assert.Equal(t, testcase.expectedConnInfo, a.connInfo)
+			}
+			if testcase.assertionFunc != nil {
+				testcase.assertionFunc(t, agentDiagnostics)
+			}
+		})
+	}
+}
+
 type mockAccumulator struct {
 	changedChan     chan struct{}
 	targetInterface interface{}
@@ -459,7 +583,7 @@ func TestWatchReportPeriodDirective(t *testing.T) {
 	appCallback := make(chan *GenericCallback)
 
 	go func() {
-		err := a.watch(ctx, "http://localhost:9697", configAcc, podAcc, rolloutCallback, appCallback)
+		err := a.watch(ctx, "http://localhost:9697", diagnosticsURL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 	dur := durationpb.Duration{
@@ -513,7 +637,7 @@ func TestWatchEmptyDirectives(t *testing.T) {
 	rolloutCallback := make(chan *GenericCallback)
 	appCallback := make(chan *GenericCallback)
 	go func() {
-		err := a.watch(ctx, "http://localhost:9697", configAcc, podAcc, rolloutCallback, appCallback)
+		err := a.watch(ctx, "http://localhost:9697", diagnosticsURL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 
@@ -589,7 +713,7 @@ func TestWatchStopReportingDirective(t *testing.T) {
 
 	// start watch
 	go func() {
-		err := a.watch(ctx, "http://localhost:9697", configAcc, podAcc, rolloutCallback, appCallback)
+		err := a.watch(ctx, "http://localhost:9697", diagnosticsURL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 
@@ -688,7 +812,7 @@ func TestWatchErrorSendingSnapshot(t *testing.T) {
 
 	// start the watch
 	go func() {
-		err := a.watch(ctx, ts.URL, configAcc, podAcc, rolloutCallback, appCallback)
+		err := a.watch(ctx, ts.URL, diagnosticsURL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 
@@ -878,7 +1002,7 @@ func TestWatchWithSnapshot(t *testing.T) {
 
 	// start the watch
 	go func() {
-		err := a.watch(ctx, ts.URL, configAcc, podAcc, rolloutCallback, appCallback)
+		err := a.watch(ctx, ts.URL, diagnosticsURL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 
@@ -1021,7 +1145,7 @@ func TestWatchEmptySnapshot(t *testing.T) {
 	rolloutCallback := make(chan *GenericCallback)
 	appCallback := make(chan *GenericCallback)
 	go func() {
-		err := a.watch(ctx, ts.URL, configAcc, podAcc, rolloutCallback, appCallback)
+		err := a.watch(ctx, ts.URL, diagnosticsURL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 	select {
