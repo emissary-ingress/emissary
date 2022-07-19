@@ -508,7 +508,7 @@ func TestProcessDiagnosticsSnapshot(t *testing.T) {
 
 	for _, testcase := range diagnosticsTests {
 		t.Run(testcase.testName, func(t *testing.T) {
-			a := NewAgent(nil, nil)
+			a := NewAgent(nil, nil, nil)
 			ctx := dlog.NewTestContext(t, false)
 			a.coreStore = &coreStore{podStore: testcase.podStore}
 			a.connAddress = testcase.address
