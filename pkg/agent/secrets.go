@@ -19,6 +19,7 @@ const (
 	secretSyncActionDelete = secretSyncAction("DELETE")
 )
 
+// SecretInterface describes the operations used to manage secrets in Kubernetes.
 type SecretInterface interface {
 	Create(ctx context.Context, secret *apiv1.Secret, opts metav1.CreateOptions) (*apiv1.Secret, error)
 	Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error
@@ -51,7 +52,8 @@ func (s *secretSyncCommand) RunWithClientFactory(
 	return s.syncSecret(ctx, client)
 }
 
-func (s *secretSyncCommand) getOps(insertRoot bool) (ops []map[string]string) {
+func (s *secretSyncCommand) getOps(insertRoot bool) ([]map[string]string, error) {
+	var ops = make([]map[string]string, 0)
 	// if the secret is empty, this is required.
 	if insertRoot {
 		ops = append(ops, map[string]string{
@@ -78,9 +80,11 @@ func (s *secretSyncCommand) getOps(insertRoot bool) (ops []map[string]string) {
 			})
 		}
 	default:
-		panic(fmt.Sprintf("action %s is not supported by the secret sync directive", s.action))
+		return nil, fmt.Errorf(
+			"action %s is not supported by the secret sync directive", s.action,
+		)
 	}
-	return ops
+	return ops, nil
 }
 
 func (s *secretSyncCommand) syncSecret(ctx context.Context, client SecretInterface) error {
@@ -118,7 +122,13 @@ func (s *secretSyncCommand) syncSecret(ctx context.Context, client SecretInterfa
 		return fmt.Errorf("failed to get the secret %s: %w", s.name, err)
 	}
 
-	opsJSON, err := json.Marshal(s.getOps(len(secret.Data) == 0))
+	ops, err := s.getOps(len(secret.Data) == 0)
+
+	if err != nil {
+		return fmt.Errorf("failed to generate required update operations: %w", err)
+	}
+
+	opsJSON, err := json.Marshal(ops)
 
 	if err != nil {
 		return fmt.Errorf("failed to generate patch ops: %w", err)
