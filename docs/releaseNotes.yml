@@ -48,14 +48,14 @@ items:
           emissary ingress before sending them to Ambassador cloud. This issue has been resolved to ensure
           that all the nodes composing the emissary ingress cluster are reporting properly.
 
-      - title: Add environment variables to the healthcheck server.
+      - title: Add environment variables to configure healthcheck server's bind address, port and IP family.
         type: feature
         body: >-
-          The healthcheck server's bind address, bind port and IP family can now be configured using environment variables.
+          The main advantage of this is that it allows the healthcheck server to be configured to use IPv6-only k8s environments.
           AMBASSADOR_HEALTHCHECK_BIND_ADDRESS - The address to bind the healthcheck server to.
           AMBASSADOR_HEALTHCHECK_BIND_PORT - The port to bind the healthcheck server to.
           AMBASSADOR_HEALTHCHECK_IP_FAMILY - The IP family to use for the healthcheck server.
-          The main advantage of this is that it allows the healthcheck server to be configured to use IPv6-only k8s environments.
+          
 
   - version: 3.0.0
     date: '2022-06-27'
