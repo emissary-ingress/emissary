@@ -151,15 +151,6 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
   ensure that all the nodes composing the emissary ingress cluster are reporting properly.
 
-- Security: Updated Golang to 1.17.12 to address the CVEs: CVE-2022-23806, CVE-2022-28327,
-  CVE-2022-24675, CVE-2022-24921, CVE-2022-23772.
-
-- Security: Updated Curl to 7.80.0-r2 to address the CVEs: CVE-2022-32207, CVE-2022-27782,
-  CVE-2022-27781, CVE-2022-27780.
-
-- Security: Updated openSSL-dev to 1.1.1q-r0 to address CVE-2022-2097.
-
-- Security: Updated ncurses to 1.1.1q-r0 to address CVE-2022-29458
 
 ## [3.0.0] June 27, 2022
 [3.0.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v3.0.0
