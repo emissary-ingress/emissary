@@ -48,7 +48,7 @@ class V2TLSContext(Dict):
         "v1.3": "TLSv1_3",
     }
 
-    def __init__(self, ctx: Optional[IRTLSContext]=None, host_rewrite: Optional[str]=None, isUpstreamContext: Optional[bool]=False) -> None:
+    def __init__(self, ctx: Optional[IRTLSContext]=None, host_rewrite: Optional[str]=None) -> None:
         del host_rewrite    # quiesce warning
 
         super().__init__()
@@ -56,7 +56,7 @@ class V2TLSContext(Dict):
         self.is_fallback = False
 
         if ctx:
-            self.add_context(ctx, bool(isUpstreamContext))
+            self.add_context(ctx)
 
     def get_common(self) -> EnvoyCommonTLSContext:
         return self.setdefault('common_tls_context', {})
@@ -115,7 +115,7 @@ class V2TLSContext(Dict):
     #    src: EnvoyCoreSource = { 'filename': value }
     #    validation[key] = src
 
-    def add_context(self, ctx: IRTLSContext, isUpstreamContext: bool) -> None:
+    def add_context(self, ctx: IRTLSContext) -> None:
         if TYPE_CHECKING:
             # This is needed because otherwise self.__setitem__ confuses things.
             handler: Callable[[str, str], None] # pragma: no cover
@@ -153,12 +153,6 @@ class V2TLSContext(Dict):
                             ]
                         }
                     }
-                } if isUpstreamContext else {
-                    'name': termination_secret,
-                    'sds_config': {
-                        'resource_api_version': 'V2',
-                        'ads': {}
-                    }
                 }
 
                 cert_list.append(src)
@@ -167,7 +161,7 @@ class V2TLSContext(Dict):
 
             if validation_secret:
                 src = {
-                    'name': termination_secret,
+                    'name': validation_secret,
                     'sds_config': {
                         'resource_api_version': 'V2',
                         'api_config_source': {
@@ -183,25 +177,9 @@ class V2TLSContext(Dict):
                             ]
                         }
                     }
-                } if isUpstreamContext else {
-                    'name': termination_secret,
-                    'sds_config': {
-                        'resource_api_version': 'V2',
-                        'ads': {}
-                    }
                 }
 
                 common['validation_context_sds_secret_config'] = src
-
-        # for secretinfokey, handler, hkey in [
-        #     ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
-        #     ( 'private_key_file', self.update_cert_zero, 'private_key' ),
-        #     ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
-        # ]:
-        #     if secretinfokey in ctx['secret_info']:
-        #         handler(hkey, ctx['secret_info'][secretinfokey])
-
-
 
         for ctxkey, handler, hkey in [
             ( 'alpn_protocols', self.update_alpn, 'alpn_protocols' ),
