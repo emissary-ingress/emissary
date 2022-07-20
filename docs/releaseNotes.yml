@@ -56,6 +56,13 @@ items:
           In the standard published <code>.yaml</code> files, the <code>Module</code> resource enables serving
           remote client requests to the <code>:8877/ambassador/v0/diag/</code> endpoint.
           The associated Helm chart release also now enables it by default.
+      - title: fix regression in the agent for the metrics transfer.
+        type: bugfix
+        body: >-
+          A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming from
+          emissary ingress before sending them to Ambassador cloud. This issue has been resolved to ensure
+          that all the nodes composing the emissary ingress cluster are reporting properly.
+
   - version: 3.0.0
     date: '2022-06-27'
     notes:
@@ -149,6 +156,16 @@ items:
           With the ugprade to Envoy 1.22, $productName$ can now be configured to listen for HTTP/3
           connections using QUIC and the UDP network protocol. It currently only supports for connections
           between downstream clients and $productName$.
+  - version: 2.3.2
+    date: 'TBD'
+    notes:
+      - title: fix regression in the agent for the metrics transfer.
+        type: bugfix
+        body: >-
+          A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming from
+          emissary ingress before sending them to Ambassador cloud. This issue has been resolved to ensure
+          that all the nodes composing the emissary ingress cluster are reporting properly.
+
   - version: 2.3.1
     date: '2022-06-09'
     notes:
