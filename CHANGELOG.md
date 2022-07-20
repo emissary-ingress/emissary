@@ -81,7 +81,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   OpenAPI 3, making them available for use in the dev portal.
 
 - Feature: The agent now has the ability to report diagnostics information to Ambassador Cloud. If
-  you previous connected your installation to Ambassador Cloud, you may chose to enable this
+  you previously connected your installation to Ambassador Cloud, you may choose to enable this
   functionality by setting the following environment variables on your agent `Deployment`:
   `AES_REPORT_DIAGNOSTICS_TO_CLOUD=true`,
   `AES_DIAGNOSTICS_URL="http://[ambassador-admin]:8877/ambassador/v0/diag/?json=true"`. This

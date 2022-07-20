@@ -44,7 +44,7 @@ items:
         type: feature
         body: >-
           The agent now has the ability to report diagnostics information to Ambassador Cloud.
-          If you previous connected your installation to Ambassador Cloud, you may chose to enable this functionality
+          If you previously connected your installation to Ambassador Cloud, you may choose to enable this functionality
           by setting the following environment variables on your agent <code>Deployment</code>:
           <code>AES_REPORT_DIAGNOSTICS_TO_CLOUD=true</code>,
           <code>AES_DIAGNOSTICS_URL="http://[ambassador-admin]:8877/ambassador/v0/diag/?json=true"</code>.
