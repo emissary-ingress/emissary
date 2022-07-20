@@ -48,7 +48,7 @@ class V3TLSContext(Dict):
         "v1.3": "TLSv1_3",
     }
 
-    def __init__(self, ctx: Optional[IRTLSContext]=None, host_rewrite: Optional[str]=None, isUpstreamContext: Optional[bool]=False) -> None:
+    def __init__(self, ctx: Optional[IRTLSContext]=None, host_rewrite: Optional[str]=None) -> None:
         del host_rewrite    # quiesce warning
 
         super().__init__()
@@ -56,7 +56,7 @@ class V3TLSContext(Dict):
         self.is_fallback = False
 
         if ctx:
-            self.add_context(ctx, bool(isUpstreamContext))
+            self.add_context(ctx)
 
     def get_common(self) -> EnvoyCommonTLSContext:
         return self.setdefault('common_tls_context', {})
@@ -145,7 +145,7 @@ class V3TLSContext(Dict):
 
         cert_list.append(src)
 
-    def add_context(self, ctx: IRTLSContext, isUpstreamContext: bool) -> None:
+    def add_context(self, ctx: IRTLSContext) -> None:
         if TYPE_CHECKING:
             # This is needed because otherwise self.__setitem__ confuses things.
             handler: Callable[[str, str], None] # pragma: no cover
@@ -183,22 +183,15 @@ class V3TLSContext(Dict):
                             ]
                         }
                     }
-                } if isUpstreamContext else {
-                    'name': termination_secret,
-                    'sds_config': {
-                        'resource_api_version': 'V3',
-                        'ads': {}
-                    }
                 }
 
                 cert_list.append(src)
 
-            # Alice TODO perhaps here is a good place to concatenate the cacert_chain_file and crl_file
             validation_secret = ctx['secret_info'].get('cacert_chain_file') or None
 
             if validation_secret:
                 src = {
-                    'name': termination_secret,
+                    'name': validation_secret,
                     'sds_config': {
                         'resource_api_version': 'V3',
                         'api_config_source': {
@@ -214,14 +207,7 @@ class V3TLSContext(Dict):
                             ]
                         }
                     }
-                } if isUpstreamContext else {
-                    'name': termination_secret,
-                    'sds_config': {
-                        'resource_api_version': 'V3',
-                        'ads': {}
-                    }
                 }
-
                 common['validation_context_sds_secret_config'] = src
 
             # crl_secret = ctx['secret_info'].get('crl_file') or None
