@@ -628,7 +628,7 @@ spec:
         - name: RPC_CONNECTION_ADDRESS
           value: https://app.getambassador.io/
         - name: AES_REPORT_DIAGNOSTICS_TO_CLOUD
-          value: true
+          value: "true"
         - name: AES_SNAPSHOT_URL
           value: http://emissary-ingress-admin.emissary:8005/snapshot-external
         - name: AES_DIAGNOSTICS_URL
