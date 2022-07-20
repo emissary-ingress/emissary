@@ -1,26 +1,25 @@
-from typing import Optional
-
 import logging
 import os
 import sys
+from typing import Optional
 
 import pytest
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s test %(levelname)s: %(message)s",
-    datefmt='%Y-%m-%d %H:%M:%S'
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import Config, IR
+from ambassador import IR, Config
 from ambassador.fetch import ResourceFetcher
-from ambassador.utils import NullSecretHandler
 from ambassador.ir import IRResource
 from ambassador.ir.irbuffer import IRBuffer
+from ambassador.utils import NullSecretHandler
 
-yaml = '''
+yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -28,7 +27,7 @@ name: test_mapping
 hostname: "*"
 prefix: /test/
 service: ${TEST_SERVICE}:9999
-'''
+"""
 
 
 def test_envvar_expansion():
@@ -47,5 +46,5 @@ def test_envvar_expansion():
     assert test_mapping.service == "foo:9999"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pytest.main(sys.argv)

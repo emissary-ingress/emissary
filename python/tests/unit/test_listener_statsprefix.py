@@ -1,10 +1,17 @@
-from tests.utils import econf_compile, econf_foreach_listener, econf_foreach_listener_chain, EnvoyHCMInfo, EnvoyTCPInfo
-
-import pytest
 import json
 
+import pytest
+
+from tests.utils import (
+    EnvoyHCMInfo,
+    EnvoyTCPInfo,
+    econf_compile,
+    econf_foreach_listener,
+    econf_foreach_listener_chain,
+)
+
 # This manifest set is from a test setup Flynn used when testing this by hand.
-manifests = '''
+manifests = """
 ---
 apiVersion: v1
 kind: Secret
@@ -118,7 +125,7 @@ spec:
     authority: none
   tlsSecret:
     name: tls-cert
-'''
+"""
 
 
 def check_filter(abbrev, typed_config, expected_stat_prefix):
@@ -126,7 +133,10 @@ def check_filter(abbrev, typed_config, expected_stat_prefix):
 
     print(f"------ {abbrev}, stat_prefix {stat_prefix}")
 
-    assert stat_prefix == expected_stat_prefix, f"wanted stat_prefix {expected_stat_prefix}, got {stat_prefix}"
+    assert (
+        stat_prefix == expected_stat_prefix
+    ), f"wanted stat_prefix {expected_stat_prefix}, got {stat_prefix}"
+
 
 def check_listener(listener):
     port = listener["address"]["socket_address"]["port_value"]
@@ -141,11 +151,11 @@ def check_listener(listener):
     # Ports < 9000 use HTTP, not TCP.
 
     check_info = {
-        8080: ( "HCM", 1, EnvoyHCMInfo, "ingress_http" ),
-        8443: ( "HCM", 2, EnvoyHCMInfo, "ingress_https" ),
-        8888: ( "HCM", 2, EnvoyHCMInfo, "alternate" ),
-        9998: ( "TCP", 1, EnvoyTCPInfo, "ingress_tcp_9998" ),
-        9999: ( "TCP", 1, EnvoyTCPInfo, "ingress_tls_9999" )
+        8080: ("HCM", 1, EnvoyHCMInfo, "ingress_http"),
+        8443: ("HCM", 2, EnvoyHCMInfo, "ingress_https"),
+        8888: ("HCM", 2, EnvoyHCMInfo, "alternate"),
+        9998: ("TCP", 1, EnvoyTCPInfo, "ingress_tcp_9998"),
+        9999: ("TCP", 1, EnvoyTCPInfo, "ingress_tls_9999"),
     }
 
     abbrev, chain_count, filter_info, expected_stat_prefix = check_info[port]
@@ -155,9 +165,13 @@ def check_listener(listener):
         return check_filter(abbrev, typed_config, expected_stat_prefix)
 
     econf_foreach_listener_chain(
-        listener, checker, chain_count=chain_count,
+        listener,
+        checker,
+        chain_count=chain_count,
         need_name=filter_info.name,
-        need_type=filter_info.type)
+        need_type=filter_info.type,
+    )
+
 
 @pytest.mark.compilertest
 def listener_stats_prefix():

@@ -130,6 +130,11 @@ func (aid AmbassadorID) Matches(envVar string) bool {
 		if item == envVar {
 			return true
 		}
+		if item == "_automatic_" {
+			// We always pay attention to the "_automatic_" ID -- it gives us a to
+			// easily always include certain configuration resources for Edge Stack.
+			return true
+		}
 	}
 	return false
 }

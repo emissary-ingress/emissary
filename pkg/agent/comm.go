@@ -236,3 +236,50 @@ func (c *RPCComm) StreamMetrics(ctx context.Context, metrics *agent.StreamMetric
 func (c *RPCComm) Directives() <-chan *agent.Directive {
 	return c.directives
 }
+
+func (c *RPCComm) StreamDiagnostics(ctx context.Context, diagnosticsReport *agent.Diagnostics, apiKey string) error {
+	select {
+	case c.rptWake <- struct{}{}:
+	default:
+	}
+	ctx = metadata.AppendToOutgoingContext(ctx, c.getHeaders(apiKey)...)
+
+	// marshal diagnostics into bytes
+	data, err := json.Marshal(diagnosticsReport)
+	if err != nil {
+		return fmt.Errorf("json.Marshal: %w", err)
+	}
+
+	const CHUNKSIZE = (64 * 1024) - 4 // 64KiB-4B; gRPC adds 4 bytes of overhead
+	dlog.Debugf(ctx, "Diagnostics Report is %dB; will take %d chunks",
+		len(data),
+		(len(data)+CHUNKSIZE-1)/CHUNKSIZE)
+
+	// make stream
+	stream, err := c.client.StreamDiagnostics(ctx)
+	if err != nil {
+		return fmt.Errorf("ReportDiagnosticsStream.Open: %w", err)
+	}
+
+	// send chunks
+	msg := &agent.RawDiagnosticsChunk{}
+	for i := 0; i < len(data); i += CHUNKSIZE {
+		j := i + CHUNKSIZE
+
+		if j < len(data) {
+			msg.Chunk = data[i:j]
+		} else {
+			msg.Chunk = data[i:]
+		}
+
+		if err := stream.Send(msg); err != nil {
+			return fmt.Errorf("ReportDiagnosticsStream.Send: %w", err)
+		}
+	}
+
+	if _, err = stream.CloseAndRecv(); err != nil {
+		return fmt.Errorf("ReportDiagnosticsStream.Close: %w", err)
+	}
+
+	return nil
+}

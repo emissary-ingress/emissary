@@ -32,14 +32,30 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
-  - version: 3.0.0
+  - version: 3.1.0
     date: 'TBD'
+    notes:
+      - title: Add support for OpenAPI 2 contracts
+        type: feature
+        body: >-
+          The agent is now able to parse api contracts using swagger 2, and to convert them to OpenAPI 3, making them
+          available for use in the dev portal.
+
+      - title: fix regression in the agent for the metrics transfer.
+        type: bugfix
+        body: >-
+          A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming from
+          emissary ingress before sending them to Ambassador cloud. This issue has been resolved to ensure
+          that all the nodes composing the emissary ingress cluster are reporting properly.
+
+  - version: 3.0.0
+    date: '2022-06-27'
     notes:
       - title: Envoy upgraded to 1.22
         type: change
         body: >-
-          The envoy version included in $productName$ has been upgraded from 1.17 to latest patch
-          release of 1.22. This provides $produceName$ with the latest security patches, performances enhancments,
+          The envoy version included in $productName$ has been upgraded from 1.17 to the latest patch
+          release of 1.22. This provides $productName$ with the latest security patches, performances enhancments,
           and features offered by the envoy proxy. One notable change that will effect users is the removal
           of support for V2 tranport protocol. See below for more information.
         docs: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.22/v1.22.0
@@ -119,6 +135,22 @@ items:
           Previously setting <code>grpc_stats</code> in the <code>ambassador</code> <code>Module</code>
           without setting either <code>grpc_stats.services</code> or <code>grpc_stats.all_methods</code>
           would result in crashing. Now it behaves as if <code>grpc_stats.all_methods=false</code>.
+      - title: Downstream HTTP/3 support
+        type: feature
+        body: >-
+          With the ugprade to Envoy 1.22, $productName$ can now be configured to listen for HTTP/3
+          connections using QUIC and the UDP network protocol. It currently only supports for connections
+          between downstream clients and $productName$.
+  - version: 2.3.2
+    date: 'TBD'
+    notes:
+      - title: fix regression in the agent for the metrics transfer.
+        type: bugfix
+        body: >-
+          A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming from
+          emissary ingress before sending them to Ambassador cloud. This issue has been resolved to ensure
+          that all the nodes composing the emissary ingress cluster are reporting properly.
+
   - version: 2.3.1
     date: '2022-06-09'
     notes:

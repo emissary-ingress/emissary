@@ -74,6 +74,10 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) er
 
 	// Serve pprof endpoints to aid in live debugging.
 	sm.HandleFunc("/debug/pprof/", pprof.Index)
+	sm.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	sm.HandleFunc("/debug/pprof/trace", pprof.Trace)
+	sm.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	sm.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 
 	// For everything else, use a ReverseProxy to forward it to diagd.
 	//

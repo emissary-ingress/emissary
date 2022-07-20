@@ -5,7 +5,7 @@ import (
 )
 
 func MarshalRef(value string, otherwise interface{}) ([]byte, error) {
-	if len(value) > 0 {
+	if value != "" {
 		return json.Marshal(&refProps{
 			Ref: value,
 		})
@@ -17,7 +17,7 @@ func UnmarshalRef(data []byte, destRef *string, destOtherwise interface{}) error
 	refProps := &refProps{}
 	if err := json.Unmarshal(data, refProps); err == nil {
 		ref := refProps.Ref
-		if len(ref) > 0 {
+		if ref != "" {
 			*destRef = ref
 			return nil
 		}
@@ -26,5 +26,5 @@ func UnmarshalRef(data []byte, destRef *string, destOtherwise interface{}) error
 }
 
 type refProps struct {
-	Ref string `json:"$ref,omitempty"`
+	Ref string `json:"$ref,omitempty" yaml:"$ref,omitempty"`
 }

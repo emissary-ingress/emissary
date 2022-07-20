@@ -1,17 +1,18 @@
 import json
 import re
-
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
-
-from urllib.parse import scheme_chars, urlparse, quote as urlquote, unquote as urlunquote
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
+from urllib.parse import quote as urlquote
+from urllib.parse import scheme_chars
+from urllib.parse import unquote as urlunquote
+from urllib.parse import urlparse
 
 from ..config import Config
 from ..utils import dump_json
-
 from .irresource import IRResource
 
 if TYPE_CHECKING:
-    from .ir import IR # pragma: no cover
+    from .ir import IR  # pragma: no cover
+
 
 def would_confuse_urlparse(url: str) -> bool:
     """Returns whether an URL-ish string would be interpretted by urlparse()
@@ -22,7 +23,7 @@ def would_confuse_urlparse(url: str) -> bool:
     Note: This has a Go equivalent in github.com/emissary-ingress/emissary/v3/pkg/emissaryutil.  Please
     keep them in-sync.
     """
-    if url.find(':') > 0 and url.lstrip(scheme_chars).startswith("://"):
+    if url.find(":") > 0 and url.lstrip(scheme_chars).startswith("://"):
         # has a scheme
         return False
     if url.startswith("//"):
@@ -30,7 +31,14 @@ def would_confuse_urlparse(url: str) -> bool:
         return False
     return True
 
-def normalize_service_name(ir: 'IR', in_service: str, mapping_namespace: Optional[str], resolver_kind: str, rkey: Optional[str]=None) -> str:
+
+def normalize_service_name(
+    ir: "IR",
+    in_service: str,
+    mapping_namespace: Optional[str],
+    resolver_kind: str,
+    rkey: Optional[str] = None,
+) -> str:
     """
     Note: This has a Go equivalent in github.com/emissary-ingress/emissary/v3/pkg/emissaryutil.  Please
     keep them in-sync.
@@ -41,7 +49,11 @@ def normalize_service_name(ir: 'IR', in_service: str, mapping_namespace: Optiona
         if not parsed.hostname:
             raise ValueError("No hostname")
         # urlib.parse.unquote is permissive, but we want to be strict
-        bad_seqs = [seq for seq in re.findall(r'%.{,2}', parsed.hostname) if not re.fullmatch(r'%[0-9a-fA-F]{2}', seq)]
+        bad_seqs = [
+            seq
+            for seq in re.findall(r"%.{,2}", parsed.hostname)
+            if not re.fullmatch(r"%[0-9a-fA-F]{2}", seq)
+        ]
         if bad_seqs:
             raise ValueError(f"Invalid percent-escape in hostname: {bad_seqs[0]}")
         hostname = urlunquote(parsed.hostname)
@@ -63,31 +75,45 @@ def normalize_service_name(ir: 'IR', in_service: str, mapping_namespace: Optiona
 
     # Consul Resolvers don't allow service names to include subdomains, but
     # Kubernetes Resolvers _require_ subdomains to correctly handle namespaces.
-    want_qualified = not ir.ambassador_module.use_ambassador_namespace_for_service_resolution and resolver_kind.startswith('Kubernetes')
+    want_qualified = (
+        not ir.ambassador_module.use_ambassador_namespace_for_service_resolution
+        and resolver_kind.startswith("Kubernetes")
+    )
 
     is_qualified = "." in hostname or ":" in hostname or "localhost" == hostname
 
-    if mapping_namespace and mapping_namespace != ir.ambassador_namespace and want_qualified and not is_qualified:
-        hostname += "."+mapping_namespace
+    if (
+        mapping_namespace
+        and mapping_namespace != ir.ambassador_namespace
+        and want_qualified
+        and not is_qualified
+    ):
+        hostname += "." + mapping_namespace
 
-    out_service = urlquote(hostname, safe="!$&'()*+,;=:[]<>\"") # match 'encodeHost' behavior of Go stdlib net/url/url.go
-    if ':' in out_service:
+    out_service = urlquote(
+        hostname, safe="!$&'()*+,;=:[]<>\""
+    )  # match 'encodeHost' behavior of Go stdlib net/url/url.go
+    if ":" in out_service:
         out_service = f"[{out_service}]"
     if scheme:
         out_service = f"{scheme}://{out_service}"
     if port:
         out_service += f":{port}"
 
-    ir.logger.debug("%s use_ambassador_namespace_for_service_resolution %s, fully qualified %s, upstream hostname %s" % (
-        resolver_kind,
-        ir.ambassador_module.use_ambassador_namespace_for_service_resolution,
-        is_qualified,
-        out_service
-    ))
+    ir.logger.debug(
+        "%s use_ambassador_namespace_for_service_resolution %s, fully qualified %s, upstream hostname %s"
+        % (
+            resolver_kind,
+            ir.ambassador_module.use_ambassador_namespace_for_service_resolution,
+            is_qualified,
+            out_service,
+        )
+    )
 
     return out_service
 
-class IRBaseMapping (IRResource):
+
+class IRBaseMapping(IRResource):
     group_id: str
     host: Optional[str]
     route_weight: List[Union[str, int]]
@@ -96,17 +122,21 @@ class IRBaseMapping (IRResource):
     cluster_key: Optional[str]
     _weight: int
 
-    def __init__(self, ir: 'IR', aconf: Config,
-                 rkey: str,      # REQUIRED
-                 name: str,      # REQUIRED
-                 location: str,  # REQUIRED
-                 kind: str,      # REQUIRED
-                 namespace: Optional[str] = None,
-                 metadata_labels: Optional[Dict[str, str]] = None,
-                 apiVersion: str="getambassador.io/v3alpha1",
-                 precedence: int=0,
-                 cluster_tag: Optional[str]=None,
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        ir: "IR",
+        aconf: Config,
+        rkey: str,  # REQUIRED
+        name: str,  # REQUIRED
+        location: str,  # REQUIRED
+        kind: str,  # REQUIRED
+        namespace: Optional[str] = None,
+        metadata_labels: Optional[Dict[str, str]] = None,
+        apiVersion: str = "getambassador.io/v3alpha1",
+        precedence: int = 0,
+        cluster_tag: Optional[str] = None,
+        **kwargs,
+    ) -> None:
         # Default status...
         self.cached_status = None
         self.status_update = None
@@ -119,14 +149,22 @@ class IRBaseMapping (IRResource):
 
         # Init the superclass...
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, location=location,
-            kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
-            apiVersion=apiVersion, precedence=precedence, cluster_tag=cluster_tag,
-            **kwargs
+            ir=ir,
+            aconf=aconf,
+            rkey=rkey,
+            location=location,
+            kind=kind,
+            name=name,
+            namespace=namespace,
+            metadata_labels=metadata_labels,
+            apiVersion=apiVersion,
+            precedence=precedence,
+            cluster_tag=cluster_tag,
+            **kwargs,
         )
 
     @classmethod
-    def make_cache_key(cls, kind: str, name: str, namespace: str, version: str="v2") -> str:
+    def make_cache_key(cls, kind: str, name: str, namespace: str, version: str = "v2") -> str:
         # Why is this split on the name necessary?
         # the name of a Mapping when we fetch it from the aconf will match the metadata.name of
         # the Mapping that the config comes from _only if_ it is the only Mapping with that exact name.
@@ -143,7 +181,7 @@ class IRBaseMapping (IRResource):
         name = name.split(".")[0]
         return f"{kind}-{version}-{name}-{namespace}"
 
-    def setup(self, ir: 'IR', aconf: Config) -> bool:
+    def setup(self, ir: "IR", aconf: Config) -> bool:
         # Set up our cache key. We're using this format so that it'll be easy
         # to generate it just from the Mapping's K8s metadata.
         self._cache_key = IRBaseMapping.make_cache_key(self.kind, self.name, self.namespace)
@@ -159,77 +197,85 @@ class IRBaseMapping (IRResource):
 
         # We can also default the resolver, and scream if it doesn't match a resolver we
         # know about.
-        if not self.get('resolver'):
-            self.resolver = self.ir.ambassador_module.get('resolver', 'kubernetes-service')
+        if not self.get("resolver"):
+            self.resolver = self.ir.ambassador_module.get("resolver", "kubernetes-service")
 
         resolver = self.ir.get_resolver(self.resolver)
 
         if not resolver:
-            self.post_error(f'resolver {self.resolver} is unknown!')
+            self.post_error(f"resolver {self.resolver} is unknown!")
             return False
 
-        self.ir.logger.debug("%s: GID %s route_weight %s, resolver %s" %
-                             (self, self.group_id, self.route_weight, resolver))
+        self.ir.logger.debug(
+            "%s: GID %s route_weight %s, resolver %s"
+            % (self, self.group_id, self.route_weight, resolver)
+        )
 
         # And, of course, we can make sure that the resolver thinks that this Mapping is OK.
         if not resolver.valid_mapping(ir, self):
             # If there's trouble, the resolver should've already posted about it.
             return False
 
-        if self.get('circuit_breakers', None) is None:
-            self['circuit_breakers'] = ir.ambassador_module.circuit_breakers
+        if self.get("circuit_breakers", None) is None:
+            self["circuit_breakers"] = ir.ambassador_module.circuit_breakers
 
-        if self.get('circuit_breakers', None) is not None:
-            if not self.validate_circuit_breakers(ir, self['circuit_breakers']):
-                self.post_error("Invalid circuit_breakers specified: {}, invalidating mapping".format(self['circuit_breakers']))
+        if self.get("circuit_breakers", None) is not None:
+            if not self.validate_circuit_breakers(ir, self["circuit_breakers"]):
+                self.post_error(
+                    "Invalid circuit_breakers specified: {}, invalidating mapping".format(
+                        self["circuit_breakers"]
+                    )
+                )
                 return False
 
         return True
 
     @staticmethod
-    def validate_circuit_breakers(ir: 'IR', circuit_breakers) -> bool:
+    def validate_circuit_breakers(ir: "IR", circuit_breakers) -> bool:
         if not isinstance(circuit_breakers, (list, tuple)):
             return False
 
         for circuit_breaker in circuit_breakers:
-            if '_name' in circuit_breaker:
+            if "_name" in circuit_breaker:
                 # Already reconciled.
                 ir.logger.debug(f'Breaker validation: good breaker {circuit_breaker["_name"]}')
                 continue
 
-            ir.logger.debug(f'Breaker validation: {dump_json(circuit_breakers, pretty=True)}')
+            ir.logger.debug(f"Breaker validation: {dump_json(circuit_breakers, pretty=True)}")
 
-            name_fields = [ 'cb' ]
+            name_fields = ["cb"]
 
-            if 'priority' in circuit_breaker:
-                prio = circuit_breaker.get('priority').lower()
-                if prio not in ['default', 'high']:
+            if "priority" in circuit_breaker:
+                prio = circuit_breaker.get("priority").lower()
+                if prio not in ["default", "high"]:
                     return False
 
                 name_fields.append(prio[0])
             else:
-                name_fields.append('n')
+                name_fields.append("n")
 
-            digit_fields = [ ( 'max_connections', 'c' ),
-                             ( 'max_pending_requests', 'p' ),
-                             ( 'max_requests', 'r' ),
-                             ( 'max_retries', 't' ) ]
+            digit_fields = [
+                ("max_connections", "c"),
+                ("max_pending_requests", "p"),
+                ("max_requests", "r"),
+                ("max_retries", "t"),
+            ]
 
             for field, abbrev in digit_fields:
                 if field in circuit_breaker:
                     try:
                         value = int(circuit_breaker[field])
-                        name_fields.append(f'{abbrev}{value}')
+                        name_fields.append(f"{abbrev}{value}")
                     except ValueError:
                         return False
 
-            circuit_breaker['_name'] = ''.join(name_fields)
+            circuit_breaker["_name"] = "".join(name_fields)
             ir.logger.debug(f'Breaker valid: {circuit_breaker["_name"]}')
 
         return True
 
     def get_label(self, key: str) -> Optional[str]:
-        labels = self.get('metadata_labels') or {}
+        labels = self.get("metadata_labels") or {}
         return labels.get(key) or None
 
     def status(self) -> Optional[Dict[str, Any]]:
@@ -242,7 +288,7 @@ class IRBaseMapping (IRResource):
         return None
 
     def check_status(self) -> None:
-        crd_name = self.get_label('ambassador_crd')
+        crd_name = self.get_label("ambassador_crd")
 
         if not crd_name:
             return
@@ -253,12 +299,12 @@ class IRBaseMapping (IRResource):
         wanted = self.status()
 
         if wanted != self.cached_status:
-            self.ir.k8s_status_updates[crd_name] = ('Mapping', self.namespace, wanted)
+            self.ir.k8s_status_updates[crd_name] = ("Mapping", self.namespace, wanted)
 
     def _group_id(self) -> str:
-        """ Compute the group ID for this Mapping. Must be defined by subclasses. """
-        raise NotImplementedError("%s._group_id is not implemented?" %  self.__class__.__name__)
+        """Compute the group ID for this Mapping. Must be defined by subclasses."""
+        raise NotImplementedError("%s._group_id is not implemented?" % self.__class__.__name__)
 
     def _route_weight(self) -> List[Union[str, int]]:
-        """ Compute the route weight for this Mapping. Must be defined by subclasses. """
-        raise NotImplementedError("%s._route_weight is not implemented?" %  self.__class__.__name__)
+        """Compute the route weight for this Mapping. Must be defined by subclasses."""
+        raise NotImplementedError("%s._route_weight is not implemented?" % self.__class__.__name__)

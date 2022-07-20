@@ -1,17 +1,19 @@
 import os
-from tests.utils import assert_valid_envoy_config, econf_compile, module_and_mapping_manifests
 
 import pytest
+
+from tests.utils import assert_valid_envoy_config, econf_compile, module_and_mapping_manifests
+
 
 def _test_bootstrap(yaml, expectations={}):
     # Compile an envoy config
     econf = econf_compile(yaml)
 
     # Get just the bootstrap config...
-    bootstrap = econf['bootstrap']
+    bootstrap = econf["bootstrap"]
 
     # ...and make sure that Envoy thinks it is valid (it doesn't like the @type field)
-    bootstrap.pop('@type', None)
+    bootstrap.pop("@type", None)
     assert_valid_envoy_config(bootstrap)
 
     for key, expected in expectations.items():
@@ -19,6 +21,7 @@ def _test_bootstrap(yaml, expectations={}):
             assert key not in bootstrap
         else:
             import json
+
             assert key in bootstrap
             assert bootstrap[key] == expected
 
@@ -34,7 +37,7 @@ def _test_dd_entity_id(val, expected):
     # Run the bootstrap test. We don't need any special yaml
     # since all of this behavior is driven by env vars.
     yaml = module_and_mapping_manifests(None, [])
-    _test_bootstrap(yaml, expectations={'stats_config': expected})
+    _test_bootstrap(yaml, expectations={"stats_config": expected})
 
     # Teardown by removing dd / statsd vars
     del os.environ["STATSD_ENABLED"]
@@ -56,23 +59,26 @@ def test_dd_entity_id_empty():
 
 def test_dd_entity_id_set():
     # If we set the env var, then it should show up the config.
-    _test_dd_entity_id("my.cool.1234.entity-id", {
-        'stats_tags': [
-            {
-                'tag_name':'dd.internal.entity_id',
-                'fixed_value':'my.cool.1234.entity-id'
-            }
-        ]
-    })
+    _test_dd_entity_id(
+        "my.cool.1234.entity-id",
+        {
+            "stats_tags": [
+                {"tag_name": "dd.internal.entity_id", "fixed_value": "my.cool.1234.entity-id"}
+            ]
+        },
+    )
 
 
 def test_dd_entity_id_set_typical():
     # If we set the env var to a typical pod UID, then it should show up int he config.
-    _test_dd_entity_id("1fb8f8d8-00b3-44ef-bc8b-3659e4a3c2bd", {
-        'stats_tags': [
-            {
-                'tag_name':'dd.internal.entity_id',
-                'fixed_value':'1fb8f8d8-00b3-44ef-bc8b-3659e4a3c2bd'
-            }
-        ]
-    })
+    _test_dd_entity_id(
+        "1fb8f8d8-00b3-44ef-bc8b-3659e4a3c2bd",
+        {
+            "stats_tags": [
+                {
+                    "tag_name": "dd.internal.entity_id",
+                    "fixed_value": "1fb8f8d8-00b3-44ef-bc8b-3659e4a3c2bd",
+                }
+            ]
+        },
+    )

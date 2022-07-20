@@ -72,15 +72,27 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
-## [3.0.0] TBD
-[3.0.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v3.0.0
+## [3.1.0] TBD
+[3.1.0]: https://github.com/emissary-ingress/emissary/compare/v3.0.0...v3.1.0
 
 ### Emissary-ingress and Ambassador Edge Stack
 
-- Change: The envoy version included in Emissary-ingress has been upgraded from 1.17 to latest patch
-  release of 1.22. This provides $produceName$ with the latest security patches, performances
-  enhancments, and features offered by the envoy proxy. One notable change that will effect users is
-  the removal of support for V2 tranport protocol. See below for more information.
+- Feature: The agent is now able to parse api contracts using swagger 2, and to convert them to
+  OpenAPI 3, making them available for use in the dev portal.
+
+- Bugfix: A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming
+  from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
+  ensure that all the nodes composing the emissary ingress cluster are reporting properly.
+
+## [3.0.0] June 27, 2022
+[3.0.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v3.0.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: The envoy version included in Emissary-ingress has been upgraded from 1.17 to the latest
+  patch release of 1.22. This provides Emissary-ingress with the latest security patches,
+  performances enhancments, and features offered by the envoy proxy. One notable change that will
+  effect users is the removal of support for V2 tranport protocol. See below for more information.
 
 - Change: Emissary-ingress can no longer be made to configure Envoy using the v2 xDS configuration
   API; it now always uses the v3 xDS API to configure Envoy.  This change should be mostly invisible
@@ -138,6 +150,19 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 - Bugfix: Previously setting `grpc_stats` in the `ambassador` `Module` without setting either
   `grpc_stats.services` or `grpc_stats.all_methods` would result in crashing. Now it behaves as if
   `grpc_stats.all_methods=false`.
+
+- Feature: With the ugprade to Envoy 1.22, Emissary-ingress can now be configured to listen for
+  HTTP/3 connections using QUIC and the UDP network protocol. It currently only supports for
+  connections between downstream clients and Emissary-ingress.
+
+## [2.3.2] TBD
+[2.3.2]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v2.3.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming
+  from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
+  ensure that all the nodes composing the emissary ingress cluster are reporting properly.
 
 ## [2.3.1] June 09, 2022
 [2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1

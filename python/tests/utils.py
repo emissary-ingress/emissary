@@ -1,29 +1,28 @@
-import logging
 import json
+import logging
 import os
-import subprocess
-import requests
 import socket
+import subprocess
 import tempfile
 import time
-from collections import namedtuple
-from retry import retry
-from OpenSSL import crypto
 from base64 import b64encode
+from collections import namedtuple
 from typing import List, Literal, cast
 
-import json
+import requests
 import yaml
+from OpenSSL import crypto
+from retry import retry
 
-from ambassador import Cache, IR
+from ambassador import IR, Cache
 from ambassador.compile import Compile
 from ambassador.utils import NullSecretHandler
-
-from tests.manifests import cleartext_host_manifest
 from tests.kubeutils import apply_kube_artifacts
+from tests.manifests import cleartext_host_manifest
 from tests.runutils import run_and_assert
 
 logger = logging.getLogger("ambassador")
+
 
 def zipkin_tracing_service_manifest():
     return """
@@ -38,6 +37,7 @@ spec:
   driver: zipkin
   config: {}
 """
+
 
 def default_listener_manifests():
     return """
@@ -69,8 +69,72 @@ spec:
       from: ALL
 """
 
+
+def default_http3_listener_manifest():
+    return """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: listener-http3-8443
+  namespace: default
+spec:
+  port: 8443
+  protocolStack:
+    - TLS
+    - HTTP
+    - UDP
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL  
+  """
+
+
+def default_udp_listener_manifest():
+    return """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: listener-udp-8443
+  namespace: default
+spec:
+  port: 8443
+  protocolStack:
+    - TLS
+    - UDP
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL  
+  """
+
+
+def default_tcp_listener_manifest():
+    return """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: listener-tcp-8443
+  namespace: default
+spec:
+  port: 8443
+  protocolStack:
+    - TLS
+    - TCP
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL  
+  """
+
+
 def module_and_mapping_manifests(module_confs, mapping_confs):
-    yaml = default_listener_manifests() + """
+    yaml = (
+        default_listener_manifests()
+        + """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -79,15 +143,23 @@ metadata:
   namespace: default
 spec:
   config:"""
+    )
     if module_confs:
         for module_conf in module_confs:
-            yaml = yaml + """
+            yaml = (
+                yaml
+                + """
     {}
-""".format(module_conf)
+""".format(
+                    module_conf
+                )
+            )
     else:
         yaml = yaml + " {}\n"
 
-    yaml = yaml + """
+    yaml = (
+        yaml
+        + """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -98,19 +170,28 @@ spec:
   hostname: "*"
   prefix: /httpbin/
   service: httpbin"""
+    )
     if mapping_confs:
         for mapping_conf in mapping_confs:
-            yaml = yaml + """
-  {}""".format(mapping_conf)
+            yaml = (
+                yaml
+                + """
+  {}""".format(
+                    mapping_conf
+                )
+            )
     return yaml
+
 
 def _require_no_errors(ir: IR):
     assert ir.aconf.errors == {}
+
 
 def _secret_handler():
     source_root = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-source")
     cache_dir = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-cache")
     return NullSecretHandler(logger, source_root.name, cache_dir.name, "fake")
+
 
 def compile_with_cachecheck(yaml, errors_ok=False):
     # Compile with and without a cache. Neither should produce errors.
@@ -124,53 +205,63 @@ def compile_with_cachecheck(yaml, errors_ok=False):
         _require_no_errors(r2["ir"])
 
     # Both should produce equal Envoy config as sorted json.
-    r1j = json.dumps(r1['xds'].as_dict(), sort_keys=True, indent=2)
-    r2j = json.dumps(r2['xds'].as_dict(), sort_keys=True, indent=2)
+    r1j = json.dumps(r1["xds"].as_dict(), sort_keys=True, indent=2)
+    r2j = json.dumps(r2["xds"].as_dict(), sort_keys=True, indent=2)
     assert r1j == r2j
 
     # All good.
     return r1
 
-EnvoyFilterInfo = namedtuple('EnvoyFilterInfo', [ 'name', 'type' ])
+
+EnvoyFilterInfo = namedtuple("EnvoyFilterInfo", ["name", "type"])
 
 EnvoyHCMInfo = EnvoyFilterInfo(
     name="envoy.filters.network.http_connection_manager",
-    type="type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
+    type="type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
 )
 
 EnvoyTCPInfo = EnvoyFilterInfo(
     name="envoy.filters.network.tcp_proxy",
-    type="type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy"
+    type="type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy",
 )
+
 
 def econf_compile(yaml):
     compiled = compile_with_cachecheck(yaml)
-    return compiled['xds'].as_dict()
+    return compiled["xds"].as_dict()
+
 
 def econf_foreach_listener(econf, fn, listener_count=1):
-    listeners = econf['static_resources']['listeners']
+    listeners = econf["static_resources"]["listeners"]
 
     wanted_plural = "" if (listener_count == 1) else "s"
-    assert len(listeners) == listener_count, f"Expected {listener_count} listener{wanted_plural}, got {len(listeners)}"
+    assert (
+        len(listeners) == listener_count
+    ), f"Expected {listener_count} listener{wanted_plural}, got {len(listeners)}"
 
     for listener in listeners:
         fn(listener)
 
-def econf_foreach_listener_chain(listener, fn, chain_count=2, need_name=None, need_type=None, dump_info=None):
+
+def econf_foreach_listener_chain(
+    listener, fn, chain_count=2, need_name=None, need_type=None, dump_info=None
+):
     # We need a specific number of filter chains. Normally it's 2,
     # since the compiler tests don't generally supply Listeners or Hosts,
     # so we get secure and insecure chains.
-    filter_chains = listener['filter_chains']
+    filter_chains = listener["filter_chains"]
 
     if dump_info:
         dump_info(filter_chains)
 
     wanted_plural = "" if (chain_count == 1) else "s"
-    assert len(filter_chains) == chain_count, f"Expected {chain_count} filter chain{wanted_plural}, got {len(filter_chains)}"
+    assert (
+        len(filter_chains) == chain_count
+    ), f"Expected {chain_count} filter chain{wanted_plural}, got {len(filter_chains)}"
 
     for chain in filter_chains:
         # We expect one filter on this chain.
-        filters = chain['filters']
+        filters = chain["filters"]
         got_count = len(filters)
         got_plural = "" if (got_count == 1) else "s"
         assert got_count == 1, f"Expected just one filter, got {got_count} filter{got_plural}"
@@ -179,26 +270,30 @@ def econf_foreach_listener_chain(listener, fn, chain_count=2, need_name=None, ne
         filter = filters[0]
 
         if need_name:
-            assert filter['name'] == need_name
+            assert filter["name"] == need_name
 
-        typed_config = filter['typed_config']
+        typed_config = filter["typed_config"]
 
         if need_type:
-            assert typed_config['@type'] == need_type, f"bad type: got {repr(typed_config['@type'])} but expected {repr(need_type)}"
+            assert (
+                typed_config["@type"] == need_type
+            ), f"bad type: got {repr(typed_config['@type'])} but expected {repr(need_type)}"
 
         fn(typed_config)
 
+
 def econf_foreach_hcm(econf, fn, chain_count=2):
-    for listener in econf['static_resources']['listeners']:
+    for listener in econf["static_resources"]["listeners"]:
         hcm_info = EnvoyHCMInfo
 
         econf_foreach_listener_chain(
-            listener, fn, chain_count=chain_count,
-            need_name=hcm_info.name, need_type=hcm_info.type)
+            listener, fn, chain_count=chain_count, need_name=hcm_info.name, need_type=hcm_info.type
+        )
 
-def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):
-    for cluster in econf['static_resources']['clusters']:
-        if cluster['name'] != name:
+
+def econf_foreach_cluster(econf, fn, name="cluster_httpbin_default"):
+    for cluster in econf["static_resources"]["clusters"]:
+        if cluster["name"] != name:
             continue
 
         found_cluster = True
@@ -207,22 +302,26 @@ def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):
             break
     assert found_cluster
 
+
 def assert_valid_envoy_config(config_dict, extra_dirs=[]):
     with tempfile.TemporaryDirectory() as tmpdir:
-        econf = open(os.path.join(tmpdir, 'econf.json'), 'xt')
+        econf = open(os.path.join(tmpdir, "econf.json"), "xt")
         econf.write(json.dumps(config_dict))
         econf.close()
-        img = os.environ.get('ENVOY_DOCKER_TAG')
+        img = os.environ.get("ENVOY_DOCKER_TAG")
         assert img
         cmd = [
-            'docker', 'run',
-            '--rm',
+            "docker",
+            "run",
+            "--rm",
             f"--volume={tmpdir}:/ambassador:ro",
             *[f"--volume={extra_dir}:{extra_dir}:ro" for extra_dir in extra_dirs],
             img,
-            '/usr/local/bin/envoy-static-stripped',
-            '--config-path', '/ambassador/econf.json',
-            '--mode', 'validate',
+            "/usr/local/bin/envoy-static-stripped",
+            "--config-path",
+            "/ambassador/econf.json",
+            "--mode",
+            "validate",
         ]
         p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if p.returncode != 0:
@@ -238,7 +337,7 @@ def create_crl_pem_b64(issuerCert, issuerKey, revokedCerts):
     for revokedCert in revokedCerts:
         clientCert = crypto.load_certificate(crypto.FILETYPE_PEM, bytes(revokedCert, "utf-8"))
         r = crypto.Revoked()
-        r.set_serial(bytes('{:x}'.format(clientCert.get_serial_number()), "ascii"))
+        r.set_serial(bytes("{:x}".format(clientCert.get_serial_number()), "ascii"))
         r.set_rev_date(when)
         r.set_reason(None)
         crl.add_revoked(r)
@@ -246,4 +345,6 @@ def create_crl_pem_b64(issuerCert, issuerKey, revokedCerts):
     cert = crypto.load_certificate(crypto.FILETYPE_PEM, bytes(issuerCert, "utf-8"))
     key = crypto.load_privatekey(crypto.FILETYPE_PEM, bytes(issuerKey, "utf-8"))
     crl.sign(cert, key, b"sha256")
-    return b64encode((crypto.dump_crl(crypto.FILETYPE_PEM, crl).decode("utf-8")+"\n").encode('utf-8')).decode('utf-8')
+    return b64encode(
+        (crypto.dump_crl(crypto.FILETYPE_PEM, crl).decode("utf-8") + "\n").encode("utf-8")
+    ).decode("utf-8")

@@ -19,7 +19,11 @@ import (
 )
 
 // internal k8s service
-const DefaultSnapshotURLFmt = "http://ambassador-admin:%d/snapshot-external"
+const (
+	AdminDiagnosticsPort     = 8877
+	DefaultSnapshotURLFmt    = "http://ambassador-admin:%d/snapshot-external"
+	DefaultDiagnosticsURLFmt = "http://ambassador-admin:%d/ambassador/v0/diag/?json=true"
+)
 
 func run(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
@@ -52,6 +56,16 @@ func run(cmd *cobra.Command, args []string) error {
 		snapshotURL = fmt.Sprintf(DefaultSnapshotURLFmt, entrypoint.ExternalSnapshotPort)
 	}
 
+	diagnosticsURL := os.Getenv("AES_DIAGNOSTICS_URL")
+	if diagnosticsURL == "" {
+		diagnosticsURL = fmt.Sprintf(DefaultDiagnosticsURLFmt, AdminDiagnosticsPort)
+	}
+
+	reportDiagnostics := os.Getenv("AES_REPORT_DIAGNOSTICS_TO_CLOUD")
+	if reportDiagnostics == "true" {
+		ambAgent.SetReportDiagnosticsAllowed(true)
+	}
+
 	metricsListener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		return err
@@ -66,7 +80,7 @@ func run(cmd *cobra.Command, args []string) error {
 	})
 
 	grp.Go("watch", func(ctx context.Context) error {
-		return ambAgent.Watch(ctx, snapshotURL)
+		return ambAgent.Watch(ctx, snapshotURL, diagnosticsURL)
 	})
 
 	return grp.Wait()
