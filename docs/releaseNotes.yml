@@ -51,7 +51,8 @@ items:
       - title: Add environment variables to configure healthcheck server's bind address, port and IP family.
         type: feature
         body: >-
-          The main advantage of this is that it allows the healthcheck server to be configured to use IPv6-only k8s environments.
+          The healthcheck server's bind address, bind port and IP family can now be configured using environment variables.
+          The main advantage of this is that it allows the healthcheck server to be configured for IPv6-only k8s environments.
           AMBASSADOR_HEALTHCHECK_BIND_ADDRESS - The address to bind the healthcheck server to.
           AMBASSADOR_HEALTHCHECK_BIND_PORT - The port to bind the healthcheck server to.
           AMBASSADOR_HEALTHCHECK_IP_FAMILY - The IP family to use for the healthcheck server.
