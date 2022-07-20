@@ -86,6 +86,10 @@ class V3Config (EnvoyConfig):
         ads_config = {
             '@type': '/envoy.config.bootstrap.v3.Bootstrap',
             'static_resources': self.static_resources,
+            'node': {
+                "cluster": "ambassador-default",
+                "id": "test-id"
+            },
             'layered_runtime': {
                 'layers': [
                     {
