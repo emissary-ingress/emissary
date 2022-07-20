@@ -297,3 +297,15 @@ func GetSidecarUrl() string {
 func IsKnativeEnabled() bool {
 	return strings.ToLower(env("AMBASSADOR_KNATIVE_SUPPORT", "")) == "true"
 }
+
+func GetHealthcheckHost() string {
+	return env("AMBASSADOR_HEALTHCHECK_BIND_ADDRESS", "0.0.0.0")
+}
+
+func GetHealthcheckPort() string {
+	return env("AMBASSADOR_HEALTHCHECK_BIND_PORT", "8877")
+}
+
+func GetHealthcheckIpFamily() string {
+	return env("AMBASSADOR_HEALTHCHECK_IP_FAMILY", "ANY")
+}
