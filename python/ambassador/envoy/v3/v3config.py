@@ -78,10 +78,14 @@ class V3Config(EnvoyConfig):
 
     def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, "ClustermapEntry"]]:
         ads_config = {
-            "@type": "/envoy.config.bootstrap.v3.Bootstrap",
-            "static_resources": self.static_resources,
-            "layered_runtime": {
-                "layers": [
+            '@type': '/envoy.config.bootstrap.v3.Bootstrap',
+            'static_resources': self.static_resources,
+            'node': {
+                "cluster": "ambassador-default",
+                "id": "test-id"
+            },
+            'layered_runtime': {
+                'layers': [
                     {
                         "name": "static_layer",
                         "static_layer": {
