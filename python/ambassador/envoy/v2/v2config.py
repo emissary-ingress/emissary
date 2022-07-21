@@ -87,8 +87,8 @@ class V2Config (EnvoyConfig):
             '@type': '/envoy.config.bootstrap.v2.Bootstrap',
             'static_resources': self.static_resources,
             'node': {
-                "cluster": "ambassador-default",
-                "id": "test-id"
+                "cluster": self.ir.ambassador_nodename,
+                "id": 'test-id'
             },
             'layered_runtime': {
                 'layers': [
