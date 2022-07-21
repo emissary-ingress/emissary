@@ -26,7 +26,7 @@ func TestRunWithClientFactorySet(t *testing.T) {
 
 		// then
 		assert.NoError(t, err, "no error")
-		assert.Equal(t, 3, len(secretGetter.secrets), "no secret created")
+		assert.Equal(t, 4, len(secretGetter.secrets), "empty secret created")
 	})
 	t.Run("Success empty secret", func(t *testing.T) {
 		// given

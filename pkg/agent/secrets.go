@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
@@ -52,31 +53,30 @@ func (s *secretSyncCommand) RunWithClientFactory(
 	return s.syncSecret(ctx, client)
 }
 
-func (s *secretSyncCommand) getOps(insertRoot bool) ([]map[string]string, error) {
-	var ops = make([]map[string]string, 0)
+func (s *secretSyncCommand) getOps(insertRoot bool) ([]map[string]interface{}, error) {
+	var ops = make([]map[string]interface{}, 0)
 	// if the secret is empty, this is required.
 	if insertRoot {
-		ops = append(ops, map[string]string{
+		ops = append(ops, map[string]interface{}{
 			"op":    "add",
 			"path":  "/data",
-			"value": "{}",
+			"value": map[string]interface{}{},
 		})
 	}
-
 	switch s.action {
 	case secretSyncActionDelete:
 		for key := range s.secret {
-			ops = append(ops, map[string]string{
+			ops = append(ops, map[string]interface{}{
 				"op":   "remove",
 				"path": fmt.Sprintf("/data/%s", key),
 			})
 		}
 	case secretSyncActionSet:
 		for key, value := range s.secret {
-			ops = append(ops, map[string]string{
+			ops = append(ops, map[string]interface{}{
 				"op":    "add",
 				"path":  fmt.Sprintf("/data/%s", key),
-				"value": string(value),
+				"value": base64.StdEncoding.EncodeToString(value),
 			})
 		}
 	default:
@@ -88,10 +88,6 @@ func (s *secretSyncCommand) getOps(insertRoot bool) ([]map[string]string, error)
 }
 
 func (s *secretSyncCommand) syncSecret(ctx context.Context, client SecretInterface) error {
-	if s.secret == nil && s.action != secretSyncActionDelete {
-		return nil
-	}
-
 	var (
 		secret *apiv1.Secret
 		err    error
