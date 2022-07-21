@@ -476,7 +476,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 				if sh.endpointRoutingInfo.endpointWatches[key] || sh.dispatcher.IsWatched(delta.Namespace, delta.Name) {
 					endpointsChanged = true
 				}
-			} else if delta.Kind == "Secret" {
+			} else if delta.Kind == "Secret" || delta.Kind == "Host" {
 				// Might need to do more here!
 				secretsChanged = true
 			} else {
