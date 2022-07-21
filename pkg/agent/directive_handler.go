@@ -90,11 +90,6 @@ func (dh *BasicDirectiveHandler) handleSecretSyncCommand(
 		return
 	}
 
-	if secret == nil && cmdSchema.Action == agentapi.SecretSyncCommand_SET {
-		dlog.Warn(ctx, "Secret sync command received without a secret")
-		return
-	}
-
 	cmd := &secretSyncCommand{
 		name:      name,
 		namespace: namespace,
