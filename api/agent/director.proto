@@ -44,10 +44,10 @@ service Director {
 // no user account specific information should be contained in here
 message Identity {
   // The account ID assigned by the DCP
-  string account_id = 1 [deprecated=true];
+  string account_id = 1 [deprecated = true];
 
   // Ambassador version
-  string version = 2 [deprecated=true];
+  string version = 2 [deprecated = true];
 
   // This Ambassador's hostname
   string hostname = 3;
@@ -59,7 +59,7 @@ message Identity {
   string cluster_id = 5;
 
   // Label or description for the user
-  string label = 6 [deprecated=true];
+  string label = 6 [deprecated = true];
 }
 
 // Information that Ambassador's Agent can send to the Director
@@ -68,7 +68,7 @@ message Snapshot {
   Identity identity = 1;
   string message = 2;
   // no longer used.
-  repeated Service services = 3 [deprecated=true];
+  repeated Service services = 3 [deprecated = true];
   bytes raw_snapshot = 4;
   // describes how the raw_snapshot is encoded
   string content_type = 5;
@@ -80,7 +80,7 @@ message Snapshot {
 // RawSnapshotChunk is a fragment of a JSON serialization of a
 // Snapshot protobuf object.
 message RawSnapshotChunk {
-    bytes chunk = 1;
+  bytes chunk = 1;
 }
 
 // Diagnostic information from ambassador admin
@@ -143,6 +143,7 @@ message Command {
   // Log this message if present
   string message = 1;
   RolloutCommand rolloutCommand = 2;
+  SecretSyncCommand secretSyncCommand = 3;
 }
 
 message RolloutCommand {
@@ -155,6 +156,19 @@ message RolloutCommand {
   }
   Action action = 3;
   string command_id = 4;
+}
+
+message SecretSyncCommand {
+  string name = 1;
+  string namespace = 2;
+  string command_id = 3;
+
+  enum Action {
+    SET = 0;
+    DELETE = 1;
+  }
+  Action action = 4;
+  map<string, bytes> secret = 5;
 }
 
 message CommandResult {

@@ -95,6 +95,9 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
   ensure that all the nodes composing the emissary ingress cluster are reporting properly.
 
+- Feature: Adds a new command to the agent directive service to manage secrets. This allows a third
+  party product to manage CRDs that depend upon a secret.
+
 ## [3.0.0] June 27, 2022
 [3.0.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v3.0.0
 
