@@ -488,44 +488,21 @@ func (sh *SnapshotHolder) K8sUpdate(
 				}
 			case "Secret":
 				updateSecrets = true
-			// If TLSContext or Host delta reference a secret we want to make sure that we're sending the updated
-			// secrets over
-			case "TLSContext":
-				// PERFORMANCE IMPROVEMENT: Linear searches suck and moreover we're doing it multiple times (up to 3)
-				// Mostly likely there won't be that many TLSContexts but would be nice to avoid iterating multiple times
-				for _, tls := range sh.k8sSnapshot.TLSContexts {
-					if tls.Name == delta.Name {
-						if tls.Spec.Secret != "" || tls.Spec.CASecret != "" || tls.Spec.CRLSecret != "" {
-							updateSecrets = true
-						}
-						break
-					}
-				}
+			// If TLSContext or Host delta reference a secret, we want to make sure that we're sending them over.
+			// This is kinda brute force since Hosts and TLSContexts don't have to refer to secrets.
+			// Ideally ReconcileSecrets should handle figuring out whether we need to send over update secrets.
+			// However we don't really expect that many Hosts or TLSContext to be created anyway.
+			case "Host", "TLSContext":
+				updateSecrets = true
 				fastpathOnly = false
-			case "Host":
-				// PERFORMANCE IMPROVEMENT: Linear searches suck and moreover we're doing it multiple times (up to 3)
-				// Mostly likely there won't be that many Hosts but would be nice to avoid iterating multiple times
-				for _, host := range sh.k8sSnapshot.Hosts {
-					if host.Name == delta.Name {
-						// Host is a little odd. Host.spec.tls, Host.spec.tlsSecret, and
-						// host.spec.acmeProvider.privateKeySecret can all refer to secrets.
-						if host.Spec == nil {
-							break
-						}
-
-						if host.Spec.TLS != nil && (host.Spec.TLS.CRLSecret != "" || host.Spec.TLS.CASecret != "") {
+			// Ugh while annotations exist we need to care about those too for secrets update
+			case "Service":
+				resourceName := fmt.Sprintf("%s/%s.%s", delta.Kind, delta.Name, delta.Namespace)
+				if annotations, ok := sh.k8sSnapshot.Annotations[resourceName]; ok {
+					for _, ann := range annotations {
+						kind := ann.GetObjectKind().GroupVersionKind().Kind
+						if kind == "Host" || kind == "TLSContext" {
 							updateSecrets = true
-							break
-						}
-
-						if host.Spec.TLSSecret != nil {
-							updateSecrets = true
-							break
-						}
-
-						if host.Spec.AcmeProvider != nil && host.Spec.AcmeProvider.PrivateKeySecret != nil {
-							updateSecrets = true
-							break
 						}
 					}
 				}
