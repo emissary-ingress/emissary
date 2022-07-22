@@ -373,7 +373,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 	reconcileConsulTimer := dbg.Timer("reconcileConsul")
 	reconcileAuthServicesTimer := dbg.Timer("reconcileAuthServices")
 
-	secretsChanged := false
+	updateSecrets := false
 	endpointsChanged := false
 	dispatcherChanged := false
 	var endpoints *ambex.Endpoints
@@ -471,15 +471,55 @@ func (sh *SnapshotHolder) K8sUpdate(
 		for _, delta := range deltas {
 			sh.unsentDeltas = append(sh.unsentDeltas, delta)
 
-			if delta.Kind == "Endpoints" {
+			switch delta.Kind {
+			case "Endpoints":
 				key := fmt.Sprintf("%s:%s", delta.Namespace, delta.Name)
 				if sh.endpointRoutingInfo.endpointWatches[key] || sh.dispatcher.IsWatched(delta.Namespace, delta.Name) {
 					endpointsChanged = true
 				}
-			} else if delta.Kind == "Secret" {
-				// Might need to do more here!
-				secretsChanged = true
-			} else {
+			case "Secret":
+				updateSecrets = true
+			// If TLSContext or Host delta reference a secret we want to make sure that we're sending the updated
+			// secrets over
+			case "TLSContext":
+				// PERFORMANCE IMPROVEMENT: Linear searches suck and moreover we're doing it multiple times (up to 3)
+				// Mostly likely there won't be that many TLSContexts but would be nice to avoid iterating multiple times 
+				for _, tls := range sh.k8sSnapshot.TLSContexts {
+					if tls.Name == delta.Name {
+						if tls.Spec.Secret != "" || tls.Spec.CASecret != "" || tls.Spec.CRLSecret != "" {
+							updateSecrets = true
+						}
+						break
+					}
+				}
+			case "Host":
+				// PERFORMANCE IMPROVEMENT: Linear searches suck and moreover we're doing it multiple times (up to 3)
+				// Mostly likely there won't be that many Hosts but would be nice to avoid iterating multiple times
+				for _, host := range sh.k8sSnapshot.Hosts {
+					if host.Name == delta.Name {
+						// Host is a little odd. Host.spec.tls, Host.spec.tlsSecret, and
+						// host.spec.acmeProvider.privateKeySecret can all refer to secrets.
+						if host.Spec == nil {
+							break
+						}
+
+						if host.Spec.TLS != nil && (host.Spec.TLS.CRLSecret != "" || host.Spec.TLS.CASecret != "") {
+							updateSecrets = true
+							break
+						}
+
+						if host.Spec.TLSSecret != nil {
+							updateSecrets = true
+							break
+						}
+
+						if host.Spec.AcmeProvider != nil && host.Spec.AcmeProvider.PrivateKeySecret != nil {
+							updateSecrets = true
+							break
+						}
+					}
+				}
+			default:
 				fastpathOnly = false
 			}
 
@@ -499,7 +539,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 			endpoints = makeEndpoints(ctx, sh.k8sSnapshot, sh.consulSnapshot.Endpoints)
 		}
 
-		if secretsChanged {
+		if updateSecrets {
 			secrets = ambex.MakeSecrets(ctx, sh.k8sSnapshot)
 		}
 
@@ -532,7 +572,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 		return changed, err
 	}
 
-	if secretsChanged || endpointsChanged || dispatcherChanged {
+	if updateSecrets || endpointsChanged || dispatcherChanged {
 		fastpath := &ambex.FastpathSnapshot{
 			Endpoints: endpoints,
 			Snapshot:  dispSnapshot,
