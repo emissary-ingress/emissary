@@ -778,8 +778,8 @@ func Main(
 					edsEndpointsV3 = fpSnap.Endpoints.ToMap_v3()
 				}
 				if fpSnap.Secrets != nil {
-					sdsSecretsV2 = fpSnap.Secrets.ToV2List(ctx)
-					sdsSecretsV3 = fpSnap.Secrets.ToV3List(ctx)
+					sdsSecretsV2 = fpSnap.Secrets.ToV2List(ctx, fpSnap.ValidationGroups)
+					sdsSecretsV3 = fpSnap.Secrets.ToV3List(ctx, fpSnap.ValidationGroups)
 				}
 				fastpathSnapshot = fpSnap
 				err := update(

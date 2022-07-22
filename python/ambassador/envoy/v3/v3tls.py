@@ -187,9 +187,21 @@ class V3TLSContext(Dict):
 
                 cert_list.append(src)
 
-            validation_secret = ctx['secret_info'].get('cacert_chain_file') or None
+            validation_secret = None
+            ca_secret = ctx['secret_info'].get('cacert_chain_file') or None
+            crl_secret = ctx['secret_info'].get('crl_file') or None
 
-            if validation_secret:
+            # We have a combined validation context for the crl and the ca
+            if ca_secret is not None and crl_secret is not None:
+                validation_secret = ca_secret+"-"+crl_secret
+            # We have a ca but no crl
+            elif ca_secret is not None and crl_secret is None:
+                validation_secret = ca_secret
+            # we have a crl but no ca
+            elif ca_secret is None and crl_secret is not None:
+                validation_secret = crl_secret
+
+            if validation_secret is not None:
                 src = {
                     'name': validation_secret,
                     'sds_config': {
