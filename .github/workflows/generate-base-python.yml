@@ -1,0 +1,44 @@
+name: generate-base-python
+on:
+  schedule:
+    # run 15 minutes after midnight (UTC) weekly on mondays
+    - cron: '0 15 0 ? * MON *'
+
+jobs:
+  generate: ####################################################################
+      runs-on: ubuntu-latest
+      env:
+        # See docker/base-python.docker.gen
+        BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
+      steps:
+        - uses: actions/checkout@v2
+          with:
+            fetch-depth: 0
+        - name: Install Deps
+          uses: ./.github/actions/setup-deps
+        - name: "Git Login"
+          run: |
+            if [[ -n '${{ secrets.GHA_SSH_KEY }}' ]]; then
+              install -m700 -d ~/.ssh
+              install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
+            fi
+        - name: "Docker Login"
+          uses: docker/login-action@v1
+          with:
+            registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
+            username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
+            password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
+        - name: "'make generate'"
+          shell: bash
+          run: |
+            make generate
+        - uses: ./.github/actions/git-dirty-check
+          name: "Check Git not dirty from 'make generate'"
+        - name: "'make generate' (again!)"
+          shell: bash
+          run: |
+            make generate
+        - uses: ./.github/actions/git-dirty-check
+          name: "Check Git not dirty from 'make generate' (again!)"
+        - uses: ./.github/actions/after-job
+          if: always()
