@@ -483,7 +483,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 			// secrets over
 			case "TLSContext":
 				// PERFORMANCE IMPROVEMENT: Linear searches suck and moreover we're doing it multiple times (up to 3)
-				// Mostly likely there won't be that many TLSContexts but would be nice to avoid iterating multiple times 
+				// Mostly likely there won't be that many TLSContexts but would be nice to avoid iterating multiple times
 				for _, tls := range sh.k8sSnapshot.TLSContexts {
 					if tls.Name == delta.Name {
 						if tls.Spec.Secret != "" || tls.Spec.CASecret != "" || tls.Spec.CRLSecret != "" {
