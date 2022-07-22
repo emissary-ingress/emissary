@@ -65,6 +65,9 @@ rules:
 - apiGroups: [""]
   resources: [ "configmaps" ]
   verbs: [ "get", "list", "watch" ]
+- apiGroups: [""]
+  resources: [ "secrets"]
+  verbs: [ "get", "create", "delete", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -238,8 +241,14 @@ spec:
           value: {{ include "ambassador.fullname" . }}-agent-cloud-token
         - name: RPC_CONNECTION_ADDRESS
           value: {{ .Values.agent.rpcAddress }}
+        {{- if .Values.agent.diagnostics }}
+        - name: AES_REPORT_DIAGNOSTICS_TO_CLOUD
+          value: "true"
+        {{- end }}
         - name: AES_SNAPSHOT_URL
           value: "http://{{ include "ambassador.fullname" . }}-admin.{{ include "ambassador.namespace" . }}:{{ .Values.adminService.snapshotPort }}/snapshot-external"
+        - name: AES_DIAGNOSTICS_URL
+          value: "http://{{ include "ambassador.fullname" . }}-admin.{{ include "ambassador.namespace" . }}:{{ .Values.adminService.port }}/ambassador/v0/diag/?json=true"
   {{ if .Values.progressDeadlines }}
   {{ if hasKey .Values.progressDeadlines "agent" }}
   progressDeadlineSeconds: {{ .Values.progressDeadlines.agent }}

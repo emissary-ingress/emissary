@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/datawire/dlib/dlog"
@@ -15,6 +16,7 @@ type DirectiveHandler interface {
 type BasicDirectiveHandler struct {
 	DefaultMinReportPeriod time.Duration
 	rolloutsGetterFactory  rolloutsGetterFactory
+	secretsGetterFactory   secretsGetterFactory
 }
 
 func (dh *BasicDirectiveHandler) HandleDirective(ctx context.Context, a *Agent, directive *agentapi.Directive) {
@@ -49,15 +51,66 @@ func (dh *BasicDirectiveHandler) HandleDirective(ctx context.Context, a *Agent, 
 
 		if command.RolloutCommand != nil {
 			dh.handleRolloutCommand(ctx, command.RolloutCommand, a)
+		} else if command.SecretSyncCommand != nil {
+			dh.handleSecretSyncCommand(ctx, command.SecretSyncCommand, a)
 		}
 	}
 
 	a.SetLastDirectiveID(ctx, directive.ID)
 }
 
-func (dh *BasicDirectiveHandler) handleRolloutCommand(ctx context.Context, cmdSchema *agentapi.RolloutCommand, a *Agent) {
+func (dh *BasicDirectiveHandler) handleSecretSyncCommand(
+	ctx context.Context, cmdSchema *agentapi.SecretSyncCommand, a *Agent,
+) {
+	if dh.secretsGetterFactory == nil {
+		dlog.Warn(ctx, "Received secret sync command but does not know how to talk to kube API")
+		return
+	}
+
+	var (
+		name      = cmdSchema.GetName()
+		namespace = cmdSchema.GetNamespace()
+		action    = int32(cmdSchema.GetAction())
+		commandID = cmdSchema.GetCommandId()
+		secret    = cmdSchema.GetSecret()
+	)
+
+	if name == "" {
+		dlog.Warn(ctx, "Secret sync command received without a secret name")
+		return
+	}
+
+	if namespace == "" {
+		dlog.Warn(ctx, "Secret sync command received without a secret namespace")
+		return
+	}
+
+	if commandID == "" {
+		dlog.Warn(ctx, "Secret sync command received without a command ID")
+		return
+	}
+
+	cmd := &secretSyncCommand{
+		name:      name,
+		namespace: namespace,
+		action:    secretSyncAction(agentapi.SecretSyncCommand_Action_name[action]),
+		secret:    secret,
+	}
+
+	err := cmd.RunWithClientFactory(ctx, dh.secretsGetterFactory)
+	if err != nil {
+		dlog.Errorf(ctx, "error running secret sync command %s: %s", cmd, err)
+	}
+
+	dh.reportCommandResult(ctx, commandID, cmd, err, a)
+
+}
+
+func (dh *BasicDirectiveHandler) handleRolloutCommand(
+	ctx context.Context, cmdSchema *agentapi.RolloutCommand, a *Agent,
+) {
 	if dh.rolloutsGetterFactory == nil {
-		dlog.Warn(ctx, "Received rollout command but does not know how to talk to Argo Rollouts.")
+		dlog.Warn(ctx, "Received rollout command but does not know how to talk to Argo Rollouts")
 		return
 	}
 
@@ -67,17 +120,17 @@ func (dh *BasicDirectiveHandler) handleRolloutCommand(ctx context.Context, cmdSc
 	commandID := cmdSchema.GetCommandId()
 
 	if rolloutName == "" {
-		dlog.Warn(ctx, "Rollout command received without a rollout name.")
+		dlog.Warn(ctx, "Rollout command received without a rollout name")
 		return
 	}
 
 	if namespace == "" {
-		dlog.Warn(ctx, "Rollout command received without a namespace.")
+		dlog.Warn(ctx, "Rollout command received without a namespace")
 		return
 	}
 
 	if commandID == "" {
-		dlog.Warn(ctx, "Rollout command received without a command ID.")
+		dlog.Warn(ctx, "Rollout command received without a command ID")
 		return
 	}
 
@@ -90,10 +143,13 @@ func (dh *BasicDirectiveHandler) handleRolloutCommand(ctx context.Context, cmdSc
 	if err != nil {
 		dlog.Errorf(ctx, "error running rollout command %s: %s", cmd, err)
 	}
+
 	dh.reportCommandResult(ctx, commandID, cmd, err, a)
 }
 
-func (dh *BasicDirectiveHandler) reportCommandResult(ctx context.Context, commandID string, cmd *rolloutCommand, cmdError error, a *Agent) {
+func (dh *BasicDirectiveHandler) reportCommandResult(
+	ctx context.Context, commandID string, cmd fmt.Stringer, cmdError error, a *Agent,
+) {
 	result := &agentapi.CommandResult{CommandId: commandID, Success: true}
 	if cmdError != nil {
 		result.Success = false
@@ -104,6 +160,6 @@ func (dh *BasicDirectiveHandler) reportCommandResult(ctx context.Context, comman
 	a.ambassadorAPIKeyMutex.Unlock()
 	err := a.comm.ReportCommandResult(ctx, result, apiKey)
 	if err != nil {
-		dlog.Errorf(ctx, "error reporting result of rollout command %s: %s", cmd, err)
+		dlog.Errorf(ctx, "error reporting result of command %s: %s", cmd, err)
 	}
 }

@@ -389,7 +389,7 @@ func TestProcessSnapshot(t *testing.T) {
 
 	for _, testcase := range snapshotTests {
 		t.Run(testcase.testName, func(t *testing.T) {
-			a := NewAgent(nil, nil)
+			a := NewAgent(nil, nil, nil)
 			ctx := dlog.NewTestContext(t, false)
 			a.coreStore = &coreStore{podStore: testcase.podStore}
 			a.connAddress = testcase.address
@@ -508,7 +508,7 @@ func TestProcessDiagnosticsSnapshot(t *testing.T) {
 
 	for _, testcase := range diagnosticsTests {
 		t.Run(testcase.testName, func(t *testing.T) {
-			a := NewAgent(nil, nil)
+			a := NewAgent(nil, nil, nil)
 			ctx := dlog.NewTestContext(t, false)
 			a.coreStore = &coreStore{podStore: testcase.podStore}
 			a.connAddress = testcase.address
@@ -560,7 +560,7 @@ func TestWatchReportPeriodDirective(t *testing.T) {
 	t.Parallel()
 	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 
-	a := NewAgent(nil, nil)
+	a := NewAgent(nil, nil, nil)
 	watchDone := make(chan error)
 
 	directiveChan := make(chan *agent.Directive)
@@ -621,7 +621,7 @@ func TestWatchEmptyDirectives(t *testing.T) {
 	t.Parallel()
 	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 
-	a := NewAgent(nil, nil)
+	a := NewAgent(nil, nil, nil)
 	id := agent.Identity{}
 	a.agentID = &id
 	watchDone := make(chan error)
@@ -683,7 +683,7 @@ func TestWatchStopReportingDirective(t *testing.T) {
 	t.Parallel()
 	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 
-	a := NewAgent(nil, nil)
+	a := NewAgent(nil, nil, nil)
 	id := agent.Identity{}
 	a.agentID = &id
 	watchDone := make(chan error)
@@ -749,7 +749,7 @@ func TestWatchErrorSendingSnapshot(t *testing.T) {
 	t.Parallel()
 	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 	ambId := getRandomAmbassadorID()
-	a := NewAgent(nil, nil)
+	a := NewAgent(nil, nil, nil)
 	a.reportingStopped = false
 	a.reportRunning.Set(false)
 	// set to 3 seconds so we can reliably assert that reportRunning is true later
@@ -851,7 +851,7 @@ func TestWatchWithSnapshot(t *testing.T) {
 	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 	clusterID := "coolcluster"
 	ambId := getRandomAmbassadorID()
-	a := NewAgent(nil, nil)
+	a := NewAgent(nil, nil, nil)
 	a.reportingStopped = false
 	a.reportRunning.Set(false)
 
@@ -1109,7 +1109,7 @@ func TestWatchEmptySnapshot(t *testing.T) {
 	t.Parallel()
 	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 
-	a := NewAgent(nil, nil)
+	a := NewAgent(nil, nil, nil)
 	minReport, err := time.ParseDuration("1ms")
 	assert.Nil(t, err)
 	a.minReportPeriod = minReport
