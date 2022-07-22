@@ -43,6 +43,13 @@ items:
           a few days until one of the $productName$ pod was restarted. This bug was encountered most frequently when using Consul
           and was previously mitigated by the no longer supported legacy mode.
 
+      - title: fix regression in the agent for the metrics transfer.
+        type: bugfix
+        body: >-
+          A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming from
+          emissary ingress before sending them to Ambassador cloud. This issue has been resolved to ensure
+          that all the nodes composing the emissary ingress cluster are reporting properly.
+
   - version: 2.3.1
     date: '2022-06-09'
     notes:

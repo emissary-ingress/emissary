@@ -93,6 +93,10 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   Emissary-ingress pod was restarted. This bug was encountered most frequently when using Consul and
   was previously mitigated by the no longer supported legacy mode.
 
+- Bugfix: A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming
+  from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
+  ensure that all the nodes composing the emissary ingress cluster are reporting properly.
+
 ## [2.3.1] June 09, 2022
 [2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1
 
