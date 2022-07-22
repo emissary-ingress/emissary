@@ -70,24 +70,6 @@ class V2TLSContext(Dict):
 
         return params
 
-    # def get_certs(self) -> ListOfCerts:
-    #    common = self.get_common()
-
-    #    # We have to explicitly cast this empty list to a list of strings.
-    #    empty_cert_list: List[str] = []
-    #    cert_list = common.setdefault('tls_certificates', empty_cert_list)
-
-    #    # cert_list is of type EnvoyCommonTLSElements right now, so we need to cast it.
-    #    return typecast(ListOfCerts, cert_list)
-
-    # def update_cert_zero(self, key: str, value: str) -> None:
-    #     certs = self.get_certs()
-
-    #     if not certs:
-    #         certs.append({})
-
-    #     src: EnvoyCoreSource = { 'filename': value }
-    #     certs[0][key] = src
 
     def update_alpn(self, key: str, value: str) -> None:
         common = self.get_common()
@@ -104,16 +86,6 @@ class V2TLSContext(Dict):
 
         params[key] = value
 
-    # def update_validation(self, key: str, value: str) -> None:
-    #    empty_context: EnvoyValidationContext = {}
-
-    #    # This looks weirder than you might expect, because self.get_common().setdefault() is a truly
-    #    # crazy Union type, so we need to cast it to an EnvoyValidationContext to be able to work
-    #    # with it.
-    #    validation = typecast(EnvoyValidationContext, self.get_common().setdefault('validation_context', empty_context))
-
-    #    src: EnvoyCoreSource = { 'filename': value }
-    #    validation[key] = src
 
     def add_context(self, ctx: IRTLSContext) -> None:
         if TYPE_CHECKING:

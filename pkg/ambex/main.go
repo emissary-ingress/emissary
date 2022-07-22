@@ -149,8 +149,6 @@ func parseArgs(ctx context.Context, rawArgs ...string) (*Args, error) {
 	flagset.BoolVar(&args.watch, "watch", false, "Watch for file changes")
 
 	// TODO(lukeshu): Consider changing the default here so we don't need to put it in entrypoint.sh
-	// flagset.StringVar(&args.adsNetwork, "ads-listen-network", "tcp", "network for ADS to listen on")
-	// flagset.StringVar(&args.adsAddress, "ads-listen-address", ":18000", "address (on --ads-listen-network) for ADS to listen on")
 	flagset.StringVar(&args.adsNetwork, "ads-listen-network", "unix", "network for ADS to listen on")
 	flagset.StringVar(&args.adsAddress, "ads-listen-address", "/tmp/ambex.sock", "address (on --ads-listen-network) for ADS to listen on")
 
@@ -621,13 +619,11 @@ func (l logAdapterV3) OnStreamRequest(sid int64, req *v3discovery.DiscoveryReque
 // OnStreamResponse implements ecp_v2_server.Callbacks.
 func (l logAdapterV2) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
 	dlog.Debugf(context.TODO(), "V2 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
-	// dlog.Debugf(context.TODO(), "V2 Stream dump response[%v]: %v -> %v", sid, req, res)
 }
 
 // OnStreamResponse implements ecp_v3_server.Callbacks.
 func (l logAdapterV3) OnStreamResponse(sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
 	dlog.Debugf(context.TODO(), "V3 Stream response[%v] for type %s: returning %d resources: %v", sid, res.TypeUrl, len(res.Resources), res.Resources)
-	// dlog.Debugf(context.TODO(), "V3 Stream dump response[%v]: %v -> %v", sid, req, res)
 }
 
 // OnFetchRequest implements ecp_v2_server.Callbacks.

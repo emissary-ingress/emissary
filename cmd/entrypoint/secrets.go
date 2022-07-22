@@ -208,7 +208,6 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 			resources = append(resources, h)
 		}
 	}
-	dlog.Warnf(ctx, "Alice, number of Hosts in ReconcileSecrets: %d", len(sh.k8sSnapshot.Hosts))
 
 	// TLSContexts, Modules, and Ingresses are all straightforward.
 	for _, t := range sh.k8sSnapshot.TLSContexts {
@@ -216,7 +215,6 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 			resources = append(resources, t)
 		}
 	}
-	dlog.Warnf(ctx, "Alice, number of TlsContexts in ReconcileSecrets: %d", len(sh.k8sSnapshot.TLSContexts))
 
 	for _, m := range sh.k8sSnapshot.Modules {
 		if include(m.Spec.AmbassadorID) {
