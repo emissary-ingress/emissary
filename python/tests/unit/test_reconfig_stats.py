@@ -5,6 +5,7 @@ import pytest
 
 from ambassador_diag.diagd import ReconfigStats
 
+
 def assert_checks(r: ReconfigStats, when: float, want_check: bool, want_timers: bool) -> None:
     got_check = r.needs_check(when)
     assert got_check == want_check, f"{when}: wanted check {want_check}, got {got_check}"
@@ -17,7 +18,7 @@ def test_reconfig_stats():
     logging.basicConfig(
         level=logging.DEBUG,
         format="%(asctime)s ffs %(levelname)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
 
     logger = logging.getLogger("ffs")
@@ -28,7 +29,7 @@ def test_reconfig_stats():
         max_incr_between_checks=5,
         max_time_between_checks=20,
         max_config_between_timers=2,
-        max_time_between_timers=10
+        max_time_between_timers=10,
     )
 
     r.dump()
@@ -37,7 +38,7 @@ def test_reconfig_stats():
     assert_checks(r, 11, False, False)
     assert_checks(r, 12, False, False)
     r.mark("incremental", 10)
-    assert_checks(r, 14, False, True)   # Need timers from outstanding
+    assert_checks(r, 14, False, True)  # Need timers from outstanding
     assert_checks(r, 18, False, True)
     r.mark_timers_logged(20)
     assert_checks(r, 20, False, False)
@@ -95,6 +96,7 @@ def test_reconfig_stats():
     assert r.errors == 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     pytest.main(sys.argv)

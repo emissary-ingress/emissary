@@ -39,13 +39,24 @@ type LogServiceSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
 	Service string `json:"service,omitempty"`
+
+	// ProtocolVersion is the envoy api transport protocol version
+	//
+	// +kubebuilder:validation:Enum={"v2","v3"}
+	ProtocolVersion string `json:"protocol_version,omitempty"`
+
 	// +kubebuilder:validation:Enum={"tcp","http"}
-	Driver                string        `json:"driver,omitempty"`
-	DriverConfig          *DriverConfig `json:"driver_config,omitempty"`
-	FlushIntervalTime     *int          `json:"flush_interval_time,omitempty"`
-	FlushIntervalByteSize *int          `json:"flush_interval_byte_size,omitempty"`
-	GRPC                  *bool         `json:"grpc,omitempty"`
-	StatsName             string        `json:"stats_name,omitempty"`
+	Driver                string          `json:"driver,omitempty"`
+	DriverConfig          *DriverConfig   `json:"driver_config,omitempty"`
+	FlushIntervalTime     *SecondDuration `json:"flush_interval_time,omitempty"`
+	FlushIntervalByteSize *int            `json:"flush_interval_byte_size,omitempty"`
+
+	// TODO(lukeshu): In v3alpha2, drop this LogService.spec.grpc.  Due to sloppy implementation
+	// it is required to be present, and required to be 'true'.  It is silly to have a required
+	// field with only one valid value, we should just remove the thing.
+	GRPC *bool `json:"grpc,omitempty"`
+
+	StatsName string `json:"stats_name,omitempty"`
 }
 
 // LogService is the Schema for the logservices API

@@ -14,14 +14,14 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/datawire/ambassador/v2/cmd/ambex"
-	"github.com/datawire/ambassador/v2/pkg/acp"
-	"github.com/datawire/ambassador/v2/pkg/busy"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/logutil"
-	"github.com/datawire/ambassador/v2/pkg/memory"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/acp"
+	"github.com/emissary-ingress/emissary/v3/pkg/ambex"
+	"github.com/emissary-ingress/emissary/v3/pkg/busy"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/logutil"
+	"github.com/emissary-ingress/emissary/v3/pkg/memory"
 )
 
 // This is the main ambassador entrypoint. It launches and manages two other
@@ -76,10 +76,11 @@ import (
 // dies for any reason, the whole process will shutdown and some larger process
 // manager (e.g. kubernetes) is expected to take note and restart if
 // appropriate.
+
 func Main(ctx context.Context, Version string, args ...string) error {
 	// Setup logging according to AES_LOG_LEVEL
-	lvl := os.Getenv("AES_LOG_LEVEL")
-	if lvl != "" {
+	busy.SetLogLevel(logutil.DefaultLogLevel)
+	if lvl := os.Getenv("AES_LOG_LEVEL"); lvl != "" {
 		parsed, err := logutil.ParseLogLevel(lvl)
 		if err != nil {
 			dlog.Errorf(ctx, "Error parsing log level: %v", err)
@@ -167,7 +168,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 
 	fastpathCh := make(chan *ambex.FastpathSnapshot)
 	group.Go("ambex", func(ctx context.Context) error {
-		return ambex.Main2(ctx, Version, usage.PercentUsed, fastpathCh, "--ads-listen-address",
+		return ambex.Main(ctx, Version, usage.PercentUsed, fastpathCh, "--ads-listen-address",
 			"127.0.0.1:8003", GetEnvoyDir())
 	})
 
@@ -216,7 +217,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 }
 
 func clusterIDFromRootID(rootID string) string {
-	clusterUrl := fmt.Sprintf("d6e_id://%s/%s", rootID, GetAmbassadorId())
+	clusterUrl := fmt.Sprintf("d6e_id://%s/%s", rootID, GetAmbassadorID())
 	uid := uuid.NewSHA1(uuid.NameSpaceURL, []byte(clusterUrl))
 
 	return strings.ToLower(uid.String())

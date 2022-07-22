@@ -1,6 +1,7 @@
 package agent_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -8,7 +9,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -16,14 +16,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/datawire/ambassador/v2/pkg/api/agent"
-	"github.com/datawire/ambassador/v2/pkg/dtest"
-	"github.com/datawire/ambassador/v2/pkg/k8s"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/kubeapply"
-	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/agent"
+	"github.com/emissary-ingress/emissary/v3/pkg/dtest"
+	"github.com/emissary-ingress/emissary/v3/pkg/k8s"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kubeapply"
+	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 // This test is supposed to be a very lightweight end to end test.
@@ -170,6 +170,8 @@ func applyArgoResources(t *testing.T, ctx context.Context, kubeconfig string, cl
 }
 
 func needsDockerBuilds(ctx context.Context, var2file map[string]string) error {
+	// TODO(lukeshu): Consider unifying envoytest.GetLocalEnvoyImage() with
+	// agent_test.go:needsDockerBuilds().
 	var targets []string
 	for varname, filename := range var2file {
 		if os.Getenv(varname) == "" {
@@ -206,31 +208,32 @@ func needsDockerBuilds(ctx context.Context, var2file map[string]string) error {
 	return nil
 }
 
+func yamlFilename(t *testing.T, inFilename, image string) string {
+	dat, err := ioutil.ReadFile(inFilename)
+	require.NoError(t, err)
+	dat = bytes.ReplaceAll(dat, []byte("$imageRepo$:$version$"), []byte(image))
+	outFilename := filepath.Join(t.TempDir(), strings.TrimSuffix(filepath.Base(inFilename), ".in"))
+	require.NoError(t, ioutil.WriteFile(outFilename, dat, 0644))
+	return outFilename
+}
+
 func setup(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Client) {
 	require.NoError(t, needsDockerBuilds(ctx, map[string]string{
 		"AMBASSADOR_DOCKER_IMAGE": "docker/emissary.docker.push.remote",
 		"KAT_SERVER_DOCKER_IMAGE": "docker/kat-server.docker.push.remote",
 	}))
 
-	// okay, yes this is gross, but we're revamping all the yaml right now, so i'm just making
-	// this as frictionless as possible for the time being
-	// TODO(acookin): this will probably need to change when we finish #1280
-	crdFile := "../../manifests/emissary/emissary-crds.yaml"
-	aesFile := "../../manifests/emissary/emissary-emissaryns.yaml"
-	aesDat, err := ioutil.ReadFile(aesFile)
-	require.NoError(t, err)
 	image := os.Getenv("AMBASSADOR_DOCKER_IMAGE")
 	require.NotEmpty(t, image)
 
-	aesReplaced := regexp.MustCompile(`docker\.io/emissaryingress/emissary:\S+`).ReplaceAllString(string(aesDat), image)
-	newAesFile := filepath.Join(t.TempDir(), "emissary-emissaryns.yaml")
+	crdFile := yamlFilename(t, "../../manifests/emissary/emissary-crds.yaml.in", image)
+	aesFile := yamlFilename(t, "../../manifests/emissary/emissary-emissaryns.yaml.in", image)
 
-	require.NoError(t, ioutil.WriteFile(newAesFile, []byte(aesReplaced), 0644))
 	kubeinfo := k8s.NewKubeInfo(kubeconfig, "", "")
 
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, crdFile))
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, time.Minute, true, false, "./testdata/namespace.yaml"))
-	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, 2*time.Minute, true, false, newAesFile))
+	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, 2*time.Minute, true, false, aesFile))
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, 2*time.Minute, true, false, "./testdata/fake-agentcom.yaml"))
 
 	dep := &kates.Deployment{

@@ -13,8 +13,8 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/datawire/ambassador/v2/pkg/api/agent"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/agent"
 )
 
 const APIKeyMetadataKey = "x-ambassador-api-key"
@@ -27,6 +27,7 @@ type RPCComm struct {
 	agentID                  *agent.Identity
 	directives               chan *agent.Directive
 	metricsStreamWriterMutex sync.Mutex
+	extraHeaders             []string
 }
 
 const (
@@ -64,7 +65,13 @@ func connInfoFromAddress(address string) (*ConnInfo, error) {
 	return &ConnInfo{hostname, port, secure}, nil
 }
 
-func NewComm(ctx context.Context, connInfo *ConnInfo, agentID *agent.Identity, apiKey string) (*RPCComm, error) {
+func NewComm(
+	ctx context.Context,
+	connInfo *ConnInfo,
+	agentID *agent.Identity,
+	apiKey string,
+	extraHeaders []string,
+) (*RPCComm, error) {
 	ctx = dlog.WithField(ctx, "agent", "comm")
 	opts := make([]grpc.DialOption, 0, 1)
 	address := connInfo.hostname + ":" + connInfo.port
@@ -88,18 +95,24 @@ func NewComm(ctx context.Context, connInfo *ConnInfo, agentID *agent.Identity, a
 	retCtx, retCancel := context.WithCancel(ctx)
 
 	c := &RPCComm{
-		conn:       conn,
-		client:     client,
-		retCancel:  retCancel,
-		agentID:    agentID,
-		directives: make(chan *agent.Directive, 1),
-		rptWake:    make(chan struct{}, 1),
+		conn:         conn,
+		client:       client,
+		retCancel:    retCancel,
+		agentID:      agentID,
+		directives:   make(chan *agent.Directive, 1),
+		rptWake:      make(chan struct{}, 1),
+		extraHeaders: extraHeaders,
 	}
-	retCtx = metadata.AppendToOutgoingContext(retCtx, APIKeyMetadataKey, apiKey)
+	retCtx = metadata.AppendToOutgoingContext(ctx, c.getHeaders(apiKey)...)
 
 	go c.retrieveLoop(retCtx)
 
 	return c, nil
+}
+
+func (c *RPCComm) getHeaders(apiKey string) []string {
+	return append([]string{
+		APIKeyMetadataKey, apiKey}, c.extraHeaders...)
 }
 
 func (c *RPCComm) retrieveLoop(ctx context.Context) {
@@ -146,7 +159,7 @@ func (c *RPCComm) Close() error {
 }
 
 func (c *RPCComm) ReportCommandResult(ctx context.Context, result *agent.CommandResult, apiKey string) error {
-	ctx = metadata.AppendToOutgoingContext(ctx, APIKeyMetadataKey, apiKey)
+	ctx = metadata.AppendToOutgoingContext(ctx, c.getHeaders(apiKey)...)
 	_, err := c.client.ReportCommandResult(ctx, result, grpc.EmptyCallOption{})
 	if err != nil {
 		return fmt.Errorf("ReportCommandResult error: %w", err)
@@ -159,7 +172,7 @@ func (c *RPCComm) Report(ctx context.Context, report *agent.Snapshot, apiKey str
 	case c.rptWake <- struct{}{}:
 	default:
 	}
-	ctx = metadata.AppendToOutgoingContext(ctx, APIKeyMetadataKey, apiKey)
+	ctx = metadata.AppendToOutgoingContext(ctx, c.getHeaders(apiKey)...)
 
 	// marshal snapshot
 	data, err := json.Marshal(report)
@@ -206,8 +219,9 @@ func (c *RPCComm) StreamMetrics(ctx context.Context, metrics *agent.StreamMetric
 
 	c.metricsStreamWriterMutex.Lock()
 	defer c.metricsStreamWriterMutex.Unlock()
-	ctx = metadata.AppendToOutgoingContext(ctx, APIKeyMetadataKey, apiKey)
+	ctx = metadata.AppendToOutgoingContext(ctx, c.getHeaders(apiKey)...)
 	streamClient, err := c.client.StreamMetrics(ctx)
+
 	if err != nil {
 		return err
 	}
@@ -221,4 +235,51 @@ func (c *RPCComm) StreamMetrics(ctx context.Context, metrics *agent.StreamMetric
 
 func (c *RPCComm) Directives() <-chan *agent.Directive {
 	return c.directives
+}
+
+func (c *RPCComm) StreamDiagnostics(ctx context.Context, diagnosticsReport *agent.Diagnostics, apiKey string) error {
+	select {
+	case c.rptWake <- struct{}{}:
+	default:
+	}
+	ctx = metadata.AppendToOutgoingContext(ctx, c.getHeaders(apiKey)...)
+
+	// marshal diagnostics into bytes
+	data, err := json.Marshal(diagnosticsReport)
+	if err != nil {
+		return fmt.Errorf("json.Marshal: %w", err)
+	}
+
+	const CHUNKSIZE = (64 * 1024) - 4 // 64KiB-4B; gRPC adds 4 bytes of overhead
+	dlog.Debugf(ctx, "Diagnostics Report is %dB; will take %d chunks",
+		len(data),
+		(len(data)+CHUNKSIZE-1)/CHUNKSIZE)
+
+	// make stream
+	stream, err := c.client.StreamDiagnostics(ctx)
+	if err != nil {
+		return fmt.Errorf("ReportDiagnosticsStream.Open: %w", err)
+	}
+
+	// send chunks
+	msg := &agent.RawDiagnosticsChunk{}
+	for i := 0; i < len(data); i += CHUNKSIZE {
+		j := i + CHUNKSIZE
+
+		if j < len(data) {
+			msg.Chunk = data[i:j]
+		} else {
+			msg.Chunk = data[i:]
+		}
+
+		if err := stream.Send(msg); err != nil {
+			return fmt.Errorf("ReportDiagnosticsStream.Send: %w", err)
+		}
+	}
+
+	if _, err = stream.CloseAndRecv(); err != nil {
+		return fmt.Errorf("ReportDiagnosticsStream.Close: %w", err)
+	}
+
+	return nil
 }

@@ -2,7 +2,6 @@
 set -e
 
 busyprograms=(
-    ambex
     #entrypoint
     kubestatus
     watt

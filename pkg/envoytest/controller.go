@@ -4,23 +4,25 @@ import (
 	// standard library
 	"context"
 	"fmt"
-	"net"
 	"sync"
-	"testing"
 
 	// third-party libraries
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 
-	// envoy api v2
-	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	apiv2_core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	apiv2_discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
+	// envoy api v3
+	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/cluster/v3"
+	v3discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
+	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/endpoint/v3"
+	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/listener/v3"
+	v3route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/route/v3"
 
 	// envoy control plane
-	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
-	ecp_v2_server "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v2"
+	ecp_v3_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+	ecp_log "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/log"
+	ecp_v3_resource "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
+	ecp_v3_server "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
 
 	// first-party-libraries
 	"github.com/datawire/dlib/dhttp"
@@ -33,14 +35,13 @@ import (
 type EnvoyController struct {
 	address string
 
-	configCache ecp_v2_cache.SnapshotCache
+	configCache ecp_v3_cache.SnapshotCache
 
-	// Protects the errors and outstanding fields.
-	cond        *sync.Cond
-	errors      map[string]*errorInfo // Maps config version to error info related to that config
-	outstanding map[string]ackInfo    // Maps response nonce to config version and typeUrl
+	cond        *sync.Cond            // Protects the 'results' and 'outstanding'
+	results     map[string]*errorInfo // Maps config version to error info related to that config
+	outstanding map[string]ackInfo    // Maps response nonce to config version and typeURL
 
-	// Captured context for logging callbacks.
+	// logCtx gets set when .Run() starts.
 	logCtx context.Context
 }
 
@@ -48,13 +49,14 @@ type EnvoyController struct {
 // supplied in discovery requests.
 type ackInfo struct {
 	version string
-	typeUrl string
+	typeURL string
 }
 
-// Holds the error info associated with a configuration version. The details map is keyed by typeUrl and has
+// Holds the error info associated with a configuration version. The details map is keyed by typeURL
+// and has
 type errorInfo struct {
 	version string
-	details map[string]*status.Status // keyed by typeUrl
+	details map[string]*status.Status // keyed by typeURL
 }
 
 func (e *errorInfo) String() string {
@@ -63,20 +65,25 @@ func (e *errorInfo) String() string {
 
 // NewEnvoyControler creates a new envoy controller that binds to the supplied address when Run.
 func NewEnvoyController(address string) *EnvoyController {
-	result := &EnvoyController{
+	ret := &EnvoyController{
 		address:     address,
 		cond:        sync.NewCond(&sync.Mutex{}),
-		errors:      map[string]*errorInfo{},
+		results:     map[string]*errorInfo{},
 		outstanding: map[string]ackInfo{},
 	}
-	result.configCache = ecp_v2_cache.NewSnapshotCache(true, result, result)
-	return result
+
+	ret.configCache = ecp_v3_cache.NewSnapshotCache(
+		true,              // ads
+		ecNodeHash{},      // hash
+		ecLogger{ec: ret}, // logger
+	)
+	return ret
 }
 
 // Configure will update the envoy configuration and block until the reconfiguration either succeeds
 // or signals an error.
-func (e *EnvoyController) Configure(node, version string, snapshot ecp_v2_cache.Snapshot) (*status.Status, error) {
-	err := e.configCache.SetSnapshot(node, snapshot)
+func (e *EnvoyController) Configure(ctx context.Context, node, version string, snapshot ecp_v3_cache.Snapshot) (*status.Status, error) {
+	err := e.configCache.SetSnapshot(ctx, node, snapshot)
 	if err != nil {
 		return nil, err
 	}
@@ -84,22 +91,26 @@ func (e *EnvoyController) Configure(node, version string, snapshot ecp_v2_cache.
 	// Versioning happens on a per type basis, so we need to figure out how many versions will be
 	// requested in order to figure out how to properly check that the entire snapshot was
 	// acked/nacked.
-	typeUrls := []string{}
-	if len(snapshot.Resources[ecp_cache_types.Endpoint].Items) > 0 {
-		typeUrls = append(typeUrls, "type.googleapis.com/envoy.api.v2.ClusterLoadAssignment")
+	var typeURLs []string
+
+	if len(snapshot.GetResources(ecp_v3_resource.EndpointType)) > 0 {
+		typeURLs = append(typeURLs, ecp_v3_resource.EndpointType)
 	}
-	if len(snapshot.Resources[ecp_cache_types.Cluster].Items) > 0 {
-		typeUrls = append(typeUrls, "type.googleapis.com/envoy.api.v2.Cluster")
+	if len(snapshot.GetResources(ecp_v3_resource.ClusterType)) > 0 {
+		typeURLs = append(typeURLs, ecp_v3_resource.ClusterType)
 	}
-	if len(snapshot.Resources[ecp_cache_types.Route].Items) > 0 {
-		typeUrls = append(typeUrls, "type.googleapis.com/envoy.api.v2.RouteConfiguration")
+	if len(snapshot.GetResources(ecp_v3_resource.RouteType)) > 0 {
+		typeURLs = append(typeURLs, ecp_v3_resource.RouteType)
 	}
-	if len(snapshot.Resources[ecp_cache_types.Listener].Items) > 0 {
-		typeUrls = append(typeUrls, "type.googleapis.com/envoy.api.v2.Listener")
+	if len(snapshot.GetResources(ecp_v3_resource.ListenerType)) > 0 {
+		typeURLs = append(typeURLs, ecp_v3_resource.ListenerType)
 	}
 
-	for _, t := range typeUrls {
-		status := e.waitFor(version, t)
+	for _, t := range typeURLs {
+		status, err := e.waitFor(ctx, version, t)
+		if err != nil {
+			return nil, err
+		}
 		if status != nil {
 			return status, nil
 		}
@@ -108,25 +119,59 @@ func (e *EnvoyController) Configure(node, version string, snapshot ecp_v2_cache.
 	return nil, nil
 }
 
-// waitFor blocks until the supplied version and typeUrl are acknowledged by envoy. It returns the
+// waitFor blocks until the supplied version and typeURL are acknowledged by envoy. It returns the
 // status if there is an error and nil if the configuration is successfully accepted by envoy.
-func (e *EnvoyController) waitFor(version string, typeUrl string) *status.Status {
-	e.cond.L.Lock()
-	defer e.cond.L.Unlock()
-	for {
-		error, ok := e.errors[version]
-		if ok {
-			for k, v := range error.details {
-				if v != nil {
-					return v
-				}
-				if k == typeUrl {
-					return v
-				}
+func (e *EnvoyController) waitFor(ctx context.Context, version string, typeURL string) (*status.Status, error) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer func() {
+		cancel()
+	}()
+	go func() {
+		<-ctx.Done()
+		e.cond.L.Lock()
+		defer e.cond.L.Unlock()
+		e.cond.Broadcast()
+	}()
+
+	var (
+		retStatus *status.Status
+		retErr    error
+	)
+
+	condition := func() bool {
+		// If the Context was canceled, then go ahead and bail early.
+		if err := ctx.Err(); err != nil {
+			retErr = err
+			return true
+		}
+		// See if our 'version' has a result yet.
+		result, ok := e.results[version]
+		if !ok {
+			return false
+		}
+		// Does our typeURL within that result have a status?
+		if status, ok := result.details[typeURL]; ok {
+			retStatus = status
+			return true
+		}
+		// OK, our 'version' has a result, but our typeURL doesn't have a status within it.
+		// Do any other typeURLs within the result have an error status that we can return?
+		for _, status := range result.details {
+			if status != nil {
+				retStatus = status
+				return true
 			}
 		}
+		// Darn, we didn't find anything worth returning.
+		return false
+	}
+
+	e.cond.L.Lock()
+	defer e.cond.L.Unlock()
+	for !condition() {
 		e.cond.Wait()
 	}
+	return retStatus, retErr
 }
 
 // Run the ADS server.
@@ -134,125 +179,143 @@ func (e *EnvoyController) Run(ctx context.Context) error {
 	// The callbacks don't have access to a context, so we'll capture this one for them to use.
 	e.logCtx = ctx
 
-	grpcServer := grpc.NewServer()
-	srv := ecp_v2_server.NewServer(ctx, e.configCache, e)
+	srv := ecp_v3_server.NewServer(ctx,
+		e.configCache,      // config
+		ecCallbacks{ec: e}, // calbacks
+	)
 
-	apiv2_discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, srv)
-	apiv2.RegisterEndpointDiscoveryServiceServer(grpcServer, srv)
-	apiv2.RegisterClusterDiscoveryServiceServer(grpcServer, srv)
-	apiv2.RegisterRouteDiscoveryServiceServer(grpcServer, srv)
-	apiv2.RegisterListenerDiscoveryServiceServer(grpcServer, srv)
-
-	lis, err := net.Listen("tcp", e.address)
-	if err != nil {
-		return err
-	}
+	grpcMux := grpc.NewServer()
+	v3discovery.RegisterAggregatedDiscoveryServiceServer(grpcMux, srv)
+	v3endpoint.RegisterEndpointDiscoveryServiceServer(grpcMux, srv)
+	v3cluster.RegisterClusterDiscoveryServiceServer(grpcMux, srv)
+	v3route.RegisterRouteDiscoveryServiceServer(grpcMux, srv)
+	v3listener.RegisterListenerDiscoveryServiceServer(grpcMux, srv)
 
 	sc := &dhttp.ServerConfig{
-		Handler: grpcServer,
+		Handler: grpcMux,
 	}
-	if err := sc.Serve(ctx, lis); err != nil {
-		if err != nil && err != context.Canceled {
-			return err
-		}
-	}
-	return nil
+	return sc.ListenAndServe(ctx, e.address)
 }
 
-// SetupEnvoyController will create and run an EnvoyController with the supplied address as well as
-// registering a Cleanup function to shutdown the EnvoyController.
-func SetupEnvoyController(t *testing.T, address string) *EnvoyController {
-	e := NewEnvoyController(address)
-	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
-	done := make(chan struct{})
-	t.Cleanup(func() {
-		cancel()
-		<-done
-	})
-	go func() {
-		err := e.Run(ctx)
-		if err != nil {
-			t.Errorf("envoy controller exited with error: %+v", err)
-		}
-		close(done)
-	}()
-	return e
-}
+////////////////////////////////////////////////////////////////////////////////
 
-// ID is a callback function that the go control plane uses. I don't know what it does.
-func (e EnvoyController) ID(node *apiv2_core.Node) string {
+type ecNodeHash struct{}
+
+var _ ecp_v3_cache.NodeHash = ecNodeHash{}
+
+// ID implements ecp_v3_cache.NodeHash.
+func (ecNodeHash) ID(node *v3core.Node) string {
 	if node == nil {
 		return "unknown"
 	}
 	return node.Id
 }
 
-// OnStreamOpen is called once an xDS stream is open with a stream ID and the type URL (or "" for ADS).
-func (e *EnvoyController) OnStreamOpen(_ context.Context, sid int64, stype string) error {
+////////////////////////////////////////////////////////////////////////////////
+
+type ecCallbacks struct {
+	ec *EnvoyController
+}
+
+var _ ecp_v3_server.Callbacks = ecCallbacks{}
+
+// OnStreamOpen implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnStreamOpen(_ context.Context, sid int64, stype string) error {
 	//e.Infof("Stream open[%v]: %v", sid, stype)
 	return nil
 }
 
-// OnStreamClosed is called immediately prior to closing an xDS stream with a stream ID.
-func (e *EnvoyController) OnStreamClosed(sid int64) {
+// OnStreamClosed implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnStreamClosed(sid int64) {
 	//e.Infof("Stream closed[%v]", sid)
 }
 
-// OnStreamRequest is called once a request is received on a stream.
-func (e *EnvoyController) OnStreamRequest(sid int64, req *apiv2.DiscoveryRequest) error {
-	//e.Infof("Stream request[%v]: %v", sid, req.TypeUrl)
+// OnStreamRequest implements ecp_v2_server.Callbacks.
+func (ecc ecCallbacks) OnStreamRequest(sid int64, req *v3discovery.DiscoveryRequest) error {
+	//e.Infof("Stream request[%v]: %v", sid, req.TypeURL)
 
-	func() {
-		e.cond.L.Lock()
-		defer e.cond.L.Unlock()
-		ackInfo, ok := e.outstanding[req.ResponseNonce]
-		if ok {
-			errors, ok := e.errors[ackInfo.version]
-			if !ok {
-				errors = &errorInfo{version: ackInfo.version, details: map[string]*status.Status{}}
-				e.errors[ackInfo.version] = errors
-			}
-			errors.details[ackInfo.typeUrl] = req.ErrorDetail
-			delete(e.outstanding, req.ResponseNonce)
+	ecc.ec.cond.L.Lock()
+	defer ecc.ec.cond.L.Unlock()
+	defer ecc.ec.cond.Broadcast()
+
+	if ackInfo, ok := ecc.ec.outstanding[req.ResponseNonce]; ok {
+		results, ok := ecc.ec.results[ackInfo.version]
+		if !ok {
+			results = &errorInfo{version: ackInfo.version, details: map[string]*status.Status{}}
+			ecc.ec.results[ackInfo.version] = results
 		}
-		e.cond.Broadcast()
-	}()
+		results.details[ackInfo.typeURL] = req.ErrorDetail
+		delete(ecc.ec.outstanding, req.ResponseNonce)
+	}
 
 	return nil
 }
 
-// OnStreamResponse is called immediately prior to sending a response on a stream.
-func (e *EnvoyController) OnStreamResponse(sid int64, req *apiv2.DiscoveryRequest, res *apiv2.DiscoveryResponse) {
-	//e.Infof("Stream response[%v]: %v -> %v", sid, req.TypeUrl, res.Nonce)
-	func() {
-		e.cond.L.Lock()
-		defer e.cond.L.Unlock()
-		e.outstanding[res.Nonce] = ackInfo{res.VersionInfo, res.TypeUrl}
-	}()
+// OnStreamResponse implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnStreamResponse(ctx context.Context, sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
+	//e.Infof("Stream response[%v]: %v -> %v", sid, req.TypeURL, res.Nonce)
+
+	ecc.ec.cond.L.Lock()
+	defer ecc.ec.cond.L.Unlock()
+	defer ecc.ec.cond.Broadcast()
+
+	ecc.ec.outstanding[res.Nonce] = ackInfo{res.VersionInfo, res.TypeUrl}
+
 }
 
-// OnFetchRequest is called for each Fetch request
-func (e *EnvoyController) OnFetchRequest(_ context.Context, r *apiv2.DiscoveryRequest) error {
+// OnFetchRequest implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnFetchRequest(_ context.Context, r *v3discovery.DiscoveryRequest) error {
 	//e.Infof("Fetch request: %v", r)
 	return nil
 }
 
-// OnFetchResponse is called immediately prior to sending a response.
-func (e *EnvoyController) OnFetchResponse(req *apiv2.DiscoveryRequest, res *apiv2.DiscoveryResponse) {
+// OnFetchResponse implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
 	//e.Infof("Fetch response: %v -> %v", req, res)
 }
 
-// The go control plane requires a logger to be injected. These methods implement the logger
-// interface.
-func (e *EnvoyController) Debugf(format string, args ...interface{}) {
-	dlog.Debugf(e.logCtx, format, args...)
+// OnDeltaStreamOpen implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnDeltaStreamOpen(ctx context.Context, sid int64, stype string) error {
+	return nil
 }
-func (e *EnvoyController) Infof(format string, args ...interface{}) {
-	dlog.Infof(e.logCtx, format, args...)
+
+// OnDeltaStreamClosed implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnDeltaStreamClosed(sid int64) {
 }
-func (e *EnvoyController) Warnf(format string, args ...interface{}) {
-	dlog.Warnf(e.logCtx, format, args...)
+
+// OnStreamDeltaRequest implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnStreamDeltaRequest(sid int64, req *v3discovery.DeltaDiscoveryRequest) error {
+	return nil
 }
-func (e *EnvoyController) Errorf(format string, args ...interface{}) {
-	dlog.Errorf(e.logCtx, format, args...)
+
+// OnStreamDelatResponse implements ecp_v3_server.Callbacks.
+func (ecc ecCallbacks) OnStreamDeltaResponse(sid int64, req *v3discovery.DeltaDiscoveryRequest, res *v3discovery.DeltaDiscoveryResponse) {
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+type ecLogger struct {
+	ec *EnvoyController
+}
+
+var _ ecp_log.Logger = ecLogger{}
+
+// Debugf implements ecp_log.Logger.
+func (ecl ecLogger) Debugf(format string, args ...interface{}) {
+	dlog.Debugf(ecl.ec.logCtx, format, args...)
+}
+
+// Infof implements ecp_log.Logger.
+func (ecl ecLogger) Infof(format string, args ...interface{}) {
+	dlog.Infof(ecl.ec.logCtx, format, args...)
+}
+
+// Warnf implements ecp_log.Logger.
+func (ecl ecLogger) Warnf(format string, args ...interface{}) {
+	dlog.Warnf(ecl.ec.logCtx, format, args...)
+}
+
+// Errorf implements ecp_log.Logger.
+func (ecl ecLogger) Errorf(format string, args ...interface{}) {
+	dlog.Errorf(ecl.ec.logCtx, format, args...)
 }

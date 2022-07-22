@@ -1,24 +1,40 @@
 #!/bin/bash
 
-set -e
+set -e -o pipefail
 
-CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-[ -d "$CURR_DIR" ] || { echo "FATAL: no current dir (maybe running in zsh?)";  exit 1; }
-RED='\033[1;31m'
-END='\033[0m'
-BLOCK='\033[1;47m'
-
-log() { >&2 printf "${BLOCK}>>>${END} $1\n"; }
+RED=$'\033[1;31m'
+END=$'\033[0m'
+BLOCK=$'\033[1;47m'
 
 abort() {
-  log "${RED}FATAL: $1${END}"
-  exit 1
+    log "${RED}FATAL: $1${END}"
+    exit 1
 }
 
-if [[ ${VERSION:-} != v2.* ]]; then
-    abort "VERSION must be set to a 'v2.*' string"
-fi
+log() { >&2 printf '%s>>>%s %s\n' "$BLOCK" "$END" "$*"; }
+
+errusage() {
+    printf >&2 'Usage: %s DIR\n' "$0"
+    if [[ $# -gt 0 ]]; then
+        local msg
+        # shellcheck disable=SC2059
+        printf -v msg "$@"
+        printf >&2 '%s: error: %s\n' "$0" "$msg"
+    fi
+    exit 2
+}
+
+[[ $# == 1                     ]] || errusage 'wrong number of args: %d' $#
+[[ -d "$1"                     ]] || errusage 'DIR is not a directory: %q' "$dir"
+[[ -n "$AWS_ACCESS_KEY_ID"     ]] || errusage "AWS_ACCESS_KEY_ID is not set"
+[[ -n "$AWS_SECRET_ACCESS_KEY" ]] || errusage "AWS_SECRET_ACCESS_KEY is not set"
+[[ "${VERSION:-}" == v3.*      ]] || errusage "VERSION must be set to a 'v3.*' string"
+dir=$1
+while [[ "$dir" == */ ]]; do
+    dir=${dir%/}
+done
 version=${VERSION#v}
+
 log "Publishing manifest version ${version}"
 
 if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] ; then
@@ -35,33 +51,27 @@ if [ -z "$AWS_S3_BUCKET" ] ; then
     AWS_S3_BUCKET=datawire-static-files
 fi
 
-[ -n "$AWS_ACCESS_KEY_ID"     ] || abort "AWS_ACCESS_KEY_ID is not set"
-[ -n "$AWS_SECRET_ACCESS_KEY" ] || abort "AWS_SECRET_ACCESS_KEY is not set"
+echo "$version" > stable.txt
 
-echo ${version} > stable.txt
-for dir in ${CURR_DIR}/*/ ; do
-    dir=`basename ${dir%*/}`
+aws s3api put-object \
+    --bucket "$AWS_S3_BUCKET" \
+    --key "yaml/emissary/${version}"
+
+find "$dir" -type f -name '*.yaml' -print0 | while read -r -d '' file; do
     aws s3api put-object \
         --bucket "$AWS_S3_BUCKET" \
-        --key "yaml/${dir}/${version}"
-    for f in ${CURR_DIR}/${dir}/*.yaml ; do
-      fname=`basename $f`
-      echo ${fname}
-      aws s3api put-object \
-        --bucket "$AWS_S3_BUCKET" \
-        --key "yaml/${dir}/${version}/$fname" \
-        --body "$f" &&  echo "... yaml/${dir}/${version}/$fname pushed"
-    done
-    # bump the stable version for this directory
-    if [[ "${BUMP_STABLE}" ]] ; then
-        log "Bumping stable version for yaml/${dir}"
-        aws s3api put-object \
-            --bucket "$AWS_S3_BUCKET" \
-            --key "yaml/${dir}/stable.txt" \
-            --body stable.txt
-    fi
+        --key "yaml/emissary/${version}/${file##*/}" \
+        --body "$file"
+    echo "... yaml/emissary/${version}/${file##*/} pushed"
 done
 
+if [[ "${BUMP_STABLE}" ]] ; then
+    log "Bumping stable version for yaml/emissary"
+    aws s3api put-object \
+        --bucket "$AWS_S3_BUCKET" \
+        --key "yaml/emissary/stable.txt" \
+        --body stable.txt
+fi
 rm stable.txt
 
 exit 0

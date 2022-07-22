@@ -27,7 +27,7 @@ jobs:
 
           this_ver=${GITHUB_REF##*/}
           this_branch=release/${this_ver}
-          echo "::set-output this_branch=${this_branch}"
+          echo "::set-output name=this_branch::${this_branch}"
 
           next_ver=$(git for-each-ref --format='%(refname:lstrip=4)' 'refs/remotes/origin/release/v*' | sort --version-sort | grep -A1 -Fx "$this_ver" | sed 1d)
           if test -n "$next_ver"; then
@@ -36,31 +36,46 @@ jobs:
             next_ver="${this_ver%.*}.$((${this_ver##*.}+1))"
             next_branch='master'
           fi
-          echo "::set-output next_branch=${next_branch}"
+          echo "::set-output name=next_branch::${next_branch}"
 
           merge_branch="ci/repatriate/from-${this_ver}-to-${next_ver}"
           if git checkout "$merge_branch"; then
-            # PR already exists; update it.
+            # branch already exists; update it.
             git merge "$this_branch"
             git push origin "$merge_branch"
           else
-            # PR does not yet exist.
+            # branch does not yet exist.
             git checkout -b "$merge_branch"
             git push --set-upstream origin "$merge_branch"
+          fi
+
+          url=$(gh pr list --limit=1 --head="$merge_branch" --state=open --json=url --jq='.[0].url')
+          if [[ -n "$url" ]]; then
+            echo "::set-output name=verb::Updated"
+          else
             gh pr create \
               --title="[${next_ver}] Repatriate from ${this_ver}" \
               --body="This PR merges ${this_branch} in to ${next_branch}." \
               --base="$next_branch"
+            url=$(gh pr list --limit=1 --head="$merge_branch" --state=open --json=url --jq='.[0].url')
+            echo "::set-output name=verb::Created"
           fi
+          echo "::set-output name=pr_url::${url}"
+      - id: check-slack-webhook
+        name: Assign slack webhook variable
+        run: echo '::set-output name=slack_webhook_url::${{secrets.SLACK_WEBHOOK_URL}}'
       - name: Slack notification
-        if: always()
+        if: steps.check-slack-webhook.outputs.slack_webhook_url && always()
         uses: edge/simple-slack-notify@master
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
-          success_text: "Created repatriation PR merging ${{ steps.step-create-pr.this_branch }} in to ${{ steps.step-create-pr.next_branch }}"
+          success_text: "${{ steps.step-create-pr.outputs.verb }} repatriation PR merging ${{ steps.step-create-pr.outputs.this_branch }} in to ${{ steps.step-create-pr.outputs.next_branch }}"
           failure_text: "Creation of repatriation PR failed"
           fields: |
             [{ "title": "Repository", "value": "${{ github.repository }}", "short": true },
-             { "title": "Branch", "value": "${{ github.ref }}", "short": true}]
+             { "title": "Branch", "value": "${{ github.ref }}", "short": true},
+             { "title": "Pull Request", "value": "${{ steps.step-create-pr.outputs.pr_url }}"}]
+      - uses: ./.github/actions/after-job
+        if: always()

@@ -31,8 +31,11 @@ jobs:
           make release/promote-oss/to-rc
           echo "::set-output name=version::$(go run ./tools/src/goversion | sed s/^v//)"
           echo "::set-output name=chart_version::$(go run ./tools/src/goversion --dir-prefix=chart | sed s/^v//)"
+      - id: check-slack-webhook
+        name: Assign slack webhook variable
+        run: echo '::set-output name=slack_webhook_url::${{secrets.SLACK_WEBHOOK_URL}}'
       - name: Slack notification
-        if: always()
+        if: steps.check-slack-webhook.outputs.slack_webhook_url && always()
         uses: edge/simple-slack-notify@master
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -42,8 +45,8 @@ jobs:
           success_text: |
             Emissary RC for ${{ github.ref }} successfully built:
             \`\`\`
-            export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/${{ steps.step-main.version }}
-            export HELM_CHART_VERSION=${{ steps.step-main.chart_version }}
+            export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/${{ steps.step-main.outputs.version }}
+            export HELM_CHART_VERSION=${{ steps.step-main.outputs.chart_version }}
             \`\`\`
           failure_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build failed'
           cancelled_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build was cancelled'
@@ -52,3 +55,5 @@ jobs:
              { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true },
              { "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}
             ]
+      - uses: ./.github/actions/after-job
+        if: always()

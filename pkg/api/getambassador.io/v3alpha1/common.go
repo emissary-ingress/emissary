@@ -130,6 +130,11 @@ func (aid AmbassadorID) Matches(envVar string) bool {
 		if item == envVar {
 			return true
 		}
+		if item == "_automatic_" {
+			// We always pay attention to the "_automatic_" ID -- it gives us a to
+			// easily always include certain configuration resources for Edge Stack.
+			return true
+		}
 	}
 	return false
 }
@@ -158,6 +163,32 @@ func (d *MillisecondDuration) UnmarshalJSON(data []byte) error {
 
 func (d MillisecondDuration) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.Milliseconds())
+}
+
+// TODO(lukeshu): In v3alpha2, change all of the `{foo}s`/`SecondDuration` fields to
+// `{foo}`/`metav1.Duration`.
+//
+// +kubebuilder:validation:Type="integer"
+type SecondDuration struct {
+	time.Duration `json:"-"`
+}
+
+func (d *SecondDuration) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		d.Duration = 0
+		return nil
+	}
+
+	var intval int64
+	if err := json.Unmarshal(data, &intval); err != nil {
+		return err
+	}
+	d.Duration = time.Duration(intval) * time.Second
+	return nil
+}
+
+func (d SecondDuration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(int64(d.Seconds()))
 }
 
 // UntypedDict is relatively opaque as a Go type, but it preserves its

@@ -32,6 +32,7 @@ go-mod-tidy/tools/%:
 # =============
 #
 tools/copy-ifchanged      = $(tools.bindir)/copy-ifchanged
+tools/devversion          = $(tools.bindir)/devversion
 tools/docker-promote      = $(tools.bindir)/docker-promote
 tools/move-ifchanged      = $(tools.bindir)/move-ifchanged
 tools/tap-driver          = $(tools.bindir)/tap-driver
@@ -113,8 +114,8 @@ $(tools.bindir)/telepresence: $(tools.mk)
 	curl -s --fail -L https://app.getambassador.io/download/tel2/$(GOHOSTOS)/$(GOHOSTARCH)/$(TELEPRESENCE_VERSION)/telepresence -o $@
 	chmod a+x $@
 
-# k3d would be `go get`-able, but it requires Go 1.16, and Emissary is
-# still stuck on Go 1.15.
+# k3d is in theory `go get`-able, but... the tests fail when I do
+# that.  IDK.  --lukeshu
 tools/k3d   = $(tools.bindir)/k3d
 K3D_VERSION = 4.4.8
 $(tools.bindir)/k3d: $(tools.mk)
@@ -125,8 +126,8 @@ $(tools.bindir)/k3d: $(tools.mk)
 # PROTOC_VERSION must be at least 3.8.0 in order to contain the fix so that it doesn't generate
 # invalid Python if you name an Enum member the same as a Python keyword.
 tools/protoc    = $(tools.bindir)/protoc
-PROTOC_VERSION  = 3.8.0
-PROTOC_ZIP     := protoc-$(PROTOC_VERSION)-$(patsubst darwin,osx,$(GOHOSTOS))-$(shell uname -m).zip
+PROTOC_VERSION  = 3.20.1
+PROTOC_ZIP     := protoc-$(PROTOC_VERSION)-$(patsubst darwin,osx,$(GOHOSTOS))-$(patsubst arm64,aarch_64,$(shell uname -m)).zip
 $(tools.dir)/downloads/$(PROTOC_ZIP):
 	mkdir -p $(@D)
 	curl --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/$(PROTOC_ZIP) -o $@
@@ -148,5 +149,38 @@ $(tools.bindir)/kubectl: $(tools.mk)
 	mkdir -p $(@D)
 	curl -o $@ -L --fail https://storage.googleapis.com/kubernetes-release/release/v$(KUBECTL_VERSION)/bin/$(GOHOSTOS)/$(GOHOSTARCH)/kubectl
 	chmod 755 $@
+
+tools/ct = $(tools.bindir)/ct
+$(tools/ct): $(tools.bindir)/%: $(tools.srcdir)/%/wrap.sh $(tools/ct).d/bin/ct $(tools/ct).d/bin/kubectl $(tools/ct).d/venv $(tools/ct).d/home
+	install $< $@
+$(tools/ct).d/bin/ct: $(tools.srcdir)/ct/pin.go $(tools.srcdir)/ct/go.mod
+	@PS4=; set -ex; {\
+	  cd $(<D); \
+	  pkg=$$(sed -En 's,^import "(.*)".*,\1,p' pin.go); \
+	  ver=$$(go list -f='{{ .Module.Version }}' "$$pkg"); \
+	  GOOS= GOARCH= go build -o $(abspath $@) -ldflags="-X $$pkg/cmd.Version=$$ver" "$$pkg"; \
+	}
+$(tools/ct).d/bin/kubectl: $(tools/kubectl)
+	mkdir -p $(@D)
+	ln -s ../../kubectl $@
+$(tools/ct).d/dir.txt: $(tools.srcdir)/ct/pin.go $(tools.srcdir)/ct/go.mod
+	mkdir -p $(@D)
+	cd $(<D) && GOFLAGS='-mod=readonly' go list -f='{{ .Module.Dir }}' "$$(sed -En 's,^import "(.*)".*,\1,p' pin.go)" >$(abspath $@)
+$(tools/ct).d/venv: %/venv: %/dir.txt
+	rm -rf $@
+	python3 -m venv $@
+	$@/bin/pip3 install \
+	  yamllint==$$(sed -n 's/ARG yamllint_version=//p' "$$(cat $<)/Dockerfile") \
+	  yamale==$$(sed -n 's/ARG yamale_version=//p' "$$(cat $<)/Dockerfile") \
+	  || (rm -rf $@; exit 1)
+$(tools/ct).d/home: %/home: %/dir.txt
+	rm -rf $@
+	mkdir $@ $@/.ct
+	cp "$$(cat $<)"/etc/* $@/.ct || (rm -rf $@; exit 1)
+
+# Inter-tool dependencies
+# =======================
+#
+$(tools/devversion): $(tools/goversion)
 
 endif

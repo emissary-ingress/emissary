@@ -42,11 +42,9 @@ generate/precious    =
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) $(OSS_HOME)/pkg/api/kat/
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto')) $(OSS_HOME)/pkg/api/agent/
 # Whole directories with one rule for the whole directory
-generate/files      += $(OSS_HOME)/api/envoy/
-generate/files      += $(OSS_HOME)/api/pb/
-generate/files      += $(OSS_HOME)/pkg/api/envoy/
-generate/files      += $(OSS_HOME)/pkg/api/pb/
-generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/
+generate/files      += $(OSS_HOME)/api/envoy/                # recipe in _cxx/envoy.mk
+generate/files      += $(OSS_HOME)/pkg/api/envoy/            # recipe in _cxx/envoy.mk
+generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/  # recipe in _cxx/envoy.mk
 # Individual files: Misc
 generate/files      += $(OSS_HOME)/DEPENDENCIES.md
 generate/files      += $(OSS_HOME)/DEPENDENCY_LICENSES.md
@@ -58,10 +56,6 @@ generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v3alpha1/zz_generate
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml.in
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns.yaml.in
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns.yaml.in
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns-agent.yaml.in
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns-agent.yaml.in
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns-migration.yaml.in
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns-migration.yaml.in
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
@@ -80,7 +74,7 @@ generate:
 # This (generating specific targets early, then having a separate `_generate`) is a hack.  Because the
 # full value of $(generate/files) is based on the listing of files in $(OSS_HOME)/api/, we need to
 # make sure that those directories are fully populated before we evaluate the full $(generate/files).
-	$(MAKE) $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
+	$(MAKE) $(OSS_HOME)/api/envoy
 	$(MAKE) _generate
 _generate:
 	@echo '$(MAKE) $$(generate/files)'; $(MAKE) $(patsubst %/,%,$(generate/files))
@@ -116,48 +110,6 @@ gomoddir = $(shell cd $(OSS_HOME); go list -mod=readonly $1/... >/dev/null 2>/de
 #
 # Rules for downloading ("vendoring") sources from elsewhere
 
-# How to set ENVOY_GO_CONTROL_PLANE_COMMIT: In envoyproxy/go-control-plane.git, the majority of
-# commits have a commit message of the form "Mirrored from envoyproxy/envoy @ ${envoy.git_commit}".
-# Look for the most recent one that names a commit that is an ancestor of our ENVOY_COMMIT.  If there
-# are commits not of that form immediately following that commit, you can take them in too (but that's
-# pretty uncommon).  Since that's a simple sentence, but it can be tedious to go through and check
-# which commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an
-# automated way!  Still look at the commit yourself to make sure it seems sane; blindly trusting
-# machines is bad, mmkay?
-ENVOY_GO_CONTROL_PLANE_COMMIT = v0.9.6
-
-guess-envoy-go-control-plane-commit: $(OSS_HOME)/_cxx/envoy $(OSS_HOME)/_cxx/go-control-plane
-	@echo
-	@echo '######################################################################'
-	@echo
-	@set -e; { \
-	  (cd $(OSS_HOME)/_cxx/go-control-plane && git log --format='%H %s' origin/main) | sed -n 's, Mirrored from envoyproxy/envoy @ , ,p' | \
-	  while read -r go_commit cxx_commit; do \
-	    if (cd $(OSS_HOME)/_cxx/envoy && git merge-base --is-ancestor "$$cxx_commit" $(ENVOY_COMMIT) 2>/dev/null); then \
-	      echo "ENVOY_GO_CONTROL_PLANE_COMMIT = $$go_commit"; \
-	      break; \
-	    fi; \
-	  done; \
-	}
-.PHONY: guess-envoy-go-control-plane-commit
-
-$(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
-	rm -rf $@
-	@PS4=; set -ex; { \
-	  unset GIT_DIR GIT_WORK_TREE; \
-	  tmpdir=$$(mktemp -d); \
-	  trap 'rm -rf "$$tmpdir"' EXIT; \
-	  cd "$$tmpdir"; \
-	  cd $(OSS_HOME)/_cxx/go-control-plane; \
-	  cp -r $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg/* "$$tmpdir"; \
-	  find "$$tmpdir" -name '*.go' -exec sed -E -i.bak \
-	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/datawire/ambassador/v2/pkg/envoy-control-plane,g' \
-	    -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/v2/pkg/api/envoy,g' \
-	    -- {} +; \
-	  find "$$tmpdir" -name '*.bak' -delete; \
-	  mv "$$tmpdir" $(abspath $@); \
-	}
-	cd $(OSS_HOME) && gofmt -w -s ./pkg/envoy-control-plane/
 
 #
 # `make generate` certificate generation
@@ -402,21 +354,20 @@ helm.namespace.emissary-emissaryns-migration = emissary
 helm.name.emissary-defaultns-migration = emissary-ingress
 helm.namespace.emissary-defaultns-migration = default
 
-# IF YOU'RE LOOKING FOR *.yaml: recipes, look in version-hack.mk at the
-# build-aux/version-hack.stamp.mk dependencies.
+# IF YOU'RE LOOKING FOR *.yaml: recipes, look in main.mk.
 
 $(OSS_HOME)/k8s-config/%/helm-expanded.yaml: \
   $(OSS_HOME)/k8s-config/%/values.yaml \
-  $(OSS_HOME)/charts/emissary-ingress/templates $(wildcard $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml) \
-  $(OSS_HOME)/charts/emissary-ingress/values.yaml \
-  FORCE
-	helm template --namespace=$(helm.namespace.$*) --values=$(@D)/values.yaml $(or $(helm.name.$*),$*) $(OSS_HOME)/charts/emissary-ingress >$@
-
+  $(boguschart_dir)
+	helm template --namespace=$(helm.namespace.$*) --values=$(@D)/values.yaml $(or $(helm.name.$*),$*) $(boguschart_dir) >$@
 $(OSS_HOME)/k8s-config/%/output.yaml: \
   $(OSS_HOME)/k8s-config/%/helm-expanded.yaml \
   $(OSS_HOME)/k8s-config/%/require.yaml \
   $(tools/filter-yaml)
 	$(tools/filter-yaml) $(filter %/helm-expanded.yaml,$^) $(filter %/require.yaml,$^) >$@
+k8s-config.clean:
+	rm -f k8s-config/*/helm-expanded.yaml k8s-config/*/output.yaml
+clean: k8s-config.clean
 
 $(OSS_HOME)/manifests/emissary/%.yaml.in: $(OSS_HOME)/k8s-config/%/output.yaml
 	cp $< $@
@@ -435,14 +386,21 @@ $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_
 
 $(OSS_HOME)/build-aux/pip-show.txt: docker/base-pip.docker.tag.local
 	docker run --rm "$$(cat docker/base-pip.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
+clean: build-aux/pip-show.txt.rm
 
 $(OSS_HOME)/build-aux/go-version.txt: docker/base-python/Dockerfile
 	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
+clean: build-aux/go-version.txt.rm
+
 $(OSS_HOME)/build-aux/py-version.txt: docker/base-python/Dockerfile
 	{ grep -o 'python3=\S*' | cut -d= -f2; } < $< > $@
+clean: build-aux/py-version.txt.rm
 
 $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
+build-aux/go.src.tar.gz.clean:
+	rm -f build-aux/go1*.src.tar.gz
+clobber: build-aux/go.src.tar.gz.clean
 
 $(OSS_HOME)/DEPENDENCIES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz

@@ -32,13 +32,253 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
-  - version: 2.3.0
+  - version: 3.1.0
     date: 'TBD'
+    notes:
+      - title: Add support for OpenAPI 2 contracts
+        type: feature
+        body: >-
+          The agent is now able to parse api contracts using swagger 2, and to convert them to OpenAPI 3, making them
+          available for use in the dev portal.
+      - title:
+        type: feature
+        body: >-
+          The agent now has the ability to report diagnostics information to Ambassador Cloud.
+          If you previously connected your installation to Ambassador Cloud, you may choose to enable this functionality
+          by setting the following environment variables on your agent <code>Deployment</code>:
+          <code>AES_REPORT_DIAGNOSTICS_TO_CLOUD=true</code>,
+          <code>AES_DIAGNOSTICS_URL="http://[ambassador-admin]:8877/ambassador/v0/diag/?json=true"</code>.
+          This capability is enabled by default in the standard published <code>.yaml</code> files and Helm chart.
+        docs: ../../../cloud/latest/service-catalog/reference/diagnostics/
+      - title: Default YAML enables the diagnostics interface from non-local clients on the admin service port
+        type: change
+        body: >-
+          In the standard published <code>.yaml</code> files, the <code>Module</code> resource enables serving
+          remote client requests to the <code>:8877/ambassador/v0/diag/</code> endpoint.
+          The associated Helm chart release also now enables it by default.
+      - title: fix regression in the agent for the metrics transfer.
+        type: bugfix
+        body: >-
+          A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming from
+          emissary ingress before sending them to Ambassador cloud. This issue has been resolved to ensure
+          that all the nodes composing the emissary ingress cluster are reporting properly.
+
+      - title: Add support for secrets sync
+        type: feature
+        body: >-
+          Adds a new command to the agent directive service to manage secrets. This allows
+          a third party product to manage CRDs that depend upon a secret.
+
+  - version: 3.0.0
+    date: '2022-06-27'
+    notes:
+      - title: Envoy upgraded to 1.22
+        type: change
+        body: >-
+          The envoy version included in $productName$ has been upgraded from 1.17 to the latest patch
+          release of 1.22. This provides $productName$ with the latest security patches, performances enhancments,
+          and features offered by the envoy proxy. One notable change that will effect users is the removal
+          of support for V2 tranport protocol. See below for more information.
+        docs: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.22/v1.22.0
+      - title: Envoy xDS v2 API removal, removal of ECMAScript regexes
+        type: change
+        body: >-
+          $productName$ can no longer be made to configure Envoy using the v2 xDS configuration API;
+          it now always uses the v3 xDS API to configure Envoy.  This change should be mostly
+          invisible to users, with one notable exception: It removes support for <code>regex_type:
+          unsafe</code>.
+
+          The <code>regex_type</code> field will is removed from the <code>ambassador</code>
+          <code>Module</code>, meaning that it is not be possible to instruct Envoy to use the <a
+          href="https://en.cppreference.com/w/cpp/regex/ecmascript">ECMAScript Regex</a> engine
+          rather than the default <a href="https://github.com/google/re2">RE2</a> engine.
+
+          Users who rely on the specific ECMAScript Regex syntax will need to rewrite their regular
+          expressions with RE2 syntax before upgrading to $productName$ 3.0.0.
+
+          As the xDS version is no longer configurable and the range of supported Zipkin protocols
+          is reduced (see below), the AMBASSADOR_ENVOY_API_VERSION environment variable has been removed.
+      - title: Support for protocol_version v2 is removed
+        type: change
+        body: >-
+          With the ugprade to Envoy 1.22, $productName$ no longer supports the V2 transport protocol.
+          The <code>AuthService</code>, <code>LogService</code> and the <code>RateLimitService</code>
+          will only support the v3 protocol_version. If protocol_version is not specified, the default
+          value of <code>v2</code> will cause an error to be posted. Therefore, you will need to set it
+          to <code>protocol_version: "v3"</code>. If upgrading from a previous version you will want
+          to set it to "v3" and ensure it is working before upgrading to $productName$ 3.Y.
+      - title: Support for Zipkin HTTP_JSON_V1 protocol is removed
+        type: change
+        body: >-
+          With the upgrade to Envoy 1.22, the <code>zipkin</code> driver for the <code>TraceService</code>
+          no longer supports setting the <code>collector_endpoint_version: HTTP_JSON_V1</code>. This was removed
+          in Envoy 1.20 - <a href="https://github.com/envoyproxy/envoy/commit/db74e313b3651588e59c671af45077714ac32cef" />.
+          The new default will be <code>collector_endpoint_version: HTTP_JSON</code>, regardless of the
+          <code>AMBASSADOR_ENVOY_API_VERSION</code> environment variable.
+      - title: Default YAML disables the diagnostics interface
+        type: change
+        body: >-
+          In the standard published <code>.yaml</code> files, now included is a <code>Module</code>
+          resource that disables the <code>/ambassador/v0/</code> → <code>127.0.0.1:8878</code>
+          synthetic mapping.  We have long recommended to turn this off for production use; it is
+          now off in the standard YAML.  The associated Helm chart release also now disables it by
+          default.  A later apiVersion (<code>getambassador.io/v3alpha2</code> or later) will likely
+          change the <code>Module</code> CRD so that it is disabled if unspecified; but in the
+          mean-time, the default install procedure will now specify it to be disabled.
+      - title: No longer publish obsolete YAML manifest files
+        type: change
+        body: >-
+          This release does not include the publishing of
+          <code>emissary-emissaryns-agent.yaml</code>, <code>emissary-defaultns-agent.yaml</code>,
+          <code>emissary-emissaryns-migration.yaml</code>, or
+          <code>emissary-defaultns-migration.yaml</code> files.  All four of these files existed
+          solely as part of the migration process from 1;y, but since 2.2.0 the
+          <code>*-migration.yaml</code> files have not been part of the migration instructions, and
+          while the <code>*-agent.yaml</code> files remained part of the instructions they were
+          actually unnescessary.
+      - title: Metric naming change for grpc_stats
+        type: change
+        body: >-
+          The previous version of $productName$ was based on Envoy 1.17 and when using grpc_stats
+          with <code>all_methods</code> or <code>services</code> set, it would output metrics in
+          the following format <code>envoy_cluster_grpc_{ServiceName}_{statname}</code>. When
+          neither of these fields are set it would be aggregated to <code>envoy_cluster_grpc_{statname}</code>.
+
+          The new behavior since Envoy 1.18 will produce metrics in the following format
+          <code>envoy_cluster_grpc_{MethodName}_statsname</code> and <code>envoy_cluster_grpc_statsname</code>.
+
+          After further investigation we found that Envoy doesn't properly parse service
+          names such as <code>cncf.telepresence.Manager/Status</code>. In the future, we will work
+          upstream Envoy to get this parsing logic fixed to ensure consistent metric naming.
+      - title: Default behavior for empty grpc_stats changed
+        type: bugfix
+        body: >-
+          Previously setting <code>grpc_stats</code> in the <code>ambassador</code> <code>Module</code>
+          without setting either <code>grpc_stats.services</code> or <code>grpc_stats.all_methods</code>
+          would result in crashing. Now it behaves as if <code>grpc_stats.all_methods=false</code>.
+      - title: Downstream HTTP/3 support
+        type: feature
+        body: >-
+          With the ugprade to Envoy 1.22, $productName$ can now be configured to listen for HTTP/3
+          connections using QUIC and the UDP network protocol. It currently only supports for connections
+          between downstream clients and $productName$.
+  - version: 2.3.2
+    date: 'TBD'
+    notes:
+      - title: fix regression in the agent for the metrics transfer.
+        type: bugfix
+        body: >-
+          A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming from
+          emissary ingress before sending them to Ambassador cloud. This issue has been resolved to ensure
+          that all the nodes composing the emissary ingress cluster are reporting properly.
+
+  - version: 2.3.1
+    date: '2022-06-09'
+    notes:
+      - title: fix regression in tracing service config
+        type: bugfix
+        body: >-
+          A regression was introduced in 2.3.0 that leaked zipkin default config fields into the configuration
+          for the other drivers (lightstep, etc...). This caused $productName$ to crash on startup. This issue has been resolved
+          to ensure that the defaults are only applied when driver is <code>zipkin</code>
+        github:
+        - title: "#4267"
+          link: https://github.com/emissary-ingress/emissary/issues/4267
+      - title: Envoy security updates
+        type: security
+        body: >-
+          We have backported patches from the Envoy 1.19.5 security update to $productName$'s
+          1.17-based Envoy, addressing CVE-2022-29224 and CVE-2022-29225.  $productName$ is not
+          affected by CVE-2022-29226, CVE-2022-29227, or CVE-2022-29228; as it <a
+          href="https://github.com/emissary-ingress/emissary/issues/2846">does not support internal
+          redirects</a>, and does not use Envoy's built-in OAuth2 filter.
+        docs: https://groups.google.com/g/envoy-announce/c/8nP3Kn4jV7k
+  - version: 2.3.0
+    date: '2022-06-06'
     notes:
       - title: Remove unused packages
         type: security
         body: >-
           Completely remove gdbm, pip, smtplib, and sqlite packages, as they are unused.
+      - title: Allow setting propagation modes for Lightstep tracing
+        type: feature
+        body: >-
+          It is now possible to set <code>propagation_modes</code> in the
+          <code>TracingService</code> config when using lightstep as the driver.
+          (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
+        github:
+        - title: "#4179"
+          link: https://github.com/emissary-ingress/emissary/pull/4179
+      - title: Added support for TLS certificate revocation list
+        type: feature
+        body: >-
+          It is now possible to set `crl_secret` in `Host` and `TLSContext` resources
+          to check peer certificates against a certificate revocation list.
+        github:
+        - title: "#1743"
+          link: https://github.com/emissary-ingress/emissary/issues/1743
+      - title: Added support for the LogService v3 transport protocol
+        type: feature
+        body: >-
+          Previously, a <code>LogService</code> would always have $productName$ communicate with the
+          external log service using the <code>envoy.service.accesslog.v2.AccessLogService</code>
+          API. It is now possible for the <code>LogService</code> to specify
+          <code>protocol_version: v3</code> to use the newer
+          <code>envoy.service.accesslog.v3.AccessLogService</code> API instead.  This functionality
+          is not available if you set the <code>AMBASSADOR_ENVOY_API_VERSION=V2</code> environment
+          variable.
+      - title: CORS now happens before auth
+        type: bugfix
+        body: >-
+          When CORS is specified (either in a <code>Mapping</code> or in the <code>Ambassador</code>
+          <code>Module</code>), CORS processing will happen before authentication. This corrects a
+          problem where XHR to authenticated endpoints would fail.
+      - title: Correctly handle caching of Mappings with the same name in different namespaces
+        type: bugfix
+        body: >-
+          In 2.x releases of $productName$ when there are multiple <code>Mapping</code>s that have the same
+          <code>metadata.name</code> across multiple namespaces, their old config would not properly be removed
+          from the cache when their config was updated. This resulted in an inability to update configuration
+          for groups of <code>Mapping</code>s that share the same name until the $productName$ pods restarted.
+      - title: Fix support for Zipkin API-v1 with Envoy xDS-v3
+        type: bugfix
+        body: >-
+          It is now possible for a <code>TracingService</code> to specify
+          <code>collector_endpoint_version: HTTP_JSON_V1</code> when using xDS v3 to configure Envoy
+          (which has been the default since $productName$ 1.14.0).  The <code>HTTP_JSON_V1</code>
+          value configures Envoy to speak to Zipkin using Zipkin's old API-v1, while the
+          <code>HTTP_JSON</code> value configures Envoy to speak to Zipkin using Zipkin's new
+          API-v2. In previous versions of $productName$ it was only possible to use
+          <code>HTTP_JSON_V1</code> when explicitly setting the
+          <code>AMBASSADOR_ENVOY_API_VERSION=V2</code> environment variable to force use of xDS v2
+          to configure Envoy.
+
+  - version: 2.2.2
+    date: '2022-02-25'
+    notes:
+      - title: TLS Secret validation is now opt-in
+        type: change
+        body: >-
+          You may now choose to enable TLS Secret validation by setting the
+          <code>AMBASSADOR_FORCE_SECRET_VALIDATION=true</code> environment variable. The default configuration does not
+          enforce secret validation.
+
+      - title: Correctly validate EC (Elliptic Curve) Private Keys
+        type: bugfix
+        body: >-
+          Kubernetes Secrets that should contain an EC (Elliptic Curve) TLS Private Key are now properly validated.
+        github:
+        - title: 4134
+          link: https://github.com/emissary-ingress/emissary/issues/4134
+        docs: https://github.com/emissary-ingress/emissary/issues/4134
+
+      - title: Decrease metric sync frequency
+        type: change
+        body: >-
+          The new delay between two metrics syncs is now 30s.
+        github:
+        - title: "#4122"
+          link: https://github.com/emissary-ingress/emissary/pull/4122
 
   - version: 2.2.1
     date: '2022-02-22'
@@ -125,8 +365,8 @@ items:
           is sent to Ambassador Cloud including the command ID, whether it ran successfully, and
           an error message in case there was any.
         github:
-          - title: "#4040"
-            link: https://github.com/emissary-ingress/emissary/pull/4040
+        - title: "#4040"
+          link: https://github.com/emissary-ingress/emissary/pull/4040
         docs: https://github.com/emissary-ingress/emissary/pull/4040
 
       - title: Validate certificates in TLS Secrets
@@ -399,11 +639,17 @@ items:
         type: change
         body: >-
           The <code>x.getambassador.io/v3alpha1</code> API version has become the
-          <code>getambassador.io/v3alpha1</code> API version. The <code>Ambassador-</code>
-          prefixes from <code>x.getambassador.io/v3alpha1</code> resources have been
-          removed for ease of migration. <b>Note that <code>getambassador.io/v3alpha1</code>
-          is the only supported API version for 2.0.4</b> &mdash; full support for
-          <code>getambassador.io/v2</code> will arrive soon in a later 2.X version.
+          <code>getambassador.io/v3alpha1</code> API version.  The <code>Ambassador-</code> prefixes
+          from <code>x.getambassador.io/v3alpha1</code> resource kind names
+          (e.g. <code>AmbassadorHost</code>) have been removed for ease of migration from
+          $productName$ 1.x.  As with previous 2.0.x releases, you <b>must</b> supply a
+          <code>Host</code> (<code>AmbassadorHost</code> in previous 2.0.x releases) resource to
+          terminate TLS: unlike in 1.x it is no longer sufficient to define a
+          <code>TLSContext</code> (although <code>TLSContext</code>s are still the best way to
+          define TLS configuration information to be shared across multiple <code>Host</code>s).
+          <b>Note that <code>getambassador.io/v3alpha1</code> is the only supported API version for
+          2.0.4</b> &mdash; full support for <code>getambassador.io/v2</code> will arrive soon in a
+          later 2.X version.
         docs: about/changes-2.x
         image: ./v2.0.4-v3alpha1.png
 
@@ -528,7 +774,7 @@ items:
         docs: topics/running/running/
 
   - version: 2.0.1-ea
-    date: "2021-08-12"
+    date: '2021-08-12'
     notes:
       - title: Developer Preview!
         body: We're pleased to introduce $productName$ 2.0.1 as a <b>developer preview</b>. The 2.X family introduces a number of changes to allow $productName$ to more gracefully handle larger installations, reduce global configuration to better handle multitenant or multiorganizational installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
@@ -567,7 +813,7 @@ items:
         docs: topics/concepts/rate-limiting-at-the-edge/
 
   - version: 2.0.0-ea
-    date: "2021-06-24"
+    date: '2021-06-24'
     notes:
       - title: Developer Preview!
         body: We're pleased to introduce $productName$ 2.0.0 as a <b>developer preview</b>. The 2.X family introduces a number of changes to allow $productName$ to more gracefully handle larger installations, reduce global configuration to better handle multitenant or multiorganizational installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
@@ -674,6 +920,16 @@ items:
         docs: topics/install/helm/
         type: change
 
+  - version: 1.14.3
+    date: '2022-02-25'
+    notes:
+      - title: Envoy security updates
+        type: security
+        body: >-
+          Upgraded Envoy to address security vulnerabilities CVE-2021-43824, CVE-2021-43825, CVE-2021-43826,
+          CVE-2022-21654, and CVE-2022-21655.
+        docs: https://groups.google.com/g/envoy-announce/c/bIUgEDKHl4g
+
   - version: 1.14.2
     date: '2021-09-29'
     notes:
@@ -710,7 +966,7 @@ items:
         docs: https://groups.google.com/g/envoy-announce/c/5xBpsEZZDfE
 
   - version: 1.14.0
-    date: "2021-08-19"
+    date: '2021-08-19'
     notes:
       - title: Envoy upgraded to 1.17.3!
         type: change

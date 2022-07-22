@@ -10,15 +10,15 @@ import (
 
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 
-	"github.com/datawire/ambassador/v2/cmd/ambex"
-	"github.com/datawire/ambassador/v2/pkg/acp"
-	"github.com/datawire/ambassador/v2/pkg/debug"
-	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
-	"github.com/datawire/ambassador/v2/pkg/gateway"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/acp"
+	"github.com/emissary-ingress/emissary/v3/pkg/ambex"
+	"github.com/emissary-ingress/emissary/v3/pkg/debug"
+	ecp_v3_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/gateway"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 func WatchAllTheThings(
@@ -44,7 +44,7 @@ func WatchAllTheThings(
 	interestingTypes := GetInterestingTypes(ctx, serverTypeList)
 	queries := GetQueries(ctx, interestingTypes)
 
-	ambassadorMeta := getAmbassadorMeta(GetAmbassadorId(), clusterID, version, client)
+	ambassadorMeta := getAmbassadorMeta(GetAmbassadorID(), clusterID, version, client)
 
 	// **** SETUP DONE for the Kubernetes Watcher
 
@@ -376,8 +376,9 @@ func (sh *SnapshotHolder) K8sUpdate(
 	endpointsChanged := false
 	dispatcherChanged := false
 	var endpoints *ambex.Endpoints
-	var dispSnapshot *ecp_v2_cache.Snapshot
+	var dispSnapshot *ecp_v3_cache.Snapshot
 	changed, err := func() (bool, error) {
+		dlog.Debugf(ctx, "[WATCHER]: processing cluster changes detected by the kubernetes watcher")
 		sh.mutex.Lock()
 		defer sh.mutex.Unlock()
 
@@ -392,7 +393,12 @@ func (sh *SnapshotHolder) K8sUpdate(
 			})
 		})
 
-		if !changed || err != nil {
+		if err != nil {
+			dlog.Errorf(ctx, "[WATCHER]: ERROR calculating changes in an update to the cluster config: %v", err)
+			return false, err
+		}
+		if !changed {
+			dlog.Debugf(ctx, "[WATCHER]: K8sUpdate did not detected any change to the resources relevant to this instance of Ambassador")
 			return false, err
 		}
 
@@ -425,7 +431,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 
 		parseAnnotationsTimer.Time(func() {
 			if err := sh.k8sSnapshot.PopulateAnnotations(ctx); err != nil {
-				dlog.Errorf(ctx, "error parsing annotations: %v", err)
+				dlog.Errorf(ctx, "[WATCHER]: ERROR parsing annotations in configuration change: %v", err)
 			}
 		})
 
@@ -433,18 +439,21 @@ func (sh *SnapshotHolder) K8sUpdate(
 			err = ReconcileSecrets(ctx, sh)
 		})
 		if err != nil {
+			dlog.Errorf(ctx, "[WATCHER]: ERROR reconciling Secrets: %v", err)
 			return false, err
 		}
 		reconcileConsulTimer.Time(func() {
 			err = ReconcileConsul(ctx, consulWatcher, sh.k8sSnapshot)
 		})
 		if err != nil {
+			dlog.Errorf(ctx, "[WATCHER]: ERROR reconciling Consul resources: %v", err)
 			return false, err
 		}
 		reconcileAuthServicesTimer.Time(func() {
 			err = ReconcileAuthServices(ctx, sh, &deltas)
 		})
 		if err != nil {
+			dlog.Errorf(ctx, "[WATCHER]: ERROR reconciling AuthServices: %v", err)
 			return false, err
 		}
 
@@ -452,7 +461,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 		// Check if the set of endpoints we are interested in has changed. If so we need to send
 		// endpoint info again even if endpoints have not changed.
 		if sh.endpointRoutingInfo.watchesChanged() {
-			dlog.Infof(ctx, "watches changed: %v", sh.endpointRoutingInfo.endpointWatches)
+			dlog.Infof(ctx, "[WATCHER]: endpoint watches changed: %v", sh.endpointRoutingInfo.endpointWatches)
 			endpointsChanged = true
 		}
 
@@ -503,10 +512,10 @@ func (sh *SnapshotHolder) K8sUpdate(
 			}
 			_, dispSnapshot = sh.dispatcher.GetSnapshot(ctx)
 		}
-
 		return true, nil
 	}()
 	if err != nil {
+		dlog.Errorf(ctx, "[WATCHER]: ERROR checking changes from a cluster config update: %v", err)
 		return changed, err
 	}
 
@@ -517,13 +526,12 @@ func (sh *SnapshotHolder) K8sUpdate(
 		}
 		fastpathProcessor(ctx, fastpath)
 	}
-
 	return changed, nil
 }
 
 func (sh *SnapshotHolder) ConsulUpdate(ctx context.Context, consulWatcher *consulWatcher, fastpathProcessor FastpathProcessor) bool {
 	var endpoints *ambex.Endpoints
-	var dispSnapshot *ecp_v2_cache.Snapshot
+	var dispSnapshot *ecp_v3_cache.Snapshot
 	func() {
 		sh.mutex.Lock()
 		defer sh.mutex.Unlock()

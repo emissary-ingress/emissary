@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Callable, Dict, List, Optional, Union, TYPE_CHECKING
-from typing import cast as typecast
-
 import os
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Union
+from typing import cast as typecast
 
 from ...ir.irtlscontext import IRTLSContext
 
@@ -48,8 +47,10 @@ class V3TLSContext(Dict):
         "v1.3": "TLSv1_3",
     }
 
-    def __init__(self, ctx: Optional[IRTLSContext]=None, host_rewrite: Optional[str]=None) -> None:
-        del host_rewrite    # quiesce warning
+    def __init__(
+        self, ctx: Optional[IRTLSContext] = None, host_rewrite: Optional[str] = None
+    ) -> None:
+        del host_rewrite  # quiesce warning
 
         super().__init__()
 
@@ -59,14 +60,14 @@ class V3TLSContext(Dict):
             self.add_context(ctx)
 
     def get_common(self) -> EnvoyCommonTLSContext:
-        return self.setdefault('common_tls_context', {})
+        return self.setdefault("common_tls_context", {})
 
     def get_params(self) -> EnvoyTLSParams:
         common = self.get_common()
 
         # This boils down to "params = common.setdefault('tls_params', {})" with typing.
         empty_params = typecast(EnvoyTLSParams, {})
-        params = typecast(EnvoyTLSParams, common.setdefault('tls_params', empty_params))
+        params = typecast(EnvoyTLSParams, common.setdefault("tls_params", empty_params))
 
         return params
 
@@ -75,7 +76,7 @@ class V3TLSContext(Dict):
 
         # We have to explicitly cast this empty list to a list of strings.
         empty_cert_list: List[str] = []
-        cert_list = common.setdefault('tls_certificates', empty_cert_list)
+        cert_list = common.setdefault("tls_certificates", empty_cert_list)
 
         # cert_list is of type EnvoyCommonTLSElements right now, so we need to cast it.
         return typecast(ListOfCerts, cert_list)
@@ -86,12 +87,12 @@ class V3TLSContext(Dict):
         if not certs:
             certs.append({})
 
-        src: EnvoyCoreSource = { 'filename': value }
+        src: EnvoyCoreSource = {"filename": value}
         certs[0][key] = src
 
     def update_alpn(self, key: str, value: str) -> None:
         common = self.get_common()
-        common[key] = [ value ]
+        common[key] = [value]
 
     def update_tls_version(self, key: str, value: str) -> None:
         params = self.get_params()
@@ -110,33 +111,37 @@ class V3TLSContext(Dict):
         # This looks weirder than you might expect, because self.get_common().setdefault() is a truly
         # crazy Union type, so we need to cast it to an EnvoyValidationContext to be able to work
         # with it.
-        validation = typecast(EnvoyValidationContext, self.get_common().setdefault('validation_context', empty_context))
+        validation = typecast(
+            EnvoyValidationContext,
+            self.get_common().setdefault("validation_context", empty_context),
+        )
 
-        src: EnvoyCoreSource = { 'filename': value }
+        src: EnvoyCoreSource = {"filename": value}
         validation[key] = src
 
     def add_context(self, ctx: IRTLSContext) -> None:
         if TYPE_CHECKING:
             # This is needed because otherwise self.__setitem__ confuses things.
-            handler: Callable[[str, str], None] # pragma: no cover
+            handler: Callable[[str, str], None]  # pragma: no cover
 
         if ctx.is_fallback:
             self.is_fallback = True
 
         for secretinfokey, handler, hkey in [
-            ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
-            ( 'private_key_file', self.update_cert_zero, 'private_key' ),
-            ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
+            ("cert_chain_file", self.update_cert_zero, "certificate_chain"),
+            ("private_key_file", self.update_cert_zero, "private_key"),
+            ("cacert_chain_file", self.update_validation, "trusted_ca"),
+            ("crl_file", self.update_validation, "crl"),
         ]:
-            if secretinfokey in ctx['secret_info']:
-                handler(hkey, ctx['secret_info'][secretinfokey])
+            if secretinfokey in ctx["secret_info"]:
+                handler(hkey, ctx["secret_info"][secretinfokey])
 
         for ctxkey, handler, hkey in [
-            ( 'alpn_protocols', self.update_alpn, 'alpn_protocols' ),
-            ( 'cert_required', self.__setitem__, 'require_client_certificate' ),
-            ( 'min_tls_version', self.update_tls_version, 'tls_minimum_protocol_version' ),
-            ( 'max_tls_version', self.update_tls_version, 'tls_maximum_protocol_version' ),
-            ( 'sni', self.__setitem__, 'sni' ),
+            ("alpn_protocols", self.update_alpn, "alpn_protocols"),
+            ("cert_required", self.__setitem__, "require_client_certificate"),
+            ("min_tls_version", self.update_tls_version, "tls_minimum_protocol_version"),
+            ("max_tls_version", self.update_tls_version, "tls_maximum_protocol_version"),
+            ("sni", self.__setitem__, "sni"),
         ]:
             value = ctx.get(ctxkey, None)
 
@@ -148,8 +153,8 @@ class V3TLSContext(Dict):
         # string. Getting mypy to be happy with that is _annoying_.
 
         for ctxkey, list_handler, hkey in [
-            ( 'cipher_suites', self.update_tls_cipher, 'cipher_suites' ),
-            ( 'ecdh_curves', self.update_tls_cipher, 'ecdh_curves' ),
+            ("cipher_suites", self.update_tls_cipher, "cipher_suites"),
+            ("ecdh_curves", self.update_tls_cipher, "ecdh_curves"),
         ]:
             value = ctx.get(ctxkey, None)
 
@@ -168,5 +173,7 @@ class V3TLSContext(Dict):
             dirname = os.path.basename(os.path.dirname(filename))
             filename = f".../{dirname}/{basename}"
 
-        return "<V3TLSContext%s chain_file %s>" % \
-               (" (fallback)" if self.is_fallback else "", filename)
+        return "<V3TLSContext%s chain_file %s>" % (
+            " (fallback)" if self.is_fallback else "",
+            filename,
+        )

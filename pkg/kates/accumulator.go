@@ -206,7 +206,7 @@ func newAccumulator(ctx context.Context, client *Client, queries ...Query) (*Acc
 	return acc, nil
 }
 
-func (a *Accumulator) Changed() chan struct{} {
+func (a *Accumulator) Changed() <-chan struct{} {
 	return a.changed
 }
 

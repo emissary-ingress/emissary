@@ -6,15 +6,19 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"os"
+	"strconv"
 	"strings"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/kates/k8s_resource_types"
-	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
 	"github.com/datawire/dlib/derror"
 	"github.com/datawire/dlib/dlog"
-	v1 "k8s.io/api/core/v1"
+	amb "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates/k8s_resource_types"
+	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 // checkSecret checks whether a secret is valid, and adds it to the list of secrets
@@ -24,7 +28,9 @@ func checkSecret(
 	sh *SnapshotHolder,
 	what string,
 	ref snapshotTypes.SecretRef,
-	secret *v1.Secret) {
+	secret *v1.Secret,
+) {
+	forceSecretValidation, _ := strconv.ParseBool(os.Getenv("AMBASSADOR_FORCE_SECRET_VALIDATION"))
 	// Make it more convenient to consistently refer to this secret.
 	secretName := fmt.Sprintf("%s secret %s.%s", what, ref.Name, ref.Namespace)
 
@@ -59,10 +65,16 @@ func checkSecret(
 				_, err = x509.ParsePKCS8PrivateKey(caKeyBlock.Bytes)
 			}
 
+			if err != nil {
+				// Try EC? (No, = instead of := is not a typo here: we're overwriting the
+				// earlier error.)
+				_, err = x509.ParseECPrivateKey(caKeyBlock.Bytes)
+			}
+
 			// Any issues here?
 			if err != nil {
 				errs = append(errs,
-					fmt.Errorf("%s %s cannot be parsed as PKCS1 or PKCS8: %s", secretName, v1.TLSPrivateKeyKey, err.Error()))
+					fmt.Errorf("%s %s cannot be parsed as PKCS1, PKCS8, or EC: %s", secretName, v1.TLSPrivateKeyKey, err.Error()))
 				isValid = false
 			}
 		} else {
@@ -95,10 +107,11 @@ func checkSecret(
 		}
 	}
 
-	if isValid {
+	if isValid || !forceSecretValidation {
 		dlog.Debugf(ctx, "taking %s", secretName)
 		sh.k8sSnapshot.Secrets = append(sh.k8sSnapshot.Secrets, secret)
-	} else {
+	}
+	if !isValid {
 		// This secret is invalid, but we're not going to log about it -- instead, it'll go into the
 		// list of Invalid resources.
 		dlog.Debugf(ctx, "%s is not valid, skipping: %s", secretName, errs.Error())
@@ -163,6 +176,8 @@ func checkSecret(
 // since we don't want to send secrets to Ambassador unless we're
 // using them, since any secret we send will be saved to disk.
 func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
+	envAmbID := GetAmbassadorID()
+
 	// Start by building up a list of all the K8s objects that are
 	// allowed to mention secrets. Note that we vet the ambassador_id
 	// for all of these before putting them on the list.
@@ -178,7 +193,7 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 			if _, isInvalid := a.(*kates.Unstructured); isInvalid {
 				continue
 			}
-			if include(GetAmbId(ctx, a)) {
+			if GetAmbID(ctx, a).Matches(envAmbID) {
 				resources = append(resources, a)
 			}
 		}
@@ -191,19 +206,19 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 		if len(h.Spec.AmbassadorID) > 0 {
 			id = h.Spec.AmbassadorID
 		}
-		if include(id) {
+		if id.Matches(envAmbID) {
 			resources = append(resources, h)
 		}
 	}
 
 	// TLSContexts, Modules, and Ingresses are all straightforward.
 	for _, t := range sh.k8sSnapshot.TLSContexts {
-		if include(t.Spec.AmbassadorID) {
+		if t.Spec.AmbassadorID.Matches(envAmbID) {
 			resources = append(resources, t)
 		}
 	}
 	for _, m := range sh.k8sSnapshot.Modules {
-		if include(m.Spec.AmbassadorID) {
+		if m.Spec.AmbassadorID.Matches(envAmbID) {
 			resources = append(resources, m)
 		}
 	}
@@ -271,6 +286,14 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 		// ...and for Edge Stack, we _always_ have an implicit reference to the
 		// license secret.
 		secretRef(GetLicenseSecretNamespace(), GetLicenseSecretName(), false, action)
+		// We also want to grab any secrets referenced by Edge-Stack filters for use in Edge-Stack
+		// the Filters are unstructured because Emissary does not have their type definition
+		for _, f := range sh.k8sSnapshot.Filters {
+			err := findFilterSecret(f, action)
+			if err != nil {
+				dlog.Errorf(ctx, "Error gathering secret reference from Filter: %v", err)
+			}
+		}
 	}
 
 	// OK! After all that, go copy all the matching secrets from FSSecrets and
@@ -303,6 +326,115 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 	return nil
 }
 
+// Returns secretName, secretNamespace from a provided (unstructured) filter if it contains a secret
+// Returns empty strings when the secret name and/or namespace could not be found
+func findFilterSecret(filter *unstructured.Unstructured, action func(snapshotTypes.SecretRef)) error {
+	// Just making extra sure this is actually a Filter
+	if filter.GetKind() != "Filter" {
+		return fmt.Errorf("non-Filter object in Snapshot.Filters: %s", filter.GetKind())
+	}
+	// Only OAuth2 Filters have secrets, although they don't need to have them.
+	// This is overly contrived because Filters are unstructured to Emissary since we don't have the type definitions
+	// Yes this is disgusting. It is what it is...
+	filterContents := filter.UnstructuredContent()
+	filterSpec := filterContents["spec"]
+	if filterSpec != nil {
+		mapFilters, ok := filterSpec.(map[string]interface{})
+		// We need to check if all these type assertions fail since we shouldnt rely on CRD validation to protect us from a panic state
+		// I cant imagine a scenario where this would realisticly happen, but we generate a unique log message for tracability and skip processing it
+		if !ok {
+			// We bail early any time we detect bogus contents for any of these fields
+			// and let the APIServer, apiext, and amb-sidecar handle the error reporting
+			return nil
+		}
+
+		findOAuthFilterSecret(mapFilters, filter.GetNamespace(), action)
+		findAPIKeyFilterSecret(mapFilters, filter.GetNamespace(), action)
+	}
+	return nil
+}
+
+func findOAuthFilterSecret(
+	mapFilters map[string]interface{},
+	filterNamespace string,
+	action func(snapshotTypes.SecretRef),
+) {
+	oAuthFilter := mapFilters["OAuth2"]
+	if oAuthFilter == nil {
+		return
+	}
+
+	secretName, secretNamespace := "", ""
+	// Check if we have a secretName
+	mapOAuth, ok := oAuthFilter.(map[string]interface{})
+	if !ok {
+		return
+	}
+	sName := mapOAuth["secretName"]
+	if sName == nil {
+		return
+	}
+	secretName, ok = sName.(string)
+	// This is a weird check, but we have to handle the case where secretName is not provided, and when its explicitly set to ""
+	if !ok || secretName == "" {
+		// Bail out early since there is no secret
+		return
+	}
+	sNamespace := mapOAuth["secretNamespace"]
+	if sNamespace == nil {
+		secretNamespace = filterNamespace
+	} else {
+		secretNamespace, ok = sNamespace.(string)
+		if !ok {
+			return
+		} else if secretNamespace == "" {
+			secretNamespace = filterNamespace
+		}
+	}
+	secretRef(secretNamespace, secretName, false, action)
+
+}
+
+func findAPIKeyFilterSecret(
+	mapFilters map[string]interface{},
+	filterNamespace string,
+	action func(snapshotTypes.SecretRef),
+) {
+	apiKeyFilter := mapFilters["APIKey"]
+	if apiKeyFilter != nil {
+		mapKeyFilter, ok := apiKeyFilter.(map[string]interface{})
+
+		if !ok {
+			return
+		}
+
+		apiKeys := mapKeyFilter["keys"].([]interface{})
+
+		for i := range apiKeys {
+			secretName := ""
+			mapKey, ok := apiKeys[i].(map[string]interface{})
+
+			if !ok {
+				continue
+			}
+
+			sName := mapKey["secretName"]
+			if sName == nil {
+				continue
+			}
+
+			secretName, ok = sName.(string)
+			// This is a weird check, but we have to handle the case where secretName is not provided, and when its explicitly set to ""
+			if !ok || secretName == "" {
+				// Continue with the next key since there is no secret
+				continue
+			}
+
+			secretRef(filterNamespace, secretName, false, action)
+		}
+	}
+}
+
 // Find all the secrets a given Ambassador resource references.
 func findSecretRefs(ctx context.Context, resource kates.Object, secretNamespacing bool, action func(snapshotTypes.SecretRef)) {
 	switch r := resource.(type) {
@@ -316,6 +448,10 @@ func findSecretRefs(ctx context.Context, resource kates.Object, secretNamespacin
 		if r.Spec.TLS != nil {
 			// Host.spec.tls.caSecret is the thing to worry about here.
 			secretRef(r.GetNamespace(), r.Spec.TLS.CASecret, secretNamespacing, action)
+
+			if r.Spec.TLS.CRLSecret != "" {
+				secretRef(r.GetNamespace(), r.Spec.TLS.CRLSecret, secretNamespacing, action)
+			}
 		}
 
 		// Host.spec.tlsSecret and Host.spec.acmeProvider.privateKeySecret are native-Kubernetes-style
@@ -347,6 +483,13 @@ func findSecretRefs(ctx context.Context, resource kates.Object, secretNamespacin
 				secretNamespacing = *r.Spec.SecretNamespacing
 			}
 			secretRef(r.GetNamespace(), r.Spec.CASecret, secretNamespacing, action)
+		}
+
+		if r.Spec.CRLSecret != "" {
+			if r.Spec.SecretNamespacing != nil {
+				secretNamespacing = *r.Spec.SecretNamespacing
+			}
+			secretRef(r.GetNamespace(), r.Spec.CRLSecret, secretNamespacing, action)
 		}
 
 	case *amb.Module:

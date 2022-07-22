@@ -14,8 +14,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/datawire/ambassador/v2/pkg/debug"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/debug"
 )
 
 // The Watch method will check memory usage every 10 seconds and log it if it jumps more than 10Gi

@@ -3,9 +3,9 @@ package snapshot
 import (
 	"encoding/json"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
-	"github.com/datawire/ambassador/v2/pkg/consulwatch"
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	amb "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/consulwatch"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
 
@@ -91,6 +91,9 @@ type KubernetesSnapshot struct {
 
 	KNativeClusterIngresses []*kates.Unstructured `json:"clusteringresses.networking.internal.knative.dev,omitempty"`
 	KNativeIngresses        []*kates.Unstructured `json:"ingresses.networking.internal.knative.dev,omitempty"`
+
+	FilterPolicies []*kates.Unstructured `json:"filterpolicies.v3alpha1.getambassador.io,omitempty"`
+	Filters        []*kates.Unstructured `json:"filters.v3alpha1.getambassador.io,omitempty"`
 
 	K8sSecrets []*kates.Secret             `json:"-"`      // Secrets from Kubernetes
 	FSSecrets  map[SecretRef]*kates.Secret `json:"-"`      // Secrets from the filesystem

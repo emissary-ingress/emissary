@@ -251,6 +251,22 @@ def deps_for_pyfile(inputdir: str, filepath: str) -> Set[str]:
     return deps
 
 def main(inputdirs: List[str], include_dev: bool = False) -> Set[str]:
+    # setuptools 49.1.2 by opt-in and 60.0.0 by opt-out add a global
+    # .pth file that depending on SETUPTOOLS_USE_DISTUTILS overrides
+    # the stdlib distutils with a version of distutils built on top of
+    # setuptools.  But if our is_in_stdlib() removes setuptools from
+    # sys.path then importing that distutils will fail, which is wrong
+    # for us because distutils is in fact in the stdlib.  So opt-out.
+    #
+    # ... disable it if it's already been enabled during Python start-up
+    try:
+        import _distutils_hack
+        _distutils_hack.remove_shim()
+    except ImportError:
+        pass
+    # ... prevent it from being enabled again
+    os.environ['SETUPTOOLS_USE_DISTUTILS'] = 'stdlib'
+
     deps = set()
     for inputdir in inputdirs:
         for dirpath, dirnames, filenames in os.walk(inputdir, topdown=True):

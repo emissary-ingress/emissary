@@ -10,8 +10,8 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/cache"
 
-	"github.com/datawire/ambassador/v2/pkg/agent"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/agent"
 )
 
 type informerMock struct {

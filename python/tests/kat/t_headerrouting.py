@@ -1,7 +1,7 @@
 from typing import ClassVar, Generator, Tuple, Union
 
-from kat.harness import variants, Query
-from abstract_tests import AmbassadorTest, MappingTest, ServiceType, HTTP, Node
+from abstract_tests import HTTP, AmbassadorTest, MappingTest, Node, ServiceType
+from kat.harness import EDGE_STACK, Query, variants
 
 
 class HeaderRoutingTest(MappingTest):
@@ -24,7 +24,8 @@ class HeaderRoutingTest(MappingTest):
         self.target2 = target2
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format("""
+        yield self.target, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -32,8 +33,10 @@ name:  {self.name}-target1
 hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
-""")
-        yield self.target2, self.format("""
+"""
+        )
+        yield self.target2, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -43,22 +46,32 @@ prefix: /{self.name}/
 service: http://{self.target2.path.fqdn}
 headers:
     X-Route: target2
-""")
+"""
+        )
 
     def queries(self):
         yield Query(self.parent.url(self.name + "/"))
         yield Query(self.parent.url(self.name + "/"), headers={"X-Route": "target2"})
 
     def check(self):
-        assert self.results[0].backend.name == self.target.path.k8s, f"r0 wanted {self.target.path.k8s} got {self.results[0].backend.name}"
-        assert self.results[1].backend.name == self.target2.path.k8s, f"r1 wanted {self.target2.path.k8s} got {self.results[1].backend.name}"
+        assert self.results[0].backend
+        assert (
+            self.results[0].backend.name == self.target.path.k8s
+        ), f"r0 wanted {self.target.path.k8s} got {self.results[0].backend.name}"
+        assert self.results[1].backend
+        assert (
+            self.results[1].backend.name == self.target2.path.k8s
+        ), f"r1 wanted {self.target2.path.k8s} got {self.results[1].backend.name}"
+
 
 class HeaderRoutingAuth(ServiceType):
     skip_variant: ClassVar[bool] = True
 
     def __init__(self, *args, **kwargs) -> None:
         # Do this unconditionally, since that's part of the point of this class.
-        kwargs["service_manifests"] = """
+        kwargs[
+            "service_manifests"
+        ] = """
 ---
 kind: Service
 apiVersion: v1
@@ -99,12 +112,15 @@ spec:
     def requirements(self):
         yield ("url", Query("http://%s/ambassador/check/" % self.path.fqdn))
 
+
 class AuthenticationHeaderRouting(AmbassadorTest):
     target1: ServiceType
     target2: ServiceType
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target1 = HTTP(name="target1")
         self.target2 = HTTP(name="target2")
         self.auth = HeaderRoutingAuth()
@@ -116,7 +132,8 @@ class AuthenticationHeaderRouting(AmbassadorTest):
         # prefix ENDS WITH /nohdr/ -> 200, no X-Auth-Route -> we should hit target1
         # anything else -> 403 -> we should see the 403
 
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: AuthService
@@ -129,8 +146,10 @@ timeout_ms: 5000
 allowed_authorization_headers:
 - X-Auth-Route
 - Extauth
-""")
-        yield self.target1, self.format("""
+"""
+        )
+        yield self.target1, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -138,8 +157,10 @@ name:  {self.name}-target1
 hostname: "*"
 prefix: /target/
 service: http://{self.target1.path.fqdn}
-""")
-        yield self.target2, self.format("""
+"""
+        )
+        yield self.target2, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -149,7 +170,8 @@ prefix: /target/
 service: http://{self.target2.path.fqdn}
 headers:
     X-Auth-Route: Route
-""")
+"""
+        )
 
     def queries(self):
         # [0]
@@ -166,13 +188,25 @@ headers:
 
     def check(self):
         # [0] should be a 403 from auth
-        assert self.results[0].backend.name == self.auth.path.k8s, f"r0 wanted {self.auth.path.k8s} got {self.results[0].backend.name}"
+        assert self.results[0].backend
+        assert (
+            self.results[0].backend.name == self.auth.path.k8s
+        ), f"r0 wanted {self.auth.path.k8s} got {self.results[0].backend.name}"
 
         # [1] should go to target2
-        assert self.results[1].backend.name == self.target2.path.k8s, f"r1 wanted {self.target2.path.k8s} got {self.results[1].backend.name}"
+        assert self.results[1].backend
+        assert (
+            self.results[1].backend.name == self.target2.path.k8s
+        ), f"r1 wanted {self.target2.path.k8s} got {self.results[1].backend.name}"
 
         # [2] should go to target1
-        assert self.results[2].backend.name == self.target1.path.k8s, f"r2 wanted {self.target1.path.k8s} got {self.results[2].backend.name}"
+        assert self.results[2].backend
+        assert (
+            self.results[2].backend.name == self.target1.path.k8s
+        ), f"r2 wanted {self.target1.path.k8s} got {self.results[2].backend.name}"
 
         # [3] should be a 403 from auth
-        assert self.results[3].backend.name == self.auth.path.k8s, f"r3 wanted {self.auth.path.k8s} got {self.results[3].backend.name}"
+        assert self.results[3].backend
+        assert (
+            self.results[3].backend.name == self.auth.path.k8s
+        ), f"r3 wanted {self.auth.path.k8s} got {self.results[3].backend.name}"

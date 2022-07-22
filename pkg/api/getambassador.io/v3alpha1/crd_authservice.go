@@ -50,16 +50,21 @@ type AuthServiceSpec struct {
 	PathPrefix  string `json:"path_prefix,omitempty"`
 	TLS         string `json:"tls,omitempty"`
 	// +kubebuilder:validation:Enum={"http","grpc"}
-	Proto                       string                    `json:"proto,omitempty"`
-	Timeout                     *MillisecondDuration      `json:"timeout_ms,omitempty"`
-	AllowedRequestHeaders       []string                  `json:"allowed_request_headers,omitempty"`
-	AllowedAuthorizationHeaders []string                  `json:"allowed_authorization_headers,omitempty"`
-	AddAuthHeaders              map[string]string         `json:"add_auth_headers,omitempty"`
-	AllowRequestBody            *bool                     `json:"allow_request_body,omitempty"`
-	AddLinkerdHeaders           *bool                     `json:"add_linkerd_headers,omitempty"`
-	FailureModeAllow            *bool                     `json:"failure_mode_allow,omitempty"`
-	IncludeBody                 *AuthServiceIncludeBody   `json:"include_body,omitempty"`
-	StatusOnError               *AuthServiceStatusOnError `json:"status_on_error,omitempty"`
+	Proto                       string               `json:"proto,omitempty"`
+	Timeout                     *MillisecondDuration `json:"timeout_ms,omitempty"`
+	AllowedRequestHeaders       []string             `json:"allowed_request_headers,omitempty"`
+	AllowedAuthorizationHeaders []string             `json:"allowed_authorization_headers,omitempty"`
+	AddAuthHeaders              map[string]string    `json:"add_auth_headers,omitempty"`
+	// TODO(lukeshu): In v3alpha2, drop allow_request_body in favor of
+	// include_body. allow_request_body has been deprecated for a long time.
+	AllowRequestBody  *bool                     `json:"allow_request_body,omitempty"`
+	AddLinkerdHeaders *bool                     `json:"add_linkerd_headers,omitempty"`
+	FailureModeAllow  *bool                     `json:"failure_mode_allow,omitempty"`
+	IncludeBody       *AuthServiceIncludeBody   `json:"include_body,omitempty"`
+	StatusOnError     *AuthServiceStatusOnError `json:"status_on_error,omitempty"`
+
+	// ProtocolVersion is the envoy api transport protocol version
+	//
 	// +kubebuilder:validation:Enum={"v2","v3"}
 	ProtocolVersion string            `json:"protocol_version,omitempty"`
 	StatsName       string            `json:"stats_name,omitempty"`

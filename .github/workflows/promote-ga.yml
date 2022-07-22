@@ -29,8 +29,13 @@ jobs:
       - name: "make release/promote-oss/to-ga"
         run: |
           make release/promote-oss/to-ga
-      - name: Slack notification
+      - uses: ./.github/actions/after-job
         if: always()
+      - id: check-slack-webhook
+        name: Assign slack webhook variable
+        run: echo '::set-output name=slack_webhook_url::${{secrets.SLACK_WEBHOOK_URL}}'
+      - name: Slack notification
+        if: steps.check-slack-webhook.outputs.slack_webhook_url && always()
         uses: edge/simple-slack-notify@master
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -44,6 +49,8 @@ jobs:
              { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true },
              { "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}
             ]
+      - uses: ./.github/actions/after-job
+        if: always()
   create-gh-release:
     runs-on: ubuntu-latest
     needs: [promote-to-ga]
@@ -63,14 +70,17 @@ jobs:
         id: step-create-gh-release
         run: |
           make release/ga/create-gh-release
+      - id: check-slack-webhook
+        name: Assign slack webhook variable
+        run: echo '::set-output name=slack_webhook_url::${{secrets.SLACK_WEBHOOK_URL}}'
       - name: Slack notification
-        if: always()
+        if: steps.check-slack-webhook.outputs.slack_webhook_url && always()
         uses: edge/simple-slack-notify@master
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
-          success_text: 'Emissary GitHub release was created: ${{ steps.step-create-gh-release.url }}'
+          success_text: 'Emissary GitHub release was created: ${{ steps.step-create-gh-release.outputs.url }}'
           failure_text: 'Emissary GitHub release failed'
           cancelled_text: 'Emissary GitHub release was was cancelled'
           fields: |
@@ -78,3 +88,5 @@ jobs:
              { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true },
              { "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}
             ]
+      - uses: ./.github/actions/after-job
+        if: always()

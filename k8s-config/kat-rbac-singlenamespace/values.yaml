@@ -5,3 +5,7 @@ serviceAccount:
   extra: "«serviceAccountExtra»♯: null"
 scope:
   singleNamespace: true
+
+module: null
+agent:
+  enabled: false

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"sigs.k8s.io/yaml"
 
-	crds "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	crds "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v2"
 )
 
 func boolPtr(b bool) *bool {

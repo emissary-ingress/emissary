@@ -3,14 +3,11 @@ package agent
 import (
 	"context"
 	"fmt"
-
 	argov1alpha1 "github.com/argoproj/argo-rollouts/pkg/client/clientset/versioned/typed/rollouts/v1alpha1"
 	"github.com/datawire/dlib/dlog"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 // rolloutAction indicates the action to be performed on a Rollout object
@@ -141,15 +138,4 @@ func NewArgoRolloutsGetter() (argov1alpha1.RolloutsGetter, error) {
 	}
 
 	return argoClient, nil
-}
-
-func newK8sRestClient() (*rest.Config, error) {
-	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		clientcmd.NewDefaultClientConfigLoadingRules(),
-		&clientcmd.ConfigOverrides{},
-	).ClientConfig()
-	if err != nil {
-		return nil, err
-	}
-	return config, nil
 }

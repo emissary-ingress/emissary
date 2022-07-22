@@ -5,8 +5,28 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+- Feature: The Agent Deployment is now configured to report diagnostics information to Ambassador Cloud by default.
+- Change: The default for the `module` value has changed to enable serving remote client requests to the <code>:8877/ambassador/v0/diag/</code> endpoint by default.
+- Feature: Add possibility to configure relabelings in service monitorhttps://github.com/datawire/apro/pull/2998
+
+## v8.0.0
+
+- Change: The default for the `module` value has changed to disable
+  the `/ambassador/v0/` → `127.0.0.1:8877` synthetic Mapping by
+  default.  We have long recommended to turn this off for production
+  use; it is now off by default.
+
+- Bugfix: The default values no trigger the creation of an
+  "emissary-test-ready" Pod.  This Pod was meant to only be created
+  when running the chart's test suite; it was not meant to be created
+  in users' clusters.
+
+## v7.4.0
+
+- Update change Emissary chart image to version v2.3.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 - Add "lifecycle" option to main container. This can be used, for example, to add a lifecycle.preStop hook. Thanks to [Eric Totten](https://github.com/etotten) for the contribution!
-- Feature: Add possibility to configure relabelings in service monitor
+- Add `ambassador_id` to listener manifests rendered when using `createDefaultListeners: true` with `AMBASSADOR_ID` set in environment variables. Thanks to [Jennifer Reed](https://github.com/ServerNinja) for the contribution!
+- Feature: Added configurable IngressClass resource to be compliant with Kubernetes 1.22+ ingress specification.
 
 ## v7.2.2
 

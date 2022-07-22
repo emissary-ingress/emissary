@@ -3,7 +3,7 @@ package entrypoint
 import (
 	"context"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 type K8sSource interface {
@@ -11,7 +11,7 @@ type K8sSource interface {
 }
 
 type K8sWatcher interface {
-	Changed() chan struct{}
+	Changed() <-chan struct{}
 	FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error)
 }
 
@@ -20,5 +20,5 @@ type IstioCertSource interface {
 }
 
 type IstioCertWatcher interface {
-	Changed() chan IstioCertUpdate
+	Changed() <-chan IstioCertUpdate
 }

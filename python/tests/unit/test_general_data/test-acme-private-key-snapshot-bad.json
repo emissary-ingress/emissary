@@ -1,0 +1,2212 @@
+{
+  "AmbassadorMeta": {
+    "cluster_id": "79a085e2-c2ae-53e6-bad2-7924f5ab820b",
+    "ambassador_id": "default",
+    "ambassador_version": "2.0.5",
+    "kube_version": "v1.20.2+k3s1",
+    "sidecar": null
+  },
+  "Kubernetes": {
+    "ingressclasses": null,
+    "ingresses": null,
+    "service": [
+      {
+        "kind": "Service",
+        "apiVersion": "v1",
+        "metadata": {
+          "name": "ambassador",
+          "namespace": "ambassador",
+          "uid": "f59baa2b-e1c8-4fad-9806-12469d62364f",
+          "resourceVersion": "968",
+          "creationTimestamp": "2021-11-19T15:11:50Z",
+          "labels": {
+            "app.kubernetes.io/component": "ambassador-service",
+            "product": "aes"
+          },
+          "annotations": {
+            "a8r.io/bugs": "https://github.com/datawire/ambassador/issues",
+            "a8r.io/chat": "http://a8r.io/Slack",
+            "a8r.io/dependencies": "ambassador-redis.ambassador",
+            "a8r.io/description": "The Ambassador Edge Stack goes beyond traditional API Gateways and Ingress Controllers with the advanced edge features needed to support developer self-service and full-cycle development.",
+            "a8r.io/documentation": "https://www.getambassador.io/docs/edge-stack/latest/",
+            "a8r.io/owner": "Ambassador Labs",
+            "a8r.io/repository": "github.com/datawire/ambassador",
+            "a8r.io/support": "https://www.getambassador.io/about-us/support/",
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"a8r.io/bugs\":\"https://github.com/datawire/ambassador/issues\",\"a8r.io/chat\":\"http://a8r.io/Slack\",\"a8r.io/dependencies\":\"ambassador-redis.ambassador\",\"a8r.io/description\":\"The Ambassador Edge Stack goes beyond traditional API Gateways and Ingress Controllers with the advanced edge features needed to support developer self-service and full-cycle development.\",\"a8r.io/documentation\":\"https://www.getambassador.io/docs/edge-stack/latest/\",\"a8r.io/owner\":\"Ambassador Labs\",\"a8r.io/repository\":\"github.com/datawire/ambassador\",\"a8r.io/support\":\"https://www.getambassador.io/about-us/support/\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"product\":\"aes\"},\"name\":\"ambassador\",\"namespace\":\"ambassador\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"targetPort\":8443}],\"selector\":{\"profile\":\"main\",\"service\":\"ambassador\"},\"type\":\"LoadBalancer\"}}\n"
+          },
+          "managedFields": [
+            {
+              "manager": "kubeception",
+              "operation": "Update",
+              "apiVersion": "v1",
+              "time": "2021-11-19T15:11:50Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:status": {
+                  "f:loadBalancer": {
+                    "f:ingress": {}
+                  }
+                }
+              }
+            },
+            {
+              "manager": "kubectl",
+              "operation": "Update",
+              "apiVersion": "v1",
+              "time": "2021-11-19T15:11:50Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:a8r.io/bugs": {},
+                    "f:a8r.io/chat": {},
+                    "f:a8r.io/dependencies": {},
+                    "f:a8r.io/description": {},
+                    "f:a8r.io/documentation": {},
+                    "f:a8r.io/owner": {},
+                    "f:a8r.io/repository": {},
+                    "f:a8r.io/support": {},
+                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                  },
+                  "f:labels": {
+                    ".": {},
+                    "f:app.kubernetes.io/component": {},
+                    "f:product": {}
+                  }
+                },
+                "f:spec": {
+                  "f:externalTrafficPolicy": {},
+                  "f:ports": {
+                    ".": {},
+                    "k:{\"port\":443,\"protocol\":\"TCP\"}": {
+                      ".": {},
+                      "f:name": {},
+                      "f:port": {},
+                      "f:protocol": {},
+                      "f:targetPort": {}
+                    },
+                    "k:{\"port\":80,\"protocol\":\"TCP\"}": {
+                      ".": {},
+                      "f:name": {},
+                      "f:port": {},
+                      "f:protocol": {},
+                      "f:targetPort": {}
+                    }
+                  },
+                  "f:selector": {
+                    ".": {},
+                    "f:profile": {},
+                    "f:service": {}
+                  },
+                  "f:sessionAffinity": {},
+                  "f:type": {}
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "ports": [
+            {
+              "name": "http",
+              "protocol": "TCP",
+              "port": 80,
+              "targetPort": 8080,
+              "nodePort": 30753
+            },
+            {
+              "name": "https",
+              "protocol": "TCP",
+              "port": 443,
+              "targetPort": 8443,
+              "nodePort": 31749
+            }
+          ],
+          "selector": {
+            "profile": "main",
+            "service": "ambassador"
+          },
+          "clusterIP": "10.43.222.197",
+          "clusterIPs": [
+            "10.43.222.197"
+          ],
+          "type": "LoadBalancer",
+          "sessionAffinity": "None",
+          "externalTrafficPolicy": "Cluster"
+        },
+        "status": {
+          "loadBalancer": {
+            "ingress": [
+              {
+                "ip": "34.134.214.82"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "kind": "Service",
+        "apiVersion": "v1",
+        "metadata": {
+          "name": "ambassador-redis",
+          "namespace": "ambassador",
+          "uid": "fb939925-7b28-42c6-8007-e024eaf81e04",
+          "resourceVersion": "996",
+          "creationTimestamp": "2021-11-19T15:11:54Z",
+          "labels": {
+            "product": "aes"
+          },
+          "annotations": {
+            "a8r.io/bugs": "https://github.com/datawire/ambassador/issues",
+            "a8r.io/chat": "http://a8r.io/Slack",
+            "a8r.io/dependencies": "None",
+            "a8r.io/description": "The Ambassador Edge Stack Redis store for auth and rate limiting, among other things.",
+            "a8r.io/documentation": "https://www.getambassador.io/docs/edge-stack/latest/",
+            "a8r.io/owner": "Ambassador Labs",
+            "a8r.io/repository": "github.com/datawire/ambassador",
+            "a8r.io/support": "https://www.getambassador.io/about-us/support/",
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"a8r.io/bugs\":\"https://github.com/datawire/ambassador/issues\",\"a8r.io/chat\":\"http://a8r.io/Slack\",\"a8r.io/dependencies\":\"None\",\"a8r.io/description\":\"The Ambassador Edge Stack Redis store for auth and rate limiting, among other things.\",\"a8r.io/documentation\":\"https://www.getambassador.io/docs/edge-stack/latest/\",\"a8r.io/owner\":\"Ambassador Labs\",\"a8r.io/repository\":\"github.com/datawire/ambassador\",\"a8r.io/support\":\"https://www.getambassador.io/about-us/support/\"},\"labels\":{\"product\":\"aes\"},\"name\":\"ambassador-redis\",\"namespace\":\"ambassador\"},\"spec\":{\"ports\":[{\"port\":6379,\"targetPort\":6379}],\"selector\":{\"service\":\"ambassador-redis\"},\"type\":\"ClusterIP\"}}\n"
+          },
+          "managedFields": [
+            {
+              "manager": "kubectl",
+              "operation": "Update",
+              "apiVersion": "v1",
+              "time": "2021-11-19T15:11:54Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:a8r.io/bugs": {},
+                    "f:a8r.io/chat": {},
+                    "f:a8r.io/dependencies": {},
+                    "f:a8r.io/description": {},
+                    "f:a8r.io/documentation": {},
+                    "f:a8r.io/owner": {},
+                    "f:a8r.io/repository": {},
+                    "f:a8r.io/support": {},
+                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                  },
+                  "f:labels": {
+                    ".": {},
+                    "f:product": {}
+                  }
+                },
+                "f:spec": {
+                  "f:ports": {
+                    ".": {},
+                    "k:{\"port\":6379,\"protocol\":\"TCP\"}": {
+                      ".": {},
+                      "f:port": {},
+                      "f:protocol": {},
+                      "f:targetPort": {}
+                    }
+                  },
+                  "f:selector": {
+                    ".": {},
+                    "f:service": {}
+                  },
+                  "f:sessionAffinity": {},
+                  "f:type": {}
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "ports": [
+            {
+              "protocol": "TCP",
+              "port": 6379,
+              "targetPort": 6379
+            }
+          ],
+          "selector": {
+            "service": "ambassador-redis"
+          },
+          "clusterIP": "10.43.26.164",
+          "clusterIPs": [
+            "10.43.26.164"
+          ],
+          "type": "ClusterIP",
+          "sessionAffinity": "None"
+        },
+        "status": {
+          "loadBalancer": {}
+        }
+      },
+      {
+        "kind": "Service",
+        "apiVersion": "v1",
+        "metadata": {
+          "name": "kubernetes",
+          "namespace": "default",
+          "uid": "6d1fbeea-a67b-4efc-af47-c9bab245075c",
+          "resourceVersion": "198",
+          "creationTimestamp": "2021-11-19T15:02:39Z",
+          "labels": {
+            "component": "apiserver",
+            "provider": "kubernetes"
+          },
+          "managedFields": [
+            {
+              "manager": "k3s",
+              "operation": "Update",
+              "apiVersion": "v1",
+              "time": "2021-11-19T15:02:39Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:labels": {
+                    ".": {},
+                    "f:component": {},
+                    "f:provider": {}
+                  }
+                },
+                "f:spec": {
+                  "f:clusterIP": {},
+                  "f:ipFamilyPolicy": {},
+                  "f:ports": {
+                    ".": {},
+                    "k:{\"port\":443,\"protocol\":\"TCP\"}": {
+                      ".": {},
+                      "f:name": {},
+                      "f:port": {},
+                      "f:protocol": {},
+                      "f:targetPort": {}
+                    }
+                  },
+                  "f:sessionAffinity": {},
+                  "f:type": {}
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "ports": [
+            {
+              "name": "https",
+              "protocol": "TCP",
+              "port": 443,
+              "targetPort": 6443
+            }
+          ],
+          "clusterIP": "10.43.0.1",
+          "clusterIPs": [
+            "10.43.0.1"
+          ],
+          "type": "ClusterIP",
+          "sessionAffinity": "None"
+        },
+        "status": {
+          "loadBalancer": {}
+        }
+      },
+      {
+        "kind": "Service",
+        "apiVersion": "v1",
+        "metadata": {
+          "name": "kube-dns",
+          "namespace": "kube-system",
+          "uid": "7d423433-2343-4d10-b1b4-c91443af802d",
+          "resourceVersion": "252",
+          "creationTimestamp": "2021-11-19T15:02:41Z",
+          "labels": {
+            "k8s-app": "kube-dns",
+            "kubernetes.io/cluster-service": "true",
+            "kubernetes.io/name": "CoreDNS",
+            "objectset.rio.cattle.io/hash": "bce283298811743a0386ab510f2f67ef74240c57"
+          },
+          "annotations": {
+            "objectset.rio.cattle.io/applied": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"objectset.rio.cattle.io/id\":\"\",\"objectset.rio.cattle.io/owner-gvk\":\"k3s.cattle.io/v1, Kind=Addon\",\"objectset.rio.cattle.io/owner-name\":\"coredns\",\"objectset.rio.cattle.io/owner-namespace\":\"kube-system\",\"prometheus.io/port\":\"9153\",\"prometheus.io/scrape\":\"true\"},\"labels\":{\"k8s-app\":\"kube-dns\",\"kubernetes.io/cluster-service\":\"true\",\"kubernetes.io/name\":\"CoreDNS\",\"objectset.rio.cattle.io/hash\":\"bce283298811743a0386ab510f2f67ef74240c57\"},\"name\":\"kube-dns\",\"namespace\":\"kube-system\"},\"spec\":{\"clusterIP\":\"10.43.0.10\",\"ports\":[{\"name\":\"dns\",\"port\":53,\"protocol\":\"UDP\"},{\"name\":\"dns-tcp\",\"port\":53,\"protocol\":\"TCP\"},{\"name\":\"metrics\",\"port\":9153,\"protocol\":\"TCP\"}],\"selector\":{\"k8s-app\":\"kube-dns\"}}}",
+            "objectset.rio.cattle.io/id": "",
+            "objectset.rio.cattle.io/owner-gvk": "k3s.cattle.io/v1, Kind=Addon",
+            "objectset.rio.cattle.io/owner-name": "coredns",
+            "objectset.rio.cattle.io/owner-namespace": "kube-system",
+            "prometheus.io/port": "9153",
+            "prometheus.io/scrape": "true"
+          },
+          "managedFields": [
+            {
+              "manager": "k3s",
+              "operation": "Update",
+              "apiVersion": "v1",
+              "time": "2021-11-19T15:02:41Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:objectset.rio.cattle.io/applied": {},
+                    "f:objectset.rio.cattle.io/id": {},
+                    "f:objectset.rio.cattle.io/owner-gvk": {},
+                    "f:objectset.rio.cattle.io/owner-name": {},
+                    "f:objectset.rio.cattle.io/owner-namespace": {},
+                    "f:prometheus.io/port": {},
+                    "f:prometheus.io/scrape": {}
+                  },
+                  "f:labels": {
+                    ".": {},
+                    "f:k8s-app": {},
+                    "f:kubernetes.io/cluster-service": {},
+                    "f:kubernetes.io/name": {},
+                    "f:objectset.rio.cattle.io/hash": {}
+                  }
+                },
+                "f:spec": {
+                  "f:clusterIP": {},
+                  "f:ports": {
+                    ".": {},
+                    "k:{\"port\":53,\"protocol\":\"TCP\"}": {
+                      ".": {},
+                      "f:name": {},
+                      "f:port": {},
+                      "f:protocol": {},
+                      "f:targetPort": {}
+                    },
+                    "k:{\"port\":53,\"protocol\":\"UDP\"}": {
+                      ".": {},
+                      "f:name": {},
+                      "f:port": {},
+                      "f:protocol": {},
+                      "f:targetPort": {}
+                    },
+                    "k:{\"port\":9153,\"protocol\":\"TCP\"}": {
+                      ".": {},
+                      "f:name": {},
+                      "f:port": {},
+                      "f:protocol": {},
+                      "f:targetPort": {}
+                    }
+                  },
+                  "f:selector": {
+                    ".": {},
+                    "f:k8s-app": {}
+                  },
+                  "f:sessionAffinity": {},
+                  "f:type": {}
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "ports": [
+            {
+              "name": "dns",
+              "protocol": "UDP",
+              "port": 53,
+              "targetPort": 53
+            },
+            {
+              "name": "dns-tcp",
+              "protocol": "TCP",
+              "port": 53,
+              "targetPort": 53
+            },
+            {
+              "name": "metrics",
+              "protocol": "TCP",
+              "port": 9153,
+              "targetPort": 9153
+            }
+          ],
+          "selector": {
+            "k8s-app": "kube-dns"
+          },
+          "clusterIP": "10.43.0.10",
+          "clusterIPs": [
+            "10.43.0.10"
+          ],
+          "type": "ClusterIP",
+          "sessionAffinity": "None"
+        },
+        "status": {
+          "loadBalancer": {}
+        }
+      },
+      {
+        "kind": "Service",
+        "apiVersion": "v1",
+        "metadata": {
+          "name": "metrics-server",
+          "namespace": "kube-system",
+          "uid": "7b00f1bd-c622-4b9d-bba2-f5b270b20966",
+          "resourceVersion": "278",
+          "creationTimestamp": "2021-11-19T15:02:41Z",
+          "labels": {
+            "kubernetes.io/cluster-service": "true",
+            "kubernetes.io/name": "Metrics-server",
+            "objectset.rio.cattle.io/hash": "a5d3bc601c871e123fa32b27f549b6ea770bcf4a"
+          },
+          "annotations": {
+            "objectset.rio.cattle.io/applied": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"objectset.rio.cattle.io/id\":\"\",\"objectset.rio.cattle.io/owner-gvk\":\"k3s.cattle.io/v1, Kind=Addon\",\"objectset.rio.cattle.io/owner-name\":\"metrics-server-service\",\"objectset.rio.cattle.io/owner-namespace\":\"kube-system\"},\"labels\":{\"kubernetes.io/cluster-service\":\"true\",\"kubernetes.io/name\":\"Metrics-server\",\"objectset.rio.cattle.io/hash\":\"a5d3bc601c871e123fa32b27f549b6ea770bcf4a\"},\"name\":\"metrics-server\",\"namespace\":\"kube-system\"},\"spec\":{\"ports\":[{\"port\":443,\"protocol\":\"TCP\",\"targetPort\":443}],\"selector\":{\"k8s-app\":\"metrics-server\"}}}",
+            "objectset.rio.cattle.io/id": "",
+            "objectset.rio.cattle.io/owner-gvk": "k3s.cattle.io/v1, Kind=Addon",
+            "objectset.rio.cattle.io/owner-name": "metrics-server-service",
+            "objectset.rio.cattle.io/owner-namespace": "kube-system"
+          },
+          "managedFields": [
+            {
+              "manager": "k3s",
+              "operation": "Update",
+              "apiVersion": "v1",
+              "time": "2021-11-19T15:02:41Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:objectset.rio.cattle.io/applied": {},
+                    "f:objectset.rio.cattle.io/id": {},
+                    "f:objectset.rio.cattle.io/owner-gvk": {},
+                    "f:objectset.rio.cattle.io/owner-name": {},
+                    "f:objectset.rio.cattle.io/owner-namespace": {}
+                  },
+                  "f:labels": {
+                    ".": {},
+                    "f:kubernetes.io/cluster-service": {},
+                    "f:kubernetes.io/name": {},
+                    "f:objectset.rio.cattle.io/hash": {}
+                  }
+                },
+                "f:spec": {
+                  "f:ports": {
+                    ".": {},
+                    "k:{\"port\":443,\"protocol\":\"TCP\"}": {
+                      ".": {},
+                      "f:port": {},
+                      "f:protocol": {},
+                      "f:targetPort": {}
+                    }
+                  },
+                  "f:selector": {
+                    ".": {},
+                    "f:k8s-app": {}
+                  },
+                  "f:sessionAffinity": {},
+                  "f:type": {}
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "ports": [
+            {
+              "protocol": "TCP",
+              "port": 443,
+              "targetPort": 443
+            }
+          ],
+          "selector": {
+            "k8s-app": "metrics-server"
+          },
+          "clusterIP": "10.43.141.217",
+          "clusterIPs": [
+            "10.43.141.217"
+          ],
+          "type": "ClusterIP",
+          "sessionAffinity": "None"
+        },
+        "status": {
+          "loadBalancer": {}
+        }
+      },
+      {
+        "kind": "Service",
+        "apiVersion": "v1",
+        "metadata": {
+          "name": "ambassador-admin",
+          "namespace": "ambassador",
+          "uid": "0cb1dff4-8cf9-44b8-a371-a1614b24ca4e",
+          "resourceVersion": "903",
+          "creationTimestamp": "2021-11-19T15:11:48Z",
+          "labels": {
+            "product": "aes",
+            "service": "ambassador-admin"
+          },
+          "annotations": {
+            "a8r.io/bugs": "https://github.com/datawire/ambassador/issues",
+            "a8r.io/chat": "http://a8r.io/Slack",
+            "a8r.io/dependencies": "None",
+            "a8r.io/description": "The Ambassador Edge Stack admin service for internal use and health checks.",
+            "a8r.io/documentation": "https://www.getambassador.io/docs/edge-stack/latest/",
+            "a8r.io/owner": "Ambassador Labs",
+            "a8r.io/repository": "github.com/datawire/ambassador",
+            "a8r.io/support": "https://www.getambassador.io/about-us/support/",
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"a8r.io/bugs\":\"https://github.com/datawire/ambassador/issues\",\"a8r.io/chat\":\"http://a8r.io/Slack\",\"a8r.io/dependencies\":\"None\",\"a8r.io/description\":\"The Ambassador Edge Stack admin service for internal use and health checks.\",\"a8r.io/documentation\":\"https://www.getambassador.io/docs/edge-stack/latest/\",\"a8r.io/owner\":\"Ambassador Labs\",\"a8r.io/repository\":\"github.com/datawire/ambassador\",\"a8r.io/support\":\"https://www.getambassador.io/about-us/support/\"},\"labels\":{\"product\":\"aes\",\"service\":\"ambassador-admin\"},\"name\":\"ambassador-admin\",\"namespace\":\"ambassador\"},\"spec\":{\"ports\":[{\"name\":\"ambassador-admin\",\"port\":8877,\"protocol\":\"TCP\",\"targetPort\":\"admin\"},{\"name\":\"ambassador-snapshot\",\"port\":8005,\"protocol\":\"TCP\",\"targetPort\":8005}],\"selector\":{\"service\":\"ambassador\"},\"type\":\"ClusterIP\"}}\n"
+          },
+          "managedFields": [
+            {
+              "manager": "kubectl",
+              "operation": "Update",
+              "apiVersion": "v1",
+              "time": "2021-11-19T15:11:48Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:a8r.io/bugs": {},
+                    "f:a8r.io/chat": {},
+                    "f:a8r.io/dependencies": {},
+                    "f:a8r.io/description": {},
+                    "f:a8r.io/documentation": {},
+                    "f:a8r.io/owner": {},
+                    "f:a8r.io/repository": {},
+                    "f:a8r.io/support": {},
+                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                  },
+                  "f:labels": {
+                    ".": {},
+                    "f:product": {},
+                    "f:service": {}
+                  }
+                },
+                "f:spec": {
+                  "f:ports": {
+                    ".": {},
+                    "k:{\"port\":8005,\"protocol\":\"TCP\"}": {
+                      ".": {},
+                      "f:name": {},
+                      "f:port": {},
+                      "f:protocol": {},
+                      "f:targetPort": {}
+                    },
+                    "k:{\"port\":8877,\"protocol\":\"TCP\"}": {
+                      ".": {},
+                      "f:name": {},
+                      "f:port": {},
+                      "f:protocol": {},
+                      "f:targetPort": {}
+                    }
+                  },
+                  "f:selector": {
+                    ".": {},
+                    "f:service": {}
+                  },
+                  "f:sessionAffinity": {},
+                  "f:type": {}
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "ports": [
+            {
+              "name": "ambassador-admin",
+              "protocol": "TCP",
+              "port": 8877,
+              "targetPort": "admin"
+            },
+            {
+              "name": "ambassador-snapshot",
+              "protocol": "TCP",
+              "port": 8005,
+              "targetPort": 8005
+            }
+          ],
+          "selector": {
+            "service": "ambassador"
+          },
+          "clusterIP": "10.43.6.229",
+          "clusterIPs": [
+            "10.43.6.229"
+          ],
+          "type": "ClusterIP",
+          "sessionAffinity": "None"
+        },
+        "status": {
+          "loadBalancer": {}
+        }
+      }
+    ],
+    "Endpoints": [
+      {
+        "kind": "Endpoints",
+        "apiVersion": "v1",
+        "metadata": {
+          "name": "kubernetes",
+          "namespace": "default",
+          "uid": "6941dd0d-9c32-4d61-b106-e14c430ac71b",
+          "resourceVersion": "312345",
+          "creationTimestamp": "2021-11-19T15:02:39Z",
+          "labels": {
+            "endpointslice.kubernetes.io/skip-mirror": "true"
+          },
+          "managedFields": [
+            {
+              "manager": "k3s",
+              "operation": "Update",
+              "apiVersion": "v1",
+              "time": "2021-11-19T15:02:39Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:labels": {
+                    ".": {},
+                    "f:endpointslice.kubernetes.io/skip-mirror": {}
+                  }
+                },
+                "f:subsets": {}
+              }
+            }
+          ]
+        },
+        "subsets": [
+          {
+            "addresses": [
+              {
+                "ip": "10.88.10.2"
+              }
+            ],
+            "ports": [
+              {
+                "name": "https",
+                "port": 6443,
+                "protocol": "TCP"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "Endpoints",
+        "apiVersion": "v1",
+        "metadata": {
+          "name": "ambassador-redis",
+          "namespace": "ambassador",
+          "uid": "478e639b-273f-489e-b232-3803ac991272",
+          "resourceVersion": "312332",
+          "creationTimestamp": "2021-11-19T15:11:54Z",
+          "labels": {
+            "product": "aes"
+          },
+          "annotations": {
+            "endpoints.kubernetes.io/last-change-trigger-time": "2021-11-19T15:11:54Z"
+          },
+          "managedFields": [
+            {
+              "manager": "k3s",
+              "operation": "Update",
+              "apiVersion": "v1",
+              "time": "2021-11-19T15:12:05Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:endpoints.kubernetes.io/last-change-trigger-time": {}
+                  },
+                  "f:labels": {
+                    ".": {},
+                    "f:product": {}
+                  }
+                },
+                "f:subsets": {}
+              }
+            }
+          ]
+        },
+        "subsets": [
+          {
+            "addresses": [
+              {
+                "ip": "10.42.0.4",
+                "nodeName": "flynn-1a",
+                "targetRef": {
+                  "kind": "Pod",
+                  "namespace": "ambassador",
+                  "name": "ambassador-redis-584cd89b45-vch88",
+                  "uid": "f4ee8217-2ed4-496a-9383-85c4ddef3955",
+                  "resourceVersion": "312321"
+                }
+              }
+            ],
+            "ports": [
+              {
+                "port": 6379,
+                "protocol": "TCP"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "Endpoints",
+        "apiVersion": "v1",
+        "metadata": {
+          "name": "ambassador-admin",
+          "namespace": "ambassador",
+          "uid": "dc3e60b9-cc3b-4097-aef3-38f9f03a2cf6",
+          "resourceVersion": "312330",
+          "creationTimestamp": "2021-11-19T15:11:48Z",
+          "labels": {
+            "product": "aes",
+            "service": "ambassador-admin"
+          },
+          "annotations": {
+            "endpoints.kubernetes.io/last-change-trigger-time": "2021-11-19T15:11:48Z"
+          },
+          "managedFields": [
+            {
+              "manager": "k3s",
+              "operation": "Update",
+              "apiVersion": "v1",
+              "time": "2021-11-19T15:12:11Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:endpoints.kubernetes.io/last-change-trigger-time": {}
+                  },
+                  "f:labels": {
+                    ".": {},
+                    "f:product": {},
+                    "f:service": {}
+                  }
+                },
+                "f:subsets": {}
+              }
+            }
+          ]
+        },
+        "subsets": [
+          {
+            "notReadyAddresses": [
+              {
+                "ip": "10.42.0.5",
+                "nodeName": "flynn-1a",
+                "targetRef": {
+                  "kind": "Pod",
+                  "namespace": "ambassador",
+                  "name": "ambassador-7b47fd64b9-pc24g",
+                  "uid": "9d27fbc0-2ce1-4414-8bce-8ad0b15a0d2b",
+                  "resourceVersion": "312322"
+                }
+              }
+            ],
+            "ports": [
+              {
+                "name": "ambassador-snapshot",
+                "port": 8005,
+                "protocol": "TCP"
+              },
+              {
+                "name": "ambassador-admin",
+                "port": 8877,
+                "protocol": "TCP"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "Endpoints",
+        "apiVersion": "v1",
+        "metadata": {
+          "name": "ambassador",
+          "namespace": "ambassador",
+          "uid": "77b5d731-5eed-4506-a4d8-67de335dc3f7",
+          "resourceVersion": "312333",
+          "creationTimestamp": "2021-11-19T15:11:50Z",
+          "labels": {
+            "app.kubernetes.io/component": "ambassador-service",
+            "product": "aes"
+          },
+          "annotations": {
+            "endpoints.kubernetes.io/last-change-trigger-time": "2021-11-19T15:11:50Z"
+          },
+          "managedFields": [
+            {
+              "manager": "k3s",
+              "operation": "Update",
+              "apiVersion": "v1",
+              "time": "2021-11-19T15:12:11Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:endpoints.kubernetes.io/last-change-trigger-time": {}
+                  },
+                  "f:labels": {
+                    ".": {},
+                    "f:app.kubernetes.io/component": {},
+                    "f:product": {}
+                  }
+                },
+                "f:subsets": {}
+              }
+            }
+          ]
+        },
+        "subsets": [
+          {
+            "notReadyAddresses": [
+              {
+                "ip": "10.42.0.5",
+                "nodeName": "flynn-1a",
+                "targetRef": {
+                  "kind": "Pod",
+                  "namespace": "ambassador",
+                  "name": "ambassador-7b47fd64b9-pc24g",
+                  "uid": "9d27fbc0-2ce1-4414-8bce-8ad0b15a0d2b",
+                  "resourceVersion": "312322"
+                }
+              }
+            ],
+            "ports": [
+              {
+                "name": "https",
+                "port": 8443,
+                "protocol": "TCP"
+              },
+              {
+                "name": "http",
+                "port": 8080,
+                "protocol": "TCP"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "Listener": [
+      {
+        "kind": "Listener",
+        "apiVersion": "getambassador.io/v3alpha1",
+        "metadata": {
+          "name": "ambassador-https-listener",
+          "namespace": "default",
+          "uid": "db292cf6-4d2d-4b3d-af64-71aab0f65378",
+          "resourceVersion": "1298",
+          "generation": 1,
+          "creationTimestamp": "2021-11-19T15:16:56Z",
+          "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v3alpha1\",\"kind\":\"Listener\",\"metadata\":{\"annotations\":{},\"name\":\"ambassador-https-listener\",\"namespace\":\"default\"},\"spec\":{\"hostBinding\":{\"namespace\":{\"from\":\"ALL\"}},\"port\":8443,\"protocol\":\"HTTPS\",\"securityModel\":\"XFP\"}}\n"
+          },
+          "managedFields": [
+            {
+              "manager": "kubectl",
+              "operation": "Update",
+              "apiVersion": "getambassador.io/v3alpha1",
+              "time": "2021-11-19T15:16:56Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                  }
+                },
+                "f:spec": {
+                  ".": {},
+                  "f:hostBinding": {
+                    ".": {},
+                    "f:namespace": {
+                      ".": {},
+                      "f:from": {}
+                    }
+                  },
+                  "f:port": {},
+                  "f:protocol": {},
+                  "f:securityModel": {}
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "port": 8443,
+          "protocol": "HTTPS",
+          "securityModel": "XFP",
+          "hostBinding": {
+            "namespace": {
+              "from": "ALL"
+            }
+          }
+        }
+      },
+      {
+        "kind": "Listener",
+        "apiVersion": "getambassador.io/v3alpha1",
+        "metadata": {
+          "name": "ambassador-http-listener",
+          "namespace": "default",
+          "uid": "2aeeeab4-3b8f-489e-9dc8-f14b3f284d2b",
+          "resourceVersion": "1299",
+          "generation": 1,
+          "creationTimestamp": "2021-11-19T15:16:56Z",
+          "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v3alpha1\",\"kind\":\"Listener\",\"metadata\":{\"annotations\":{},\"name\":\"ambassador-http-listener\",\"namespace\":\"default\"},\"spec\":{\"hostBinding\":{\"namespace\":{\"from\":\"ALL\"}},\"port\":8080,\"protocol\":\"HTTP\",\"securityModel\":\"XFP\"}}\n"
+          },
+          "managedFields": [
+            {
+              "manager": "kubectl",
+              "operation": "Update",
+              "apiVersion": "getambassador.io/v3alpha1",
+              "time": "2021-11-19T15:16:56Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                  }
+                },
+                "f:spec": {
+                  ".": {},
+                  "f:hostBinding": {
+                    ".": {},
+                    "f:namespace": {
+                      ".": {},
+                      "f:from": {}
+                    }
+                  },
+                  "f:port": {},
+                  "f:protocol": {},
+                  "f:securityModel": {}
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "port": 8080,
+          "protocol": "HTTP",
+          "securityModel": "XFP",
+          "hostBinding": {
+            "namespace": {
+              "from": "ALL"
+            }
+          }
+        }
+      }
+    ],
+    "Host": [
+      {
+        "kind": "Host",
+        "apiVersion": "getambassador.io/v3alpha1",
+        "metadata": {
+          "name": "flamboyant-roentgen-4799-beta.edgestack.me",
+          "namespace": "default",
+          "uid": "e33bdea4-f672-46c5-91b0-eec73362177c",
+          "resourceVersion": "1609",
+          "generation": 3,
+          "creationTimestamp": "2021-11-19T15:22:04Z",
+          "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v3alpha1\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"name\":\"flamboyant-roentgen-4799-beta.edgestack.me\",\"namespace\":\"default\"},\"spec\":{\"acmeProvider\":{\"email\":\"flynn@datawire.io\"},\"hostname\":\"flamboyant-roentgen-4799-beta.edgestack.me\",\"tlsSecret\":{\"name\":\"my-tls-secret\"}}}\n"
+          },
+          "managedFields": [
+            {
+              "manager": "kubectl",
+              "operation": "Update",
+              "apiVersion": "getambassador.io/v3alpha1",
+              "time": "2021-11-19T15:22:04Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                  }
+                },
+                "f:spec": {
+                  ".": {},
+                  "f:acmeProvider": {
+                    ".": {},
+                    "f:email": {}
+                  },
+                  "f:hostname": {},
+                  "f:tlsSecret": {
+                    ".": {},
+                    "f:name": {}
+                  }
+                }
+              }
+            },
+            {
+              "manager": "amb-sidecar",
+              "operation": "Update",
+              "apiVersion": "getambassador.io/v3alpha1",
+              "time": "2021-11-19T15:22:15Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:spec": {
+                  "f:acmeProvider": {
+                    "f:authority": {},
+                    "f:privateKeySecret": {
+                      ".": {},
+                      "f:name": {}
+                    },
+                    "f:registration": {}
+                  },
+                  "f:ambassador_id": {}
+                },
+                "f:status": {
+                  ".": {},
+                  "f:state": {},
+                  "f:tlsCertificateSource": {}
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "ambassador_id": [
+            "default"
+          ],
+          "hostname": "flamboyant-roentgen-4799-beta.edgestack.me",
+          "acmeProvider": {
+            "authority": "https://acme-v02.api.letsencrypt.org/directory",
+            "email": "flynn@datawire.io",
+            "privateKeySecret": {
+              "name": "https-3a-2f-2facme-2dv02.api.letsencrypt.org-2fdirectory--flynn-40datawire.io"
+            },
+            "registration": "{\"body\":{\"status\":\"valid\",\"contact\":[\"mailto:flynn@datawire.io\"]},\"uri\":\"https://acme-v02.api.letsencrypt.org/acme/acct/287263420\"}"
+          },
+          "tlsSecret": {
+            "name": "my-tls-secret"
+          }
+        },
+        "status": {
+          "tlsCertificateSource": "ACME",
+          "state": "Ready"
+        }
+      }
+    ],
+    "Mapping": [
+      {
+        "kind": "Mapping",
+        "apiVersion": "getambassador.io/v3alpha1",
+        "metadata": {
+          "name": "ambassador-devportal",
+          "namespace": "ambassador",
+          "uid": "f10adc20-7a7e-4844-b6f1-687426b382fb",
+          "resourceVersion": "989",
+          "generation": 1,
+          "creationTimestamp": "2021-11-19T15:11:54Z",
+          "labels": {
+            "product": "aes"
+          },
+          "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v3alpha1\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"labels\":{\"product\":\"aes\"},\"name\":\"ambassador-devportal\",\"namespace\":\"ambassador\"},\"spec\":{\"hostname\":\"*\",\"prefix\":\"/documentation/\",\"rewrite\":\"/docs/\",\"service\":\"127.0.0.1:8500\"}}\n"
+          },
+          "managedFields": [
+            {
+              "manager": "kubectl",
+              "operation": "Update",
+              "apiVersion": "getambassador.io/v3alpha1",
+              "time": "2021-11-19T15:11:54Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                  },
+                  "f:labels": {
+                    ".": {},
+                    "f:product": {}
+                  }
+                },
+                "f:spec": {
+                  ".": {},
+                  "f:hostname": {},
+                  "f:prefix": {},
+                  "f:rewrite": {},
+                  "f:service": {}
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "prefix": "/documentation/",
+          "service": "127.0.0.1:8500",
+          "rewrite": "/docs/",
+          "hostname": "*"
+        }
+      },
+      {
+        "kind": "Mapping",
+        "apiVersion": "getambassador.io/v3alpha1",
+        "metadata": {
+          "name": "ambassador-devportal-assets",
+          "namespace": "ambassador",
+          "uid": "61dd9e9d-f963-4837-8376-506c4e4e26ed",
+          "resourceVersion": "990",
+          "generation": 1,
+          "creationTimestamp": "2021-11-19T15:11:54Z",
+          "labels": {
+            "product": "aes"
+          },
+          "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v3alpha1\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"labels\":{\"product\":\"aes\"},\"name\":\"ambassador-devportal-assets\",\"namespace\":\"ambassador\"},\"spec\":{\"add_response_headers\":{\"cache-control\":{\"append\":false,\"value\":\"public, max-age=3600, immutable\"}},\"hostname\":\"*\",\"prefix\":\"/documentation/(assets|styles)/(.*)(.css)\",\"prefix_regex\":true,\"regex_rewrite\":{\"pattern\":\"/documentation/(.*)\",\"substitution\":\"/docs/\\\\1\"},\"service\":\"127.0.0.1:8500\"}}\n"
+          },
+          "managedFields": [
+            {
+              "manager": "kubectl",
+              "operation": "Update",
+              "apiVersion": "getambassador.io/v3alpha1",
+              "time": "2021-11-19T15:11:54Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                  },
+                  "f:labels": {
+                    ".": {},
+                    "f:product": {}
+                  }
+                },
+                "f:spec": {
+                  ".": {},
+                  "f:add_response_headers": {
+                    ".": {},
+                    "f:cache-control": {
+                      ".": {},
+                      "f:append": {},
+                      "f:value": {}
+                    }
+                  },
+                  "f:hostname": {},
+                  "f:prefix": {},
+                  "f:prefix_regex": {},
+                  "f:regex_rewrite": {
+                    ".": {},
+                    "f:pattern": {},
+                    "f:substitution": {}
+                  },
+                  "f:service": {}
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "prefix": "/documentation/(assets|styles)/(.*)(.css)",
+          "prefix_regex": true,
+          "service": "127.0.0.1:8500",
+          "add_response_headers": {
+            "cache-control": {
+              "value": "public, max-age=3600, immutable",
+              "append": false
+            }
+          },
+          "regex_rewrite": {
+            "pattern": "/documentation/(.*)",
+            "substitution": "/docs/\\1"
+          },
+          "hostname": "*"
+        }
+      },
+      {
+        "kind": "Mapping",
+        "apiVersion": "getambassador.io/v3alpha1",
+        "metadata": {
+          "name": "ambassador-devportal-demo",
+          "namespace": "ambassador",
+          "uid": "050ad703-a052-41de-b4e4-68ada3ed68e9",
+          "resourceVersion": "991",
+          "generation": 1,
+          "creationTimestamp": "2021-11-19T15:11:54Z",
+          "labels": {
+            "product": "aes"
+          },
+          "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v3alpha1\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"labels\":{\"product\":\"aes\"},\"name\":\"ambassador-devportal-demo\",\"namespace\":\"ambassador\"},\"spec\":{\"hostname\":\"*\",\"prefix\":\"/docs/\",\"rewrite\":\"/docs/\",\"service\":\"127.0.0.1:8500\"}}\n"
+          },
+          "managedFields": [
+            {
+              "manager": "kubectl",
+              "operation": "Update",
+              "apiVersion": "getambassador.io/v3alpha1",
+              "time": "2021-11-19T15:11:54Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                  },
+                  "f:labels": {
+                    ".": {},
+                    "f:product": {}
+                  }
+                },
+                "f:spec": {
+                  ".": {},
+                  "f:hostname": {},
+                  "f:prefix": {},
+                  "f:rewrite": {},
+                  "f:service": {}
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "prefix": "/docs/",
+          "service": "127.0.0.1:8500",
+          "rewrite": "/docs/",
+          "hostname": "*"
+        }
+      },
+      {
+        "kind": "Mapping",
+        "apiVersion": "getambassador.io/v3alpha1",
+        "metadata": {
+          "name": "ambassador-devportal-api",
+          "namespace": "ambassador",
+          "uid": "e1db8aa8-6fae-419d-9f62-da192dda8c7f",
+          "resourceVersion": "992",
+          "generation": 1,
+          "creationTimestamp": "2021-11-19T15:11:54Z",
+          "labels": {
+            "product": "aes"
+          },
+          "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v3alpha1\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"labels\":{\"product\":\"aes\"},\"name\":\"ambassador-devportal-api\",\"namespace\":\"ambassador\"},\"spec\":{\"hostname\":\"*\",\"prefix\":\"/openapi/\",\"rewrite\":\"\",\"service\":\"127.0.0.1:8500\"}}\n"
+          },
+          "managedFields": [
+            {
+              "manager": "kubectl",
+              "operation": "Update",
+              "apiVersion": "getambassador.io/v3alpha1",
+              "time": "2021-11-19T15:11:54Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                  },
+                  "f:labels": {
+                    ".": {},
+                    "f:product": {}
+                  }
+                },
+                "f:spec": {
+                  ".": {},
+                  "f:hostname": {},
+                  "f:prefix": {},
+                  "f:rewrite": {},
+                  "f:service": {}
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "prefix": "/openapi/",
+          "service": "127.0.0.1:8500",
+          "rewrite": "",
+          "hostname": "*"
+        }
+      }
+    ],
+    "TCPMapping": null,
+    "Module": null,
+    "TLSContext": null,
+    "AuthService": [
+      {
+        "kind": "AuthService",
+        "apiVersion": "getambassador.io/v3alpha1",
+        "metadata": {
+          "name": "ambassador-edge-stack-auth",
+          "namespace": "ambassador",
+          "uid": "bbd484a7-0d59-4310-b79b-a4b1ae4f7448",
+          "resourceVersion": "988",
+          "generation": 1,
+          "creationTimestamp": "2021-11-19T15:11:54Z",
+          "labels": {
+            "product": "aes"
+          },
+          "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v3alpha1\",\"kind\":\"AuthService\",\"metadata\":{\"annotations\":{},\"labels\":{\"product\":\"aes\"},\"name\":\"ambassador-edge-stack-auth\",\"namespace\":\"ambassador\"},\"spec\":{\"allow_request_body\":false,\"auth_service\":\"127.0.0.1:8500\",\"proto\":\"grpc\",\"status_on_error\":{\"code\":504}}}\n"
+          },
+          "managedFields": [
+            {
+              "manager": "kubectl",
+              "operation": "Update",
+              "apiVersion": "getambassador.io/v3alpha1",
+              "time": "2021-11-19T15:11:54Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                  },
+                  "f:labels": {
+                    ".": {},
+                    "f:product": {}
+                  }
+                },
+                "f:spec": {
+                  ".": {},
+                  "f:allow_request_body": {},
+                  "f:auth_service": {},
+                  "f:proto": {},
+                  "f:status_on_error": {
+                    ".": {},
+                    "f:code": {}
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "auth_service": "127.0.0.1:8500",
+          "proto": "grpc",
+          "protocol_version": "v3",
+          "allow_request_body": false,
+          "status_on_error": {
+            "code": 504
+          }
+        }
+      }
+    ],
+    "RateLimitService": [
+      {
+        "kind": "RateLimitService",
+        "apiVersion": "getambassador.io/v3alpha1",
+        "metadata": {
+          "name": "ambassador-edge-stack-ratelimit",
+          "namespace": "ambassador",
+          "uid": "6e0cf5da-5028-4627-a97a-2036b4b1a1e9",
+          "resourceVersion": "994",
+          "generation": 1,
+          "creationTimestamp": "2021-11-19T15:11:54Z",
+          "labels": {
+            "product": "aes"
+          },
+          "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v3alpha1\",\"kind\":\"RateLimitService\",\"metadata\":{\"annotations\":{},\"labels\":{\"product\":\"aes\"},\"name\":\"ambassador-edge-stack-ratelimit\",\"namespace\":\"ambassador\"},\"spec\":{\"service\":\"127.0.0.1:8500\"}}\n"
+          },
+          "managedFields": [
+            {
+              "manager": "kubectl",
+              "operation": "Update",
+              "apiVersion": "getambassador.io/v3alpha1",
+              "time": "2021-11-19T15:11:54Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:metadata": {
+                  "f:annotations": {
+                    ".": {},
+                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                  },
+                  "f:labels": {
+                    ".": {},
+                    "f:product": {}
+                  }
+                },
+                "f:spec": {
+                  ".": {},
+                  "f:service": {}
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "service": "127.0.0.1:8500",
+          "protocol_version": "v3"
+        }
+      }
+    ],
+    "LogService": null,
+    "TracingService": null,
+    "DevPortal": null,
+    "ConsulResolver": null,
+    "KubernetesEndpointResolver": null,
+    "KubernetesServiceResolver": null,
+    "GatewayClasses": null,
+    "Gateways": null,
+    "HTTPRoutes": null,
+    "secret": [
+      {
+        "kind": "Secret",
+        "apiVersion": "v1",
+        "metadata": {
+          "name": "my-tls-secret",
+          "namespace": "default",
+          "uid": "6466b3b3-026a-45ac-85b4-e070e16456fa",
+          "resourceVersion": "1606",
+          "creationTimestamp": "2021-11-19T15:22:15Z",
+          "ownerReferences": [
+            {
+              "apiVersion": "getambassador.io/v3alpha1",
+              "kind": "Host",
+              "name": "flamboyant-roentgen-4799-beta.edgestack.me",
+              "uid": "e33bdea4-f672-46c5-91b0-eec73362177c"
+            }
+          ],
+          "managedFields": [
+            {
+              "manager": "amb-sidecar",
+              "operation": "Update",
+              "apiVersion": "v1",
+              "time": "2021-11-19T15:22:15Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:data": {
+                  ".": {},
+                  "f:tls.crt": {},
+                  "f:tls.key": {}
+                },
+                "f:metadata": {
+                  "f:ownerReferences": {
+                    ".": {},
+                    "k:{\"uid\":\"e33bdea4-f672-46c5-91b0-eec73362177c\"}": {
+                      ".": {},
+                      "f:apiVersion": {},
+                      "f:kind": {},
+                      "f:name": {},
+                      "f:uid": {}
+                    }
+                  }
+                },
+                "f:type": {}
+              }
+            }
+          ]
+        },
+        "data": {
+          "tls.key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktnd2dnU2tBZ0VBQW9JQkFRQzdJVytiMDVMM0t6alkKM3A0T1BzeW5OLzhPR3p0T0FOcVZPWGdqUWZvZTBlUTlLWFNNUkxjY2lyV09nUUhEVWxucHVBclBwd3htRng4YQp2cTJ4L0cwR2UzbW1aeDhtMnVNN1hONXdBSGhqdm5EQW5NM0twZnBsM1lscGlQN0RrYUdtYnp1dDRIVWV3NHhmCjJkRHZzdWw5eEtROC9jQUdqc3lwWktvYURMRCt1Tm1Sd3JNdTdHckhDaVB0U0VmZDVPdHc1VUZjeDJiRnVGbmIKYkFieTFwanN1L0ZPd3FITnZWNHEzWlZJWDllc2hMS1RqMi9PRHI2MXlXaUxPOExEQ0J5M25VUG9XNUZYR0NiaApSblAvZXYwVFV2eGhZRHVzVHJva0J2SVhHWDV4R2JJSUhTWjNVOFJFSlA0MWlDMDZtN1JkYmtLRWFGNjFwRHlxCk9TVFV0ck5oQWdNQkFBRUNnZ0VCQUlTb0NGSEVJOHc2aExzZzNaVWxxYmpsTmxkT3NMVDBZQUFuVkdaU01EakcKL0hEclFXYnFrNUNWT0czRVFIYXhtM0hXK1RzSnBmMTlhSnh5RGZvK0F4LzBTbUhQZXNMMXF0NTdVR2kvdkppZworWmRoMFhWV1FuTVNJSWFEQ20ramZwL1kvTXFmY3dlVEFxRTBiU3h2Zlp5ZDJQd3Z1b0FyblNSOGF5VzZWNExLCldyTFhnTk1Qem1ia21tV09CdklLNHRYMmNKRDRCSHkvN2lOZFJHRCtUd3RsYnM4T28rY0xMb1doN0p5dGJxTmkKaFVSYmpuTUI3Z2RGdW94Mk1ibEMxRlludWdkVGR3NFh5RGU2ZEtkeUtXSmpHemJVeFd3eXkreWpyQXh1dGZBYwp4d1ZEc1JCTHZ3dytQdHpmL2VTT1FQaHJWenU3bWhZM3lYT21VblJSamtFQ2dZRUE2Myt1RGI5SXhMNkhTSXc5Cng0QmM1UlFLbU8xSW9Kb2hWRSsvV2V6eGFEa21VQitGU0I3VkY1WHJTcERnWS94NFpSNU9YMHVyUzQvQytYZWUKUGRuTHhZSDU1ZVFxR3ZhdVZuQzBzREErazlvM1RZVEptT2ZZWTl1aWhRQzl3M3pSR3ROeE9GbFFzVlI5Mk5CRQo0U3p1U1Z0UnI4RFRPa2hLaU9sWUJZcEYyRGtDZ1lFQXkydlRJYUk0UUdTakFmQldmWVdObUt2YVZIWjZuZXRXCm1pVGN3UXU0cUFRb2RFZG5zbHNOVndaL3VNSWt0U1o1SUVrcGlBWHhlR3UwRVdFcGllclkzME5IK1RZOEJKWlMKSS9wQ3pSVnl5dDlYL1VBb2o5eXE0Y2h5WlhNWFpWVG9OMFczWWxWcklKb0Jkcmh2WnZ3RUxIcmJEWkg0SnJRdwowQUhzWnE3eEpHa0NnWUFDNHE2Y1JvSzZ2bWJqOGF2MEhOT0dqd2RPTm1JVWJhOEkzRzFJeWNsdmNIdlNzWUF0CmtRc2xYZFhqTlFFNjJHWVZQeGpRdkJtZU5HVzhMc1lHbGZ1VU1QS0I2WmpHZWMxTEM5aDY3Q3hvSFYxZUdzbHAKa1RXcWk0OWpOODRiYmhVVjBnOXFGRllUeGloQWx0U3hPWjYxMFdPZjFxbi81ZERiK3BmMGdXdzNxUUtCZ0ZkNApyUmdZWG1IcUpHSVFDOUQ3M2RCWmpZK21Sc0dqVWVFRW10eDBBdHBVdDJTUTA5bFE1K0tWQzlUUnZ1RWFneGxMCi9JemVLV0JqeDlGMVcxeFAzU1BjRlpYbktWVzdvZVNRbDZzQ1h4TTNpT21BYmpDMmJkQ2ExZjRqeUZxdGNSRmIKYkNqZm5Db3ZyeE55Nll4NkwvMUVjdTlaNWtBV1dhc0lPTFJLNDZ5SkFvR0JBS1E4a1lIc1RuYjdyZWRZcWgwdwpvRXNKM1NxM0NjTUQ5ODEzUlZNcmNUbmVKd1RvL2MxYU12WVlsejBnQUdzYWFyNzhhdjRjdklpQ3o0WVQ5V0hDCmYvME95RUMrWTlsUUIxL2thOEJTanBJZk0yTDBGV0RISlVzR09LWitDK0tsR1pwUmdGOFlERlpIZHdtV09va0wKR2hOOE9qUXdUQkVvOWhtMjF6MTRxdkFDCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0="
+        },
+        "type": "kubernetes.io/tls"
+      },
+      {
+        "kind": "Secret",
+        "apiVersion": "v1",
+        "metadata": {
+          "name": "fallback-self-signed-cert",
+          "namespace": "ambassador",
+          "uid": "26d1c6f1-6a47-45b6-bd17-2e2fa8506276",
+          "resourceVersion": "1053",
+          "creationTimestamp": "2021-11-19T15:12:12Z",
+          "managedFields": [
+            {
+              "manager": "amb-sidecar",
+              "operation": "Update",
+              "apiVersion": "v1",
+              "time": "2021-11-19T15:12:12Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:data": {
+                  ".": {},
+                  "f:tls.crt": {},
+                  "f:tls.key": {}
+                },
+                "f:type": {}
+              }
+            }
+          ]
+        },
+        "data": {
+          "tls.crt": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURGakNDQWY2Z0F3SUJBZ0lRWEJuWmNZWHpINnpLTVpBakJQTDB0VEFOQmdrcWhraUc5dzBCQVFzRkFEQXMKTVNvd0tBWURWUVFLRXlGQmJXSmhjM05oWkc5eUlFVmtaMlVnVTNSaFkyc2dVMlZzWmkxVGFXZHVaV1F3SGhjTgpNakV4TVRFNU1UVXhNakV5V2hjTk1qSXhNVEU1TVRVeE1qRXlXakFzTVNvd0tBWURWUVFLRXlGQmJXSmhjM05oClpHOXlJRVZrWjJVZ1UzUmhZMnNnVTJWc1ppMVRhV2R1WldRd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUIKRHdBd2dnRUtBb0lCQVFEV3ZnQkdEa3lYWXdxLzc2dXVHR2JhYUFpMFoydGhwNE81K3NGSy80T1FsSmFyVitDTApOUk91Rm5jUWF6N20xYkIvQ0hhVmhscW1wb2hMWW5RWEVvTEpqYzV1Y3JLTkkxKzVuSDVnSFZGdjNDRlIybEI1CjhtdVJkSXE1M0hZWXdpSUVtNlR6L0NPdW13S1Y5K2g2NmNtem5iYkFKWlJSeVZoUUNMNFJYajdaNStpYXZCUEkKL1IxSE9VZkIvVEg5MTJ2QzkwSlA0aENWUno2MllIbWZobmJSOVpIMi9nNXVISHZLR0ZwUEk0T3hlNDRwbHplQgpDOWdjMmxzb0pBM09PZytzWUh4ZXcrenpIN0RrMDR2RENmaGdSM0ZsdVNTNUxUWHpVY0tXT2IvN0x1YmRvTXZLCklwY1R4OEdiQi9SNk9IckpXVW1FSk9FK1BXQzBiVmVUNXdhTkFnTUJBQUdqTkRBeU1BNEdBMVVkRHdFQi93UUUKQXdJRm9EQVRCZ05WSFNVRUREQUtCZ2dyQmdFRkJRY0RBVEFMQmdOVkhSRUVCREFDZ2dBd0RRWUpLb1pJaHZjTgpBUUVMQlFBRGdnRUJBQ2o4OFJsQjRVS2t1bEFUb2Z0V3hTc3pOS0RiUTZvV0VQdjduQ0czTzVzMzVYckVKN3ZyClBWSmlUVkoycHorekpqTEVzR3RhZmFsVjgwVDZXekIxM1pRdTB5blJlWHdJQ3FCRkVHOGZDZW92YTFwTjJKamoKU3JzQnhLZWp3NWVaMlR1WkRROFJDdHVWQUpRR3JsMDBINlpiQk5HSThKOVYvdnVUSE0vem45UlEyaEdUaFI3cwpzQjQrVER0ZXRMK3N4MnlwNEZmY2RWVkxBeGVsOXdmczhEYVJlKzBxZ0NkeWhxbGh1cEQ1c0R4SFFlT3ZDY05yCjlYd1hRUWUxOFh1SHg3RW9CQUprZGdBM0xKSjIyWThoUHY4Mi9mK0ZXcTd6YnZmNzlQNnowd2ViWFlRMXNjVk8KcFZNMU5kVWJHejlnNDNpc082a3pUNlFHcnUwUm11dTl6alU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K",
+          "tls.key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2d0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktrd2dnU2xBZ0VBQW9JQkFRRFd2Z0JHRGt5WFl3cS8KNzZ1dUdHYmFhQWkwWjJ0aHA0TzUrc0ZLLzRPUWxKYXJWK0NMTlJPdUZuY1FhejdtMWJCL0NIYVZobHFtcG9oTApZblFYRW9MSmpjNXVjcktOSTErNW5INWdIVkZ2M0NGUjJsQjU4bXVSZElxNTNIWVl3aUlFbTZUei9DT3Vtd0tWCjkraDY2Y216bmJiQUpaUlJ5VmhRQ0w0UlhqN1o1K2lhdkJQSS9SMUhPVWZCL1RIOTEydkM5MEpQNGhDVlJ6NjIKWUhtZmhuYlI5WkgyL2c1dUhIdktHRnBQSTRPeGU0NHBsemVCQzlnYzJsc29KQTNPT2crc1lIeGV3K3p6SDdEawowNHZEQ2ZoZ1IzRmx1U1M1TFRYelVjS1dPYi83THViZG9NdktJcGNUeDhHYkIvUjZPSHJKV1VtRUpPRStQV0MwCmJWZVQ1d2FOQWdNQkFBRUNnZ0VCQUtFeDhPeWxrVExXZ3R3L0ljVkd4ZlpPdjdJRUsrUWJKZE4yZXFBOG0xcnQKWHdoeHA3bDNkelZuNGFwdWhzSXFTQm1qbGJoNktSUU4wQ09lWFB4d3hjSmNjMGdQU3g2TkhpOHJYT1h6UEExVwoxYUFtMitBZWJFYThqK0lpcm5lNVNtWGhHL3FXRzRiWER5TFovQ1kvMWt2QktNeWxxT2VYMTNZRWlnQnBtWTVoCm1WSTJxMVRFQVNhNmRhb3d5TVVQVWNxaWFZaDhRSGJ3T0QxcncrOGh3aHBwMDlrMmxCYVJuTjkvWTVuVTZNTnIKV1UyM1BOaGJDZnhpTmRIbm5QYkxTa0thL3pwSzl5Ylp5bHZyVjJvZUVZZ3ZhbWRQREhJejdPUU1sS2UxNjFYSgpGa3RhdmNLWkhUL0FuUk9Eb1I4RTlMTTBweE80cThwb3JERDM3K0FGYjdVQ2dZRUEzQ2E4SGhRZGR6K3NIY0xLClBXeDVwbHdjVnFTKzNrU2VEZ2xZN0NRQnlETU5STnZkeWd5RGZvcmpzY1ZtbzB6eFZpUEF2dlM0aW1IbUY2cmoKYU1BTWFOR0NqMGRpdTZRaHZ4TVU2cWdySWtFV1JpY1Mrc0lya2RCUDlyQVhrSm1UZGIxM1ZCNitweklTN3ZHWgo1WUQ4ZnlUeWZSRjZUa3Z1K3kxc0VXVGNWbk1DZ1lFQStiWEg2RE5SaktHWWhFTnpFa0xzalo5b3BsN0xQMmw1Cll5VGZYMWRTaURTZGlDc3RiN0pkOXpXK2JZMVNENFdNQXFoZXJxREJqSldsc05DZFpjcDRlZ1poSyt1V3ZnNWgKMHl1cGpyWmdzdGJCZGlUb3FMdWRIVEZEVHZSazVHRjI2VE5aSDRLdWpncDJpNEV5SU9HeEp4dkk3TUx1UkcvSQpXQlVwUkJvNjd2OENnWUFDZ0tvNHlVL0FjRWZibXNCRHpIemhpRUNHTjU4MzFaM2FXUDdheUZvQTFadThBYWZXCnlTZWhnNkNzLzZwNEJzTGprTXA3SVRzTHo2c1c3OGxnQW5iaHBpZ095dWZ6YkIwNkY5UndDbk5iRTFSV2ZkRTQKYW9hbVJMRDBBL0p3b1Y1TXcxZWM3RENNcEFRVkZVZ0RsT0RKN1RpWWRWOW5qbk5zQllzcDgzU1J3d0tCZ1FDTQpoa2orbWtxdE9vOUs5MjQ5ZTU0RndReXllNndqZm1iS2JZaXE3Y2hMVUZqS3RZbTNUd2hrUTBGc0ExaUgxWjdLCkxCaEVhOEVnTFdMMkV5QlFsVldoVGcvSEdLaFhRbDY0Nk54ZHJMTFVVZGpEZE5mZGhOOVErMVVtakpCdW1ZN0MKZzV3SENKTFU2bngxMjNucldUZEppL0JSbFExalJBalowT2JOSlhtKzN3S0JnUURKbjdCVnRTZnZhLzlJWVZQawpXc3ZZUDBDMlJ4RWM3K2pQRElVOFdSVlFjdk9FRnY1NHl0eWtnOEptYm1oL1FHaGdkN3J5V2NFUWtsZTcrQ1lXClJHaGw1RGg4MDFzZHVyWDUvNmdZVXVVd21xRUVtK1JpaFJMUnY5clg0eDJlcFpsMlVqUDlTUTRaZWRDRFRPbVEKcHJKSEtSK3BiT0xBdEtVNlBhSlBKaEhhZEE9PQotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg=="
+        },
+        "type": "kubernetes.io/tls"
+      },
+      {
+        "kind": "Secret",
+        "apiVersion": "v1",
+        "metadata": {
+          "name": "https-3a-2f-2facme-2dv02.api.letsencrypt.org-2fdirectory--flynn-40datawire.io",
+          "namespace": "default",
+          "uid": "53e13105-8050-44d2-b62b-a8314dbf2c52",
+          "resourceVersion": "1584",
+          "creationTimestamp": "2021-11-19T15:22:05Z",
+          "ownerReferences": [
+            {
+              "apiVersion": "getambassador.io/v3alpha1",
+              "kind": "Host",
+              "name": "flamboyant-roentgen-4799-beta.edgestack.me",
+              "uid": "e33bdea4-f672-46c5-91b0-eec73362177c"
+            }
+          ],
+          "managedFields": [
+            {
+              "manager": "amb-sidecar",
+              "operation": "Update",
+              "apiVersion": "v1",
+              "time": "2021-11-19T15:22:05Z",
+              "fieldsType": "FieldsV1",
+              "fieldsV1": {
+                "f:data": {
+                  ".": {},
+                  "f:user.key": {}
+                },
+                "f:metadata": {
+                  "f:ownerReferences": {
+                    ".": {},
+                    "k:{\"uid\":\"e33bdea4-f672-46c5-91b0-eec73362177c\"}": {
+                      ".": {},
+                      "f:apiVersion": {},
+                      "f:kind": {},
+                      "f:name": {},
+                      "f:uid": {}
+                    }
+                  }
+                },
+                "f:type": {}
+              }
+            }
+          ]
+        },
+        "data": {
+          "user.key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktnd2dnU2tBZ0VBQW9JQkFRQzdJVytiMDVMM0t6alkKM3A0T1BzeW5OLzhPR3p0T0FOcVZPWGdqUWZvZTBlUTlLWFNNUkxjY2lyV09nUUhEVWxucHVBclBwd3htRng4YQp2cTJ4L0cwR2UzbW1aeDhtMnVNN1hONXdBSGhqdm5EQW5NM0twZnBsM1lscGlQN0RrYUdtYnp1dDRIVWV3NHhmCjJkRHZzdWw5eEtROC9jQUdqc3lwWktvYURMRCt1Tm1Sd3JNdTdHckhDaVB0U0VmZDVPdHc1VUZjeDJiRnVGbmIKYkFieTFwanN1L0ZPd3FITnZWNHEzWlZJWDllc2hMS1RqMi9PRHI2MXlXaUxPOExEQ0J5M25VUG9XNUZYR0NiaApSblAvZXYwVFV2eGhZRHVzVHJva0J2SVhHWDV4R2JJSUhTWjNVOFJFSlA0MWlDMDZtN1JkYmtLRWFGNjFwRHlxCk9TVFV0ck5oQWdNQkFBRUNnZ0VCQUlTb0NGSEVJOHc2aExzZzNaVWxxYmpsTmxkT3NMVDBZQUFuVkdaU01EakcKL0hEclFXYnFrNUNWT0czRVFIYXhtM0hXK1RzSnBmMTlhSnh5RGZvK0F4LzBTbUhQZXNMMXF0NTdVR2kvdkppZworWmRoMFhWV1FuTVNJSWFEQ20ramZwL1kvTXFmY3dlVEFxRTBiU3h2Zlp5ZDJQd3Z1b0FyblNSOGF5VzZWNExLCldyTFhnTk1Qem1ia21tV09CdklLNHRYMmNKRDRCSHkvN2lOZFJHRCtUd3RsYnM4T28rY0xMb1doN0p5dGJxTmkKaFVSYmpuTUI3Z2RGdW94Mk1ibEMxRlludWdkVGR3NFh5RGU2ZEtkeUtXSmpHemJVeFd3eXkreWpyQXh1dGZBYwp4d1ZEc1JCTHZ3dytQdHpmL2VTT1FQaHJWenU3bWhZM3lYT21VblJSamtFQ2dZRUE2Myt1RGI5SXhMNkhTSXc5Cng0QmM1UlFLbU8xSW9Kb2hWRSsvV2V6eGFEa21VQitGU0I3VkY1WHJTcERnWS94NFpSNU9YMHVyUzQvQytYZWUKUGRuTHhZSDU1ZVFxR3ZhdVZuQzBzREErazlvM1RZVEptT2ZZWTl1aWhRQzl3M3pSR3ROeE9GbFFzVlI5Mk5CRQo0U3p1U1Z0UnI4RFRPa2hLaU9sWUJZcEYyRGtDZ1lFQXkydlRJYUk0UUdTakFmQldmWVdObUt2YVZIWjZuZXRXCm1pVGN3UXU0cUFRb2RFZG5zbHNOVndaL3VNSWt0U1o1SUVrcGlBWHhlR3UwRVdFcGllclkzME5IK1RZOEJKWlMKSS9wQ3pSVnl5dDlYL1VBb2o5eXE0Y2h5WlhNWFpWVG9OMFczWWxWcklKb0Jkcmh2WnZ3RUxIcmJEWkg0SnJRdwowQUhzWnE3eEpHa0NnWUFDNHE2Y1JvSzZ2bWJqOGF2MEhOT0dqd2RPTm1JVWJhOEkzRzFJeWNsdmNIdlNzWUF0CmtRc2xYZFhqTlFFNjJHWVZQeGpRdkJtZU5HVzhMc1lHbGZ1VU1QS0I2WmpHZWMxTEM5aDY3Q3hvSFYxZUdzbHAKa1RXcWk0OWpOODRiYmhVVjBnOXFGRllUeGloQWx0U3hPWjYxMFdPZjFxbi81ZERiK3BmMGdXdzNxUUtCZ0ZkNApyUmdZWG1IcUpHSVFDOUQ3M2RCWmpZK21Sc0dqVWVFRW10eDBBdHBVdDJTUTA5bFE1K0tWQzlUUnZ1RWFneGxMCi9JemVLV0JqeDlGMVcxeFAzU1BjRlpYbktWVzdvZVNRbDZzQ1h4TTNpT21BYmpDMmJkQ2ExZjRqeUZxdGNSRmIKYkNqZm5Db3ZyeE55Nll4NkwvMUVjdTlaNWtBV1dhc0lPTFJLNDZ5SkFvR0JBS1E4a1lIc1RuYjdyZWRZcWgwdwpvRXNKM1NxM0NjTUQ5ODEzUlZNcmNUbmVKd1RvL2MxYU12WVlsejBnQUdzYWFyNzhhdjRjdklpQ3o0WVQ5V0hDCmYvME95RUMrWTlsUUIxL2thOEJTanBJZk0yTDBGV0RISlVzR09LWitDK0tsR1pwUmdGOFlERlpIZHdtV09va0wKR2hOOE9qUXdUQkVvOWhtMjF6MTRxdkFDCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0="
+        },
+        "type": "Opaque"
+      }
+    ]
+  },
+  "Consul": {},
+  "Deltas": [
+    {
+      "kind": "Service",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "ambassador-redis",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:54Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Service",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "kubernetes",
+        "namespace": "default",
+        "creationTimestamp": "2021-11-19T15:02:39Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Service",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "kube-dns",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:41Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Service",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "metrics-server",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:41Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Service",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "ambassador-admin",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:48Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Service",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "ambassador",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:50Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Endpoints",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "ambassador-admin",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:48Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Endpoints",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "ambassador",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:50Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Endpoints",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "kubernetes",
+        "namespace": "default",
+        "creationTimestamp": "2021-11-19T15:02:39Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Endpoints",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "ambassador-redis",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:54Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Listener",
+      "apiVersion": "getambassador.io/v3alpha1",
+      "metadata": {
+        "name": "ambassador-https-listener",
+        "namespace": "default",
+        "creationTimestamp": "2021-11-19T15:16:56Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Listener",
+      "apiVersion": "getambassador.io/v3alpha1",
+      "metadata": {
+        "name": "ambassador-http-listener",
+        "namespace": "default",
+        "creationTimestamp": "2021-11-19T15:16:56Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "AuthService",
+      "apiVersion": "getambassador.io/v3alpha1",
+      "metadata": {
+        "name": "ambassador-edge-stack-auth",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:54Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "RateLimitService",
+      "apiVersion": "getambassador.io/v3alpha1",
+      "metadata": {
+        "name": "ambassador-edge-stack-ratelimit",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:54Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "node-controller-token-sst58",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:41Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "endpointslice-controller-token-wz2wc",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:52Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "default-token-n2fxp",
+        "namespace": "default",
+        "creationTimestamp": "2021-11-19T15:02:53Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "replication-controller-token-nzxnl",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:51Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "k3s-serving",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:41Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "statefulset-controller-token-4bnmt",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:53Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "ttl-controller-token-gmgfb",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:41Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "ambassador-token-29zws",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:50Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "attachdetach-controller-token-9pg98",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:51Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "persistent-volume-binder-token-svptd",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:52Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "generic-garbage-collector-token-f86m2",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:51Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "ambassador",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:55Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "cronjob-controller-token-zzv7m",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:51Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "pv-protection-controller-token-kpnf6",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:52Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "certificate-controller-token-zgndj",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:41Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "fallback-self-signed-cert",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:12:12Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "ambassador-internal",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:12:11Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "horizontal-pod-autoscaler-token-bhwrd",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:51Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "metrics-server-token-hx5cp",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:41Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "deployment-controller-token-qh7r6",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:51Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "default-token-65nvb",
+        "namespace": "kube-public",
+        "creationTimestamp": "2021-11-19T15:02:53Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "endpointslicemirroring-controller-token-7fxw2",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:41Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "flynn-1a.node-password.k3s",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:42Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "namespace-controller-token-527sk",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:51Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "my-tls-secret",
+        "namespace": "default",
+        "creationTimestamp": "2021-11-19T15:22:15Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "pvc-protection-controller-token-lrhks",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:51Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "daemon-set-controller-token-k5wqw",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:52Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "pod-garbage-collector-token-vzcj8",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:52Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "default-token-s2cbx",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:53Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "default-token-dq2n8",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:41Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "disruption-controller-token-tmt84",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:41Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "expand-controller-token-9dd2k",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:41Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "coredns-token-4nxdk",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:41Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "https-3a-2f-2facme-2dv02.api.letsencrypt.org-2fdirectory--flynn-40datawire.io",
+        "namespace": "default",
+        "creationTimestamp": "2021-11-19T15:22:05Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "root-ca-cert-publisher-token-7ntzq",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:41Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "local-path-provisioner-service-account-token-jsk8p",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:41Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "endpoint-controller-token-qg8q9",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:51Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "replicaset-controller-token-lsk8k",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:51Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "service-account-controller-token-hs8j8",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:41Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "resourcequota-controller-token-cwrdf",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:51Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "job-controller-token-2gmwz",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:51Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "default-token-j68dq",
+        "namespace": "kube-node-lease",
+        "creationTimestamp": "2021-11-19T15:02:53Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "clusterrole-aggregation-controller-token-nrrzp",
+        "namespace": "kube-system",
+        "creationTimestamp": "2021-11-19T15:02:52Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "ambassador-agent-token-vpmlk",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:49Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Mapping",
+      "apiVersion": "getambassador.io/v3alpha1",
+      "metadata": {
+        "name": "ambassador-devportal",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:54Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Mapping",
+      "apiVersion": "getambassador.io/v3alpha1",
+      "metadata": {
+        "name": "ambassador-devportal-assets",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:54Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Mapping",
+      "apiVersion": "getambassador.io/v3alpha1",
+      "metadata": {
+        "name": "ambassador-devportal-demo",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:54Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Mapping",
+      "apiVersion": "getambassador.io/v3alpha1",
+      "metadata": {
+        "name": "ambassador-devportal-api",
+        "namespace": "ambassador",
+        "creationTimestamp": "2021-11-19T15:11:54Z"
+      },
+      "deltaType": "add"
+    },
+    {
+      "kind": "Host",
+      "apiVersion": "getambassador.io/v3alpha1",
+      "metadata": {
+        "name": "flamboyant-roentgen-4799-beta.edgestack.me",
+        "namespace": "default",
+        "creationTimestamp": "2021-11-19T15:22:04Z"
+      },
+      "deltaType": "add"
+    }
+  ],
+  "Invalid": null
+}

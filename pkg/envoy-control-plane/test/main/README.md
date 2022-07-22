@@ -35,38 +35,20 @@ eventually converges to use the latest pushed configuration) for each run.
 
 ## Customizing the test driver
 
-The test driver has the following options:
+You can run ```bin/test -help``` to get a list of the cli flags that
+the test program accepts.  There are also comments in ```main.go```.
 
-```
-Usage of bin/test:
-  -als uint
-    	Accesslog server port (default 18090)
-  -base uint
-    	Listener port (default 9000)
-  -clusters int
-    	Number of clusters (default 2)
-  -debug
-    	Use debug logging
-  -delay duration
-    	Interval between request batch retries (default 500ms)
-  -gateway uint
-    	Management server port for HTTP gateway (default 18001)
-  -http int
-    	Number of HTTP listeners (and RDS configs) (default 1)
-  -nodeID string
-    	Node ID (default "test-id")
-  -port uint
-    	Management server port (default 18000)
-  -r int
-    	Number of requests between snapshot updates (default 5)
-  -tcp int
-    	Number of TCP pass-through listeners (default 1)
-  -runtimes int
-        Number of RTDS layers (default 1)
-  -u int
-    	Number of snapshot updates (default 3)
-  -upstream uint
-    	Upstream HTTP/1.1 port (default 18080)
-  -xds string
-    	Management server type (ads, xds, rest) (default "ads")
-```
+## Using the pprof profiler
+
+One customization is to run the go language profiler [pprof](https://github.com/DataDog/go-profiler-notes/blob/main/pprof.md). See also <https://golang.org/pkg/runtime/pprof/>.
+
+The profiler is normally off because it adds overhead to the tests. You can turn 
+it on with the command line option `--pprof`. There is an environment variable 
+`PPROF` for the `make` commands shown above. For example:
+
+    (export PPROF=true; make integration.xds)
+
+The test will then write files of the form `block_profile_xds.pb.gz`. The files
+get written to the root of the project, in the same place as the envoy logs.
+
+You can use `go tool pprof bin/test <file name>` to analyze the profile data. 

@@ -32,58 +32,43 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
 
 ## UPCOMING BREAKING CHANGES
 
-#### Envoy V2 API
+### Emissary 3.0.0
 
-In *Emissary-ingress v2.2.0*, support for the Envoy V2 API will be removed, and Emissary-ingress
-will support only the Envoy V3 API. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will
-also be removed. Note that Emissary-ingress has been using the Envoy V3 API as its default since
-v1.14.0.
+ - **No `protocol_version: v2`**: Support for specifying `protocol_version: v2` in `AuthService`,
+   `RateLimitService`, and `LogService` resources will be removed.  These resources each have a
+   `protocol_version` field that controls whether Envoy speaks the `v2` transport API or the `v3`
+   transport API when speaking to that service.  Due to Envoy's removal of all v2 Envoy APIs, the
+   `v2` value will no longer be supported.  Note that `protocol_version: v2` is the default in
+   current versions of Emissary.
 
-#### TLS Termination and the `Host` CRD
+   Users who use these resource types but don't explicitly say `protocol_version: v3` will need to
+   adjust their service implementations to understand the v3 protocols, and then update Emissary
+   resources to say `protocol_version` before upgrading to Emissary-ingress 3.0.0.
 
-As of Emissary-ingress v2.0.4, you _must_ supply a `Host` CRD to terminate TLS: it is not
-sufficient to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS
-configuration information to be shared across multiple `Host`s). The minimal configuration for
-TLS termination is now a certificate stored in a Kubernetes `Secret`, and a `Host` referring to
-that `Secret`.
+ - **No Zipkin `collector_endpoint_version: HTTP_JSON_V1`**: Support for specifying
+   `collector_endpoint_version: HTTP_JSON_V1` for a Zipkin `TracingService` will be removed.  The
+   `HTTP_JSON_V1` value corresponds to Zipkin's old API-v1, while the `HTTP_JSON` value corresponds
+   to the Zipkin's new API-v2.
 
-For Emissary-ingress v2.0.0 - v2.0.3, you must supply an `AmbassadorHost` CRD.
+   For current versions of Emissary-ingress (>=1.14.0 and <3.0.0), the behavior is that if the
+   `TracingService` does not specify which Zipkin API to use, it will normally default to using
+   `HTTP_JSON`, but can be made to default to `HTTP_JSON_V1` by setting the
+   `AMBASSADOR_ENVOY_API_VERSION=V2` environment variable.  In Emissary-ingress 3.0.0 this
+   environment variable will no longer have any impact on what the default Zipkin API is, and
+   explicitly setting the API in the `TracingService` will no longer support the `HTTP_JSON_V1`
+   value.
 
-#### `Ingress` Resources and Namespaces
+   Users who rely on `HTTP_JSON_V1` will need to migrate their Emissary-ingress 2.3 install to use
+   either `HTTP_JSON` or `HTTP_PROTO` before upgrading to Emissary-ingress 3.0.0.
 
-In a future version of Emissary-ingress, **no sooner than Emissary-ingress v2.1.0**, TLS
-secrets in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
+With the removal of `regex_type: unsafe` and `collector_endpoint_version: HTTP_JSON_V1`, there will
+be no more user-visible effects of the `AMBASSADOR_ENVOY_API_VERSION` environment variable, and so
+it will be removed; but as it won't be user-visible this isn't considered a breaking change.
 
-#### Regex Matching
+### Emissary 3.0.0 or later
 
-In a future version of Emissary-ingress, **no sooner than Ambassador v2.1.0**, the `regex_type`
-and `regex_max_size` fields will be removed from the `ambassador` `Module`, and Ambassador Edge
-Stack will support only Envoy `safe_regex` matching. Note that `safe_regex` matching has been
-the default for all 1.X releases of Emissary-ingress.
-
-This change is being made the original Envay `regex` matcher was [deprecated in favor of safe_regex]
-in Envoy v1.12.0, then removed entirely from the Envoy V3 APIs. Additionally, setting
-[max_program_size was deprecated] in Envoy v1.15.0. As such, `regex_type: unsafe` and setting
-`regex_max_size` are no longer supported unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`.
-
-Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/type/matcher/v3/regex.proto.html) for more information.
-
-[deprecated in favor of safe_regex]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.12.0.html?highlight=regex#deprecated
-[max_program_size was deprecated]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.15.0.html?highlight=max_program_size
-
-#### Zipkin Collector Versions
-
-In a future version of Emissary-ingress, **no sooner than Emissary-ingress v2.1.0**, support
-for the [HTTP_JSON_V1] Zipkin collector version will be removed.
-
-This change is being made because the HTTP_JSON_V1 collector was deprecated in Envoy v1.12.0, then
-removed entirely from the Envoy V3 APIs. As such, the HTTP_JSON_V1 collector is no longer supported
-unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`. You must migrate to either the HTTP_JSON or
-the HTTP_PROTO collector unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`.
-
-Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version) for more information.
-
-[HTTP_JSON_V1]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version
+ - In a future version of Emissary-ingress, **no sooner than Emissary-ingress v3.0.0**, TLS secrets
+   in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 ## RELEASE NOTES
 {{ $relnotes := (datasource "relnotes") -}}
@@ -1199,11 +1184,11 @@ NOTE: this switches the default regex engine! See the documentation for the `amb
 - Bugfix: Prevent spurious duplicate-resource errors when loading config from the filesystem
 
 [#1255]: https://github.com/datawire/ambassador/issues/1255
-[#1292]: https://github.com/datawire/ambassador/issuse/1292
+[#1292]: https://github.com/datawire/ambassador/issues/1292
 [#1461]: https://github.com/datawire/ambassador/issues/1461
-[#1578]: https://github.com/datawire/ambassador/issuse/1578
-[#1579]: https://github.com/datawire/ambassador/issuse/1579
-[#1594]: https://github.com/datawire/ambassador/issuse/1594
+[#1578]: https://github.com/datawire/ambassador/issues/1578
+[#1579]: https://github.com/datawire/ambassador/issues/1579
+[#1594]: https://github.com/datawire/ambassador/issues/1594
 [#1622]: https://github.com/datawire/ambassador/issues/1622
 [#1625]: https://github.com/datawire/ambassador/issues/1625
 

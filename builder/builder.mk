@@ -205,6 +205,7 @@ python/ambassador.version: $(tools/write-ifchanged) FORCE
 	  echo $(patsubst v%,%,$(VERSION)); \
 	  git rev-parse HEAD; \
 	} | $(tools/write-ifchanged) $@
+clean: python/ambassador.version.rm
 
 # Give Make a hint about which pattern rules to apply.  Honestly, I'm
 # not sure why Make isn't figuring it out on its own, but it isn't.
@@ -224,6 +225,8 @@ docker/.base-envoy.docker.stamp: FORCE
 	  fi; \
 	  echo $(ENVOY_DOCKER_TAG) >$@; \
 	}
+clobber: docker/base-envoy.docker.clean
+
 docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.local %/base-envoy.docker.tag.local %/base-pip.docker.tag.local python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
 	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
 	@printf "    ${BLU}base=$$(sed -n 2p $*/base.docker.tag.local)${END}\n"
@@ -231,11 +234,13 @@ docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.loc
 	@printf "    ${BLU}builderbase=$$(sed -n 2p $*/base-pip.docker.tag.local)${END}\n"
 	{ $(tools/dsum) '$(LCNAME) build' 3s \
 	  docker build -f ${BUILDER_HOME}/Dockerfile . \
+			--platform="$(BUILD_ARCH)" \
 	    --build-arg=base="$$(sed -n 2p $*/base.docker.tag.local)" \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(sed -n 2p $*/base-pip.docker.tag.local)" \
 	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
 	    --iidfile=$@; }
+clean: docker/$(LCNAME).docker.clean
 
 REPO=$(BUILDER_NAME)
 
@@ -261,19 +266,6 @@ push-dev: docker/$(LCNAME).docker.tag.local
 	@printf '$(CYN)==> $(GRN)pushing $(BLU)%s$(GRN) as $(BLU)$(GRN)...$(END)\n' '$(LCNAME)' '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
 	docker tag $$(cat docker/$(LCNAME).docker) '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
 	docker push '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
-
-ifneq ($(IS_PRIVATE),)
-	@echo '$@: not pushing to S3 because this is a private repo'
-else
-	@printf '$(CYN)==> $(GRN)recording $(BLU)%s$(GRN) => $(BLU)%s$(GRN) in S3...$(END)\n' "$$(git rev-parse HEAD)" $(patsubst v%,%,$(VERSION))
-	echo '$(patsubst v%,%,$(VERSION))' | aws s3 cp - 's3://$(AWS_S3_BUCKET)/dev-builds/'"$$(git rev-parse HEAD)"
-
-	{ $(MAKE) \
-	  IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
-	  release/push-chart; }
-	$(MAKE) generate-fast --always-make
-	$(MAKE) push-manifests
-endif
 .PHONY: push-dev
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
@@ -291,31 +283,30 @@ pytest: push-pytest-images
 pytest: $(tools/kubestatus)
 pytest: $(tools/kubectl)
 pytest: $(OSS_HOME)/venv
-pytest: bin/envoy
+pytest: docker/base-envoy.docker.tag.local
 pytest: proxy
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
 	@echo "DEV_KUBECONFIG=$$DEV_KUBECONFIG"
 	@echo "KAT_RUN_MODE=$$KAT_RUN_MODE"
 	@echo "PYTEST_ARGS=$$PYTEST_ARGS"
-	mkdir -p $(or $(TEST_XML_DIR),/tmp/test-data)
 	set -e; { \
 	  . $(OSS_HOME)/venv/bin/activate; \
 	  export SOURCE_ROOT=$(CURDIR); \
-	  export ENVOY_PATH=$(CURDIR)/bin/envoy; \
+	  export ENVOY_DOCKER_TAG=$$(cat docker/base-envoy.docker); \
 	  export KUBESTATUS_PATH=$(CURDIR)/tools/bin/kubestatus; \
-	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=$(or $(TEST_XML_DIR),/tmp/test-data)/pytest.xml --tb=short -rP $(PYTEST_ARGS); \
+	  pytest --tb=short -rP $(PYTEST_ARGS); \
 	}
 .PHONY: pytest
 
-pytest-unit: bin/envoy $(OSS_HOME)/venv
+pytest-unit: $(OSS_HOME)/venv
+pytest-unit: docker/base-envoy.docker.tag.local
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
-	mkdir -p $(or $(TEST_XML_DIR),/tmp/test-data)
 	set -e; { \
 	  . $(OSS_HOME)/venv/bin/activate; \
 	  export SOURCE_ROOT=$(CURDIR); \
-	  export ENVOY_PATH=$(CURDIR)/bin/envoy; \
-	  pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=$(or $(TEST_XML_DIR),/tmp/test-data)/pytest.xml --tb=short -rP $(PYTEST_ARGS) python/tests/unit; \
+	  export ENVOY_DOCKER_TAG=$$(cat docker/base-envoy.docker); \
+	  pytest --tb=short -rP $(PYTEST_ARGS) python/tests/unit; \
 	}
 .PHONY: pytest-unit
 
@@ -333,45 +324,12 @@ build-aux/.pytest-kat.txt.stamp: $(OSS_HOME)/venv push-pytest-images FORCE
 	. venv/bin/activate && set -o pipefail && pytest --collect-only python/tests/kat 2>&1 | sed -En 's/.*<Function (.*)>/\1/p' | sed 's/[].].*//' | sort -u > $@
 build-aux/pytest-kat.txt: build-aux/%: build-aux/.%.stamp $(tools/copy-ifchanged)
 	$(tools/copy-ifchanged) $< $@
-pytest-kat-envoy3-g%: build-aux/pytest-kat.txt $(tools/py-split-tests)
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $* 3 <build-aux/pytest-kat.txt)' python/tests/kat"
-pytest-kat-envoy2: push-pytest-images # doing this all at once is too much for CI...
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
-# ... so we have a separate rule to run things split up
-pytest-kat-envoy2-g%: build-aux/pytest-kat.txt $(tools/py-split-tests)
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $* 3 <build-aux/pytest-kat.txt)' python/tests/kat"
-.PHONY: pytest-kat-%
-
-bin/envoy: docker/base-envoy.docker.tag.local
-	mkdir -p $(@D)
-	{ \
-	  echo '#!/bin/bash'; \
-	  echo "docker run -v $(OSS_HOME):$(OSS_HOME) -v /var/:/var/ -v /tmp/:/tmp/ -t --entrypoint /usr/local/bin/envoy-static-stripped $$(cat docker/base-envoy.docker) \"\$$@\""; \
-	} > $@
-	chmod +x $@
+clean: build-aux/.pytest-kat.txt.stamp.rm build-aux/pytest-kat.txt.rm
+pytest-kat-envoy3-%: build-aux/pytest-kat.txt $(tools/py-split-tests)
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $(subst -of-, ,$*) <build-aux/pytest-kat.txt)' python/tests/kat"
 
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
-
-mypy-server-stop: $(OSS_HOME)/venv
-	@printf "${CYN}==> ${GRN}Stopping mypy server${END}"
-	{ . $(OSS_HOME)/venv/bin/activate && dmypy stop; }
-.PHONY: mypy-server-stop
-
-mypy-server: $(OSS_HOME)/venv
-	{ . $(OSS_HOME)/venv/bin/activate && \
-	  if ! dmypy status >/dev/null; then \
-	    dmypy start -- --use-fine-grained-cache --follow-imports=skip --ignore-missing-imports ;\
-	    printf "${CYN}==> ${GRN}Started mypy server${END}\n" ;\
-	  else \
-		printf "${CYN}==> ${GRN}mypy server already running${END}\n" ;\
-	  fi }
-.PHONY: mypy-server
-
-mypy: mypy-server
-	@printf "${CYN}==> ${GRN}Running mypy${END}\n"
-	{ . $(OSS_HOME)/venv/bin/activate && time dmypy check python; }
-.PHONY: mypy
 
 $(OSS_HOME)/venv: python/requirements.txt python/requirements-dev.txt
 	rm -rf $@
@@ -379,8 +337,10 @@ $(OSS_HOME)/venv: python/requirements.txt python/requirements-dev.txt
 	$@/bin/pip3 install -r python/requirements.txt
 	$@/bin/pip3 install -r python/requirements-dev.txt
 	$@/bin/pip3 install -e $(OSS_HOME)/python
+clobber: venv.rm-r
 
 GOTEST_ARGS ?= -race -count=1 -timeout 30m
+GOTEST_ARGS += -parallel=150 # The ./pkg/envoy-control-plane/cache/v{2,3}/ tests require high parallelism to reliably work
 GOTEST_PKGS ?= ./...
 gotest: $(OSS_HOME)/venv $(tools/kubectl)
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
@@ -480,93 +440,66 @@ AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(patsubst v%,%,$(VERSION))
 export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
 
 release/promote-oss/.main: $(tools/docker-promote)
-	@[[ "$(VERSION)"              =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "Must set VERSION to a vSEMVER value"; exit 1)
-	@[[ -n "$(PROMOTE_FROM_VERSION)" ]] || (echo "MUST SET PROMOTE_FROM_VERSION"; exit 1)
-	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET PROMOTE_TO_VERSION" ; exit 1)
-	@set -e; { \
-		case "$(PROMOTE_CHANNEL)" in \
-			""|wip|early|test|hotfix) true ;; \
-			*) echo "Unknown PROMOTE_CHANNEL $(PROMOTE_CHANNEL)" >&2 ; exit 1;; \
-		esac ; \
-		printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel=$(BLU)%s$(GRN))$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)' ; \
-		pullregistry=$(PROMOTE_FROM_REPO) ; \
-		if [[ -z "$${pullregistry}" ]] ; then \
-			pullregistry=$(RELEASE_REGISTRY) ;\
-		fi ; \
-		if [[ -z "$${pullregistry}" ]] ; then \
-			echo "Must set PROMOTE_FROM_REPO or RELEASE_REGISTRY" ; \
-			exit 1; \
-		fi ; \
-		printf '  $(CYN)$${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n' ; \
-		$(tools/docker-promote) $${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) && \
-		docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) ;\
-	}
+	@[[ '$(PROMOTE_FROM_VERSION)' =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo >&2 'Must set PROMOTE_FROM_VERSION to a vSEMVER value'; exit 1)
+	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo >&2 'Must set PROMOTE_TO_VERSION to a vSEMVER value' ; exit 1)
+	@[[ -n '$(PROMOTE_FROM_REPO)'                                     ]] || (echo >&2 'Must set PROMOTE_FROM_REPO' ; exit 1)
+	@[[ -n '$(PROMOTE_TO_REPO)'                                       ]] || (echo >&2 'Must set PROMOTE_TO_REPO' ; exit 1)
+	@case '$(PROMOTE_CHANNEL)' in \
+	  ''|wip|early|test|hotfix) true;; \
+	  *) echo >&2 'Unknown PROMOTE_CHANNEL $(PROMOTE_CHANNEL)'; exit 1;; \
+	esac
 
-	@printf '  $(CYN)https://s3.amazonaws.com/$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
-	printf '%s' "$(patsubst v%,%,$(VERSION))" | aws s3 cp - s3://$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
+	@printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel='$(BLU)%s$(GRN)')$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)'
 
-	@printf '  $(CYN)s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json$(END)\n'
-	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(patsubst v%,%,$(VERSION))" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
-.PHONY: release/promote-oss/.main
+	@printf '  pushing $(CYN)$(PROMOTE_TO_REPO):$(patsubst v%,%,$(PROMOTE_FROM_VERSION))$(END)...\n'
+	$(tools/docker-promote) $(PROMOTE_FROM_REPO):$(patsubst v%,%,$(PROMOTE_FROM_VERSION)) $(PROMOTE_TO_REPO):$(patsubst v%,%,$(PROMOTE_TO_VERSION))
+	docker push $(PROMOTE_TO_REPO):$(patsubst v%,%,$(PROMOTE_TO_VERSION))
 
-release/promote-oss/to-rc:
-	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION=%s does not look like an RC tag\n' "$(VERSION)"; exit 1)
-	@set -e; { \
-	  commit=$$(git rev-parse HEAD) ;\
-	  $(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key dev-builds ;\
-	  dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
-	  if [ -z "$$dev_version" ]; then \
-	    printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
-	    exit 1 ;\
-	  fi ;\
-	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
-	  $(MAKE) release/promote-oss/.main \
-	    PROMOTE_FROM_VERSION="$$dev_version" \
-	    PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-	    PROMOTE_TO_VERSION="$(patsubst v%,%,$(VERSION))" \
-	    PROMOTE_CHANNEL=test ; \
-	}
 ifneq ($(IS_PRIVATE),)
-	echo "Not publishing charts or manifests because in a private repo" >&2
+	@echo '$@: not pushing to S3 because this is a private repo'
 else
+	@printf '  pushing $(CYN)https://s3.amazonaws.com/$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt$(END)...\n'
+	printf '%s' "$(patsubst v%,%,$(PROMOTE_TO_VERSION))" | aws s3 cp - s3://$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
+
+	@printf '  pushing $(CYN)s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json$(END)...\n'
+	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(patsubst v%,%,$(PROMOTE_TO_VERSION))" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
+
 	{ $(MAKE) \
-	  IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
 	  push-manifests \
 	  publish-docs-yaml; }
 endif
+.PHONY: release/promote-oss/.main
+
+release/promote-oss/to-rc: $(tools/devversion)
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION=%s does not look like an RC tag\n' "$(VERSION)"; exit 1)
+	@set -e; { \
+	  dev_version=$$($(tools/devversion)); \
+	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN).$(END)\n"; \
+	  $(MAKE) release/promote-oss/.main \
+	    PROMOTE_FROM_VERSION="$$dev_version" \
+	    PROMOTE_TO_VERSION='$(VERSION)' \
+	    PROMOTE_FROM_REPO='$(DEV_REGISTRY)/$(REPO)' \
+	    PROMOTE_TO_REPO='$(RELEASE_REGISTRY)/$(REPO)' \
+	    PROMOTE_CHANNEL='test'; \
+	}
 .PHONY: release/promote-oss/to-rc
 
 # To be run from a checkout at the tag you are promoting _from_.
 # This is normally run from CI by creating the GA tag.
-release/promote-oss/to-ga:
+release/promote-oss/to-ga: $(tools/devversion)
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: VERSION=%s does not look like a GA tag\n' "$(VERSION)"; exit 1)
 	@set -e; { \
-	  commit=$$(git rev-parse HEAD) ;\
-	  $(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key dev-builds ; \
-	  dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
-	  if [ -z "$$dev_version" ]; then \
-	    printf "$(RED)==> found no passed dev version for $$commit in S3...$(END)\n" ;\
-	    exit 1 ;\
-	  fi ;\
-	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
+	  dev_version=$$($(tools/devversion)); \
+	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN).$(END)\n"; \
 	  $(MAKE) release/promote-oss/.main \
 	    PROMOTE_FROM_VERSION="$$dev_version" \
-	    PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-	    PROMOTE_TO_VERSION="$(patsubst v%,%,$(VERSION))" \
-	    PROMOTE_CHANNEL= \
-	    ; \
+	    PROMOTE_TO_VERSION='$(VERSION)' \
+	    PROMOTE_FROM_REPO='$(DEV_REGISTRY)/$(REPO)' \
+	    PROMOTE_TO_REPO='$(RELEASE_REGISTRY)/$(REPO)' \
+	    PROMOTE_CHANNEL=''; \
 	}
-ifneq ($(IS_PRIVATE),)
-	echo "Not publishing charts or manifests because in a private repo" >&2
-else
-	{ $(MAKE) \
-	  IMAGE_TAG=$(patsubst v%,%,$(VERSION)) \
-	  IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
-	  push-manifests \
-	  publish-docs-yaml; }
-endif
 .PHONY: release/promote-oss/to-ga
 
 # `make release/ga-check` is meant to be run by a human maintainer to

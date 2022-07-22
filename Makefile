@@ -5,6 +5,10 @@ include build-aux/init-configure-make-itself.mk
 include build-aux/prelude.mk # In Haskell, "Prelude" is what they call the stdlib builtins that get get imported by default before anything else
 include build-aux/tools.mk
 
+# To support contributors building project on M1 Macs we will default container builds to run as linux/amd64 rather than
+# the host architecture. Setting the corresponding environment variable allows overriding it if want to work with other architectures.
+BUILD_ARCH ?= linux/amd64
+
 # Bootstrapping the build env
 ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
   $(_prelude.go.ensure)
@@ -16,18 +20,16 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
   endif
 
   VERSION := $(or $(VERSION),$(shell go run ./tools/src/goversion))
-  $(if $(filter v2.%,$(VERSION)),\
-    ,$(error VERSION variable is invalid: It must be a v2.* string, but is '$(VERSION)'))
+  $(if $(filter v3.%,$(VERSION)),\
+    ,$(error VERSION variable is invalid: It must be a v3.* string, but is '$(VERSION)'))
   $(if $(findstring +,$(VERSION)),\
     $(error VERSION variable is invalid: It must not contain + characters, but is '$(VERSION)'),)
   export VERSION
 
   CHART_VERSION := $(or $(CHART_VERSION),$(shell go run ./tools/src/goversion --dir-prefix=chart))
-  $(if $(filter v7.%,$(CHART_VERSION)),\
-    ,$(error CHART_VERSION variable is invalid: It must be a v7.* string, but is '$(CHART_VERSION)'))
+  $(if $(filter v8.%,$(CHART_VERSION)),\
+    ,$(error CHART_VERSION variable is invalid: It must be a v8.* string, but is '$(CHART_VERSION)'))
   export CHART_VERSION
-
-  include build-aux/version-hack.mk
 
   $(info [make] VERSION=$(VERSION))
   $(info [make] CHART_VERSION=$(CHART_VERSION))
@@ -52,35 +54,16 @@ _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
 IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
 include $(OSS_HOME)/build-aux/ci.mk
+include $(OSS_HOME)/build-aux/main.mk
 include $(OSS_HOME)/build-aux/check.mk
 include $(OSS_HOME)/builder/builder.mk
-include $(OSS_HOME)/build-aux/main.mk
 include $(OSS_HOME)/_cxx/envoy.mk
-include $(OSS_HOME)/charts/charts.mk
-include $(OSS_HOME)/manifests/manifests.mk
 include $(OSS_HOME)/releng/release.mk
 
 $(call module,ambassador,$(OSS_HOME))
 
 include $(OSS_HOME)/build-aux/generate.mk
 include $(OSS_HOME)/build-aux/lint.mk
-
-include $(OSS_HOME)/docs/yaml.mk
-
-test-chart-values.yaml: docker/$(LCNAME).docker.push.remote
-	{ \
-	  echo 'image:'; \
-	  sed -E -n '2s/^(.*):.*/  repository: \1/p' < $<; \
-	  sed -E -n '2s/.*:/  tag: /p' < $<; \
-	} >$@
-
-test-chart: $(tools/k3d) $(tools/kubectl) test-chart-values.yaml $(if $(DEV_USE_IMAGEPULLSECRET),push-pytest-images $(OSS_HOME)/venv)
-	PATH=$(abspath $(tools.bindir)):$(PATH) $(MAKE) -C charts/emissary-ingress HELM_TEST_VALUES=$(abspath test-chart-values.yaml) $@
-.PHONY: test-chart
-
-lint-chart:
-	$(MAKE) -C charts/emissary-ingress $@
-.PHONY: lint-chart
 
 .git/hooks/prepare-commit-msg:
 	ln -s $(OSS_HOME)/tools/hooks/prepare-commit-msg $(OSS_HOME)/.git/hooks/prepare-commit-msg
@@ -98,16 +81,16 @@ deploy: push preflight-cluster
 	$(MAKE) deploy-only
 .PHONY: deploy
 
-deploy-only: preflight-dev-kubeconfig $(tools/kubectl) $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
+deploy-only: preflight-dev-kubeconfig $(tools/kubectl) build-output/yaml-$(patsubst v%,%,$(VERSION)) $(boguschart_dir)
 	mkdir -p $(OSS_HOME)/build/helm/ && \
 	($(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) create ns ambassador || true) && \
-	helm template ambassador --output-dir $(OSS_HOME)/build/helm -n ambassador charts/emissary-ingress/ \
+	helm template ambassador --output-dir $(OSS_HOME)/build/helm -n ambassador $(boguschart_dir) \
 		--set createNamespace=true \
 		--set service.selector.service=ambassador \
 		--set replicaCount=1 \
 		--set enableAES=false \
 		--set image.fullImageOverride=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) && \
-	$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) apply -f $(OSS_HOME)/manifests/emissary/emissary-crds.yaml && \
+	$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) apply -f build-output/yaml-$(patsubst v%,%,$(VERSION))/emissary-crds.yaml
 	$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) -n emissary-system wait --for condition=available --timeout=90s deploy emissary-apiext && \
 	$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) apply -f $(OSS_HOME)/build/helm/emissary-ingress/templates && \
 	rm -rf $(OSS_HOME)/build/helm
@@ -116,3 +99,36 @@ deploy-only: preflight-dev-kubeconfig $(tools/kubectl) $(OSS_HOME)/manifests/emi
 	@printf "$(GRN)Your ambassador image:$(END) $(BLD)$$($(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) get -n ambassador deploy ambassador -o 'go-template={{(index .spec.template.spec.containers 0).image}}')$(END)\n"
 	@printf "$(GRN)Your built image:$(END) $(BLD)$$(sed -n 2p docker/$(LCNAME).docker.push.remote)$(END)\n"
 .PHONY: deploy-only
+
+##############################################
+##@ Telepresence based runners
+##############################################
+
+.PHONY: tel-quit
+tel-quit: ## Quit telepresence
+	telepresence quit
+
+tel-list: ## List intercepts
+	telepresence list
+
+EMISSARY_AGENT_ENV=emissary-agent.env
+
+.PHONY: intercept-emissary-agent
+intercept-emissary-agent:
+	telepresence intercept --namespace ambassador ambassador-agent -p 8080:http \
+		--http-header=test-$(USER)=1 --preview-url=false --env-file $(EMISSARY_AGENT_ENV)
+
+.PHONY: leave-emissary-agent
+leave-emissary-agent:
+	telepresence leave ambassador-agent-ambassador
+
+RUN_EMISSARY_AGENT=bin/run-emissary-agent.sh
+$(RUN_EMISSARY_AGENT):
+	@test -e $(EMISSARY_AGENT_ENV) || echo "Environment file $(EMISSARY_AGENT_ENV) does not exist, please run 'make intercept-emissary-agent' to create it."
+	echo 'AES_LOG_LEVEL=debug AES_SNAPSHOT_URL=http://ambassador-admin.ambassador:8005/snapshot-external AES_DIAGNOSTICS_URL="http://ambassador-admin.ambassador:8877/ambassador/v0/diag/?json=true" AES_REPORT_DIAGNOSTICS_TO_CLOUD=true go run ./cmd/busyambassador agent' >> $(RUN_EMISSARY_AGENT)
+	chmod a+x $(RUN_EMISSARY_AGENT)
+
+.PHONY: irun-emissary-agent
+irun-emissary-agent: bin/run-emissary-agent.sh ## Run emissary-agent using the environment variables fetched by the intercept.
+	bin/run-emissary-agent.sh
+

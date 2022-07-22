@@ -2,7 +2,7 @@
 //
 // This script takes two arguments:
 //   1. A multi-doc yaml file generated from running:
-//       `helm template emissary -f [VALUES_FILE.yaml] -n [NAMESPACE] ./charts/emissary-ingress`
+//       `helm template emissary -f [VALUES_FILE.yaml] -n [NAMESPACE] ./build-output/chart-{VER}_{CHART_VER}/`
 //   2. A yaml file listing the required kubernetes resources from the generated helm template to
 //      output to stdout. See ../aes/require.yaml for an example
 //
@@ -18,7 +18,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 func getResourceKey(resource kates.Object) string {
@@ -49,7 +49,8 @@ func (req Requirement) Key() string {
 }
 
 type Requirements struct {
-	Resources []Requirement `json:"resources"`
+	Resources        []Requirement `json:"resources"`
+	DisableResources []Requirement `json:"disableResources"`
 }
 
 func Main(helmFilename, reqsFilename string, outFile io.Writer) error {
@@ -84,6 +85,7 @@ func Main(helmFilename, reqsFilename string, outFile io.Writer) error {
 		if !ok {
 			return fmt.Errorf("Resource %q not found in generated yaml (known resources are: %q)", req.Key(), Keys(templatedHelm))
 		}
+		delete(templatedHelm, req.Key())
 		objBytes, err := yaml.Marshal(obj)
 		if err != nil {
 			return err
@@ -91,6 +93,21 @@ func Main(helmFilename, reqsFilename string, outFile io.Writer) error {
 		if _, err := outFile.Write(objBytes); err != nil {
 			return err
 		}
+	}
+	for _, req := range reqs.DisableResources {
+		if _, ok := templatedHelm[req.Key()]; !ok {
+			return fmt.Errorf("Resource %q not found in generated yaml (known resources are: %q)", req.Key(), Keys(templatedHelm))
+		}
+		delete(templatedHelm, req.Key())
+	}
+	if len(templatedHelm) > 0 {
+		unusedKeys := make([]string, 0, len(templatedHelm))
+		for key := range templatedHelm {
+			unusedKeys = append(unusedKeys, key)
+		}
+		sort.Strings(unusedKeys)
+		return fmt.Errorf("input file %q didn't specify how to handle the following %d resources: %v",
+			reqsFilename, len(templatedHelm), unusedKeys)
 	}
 
 	return nil

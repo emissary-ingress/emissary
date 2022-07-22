@@ -1,12 +1,19 @@
-# ...
-include $(OSS_HOME)/build-aux/prelude.mk
+#
+# Variables that the dev might set in the env or CLI
 
+# Set to non-empty to enable compiling Envoy as-needed.
 YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
+# Adjust to run just a subset of the tests.
 ENVOY_TEST_LABEL ?= //test/...
+# Set RSYNC_EXTRAS=Pv or something to increase verbosity.
+RSYNC_EXTRAS ?=
+
+#
+# Variables that are meant to be set by editing this file
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,https://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= 4ce93dc3ace00ae9108b179d0afaceac13f4602a
+  ENVOY_COMMIT ?= f96adbeb45342bb8b37345df11fc395aa4b1fcda
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
@@ -18,8 +25,15 @@ ENVOY_TEST_LABEL ?= //test/...
   ENVOY_FULL_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-full-$(ENVOY_DOCKER_VERSION)
 # END LIST OF VARIABLES REQUIRING `make update-base`.
 
-# for builder.mk...
-export ENVOY_DOCKER_TAG
+# How to set ENVOY_GO_CONTROL_PLANE_COMMIT: In github.com/envoyproxy/go-control-plane.git, the majority
+# of commits have a commit message of the form "Mirrored from envoyproxy/envoy @ ${envoy.git_commit}".
+# Look for the most recent one that names a commit that is an ancestor of our ENVOY_COMMIT.  If there
+# are commits not of that form immediately following that commit, you can take them in too (but that's
+# pretty uncommon).  Since that's a simple sentence, but it can be tedious to go through and check
+# which commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an
+# automated way!  Still look at the commit yourself to make sure it seems sane; blindly trusting
+# machines is bad, mmkay?
+ENVOY_GO_CONTROL_PLANE_COMMIT = v0.10.1
 
 # Set ENVOY_DOCKER_REPO to the list of mirrors that we should
 # sanity-check that things get pushed to.
@@ -33,23 +47,81 @@ else
 endif
 
 #
-# Envoy build
+# Intro
+
+include $(OSS_HOME)/build-aux/prelude.mk
+
+# for builder.mk...
+export ENVOY_DOCKER_TAG
+
+old_envoy_commits = $(shell { \
+	  { \
+	    git log --patch --format='' -G'^ *ENVOY_COMMIT' -- _cxx/envoy.mk; \
+	    git log --patch --format='' -G'^ *ENVOY_COMMIT' -- cxx/envoy.mk; \
+	    git log --patch --format='' -G'^ *ENVOY_COMMIT' -- Makefile; \
+	  } | sed -En 's/^.*ENVOY_COMMIT *\?= *//p'; \
+	  git log --patch --format='' -G'^ *ENVOY_BASE_IMAGE' 511ca54c3004019758980ba82f708269c373ba28 -- Makefile | sed -n 's/^. *ENVOY_BASE_IMAGE.*-g//p'; \
+	  git log --patch --format='' -G'FROM.*envoy.*:' 7593e7dca9aea2f146ddfd5a3676bcc30ee25aff -- Dockerfile | sed -n '/FROM.*envoy.*:/s/.*://p' | sed -e 's/ .*//' -e 's/.*-g//' -e 's/.*-//' -e '/^latest$$/d'; \
+	} | uniq)
+lost_history += 251b7d345 # mentioned in a605b62ee (wip - patched and fixed authentication, Gabriel, 2019-04-04)
+lost_history += 27770bf3d # mentioned in 026dc4cd4 (updated envoy image, Gabriel, 2019-04-04)
+check-envoy-version: ## Check that Envoy version has been pushed to the right places
+check-envoy-version: $(OSS_HOME)/_cxx/envoy
+	# First, we're going to check whether the Envoy commit is tagged, which
+	# is one of the things that has to happen before landing a PR that bumps
+	# the ENVOY_COMMIT.
+	#
+	# We strictly check for tags matching 'datawire-*' to remove the
+	# temptation to jump the gun and create an 'ambassador-*' or
+	# 'emissary-*' tag before we know that's actually the commit that will
+	# be in the released Ambassador/Emissary.
+	#
+	# Also, don't just check the tip of the PR ('HEAD'), also check that all
+	# intermediate commits in the PR are also (ancestors of?) a tag.  We
+	# don't want history to get lost!
+	set -e; { \
+	  cd $<; unset GIT_DIR GIT_WORK_TREE; \
+	  for commit in HEAD $(filter-out $(lost_history),$(old_envoy_commits)); do \
+	   echo "=> checking Envoy commit $$commit"; \
+	   desc=$$(git describe --tags --contains --match='datawire-*' "$$commit"); \
+	   [[ "$$desc" == datawire-* ]]; \
+	   echo "   got $$desc"; \
+	  done; \
+	}
+	# Now, we're going to check that the Envoy Docker images have been
+	# pushed to all of the mirrors, which is another thing that has to
+	# happen before landing a PR that bumps the ENVOY_COMMIT.
+	#
+	# We "could" use `docker manifest inspect` instead of `docker
+	# pull` to test that these exist without actually pulling
+	# them... except that gcr.io doesn't allow `manifest inspect`.
+	# So just go ahead and do the `pull` :(
+	$(foreach ENVOY_DOCKER_REPO,$(ENVOY_DOCKER_REPOS), docker pull $(ENVOY_DOCKER_TAG) >/dev/null$(NL))
+	$(foreach ENVOY_DOCKER_REPO,$(ENVOY_DOCKER_REPOS), docker pull $(ENVOY_FULL_DOCKER_TAG) >/dev/null$(NL))
+.PHONY: check-envoy-version
+
+# See the comment on ENVOY_GO_CONTROL_PLANE_COMMIT at the top of the file for more explanation on how this target works.
+guess-envoy-go-control-plane-commit: # Have the computer suggest a value for ENVOY_GO_CONTROL_PLANE_COMMIT
+guess-envoy-go-control-plane-commit: $(OSS_HOME)/_cxx/envoy $(OSS_HOME)/_cxx/go-control-plane
+	@echo
+	@echo '######################################################################'
+	@echo
+	@set -e; { \
+	  (cd $(OSS_HOME)/_cxx/go-control-plane && git log --format='%H %s' origin/main) | sed -n 's, Mirrored from envoyproxy/envoy @ , ,p' | \
+	  while read -r go_commit cxx_commit; do \
+	    if (cd $(OSS_HOME)/_cxx/envoy && git merge-base --is-ancestor "$$cxx_commit" $(ENVOY_COMMIT) 2>/dev/null); then \
+	      echo "ENVOY_GO_CONTROL_PLANE_COMMIT = $$go_commit"; \
+	      break; \
+	    fi; \
+	  done; \
+	}
+.PHONY: guess-envoy-go-control-plane-commit
+
+#
+# Envoy sources and build container
 
 $(OSS_HOME)/_cxx/envoy: FORCE
 	@echo "Getting Envoy sources..."
-# Migrate from old layouts
-	@set -e; { \
-	    if ! test -d $@; then \
-	        for old in $(OSS_HOME)/envoy $(OSS_HOME)/envoy-src $(OSS_HOME)/cxx/envoy; do \
-	            if test -d $$old; then \
-	                set -x; \
-	                mv $$old $@; \
-	                { set +x; } >&/dev/null; \
-	                break; \
-	            fi; \
-	        done; \
-	    fi; \
-	}
 # Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect`
 # and friends work properly.
 	@PS4=; set -ex; { \
@@ -71,36 +143,9 @@ $(OSS_HOME)/_cxx/envoy: FORCE
 	        git checkout origin/master; \
 	    fi; \
 	}
-
-$(OSS_HOME)/_cxx/go-control-plane: FORCE
-	@echo "Getting Envoy go-control-plane sources..."
-# Migrate from old layouts
-	@set -e; { \
-	    if ! test -d $@; then \
-	        for old in $(OSS_HOME)/cxx/go-control-plane; do \
-	            if test -d $$old; then \
-	                set -x; \
-	                mv $$old $@; \
-	                { set +x; } >&/dev/null; \
-	                break; \
-	            fi; \
-	        done; \
-	    fi; \
-	}
-# Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect`
-# and friends work properly.
-	@PS4=; set -ex; { \
-	    unset GIT_DIR GIT_WORK_TREE; \
-	    git init $@; \
-	    cd $@; \
-	    if git remote get-url origin &>/dev/null; then \
-	        git remote set-url origin https://github.com/envoyproxy/go-control-plane; \
-	    else \
-	        git remote add origin https://github.com/envoyproxy/go-control-plane; \
-	    fi; \
-	    git fetch --tags origin; \
-	    git checkout $(ENVOY_GO_CONTROL_PLANE_COMMIT); \
-	}
+$(OSS_HOME)/_cxx/envoy.clean: %.clean:
+	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $*)
+clobber: $(OSS_HOME)/_cxx/envoy.clean
 
 $(OSS_HOME)/_cxx/envoy-build-image.txt: $(OSS_HOME)/_cxx/envoy $(tools/write-ifchanged) FORCE
 	@PS4=; set -ex -o pipefail; { \
@@ -110,6 +155,7 @@ $(OSS_HOME)/_cxx/envoy-build-image.txt: $(OSS_HOME)/_cxx/envoy $(tools/write-ifc
 	    popd; \
 	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(tools/write-ifchanged) $@; \
 	}
+clean: $(OSS_HOME)/_cxx/envoy-build-image.txt.rm
 
 $(OSS_HOME)/_cxx/envoy-build-container.txt: $(OSS_HOME)/_cxx/envoy-build-image.txt FORCE
 	@PS4=; set -ex; { \
@@ -121,19 +167,15 @@ $(OSS_HOME)/_cxx/envoy-build-container.txt: $(OSS_HOME)/_cxx/envoy-build-image.t
 	    fi; \
 	    docker run --detach --rm --privileged --volume=envoy-build:/root:rw $$(cat $<) tail -f /dev/null > $@; \
 	}
+$(OSS_HOME)/_cxx/envoy-build-container.txt.clean: %.clean:
+	if [ -e $* ]; then docker kill $$(cat $*) || true; fi
+	rm -f $*
+	if docker volume inspect envoy-build &>/dev/null; then docker volume rm envoy-build >/dev/null; fi
+clean: $(OSS_HOME)/_cxx/envoy-build-container.txt.clean
 
-%-container.txt.clean:
-	@PS4=; set -ex; { \
-	    if [ -e $*-container.txt ]; then \
-	        docker kill $$(cat $*-container.txt) || true; \
-	    fi; \
-	}
-	rm -f $*-container.txt
-.PHONY: %-container.txt.clean
-
-RSYNC_EXTRAS=
-# RSYNC_EXTRAS=Pv
-
+#
+# Things that run in the Envoy build container
+#
 # We do everything with rsync and a persistent build-container
 # (instead of using a volume), because
 #  1. Docker for Mac's osxfs is very slow, so volumes are bad for
@@ -169,7 +211,7 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	        ); \
 	    fi; \
 	}
-%-stripped: % FORCE
+$(OSS_HOME)/docker/base-envoy/envoy-static-stripped: %-stripped: % FORCE
 	@PS4=; set -ex; { \
 	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker run --rm --entrypoint=true $(ENVOY_FULL_DOCKER_TAG); then \
 	        rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_FULL_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/$(@F) $@; \
@@ -184,6 +226,7 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	        rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/tmp/$(@F) $@; \
 	    fi; \
 	}
+clobber: $(OSS_HOME)/docker/base-envoy/envoy-static.rm $(OSS_HOME)/docker/base-envoy/envoy-static-stripped.rm
 
 check-envoy: ## Run the Envoy test suite
 check-envoy: $(ENVOY_BASH.deps)
@@ -193,24 +236,6 @@ check-envoy: $(ENVOY_BASH.deps)
 	 )
 .PHONY: check-envoy
 
-.PHONY: check-envoy-version
-check-envoy-version: ## Check that Envoy version has been pushed to the right places
-check-envoy-version: $(OSS_HOME)/_cxx/envoy
-	# First, we're going to check whether the envoy commit is tagged, which
-	# is one of the things that has to happen before landing a PR that bumps
-	# the ENVOY_COMMIT.
-	cd $< && unset GIT_DIR GIT_WORK_TREE && git describe --tags --exact-match
-	# Now, we're going to check that the Envoy Docker images have been
-	# pushed to all of the mirrors, which is another thing that has to
-	# happen before landing a PR that bumps the ENVOY_COMMIT.
-	#
-	# We "could" use `docker manifest inspect` instead of `docker
-	# pull` to test that these exist without actually pulling
-	# them... except that gcr.io doesn't allow `manifest inspect`.
-	# So just go ahead and do the `pull` :(
-	@PS4=; set -ex; $(foreach ENVOY_DOCKER_REPO,$(ENVOY_DOCKER_REPOS), docker pull $(ENVOY_DOCKER_TAG) >/dev/null; )
-	@PS4=; set -ex; $(foreach ENVOY_DOCKER_REPO,$(ENVOY_DOCKER_REPOS), docker pull $(ENVOY_FULL_DOCKER_TAG) >/dev/null; )
-
 envoy-shell: ## Run a shell in the Envoy build container
 envoy-shell: $(ENVOY_BASH.deps)
 	$(call ENVOY_BASH.cmd, \
@@ -219,17 +244,21 @@ envoy-shell: $(ENVOY_BASH.deps)
 .PHONY: envoy-shell
 
 #
-# Envoy generate
+# Recipes used by `make generate`; files that get checked in to Git (i.e. protobufs and Go code)
+#
+# These targets are depended on by `make generate` in `build-aux/generate.mk`.
 
-$(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb: $(OSS_HOME)/api/%: $(OSS_HOME)/_cxx/envoy
+# Raw protobufs
+$(OSS_HOME)/api/envoy: $(OSS_HOME)/api/%: $(OSS_HOME)/_cxx/envoy
 	rsync --recursive --delete --delete-excluded --prune-empty-dirs --include='*/' --include='*.proto' --exclude='*' $</api/$*/ $@
 
+# Go generated from the protobufs
 $(OSS_HOME)/_cxx/envoy/build_go: $(ENVOY_BASH.deps) FORCE
 	$(call ENVOY_BASH.cmd, \
-	    $(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generateProtobufs; generateProtobufs("/root/envoy/build_go")'; \
+	    $(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generate_protobufs; generate_protobufs("@envoy_api//...", "/root/envoy/build_go", "envoy_api")'; \
 	)
 	test -d $@ && touch $@
-$(OSS_HOME)/pkg/api/pb $(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(OSS_HOME)/_cxx/envoy/build_go
+$(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(OSS_HOME)/_cxx/envoy/build_go
 	rm -rf $@
 	@PS4=; set -ex; { \
 	  unset GIT_DIR GIT_WORK_TREE; \
@@ -239,18 +268,57 @@ $(OSS_HOME)/pkg/api/pb $(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(OSS_H
 	  find "$$tmpdir" -type f \
 	    -exec chmod 644 {} + \
 	    -exec sed -E -i.bak \
-	      -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/v2/pkg/api/envoy,g' \
-	      -e 's,github\.com/envoyproxy/go-control-plane/pb,github.com/datawire/ambassador/v2/pkg/api/pb,g' \
+	      -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/emissary-ingress/emissary/v3/pkg/api/envoy,g' \
 	      -- {} +; \
 	  find "$$tmpdir" -name '*.bak' -delete; \
 	  mv "$$tmpdir/$*" $@; \
 	}
 
+# The unmodified go-control-plane
+$(OSS_HOME)/_cxx/go-control-plane: FORCE
+	@echo "Getting Envoy go-control-plane sources..."
+# Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect`
+# and friends work properly.
+	@PS4=; set -ex; { \
+	    unset GIT_DIR GIT_WORK_TREE; \
+	    git init $@; \
+	    cd $@; \
+	    if git remote get-url origin &>/dev/null; then \
+	        git remote set-url origin https://github.com/envoyproxy/go-control-plane; \
+	    else \
+	        git remote add origin https://github.com/envoyproxy/go-control-plane; \
+	    fi; \
+	    git fetch --tags origin; \
+	    git checkout $(ENVOY_GO_CONTROL_PLANE_COMMIT); \
+	}
+
+# The go-control-plane patched for our version of the protobufs
+$(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
+	rm -rf $@
+	@PS4=; set -ex; { \
+	  unset GIT_DIR GIT_WORK_TREE; \
+	  tmpdir=$$(mktemp -d); \
+	  trap 'rm -rf "$$tmpdir"' EXIT; \
+	  cd "$$tmpdir"; \
+	  cd $(OSS_HOME)/_cxx/go-control-plane; \
+	  cp -r $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg/* "$$tmpdir"; \
+	  find "$$tmpdir" -name '*.go' -exec sed -E -i.bak \
+	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane,g' \
+	    -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/emissary-ingress/emissary/v3/pkg/api/envoy,g' \
+	    -- {} +; \
+	  find "$$tmpdir" -name '*.bak' -delete; \
+	  mv "$$tmpdir" $(abspath $@); \
+	}
+	cd $(OSS_HOME) && gofmt -w -s ./pkg/envoy-control-plane/
+
+#
+# `make update-base`: Recompile Envoy and do all of the related things.
+
 update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-envoy/envoy-static-stripped $(OSS_HOME)/_cxx/envoy-build-image.txt
 	@PS4=; set -ex; { \
 	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker pull $(ENVOY_FULL_DOCKER_TAG); then \
 	        echo 'Already up-to-date: $(ENVOY_FULL_DOCKER_TAG)'; \
-	        ENVOY_VERSION_OUTPUT=$$(docker run -it --entrypoint envoy-static $(ENVOY_FULL_DOCKER_TAG) --version | grep "version:"); \
+	        ENVOY_VERSION_OUTPUT=$$(docker run --rm -it --entrypoint envoy-static $(ENVOY_FULL_DOCKER_TAG) --version | grep "version:"); \
 	        ENVOY_VERSION_EXPECTED="envoy-static .*version:.* $(ENVOY_COMMIT)/.*"; \
 	        if ! echo "$$ENVOY_VERSION_OUTPUT" | grep "$$ENVOY_VERSION_EXPECTED"; then \
 	            { set +x; } &>/dev/null; \
@@ -268,7 +336,7 @@ update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-
 	        fi; \
 	        docker build --build-arg=base=$$(cat $(OSS_HOME)/_cxx/envoy-build-image.txt) -f $(OSS_HOME)/docker/base-envoy/Dockerfile -t $(ENVOY_FULL_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy; \
 	        if [ '$(ENVOY_COMMIT)' != '-' ]; then \
-	            ENVOY_VERSION_OUTPUT=$$(docker run -it --entrypoint envoy-static $(ENVOY_FULL_DOCKER_TAG) --version | grep "version:"); \
+	            ENVOY_VERSION_OUTPUT=$$(docker run --rm -it --entrypoint envoy-static $(ENVOY_FULL_DOCKER_TAG) --version | grep "version:"); \
 	            ENVOY_VERSION_EXPECTED="envoy-static .*version:.* $(ENVOY_COMMIT)/.*"; \
 	            if ! echo "$$ENVOY_VERSION_OUTPUT" | grep "$$ENVOY_VERSION_EXPECTED"; then \
 	                { set +x; } &>/dev/null; \
@@ -285,7 +353,7 @@ update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-
 	@PS4=; set -ex; { \
 	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker pull $(ENVOY_DOCKER_TAG); then \
 	        echo 'Already up-to-date: $(ENVOY_DOCKER_TAG)'; \
-	        ENVOY_VERSION_OUTPUT=$$(docker run -it --entrypoint envoy-static-stripped $(ENVOY_DOCKER_TAG) --version | grep "version:"); \
+	        ENVOY_VERSION_OUTPUT=$$(docker run --rm -it --entrypoint envoy-static-stripped $(ENVOY_DOCKER_TAG) --version | grep "version:"); \
 	        ENVOY_VERSION_EXPECTED="envoy-static-stripped .*version:.* $(ENVOY_COMMIT)/.*"; \
 	        if ! echo "$$ENVOY_VERSION_OUTPUT" | grep "$$ENVOY_VERSION_EXPECTED"; then \
 	            { set +x; } &>/dev/null; \
@@ -303,7 +371,7 @@ update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-
 	        fi; \
 	        docker build -f $(OSS_HOME)/docker/base-envoy/Dockerfile.stripped -t $(ENVOY_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy; \
 	        if [ '$(ENVOY_COMMIT)' != '-' ]; then \
-	            ENVOY_VERSION_OUTPUT=$$(docker run -it --entrypoint envoy-static-stripped $(ENVOY_DOCKER_TAG) --version | grep "version:"); \
+	            ENVOY_VERSION_OUTPUT=$$(docker run --rm -it --entrypoint envoy-static-stripped $(ENVOY_DOCKER_TAG) --version | grep "version:"); \
 	            ENVOY_VERSION_EXPECTED="envoy-static-stripped .*version:.* $(ENVOY_COMMIT)/.*"; \
 	            if ! echo "$$ENVOY_VERSION_OUTPUT" | grep "$$ENVOY_VERSION_EXPECTED"; then \
 	                { set +x; } &>/dev/null; \
@@ -321,43 +389,3 @@ update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-
 # try to use the images that the above create.
 	$(MAKE) generate
 .PHONY: update-base
-
-#
-# Envoy clean
-
-clean: _clean-envoy
-clobber: _clobber-envoy
-
-_clean-envoy: _clean-envoy-old
-_clean-envoy: $(OSS_HOME)/_cxx/envoy-build-container.txt.clean
-	@PS4=; set -e; { \
-		if docker volume inspect envoy-build >/dev/null 2>&1; then \
-			set -x ;\
-			docker volume rm envoy-build >/dev/null ;\
-		fi ;\
-	}
-	rm -f $(OSS_HOME)/_cxx/envoy-build-image.txt
-_clobber-envoy: _clean-envoy
-	rm -f $(OSS_HOME)/docker/base-envoy/envoy-static
-	rm -f $(OSS_HOME)/docker/base-envoy/envoy-static-stripped
-	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(OSS_HOME)/_cxx/envoy)
-.PHONY: _clean-envoy _clobber-envoy
-
-# Files made by older versions.  Remove the tail of this list when the
-# commit making the change gets far enough in to the past.
-
-# 2019-10-11
-_clean-envoy-old: $(OSS_HOME)/envoy-build-container.txt.clean
-
-_clean-envoy-old:
-# 2020-02-20
-	rm -f $(OSS_HOME)/cxx/envoy-static
-	rm -f $(OSS_HOME)/bin_linux_amd64/envoy-static
-	rm -f $(OSS_HOME)/bin_linux_amd64/envoy-static-stripped
-# 2019-10-11
-	rm -rf $(OSS_HOME)/envoy-bin
-	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(OSS_HOME)/envoy-src)
-	rm -f $(OSS_HOME)/envoy-build-image.txt
-# older than that
-	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(OSS_HOME)/envoy)
-.PHONY: _clean-envoy-old

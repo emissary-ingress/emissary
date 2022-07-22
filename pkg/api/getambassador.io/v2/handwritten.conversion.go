@@ -13,7 +13,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/conversion"
 
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 )
 
 // These first few functions are written of our own human initiative.

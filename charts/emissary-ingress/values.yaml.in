@@ -15,7 +15,7 @@ barePod: false
 
 test:
   # If true, Create test Pod to verify the Ambassador service works correctly (Only created on helm test)
-  enabled: true
+  enabled: false
   # Image to use for the test Pod
   image: busybox
 
@@ -35,6 +35,13 @@ canary:
     tag: ''
   # Environment variables to be used for the canary deployment, see `envRaw` for usage example
   envRaw: {}
+
+# Install IngressClass resource
+ingressClassResource:
+  enabled: true
+  name: ambassador
+  default: false
+  controllerValue: getambassador.io/ingress-controller
 
 # Enable autoscaling using HorizontalPodAutoscaler
 # daemonSet: true, autoscaling will be disabled
@@ -137,9 +144,9 @@ security:
 
 image:
   # Emissary Ingress docker repo
-  repository: $imageRepo$
+  repository: @imageRepo@
   # Emissary Ingress docker tag
-  tag: $version$
+  tag: @version@
   # Pod container image pull policy
   pullPolicy: IfNotPresent
 
@@ -339,7 +346,10 @@ resolvers: # +doc-gen:break
 #
 # Note: The Module can only be named ambassador. There can only be one Module
 # installed per-namespace.
-module: {}
+module:
+  diagnostics:
+    enabled: false
+    allow_non_local: true
 
 # DEPRECATED: Enabling the prometheus exporter creates a sidecar and configures ambassador to use it
 #
@@ -378,12 +388,14 @@ prometheusExporter: # +doc-gen:break
 
 # Configure the ambassador agent
 agent:
-  # If `true`, installs the ambassador-agent Deployment, ServiceAccount and ClusterRole in the ambassador namespace, enabling the Service Catalog
+  # If `true`, installs the ambassador-agent Deployment, ServiceAccount and ClusterRole in the ambassador namespace, enabling the Ambassador Cloud connectivity.
   enabled: true
-  # API token for reporting snapshots to the [Service Catalog](https://app.getambassador.io/cloud/catalog/);
+  # If `true`, will report diagnostics information.
+  diagnostics: true
+  # API token for reporting snapshots to [Ambassador Cloud](https://app.getambassador.io/cloud/);
   # If empty, agent will not report snapshots
   cloudConnectToken: ''
-  # Address of the ambassador Service Catalog rpc server.
+  # Address of the Ambassador Cloud rpc server.
   rpcAddress: https://app.getambassador.io/
   createArgoRBAC: true
   image:

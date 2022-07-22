@@ -1,12 +1,10 @@
 from typing import Generator, Tuple, Union
 
-from kat.harness import variants, Query, EDGE_STACK
-
-from abstract_tests import AmbassadorTest, MappingTest, Node
-from tests.integration.manifests import namespace_manifest
-
 import t_mappingtests_plain
 import t_optiontests
+from abstract_tests import AmbassadorTest, MappingTest, Node
+from kat.harness import EDGE_STACK, Query, variants
+from tests.integration.manifests import namespace_manifest
 
 # Plain is the place that all the MappingTests get pulled in.
 
@@ -20,7 +18,10 @@ class Plain(AmbassadorTest):
         yield cls(variants(MappingTest))
 
     def manifests(self) -> str:
-        m = namespace_manifest("plain-namespace") + namespace_manifest("evil-namespace") + """
+        m = (
+            namespace_manifest("plain-namespace")
+            + namespace_manifest("evil-namespace")
+            + """
 ---
 kind: Service
 apiVersion: v1
@@ -67,6 +68,7 @@ spec:
     port: 443
     targetPort: 8443
 """
+        )
 
         if EDGE_STACK:
             m += """
@@ -131,11 +133,11 @@ config: {}
 
         # We shouldn't have any missing-CRD-types errors any more.
         for source, error in errors:
-          if (('could not find' in error) and ('CRD definitions' in error)):
-            assert False, f"Missing CRDs: {error}"
+            if ("could not find" in error) and ("CRD definitions" in error):
+                assert False, f"Missing CRDs: {error}"
 
-          if 'Ingress resources' in error:
-            assert False, f"Ingress resource error: {error}"
+            if "Ingress resources" in error:
+                assert False, f"Ingress resource error: {error}"
 
         # The default errors assume that we have missing CRDs, and that's not correct any more,
         # so don't try to use assert_default_errors here.

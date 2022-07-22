@@ -37,8 +37,8 @@ import (
 	// k8s plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	kates_internal "github.com/datawire/ambassador/v2/pkg/kates_internal"
 	"github.com/datawire/dlib/dlog"
+	kates_internal "github.com/emissary-ingress/emissary/v3/pkg/kates_internal"
 )
 
 // The Client struct provides an interface to interact with the kubernetes api-server. You can think
@@ -103,10 +103,17 @@ type ClientConfig struct {
 
 // The NewClient function constructs a new client with the supplied ClientConfig.
 func NewClient(options ClientConfig) (*Client, error) {
-	return NewClientFromConfigFlags(config(options))
+	return NewClientFromConfigFlags(options.toConfigFlags())
 }
 
-func NewClientFromFlagSet(flags *pflag.FlagSet) (*Client, error) {
+// NewClientFactory adds flags to a flagset (i.e. before flagset.Parse()), and returns a function to
+// be called after flagset.Parse() that uses the parsed flags to construct a *Client.
+func NewClientFactory(flags *pflag.FlagSet) func() (*Client, error) {
+	if flags.Parsed() {
+		// panic is OK because this is a programming error.
+		panic("kates.NewClientFactory(flagset) must be called before flagset.Parse()")
+	}
+
 	config := NewConfigFlags(false)
 
 	// We can disable or enable flags by setting them to
@@ -116,7 +123,13 @@ func NewClientFromFlagSet(flags *pflag.FlagSet) (*Client, error) {
 	// genericclioptions.NewConfigFlags().
 
 	config.AddFlags(flags)
-	return NewClientFromConfigFlags(config)
+
+	return func() (*Client, error) {
+		if !flags.Parsed() {
+			return nil, fmt.Errorf("kates client factory must be called after flagset.Parse()")
+		}
+		return NewClientFromConfigFlags(config)
+	}
 }
 
 func NewClientFromConfigFlags(config *ConfigFlags) (*Client, error) {
@@ -1158,33 +1171,18 @@ func unKey(u *Unstructured) string {
 	return string(u.GetUID())
 }
 
-func config(options ClientConfig) *ConfigFlags {
-	flags := pflag.NewFlagSet("KubeInfo", pflag.ContinueOnError)
+func (options ClientConfig) toConfigFlags() *ConfigFlags {
 	result := NewConfigFlags(false)
 
-	// We can disable or enable flags by setting them to
-	// nil/non-nil prior to calling .AddFlags().
-	//
-	// .Username and .Password are already disabled by default in
-	// genericclioptions.NewConfigFlags().
-
-	result.AddFlags(flags)
-
-	var args []string
 	if options.Kubeconfig != "" {
-		args = append(args, "--kubeconfig", options.Kubeconfig)
+		result.KubeConfig = &options.Kubeconfig
 	}
 	if options.Context != "" {
-		args = append(args, "--context", options.Context)
+		result.Context = &options.Context
 	}
 	if options.Namespace != "" {
-		args = append(args, "--namespace", options.Namespace)
+		result.Namespace = &options.Namespace
 	}
 
-	if err := flags.Parse(args); err != nil {
-		// Args is constructed by us, we should never get an
-		// error, so it's ok to panic.
-		panic(err)
-	}
 	return result
 }

@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	v2_metrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v2"
+	v2_metrics "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/metrics/v2"
 )
 
 type server struct{}
