@@ -1,9 +1,9 @@
 name: generate-base-python
 on:
   schedule:
-    # run 15 minutes after midnight (UTC) weekly on mondays
-    - cron: '0 15 0 ? * MON *'
-
+    # run 15 minutes after midnight (UTC) weekly on sundays
+    # used https://crontab.guru/ to generate
+    - cron: '15 0 * * SUN'
 jobs:
   generate: ####################################################################
       runs-on: ubuntu-latest
