@@ -373,9 +373,12 @@ func (sh *SnapshotHolder) K8sUpdate(
 	reconcileConsulTimer := dbg.Timer("reconcileConsul")
 	reconcileAuthServicesTimer := dbg.Timer("reconcileAuthServices")
 
+	updateSecrets := false
 	endpointsChanged := false
 	dispatcherChanged := false
 	var endpoints *ambex.Endpoints
+	var secrets *ambex.Secrets
+	var validationGroups [][]string
 	var dispSnapshot *ecp_v2_cache.Snapshot
 	changed, err := func() (bool, error) {
 		dlog.Debugf(ctx, "[WATCHER]: processing cluster changes detected by the kubernetes watcher")
@@ -465,17 +468,39 @@ func (sh *SnapshotHolder) K8sUpdate(
 			endpointsChanged = true
 		}
 
-		endpointsOnly := true
+		fastpathOnly := true
 		for _, delta := range deltas {
 			sh.unsentDeltas = append(sh.unsentDeltas, delta)
 
-			if delta.Kind == "Endpoints" {
+			switch delta.Kind {
+			case "Endpoints":
 				key := fmt.Sprintf("%s:%s", delta.Namespace, delta.Name)
 				if sh.endpointRoutingInfo.endpointWatches[key] || sh.dispatcher.IsWatched(delta.Namespace, delta.Name) {
 					endpointsChanged = true
 				}
-			} else {
-				endpointsOnly = false
+			case "Secret":
+				updateSecrets = true
+			// If TLSContext or Host delta reference a secret, we want to make sure that we're sending them over.
+			// This is kinda brute force since Hosts and TLSContexts don't have to refer to secrets.
+			// Ideally ReconcileSecrets should handle figuring out whether we need to send over update secrets.
+			// However we don't really expect that many Hosts or TLSContext to be created anyway.
+			case "Host", "TLSContext":
+				updateSecrets = true
+				fastpathOnly = false
+			// Ugh while annotations exist we need to care about those too for secrets update
+			case "Service":
+				resourceName := fmt.Sprintf("%s/%s.%s", delta.Kind, delta.Name, delta.Namespace)
+				if annotations, ok := sh.k8sSnapshot.Annotations[resourceName]; ok {
+					for _, ann := range annotations {
+						kind := ann.GetObjectKind().GroupVersionKind().Kind
+						if kind == "Host" || kind == "TLSContext" {
+							updateSecrets = true
+						}
+					}
+				}
+				fastpathOnly = false
+			default:
+				fastpathOnly = false
 			}
 
 			if sh.dispatcher.IsRegistered(delta.Kind) {
@@ -485,12 +510,20 @@ func (sh *SnapshotHolder) K8sUpdate(
 				}
 			}
 		}
-		if !endpointsOnly {
+
+		if !fastpathOnly {
 			sh.snapshotChangeCount += 1
 		}
 
-		if endpointsChanged || dispatcherChanged {
+		if endpointsChanged {
 			endpoints = makeEndpoints(ctx, sh.k8sSnapshot, sh.consulSnapshot.Endpoints)
+		}
+
+		if updateSecrets {
+			secrets, validationGroups = MakeSecrets(ctx, sh.k8sSnapshot)
+		}
+
+		if dispatcherChanged {
 			for _, gwc := range sh.k8sSnapshot.GatewayClasses {
 				if err := sh.dispatcher.Upsert(gwc); err != nil {
 					// TODO: Should this be more severe?
@@ -519,10 +552,12 @@ func (sh *SnapshotHolder) K8sUpdate(
 		return changed, err
 	}
 
-	if endpointsChanged || dispatcherChanged {
+	if updateSecrets || endpointsChanged || dispatcherChanged {
 		fastpath := &ambex.FastpathSnapshot{
-			Endpoints: endpoints,
-			Snapshot:  dispSnapshot,
+			Endpoints:        endpoints,
+			Snapshot:         dispSnapshot,
+			Secrets:          secrets,
+			ValidationGroups: validationGroups,
 		}
 		fastpathProcessor(ctx, fastpath)
 	}

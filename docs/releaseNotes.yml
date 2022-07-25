@@ -35,6 +35,14 @@ items:
   - version: 2.3.2
     date: 'TBD'
     notes:
+      - title: Fix 503s after secret rotation
+        type: bugfix
+        body: >-
+          $productName$ would ocasionally start returning 503s on all new requests to the upstream service when a TLS certificate
+          was rotated/renewed while there was active load on the upstream service. These 503s would persist between a few hours to
+          a few days until one of the $productName$ pod was restarted. This bug was encountered most frequently when using Consul
+          and was previously mitigated by the no longer supported legacy mode.
+
       - title: fix regression in the agent for the metrics transfer.
         type: bugfix
         body: >-

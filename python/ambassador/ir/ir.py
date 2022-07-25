@@ -741,6 +741,8 @@ class IR:
             else:
                 self.logger.debug('not saving secret_info from %s because there is no public half', secret_key)
 
+        self.logger.debug(f"IR: secret_info secrets:\n%s", "\n  ".join(self.secret_info.keys()))
+
     def save_tls_context(self, ctx: IRTLSContext) -> None:
         extant_ctx = self.tls_contexts.get(ctx.name, None)
         is_valid = True
@@ -812,6 +814,7 @@ class IR:
 
             # Save this for next time.
             self.saved_secrets[secret_name] = ss
+
         return ss
 
     def resolve_resolver(self, cluster: IRCluster, resolver_name: Optional[str]) -> IRServiceResolver:

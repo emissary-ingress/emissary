@@ -87,6 +87,12 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Bugfix: Emissary-ingress would ocasionally start returning 503s on all new requests to the
+  upstream service when a TLS certificate was rotated/renewed while there was active load on the
+  upstream service. These 503s would persist between a few hours to a few days until one of the
+  Emissary-ingress pod was restarted. This bug was encountered most frequently when using Consul and
+  was previously mitigated by the no longer supported legacy mode.
+
 - Bugfix: A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming
   from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
   ensure that all the nodes composing the emissary ingress cluster are reporting properly.

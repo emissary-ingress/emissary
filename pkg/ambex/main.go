@@ -40,6 +40,7 @@ package ambex
 
 import (
 	// standard library
+
 	"context"
 	"encoding/json"
 	"flag"
@@ -74,7 +75,7 @@ import (
 	// Be sure to import the package of any types that're referenced with "@type" in our
 	// generated Envoy config, even if that package is otherwise not used by ambex.
 	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/auth"
+	v2auth "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/auth"
 	v2core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/accesslog/v2"
 	v2bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v2"
@@ -114,12 +115,14 @@ import (
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/router/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/tcp_proxy/v3"
+	v3tlsconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/transport_sockets/tls/v3"
 	v3cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/service/cluster/v3"
 	v3discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
 	v3endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/service/endpoint/v3"
 	v3listener "github.com/datawire/ambassador/v2/pkg/api/envoy/service/listener/v3"
 	v3route "github.com/datawire/ambassador/v2/pkg/api/envoy/service/route/v3"
 	v3runtime "github.com/datawire/ambassador/v2/pkg/api/envoy/service/runtime/v3"
+	v3secret "github.com/datawire/ambassador/v2/pkg/api/envoy/service/secret/v3"
 
 	// first-party libraries
 	"github.com/datawire/dlib/dgroup"
@@ -146,8 +149,8 @@ func parseArgs(ctx context.Context, rawArgs ...string) (*Args, error) {
 	flagset.BoolVar(&args.watch, "watch", false, "Watch for file changes")
 
 	// TODO(lukeshu): Consider changing the default here so we don't need to put it in entrypoint.sh
-	flagset.StringVar(&args.adsNetwork, "ads-listen-network", "tcp", "network for ADS to listen on")
-	flagset.StringVar(&args.adsAddress, "ads-listen-address", ":18000", "address (on --ads-listen-network) for ADS to listen on")
+	flagset.StringVar(&args.adsNetwork, "ads-listen-network", "unix", "network for ADS to listen on")
+	flagset.StringVar(&args.adsAddress, "ads-listen-address", "/tmp/ambex.sock", "address (on --ads-listen-network) for ADS to listen on")
 
 	var legacyAdsPort uint
 	flagset.UintVar(&legacyAdsPort, "ads", 0, "port number for ADS to listen on--deprecated, use --ads-listen-address=:1234 instead")
@@ -239,6 +242,7 @@ func runManagementServer(ctx context.Context, server ecp_v2_server.Server, serve
 	v2.RegisterListenerDiscoveryServiceServer(grpcServer, server)
 
 	v3discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, serverv3)
+	v3secret.RegisterSecretDiscoveryServiceServer(grpcServer, serverv3)
 	v3endpoint.RegisterEndpointDiscoveryServiceServer(grpcServer, serverv3)
 	v3cluster.RegisterClusterDiscoveryServiceServer(grpcServer, serverv3)
 	v3route.RegisterRouteDiscoveryServiceServer(grpcServer, serverv3)
@@ -303,111 +307,6 @@ func Decode(ctx context.Context, name string) (proto.Message, error) {
 	return v, nil
 }
 
-// Observability:
-//
-// These "expanded" snapshots make the snapshots we log easier to read: basically,
-// instead of just indexing by Golang types, make the JSON marshal with real names.
-type v2ExpandedSnapshot struct {
-	Endpoints ecp_v2_cache.Resources `json:"endpoints"`
-	Clusters  ecp_v2_cache.Resources `json:"clusters"`
-	Routes    ecp_v2_cache.Resources `json:"routes"`
-	Listeners ecp_v2_cache.Resources `json:"listeners"`
-	Runtimes  ecp_v2_cache.Resources `json:"runtimes"`
-}
-
-func NewV2ExpandedSnapshot(v2snap *ecp_v2_cache.Snapshot) v2ExpandedSnapshot {
-	return v2ExpandedSnapshot{
-		Endpoints: v2snap.Resources[ecp_cache_types.Endpoint],
-		Clusters:  v2snap.Resources[ecp_cache_types.Cluster],
-		Routes:    v2snap.Resources[ecp_cache_types.Route],
-		Listeners: v2snap.Resources[ecp_cache_types.Listener],
-		Runtimes:  v2snap.Resources[ecp_cache_types.Runtime],
-	}
-}
-
-type v3ExpandedSnapshot struct {
-	Endpoints ecp_v3_cache.Resources `json:"endpoints"`
-	Clusters  ecp_v3_cache.Resources `json:"clusters"`
-	Routes    ecp_v3_cache.Resources `json:"routes"`
-	Listeners ecp_v3_cache.Resources `json:"listeners"`
-	Runtimes  ecp_v3_cache.Resources `json:"runtimes"`
-}
-
-func NewV3ExpandedSnapshot(v3snap *ecp_v3_cache.Snapshot) v3ExpandedSnapshot {
-	return v3ExpandedSnapshot{
-		Endpoints: v3snap.Resources[ecp_cache_types.Endpoint],
-		Clusters:  v3snap.Resources[ecp_cache_types.Cluster],
-		Routes:    v3snap.Resources[ecp_cache_types.Route],
-		Listeners: v3snap.Resources[ecp_cache_types.Listener],
-		Runtimes:  v3snap.Resources[ecp_cache_types.Runtime],
-	}
-}
-
-// A combinedSnapshot has both a V2 and V3 snapshot, for logging.
-type combinedSnapshot struct {
-	Version string             `json:"version"`
-	V2      v2ExpandedSnapshot `json:"v2"`
-	V3      v3ExpandedSnapshot `json:"v3"`
-}
-
-// csDump creates a combinedSnapshot from a V2 snapshot and a V3 snapshot, then
-// dumps the combinedSnapshot to disk. Only numsnaps snapshots are kept: ambex-1.json
-// is the newest, then ambex-2.json, etc., so ambex-$numsnaps.json is the oldest.
-// Every time we write a new one, we rename all the older ones, ditching the oldest
-// after we've written numsnaps snapshots.
-func csDump(ctx context.Context, snapdirPath string, numsnaps int, generation int, v2snap *ecp_v2_cache.Snapshot, v3snap *ecp_v3_cache.Snapshot) {
-	if numsnaps <= 0 {
-		// Don't do snapshotting at all.
-		return
-	}
-
-	// OK, they want snapshots. Make a proper version string...
-	version := fmt.Sprintf("v%d", generation)
-
-	// ...and a combinedSnapshot.
-	cs := combinedSnapshot{
-		Version: version,
-		V2:      NewV2ExpandedSnapshot(v2snap),
-		V3:      NewV3ExpandedSnapshot(v3snap),
-	}
-
-	// Next up, marshal as JSON and write to ambex-0.json. Note that we
-	// didn't say anything about a -0 file; that's because it's about to
-	// be renamed.
-
-	bs, err := json.MarshalIndent(cs, "", "  ")
-
-	if err != nil {
-		dlog.Errorf(ctx, "CSNAP: marshal failure: %s", err)
-		return
-	}
-
-	csPath := path.Join(snapdirPath, "ambex-0.json")
-
-	err = ioutil.WriteFile(csPath, bs, 0644)
-
-	if err != nil {
-		dlog.Errorf(ctx, "CSNAP: write failure: %s", err)
-	} else {
-		dlog.Infof(ctx, "Saved snapshot %s", version)
-	}
-
-	// Rotate everything one file down. This includes renaming the just-written
-	// ambex-0 to ambex-1.
-	for i := numsnaps; i > 0; i-- {
-		previous := i - 1
-
-		fromPath := path.Join(snapdirPath, fmt.Sprintf("ambex-%d.json", previous))
-		toPath := path.Join(snapdirPath, fmt.Sprintf("ambex-%d.json", i))
-
-		err := os.Rename(fromPath, toPath)
-
-		if (err != nil) && !os.IsNotExist(err) {
-			dlog.Infof(ctx, "CSNAP: could not rename %s -> %s: %#v", fromPath, toPath, err)
-		}
-	}
-}
-
 // Get an updated snapshot going.
 func update(
 	ctx context.Context,
@@ -419,6 +318,8 @@ func update(
 	dirs []string,
 	edsEndpoints map[string]*v2.ClusterLoadAssignment,
 	edsEndpointsV3 map[string]*v3endpointconfig.ClusterLoadAssignment,
+	sdsSecretsV2 []*v2auth.Secret,
+	sdsSecretsV3 []*v3tlsconfig.Secret,
 	fastpathSnapshot *FastpathSnapshot,
 	updates chan<- Update,
 ) error {
@@ -426,11 +327,13 @@ func update(
 	routes := []ecp_cache_types.Resource{}    // v2.RouteConfiguration
 	listeners := []ecp_cache_types.Resource{} // v2.Listener
 	runtimes := []ecp_cache_types.Resource{}  // discovery.Runtime
+	secrets := []ecp_cache_types.Resource{}   // v2auth.Secret
 
 	clustersv3 := []ecp_cache_types.Resource{}  // v3.Cluster
 	routesv3 := []ecp_cache_types.Resource{}    // v3.RouteConfiguration
 	listenersv3 := []ecp_cache_types.Resource{} // v3.Listener
 	runtimesv3 := []ecp_cache_types.Resource{}  // v3.Runtime
+	secretsv3 := []ecp_cache_types.Resource{}   // v3.Secret
 
 	var filenames []string
 
@@ -543,7 +446,7 @@ func update(
 		for _, clu := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Cluster].Items {
 			clusters = append(clusters, clu.Resource)
 		}
-		// We intentionally omit endpoints since those are carried separately.
+		// We intentionally omit endpoints and secrets since those are carried separately.
 	}
 
 	// The configuration data that reaches us here arrives via two parallel paths that race each
@@ -572,6 +475,16 @@ func update(
 	endpoints := JoinEdsClusters(ctx, clusters, edsEndpoints)
 	endpointsv3 := JoinEdsClustersV3(ctx, clustersv3, edsEndpointsV3)
 
+	for _, secretv2 := range sdsSecretsV2 {
+		dlog.Warnf(ctx, "Updating with V2 secret %s", secretv2.Name)
+		secrets = append(secrets, secretv2)
+	}
+
+	for _, secretv3 := range sdsSecretsV3 {
+		dlog.Warnf(ctx, "Updating with V3 secret %s", secretv3.Name)
+		secretsv3 = append(secretsv3, secretv3)
+	}
+
 	// Create a new configuration snapshot from everything we have just loaded from disk.
 	curgen := *generation
 	*generation++
@@ -584,7 +497,7 @@ func update(
 		routes,
 		listeners,
 		runtimes,
-		nil, // secrets
+		secrets,
 	)
 
 	if err := snapshot.Consistent(); err != nil {
@@ -600,7 +513,7 @@ func update(
 		routesv3,
 		listenersv3,
 		runtimesv3,
-		nil, // secrets
+		secretsv3,
 	)
 
 	if err := snapshotv3.Consistent(); err != nil {
@@ -614,7 +527,7 @@ func update(
 	// the ratelimiting logic decides.
 
 	dlog.Debugf(ctx, "Created snapshot %s", version)
-	csDump(ctx, snapdirPath, numsnaps, curgen, &snapshot, &snapshotv3)
+	dumpSnapshot(ctx, snapdirPath, numsnaps, curgen, &snapshot, &snapshotv3)
 
 	update := Update{version, func() error {
 		dlog.Debugf(ctx, "Accepting snapshot %s", version)
@@ -693,28 +606,24 @@ func (l logAdapterBase) OnStreamClosed(sid int64) {
 
 // OnStreamRequest implements ecp_v2_server.Callbacks.
 func (l logAdapterV2) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) error {
-	dlog.Debugf(context.TODO(), "V2 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
-	dlog.Debugf(context.TODO(), "V2 Stream request[%v] dump: %v", sid, req)
+	dlog.Debugf(context.TODO(), "V2 Stream request[%v] for type %s: %s", sid, req.TypeUrl, strings.Join(req.ResourceNames, ","))
 	return nil
 }
 
 // OnStreamRequest implements ecp_v3_server.Callbacks.
 func (l logAdapterV3) OnStreamRequest(sid int64, req *v3discovery.DiscoveryRequest) error {
-	dlog.Debugf(context.TODO(), "V3 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
-	dlog.Debugf(context.TODO(), "V3 Stream request[%v] dump: %v", sid, req)
+	dlog.Debugf(context.TODO(), "V3 Stream request[%v] for type %s: %s", sid, req.TypeUrl, strings.Join(req.ResourceNames, ","))
 	return nil
 }
 
 // OnStreamResponse implements ecp_v2_server.Callbacks.
 func (l logAdapterV2) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
 	dlog.Debugf(context.TODO(), "V2 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
-	dlog.Debugf(context.TODO(), "V2 Stream dump response[%v]: %v -> %v", sid, req, res)
 }
 
 // OnStreamResponse implements ecp_v3_server.Callbacks.
 func (l logAdapterV3) OnStreamResponse(sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
-	dlog.Debugf(context.TODO(), "V3 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
-	dlog.Debugf(context.TODO(), "V3 Stream dump response[%v]: %v -> %v", sid, req, res)
+	dlog.Debugf(context.TODO(), "V3 Stream response[%v] for type %s: returning %d resources: %v", sid, res.TypeUrl, len(res.Resources), res.Resources)
 }
 
 // OnFetchRequest implements ecp_v2_server.Callbacks.
@@ -809,6 +718,8 @@ func Main(
 		var fastpathSnapshot *FastpathSnapshot
 		edsEndpoints := map[string]*v2.ClusterLoadAssignment{}
 		edsEndpointsV3 := map[string]*v3endpointconfig.ClusterLoadAssignment{}
+		sdsSecretsV2 := []*v2auth.Secret{}
+		sdsSecretsV3 := []*v3tlsconfig.Secret{}
 
 		// We always start by updating with a totally empty snapshot.
 		//
@@ -824,6 +735,8 @@ func Main(
 			args.dirs,
 			edsEndpoints,
 			edsEndpointsV3,
+			sdsSecretsV2,
+			sdsSecretsV3,
 			fastpathSnapshot,
 			updates,
 		)
@@ -835,7 +748,7 @@ func Main(
 		for {
 
 			select {
-			case _ = <-sigCh:
+			case <-sigCh:
 				err := update(
 					ctx,
 					args.snapdirPath,
@@ -846,6 +759,8 @@ func Main(
 					args.dirs,
 					edsEndpoints,
 					edsEndpointsV3,
+					sdsSecretsV2,
+					sdsSecretsV3,
 					fastpathSnapshot,
 					updates,
 				)
@@ -858,6 +773,10 @@ func Main(
 					edsEndpoints = fpSnap.Endpoints.ToMap_v2()
 					edsEndpointsV3 = fpSnap.Endpoints.ToMap_v3()
 				}
+				if fpSnap.Secrets != nil {
+					sdsSecretsV2 = fpSnap.Secrets.ToV2List(ctx, fpSnap.ValidationGroups)
+					sdsSecretsV3 = fpSnap.Secrets.ToV3List(ctx, fpSnap.ValidationGroups)
+				}
 				fastpathSnapshot = fpSnap
 				err := update(
 					ctx,
@@ -869,6 +788,8 @@ func Main(
 					args.dirs,
 					edsEndpoints,
 					edsEndpointsV3,
+					sdsSecretsV2,
+					sdsSecretsV3,
 					fastpathSnapshot,
 					updates,
 				)
@@ -887,6 +808,8 @@ func Main(
 					args.dirs,
 					edsEndpoints,
 					edsEndpointsV3,
+					sdsSecretsV2,
+					sdsSecretsV3,
 					fastpathSnapshot,
 					updates,
 				)

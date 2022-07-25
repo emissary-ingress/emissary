@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Callable, Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Any, Callable, Dict, List, Optional, Union, TYPE_CHECKING
 from typing import cast as typecast
 
 import os
@@ -24,7 +24,7 @@ from ...ir.irtlscontext import IRTLSContext
 # XXX It's also a sure sign that this crap needs to be a proper class
 # structure instead of nested dicts of dicts of unions of dicts of .... :P
 
-EnvoyCoreSource = Dict[str, str]
+EnvoyCoreSource = Dict[str, Union[str, Dict[str, Any]]]
 
 EnvoyTLSCert = Dict[str, EnvoyCoreSource]
 ListOfCerts = List[EnvoyTLSCert]
@@ -34,7 +34,7 @@ EnvoyValidationContext = Dict[str, EnvoyValidationElements]
 
 EnvoyTLSParams = Dict[str, Union[str, List[str]]]
 
-EnvoyCommonTLSElements = Union[List[str], ListOfCerts, EnvoyValidationContext, EnvoyTLSParams]
+EnvoyCommonTLSElements = Union[List[str], List[EnvoyCoreSource], ListOfCerts, EnvoyValidationContext, EnvoyTLSParams]
 EnvoyCommonTLSContext = Dict[str, EnvoyCommonTLSElements]
 
 ElementHandler = Callable[[str, str], None]
@@ -70,24 +70,6 @@ class V3TLSContext(Dict):
 
         return params
 
-    def get_certs(self) -> ListOfCerts:
-        common = self.get_common()
-
-        # We have to explicitly cast this empty list to a list of strings.
-        empty_cert_list: List[str] = []
-        cert_list = common.setdefault('tls_certificates', empty_cert_list)
-
-        # cert_list is of type EnvoyCommonTLSElements right now, so we need to cast it.
-        return typecast(ListOfCerts, cert_list)
-
-    def update_cert_zero(self, key: str, value: str) -> None:
-        certs = self.get_certs()
-
-        if not certs:
-            certs.append({})
-
-        src: EnvoyCoreSource = { 'filename': value }
-        certs[0][key] = src
 
     def update_alpn(self, key: str, value: str) -> None:
         common = self.get_common()
@@ -104,16 +86,25 @@ class V3TLSContext(Dict):
 
         params[key] = value
 
-    def update_validation(self, key: str, value: str) -> None:
-        empty_context: EnvoyValidationContext = {}
 
-        # This looks weirder than you might expect, because self.get_common().setdefault() is a truly
-        # crazy Union type, so we need to cast it to an EnvoyValidationContext to be able to work
-        # with it.
-        validation = typecast(EnvoyValidationContext, self.get_common().setdefault('validation_context', empty_context))
+    def use_cert(self, kind: str, cert_name: str) -> None:
+        common = self.get_common()
 
-        src: EnvoyCoreSource = { 'filename': value }
-        validation[key] = src
+        # We have to explicitly cast both this empty list and the empty_cert_list
+        # to a list of EnvoyCoreSource, so that mypy knows which of the massive union
+        # that is EnvoyCommonTLSElements to use.
+        empty_cert_list: List[EnvoyCoreSource] = []
+        cert_list_1 = common.setdefault('tls_certificate_sds_secret_configs', empty_cert_list)
+        cert_list = typecast(List[EnvoyCoreSource], cert_list_1)
+
+        src: EnvoyCoreSource = {
+            'name': cert_name,
+            'sds_config': {
+                'ads': {}
+            }
+        }
+
+        cert_list.append(src)
 
     def add_context(self, ctx: IRTLSContext) -> None:
         if TYPE_CHECKING:
@@ -123,14 +114,75 @@ class V3TLSContext(Dict):
         if ctx.is_fallback:
             self.is_fallback = True
 
-        for secretinfokey, handler, hkey in [
-            ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
-            ( 'private_key_file', self.update_cert_zero, 'private_key' ),
-            ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
-            ( 'crl_file', self.update_validation, 'crl' ),
-        ]:
-            if secretinfokey in ctx['secret_info']:
-                handler(hkey, ctx['secret_info'][secretinfokey])
+        if ctx['secret_info']:
+            common = self.get_common()
+
+            termination_secret = ctx['secret_info'].get('private_key_file') or None
+
+            if termination_secret:
+                # We have to explicitly cast both this empty list and the empty_cert_list
+                # to a list of EnvoyCoreSource, so that mypy knows which of the massive union
+                # that is EnvoyCommonTLSElements to use.
+                empty_cert_list: List[EnvoyCoreSource] = []
+                cert_list_1 = common.setdefault('tls_certificate_sds_secret_configs', empty_cert_list)
+                cert_list = typecast(List[EnvoyCoreSource], cert_list_1)
+
+                src = {
+                    'name': termination_secret,
+                    'sds_config': {
+                        'resource_api_version': 'V3',
+                        'api_config_source': {
+                            'api_type': 'GRPC',
+                            'transport_api_version': 'V3',
+                            'grpc_services': [
+                                {
+                                    'google_grpc': {
+                                        'target_uri': 'unix:/tmp/ambex.sock',
+                                        'stat_prefix': 'sdscluster'
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+
+                cert_list.append(src)
+
+            validation_secret = None
+            ca_secret = ctx['secret_info'].get('cacert_chain_file') or None
+            crl_secret = ctx['secret_info'].get('crl_file') or None
+
+            # We have a combined validation context for the crl and the ca
+            if ca_secret is not None and crl_secret is not None:
+                validation_secret = ca_secret+"-"+crl_secret
+            # We have a ca but no crl
+            elif ca_secret is not None and crl_secret is None:
+                validation_secret = ca_secret
+            # we have a crl but no ca
+            elif ca_secret is None and crl_secret is not None:
+                validation_secret = crl_secret
+
+            if validation_secret is not None:
+                src = {
+                    'name': validation_secret,
+                    'sds_config': {
+                        'resource_api_version': 'V3',
+                        'api_config_source': {
+                            'api_type': 'GRPC',
+                            'transport_api_version': 'V3',
+                            'grpc_services': [
+                                {
+                                    'google_grpc': {
+                                        'target_uri': 'unix:/tmp/ambex.sock',
+                                        'stat_prefix': 'sdscluster'
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+                common['validation_context_sds_secret_config'] = src
+
 
         for ctxkey, handler, hkey in [
             ( 'alpn_protocols', self.update_alpn, 'alpn_protocols' ),
