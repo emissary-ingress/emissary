@@ -595,7 +595,7 @@ func MakeSecrets(ctx context.Context, k8sSnapshot *snapshotTypes.KubernetesSnaps
 				name = caSecret[:last]
 				namespace = caSecret[last+1:]
 			}
-			fullName := fmt.Sprintf("secret/%s.%s", name, namespace)
+			fullName := fmt.Sprintf("%s.%s", name, namespace)
 			vGroup = append(vGroup, fullName)
 			validationRefs = append(validationRefs, fullName)
 		}
@@ -609,7 +609,7 @@ func MakeSecrets(ctx context.Context, k8sSnapshot *snapshotTypes.KubernetesSnaps
 				name = crlSecret[:last]
 				namespace = crlSecret[last+1:]
 			}
-			fullName := fmt.Sprintf("secret/%s.%s", name, namespace)
+			fullName := fmt.Sprintf("%s.%s", name, namespace)
 			vGroup = append(vGroup, fullName)
 			validationRefs = append(validationRefs, fullName)
 		}
@@ -644,7 +644,7 @@ func MakeSecrets(ctx context.Context, k8sSnapshot *snapshotTypes.KubernetesSnaps
 				name = caSecret[:last]
 				namespace = caSecret[last+1:]
 			}
-			fullName := fmt.Sprintf("secret/%s.%s", name, namespace)
+			fullName := fmt.Sprintf("%s.%s", name, namespace)
 			vGroup = append(vGroup, fullName)
 			validationRefs = append(validationRefs, fullName)
 		}
@@ -658,7 +658,7 @@ func MakeSecrets(ctx context.Context, k8sSnapshot *snapshotTypes.KubernetesSnaps
 				name = crlSecret[:last]
 				namespace = crlSecret[last+1:]
 			}
-			fullName := fmt.Sprintf("secret/%s.%s", name, namespace)
+			fullName := fmt.Sprintf("%s.%s", name, namespace)
 			vGroup = append(vGroup, fullName)
 			validationRefs = append(validationRefs, fullName)
 		}
@@ -676,7 +676,7 @@ func MakeSecrets(ctx context.Context, k8sSnapshot *snapshotTypes.KubernetesSnaps
 			namespace = "default"
 		}
 
-		fullName := fmt.Sprintf("secret/%s.%s", name, namespace)
+		fullName := fmt.Sprintf("%s.%s", name, namespace)
 
 		if secret.Type == v1.SecretTypeTLS {
 			dlog.Warnf(ctx, "[MakeSecrets] secret %s: TLS", fullName)

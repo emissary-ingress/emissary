@@ -736,9 +736,8 @@ class IR:
                 secret_name = secret_info.name
                 secret_namespace = secret_info.namespace
 
-                full_name = f"secret/{secret_name}.{secret_namespace}"
-                self.logger.debug('saving "%s" (from %s) in secret_info', full_name, secret_key)
-                self.secret_info[full_name] = secret_info
+                self.logger.debug('saving "%s.%s" (from %s) in secret_info', secret_name, secret_namespace, secret_key)
+                self.secret_info[f'{secret_name}.{secret_namespace}'] = secret_info
             else:
                 self.logger.debug('not saving secret_info from %s because there is no public half', secret_key)
 
@@ -780,7 +779,7 @@ class IR:
 
     def resolve_secret(self, resource: IRResource, secret_name: str, namespace: str):
         # OK. Do we already have a SavedSecret for this?
-        ss_key = f'secret/{secret_name}.{namespace}'
+        ss_key = f'{secret_name}.{namespace}'
 
         ss = self.saved_secrets.get(ss_key, None)
 
