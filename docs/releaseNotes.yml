@@ -63,10 +63,10 @@ items:
           emissary ingress before sending them to Ambassador cloud. This issue has been resolved to ensure
           that all the nodes composing the emissary ingress cluster are reporting properly.
       - title: Add support for secrets sync
-          type: feature
-          body: >-
-            Adds a new command to the agent directive service to manage secrets. This allows
-            a third party product to manage CRDs that depend upon a secret.
+        type: feature
+        body: >-
+          Adds a new command to the agent directive service to manage secrets. This allows
+          a third party product to manage CRDs that depend upon a secret.
       - title: Add environment variables to configure healthcheck server's bind address, port and IP family.
         type: feature
         body: >-
