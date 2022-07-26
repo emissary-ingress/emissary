@@ -3,6 +3,14 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v7.4.2
+
+- Update Emissary chart image to version v2.3.2 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
+## v7.4.1
+
+- Update Emissary chart image to version v2.3.1 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
 ## v7.4.0
 
 - Update change Emissary chart image to version v2.3.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
