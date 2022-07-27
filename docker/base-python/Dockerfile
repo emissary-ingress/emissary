@@ -29,7 +29,7 @@ RUN apk --no-cache add \
   gcc \
   make \
   musl-dev \
-  curl=~7.80.0-r2 \
+  curl=~7.80 \
   cython \
   docker-cli \
   git \
