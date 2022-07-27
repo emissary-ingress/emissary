@@ -5,7 +5,6 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
-- Feature: The Agent Deployment is now configured to report diagnostics information to Ambassador Cloud by default.
 - Change: The default for the `module` value has changed to enable serving remote client requests to the <code>:8877/ambassador/v0/diag/</code> endpoint by default.
 
 ## v8.0.0

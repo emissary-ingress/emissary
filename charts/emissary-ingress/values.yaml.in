@@ -388,8 +388,6 @@ prometheusExporter: # +doc-gen:break
 agent:
   # If `true`, installs the ambassador-agent Deployment, ServiceAccount and ClusterRole in the ambassador namespace, enabling the Ambassador Cloud connectivity.
   enabled: true
-  # If `true`, will report diagnostics information.
-  diagnostics: true
   # API token for reporting snapshots to [Ambassador Cloud](https://app.getambassador.io/cloud/);
   # If empty, agent will not report snapshots
   cloudConnectToken: ''
