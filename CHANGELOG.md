@@ -80,13 +80,6 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 - Feature: The agent is now able to parse api contracts using swagger 2, and to convert them to
   OpenAPI 3, making them available for use in the dev portal.
 
-- Feature: The agent now has the ability to report diagnostics information to Ambassador Cloud. If
-  you previously connected your installation to Ambassador Cloud, you may choose to enable this
-  functionality by setting the following environment variables on your agent `Deployment`:
-  `AES_REPORT_DIAGNOSTICS_TO_CLOUD=true`,
-  `AES_DIAGNOSTICS_URL="http://[ambassador-admin]:8877/ambassador/v0/diag/?json=true"`. This
-  capability is enabled by default in the standard published `.yaml` files and Helm chart.
-
 - Change: In the standard published `.yaml` files, the `Module` resource enables serving remote
   client requests to the `:8877/ambassador/v0/diag/` endpoint. The associated Helm chart release
   also now enables it by default.
