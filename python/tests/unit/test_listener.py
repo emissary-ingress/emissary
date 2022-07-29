@@ -1,15 +1,15 @@
 from dataclasses import dataclass
-from tests.utils import Compile, logger, default_http3_listener_manifest, econf_compile
 from typing import List, Optional
+
+import pytest
 
 from ambassador import IR
 from ambassador.compile import Compile
 from ambassador.config import Config
-from ambassador.fetch import ResourceFetcher
 from ambassador.envoy import EnvoyConfig
+from ambassador.fetch import ResourceFetcher
 from ambassador.utils import EmptySecretHandler
-
-import pytest
+from tests.utils import Compile, default_http3_listener_manifest, econf_compile, logger
 
 
 def _ensure_alt_svc_header_injected(listener, expectedAltSvc):

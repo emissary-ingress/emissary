@@ -1,9 +1,8 @@
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 from ..config import Config
-
-from .irresource import IRResource
 from .irbasemapping import IRBaseMapping
+from .irresource import IRResource
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover

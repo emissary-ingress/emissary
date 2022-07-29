@@ -1,11 +1,8 @@
 from typing import Dict, Generator, Tuple, Union
 
-from kat.harness import EDGE_STACK, variants, Query
-
-from abstract_tests import AmbassadorTest, HTTP, Node
-from abstract_tests import MappingTest, OptionTest, ServiceType
-
+from abstract_tests import HTTP, AmbassadorTest, MappingTest, Node, OptionTest, ServiceType
 from ambassador.constants import Constants
+from kat.harness import EDGE_STACK, Query, variants
 
 # This is the place to add new MappingTests.
 

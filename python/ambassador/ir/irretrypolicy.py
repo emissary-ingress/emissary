@@ -1,8 +1,7 @@
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ..config import Config
 from ..utils import RichStatus
-
 from .irresource import IRResource
 
 if TYPE_CHECKING:

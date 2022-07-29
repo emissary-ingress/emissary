@@ -1,6 +1,5 @@
-from kat.harness import Query, EDGE_STACK
-
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from abstract_tests import HTTP, AmbassadorTest, ServiceType
+from kat.harness import EDGE_STACK, Query
 
 
 class NoUITest(AmbassadorTest):

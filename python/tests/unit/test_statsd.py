@@ -1,10 +1,10 @@
 import copy
-import logging
-import sys
-import os
-import httpretty
 import json
+import logging
+import os
+import sys
 
+import httpretty
 import pytest
 
 logging.basicConfig(
@@ -15,7 +15,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import Config, IR, EnvoyConfig
+from ambassador import IR, Config, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
 

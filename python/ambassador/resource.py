@@ -1,12 +1,9 @@
+import json
 import sys
-
 from typing import Any, Dict, List, Optional, Type, TypeVar
 
-import json
-
-from .utils import parse_yaml, dump_json
 from .cache import Cacheable
-
+from .utils import dump_json, parse_yaml
 
 R = TypeVar("R", bound="Resource")
 

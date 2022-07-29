@@ -12,16 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, ClassVar, Dict, List, Optional, Union, TYPE_CHECKING
-from typing import cast as typecast
-
 import json
 import re
 import urllib.parse
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Union
+from typing import cast as typecast
 
 from ..config import Config
 from ..utils import RichStatus
-
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
 

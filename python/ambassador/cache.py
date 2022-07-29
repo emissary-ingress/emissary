@@ -1,6 +1,5 @@
-from typing import Any, Dict, Callable, Optional, Set, Tuple, TYPE_CHECKING
-
 import logging
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Set, Tuple
 
 
 class Cacheable(dict):

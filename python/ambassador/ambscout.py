@@ -1,18 +1,16 @@
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
-from typing import cast as typecast
-
 import datetime
 import json
 import logging
-import re
 import os
+import re
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import cast as typecast
 
 import semantic_version
 
 from .scout import Scout
-from .utils import parse_json, dump_json, parse_bool
-
-from .VERSION import Version, Commit
+from .utils import dump_json, parse_bool, parse_json
+from .VERSION import Commit, Version
 
 ScoutNotice = Dict[str, str]
 

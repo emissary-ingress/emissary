@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING
-
 import json
-
 from abc import abstractmethod
+from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
 
 from ..cache import Cache
 from ..utils import dump_json

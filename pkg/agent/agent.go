@@ -3,9 +3,9 @@ package agent
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	envoyMetrics "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/metrics/v3"
-	io_prometheus_client "github.com/prometheus/client_model/go"
+
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -14,11 +14,15 @@ import (
 	"sync"
 	"time"
 
+	io_prometheus_client "github.com/prometheus/client_model/go"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/datawire/dlib/dlog"
 	"github.com/emissary-ingress/emissary/v3/pkg/api/agent"
+	envoyMetrics "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/metrics/v3"
+	diagnosticsTypes "github.com/emissary-ingress/emissary/v3/pkg/diagnostics/v1"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
@@ -32,6 +36,7 @@ type Comm interface {
 	ReportCommandResult(context.Context, *agent.CommandResult, string) error
 	Directives() <-chan *agent.Directive
 	StreamMetrics(context.Context, *agent.StreamMetricsMessage, string) error
+	StreamDiagnostics(context.Context, *agent.Diagnostics, string) error
 }
 
 type atomicBool struct {
@@ -111,8 +116,20 @@ type Agent struct {
 	// Cloud API.
 	metricsBackoffUntil time.Time
 
+	// Used to accumulate metrics for a same timestamp before pushing them to the cloud.
+	aggregatedMetrics map[string][]*io_prometheus_client.MetricFamily
+
 	// Extra headers to inject into RPC requests to ambassador cloud.
 	rpcExtraHeaders []string
+
+	// Diagnostics reporting
+	reportDiagnosticsAllowed    bool // Allow agent to fetch diagnostics and report to cloud
+	diagnosticsReportingStopped bool // Director stopped diagnostics reporting
+	// minDiagnosticsReportPeriod  time.Duration // How frequently do we collect diagnostics
+
+	// The state of diagnostic reporting
+	diagnosticsReportRunning  atomicBool // Is a report being sent right now?
+	diagnosticsReportComplete chan error // Report() finished with this error
 }
 
 func getEnvWithDefault(envVarKey string, defaultValue string) string {
@@ -124,7 +141,11 @@ func getEnvWithDefault(envVarKey string, defaultValue string) string {
 }
 
 // New returns a new Agent.
-func NewAgent(directiveHandler DirectiveHandler, rolloutsGetterFactory rolloutsGetterFactory) *Agent {
+func NewAgent(
+	directiveHandler DirectiveHandler,
+	rolloutsGetterFactory rolloutsGetterFactory,
+	secretsGetterFactory secretsGetterFactory,
+) *Agent {
 	reportPeriodFromEnv := os.Getenv("AGENT_REPORTING_PERIOD")
 	var reportPeriod time.Duration
 	if reportPeriodFromEnv != "" {
@@ -141,6 +162,7 @@ func NewAgent(directiveHandler DirectiveHandler, rolloutsGetterFactory rolloutsG
 		directiveHandler = &BasicDirectiveHandler{
 			DefaultMinReportPeriod: defaultMinReportPeriod,
 			rolloutsGetterFactory:  rolloutsGetterFactory,
+			secretsGetterFactory:   secretsGetterFactory,
 		}
 	}
 
@@ -169,8 +191,9 @@ func NewAgent(directiveHandler DirectiveHandler, rolloutsGetterFactory rolloutsG
 		directiveHandler:             directiveHandler,
 		reportRunning:                atomicBool{value: false},
 		agentWatchFieldSelector:      getEnvWithDefault("AGENT_WATCH_FIELD_SELECTOR", "metadata.namespace!=kube-system"),
-		metricsBackoffUntil:          time.Now(),
+		metricsBackoffUntil:          time.Now().Add(defaultMinReportPeriod),
 		rpcExtraHeaders:              rpcExtraHeaders,
+		aggregatedMetrics:            map[string][]*io_prometheus_client.MetricFamily{},
 	}
 }
 
@@ -194,10 +217,19 @@ func (a *Agent) SetLastDirectiveID(ctx context.Context, id string) {
 	a.lastDirectiveID = id
 }
 
+func (a *Agent) SetReportDiagnosticsAllowed(reportDiagnosticsAllowed bool) {
+	dlog.Debugf(context.Background(), "setting reporting diagnostics to cloud to: %t", reportDiagnosticsAllowed)
+	a.reportDiagnosticsAllowed = reportDiagnosticsAllowed
+}
+
 func getAmbSnapshotInfo(url string) (*snapshotTypes.Snapshot, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode > 299 {
+		return nil, errors.New(fmt.Sprintf("Cannot fetch snapshot from url: %s. "+
+			"Response failed with status code: %d", url, resp.StatusCode))
 	}
 	defer resp.Body.Close()
 	rawSnapshot, err := ioutil.ReadAll(resp.Body)
@@ -206,6 +238,26 @@ func getAmbSnapshotInfo(url string) (*snapshotTypes.Snapshot, error) {
 	}
 	ret := &snapshotTypes.Snapshot{}
 	err = json.Unmarshal(rawSnapshot, ret)
+
+	return ret, err
+}
+
+func getAmbDiagnosticsInfo(url string) (*diagnosticsTypes.Diagnostics, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode > 299 {
+		return nil, errors.New(fmt.Sprintf("Cannot fetch diagnostics from url: %s. "+
+			"Response failed with status code: %d", url, resp.StatusCode))
+	}
+	defer resp.Body.Close()
+	rawDiagnosticsSnapshot, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	ret := &diagnosticsTypes.Diagnostics{}
+	err = json.Unmarshal(rawDiagnosticsSnapshot, ret)
 
 	return ret, err
 }
@@ -282,7 +334,7 @@ func (a *Agent) handleAPIKeyConfigChange(ctx context.Context, secrets []kates.Se
 // Watch is the work performed by the main goroutine for the Agent. It processes
 // Watt/Diag snapshots, reports to the Director, and executes directives from
 // the Director.
-func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
+func (a *Agent) Watch(ctx context.Context, snapshotURL, diagnosticsURL string) error {
 	client, err := kates.NewClient(kates.ClientConfig{})
 	if err != nil {
 		return err
@@ -345,7 +397,7 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 	applicationGvr, _ := schema.ParseResourceArg("applications.v1alpha1.argoproj.io")
 	applicationCallback := dc.WatchGeneric(ctx, ns, applicationGvr)
 
-	return a.watch(ctx, snapshotURL, configAcc, coreAcc, rolloutCallback, applicationCallback)
+	return a.watch(ctx, snapshotURL, diagnosticsURL, configAcc, coreAcc, rolloutCallback, applicationCallback)
 }
 
 type accumulator interface {
@@ -382,7 +434,7 @@ func (a *Agent) waitForAPIKey(ctx context.Context, configAccumulator accumulator
 	return nil
 }
 
-func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator accumulator, coreAccumulator accumulator, rolloutCallback <-chan *GenericCallback, applicationCallback <-chan *GenericCallback) error {
+func (a *Agent) watch(ctx context.Context, snapshotURL, diagnosticsURL string, configAccumulator accumulator, coreAccumulator accumulator, rolloutCallback <-chan *GenericCallback, applicationCallback <-chan *GenericCallback) error {
 	var err error
 	// for the watch
 	// we're not watching CRDs or anything special, so i'm pretty sure it's okay just to say all
@@ -467,13 +519,26 @@ func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator
 				dlog.Warnf(ctx, "error processing snapshot: %+v", err)
 			}
 		}
+		a.MaybeReportSnapshot(ctx)
 
-		a.MaybeReport(ctx)
+		if !a.diagnosticsReportingStopped && !a.diagnosticsReportRunning.Value() && a.reportDiagnosticsAllowed {
+			diagnostics, err := getAmbDiagnosticsInfo(diagnosticsURL)
+			if err != nil {
+				dlog.Warnf(ctx, "Error getting diagnostics from ambassador %+v", err)
+			}
+			dlog.Debug(ctx, "Received diagnostics in agent")
+			agentDiagnostics, err := a.ProcessDiagnostics(ctx, diagnostics, ambHost)
+			if err != nil {
+				dlog.Warnf(ctx, "error processing diagnostics: %+v", err)
+			}
+			a.ReportDiagnostics(ctx, agentDiagnostics)
+		}
+
 	}
 
 }
 
-func (a *Agent) MaybeReport(ctx context.Context) {
+func (a *Agent) MaybeReportSnapshot(ctx context.Context) {
 	if a.ambassadorAPIKey == "" {
 		dlog.Debugf(ctx, "CLOUD_CONNECT_TOKEN not set in the environment, not reporting snapshot")
 		return
@@ -535,6 +600,68 @@ func (a *Agent) MaybeReport(ctx context.Context) {
 
 	// Update state variables
 	a.reportToSend = nil // Set when a snapshot yields a fresh report
+}
+
+// ReportDiagnostics ...
+func (a *Agent) ReportDiagnostics(ctx context.Context, agentDiagnostics *agent.Diagnostics) {
+	if a.ambassadorAPIKey == "" {
+		dlog.Debugf(ctx, "CLOUD_CONNECT_TOKEN not set in the environment, not reporting diagnostics")
+		return
+	}
+	if a.diagnosticsReportingStopped || a.diagnosticsReportRunning.Value() || (agentDiagnostics == nil) {
+		// Don't report if the Director told us to stop reporting, if we are
+		// already sending a report or waiting for the minimum time between
+		// reports, or if there is nothing new to report right now.
+		dlog.Debugf(ctx, "Not reporting diagnostics [reporting stopped = %t] [report running = %t] [report to send is nil = %t]", a.diagnosticsReportingStopped, a.diagnosticsReportRunning.Value(), agentDiagnostics == nil)
+		return
+	}
+
+	// It's time to send a report
+	if a.comm == nil {
+		// The communications channel to the DCP was not yet created or was
+		// closed above, due to a change in identity, or close elsewhere, due to
+		// a change in endpoint configuration.
+		newComm, err := NewComm(
+			ctx, a.connInfo, a.agentID, a.ambassadorAPIKey, a.rpcExtraHeaders)
+
+		if err != nil {
+			dlog.Warnf(ctx, "Failed to dial the DCP: %v", err)
+			dlog.Warn(ctx, "DCP functionality disabled until next retry")
+
+			return
+		}
+
+		a.comm = newComm
+		a.newDirective = a.comm.Directives()
+	}
+	a.diagnosticsReportRunning.Set(true) // Cleared when the diagnostics report completes
+
+	// Send a diagnostics report. This is an RPC, i.e. it can block, so we do this in a
+	// goroutine. Sleep after send, so we don't need to keep track of
+	// whether/when it's okay to send the next report.
+	go func(ctx context.Context, diagnosticsReport *agent.Diagnostics, delay time.Duration) {
+		var err error
+		defer func() {
+			if err != nil {
+				dlog.Warnf(ctx, "failed to do diagnostics report: %+v", err)
+			}
+			dlog.Debugf(ctx, "Finished sending diagnostics report, sleeping for %s", delay.String())
+			time.Sleep(delay)
+			a.diagnosticsReportRunning.Set(false)
+			// make the write non blocking
+			select {
+			case a.diagnosticsReportComplete <- err:
+				// cool we sent something
+			default:
+				// do nothing if nobody is listening
+			}
+		}()
+		a.ambassadorAPIKeyMutex.Lock()
+		apikey := a.ambassadorAPIKey
+		a.ambassadorAPIKeyMutex.Unlock()
+		err = a.comm.StreamDiagnostics(ctx, diagnosticsReport, apikey)
+
+	}(ctx, agentDiagnostics, a.minReportPeriod) // minReportPeriod is the one set for snapshots
 }
 
 // ProcessSnapshot turns a Watt/Diag Snapshot into a report that the agent can
@@ -631,62 +758,135 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 	return nil
 }
 
+// ProcessDiagnostics translates ambassadors diagnostics into streamable agent diagnostics
+func (a *Agent) ProcessDiagnostics(ctx context.Context, diagnostics *diagnosticsTypes.Diagnostics,
+	ambHost string) (*agent.Diagnostics, error) {
+	if diagnostics == nil {
+		dlog.Warn(ctx, "No diagnostics found, not reporting.")
+		return nil, nil
+	}
+
+	if diagnostics.System == nil {
+		dlog.Warn(ctx, "Missing System information from diagnostics, not reporting.")
+		return nil, nil
+	}
+
+	agentID := GetIdentityFromDiagnostics(diagnostics.System, ambHost)
+	if agentID == nil {
+		dlog.Warn(ctx, "Could not parse identity info out of diagnostics, not sending.")
+		return nil, nil
+	}
+	a.agentID = agentID
+
+	newConnInfo, err := connInfoFromAddress(a.connAddress)
+	if err != nil {
+		// The user has attempted to turn on the Agent (otherwise GetIdentity
+		// would have returned nil), but there's a problem with the connection
+		// configuration. Rather than processing the entire snapshot and then
+		// failing to send the resulting report, let's just fail now. The user
+		// will see the error in the logs and correct the configuration.
+		return nil, err
+	}
+
+	if a.connInfo == nil || *newConnInfo != *a.connInfo {
+		// The configuration for the Director endpoint has changed: either this
+		// is the first snapshot or the user changed the value.
+		//
+		// Close any existing communications channel so that we can create
+		// a new one with the new endpoint.
+		a.ClearComm()
+
+		// Save the new endpoint information.
+		a.connInfo = newConnInfo
+	}
+
+	rawJsonDiagnostics, err := json.Marshal(diagnostics)
+	if err != nil {
+		return nil, err
+	}
+
+	diagnosticsReport := &agent.Diagnostics{
+		Identity:       agentID,
+		RawDiagnostics: rawJsonDiagnostics,
+		ContentType:    diagnosticsTypes.ContentTypeJSON,
+		ApiVersion:     diagnosticsTypes.ApiVersion,
+		SnapshotTs:     timestamppb.Now(),
+	}
+
+	return diagnosticsReport, nil
+}
+
 var allowedMetricsSuffixes = []string{"upstream_rq_total", "upstream_rq_time", "upstream_rq_5xx"}
 
 // MetricsRelayHandler is invoked as a callback when the agent receive metrics from Envoy (sink).
 func (a *Agent) MetricsRelayHandler(
-	logCtx context.Context,
+	ctx context.Context,
 	in *envoyMetrics.StreamMetricsMessage,
 ) {
-	a.metricsRelayMutex.Lock()
-	defer a.metricsRelayMutex.Unlock()
-
 	metrics := in.GetEnvoyMetrics()
-	metricCount := len(metrics)
-
-	if !time.Now().After(a.metricsBackoffUntil) {
-		dlog.Debugf(logCtx, "Drop %d metric(s); next push scheduled for %s",
-			metricCount, a.metricsBackoffUntil.String())
-		return
-	}
 
 	if a.comm != nil && !a.reportingStopped {
+		p, ok := peer.FromContext(ctx)
 
-		dlog.Infof(logCtx, "Received %d metric(s)", metricCount)
+		if !ok {
+			dlog.Warnf(ctx, "peer not found in context")
+			return
+		}
 
 		a.ambassadorAPIKeyMutex.Lock()
 		apikey := a.ambassadorAPIKey
 		a.ambassadorAPIKeyMutex.Unlock()
 
-		outMetrics := make([]*io_prometheus_client.MetricFamily, 0, len(metrics))
+		newMetrics := make([]*io_prometheus_client.MetricFamily, 0, len(metrics))
 
 		for _, metricFamily := range metrics {
 			for _, suffix := range allowedMetricsSuffixes {
 				if strings.HasSuffix(metricFamily.GetName(), suffix) {
-					outMetrics = append(outMetrics, metricFamily)
+					newMetrics = append(newMetrics, metricFamily)
 					break
 				}
 			}
 		}
 
+		instanceID := p.Addr.String()
+
+		a.metricsRelayMutex.Lock()
+		defer a.metricsRelayMutex.Unlock()
+		// Collect metrics until next report.
+		if time.Now().Before(a.metricsBackoffUntil) {
+			dlog.Infof(ctx, "Append %d metric(s) to stack from %s",
+				len(newMetrics), instanceID,
+			)
+			a.aggregatedMetrics[instanceID] = newMetrics
+			return
+		}
+
+		// Otherwise, we reached a new batch of metric, send everything.
 		outMessage := &agent.StreamMetricsMessage{
 			Identity:     a.agentID,
-			EnvoyMetrics: outMetrics,
+			EnvoyMetrics: []*io_prometheus_client.MetricFamily{},
+		}
+
+		for key, instanceMetrics := range a.aggregatedMetrics {
+			outMessage.EnvoyMetrics = append(outMessage.EnvoyMetrics, instanceMetrics...)
+			delete(a.aggregatedMetrics, key)
 		}
 
 		if relayedMetricCount := len(outMessage.GetEnvoyMetrics()); relayedMetricCount > 0 {
 
-			dlog.Infof(logCtx, "Relaying %d metric(s)", relayedMetricCount)
+			dlog.Infof(ctx, "Relaying %d metric(s)", relayedMetricCount)
 
-			if err := a.comm.StreamMetrics(logCtx, outMessage, apikey); err != nil {
-				dlog.Errorf(logCtx, "error streaming metric(s): %+v", err)
+			if err := a.comm.StreamMetrics(ctx, outMessage, apikey); err != nil {
+				dlog.Errorf(ctx, "error streaming metric(s): %+v", err)
 			}
-
-			a.metricsBackoffUntil = time.Now().Add(defaultMinReportPeriod)
-
-			dlog.Infof(logCtx, "Next metrics relay scheduled for %s",
-				a.metricsBackoffUntil.UTC().String())
 		}
+
+		// Configure next push.
+		a.metricsBackoffUntil = time.Now().Add(defaultMinReportPeriod)
+
+		dlog.Infof(ctx, "Next metrics relay scheduled for %s",
+			a.metricsBackoffUntil.UTC().String())
+
 	}
 }
 

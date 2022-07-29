@@ -1,9 +1,9 @@
 import copy
 import logging
 import sys
+from typing import Literal, Union
 
 import pytest
-from typing import Literal, Union
 
 logging.basicConfig(
     level=logging.INFO,
@@ -13,10 +13,9 @@ logging.basicConfig(
 
 logger = logging.getLogger("emissary-ingress")
 
-from ambassador import Config, IR, EnvoyConfig
+from ambassador import IR, Config, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
-
 from tests.utils import default_listener_manifests
 
 SERVICE_NAME = "cool-log-svcname"

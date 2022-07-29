@@ -1,12 +1,10 @@
 from typing import Generator, Tuple, Union
 
-from kat.harness import variants, Query, EDGE_STACK
-
-from abstract_tests import AmbassadorTest, MappingTest, Node
-from tests.integration.manifests import namespace_manifest
-
 import t_mappingtests_plain
 import t_optiontests
+from abstract_tests import AmbassadorTest, MappingTest, Node
+from kat.harness import EDGE_STACK, Query, variants
+from tests.integration.manifests import namespace_manifest
 
 # Plain is the place that all the MappingTests get pulled in.
 

@@ -254,7 +254,7 @@ func canonGVK(rawString string) (canonKind string, canonGroupVersion string, err
 	case "module", "modules":
 		return "Module", "getambassador.io/v3alpha1", nil
 	case "ratelimitservice", "ratelimitservices":
-		return "RateLimitServices", "getambassador.io/v3alpha1", nil
+		return "RateLimitService", "getambassador.io/v3alpha1", nil
 	case "tcpmapping", "tcpmappings":
 		return "TCPMapping", "getambassador.io/v3alpha1", nil
 	case "tlscontext", "tlscontexts":

@@ -1,12 +1,12 @@
-import time
 import sys
+import time
 
 import pytest
 
-from tests.integration.utils import install_ambassador, get_code_with_retry
+from tests.integration.utils import get_code_with_retry, install_ambassador
 from tests.kubeutils import apply_kube_artifacts, delete_kube_artifacts
-from tests.runutils import run_with_retry, run_and_assert
 from tests.manifests import qotm_manifests
+from tests.runutils import run_and_assert, run_with_retry
 
 
 class WattTesting:

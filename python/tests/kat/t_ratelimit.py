@@ -1,11 +1,9 @@
 from typing import Generator, Literal, Tuple, Union, cast
 
-from kat.harness import Query
-
-from abstract_tests import AmbassadorTest, HTTP, ServiceType, RLSGRPC, Node
-from tests.selfsigned import TLSCerts
-
+from abstract_tests import HTTP, RLSGRPC, AmbassadorTest, Node, ServiceType
 from ambassador import Config
+from kat.harness import Query
+from tests.selfsigned import TLSCerts
 
 
 class RateLimitV0Test(AmbassadorTest):

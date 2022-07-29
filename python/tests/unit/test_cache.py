@@ -1,5 +1,3 @@
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
-
 import difflib
 import json
 import logging
@@ -7,10 +5,11 @@ import os
 import random
 import re
 import sys
-import yaml
 from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 import pytest
+import yaml
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -21,10 +20,10 @@ logging.basicConfig(
 logger = logging.getLogger("ambassador")
 logger.setLevel(logging.DEBUG)
 
-from ambassador import Cache, Config, IR, EnvoyConfig
-from ambassador.ir.ir import IRFileChecker
+from ambassador import IR, Cache, Config, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
-from ambassador.utils import SecretHandler, NullSecretHandler, Timer
+from ambassador.ir.ir import IRFileChecker
+from ambassador.utils import NullSecretHandler, SecretHandler, Timer
 
 
 class Builder:

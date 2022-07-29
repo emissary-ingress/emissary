@@ -14,34 +14,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from builtins import bytes
-from typing import Any, Dict, List, Optional, Union, TextIO, TYPE_CHECKING
-
 import binascii
 import hashlib
 import io
+import json
+import logging
+import os
+import re
 import socket
+import tempfile
 import threading
 import time
-import json
+from builtins import bytes
+from distutils.util import strtobool
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, TextIO, Union
+from urllib.parse import urlparse
+
 import orjson
-import os
-import logging
-import re
 import requests
-import tempfile
 import yaml
+from prometheus_client import Gauge
 
 from .VERSION import Version
 
-from distutils.util import strtobool
-from urllib.parse import urlparse
-from prometheus_client import Gauge
-
 if TYPE_CHECKING:
+    from .config.acresource import ACResource  # pragma: no cover
     from .ir import IRResource  # pragma: no cover
     from .ir.irtlscontext import IRTLSContext  # pragma: no cover
-    from .config.acresource import ACResource  # pragma: no cover
 
 logger = logging.getLogger("utils")
 logger.setLevel(logging.INFO)

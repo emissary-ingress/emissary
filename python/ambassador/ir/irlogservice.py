@@ -1,10 +1,9 @@
-from typing import Literal, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, Optional
 
 from ..config import Config
 from ..utils import RichStatus
-
-from .irresource import IRResource
 from .ircluster import IRCluster
+from .irresource import IRResource
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover

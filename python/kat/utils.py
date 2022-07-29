@@ -2,7 +2,6 @@ import re
 import subprocess
 import time
 
-
 _quote_pos = re.compile("(?=[^-0-9a-zA-Z_./\n])")
 
 

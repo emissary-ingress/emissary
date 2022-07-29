@@ -5,9 +5,9 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/datawire/dlib/dlog"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/datawire/dlib/dlog"
 	"github.com/emissary-ingress/emissary/v3/pkg/agent"
 	amb "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"

@@ -32,6 +32,33 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 3.1.0
+    date: 'TBD'
+    notes:
+      - title: Add support for OpenAPI 2 contracts
+        type: feature
+        body: >-
+          The agent is now able to parse api contracts using swagger 2, and to convert them to OpenAPI 3, making them
+          available for use in the dev portal.
+      - title: Default YAML enables the diagnostics interface from non-local clients on the admin service port
+        type: change
+        body: >-
+          In the standard published <code>.yaml</code> files, the <code>Module</code> resource enables serving
+          remote client requests to the <code>:8877/ambassador/v0/diag/</code> endpoint.
+          The associated Helm chart release also now enables it by default.
+      - title: fix regression in the agent for the metrics transfer.
+        type: bugfix
+        body: >-
+          A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming from
+          emissary ingress before sending them to Ambassador cloud. This issue has been resolved to ensure
+          that all the nodes composing the emissary ingress cluster are reporting properly.
+
+      - title: Add support for secrets sync
+        type: feature
+        body: >-
+          Adds a new command to the agent directive service to manage secrets. This allows
+          a third party product to manage CRDs that depend upon a secret.
+
   - version: 3.0.0
     date: '2022-06-27'
     notes:
@@ -125,6 +152,16 @@ items:
           With the ugprade to Envoy 1.22, $productName$ can now be configured to listen for HTTP/3
           connections using QUIC and the UDP network protocol. It currently only supports for connections
           between downstream clients and $productName$.
+  - version: 2.3.2
+    date: 'TBD'
+    notes:
+      - title: fix regression in the agent for the metrics transfer.
+        type: bugfix
+        body: >-
+          A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming from
+          emissary ingress before sending them to Ambassador cloud. This issue has been resolved to ensure
+          that all the nodes composing the emissary ingress cluster are reporting properly.
+
   - version: 2.3.1
     date: '2022-06-09'
     notes:

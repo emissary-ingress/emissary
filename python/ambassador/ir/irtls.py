@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import ClassVar, TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
+
+from ambassador.utils import RichStatus
 
 from ..config import Config
 from .irresource import IRResource as IRResource
 from .irtlscontext import IRTLSContext
-from ambassador.utils import RichStatus
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover

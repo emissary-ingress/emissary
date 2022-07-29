@@ -1,8 +1,8 @@
+import json
 from typing import Generator, Tuple, Union
 
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
 from kat.harness import Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
-import json
 
 
 class ListenerIdleTimeout(AmbassadorTest):

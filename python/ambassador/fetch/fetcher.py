@@ -1,33 +1,32 @@
-from typing import Any, Dict, List, Optional, Tuple, Union
-
 import json
 import logging
 import os
-import yaml
 import re
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import yaml
 
 from ..config import ACResource, Config
-from ..utils import parse_yaml, parse_json, dump_json, parse_bool
-
+from ..utils import dump_json, parse_bool, parse_json, parse_yaml
+from .ambassador import AmbassadorProcessor
 from .dependency import (
     DependencyManager,
     IngressClassesDependency,
     SecretDependency,
     ServiceDependency,
 )
-from .resource import NormalizedResource, ResourceManager
+from .ingress import IngressClassProcessor, IngressProcessor
 from .k8sobject import KubernetesGVK, KubernetesObject
 from .k8sprocessor import (
-    KubernetesProcessor,
     AggregateKubernetesProcessor,
-    DeduplicatingKubernetesProcessor,
     CountingKubernetesProcessor,
+    DeduplicatingKubernetesProcessor,
+    KubernetesProcessor,
 )
-from .ambassador import AmbassadorProcessor
-from .secret import SecretProcessor
-from .ingress import IngressClassProcessor, IngressProcessor
-from .service import ServiceProcessor
 from .knative import KnativeIngressProcessor
+from .resource import NormalizedResource, ResourceManager
+from .secret import SecretProcessor
+from .service import ServiceProcessor
 
 AnyDict = Dict[str, Any]
 

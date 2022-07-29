@@ -72,8 +72,27 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [3.1.0] TBD
+[3.1.0]: https://github.com/emissary-ingress/emissary/compare/v3.0.0...v3.1.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Feature: The agent is now able to parse api contracts using swagger 2, and to convert them to
+  OpenAPI 3, making them available for use in the dev portal.
+
+- Change: In the standard published `.yaml` files, the `Module` resource enables serving remote
+  client requests to the `:8877/ambassador/v0/diag/` endpoint. The associated Helm chart release
+  also now enables it by default.
+
+- Bugfix: A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming
+  from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
+  ensure that all the nodes composing the emissary ingress cluster are reporting properly.
+
+- Feature: Adds a new command to the agent directive service to manage secrets. This allows a third
+  party product to manage CRDs that depend upon a secret.
+
 ## [3.0.0] June 27, 2022
-[3.0.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v3.0.0
+[3.0.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v3.0.0
 
 ### Emissary-ingress and Ambassador Edge Stack
 
@@ -142,6 +161,15 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 - Feature: With the ugprade to Envoy 1.22, Emissary-ingress can now be configured to listen for
   HTTP/3 connections using QUIC and the UDP network protocol. It currently only supports for
   connections between downstream clients and Emissary-ingress.
+
+## [2.3.2] TBD
+[2.3.2]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v2.3.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming
+  from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
+  ensure that all the nodes composing the emissary ingress cluster are reporting properly.
 
 ## [2.3.1] June 09, 2022
 [2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1
