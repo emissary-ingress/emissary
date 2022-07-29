@@ -132,6 +132,11 @@ func (a *APIDocsStore) scrape(ctx context.Context, mappings []*amb.Mapping) {
 		}
 		mappingHeaders := buildMappingRequestHeaders(mapping.Spec.Headers)
 		mappingPrefix := mapping.Spec.Prefix
+		mappingRewrite := ""
+		if mapping.Spec.Rewrite != nil {
+			mappingRewrite = *mapping.Spec.Rewrite
+		}
+
 		// Lookup the Hostname first since it is more restrictive, otherwise fallback on the Host attribute
 		mappingHostname := mapping.Spec.Hostname
 		if mappingHostname == "" || mappingHostname == "*" {
@@ -159,7 +164,7 @@ func (a *APIDocsStore) scrape(ctx context.Context, mappings []*amb.Mapping) {
 				continue
 			}
 			dlog.Debugf(ctx, "'url' specified: querying %s", parsedURL)
-			doc = a.getDoc(ctx, parsedURL, "", mappingHeaders, mappingHostname, "", false)
+			doc = a.getDoc(ctx, parsedURL, "", mappingHeaders, mappingHostname, "", "", false)
 		} else {
 			mappingsDocsURL, err := extractQueryableDocsURL(mapping)
 			if err != nil {
@@ -167,7 +172,7 @@ func (a *APIDocsStore) scrape(ctx context.Context, mappings []*amb.Mapping) {
 				continue
 			}
 			dlog.Debugf(ctx, "'url' specified: querying %s", mappingsDocsURL)
-			doc = a.getDoc(ctx, mappingsDocsURL, mappingHostname, mappingHeaders, mappingHostname, mappingPrefix, true)
+			doc = a.getDoc(ctx, mappingsDocsURL, mappingHostname, mappingHeaders, mappingHostname, mappingPrefix, mappingRewrite, true)
 		}
 
 		if doc != nil {
@@ -215,7 +220,16 @@ func extractQueryableDocsURL(mapping *amb.Mapping) (*url.URL, error) {
 	return mappingsDocsURL, nil
 }
 
-func (a *APIDocsStore) getDoc(ctx context.Context, queryURL *url.URL, queryHost string, queryHeaders []Header, publicHost string, prefix string, keepExistingPrefix bool) *openAPIDoc {
+func (a *APIDocsStore) getDoc(
+	ctx context.Context,
+	queryURL *url.URL,
+	queryHost string,
+	queryHeaders []Header,
+	publicHost string,
+	prefix string,
+	rewrite string,
+	keepExistingPrefix bool,
+) *openAPIDoc {
 	b, err := a.Client.Get(ctx, queryURL, queryHost, queryHeaders)
 	if err != nil {
 		dlog.Errorf(ctx, "get failed %s: %v", queryURL, err)
@@ -223,7 +237,7 @@ func (a *APIDocsStore) getDoc(ctx context.Context, queryURL *url.URL, queryHost 
 	}
 
 	if b != nil {
-		return newOpenAPI(ctx, b, publicHost, prefix, keepExistingPrefix)
+		return newOpenAPI(ctx, b, publicHost, prefix, rewrite, keepExistingPrefix)
 	}
 	return nil
 }
@@ -240,7 +254,7 @@ type openAPIDoc struct {
 
 // openAPIDoc constructor from raw bytes.
 // The baseURL and prefix are used to edit the original document with server information to query the API publicly
-func newOpenAPI(ctx context.Context, docBytes []byte, baseURL string, prefix string, keepExistingPrefix bool) *openAPIDoc {
+func newOpenAPI(ctx context.Context, docBytes []byte, baseURL, prefix, rewrite string, keepExistingPrefix bool) *openAPIDoc {
 	dlog.Debugf(ctx, "Trying to create new OpenAPI doc: base_url=%q prefix=%q", baseURL, prefix)
 
 	doc, err := parseToOpenAPIV3(docBytes)

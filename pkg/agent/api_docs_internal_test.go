@@ -1,12 +1,54 @@
 package agent
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 const (
+	openAPI3ContractWithBaseURL = `{
+	"info": {
+		"description": "Quote Service API",
+		"title": "Quote Service API",
+		"version": "0.1.0"
+	},
+	"openapi": "3.0.0",
+	"paths": {
+		"/": {
+			"get": {
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"quote": {
+											"type": "string"
+										},
+										"server": {
+											"type": "string"
+										},
+										"time": {
+											"type": "string"
+										}
+									},
+									"type": "object"
+								}
+							}
+						},
+						"description": "A JSON object with a quote and some additional metadata."
+					}
+				},
+				"summary": "Return a randomly selected quote."
+			}
+		}
+	},
+	"servers": [{
+		"url": "https://app.acme.com/cloud/api/sso/"
+	}]
+}`
 	invalidOpenAPI3Contract = `{
 	"info123": {
 		"description": "Quote Service API",
@@ -408,5 +450,23 @@ func TestParseToOpenAPIV3(t *testing.T) {
 		// then
 		assert.Error(t, err)
 		assert.Nil(t, v3Doc)
+	})
+}
+
+func TestNewOpenAPI(t *testing.T) {
+	t.Run("convert open api v2 to open api v3", func(t *testing.T) {
+		// when
+		openAPI := newOpenAPI(
+			context.Background(), []byte(openAPI3ContractWithBaseURL),
+			"my-api-gateway.com", "/cloud/api/sso/", "/api/sso", true,
+		)
+
+		// then
+		doc, err := parseToOpenAPIV3(openAPI.JSON)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, "test", doc.Servers[0].URL)
+		assert.NotNil(t, openAPI)
 	})
 }
