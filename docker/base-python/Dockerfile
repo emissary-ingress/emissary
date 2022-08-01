@@ -29,7 +29,7 @@ RUN apk --no-cache add \
   gcc \
   make \
   musl-dev \
-  curl=~7.80.0-r2 \
+  curl=~7.80 \
   cython \
   docker-cli \
   git \
@@ -41,7 +41,7 @@ RUN apk --no-cache add \
   ncurses=6.3_p20211120-r1 \
   openssl-dev=1.1.1q-r0 \
   py3-pip=~20.3.4 \
-  python3=~3.9.7 \
+  python3=~3.9.13 \
   python3-dev \
   rust \
   cargo \
