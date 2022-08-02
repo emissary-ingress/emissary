@@ -309,13 +309,11 @@ push-dev: docker/$(LCNAME).docker.tag.local
 .PHONY: push-dev
 
 docker-export: images $(tools/docker-export)
-	@if [ -z "$$VERSION_FILE" ]; then printf '$(RED)$@: VERSION_FILE is not set$(END)\n'; exit 1; fi;
 	@if [ -z "$$EXPORT_FILE" ]; then printf '$(RED)$@: EXPORT_FILE is not set$(END)\n'; exit 1; fi;
 	@printf '$(CYN)==> $(GRN)exporting Docker build state as $(BLU)%s$(GRN)...$(END)\n' "$$EXPORT_FILE"
 	$(tools/docker-export)
 	@set -ex -o pipefail ; { \
 		cd docker ;\
-		echo "$(VERSION)" > "$$VERSION_FILE" ;\
 		tar cf "$$EXPORT_FILE" images.tar images.sh ;\
 	}
 .PHONY: docker-export
