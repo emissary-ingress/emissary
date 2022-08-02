@@ -325,9 +325,8 @@ clean: docker-export.clean
 docker-import: $(tools/docker-import)
 	@if [ -z "$$IMPORT_FILE" ]; then printf '$(RED)$@: IMPORT_FILE is not set$(END)\n'; exit 1; fi;
 	@set -ex -o pipefail ; { \
-		printf '$(CYN)==> $(GRN)importing $(BLU)%s$(GRN) as $(BLU)%s$(GRN)...$(END)\n' "$$IMPORT_FILE" "$$imgid" ;\
-		cd docker ;\
-		tar xf "$$IMPORT_FILE" ;\
+		printf '$(CYN)==> $(GRN)importing $(BLU)%s$(GRN)...$(END)\n' "$$IMPORT_FILE" ;\
+		tar -C docker -xf "$$IMPORT_FILE" ;\
 		$(tools/docker-import) ;\
 		rm -f images.sh images.tar ;\
 	}
