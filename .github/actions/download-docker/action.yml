@@ -13,4 +13,4 @@ runs:
       shell: bash
       run: |
         ls -l /tmp/docker-img
-        make DEV_REGISTRY=localhost:5000 IMPORT_FILE=/tmp/docker-img/docker-img import-docker
+        make DEV_REGISTRY=localhost:5000 IMPORT_FILE=/tmp/docker-img/docker-img docker-import
