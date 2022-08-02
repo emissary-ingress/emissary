@@ -12,18 +12,19 @@ const (
 	FormatOfStringForUUIDOfRFC4122 = `^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`
 )
 
-//FormatCallback custom check on exotic formats
-type FormatCallback func(Val string) error
+// FormatCallback performs custom checks on exotic formats
+type FormatCallback func(value string) error
 
+// Format represents a format validator registered by either DefineStringFormat or DefineStringFormatCallback
 type Format struct {
 	regexp   *regexp.Regexp
 	callback FormatCallback
 }
 
-//SchemaStringFormats allows for validating strings format
-var SchemaStringFormats = make(map[string]Format, 8)
+// SchemaStringFormats allows for validating string formats
+var SchemaStringFormats = make(map[string]Format, 4)
 
-//DefineStringFormat Defines a new regexp pattern for a given format
+// DefineStringFormat defines a new regexp pattern for a given format
 func DefineStringFormat(name string, pattern string) {
 	re, err := regexp.Compile(pattern)
 	if err != nil {
@@ -90,7 +91,7 @@ func init() {
 	DefineStringFormat("date", `^[0-9]{4}-(0[0-9]|10|11|12)-([0-2][0-9]|30|31)$`)
 
 	// date-time
-	DefineStringFormat("date-time", `^[0-9]{4}-(0[0-9]|10|11|12)-([0-2][0-9]|30|31)T[0-9]{2}:[0-9]{2}:[0-9]{2}(.[0-9]+)?(Z|(\+|-)[0-9]{2}:[0-9]{2})?$`)
+	DefineStringFormat("date-time", `^[0-9]{4}-(0[0-9]|10|11|12)-([0-2][0-9]|30|31)T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(Z|(\+|-)[0-9]{2}:[0-9]{2})?$`)
 
 }
 

@@ -12,6 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from .irresource import IRResource
 from .ir import IR
-
+from .irresource import IRResource

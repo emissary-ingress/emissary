@@ -1,34 +1,31 @@
-from typing import ClassVar, Dict, List, Optional, TYPE_CHECKING
-
 import base64
 import logging
 import os
+from typing import TYPE_CHECKING, ClassVar, Dict, List, Optional
 
-from ..utils import SavedSecret
 from ..config import Config
+from ..utils import SavedSecret
 from .irresource import IRResource
 
 if TYPE_CHECKING:
-    from .ir import IR # pragma: no cover
-    from .irtls import IRAmbassadorTLS # pragma: no cover
+    from .ir import IR  # pragma: no cover
+    from .irtls import IRAmbassadorTLS  # pragma: no cover
 
 
 class IRTLSContext(IRResource):
     CertKeys: ClassVar = {
-        'secret',
-        'cert_chain_file',
-        'private_key_file',
-
-        'ca_secret',
-        'cacert_chain_file',
-
-        'crl_secret',
-        'crl_file',
+        "secret",
+        "cert_chain_file",
+        "private_key_file",
+        "ca_secret",
+        "cacert_chain_file",
+        "crl_secret",
+        "crl_file",
     }
 
     AllowedKeys: ClassVar = {
-        '_ambassador_enabled',
-        '_legacy',
+        "_ambassador_enabled",
+        "_legacy",
         "alpn_protocols",
         "cert_required",
         "cipher_suites",
@@ -61,51 +58,63 @@ class IRTLSContext(IRResource):
     _ambassador_enabled: bool
     _legacy: bool
 
-    def __init__(self, ir: 'IR', aconf: Config,
-                 rkey: str,      # REQUIRED
-                 name: str,      # REQUIRED
-                 location: str,  # REQUIRED
-                 namespace: Optional[str]=None,
-                 metadata_labels: Optional[Dict[str, str]]=None,
-                 kind: str="IRTLSContext",
-                 apiVersion: str = "getambassador.io/v3alpha1",
-                 is_fallback: Optional[bool]=False,
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        ir: "IR",
+        aconf: Config,
+        rkey: str,  # REQUIRED
+        name: str,  # REQUIRED
+        location: str,  # REQUIRED
+        namespace: Optional[str] = None,
+        metadata_labels: Optional[Dict[str, str]] = None,
+        kind: str = "IRTLSContext",
+        apiVersion: str = "getambassador.io/v3alpha1",
+        is_fallback: Optional[bool] = False,
+        **kwargs,
+    ) -> None:
 
         new_args = {
-            x: kwargs[x] for x in kwargs.keys()
+            x: kwargs[x]
+            for x in kwargs.keys()
             if x in IRTLSContext.AllowedKeys.union(IRTLSContext.CertKeys)
         }
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, location=location,
-            kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
-            is_fallback=is_fallback, apiVersion=apiVersion,
-            **new_args
+            ir=ir,
+            aconf=aconf,
+            rkey=rkey,
+            location=location,
+            kind=kind,
+            name=name,
+            namespace=namespace,
+            metadata_labels=metadata_labels,
+            is_fallback=is_fallback,
+            apiVersion=apiVersion,
+            **new_args,
         )
 
     def pretty(self) -> str:
-        secret_name = self.secret_info.get('secret', '-no secret-')
+        secret_name = self.secret_info.get("secret", "-no secret-")
         hoststr = getattr(self, "hosts", "-any-")
         fbstr = " (fallback)" if self.is_fallback else ""
 
-        rcf = self.get('redirect_cleartext_from', None)
+        rcf = self.get("redirect_cleartext_from", None)
         rcfstr = f" rcf {rcf}" if (rcf is not None) else ""
 
         return f"<IRTLSContext {self.name}.{self.namespace}{rcfstr}{fbstr}: hosts {hoststr} secret {secret_name}>"
 
-    def setup(self, ir: 'IR', aconf: Config) -> bool:
-        if not self.get('_ambassador_enabled', False):
+    def setup(self, ir: "IR", aconf: Config) -> bool:
+        if not self.get("_ambassador_enabled", False):
             spec_count = 0
             errors = 0
 
-            if self.get('secret', None):
+            if self.get("secret", None):
                 spec_count += 1
 
-            if self.get('cert_chain_file', None):
+            if self.get("cert_chain_file", None):
                 spec_count += 1
 
-                if not self.get('private_key_file', None):
+                if not self.get("private_key_file", None):
                     err_msg = f"TLSContext {self.name}: 'cert_chain_file' requires 'private_key_file' as well"
 
                     self.post_error(err_msg)
@@ -124,7 +133,7 @@ class IRTLSContext(IRResource):
         # self.referenced_by(config)
 
         # Assume that we have no redirect_cleartext_from...
-        rcf = self.get('redirect_cleartext_from', None)
+        rcf = self.get("redirect_cleartext_from", None)
 
         if rcf is not None:
             try:
@@ -156,18 +165,21 @@ class IRTLSContext(IRResource):
         # you can set secret_namespacing to False in a TLSContext or tls_secret_namespacing False
         # in the Ambassador module's defaults to prevent that.
 
-        secret_namespacing = self.lookup('secret_namespacing', True,
-                                         default_key='tls_secret_namespacing')
+        secret_namespacing = self.lookup(
+            "secret_namespacing", True, default_key="tls_secret_namespacing"
+        )
 
-        self.ir.logger.debug(f"TLSContext.resolve_secret {secret_name}, namespace {namespace}: namespacing is {secret_namespacing}")
+        self.ir.logger.debug(
+            f"TLSContext.resolve_secret {secret_name}, namespace {namespace}: namespacing is {secret_namespacing}"
+        )
 
         if "." in secret_name and secret_namespacing:
-            secret_name, namespace = secret_name.rsplit('.', 1)
+            secret_name, namespace = secret_name.rsplit(".", 1)
 
         return self.ir.resolve_secret(self, secret_name, namespace)
 
     def resolve(self) -> bool:
-        if self.get('_ambassador_enabled', False):
+        if self.get("_ambassador_enabled", False):
             self.ir.logger.debug("IRTLSContext skipping resolution of null context")
             return True
 
@@ -176,17 +188,20 @@ class IRTLSContext(IRResource):
 
         # If redirect_cleartext_from or alpn_protocols is specified, the TLS Context is
         # valid anyway, even if secret config is invalid
-        if self.get('redirect_cleartext_from', False) or self.get('alpn_protocols', False):
+        if self.get("redirect_cleartext_from", False) or self.get("alpn_protocols", False):
             is_valid = True
 
         # If we don't have secret info, it's worth posting an error.
         if not self.secret_info:
-            self.post_error("TLSContext %s has no certificate information at all?" % self.name, log_level=logging.DEBUG)
+            self.post_error(
+                "TLSContext %s has no certificate information at all?" % self.name,
+                log_level=logging.DEBUG,
+            )
 
         self.ir.logger.debug("resolve_secrets working on: %s" % self.as_json())
 
         # OK. Do we have a secret name?
-        secret_name = self.secret_info.get('secret')
+        secret_name = self.secret_info.get("secret")
         secret_valid = True
 
         if secret_name:
@@ -200,87 +215,110 @@ class IRTLSContext(IRResource):
             if not ss:
                 # This is definitively an error: they mentioned a secret, it can't be loaded,
                 # post an error.
-                self.post_error("TLSContext %s found no certificate in %s, ignoring..." % (self.name, ss.name))
-                self.secret_info.pop('secret')
+                self.post_error(
+                    "TLSContext %s found no certificate in %s, ignoring..." % (self.name, ss.name)
+                )
+                self.secret_info.pop("secret")
                 secret_valid = False
             else:
                 # If they only gave a public key, that's an error
                 if not ss.key_path:
-                    self.post_error("TLSContext %s found no private key in %s" % (self.name, ss.name))
+                    self.post_error(
+                        "TLSContext %s found no private key in %s" % (self.name, ss.name)
+                    )
                     return False
 
                 # So far, so good.
                 self.ir.logger.debug("TLSContext %s saved secret %s" % (self.name, ss.name))
 
                 # Update paths for this cert.
-                self.secret_info['cert_chain_file'] = ss.cert_path
-                self.secret_info['private_key_file'] = ss.key_path
+                self.secret_info["cert_chain_file"] = ss.cert_path
+                self.secret_info["private_key_file"] = ss.key_path
 
                 if ss.root_cert_path:
-                    self.secret_info['cacert_chain_file'] = ss.root_cert_path
+                    self.secret_info["cacert_chain_file"] = ss.root_cert_path
 
-        self.ir.logger.debug("TLSContext - successfully processed the cert_chain_file, private_key_file, and cacert_chain_file: %s" % self.secret_info)
+        self.ir.logger.debug(
+            "TLSContext - successfully processed the cert_chain_file, private_key_file, and cacert_chain_file: %s"
+            % self.secret_info
+        )
 
         # OK. Repeat for the crl_secret.
-        crl_secret = self.secret_info.get('crl_secret')
+        crl_secret = self.secret_info.get("crl_secret")
         if crl_secret:
             # They gave a secret name for the certificate revocation list. Try loading it.
             crls = self.resolve_secret(crl_secret)
 
-            self.ir.logger.debug("resolve_secrets: IR returned secret %s as %s" % (crl_secret, crls))
+            self.ir.logger.debug(
+                "resolve_secrets: IR returned secret %s as %s" % (crl_secret, crls)
+            )
 
             if not crls:
                 # This is definitively an error: they mentioned a secret, it can't be loaded,
                 # give up.
-                self.post_error("TLSContext %s found no certificate revocation list in %s" % (self.name, crls.name))
+                self.post_error(
+                    "TLSContext %s found no certificate revocation list in %s"
+                    % (self.name, crls.name)
+                )
                 secret_valid = False
             else:
-                self.ir.logger.debug("TLSContext %s saved certificate revocation list secret %s" % (self.name, crls.name))
-                self.secret_info['crl_file'] = crls.user_path
+                self.ir.logger.debug(
+                    "TLSContext %s saved certificate revocation list secret %s"
+                    % (self.name, crls.name)
+                )
+                self.secret_info["crl_file"] = crls.user_path
 
         # OK. Repeat for the ca_secret_name.
-        ca_secret_name = self.secret_info.get('ca_secret')
+        ca_secret_name = self.secret_info.get("ca_secret")
 
         if ca_secret_name:
-            if not self.secret_info.get('cert_chain_file'):
+            if not self.secret_info.get("cert_chain_file"):
                 # DUPLICATED BELOW: This is an error: validation without termination isn't meaningful.
                 # (This is duplicated for the case where they gave a validation path.)
-                self.post_error("TLSContext %s cannot validate client certs without TLS termination" %
-                                self.name)
+                self.post_error(
+                    "TLSContext %s cannot validate client certs without TLS termination" % self.name
+                )
                 return False
 
             # They gave a secret name for the validation cert. Try loading it.
             ss = self.resolve_secret(ca_secret_name)
 
-            self.ir.logger.debug("resolve_secrets: IR returned secret %s as %s" % (ca_secret_name, ss))
+            self.ir.logger.debug(
+                "resolve_secrets: IR returned secret %s as %s" % (ca_secret_name, ss)
+            )
 
             if not ss:
                 # This is definitively an error: they mentioned a secret, it can't be loaded,
                 # give up.
-                self.post_error("TLSContext %s found no validation certificate in %s" % (self.name, ss.name))
+                self.post_error(
+                    "TLSContext %s found no validation certificate in %s" % (self.name, ss.name)
+                )
                 secret_valid = False
             else:
                 # Validation certs don't need the private key, but it's not an error if they gave
                 # one. We're good to go here.
                 self.ir.logger.debug("TLSContext %s saved CA secret %s" % (self.name, ss.name))
-                self.secret_info['cacert_chain_file'] = ss.cert_path
+                self.secret_info["cacert_chain_file"] = ss.cert_path
 
                 # While we're here, did they set cert_required _in the secret_?
                 if ss.cert_data:
-                    cert_required = ss.cert_data.get('cert_required')
+                    cert_required = ss.cert_data.get("cert_required")
 
                     if cert_required is not None:
-                        decoded = base64.b64decode(cert_required).decode('utf-8').lower() == 'true'
+                        decoded = base64.b64decode(cert_required).decode("utf-8").lower() == "true"
 
                         # cert_required is at toplevel, _not_ in secret_info!
-                        self['cert_required'] = decoded
+                        self["cert_required"] = decoded
         else:
             # No secret is named; did they provide a file location instead?
-            if self.secret_info.get('cacert_chain_file') and not self.secret_info.get('cert_chain_file'):
+            if self.secret_info.get("cacert_chain_file") and not self.secret_info.get(
+                "cert_chain_file"
+            ):
                 # DUPLICATED ABOVE: This is an error: validation without termination isn't meaningful.
                 # (This is duplicated for the case where they gave a validation secret.)
-                self.post_error("TLSContext %s cannot validate client certs without TLS termination" %
-                                self.name)
+                self.post_error(
+                    "TLSContext %s cannot validate client certs without TLS termination" % self.name
+                )
                 return False
 
         # If the secret has been invalidated above, then we do not need to check for paths down under.
@@ -292,15 +330,17 @@ class IRTLSContext(IRResource):
         errors = 0
 
         # self.ir.logger.debug("resolve_secrets before path checks: %s" % self.as_json())
-        for key in [ 'cert_chain_file', 'private_key_file', 'cacert_chain_file', 'crl_file' ]:
+        for key in ["cert_chain_file", "private_key_file", "cacert_chain_file", "crl_file"]:
             path = self.secret_info.get(key, None)
 
             if path:
-                fc = getattr(self.ir, 'file_checker')
+                fc = getattr(self.ir, "file_checker")
                 if not fc(path):
                     self.post_error("TLSContext %s found no %s '%s'" % (self.name, key, path))
                     errors += 1
-            elif (not(key == 'cacert_chain_file' or key == 'crl_file')) and self.get('hosts', None):
+            elif (not (key == "cacert_chain_file" or key == "crl_file")) and self.get(
+                "hosts", None
+            ):
                 self.post_error("TLSContext %s is missing %s" % (self.name, key))
                 errors += 1
 
@@ -313,9 +353,9 @@ class IRTLSContext(IRResource):
         # Safely verify that self.secret_info['secret'] exists -- in other words, verify
         # that this IRTLSContext is based on a Secret we load from elsewhere, rather than
         # on files in the filesystem.
-        si = self.get('secret_info', {})
+        si = self.get("secret_info", {})
 
-        return 'secret' in si
+        return "secret" in si
 
     def secret_name(self) -> Optional[str]:
         # Return the name of the Secret we're based on, or None if we're based on files
@@ -325,34 +365,44 @@ class IRTLSContext(IRResource):
         # this later.
 
         if self.has_secret():
-            return self.secret_info['secret']
+            return self.secret_info["secret"]
         else:
             return None
 
     def set_secret_name(self, secret_name: str) -> None:
         # Set the name of the Secret we're based on.
-        self.secret_info['secret'] = secret_name
+        self.secret_info["secret"] = secret_name
 
     @classmethod
-    def null_context(cls, ir: 'IR') -> 'IRTLSContext':
+    def null_context(cls, ir: "IR") -> "IRTLSContext":
         ctx = ir.get_tls_context("no-cert-upstream")
 
         if not ctx:
-            ctx = IRTLSContext(ir, ir.aconf,
-                               rkey="ir.no-cert-upstream",
-                               name="no-cert-upstream",
-                               location="ir.no-cert-upstream",
-                               kind="null-TLS-context",
-                               _ambassador_enabled=True)
+            ctx = IRTLSContext(
+                ir,
+                ir.aconf,
+                rkey="ir.no-cert-upstream",
+                name="no-cert-upstream",
+                location="ir.no-cert-upstream",
+                kind="null-TLS-context",
+                _ambassador_enabled=True,
+            )
 
             ir.save_tls_context(ctx)
 
         return ctx
 
     @classmethod
-    def from_legacy(cls, ir: 'IR', name: str, rkey: str, location: str,
-                    cert: 'IRAmbassadorTLS', termination: bool,
-                    validation_ca: Optional['IRAmbassadorTLS']) -> 'IRTLSContext':
+    def from_legacy(
+        cls,
+        ir: "IR",
+        name: str,
+        rkey: str,
+        location: str,
+        cert: "IRAmbassadorTLS",
+        termination: bool,
+        validation_ca: Optional["IRAmbassadorTLS"],
+    ) -> "IRTLSContext":
         """
         Create an IRTLSContext from a legacy TLS-module style definition.
 
@@ -375,56 +425,65 @@ class IRTLSContext(IRResource):
         """
         new_args = {}
 
-        for key in [ 'secret', 'cert_chain_file', 'private_key_file',
-                     'alpn_protocols', 'redirect_cleartext_from' ]:
+        for key in [
+            "secret",
+            "cert_chain_file",
+            "private_key_file",
+            "alpn_protocols",
+            "redirect_cleartext_from",
+        ]:
             value = cert.get(key, None)
 
             if value:
                 new_args[key] = value
 
-        if (('secret' not in new_args) and
-            ('cert_chain_file' not in new_args) and
-            ('private_key_file' not in new_args)):
+        if (
+            ("secret" not in new_args)
+            and ("cert_chain_file" not in new_args)
+            and ("private_key_file" not in new_args)
+        ):
             # Assume they want the 'ambassador-certs' secret.
-            new_args['secret'] = 'ambassador-certs'
+            new_args["secret"] = "ambassador-certs"
 
         if termination:
-            new_args['hosts'] = [ '*' ]
+            new_args["hosts"] = ["*"]
 
-            if validation_ca and validation_ca.get('enabled', True):
-                for key in [ 'secret', 'cacert_chain_file', 'cert_required' ]:
+            if validation_ca and validation_ca.get("enabled", True):
+                for key in ["secret", "cacert_chain_file", "cert_required"]:
                     value = validation_ca.get(key, None)
 
                     if value:
-                        if key == 'secret':
-                            new_args['ca_secret'] = value
+                        if key == "secret":
+                            new_args["ca_secret"] = value
                         else:
                             new_args[key] = value
 
-                if (('ca_secret' not in new_args) and
-                    ('cacert_chain_file' not in new_args)):
+                if ("ca_secret" not in new_args) and ("cacert_chain_file" not in new_args):
                     # Assume they want the 'ambassador-cacert' secret.
-                    new_args['secret'] = 'ambassador-cacert'
+                    new_args["secret"] = "ambassador-cacert"
 
-        ctx = IRTLSContext(ir, ir.aconf,
-                           rkey=rkey,
-                           name=name,
-                           location=location,
-                           kind="synthesized-TLS-context",
-                           _legacy=True,
-                           **new_args)
+        ctx = IRTLSContext(
+            ir,
+            ir.aconf,
+            rkey=rkey,
+            name=name,
+            location=location,
+            kind="synthesized-TLS-context",
+            _legacy=True,
+            **new_args,
+        )
 
         return ctx
 
 
 class TLSContextFactory:
     @classmethod
-    def load_all(cls, ir: 'IR', aconf: Config) -> None:
+    def load_all(cls, ir: "IR", aconf: Config) -> None:
         assert ir
 
         # Save TLS contexts from the aconf into the IR. Note that the contexts in the aconf
         # are just ACResources; they need to be turned into IRTLSContexts.
-        tls_contexts = aconf.get_config('tls_contexts')
+        tls_contexts = aconf.get_config("tls_contexts")
 
         if tls_contexts is not None:
             for config in tls_contexts.values():

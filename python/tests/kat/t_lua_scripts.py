@@ -1,5 +1,5 @@
+from abstract_tests import HTTP, AmbassadorTest, ServiceType
 from kat.harness import Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
 
 
 class LuaTest(AmbassadorTest):
@@ -14,7 +14,9 @@ class LuaTest(AmbassadorTest):
 """
 
     def manifests(self) -> str:
-        return self.format('''
+        return (
+            self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -37,11 +39,14 @@ spec:
   hostname: "*"
   prefix: /target/
   service: {self.target.path.fqdn}
-''') + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def queries(self):
         yield Query(self.url("target/"))
 
     def check(self):
         for r in self.results:
-            assert r.headers.get('Lua-Scripts-Enabled', None) == ['Processed']
+            assert r.headers.get("Lua-Scripts-Enabled", None) == ["Processed"]

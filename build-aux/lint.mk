@@ -18,6 +18,7 @@ format/go: $(tools/golangci-lint)
 # Python
 
 lint-deps += $(OSS_HOME)/venv
+
 lint-goals += lint/mypy
 lint/mypy: $(OSS_HOME)/venv
 	set -e; { \
@@ -30,6 +31,26 @@ lint/mypy: $(OSS_HOME)/venv
 	}
 .PHONY: lint/mypy
 clean: .dmypy.json.rm .mypy_cache.rm-r
+
+lint-goals += lint/black
+lint/black: $(OSS_HOME)/venv
+	. $(OSS_HOME)/venv/bin/activate && black --check ./python/
+.PHONY: lint/black
+
+format-goals += format/black
+format/black: $(OSS_HOME)/venv
+	. $(OSS_HOME)/venv/bin/activate && black ./python/
+.PHONY: format/black
+
+lint-goals += lint/isort
+lint/isort: $(OSS_HOME)/venv
+	. $(OSS_HOME)/venv/bin/activate && isort --check --diff ./python/
+.PHONY: lint/isort
+
+format-goals += format/isort
+format/isort: $(OSS_HOME)/venv
+	. $(OSS_HOME)/venv/bin/activate && isort ./python/
+.PHONY: format/isort
 
 #
 # Helm

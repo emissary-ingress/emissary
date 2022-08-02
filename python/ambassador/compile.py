@@ -12,28 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, Literal, Optional, Union, cast
-from typing_extensions import TypedDict, NotRequired
-
 import logging
+from typing import Any, Dict, Literal, Optional, Union, cast
+
+from typing_extensions import NotRequired, TypedDict
 
 from .cache import Cache
 from .config import Config
-from .ir import IR
-from .ir.ir import IRFileChecker
 from .envoy import EnvoyConfig
 from .fetch import ResourceFetcher
-from .utils import SecretHandler, NullSecretHandler, Timer
+from .ir import IR
+from .ir.ir import IRFileChecker
+from .utils import NullSecretHandler, SecretHandler, Timer
+
 
 class _CompileResult(TypedDict):
     ir: IR
     xds: NotRequired[EnvoyConfig]
 
-def Compile(logger: logging.Logger, input_text: str,
-            cache: Optional[Cache]=None,
-            file_checker: Optional[IRFileChecker]=None,
-            secret_handler: Optional[SecretHandler]=None,
-            k8s: bool=False) -> _CompileResult:
+
+def Compile(
+    logger: logging.Logger,
+    input_text: str,
+    cache: Optional[Cache] = None,
+    file_checker: Optional[IRFileChecker] = None,
+    secret_handler: Optional[SecretHandler] = None,
+    k8s: bool = False,
+) -> _CompileResult:
     """
     Compile is a helper function to take a bunch of YAML and compile it into an
     IR and, optionally, an Envoy config.
@@ -69,9 +74,9 @@ def Compile(logger: logging.Logger, input_text: str,
 
     ir = IR(aconf, cache=cache, file_checker=file_checker, secret_handler=secret_handler)
 
-    out: _CompileResult = { "ir": ir }
+    out: _CompileResult = {"ir": ir}
 
     if ir:
-        out['xds'] = EnvoyConfig.generate(ir, cache=cache)
+        out["xds"] = EnvoyConfig.generate(ir, cache=cache)
 
     return out

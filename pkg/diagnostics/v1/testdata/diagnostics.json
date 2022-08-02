@@ -1,0 +1,840 @@
+{
+    "active_elements": [
+        "yaml-s3-latest.1",
+        "yaml-s3-latest.2"
+    ],
+    "ambassador_elements": {
+        "--diagnostics--": {
+            "kind": "Diagnostics",
+            "location": "--diagnostics--"
+        },
+        "--internal--": {
+            "kind": "Internal",
+            "location": "--internal--"
+        },
+        "code-config.app.1": {
+            "kind": "Mapping",
+            "location": "code-config.app",
+            "parent": "code-config.app",
+            "serialization": "apiVersion:"
+        },
+        "yaml-s3-proxy.app.1": {
+            "kind": "Mapping",
+            "location": "yaml-s3-proxy.app",
+            "parent": "yaml-s3-proxy.app",
+            "serialization": "apiVersion"
+        }
+    },
+    "ambassador_resolvers": [
+        {
+            "_source": "--internal--",
+            "groups": [
+                "ambassador.jargon.1",
+                "ambassador.jargon.1"
+            ],
+            "kind": "KubernetesServiceResolver",
+            "name": "kubernetes-service"
+        }
+    ],
+    "ambassador_resources": {},
+    "ambassador_services": [
+        {
+            "_service_weight": 100.0,
+            "_source": "ambassador-auth.jargon.1",
+            "cluster": "cluster_0_0_0_1_8500_jargon",
+            "name": "udp://0.0.0.0:8500",
+            "type": "AuthService"
+        },
+        {
+            "_service_weight": 100.0,
+            "_source": "tracing-jaeger.monitoring.1",
+            "cluster": "cluster_monitoring_9411_monitoring",
+            "name": "udp://trace-collector.monitoring:9411",
+            "type": "TracingService (jaeger)"
+        }
+    ],
+    "banner_content": "",
+    "cluster_info": {
+        "cluster_0_0_0_1_8500_jargon": {
+            "_active": true,
+            "_cache_key": "Cluster-cluster_0_0_0_1_8500_jargon",
+            "_errored": false,
+            "_hcolor": "orange",
+            "_health": "undefined cluster",
+            "_hmetric": "undefined cluster",
+            "_hostname": "0.0.0.0",
+            "_is_sidecar": true,
+            "_namespace": "jargon",
+            "_port": 8500,
+            "_referenced_by": [
+                "ambassador-edge-heap.jargon.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_0_0_0_1_8500_jargon",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "envoy_name": "cluster_0_0_0_1_8500_jargon",
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "ambassador-edge-heap.jargon.1",
+            "name": "cluster_0_0_0_1_8500_jargon",
+            "namespace": "jargon",
+            "respect_dns_ttl": false,
+            "service": "0.0.0.0:8500",
+            "stats_name": "0_0_0_1_8500",
+            "targets": [
+                {
+                    "ip": "0.0.0.0",
+                    "port": 8500,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "udp://0.0.0.0:8500"
+            ],
+            "weight": 100
+        },
+        "multi-system-ui": {
+            "_hcolor": "orange",
+            "_hmetric": "unknown",
+            "_referenced_by": [
+                "multi-system-ui.app.1"
+            ],
+            "name": "multi-system-ui",
+            "service": "beta-app.company.io",
+            "type_label": "redirect",
+            "weight": 100
+        }
+    },
+    "cluster_stats": {
+        "cluster_system_a_ui_saas_beta_80_saas_beta": {
+            "hcolor": "orange",
+            "health": "undefined cluster",
+            "hmetric": "undefined cluster",
+            "reason": "Cluster cluster_system_a_ui_saas_beta_80_saas_beta is not defined",
+            "valid": false
+        },
+        "cluster_tracing_trace_collector_monitoring_9411_monitoring": {
+            "hcolor": "orange",
+            "health": "undefined cluster",
+            "hmetric": "undefined cluster",
+            "reason": "Cluster cluster_tracing_trace_collector_monitoring_9411_monitoring is not defined",
+            "valid": false
+        }
+    },
+    "envoy_elements": {
+        "code-health.app.1": {
+            "cluster": [
+                {
+                    "alt_stat_name": "code_saas_beta_8181",
+                    "connect_timeout": "3.000s",
+                    "dns_lookup_family": "V4_ONLY",
+                    "lb_policy": "ROUND_ROBIN",
+                    "load_assignment": {
+                        "cluster_name": "cluster_code_saas_beta_8181_saas_beta",
+                        "endpoints": [
+                            {
+                                "lb_endpoints": [
+                                    {
+                                        "endpoint": {
+                                            "address": {
+                                                "socket_address": {
+                                                    "address": "code.app",
+                                                    "port_value": 8181,
+                                                    "protocol": "TCP"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "name": "cluster_code_saas_beta_8181_saas_beta",
+                    "type": "STRICT_DNS"
+                }
+            ],
+            "route": [
+                {
+                    "match": {
+                        "case_sensitive": true,
+                        "headers": [
+                            {
+                                "exact_match": "staging-app.company.io",
+                                "name": ":authority"
+                            }
+                        ],
+                        "prefix": "/code/healthz",
+                        "runtime_fraction": {
+                            "default_value": {
+                                "denominator": "HUNDRED",
+                                "numerator": 100
+                            },
+                            "runtime_key": "routing.traffic_shift.cluster_code_saas_beta_8181_saas_beta"
+                        }
+                    },
+                    "route": {
+                        "cluster": "cluster_code_saas_beta_8181_saas_beta",
+                        "prefix_rewrite": "/healthz",
+                        "priority": null,
+                        "timeout": "3.000s"
+                    }
+                }
+            ]
+        },
+        "multi-system-webhooks-mapping.app.1": {
+            "route": [
+                {
+                    "match": {
+                        "case_sensitive": true,
+                        "headers": [
+                            {
+                                "exact_match": "staging-app.company.io",
+                                "name": ":authority"
+                            }
+                        ],
+                        "prefix": "/cloud/webhooks",
+                        "runtime_fraction": {
+                            "default_value": {
+                                "denominator": "HUNDRED",
+                                "numerator": 100
+                            },
+                            "runtime_key": "routing.traffic_shift.cluster_system_a_saas_beta_8080_saas_beta"
+                        }
+                    },
+                    "route": {
+                        "cluster": "cluster_system_a_saas_beta_8080_saas_beta",
+                        "prefix_rewrite": "/webhooks",
+                        "priority": null,
+                        "timeout": "3.000s"
+                    }
+                }
+            ]
+        }
+    },
+    "envoy_resources": {},
+    "envoy_status": {
+        "alive": true,
+        "ready": true,
+        "since_update": "4 seconds ago",
+        "uptime": "23 minutes, 59 seconds"
+    },
+    "errors": [
+        [
+            "ir.ratelimit",
+            "RateLimitService: protocol_version v2 is unsupported, protocol_version must be \"v3\""
+        ]
+    ],
+    "groups": {
+        "grp-012f1710d3bd1b96ced208d37d16fcfe2022e987": {
+            "_active": true,
+            "_cache_key": "IRHTTPMappingGroup-012f1710d3bd1b96ced208d37d16fcfe2022e987",
+            "_errored": false,
+            "_referenced_by": [
+                "download-tel2-darwin-arm64-latest.app.1"
+            ],
+            "_rkey": "download-tel2-darwin-arm64-latest.app.1",
+            "default_class": "httpmapping",
+            "group_id": "012f1710d3bd1b96ced208d37d16fcfe2022e987",
+            "group_weight": [
+                0,
+                47,
+                33,
+                0,
+                "/download/tel2/darwin/arm64/latest/telepresence",
+                "GET",
+                ":authority-staging-app.company.io"
+            ],
+            "headers": [
+                {
+                    "name": ":authority",
+                    "regex": false,
+                    "value": "staging-app.company.io"
+                }
+            ],
+            "host": "staging-app.company.io",
+            "kind": "IRHTTPMappingGroup",
+            "location": "download-tel2-darwin-arm64-latest.app.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "download-tel2-darwin-arm64-latest.app.1",
+                    "cluster_name": "cluster_sso_saas_beta_8080_saas_beta",
+                    "cluster_service": "sso.app:8080",
+                    "host": "staging-app.company.io",
+                    "location": "download-tel2-darwin-arm64-latest.app.1",
+                    "name": "download-tel2-darwin-arm64-latest",
+                    "prefix": "/download/tel2/darwin/arm64/latest/telepresence",
+                    "rewrite": "/redirects/download/tel2/darwin/arm64/latest/telepresence"
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "download-tel2-darwin-arm64-latest.app",
+                "app.kubernetes.io/instance": "infra"
+            },
+            "name": "GROUP: download-tel2-darwin-arm64-latest",
+            "namespace": "app",
+            "precedence": 0,
+            "prefix": "/download/tel2/darwin/arm64/latest/telepresence",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/redirects/download/tel2/darwin/arm64/latest/telepresence",
+            "serialization": "apiVersion:"
+        },
+        "grp-06e673d20a47ca27c1214f0765db576d37674160": {
+            "_active": true,
+            "_cache_key": "IRHTTPMappingGroup-06e673d20a47ca27c1214f0765db576d37674160",
+            "_errored": false,
+            "_referenced_by": [
+                "aes-backend-renewal-webhook.jargon-beta.1"
+            ],
+            "_rkey": "aes-backend-renewal-webhook.jargon-beta.1",
+            "default_class": "httpmapping",
+            "group_id": "06e673d20a47ca27c1214f0765db576d37674160",
+            "group_weight": [
+                0,
+                21,
+                38,
+                0,
+                "/beta/renewal-webhook",
+                "GET",
+                ":authority-staging-jargon.company.io"
+            ],
+            "headers": [
+                {
+                    "name": ":authority",
+                    "regex": false,
+                    "value": "staging-jargon.company.io"
+                }
+            ],
+            "host": "staging-jargon.company.io",
+            "kind": "IRHTTPMappingGroup",
+            "location": "aes-backend-renewal-webhook.jargon-beta.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "aes-backend-renewal-webhook.jargon-beta.1",
+                    "cluster_name": "cluster_aes_backend_jargon_beta_jargon_beta",
+                    "cluster_service": "aes-backend.jargon-beta",
+                    "host": "staging-jargon.company.io",
+                    "location": "aes-backend-renewal-webhook.jargon-beta.1",
+                    "name": "aes-backend-renewal-webhook",
+                    "prefix": "/beta/renewal-webhook",
+                    "rewrite": "/renewal-webhook"
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "aes-backend-renewal-webhook.jargon-beta",
+                "app.kubernetes.io/instance": "aes-backend"
+            },
+            "name": "GROUP: aes-backend-renewal-webhook",
+            "namespace": "jargon-beta",
+            "precedence": 0,
+            "prefix": "/beta/renewal-webhook",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/renewal-webhook",
+            "serialization": "apiVersion:"
+        }
+    },
+    "loginfo": {
+        "all": "error"
+    },
+    "notices": [
+        {
+            "level": "NOTICE",
+            "message": "-global-: A future Ambassador version will change the GRPC protocol version for AuthServices. See the CHANGELOG for details."
+        }
+    ],
+    "route_info": [
+        {
+            "_group_id": "8db7c38a2e026c4ebe74ba2e75770b855a1a5437",
+            "_route": {
+                "_active": true,
+                "_cache_key": "IRHTTPMappingGroup-8db7c38a2e026c4ebe74ba2e75770b855a1a5437",
+                "_errored": false,
+                "_referenced_by": [
+                    "ambassador-edge-heap.jargon.1"
+                ],
+                "_rkey": "ambassador-edge-heap.jargon.1",
+                "default_class": "httpmapping",
+                "group_id": "8db7c38a2e026c4ebe74ba2e75770b855a1a5437",
+                "group_weight": [
+                    1000000,
+                    13,
+                    11,
+                    0,
+                    "/.ambassador/",
+                    "GET",
+                    ":authority-*"
+                ],
+                "headers": [
+                    {
+                        "name": ":authority",
+                        "regex": false,
+                        "value": "*"
+                    }
+                ],
+                "host": "*",
+                "kind": "IRHTTPMappingGroup",
+                "location": "ambassador-edge-heap.jargon.1",
+                "mappings": [
+                    {
+                        "_active": true,
+                        "_cache_key": "Mapping-v2-ambassador-edge-heap-jargon",
+                        "_errored": false,
+                        "_rkey": "ambassador-edge-heap.jargon.1",
+                        "_weight": 100,
+                        "add_request_headers": {},
+                        "add_response_headers": {},
+                        "cluster": {
+                            "_active": true,
+                            "_cache_key": "Cluster-cluster_0_0_0_1_8500_jargon",
+                            "_errored": false,
+                            "_hostname": "0.0.0.0",
+                            "_is_sidecar": true,
+                            "_namespace": "jargon",
+                            "_port": 8500,
+                            "_referenced_by": [
+                                "ambassador-edge-heap.jargon.1"
+                            ],
+                            "_resolver": "kubernetes-service",
+                            "_rkey": "cluster_0_0_0_1_8500_jargon",
+                            "connect_timeout_ms": 3000,
+                            "enable_endpoints": false,
+                            "enable_ipv4": true,
+                            "enable_ipv6": false,
+                            "envoy_name": "cluster_0_0_0_1_8500_jargon",
+                            "ignore_cluster": false,
+                            "kind": "IRCluster",
+                            "lb_type": "round_robin",
+                            "location": "ambassador-edge-heap.jargon.1",
+                            "name": "cluster_0_0_0_1_8500_jargon",
+                            "namespace": "jargon",
+                            "respect_dns_ttl": false,
+                            "service": "0.0.0.0:8500",
+                            "stats_name": "0_0_0_1_8500",
+                            "targets": [
+                                {
+                                    "ip": "0.0.0.0",
+                                    "port": 8500,
+                                    "target_kind": "IPaddr"
+                                }
+                            ],
+                            "type": "strict_dns",
+                            "urls": [
+                                "udp://0.0.0.0:8500"
+                            ]
+                        },
+                        "cluster_key": "Cluster-cluster_0_0_0_1_8500_jargon",
+                        "default_class": "httpmapping",
+                        "group_id": "8db7c38a2e026c4ebe74ba2e75770b855a1a5437",
+                        "headers": [
+                            {
+                                "name": ":authority",
+                                "regex": false,
+                                "value": "*"
+                            }
+                        ],
+                        "host": "*",
+                        "kind": "Mapping",
+                        "location": "ambassador-edge-heap.jargon.1",
+                        "metadata_labels": {
+                            "ambassador_crd": "ambassador-edge-heap.jargon",
+                            "ambassador_diag_class": "private",
+                            "product": "aes"
+                        },
+                        "name": "ambassador-edge-heap",
+                        "namespace": "jargon",
+                        "precedence": 1000000,
+                        "prefix": "/.ambassador/",
+                        "query_parameters": [],
+                        "regex_rewrite": {},
+                        "resolver": "kubernetes-service",
+                        "rewrite": "",
+                        "route_weight": [
+                            1000000,
+                            13,
+                            11,
+                            0,
+                            "/.ambassador/",
+                            "GET",
+                            ":authority-*"
+                        ],
+                        "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v3alpha1\ngeneration: 1\nhostname: '*'\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: ambassador-edge-heap.jargon\n  ambassador_diag_class: private\n  product: aes\nname: ambassador-edge-heap\nnamespace: jargon\nprecedence: 1000000\nprefix: /.ambassador/\nrewrite: ''\nservice: 0.0.0.0:8500\n",
+                        "service": "0.0.0.0:8500"
+                    }
+                ],
+                "metadata_labels": {
+                    "ambassador_crd": "ambassador-edge-heap.jargon",
+                    "ambassador_diag_class": "private",
+                    "product": "aes"
+                },
+                "name": "GROUP: ambassador-edge-heap",
+                "namespace": "jargon",
+                "precedence": 1000000,
+                "prefix": "/.ambassador/",
+                "query_parameters": [],
+                "regex_rewrite": {},
+                "rewrite": "",
+                "serialization": "ambassador_id"
+            },
+            "_source": "ambassador-edge-heap.jargon.1",
+            "clusters": [
+                {
+                    "_active": true,
+                    "_cache_key": "Cluster-cluster_0_0_0_1_8500_jargon",
+                    "_errored": false,
+                    "_hcolor": "orange",
+                    "_health": "undefined cluster",
+                    "_hmetric": "undefined cluster",
+                    "_hostname": "0.0.0.0",
+                    "_is_sidecar": true,
+                    "_namespace": "jargon",
+                    "_port": 8500,
+                    "_referenced_by": [
+                        "ambassador-edge-heap.jargon.1"
+                    ],
+                    "_resolver": "kubernetes-service",
+                    "_rkey": "cluster_0_0_0_1_8500_jargon",
+                    "connect_timeout_ms": 3000,
+                    "enable_endpoints": false,
+                    "enable_ipv4": true,
+                    "enable_ipv6": false,
+                    "envoy_name": "cluster_0_0_0_1_8500_jargon",
+                    "ignore_cluster": false,
+                    "kind": "IRCluster",
+                    "lb_type": "round_robin",
+                    "location": "ambassador-edge-heap.jargon.1",
+                    "name": "cluster_0_0_0_1_8500_jargon",
+                    "namespace": "jargon",
+                    "respect_dns_ttl": false,
+                    "service": "service-1:8500",
+                    "stats_name": "0_0_0_1_8500",
+                    "targets": [
+                        {
+                            "ip": "0.0.0.0",
+                            "port": 8500,
+                            "target_kind": "IPaddr"
+                        }
+                    ],
+                    "type": "strict_dns",
+                    "urls": [
+                        "udp://0.0.0.0:8500"
+                    ],
+                    "weight": 100
+                }
+            ],
+            "diag_class": "private",
+            "headers": [],
+            "host": "*",
+            "key": "http://*/ambassador/v0/",
+            "method": "*",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": ""
+        },
+        {
+            "_group_id": "5583320547a3f09b81d6c9e8c3d487f6642b082d",
+            "_route": {
+                "_active": true,
+                "_cache_key": "IRHTTPMappingGroup-5583320547a3f09b81d6c9e8c3d487f6642b082d",
+                "_errored": false,
+                "_referenced_by": [
+                    "yaml-beta.1"
+                ],
+                "_rkey": "yaml-beta.1",
+                "default_class": "httpmapping",
+                "group_id": "5583320547a3f09b81d6c9e8c3d487f6642b082d",
+                "group_weight": [
+                    0,
+                    72,
+                    33,
+                    0,
+                    "/yaml/(v2-docs|ambassador|ambassador-docs|edge-heap|emissary)/latest/.*",
+                    "GET",
+                    ":authority-staging-app.company.io"
+                ],
+                "headers": [
+                    {
+                        "name": ":authority",
+                        "regex": false,
+                        "value": "staging-app.company.io"
+                    }
+                ],
+                "host": "staging-.io",
+                "kind": "IRHTTPMappingGroup",
+                "location": "yaml.app.1",
+                "mappings": [
+                    {
+                        "_active": true,
+                        "_cache_key": "Mapping-v2-yaml-s3-latest-app",
+                        "_errored": false,
+                        "_rkey": "yaml-s3-latest.app.1",
+                        "_weight": 100,
+                        "add_request_headers": {},
+                        "add_response_headers": {},
+                        "cluster": {
+                            "_active": true,
+                            "_cache_key": "Cluster-cluster_sso_saas_beta_8080_saas_beta",
+                            "_errored": false,
+                            "_hostname": "sso.app",
+                            "_is_sidecar": false,
+                            "_namespace": "app",
+                            "_port": 8080,
+                            "_referenced_by": [
+                                "auth-beta.1",
+                                "yaml-s3beta.1"
+                            ],
+                            "_resolver": "kubernetes-service",
+                            "_rkey": "cluster_beta",
+                            "connect_timeout_ms": 3000,
+                            "enable_endpoints": false,
+                            "enable_ipv4": true,
+                            "enable_ipv6": false,
+                            "envoy_name": "cluster_beta",
+                            "ignore_cluster": false,
+                            "kind": "IRCluster",
+                            "lb_type": "round_robin",
+                            "location": "auth-beta.1",
+                            "name": "cluster_saas_beta",
+                            "namespace": "jargon",
+                            "respect_dns_ttl": false,
+                            "service": "sso:8080",
+                            "stats_name": "sso_8080",
+                            "targets": [
+                                {
+                                    "ip": "sta",
+                                    "port": 8080,
+                                    "target_kind": "DNSname"
+                                }
+                            ],
+                            "type": "strict_dns",
+                            "urls": [
+                                "udp://sso:8080"
+                            ]
+                        },
+                        "cluster_key": "beta",
+                        "default_class": "httpmapping",
+                        "group_id": "5583320547a3f09b81d6c9e8c3d487f6642b082d",
+                        "headers": [
+                            {
+                                "name": ":authority",
+                                "regex": false,
+                                "value": "stag.io"
+                            }
+                        ],
+                        "host": "stag.io",
+                        "kind": "Mapping",
+                        "location": "yaml-s3-latest.app.1",
+                        "metadata_labels": {
+                            "ambassador_crd": "yaml-beta",
+                            "app.kubernetes.io/instance": "infra"
+                        },
+                        "name": "yaml-s3-latest",
+                        "namespace": "app",
+                        "precedence": 0,
+                        "prefix": "/yaml/(v2)/latest/.*",
+                        "prefix_regex": true,
+                        "query_parameters": [],
+                        "regex_rewrite": {
+                            "pattern": "/yaml/(.*)",
+                            "substitution": "/redirects/yaml/\\1"
+                        },
+                        "resolver": "kubernetes-service",
+                        "rewrite": "",
+                        "route_weight": [
+                            0,
+                            72,
+                            33,
+                            0,
+                            "/yaml/latest/.*",
+                            "GET",
+                            ":authority-staging-app.company.io"
+                        ],
+                        "serialization": "apiVersion"
+                    }
+                ],
+                "metadata_labels": {
+                    "ambassador_crd": "yaml-s3-latest.app",
+                    "app.kubernetes.io/instance": "infra"
+                },
+                "name": "GROUP: yaml-s3-latest",
+                "namespace": "app",
+                "precedence": 0,
+                "prefix": "/yaml/(v2-docs|ambassador|ambassador-docs|edge-heap|emissary)/latest/.*",
+                "prefix_regex": true,
+                "query_parameters": [],
+                "regex_rewrite": {
+                    "pattern": "/yaml/(.*)",
+                    "substitution": "/redirects/yaml/\\1"
+                },
+                "rewrite": "",
+                "serialization": "apiVersion"
+            },
+            "_source": "yaml.1",
+            "clusters": [
+                {
+                    "_active": true,
+                    "_cache_key": "Cluster_beta",
+                    "_errored": false,
+                    "_hcolor": "orange",
+                    "_health": "undefined cluster",
+                    "_hmetric": "undefined cluster",
+                    "_hostname": "sso-beta",
+                    "_is_sidecar": false,
+                    "_namespace": "app",
+                    "_port": 8080,
+                    "_referenced_by": [
+                        "auth-beta.1"
+                    ],
+                    "_resolver": "kubernetes-service",
+                    "_rkey": "cluster_saas_beta",
+                    "connect_timeout_ms": 3000,
+                    "enable_endpoints": false,
+                    "enable_ipv4": true,
+                    "enable_ipv6": false,
+                    "envoy_name": "cluster_saas_beta",
+                    "ignore_cluster": false,
+                    "kind": "IRCluster",
+                    "lb_type": "round_robin",
+                    "location": "auth-beta.1",
+                    "name": "cluster_saas_beta",
+                    "namespace": "jargon",
+                    "respect_dns_ttl": false,
+                    "service": "sso-beta:8080",
+                    "stats_name": "sso_8080",
+                    "targets": [
+                        {
+                            "ip": "sso-beta",
+                            "port": 8080,
+                            "target_kind": "DNSname"
+                        }
+                    ],
+                    "type": "strict_dns",
+                    "urls": [
+                        "udp://sso:8080"
+                    ],
+                    "weight": 100
+                }
+            ],
+            "headers": [],
+            "host": "staging-app.io",
+            "key": "http://localhost:9090/latest/.*",
+            "method": "*",
+            "precedence": 0,
+            "prefix": "/yaml/(v2-docs|ambassador|ambassador-docs|edge-heap|emissary)/latest/.*",
+            "rewrite": ""
+        }
+    ],
+    "source_map": {
+        "--diagnostics--": {
+            "--diagnostics--": true
+        },
+        "--internal--": {
+            "--internal--": true
+        },
+        "code-config": {
+            "code-config": true
+        },
+        "code-": {
+            "code-": true
+        }
+    },
+    "system": {
+        "ambassador_id": "default",
+        "ambassador_namespace": "jargon",
+        "boot_time": "Tue, 28 Jun 2022 14:12:21 GMT",
+        "cluster_id": "30defff8-f47d-5c41-a62c-22ecc72f1714",
+        "debug_mode": false,
+        "endpoints_enabled": true,
+        "env_failures": [],
+        "env_good": false,
+        "env_status": {
+            "Error check": {
+                "specifics": [
+                    [
+                        false,
+                        "1 total error logged"
+                    ]
+                ],
+                "status": false
+            },
+            "Mappings": {
+                "specifics": [
+                    [
+                        true,
+                        "68 Mappings are active"
+                    ]
+                ],
+                "status": true
+            },
+            "TLS": {
+                "specifics": [
+                    [
+                        true,
+                        "1 TLSContext is active"
+                    ]
+                ],
+                "status": true
+            }
+        },
+        "hostname": "edge-stack-66f8b6ccbc",
+        "hr_uptime": "23 minutes, 59 seconds",
+        "knative_enabled": false,
+        "latest_snapshot": "snapshot",
+        "single_namespace": false,
+        "statsd_enabled": false,
+        "version": "3.0.0-rc.0"
+    },
+    "tlscontexts": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "beta-beta.1"
+            ],
+            "_rkey": "beta-app-beta.1",
+            "hosts": [
+                "staging.io"
+            ],
+            "is_fallback": false,
+            "kind": "IRTLSContext",
+            "location": "beta.1",
+            "name": "beta-app",
+            "namespace": "app",
+            "secret_info": {
+                "cert_chain_file": "C9DF17201E.crt",
+                "private_key_file": "C9DF17201E.key",
+                "secret": "staging.io"
+            }
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "beta-auth-beta.1"
+            ],
+            "_rkey": "app.1",
+            "hosts": [
+                "staging-auth.io"
+            ],
+            "is_fallback": false,
+            "kind": "IRTLSContext",
+            "location": "beta-auth",
+            "name": "beta-auth",
+            "namespace": "app",
+            "secret_info": {
+                "cert_chain_file": "7755C258848960EFE5.crt",
+                "private_key_file": "8848960EFE5.key",
+                "secret": "staging-secret"
+            }
+        }
+    ]
+}

@@ -1,7 +1,8 @@
 from typing import Generator, Tuple, Union
 
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
 from kat.harness import Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
+
 
 class MaxRequestHeaderKBTest(AmbassadorTest):
     target: ServiceType
@@ -10,7 +11,8 @@ class MaxRequestHeaderKBTest(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -18,8 +20,10 @@ name: ambassador
 ambassador_id: [{self.ambassador_id}]
 config:
   max_request_headers_kb: 30
-""")
-        yield self, self.format("""
+"""
+        )
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -27,19 +31,19 @@ name:  {self.name}
 hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
-""")
+"""
+        )
 
     def queries(self):
-        h1 = 'i' * (31 * 1024)
-        yield Query(self.url("target/"), expected=431,
-                headers={'big':h1})
-        h2 = 'i' * (29 * 1024)
-        yield Query(self.url("target/"), expected=200,
-                headers={'small':h2})
+        h1 = "i" * (31 * 1024)
+        yield Query(self.url("target/"), expected=431, headers={"big": h1})
+        h2 = "i" * (29 * 1024)
+        yield Query(self.url("target/"), expected=200, headers={"small": h2})
 
     def check(self):
         # We're just testing the status codes above, so nothing to check here
         assert True
+
 
 class MaxRequestHeaderKBMaxTest(AmbassadorTest):
     target: ServiceType
@@ -48,7 +52,8 @@ class MaxRequestHeaderKBMaxTest(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Module
@@ -56,8 +61,10 @@ name: ambassador
 ambassador_id: [{self.ambassador_id}]
 config:
   max_request_headers_kb: 96
-""")
-        yield self, self.format("""
+"""
+        )
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -65,16 +72,19 @@ name:  {self.name}
 hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
-""")
+"""
+        )
 
     def queries(self):
         # without the override the response headers will cause envoy to respond with a 503
-        h1 = 'i' * (97 * 1024)
-        yield Query(self.url("target/?override_extauth_header=1"), expected=431,
-                headers={'big':h1})
-        h2 = 'i' * (95 * 1024)
-        yield Query(self.url("target/?override_extauth_header=1"), expected=200,
-                headers={'small':h2})
+        h1 = "i" * (97 * 1024)
+        yield Query(
+            self.url("target/?override_extauth_header=1"), expected=431, headers={"big": h1}
+        )
+        h2 = "i" * (95 * 1024)
+        yield Query(
+            self.url("target/?override_extauth_header=1"), expected=200, headers={"small": h2}
+        )
 
     def check(self):
         # We're just testing the status codes above, so nothing to check here

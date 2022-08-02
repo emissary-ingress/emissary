@@ -1,21 +1,21 @@
 import copy
-import logging
-import sys
-import os
-import httpretty
 import json
+import logging
+import os
+import sys
 
+import httpretty
 import pytest
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s test %(levelname)s: %(message)s",
-    datefmt='%Y-%m-%d %H:%M:%S'
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import Config, IR, EnvoyConfig
+from ambassador import IR, Config, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
 
@@ -41,19 +41,15 @@ def del_env(env_key):
 
 
 def teardown_function(function):
-    del_env('STATSD_ENABLED')
-    del_env('DOGSTATSD')
-    del_env('STATSD_HOST')
+    del_env("STATSD_ENABLED")
+    del_env("DOGSTATSD")
+    del_env("STATSD_HOST")
 
 
 @pytest.mark.compilertest
 @httpretty.activate
 def test_statsd_default():
-    httpretty.register_uri(
-        httpretty.GET,
-        "statsd-sink",
-        body='{"origin": "127.0.0.1"}'
-    )
+    httpretty.register_uri(httpretty.GET, "statsd-sink", body='{"origin": "127.0.0.1"}')
     yaml = """
 apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
@@ -66,41 +62,33 @@ service: beepboop
 
 """
     expected_stats_sinks = {
-        "name":"envoy.stats_sinks.statsd",
-        "typed_config":{
-           "@type":"type.googleapis.com/envoy.config.metrics.v3.StatsdSink",
-           "address":{
-              "socket_address":{
-                 "protocol":"UDP",
-                 "address":"127.0.0.1",
-                 "port_value":8125
-              }
-           }
-        }
-     }
+        "name": "envoy.stats_sinks.statsd",
+        "typed_config": {
+            "@type": "type.googleapis.com/envoy.config.metrics.v3.StatsdSink",
+            "address": {
+                "socket_address": {"protocol": "UDP", "address": "127.0.0.1", "port_value": 8125}
+            },
+        },
+    }
 
-    os.environ['STATSD_ENABLED'] = 'true'
+    os.environ["STATSD_ENABLED"] = "true"
     econf = _get_envoy_config(yaml)
 
     assert econf
 
     econf_dict = econf.as_dict()
 
-    assert 'stats_sinks' in econf_dict['bootstrap']
-    assert len(econf_dict['bootstrap']['stats_sinks']) > 0
-    assert econf_dict['bootstrap']['stats_sinks'][0] == expected_stats_sinks
-    assert 'stats_flush_interval' in econf_dict['bootstrap']
-    assert econf_dict['bootstrap']['stats_flush_interval']['seconds'] == '1'
+    assert "stats_sinks" in econf_dict["bootstrap"]
+    assert len(econf_dict["bootstrap"]["stats_sinks"]) > 0
+    assert econf_dict["bootstrap"]["stats_sinks"][0] == expected_stats_sinks
+    assert "stats_flush_interval" in econf_dict["bootstrap"]
+    assert econf_dict["bootstrap"]["stats_flush_interval"]["seconds"] == "1"
 
 
 @pytest.mark.compilertest
 @httpretty.activate
 def test_statsd_other():
-    httpretty.register_uri(
-        httpretty.GET,
-        "other-statsd-sink",
-        body='{"origin": "127.0.0.1"}'
-    )
+    httpretty.register_uri(httpretty.GET, "other-statsd-sink", body='{"origin": "127.0.0.1"}')
     yaml = """
 apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
@@ -113,42 +101,34 @@ service: beepboop
 
 """
     expected_stats_sinks = {
-        "name":"envoy.stats_sinks.statsd",
-        "typed_config":{
-           "@type":"type.googleapis.com/envoy.config.metrics.v3.StatsdSink",
-           "address":{
-              "socket_address":{
-                 "protocol":"UDP",
-                 "address":"127.0.0.1",
-                 "port_value":8125
-              }
-           }
-        }
-     }
+        "name": "envoy.stats_sinks.statsd",
+        "typed_config": {
+            "@type": "type.googleapis.com/envoy.config.metrics.v3.StatsdSink",
+            "address": {
+                "socket_address": {"protocol": "UDP", "address": "127.0.0.1", "port_value": 8125}
+            },
+        },
+    }
 
-    os.environ['STATSD_ENABLED'] = 'true'
-    os.environ['STATSD_HOST'] = 'other-statsd-sink'
+    os.environ["STATSD_ENABLED"] = "true"
+    os.environ["STATSD_HOST"] = "other-statsd-sink"
     econf = _get_envoy_config(yaml)
 
     assert econf
 
     econf_dict = econf.as_dict()
 
-    assert 'stats_sinks' in econf_dict['bootstrap']
-    assert len(econf_dict['bootstrap']['stats_sinks']) > 0
-    assert econf_dict['bootstrap']['stats_sinks'][0] == expected_stats_sinks
-    assert 'stats_flush_interval' in econf_dict['bootstrap']
-    assert econf_dict['bootstrap']['stats_flush_interval']['seconds'] == '1'
+    assert "stats_sinks" in econf_dict["bootstrap"]
+    assert len(econf_dict["bootstrap"]["stats_sinks"]) > 0
+    assert econf_dict["bootstrap"]["stats_sinks"][0] == expected_stats_sinks
+    assert "stats_flush_interval" in econf_dict["bootstrap"]
+    assert econf_dict["bootstrap"]["stats_flush_interval"]["seconds"] == "1"
 
 
 @pytest.mark.compilertest
 @httpretty.activate
 def test_dogstatsd():
-    httpretty.register_uri(
-        httpretty.GET,
-        "statsd-sink",
-        body='{"origin": "127.0.0.1"}'
-    )
+    httpretty.register_uri(httpretty.GET, "statsd-sink", body='{"origin": "127.0.0.1"}')
     yaml = """
 apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
@@ -161,30 +141,25 @@ service: beepboop
 
 """
     expected_stats_sinks = {
-        "name":"envoy.stat_sinks.dog_statsd",
-        "typed_config":{
-           "@type":"type.googleapis.com/envoy.config.metrics.v3.DogStatsdSink",
-           "address":{
-              "socket_address":{
-                 "protocol":"UDP",
-                 "address":"127.0.0.1",
-                 "port_value":8125
-              }
-           }
-        }
-     }
+        "name": "envoy.stat_sinks.dog_statsd",
+        "typed_config": {
+            "@type": "type.googleapis.com/envoy.config.metrics.v3.DogStatsdSink",
+            "address": {
+                "socket_address": {"protocol": "UDP", "address": "127.0.0.1", "port_value": 8125}
+            },
+        },
+    }
 
-
-    os.environ['STATSD_ENABLED'] = 'true'
-    os.environ['DOGSTATSD'] = 'true'
+    os.environ["STATSD_ENABLED"] = "true"
+    os.environ["DOGSTATSD"] = "true"
     econf = _get_envoy_config(yaml)
 
     assert econf
 
     econf_dict = econf.as_dict()
 
-    assert 'stats_sinks' in econf_dict['bootstrap']
-    assert len(econf_dict['bootstrap']['stats_sinks']) > 0
-    assert econf_dict['bootstrap']['stats_sinks'][0] == expected_stats_sinks
-    assert 'stats_flush_interval' in econf_dict['bootstrap']
-    assert econf_dict['bootstrap']['stats_flush_interval']['seconds'] == '1'
+    assert "stats_sinks" in econf_dict["bootstrap"]
+    assert len(econf_dict["bootstrap"]["stats_sinks"]) > 0
+    assert econf_dict["bootstrap"]["stats_sinks"][0] == expected_stats_sinks
+    assert "stats_flush_interval" in econf_dict["bootstrap"]
+    assert econf_dict["bootstrap"]["stats_flush_interval"]["seconds"] == "1"

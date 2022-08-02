@@ -6,9 +6,7 @@
 // means that it effectively reuses the JSON struct tags as well as the custom
 // JSON methods MarshalJSON and UnmarshalJSON unlike go-yaml.
 //
-// See also http://ghodss.com/2014/the-right-way-to-handle-yaml-in-golang
-//
-package yaml  // import "github.com/ghodss/yaml"
+package yaml // import "github.com/invopop/yaml"
 
 import (
 	"bytes"
@@ -18,10 +16,10 @@ import (
 	"reflect"
 	"strconv"
 
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
-// Marshals the object into JSON then converts JSON to YAML and returns the
+// Marshal the object into JSON then converts JSON to YAML and returns the
 // YAML.
 func Marshal(o interface{}) ([]byte, error) {
 	j, err := json.Marshal(o)
@@ -43,19 +41,13 @@ type JSONOpt func(*json.Decoder) *json.Decoder
 // Unmarshal converts YAML to JSON then uses JSON to unmarshal into an object,
 // optionally configuring the behavior of the JSON unmarshal.
 func Unmarshal(y []byte, o interface{}, opts ...JSONOpt) error {
-	return unmarshal(yaml.Unmarshal, y, o, opts)
+	dec := yaml.NewDecoder(bytes.NewReader(y))
+	return unmarshal(dec, o, opts)
 }
 
-// UnmarshalStrict is like Unmarshal except that any mapping keys that are
-// duplicates will result in an error.
-// To also be strict about unknown fields, add the DisallowUnknownFields option.
-func UnmarshalStrict(y []byte, o interface{}, opts ...JSONOpt) error {
-	return unmarshal(yaml.UnmarshalStrict, y, o, opts)
-}
-
-func unmarshal(f func(in []byte, out interface{}) (err error), y []byte, o interface{}, opts []JSONOpt) error {
+func unmarshal(dec *yaml.Decoder, o interface{}, opts []JSONOpt) error {
 	vo := reflect.ValueOf(o)
-	j, err := yamlToJSON(y, &vo, f)
+	j, err := yamlToJSON(dec, &vo)
 	if err != nil {
 		return fmt.Errorf("error converting YAML to JSON: %v", err)
 	}
@@ -83,7 +75,7 @@ func jsonUnmarshal(r io.Reader, o interface{}, opts ...JSONOpt) error {
 	return nil
 }
 
-// Convert JSON to YAML.
+// JSONToYAML converts JSON to YAML.
 func JSONToYAML(j []byte) ([]byte, error) {
 	// Convert the JSON to an object.
 	var jsonObj interface{}
@@ -112,22 +104,15 @@ func JSONToYAML(j []byte) ([]byte, error) {
 //   not use the !!binary tag in your YAML. This will ensure the original base64
 //   encoded data makes it all the way through to the JSON.
 //
-// For strict decoding of YAML, use YAMLToJSONStrict.
-func YAMLToJSON(y []byte) ([]byte, error) {
-	return yamlToJSON(y, nil, yaml.Unmarshal)
+func YAMLToJSON(y []byte) ([]byte, error) { //nolint:revive
+	dec := yaml.NewDecoder(bytes.NewReader(y))
+	return yamlToJSON(dec, nil)
 }
 
-// YAMLToJSONStrict is like YAMLToJSON but enables strict YAML decoding,
-// returning an error on any duplicate field names.
-func YAMLToJSONStrict(y []byte) ([]byte, error) {
-	return yamlToJSON(y, nil, yaml.UnmarshalStrict)
-}
-
-func yamlToJSON(y []byte, jsonTarget *reflect.Value, yamlUnmarshal func([]byte, interface{}) error) ([]byte, error) {
+func yamlToJSON(dec *yaml.Decoder, jsonTarget *reflect.Value) ([]byte, error) {
 	// Convert the YAML to an object.
 	var yamlObj interface{}
-	err := yamlUnmarshal(y, &yamlObj)
-	if err != nil {
+	if err := dec.Decode(&yamlObj); err != nil {
 		return nil, err
 	}
 
@@ -144,7 +129,7 @@ func yamlToJSON(y []byte, jsonTarget *reflect.Value, yamlUnmarshal func([]byte, 
 	return json.Marshal(jsonObj)
 }
 
-func convertToJSONableObject(yamlObj interface{}, jsonTarget *reflect.Value) (interface{}, error) {
+func convertToJSONableObject(yamlObj interface{}, jsonTarget *reflect.Value) (interface{}, error) { //nolint:gocyclo
 	var err error
 
 	// Resolve jsonTarget to a concrete value (i.e. not a pointer or an
@@ -162,16 +147,13 @@ func convertToJSONableObject(yamlObj interface{}, jsonTarget *reflect.Value) (in
 		}
 	}
 
-	// If yamlObj is a number or a boolean, check if jsonTarget is a string -
-	// if so, coerce.  Else return normal.
-	// If yamlObj is a map or array, find the field that each key is
-	// unmarshaling to, and when you recurse pass the reflect.Value for that
-	// field back into this function.
+	// go-yaml v3 changed from v2 and now will provide map[string]interface{} by
+	// default and map[interface{}]interface{} when none of the keys strings.
+	// To get around this, we run a pre-loop to convert the map.
+	// JSON only supports strings as keys, so we must convert.
+
 	switch typedYAMLObj := yamlObj.(type) {
 	case map[interface{}]interface{}:
-		// JSON does not support arbitrary keys in a map, so we must convert
-		// these keys to strings.
-		//
 		// From my reading of go-yaml v2 (specifically the resolve function),
 		// keys can only have the types string, int, int64, float64, binary
 		// (unsupported), or null (unsupported).
@@ -190,19 +172,8 @@ func convertToJSONableObject(yamlObj interface{}, jsonTarget *reflect.Value) (in
 				// and 64-bit. Otherwise the key type will simply be int.
 				keyString = strconv.FormatInt(typedKey, 10)
 			case float64:
-				// Stolen from go-yaml to use the same conversion to string as
-				// the go-yaml library uses to convert float to string when
-				// Marshaling.
-				s := strconv.FormatFloat(typedKey, 'g', -1, 32)
-				switch s {
-				case "+Inf":
-					s = ".inf"
-				case "-Inf":
-					s = "-.inf"
-				case "NaN":
-					s = ".nan"
-				}
-				keyString = s
+				// Float64 is now supported in keys
+				keyString = strconv.FormatFloat(typedKey, 'g', -1, 64)
 			case bool:
 				if typedKey {
 					keyString = "true"
@@ -210,9 +181,23 @@ func convertToJSONableObject(yamlObj interface{}, jsonTarget *reflect.Value) (in
 					keyString = "false"
 				}
 			default:
-				return nil, fmt.Errorf("Unsupported map key of type: %s, key: %+#v, value: %+#v",
+				return nil, fmt.Errorf("unsupported map key of type: %s, key: %+#v, value: %+#v",
 					reflect.TypeOf(k), k, v)
 			}
+			strMap[keyString] = v
+		}
+		// replace yamlObj with our new string map
+		yamlObj = strMap
+	}
+
+	// If yamlObj is a number or a boolean, check if jsonTarget is a string -
+	// if so, coerce.  Else return normal.
+	// If yamlObj is a map or array, find the field that each key is
+	// unmarshaling to, and when you recurse pass the reflect.Value for that
+	// field back into this function.
+	switch typedYAMLObj := yamlObj.(type) {
+	case map[string]interface{}:
+		for k, v := range typedYAMLObj {
 
 			// jsonTarget should be a struct or a map. If it's a struct, find
 			// the field it's going to map to and pass its reflect.Value. If
@@ -222,7 +207,7 @@ func convertToJSONableObject(yamlObj interface{}, jsonTarget *reflect.Value) (in
 			if jsonTarget != nil {
 				t := *jsonTarget
 				if t.Kind() == reflect.Struct {
-					keyBytes := []byte(keyString)
+					keyBytes := []byte(k)
 					// Find the field that the JSON library would use.
 					var f *field
 					fields := cachedTypeFields(t.Type())
@@ -241,7 +226,7 @@ func convertToJSONableObject(yamlObj interface{}, jsonTarget *reflect.Value) (in
 						// Find the reflect.Value of the most preferential
 						// struct field.
 						jtf := t.Field(f.index[0])
-						strMap[keyString], err = convertToJSONableObject(v, &jtf)
+						typedYAMLObj[k], err = convertToJSONableObject(v, &jtf)
 						if err != nil {
 							return nil, err
 						}
@@ -251,19 +236,19 @@ func convertToJSONableObject(yamlObj interface{}, jsonTarget *reflect.Value) (in
 					// Create a zero value of the map's element type to use as
 					// the JSON target.
 					jtv := reflect.Zero(t.Type().Elem())
-					strMap[keyString], err = convertToJSONableObject(v, &jtv)
+					typedYAMLObj[k], err = convertToJSONableObject(v, &jtv)
 					if err != nil {
 						return nil, err
 					}
 					continue
 				}
 			}
-			strMap[keyString], err = convertToJSONableObject(v, nil)
+			typedYAMLObj[k], err = convertToJSONableObject(v, nil)
 			if err != nil {
 				return nil, err
 			}
 		}
-		return strMap, nil
+		return typedYAMLObj, nil
 	case []interface{}:
 		// We need to recurse into arrays in case there are any
 		// map[interface{}]interface{}'s inside and to convert any
@@ -305,7 +290,7 @@ func convertToJSONableObject(yamlObj interface{}, jsonTarget *reflect.Value) (in
 			case int64:
 				s = strconv.FormatInt(typedVal, 10)
 			case float64:
-				s = strconv.FormatFloat(typedVal, 'g', -1, 32)
+				s = strconv.FormatFloat(typedVal, 'g', -1, 64)
 			case uint64:
 				s = strconv.FormatUint(typedVal, 10)
 			case bool:
@@ -321,6 +306,4 @@ func convertToJSONableObject(yamlObj interface{}, jsonTarget *reflect.Value) (in
 		}
 		return yamlObj, nil
 	}
-
-	return nil, nil
 }
