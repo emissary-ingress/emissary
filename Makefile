@@ -26,7 +26,6 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
     $(error VERSION variable is invalid: It must not contain + characters, but is '$(VERSION)'),)
   export VERSION
 
-  CHART_VERSION=v7.9.9-broken.0
   CHART_VERSION := $(or $(CHART_VERSION),$(shell go run ./tools/src/goversion --dir-prefix=chart))
   $(if $(filter v8.%,$(CHART_VERSION)),\
     ,$(error CHART_VERSION variable is invalid: It must be a v8.* string, but is '$(CHART_VERSION)'))
