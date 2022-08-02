@@ -318,6 +318,10 @@ docker-export: images $(tools/docker-export)
 	}
 .PHONY: docker-export
 
+docker-export.clean:
+	rm -f docker/images.tar docker/images.sh
+clean: docker-export.clean
+
 docker-import: $(tools/docker-import)
 	@if [ -z "$$IMPORT_FILE" ]; then printf '$(RED)$@: IMPORT_FILE is not set$(END)\n'; exit 1; fi;
 	@set -ex -o pipefail ; { \
