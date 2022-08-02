@@ -94,6 +94,9 @@ jobs:
       - name: Pull Docker image
         uses: ./.github/actions/download-docker
       - run: make check-envoy-version
+      - name: "Drop registry"
+        uses: ./.github/actions/drop-registry
+        if: always()
       - uses: ./.github/actions/after-job
         if: always()
 
@@ -211,6 +214,9 @@ jobs:
           export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
           export PYTEST_ARGS=' --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html '
           make pytest-${{ matrix.test }} > /tmp/test-logs/pytest-unit.log 2>&1
+      - name: "Drop registry"
+        uses: ./.github/actions/drop-registry
+        if: always()
       - uses: ./.github/actions/after-job
         if: always()
         with:
@@ -279,6 +285,9 @@ jobs:
           name: docker.image
           path: /tmp/docker-img
           if-no-files-found: error
+      - name: "Drop registry"
+        uses: ./.github/actions/drop-registry
+        if: always()
       - uses: ./.github/actions/after-job
         if: always()
 
