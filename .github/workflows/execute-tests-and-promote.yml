@@ -278,7 +278,7 @@ jobs:
         with:
           name: docker.image
           path: /tmp/docker-img
-          if-no-files-found: fail
+          if-no-files-found: error
       - uses: ./.github/actions/after-job
         if: always()
 
