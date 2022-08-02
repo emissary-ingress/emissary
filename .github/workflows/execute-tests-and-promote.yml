@@ -272,7 +272,7 @@ jobs:
       - name: "Build and export Docker image"
         shell: bash
         run: |
-          make DEV_REGISTRY=localhost:5000 EXPORT_FILE=/tmp/docker-img export-docker
+          make DEV_REGISTRY=localhost:5000 EXPORT_FILE=/tmp/docker-img docker-export
       - name: "Upload Docker image"
         uses: actions/upload-artifact@v2
         with:
