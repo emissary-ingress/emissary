@@ -20,9 +20,9 @@ from typing import cast as typecast
 
 from ..config import Config
 from ..utils import RichStatus
+from .irhealthchecks import IRHealthChecks
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
-from .irhealthchecks import IRHealthChecks
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover
@@ -304,14 +304,14 @@ class IRCluster(IRResource):
             "keepalive": keepalive,
             "circuit_breakers": circuit_breakers,
             "service": service,
-            'enable_ipv4': enable_ipv4,
-            'enable_ipv6': enable_ipv6,
-            'enable_endpoints': enable_endpoints,
-            'connect_timeout_ms': connect_timeout_ms,
-            'cluster_idle_timeout_ms': cluster_idle_timeout_ms,
-            'cluster_max_connection_lifetime_ms': cluster_max_connection_lifetime_ms,
-            'respect_dns_ttl': respect_dns_ttl,
-            'health_checks': health_checks,
+            "enable_ipv4": enable_ipv4,
+            "enable_ipv6": enable_ipv6,
+            "enable_endpoints": enable_endpoints,
+            "connect_timeout_ms": connect_timeout_ms,
+            "cluster_idle_timeout_ms": cluster_idle_timeout_ms,
+            "cluster_max_connection_lifetime_ms": cluster_max_connection_lifetime_ms,
+            "respect_dns_ttl": respect_dns_ttl,
+            "health_checks": health_checks,
         }
 
         # If we have a stats_name, use it. If not, default it to the service to make life
@@ -383,10 +383,8 @@ class IRCluster(IRResource):
             self.ir.logger.debug("accepting cluster with no endpoints: %s" % self.name)
 
         # If we have health checking config then generate IR for it
-        if 'health_checks' in self:
-            self.health_checks = IRHealthChecks(ir,
-                                                aconf,
-                                                self.get('health_checks', None))
+        if "health_checks" in self:
+            self.health_checks = IRHealthChecks(ir, aconf, self.get("health_checks", None))
         return True
 
     def is_edge_stack_sidecar(self) -> bool:
