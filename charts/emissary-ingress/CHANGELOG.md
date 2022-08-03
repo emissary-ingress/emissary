@@ -6,6 +6,7 @@ numbering uses [semantic versioning](http://semver.org).
 ## Next Release
 
 - Change: The default for the `module` value has changed to enable serving remote client requests to the <code>:8877/ambassador/v0/diag/</code> endpoint by default.
+- Bugfix: The default Role configuration of the Ambassador Agent Deployment will allow it to correctly watch Secret resources for Ambassador Cloud tokens.
 
 ## v8.0.0
 
