@@ -90,6 +90,12 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Feature: It is now possible to configure active healhchecking for upstreams within a `Mapping`. If
+  the upstream fails its configured health check then Envoy will mark the upstream as unhealthy and
+  no longer send traffic to that upstream. Single pods within a group may can be marked as
+  unhealthy. The healthy pods will continue to receive traffic normally while the unhealthy pods
+  will not receive any traffic until they recover by passing the health check.
+
 ## [3.3.0] November 02, 2022
 [3.3.0]: https://github.com/emissary-ingress/emissary/compare/v3.2.0...v3.3.0
 

@@ -36,6 +36,13 @@ items:
     prevVersion: 3.3.0
     date: 'TBD'
     notes:
+      - title: Add support for active health checking configuration.
+        type: feature
+        body: >-
+          It is now possible to configure active healhchecking for upstreams within a <code>Mapping</code>.
+          If the upstream fails its configured health check then Envoy will mark the upstream as unhealthy and no longer send
+          traffic to that upstream. Single pods within a group may can be marked as unhealthy. The healthy pods will continue to receive
+          traffic normally while the unhealthy pods will not receive any traffic until they recover by passing the health check.
 
   - version: 3.3.0
     prevVersion: 3.2.0
