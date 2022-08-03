@@ -2312,7 +2312,7 @@ spec:
                       type: object
                     healthy_threshold:
                       description: Number of expected responses for the upstream to
-                        be considered healthy.
+                        be considered healthy. Defaults to 1.
                       type: integer
                     http_health_check:
                       description: HealthCheck for HTTP upstreams. Only one of http_health_check
@@ -2337,21 +2337,18 @@ spec:
                       - path
                       type: object
                     interval_ms:
-                      description: Interval between health checks
+                      description: Interval between health checks. Defaults to every
+                        5 seconds.
                       type: string
                     timeout_ms:
-                      description: Timeout for connecting to the health checking endpoint
+                      description: Timeout for connecting to the health checking endpoint.
+                        Defaults to 3 seconds.
                       type: string
                     unhealthy_threshold:
                       description: Number of non-expected responses for the upstream
                         to be considered unhealthy. A single 503 will mark the upstream
-                        as unhealthy
+                        as unhealthy. Defaults to 2.
                       type: integer
-                  required:
-                  - healthy_threshold
-                  - interval_ms
-                  - timeout_ms
-                  - unhealthy_threshold
                   type: object
                 minItems: 1
                 type: array
@@ -2642,7 +2639,7 @@ spec:
                       type: object
                     healthy_threshold:
                       description: Number of expected responses for the upstream to
-                        be considered healthy.
+                        be considered healthy. Defaults to 1.
                       type: integer
                     http_health_check:
                       description: HealthCheck for HTTP upstreams. Only one of http_health_check
@@ -2679,21 +2676,18 @@ spec:
                       - path
                       type: object
                     interval_ms:
-                      description: Interval between health checks
+                      description: Interval between health checks. Defaults to every
+                        5 seconds.
                       type: string
                     timeout_ms:
-                      description: Timeout for connecting to the health checking endpoint
+                      description: Timeout for connecting to the health checking endpoint.
+                        Defaults to 3 seconds.
                       type: string
                     unhealthy_threshold:
                       description: Number of non-expected responses for the upstream
                         to be considered unhealthy. A single 503 will mark the upstream
-                        as unhealthy
+                        as unhealthy. Defaults to 2.
                       type: integer
-                  required:
-                  - healthy_threshold
-                  - interval_ms
-                  - timeout_ms
-                  - unhealthy_threshold
                   type: object
                 minItems: 1
                 type: array

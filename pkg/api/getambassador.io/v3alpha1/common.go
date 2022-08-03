@@ -115,17 +115,13 @@ type ErrorResponseOverride struct {
 }
 
 type HealthCheck struct {
-	// Timeout for connecting to the health checking endpoint
-	// +kubebuilder:validation:Required
+	// Timeout for connecting to the health checking endpoint. Defaults to 3 seconds.
 	Timeout *metav1.Duration `json:"timeout_ms,omitempty"`
-	// Interval between health checks
-	// +kubebuilder:validation:Required
+	// Interval between health checks. Defaults to every 5 seconds.
 	Interval *metav1.Duration `json:"interval_ms,omitempty"`
-	// Number of non-expected responses for the upstream to be considered unhealthy. A single 503 will mark the upstream as unhealthy
-	// +kubebuilder:validation:Required
+	// Number of non-expected responses for the upstream to be considered unhealthy. A single 503 will mark the upstream as unhealthy. Defaults to 2.
 	UnhealthyThreshold *int `json:"unhealthy_threshold,omitempty"`
-	// Number of expected responses for the upstream to be considered healthy.
-	// +kubebuilder:validation:Required
+	// Number of expected responses for the upstream to be considered healthy. Defaults to 1.
 	HealthyThreshold *int             `json:"healthy_threshold,omitempty"`
 	HttpHealthCheck  *HttpHealthCheck `json:"http_health_check,omitempty"`
 	GrpcHealthCheck  *GrpcHealthCheck `json:"grpc_health_check,omitempty"`
