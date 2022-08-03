@@ -510,6 +510,17 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
     3. Don't push the build of Envoy to a Docker cache (since you're
        still actively working on it).
 
+3. To build Envoy in FIPS mode, set the following variable:
+
+   ```shell
+   export FIPS_MODE=true
+   ```
+   
+   It is important to note that while building Envoy in FIPS mode is
+   required for FIPS compliance, additional steps may be necessary.
+   Emissary does not claim to be FIPS compliant or certified.
+   See [here](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/security/ssl#fips-140-2) for more information on FIPS and Envoy.
+
 #### 3. Hacking on Envoy
 
 Modify the sources in `./_cxx/envoy/`.
