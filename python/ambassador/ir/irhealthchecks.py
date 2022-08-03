@@ -1,3 +1,4 @@
+import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from ..config import Config
@@ -48,7 +49,8 @@ class IRHealthChecks(IRResource):
         # The health checking config must be an array
         if not isinstance(self._ir_config, list):
             self.post_error(
-                f"IRHealthChecks: health_checks: field must be an array, got {type(self._ir_config)}"
+                f"IRHealthChecks: health_checks: field must be an array, got {type(self._ir_config)}, Ignoring...",
+                log_level=logging.ERROR,
             )
             return
 
@@ -75,12 +77,14 @@ class IRHealthChecks(IRResource):
 
             if grpc_health_check is None and http_health_check is None:
                 self.post_error(
-                    f"IRHealthChecks: Either grpc_health_check or http_health_check must exist in the health check config"
+                    f"IRHealthChecks: Either grpc_health_check or http_health_check must exist in the health check config. Ignoring health-check: {hc}",
+                    log_level=logging.ERROR,
                 )
                 continue
             if grpc_health_check is not None and http_health_check is not None:
                 self.post_error(
-                    f"IRHealthChecks: Only one of grpc_health_check or http_health_check may exist in the health check config"
+                    f"IRHealthChecks: Only one of grpc_health_check or http_health_check may exist in the health check config. Ignoring health-check: {hc}",
+                    log_level=logging.ERROR,
                 )
                 continue
 
@@ -100,15 +104,19 @@ class IRHealthChecks(IRResource):
             if http_health_check is not None:
                 if not isinstance(http_health_check, dict):
                     self.post_error(
-                        f"IRHealthChecks: http_health_check: field must be an object, found %s",
-                        http_health_check,
+                        f"IRHealthChecks: http_health_check: field must be an object, found {http_health_check}. Ignoring health-check {hc}",
+                        log_level=logging.ERROR,
                     )
                     continue
 
                 # Make sure we have a path
                 path = http_health_check.get("path", None)
                 if path is None:
-                    self.post_error(f"IRHealthChecks: http_health_check.path is a required field")
+                    self.post_error(
+                        f"IRHealthChecks: http_health_check.path is a required field. Ignoring health-check: {hc}",
+                        log_level=logging.ERROR,
+                    )
+                    continue
                 http_mapper: Dict[str, Any] = {"path": path}
 
                 # Process header add/remove operations
@@ -138,7 +146,10 @@ class IRHealthChecks(IRResource):
                                 raise ValueError("status must be an integer >= 100 and < 600")
 
                         except ValueError as e:
-                            self.post_error(f"IRHealthChecks: expected_statuses: %s" % e)
+                            self.post_error(
+                                f"IRHealthChecks: expected_statuses: {e}. Ignoring health-check {hc}",
+                                log_level=logging.ERROR,
+                            )
                             continue
                 # Add the http health check to the config
                 mapper["http_health_check"] = http_mapper
@@ -147,8 +158,8 @@ class IRHealthChecks(IRResource):
             if grpc_health_check is not None:
                 if not isinstance(grpc_health_check, dict):
                     self.post_error(
-                        f"IRHealthChecks: grpc_health_check: field must be an object, found %s",
-                        grpc_health_check,
+                        f"IRHealthChecks: grpc_health_check: field must be an object, found {grpc_health_check}",
+                        log_level=logging.ERROR,
                     )
                     continue
 
@@ -156,8 +167,10 @@ class IRHealthChecks(IRResource):
                 authority = grpc_health_check.get("authority", None)
                 if authority is None:
                     self.post_error(
-                        f"IRHealthChecks: grpc_health_check.authority is a required field"
+                        f"IRHealthChecks: grpc_health_check.authority is a required field. Ignoring health-check {hc}",
+                        log_level=logging.ERROR,
                     )
+                    continue
                 grpc_mapper: Dict[str, Any] = {"authority": authority}
 
                 service_name = grpc_health_check.get("service_name", None)
@@ -170,7 +183,10 @@ class IRHealthChecks(IRResource):
 
         # If nothing could be parsed successfully, post an error.
         if len(all_mappers) == 0:
-            self.post_error(f"IRHealthChecks: no valid health check could be parsed")
+            self.post_error(
+                f"IRHealthChecks: no valid health check could be parsed for config: {self._ir_config}",
+                log_level=logging.ERROR,
+            )
             return None
         return all_mappers
 
