@@ -35,7 +35,7 @@ stamp_image () {
 }
 
 # ORDER MATTERS HERE
-stamp_image frolvlad/alpine-glibc:alpine-3.15 base 		# This MUST be frolvlad, not emissary.local/base
+stamp_image frolvlad/alpine-glibc:alpine-3.15_glibc-2.34 base 	# This MUST be frolvlad, not emissary.local/base
 stamp_image emissary.local/kat-client    kat-client
 stamp_image emissary.local/kat-server    kat-server
 
