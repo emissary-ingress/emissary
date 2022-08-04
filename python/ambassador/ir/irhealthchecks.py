@@ -122,15 +122,19 @@ class IRHealthChecks(IRResource):
                 # Process header add/remove operations
                 request_headers_to_add = http_health_check.get("add_request_headers", None)
                 if request_headers_to_add is not None:
-                    http_mapper["request_headers_to_add"] = self.generate_headers_to_add(
-                        request_headers_to_add
-                    )
+                    addHeaders = self.generate_headers_to_add(request_headers_to_add)
+                    if len(addHeaders) > 0:
+                        http_mapper["request_headers_to_add"] = addHeaders
 
                 request_headers_to_remove = http_health_check.get("remove_request_headers", None)
                 if request_headers_to_remove is not None:
                     if not isinstance(request_headers_to_remove, list):
-                        request_headers_to_remove = [request_headers_to_remove]
-                    http_mapper["request_headers_to_remove"] = request_headers_to_remove
+                        self.post_error(
+                        f"IRHealthChecks: remove_request_headers must be a list. Ignoring field for health-check: {hc}",
+                        log_level=logging.ERROR,
+                    )
+                    else:
+                        http_mapper["request_headers_to_remove"] = request_headers_to_remove
 
                 host = http_health_check.get("hostname", None)
                 if host is not None:
@@ -139,6 +143,7 @@ class IRHealthChecks(IRResource):
                 # Process the expected statuses
                 expected_statuses = http_health_check.get("expected_statuses", None)
                 if expected_statuses is not None:
+                    validStatuses = []
                     for statusRange in expected_statuses:
                         try:
                             startCode = int(statusRange["start"])
@@ -147,13 +152,15 @@ class IRHealthChecks(IRResource):
                                 raise ValueError("status {} must be an integer >= 100 and < 600".format(startCode))
                             if endCode < 100 or endCode >= 600:
                                 raise ValueError("status {} must be an integer >= 100 and < 600".format(endCode))
-
+                            validStatuses.append(statusRange)
                         except ValueError as e:
                             self.post_error(
                                 f"IRHealthChecks: expected_statuses: {e}. Ignoring expected status for health-check {hc}",
                                 log_level=logging.ERROR,
                             )
                             continue
+                    if len(validStatuses) > 0:
+                        http_mapper["expected_statuses"] = validStatuses
                 # Add the http health check to the config
                 mapper["http_health_check"] = http_mapper
 
@@ -161,24 +168,24 @@ class IRHealthChecks(IRResource):
             if grpc_health_check is not None:
                 if not isinstance(grpc_health_check, dict):
                     self.post_error(
-                        f"IRHealthChecks: grpc_health_check: field must be an object, found {grpc_health_check}",
+                        f"IRHealthChecks: grpc_health_check: field must be an object, found {grpc_health_check}, Ignoring...",
                         log_level=logging.ERROR,
                     )
                     continue
-
-                # Make sure we have an authority
-                authority = grpc_health_check.get("authority", None)
-                if authority is None:
-                    self.post_error(
-                        f"IRHealthChecks: grpc_health_check.authority is a required field. Ignoring health-check {hc}",
-                        log_level=logging.ERROR,
-                    )
-                    continue
-                grpc_mapper: Dict[str, Any] = {"authority": authority}
 
                 service_name = grpc_health_check.get("service_name", None)
                 if service_name is not None:
                     grpc_mapper["service_name"] = service_name
+                else:
+                    self.post_error(
+                        f"IRHealthChecks: grpc_health_check: required field service_name field not set, ignoring health-check {hc}",
+                        log_level=logging.ERROR,
+                    )
+                    continue
+
+                authority = grpc_health_check.get("authority", None)
+                if authority is not None:
+                    grpc_mapper: Dict[str, Any] = {"authority": authority}
 
                 # Add the gRPC health check to the config
                 mapper["grpc_health_check"] = grpc_mapper
