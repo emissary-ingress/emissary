@@ -88,8 +88,8 @@ class IRHealthChecks(IRResource):
                 )
                 continue
 
-            timeout = hc.get("timeout_ms", "3s")  # default 3.0s timeout
-            interval = hc.get("interval_ms", "5s")  # default 5.0s Interval
+            timeout = hc.get("timeout", "3s")  # default 3.0s timeout
+            interval = hc.get("interval", "5s")  # default 5.0s Interval
             healthy_threshold = hc.get("healthy_threshold", 1)
             unhealthy_threshold = hc.get("unhealthy_threshold", 2)
 
@@ -139,15 +139,18 @@ class IRHealthChecks(IRResource):
                 # Process the expected statuses
                 expected_statuses = http_health_check.get("expected_statuses", None)
                 if expected_statuses is not None:
-                    for status in expected_statuses:
+                    for statusRange in expected_statuses:
                         try:
-                            code = int(status)
-                            if code < 100 or code >= 600:
-                                raise ValueError("status must be an integer >= 100 and < 600")
+                            startCode = int(statusRange["start"])
+                            endCode = int(statusRange["end"])
+                            if startCode < 100 or startCode >= 600:
+                                raise ValueError("status {} must be an integer >= 100 and < 600".format(startCode))
+                            if endCode < 100 or endCode >= 600:
+                                raise ValueError("status {} must be an integer >= 100 and < 600".format(endCode))
 
                         except ValueError as e:
                             self.post_error(
-                                f"IRHealthChecks: expected_statuses: {e}. Ignoring health-check {hc}",
+                                f"IRHealthChecks: expected_statuses: {e}. Ignoring expected status for health-check {hc}",
                                 log_level=logging.ERROR,
                             )
                             continue

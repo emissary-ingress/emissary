@@ -145,11 +145,24 @@ type ErrorResponseOverride struct {
 	Body ErrorResponseOverrideBody `json:"body,omitempty"`
 }
 
+type StatusRange struct {
+	// Start of the statuses to include. Must be between 100 and 599 (inclusive)
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Minimum=100
+	// +kubebuilder:validation:Maximum=599
+	Start int  `json:"start,omitempty"`
+	// End of the statuses to include. Must be between 100 and 599 (inclusive)
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Minimum=100
+	// +kubebuilder:validation:Maximum=599
+	End   int  `json:"end,omitempty"`
+}
+
 type HealthCheck struct {
 	// Timeout for connecting to the health checking endpoint. Defaults to 3 seconds.
-	Timeout *metav1.Duration `json:"timeout_ms,omitempty"`
+	Timeout *metav1.Duration `json:"timeout,omitempty"`
 	// Interval between health checks. Defaults to every 5 seconds.
-	Interval *metav1.Duration `json:"interval_ms,omitempty"`
+	Interval *metav1.Duration `json:"interval,omitempty"`
 	// Number of non-expected responses for the upstream to be considered unhealthy. A single 503 will mark the upstream as unhealthy. Defaults to 2.
 	UnhealthyThreshold *int `json:"unhealthy_threshold,omitempty"`
 	// Number of expected responses for the upstream to be considered healthy. Defaults to 1.
@@ -165,7 +178,7 @@ type HttpHealthCheck struct {
 	Path                 string                  `json:"path,omitempty"`
 	AddRequestHeaders    *map[string]AddedHeader `json:"add_request_headers,omitempty"`
 	RemoveRequestHeaders *[]string               `json:"remove_request_headers,omitempty"`
-	ExpectedStatuses     *[]int                  `json:"expected_statuses,omitempty"`
+	ExpectedStatuses     *[]StatusRange          `json:"expected_statuses,omitempty"`
 }
 
 // HealthCheck for gRPC upstreams. Only one of grpc_health_check or http_health_check may be specified
