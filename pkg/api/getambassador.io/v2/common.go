@@ -183,8 +183,10 @@ type HttpHealthCheck struct {
 
 // HealthCheck for gRPC upstreams. Only one of grpc_health_check or http_health_check may be specified
 type GrpcHealthCheck struct {
+	// The service name parameter which will be sent to gRPC service in the health check message
 	// +kubebuilder:validation:Required
 	ServiceName string `json:"service_name,omitempty"`
+	// The value of the :authority header in the gRPC health check request. If left empty the upstream name will be used.
 	Authority   string `json:"authority,omitempty"`
 }
 
