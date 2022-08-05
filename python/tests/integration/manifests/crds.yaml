@@ -2254,8 +2254,13 @@ spec:
                         or http_health_check may be specified
                       properties:
                         authority:
+                          description: The value of the :authority header in the gRPC
+                            health check request. If left empty the upstream name
+                            will be used.
                           type: string
                         service_name:
+                          description: The service name parameter which will be sent
+                            to gRPC service in the health check message
                           type: string
                       required:
                       - service_name
@@ -2273,7 +2278,23 @@ spec:
                           x-kubernetes-preserve-unknown-fields: true
                         expected_statuses:
                           items:
-                            type: integer
+                            properties:
+                              end:
+                                description: End of the statuses to include. Must
+                                  be between 100 and 599 (inclusive)
+                                maximum: 599
+                                minimum: 100
+                                type: integer
+                              start:
+                                description: Start of the statuses to include. Must
+                                  be between 100 and 599 (inclusive)
+                                maximum: 599
+                                minimum: 100
+                                type: integer
+                            required:
+                            - end
+                            - start
+                            type: object
                           type: array
                         hostname:
                           type: string
@@ -2286,11 +2307,11 @@ spec:
                       required:
                       - path
                       type: object
-                    interval_ms:
+                    interval:
                       description: Interval between health checks. Defaults to every
                         5 seconds.
                       type: string
-                    timeout_ms:
+                    timeout:
                       description: Timeout for connecting to the health checking endpoint.
                         Defaults to 3 seconds.
                       type: string
@@ -2581,8 +2602,13 @@ spec:
                         or http_health_check may be specified
                       properties:
                         authority:
+                          description: The value of the :authority header in the gRPC
+                            health check request. If left empty the upstream name
+                            will be used.
                           type: string
                         service_name:
+                          description: The service name parameter which will be sent
+                            to gRPC service in the health check message
                           type: string
                       required:
                       - service_name
@@ -2612,7 +2638,23 @@ spec:
                           type: object
                         expected_statuses:
                           items:
-                            type: integer
+                            properties:
+                              end:
+                                description: End of the statuses to include. Must
+                                  be between 100 and 599 (inclusive)
+                                maximum: 599
+                                minimum: 100
+                                type: integer
+                              start:
+                                description: Start of the statuses to include. Must
+                                  be between 100 and 599 (inclusive)
+                                maximum: 599
+                                minimum: 100
+                                type: integer
+                            required:
+                            - end
+                            - start
+                            type: object
                           type: array
                         hostname:
                           type: string
@@ -2625,11 +2667,11 @@ spec:
                       required:
                       - path
                       type: object
-                    interval_ms:
+                    interval:
                       description: Interval between health checks. Defaults to every
                         5 seconds.
                       type: string
-                    timeout_ms:
+                    timeout:
                       description: Timeout for connecting to the health checking endpoint.
                         Defaults to 3 seconds.
                       type: string
