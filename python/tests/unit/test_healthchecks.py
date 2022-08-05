@@ -1,5 +1,7 @@
 # import copy
 import logging
+import typing
+from typing import Any
 
 import pytest
 
@@ -387,16 +389,17 @@ spec:
     ]
 
     for case in testcases:
-        caseYaml = case["input"]
-        testName = case["name"]
+
+        caseYaml = typing.cast(typing.Dict[str, Any], case)["input"]  # seriously mypy???
+        testName = typing.cast(typing.Dict[str, Any], case)["name"]
         econf = _get_envoy_config(caseYaml)
-        errors = econf.ir.aconf.errors
+        # errors = econf.ir.aconf.errors
 
         cluster = _get_cluster_config(econf.clusters, "cluster_coolsvcname_default")
 
         assert cluster != False
 
-        expectedChecks = case["expected"]
+        expectedChecks = typing.cast(typing.Dict[str, Any], case)["expected"]
         if expectedChecks is None:
             assert "health_checks" not in cluster, "Failed healthcheck test {}".format(testName)
         else:
