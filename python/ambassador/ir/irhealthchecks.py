@@ -152,7 +152,17 @@ class IRHealthChecks(IRResource):
                                 raise ValueError("status {} must be an integer >= 100 and < 600".format(startCode))
                             if endCode < 100 or endCode >= 600:
                                 raise ValueError("status {} must be an integer >= 100 and < 600".format(endCode))
-                            validStatuses.append(statusRange)
+                            if startCode >  endCode:
+                                raise ValueError("status range start value {} cannot be higher than the end {} for range".format(startCode, endCode))
+
+                            # We add one to the end code because by default Envoy expects the start of the rangge to be
+                            # inclusive, but the end of the range to be exclusive. Lets just make both inclusive for simplicity.
+                            endCode += 1
+                            newRange = {
+                                "start": startCode,
+                                "end": endCode
+                            }
+                            validStatuses.append(newRange)
                         except ValueError as e:
                             self.post_error(
                                 f"IRHealthChecks: expected_statuses: {e}. Ignoring expected status for health-check {hc}",
