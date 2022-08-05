@@ -119,14 +119,13 @@ type StatusRange struct {
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Minimum=100
 	// +kubebuilder:validation:Maximum=599
-	Start int  `json:"start,omitempty"`
+	Start int `json:"start,omitempty"`
 	// End of the statuses to include. Must be between 100 and 599 (inclusive)
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Minimum=100
 	// +kubebuilder:validation:Maximum=599
-	End   int  `json:"end,omitempty"`
+	End int `json:"end,omitempty"`
 }
-
 
 type HealthCheck struct {
 	// Timeout for connecting to the health checking endpoint. Defaults to 3 seconds.
@@ -157,7 +156,7 @@ type GrpcHealthCheck struct {
 	// +kubebuilder:validation:Required
 	ServiceName string `json:"service_name,omitempty"`
 	// The value of the :authority header in the gRPC health check request. If left empty the upstream name will be used.
-	Authority   string `json:"authority,omitempty"`
+	Authority string `json:"authority,omitempty"`
 }
 
 // AmbassadorID declares which Ambassador instances should pay

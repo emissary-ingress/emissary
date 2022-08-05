@@ -122,17 +122,21 @@ class IRHealthChecks(IRResource):
                 # Process header add/remove operations
                 request_headers_to_add = http_health_check.get("add_request_headers", None)
                 if request_headers_to_add is not None:
+                    if isinstance(request_headers_to_add, list):
+                        self.post_error(
+                            f"IRHealthChecks: add_request_headers must be a dict of header:value pairs. Ignoring field for health-check: {hc}",
+                            log_level=logging.ERROR,
+                        )
                     addHeaders = self.generate_headers_to_add(request_headers_to_add)
                     if len(addHeaders) > 0:
                         http_mapper["request_headers_to_add"] = addHeaders
-
                 request_headers_to_remove = http_health_check.get("remove_request_headers", None)
                 if request_headers_to_remove is not None:
                     if not isinstance(request_headers_to_remove, list):
                         self.post_error(
-                        f"IRHealthChecks: remove_request_headers must be a list. Ignoring field for health-check: {hc}",
-                        log_level=logging.ERROR,
-                    )
+                            f"IRHealthChecks: remove_request_headers must be a list. Ignoring field for health-check: {hc}",
+                            log_level=logging.ERROR,
+                        )
                     else:
                         http_mapper["request_headers_to_remove"] = request_headers_to_remove
 
@@ -149,19 +153,26 @@ class IRHealthChecks(IRResource):
                             startCode = int(statusRange["start"])
                             endCode = int(statusRange["end"])
                             if startCode < 100 or startCode >= 600:
-                                raise ValueError("status {} must be an integer >= 100 and < 600".format(startCode))
+                                raise ValueError(
+                                    "status {} must be an integer >= 100 and < 600".format(
+                                        startCode
+                                    )
+                                )
                             if endCode < 100 or endCode >= 600:
-                                raise ValueError("status {} must be an integer >= 100 and < 600".format(endCode))
-                            if startCode >  endCode:
-                                raise ValueError("status range start value {} cannot be higher than the end {} for range".format(startCode, endCode))
+                                raise ValueError(
+                                    "status {} must be an integer >= 100 and < 600".format(endCode)
+                                )
+                            if startCode > endCode:
+                                raise ValueError(
+                                    "status range start value {} cannot be higher than the end {} for range".format(
+                                        startCode, endCode
+                                    )
+                                )
 
                             # We add one to the end code because by default Envoy expects the start of the rangge to be
                             # inclusive, but the end of the range to be exclusive. Lets just make both inclusive for simplicity.
                             endCode += 1
-                            newRange = {
-                                "start": startCode,
-                                "end": endCode
-                            }
+                            newRange = {"start": startCode, "end": endCode}
                             validStatuses.append(newRange)
                         except ValueError as e:
                             self.post_error(
@@ -184,18 +195,18 @@ class IRHealthChecks(IRResource):
                     continue
 
                 service_name = grpc_health_check.get("service_name", None)
-                if service_name is not None:
-                    grpc_mapper["service_name"] = service_name
-                else:
+                if service_name is None:
                     self.post_error(
                         f"IRHealthChecks: grpc_health_check: required field service_name field not set, ignoring health-check {hc}",
                         log_level=logging.ERROR,
                     )
                     continue
+                else:
+                    grpc_mapper: Dict[str, Any] = {"service_name": service_name}
 
                 authority = grpc_health_check.get("authority", None)
                 if authority is not None:
-                    grpc_mapper: Dict[str, Any] = {"authority": authority}
+                    grpc_mapper["authority"] = authority
 
                 # Add the gRPC health check to the config
                 mapper["grpc_health_check"] = grpc_mapper
