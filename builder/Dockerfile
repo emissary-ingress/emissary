@@ -79,7 +79,7 @@ ADD go.sum go.sum
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
     mkdir -p /go/bin && \
-	time go build -mod=vendor -o /go/bin/ ./cmd/...
+    time go build -mod=vendor -o /go/bin/ ./cmd/...
 
 ########################################
 # The artifact build stage
@@ -126,7 +126,7 @@ ARG py_version="i-forgot-to-set-build-arg-py-version"
 RUN adduser ambassador -u 8888 -G root -D -H -s /bin/false
 
 # External stuff that should change infrequently
-RUN apk --no-cache add bash curl python3=${py_version} libcap htop
+RUN apk --no-cache add bash curl=~7.80 python3=${py_version} libcap htop
 RUN apk upgrade --no-cache
 RUN ln -s /usr/bin/python3 /usr/bin/python
 COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl

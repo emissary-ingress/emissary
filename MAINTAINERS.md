@@ -9,7 +9,6 @@ Maintainers are listed in alphabetical order.
 
 | Maintainer       | GitHub ID                                     | Affiliation                                         |
 | ---------------- | --------------------------------------------- | --------------------------------------------------- |
-| Aidan Hahn       | [aidanhahn](https://github.com/aidanhahn)     | unaffiliated                                        |
 | Alex Gervais     | [alexgervais](https://github.com/alexgervais) | [Ambassador Labs](https://www.github.com/datawire/) |
 | Alice Wasko      | [aliceproxy](https://github.com/aliceproxy)   | [Ambassador Labs](https://www.github.com/datawire/) |
 | Flynn            | [kflynn](https://github.com/kflynn)           | [Buoyant](https://www.buoyant.io)                   |
@@ -28,6 +27,7 @@ of the following (also listed in alphabetical order):
 
 ## Maintainers Emeriti
 
+* Aidan Hahn ([aidanhahn](https://github.com/aidanhahn))
 * Alix Cook  ([acookin](https://github.com/acookin))
 * John Esmet ([esmet](https://github.com/esmet))
 

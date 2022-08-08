@@ -576,6 +576,7 @@ rules:
   - create
   - delete
   - patch
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -636,12 +637,8 @@ spec:
           value: emissary-ingress-agent-cloud-token
         - name: RPC_CONNECTION_ADDRESS
           value: https://app.getambassador.io/
-        - name: AES_REPORT_DIAGNOSTICS_TO_CLOUD
-          value: "true"
         - name: AES_SNAPSHOT_URL
           value: http://emissary-ingress-admin.emissary:8005/snapshot-external
-        - name: AES_DIAGNOSTICS_URL
-          value: http://emissary-ingress-admin.emissary:8877/ambassador/v0/diag/?json=true
         image: $imageRepo$:$version$
         imagePullPolicy: IfNotPresent
         name: agent

@@ -1,6 +1,6 @@
 module local
 
-go 1.17
+go 1.18
 
 replace kubepack.dev/chart-doc-gen => github.com/datawire/chart-doc-gen v0.4.1-0.20210610164749-5d8baa3c1716
 

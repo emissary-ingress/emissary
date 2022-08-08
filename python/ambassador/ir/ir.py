@@ -1025,7 +1025,7 @@ class IR:
             self.clusters[cluster.name] = cluster
 
             if cluster.is_edge_stack_sidecar():
-                # self.logger.debug(f"IR: cluster {cluster.name} is the sidecar")
+                self.logger.debug(f"IR: cluster {cluster.name} is the sidecar cluster name")
                 self.sidecar_cluster_name = cluster.name
         else:
             self.logger.debug(
