@@ -27,7 +27,7 @@ following Free and Open Source software:
     github.com/datawire/dtest                                                                  v0.0.0-20210928162311-722b199c4c2f           Apache License 2.0
     github.com/datawire/go-mkopensource                                                        v0.0.0-20220218163159-cc298d9fabc4           Apache License 2.0
     github.com/davecgh/go-spew                                                                 v1.1.1                                       ISC license
-    github.com/docker/distribution                                                             v2.7.1+incompatible                          Apache License 2.0
+    github.com/docker/distribution                                                             v2.8.1+incompatible                          Apache License 2.0
     github.com/emicklei/go-restful                                                             v2.15.0+incompatible                         MIT license
     github.com/envoyproxy/protoc-gen-validate                                                  v0.6.3                                       Apache License 2.0
     github.com/evanphx/json-patch                                                              v5.6.0+incompatible                          3-clause BSD license
@@ -95,11 +95,11 @@ following Free and Open Source software:
     github.com/xlab/treeprint                                                                  v1.1.0                                       MIT license
     go.opentelemetry.io/proto/otlp                                                             v0.7.0                                       Apache License 2.0
     go.starlark.net                                                                            v0.0.0-20220203230714-bb14e151c28f           3-clause BSD license
-    golang.org/x/crypto                                                                        v0.0.0-20220131195533-30dcbda58838           3-clause BSD license
+    golang.org/x/crypto                                                                        v0.0.0-20220722155217-630584e8d5aa           3-clause BSD license
     golang.org/x/mod                                                                           v0.5.1                                       3-clause BSD license
     golang.org/x/net                                                                           v0.0.0-20220127200216-cd36cc0744dd           3-clause BSD license
     golang.org/x/oauth2                                                                        v0.0.0-20211104180415-d3ed0bb246c8           3-clause BSD license
-    golang.org/x/sys                                                                           v0.0.0-20220128215802-99c3d69c2c27           3-clause BSD license
+    golang.org/x/sys                                                                           v0.0.0-20220804214406-8e32c043e418           3-clause BSD license
     golang.org/x/term                                                                          v0.0.0-20210927222741-03fcf44c2211           3-clause BSD license
     golang.org/x/text                                                                          v0.3.7                                       3-clause BSD license
     golang.org/x/time                                                                          v0.0.0-20211116232009-f0f3c7e86c11           3-clause BSD license
@@ -142,11 +142,11 @@ libraries:
     ----                -------    ----------
     CacheControl        0.12.10    Apache License 2.0
     Cython              0.29.24    Apache License 2.0
-    Flask               2.0.2      3-clause BSD license
-    Jinja2              3.0.3      3-clause BSD license
-    MarkupSafe          2.0.1      3-clause BSD license
+    Flask               2.2.1      3-clause BSD license
+    Jinja2              3.1.2      3-clause BSD license
+    MarkupSafe          2.1.1      3-clause BSD license
     PyYAML              5.4.1      MIT license
-    Werkzeug            2.0.2      3-clause BSD license
+    Werkzeug            2.2.1      3-clause BSD license
     appdirs             1.4.4      MIT license
     attrs               21.4.0     MIT license
     cachetools          5.0.0      MIT license
@@ -164,6 +164,7 @@ libraries:
     gunicorn            20.1.0     MIT license
     html5lib            1.1        MIT license
     idna                3.3        3-clause BSD license
+    importlib-metadata  4.12.0     Apache License 2.0
     itsdangerous        2.0.1      3-clause BSD license
     jsonpatch           1.32       3-clause BSD license
     jsonpointer         2.2        3-clause BSD license
@@ -198,3 +199,4 @@ libraries:
     urllib3             1.26.8     MIT license
     webencodings        0.5.1      3-clause BSD license
     websocket-client    1.2.3      Apache License 2.0
+    zipp                3.8.1      MIT license
