@@ -910,8 +910,8 @@ class V3Listener(dict):
             # http/3 is built on quic which has TLS built-in. This means that our UDP Listener will only ever need routes
             # that match the TLS Filter chain and will diverge from the TCP listener in that it will not support redirect
             # therefore, we can exclude duplicating the filterchain and routes so hitting this endpoint using non-tls http will fail
-            if (chain.type == "http") and self.isProtocolUDP() and self.http3_enabled:
-                continue
+            # if (chain.type == "http") and self.isProtocolUDP() and self.http3_enabled:
+            #     continue
 
             if chain.type == "http":
                 # All HTTP chains get collapsed into one here, using domains to separate them.
@@ -924,7 +924,7 @@ class V3Listener(dict):
                 if not filter_chain:
                     if self._log_debug:
                         self._irlistener.logger.debug(
-                            "FHTTP   create filter_chain %s / empty match", chain_key
+                            f"HTTP create filter_chain %s / empty match", chain_key
                         )
                     filter_chain = {"filter_chain_match": {}, "_vhosts": {}}
 
@@ -932,7 +932,7 @@ class V3Listener(dict):
                 else:
                     if self._log_debug:
                         self._irlistener.logger.debug(
-                            "FHTTP   use filter_chain %s: vhosts %d",
+                            f"HTTP use filter_chain %s: vhosts %d",
                             chain_key,
                             len(filter_chain["_vhosts"]),
                         )
