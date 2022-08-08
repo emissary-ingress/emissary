@@ -132,3 +132,19 @@ $(RUN_EMISSARY_AGENT):
 irun-emissary-agent: bin/run-emissary-agent.sh ## Run emissary-agent using the environment variables fetched by the intercept.
 	bin/run-emissary-agent.sh
 
+## Helper target for setting up local dev environment when working with python components
+## such as pytests, diagd, etc...
+.PHONY: python-dev-setup
+python-dev-setup:
+# recreate venv and upgrade pip
+	rm -rf venv
+	python3 -m venv venv
+	venv/bin/python3 -m pip install --upgrade pip
+
+# install deps, dev deps and diagd
+	./venv/bin/pip install -r python/requirements.txt
+	./venv/bin/pip install -r python/requirements-dev.txt
+	./venv/bin/pip install -e python
+
+# activate venv
+	@echo "run 'source ./venv/bin/activate' to activate venv in local shell"
