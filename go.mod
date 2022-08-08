@@ -117,7 +117,7 @@ require (
 	k8s.io/cli-runtime v0.21.9
 	k8s.io/client-go v0.21.9
 	k8s.io/code-generator v0.21.9
-	k8s.io/klog/v2 v2.10.0
+	k8s.io/klog/v2 v2.70.1
 	k8s.io/kube-openapi v0.0.0-20211110012726-3cc51fd1e909
 	k8s.io/kubectl v0.21.9
 	k8s.io/kubernetes v1.21.9
@@ -152,7 +152,7 @@ require (
 	github.com/fatih/camelcase v1.0.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
-	github.com/go-logr/logr v0.4.0 // indirect
+	github.com/go-logr/logr v1.2.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
 	github.com/go-openapi/spec v0.20.4 // indirect
