@@ -1,0 +1,16 @@
+name: setup-deps
+description: "Load Docker image"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Download image
+      uses: actions/download-artifact@v3
+      with:
+        name: docker.image
+        path: /tmp/docker-img
+    - name: Load image
+      shell: bash
+      run: |
+        ls -l /tmp/docker-img
+        make DEV_REGISTRY=localhost:5000 IMPORT_FILE=/tmp/docker-img/docker-img docker-import

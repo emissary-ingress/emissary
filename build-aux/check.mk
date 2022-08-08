@@ -16,18 +16,24 @@ push-pytest-images: docker/kat-server.docker.push.remote
 test_svcs = auth shadow stats
 $(foreach svc,$(test_svcs),docker/.test-$(svc).docker.stamp): docker/.%.docker.stamp: docker/%/Dockerfile FORCE
 	docker build --iidfile=$@ $(<D)
+	@echo "" >> "$@"	# Make sure the ID file ends with a newline.
 clean: $(foreach svc,$(test_svcs),docker/test-$(svc).docker.clean)
 
 # kat-client.docker
 docker/kat-client.go.layer.tar: $(tools/ocibuild) $(tools/write-ifchanged) FORCE
+	@echo "==== docker/kat-client.go.layer.tar in check.mk, as $@: $^"
 	GOFLAGS=-mod=mod $(tools/ocibuild) layer gobuild ./cmd/kat-client | $(tools/write-ifchanged) $@
+
 docker/kat-client.fs.layer.tar: $(tools/ocibuild) $(tools/write-ifchanged) FORCE
+	@echo "==== docker/kat-client.fs.layer.tar in check.mk, as $@: $^"
 	{ $(tools/ocibuild) layer dir \
 	  --prefix=work \
 	  --chown-uid=0 --chown-uname=root \
 	  --chown-gid=0 --chown-uname=root \
 	  docker/kat-client; } | $(tools/write-ifchanged) $@
+
 docker/.kat-client.img.tar.stamp: $(tools/ocibuild) docker/base.img.tar docker/kat-client.go.layer.tar docker/kat-client.fs.layer.tar
+	@echo "==== docker/.kat-client.img.tar.stamp in check.mk, as $@: $^"
 	{ $(tools/ocibuild) image build \
 	  --base=docker/base.img.tar \
 	  --config.Cmd='sleep' --config.Cmd='3600' \

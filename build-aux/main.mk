@@ -1,6 +1,9 @@
 include build-aux/tools.mk
 include build-aux/var.mk
 
+version:
+	@echo $(VERSION)
+
 #
 # Utility rules
 
@@ -25,15 +28,25 @@ include build-aux/var.mk
 # should never be on the right-side of the ":"), save for in this rule
 # itself.
 %: %.stamp $(tools/copy-ifchanged)
+	@echo "==== %: %.stamp rule in main.mk, as $@: $^"
 	@$(tools/copy-ifchanged) $< $@
+
 docker/%: docker/.%.stamp $(tools/copy-ifchanged)
+	@echo "==== docker/%: docker/.%.stamp rule in main.mk, as $@: $^"
 	$(tools/copy-ifchanged) $< $@
 
-# Load ocibuild files in to dockerd.
-_ocibuild-images  = base
-_ocibuild-images += kat-client
-_ocibuild-images += kat-server
+# This foreach supplies rules for various things we construct as Docker image
+# tarfiles in the filesystem (either with crane pull or with ocibuild) and need
+# to track the way we do for other docker.mk things.
+#
+# IF YOU ADD NEW THINGS HERE, ADD A COMMENT AS WELL that lists the .stamp and
+# .img.tar files, with the trailing :, so that people searching for the Makefile
+# recipe for these files can find them.
+_ocibuild-images  = base	        # docker/.base.docker.stamp:       from docker/base.img.tar:       
+_ocibuild-images += kat-client		# docker/.kat-client.docker.stamp: from docker/kat-client.img.tar: 
+_ocibuild-images += kat-server		# docker/.kat-server.docker.stamp: from docker/kat-server.img.tar: 
 $(foreach img,$(_ocibuild-images),docker/.$(img).docker.stamp): docker/.%.docker.stamp: docker/%.img.tar
+	@echo "==== _ocibuild-images in main.mk, as $@: $^"
 	docker load < $<
 	docker inspect $$(bsdtar xfO $< manifest.json|jq -r '.[0].RepoTags[0]') --format='{{.Id}}' > $@
 clean: $(foreach img,$(_ocibuild-images),docker/$(img).img.tar.clean)
@@ -53,9 +66,15 @@ clean: $(foreach img,$(_ocibuild-images),docker/$(img).img.tar.clean)
 
 # base: Base OS; none of our specific stuff.  Used for auxiliar test images
 # that don't need Emissary-specific stuff.
-docker/.base.img.tar.stamp: FORCE $(tools/crane) docker/base-python/Dockerfile
-	$(tools/crane) pull $(shell gawk '$$1 == "FROM" { print $$2; quit; }' < docker/base-python/Dockerfile) $@ || test -e $@
-clobber: docker/base.img.tar.clean
+docker/.base.img.tar.stamp: FORCE $(tools/crane) $(tools/copy-ifchanged) docker/base-python/Dockerfile
+	@echo "==== docker/.base.img.tar.stamp in main.mk, as $@: $^"
+	@set -ex -o pipefail; { \
+		to_pull=$$(gawk '$$1 == "FROM" { print $$2; quit; }' < docker/base-python/Dockerfile) ;\
+		$(tools/crane) pull $$to_pull /tmp/crane-base-pull ;\
+		test -e /tmp/crane-base-pull ;\
+		docker load < /tmp/crane-base-pull ;\
+		docker save $$to_pull > $@ ;\
+	}
 
 # base-python: Base OS, plus some Emissary-specific setup of
 # low-level/expensive pieces of the Python environment.  This does NOT
@@ -85,23 +104,31 @@ clobber: docker/base-python.docker.clean
 #python/requirements-dev.txt: $(tools/py-list-deps) $(tools/write-ifchanged) FORCE
 #	$(tools/py-list-deps) --include-dev python/ | $(tools/write-ifchanged) $@
 python/requirements.in: $(tools/py-list-deps) $(tools/write-ifchanged) FORCE
+	@echo "==== python/requirements.in in main.mk, as $@: $^"
 	set -o pipefail; $(tools/py-list-deps) --no-include-dev python/ | $(tools/write-ifchanged) $@
 clean: python/requirements.in.rm
 python/.requirements.txt.stamp: python/requirements.in docker/base-python.docker.tag.local
 # The --interactive is so that stdin gets passed through; otherwise Docker closes stdin.
+	@echo "==== python/.requirements.txt.stamp in main.mk, as $@: $^"
 	set -ex -o pipefail; { \
 	  docker run --platform="$(BUILD_ARCH)" --rm --interactive "$$(cat docker/base-python.docker)" sh -c 'tar xf - && find ~/.cache/pip -name "maturin-*.whl" -exec pip install --no-deps {} + >&2 && pip-compile --allow-unsafe --no-build-isolation -q >&2 && cat requirements.txt' \
 	    < <(bsdtar -cf - -C $(@D) requirements.in requirements.txt) \
 	    > $@; }
 clean: python/.requirements.txt.stamp.rm
 python/requirements.txt: python/%: python/.%.stamp $(tools/copy-ifchanged)
+	@echo "==== python/requirements.txt in main.mk, as $@: $^"
 	$(tools/copy-ifchanged) $< $@
 .PRECIOUS: python/requirements.txt
+
 docker/base-pip/requirements.txt: python/requirements.txt $(tools/copy-ifchanged)
+	@echo "==== docker/base-pip/requirements.txt in main.mk, as $@: $^"
 	$(tools/copy-ifchanged) $< $@
 clean: docker/base-pip/requirements.txt.rm
+
 docker/.base-pip.docker.stamp: docker/.%.docker.stamp: docker/%/Dockerfile docker/%/requirements.txt docker/base-python.docker.tag.local
+	@echo "==== docker/.base-pip.docker.stamp in main.mk, as $@: $^"
 	docker build --platform="$(BUILD_ARCH)" --build-arg=from="$$(sed -n 2p docker/base-python.docker.tag.local)" --iidfile=$@ $(<D)
+	@echo "" >> "$@"	# Make sure the ID file ends with a newline.
 clobber: docker/base-pip.docker.clean
 
 # The Helm chart

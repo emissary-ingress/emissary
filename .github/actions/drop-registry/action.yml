@@ -1,0 +1,30 @@
+name: 'Drop Registry'
+description: >-
+  Drop the internal registry, so that the after-job checks will not complain.
+runs:
+  using: "composite"
+  steps:
+    - name: "Drop registry"
+      shell: bash
+      run: |
+        if [[ -n "$(docker container list --all --quiet)" ]]; then
+            for container in $(docker container list --all --format '{{.ID}},{{.Image}}'); do
+                id=$(echo "$container" | cut -d, -f1)
+                image=$(echo "$container" | cut -d, -f2)
+                if [[ "$image" == registry:* ]]; then
+                    # echo "DOCKER CONTAINER:"
+                    # docker inspect "$id"
+
+                    volnames=$(docker inspect --format='{{ range $m := .Mounts}}{{$m.Name}}{{"\n"}}{{end}}' "$id")
+
+                    echo "Dropping registry container $id ($image)"
+                    docker kill "$id" && docker container rm "$id"
+
+                    for volname in $volnames; do
+                        echo "Dropping volume $volname"
+                        docker volume rm "$volname"
+                    done
+                fi
+            done
+        fi
+

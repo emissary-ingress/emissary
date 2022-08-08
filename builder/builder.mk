@@ -99,6 +99,40 @@ BUILDER_NAME ?= $(LCNAME)
 include $(OSS_HOME)/build-aux/prelude.mk
 include $(OSS_HOME)/build-aux/colors.mk
 
+# The two lines down below this comment (the ones starting with docker.tag.local and
+# docker.tag.remote) are basically configuring docker.mk. To use docker.mk's terminology,
+# "local" and "remote" are groups (see the comments at the top of docker.mk). When you
+# read these lines, remember that "$(*F)" is the file part of a % glob -- and realize
+# that, even though you don't see a % glob in these lines, it's being added when 
+# docker.mk actually instantiates the rules for the groups. 
+#
+# The main convention we rely on (again, from docker.mk) is that depending on %.docker
+# causes a Docker image to be built, and its hash to be placed into the %.docker file.
+# HOWEVER: since it's possible for Docker images to depend on sources and thus get out
+# of date with respect to those sources, and since Docker is evil and doesn't expose 
+# this in any sane way, what you'll _actually_ see in the Makefiles are recipes to build
+# %.docker.stamp files -- _and_ there's a magic implicit rule that in main.mk that knows
+# how to have %.docker files depend on %.docker.stamp files. Furthermore, by convention,
+# we put these stamp files in the docker directory.
+#
+# SO. If you're trying to get a Docker image built, what you actually need to write is a
+# recipe for docker/.NAME.docker.stamp (e.g. docker/.emissary.docker.stamp) that makes
+# the image and then puts its hash into the .stamp file. And the rest, as they say, will
+# just happen.
+# 
+# Finally: docker.tag.local is arranging things such that:
+#  - depending on %.docker.tag.local will use your .stamp recipe to build a Docker image,
+#    tag it as something like emissary.local/emissary, and track things about it
+#  - depending on %.docker.push.local will fail, even though docker.mk talks about that
+#
+# And docker.tag.remote is arranging things such that:
+#  - depending on %.docker.tag.remote will use your .stamp recipe to build a Docker image,
+#    tag it as something like $DEV_REGISTRY/emissary:$VERSION-with-no-leading-v, and
+#    track things about it
+#  - depending on %.docker.push.remote will actually push to the $DEV_REGISTRY
+#
+# (READ HERE about .local: and .remote: if you're searching for them and can't find them.
+# The comments above explain everything.)
 docker.tag.local = $(BUILDER_NAME).local/$(*F)
 docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTRY)/$(*F):$(patsubst v%,%,$(VERSION))
 include $(OSS_HOME)/build-aux/docker.mk
@@ -213,9 +247,10 @@ _images = base-envoy $(LCNAME) kat-client kat-server
 $(foreach i,$(_images), docker/$i.docker.tag.local  ): docker/%.docker.tag.local : docker/%.docker
 $(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remote: docker/%.docker
 
-docker/.base-envoy.docker.stamp: FORCE
-	@set -e; { \
-	  if docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@ 2>/dev/null; then \
+docker/.base-envoy.docker.stamp: $(tools/write-ifchanged) FORCE
+	@echo "==== docker/.base-envoy.docker.stamp in builder.mk, as $@: $^"
+	@set -e -o pipefail; { \
+	  if docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >/dev/null 2>&1; then \
 	    printf "${CYN}==> ${GRN}Base Envoy image is already pulled${END}\n"; \
 	  else \
 	    printf "${CYN}==> ${GRN}Pulling base Envoy image${END}\n"; \
@@ -223,23 +258,28 @@ docker/.base-envoy.docker.stamp: FORCE
 	    time docker pull $(ENVOY_DOCKER_TAG); \
 	    unset TIMEFORMAT; \
 	  fi; \
-	  echo $(ENVOY_DOCKER_TAG) >$@; \
+	  docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' | $(tools/write-ifchanged) $@; \
 	}
 clobber: docker/base-envoy.docker.clean
 
-docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.local %/base-envoy.docker.tag.local %/base-pip.docker.tag.local python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) FORCE
+docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.local %/base-envoy.docker.tag.local %/base-pip.docker.tag.local python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum)
+	@echo "==== docker/.$(LCNAME).docker.stamp in builder.mk, as $@: $^"
+	@echo "Dependencies:"
+	@-ls -l $^
 	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
 	@printf "    ${BLU}base=$$(sed -n 2p $*/base.docker.tag.local)${END}\n"
-	@printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"
+	@printf "    ${BLU}envoy=$$(sed -n 2p $*/base-envoy.docker.tag.local)${END}\n"
 	@printf "    ${BLU}builderbase=$$(sed -n 2p $*/base-pip.docker.tag.local)${END}\n"
 	{ $(tools/dsum) '$(LCNAME) build' 3s \
 	  docker build -f ${BUILDER_HOME}/Dockerfile . \
 			--platform="$(BUILD_ARCH)" \
 	    --build-arg=base="$$(sed -n 2p $*/base.docker.tag.local)" \
-	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	    --build-arg=envoy="$$(sed -n 2p $*/base-envoy.docker.tag.local)" \
 	    --build-arg=builderbase="$$(sed -n 2p $*/base-pip.docker.tag.local)" \
 	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
-	    --iidfile=$@; }
+	    --iidfile=$@; \
+		echo "" >> "$@"	# Make sure the ID file ends with a newline. \
+	}
 clean: docker/$(LCNAME).docker.clean
 
 REPO=$(BUILDER_NAME)
@@ -267,6 +307,30 @@ push-dev: docker/$(LCNAME).docker.tag.local
 	docker tag $$(cat docker/$(LCNAME).docker) '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
 	docker push '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
 .PHONY: push-dev
+
+docker-export: images $(tools/docker-export)
+	@if [ -z "$$EXPORT_FILE" ]; then printf '$(RED)$@: EXPORT_FILE is not set$(END)\n'; exit 1; fi;
+	@printf '$(CYN)==> $(GRN)exporting Docker build state as $(BLU)%s$(GRN)...$(END)\n' "$$EXPORT_FILE"
+	$(tools/docker-export)
+	@set -ex -o pipefail ; { \
+		cd docker ;\
+		tar cf "$$EXPORT_FILE" images.tar images.sh ;\
+	}
+.PHONY: docker-export
+
+docker-export.clean:
+	rm -f docker/images.tar docker/images.sh
+clean: docker-export.clean
+
+docker-import: $(tools/docker-import)
+	@if [ -z "$$IMPORT_FILE" ]; then printf '$(RED)$@: IMPORT_FILE is not set$(END)\n'; exit 1; fi;
+	@set -ex -o pipefail ; { \
+		printf '$(CYN)==> $(GRN)importing $(BLU)%s$(GRN)...$(END)\n' "$$IMPORT_FILE" ;\
+		tar -C docker -xf "$$IMPORT_FILE" ;\
+		$(tools/docker-import) ;\
+		rm -f images.sh images.tar ;\
+	}
+.PHONY: docker-import
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
 export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)

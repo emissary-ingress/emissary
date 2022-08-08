@@ -33,6 +33,7 @@ go-mod-tidy/tools/%:
 #
 tools/copy-ifchanged      = $(tools.bindir)/copy-ifchanged
 tools/devversion          = $(tools.bindir)/devversion
+tools/docker-import       = $(tools.bindir)/docker-import
 tools/docker-promote      = $(tools.bindir)/docker-promote
 tools/move-ifchanged      = $(tools.bindir)/move-ifchanged
 tools/tap-driver          = $(tools.bindir)/tap-driver
@@ -77,6 +78,7 @@ $(tools.main-gomod): $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(OSS_HOME)/go.
 # Local Go sources
 # ================
 #
+tools/docker-export	  = $(tools.bindir)/docker-export
 tools/dsum            = $(tools.bindir)/dsum
 tools/filter-yaml     = $(tools.bindir)/filter-yaml
 tools/fix-crds        = $(tools.bindir)/fix-crds

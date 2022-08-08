@@ -27,5 +27,6 @@ else
 		diff -u "$outfile" "$tmpfile" >&2
 		exit 1
 	fi
+	echo "   $outfile contents changed"
 	mv -f "$tmpfile" "$outfile"
 fi

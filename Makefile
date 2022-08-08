@@ -31,8 +31,10 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
     ,$(error CHART_VERSION variable is invalid: It must be a v8.* string, but is '$(CHART_VERSION)'))
   export CHART_VERSION
 
-  $(info [make] VERSION=$(VERSION))
-  $(info [make] CHART_VERSION=$(CHART_VERSION))
+  ifneq ($(MAKECMDGOALS),version)
+    $(info [make] VERSION=$(VERSION))
+    $(info [make] CHART_VERSION=$(CHART_VERSION))
+  endif
 endif
 
 # If SOURCE_DATE_EPOCH isn't set, AND the tree isn't dirty, then set
