@@ -103,11 +103,19 @@ def test_tracing_config_v3(tmp_path: Path):
     econf = EnvoyConfig.generate(ir)
 
     # check if custom_tags are added
-    assert econf.as_dict()['static_resources']['listeners'][0]['filter_chains'][0]['filters'][0]['typed_config']['tracing'] == {
+    assert econf.as_dict()["static_resources"]["listeners"][0]["filter_chains"][0]["filters"][0][
+        "typed_config"
+    ]["tracing"] == {
         "custom_tags": [
-            {'literal': {'value': 'avalue'}, 'tag': 'ltag'},
-            {'environment': {'default_value': 'efallback', 'name': 'UNKNOWN_ENV_VAR'}, 'tag': 'etag'},
-            {'request_header': {'default_value': 'hfallback', 'name': 'x-does-not-exist'}, 'tag': 'htag'},
+            {"literal": {"value": "avalue"}, "tag": "ltag"},
+            {
+                "environment": {"default_value": "efallback", "name": "UNKNOWN_ENV_VAR"},
+                "tag": "etag",
+            },
+            {
+                "request_header": {"default_value": "hfallback", "name": "x-does-not-exist"},
+                "tag": "htag",
+            },
         ]
     }
 

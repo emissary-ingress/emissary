@@ -111,7 +111,11 @@ custom_tags:
         # Speak through each Ambassador to the traced service...
 
         for i in range(100):
-            yield Query(self.url("target/"), headers={"x-watsup": "nothin", "x-something": "something"}, phase=1)
+            yield Query(
+                self.url("target/"),
+                headers={"x-watsup": "nothin", "x-something": "something"},
+                phase=1,
+            )
 
         # ...then ask the Zipkin for services and spans. Including debug=True in these queries
         # is particularly helpful.
