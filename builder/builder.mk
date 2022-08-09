@@ -103,13 +103,13 @@ include $(OSS_HOME)/build-aux/colors.mk
 # docker.tag.remote) are basically configuring docker.mk. To use docker.mk's terminology,
 # "local" and "remote" are groups (see the comments at the top of docker.mk). When you
 # read these lines, remember that "$(*F)" is the file part of a % glob -- and realize
-# that, even though you don't see a % glob in these lines, it's being added when 
-# docker.mk actually instantiates the rules for the groups. 
+# that, even though you don't see a % glob in these lines, it's being added when
+# docker.mk actually instantiates the rules for the groups.
 #
 # The main convention we rely on (again, from docker.mk) is that depending on %.docker
 # causes a Docker image to be built, and its hash to be placed into the %.docker file.
 # HOWEVER: since it's possible for Docker images to depend on sources and thus get out
-# of date with respect to those sources, and since Docker is evil and doesn't expose 
+# of date with respect to those sources, and since Docker is evil and doesn't expose
 # this in any sane way, what you'll _actually_ see in the Makefiles are recipes to build
 # %.docker.stamp files -- _and_ there's a magic implicit rule that in main.mk that knows
 # how to have %.docker files depend on %.docker.stamp files. Furthermore, by convention,
@@ -119,7 +119,7 @@ include $(OSS_HOME)/build-aux/colors.mk
 # recipe for docker/.NAME.docker.stamp (e.g. docker/.emissary.docker.stamp) that makes
 # the image and then puts its hash into the .stamp file. And the rest, as they say, will
 # just happen.
-# 
+#
 # Finally: docker.tag.local is arranging things such that:
 #  - depending on %.docker.tag.local will use your .stamp recipe to build a Docker image,
 #    tag it as something like emissary.local/emissary, and track things about it
@@ -314,12 +314,17 @@ docker-export: images $(tools/docker-export)
 	$(tools/docker-export)
 	@set -ex -o pipefail ; { \
 		cd docker ;\
-		tar cf "$$EXPORT_FILE" images.tar images.sh ;\
+		if [ -f "../python/requirements.in" ] & [ -f "./base-pip/requirements.txt" ]; then\
+			tar cf "$$EXPORT_FILE" images.tar images.sh ../python/requirements.in ./base-pip/requirements.txt;\
+		else\
+			tar cf "$$EXPORT_FILE" images.tar images.sh;\
+			printf '$(RED)$@: ../python/requirements.in and/or ./base-pip/requirements.txt not found for docker-export\n';\
+		fi;\
 	}
 .PHONY: docker-export
 
 docker-export.clean:
-	rm -f docker/images.tar docker/images.sh
+	rm -f docker/images.tar docker/images.sh python/requirements.in
 clean: docker-export.clean
 
 docker-import: $(tools/docker-import)
@@ -327,6 +332,23 @@ docker-import: $(tools/docker-import)
 	@set -ex -o pipefail ; { \
 		printf '$(CYN)==> $(GRN)importing $(BLU)%s$(GRN)...$(END)\n' "$$IMPORT_FILE" ;\
 		tar -C docker -xf "$$IMPORT_FILE" ;\
+		printf 'lsing docker\n';\
+		ls ./docker;\
+		if [ -f "./docker/python/requirements.in" ] & [ -f "./docker/base-pip/requirements.txt" ]; then\
+			printf 'lsing docker/base-pip\n';\
+			ls ./docker/base-pip;\
+			printf 'cating new python/requirements.in';\
+			cat ./docker/python/requirements.in;\
+			mv ./docker/python/requirements.in ./python/requirements.in;\
+			printf 'cating old python/requirements.txt\n';\
+			cat ./python/requirements.txt;\
+			printf 'cating new python/requirements.txt';\
+			cat ./docker/base-pip/requirements.txt;\
+			cp ./docker/base-pip/requirements.txt ./python/requirements.txt;\
+			rmdir ./docker/python;\
+		else\
+			printf '$(RED)$@: /docker/python/requirements.in and/or /docker/base-pip/requirements.txt not found for docker-import\n';\
+		fi;\
 		$(tools/docker-import) ;\
 		rm -f images.sh images.tar ;\
 	}

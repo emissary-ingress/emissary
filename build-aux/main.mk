@@ -88,7 +88,7 @@ docker/.base.img.tar.stamp: FORCE $(tools/crane) $(tools/copy-ifchanged) docker/
 # In the long-run, this will likely always be a `docker build` rather
 # than an `ocibuild`, in order to do truly base-OS-specific setup
 # (`apk add`, libc-specific compilation...).
-docker/.base-python.docker.stamp: FORCE docker/base-python/Dockerfile docker/base-python.docker.gen
+docker/.base-python.docker.stamp: docker/base-python/Dockerfile docker/base-python.docker.gen
 	docker/base-python.docker.gen >$@
 clobber: docker/base-python.docker.clean
 
