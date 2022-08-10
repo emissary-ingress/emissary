@@ -184,10 +184,6 @@ func (r *retrvsnapshotclient) Recv() (*agent.RawSnapshotChunk, error) {
 	return nil, nil
 }
 
-func (m *MockClient) RetrieveSnapshot(context.Context, *agent.Identity, ...grpc.CallOption) (agent.Director_RetrieveSnapshotClient, error) {
-	return &retrvsnapshotclient{}, nil
-}
-
 func TestComm(t *testing.T) {
 	ctx := dlog.NewTestContext(t, false)
 	ctx, cancel := context.WithCancel(ctx)
