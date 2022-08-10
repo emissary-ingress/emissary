@@ -222,7 +222,12 @@ class V3Cluster(Cacheable):
                 # Check if the endpoint has an alternate health checking port
                 health_check_port = cluster.get("health_check_port", None)
                 if health_check_port is not None:
-                    endpoint["health_check_config"] = {"port_value": health_check_port}
+                    if cluster.health_checks is None:
+                        cluster.ir.logger.warning(
+                            "health_check_port: %s configured without any config for health_checks. Ignoring health_check_port config..." % (health_check_port)
+                        )
+                    else:
+                        endpoint["health_check_config"] = {"port_value": health_check_port}
                 result.append({"endpoint": endpoint})
         else:
             for u in cluster.urls:
