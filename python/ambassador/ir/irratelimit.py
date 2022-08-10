@@ -57,6 +57,8 @@ class IRRateLimit (IRFilter):
         self.domain = config.get('domain', ir.ambassador_module.default_label_domain)
         self.protocol_version = config.get("protocol_version", "v2")
 
+        self.stats_name = config.get("stats_name", None)
+
         # XXX host_rewrite actually isn't in the schema right now.
         self.host_rewrite = config.get('host_rewrite', None)
 

@@ -149,6 +149,8 @@ class IRAuth (IRFilter):
         self.__to_header_list('allowed_request_headers', module)
         self.__to_header_list('allowed_authorization_headers', module)
 
+        self["stats_name"] = module.get("stats_name", None)
+
         status_on_error = module.get('status_on_error', None)
         if status_on_error:
             self['status_on_error'] = status_on_error

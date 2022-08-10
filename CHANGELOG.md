@@ -95,6 +95,11 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   endpoints be inserted to clusters manually. This can help resolve with `503 UH` caused by
   certification rotation relating to a delay between EDS + CDS. The default is `false`.
 
+- Bugfix: Previously, setting the `stats_name` for the `TracingService`, `RateLimitService`  or the
+  `AuthService` would have no affect because it was not being properly passed to the Envoy cluster
+  config. This has been fixed and the `alt_stats_name` field in the cluster config is now set
+  correctly. (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
+
 ## [1.14.5] TBD
 [1.14.5]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v1.14.5
 
