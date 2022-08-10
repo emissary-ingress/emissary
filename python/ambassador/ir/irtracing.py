@@ -106,6 +106,8 @@ class IRTracing(IRResource):
         self.tag_headers = config.get('tag_headers', [])
         self.sampling = config.get('sampling', {})
 
+        self.stats_name = config.get("stats_name", None)
+
         # XXX host_rewrite actually isn't in the schema right now.
         self.host_rewrite = config.get('host_rewrite', None)
 
