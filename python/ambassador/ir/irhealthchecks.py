@@ -155,21 +155,18 @@ class IRHealthChecks(IRResource):
                             self.post_error(
                                 f"IRHealthChecks: expected_statuses: {startCode} must be an integer >= 100 and < 600. Ignoring expected status for health-check {hc}",
                                 log_level=logging.ERROR,
-
                             )
                             continue
                         if endCode < 100 or endCode >= 600:
                             self.post_error(
                                 f"IRHealthChecks: expected_statuses: {endCode} must be an integer >= 100 and < 600. Ignoring expected status for health-check {hc}",
                                 log_level=logging.ERROR,
-
                             )
                             continue
                         if startCode > endCode:
                             self.post_error(
                                 f"IRHealthChecks: expected_statuses: status range start value {startCode} cannot be higher than the end {endCode} for range. Ignoring expected status for health-check {hc}",
                                 log_level=logging.ERROR,
-
                             )
                             continue
 
