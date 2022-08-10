@@ -4,6 +4,8 @@ import sys
 
 import pytest
 
+from tests.utils import econf_foreach_cluster
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s test %(levelname)s: %(message)s",
@@ -114,6 +116,42 @@ spec:
     assert conf.get("typed_config") == _get_ratelimit_default_conf()
 
     assert "ir.ratelimit" not in econf.ir.aconf.errors
+
+
+@pytest.mark.compilertest
+def test_irratelimit_cluster_fields():
+
+    stats_name = "ratelimitservice"
+
+    yaml = """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: RateLimitService
+metadata:
+  name: myrls
+  namespace: default
+spec:
+  service: {}
+  protocol_version: "v3"
+  stats_name: {}
+""".format(
+        SERVICE_NAME, stats_name
+    )
+
+    econf = _get_envoy_config(yaml)
+    conf = _get_rl_config(econf.as_dict())
+
+    assert conf
+    assert conf.get("typed_config") == _get_ratelimit_default_conf()
+
+    assert "ir.ratelimit" not in econf.ir.aconf.errors
+
+    def check_fields(cluster):
+        assert cluster["alt_stat_name"] == stats_name
+
+    econf_foreach_cluster(
+        econf.as_dict(), check_fields, name="cluster_{}_default".format(SERVICE_NAME)
+    )
 
 
 @pytest.mark.compilertest
