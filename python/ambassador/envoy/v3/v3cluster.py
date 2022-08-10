@@ -77,15 +77,14 @@ class V3Cluster(Cacheable):
         # Don't feed the raw health_checks object to envoy, grab its config where the econf has already been built
         if cluster.health_checks is not None:
             health_checks_config = cluster.health_checks.config()
-            if health_checks_config:
-                if health_checks_config.get("mappers", []):
-                    if ctype == "EDS":
-                        self["health_checks"] = health_checks_config["mappers"]
-                    else:
-                        cluster.ir.logger.error(
-                            "health_checks configuration is only supported when using the endpoint resolver. Ignoring health_checks config for cluster: %s..."
-                            % (cluster.name)
-                        )
+            if health_checks_config is not None:
+                if ctype == "EDS":
+                    self["health_checks"] = health_checks_config
+                else:
+                    cluster.ir.logger.error(
+                        "health_checks configuration is only supported when using the endpoint resolver. Ignoring health_checks config for cluster: %s..."
+                        % (cluster.name)
+                    )
 
         if ctype == "EDS":
             fields["eds_cluster_config"] = {

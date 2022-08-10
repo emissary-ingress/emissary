@@ -32,10 +32,10 @@ class IRHealthChecks(IRResource):
 
     # Return the final config, or None if there isn't any, either because
     # there was no input config, or none of the input config was valid.
-    def config(self) -> Optional[Dict[str, Union[str, int, Dict]]]:
+    def config(self) -> Optional[List[Dict[str, Union[str, int, Dict]]]]:
         if not self._mappers:
             return None
-        return {"mappers": self._mappers}
+        return self._mappers
 
     def setup(self, ir: "IR", aconf: Config) -> bool:
         self._setup(ir, aconf)
