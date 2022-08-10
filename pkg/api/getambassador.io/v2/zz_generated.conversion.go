@@ -4106,10 +4106,6 @@ func autoConvert_v2_MappingSpec_To_v3alpha1_MappingSpec(in *MappingSpec, out *v3
 		}
 	}
 	if true {
-		in, out := &in.V3HealthCheckPort, &out.HealthCheckPort
-		*out = *in
-	}
-	if true {
 		in, out := &in.DeprecatedUseWebsocket, &out.DeprecatedUseWebsocket
 		*out = *in
 	}
@@ -4576,10 +4572,6 @@ func autoConvert_v3alpha1_MappingSpec_To_v2_MappingSpec(in *v3alpha1.MappingSpec
 				}
 			}
 		}
-	}
-	if true {
-		in, out := &in.HealthCheckPort, &out.V3HealthCheckPort
-		*out = *in
 	}
 	if true {
 		in, out := &in.DeprecatedUseWebsocket, &out.DeprecatedUseWebsocket

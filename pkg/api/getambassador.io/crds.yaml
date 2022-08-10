@@ -2367,8 +2367,6 @@ spec:
                 type: boolean
               v3StatsName:
                 type: string
-              v3health_check_port:
-                type: integer
               v3health_checks:
                 items:
                   properties:
@@ -2717,8 +2715,6 @@ spec:
                 additionalProperties:
                   type: string
                 type: object
-              health_check_port:
-                type: integer
               health_checks:
                 items:
                   properties:

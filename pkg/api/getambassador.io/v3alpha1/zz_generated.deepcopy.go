@@ -2074,11 +2074,6 @@ func (in *MappingSpec) DeepCopyInto(out *MappingSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.HealthCheckPort != nil {
-		in, out := &in.HealthCheckPort, &out.HealthCheckPort
-		*out = new(int)
-		**out = **in
-	}
 	if in.DeprecatedUseWebsocket != nil {
 		in, out := &in.DeprecatedUseWebsocket, &out.DeprecatedUseWebsocket
 		*out = new(bool)

@@ -1,11 +1,8 @@
-# import copy
 import logging
 import typing
 from typing import Any
 
 import pytest
-
-# import sys
 
 
 logging.basicConfig(
@@ -50,7 +47,7 @@ def _get_envoy_config(yaml):
 
 
 @pytest.mark.compilertest
-def test_irhealthcheck():
+def test_healthcheck():
 
     baseYaml = """
 ---
@@ -393,10 +390,7 @@ spec:
         caseYaml = typing.cast(typing.Dict[str, Any], case)["input"]  # seriously mypy???
         testName = typing.cast(typing.Dict[str, Any], case)["name"]
         econf = _get_envoy_config(caseYaml)
-        # errors = econf.ir.aconf.errors
-
         cluster = _get_cluster_config(econf.clusters, "cluster_coolsvcname_default")
-
         assert cluster != False
 
         expectedChecks = typing.cast(typing.Dict[str, Any], case)["expected"]
@@ -432,7 +426,6 @@ spec:
 # healthcheck fields match the actual ones
 def check_healthcheck_defaults(expected, actual, testName):
     # check all the default values unless we overrode them
-    # if expected["healthy_threshold"] is not None:
     if "healthy_threshold" in expected:
         assert (
             actual["healthy_threshold"] == expected["healthy_threshold"]
@@ -503,3 +496,5 @@ def check_http_healthcheck(expected, actual, testName):
             assert (
                 actual["expected_statuses"] == expected["expected_statuses"]
             ), "Failed healthcheck test {}".format(testName)
+
+

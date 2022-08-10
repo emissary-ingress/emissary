@@ -88,8 +88,6 @@ type MappingSpec struct {
 	// +kubebuilder:validation:MinItems=1
 	// +k8s:conversion-gen:rename=HealthChecks
 	V3HealthChecks []HealthCheck `json:"v3health_checks,omitempty"`
-	// +k8s:conversion-gen:rename=HealthCheckPort
-	V3HealthCheckPort *int `json:"v3health_check_port,omitempty"`
 
 	// use_websocket is deprecated, and is equivlaent to setting
 	// `allow_upgrade: ["websocket"]`

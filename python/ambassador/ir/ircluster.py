@@ -54,7 +54,6 @@ class IRCluster(IRResource):
         ctx_name: Optional[Union[str, bool]] = None,
         host_rewrite: Optional[str] = None,
         dns_type: Optional[str] = "strict_dns",
-        health_check_port: Optional[int] = None,
         enable_ipv4: Optional[bool] = None,
         enable_ipv6: Optional[bool] = None,
         lb_type: str = "round_robin",
@@ -297,7 +296,6 @@ class IRCluster(IRResource):
 
         new_args: Dict[str, Any] = {
             "type": dns_type,
-            "health_check_port": health_check_port,
             "lb_type": lb_type,
             "urls": [url],  # TODO: Should we completely eliminate `urls` in favor of `targets`?
             "load_balancer": load_balancer,

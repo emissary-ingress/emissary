@@ -95,7 +95,6 @@ class IRHTTPMapping(IRBaseMapping):
         # Do not include host
         # Do not include hostname
         "health_checks": False,
-        "health_check_port": False,
         "host_redirect": False,
         "host_regex": False,
         "host_rewrite": False,
