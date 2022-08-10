@@ -4,7 +4,6 @@ from typing import Any
 
 import pytest
 
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s test %(levelname)s: %(message)s",
@@ -50,6 +49,21 @@ def _get_envoy_config(yaml):
 def test_healthcheck():
 
     baseYaml = """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: healthchecktest
+  namespace: default
+spec:
+  hostname: '*'
+  service: coolsvcname
+  prefix: /test
+  resolver: endpoint
+  health_checks: {}
+"""
+
+    noEndpointYaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -383,6 +397,11 @@ spec:
             ),
             "expected": [{"http_health_check": {"path": "/health"}}],
         },
+        {  # Test that we throw out the health check config when there is no endpoint resolver
+            "name": "healthcheck_no_endpoint",
+            "input": noEndpointYaml.format([{"http_health_check": {"path": "/health"}}]),
+            "expected": None,
+        },
     ]
 
     for case in testcases:
@@ -496,5 +515,3 @@ def check_http_healthcheck(expected, actual, testName):
             assert (
                 actual["expected_statuses"] == expected["expected_statuses"]
             ), "Failed healthcheck test {}".format(testName)
-
-
