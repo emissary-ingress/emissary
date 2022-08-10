@@ -176,14 +176,6 @@ func (m *MockClient) Retrieve(ctx context.Context, in *agent.Identity, opts ...g
 	return m, nil
 }
 
-type retrvsnapshotclient struct {
-	grpc.ClientStream
-}
-
-func (r *retrvsnapshotclient) Recv() (*agent.RawSnapshotChunk, error) {
-	return nil, nil
-}
-
 func TestComm(t *testing.T) {
 	ctx := dlog.NewTestContext(t, false)
 	ctx, cancel := context.WithCancel(ctx)
