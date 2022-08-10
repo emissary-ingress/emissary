@@ -5,7 +5,11 @@ from typing import TYPE_CHECKING, Optional
 import pytest
 
 from tests.selfsigned import TLSCerts
-from tests.utils import assert_valid_envoy_config, module_and_mapping_manifests
+from tests.utils import (
+    assert_valid_envoy_config,
+    econf_foreach_cluster,
+    module_and_mapping_manifests,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -143,6 +147,47 @@ spec:
             },
         }
     }
+
+
+@pytest.mark.compilertest
+def test_tracing_cluster_fields():
+
+    yaml = """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TracingService
+metadata:
+    name: myts
+    namespace: default
+spec:
+    service: zipkin-test:9411
+    driver: zipkin
+    stats_name: tracingservice
+"""
+
+    econf = _get_envoy_config(yaml)
+
+    bootstrap_config, _, _ = econf.split_config()
+    assert "tracing" in bootstrap_config
+
+    cluster_name = "cluster_tracing_zipkin_test_9411_default"
+    assert bootstrap_config["tracing"] == {
+        "http": {
+            "name": "envoy.zipkin",
+            "typed_config": {
+                "@type": "type.googleapis.com/envoy.config.trace.v3.ZipkinConfig",
+                "collector_endpoint": "/api/v2/spans",
+                "collector_endpoint_version": "HTTP_JSON",
+                "trace_id_128bit": True,
+                "collector_cluster": cluster_name,
+            },
+        }
+    }
+
+    def check_fields(cluster):
+        assert cluster["alt_stat_name"] == "tracingservice"
+
+    econf_foreach_cluster(econf.as_dict(), check_fields, name=cluster_name)
 
 
 @pytest.mark.compilertest

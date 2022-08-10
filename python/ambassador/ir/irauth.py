@@ -179,6 +179,8 @@ class IRAuth(IRFilter):
                 f'AuthService: protocol_version {self.protocol_version} is unsupported, protocol_version must be "v3"'
             )
 
+        self["stats_name"] = module.get("stats_name", None)
+
         status_on_error = module.get("status_on_error", None)
         if status_on_error:
             self["status_on_error"] = status_on_error
