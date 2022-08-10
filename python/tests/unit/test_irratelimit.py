@@ -148,7 +148,7 @@ spec:
     def check_fields(cluster):
         assert cluster["alt_stat_name"] == stats_name
 
-    econf_foreach_cluster(econf, check_fields, name="cluster_{}_default".format(SERVICE_NAME))
+    econf_foreach_cluster(econf.as_dict(), check_fields, name="cluster_{}_default".format(SERVICE_NAME))
 
 
 @pytest.mark.compilertest

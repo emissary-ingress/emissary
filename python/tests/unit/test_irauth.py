@@ -138,7 +138,7 @@ spec:
     def check_fields(cluster):
         assert cluster["alt_stat_name"] == "authservice"
 
-    econf_foreach_cluster(econf, check_fields, name=cluster_name)
+    econf_foreach_cluster(econf.as_dict(), check_fields, name=cluster_name)
 
 
 @pytest.mark.compilertest
