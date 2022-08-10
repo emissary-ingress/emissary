@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from ..config import Config
 from .irresource import IRResource
@@ -11,16 +11,16 @@ if TYPE_CHECKING:
 class IRHealthChecks(IRResource):
 
     # The list of mappers that will make up the final health checking config
-    _mappers: Optional[List[Dict[str, Any]]]
+    _mappers: Optional[List[Dict[str, Union[str, int, Dict]]]]
 
     # The IR config, used as input from a `health_checks` field on a Mapping
-    _ir_config: List[Dict[str, Any]]
+    _ir_config: List[Dict[str, Union[str, int, Dict]]]
 
     def __init__(
         self,
         ir: "IR",
         aconf: Config,
-        health_checks_config: List[Dict[str, Any]],
+        health_checks_config: List[Dict[str, Union[str, int, Dict]]],
         rkey: str = "ir.health_checks",
         kind: str = "IRHealthChecks",
         name: str = "health_checks",
@@ -32,7 +32,7 @@ class IRHealthChecks(IRResource):
 
     # Return the final config, or None if there isn't any, either because
     # there was no input config, or none of the input config was valid.
-    def config(self) -> Optional[Dict[str, Any]]:
+    def config(self) -> Optional[Dict[str, Union[str, int, Dict]]]:
         if not self._mappers:
             return None
         return {"mappers": self._mappers}
@@ -66,8 +66,8 @@ class IRHealthChecks(IRResource):
         if self._mappers is not None:
             ir.logger.debug("IRHealthChecks: loaded mappers %s" % repr(self._mappers))
 
-    def _generate_mappers(self) -> Optional[List[Dict[str, Any]]]:
-        all_mappers: List[Dict[str, Any]] = []
+    def _generate_mappers(self) -> Optional[List[Dict[str, Union[str, int, Dict]]]]:
+        all_mappers: List[Dict[str, Union[str, int, Dict]]] = []
 
         # Make sure each health check in the list has config for either a grpc health check or an http health check
         for hc in self._ir_config:
@@ -93,7 +93,7 @@ class IRHealthChecks(IRResource):
             healthy_threshold = hc.get("healthy_threshold", 1)
             unhealthy_threshold = hc.get("unhealthy_threshold", 2)
 
-            mapper: Dict[str, Any] = {
+            mapper: Dict[str, Union[str, int, Dict]] = {
                 "timeout": timeout,
                 "interval": interval,
                 "healthy_threshold": healthy_threshold,
@@ -149,37 +149,35 @@ class IRHealthChecks(IRResource):
                 if expected_statuses is not None:
                     validStatuses = []
                     for statusRange in expected_statuses:
-                        try:
-                            startCode = int(statusRange["start"])
-                            endCode = int(statusRange["end"])
-                            if startCode < 100 or startCode >= 600:
-                                raise ValueError(
-                                    "status {} must be an integer >= 100 and < 600".format(
-                                        startCode
-                                    )
-                                )
-                            if endCode < 100 or endCode >= 600:
-                                raise ValueError(
-                                    "status {} must be an integer >= 100 and < 600".format(endCode)
-                                )
-                            if startCode > endCode:
-                                raise ValueError(
-                                    "status range start value {} cannot be higher than the end {} for range".format(
-                                        startCode, endCode
-                                    )
-                                )
-
-                            # We add one to the end code because by default Envoy expects the start of the rangge to be
-                            # inclusive, but the end of the range to be exclusive. Lets just make both inclusive for simplicity.
-                            endCode += 1
-                            newRange = {"start": startCode, "end": endCode}
-                            validStatuses.append(newRange)
-                        except ValueError as e:
+                        startCode = int(statusRange["start"])
+                        endCode = int(statusRange["end"])
+                        if startCode < 100 or startCode >= 600:
                             self.post_error(
-                                f"IRHealthChecks: expected_statuses: {e}. Ignoring expected status for health-check {hc}",
+                                f"IRHealthChecks: expected_statuses: {startCode} must be an integer >= 100 and < 600. Ignoring expected status for health-check {hc}",
                                 log_level=logging.ERROR,
+
                             )
                             continue
+                        if endCode < 100 or endCode >= 600:
+                            self.post_error(
+                                f"IRHealthChecks: expected_statuses: {endCode} must be an integer >= 100 and < 600. Ignoring expected status for health-check {hc}",
+                                log_level=logging.ERROR,
+
+                            )
+                            continue
+                        if startCode > endCode:
+                            self.post_error(
+                                f"IRHealthChecks: expected_statuses: status range start value {startCode} cannot be higher than the end {endCode} for range. Ignoring expected status for health-check {hc}",
+                                log_level=logging.ERROR,
+
+                            )
+                            continue
+
+                        # We add one to the end code because by default Envoy expects the start of the range to be
+                        # inclusive, but the end of the range to be exclusive. Lets just make both inclusive for simplicity.
+                        endCode += 1
+                        newRange = {"start": startCode, "end": endCode}
+                        validStatuses.append(newRange)
                     if len(validStatuses) > 0:
                         http_mapper["expected_statuses"] = validStatuses
                 # Add the http health check to the config
@@ -202,7 +200,7 @@ class IRHealthChecks(IRResource):
                     )
                     continue
                 else:
-                    grpc_mapper: Dict[str, Any] = {"service_name": service_name}
+                    grpc_mapper: Dict[str, str] = {"service_name": service_name}
 
                 authority = grpc_health_check.get("authority", None)
                 if authority is not None:

@@ -194,11 +194,11 @@ class V3Cluster(Cacheable):
 
             fields["upstream_connection_options"] = {"tcp_keepalive": keepalive_options}
 
-        # Dont feed the raw health_checks obejct to envoy, grab its config where the econf has already been built
+        # Don't feed the raw health_checks object to envoy, grab its config where the econf has already been built
         if cluster.health_checks is not None:
             health_checks_config = cluster.health_checks.config()
             if health_checks_config:
-                if "mappers" in health_checks_config and len(health_checks_config["mappers"]) > 0:
+                if health_checks_config.get("mappers", []):
                     self["health_checks"] = health_checks_config["mappers"]
 
         self.update(fields)
