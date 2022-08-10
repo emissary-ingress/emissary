@@ -35,8 +35,6 @@ service Director {
 
   // Reports the result of a command execution to the cloud
   rpc ReportCommandResult(CommandResult) returns (CommandResultResponse) {}
-
-  rpc RetrieveSnapshot(Identity) returns (stream RawSnapshotChunk) {}
 }
 
 // How Ambassador's Agent identifies itself to the DCP

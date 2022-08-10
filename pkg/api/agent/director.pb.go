@@ -1316,7 +1316,7 @@ var file_agent_director_proto_rawDesc = []byte{
 	0x69, 0x65, 0x6e, 0x74, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x46, 0x61, 0x6d, 0x69, 0x6c,
 	0x79, 0x52, 0x0c, 0x65, 0x6e, 0x76, 0x6f, 0x79, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x22,
 	0x17, 0x0a, 0x15, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0xec, 0x03, 0x0a, 0x08, 0x44, 0x69, 0x72,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0xaa, 0x03, 0x0a, 0x08, 0x44, 0x69, 0x72,
 	0x65, 0x63, 0x74, 0x6f, 0x72, 0x12, 0x37, 0x0a, 0x06, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x12,
 	0x0f, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x53, 0x6e, 0x61, 0x70, 0x73, 0x68, 0x6f, 0x74,
 	0x1a, 0x17, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x53, 0x6e, 0x61, 0x70, 0x73, 0x68, 0x6f,
@@ -1343,12 +1343,8 @@ var file_agent_director_proto_rawDesc = []byte{
 	0x14, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x52,
 	0x65, 0x73, 0x75, 0x6c, 0x74, 0x1a, 0x1c, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x43, 0x6f,
 	0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x40, 0x0a, 0x10, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76,
-	0x65, 0x53, 0x6e, 0x61, 0x70, 0x73, 0x68, 0x6f, 0x74, 0x12, 0x0f, 0x2e, 0x61, 0x67, 0x65, 0x6e,
-	0x74, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x1a, 0x17, 0x2e, 0x61, 0x67, 0x65,
-	0x6e, 0x74, 0x2e, 0x52, 0x61, 0x77, 0x53, 0x6e, 0x61, 0x70, 0x73, 0x68, 0x6f, 0x74, 0x43, 0x68,
-	0x75, 0x6e, 0x6b, 0x22, 0x00, 0x30, 0x01, 0x42, 0x09, 0x5a, 0x07, 0x2e, 0x2f, 0x61, 0x67, 0x65,
-	0x6e, 0x74, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x09, 0x5a, 0x07, 0x2e, 0x2f, 0x61, 0x67, 0x65, 0x6e, 0x74,
+	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1414,16 +1410,14 @@ var file_agent_director_proto_depIdxs = []int32{
 	16, // 19: agent.Director.StreamMetrics:input_type -> agent.StreamMetricsMessage
 	2,  // 20: agent.Director.Retrieve:input_type -> agent.Identity
 	14, // 21: agent.Director.ReportCommandResult:input_type -> agent.CommandResult
-	2,  // 22: agent.Director.RetrieveSnapshot:input_type -> agent.Identity
-	8,  // 23: agent.Director.Report:output_type -> agent.SnapshotResponse
-	8,  // 24: agent.Director.ReportStream:output_type -> agent.SnapshotResponse
-	9,  // 25: agent.Director.StreamDiagnostics:output_type -> agent.DiagnosticsResponse
-	17, // 26: agent.Director.StreamMetrics:output_type -> agent.StreamMetricsResponse
-	10, // 27: agent.Director.Retrieve:output_type -> agent.Directive
-	15, // 28: agent.Director.ReportCommandResult:output_type -> agent.CommandResultResponse
-	4,  // 29: agent.Director.RetrieveSnapshot:output_type -> agent.RawSnapshotChunk
-	23, // [23:30] is the sub-list for method output_type
-	16, // [16:23] is the sub-list for method input_type
+	8,  // 22: agent.Director.Report:output_type -> agent.SnapshotResponse
+	8,  // 23: agent.Director.ReportStream:output_type -> agent.SnapshotResponse
+	9,  // 24: agent.Director.StreamDiagnostics:output_type -> agent.DiagnosticsResponse
+	17, // 25: agent.Director.StreamMetrics:output_type -> agent.StreamMetricsResponse
+	10, // 26: agent.Director.Retrieve:output_type -> agent.Directive
+	15, // 27: agent.Director.ReportCommandResult:output_type -> agent.CommandResultResponse
+	22, // [22:28] is the sub-list for method output_type
+	16, // [16:22] is the sub-list for method input_type
 	16, // [16:16] is the sub-list for extension type_name
 	16, // [16:16] is the sub-list for extension extendee
 	0,  // [0:16] is the sub-list for field type_name
@@ -1675,7 +1669,6 @@ type DirectorClient interface {
 	Retrieve(ctx context.Context, in *Identity, opts ...grpc.CallOption) (Director_RetrieveClient, error)
 	// Reports the result of a command execution to the cloud
 	ReportCommandResult(ctx context.Context, in *CommandResult, opts ...grpc.CallOption) (*CommandResultResponse, error)
-	RetrieveSnapshot(ctx context.Context, in *Identity, opts ...grpc.CallOption) (Director_RetrieveSnapshotClient, error)
 }
 
 type directorClient struct {
@@ -1839,38 +1832,6 @@ func (c *directorClient) ReportCommandResult(ctx context.Context, in *CommandRes
 	return out, nil
 }
 
-func (c *directorClient) RetrieveSnapshot(ctx context.Context, in *Identity, opts ...grpc.CallOption) (Director_RetrieveSnapshotClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Director_serviceDesc.Streams[4], "/agent.Director/RetrieveSnapshot", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &directorRetrieveSnapshotClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type Director_RetrieveSnapshotClient interface {
-	Recv() (*RawSnapshotChunk, error)
-	grpc.ClientStream
-}
-
-type directorRetrieveSnapshotClient struct {
-	grpc.ClientStream
-}
-
-func (x *directorRetrieveSnapshotClient) Recv() (*RawSnapshotChunk, error) {
-	m := new(RawSnapshotChunk)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // DirectorServer is the server API for Director service.
 type DirectorServer interface {
 	// Deprecated: Do not use.
@@ -1887,7 +1848,6 @@ type DirectorServer interface {
 	Retrieve(*Identity, Director_RetrieveServer) error
 	// Reports the result of a command execution to the cloud
 	ReportCommandResult(context.Context, *CommandResult) (*CommandResultResponse, error)
-	RetrieveSnapshot(*Identity, Director_RetrieveSnapshotServer) error
 }
 
 // UnimplementedDirectorServer can be embedded to have forward compatible implementations.
@@ -1911,9 +1871,6 @@ func (*UnimplementedDirectorServer) Retrieve(*Identity, Director_RetrieveServer)
 }
 func (*UnimplementedDirectorServer) ReportCommandResult(context.Context, *CommandResult) (*CommandResultResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReportCommandResult not implemented")
-}
-func (*UnimplementedDirectorServer) RetrieveSnapshot(*Identity, Director_RetrieveSnapshotServer) error {
-	return status.Errorf(codes.Unimplemented, "method RetrieveSnapshot not implemented")
 }
 
 func RegisterDirectorServer(s *grpc.Server, srv DirectorServer) {
@@ -2055,27 +2012,6 @@ func _Director_ReportCommandResult_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Director_RetrieveSnapshot_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(Identity)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(DirectorServer).RetrieveSnapshot(m, &directorRetrieveSnapshotServer{stream})
-}
-
-type Director_RetrieveSnapshotServer interface {
-	Send(*RawSnapshotChunk) error
-	grpc.ServerStream
-}
-
-type directorRetrieveSnapshotServer struct {
-	grpc.ServerStream
-}
-
-func (x *directorRetrieveSnapshotServer) Send(m *RawSnapshotChunk) error {
-	return x.ServerStream.SendMsg(m)
-}
-
 var _Director_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "agent.Director",
 	HandlerType: (*DirectorServer)(nil),
@@ -2108,11 +2044,6 @@ var _Director_serviceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Retrieve",
 			Handler:       _Director_Retrieve_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "RetrieveSnapshot",
-			Handler:       _Director_RetrieveSnapshot_Handler,
 			ServerStreams: true,
 		},
 	},
