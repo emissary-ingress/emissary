@@ -255,6 +255,7 @@ $(OSS_HOME)/api/envoy: $(OSS_HOME)/api/%: $(OSS_HOME)/_cxx/envoy
 # Go generated from the protobufs
 $(OSS_HOME)/_cxx/envoy/build_go: $(ENVOY_BASH.deps) FORCE
 	$(call ENVOY_BASH.cmd, \
+      $(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
 	    $(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generate_protobufs; generate_protobufs("@envoy_api//...", "/root/envoy/build_go", "envoy_api")'; \
 	)
 	test -d $@ && touch $@
