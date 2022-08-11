@@ -11,6 +11,7 @@ import (
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/consulwatch"
 	"github.com/datawire/ambassador/pkg/kates"
+	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
 )
 
 const manifests = `
@@ -127,7 +128,7 @@ func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []consulMapp
 	ctx := context.Background()
 
 	for _, obj := range objs {
-		newobj := convertAnnotation(ctx, parent, obj)
+		newobj := snapshotTypes.ConvertAnnotation(ctx, parent, obj)
 		newobj.SetNamespace("default")
 		switch o := newobj.(type) {
 		case *amb.ConsulResolver:

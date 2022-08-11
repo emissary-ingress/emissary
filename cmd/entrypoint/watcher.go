@@ -345,7 +345,7 @@ func (sh *SnapshotHolder) K8sUpdate(ctx context.Context, watcher K8sWatcher, con
 		}
 
 		parseAnnotationsTimer.Time(func() {
-			parseAnnotations(ctx, sh.k8sSnapshot)
+			sh.k8sSnapshot.PopulateAnnotations(ctx)
 		})
 
 		reconcileSecretsTimer.Time(func() {

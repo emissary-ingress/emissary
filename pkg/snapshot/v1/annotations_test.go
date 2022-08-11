@@ -1,4 +1,4 @@
-package entrypoint
+package snapshot
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -98,7 +97,7 @@ prefix: /blah/`
 		},
 	}
 
-	ks := &snapshotTypes.KubernetesSnapshot{
+	ks := &KubernetesSnapshot{
 		Services:  []*kates.Service{svc, ambSvc},
 		Ingresses: []*kates.Ingress{ingress},
 		Hosts:     []*amb.Host{ignoredHost},
@@ -106,7 +105,7 @@ prefix: /blah/`
 
 	ctx := context.Background()
 
-	parseAnnotations(ctx, ks)
+	ks.PopulateAnnotations(ctx)
 
 	assert.NotEmpty(t, ks.Annotations)
 	assert.Equal(t, len(ks.Annotations), 4)
@@ -393,7 +392,7 @@ config:
 
 			ctx := context.Background()
 
-			converted := convertAnnotation(ctx, parent, kobj)
+			converted := ConvertAnnotation(ctx, parent, kobj)
 
 			assert.NotEmpty(t, converted)
 			assert.Equal(t, tc.expectedObj, converted)

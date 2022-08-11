@@ -1,14 +1,13 @@
-package entrypoint
+package snapshot
 
 import (
 	"context"
 
 	"github.com/datawire/ambassador/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
 
-func parseAnnotations(ctx context.Context, a *snapshotTypes.KubernetesSnapshot) {
+func (a *KubernetesSnapshot) PopulateAnnotations(ctx context.Context) {
 	var annotatable []kates.Object
 
 	for _, s := range a.Services {
@@ -19,13 +18,13 @@ func parseAnnotations(ctx context.Context, a *snapshotTypes.KubernetesSnapshot) 
 		annotatable = append(annotatable, i)
 	}
 
-	a.Annotations = GetAnnotations(ctx, annotatable...)
+	a.Annotations = getAnnotations(ctx, annotatable...)
 }
 
-// GetAnnotations extracts and converts any parseable annotations from the supplied resource. It
+// getAnnotations extracts and converts any parseable annotations from the supplied resource. It
 // omits any malformed annotations and does not report the errors. This is ok for now because the
 // python code will catch and report any errors.
-func GetAnnotations(ctx context.Context, resources ...kates.Object) (result []kates.Object) {
+func getAnnotations(ctx context.Context, resources ...kates.Object) (result []kates.Object) {
 	for _, r := range resources {
 		ann, ok := r.GetAnnotations()["getambassador.io/config"]
 		if ok {
@@ -34,7 +33,7 @@ func GetAnnotations(ctx context.Context, resources ...kates.Object) (result []ka
 				dlog.Errorf(ctx, "error parsing annotations: %v", err)
 			} else {
 				for _, o := range objs {
-					result = append(result, convertAnnotation(ctx, r, o))
+					result = append(result, ConvertAnnotation(ctx, r, o))
 				}
 			}
 		}
@@ -50,7 +49,7 @@ func GetAnnotations(ctx context.Context, resources ...kates.Object) (result []ka
 //
 // NOTE: Right now this is only guaranteed to preserve enough fidelity to find secrets, this may
 // work well enough for other purposes, but some careful review is required before such use.
-func convertAnnotation(ctx context.Context, parent kates.Object, kobj kates.Object) kates.Object {
+func ConvertAnnotation(ctx context.Context, parent kates.Object, kobj kates.Object) kates.Object {
 	un, ok := kobj.(*kates.Unstructured)
 	if !ok {
 		return kobj
