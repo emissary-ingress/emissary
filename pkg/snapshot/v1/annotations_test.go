@@ -392,8 +392,8 @@ config:
 
 			ctx := context.Background()
 
-			converted := ConvertAnnotation(ctx, parent, kobj)
-
+			converted, err := ConvertAnnotation(ctx, parent, kobj)
+			assert.NoError(t, err)
 			assert.NotEmpty(t, converted)
 			assert.Equal(t, tc.expectedObj, converted)
 		})

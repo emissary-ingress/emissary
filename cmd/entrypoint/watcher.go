@@ -345,7 +345,9 @@ func (sh *SnapshotHolder) K8sUpdate(ctx context.Context, watcher K8sWatcher, con
 		}
 
 		parseAnnotationsTimer.Time(func() {
-			sh.k8sSnapshot.PopulateAnnotations(ctx)
+			if err := sh.k8sSnapshot.PopulateAnnotations(ctx); err != nil {
+				dlog.Errorf(ctx, "error parsing annotations: %v", err)
+			}
 		})
 
 		reconcileSecretsTimer.Time(func() {

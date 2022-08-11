@@ -128,7 +128,10 @@ func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []consulMapp
 	ctx := context.Background()
 
 	for _, obj := range objs {
-		newobj := snapshotTypes.ConvertAnnotation(ctx, parent, obj)
+		newobj, err := snapshotTypes.ConvertAnnotation(ctx, parent, obj.(*kates.Unstructured))
+		if !assert.NoError(t, err) {
+			continue
+		}
 		newobj.SetNamespace("default")
 		switch o := newobj.(type) {
 		case *amb.ConsulResolver:
