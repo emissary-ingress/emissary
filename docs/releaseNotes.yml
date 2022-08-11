@@ -31,6 +31,21 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+
+  - version: 1.14.5
+    date: 'TBD'
+    notes:
+      - title: When using gzip, upstreams will no longer receive encoded data
+        type: bugfix
+        body: >-
+          When using gzip compression, upstream services will no longer receive compressed
+          data. This bug was introduced in 1.14.0. The fix restores the default behavior of
+          not sending compressed data to upstream services.
+        github:
+        - title: 3818
+          link: https://github.com/emissary-ingress/emissary/issues/3818
+        docs: https://github.com/emissary-ingress/emissary/issues/3818
+
   - version: 1.14.4
     date: '2022-06-13'
     notes:

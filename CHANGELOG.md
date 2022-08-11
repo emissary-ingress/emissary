@@ -66,6 +66,15 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [1.14.5] TBD
+[1.14.5]: https://github.com/emissary-ingress/emissary/compare/v1.14.4...v1.14.5
+
+### Emissary Ingress and Ambassador Edge Stack
+
+- Bugfix: When using gzip compression, upstream services will no longer receive compressed data.
+  This bug was introduced in 1.14.0. The fix restores the default behavior of not sending compressed
+  data to upstream services.
+
 ## [1.14.4] June 13, 2022
 [1.14.4]: https://github.com/emissary-ingress/emissary/compare/v1.14.3...v1.14.4
 
