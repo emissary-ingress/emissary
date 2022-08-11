@@ -1,0 +1,84 @@
+name: Check branch version
+
+# This is a separate workflow from the main build-and-test workflow
+# because we want it to run when a PR's target branch changes, and
+# it'd be prohibitively time-consuming to re-run the main workflow
+# every time that happens.
+
+"on":
+  push:
+    branches:
+      - master
+      - release/v*
+  pull_request:
+    branches:
+      - master
+      - release/v*
+    types:
+      - opened   # default
+      - reopened # default
+      - edited   # default
+      - synchronize # also run if the target branch changes
+
+jobs:
+  check-branch-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+      - name: Detect version numbers
+        id: get-versions
+        run: |
+          # Set VERSION and CHART_VERSION
+          eval "$(make noop | sed 's/^\[make\] //')"
+          test -n "${VERSION:-}"
+          test -n "${CHART_VERSION:-}"
+
+          # Set tag_majorminor
+          tag_majorminor=$(cut -d. -f1,2 <<<"${VERSION#v}")
+          echo "::set-output name=tag_majorminor::${tag_majorminor}"
+
+          # Set branch_majorminor
+          case "$GITHUB_REF" in
+            refs/heads/*) branch=${GITHUB_REF#refs/heads/};;
+            refs/pull/*)  branch=${GITHUB_BASE_REF#refs/heads/};;
+          esac
+          if [[ $branch == master ]]; then
+             prev_branch_majorminor=$(git for-each-ref --format='%(refname:lstrip=4)' 'refs/remotes/origin/release/v*' | sort --version-sort | tail -n1 | sed 's/^v//')
+             if [[ "${prev_branch_majorminor%.*}" == "${tag_majorminor%.*}" ]]; then
+               branch_majorminor="${prev_branch_majorminor%.*}.$((${prev_branch_majorminor##*.}+1))"
+             else
+               branch_majorminor="$((${prev_branch_majorminor%.*}+1)).0"
+             fi
+          else
+             branch_majorminor=${branch#release/v}
+          fi
+          echo "::set-output name=branch_majorminor::${branch_majorminor}"
+
+          # Set relnotes_majorminor
+          make tools/bin/yq
+          relnotes_version=$(tools/bin/yq read docs/releaseNotes.yml items[0].version)
+          relnotes_majorminor=$(cut -d. -f1,2 <<<"$relnotes_version")
+          echo "::set-output name=relnotes_majorminor::${relnotes_majorminor}"
+
+          declare -p tag_majorminor branch_majorminor relnotes_majorminor
+      - name: Check version numbers
+        run: |
+          tag_majorminor=${{ steps.get-versions.outputs.tag_majorminor }}
+          branch_majorminor=${{ steps.get-versions.outputs.branch_majorminor }}
+          relnotes_majorminor=${{ steps.get-versions.outputs.relnotes_majorminor }}
+          declare -p tag_majorminor branch_majorminor relnotes_majorminor
+
+          # Check that those all agree
+          if [[ "$tag_majorminor" != "$branch_majorminor" ]]; then
+            echo "You seem to be on the Git branch for v${branch_majorminor}.z, but Git tags indicate that this is work for v${tag_majorminor}.z"
+            echo "Perhaps you need to go yell at the person who set up the release branch for the last .y bump."
+            exit 1
+          fi
+          if [[ "$relnotes_majorminor" != "$tag_majorminor" ]]; then
+            echo "Your Git tag+branch indicate that you are targeting v${tag_majorminor}.z but your docs/releaseNotes.yml indicate that you are targeting v${relnotes_majorminor}.z"
+            exit 1
+          fi
