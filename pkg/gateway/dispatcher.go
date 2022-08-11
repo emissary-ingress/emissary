@@ -372,7 +372,7 @@ func (d *Dispatcher) buildSnapshot(ctx context.Context) {
 		bs, _ := json.MarshalIndent(snapshot, "", "  ")
 		dlog.Errorf(ctx, "Dispatcher Snapshot inconsistency: %v: %s", err, bs)
 	} else {
-		d.snapshot = &snapshot
+		d.snapshot = snapshot
 		d.endpointWatches = endpointWatches
 	}
 }
