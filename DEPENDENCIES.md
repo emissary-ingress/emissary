@@ -88,7 +88,7 @@ following Free and Open Source software:
     github.com/pmezard/go-difflib                                                              v1.0.0                                       3-clause BSD license
     github.com/prometheus/client_model                                                         v0.2.0                                       Apache License 2.0
     github.com/russross/blackfriday                                                            v1.6.0                                       2-clause BSD license
-    github.com/sirupsen/logrus                                                                 v1.8.1                                       MIT license
+    github.com/sirupsen/logrus                                                                 v1.9.0                                       MIT license
     github.com/spf13/cobra                                                                     v1.3.0                                       Apache License 2.0
     github.com/spf13/pflag                                                                     v1.0.5                                       3-clause BSD license
     github.com/stretchr/testify                                                                v1.8.0                                       MIT license
