@@ -106,7 +106,7 @@ github.com/containerd/containerd/version
 github.com/containerd/continuity/pathdriver
 # github.com/cyphar/filepath-securejoin v0.2.2
 github.com/cyphar/filepath-securejoin
-# github.com/datawire/dlib v1.2.0
+# github.com/datawire/dlib v1.3.0
 github.com/datawire/dlib/dcontext
 github.com/datawire/dlib/derrgroup
 github.com/datawire/dlib/derror
@@ -115,6 +115,7 @@ github.com/datawire/dlib/dgroup
 github.com/datawire/dlib/dhttp
 github.com/datawire/dlib/dlog
 github.com/datawire/dlib/dtime
+github.com/datawire/dlib/internal/sigint
 # github.com/datawire/pf v0.0.0-20201130213120-827bb98f7ed5
 github.com/datawire/pf
 github.com/datawire/pf/libkern
@@ -497,12 +498,13 @@ golang.org/x/crypto/scrypt
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/mod v0.3.0
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+# golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
 golang.org/x/net/bpf
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2
+golang.org/x/net/http2/h2c
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/iana

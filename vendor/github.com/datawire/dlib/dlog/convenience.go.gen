@@ -31,24 +31,38 @@
 		func ${lvlAlias}(ctx context.Context, args ...interface{}) {
 			l := getLogger(ctx)
 			l.Helper()
-			l.Log(LogLevel${lvlReal}, fmt.Sprint(args...))
+			if opt, ok := l.(OptimizedLogger); ok {
+				opt.UnformattedLog(LogLevel${lvlReal}, args...)
+			} else {
+				l.Log(LogLevel${lvlReal}, fmt.Sprint(args...))
+			}
 		}
 		func ${lvlAlias}ln(ctx context.Context, args ...interface{}) {
 			l := getLogger(ctx)
 			l.Helper()
-			l.Log(LogLevel${lvlReal}, sprintln(args...))
+			if opt, ok := l.(OptimizedLogger); ok {
+				opt.UnformattedLogln(LogLevel${lvlReal}, args...)
+			} else {
+				l.Log(LogLevel${lvlReal}, sprintln(args...))
+			}
 		}
 		func ${lvlAlias}f(ctx context.Context, format string, args ...interface{}) {
 			l := getLogger(ctx)
 			l.Helper()
-			l.Log(LogLevel${lvlReal}, fmt.Sprintf(format, args...))
+			if opt, ok := l.(OptimizedLogger); ok {
+				opt.UnformattedLogf(LogLevel${lvlReal}, format, args...)
+			} else {
+				l.Log(LogLevel${lvlReal}, fmt.Sprintf(format, args...))
+			}
 		}
 		EOT
 	}
 	for lvl in "${levels[@]}"; do
 		emit "$lvl" "$lvl"
 	done
-	for alvl in "${!aliases[@]}"; do
+	# Sort the keys of aliases so we're sure the methods are always generated in the same order
+	mapfile -d '' sorted < <(printf '%s\0' "${!aliases[@]}" | LC_COLLATE=C sort -z)
+	for alvl in "${sorted[@]}"; do
 		emit "$alvl" "${aliases[${alvl}]}"
 	done
 } | gofmt

@@ -2,13 +2,11 @@ package dexec
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"os"
-	"unicode/utf8"
 )
 
-func fixupWriter(o io.Writer, log func(string)) io.Writer {
+func fixupWriter(o io.Writer, log func(error, []byte)) io.Writer {
 	if o == nil {
 		o = nilWriter{}
 	}
@@ -27,14 +25,12 @@ type nilWriter struct{}
 func (nilWriter) Write(p []byte) (int, error) { return len(p), nil }
 
 type loggingWriter struct {
-	log    func(string)
+	log    func(error, []byte)
 	writer io.Writer
 }
 
 func (l *loggingWriter) Write(p []byte) (n int, err error) {
-	n, err = l.writer.Write(p)
-
-	toLog := p[:n]
+	toLog := p
 	for len(toLog) > 0 {
 		nl := bytes.IndexByte(toLog, '\n')
 		var line []byte
@@ -45,31 +41,12 @@ func (l *loggingWriter) Write(p []byte) (n int, err error) {
 			line = toLog[:nl+1]
 			toLog = toLog[nl+1:]
 		}
-		if utf8.Valid(line) {
-			if utf8.RuneCount(line) > 80 {
-				truncated := line
-				for utf8.RuneCount(truncated) > 80 {
-					_, size := utf8.DecodeLastRune(truncated)
-					truncated = truncated[:len(truncated)-size]
-				}
-				l.log(fmt.Sprintf("%q… (%d runes truncated)",
-					truncated,
-					utf8.RuneCount(line)-utf8.RuneCount(truncated)))
-			} else {
-				l.log(fmt.Sprintf("%q", line))
-			}
-		} else {
-			l.log(fmt.Sprintf("[...%d bytes of binary data...]", len(line)))
-		}
+		l.log(nil, line)
 	}
 
+	n, err = l.writer.Write(p)
 	if err != nil {
-		if err == io.EOF {
-			l.log("EOF")
-		} else {
-			l.log(fmt.Sprintf("error = %v", err))
-		}
+		l.log(err, nil)
 	}
-
 	return n, err
 }

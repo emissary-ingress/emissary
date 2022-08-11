@@ -38,7 +38,7 @@ Free and Open Source software:
     github.com/containerd/containerd                               v1.4.3                                                      Apache License 2.0
     github.com/containerd/continuity                               v0.0.0-20201208142359-180525291bb7                          Apache License 2.0
     github.com/cyphar/filepath-securejoin                          v0.2.2                                                      3-clause BSD license
-    github.com/datawire/dlib                                       v1.2.0                                                      Apache License 2.0
+    github.com/datawire/dlib                                       v1.3.0                                                      Apache License 2.0
     github.com/datawire/pf                                         v0.0.0-20201130213120-827bb98f7ed5                          2-clause BSD license
     github.com/davecgh/go-spew                                     v1.1.1                                                      ISC license
     github.com/deislabs/oras                                       v0.10.0                                                     MIT license
@@ -152,7 +152,7 @@ Free and Open Source software:
     go.opencensus.io                                               v0.22.3                                                     Apache License 2.0
     golang.org/x/crypto                                            v0.0.0-20201221181555-eec23a3978ad                          3-clause BSD license
     golang.org/x/mod                                               v0.3.0                                                      3-clause BSD license
-    golang.org/x/net                                               v0.0.0-20210119194325-5f4716e94777                          3-clause BSD license
+    golang.org/x/net                                               v0.0.0-20210226172049-e18ecbb05110                          3-clause BSD license
     golang.org/x/oauth2                                            v0.0.0-20200107190931-bf48bf16ab8d                          3-clause BSD license
     golang.org/x/sync                                              v0.0.0-20201207232520-09787c993a3a                          3-clause BSD license
     golang.org/x/sys                                               v0.0.0-20210124154548-22da62e12c0c                          3-clause BSD license

@@ -1,15 +1,15 @@
-// MODIFIED: This file is a verbatim subset of Go 1.15.6 context/context.go,
-// MODIFIED: except for lines marked "MODIFIED".
-//
+// MODIFIED: META: This file is a verbatim subset of Go 1.15.14 context/context.go,
+// MODIFIED: META: except for lines marked "MODIFIED".
+
 // Copyright 2014 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package dcontext // MODIFIED
+package dcontext // MODIFIED: FROM: package context
 
 import (
-	. "context"           // MODIFIED
-	reflectlite "reflect" // MODIFIED
+	. "context"           // MODIFIED: ADDED
+	reflectlite "reflect" // MODIFIED: FROM: "internal/reflectlite"
 )
 
 type stringer interface {
