@@ -187,6 +187,276 @@ func TestAPIDocsStore(t *testing.T) {
 				Data: []byte(`{"components":{},"info":{"title":"Sample API","version":"0.0"},"openapi":"3.0.0","paths":{},"servers":[{"url":""}]}`),
 			}},
 		},
+		{
+			name: "will handle prefix if it's already declared in the API Docs",
+			mappings: []*amb.Mapping{
+				{
+					TypeMeta: kates.TypeMeta{
+						Kind: "Mapping",
+					},
+					Spec: amb.MappingSpec{
+						Prefix:  "/prefix/",
+						Rewrite: agent.StrToPointer("/prefix/"),
+						Service: "some-svc:8080",
+						Docs: &amb.DocsInfo{
+							DisplayName: "docs-display-name",
+							Path:        "/docs-location",
+						},
+						DeprecatedHost: "mapping-host",
+					},
+					ObjectMeta: kates.ObjectMeta{
+						Name:      "some-endpoint",
+						Namespace: "default",
+					},
+				},
+			},
+
+			rawJSONDocsContent: `{"openapi":"3.0.0", "info":{"title": "Sample API", "version":"0.0"}, "paths":{}, "servers":[{"url":"http://mapping-host/prefix/"}]}`,
+
+			expectedRequestURL:     "http://some-svc.default:8080/prefix/docs-location",
+			expectedRequestHost:    "mapping-host",
+			expectedRequestHeaders: []agent.Header{},
+			expectedSOTW: []*snapshotTypes.APIDoc{{
+				TypeMeta: &kates.TypeMeta{
+					Kind:       "OpenAPI",
+					APIVersion: "v3",
+				},
+				Metadata: &kates.ObjectMeta{
+					Name: "docs-display-name",
+				},
+				TargetRef: &kates.ObjectReference{
+					Kind:      "Mapping",
+					Name:      "some-endpoint",
+					Namespace: "default",
+				},
+				Data: []byte(`{"components":{},"info":{"title":"Sample API","version":"0.0"},"openapi":"3.0.0","paths":{},"servers":[{"url":"mapping-host/prefix"}]}`),
+			}},
+		},
+		{
+			name: "will handle prefix (no trailing slash) if it's already declared in the API Docs",
+			mappings: []*amb.Mapping{
+				{
+					TypeMeta: kates.TypeMeta{
+						Kind: "Mapping",
+					},
+					Spec: amb.MappingSpec{
+						Prefix:  "/prefix",
+						Rewrite: agent.StrToPointer("/prefix/"),
+						Service: "some-svc:8080",
+						Docs: &amb.DocsInfo{
+							DisplayName: "docs-display-name",
+							Path:        "/docs-location",
+						},
+						DeprecatedHost: "mapping-host",
+					},
+					ObjectMeta: kates.ObjectMeta{
+						Name:      "some-endpoint",
+						Namespace: "default",
+					},
+				},
+			},
+
+			rawJSONDocsContent: `{"openapi":"3.0.0", "info":{"title": "Sample API", "version":"0.0"}, "paths":{}, "servers":[{"url":"http://mapping-host/prefix/"}]}`,
+
+			expectedRequestURL:     "http://some-svc.default:8080/prefix/docs-location",
+			expectedRequestHost:    "mapping-host",
+			expectedRequestHeaders: []agent.Header{},
+			expectedSOTW: []*snapshotTypes.APIDoc{{
+				TypeMeta: &kates.TypeMeta{
+					Kind:       "OpenAPI",
+					APIVersion: "v3",
+				},
+				Metadata: &kates.ObjectMeta{
+					Name: "docs-display-name",
+				},
+				TargetRef: &kates.ObjectReference{
+					Kind:      "Mapping",
+					Name:      "some-endpoint",
+					Namespace: "default",
+				},
+				Data: []byte(`{"components":{},"info":{"title":"Sample API","version":"0.0"},"openapi":"3.0.0","paths":{},"servers":[{"url":"mapping-host/prefix"}]}`),
+			}},
+		},
+		{
+			name: "will handle prefix if it's already declared in the API Docs - BasePath with no trailing slash",
+			mappings: []*amb.Mapping{
+				{
+					TypeMeta: kates.TypeMeta{
+						Kind: "Mapping",
+					},
+					Spec: amb.MappingSpec{
+						Prefix:  "/prefix/",
+						Rewrite: agent.StrToPointer("/prefix/"),
+						Service: "some-svc:8080",
+						Docs: &amb.DocsInfo{
+							DisplayName: "docs-display-name",
+							Path:        "/docs-location",
+						},
+						DeprecatedHost: "mapping-host",
+					},
+					ObjectMeta: kates.ObjectMeta{
+						Name:      "some-endpoint",
+						Namespace: "default",
+					},
+				},
+			},
+
+			rawJSONDocsContent: `{"openapi":"3.0.0", "info":{"title": "Sample API", "version":"0.0"}, "paths":{}, "servers":[{"url":"http://mapping-host/prefix"}]}`,
+
+			expectedRequestURL:     "http://some-svc.default:8080/prefix/docs-location",
+			expectedRequestHost:    "mapping-host",
+			expectedRequestHeaders: []agent.Header{},
+			expectedSOTW: []*snapshotTypes.APIDoc{{
+				TypeMeta: &kates.TypeMeta{
+					Kind:       "OpenAPI",
+					APIVersion: "v3",
+				},
+				Metadata: &kates.ObjectMeta{
+					Name: "docs-display-name",
+				},
+				TargetRef: &kates.ObjectReference{
+					Kind:      "Mapping",
+					Name:      "some-endpoint",
+					Namespace: "default",
+				},
+				Data: []byte(`{"components":{},"info":{"title":"Sample API","version":"0.0"},"openapi":"3.0.0","paths":{},"servers":[{"url":"mapping-host/prefix"}]}`),
+			}},
+		},
+		{
+			name: "will handle prefix if it's already declared in the API Docs and include the rewrite",
+			mappings: []*amb.Mapping{
+				{
+					TypeMeta: kates.TypeMeta{
+						Kind: "Mapping",
+					},
+					Spec: amb.MappingSpec{
+						Prefix:  "/subpath/prefix/",
+						Rewrite: agent.StrToPointer("/prefix/"),
+						Service: "some-svc:8080",
+						Docs: &amb.DocsInfo{
+							DisplayName: "docs-display-name",
+							Path:        "/docs-location",
+						},
+						DeprecatedHost: "mapping-host",
+					},
+					ObjectMeta: kates.ObjectMeta{
+						Name:      "some-endpoint",
+						Namespace: "default",
+					},
+				},
+			},
+
+			rawJSONDocsContent: `{"openapi":"3.0.0", "info":{"title": "Sample API", "version":"0.0"}, "paths":{}, "servers":[{"url":"http://mapping-host/prefix/"}]}`,
+
+			expectedRequestURL:     "http://some-svc.default:8080/prefix/docs-location",
+			expectedRequestHost:    "mapping-host",
+			expectedRequestHeaders: []agent.Header{},
+			expectedSOTW: []*snapshotTypes.APIDoc{{
+				TypeMeta: &kates.TypeMeta{
+					Kind:       "OpenAPI",
+					APIVersion: "v3",
+				},
+				Metadata: &kates.ObjectMeta{
+					Name: "docs-display-name",
+				},
+				TargetRef: &kates.ObjectReference{
+					Kind:      "Mapping",
+					Name:      "some-endpoint",
+					Namespace: "default",
+				},
+				Data: []byte(`{"components":{},"info":{"title":"Sample API","version":"0.0"},"openapi":"3.0.0","paths":{},"servers":[{"url":"mapping-host/subpath/prefix"}]}`),
+			}},
+		},
+		{
+			name: "will concatenate prefix and rewrite",
+			mappings: []*amb.Mapping{
+				{
+					TypeMeta: kates.TypeMeta{
+						Kind: "Mapping",
+					},
+					Spec: amb.MappingSpec{
+						Prefix:  "/prefix1/",
+						Rewrite: agent.StrToPointer("/prefix/"),
+						Service: "some-svc:8080",
+						Docs: &amb.DocsInfo{
+							DisplayName: "docs-display-name",
+							Path:        "/docs-location",
+						},
+						DeprecatedHost: "mapping-host",
+					},
+					ObjectMeta: kates.ObjectMeta{
+						Name:      "some-endpoint",
+						Namespace: "default",
+					},
+				},
+			},
+
+			rawJSONDocsContent: `{"openapi":"3.0.0", "info":{"title": "Sample API", "version":"0.0"}, "paths":{}, "servers":[{"url":"http://mapping-host/prefix"}]}`,
+
+			expectedRequestURL:     "http://some-svc.default:8080/prefix/docs-location",
+			expectedRequestHost:    "mapping-host",
+			expectedRequestHeaders: []agent.Header{},
+			expectedSOTW: []*snapshotTypes.APIDoc{{
+				TypeMeta: &kates.TypeMeta{
+					Kind:       "OpenAPI",
+					APIVersion: "v3",
+				},
+				Metadata: &kates.ObjectMeta{
+					Name: "docs-display-name",
+				},
+				TargetRef: &kates.ObjectReference{
+					Kind:      "Mapping",
+					Name:      "some-endpoint",
+					Namespace: "default",
+				},
+				Data: []byte(`{"components":{},"info":{"title":"Sample API","version":"0.0"},"openapi":"3.0.0","paths":{},"servers":[{"url":"mapping-host/prefix1/prefix"}]}`),
+			}},
+		},
+		{
+			name: "will handle prefix if it's already declared in the API Docs and include the rewrite",
+			mappings: []*amb.Mapping{
+				{
+					TypeMeta: kates.TypeMeta{
+						Kind: "Mapping",
+					},
+					Spec: amb.MappingSpec{
+						Prefix:  "/whatever/",
+						Rewrite: agent.StrToPointer("/subpath/prefix/"),
+						Service: "some-svc:8080",
+						Docs: &amb.DocsInfo{
+							DisplayName: "docs-display-name",
+							Path:        "/docs-location",
+						},
+						DeprecatedHost: "mapping-host",
+					},
+					ObjectMeta: kates.ObjectMeta{
+						Name:      "some-endpoint",
+						Namespace: "default",
+					},
+				},
+			},
+
+			rawJSONDocsContent: `{"openapi":"3.0.0", "info":{"title": "Sample API", "version":"0.0"}, "paths":{}, "servers":[{"url":"http://mapping-host/subpath/prefix"}]}`,
+
+			expectedRequestURL:     "http://some-svc.default:8080/subpath/prefix/docs-location",
+			expectedRequestHost:    "mapping-host",
+			expectedRequestHeaders: []agent.Header{},
+			expectedSOTW: []*snapshotTypes.APIDoc{{
+				TypeMeta: &kates.TypeMeta{
+					Kind:       "OpenAPI",
+					APIVersion: "v3",
+				},
+				Metadata: &kates.ObjectMeta{
+					Name: "docs-display-name",
+				},
+				TargetRef: &kates.ObjectReference{
+					Kind:      "Mapping",
+					Name:      "some-endpoint",
+					Namespace: "default",
+				},
+				Data: []byte(`{"components":{},"info":{"title":"Sample API","version":"0.0"},"openapi":"3.0.0","paths":{},"servers":[{"url":"mapping-host/whatever/subpath/prefix"}]}`),
+			}},
+		},
 	}
 	for _, c := range cases {
 		c := c

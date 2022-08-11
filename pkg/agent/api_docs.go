@@ -251,7 +251,7 @@ func newOpenAPI(ctx context.Context, docBytes []byte, baseURL string, prefix str
 	}
 
 	// Get prefix out of first server URL. E.g. if it's
-	// http://example.com/v1, we want to to add /v1 after the Ambassador
+	// http://example.com/v1, we want to add /v1 after the Ambassador
 	// prefix.
 	existingPrefix := ""
 	if doc.Servers != nil && doc.Servers[0] != nil {
@@ -269,7 +269,12 @@ func newOpenAPI(ctx context.Context, docBytes []byte, baseURL string, prefix str
 		dlog.Debugf(ctx, "could not parse URL %q", baseURL)
 	} else {
 		if prefix != "" {
-			if existingPrefix != "" && keepExistingPrefix {
+
+			if existingPrefix != "" &&
+				keepExistingPrefix &&
+				strings.TrimRight(prefix, "/") != strings.TrimRight(existingPrefix, "/") &&
+				!strings.HasSuffix(strings.TrimRight(prefix, "/"), strings.TrimRight(existingPrefix, "/")) {
+
 				base.Path = path.Join(base.Path, prefix, existingPrefix)
 			} else {
 				base.Path = path.Join(base.Path, prefix)
