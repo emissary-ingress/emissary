@@ -1,4 +1,4 @@
-#
+#
 # Variables that the dev might set in the env or CLI
 
 # Set to non-empty to enable compiling Envoy as-needed.
@@ -8,12 +8,12 @@ ENVOY_TEST_LABEL ?= //test/...
 # Set RSYNC_EXTRAS=Pv or something to increase verbosity.
 RSYNC_EXTRAS ?=
 
-#
+#
 # Variables that are meant to be set by editing this file
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,https://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= f96adbeb45342bb8b37345df11fc395aa4b1fcda
+  ENVOY_COMMIT ?= 82fe811db6c54ef801e9b94d23eb2fcf2d2153f0
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
@@ -46,7 +46,7 @@ else
   ENVOY_DOCKER_REPOS += gcr.io/datawire/ambassador-base
 endif
 
-#
+#
 # Intro
 
 include $(OSS_HOME)/build-aux/prelude.mk
@@ -117,7 +117,7 @@ guess-envoy-go-control-plane-commit: $(OSS_HOME)/_cxx/envoy $(OSS_HOME)/_cxx/go-
 	}
 .PHONY: guess-envoy-go-control-plane-commit
 
-#
+#
 # Envoy sources and build container
 
 $(OSS_HOME)/_cxx/envoy: FORCE
@@ -173,7 +173,7 @@ $(OSS_HOME)/_cxx/envoy-build-container.txt.clean: %.clean:
 	if docker volume inspect envoy-build &>/dev/null; then docker volume rm envoy-build >/dev/null; fi
 clean: $(OSS_HOME)/_cxx/envoy-build-container.txt.clean
 
-#
+#
 # Things that run in the Envoy build container
 #
 # We do everything with rsync and a persistent build-container
@@ -243,7 +243,7 @@ envoy-shell: $(ENVOY_BASH.deps)
 	)
 .PHONY: envoy-shell
 
-#
+#
 # Recipes used by `make generate`; files that get checked in to Git (i.e. protobufs and Go code)
 #
 # These targets are depended on by `make generate` in `build-aux/generate.mk`.
@@ -311,7 +311,7 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	}
 	cd $(OSS_HOME) && gofmt -w -s ./pkg/envoy-control-plane/
 
-#
+#
 # `make update-base`: Recompile Envoy and do all of the related things.
 
 update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-envoy/envoy-static-stripped $(OSS_HOME)/_cxx/envoy-build-image.txt
