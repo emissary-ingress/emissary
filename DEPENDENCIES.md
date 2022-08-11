@@ -29,7 +29,7 @@ following Free and Open Source software:
     github.com/davecgh/go-spew                                                                 v1.1.1                                       ISC license
     github.com/docker/distribution                                                             v2.8.1+incompatible                          Apache License 2.0
     github.com/emicklei/go-restful                                                             v2.15.0+incompatible                         MIT license
-    github.com/envoyproxy/protoc-gen-validate                                                  v0.6.3                                       Apache License 2.0
+    github.com/envoyproxy/protoc-gen-validate                                                  v0.6.7                                       Apache License 2.0
     github.com/evanphx/json-patch                                                              v5.6.0+incompatible                          3-clause BSD license
     github.com/exponent-io/jsonpath                                                            v0.0.0-20210407135951-1de76d718b3f           MIT license
     github.com/fatih/camelcase                                                                 v1.0.0                                       MIT license
