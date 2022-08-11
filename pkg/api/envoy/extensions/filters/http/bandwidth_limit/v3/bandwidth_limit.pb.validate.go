@@ -156,7 +156,16 @@ func (m *BandwidthLimit) validate(all bool) error {
 
 	// no validation rules for EnableResponseTrailers
 
-	// no validation rules for ResponseTrailerPrefix
+	if !_BandwidthLimit_ResponseTrailerPrefix_Pattern.MatchString(m.GetResponseTrailerPrefix()) {
+		err := BandwidthLimitValidationError{
+			field:  "ResponseTrailerPrefix",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return BandwidthLimitMultiError(errors)
@@ -235,3 +244,5 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = BandwidthLimitValidationError{}
+
+var _BandwidthLimit_ResponseTrailerPrefix_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")

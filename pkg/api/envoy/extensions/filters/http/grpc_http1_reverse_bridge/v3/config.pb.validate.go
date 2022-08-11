@@ -70,7 +70,16 @@ func (m *FilterConfig) validate(all bool) error {
 
 	// no validation rules for WithholdGrpcFrames
 
-	// no validation rules for ResponseSizeHeader
+	if !_FilterConfig_ResponseSizeHeader_Pattern.MatchString(m.GetResponseSizeHeader()) {
+		err := FilterConfigValidationError{
+			field:  "ResponseSizeHeader",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return FilterConfigMultiError(errors)
@@ -148,6 +157,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = FilterConfigValidationError{}
+
+var _FilterConfig_ResponseSizeHeader_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
 
 // Validate checks the field values on FilterConfigPerRoute with the rules
 // defined in the proto definition for this message. If any rules are

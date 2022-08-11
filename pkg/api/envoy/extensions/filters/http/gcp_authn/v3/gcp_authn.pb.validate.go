@@ -126,6 +126,35 @@ func (m *GcpAuthnFilterConfig) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetCacheConfig()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GcpAuthnFilterConfigValidationError{
+					field:  "CacheConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GcpAuthnFilterConfigValidationError{
+					field:  "CacheConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCacheConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GcpAuthnFilterConfigValidationError{
+				field:  "CacheConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return GcpAuthnFilterConfigMultiError(errors)
 	}
@@ -228,7 +257,16 @@ func (m *Audience) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for AudienceMap
+	if utf8.RuneCountInString(m.GetUrl()) < 1 {
+		err := AudienceValidationError{
+			field:  "Url",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return AudienceMultiError(errors)
@@ -306,3 +344,118 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = AudienceValidationError{}
+
+// Validate checks the field values on TokenCacheConfig with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *TokenCacheConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TokenCacheConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TokenCacheConfigMultiError, or nil if none found.
+func (m *TokenCacheConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TokenCacheConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if wrapper := m.GetCacheSize(); wrapper != nil {
+
+		if wrapper.GetValue() > 9223372036854775807 {
+			err := TokenCacheConfigValidationError{
+				field:  "CacheSize",
+				reason: "value must be less than or equal to 9223372036854775807",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return TokenCacheConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// TokenCacheConfigMultiError is an error wrapping multiple validation errors
+// returned by TokenCacheConfig.ValidateAll() if the designated constraints
+// aren't met.
+type TokenCacheConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TokenCacheConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TokenCacheConfigMultiError) AllErrors() []error { return m }
+
+// TokenCacheConfigValidationError is the validation error returned by
+// TokenCacheConfig.Validate if the designated constraints aren't met.
+type TokenCacheConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TokenCacheConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TokenCacheConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TokenCacheConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TokenCacheConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TokenCacheConfigValidationError) ErrorName() string { return "TokenCacheConfigValidationError" }
+
+// Error satisfies the builtin error interface
+func (e TokenCacheConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTokenCacheConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TokenCacheConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TokenCacheConfigValidationError{}
