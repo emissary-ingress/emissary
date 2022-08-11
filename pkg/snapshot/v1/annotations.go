@@ -8,6 +8,13 @@ import (
 	"github.com/datawire/dlib/derror"
 )
 
+func annotationKey(obj kates.Object) string {
+	return fmt.Sprintf("%s/%s.%s",
+		obj.GetObjectKind().GroupVersionKind().Kind,
+		obj.GetName(),
+		obj.GetNamespace())
+}
+
 func (a *KubernetesSnapshot) PopulateAnnotations(ctx context.Context) error {
 	var annotatable []kates.Object
 
@@ -37,14 +44,15 @@ func getAnnotations(ctx context.Context, resources ...kates.Object) ([]kates.Obj
 	for _, r := range resources {
 		ann, ok := r.GetAnnotations()["getambassador.io/config"]
 		if ok {
+			key := annotationKey(r)
 			objs, err := kates.ParseManifestsToUnstructured(ann)
 			if err != nil {
-				errs = append(errs, err)
+				errs = append(errs, fmt.Errorf("%s: %w", key, err))
 			} else {
-				for _, untypedObj := range objs {
+				for i, untypedObj := range objs {
 					typedObj, err := ConvertAnnotation(ctx, r, untypedObj.(*kates.Unstructured))
 					if err != nil {
-						errs = append(errs, err)
+						errs = append(errs, fmt.Errorf("%s: annotation %d: %w", key, i, err))
 						result = append(result, untypedObj)
 					} else {
 						result = append(result, typedObj)
