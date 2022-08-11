@@ -97,7 +97,7 @@ github.com/docker/distribution/reference
 ## explicit
 github.com/emicklei/go-restful
 github.com/emicklei/go-restful/log
-# github.com/envoyproxy/protoc-gen-validate v0.6.3
+# github.com/envoyproxy/protoc-gen-validate v0.6.7
 ## explicit; go 1.12
 github.com/envoyproxy/protoc-gen-validate/validate
 # github.com/evanphx/json-patch v5.6.0+incompatible
