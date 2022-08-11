@@ -314,12 +314,7 @@ docker-export: images $(tools/docker-export)
 	$(tools/docker-export)
 	@set -ex -o pipefail ; { \
 		cd docker ;\
-		if [ -f "../python/requirements.in" ] & [ -f "./base-pip/requirements.txt" ]; then\
-			tar cf "$$EXPORT_FILE" images.tar images.sh ../python/requirements.in ./base-pip/requirements.txt;\
-		else\
 			tar cf "$$EXPORT_FILE" images.tar images.sh;\
-			printf '$(RED)$@: ../python/requirements.in and/or ./base-pip/requirements.txt not found for docker-export\n';\
-		fi;\
 	}
 .PHONY: docker-export
 
@@ -332,23 +327,6 @@ docker-import: $(tools/docker-import)
 	@set -ex -o pipefail ; { \
 		printf '$(CYN)==> $(GRN)importing $(BLU)%s$(GRN)...$(END)\n' "$$IMPORT_FILE" ;\
 		tar -C docker -xf "$$IMPORT_FILE" ;\
-		printf 'lsing docker\n';\
-		ls ./docker;\
-		if [ -f "./docker/python/requirements.in" ] & [ -f "./docker/base-pip/requirements.txt" ]; then\
-			printf 'lsing docker/base-pip\n';\
-			ls ./docker/base-pip;\
-			printf 'cating new python/requirements.in';\
-			cat ./docker/python/requirements.in;\
-			mv ./docker/python/requirements.in ./python/requirements.in;\
-			printf 'cating old python/requirements.txt\n';\
-			cat ./python/requirements.txt;\
-			printf 'cating new python/requirements.txt';\
-			cat ./docker/base-pip/requirements.txt;\
-			cp ./docker/base-pip/requirements.txt ./python/requirements.txt;\
-			rmdir ./docker/python;\
-		else\
-			printf '$(RED)$@: /docker/python/requirements.in and/or /docker/base-pip/requirements.txt not found for docker-import\n';\
-		fi;\
 		$(tools/docker-import) ;\
 		rm -f images.sh images.tar ;\
 	}
