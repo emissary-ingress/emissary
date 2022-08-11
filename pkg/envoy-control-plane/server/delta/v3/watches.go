@@ -26,9 +26,7 @@ func newWatches() watches {
 // Cancel all watches
 func (w *watches) Cancel() {
 	for _, watch := range w.deltaWatches {
-		if watch.cancel != nil {
-			watch.cancel()
-		}
+		watch.Cancel()
 	}
 }
 
@@ -46,5 +44,9 @@ func (w *watch) Cancel() {
 	if w.cancel != nil {
 		w.cancel()
 	}
-	close(w.responses)
+	if w.responses != nil {
+		// w.responses should never be used by a producer once cancel() has been closed, so we can safely close it here
+		// This is needed to release resources taken by goroutines watching this channel
+		close(w.responses)
+	}
 }

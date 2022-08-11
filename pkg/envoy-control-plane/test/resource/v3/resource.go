@@ -30,6 +30,7 @@ import (
 	listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
 	route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
 	als "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/access_loggers/grpc/v3"
+	router "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/router/v3"
 	hcm "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
 	tcp "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/tcp_proxy/v3"
 	auth "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/transport_sockets/tls/v3"
@@ -111,8 +112,17 @@ func MakeCluster(mode string, clusterName string) *cluster.Cluster {
 	}
 }
 
-// MakeRoute creates an HTTP route that routes to a given cluster.
-func MakeRoute(routeName, clusterName string) *route.RouteConfiguration {
+func MakeVHDSRouteConfig(mode string, routeName string) *route.RouteConfiguration {
+	return &route.RouteConfiguration{
+		Name: routeName,
+		Vhds: &route.Vhds{
+			ConfigSource: configSource(mode),
+		},
+	}
+}
+
+// MakeRouteConfig creates an HTTP route config that routes to a given cluster.
+func MakeRouteConfig(routeName string, clusterName string) *route.RouteConfiguration {
 	return &route.RouteConfiguration{
 		Name: routeName,
 		VirtualHosts: []*route.VirtualHost{{
@@ -136,8 +146,8 @@ func MakeRoute(routeName, clusterName string) *route.RouteConfiguration {
 	}
 }
 
-// MakeScopedRoute creates an HTTP scoped route that routes to a given cluster.
-func MakeScopedRoute(scopedRouteName string, routeConfigurationName string, keyFragments []string) *route.ScopedRouteConfiguration {
+// MakeScopedRouteConfig creates an HTTP scoped route that routes to a given cluster.
+func MakeScopedRouteConfig(scopedRouteName string, routeConfigurationName string, keyFragments []string) *route.ScopedRouteConfiguration {
 	k := &route.ScopedRouteConfiguration_Key{}
 
 	for _, key := range keyFragments {
@@ -155,6 +165,29 @@ func MakeScopedRoute(scopedRouteName string, routeConfigurationName string, keyF
 		RouteConfigurationName: routeConfigurationName,
 		Key:                    k,
 	}
+}
+
+func MakeVirtualHost(virtualHostName string, clusterName string) *route.VirtualHost {
+	ret := &route.VirtualHost{
+		Name:    virtualHostName,
+		Domains: []string{"*"},
+		Routes: []*route.Route{{
+			Match: &route.RouteMatch{
+				PathSpecifier: &route.RouteMatch_Prefix{
+					Prefix: "/",
+				},
+			},
+			Action: &route.Route_Route{
+				Route: &route.RouteAction{
+					ClusterSpecifier: &route.RouteAction_Cluster{
+						Cluster: clusterName,
+					},
+				},
+			},
+		}},
+	}
+
+	return ret
 }
 
 // data source configuration
@@ -230,11 +263,13 @@ func buildHTTPConnectionManager() *hcm.HttpConnectionManager {
 	}
 
 	// HTTP filter configuration.
+	routerConfig, _ := anypb.New(&router.Router{})
 	manager := &hcm.HttpConnectionManager{
 		CodecType:  hcm.HttpConnectionManager_AUTO,
 		StatPrefix: "http",
 		HttpFilters: []*hcm.HttpFilter{{
-			Name: wellknown.Router,
+			Name:       wellknown.Router,
+			ConfigType: &hcm.HttpFilter_TypedConfig{TypedConfig: routerConfig},
 		}},
 		AccessLog: []*alf.AccessLog{{
 			Name: wellknown.HTTPGRPCAccessLog,
@@ -299,11 +334,11 @@ func MakeRouteHTTPListener(mode string, listenerName string, port uint32, route 
 }
 
 // Creates a HTTP listener using Scoped Routes, which extracts the "Host" header field as the key.
-func MakeScopedRouteHTTPListener(mode string, listenerName string, port uint32, scopedRouteConfigName string) *listener.Listener {
+func MakeScopedRouteHTTPListener(mode string, listenerName string, port uint32) *listener.Listener {
 	source := configSource(mode)
 	routeSpecifier := &hcm.HttpConnectionManager_ScopedRoutes{
 		ScopedRoutes: &hcm.ScopedRoutes{
-			Name: scopedRouteConfigName,
+			Name: "scoped-route-config", // This name is not bound to a xDS resource.
 			ScopeKeyBuilder: &hcm.ScopedRoutes_ScopeKeyBuilder{
 				Fragments: []*hcm.ScopedRoutes_ScopeKeyBuilder_FragmentBuilder{
 					{
@@ -322,6 +357,63 @@ func MakeScopedRouteHTTPListener(mode string, listenerName string, port uint32, 
 			ConfigSpecifier: &hcm.ScopedRoutes_ScopedRds{
 				ScopedRds: &hcm.ScopedRds{
 					ScopedRdsConfigSource: source,
+				},
+			},
+		},
+	}
+
+	manager := buildHTTPConnectionManager()
+	manager.RouteSpecifier = routeSpecifier
+
+	pbst, err := anypb.New(manager)
+	if err != nil {
+		panic(err)
+	}
+
+	filterChains := []*listener.FilterChain{
+		{
+			Filters: []*listener.Filter{
+				{
+					Name: wellknown.HTTPConnectionManager,
+					ConfigType: &listener.Filter_TypedConfig{
+						TypedConfig: pbst,
+					},
+				},
+			},
+		},
+	}
+
+	return makeListener(listenerName, port, filterChains)
+}
+
+// MakeScopedRouteHTTPListenerForRoute is the same as
+// MakeScopedRouteHTTPListener, except it inlines a reference to the
+// routeConfigName, and so doesn't require a ScopedRouteConfiguration resource.
+func MakeScopedRouteHTTPListenerForRoute(mode string, listenerName string, port uint32, routeConfigName string) *listener.Listener {
+	source := configSource(mode)
+	routeSpecifier := &hcm.HttpConnectionManager_ScopedRoutes{
+		ScopedRoutes: &hcm.ScopedRoutes{
+			Name: "scoped-route-config", // This name is not bound to a xDS resource.
+			ScopeKeyBuilder: &hcm.ScopedRoutes_ScopeKeyBuilder{
+				Fragments: []*hcm.ScopedRoutes_ScopeKeyBuilder_FragmentBuilder{
+					{
+						Type: &hcm.ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_{
+							HeaderValueExtractor: &hcm.ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor{
+								Name: "Host",
+								ExtractType: &hcm.ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_Index{
+									Index: 0,
+								},
+							},
+						},
+					},
+				},
+			},
+			RdsConfigSource: source,
+			ConfigSpecifier: &hcm.ScopedRoutes_ScopedRouteConfigurationsList{
+				ScopedRouteConfigurationsList: &hcm.ScopedRouteConfigurationsList{
+					ScopedRouteConfigurations: []*route.ScopedRouteConfiguration{{
+						RouteConfigurationName: routeConfigName,
+					}},
 				},
 			},
 		},
@@ -403,6 +495,7 @@ func MakeExtensionConfig(mode string, extensionConfigName string, route string) 
 	rdsSource := configSource(mode)
 
 	// HTTP filter configuration
+	routerConfig, _ := anypb.New(&router.Router{})
 	manager := &hcm.HttpConnectionManager{
 		CodecType:  hcm.HttpConnectionManager_AUTO,
 		StatPrefix: "http",
@@ -413,7 +506,8 @@ func MakeExtensionConfig(mode string, extensionConfigName string, route string) 
 			},
 		},
 		HttpFilters: []*hcm.HttpFilter{{
-			Name: wellknown.Router,
+			Name:       wellknown.Router,
+			ConfigType: &hcm.HttpFilter_TypedConfig{TypedConfig: routerConfig},
 		}},
 	}
 	pbst, err := anypb.New(manager)
@@ -443,6 +537,8 @@ type TestSnapshot struct {
 	NumHTTPListeners int
 	// NumScopedHTTPListeners is the total number of scoped route HTTP listeners to generate.
 	NumScopedHTTPListeners int
+	// NumScopedHTTPListeners is the total number of HTTP listeners to generate where the routes are resolved via VHDS.
+	NumVHDSHTTPListeners int
 	// NumTCPListeners is the total number of TCP listeners to generate.
 	// Listeners are assigned clusters in a round-robin fashion.
 	NumTCPListeners int
@@ -452,10 +548,146 @@ type TestSnapshot struct {
 	TLS bool
 	// NumExtension is the total number of Extension Config
 	NumExtension int
+
+	currentPort uint32
+}
+
+func (ts *TestSnapshot) generateHTTPListeners(numListeners int, clusters []types.Resource) ([]types.Resource, []types.Resource) {
+	listeners := []types.Resource{}
+	routeConfigs := []types.Resource{}
+
+	if len(clusters) <= 0 {
+		return nil, nil
+	}
+
+	for i := 0; i < numListeners; i++ {
+		listenerName := fmt.Sprintf("listener-%d", ts.currentPort-ts.BasePort)
+		routeName := fmt.Sprintf("route-%s-%d", ts.Version, ts.currentPort)
+
+		// Evenly distribute routes amongst current number of clusters.
+		routeConfigs = append(routeConfigs, MakeRouteConfig(routeName, cache.GetResourceName(clusters[i%len(clusters)])))
+		listener := MakeRouteHTTPListener(ts.Xds, listenerName, ts.currentPort, routeName)
+		ts.addTLS(listener)
+		listeners = append(listeners, listener)
+
+		ts.currentPort++
+	}
+
+	return listeners, routeConfigs
+}
+
+func (ts *TestSnapshot) generateScopedHTTPListeners(numListeners int, clusters []types.Resource) ([]types.Resource, []types.Resource, []types.Resource) {
+	listeners := []types.Resource{}
+	scopedRouteConfigs := []types.Resource{}
+	routeConfigs := []types.Resource{}
+
+	if len(clusters) <= 0 {
+		return nil, nil, nil
+	}
+
+	for i := 0; i < numListeners; i++ {
+		listenerName := fmt.Sprintf("listener-%d", ts.currentPort-ts.BasePort)
+		scopedRouteName := fmt.Sprintf("scopedroute-%d", i)
+		routeName := fmt.Sprintf("route-%s-%d", ts.Version, ts.currentPort)
+
+		// Evenly distribute routes amongst current number of clusters.
+		routeConfigs = append(routeConfigs, MakeRouteConfig(routeName, cache.GetResourceName(clusters[i%len(clusters)])))
+		scopedRouteConfigs = append(scopedRouteConfigs, MakeScopedRouteConfig(scopedRouteName, routeName, []string{ts.getPath()}))
+		listener := MakeScopedRouteHTTPListener(ts.Xds, listenerName, ts.currentPort)
+		ts.addTLS(listener)
+		listeners = append(listeners, listener)
+
+		ts.currentPort++
+	}
+
+	return listeners, scopedRouteConfigs, routeConfigs
+}
+
+func (ts *TestSnapshot) generateVHDSHTTPListeners(numListeners int, clusters []types.Resource) ([]types.Resource, []types.Resource, []types.Resource) {
+	listeners := []types.Resource{}
+	routeConfigs := []types.Resource{}
+	virtualHosts := []types.Resource{}
+
+	if len(clusters) <= 0 {
+		return nil, nil, nil
+	}
+
+	for i := 0; i < numListeners; i++ {
+		listenerName := fmt.Sprintf("listener-%d", ts.currentPort-ts.BasePort)
+		routeName := fmt.Sprintf("route-%s-%d", ts.Version, ts.currentPort)
+		virtualHostName := fmt.Sprintf("%s/%s", routeName, ts.getPath())
+
+		// Evenly distribute routes amongst current number of clusters.
+		virtualHosts = append(virtualHosts, MakeVirtualHost(virtualHostName, cache.GetResourceName(clusters[i%len(clusters)])))
+		routeConfigs = append(routeConfigs, MakeVHDSRouteConfig(ts.Xds, routeName))
+		listener := MakeRouteHTTPListener(ts.Xds, listenerName, ts.currentPort, routeName)
+		ts.addTLS(listener)
+		listeners = append(listeners, listener)
+
+		ts.currentPort++
+	}
+
+	return listeners, routeConfigs, virtualHosts
+}
+
+func (ts *TestSnapshot) generateTCPListeners(numListeners int, clusters []types.Resource) []types.Resource {
+	listeners := []types.Resource{}
+
+	if len(clusters) <= 0 {
+		return nil
+	}
+
+	for i := 0; i < numListeners; i++ {
+		listenerName := fmt.Sprintf("listener-%d", ts.currentPort-ts.BasePort)
+
+		// Evenly distribute routes amongst current number of clusters.
+		listener := MakeTCPListener(listenerName, ts.currentPort, cache.GetResourceName(clusters[i%ts.NumClusters]))
+		ts.addTLS(listener)
+		listeners = append(listeners, listener)
+
+		ts.currentPort++
+	}
+
+	return listeners
+}
+
+func (ts *TestSnapshot) addTLS(l *listener.Listener) {
+	if ts.TLS {
+		for i, chain := range l.FilterChains {
+			tlsc := &auth.DownstreamTlsContext{
+				CommonTlsContext: &auth.CommonTlsContext{
+					TlsCertificateSdsSecretConfigs: []*auth.SdsSecretConfig{{
+						Name:      tlsName,
+						SdsConfig: configSource(ts.Xds),
+					}},
+					ValidationContextType: &auth.CommonTlsContext_ValidationContextSdsSecretConfig{
+						ValidationContextSdsSecretConfig: &auth.SdsSecretConfig{
+							Name:      rootName,
+							SdsConfig: configSource(ts.Xds),
+						},
+					},
+				},
+			}
+			mt, _ := anypb.New(tlsc)
+			chain.TransportSocket = &core.TransportSocket{
+				Name: "envoy.transport_sockets.tls",
+				ConfigType: &core.TransportSocket_TypedConfig{
+					TypedConfig: mt,
+				},
+			}
+			l.FilterChains[i] = chain
+		}
+	}
+}
+
+func (ts *TestSnapshot) getPath() string {
+	return fmt.Sprintf("%s:%d", localhost, ts.currentPort)
 }
 
 // Generate produces a snapshot from the parameters.
-func (ts TestSnapshot) Generate() cache.Snapshot {
+func (ts *TestSnapshot) Generate() *cache.Snapshot {
+	ts.currentPort = ts.BasePort
+
 	clusters := make([]types.Resource, ts.NumClusters)
 	endpoints := make([]types.Resource, ts.NumClusters)
 	for i := 0; i < ts.NumClusters; i++ {
@@ -464,75 +696,18 @@ func (ts TestSnapshot) Generate() cache.Snapshot {
 		endpoints[i] = MakeEndpoint(name, ts.UpstreamPort)
 	}
 
-	totalHTTPListeners := ts.NumHTTPListeners + ts.NumScopedHTTPListeners
-	routes := make([]types.Resource, totalHTTPListeners)
-	scopedRoutes := make([]types.Resource, ts.NumScopedHTTPListeners)
+	l1, r1 := ts.generateHTTPListeners(ts.NumHTTPListeners, clusters)
+	l2, sr1, r2 := ts.generateScopedHTTPListeners(ts.NumScopedHTTPListeners, clusters)
+	l3 := ts.generateTCPListeners(ts.NumTCPListeners, clusters)
+	l4, r3, vh1 := ts.generateVHDSHTTPListeners(ts.NumVHDSHTTPListeners, clusters)
 
-	for i := 0; i < totalHTTPListeners; i++ {
-		suffix := fmt.Sprintf("%s-%d", ts.Version, i)
-		routeName := fmt.Sprintf("route-%s", suffix)
-		routes[i] = MakeRoute(routeName, cache.GetResourceName(clusters[i%ts.NumClusters]))
-
-		// Scoped Routes.
-		if i >= ts.NumHTTPListeners {
-			scopedRouteName := fmt.Sprintf("scopedroute-%s", suffix)
-			port := ts.BasePort + uint32(i)
-			scopedRoutes[i-ts.NumHTTPListeners] = MakeScopedRoute(scopedRouteName, routeName, []string{fmt.Sprintf("127.0.0.1:%d", port)})
-		}
-	}
-
-	numHTTPListeners := ts.NumHTTPListeners
-	numScopedHTTPListeners := ts.NumScopedHTTPListeners
-	numTCPListeners := ts.NumTCPListeners
-	total := numHTTPListeners + numScopedHTTPListeners + numTCPListeners
-
-	listeners := make([]types.Resource, total)
-	for i := 0; i < total; i++ {
-		port := ts.BasePort + uint32(i)
-		// listener name must be same since ports are shared and previous listener is drained
-		name := fmt.Sprintf("listener-%d", port)
-		var listener *listener.Listener
-
-		if numHTTPListeners > 0 {
-			listener = MakeRouteHTTPListener(ts.Xds, name, port, cache.GetResourceName(routes[i]))
-			numHTTPListeners--
-		} else if numScopedHTTPListeners > 0 {
-			listener = MakeScopedRouteHTTPListener(ts.Xds, name, port, cache.GetResourceName(scopedRoutes[numScopedHTTPListeners-1]))
-			numScopedHTTPListeners--
-		} else if numTCPListeners > 0 {
-			listener = MakeTCPListener(name, port, cache.GetResourceName(clusters[i%ts.NumClusters]))
-			numTCPListeners--
-		}
-
-		if ts.TLS {
-			for i, chain := range listener.FilterChains {
-				tlsc := &auth.DownstreamTlsContext{
-					CommonTlsContext: &auth.CommonTlsContext{
-						TlsCertificateSdsSecretConfigs: []*auth.SdsSecretConfig{{
-							Name:      tlsName,
-							SdsConfig: configSource(ts.Xds),
-						}},
-						ValidationContextType: &auth.CommonTlsContext_ValidationContextSdsSecretConfig{
-							ValidationContextSdsSecretConfig: &auth.SdsSecretConfig{
-								Name:      rootName,
-								SdsConfig: configSource(ts.Xds),
-							},
-						},
-					},
-				}
-				mt, _ := anypb.New(tlsc)
-				chain.TransportSocket = &core.TransportSocket{
-					Name: "envoy.transport_sockets.tls",
-					ConfigType: &core.TransportSocket_TypedConfig{
-						TypedConfig: mt,
-					},
-				}
-				listener.FilterChains[i] = chain
-			}
-		}
-
-		listeners[i] = listener
-	}
+	listeners := append(l1, l2...)
+	listeners = append(listeners, l3...)
+	listeners = append(listeners, l4...)
+	scopedRoutes := sr1
+	routes := append(r1, r2...)
+	routes = append(routes, r3...)
+	virtualHosts := vh1
 
 	runtimes := make([]types.Resource, ts.NumRuntimes)
 	for i := 0; i < ts.NumRuntimes; i++ {
@@ -559,6 +734,7 @@ func (ts TestSnapshot) Generate() cache.Snapshot {
 		resource.ClusterType:         clusters,
 		resource.RouteType:           routes,
 		resource.ScopedRouteType:     scopedRoutes,
+		resource.VirtualHostType:     virtualHosts,
 		resource.ListenerType:        listeners,
 		resource.RuntimeType:         runtimes,
 		resource.SecretType:          secrets,

@@ -35,38 +35,40 @@ type Snapshot struct {
 	VersionMap map[string]map[string]string
 }
 
+var _ ResourceSnapshot = &Snapshot{}
+
 // NewSnapshot creates a snapshot from response types and a version.
 // The resources map is keyed off the type URL of a resource, followed by the slice of resource objects.
-func NewSnapshot(version string, resources map[resource.Type][]types.Resource) (Snapshot, error) {
+func NewSnapshot(version string, resources map[resource.Type][]types.Resource) (*Snapshot, error) {
 	out := Snapshot{}
 
 	for typ, resource := range resources {
 		index := GetResponseType(typ)
 		if index == types.UnknownType {
-			return out, errors.New("unknown resource type: " + typ)
+			return nil, errors.New("unknown resource type: " + typ)
 		}
 
 		out.Resources[index] = NewResources(version, resource)
 	}
 
-	return out, nil
+	return &out, nil
 }
 
 // NewSnapshotWithTTLs creates a snapshot of ResourceWithTTLs.
 // The resources map is keyed off the type URL of a resource, followed by the slice of resource objects.
-func NewSnapshotWithTTLs(version string, resources map[resource.Type][]types.ResourceWithTTL) (Snapshot, error) {
+func NewSnapshotWithTTLs(version string, resources map[resource.Type][]types.ResourceWithTTL) (*Snapshot, error) {
 	out := Snapshot{}
 
 	for typ, resource := range resources {
 		index := GetResponseType(typ)
 		if index == types.UnknownType {
-			return out, errors.New("unknown resource type: " + typ)
+			return nil, errors.New("unknown resource type: " + typ)
 		}
 
 		out.Resources[index] = NewResourcesWithTTL(version, resource)
 	}
 
-	return out, nil
+	return &out, nil
 }
 
 // Consistent check verifies that the dependent resources are exactly listed in the
@@ -87,9 +89,8 @@ func (s *Snapshot) Consistent() error {
 
 	// Loop through each referenced resource.
 	referencedResponseTypes := map[types.ResponseType]struct{}{
-		types.Endpoint:    {},
-		types.ScopedRoute: {},
-		types.Route:       {},
+		types.Endpoint: {},
+		types.Route:    {},
 	}
 
 	for idx, items := range s.Resources {
@@ -106,12 +107,13 @@ func (s *Snapshot) Consistent() error {
 			referenceSet := referencedResources[typeURL]
 
 			if len(referenceSet) != len(items.Items) {
-				return fmt.Errorf("mismatched reference and resource lengths: len(%v) != %d", referenceSet, len(items.Items))
+				return fmt.Errorf("mismatched %q reference and resource lengths: len(%v) != %d",
+					typeURL, referenceSet, len(items.Items))
 			}
 
 			// Check superset.
 			if err := superset(referenceSet, items.Items); err != nil {
-				return err
+				return fmt.Errorf("inconsistent %q reference: %w", typeURL, err)
 			}
 		}
 	}
@@ -194,7 +196,7 @@ func (s *Snapshot) ConstructVersionMap() error {
 			}
 			v := HashResource(marshaledResource)
 			if v == "" {
-				return fmt.Errorf("failed to build resource version: %v", err)
+				return fmt.Errorf("failed to build resource version: %w", err)
 			}
 
 			s.VersionMap[typeURL][GetResourceName(r.Resource)] = v
