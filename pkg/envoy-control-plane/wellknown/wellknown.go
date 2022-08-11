@@ -51,6 +51,8 @@ const (
 	HTTPRoleBasedAccessControl = "envoy.filters.http.rbac"
 	// HTTPGRPCStats HTTP filter
 	HTTPGRPCStats = "envoy.filters.http.grpc_stats"
+	// HTTP WASM filter
+	HTTPWasm = "envoy.extensions.filters.http.wasm.v3.Wasm"
 )
 
 // Network filter names
@@ -93,6 +95,8 @@ const (
 	HttpInspector = "envoy.filters.listener.http_inspector" // nolint:golint,revive
 	// HTTPInspector listener filter
 	HTTPInspector = "envoy.filters.listener.http_inspector"
+	// OriginalSource listener filter
+	OriginalSource = "envoy.filters.listener.original_src"
 )
 
 // Tracing provider names

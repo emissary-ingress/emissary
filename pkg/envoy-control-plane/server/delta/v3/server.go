@@ -26,7 +26,7 @@ type Callbacks interface {
 	// Returning an error will end processing and close the stream. OnStreamClosed will still be called.
 	OnDeltaStreamOpen(context.Context, int64, string) error
 	// OnDeltaStreamClosed is called immediately prior to closing an xDS stream with a stream ID.
-	OnDeltaStreamClosed(int64)
+	OnDeltaStreamClosed(int64, *core.Node)
 	// OnStreamDeltaRequest is called once a request is received on a stream.
 	// Returning an error will end processing and close the stream. OnStreamClosed will still be called.
 	OnStreamDeltaRequest(int64, *discovery.DeltaDiscoveryRequest) error
@@ -63,10 +63,12 @@ func (s *server) processDelta(str stream.DeltaStream, reqCh <-chan *discovery.De
 	// a collection of stack allocated watches per request type
 	watches := newWatches()
 
+	var node = &core.Node{}
+
 	defer func() {
 		watches.Cancel()
 		if s.callbacks != nil {
-			s.callbacks.OnDeltaStreamClosed(streamID)
+			s.callbacks.OnDeltaStreamClosed(streamID, node)
 		}
 	}()
 
@@ -96,7 +98,6 @@ func (s *server) processDelta(str stream.DeltaStream, reqCh <-chan *discovery.De
 		}
 	}
 
-	var node = &core.Node{}
 	for {
 		select {
 		case <-s.ctx.Done():
@@ -160,14 +161,17 @@ func (s *server) processDelta(str stream.DeltaStream, reqCh <-chan *discovery.De
 			if !ok {
 				// Initialize the state of the stream.
 				// Since there was no previous state, we know we're handling the first request of this type
-				// so we set the initial resource versions if we have any, and also signal if this stream is in wildcard mode.
+				// so we set the initial resource versions if we have any.
+				// We also set the stream as wildcard based on its legacy meaning (no resource name sent in resource_names_subscribe).
+				// If the state starts with this legacy mode, adding new resources will not unsubscribe from wildcard.
+				// It can still be done by explicitly unsubscribing from "*"
 				watch.state = stream.NewStreamState(len(req.GetResourceNamesSubscribe()) == 0, req.GetInitialResourceVersions())
 			} else {
 				watch.Cancel()
 			}
 
-			s.subscribe(req.GetResourceNamesSubscribe(), watch.state.GetResourceVersions())
-			s.unsubscribe(req.GetResourceNamesUnsubscribe(), watch.state.GetResourceVersions())
+			s.subscribe(req.GetResourceNamesSubscribe(), &watch.state)
+			s.unsubscribe(req.GetResourceNamesUnsubscribe(), &watch.state)
 
 			watch.responses = make(chan cache.DeltaResponse, 1)
 			watch.cancel = s.cache.CreateDeltaWatch(req, watch.state, watch.responses)
@@ -210,17 +214,38 @@ func (s *server) DeltaStreamHandler(str stream.DeltaStream, typeURL string) erro
 }
 
 // When we subscribe, we just want to make the cache know we are subscribing to a resource.
-// Providing a name with an empty version is enough to make that happen.
-func (s *server) subscribe(resources []string, sv map[string]string) {
+// Even if the stream is wildcard, we keep the list of explicitly subscribed resources as the wildcard subscription can be discarded later on.
+func (s *server) subscribe(resources []string, streamState *stream.StreamState) {
+	sv := streamState.GetSubscribedResourceNames()
 	for _, resource := range resources {
-		sv[resource] = ""
+		if resource == "*" {
+			streamState.SetWildcard(true)
+			continue
+		}
+		sv[resource] = struct{}{}
 	}
 }
 
-// Unsubscriptions remove resources from the stream state to
-// indicate to the cache that we don't care about the resource anymore
-func (s *server) unsubscribe(resources []string, sv map[string]string) {
+// Unsubscriptions remove resources from the stream's subscribed resource list.
+// If a client explicitly unsubscribes from a wildcard request, the stream is updated and now watches only subscribed resources.
+func (s *server) unsubscribe(resources []string, streamState *stream.StreamState) {
+	sv := streamState.GetSubscribedResourceNames()
 	for _, resource := range resources {
+		if resource == "*" {
+			streamState.SetWildcard(false)
+			continue
+		}
+		if _, ok := sv[resource]; ok && streamState.IsWildcard() {
+			// The XDS protocol states that:
+			// * if a watch is currently wildcard
+			// * a resource is explicitly unsubscribed by name
+			// Then the control-plane must return in the response whether the resource is removed (if no longer present for this node)
+			// or still existing. In the latter case the entire resource must be returned, same as if it had been created or updated
+			// To achieve that, we mark the resource as having been returned with an empty version. While creating the response, the cache will either:
+			// * detect the version change, and return the resource (as an update)
+			// * detect the resource deletion, and set it as removed in the response
+			streamState.GetResourceVersions()[resource] = ""
+		}
 		delete(sv, resource)
 	}
 }

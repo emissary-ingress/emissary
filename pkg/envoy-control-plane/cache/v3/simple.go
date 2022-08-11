@@ -26,6 +26,35 @@ import (
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/stream/v3"
 )
 
+// ResourceSnapshot is an abstract snapshot of a collection of resources that
+// can be stored in a SnapshotCache. This enables applications to use the
+// SnapshotCache watch machinery with their own resource types. Most
+// applications will use Snapshot.
+type ResourceSnapshot interface {
+	// GetVersion should return the current version of the resource indicated
+	// by typeURL. The version string that is returned is opaque and should
+	// only be compared for equality.
+	GetVersion(typeURL string) string
+
+	// GetResourcesAndTTL returns all resources of the type indicted by
+	// typeURL, together with their TTL.
+	GetResourcesAndTTL(typeURL string) map[string]types.ResourceWithTTL
+
+	// GetResources returns all resources of the type indicted by
+	// typeURL. This is identical to GetResourcesAndTTL, except that
+	// the TTL is omitted.
+	GetResources(typeURL string) map[string]types.Resource
+
+	// ConstructVersionMap is a hint that a delta watch will soon make a
+	// call to GetVersionMap. The snapshot should construct an internal
+	// opaque version string for each collection of resource types.
+	ConstructVersionMap() error
+
+	// GetVersionMap returns a map of resource name to resource version for
+	// all the resources of type indicated by typeURL.
+	GetVersionMap(typeURL string) map[string]string
+}
+
 // SnapshotCache is a snapshot-based cache that maintains a single versioned
 // snapshot of responses per node. SnapshotCache consistently replies with the
 // latest snapshot. For the protocol to work correctly in ADS mode, EDS/RDS
@@ -46,10 +75,10 @@ type SnapshotCache interface {
 	//
 	// This method will cause the server to respond to all open watches, for which
 	// the version differs from the snapshot version.
-	SetSnapshot(ctx context.Context, node string, snapshot Snapshot) error
+	SetSnapshot(ctx context.Context, node string, snapshot ResourceSnapshot) error
 
 	// GetSnapshots gets the snapshot for a node.
-	GetSnapshot(node string) (Snapshot, error)
+	GetSnapshot(node string) (ResourceSnapshot, error)
 
 	// ClearSnapshot removes all status and snapshot information associated with a node.
 	ClearSnapshot(node string)
@@ -75,7 +104,7 @@ type snapshotCache struct {
 	ads bool
 
 	// snapshots are cached resources indexed by node IDs
-	snapshots map[string]Snapshot
+	snapshots map[string]ResourceSnapshot
 
 	// status information for all nodes indexed by node IDs
 	status map[string]*statusInfo
@@ -109,7 +138,7 @@ func newSnapshotCache(ads bool, hash NodeHash, logger log.Logger) *snapshotCache
 	cache := &snapshotCache{
 		log:       logger,
 		ads:       ads,
-		snapshots: make(map[string]Snapshot),
+		snapshots: make(map[string]ResourceSnapshot),
 		status:    make(map[string]*statusInfo),
 		hash:      hash,
 	}
@@ -188,7 +217,7 @@ func (cache *snapshotCache) sendHeartbeats(ctx context.Context, node string) {
 }
 
 // SetSnapshotCacheContext updates a snapshot for a node.
-func (cache *snapshotCache) SetSnapshot(ctx context.Context, node string, snapshot Snapshot) error {
+func (cache *snapshotCache) SetSnapshot(ctx context.Context, node string, snapshot ResourceSnapshot) error {
 	cache.mu.Lock()
 	defer cache.mu.Unlock()
 
@@ -202,7 +231,7 @@ func (cache *snapshotCache) SetSnapshot(ctx context.Context, node string, snapsh
 		for id, watch := range info.watches {
 			version := snapshot.GetVersion(watch.Request.TypeUrl)
 			if version != watch.Request.VersionInfo {
-				cache.log.Debugf("respond open watch %d%v with new version %q", id, watch.Request.ResourceNames, version)
+				cache.log.Debugf("respond open watch %d %s%v with new version %q", id, watch.Request.TypeUrl, watch.Request.ResourceNames, version)
 
 				resources := snapshot.GetResourcesAndTTL(watch.Request.TypeUrl)
 				err := cache.respond(ctx, watch.Request, watch.Response, resources, version, false)
@@ -229,7 +258,7 @@ func (cache *snapshotCache) SetSnapshot(ctx context.Context, node string, snapsh
 		for id, watch := range info.deltaWatches {
 			res, err := cache.respondDelta(
 				ctx,
-				&snapshot,
+				snapshot,
 				watch.Request,
 				watch.Response,
 				watch.StreamState,
@@ -249,13 +278,13 @@ func (cache *snapshotCache) SetSnapshot(ctx context.Context, node string, snapsh
 }
 
 // GetSnapshots gets the snapshot for a node, and returns an error if not found.
-func (cache *snapshotCache) GetSnapshot(node string) (Snapshot, error) {
+func (cache *snapshotCache) GetSnapshot(node string) (ResourceSnapshot, error) {
 	cache.mu.RLock()
 	defer cache.mu.RUnlock()
 
 	snap, ok := cache.snapshots[node]
 	if !ok {
-		return Snapshot{}, fmt.Errorf("no snapshot found for node %s", node)
+		return nil, fmt.Errorf("no snapshot found for node %s", node)
 	}
 	return snap, nil
 }
@@ -271,7 +300,7 @@ func (cache *snapshotCache) ClearSnapshot(node string) {
 
 // nameSet creates a map from a string slice to value true.
 func nameSet(names []string) map[string]bool {
-	set := make(map[string]bool)
+	set := make(map[string]bool, len(names))
 	for _, name := range names {
 		set[name] = true
 	}
@@ -306,8 +335,12 @@ func (cache *snapshotCache) CreateWatch(request *Request, streamState stream.Str
 	info.lastWatchRequestTime = time.Now()
 	info.mu.Unlock()
 
+	var version string
+
 	snapshot, exists := cache.snapshots[nodeID]
-	version := snapshot.GetVersion(request.TypeUrl)
+	if exists {
+		version = snapshot.GetVersion(request.TypeUrl)
+	}
 
 	if exists {
 		knownResourceNames := streamState.GetKnownResourceNames(request.TypeUrl)
@@ -339,7 +372,6 @@ func (cache *snapshotCache) CreateWatch(request *Request, streamState stream.Str
 	if !exists || request.VersionInfo == version {
 		watchID := cache.nextWatchID()
 		cache.log.Debugf("open watch %d for %s%v from nodeID %q, version %q", watchID, request.TypeUrl, request.ResourceNames, nodeID, request.VersionInfo)
-
 		info.mu.Lock()
 		info.watches[watchID] = ResponseWatch{Request: request, Response: value}
 		info.mu.Unlock()
@@ -439,7 +471,7 @@ func (cache *snapshotCache) CreateDeltaWatch(request *DeltaRequest, state stream
 	}
 
 	// update last watch request time
-	info.SetLastDeltaWatchRequestTime(time.Now())
+	info.setLastDeltaWatchRequestTime(time.Now())
 
 	// find the current cache snapshot for the provided node
 	snapshot, exists := cache.snapshots[nodeID]
@@ -452,11 +484,11 @@ func (cache *snapshotCache) CreateDeltaWatch(request *DeltaRequest, state stream
 	if exists {
 		err := snapshot.ConstructVersionMap()
 		if err != nil {
-			cache.log.Errorf("failed to compute version for snapshot resources inline, waiting for next snapshot update")
+			cache.log.Errorf("failed to compute version for snapshot resources inline: %s", err)
 		}
-		response, err := cache.respondDelta(context.Background(), &snapshot, request, value, state)
+		response, err := cache.respondDelta(context.Background(), snapshot, request, value, state)
 		if err != nil {
-			cache.log.Errorf("failed to respond with delta response, waiting for next snapshot update: %s", err)
+			cache.log.Errorf("failed to respond with delta response: %s", err)
 		}
 
 		delayedResponse = response == nil
@@ -464,9 +496,14 @@ func (cache *snapshotCache) CreateDeltaWatch(request *DeltaRequest, state stream
 
 	if delayedResponse {
 		watchID := cache.nextDeltaWatchID()
-		cache.log.Infof("open delta watch ID:%d for %s Resources:%v from nodeID: %q, system version %q", watchID, t, state.GetResourceVersions(), nodeID, snapshot.GetVersion(t))
-		info.SetDeltaResponseWatch(watchID, DeltaResponseWatch{Request: request, Response: value, StreamState: state})
 
+		if exists {
+			cache.log.Infof("open delta watch ID:%d for %s Resources:%v from nodeID: %q,  version %q", watchID, t, state.GetSubscribedResourceNames(), nodeID, snapshot.GetVersion(t))
+		} else {
+			cache.log.Infof("open delta watch ID:%d for %s Resources:%v from nodeID: %q", watchID, t, state.GetSubscribedResourceNames(), nodeID)
+		}
+
+		info.setDeltaResponseWatch(watchID, DeltaResponseWatch{Request: request, Response: value, StreamState: state})
 		return cache.cancelDeltaWatch(nodeID, watchID)
 	}
 
@@ -474,7 +511,7 @@ func (cache *snapshotCache) CreateDeltaWatch(request *DeltaRequest, state stream
 }
 
 // Respond to a delta watch with the provided snapshot value. If the response is nil, there has been no state change.
-func (cache *snapshotCache) respondDelta(ctx context.Context, snapshot *Snapshot, request *DeltaRequest, value chan DeltaResponse, state stream.StreamState) (*RawDeltaResponse, error) {
+func (cache *snapshotCache) respondDelta(ctx context.Context, snapshot ResourceSnapshot, request *DeltaRequest, value chan DeltaResponse, state stream.StreamState) (*RawDeltaResponse, error) {
 	resp := createDeltaResponse(ctx, request, state, resourceContainer{
 		resourceMap:   snapshot.GetResources(request.TypeUrl),
 		versionMap:    snapshot.GetVersionMap(request.TypeUrl),

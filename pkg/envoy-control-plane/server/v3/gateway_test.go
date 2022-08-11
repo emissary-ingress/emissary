@@ -87,7 +87,7 @@ func TestGateway(t *testing.T) {
 		},
 	}
 	for _, cs := range failCases {
-		req, err := http.NewRequest(http.MethodPost, cs.path, cs.body)
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, cs.path, cs.body)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -104,7 +104,7 @@ func TestGateway(t *testing.T) {
 	}
 
 	for _, path := range []string{resource.FetchClusters, resource.FetchRoutes, resource.FetchListeners} {
-		req, err := http.NewRequest(http.MethodPost, path, strings.NewReader("{\"node\": {\"id\": \"test\"}}"))
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, path, strings.NewReader("{\"node\": {\"id\": \"test\"}}"))
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
@@ -50,7 +51,7 @@ func TestTTLResponse(t *testing.T) {
 	}()
 	defer grpcServer.Stop()
 
-	conn, err := grpc.Dial(":9999", grpc.WithInsecure())
+	conn, err := grpc.Dial(":9999", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	assert.NoError(t, err)
 	client := endpointservice.NewEndpointDiscoveryServiceClient(conn)
 

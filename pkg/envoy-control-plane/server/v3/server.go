@@ -26,6 +26,7 @@ import (
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/sotw/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/stream/v3"
 
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
 	clusterservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/cluster/v3"
 	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
 	discoverygrpc "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
@@ -45,6 +46,7 @@ type Server interface {
 	clusterservice.ClusterDiscoveryServiceServer
 	routeservice.RouteDiscoveryServiceServer
 	routeservice.ScopedRoutesDiscoveryServiceServer
+	routeservice.VirtualHostDiscoveryServiceServer
 	listenerservice.ListenerDiscoveryServiceServer
 	discoverygrpc.AggregatedDiscoveryServiceServer
 	secretservice.SecretDiscoveryServiceServer
@@ -67,9 +69,9 @@ type Callbacks interface {
 // CallbackFuncs is a convenience type for implementing the Callbacks interface.
 type CallbackFuncs struct {
 	StreamOpenFunc          func(context.Context, int64, string) error
-	StreamClosedFunc        func(int64)
+	StreamClosedFunc        func(int64, *core.Node)
 	DeltaStreamOpenFunc     func(context.Context, int64, string) error
-	DeltaStreamClosedFunc   func(int64)
+	DeltaStreamClosedFunc   func(int64, *core.Node)
 	StreamRequestFunc       func(int64, *discovery.DiscoveryRequest) error
 	StreamResponseFunc      func(context.Context, int64, *discovery.DiscoveryRequest, *discovery.DiscoveryResponse)
 	StreamDeltaRequestFunc  func(int64, *discovery.DeltaDiscoveryRequest) error
@@ -90,9 +92,9 @@ func (c CallbackFuncs) OnStreamOpen(ctx context.Context, streamID int64, typeURL
 }
 
 // OnStreamClosed invokes StreamClosedFunc.
-func (c CallbackFuncs) OnStreamClosed(streamID int64) {
+func (c CallbackFuncs) OnStreamClosed(streamID int64, node *core.Node) {
 	if c.StreamClosedFunc != nil {
-		c.StreamClosedFunc(streamID)
+		c.StreamClosedFunc(streamID, node)
 	}
 }
 
@@ -106,9 +108,9 @@ func (c CallbackFuncs) OnDeltaStreamOpen(ctx context.Context, streamID int64, ty
 }
 
 // OnDeltaStreamClosed invokes DeltaStreamClosedFunc.
-func (c CallbackFuncs) OnDeltaStreamClosed(streamID int64) {
+func (c CallbackFuncs) OnDeltaStreamClosed(streamID int64, node *core.Node) {
 	if c.DeltaStreamClosedFunc != nil {
-		c.DeltaStreamClosedFunc(streamID)
+		c.DeltaStreamClosedFunc(streamID, node)
 	}
 }
 
@@ -178,7 +180,7 @@ type server struct {
 	delta delta.Server
 }
 
-func (s *server) StreamHandler(stream sotw.Stream, typeURL string) error {
+func (s *server) StreamHandler(stream stream.Stream, typeURL string) error {
 	return s.sotw.StreamHandler(stream, typeURL)
 }
 
@@ -217,6 +219,8 @@ func (s *server) StreamRuntime(stream runtimeservice.RuntimeDiscoveryService_Str
 func (s *server) StreamExtensionConfigs(stream extensionconfigservice.ExtensionConfigDiscoveryService_StreamExtensionConfigsServer) error {
 	return s.StreamHandler(stream, resource.ExtensionConfigType)
 }
+
+// VHDS doesn't support SOTW requests, so no handler for it exists.
 
 // Fetch is the universal fetch method.
 func (s *server) Fetch(ctx context.Context, req *discovery.DiscoveryRequest) (*discovery.DiscoveryResponse, error) {
@@ -287,6 +291,8 @@ func (s *server) FetchExtensionConfigs(ctx context.Context, req *discovery.Disco
 	return s.Fetch(ctx, req)
 }
 
+// VHDS doesn't support REST requests, so no handler exists for this.
+
 func (s *server) DeltaStreamHandler(stream stream.DeltaStream, typeURL string) error {
 	return s.delta.DeltaStreamHandler(stream, typeURL)
 }
@@ -325,4 +331,8 @@ func (s *server) DeltaRuntime(stream runtimeservice.RuntimeDiscoveryService_Delt
 
 func (s *server) DeltaExtensionConfigs(stream extensionconfigservice.ExtensionConfigDiscoveryService_DeltaExtensionConfigsServer) error {
 	return s.DeltaStreamHandler(stream, resource.ExtensionConfigType)
+}
+
+func (s *server) DeltaVirtualHosts(stream routeservice.VirtualHostDiscoveryService_DeltaVirtualHostsServer) error {
+	return s.DeltaStreamHandler(stream, resource.VirtualHostType)
 }
