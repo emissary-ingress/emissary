@@ -88,7 +88,7 @@ require (
 	github.com/datawire/dlib v1.2.5-0.20211116212847-0316f8d7af2b
 	github.com/datawire/dtest v0.0.0-20210928162311-722b199c4c2f
 	github.com/datawire/go-mkopensource v0.0.0-20220218163159-cc298d9fabc4
-	github.com/envoyproxy/protoc-gen-validate v0.6.3
+	github.com/envoyproxy/protoc-gen-validate v0.6.7
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/getkin/kin-openapi v0.97.0
 	github.com/golang/protobuf v1.5.2
