@@ -317,8 +317,8 @@ github.com/stretchr/testify/require
 # github.com/xlab/treeprint v1.1.0
 ## explicit; go 1.13
 github.com/xlab/treeprint
-# go.opentelemetry.io/proto/otlp v0.7.0
-## explicit; go 1.15
+# go.opentelemetry.io/proto/otlp v0.18.0
+## explicit; go 1.14
 go.opentelemetry.io/proto/otlp/common/v1
 # go.starlark.net v0.0.0-20220203230714-bb14e151c28f
 ## explicit; go 1.13

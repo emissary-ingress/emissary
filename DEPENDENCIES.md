@@ -93,7 +93,7 @@ following Free and Open Source software:
     github.com/spf13/pflag                                                                     v1.0.5                                       3-clause BSD license
     github.com/stretchr/testify                                                                v1.8.0                                       MIT license
     github.com/xlab/treeprint                                                                  v1.1.0                                       MIT license
-    go.opentelemetry.io/proto/otlp                                                             v0.7.0                                       Apache License 2.0
+    go.opentelemetry.io/proto/otlp                                                             v0.18.0                                      Apache License 2.0
     go.starlark.net                                                                            v0.0.0-20220203230714-bb14e151c28f           3-clause BSD license
     golang.org/x/crypto                                                                        v0.0.0-20220722155217-630584e8d5aa           3-clause BSD license
     golang.org/x/mod                                                                           v0.5.1                                       3-clause BSD license
