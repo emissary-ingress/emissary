@@ -125,6 +125,8 @@ spec:
 			return err
 		}
 
+		// Note: we know that the snapshot will not be nil, so no need to check. If it was then there is a
+		// programming error with the test, so we are OK with it panic'ing and failing the test.
 		version, snapshot := d.GetSnapshot(ctx)
 		if status, err := e.Configure(ctx, "test-id", version, snapshot); err != nil {
 			return err

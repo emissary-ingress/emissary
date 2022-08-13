@@ -196,7 +196,8 @@ func (d *Dispatcher) GetErrors() []*CompiledItem {
 	return result
 }
 
-// GetSnapshot returns a version and a snapshot.
+// GetSnapshot returns a version and a snapshot if the snapshot is consistent
+// Important: a nil snapshot can be returned so you must check to to make sure it exists
 func (d *Dispatcher) GetSnapshot(ctx context.Context) (string, *ecp_v3_cache.Snapshot) {
 	if d.snapshot == nil {
 		d.buildSnapshot(ctx)
@@ -206,8 +207,13 @@ func (d *Dispatcher) GetSnapshot(ctx context.Context) (string, *ecp_v3_cache.Sna
 
 // GetListener returns a *v3listener.Listener with the specified name or nil if none exists.
 func (d *Dispatcher) GetListener(ctx context.Context, name string) *v3listener.Listener {
-	_, snap := d.GetSnapshot(ctx)
-	for _, rsrc := range snap.Resources[ecp_cache_types.Listener].Items {
+	_, snapshot := d.GetSnapshot(ctx)
+	// ensure that snapshot is not nil before trying to use
+	if snapshot == nil {
+		return nil
+	}
+
+	for _, rsrc := range snapshot.Resources[ecp_cache_types.Listener].Items {
 		l := rsrc.Resource.(*v3listener.Listener)
 		if l.Name == name {
 			return l
@@ -220,8 +226,13 @@ func (d *Dispatcher) GetListener(ctx context.Context, name string) *v3listener.L
 // GetRouteConfiguration returns a *apiv2.RouteConfiguration with the specified name or nil if none
 // exists.
 func (d *Dispatcher) GetRouteConfiguration(ctx context.Context, name string) *v3route.RouteConfiguration {
-	_, snap := d.GetSnapshot(ctx)
-	for _, rsrc := range snap.Resources[ecp_cache_types.Route].Items {
+	_, snapshot := d.GetSnapshot(ctx)
+	// ensure snapshot is valid before attempting to access members to prevent panic
+	if snapshot == nil {
+		return nil
+	}
+
+	for _, rsrc := range snapshot.Resources[ecp_cache_types.Route].Items {
 		r := rsrc.Resource.(*v3route.RouteConfiguration)
 		if r.Name == name {
 			return r
