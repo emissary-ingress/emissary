@@ -283,23 +283,27 @@ func compile_FooWithRouteConfigName(f *Foo) (*gateway.CompiledConfig, error) {
 
 func TestDispatcherAssemblyWithEmptyRouteConfigName(t *testing.T) {
 	t.Parallel()
+
 	ctx := dlog.NewTestContext(t, false)
+
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", wrapFooCompiler(compile_FooWithEmptyRouteConfigName))
+
+	err := disp.Register("Foo", wrapFooCompiler(compileFooWithEmptyRouteConfigName))
 	require.NoError(t, err)
+
 	foo := makeFoo("default", "foo", "bar")
-	assert.NoError(t, disp.Upsert(foo))
-	l := disp.GetListener(ctx, "bar")
-	require.NotNil(t, l)
-	assert.Equal(t, "bar", l.Name)
-	// This is a bit weird, but the go control plane's consistency check seems to imply that an
-	// empty route config name is ok.
-	r := disp.GetRouteConfiguration(ctx, "")
-	require.NotNil(t, r)
-	assert.Equal(t, "", r.Name)
+	err = disp.Upsert(foo)
+	assert.NoError(t, err)
+
+	// due to inconsistent SanptShot the listener returned should be nil
+	listener := disp.GetListener(ctx, "bar")
+	require.Nil(t, listener)
 }
 
-func compile_FooWithEmptyRouteConfigName(f *Foo) (*gateway.CompiledConfig, error) {
+// compileFooWithEmptyRouteConfigName generates invalid RDS route configuration due to the
+// RouteConfigname being empty. This will lead to an inconsistent snapshot, so calls
+// to GetSnapShot will return a nil snapshot
+func compileFooWithEmptyRouteConfigName(f *Foo) (*gateway.CompiledConfig, error) {
 	name := f.Spec.Value
 
 	hcm := &v3httpman.HttpConnectionManager{
@@ -310,6 +314,7 @@ func compile_FooWithEmptyRouteConfigName(f *Foo) (*gateway.CompiledConfig, error
 		},
 		RouteSpecifier: &v3httpman.HttpConnectionManager_Rds{
 			Rds: &v3httpman.Rds{
+				// explicitly adding RDS Config with no name to trigger snapshot Consistency to fail
 				ConfigSource: &v3core.ConfigSource{
 					ConfigSourceSpecifier: &v3core.ConfigSource_Ads{
 						Ads: &v3core.AggregatedConfigSource{},
@@ -405,9 +410,15 @@ func TestDispatcherAssemblyEndpointDefaulting(t *testing.T) {
 	foo := makeFoo("default", "foo", "bar")
 	err = disp.Upsert(foo)
 	require.NoError(t, err)
-	_, snap := disp.GetSnapshot(ctx)
+
+	_, snapshot := disp.GetSnapshot(ctx)
+	if snapshot == nil {
+		assert.Fail(t, "unable to get a valid consistent snapshot")
+		return // ensure that linter is happy due to possible nil pointer dereference below
+	}
+
 	found := false
-	for _, r := range snap.Resources[ecp_cache_types.Endpoint].Items {
+	for _, r := range snapshot.Resources[ecp_cache_types.Endpoint].Items {
 		cla := r.Resource.(*v3endpoint.ClusterLoadAssignment)
 		if cla.ClusterName == "foo" && len(cla.Endpoints) == 0 {
 			found = true

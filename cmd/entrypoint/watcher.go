@@ -518,7 +518,13 @@ func (sh *SnapshotHolder) K8sUpdate(
 					dlog.Error(ctx, err)
 				}
 			}
+
 			_, dispSnapshot = sh.dispatcher.GetSnapshot(ctx)
+			if dispSnapshot == nil {
+				err := fmt.Errorf("[Dispatch Snapshot]: unable to get valid snapshot")
+				dlog.Error(ctx, err)
+				return false, err
+			}
 		}
 		return true, nil
 	}()
