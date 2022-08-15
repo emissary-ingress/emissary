@@ -72,6 +72,15 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [3.2.0] TBD
+[3.2.0]: https://github.com/emissary-ingress/emissary/compare/v3.1.0...v3.2.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: The envoy version included in Emissary-ingress has been upgraded from 1.22 to the latest
+  patch release of 1.23. This provides Emissary-ingress with the latest security patches,
+  performances enhancments, and features offered by the envoy proxy.
+
 ## [3.1.0] August 01, 2022
 [3.1.0]: https://github.com/emissary-ingress/emissary/compare/v3.0.0...v3.1.0
 
