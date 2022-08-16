@@ -2369,6 +2369,8 @@ spec:
                 type: string
               v3health_checks:
                 items:
+                  description: HealthCheck specifies settings for performing active
+                    health checking on upstreams
                   properties:
                     grpc_health_check:
                       description: HealthCheck for gRPC upstreams. Only one of grpc_health_check
@@ -2402,6 +2404,8 @@ spec:
                           type: object
                         expected_statuses:
                           items:
+                            description: A range of response statuses from Start to
+                              End inclusive
                             properties:
                               end:
                                 description: End of the statuses to include. Must
@@ -2442,7 +2446,7 @@ spec:
                     unhealthy_threshold:
                       description: Number of non-expected responses for the upstream
                         to be considered unhealthy. A single 503 will mark the upstream
-                        as unhealthy. Defaults to 2.
+                        as unhealthy regardless of the threshold. Defaults to 2.
                       type: integer
                   type: object
                 minItems: 1
@@ -2717,6 +2721,8 @@ spec:
                 type: object
               health_checks:
                 items:
+                  description: HealthCheck specifies settings for performing active
+                    health checking on upstreams
                   properties:
                     grpc_health_check:
                       description: HealthCheck for gRPC upstreams. Only one of grpc_health_check
@@ -2759,6 +2765,8 @@ spec:
                           type: object
                         expected_statuses:
                           items:
+                            description: A range of response statuses from Start to
+                              End inclusive
                             properties:
                               end:
                                 description: End of the statuses to include. Must
@@ -2799,7 +2807,7 @@ spec:
                     unhealthy_threshold:
                       description: Number of non-expected responses for the upstream
                         to be considered unhealthy. A single 503 will mark the upstream
-                        as unhealthy. Defaults to 2.
+                        as unhealthy regardless of the threshold. Defaults to 2.
                       type: integer
                   type: object
                 minItems: 1

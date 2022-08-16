@@ -2753,11 +2753,11 @@ func Convert_v3alpha1_HostTLSCertificateSource_To_v2_HostTLSCertificateSource(in
 
 func autoConvert_v2_HttpHealthCheck_To_v3alpha1_HttpHealthCheck(in *HttpHealthCheck, out *v3alpha1.HttpHealthCheck, s conversion.Scope) error {
 	if true {
-		in, out := &in.Host, &out.Host
+		in, out := &in.Path, &out.Path
 		*out = *in
 	}
 	if true {
-		in, out := &in.Path, &out.Path
+		in, out := &in.Host, &out.Host
 		*out = *in
 	}
 	if true {
@@ -2823,11 +2823,11 @@ func Convert_v2_HttpHealthCheck_To_v3alpha1_HttpHealthCheck(in *HttpHealthCheck,
 
 func autoConvert_v3alpha1_HttpHealthCheck_To_v2_HttpHealthCheck(in *v3alpha1.HttpHealthCheck, out *HttpHealthCheck, s conversion.Scope) error {
 	if true {
-		in, out := &in.Host, &out.Host
+		in, out := &in.Path, &out.Path
 		*out = *in
 	}
 	if true {
-		in, out := &in.Path, &out.Path
+		in, out := &in.Host, &out.Host
 		*out = *in
 	}
 	if true {
