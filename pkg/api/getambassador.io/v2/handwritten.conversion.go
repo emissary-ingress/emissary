@@ -9,11 +9,12 @@
 package v2
 
 import (
-	"fmt"
+	"context"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/conversion"
 
+	"github.com/datawire/dlib/dlog"
 	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 )
 
@@ -697,8 +698,7 @@ func Convert_v3alpha1_TracingServiceSpec_To_v2_TracingServiceSpec(in *v3alpha1.T
 				})
 			}
 		} else {
-			// TODO: Use dlog logger
-			fmt.Printf("CustomTags and TagHeaders cannot be set at the same time in a TracingService. ignoring TagHeaders since it is deprecated.")
+			dlog.Warn(context.Background(), "CustomTags and TagHeaders cannot be set at the same time in a TracingService. ignoring TagHeaders since it is deprecated.")
 		}
 	}
 
