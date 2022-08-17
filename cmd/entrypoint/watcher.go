@@ -486,7 +486,6 @@ func (sh *SnapshotHolder) K8sUpdate(
 				}
 			} else if delta.Kind == "Secret" {
 				// Might need to do more here!
-				dlog.Warnf(ctx, "secret changed: %s/%s", delta.Namespace, delta.Name)
 				secretsChanged = true
 			} else {
 				fastpathOnly = false
