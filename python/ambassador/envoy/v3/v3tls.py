@@ -48,7 +48,7 @@ class V3TLSContext(Dict):
     }
 
     def __init__(
-        self, ctx: Optional[IRTLSContext] = None, host_rewrite: Optional[str] = None, isUpstreamContext: Optional[bool]=False
+        self, ctx: Optional[IRTLSContext] = None, host_rewrite: Optional[str] = None
     ) -> None:
         del host_rewrite  # quiesce warning
 
@@ -57,7 +57,7 @@ class V3TLSContext(Dict):
         self.is_fallback = False
 
         if ctx:
-            self.add_context(ctx, isUpstreamContext)
+            self.add_context(ctx)
 
     def get_common(self) -> EnvoyCommonTLSContext:
         return self.setdefault("common_tls_context", {})
@@ -138,7 +138,7 @@ class V3TLSContext(Dict):
 
         cert_list.append(src)
 
-    def add_context(self, ctx: IRTLSContext, isUpstreamContext: bool) -> None:
+    def add_context(self, ctx: IRTLSContext) -> None:
         if TYPE_CHECKING:
             # This is needed because otherwise self.__setitem__ confuses things.
             handler: Callable[[str, str], None]  # pragma: no cover
@@ -176,12 +176,6 @@ class V3TLSContext(Dict):
                         ]
                     }
                 }
-            } if isUpstreamContext else {
-                'name': termination_secret,
-                'sds_config': {
-                    'resource_api_version': 'V3',
-                    'ads': {}
-                }
             }
 
             cert_list.append(src)
@@ -205,12 +199,6 @@ class V3TLSContext(Dict):
                             }
                         ]
                     }
-                }
-            } if isUpstreamContext else {
-                'name': termination_secret,
-                'sds_config': {
-                    'resource_api_version': 'V3',
-                    'ads': {}
                 }
             }
 

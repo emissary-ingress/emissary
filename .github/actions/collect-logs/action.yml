@@ -39,6 +39,10 @@ runs:
 
           tools/bin/kubectl get pods --all-namespaces -ocustom-columns="name:.metadata.name,namespace:.metadata.namespace" --no-headers | while read -r name namespace; do
             tools/bin/kubectl --namespace="$namespace" logs "$name" >"/tmp/test-logs/cluster/pod.${namespace}.${name}.log" || true
+            tools/bin/kubectl --namespace="$namespace" cp "$name":snapshots "/tmp/test-logs/cluster/pod.${namespace}.${name}-snapshots" || true
+            tools/bin/kubectl --namespace="$namespace" cp "$name":envoy "/tmp/test-logs/cluster/pod.${namespace}.${name}-envoy" || true
+            tools/bin/kubectl --namespace="$namespace" cp "$name":../tmp/ambassador/snapshots "/tmp/test-logs/cluster/pod.${namespace}.${name}-snapshots" || true
+            tools/bin/kubectl --namespace="$namespace" cp "$name":../tmp/ambassador/envoy "/tmp/test-logs/cluster/pod.${namespace}.${name}-envoy" || true
           done
         fi
     - name: "Upload Logs"
