@@ -814,6 +814,7 @@ class IR:
                 self.logger.debug(
                     "not saving secret_info from %s because there is no public half", secret_key
                 )
+        self.logger.debug(f"IR: secret_info secrets:\n%s", "\n  ".join(self.secret_info.keys()))
 
     def save_tls_context(self, ctx: IRTLSContext) -> None:
         extant_ctx = self.tls_contexts.get(ctx.name, None)

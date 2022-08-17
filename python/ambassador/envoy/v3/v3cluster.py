@@ -163,7 +163,6 @@ class V3Cluster(Cacheable):
                 envoy_ctx = {"common_tls_context": {}}
             else:
                 envoy_ctx = V3TLSContext(ctx=ctx, host_rewrite=cluster.get("host_rewrite", None))
-
             if envoy_ctx:
                 fields["transport_socket"] = {
                     "name": "envoy.transport_sockets.tls",

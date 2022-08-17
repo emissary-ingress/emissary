@@ -81,6 +81,12 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   patch release of 1.23. This provides Emissary-ingress with the latest security patches,
   performances enhancments, and features offered by the envoy proxy.
 
+- Bugfix: Emissary-ingress would ocasionally start returning 503s on all new requests to the
+  upstream service when a TLS certificate was rotated/renewed while there was active load on the
+  upstream service. These 503s would persist between a few hours to a few days until one of the
+  Emissary-ingress pod was restarted. This bug was encountered most frequently when using Consul and
+  was previously mitigated by the no longer supported legacy mode.
+
 ## [3.1.0] August 01, 2022
 [3.1.0]: https://github.com/emissary-ingress/emissary/compare/v3.0.0...v3.1.0
 
