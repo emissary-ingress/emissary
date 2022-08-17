@@ -379,6 +379,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 	dispatcherChanged := false
 	var endpoints *ambex.Endpoints
 	var secrets *ambex.Secrets
+	var validationGroups [][]string
 	var dispSnapshot *ecp_v3_cache.Snapshot
 	changed, err := func() (bool, error) {
 		dlog.Debugf(ctx, "[WATCHER]: processing cluster changes detected by the kubernetes watcher")
@@ -549,7 +550,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 		}
 
 		if updateSecrets {
-			secrets = ambex.MakeSecrets(ctx, sh.k8sSnapshot)
+			secrets, validationGroups = MakeSecrets(ctx, sh.k8sSnapshot)
 		}
 
 		if dispatcherChanged {
@@ -589,9 +590,10 @@ func (sh *SnapshotHolder) K8sUpdate(
 
 	if updateSecrets || endpointsChanged || dispatcherChanged {
 		fastpath := &ambex.FastpathSnapshot{
-			Endpoints: endpoints,
-			Snapshot:  dispSnapshot,
-			Secrets:   secrets,
+			Endpoints:        endpoints,
+			Snapshot:         dispSnapshot,
+			Secrets:          secrets,
+			ValidationGroups: validationGroups,
 		}
 		fastpathProcessor(ctx, fastpath)
 	}

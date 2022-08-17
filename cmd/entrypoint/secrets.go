@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	ambex "github.com/emissary-ingress/emissary/v3/pkg/ambex"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
@@ -563,4 +564,229 @@ type ModuleSecrets struct {
 	Client struct {
 		Secret string `json:"secret"`
 	} `json:"client"`
+}
+
+// MakeSecrets takes all the Secrets in a snapshot and packages them up for
+// consumption by ambex.
+func MakeSecrets(ctx context.Context, k8sSnapshot *snapshotTypes.KubernetesSnapshot) (*ambex.Secrets, [][]string) {
+	envAmbID := GetAmbassadorID()
+
+	tlsSecrets := []*ambex.Secret{}        // Secrets to be used for tls.
+	validationSecrets := []*ambex.Secret{} // Secrets to be used for validation_contexts. We can't just rely on whether the secret is Opaque to detemine this
+
+	validationGroups := [][]string{} // List of groups of secrets to be bundled together into a single validation_context
+
+	validationRefs := []string{} // list of secret names that we should treat as a validation secret rather than a tls certificate
+
+	// Iterate over alll the Hosts and TLSContexts. If they have `ca_secret` and/or `crl_secret`
+	// Then record the name of these secrets so we can add them to the correct group later.
+
+	// Secrets used for validation_contexts will get combined into groups within a single secret later
+	// so we must keep track of which validation_context secrets such as `CASecret` and `CRLSecret` belong
+	// in the same group (because they are from the same resource)
+
+	var resources []kates.Object
+	// First thing is to check all the annotations and the Module to see if we are doing secret namespacing
+	// TODO: @aliceproxy extract this check for secret namespacing to its own function
+	// since it get used in ReconcileSecrets as well.
+	for _, list := range k8sSnapshot.Annotations {
+		for _, a := range list {
+			if _, isInvalid := a.(*kates.Unstructured); isInvalid {
+				continue
+			}
+			if GetAmbID(ctx, a).Matches(envAmbID) {
+				resources = append(resources, a)
+			}
+		}
+	}
+	for _, m := range k8sSnapshot.Modules {
+		if GetAmbID(ctx, m).Matches(envAmbID) {
+			resources = append(resources, m)
+		}
+	}
+
+	// When this is true (default: true) we interpret the last `.` in a secret name
+	// as the namespace of that secret instead of being part of it's name.
+	// Otherwise we will just take the Namespace of the Host/TLSContext
+	secretNamespacing := true
+	for _, resource := range resources {
+		mod, ok := resource.(*amb.Module)
+		if ok && mod.GetName() == "ambassador" {
+			// XXX ModuleSecrets is a _godawful_ hack. See the comment on
+			// ModuleSecrets itself for more.
+			secs := ModuleSecrets{}
+			err := convert(mod.Spec.Config, &secs)
+			if err != nil {
+				dlog.Errorf(ctx, "error parsing module: %v", err)
+				continue
+			}
+			secretNamespacing = secs.Defaults.TLSSecretNamespacing
+			break
+		}
+	}
+
+	// Iterate over all the Hosts to see if they have validation_context secrets
+	for _, host := range k8sSnapshot.Hosts {
+		// First check if it belongs to this Ambassador
+		var id amb.AmbassadorID
+		if len(host.Spec.AmbassadorID) > 0 {
+			id = host.Spec.AmbassadorID
+		}
+		if !id.Matches(envAmbID) {
+			continue
+		}
+
+		// Group of secret references to be packaged into a validation context later
+		vGroup := []string{}
+		if hasSecrets := host.Spec.TLS; hasSecrets == nil {
+			continue // skip if this Host doesn't have a tls section
+		}
+		if caSecret := host.Spec.TLS.CASecret; caSecret != "" {
+			// Take the namespace of the resource if secretNamespacing is not disabled
+			var name, namespace string
+			if !secretNamespacing {
+				name = caSecret
+				namespace = host.ObjectMeta.Namespace
+			} else if strings.Contains(caSecret, ".") {
+				last := strings.LastIndex(caSecret, ".")
+				name = caSecret[:last]
+				namespace = caSecret[last+1:]
+			}
+			fullName := fmt.Sprintf("secret/%s.%s", name, namespace)
+			vGroup = append(vGroup, fullName)
+			validationRefs = append(validationRefs, fullName)
+		}
+		if crlSecret := host.Spec.TLS.CRLSecret; crlSecret != "" {
+			var name, namespace string
+			if !secretNamespacing {
+				name = crlSecret
+				namespace = host.ObjectMeta.Namespace
+			} else if strings.Contains(crlSecret, ".") {
+				last := strings.LastIndex(crlSecret, ".")
+				name = crlSecret[:last]
+				namespace = crlSecret[last+1:]
+			}
+			fullName := fmt.Sprintf("secret/%s.%s", name, namespace)
+			vGroup = append(vGroup, fullName)
+			validationRefs = append(validationRefs, fullName)
+		}
+		dlog.Debugf(ctx, "[MakeSecrets] Adding validation_context group for Host: %v: %v\n", host.Name, vGroup)
+		validationGroups = append(validationGroups, vGroup)
+	}
+
+	for _, tlsContext := range k8sSnapshot.TLSContexts {
+		// First check the Ambassador ID...
+		if !tlsContext.Spec.AmbassadorID.Matches(envAmbID) {
+			continue
+		}
+
+		// Group of secret references to be packaged into a validation context later
+		vGroup := []string{}
+
+		// Unlike Hosts, TLSContexts can set/override secret namespacing
+		secretNs := secretNamespacing
+		if tlsContext.Spec.SecretNamespacing != nil {
+			secretNs = *tlsContext.Spec.SecretNamespacing
+		}
+
+		if caSecret := tlsContext.Spec.CASecret; caSecret != "" {
+			// Take the namespace of the resource if secretNamespacing is not disabled
+
+			var name, namespace string
+			if !secretNs {
+				name = caSecret
+				namespace = tlsContext.ObjectMeta.Namespace
+			} else if strings.Contains(caSecret, ".") {
+				last := strings.LastIndex(caSecret, ".")
+				name = caSecret[:last]
+				namespace = caSecret[last+1:]
+			}
+			fullName := fmt.Sprintf("secret/%s.%s", name, namespace)
+			vGroup = append(vGroup, fullName)
+			validationRefs = append(validationRefs, fullName)
+		}
+		if crlSecret := tlsContext.Spec.CRLSecret; crlSecret != "" {
+			var name, namespace string
+			if !secretNs {
+				name = crlSecret
+				namespace = tlsContext.ObjectMeta.Namespace
+			} else if strings.Contains(crlSecret, ".") {
+				last := strings.LastIndex(crlSecret, ".")
+				name = crlSecret[:last]
+				namespace = crlSecret[last+1:]
+			}
+			fullName := fmt.Sprintf("secret/%s.%s", name, namespace)
+			vGroup = append(vGroup, fullName)
+			validationRefs = append(validationRefs, fullName)
+		}
+		dlog.Debugf(ctx, "[MakeSecrets] Adding validation_context group for TlsContext: %v: %v\n", tlsContext.Name, vGroup)
+		validationGroups = append(validationGroups, vGroup)
+	}
+
+	// Now that we've figured out which secrets are used for validation we can built the list of ambex secrets
+	// If it wasnt marked as being a secret for validation by the above section then it must be a tls secret
+	for _, secret := range k8sSnapshot.Secrets {
+		name := secret.GetName()
+		namespace := secret.GetNamespace()
+
+		if namespace == "" {
+			namespace = "default"
+		}
+
+		fullName := fmt.Sprintf("secret/%s.%s", name, namespace)
+
+		if secret.Type == v1.SecretTypeTLS {
+			dlog.Warnf(ctx, "[MakeSecrets] secret %s: TLS", fullName)
+
+			privateKey := secret.Data["tls.key"]
+			certificate := secret.Data["tls.crt"]
+
+			ambexSecret := &ambex.Secret{
+				Name:             fullName,
+				Type:             secret.Type,
+				PrivateKey:       privateKey,
+				CertificateChain: certificate,
+			}
+			// Check if this secret is for validaiton or for tls
+			if containsElem(validationRefs, fullName) {
+				dlog.Debugf(ctx, "[MakeSecrets] created validation_context Ambex secret: %v\n", fullName)
+				validationSecrets = append(validationSecrets, ambexSecret)
+			} else {
+				dlog.Debugf(ctx, "[MakeSecrets] created TLS Ambex secret: %v\n", fullName)
+				tlsSecrets = append(tlsSecrets, ambexSecret)
+			}
+		} else if secret.Type == v1.SecretTypeOpaque {
+			dlog.Warnf(ctx, "[MakeSecrets] secret %s: Opaque", fullName)
+			if caCertificate := secret.Data["user.key"]; len(caCertificate) != 0 {
+				validationSecrets = append(validationSecrets, &ambex.Secret{
+					Name:        fullName,
+					Type:        secret.Type,
+					CACertChain: caCertificate,
+				})
+			} else if crlCertificate := secret.Data["crl.pem"]; len(crlCertificate) != 0 {
+				validationSecrets = append(validationSecrets, &ambex.Secret{
+					Name: fullName,
+					Type: secret.Type,
+					Crl:  crlCertificate,
+				})
+			}
+			dlog.Debugf(ctx, "[MakeSecrets] created validation_context Ambex secret: %v\n", fullName)
+
+		}
+	}
+	return &ambex.Secrets{
+		TlsSecrets:        tlsSecrets,
+		ValidationSecrets: validationSecrets,
+	}, validationGroups
+}
+
+// Just checks if the list contains the provided string
+// I really wish go just had this builtin....
+func containsElem(s []string, key string) bool {
+	for _, e := range s {
+		if e == key {
+			return true
+		}
+	}
+	return false
 }

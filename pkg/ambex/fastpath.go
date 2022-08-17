@@ -10,7 +10,8 @@ import (
 // and, in fact, should probably become proper IR types. They are _not_ yet tied
 // specific Envoy versions here.
 type FastpathSnapshot struct {
-	Snapshot  *ecp_v3_cache.Snapshot
-	Endpoints *Endpoints
-	Secrets   *Secrets
+	Snapshot         *ecp_v3_cache.Snapshot
+	Endpoints        *Endpoints
+	Secrets          *Secrets
+	ValidationGroups [][]string
 }
