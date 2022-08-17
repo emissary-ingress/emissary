@@ -36,7 +36,7 @@ func MakeSecrets(ctx context.Context, k8sSnapshot *snapshotTypes.KubernetesSnaps
 			namespace = "default"
 		}
 
-		fullName := fmt.Sprintf("secret/%s/%s", namespace, name)
+		fullName := fmt.Sprintf("secret/%s.%s", name, namespace)
 
 		if secret.Type == v1.SecretTypeTLS {
 			dlog.Warnf(ctx, "%s: TLS", fullName)

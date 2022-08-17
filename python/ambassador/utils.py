@@ -908,7 +908,7 @@ class SecretHandler:
         # root_crt_path = None
         # cert_data = None
 
-        full_name = f'secret/{namespace}/{name}'
+        full_name = f'secret/{name}.{namespace}'
         return SavedSecret(name, namespace, full_name, full_name, full_name, full_name, { "full_name": full_name })
 
         # # Don't save if it has neither a tls_crt or a user_key or the root_crt
