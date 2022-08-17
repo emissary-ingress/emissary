@@ -902,7 +902,7 @@ class SecretHandler:
     ) -> SavedSecret:
         h = hashlib.new("sha1")
 
-        full_name = f'secret/{name}.{namespace}'
+        full_name = f'{name}.{namespace}'
         return SavedSecret(name, namespace, full_name, full_name, full_name, full_name, { "full_name": full_name })
 
 

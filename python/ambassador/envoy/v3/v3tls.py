@@ -129,19 +129,8 @@ class V3TLSContext(Dict):
             src = {
                 'name': termination_secret,
                 'sds_config': {
-                    'resource_api_version': 'V3',
-                    'api_config_source': {
-                        'api_type': 'GRPC',
-                        'transport_api_version': 'V3',
-                        'grpc_services': [
-                            {
-                                'google_grpc': {
-                                    'target_uri': 'unix:/tmp/ambex.sock',
-                                    'stat_prefix': 'sdscluster'
-                                }
-                            }
-                        ]
-                    }
+                    'ads': {},
+                    'resource_api_version': 'V3'
                 }
             }
 
@@ -165,19 +154,8 @@ class V3TLSContext(Dict):
                 src = {
                     'name': termination_secret,
                     'sds_config': {
-                        'resource_api_version': 'V3',
-                        'api_config_source': {
-                            'api_type': 'GRPC',
-                            'transport_api_version': 'V3',
-                            'grpc_services': [
-                                {
-                                    'google_grpc': {
-                                        'target_uri': 'unix:/tmp/ambex.sock',
-                                        'stat_prefix': 'sdscluster'
-                                    }
-                                }
-                            ]
-                        }
+                        'ads': {},
+                        'resource_api_version': 'V3'
                     }
                 }
 
