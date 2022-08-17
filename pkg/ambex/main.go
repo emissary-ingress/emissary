@@ -63,6 +63,8 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	// envoy control plane
+	v3tlsconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/transport_sockets/tls/v3"
+	v3secret "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/secret/v3"
 	ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
 	ecp_v3_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
 	ecp_log "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/log"
@@ -210,6 +212,7 @@ func runManagementServer(ctx context.Context, serverv3 ecp_v3_server.Server, ads
 	v3cluster.RegisterClusterDiscoveryServiceServer(grpcServer, serverv3)
 	v3route.RegisterRouteDiscoveryServiceServer(grpcServer, serverv3)
 	v3listener.RegisterListenerDiscoveryServiceServer(grpcServer, serverv3)
+	v3secret.RegisterSecretDiscoveryServiceServer(grpcServer, serverv3)
 
 	dlog.Infof(ctx, "Listening on %s:%s", adsNetwork, adsAddress)
 
@@ -279,6 +282,7 @@ func update(
 	generation *int,
 	dirs []string,
 	edsEndpointsV3 map[string]*v3endpointconfig.ClusterLoadAssignment,
+	sdsSecretsV3 []*v3tlsconfig.Secret,
 	fastpathSnapshot *FastpathSnapshot,
 	updates chan<- Update,
 ) error {
@@ -287,6 +291,7 @@ func update(
 	routesv3 := []ecp_cache_types.Resource{}    // v3.RouteConfiguration
 	listenersv3 := []ecp_cache_types.Resource{} // v3.Listener
 	runtimesv3 := []ecp_cache_types.Resource{}  // v3.Runtime
+	secretsv3 := []ecp_cache_types.Resource{}   // v3.Secret
 
 	var filenames []string
 
@@ -364,7 +369,7 @@ func update(
 		for _, clu := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Cluster].Items {
 			clustersv3 = append(clustersv3, clu.Resource)
 		}
-		// We intentionally omit endpoints since those are carried separately.
+		// We intentionally omit endpoints and secrets since those are carried separately.
 	}
 
 	// The configuration data that reaches us here arrives via two parallel paths that race each
@@ -392,6 +397,11 @@ func update(
 	// cluster exists but currently has no endpoints.
 	endpointsv3 := JoinEdsClustersV3(ctx, clustersv3, edsEndpointsV3)
 
+	for _, secret := range sdsSecretsV3 {
+		dlog.Warnf(ctx, "Updating with secret %s", secret.Name)
+		secretsv3 = append(secretsv3, secret)
+	}
+
 	// Create a new configuration snapshot from everything we have just loaded from disk.
 	curgen := *generation
 	*generation++
@@ -404,6 +414,7 @@ func update(
 		ecp_v3_resource.RouteType:    routesv3,
 		ecp_v3_resource.ListenerType: listenersv3,
 		ecp_v3_resource.RuntimeType:  runtimesv3,
+		ecp_v3_resource.SecretType:   secretsv3, // secrets
 	}
 
 	snapshot, err := ecp_v3_cache.NewSnapshot(version, snapshotResources)
@@ -602,6 +613,7 @@ func Main(
 		generation := 0
 		var fastpathSnapshot *FastpathSnapshot
 		edsEndpointsV3 := map[string]*v3endpointconfig.ClusterLoadAssignment{}
+		sdsSecretsV3 := []*v3tlsconfig.Secret{}
 
 		// We always start by updating with a totally empty snapshot.
 		//
@@ -615,6 +627,7 @@ func Main(
 			&generation,
 			args.dirs,
 			edsEndpointsV3,
+			sdsSecretsV3,
 			fastpathSnapshot,
 			updates,
 		)
@@ -635,6 +648,7 @@ func Main(
 					&generation,
 					args.dirs,
 					edsEndpointsV3,
+					sdsSecretsV3,
 					fastpathSnapshot,
 					updates,
 				)
@@ -646,6 +660,9 @@ func Main(
 				if fpSnap.Endpoints != nil {
 					edsEndpointsV3 = fpSnap.Endpoints.ToMap_v3()
 				}
+				if fpSnap.Secrets != nil {
+					sdsSecretsV3 = fpSnap.Secrets
+				}
 				fastpathSnapshot = fpSnap
 				err := update(
 					ctx,
@@ -655,6 +672,7 @@ func Main(
 					&generation,
 					args.dirs,
 					edsEndpointsV3,
+					sdsSecretsV3,
 					fastpathSnapshot,
 					updates,
 				)
@@ -671,6 +689,7 @@ func Main(
 					&generation,
 					args.dirs,
 					edsEndpointsV3,
+					sdsSecretsV3,
 					fastpathSnapshot,
 					updates,
 				)
