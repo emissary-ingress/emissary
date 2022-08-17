@@ -129,8 +129,10 @@ func parseArgs(ctx context.Context, rawArgs ...string) (*Args, error) {
 	flagset.BoolVar(&args.watch, "watch", false, "Watch for file changes")
 
 	// TODO(lukeshu): Consider changing the default here so we don't need to put it in entrypoint.sh
-	flagset.StringVar(&args.adsNetwork, "ads-listen-network", "tcp", "network for ADS to listen on")
-	flagset.StringVar(&args.adsAddress, "ads-listen-address", ":18000", "address (on --ads-listen-network) for ADS to listen on")
+	// flagset.StringVar(&args.adsNetwork, "ads-listen-network", "tcp", "network for ADS to listen on")
+	// flagset.StringVar(&args.adsAddress, "ads-listen-address", ":18000", "address (on --ads-listen-network) for ADS to listen on")
+	flagset.StringVar(&args.adsNetwork, "ads-listen-network", "unix", "network for ADS to listen on")
+	flagset.StringVar(&args.adsAddress, "ads-listen-address", "/tmp/ambex.sock", "address (on --ads-listen-network) for ADS to listen on")
 
 	var legacyAdsPort uint
 	flagset.UintVar(&legacyAdsPort, "ads", 0, "port number for ADS to listen on--deprecated, use --ads-listen-address=:1234 instead")
