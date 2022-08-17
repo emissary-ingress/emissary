@@ -33,7 +33,9 @@ EnvoyValidationContext = Dict[str, EnvoyValidationElements]
 
 EnvoyTLSParams = Dict[str, Union[str, List[str]]]
 
-EnvoyCommonTLSElements = Union[List[str], List[EnvoyCoreSource], ListOfCerts, EnvoyValidationContext, EnvoyTLSParams]
+EnvoyCommonTLSElements = Union[
+    List[str], List[EnvoyCoreSource], ListOfCerts, EnvoyValidationContext, EnvoyTLSParams
+]
 EnvoyCommonTLSContext = Dict[str, EnvoyCommonTLSElements]
 
 ElementHandler = Callable[[str, str], None]
@@ -93,15 +95,10 @@ class V3TLSContext(Dict):
         # to a list of EnvoyCoreSource, so that mypy knows which of the massive union
         # that is EnvoyCommonTLSElements to use.
         empty_cert_list: List[EnvoyCoreSource] = []
-        cert_list_1 = common.setdefault('tls_certificate_sds_secret_configs', empty_cert_list)
+        cert_list_1 = common.setdefault("tls_certificate_sds_secret_configs", empty_cert_list)
         cert_list = typecast(List[EnvoyCoreSource], cert_list_1)
 
-        src: EnvoyCoreSource = {
-            'name': cert_name,
-            'sds_config': {
-                'ads': {}
-            }
-        }
+        src: EnvoyCoreSource = {"name": cert_name, "sds_config": {"ads": {}}}
 
         cert_list.append(src)
 
@@ -113,36 +110,33 @@ class V3TLSContext(Dict):
         if ctx.is_fallback:
             self.is_fallback = True
 
-        if ctx['secret_info']:
+        if ctx["secret_info"]:
             common = self.get_common()
 
-        termination_secret = ctx['secret_info'].get('private_key_file') or None
+        termination_secret = ctx["secret_info"].get("private_key_file") or None
 
         if termination_secret:
             # We have to explicitly cast both this empty list and the empty_cert_list
             # to a list of EnvoyCoreSource, so that mypy knows which of the massive union
             # that is EnvoyCommonTLSElements to use.
             empty_cert_list: List[EnvoyCoreSource] = []
-            cert_list_1 = common.setdefault('tls_certificate_sds_secret_configs', empty_cert_list)
+            cert_list_1 = common.setdefault("tls_certificate_sds_secret_configs", empty_cert_list)
             cert_list = typecast(List[EnvoyCoreSource], cert_list_1)
 
             src = {
-                'name': termination_secret,
-                'sds_config': {
-                    'ads': {},
-                    'resource_api_version': 'V3'
-                }
+                "name": termination_secret,
+                "sds_config": {"ads": {}, "resource_api_version": "V3"},
             }
 
             cert_list.append(src)
 
             validation_secret = None
-            ca_secret = ctx['secret_info'].get('cacert_chain_file') or None
-            crl_secret = ctx['secret_info'].get('crl_file') or None
+            ca_secret = ctx["secret_info"].get("cacert_chain_file") or None
+            crl_secret = ctx["secret_info"].get("crl_file") or None
 
             # We have a combined validation context for the crl and the ca
             if ca_secret is not None and crl_secret is not None:
-                validation_secret = ca_secret+"-"+crl_secret
+                validation_secret = ca_secret + "-" + crl_secret
             # We have a ca but no crl
             elif ca_secret is not None and crl_secret is None:
                 validation_secret = ca_secret
@@ -152,25 +146,16 @@ class V3TLSContext(Dict):
 
             if validation_secret is not None:
                 src = {
-                    'name': termination_secret,
-                    'sds_config': {
-                        'ads': {},
-                        'resource_api_version': 'V3'
-                    }
+                    "name": termination_secret,
+                    "sds_config": {"ads": {}, "resource_api_version": "V3"},
                 }
 
-                common['validation_context_sds_secret_config'] = src
+                common["validation_context_sds_secret_config"] = src
 
-        crl_secret = ctx['secret_info'].get('crl_file') or None
+        crl_secret = ctx["secret_info"].get("crl_file") or None
 
         if crl_secret:
-            src = {
-                'name': crl_secret,
-                'sds_config': {
-                    'resource_api_version': 'V3',
-                    'ads': {}
-                }
-            }
+            src = {"name": crl_secret, "sds_config": {"resource_api_version": "V3", "ads": {}}}
 
             cert_list.append(src)
 

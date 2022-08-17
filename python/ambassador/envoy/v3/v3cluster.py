@@ -162,7 +162,7 @@ class V3Cluster(Cacheable):
             if ctx.get("_ambassador_enabled", False):
                 envoy_ctx = {"common_tls_context": {}}
             else:
-                envoy_ctx = V3TLSContext(ctx=ctx, host_rewrite=cluster.get('host_rewrite', None))
+                envoy_ctx = V3TLSContext(ctx=ctx, host_rewrite=cluster.get("host_rewrite", None))
             if envoy_ctx:
                 fields["transport_socket"] = {
                     "name": "envoy.transport_sockets.tls",

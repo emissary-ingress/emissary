@@ -64,15 +64,7 @@ class V3Bootstrap(dict):
                     "endpoints": [
                         {
                             "lb_endpoints": [
-                                {
-                                    "endpoint": {
-                                        "address": {
-                                            "pipe": {
-                                                "path": "/tmp/ambex.sock"
-                                            }
-                                        }
-                                    }
-                                }
+                                {"endpoint": {"address": {"pipe": {"path": "/tmp/ambex.sock"}}}}
                             ]
                         }
                     ],
