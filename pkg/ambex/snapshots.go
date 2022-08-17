@@ -141,12 +141,12 @@ func NewV3ExpandedSnapshot(v3snap *ecp_v3_cache.Snapshot) v3ExpandedSnapshot {
 	}
 }
 
-// csDump creates a combinedSnapshot from a V2 snapshot and a V3 snapshot, then
-// dumps the combinedSnapshot to disk. Only numsnaps snapshots are kept: ambex-1.json
+// dumpSnapshot creates a marshaledSnapshot from a V2 snapshot and a V3 snapshot, then
+// dumps the marshaledSnapshot to disk. Only numsnaps snapshots are kept: ambex-1.json
 // is the newest, then ambex-2.json, etc., so ambex-$numsnaps.json is the oldest.
 // Every time we write a new one, we rename all the older ones, ditching the oldest
 // after we've written numsnaps snapshots.
-func csDump(ctx context.Context, snapdirPath string, numsnaps int, generation int, v3snap *ecp_v3_cache.Snapshot) {
+func dumpSnapshot(ctx context.Context, snapdirPath string, numsnaps int, generation int, v3snap *ecp_v3_cache.Snapshot) {
 	if numsnaps <= 0 {
 		// Don't do snapshotting at all.
 		return
@@ -164,16 +164,16 @@ func csDump(ctx context.Context, snapdirPath string, numsnaps int, generation in
 	bs, err := json.Marshal(ms)
 
 	if err != nil {
-		dlog.Errorf(ctx, "CSNAP: marshal failure: %s", err)
+		dlog.Errorf(ctx, "dumpSnapshot: marshal failure: %s", err)
 		return
 	}
 
-	csPath := path.Join(snapdirPath, "ambex-0.json")
+	snapPath := path.Join(snapdirPath, "ambex-0.json")
 
-	err = ioutil.WriteFile(csPath, bs, 0644)
+	err = ioutil.WriteFile(snapPath, bs, 0644)
 
 	if err != nil {
-		dlog.Errorf(ctx, "CSNAP: write failure: %s", err)
+		dlog.Errorf(ctx, "dumpSnapshot: write failure: %s", err)
 	} else {
 		dlog.Infof(ctx, "Saved snapshot %s", version)
 	}
@@ -189,7 +189,7 @@ func csDump(ctx context.Context, snapdirPath string, numsnaps int, generation in
 		err := os.Rename(fromPath, toPath)
 
 		if (err != nil) && !os.IsNotExist(err) {
-			dlog.Infof(ctx, "CSNAP: could not rename %s -> %s: %#v", fromPath, toPath, err)
+			dlog.Infof(ctx, "dumpSnapshot: could not rename %s -> %s: %#v", fromPath, toPath, err)
 		}
 	}
 }

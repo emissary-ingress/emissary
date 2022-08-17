@@ -423,7 +423,7 @@ func update(
 	// the ratelimiting logic decides.
 
 	dlog.Debugf(ctx, "Created snapshot %s", version)
-	csDump(ctx, snapdirPath, numsnaps, curgen, snapshot)
+	dumpSnapshot(ctx, snapdirPath, numsnaps, curgen, snapshot)
 
 	update := Update{version, func() error {
 		dlog.Debugf(ctx, "Accepting snapshot %s", version)
