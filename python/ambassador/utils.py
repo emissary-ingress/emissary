@@ -902,60 +902,9 @@ class SecretHandler:
     ) -> SavedSecret:
         h = hashlib.new("sha1")
 
-        # tls_crt_path = None
-        # tls_key_path = None
-        # user_key_path = None
-        # root_crt_path = None
-        # cert_data = None
-
         full_name = f'secret/{name}.{namespace}'
         return SavedSecret(name, namespace, full_name, full_name, full_name, full_name, { "full_name": full_name })
 
-        # # Don't save if it has neither a tls_crt or a user_key or the root_crt
-        # if tls_crt or user_key or root_crt:
-        #     for el in [tls_crt, tls_key, user_key]:
-        #         if el:
-        #             h.update(el.encode("utf-8"))
-
-        #    hd = h.hexdigest().upper()
-
-        #    secret_dir = os.path.join(self.cache_dir, namespace, "secrets-decoded", name)
-
-        #    try:
-        #        os.makedirs(secret_dir)
-        #    except FileExistsError:
-        #        pass
-
-        #    if tls_crt:
-        #        tls_crt_path = os.path.join(secret_dir, f"{hd}.crt")
-        #        open(tls_crt_path, "w").write(tls_crt)
-
-        #    if tls_key:
-        #        tls_key_path = os.path.join(secret_dir, f"{hd}.key")
-        #        open(tls_key_path, "w").write(tls_key)
-
-        #    if user_key:
-        #        user_key_path = os.path.join(secret_dir, f"{hd}.user")
-        #        open(user_key_path, "w").write(user_key)
-
-        #    if root_crt:
-        #        root_crt_path = os.path.join(secret_dir, f"{hd}.root.crt")
-        #        open(root_crt_path, "w").write(root_crt)
-
-        #    cert_data = {
-        #        "tls_crt": tls_crt,
-        #        "tls_key": tls_key,
-        #        "user_key": user_key,
-        #        "root_crt": root_crt,
-        #    }
-
-        #    self.logger.debug(
-        #        f"saved secret {name}.{namespace}: {tls_crt_path}, {tls_key_path}, {root_crt_path}"
-        #    )
-
-        # return SavedSecret(
-        #     name, namespace, tls_crt_path, tls_key_path, user_key_path, root_crt_path, cert_data
-        # )
 
     def secret_info_from_k8s(
         self,

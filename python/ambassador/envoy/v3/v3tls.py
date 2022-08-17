@@ -71,25 +71,6 @@ class V3TLSContext(Dict):
 
         return params
 
-    #def get_certs(self) -> ListOfCerts:
-    #   common = self.get_common()
-
-    #    # We have to explicitly cast this empty list to a list of strings.
-    #    empty_cert_list: List[str] = []
-    #    cert_list = common.setdefault("tls_certificates", empty_cert_list)
-
-    #    # cert_list is of type EnvoyCommonTLSElements right now, so we need to cast it.
-    #    return typecast(ListOfCerts, cert_list)
-
-    #def update_cert_zero(self, key: str, value: str) -> None:
-    #    certs = self.get_certs()
-
-    #    if not certs:
-    #        certs.append({})
-
-    #    src: EnvoyCoreSource = {"filename": value}
-    #    certs[0][key] = src
-
     def update_alpn(self, key: str, value: str) -> None:
         common = self.get_common()
         common[key] = [value]
@@ -104,20 +85,6 @@ class V3TLSContext(Dict):
         params = self.get_params()
 
         params[key] = value
-
-    #ef update_validation(self, key: str, value: str) -> None:
-    #    empty_context: EnvoyValidationContext = {}
-
-    #    # This looks weirder than you might expect, because self.get_common().setdefault() is a truly
-    #    # crazy Union type, so we need to cast it to an EnvoyValidationContext to be able to work
-    #    # with it.
-    #    validation = typecast(
-    #        EnvoyValidationContext,
-    #        self.get_common().setdefault("validation_context", empty_context),
-    #    )
-
-    #    src: EnvoyCoreSource = {"filename": value}
-    #    validation[key] = src
 
     def use_cert(self, kind: str, cert_name: str) -> None:
         common = self.get_common()
@@ -228,15 +195,6 @@ class V3TLSContext(Dict):
             }
 
             cert_list.append(src)
-
-        #for secretinfokey, handler, hkey in [
-        #    ("cert_chain_file", self.update_cert_zero, "certificate_chain"),
-        #    ("private_key_file", self.update_cert_zero, "private_key"),
-        #    ("cacert_chain_file", self.update_validation, "trusted_ca"),
-        #    ("crl_file", self.update_validation, "crl"),
-        #]:
-        #    if secretinfokey in ctx["secret_info"]:
-        #        handler(hkey, ctx["secret_info"][secretinfokey])
 
         for ctxkey, handler, hkey in [
             ("alpn_protocols", self.update_alpn, "alpn_protocols"),
