@@ -69,6 +69,18 @@ metadata:
 spec:
   service: lightstep:80
   driver: lightstep
+  custom_tags:
+  - tag: ltag
+    literal:
+      value: avalue
+  - tag: etag
+    environment:
+      name: UNKNOWN_ENV_VAR
+      default_value: efallback
+  - tag: htag
+    request_header:
+      name: x-does-not-exist
+      default_value: hfallback
   config:
     access_token_file: /lightstep-credentials/access-token
     propagation_modes: ["ENVOY", "TRACE_CONTEXT"]
@@ -93,6 +105,23 @@ def test_tracing_config_v3(tmp_path: Path):
     assert ir
 
     econf = EnvoyConfig.generate(ir)
+
+    # check if custom_tags are added
+    assert econf.as_dict()["static_resources"]["listeners"][0]["filter_chains"][0]["filters"][0][
+        "typed_config"
+    ]["tracing"] == {
+        "custom_tags": [
+            {"literal": {"value": "avalue"}, "tag": "ltag"},
+            {
+                "environment": {"default_value": "efallback", "name": "UNKNOWN_ENV_VAR"},
+                "tag": "etag",
+            },
+            {
+                "request_header": {"default_value": "hfallback", "name": "x-does-not-exist"},
+                "tag": "htag",
+            },
+        ]
+    }
 
     bootstrap_config, ads_config, _ = econf.split_config()
     assert "tracing" in bootstrap_config

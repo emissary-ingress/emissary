@@ -511,18 +511,9 @@ class V3Listener(dict):
             base_http_config["tracing"] = {}
             self.traffic_direction = "OUTBOUND"
 
-            req_hdrs = self.config.ir.tracing.get("tag_headers", [])
-
-            if req_hdrs:
-                base_http_config["tracing"]["custom_tags"] = []
-                for hdr in req_hdrs:
-                    custom_tag = {
-                        "request_header": {
-                            "name": hdr,
-                        },
-                        "tag": hdr,
-                    }
-                    base_http_config["tracing"]["custom_tags"].append(custom_tag)
+            custom_tags = self.config.ir.tracing.get("custom_tags", [])
+            if custom_tags:
+                base_http_config["tracing"]["custom_tags"] = custom_tags
 
             sampling = self.config.ir.tracing.get("sampling", {})
             if sampling:

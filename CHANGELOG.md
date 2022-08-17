@@ -137,7 +137,12 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   not  being able to handle the extra colon. This has been fixed and Emissary-ingress will not throw
   an error when parsing envoy metrics for the diagnostics user interface.
 
+- Feature: It is now possible to set `custom_tags` in the `TracingService`. Trace tags can be set
+  based on literal values, environment variables, or request headers. (Thanks to <a
+  href="https://github.com/psalaberria002">Paul</a>!) ([#4181])
+
 [#4354]: https://github.com/emissary-ingress/emissary/issues/4354
+[#4181]: https://github.com/emissary-ingress/emissary/pull/4181
 
 ## [3.1.1] TBD
 [3.1.1]: https://github.com/emissary-ingress/emissary/compare/v3.1.0...v3.1.1
