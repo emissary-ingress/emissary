@@ -14,6 +14,7 @@ class IRTracing(IRResource):
     service: str
     driver: str
     driver_config: dict
+    # TODO: tag_headers is deprecated and should be removed once migrated to CRD v3
     tag_headers: list
     custom_tags: list
     host_rewrite: Optional[str]
