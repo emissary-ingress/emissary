@@ -36,6 +36,9 @@ import (
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/tcp_proxy/v3"
 
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
+
 	// first-party libraries
 
 	"github.com/datawire/dlib/dlog"
@@ -49,13 +52,76 @@ import (
 // /ambassador/snapshots/ambex-<version>.json.
 //
 // Actually making these snapshots is harder than you might think, because the core of
-// the Envoy configuration is protobuf messages rather than Go structs. So we need to
-// do a certain amount of work to make sure we can marshal to JSON using jsonpb.Marshaler
-// rather than just json.Marshal, so that the typed fields in the Envoy configuration are
-// properly serialized.
-//
+// the Envoy configuration is protobuf messages rather than Go structs, and json.Marshal
+// doesn't properly handle Envoy's "typed_config" fields, where a protobuf message is
+// included with an explicit "@type" attribute to tell what kind of message it is so that
+// Envoy can unmarshal it.
+
 // These "expanded" snapshots make the snapshots we log easier to read: basically,
 // instead of just indexing by Golang types, make the JSON marshal with real names.
+
+type marshaledSnapshot struct {
+	errors  []error                      `json:"-"`
+	Version string                       `json:"version"`
+	V3      map[string]marshaledElements `json:"v3"`
+}
+
+type marshaledElements struct {
+	Version  string            `json:"version"`
+	Elements []json.RawMessage `json:"elements"`
+}
+
+// NewMarshaledSnapshot takes a v2snapshot and a v3snapshot and returns a
+// marshaledSnapshot, ready to be serialized.
+func NewMarshaledSnapshot(version string, v3snap *ecp_v3_cache.Snapshot) marshaledSnapshot {
+	ms := marshaledSnapshot{
+		errors:  make([]error, 0),
+		Version: version,
+		V3:      make(map[string]marshaledElements),
+	}
+
+	ms.marshalV3Resources("Endpoints", v3snap.Resources[ecp_cache_types.Endpoint])
+	ms.marshalV3Resources("Clusters", v3snap.Resources[ecp_cache_types.Cluster])
+	ms.marshalV3Resources("Routes", v3snap.Resources[ecp_cache_types.Route])
+	ms.marshalV3Resources("Listeners", v3snap.Resources[ecp_cache_types.Listener])
+	ms.marshalV3Resources("Runtimes", v3snap.Resources[ecp_cache_types.Runtime])
+
+	return ms
+}
+
+// marshalV3Resources is just a helper: it marshals a bunch of V3 resources
+// and updates the marshaledSnapshot correctly. marshaledV3Elements does the heavy
+// lifting.
+func (ms *marshaledSnapshot) marshalV3Resources(name string, resources ecp_v3_cache.Resources) {
+	mel, err := marshaledV3Elements(resources)
+
+	if err != nil {
+		ms.errors = append(ms.errors, err)
+		return
+	}
+
+	ms.V3[name] = *mel
+}
+
+// marshaledV3Elements builds a marshaledElements data structure from a bunch of V3
+// resources. Note that the version comes from the resource set, not from the caller.
+func marshaledV3Elements(resources ecp_v3_cache.Resources) (*marshaledElements, error) {
+	mel := marshaledElements{
+		Version:  resources.Version,
+		Elements: make([]json.RawMessage, 0, len(resources.Items)),
+	}
+
+	for _, e := range resources.Items {
+		j, err := protojson.Marshal(e.Resource.(proto.Message))
+
+		if err != nil {
+			return nil, err
+		}
+		mel.Elements = append(mel.Elements, json.RawMessage(j))
+	}
+
+	return &mel, nil
+}
 
 type v3ExpandedSnapshot struct {
 	Endpoints ecp_v3_cache.Resources `json:"endpoints"`
@@ -75,12 +141,6 @@ func NewV3ExpandedSnapshot(v3snap *ecp_v3_cache.Snapshot) v3ExpandedSnapshot {
 	}
 }
 
-// A combinedSnapshot has both a V2 and V3 snapshot, for logging.
-type combinedSnapshot struct {
-	Version string             `json:"version"`
-	V3      v3ExpandedSnapshot `json:"v3"`
-}
-
 // csDump creates a combinedSnapshot from a V2 snapshot and a V3 snapshot, then
 // dumps the combinedSnapshot to disk. Only numsnaps snapshots are kept: ambex-1.json
 // is the newest, then ambex-2.json, etc., so ambex-$numsnaps.json is the oldest.
@@ -95,16 +155,13 @@ func csDump(ctx context.Context, snapdirPath string, numsnaps int, generation in
 	// OK, they want snapshots. Make a proper version string...
 	version := fmt.Sprintf("v%d", generation)
 
-	// ...and a combinedSnapshot.
-	cs := combinedSnapshot{
-		Version: version,
-		V3:      NewV3ExpandedSnapshot(v3snap),
-	}
+	// ...and a marshaledSnapshot.
+	ms := NewMarshaledSnapshot(version, v3snap)
 
 	// Next up, marshal as JSON and write to ambex-0.json. Note that we
 	// didn't say anything about a -0 file; that's because it's about to
 	// be renamed.
-	bs, err := json.Marshal(cs)
+	bs, err := json.Marshal(ms)
 
 	if err != nil {
 		dlog.Errorf(ctx, "CSNAP: marshal failure: %s", err)
