@@ -210,7 +210,7 @@ class IRTLSContext(IRResource):
             # if we found no cert though.
             ss = self.resolve_secret(secret_name)
 
-            self.ir.logger.debug("resolve_secrets: IR returned secret %s as %s" % (secret_name, ss))
+            self.ir.logger.debug("resolve_secrets: IR returned CA secret %s as %s" % (ca_secret_name, ss))
 
             if not ss:
                 # This is definitively an error: they mentioned a secret, it can't be loaded,
@@ -333,16 +333,23 @@ class IRTLSContext(IRResource):
         for key in ["cert_chain_file", "private_key_file", "cacert_chain_file", "crl_file"]:
             path = self.secret_info.get(key, None)
 
-            if path:
-                fc = getattr(self.ir, "file_checker")
-                if not fc(path):
-                    self.post_error("TLSContext %s found no %s '%s'" % (self.name, key, path))
+
+            if not path:
+                # Whut.
+                if (not(key == 'cacert_chain_file' or key == 'crl_file')) and self.get('hosts', None):
+                    self.post_error("TLSContext %s is missing %s" % (self.name, key))
                     errors += 1
-            elif (not (key == "cacert_chain_file" or key == "crl_file")) and self.get(
-                "hosts", None
-            ):
-                self.post_error("TLSContext %s is missing %s" % (self.name, key))
-                errors += 1
+
+            #if path:
+            #    fc = getattr(self.ir, "file_checker")
+            #    if not fc(path):
+            #        self.post_error("TLSContext %s found no %s '%s'" % (self.name, key, path))
+            #        errors += 1
+            #elif (not (key == "cacert_chain_file" or key == "crl_file")) and self.get(
+            #    "hosts", None
+            #):
+            #    self.post_error("TLSContext %s is missing %s" % (self.name, key))
+            #    errors += 1
 
         if errors > 0:
             return False

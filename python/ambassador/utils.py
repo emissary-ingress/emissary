@@ -902,57 +902,60 @@ class SecretHandler:
     ) -> SavedSecret:
         h = hashlib.new("sha1")
 
-        tls_crt_path = None
-        tls_key_path = None
-        user_key_path = None
-        root_crt_path = None
-        cert_data = None
+        # tls_crt_path = None
+        # tls_key_path = None
+        # user_key_path = None
+        # root_crt_path = None
+        # cert_data = None
 
-        # Don't save if it has neither a tls_crt or a user_key or the root_crt
-        if tls_crt or user_key or root_crt:
-            for el in [tls_crt, tls_key, user_key]:
-                if el:
-                    h.update(el.encode("utf-8"))
+        full_name = f'secret/{namespace}/{name}'
+        return SavedSecret(name, namespace, full_name, full_name, full_name, full_name, { "full_name": full_name })
 
-            hd = h.hexdigest().upper()
+        # # Don't save if it has neither a tls_crt or a user_key or the root_crt
+        # if tls_crt or user_key or root_crt:
+        #     for el in [tls_crt, tls_key, user_key]:
+        #         if el:
+        #             h.update(el.encode("utf-8"))
 
-            secret_dir = os.path.join(self.cache_dir, namespace, "secrets-decoded", name)
+        #    hd = h.hexdigest().upper()
 
-            try:
-                os.makedirs(secret_dir)
-            except FileExistsError:
-                pass
+        #    secret_dir = os.path.join(self.cache_dir, namespace, "secrets-decoded", name)
 
-            if tls_crt:
-                tls_crt_path = os.path.join(secret_dir, f"{hd}.crt")
-                open(tls_crt_path, "w").write(tls_crt)
+        #    try:
+        #        os.makedirs(secret_dir)
+        #    except FileExistsError:
+        #        pass
 
-            if tls_key:
-                tls_key_path = os.path.join(secret_dir, f"{hd}.key")
-                open(tls_key_path, "w").write(tls_key)
+        #    if tls_crt:
+        #        tls_crt_path = os.path.join(secret_dir, f"{hd}.crt")
+        #        open(tls_crt_path, "w").write(tls_crt)
 
-            if user_key:
-                user_key_path = os.path.join(secret_dir, f"{hd}.user")
-                open(user_key_path, "w").write(user_key)
+        #    if tls_key:
+        #        tls_key_path = os.path.join(secret_dir, f"{hd}.key")
+        #        open(tls_key_path, "w").write(tls_key)
 
-            if root_crt:
-                root_crt_path = os.path.join(secret_dir, f"{hd}.root.crt")
-                open(root_crt_path, "w").write(root_crt)
+        #    if user_key:
+        #        user_key_path = os.path.join(secret_dir, f"{hd}.user")
+        #        open(user_key_path, "w").write(user_key)
 
-            cert_data = {
-                "tls_crt": tls_crt,
-                "tls_key": tls_key,
-                "user_key": user_key,
-                "root_crt": root_crt,
-            }
+        #    if root_crt:
+        #        root_crt_path = os.path.join(secret_dir, f"{hd}.root.crt")
+        #        open(root_crt_path, "w").write(root_crt)
 
-            self.logger.debug(
-                f"saved secret {name}.{namespace}: {tls_crt_path}, {tls_key_path}, {root_crt_path}"
-            )
+        #    cert_data = {
+        #        "tls_crt": tls_crt,
+        #        "tls_key": tls_key,
+        #        "user_key": user_key,
+        #        "root_crt": root_crt,
+        #    }
 
-        return SavedSecret(
-            name, namespace, tls_crt_path, tls_key_path, user_key_path, root_crt_path, cert_data
-        )
+        #    self.logger.debug(
+        #        f"saved secret {name}.{namespace}: {tls_crt_path}, {tls_key_path}, {root_crt_path}"
+        #    )
+
+        # return SavedSecret(
+        #     name, namespace, tls_crt_path, tls_key_path, user_key_path, root_crt_path, cert_data
+        # )
 
     def secret_info_from_k8s(
         self,
