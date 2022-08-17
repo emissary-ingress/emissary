@@ -10,7 +10,6 @@ import (
 
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 
-	v3tlsconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
 	"github.com/emissary-ingress/emissary/v3/pkg/acp"
@@ -379,7 +378,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 	endpointsChanged := false
 	dispatcherChanged := false
 	var endpoints *ambex.Endpoints
-	var secrets []*v3tlsconfig.Secret
+	var secrets *ambex.Secrets
 	var dispSnapshot *ecp_v3_cache.Snapshot
 	changed, err := func() (bool, error) {
 		dlog.Debugf(ctx, "[WATCHER]: processing cluster changes detected by the kubernetes watcher")
