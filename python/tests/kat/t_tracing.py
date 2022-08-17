@@ -161,17 +161,12 @@ custom_tags:
         assert len(traceId) == 32
         for t in self.results[102].json[0]:
             if t.get("tags", {}).get("node_id") == "test-id":
-                # In V2 only tag_headers are supported
-                if Config.envoy_api_version == "V2":
-                    assert "x-watsup" in t["tags"]
-                    assert t["tags"]["x-watsup"] == "nothin"
-                elif Config.envoy_api_version == "V3":
-                    assert "ltag" in t["tags"]
-                    assert t["tags"]["ltag"] == "lvalue"
-                    assert "etag" in t["tags"]
-                    assert t["tags"]["etag"] == "efallback"
-                    assert "htag" in t["tags"]
-                    assert t["tags"]["htag"] == "something"
+                assert "ltag" in t["tags"]
+                assert t["tags"]["ltag"] == "lvalue"
+                assert "etag" in t["tags"]
+                assert t["tags"]["etag"] == "efallback"
+                assert "htag" in t["tags"]
+                assert t["tags"]["htag"] == "something"
 
 
 class TracingTestLongClusterName(AmbassadorTest):
