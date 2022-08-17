@@ -774,14 +774,17 @@ class SavedSecret:
         return bool((bool(self.cert_path) or bool(self.user_path)) and (self.cert_data is not None))
 
     def __str__(self) -> str:
-        return "<SavedSecret %s.%s -- cert_path %s, key_path %s, user_path %s, root_cert_path %s, cert_data %s>" % (
-            self.secret_name,
-            self.namespace,
-            self.cert_path,
-            self.key_path,
-            self.user_path,
-            self.root_cert_path,
-            "present" if self.cert_data else "absent",
+        return (
+            "<SavedSecret %s.%s -- cert_path %s, key_path %s, user_path %s, root_cert_path %s, cert_data %s>"
+            % (
+                self.secret_name,
+                self.namespace,
+                self.cert_path,
+                self.key_path,
+                self.user_path,
+                self.root_cert_path,
+                "present" if self.cert_data else "absent",
+            )
         )
 
 
