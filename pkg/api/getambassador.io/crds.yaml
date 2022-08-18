@@ -4000,9 +4000,9 @@ spec:
               stats_name:
                 type: string
               tag_headers:
-                description: 'tag_headers is deprecated. Use custom_tags instead.
-                  `tag_headers: ["header"]` can be defined as `custom_tags: [{"request_header":
-                  {"name": "header"}}]`.'
+                description: 'Deprecated: tag_headers is deprecated. Use custom_tags
+                  instead. `tag_headers: ["header"]` can be defined as `custom_tags:
+                  [{"request_header": {"name": "header"}}]`.'
                 items:
                   type: string
                 type: array

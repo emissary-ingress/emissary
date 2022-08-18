@@ -93,7 +93,7 @@ type TracingServiceSpec struct {
 	// +kubebuilder:validation:Required
 	Service  string         `json:"service,omitempty"`
 	Sampling *TraceSampling `json:"sampling,omitempty"`
-	// tag_headers is deprecated. Use custom_tags instead.
+	// Deprecated: tag_headers is deprecated. Use custom_tags instead.
 	// `tag_headers: ["header"]` can be defined as `custom_tags: [{"request_header": {"name": "header"}}]`.
 	DeprecatedTagHeaders []string           `json:"tag_headers,omitempty"`
 	CustomTags           []TracingCustomTag `json:"custom_tags,omitempty"`
