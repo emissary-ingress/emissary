@@ -81,6 +81,10 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   patch release of 1.23. This provides Emissary-ingress with the latest security patches,
   performances enhancments, and features offered by the envoy proxy.
 
+- Feature: Previously the `Host` resource could only use secrets that are in the namespace as the
+  Host. The `tlsSecret` field in the Host has a new subfield `namespace` that will allow the use of
+  secrets from different namespaces.
+
 ## [3.1.0] August 01, 2022
 [3.1.0]: https://github.com/emissary-ingress/emissary/compare/v3.0.0...v3.1.0
 
