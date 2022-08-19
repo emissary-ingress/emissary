@@ -2306,3 +2306,374 @@ spec:
             )
             query.ca_cert = TLSCerts["tls-context-host-1"].pubcert
             yield (r[0], query)
+
+
+class HostCRDCrossNamespaceNoNamespacing(AmbassadorTest):
+    """
+    HostCRDCrossNamespaceNoNamespacing tests that the value of tls_secret_namespacing does not interfere
+    with the function of being able to specify atlsSecret in another namespace due to the way that the
+    implicit TLSContext handles secret names.
+    """
+
+    target: ServiceType
+
+    def init(self):
+        self.edge_stack_cleartext_host = False
+        self.target1 = HTTP(name="target")
+
+    def manifests(self) -> str:
+        return (
+            namespace_manifest("foobar")
+            + self.format(
+                """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-host-1
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      hostname: tls-context-host-1
+  tlsSecret:
+    name: {self.path.k8s}.test.tlscontext.secret
+    namespace: foobar
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}.test.tlscontext.secret
+  namespace: foobar
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: """
+                + TLSCerts["tls-context-host-1"].k8s_crt
+                + """
+  tls.key: """
+                + TLSCerts["tls-context-host-1"].k8s_key
+                + """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-1-mapping
+  labels:
+    hostname: tls-context-host-1
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  prefix: /target/
+  service: {self.target1.path.fqdn}
+"""
+            )
+            + super().manifests()
+        )
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        # Get some info from diagd for self.check() to inspect
+        yield Query(
+            self.url("ambassador/v0/diag/?json=true&filter=errors"),
+            headers={"Host": "tls-context-host-1"},
+            insecure=True,
+            sni=True,
+        )
+
+        yield Query(
+            self.url("target/", scheme="https"),
+            headers={"Host": "tls-context-host-1"},
+            sni=True,
+            insecure=True,
+            expected=200,
+        )
+        yield Query(
+            self.url("target/", scheme="http"),
+            headers={"Host": "tls-context-host-1"},
+            expected=301,
+        )
+
+    def check(self):
+        # XXX If self.results[0].json is empty, the harness won't convert it to a response.
+        errors = self.results[0].json or []
+        num_errors = len(errors)
+        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(num_errors, errors)
+
+        idx = 0
+
+        for result in self.results:
+            if result.status == 200 and result.query.headers and result.tls:
+                host_header = result.query.headers["Host"]
+                tls_common_name = result.tls[0]["Subject"]["CommonName"]
+
+                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (
+                    idx,
+                    host_header,
+                    tls_common_name,
+                )
+
+            idx += 1
+
+    def requirements(self):
+        # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+
+
+class HostCRDDoubleCrossNamespace(AmbassadorTest):
+    """
+    HostCRDDouble: We have two Hosts, each with a
+    manually-configured TLS secret, the secrets have
+    the same name but are in different namespaces.
+    """
+
+    target1: ServiceType
+    target2: ServiceType
+
+    def init(self):
+        self.edge_stack_cleartext_host = False
+        self.target1 = HTTP(name="target1")
+        self.target2 = HTTP(name="target2")
+
+    def manifests(self) -> str:
+        return (
+            namespace_manifest("bar")
+            + namespace_manifest("foo")
+            + self.format(
+                """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-host-1
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      hostname: tls-context-host-1
+  tlsSecret:
+    name: {self.path.k8s}-test-tlscontext-secret
+    namespace: foo
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-test-tlscontext-secret
+  namespace: foo
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: """
+                + TLSCerts["tls-context-host-1"].k8s_crt
+                + """
+  tls.key: """
+                + TLSCerts["tls-context-host-1"].k8s_key
+                + """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-1-mapping
+  labels:
+    hostname: tls-context-host-1
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  prefix: /target-1/
+  service: {self.target1.path.fqdn}
+
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-host-2
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-2
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: {self.path.k8s}-test-tlscontext-secret
+    namespace: bar
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-test-tlscontext-secret
+  namespace: bar
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: """
+                + TLSCerts["tls-context-host-2"].k8s_crt
+                + """
+  tls.key: """
+                + TLSCerts["tls-context-host-2"].k8s_key
+                + """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-2-mapping
+  labels:
+    hostname: tls-context-host-2
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-2
+  prefix: /target-2/
+  service: {self.target2.path.fqdn}
+"""
+            )
+            + super().manifests()
+        )
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        # Get some info from diagd for self.check() to inspect
+        yield Query(
+            self.url("ambassador/v0/diag/?json=true&filter=errors"),
+            headers={"Host": "tls-context-host-1"},
+            insecure=True,
+            sni=True,
+        )
+
+        # Host #1 - TLS
+        yield Query(
+            self.url("target-1/", scheme="https"),
+            headers={"Host": "tls-context-host-1"},
+            sni=True,
+            insecure=True,
+            expected=200,
+        )
+        yield Query(
+            self.url("target-2/", scheme="https"),
+            headers={"Host": "tls-context-host-1"},
+            sni=True,
+            insecure=True,
+            expected=404,
+        )
+        yield Query(
+            self.url("target-1/", scheme="http"),
+            headers={"Host": "tls-context-host-1"},
+            expected=301,
+        )
+
+        # Host #2 - TLS
+        yield Query(
+            self.url("target-1/", scheme="https"),
+            headers={"Host": "tls-context-host-2"},
+            sni=True,
+            insecure=True,
+            expected=404,
+        )
+        yield Query(
+            self.url("target-2/", scheme="https"),
+            headers={"Host": "tls-context-host-2"},
+            sni=True,
+            insecure=True,
+            expected=200,
+        )
+        yield Query(
+            self.url("target-2/", scheme="http"),
+            headers={"Host": "tls-context-host-2"},
+            expected=301,
+        )
+
+    def check(self):
+        # XXX If self.results[0].json is empty, the harness won't convert it to a response.
+        errors = self.results[0].json or []
+        num_errors = len(errors)
+        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(num_errors, errors)
+
+        idx = 0
+
+        for result in self.results:
+            if result.status == 200 and result.query.headers and result.tls:
+                host_header = result.query.headers["Host"]
+                tls_common_name = result.tls[0]["Subject"]["CommonName"]
+
+                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (
+                    idx,
+                    host_header,
+                    tls_common_name,
+                )
+
+            idx += 1
+
+    def requirements(self):
+        # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-2"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-2"},
+                insecure=True,
+                sni=True,
+            ),
+        )
