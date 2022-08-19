@@ -404,7 +404,11 @@ func findSecretRefs(ctx context.Context, resource kates.Object, secretNamespacin
 		// `namespace:` field (i.e. changing them to `core.v1.SecretReference`s) rather than by
 		// adopting the `{name}.{namespace}` notation.
 		if r.Spec.TLSSecret != nil && r.Spec.TLSSecret.Name != "" {
-			secretRef(r.GetNamespace(), r.Spec.TLSSecret.Name, false, action)
+			if r.Spec.TLSSecret.Namespace != "" {
+				secretRef(r.Spec.TLSSecret.Namespace, r.Spec.TLSSecret.Name, false, action)
+			} else {
+				secretRef(r.GetNamespace(), r.Spec.TLSSecret.Name, false, action)
+			}
 		}
 
 		if r.Spec.AcmeProvider != nil && r.Spec.AcmeProvider.PrivateKeySecret != nil &&
