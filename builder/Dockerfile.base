@@ -77,7 +77,7 @@ RUN curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kuben
     curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubens.bash -o /usr/share/bash-completion/completions/kubens
 RUN curl --fail -L https://github.com/gotestyourself/gotestsum/releases/download/v0.6.0/gotestsum_0.6.0_linux_amd64.tar.gz | tar -C /usr/local/bin -xzf -
 RUN mkdir helmtmp && curl -o helmtmp/helm.tar.gz https://get.helm.sh/helm-v3.4.1-linux-amd64.tar.gz && tar -zxvf helmtmp/helm.tar.gz -C helmtmp && mv helmtmp/linux-amd64/helm /usr/local/bin/helm && rm -rf helmtmp
-RUN curl --fail -L https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence -o /usr/local/bin/telepresence && chmod a+x /usr/local/bin/telepresence
+RUN curl --fail -L https://app.getambassador.io/download/tel2/linux/amd64/2.6.6/telepresence -o /usr/local/bin/telepresence && chmod a+x /usr/local/bin/telepresence
 RUN curl --fail -L https://raw.githubusercontent.com/jonmosco/kube-ps1/v0.7.0/kube-ps1.sh -o /usr/local/bin/kube-ps1.sh
 RUN curl -o /usr/local/bin/yq --fail -L https://github.com/mikefarah/yq/releases/download/v4.3.1/yq_linux_amd64 && \
     chmod a+x /usr/local/bin/yq
