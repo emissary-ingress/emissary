@@ -87,6 +87,10 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Feature: Previously the `Host` resource could only use secrets that are in the namespace as the
+  Host. The `tlsSecret` field in the Host has a new subfield `namespace` that will allow the use of
+  secrets from different namespaces.
+
 ## [2.3.2] August 01, 2022
 [2.3.2]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v2.3.2
 
