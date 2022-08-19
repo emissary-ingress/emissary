@@ -4,11 +4,11 @@
 package namespace
 
 import (
-	"sigs.k8s.io/kustomize/api/filters/fieldspec"
 	"sigs.k8s.io/kustomize/api/filters/filtersutil"
 	"sigs.k8s.io/kustomize/api/filters/fsslice"
 	"sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/kustomize/kyaml/kio"
+	"sigs.k8s.io/kustomize/kyaml/resid"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 )
 
@@ -18,9 +18,17 @@ type Filter struct {
 
 	// FsSlice contains the FieldSpecs to locate the namespace field
 	FsSlice types.FsSlice `json:"fieldSpecs,omitempty" yaml:"fieldSpecs,omitempty"`
+
+	trackableSetter filtersutil.TrackableSetter
 }
 
 var _ kio.Filter = Filter{}
+var _ kio.TrackableFilter = &Filter{}
+
+// WithMutationTracker registers a callback which will be invoked each time a field is mutated
+func (ns *Filter) WithMutationTracker(callback func(key, value, tag string, node *yaml.RNode)) {
+	ns.trackableSetter.WithMutationTracker(callback)
+}
 
 func (ns Filter) Filter(nodes []*yaml.RNode) ([]*yaml.RNode, error) {
 	return kio.FilterAll(yaml.FilterFunc(ns.run)).Filter(nodes)
@@ -44,7 +52,7 @@ func (ns Filter) run(node *yaml.RNode) (*yaml.RNode, error) {
 	// transformations based on data -- :)
 	err := node.PipeE(fsslice.Filter{
 		FsSlice:    ns.FsSlice,
-		SetValue:   filtersutil.SetScalar(ns.Namespace),
+		SetValue:   ns.trackableSetter.SetEntry("", ns.Namespace, yaml.NodeTagString),
 		CreateKind: yaml.ScalarNode, // Namespace is a ScalarNode
 		CreateTag:  yaml.NodeTagString,
 	})
@@ -54,16 +62,11 @@ func (ns Filter) run(node *yaml.RNode) (*yaml.RNode, error) {
 // hacks applies the namespace transforms that are hardcoded rather
 // than specified through FieldSpecs.
 func (ns Filter) hacks(obj *yaml.RNode) error {
-	meta, err := obj.GetMeta()
-	if err != nil {
+	gvk := resid.GvkFromNode(obj)
+	if err := ns.metaNamespaceHack(obj, gvk); err != nil {
 		return err
 	}
-
-	if err := ns.metaNamespaceHack(obj, meta); err != nil {
-		return err
-	}
-
-	return ns.roleBindingHack(obj, meta)
+	return ns.roleBindingHack(obj, gvk)
 }
 
 // metaNamespaceHack is a hack for implementing the namespace transform
@@ -74,16 +77,15 @@ func (ns Filter) hacks(obj *yaml.RNode) error {
 // This hack should be updated to allow individual resources to specify
 // if they are cluster scoped through either an annotation on the resources,
 // or through inlined OpenAPI on the resource as a YAML comment.
-func (ns Filter) metaNamespaceHack(obj *yaml.RNode, meta yaml.ResourceMeta) error {
-	gvk := fieldspec.GetGVK(meta)
-	if !gvk.IsNamespaceableKind() {
+func (ns Filter) metaNamespaceHack(obj *yaml.RNode, gvk resid.Gvk) error {
+	if gvk.IsClusterScoped() {
 		return nil
 	}
 	f := fsslice.Filter{
 		FsSlice: []types.FieldSpec{
 			{Path: types.MetadataNamespacePath, CreateIfNotPresent: true},
 		},
-		SetValue:   filtersutil.SetScalar(ns.Namespace),
+		SetValue:   ns.trackableSetter.SetEntry("", ns.Namespace, yaml.NodeTagString),
 		CreateKind: yaml.ScalarNode, // Namespace is a ScalarNode
 	}
 	_, err := f.Filter(obj)
@@ -104,8 +106,8 @@ func (ns Filter) metaNamespaceHack(obj *yaml.RNode, meta yaml.ResourceMeta) erro
 //   ...
 // - name: "something-else" # this will not have the namespace set
 //   ...
-func (ns Filter) roleBindingHack(obj *yaml.RNode, meta yaml.ResourceMeta) error {
-	if meta.Kind != roleBindingKind && meta.Kind != clusterRoleBindingKind {
+func (ns Filter) roleBindingHack(obj *yaml.RNode, gvk resid.Gvk) error {
+	if gvk.Kind != roleBindingKind && gvk.Kind != clusterRoleBindingKind {
 		return nil
 	}
 
@@ -129,11 +131,15 @@ func (ns Filter) roleBindingHack(obj *yaml.RNode, meta yaml.ResourceMeta) error 
 		}
 
 		// set the namespace for the default account
-		v := yaml.NewScalarRNode(ns.Namespace)
-		return o.PipeE(
+		node, err := o.Pipe(
 			yaml.LookupCreate(yaml.ScalarNode, "namespace"),
-			yaml.FieldSetter{Value: v},
 		)
+		if err != nil {
+			return err
+		}
+
+		return ns.trackableSetter.SetEntry("", ns.Namespace, yaml.NodeTagString)(node)
+
 	})
 
 	return err
