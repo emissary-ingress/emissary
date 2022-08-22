@@ -16,9 +16,9 @@ go-mod-tidy:
 .PHONY: go-mod-tidy
 
 go-mod-tidy: go-mod-tidy/main
-go-mod-tidy/main:
+go-mod-tidy/main: $(OSS_HOME)/build-aux/go-version.txt
 	rm -f go.sum
-	GOFLAGS=-mod=mod go mod tidy
+	GOFLAGS=-mod=mod go mod tidy -compat=$$(cut -d. -f1,2 < $<) -go=$$(cut -d. -f1,2 < $<)
 .PHONY: go-mod-tidy/main
 
 #

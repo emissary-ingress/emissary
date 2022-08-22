@@ -24,9 +24,9 @@ clobber-tools:
 go-mod-tidy: $(patsubst $(tools.srcdir)/%/go.mod,go-mod-tidy/tools/%,$(wildcard $(tools.srcdir)/*/go.mod))
 
 .PHONY: go-mod-tidy/tools/%
-go-mod-tidy/tools/%:
+go-mod-tidy/tools/%: $(OSS_HOME)/build-aux/go-version.txt
 	rm -f $(tools.srcdir)/$*/go.sum
-	cd $(tools.srcdir)/$* && GOFLAGS=-mod=mod go mod tidy
+	cd $(tools.srcdir)/$* && GOFLAGS=-mod=mod go mod tidy -compat=$$(cut -d. -f1,2 < $<) -go=$$(cut -d. -f1,2 < $<)
 
 # Shell scripts
 # =============
