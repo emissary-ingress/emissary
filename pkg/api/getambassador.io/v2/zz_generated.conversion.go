@@ -20,7 +20,7 @@
 package v2
 
 import (
-	v3alpha1 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	v3alpha1 "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )

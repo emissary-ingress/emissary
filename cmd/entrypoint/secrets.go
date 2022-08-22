@@ -13,12 +13,12 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/kates/k8s_resource_types"
-	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/derror"
 	"github.com/datawire/dlib/dlog"
+	amb "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates/k8s_resource_types"
+	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 // checkSecret checks whether a secret is valid, and adds it to the list of secrets
@@ -175,6 +175,8 @@ func checkSecret(
 // since we don't want to send secrets to Ambassador unless we're
 // using them, since any secret we send will be saved to disk.
 func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
+	envAmbID := GetAmbassadorID()
+
 	// Start by building up a list of all the K8s objects that are
 	// allowed to mention secrets. Note that we vet the ambassador_id
 	// for all of these before putting them on the list.
@@ -190,7 +192,7 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 			if _, isInvalid := a.(*kates.Unstructured); isInvalid {
 				continue
 			}
-			if include(GetAmbId(ctx, a)) {
+			if GetAmbID(ctx, a).Matches(envAmbID) {
 				resources = append(resources, a)
 			}
 		}
@@ -203,19 +205,19 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 		if len(h.Spec.AmbassadorID) > 0 {
 			id = h.Spec.AmbassadorID
 		}
-		if include(id) {
+		if id.Matches(envAmbID) {
 			resources = append(resources, h)
 		}
 	}
 
 	// TLSContexts, Modules, and Ingresses are all straightforward.
 	for _, t := range sh.k8sSnapshot.TLSContexts {
-		if include(t.Spec.AmbassadorID) {
+		if t.Spec.AmbassadorID.Matches(envAmbID) {
 			resources = append(resources, t)
 		}
 	}
 	for _, m := range sh.k8sSnapshot.Modules {
-		if include(m.Spec.AmbassadorID) {
+		if m.Spec.AmbassadorID.Matches(envAmbID) {
 			resources = append(resources, m)
 		}
 	}

@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

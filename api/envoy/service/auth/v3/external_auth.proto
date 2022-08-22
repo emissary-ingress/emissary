@@ -9,13 +9,14 @@ import "envoy/type/v3/http_status.proto";
 import "google/protobuf/struct.proto";
 import "google/rpc/status.proto";
 
+import "envoy/annotations/deprecation.proto";
 import "udpa/annotations/status.proto";
 import "udpa/annotations/versioning.proto";
-import "validate/validate.proto";
 
 option java_package = "io.envoyproxy.envoy.service.auth.v3";
 option java_outer_classname = "ExternalAuthProto";
 option java_multiple_files = true;
+option go_package = "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3;authv3";
 option java_generic_services = true;
 option (udpa.annotations.file_status).package_version_status = ACTIVE;
 
@@ -27,24 +28,6 @@ option (udpa.annotations.file_status).package_version_status = ACTIVE;
 // A generic interface for performing authorization check on incoming
 // requests to a networked service.
 service Authorization {
-  // For v2alpha to work as expected, we need to convince
-  // proto_sync.py that the v2alpha package is the previous version of
-  // either this package or the v2 package. And to do that, you'd
-  // "normally" use the
-  // "(udpa.annotations.versioning).previous_message_type" option; but
-  // we don't have a 'message' to put it on, we only have a 'service'.
-  // Fortunately, proto_sync.py's parser is sloppy, and we can fool it
-  // with a comment:
-  //
-  //   previous_message_type = "envoy.service.auth.v2alpha.Authorization";
-  //
-  // Now, we'd also "normally" do that in the v2 package, not here.
-  // But, because the v2alpha package imports the v2 package, that'd
-  // cause a cycle.
-  //
-  // The lesson is that the "have v2alpha be an alias for v2 instead
-  // of duplicating the files" thing we did was a bad thing to do.
-
   // Performs authorization check based on the attributes associated with the
   // incoming request, and returns status `OK` or not `OK`.
   rpc Check(CheckRequest) returns (CheckResponse) {
@@ -63,12 +46,12 @@ message DeniedHttpResponse {
   option (udpa.annotations.versioning).previous_message_type =
       "envoy.service.auth.v2.DeniedHttpResponse";
 
-  // This field allows the authorization service to send a HTTP response status
-  // code to the downstream client other than 403 (Forbidden).
-  type.v3.HttpStatus status = 1 [(validate.rules).message = {required: true}];
+  // This field allows the authorization service to send an HTTP response status code to the
+  // downstream client. If not set, Envoy sends ``403 Forbidden`` HTTP status code by default.
+  type.v3.HttpStatus status = 1;
 
   // This field allows the authorization service to send HTTP response headers
-  // to the downstream client. Note that the `append` field in `HeaderValueOption` defaults to
+  // to the downstream client. Note that the :ref:`append field in HeaderValueOption <envoy_v3_api_field_config.core.v3.HeaderValueOption.append>` defaults to
   // false when used in this message.
   repeated config.core.v3.HeaderValueOption headers = 2;
 
@@ -78,14 +61,14 @@ message DeniedHttpResponse {
 }
 
 // HTTP attributes for an OK response.
-// [#next-free-field: 6]
+// [#next-free-field: 9]
 message OkHttpResponse {
   option (udpa.annotations.versioning).previous_message_type =
       "envoy.service.auth.v2.OkHttpResponse";
 
   // HTTP entity headers in addition to the original request headers. This allows the authorization
   // service to append, to add or to override headers from the original request before
-  // dispatching it to the upstream. Note that the `append` field in `HeaderValueOption` defaults to
+  // dispatching it to the upstream. Note that the :ref:`append field in HeaderValueOption <envoy_v3_api_field_config.core.v3.HeaderValueOption.append>` defaults to
   // false when used in this message. By setting the `append` field to `true`,
   // the filter will append the correspondent header value to the matched request header.
   // By leaving `append` as false, the filter will either add a new header, or override an existing
@@ -113,7 +96,22 @@ message OkHttpResponse {
   // <envoy_v3_api_field_service.auth.v3.CheckResponse.dynamic_metadata>`. Until it is removed,
   // setting this field overrides :ref:`CheckResponse.dynamic_metadata
   // <envoy_v3_api_field_service.auth.v3.CheckResponse.dynamic_metadata>`.
-  google.protobuf.Struct dynamic_metadata = 3 [deprecated = true];
+  google.protobuf.Struct dynamic_metadata = 3
+      [deprecated = true, (envoy.annotations.deprecated_at_minor_version) = "3.0"];
+
+  // This field allows the authorization service to send HTTP response headers
+  // to the downstream client on success. Note that the :ref:`append field in HeaderValueOption <envoy_v3_api_field_config.core.v3.HeaderValueOption.append>`
+  // defaults to false when used in this message.
+  repeated config.core.v3.HeaderValueOption response_headers_to_add = 6;
+
+  // This field allows the authorization service to set (and overwrite) query
+  // string parameters on the original request before it is sent upstream.
+  repeated config.core.v3.QueryParameter query_parameters_to_set = 7;
+
+  // This field allows the authorization service to specify which query parameters
+  // should be removed from the original request before it is sent upstream. Each
+  // element in this list is a case-sensitive query parameter name to be removed.
+  repeated string query_parameters_to_remove = 8;
 }
 
 // Intended for gRPC and Network Authorization servers `only`.
@@ -121,7 +119,9 @@ message CheckResponse {
   option (udpa.annotations.versioning).previous_message_type =
       "envoy.service.auth.v2.CheckResponse";
 
-  // Status `OK` allows the request. Any other status indicates the request should be denied.
+  // Status `OK` allows the request. Any other status indicates the request should be denied, and
+  // for HTTP filter, if not overridden by :ref:`denied HTTP response status <envoy_v3_api_field_service.auth.v3.DeniedHttpResponse.status>`
+  // Envoy sends ``403 Forbidden`` HTTP status code by default.
   google.rpc.Status status = 1;
 
   // An message that contains HTTP response attributes. This message is

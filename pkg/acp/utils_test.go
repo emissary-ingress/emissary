@@ -3,7 +3,7 @@ package acp_test
 import (
 	"testing"
 
-	"github.com/datawire/ambassador/v2/pkg/acp"
+	"github.com/emissary-ingress/emissary/v3/pkg/acp"
 )
 
 func check(t *testing.T, hostport string, wanted bool) {

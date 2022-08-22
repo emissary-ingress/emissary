@@ -11,6 +11,7 @@ import (
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoytest"
 )
 
 func runEnvoy(ctx context.Context, envoyHUP chan os.Signal) error {
@@ -47,22 +48,21 @@ func runEnvoy(ctx context.Context, envoyHUP chan os.Signal) error {
 			ShutdownOnNonError: true,
 		})
 		group.Go("envoy", func(ctx context.Context) error {
-			// XXX: will host networking work on a mac? (probably not)
-			dockerArgs := []string{
-				"run", "-l", label, "--rm", "--network", "host",
-				"-v", fmt.Sprintf("%s:%s", snapdir, snapdir),
-				"-v", fmt.Sprintf("%s:%s", GetEnvoyBootstrapFile(), GetEnvoyBootstrapFile()),
+			dockerFlags := []string{
+				"--label=" + label,
+				// FIXME(lukeshu): --network=host doesn't work on macOS, so that
+				// will inconvenience our macOS-using contributors.
+				"--network=host",
+				"--volume=" + snapdir + ":" + snapdir,
+				"--volume=" + GetEnvoyBootstrapFile() + ":" + GetEnvoyBootstrapFile(),
 			}
-
 			if envbool("DEV_ENVOY_DOCKER_PRIVILEGED") {
-				dockerArgs = append(dockerArgs, "--privileged")
+				dockerFlags = append(dockerFlags,
+					"--privileged")
 			}
-
-			dockerArgs = append(dockerArgs, "--entrypoint", "envoy", "docker.io/datawire/aes:1.12.2")
-			cmd := subcommand(ctx, "docker", append(dockerArgs, GetEnvoyFlags()...)...)
-			if envbool("DEV_SHUTUP_ENVOY") {
-				cmd.Stdout = nil
-				cmd.Stderr = nil
+			cmd, err := envoytest.LocalEnvoyCmd(ctx, dockerFlags, GetEnvoyFlags())
+			if err != nil {
+				return err
 			}
 			return cmd.Run()
 		})

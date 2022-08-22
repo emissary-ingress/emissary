@@ -1,4 +1,4 @@
-httpbin_manifests="""
+httpbin_manifests = """
 ---
 apiVersion: v1
 kind: Service
@@ -75,7 +75,7 @@ spec:
 """
 
 
-websocket_echo_server_manifests="""
+websocket_echo_server_manifests = """
 ---
 apiVersion: v1
 kind: Service

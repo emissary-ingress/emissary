@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dhttp"
 	"github.com/datawire/dlib/dlog"
+	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 // take the next port in the range of ambassador ports.

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 // Map is a YAML/JSON-ish map with some convenience methods on it.

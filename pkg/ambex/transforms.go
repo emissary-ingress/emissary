@@ -9,26 +9,18 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
-	// envoy api v2
-	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	apiv2_core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	apiv2_endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/endpoint"
-	apiv2_listener "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/listener"
-	apiv2_httpman "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
-
 	// envoy api v3
-	apiv3_cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
-	apiv3_core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
-	apiv3_endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/config/endpoint/v3"
-	apiv3_listener "github.com/datawire/ambassador/v2/pkg/api/envoy/config/listener/v3"
-	apiv3_route "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v3"
-	apiv3_httpman "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
+	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
+	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
+	v3route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
+	v3httpman "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
 
 	// envoy control plane
-	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	ecp_v2_resource "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v2"
-	ecp_v3_resource "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
-	ecp_wellknown "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+	ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	ecp_v3_resource "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
+	ecp_wellknown "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
 
 	// first-party libraries
 	"github.com/datawire/dlib/dlog"
@@ -118,70 +110,11 @@ import (
 //      ]
 //    }
 //  ]
-func ListenerToRdsListener(lnr *apiv2.Listener) (*apiv2.Listener, []*apiv2.RouteConfiguration, error) {
-	l := proto.Clone(lnr).(*apiv2.Listener)
-	var routes []*apiv2.RouteConfiguration
-	for _, fc := range l.FilterChains {
-		for _, f := range fc.Filters {
-			if f.Name != ecp_wellknown.HTTPConnectionManager {
-				// We only know how to create an rds listener for HttpConnectionManager
-				// listeners. We must ignore all other listeners.
-				continue
-			}
-
-			// Note that the hcm configuration is stored in a protobuf any, so √the
-			// GetHTTPConnectionManager is actually returning an unmarshalled copy.
-			hcm := ecp_v2_resource.GetHTTPConnectionManager(f)
-			if hcm != nil {
-				// RouteSpecifier is a protobuf oneof that corresponds to the rds, route_config, and
-				// scoped_routes fields. Only one of those may be set at a time.
-				rs, ok := hcm.RouteSpecifier.(*apiv2_httpman.HttpConnectionManager_RouteConfig)
-				if ok {
-					rc := rs.RouteConfig
-					if rc.Name == "" {
-						// Generate a unique name for the RouteConfiguration that we can use to
-						// correlate the listener to the RDS record. We use the listener name plus
-						// an index because there can be more than one route configuration
-						// associated with a given listener.
-						rc.Name = fmt.Sprintf("%s-routeconfig-%d", l.Name, len(routes))
-					}
-					routes = append(routes, rc)
-					// Now that we have extracted and named the RouteConfiguration, we change the
-					// RouteSpecifier from the inline RouteConfig variation to RDS via ADS. This
-					// will cause it to use whatever ADS source is defined in the bootstrap
-					// configuration.
-					hcm.RouteSpecifier = &apiv2_httpman.HttpConnectionManager_Rds{
-						Rds: &apiv2_httpman.Rds{
-							ConfigSource: &apiv2_core.ConfigSource{
-								ConfigSourceSpecifier: &apiv2_core.ConfigSource_Ads{
-									Ads: &apiv2_core.AggregatedConfigSource{},
-								},
-							},
-							RouteConfigName: rc.Name,
-						},
-					}
-				}
-
-				// Because the hcm is a protobuf any, we need to remarshal it, we can't simply
-				// expect the above modifications to take effect on our clone of the input. There is
-				// also a protobuf oneof that includes the deprecated config and typed_config
-				// fields.
-				any, err := anypb.New(hcm)
-				if err != nil {
-					return nil, nil, err
-				}
-				f.ConfigType = &apiv2_listener.Filter_TypedConfig{TypedConfig: any}
-			}
-		}
-	}
-
-	return l, routes, nil
-}
 
 // V3ListenerToRdsListener is the v3 variety of ListnerToRdsListener
-func V3ListenerToRdsListener(lnr *apiv3_listener.Listener) (*apiv3_listener.Listener, []*apiv3_route.RouteConfiguration, error) {
-	l := proto.Clone(lnr).(*apiv3_listener.Listener)
-	var routes []*apiv3_route.RouteConfiguration
+func V3ListenerToRdsListener(lnr *v3listener.Listener) (*v3listener.Listener, []*v3route.RouteConfiguration, error) {
+	l := proto.Clone(lnr).(*v3listener.Listener)
+	var routes []*v3route.RouteConfiguration
 	for _, fc := range l.FilterChains {
 		for _, f := range fc.Filters {
 			if f.Name != ecp_wellknown.HTTPConnectionManager {
@@ -196,7 +129,7 @@ func V3ListenerToRdsListener(lnr *apiv3_listener.Listener) (*apiv3_listener.List
 			if hcm != nil {
 				// RouteSpecifier is a protobuf oneof that corresponds to the rds, route_config, and
 				// scoped_routes fields. Only one of those may be set at a time.
-				rs, ok := hcm.RouteSpecifier.(*apiv3_httpman.HttpConnectionManager_RouteConfig)
+				rs, ok := hcm.RouteSpecifier.(*v3httpman.HttpConnectionManager_RouteConfig)
 				if ok {
 					rc := rs.RouteConfig
 					if rc.Name == "" {
@@ -211,13 +144,13 @@ func V3ListenerToRdsListener(lnr *apiv3_listener.Listener) (*apiv3_listener.List
 					// RouteSpecifier from the inline RouteConfig variation to RDS via ADS. This
 					// will cause it to use whatever ADS source is defined in the bootstrap
 					// configuration.
-					hcm.RouteSpecifier = &apiv3_httpman.HttpConnectionManager_Rds{
-						Rds: &apiv3_httpman.Rds{
-							ConfigSource: &apiv3_core.ConfigSource{
-								ConfigSourceSpecifier: &apiv3_core.ConfigSource_Ads{
-									Ads: &apiv3_core.AggregatedConfigSource{},
+					hcm.RouteSpecifier = &v3httpman.HttpConnectionManager_Rds{
+						Rds: &v3httpman.Rds{
+							ConfigSource: &v3core.ConfigSource{
+								ConfigSourceSpecifier: &v3core.ConfigSource_Ads{
+									Ads: &v3core.AggregatedConfigSource{},
 								},
-								ResourceApiVersion: apiv3_core.ApiVersion_V3,
+								ResourceApiVersion: v3core.ApiVersion_V3,
 							},
 							RouteConfigName: rc.Name,
 						},
@@ -232,7 +165,7 @@ func V3ListenerToRdsListener(lnr *apiv3_listener.Listener) (*apiv3_listener.List
 				if err != nil {
 					return nil, nil, err
 				}
-				f.ConfigType = &apiv3_listener.Filter_TypedConfig{TypedConfig: any}
+				f.ConfigType = &v3listener.Filter_TypedConfig{TypedConfig: any}
 			}
 		}
 	}
@@ -246,9 +179,9 @@ func V3ListenerToRdsListener(lnr *apiv3_listener.Listener) (*apiv3_listener.List
 // the supplied list. If there is no map entry for a given cluster, an empty ClusterLoadAssignment
 // will be synthesized. The result is a set of endpoints that are consistent (by the
 // go-control-plane's definition of consistent) with the input clusters.
-func JoinEdsClusters(ctx context.Context, clusters []ecp_cache_types.Resource, edsEndpoints map[string]*apiv2.ClusterLoadAssignment) (endpoints []ecp_cache_types.Resource) {
+func JoinEdsClusters(ctx context.Context, clusters []ecp_cache_types.Resource, edsEndpoints map[string]*v3endpoint.ClusterLoadAssignment) (endpoints []ecp_cache_types.Resource) {
 	for _, clu := range clusters {
-		c := clu.(*apiv2.Cluster)
+		c := clu.(*v3cluster.Cluster)
 		// Don't mess with non EDS clusters.
 		if c.EdsClusterConfig == nil {
 			continue
@@ -266,9 +199,9 @@ func JoinEdsClusters(ctx context.Context, clusters []ecp_cache_types.Resource, e
 		if ok {
 			source = "found"
 		} else {
-			ep = &apiv2.ClusterLoadAssignment{
+			ep = &v3endpoint.ClusterLoadAssignment{
 				ClusterName: ref,
-				Endpoints:   []*apiv2_endpoint.LocalityLbEndpoints{},
+				Endpoints:   []*v3endpoint.LocalityLbEndpoints{},
 			}
 			source = "synthesized"
 		}
@@ -286,9 +219,9 @@ func JoinEdsClusters(ctx context.Context, clusters []ecp_cache_types.Resource, e
 // the supplied list. If there is no map entry for a given cluster, an empty ClusterLoadAssignment
 // will be synthesized. The result is a set of endpoints that are consistent (by the
 // go-control-plane's definition of consistent) with the input clusters.
-func JoinEdsClustersV3(ctx context.Context, clusters []ecp_cache_types.Resource, edsEndpoints map[string]*apiv3_endpoint.ClusterLoadAssignment) (endpoints []ecp_cache_types.Resource) {
+func JoinEdsClustersV3(ctx context.Context, clusters []ecp_cache_types.Resource, edsEndpoints map[string]*v3endpoint.ClusterLoadAssignment) (endpoints []ecp_cache_types.Resource) {
 	for _, clu := range clusters {
-		c := clu.(*apiv3_cluster.Cluster)
+		c := clu.(*v3cluster.Cluster)
 		// Don't mess with non EDS clusters.
 		if c.EdsClusterConfig == nil {
 			continue
@@ -306,9 +239,9 @@ func JoinEdsClustersV3(ctx context.Context, clusters []ecp_cache_types.Resource,
 		if ok {
 			source = "found"
 		} else {
-			ep = &apiv3_endpoint.ClusterLoadAssignment{
+			ep = &v3endpoint.ClusterLoadAssignment{
 				ClusterName: ref,
-				Endpoints:   []*apiv3_endpoint.LocalityLbEndpoints{},
+				Endpoints:   []*v3endpoint.LocalityLbEndpoints{},
 			}
 			source = "synthesized"
 		}

@@ -37,3 +37,18 @@ eventually converges to use the latest pushed configuration) for each run.
 
 You can run ```bin/test -help``` to get a list of the cli flags that
 the test program accepts.  There are also comments in ```main.go```.
+
+## Using the pprof profiler
+
+One customization is to run the go language profiler [pprof](https://github.com/DataDog/go-profiler-notes/blob/main/pprof.md). See also <https://golang.org/pkg/runtime/pprof/>.
+
+The profiler is normally off because it adds overhead to the tests. You can turn 
+it on with the command line option `--pprof`. There is an environment variable 
+`PPROF` for the `make` commands shown above. For example:
+
+    (export PPROF=true; make integration.xds)
+
+The test will then write files of the form `block_profile_xds.pb.gz`. The files
+get written to the root of the project, in the same place as the envoy logs.
+
+You can use `go tool pprof bin/test <file name>` to analyze the profile data. 

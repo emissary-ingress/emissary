@@ -1,8 +1,8 @@
 package agent
 
 import (
-	"github.com/datawire/ambassador/v2/pkg/api/agent"
-	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/agent"
+	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 // GetIdentity returns the Agent's DCP Identity, if present, enabled, and

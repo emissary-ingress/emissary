@@ -221,6 +221,7 @@ spec:
                 - grpc
                 type: string
               protocol_version:
+                description: ProtocolVersion is the envoy api transport protocol version
                 enum:
                 - v2
                 - v3
@@ -1893,6 +1894,7 @@ spec:
                   one valid value, we should just remove the thing.'
                 type: boolean
               protocol_version:
+                description: ProtocolVersion is the envoy api transport protocol version
                 enum:
                 - v2
                 - v3
@@ -3015,6 +3017,8 @@ spec:
           metadata:
             type: object
           spec:
+            description: 'TODO(lukeshu): In v3alpha2, get rid of unnecessary nesting
+              and move `ModuleSpec.config.*` to `ModuleSpec.*`.'
             properties:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
@@ -3026,8 +3030,10 @@ spec:
                   type: string
                 type: array
               config:
-                description: UntypedDict is relatively opaque as a Go type, but it
-                  preserves its contents in a roundtrippable way.
+                description: "TODO(lukeshu): In v3alpha2, change the default from
+                  `diagnostics.enabled=true` to `diagnostics.enabled=false`.  This
+                  needs conversion support in apiext.  See the related comment in
+                  irambassador.py. \n TODO(lukeshu): Structurally type ModuleSpec.Config."
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
             required:
@@ -3146,6 +3152,7 @@ spec:
               domain:
                 type: string
               protocol_version:
+                description: ProtocolVersion is the envoy api transport protocol version
                 enum:
                 - v2
                 - v3

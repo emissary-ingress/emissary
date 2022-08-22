@@ -3,9 +3,9 @@ package entrypoint
 import (
 	"context"
 
-	getambassadorio "github.com/datawire/ambassador/v2/pkg/api/getambassador.io"
-	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/dlib/dlog"
+	getambassadorio "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 type resourceValidator struct {

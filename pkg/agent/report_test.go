@@ -5,9 +5,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/datawire/ambassador/v2/pkg/agent"
-	agentTypes "github.com/datawire/ambassador/v2/pkg/api/agent"
-	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/emissary-ingress/emissary/v3/pkg/agent"
+	agentTypes "github.com/emissary-ingress/emissary/v3/pkg/api/agent"
+	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 func TestGetIdentity(t *testing.T) {

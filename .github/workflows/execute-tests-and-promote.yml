@@ -22,6 +22,9 @@ jobs:
         uses: ./.github/actions/setup-deps
       - shell: bash
         run: |
+          make lint-deps
+      - shell: bash
+        run: |
           make lint
       - uses: ./.github/actions/after-job
         if: always()
@@ -115,8 +118,6 @@ jobs:
         run: |
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
-          export TEST_XML_DIR=/tmp/test-logs/xml/
-          mkdir -p ${TEST_XML_DIR}
           make gotest
       - uses: ./.github/actions/after-job
         if: always()
@@ -134,11 +135,6 @@ jobs:
       matrix:
         test:
           - integration
-          - kat-envoy2-1-of-5
-          - kat-envoy2-2-of-5
-          - kat-envoy2-3-of-5
-          - kat-envoy2-4-of-5
-          - kat-envoy2-5-of-5
           - kat-envoy3-1-of-5
           - kat-envoy3-2-of-5
           - kat-envoy3-3-of-5
@@ -172,10 +168,8 @@ jobs:
 
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
-          export TEST_XML_DIR=/tmp/test-logs/xml/
           export DEV_KUBECONFIG=~/.kube/config
           export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
-          mkdir -p ${TEST_XML_DIR}
           make pytest-${{ matrix.test }}
       - uses: ./.github/actions/after-job
         if: always()
@@ -212,10 +206,9 @@ jobs:
 
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
-          export TEST_XML_DIR=/tmp/test-logs/xml/
           export DEV_KUBECONFIG=~/.kube/config
           export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
-          mkdir -p ${TEST_XML_DIR}
+          export PYTEST_ARGS=' --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html '
           make pytest-${{ matrix.test }}
       - uses: ./.github/actions/after-job
         if: always()

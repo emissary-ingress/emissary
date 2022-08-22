@@ -43,9 +43,7 @@ generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(O
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto')) $(OSS_HOME)/pkg/api/agent/
 # Whole directories with one rule for the whole directory
 generate/files      += $(OSS_HOME)/api/envoy/                # recipe in _cxx/envoy.mk
-generate/files      += $(OSS_HOME)/api/pb/                   # recipe in _cxx/envoy.mk
 generate/files      += $(OSS_HOME)/pkg/api/envoy/            # recipe in _cxx/envoy.mk
-generate/files      += $(OSS_HOME)/pkg/api/pb/               # recipe in _cxx/envoy.mk
 generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/  # recipe in _cxx/envoy.mk
 # Individual files: Misc
 generate/files      += $(OSS_HOME)/DEPENDENCIES.md
@@ -58,10 +56,6 @@ generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v3alpha1/zz_generate
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml.in
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns.yaml.in
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns.yaml.in
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns-agent.yaml.in
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns-agent.yaml.in
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns-migration.yaml.in
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns-migration.yaml.in
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
@@ -80,7 +74,7 @@ generate:
 # This (generating specific targets early, then having a separate `_generate`) is a hack.  Because the
 # full value of $(generate/files) is based on the listing of files in $(OSS_HOME)/api/, we need to
 # make sure that those directories are fully populated before we evaluate the full $(generate/files).
-	$(MAKE) $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
+	$(MAKE) $(OSS_HOME)/api/envoy
 	$(MAKE) _generate
 _generate:
 	@echo '$(MAKE) $$(generate/files)'; $(MAKE) $(patsubst %/,%,$(generate/files))

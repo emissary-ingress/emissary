@@ -8,7 +8,7 @@ package ambex
  * go-control-plane, several different classes manage this stuff:
  *
  * - The root of the world is a SnapshotCache.
- *   - import github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2, then refer
+ *   - import github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3, then refer
  *     to cache.SnapshotCache.
  *   - A collection of internally consistent configuration objects is a
  *     Snapshot (cache.Snapshot).
@@ -19,7 +19,7 @@ package ambex
  * - The SnapshotCache can only hold go-control-plane configuration objects,
  *   so you have to build these up to hand to the SnapshotCache.
  * - The gRPC stuff is handled by a Server.
- *   - import github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server, then refer
+ *   - import github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server, then refer
  *     to server.Server.
  *   - Our runManagementServer (largely ripped off from the go-control-plane
  *     tests) gets this running. It takes a SnapshotCache (cleverly called a
@@ -63,63 +63,46 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	// envoy control plane
-	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
-	ecp_v3_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
-	ecp_log "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/log"
-	ecp_v2_server "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v2"
-	ecp_v3_server "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v3"
-
-	// Envoy API v2
-	// Be sure to import the package of any types that're referenced with "@type" in our
-	// generated Envoy config, even if that package is otherwise not used by ambex.
-	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/auth"
-	v2core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/accesslog/v2"
-	v2bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/buffer/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/ext_authz/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/gzip/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/lua/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/rate_limit/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/rbac/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/http/router/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/tcp_proxy/v2"
-	v2discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
+	ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	ecp_v3_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+	ecp_log "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/log"
+	ecp_v3_resource "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
+	ecp_v3_server "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
 
 	// Envoy API v3
 	// Be sure to import the package of any types that're referenced with "@type" in our
 	// generated Envoy config, even if that package is otherwise not used by ambex.
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/accesslog/v3"
-	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
-	v3clusterconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
-	v3core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
-	v3endpointconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/endpoint/v3"
-	v3listenerconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/listener/v3"
-	v3routeconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/access_loggers/file/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/access_loggers/grpc/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/compression/gzip/compressor/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/buffer/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/compressor/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/ext_authz/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/grpc_stats/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/gzip/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/lua/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/ratelimit/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/rbac/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/response_map/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/router/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/tcp_proxy/v3"
-	v3cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/service/cluster/v3"
-	v3discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
-	v3endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/service/endpoint/v3"
-	v3listener "github.com/datawire/ambassador/v2/pkg/api/envoy/service/listener/v3"
-	v3route "github.com/datawire/ambassador/v2/pkg/api/envoy/service/route/v3"
-	v3runtime "github.com/datawire/ambassador/v2/pkg/api/envoy/service/runtime/v3"
+
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/accesslog/v3"
+	v3bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
+	v3clusterconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
+	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	v3endpointconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
+	v3listenerconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
+	v3routeconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/access_loggers/file/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/access_loggers/grpc/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/compression/gzip/compressor/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/buffer/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/compressor/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/cors/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/ext_authz/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/grpc_stats/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/gzip/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/lua/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/ratelimit/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/rbac/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/response_map/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/router/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/tcp_proxy/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/transport_sockets/quic/v3"
+	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/cluster/v3"
+	v3discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
+	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/endpoint/v3"
+	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/listener/v3"
+	v3route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/route/v3"
+	v3runtime "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/runtime/v3"
 
 	// first-party libraries
 	"github.com/datawire/dlib/dgroup"
@@ -196,18 +179,6 @@ func parseArgs(ctx context.Context, rawArgs ...string) (*Args, error) {
 }
 
 // Hasher returns node ID as an ID
-type HasherV2 struct {
-}
-
-// ID function
-func (h HasherV2) ID(node *v2core.Node) string {
-	if node == nil {
-		return "unknown"
-	}
-	return node.Id
-}
-
-// Hasher returns node ID as an ID
 type HasherV3 struct {
 }
 
@@ -223,7 +194,7 @@ func (h HasherV3) ID(node *v3core.Node) string {
 
 // run stuff
 // RunManagementServer starts an xDS server at the given port.
-func runManagementServer(ctx context.Context, server ecp_v2_server.Server, serverv3 ecp_v3_server.Server, adsNetwork, adsAddress string) error {
+func runManagementServer(ctx context.Context, serverv3 ecp_v3_server.Server, adsNetwork, adsAddress string) error {
 	grpcServer := grpc.NewServer()
 
 	lis, err := net.Listen(adsNetwork, adsAddress)
@@ -232,12 +203,6 @@ func runManagementServer(ctx context.Context, server ecp_v2_server.Server, serve
 	}
 
 	// register services
-	v2discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, server)
-	v2.RegisterEndpointDiscoveryServiceServer(grpcServer, server)
-	v2.RegisterClusterDiscoveryServiceServer(grpcServer, server)
-	v2.RegisterRouteDiscoveryServiceServer(grpcServer, server)
-	v2.RegisterListenerDiscoveryServiceServer(grpcServer, server)
-
 	v3discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, serverv3)
 	v3endpoint.RegisterEndpointDiscoveryServiceServer(grpcServer, serverv3)
 	v3cluster.RegisterClusterDiscoveryServiceServer(grpcServer, serverv3)
@@ -307,24 +272,6 @@ func Decode(ctx context.Context, name string) (proto.Message, error) {
 //
 // These "expanded" snapshots make the snapshots we log easier to read: basically,
 // instead of just indexing by Golang types, make the JSON marshal with real names.
-type v2ExpandedSnapshot struct {
-	Endpoints ecp_v2_cache.Resources `json:"endpoints"`
-	Clusters  ecp_v2_cache.Resources `json:"clusters"`
-	Routes    ecp_v2_cache.Resources `json:"routes"`
-	Listeners ecp_v2_cache.Resources `json:"listeners"`
-	Runtimes  ecp_v2_cache.Resources `json:"runtimes"`
-}
-
-func NewV2ExpandedSnapshot(v2snap *ecp_v2_cache.Snapshot) v2ExpandedSnapshot {
-	return v2ExpandedSnapshot{
-		Endpoints: v2snap.Resources[ecp_cache_types.Endpoint],
-		Clusters:  v2snap.Resources[ecp_cache_types.Cluster],
-		Routes:    v2snap.Resources[ecp_cache_types.Route],
-		Listeners: v2snap.Resources[ecp_cache_types.Listener],
-		Runtimes:  v2snap.Resources[ecp_cache_types.Runtime],
-	}
-}
-
 type v3ExpandedSnapshot struct {
 	Endpoints ecp_v3_cache.Resources `json:"endpoints"`
 	Clusters  ecp_v3_cache.Resources `json:"clusters"`
@@ -346,7 +293,6 @@ func NewV3ExpandedSnapshot(v3snap *ecp_v3_cache.Snapshot) v3ExpandedSnapshot {
 // A combinedSnapshot has both a V2 and V3 snapshot, for logging.
 type combinedSnapshot struct {
 	Version string             `json:"version"`
-	V2      v2ExpandedSnapshot `json:"v2"`
 	V3      v3ExpandedSnapshot `json:"v3"`
 }
 
@@ -355,7 +301,7 @@ type combinedSnapshot struct {
 // is the newest, then ambex-2.json, etc., so ambex-$numsnaps.json is the oldest.
 // Every time we write a new one, we rename all the older ones, ditching the oldest
 // after we've written numsnaps snapshots.
-func csDump(ctx context.Context, snapdirPath string, numsnaps int, generation int, v2snap *ecp_v2_cache.Snapshot, v3snap *ecp_v3_cache.Snapshot) {
+func csDump(ctx context.Context, snapdirPath string, numsnaps int, generation int, v3snap *ecp_v3_cache.Snapshot) {
 	if numsnaps <= 0 {
 		// Don't do snapshotting at all.
 		return
@@ -367,7 +313,6 @@ func csDump(ctx context.Context, snapdirPath string, numsnaps int, generation in
 	// ...and a combinedSnapshot.
 	cs := combinedSnapshot{
 		Version: version,
-		V2:      NewV2ExpandedSnapshot(v2snap),
 		V3:      NewV3ExpandedSnapshot(v3snap),
 	}
 
@@ -413,19 +358,13 @@ func update(
 	ctx context.Context,
 	snapdirPath string,
 	numsnaps int,
-	config ecp_v2_cache.SnapshotCache,
 	configv3 ecp_v3_cache.SnapshotCache,
 	generation *int,
 	dirs []string,
-	edsEndpoints map[string]*v2.ClusterLoadAssignment,
 	edsEndpointsV3 map[string]*v3endpointconfig.ClusterLoadAssignment,
 	fastpathSnapshot *FastpathSnapshot,
 	updates chan<- Update,
 ) error {
-	clusters := []ecp_cache_types.Resource{}  // v2.Cluster
-	routes := []ecp_cache_types.Resource{}    // v2.RouteConfiguration
-	listeners := []ecp_cache_types.Resource{} // v2.Listener
-	runtimes := []ecp_cache_types.Resource{}  // discovery.Runtime
 
 	clustersv3 := []ecp_cache_types.Resource{}  // v3.Cluster
 	routesv3 := []ecp_cache_types.Resource{}    // v3.RouteConfiguration
@@ -456,41 +395,6 @@ func update(
 		}
 		var dst *[]ecp_cache_types.Resource
 		switch m.(type) {
-		case *v2.Cluster:
-			dst = &clusters
-		case *v2.RouteConfiguration:
-			dst = &routes
-		case *v2.Listener:
-			dst = &listeners
-		case *v2discovery.Runtime:
-			dst = &runtimes
-		case *v2bootstrap.Bootstrap:
-			bs := m.(*v2bootstrap.Bootstrap)
-			sr := bs.StaticResources
-			for _, lst := range sr.Listeners {
-				// When the RouteConfiguration is embedded in the listener, it will cause envoy to
-				// go through a complete drain cycle whenever there is a routing change and that
-				// will potentially disrupt in-flight requests. By converting all listeners to use
-				// RDS rather than inlining their routing configuration, we significantly reduce the
-				// set of circumstances where the listener definition itself changes, and this in
-				// turn reduces the set of circumstances where envoy has to go through that drain
-				// process and disrupt in-flight requests.
-				rdsListener, routeConfigs, err := ListenerToRdsListener(lst)
-				if err != nil {
-					dlog.Errorf(ctx, "Error converting listener to RDS: %+v", err)
-					listeners = append(listeners, proto.Clone(lst).(ecp_cache_types.Resource))
-					continue
-				}
-				listeners = append(listeners, rdsListener)
-				for _, rc := range routeConfigs {
-					// These routes will get included in the configuration snapshot created below.
-					routes = append(routes, rc)
-				}
-			}
-			for _, cls := range sr.Clusters {
-				clusters = append(clusters, proto.Clone(cls).(ecp_cache_types.Resource))
-			}
-			continue
 		case *v3clusterconfig.Cluster:
 			dst = &clustersv3
 		case *v3routeconfig.RouteConfiguration:
@@ -535,13 +439,13 @@ func update(
 
 	if fastpathSnapshot != nil && fastpathSnapshot.Snapshot != nil {
 		for _, lst := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Listener].Items {
-			listeners = append(listeners, lst.Resource)
+			listenersv3 = append(listenersv3, lst.Resource)
 		}
 		for _, route := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Route].Items {
-			routes = append(routes, route.Resource)
+			routesv3 = append(routesv3, route.Resource)
 		}
 		for _, clu := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Cluster].Items {
-			clusters = append(clusters, clu.Resource)
+			clustersv3 = append(clustersv3, clu.Resource)
 		}
 		// We intentionally omit endpoints since those are carried separately.
 	}
@@ -569,7 +473,6 @@ func update(
 	// warmup sequence in scenarios where the endpoint data for a cluster is really flapping into
 	// and out of existence. In that circumstance we want to faithfully relay to envoy that the
 	// cluster exists but currently has no endpoints.
-	endpoints := JoinEdsClusters(ctx, clusters, edsEndpoints)
 	endpointsv3 := JoinEdsClustersV3(ctx, clustersv3, edsEndpointsV3)
 
 	// Create a new configuration snapshot from everything we have just loaded from disk.
@@ -577,31 +480,20 @@ func update(
 	*generation++
 
 	version := fmt.Sprintf("v%d", curgen)
-	snapshot := ecp_v2_cache.NewSnapshot(
-		version,
-		endpoints,
-		clusters,
-		routes,
-		listeners,
-		runtimes,
-		nil, // secrets
-	)
 
-	if err := snapshot.Consistent(); err != nil {
-		bs, _ := json.Marshal(snapshot)
-		dlog.Errorf(ctx, "V2 Snapshot inconsistency: %v: %s", err, bs)
-		return nil // TODO: should we return the error, rather than just logging it?
+	snapshotResources := map[ecp_v3_resource.Type][]ecp_cache_types.Resource{
+		ecp_v3_resource.EndpointType: endpointsv3,
+		ecp_v3_resource.ClusterType:  clustersv3,
+		ecp_v3_resource.RouteType:    routesv3,
+		ecp_v3_resource.ListenerType: listenersv3,
+		ecp_v3_resource.RuntimeType:  runtimesv3,
 	}
 
-	snapshotv3 := ecp_v3_cache.NewSnapshot(
-		version,
-		endpointsv3,
-		clustersv3,
-		routesv3,
-		listenersv3,
-		runtimesv3,
-		nil, // secrets
-	)
+	snapshotv3, err := ecp_v3_cache.NewSnapshot(version, snapshotResources)
+	if err != nil {
+		dlog.Errorf(ctx, "V3 Snapshot error: %v", err)
+		return nil // TODO: should we return the error, rather than just logging it?
+	}
 
 	if err := snapshotv3.Consistent(); err != nil {
 		bs, _ := json.Marshal(snapshotv3)
@@ -614,17 +506,12 @@ func update(
 	// the ratelimiting logic decides.
 
 	dlog.Debugf(ctx, "Created snapshot %s", version)
-	csDump(ctx, snapdirPath, numsnaps, curgen, &snapshot, &snapshotv3)
+	csDump(ctx, snapdirPath, numsnaps, curgen, &snapshotv3)
 
 	update := Update{version, func() error {
 		dlog.Debugf(ctx, "Accepting snapshot %s", version)
 
-		err := config.SetSnapshot("test-id", snapshot)
-		if err != nil {
-			return fmt.Errorf("V2 Snapshot error %q for %+v", err, snapshot)
-		}
-
-		err = configv3.SetSnapshot("test-id", snapshotv3)
+		err = configv3.SetSnapshot(ctx, "test-id", snapshotv3)
 		if err != nil {
 			return fmt.Errorf("V3 Snapshot error %q for %+v", err, snapshotv3)
 		}
@@ -645,14 +532,6 @@ func update(
 type logAdapterBase struct {
 	prefix string
 }
-
-type logAdapterV2 struct {
-	logAdapterBase
-}
-
-var _ ecp_v2_server.Callbacks = logAdapterV2{}
-var _ ecp_log.Logger = logAdapterV2{}
-
 type logAdapterV3 struct {
 	logAdapterBase
 }
@@ -680,22 +559,15 @@ func (l logAdapterBase) Errorf(format string, args ...interface{}) {
 	dlog.Errorf(context.TODO(), format, args...)
 }
 
-// OnStreamOpen implements ecp_v2_server.Callbacks and ecp_v3_server.Callbacks.
+// OnStreamOpen implements ecp_v3_server.Callbacks.
 func (l logAdapterBase) OnStreamOpen(ctx context.Context, sid int64, stype string) error {
 	dlog.Debugf(ctx, "%v Stream open[%v]: %v", l.prefix, sid, stype)
 	return nil
 }
 
-// OnStreamClosed implements ecp_v2_server.Callbacks and ecp_v3_server.Callbacks.
+// OnStreamClosed implements ecp_v3_server.Callbacks.
 func (l logAdapterBase) OnStreamClosed(sid int64) {
 	dlog.Debugf(context.TODO(), "%v Stream closed[%v]", l.prefix, sid)
-}
-
-// OnStreamRequest implements ecp_v2_server.Callbacks.
-func (l logAdapterV2) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) error {
-	dlog.Debugf(context.TODO(), "V2 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
-	dlog.Debugf(context.TODO(), "V2 Stream request[%v] dump: %v", sid, req)
-	return nil
 }
 
 // OnStreamRequest implements ecp_v3_server.Callbacks.
@@ -705,33 +577,40 @@ func (l logAdapterV3) OnStreamRequest(sid int64, req *v3discovery.DiscoveryReque
 	return nil
 }
 
-// OnStreamResponse implements ecp_v2_server.Callbacks.
-func (l logAdapterV2) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
-	dlog.Debugf(context.TODO(), "V2 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
-	dlog.Debugf(context.TODO(), "V2 Stream dump response[%v]: %v -> %v", sid, req, res)
-}
-
 // OnStreamResponse implements ecp_v3_server.Callbacks.
-func (l logAdapterV3) OnStreamResponse(sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
-	dlog.Debugf(context.TODO(), "V3 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
-	dlog.Debugf(context.TODO(), "V3 Stream dump response[%v]: %v -> %v", sid, req, res)
+func (l logAdapterV3) OnStreamResponse(ctx context.Context, sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
+	dlog.Debugf(ctx, "V3 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
+	dlog.Debugf(ctx, "V3 Stream dump response[%v]: %v -> %v", sid, req, res)
 }
 
-// OnFetchRequest implements ecp_v2_server.Callbacks.
-func (l logAdapterV2) OnFetchRequest(ctx context.Context, r *v2.DiscoveryRequest) error {
-	dlog.Debugf(ctx, "V2 Fetch request: %v", r)
+// OnDeltaStreamOpen implements ecp_v3_server.Callbacks.
+func (l logAdapterV3) OnDeltaStreamOpen(ctx context.Context, sid int64, stype string) error {
+	dlog.Debugf(ctx, "%v DeltaStream open[%v]: %v", l.prefix, sid, stype)
 	return nil
+}
+
+// OnDeltaStreamClosed implements ecp_v3_server.Callbacks.
+func (l logAdapterV3) OnDeltaStreamClosed(sid int64) {
+	dlog.Debugf(context.TODO(), "%v DeltaStream closed[%v]", l.prefix, sid)
+}
+
+// OnStreamDeltaRequest implements ecp_v3_server.Callbacks.
+func (l logAdapterV3) OnStreamDeltaRequest(sid int64, req *v3discovery.DeltaDiscoveryRequest) error {
+	dlog.Debugf(context.TODO(), "V3 Stream DeltaRequest[%v] for type %s: subscribing for %d resources", sid, req.TypeUrl, len(req.ResourceNamesSubscribe))
+	dlog.Debugf(context.TODO(), "V3 Stream DeltaRequest[%v] dump: %v", sid, req)
+	return nil
+}
+
+// OnStreamDelatResponse implements ecp_v3_server.Callbacks.
+func (l logAdapterV3) OnStreamDeltaResponse(sid int64, req *v3discovery.DeltaDiscoveryRequest, res *v3discovery.DeltaDiscoveryResponse) {
+	dlog.Debugf(context.TODO(), "V3 Stream dump DeltaResponse[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
+	dlog.Debugf(context.TODO(), "V3 Stream dump DeltaResponse[%v]: %v -> %v", sid, req, res)
 }
 
 // OnFetchRequest implements ecp_v3_server.Callbacks.
 func (l logAdapterV3) OnFetchRequest(ctx context.Context, r *v3discovery.DiscoveryRequest) error {
 	dlog.Debugf(ctx, "V3 Fetch request: %v", r)
 	return nil
-}
-
-// OnFetchResponse implements ecp_v2_server.Callbacks.
-func (l logAdapterV2) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
-	dlog.Debugf(context.TODO(), "V2 Fetch response: %v -> %v", req, res)
 }
 
 // OnFetchResponse implements ecp_v3_server.Callbacks.
@@ -779,15 +658,13 @@ func Main(
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	config := ecp_v2_cache.NewSnapshotCache(true, HasherV2{}, logAdapterV2{logAdapterBase{"V2"}})
 	configv3 := ecp_v3_cache.NewSnapshotCache(true, HasherV3{}, logAdapterV3{logAdapterBase{"V3"}})
-	server := ecp_v2_server.NewServer(ctx, config, logAdapterV2{logAdapterBase{"V2"}})
 	serverv3 := ecp_v3_server.NewServer(ctx, configv3, logAdapterV3{logAdapterBase{"V3"}})
 
 	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
 
 	grp.Go("management-server", func(ctx context.Context) error {
-		return runManagementServer(ctx, server, serverv3, args.adsNetwork, args.adsAddress)
+		return runManagementServer(ctx, serverv3, args.adsNetwork, args.adsAddress)
 	})
 
 	pid := os.Getpid()
@@ -807,7 +684,6 @@ func Main(
 	grp.Go("main-loop", func(ctx context.Context) error {
 		generation := 0
 		var fastpathSnapshot *FastpathSnapshot
-		edsEndpoints := map[string]*v2.ClusterLoadAssignment{}
 		edsEndpointsV3 := map[string]*v3endpointconfig.ClusterLoadAssignment{}
 
 		// We always start by updating with a totally empty snapshot.
@@ -818,11 +694,9 @@ func Main(
 			ctx,
 			args.snapdirPath,
 			args.numsnaps,
-			config,
 			configv3,
 			&generation,
 			args.dirs,
-			edsEndpoints,
 			edsEndpointsV3,
 			fastpathSnapshot,
 			updates,
@@ -835,16 +709,14 @@ func Main(
 		for {
 
 			select {
-			case _ = <-sigCh:
+			case <-sigCh:
 				err := update(
 					ctx,
 					args.snapdirPath,
 					args.numsnaps,
-					config,
 					configv3,
 					&generation,
 					args.dirs,
-					edsEndpoints,
 					edsEndpointsV3,
 					fastpathSnapshot,
 					updates,
@@ -855,7 +727,6 @@ func Main(
 			case fpSnap := <-fastpathCh:
 				// Fastpath update. Grab new endpoints and update.
 				if fpSnap.Endpoints != nil {
-					edsEndpoints = fpSnap.Endpoints.ToMap_v2()
 					edsEndpointsV3 = fpSnap.Endpoints.ToMap_v3()
 				}
 				fastpathSnapshot = fpSnap
@@ -863,11 +734,9 @@ func Main(
 					ctx,
 					args.snapdirPath,
 					args.numsnaps,
-					config,
 					configv3,
 					&generation,
 					args.dirs,
-					edsEndpoints,
 					edsEndpointsV3,
 					fastpathSnapshot,
 					updates,
@@ -881,11 +750,9 @@ func Main(
 					ctx,
 					args.snapdirPath,
 					args.numsnaps,
-					config,
 					configv3,
 					&generation,
 					args.dirs,
-					edsEndpoints,
 					edsEndpointsV3,
 					fastpathSnapshot,
 					updates,

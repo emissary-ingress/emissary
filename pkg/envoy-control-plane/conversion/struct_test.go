@@ -17,17 +17,17 @@ package conversion_test
 import (
 	"testing"
 
-	"github.com/golang/protobuf/proto"
-	pstruct "github.com/golang/protobuf/ptypes/struct"
 	"github.com/google/go-cmp/cmp"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/structpb"
 
-	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/conversion"
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/conversion"
 )
 
 func TestConversion(t *testing.T) {
-	pb := &v2.DiscoveryRequest{
+	pb := &discovery.DiscoveryRequest{
 		VersionInfo: "test",
 		Node:        &core.Node{Id: "proxy"},
 	}
@@ -35,11 +35,11 @@ func TestConversion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error %v", err)
 	}
-	pbst := map[string]*pstruct.Value{
-		"version_info": {Kind: &pstruct.Value_StringValue{StringValue: "test"}},
-		"node": {Kind: &pstruct.Value_StructValue{StructValue: &pstruct.Struct{
-			Fields: map[string]*pstruct.Value{
-				"id": {Kind: &pstruct.Value_StringValue{StringValue: "proxy"}},
+	pbst := map[string]*structpb.Value{
+		"version_info": {Kind: &structpb.Value_StringValue{StringValue: "test"}},
+		"node": {Kind: &structpb.Value_StructValue{StructValue: &structpb.Struct{
+			Fields: map[string]*structpb.Value{
+				"id": {Kind: &structpb.Value_StringValue{StringValue: "proxy"}},
 			},
 		}}},
 	}
@@ -47,7 +47,7 @@ func TestConversion(t *testing.T) {
 		t.Errorf("MessageToStruct(%v) => got %v, want %v", pb, st.Fields, pbst)
 	}
 
-	out := &v2.DiscoveryRequest{}
+	out := &discovery.DiscoveryRequest{}
 	err = conversion.StructToMessage(st, out)
 	if err != nil {
 		t.Fatalf("unexpected error %v", err)
@@ -60,7 +60,7 @@ func TestConversion(t *testing.T) {
 		t.Error("MessageToStruct(nil) => got no error")
 	}
 
-	if err = conversion.StructToMessage(nil, &v2.DiscoveryRequest{}); err == nil {
+	if err = conversion.StructToMessage(nil, &discovery.DiscoveryRequest{}); err == nil {
 		t.Error("StructToMessage(nil) => got no error")
 	}
 }

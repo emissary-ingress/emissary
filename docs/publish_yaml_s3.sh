@@ -17,7 +17,7 @@ errusage() {
 [[ -d "$1"                     ]] || errusage 'DIR is not a directory: %q' "$dir"
 [[ -n "$AWS_ACCESS_KEY_ID"     ]] || errusage "AWS_ACCESS_KEY_ID is not set"
 [[ -n "$AWS_SECRET_ACCESS_KEY" ]] || errusage "AWS_SECRET_ACCESS_KEY is not set"
-[[ "${VERSION:-}" == v2.*      ]] || errusage "VERSION must be set to a 'v2.*' string"
+[[ "${VERSION:-}" == v3.*      ]] || errusage "VERSION must be set to a 'v3.*' string"
 dir=$1
 while [[ "$dir" == */ ]]; do
     dir=${dir%/}

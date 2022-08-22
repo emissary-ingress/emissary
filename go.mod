@@ -1,4 +1,4 @@
-module github.com/datawire/ambassador/v2
+module github.com/emissary-ingress/emissary/v3
 
 go 1.17
 
@@ -84,7 +84,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/argoproj/argo-rollouts v1.1.1
 	github.com/census-instrumentation/opencensus-proto v0.3.0
-	github.com/cncf/udpa/go v0.0.0-20220112060539-c52dc94e7fbe
+	github.com/cncf/xds/go v0.0.0-20220121163655-4a2b9fdd466b
 	github.com/datawire/dlib v1.2.5-0.20211116212847-0316f8d7af2b
 	github.com/datawire/dtest v0.0.0-20210928162311-722b199c4c2f
 	github.com/datawire/go-mkopensource v0.0.0-20220218163159-cc298d9fabc4
@@ -104,6 +104,7 @@ require (
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
+	go.opentelemetry.io/proto/otlp v0.7.0
 	golang.org/x/mod v0.5.1
 	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27
 	google.golang.org/genproto v0.0.0-20220204002441-d6cc3cc0770e
@@ -143,7 +144,6 @@ require (
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
-	github.com/cncf/xds/go v0.0.0-20220121163655-4a2b9fdd466b // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/emicklei/go-restful v2.15.0+incompatible // indirect

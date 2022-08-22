@@ -5,9 +5,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/datawire/ambassador/v2/pkg/dtest"
-	"github.com/datawire/ambassador/v2/pkg/k8s"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/dtest"
+	"github.com/emissary-ingress/emissary/v3/pkg/k8s"
 )
 
 func TestMain(m *testing.M) {

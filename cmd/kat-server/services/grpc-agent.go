@@ -19,9 +19,9 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	"github.com/datawire/ambassador/v2/pkg/api/agent"
 	"github.com/datawire/dlib/dhttp"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/agent"
 )
 
 type GRPCAgent struct {
