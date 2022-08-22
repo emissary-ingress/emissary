@@ -954,7 +954,7 @@ func (in *HostSpec) DeepCopyInto(out *HostSpec) {
 	}
 	if in.TLSSecret != nil {
 		in, out := &in.TLSSecret, &out.TLSSecret
-		*out = new(v1.LocalObjectReference)
+		*out = new(v1.SecretReference)
 		**out = **in
 	}
 	if in.RequestPolicy != nil {

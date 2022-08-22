@@ -1,6 +1,6 @@
 import copy
 import os
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 from ..config import Config
 from ..utils import SavedSecret, dump_json
@@ -92,11 +92,21 @@ class IRHost(IRResource):
         if self.get("tlsSecret", None):
             tls_secret = self.tlsSecret
             tls_name = tls_secret.get("name", None)
+            tls_namespace = tls_secret.get("namespace", None)
 
             if tls_name:
-                ir.logger.debug(f"Host {self.name}: resolving spec.tlsSecret.name: {tls_name}")
+                # Either take the name of the secret, or add on the namespace if it exists.
+                # This is important for how the implicit TLSContext handles secret names
+                tls_full_name = tls_name
+                if tls_namespace:
+                    ir.logger.debug(
+                        f"Host {self.name}: resolving spec.tlsSecret.name.namespace: {tls_name}.{tls_namespace}"
+                    )
+                    tls_full_name = tls_full_name + "." + tls_namespace
+                else:
+                    ir.logger.debug(f"Host {self.name}: resolving spec.tlsSecret.name: {tls_name}")
 
-                tls_ss = self.resolve(ir, tls_name)
+                tls_ss = self.resolve(ir=ir, secret_name=tls_name, secret_namespace=tls_namespace)
 
                 if tls_ss:
                     # OK, we have a TLS secret! Fire up a TLS context for it, if one doesn't
@@ -139,7 +149,7 @@ class IRHost(IRResource):
                             f"Host {self.name}: resolving spec.tlsContext: {host_tls_context_name}"
                         )
 
-                        if not self.save_context(ir, host_tls_context_name, tls_ss, tls_name):
+                        if not self.save_context(ir, host_tls_context_name, tls_ss, tls_full_name):
                             return False
 
                     elif host_tls_config:
@@ -197,8 +207,12 @@ class IRHost(IRResource):
                             namespace=self.namespace,
                             location=self.location,
                             hosts=[self.hostname or self.name],
-                            secret=tls_name,
+                            secret=tls_full_name,
                         )
+
+                        # Ensure that we handle the secret properly even if tls_secret_namespacing is False in the Module
+                        if tls_namespace:
+                            tls_context_init["secret_namespacing"] = True
 
                         tls_config_context = IRTLSContext(
                             ir, aconf, **tls_context_init, **host_tls_config
@@ -234,7 +248,7 @@ class IRHost(IRResource):
                         # correct name for this Host already exists. Save that, if it works out for us.
                         ir.logger.debug(f"Host {self.name}: TLSContext {ctx_name} already exists")
 
-                        if not self.save_context(ir, ctx_name, tls_ss, tls_name):
+                        if not self.save_context(ir, ctx_name, tls_ss, tls_full_name):
                             return False
                     else:
                         ir.logger.debug(f"Host {self.name}: creating TLSContext {ctx_name}")
@@ -245,8 +259,12 @@ class IRHost(IRResource):
                             namespace=self.namespace,
                             location=self.location,
                             hosts=[self.hostname or self.name],
-                            secret=tls_name,
+                            secret=tls_full_name,
                         )
+
+                        # Ensure that we handle the secret properly even if tls_secret_namespacing is False in the Module
+                        if tls_namespace:
+                            new_ctx["secret_namespacing"] = True
 
                         ctx = IRTLSContext(ir, aconf, **new_ctx)
 
@@ -270,7 +288,7 @@ class IRHost(IRResource):
                             )
                 else:
                     ir.logger.error(
-                        f"Host {self.name}: invalid TLS secret {tls_name}, marking inactive"
+                        f"Host {self.name}: invalid TLS secret {tls_full_name}, marking inactive"
                     )
                     return False
 
@@ -321,7 +339,7 @@ class IRHost(IRResource):
                 if pkey_name:
                     ir.logger.debug(f"Host {self.name}: ACME private key name is {pkey_name}")
 
-                    pkey_ss = self.resolve(ir, pkey_name)
+                    pkey_ss = self.resolve(ir=ir, secret_name=pkey_name, secret_namespace=None)
 
                     if not pkey_ss:
                         ir.logger.error(
@@ -356,7 +374,7 @@ class IRHost(IRResource):
             # This is a little weird. Basically we're going to resolve the secret (which should just
             # be a cache lookup here) so that we can use SavedSecret.__str__() as a serializer to
             # compare the configurations.
-            context_ss = self.resolve(ir, secret_name)
+            context_ss = self.resolve(ir, secret_name, None)
 
             self.logger.debug(
                 f"Host {self.name}, ctx {ctx.name}, secret {secret_name}, resolved {context_ss}"
@@ -473,7 +491,12 @@ class IRHost(IRResource):
             insecure_addl_port,
         )
 
-    def resolve(self, ir: "IR", secret_name: str) -> SavedSecret:
+    def resolve(
+        self, ir: "IR", secret_name: str, secret_namespace: Union[str, None]
+    ) -> SavedSecret:
+        if secret_namespace:
+            return ir.resolve_secret(self, secret_name, secret_namespace)
+
         # Try to use our namespace for secret resolution. If we somehow have no
         # namespace, fall back to the Ambassador's namespace.
         namespace = self.namespace or ir.ambassador_namespace
