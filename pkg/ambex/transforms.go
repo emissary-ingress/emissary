@@ -301,20 +301,30 @@ func JoinEdsClustersV3(ctx context.Context, clusters []ecp_cache_types.Resource,
 			ref = c.Name
 		}
 
-		var source string
-		ep, ok := edsEndpoints[ref]
-		if ok {
-			source = "found"
-		} else {
-			ep = &apiv3_endpoint.ClusterLoadAssignment{
-				ClusterName: ref,
-				Endpoints:   []*apiv3_endpoint.LocalityLbEndpoints{},
-			}
-			source = "synthesized"
+		// todo comment
+		if ep, ok := edsEndpoints[ref]; ok {
+			c.LoadAssignment = ep
+			c.EdsClusterConfig = nil
+
+			// Type 1 is STRICT_DNS
+			c.ClusterDiscoveryType = &apiv3_cluster.Cluster_Type{Type: 1}
 		}
 
-		dlog.Debugf(ctx, "%s envoy v3 ClusterLoadAssignment for cluster %s: %v", source, c.Name, ep)
-		endpoints = append(endpoints, ep)
+		//todo comment
+		//var source string
+		//ep, ok := edsEndpoints[ref]
+		//if ok {
+		//	source = "found"
+		//} else {
+		//	ep = &apiv3_endpoint.ClusterLoadAssignment{
+		//		ClusterName: ref,
+		//		Endpoints:   []*apiv3_endpoint.LocalityLbEndpoints{},
+		//	}
+		//	source = "synthesized"
+		//}
+		//
+		//dlog.Debugf(ctx, "%s envoy v3 ClusterLoadAssignment for cluster %s: %v", source, c.Name, ep)
+		//endpoints = append(endpoints, ep)
 	}
 
 	return
