@@ -301,7 +301,11 @@ func JoinEdsClustersV3(ctx context.Context, clusters []ecp_cache_types.Resource,
 			ref = c.Name
 		}
 
-		// todo comment
+		// This change was introduced as a stop gap solution to mitigate the 503 issues when certificates are rotated.
+		// The issue is CDS gets updated and waits for EDS to send ClusterLoadAssignment.
+		// During this wait period calls that are coming through get hit with a 503 since the cluster is in a warming state.
+		// The solution is to "hijack" the cluster and insert all the endpoints instead of relying on EDS.
+		// Not there will be a discrepancy between envoy/envoy.json and the config envoy has
 		if ep, ok := edsEndpoints[ref]; ok {
 			c.LoadAssignment = ep
 			c.EdsClusterConfig = nil
@@ -310,7 +314,7 @@ func JoinEdsClustersV3(ctx context.Context, clusters []ecp_cache_types.Resource,
 			c.ClusterDiscoveryType = &apiv3_cluster.Cluster_Type{Type: 1}
 		}
 
-		//todo comment
+		//commenting out for the time being. See comment above
 		//var source string
 		//ep, ok := edsEndpoints[ref]
 		//if ok {
