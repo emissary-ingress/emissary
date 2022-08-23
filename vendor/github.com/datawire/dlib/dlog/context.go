@@ -40,6 +40,9 @@ func getLogger(ctx context.Context) Logger {
 //
 // You should only really ever call WithLogger from the initial
 // process set up (i.e. directly inside your 'main()' function).
+//
+// If the logger implements OptimizedLogger, then dlog will take
+// advantage of that.
 func WithLogger(ctx context.Context, logger Logger) context.Context {
 	return context.WithValue(ctx, loggerContextKey{}, logger)
 }
@@ -54,7 +57,7 @@ func WithField(ctx context.Context, key string, value interface{}) context.Conte
 // StdLogger returns a stdlib *log.Logger that uses the Logger
 // associated with ctx and logs at the specified loglevel.
 //
-// Avoid using this functions if at all possible; prefer to use the
+// Avoid using this function if at all possible; prefer to use the
 // {Trace,Debug,Info,Print,Warn,Error}{f,ln,}() functions.  You should
 // only use this for working with external libraries that demand a
 // stdlib *log.Logger.
@@ -74,17 +77,29 @@ func sprintln(args ...interface{}) string {
 func Log(ctx context.Context, lvl LogLevel, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(lvl, fmt.Sprint(args...))
+	if opt, ok := l.(OptimizedLogger); ok {
+		opt.UnformattedLog(lvl, args...)
+	} else {
+		l.Log(lvl, fmt.Sprint(args...))
+	}
 }
 
 func Logln(ctx context.Context, lvl LogLevel, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(lvl, sprintln(args...))
+	if opt, ok := l.(OptimizedLogger); ok {
+		opt.UnformattedLogln(lvl, args...)
+	} else {
+		l.Log(lvl, sprintln(args...))
+	}
 }
 
 func Logf(ctx context.Context, lvl LogLevel, format string, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(lvl, fmt.Sprintf(format, args...))
+	if opt, ok := l.(OptimizedLogger); ok {
+		opt.UnformattedLogf(lvl, format, args...)
+	} else {
+		l.Log(lvl, fmt.Sprintf(format, args...))
+	}
 }

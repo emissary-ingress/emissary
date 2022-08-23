@@ -1,14 +1,21 @@
-package entrypoint
+package snapshot
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/datawire/ambassador/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
-	"github.com/datawire/dlib/dlog"
+	"github.com/datawire/dlib/derror"
 )
 
-func parseAnnotations(ctx context.Context, a *snapshotTypes.KubernetesSnapshot) {
+func annotationKey(obj kates.Object) string {
+	return fmt.Sprintf("%s/%s.%s",
+		obj.GetObjectKind().GroupVersionKind().Kind,
+		obj.GetName(),
+		obj.GetNamespace())
+}
+
+func (a *KubernetesSnapshot) PopulateAnnotations(ctx context.Context) error {
 	var annotatable []kates.Object
 
 	for _, s := range a.Services {
@@ -19,28 +26,43 @@ func parseAnnotations(ctx context.Context, a *snapshotTypes.KubernetesSnapshot) 
 		annotatable = append(annotatable, i)
 	}
 
-	a.Annotations = GetAnnotations(ctx, annotatable...)
+	var errs derror.MultiError
+	a.Annotations, errs = getAnnotations(ctx, annotatable...)
+
+	if len(errs) > 0 {
+		return errs
+	}
+	return nil
 }
 
-// GetAnnotations extracts and converts any parseable annotations from the supplied resource. It
+// getAnnotations extracts and converts any parseable annotations from the supplied resource. It
 // omits any malformed annotations and does not report the errors. This is ok for now because the
 // python code will catch and report any errors.
-func GetAnnotations(ctx context.Context, resources ...kates.Object) (result []kates.Object) {
+func getAnnotations(ctx context.Context, resources ...kates.Object) ([]kates.Object, derror.MultiError) {
+	var result []kates.Object
+	var errs derror.MultiError
 	for _, r := range resources {
 		ann, ok := r.GetAnnotations()["getambassador.io/config"]
 		if ok {
+			key := annotationKey(r)
 			objs, err := kates.ParseManifestsToUnstructured(ann)
 			if err != nil {
-				dlog.Errorf(ctx, "error parsing annotations: %v", err)
+				errs = append(errs, fmt.Errorf("%s: %w", key, err))
 			} else {
-				for _, o := range objs {
-					result = append(result, convertAnnotation(ctx, r, o))
+				for i, untypedObj := range objs {
+					typedObj, err := ConvertAnnotation(ctx, r, untypedObj.(*kates.Unstructured))
+					if err != nil {
+						errs = append(errs, fmt.Errorf("%s: annotation %d: %w", key, i, err))
+						result = append(result, untypedObj)
+					} else {
+						result = append(result, typedObj)
+					}
 				}
 			}
 		}
 	}
 
-	return result
+	return result, errs
 }
 
 // Annotations require some post processing because they are weird. The older ones use "ambassador"
@@ -50,18 +72,12 @@ func GetAnnotations(ctx context.Context, resources ...kates.Object) (result []ka
 //
 // NOTE: Right now this is only guaranteed to preserve enough fidelity to find secrets, this may
 // work well enough for other purposes, but some careful review is required before such use.
-func convertAnnotation(ctx context.Context, parent kates.Object, kobj kates.Object) kates.Object {
-	un, ok := kobj.(*kates.Unstructured)
-	if !ok {
-		return kobj
-	}
-
+func ConvertAnnotation(ctx context.Context, parent kates.Object, un *kates.Unstructured) (kates.Object, error) {
 	// XXX: steal luke's code
 	var tm kates.TypeMeta
 	err := convert(un, &tm)
 	if err != nil {
-		dlog.Debugf(ctx, "Error parsing type meta for annotation")
-		return un
+		return nil, err
 	}
 
 	gvk := tm.GroupVersionKind()
@@ -73,8 +89,7 @@ func convertAnnotation(ctx context.Context, parent kates.Object, kobj kates.Obje
 	}
 
 	if gvk.Group != "getambassador.io" {
-		dlog.Debugf(ctx, "Annotation does not have group getambassador.io")
-		return un
+		return nil, fmt.Errorf("annotation has unsupported GroupVersionKind %q, ignoring", gvk)
 	}
 
 	// This version munging is only kosher because right now we only care about preserving enough
@@ -89,7 +104,7 @@ func convertAnnotation(ctx context.Context, parent kates.Object, kobj kates.Obje
 	apiVersion := gvk.GroupVersion().String()
 	result, err := kates.NewObject(gvk.Kind, apiVersion)
 	if err != nil {
-		return un
+		return nil, err
 	}
 
 	// create our converted object with the massaged apiVersion
@@ -140,8 +155,8 @@ func convertAnnotation(ctx context.Context, parent kates.Object, kobj kates.Obje
 	// now convert our unstructured annotation into the correct golang struct
 	err = convert(obj, result)
 	if err != nil {
-		return un
+		return nil, err
 	}
 
-	return result
+	return result, nil
 }

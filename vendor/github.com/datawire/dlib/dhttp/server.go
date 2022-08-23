@@ -38,6 +38,9 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strconv"
+	"strings"
+	"sync/atomic"
 	"time"
 
 	"golang.org/x/net/http2"
@@ -116,7 +119,7 @@ type testHookContextKey struct{}
 //  - The "Addr" member field is removed; it is replaced by an "addr" argument to the
 //    "ListenAndServe(TLS)?" methods.
 //  - The "BaseContext" member field is removed; it is replaced by a "ctx" argument to the
-//    "(ListenAnd)?Serve(TLS?)" methods.
+//    "(ListenAnd)?Serve(TLS)?" methods.
 //  - The "RegisterOnShutdown" is removed; it is replaced by an "OnShutdown" member field.
 //  - The "SetKeepAlivesEnabled", "Shutdown", and "Close" methods are removed; they are conceptually
 //    replaced by using Context cancellation for lifecycle management.  Use dcontext soft
@@ -126,7 +129,7 @@ type testHookContextKey struct{}
 //
 //  - The semantics of the "TLSNextProto" member field are slightly different.
 //  - The semantics of the "Error" member field are slightly different.
-//  - The structure is deep-copied by each of the "(ListenAnd)?Serve(TLS?)" methods; mutating the
+//  - The structure is deep-copied by each of the "(ListenAnd)?Serve(TLS)?" methods; mutating the
 //    config structure while a server is running will not affect the running server.
 //  - HTTP/2 support (both "h2" and "h2c") is built-in, so if your code configures HTTP/2 manually,
 //    you're going to need to set "DisableHTTP2: true" to stop ServerConfig from stomping over your
@@ -149,7 +152,7 @@ type testHookContextKey struct{}
 //
 // [2]: https://xkcd.com/1172/
 type ServerConfig struct {
-	// These fields mimic exactly mimic http.Server; see the documentation there.
+	// These fields exactly mimic http.Server; see the documentation there.
 	Handler           http.Handler
 	TLSConfig         *tls.Config
 	ReadTimeout       time.Duration
@@ -195,10 +198,10 @@ type ServerConfig struct {
 
 	// OnShutdown is an array of functions that are each called once when shutdown is initiated.
 	// Use this when hijacking connections; your OnShutdown should notify your hijacking Handler
-	// to that a graceful shutdown has been initiated, and your Handler should respond by
-	// closing any idle connections.  This is used instead of dcontext soft Context cancellation
-	// because the Context should very much still be fully alive for any in-progress requests on
-	// that connection, and not soft-canceled; this is even softer than a dcontext soft cancel.
+	// that a graceful shutdown has been initiated, and your Handler should respond by closing
+	// any idle connections.  This is used instead of dcontext soft Context cancellation because
+	// the Context should very much still be fully alive for any in-progress requests on that
+	// connection, and not soft-canceled; this is even softer than a dcontext soft cancel.
 	//
 	// (This replaces the RegisterOnShutdown method of *http.Server.)
 	OnShutdown []func()
@@ -210,6 +213,8 @@ func (sc *ServerConfig) serve(ctx context.Context, serveFn func(*http.Server) er
 	defer hardCancel()
 
 	// Part 2: Instantiate the basic *http.Server.
+	type listenerContextKey struct{}
+	var connCnt uint64
 	server := &http.Server{
 		// Pass along the verbatim fields
 		Handler:           sc.Handler,
@@ -220,8 +225,20 @@ func (sc *ServerConfig) serve(ctx context.Context, serveFn func(*http.Server) er
 		MaxHeaderBytes:    sc.MaxHeaderBytes,
 		ConnState:         sc.ConnState,
 		ConnContext: concatConnContext(
-			func(ctx context.Context, c net.Conn) context.Context {
-				return dgroup.WithGoroutineName(ctx, "/"+c.LocalAddr().String())
+			func(ctx context.Context, conn net.Conn) context.Context {
+				// We want to distinguish between the goroutines for different
+				// connections.  Prefer to use the conn.LocalAddr(), but fall back
+				// to using a counter if .LocalAddr() isn't useful (it's just the
+				// same as the listener.Addr, as is for net.UnixConn) or would be
+				// confusing in a thread name (it contains a slash, as it likely
+				// would for a net.UnixConn).
+				listAddr := ctx.Value(listenerContextKey{}).(net.Listener).Addr().String()
+				connAddr := conn.LocalAddr().String()
+				name := connAddr
+				if connAddr == listAddr || strings.Contains(connAddr, "/") {
+					name = strconv.FormatUint(atomic.AddUint64(&connCnt, 1), 10)
+				}
+				return dgroup.WithGoroutineName(ctx, "/conn="+name)
 			},
 			sc.ConnContext,
 		),
@@ -231,11 +248,11 @@ func (sc *ServerConfig) serve(ctx context.Context, serveFn func(*http.Server) er
 		// Regardless of if you use dcontext, if you're using Contexts at all, then you should
 		// always set `.BaseContext` on your `http.Server`s so that your HTTP Handler receives a
 		// request object that has `Request.Context()` set correctly.
-		BaseContext: func(_ net.Listener) context.Context {
+		BaseContext: func(listener net.Listener) context.Context {
 			// We use the hard Context here instead of the soft Context so
 			// that in-progress requests don't get interrupted when we enter
 			// the shutdown grace period.
-			return hardCtx
+			return context.WithValue(hardCtx, listenerContextKey{}, listener)
 		},
 	}
 	for k, v := range sc.TLSNextProto {
@@ -314,7 +331,7 @@ func (sc *ServerConfig) serve(ctx context.Context, serveFn func(*http.Server) er
 	case <-workersDoneCh:
 	}
 
-	// Trigger the hard shutdown.  This is probably not nescessary in the <-workersDoneCh case,
+	// Trigger the hard shutdown.  This is probably not necessary in the <-workersDoneCh case,
 	// but let's do it in both cases, just to be safe (the "close" calls should be safe no-ops
 	// in the <-workersDoneCh case).
 	//
@@ -406,7 +423,7 @@ func (sc *ServerConfig) ListenAndServeTLS(ctx context.Context, addr, certFile, k
 	// If you're comparing this method to *http.Server.ListenAndServeTLS, then you're probably
 	// thinking "Don't we need a `defer ln.Close()` here!?" (and also probably wondering why
 	// *http.Server needs that statement).  The answer is "no, we don't need it", because we
-	// handle that in ServeTLS instead (and see the comments there about why it's nescessary).
+	// handle that in ServeTLS instead (and see the comments there about why it's necessary).
 
 	return sc.ServeTLS(ctx, ln, certFile, keyFile)
 }

@@ -70,13 +70,17 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 {{ range $i, $release := $relnotes.items -}}
 {{ $prevVersion := "1.13.3" -}}
-{{ if lt (add $i 1) (len $relnotes.items) -}}
-{{   $prevVersion = (index $relnotes.items (add $i 1)).version -}}
+{{- if index $release "prevVersion" -}}
+  {{- $prevVersion = $release.prevVersion -}}
+{{ else -}}
+  {{- if lt (add $i 1) (len $relnotes.items) -}}
+  {{-   $prevVersion = (index $relnotes.items (add $i 1)).version -}}
+  {{- end -}}
 {{ end -}}
 {{ if eq $release.version "1.13.7" -}}
 {{   $ghName = "datawire/ambassador" -}}
 {{ end }}
-## [{{ $release.version }}] {{ (time.Parse "2006-01-02" $release.date).Format "January 02, 2006" }}
+## [{{ $release.version }}] {{ if eq $release.date "TBD" }}TBD{{ else }}{{ (time.Parse "2006-01-02" $release.date).Format "January 02, 2006" }}{{ end }}
 [{{ $release.version }}]: https://github.com/{{ $ghName }}/compare/v{{ $prevVersion }}...v{{ $release.version }}
 {{- range $release.notes }}{{ if index . "isHeadline" }}{{ if $release.isHeadline }}
 

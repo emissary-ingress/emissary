@@ -14,11 +14,15 @@ type logrusLogger interface {
 	WithField(key string, value interface{}) *logrus.Entry
 	WriterLevel(level logrus.Level) *io.PipeWriter
 	Log(level logrus.Level, args ...interface{})
+	Logln(level logrus.Level, args ...interface{})
+	Logf(level logrus.Level, format string, args ...interface{})
 }
 
 type logrusWrapper struct {
 	logrusLogger
 }
+
+var _ OptimizedLogger = logrusWrapper{}
 
 // Helper does nothing--we use a Logrus Hook instead (see below).
 func (l logrusWrapper) Helper() {}
@@ -49,6 +53,30 @@ func (l logrusWrapper) Log(level LogLevel, msg string) {
 		panic(errors.Errorf("invalid LogLevel: %d", level))
 	}
 	l.logrusLogger.Log(logrusLevel, msg)
+}
+
+func (l logrusWrapper) UnformattedLog(level LogLevel, args ...interface{}) {
+	logrusLevel, ok := dlogLevel2logrusLevel[level]
+	if !ok {
+		panic(errors.Errorf("invalid LogLevel: %d", level))
+	}
+	l.logrusLogger.Log(logrusLevel, args...)
+}
+
+func (l logrusWrapper) UnformattedLogln(level LogLevel, args ...interface{}) {
+	logrusLevel, ok := dlogLevel2logrusLevel[level]
+	if !ok {
+		panic(errors.Errorf("invalid LogLevel: %d", level))
+	}
+	l.logrusLogger.Logln(logrusLevel, args...)
+}
+
+func (l logrusWrapper) UnformattedLogf(level LogLevel, format string, args ...interface{}) {
+	logrusLevel, ok := dlogLevel2logrusLevel[level]
+	if !ok {
+		panic(errors.Errorf("invalid LogLevel: %d", level))
+	}
+	l.logrusLogger.Logf(logrusLevel, format, args...)
 }
 
 // WrapLogrus converts a logrus *Logger into a generic Logger.
