@@ -186,7 +186,6 @@ protoc = @echo PROTOC --$1_out=$2 $<; mkdir -p $2 && $(tools/protoc) \
 
 # proto_path is a list of where to look for .proto files.
 proto_path += $(OSS_HOME)/api # input files must be within the path
-proto_path += $(OSS_HOME)/vendor # for "k8s.io/..."
 
 # The "M{FOO}={BAR}" options map from .proto files to Go package names.
 proto_options/go += plugins=grpc
