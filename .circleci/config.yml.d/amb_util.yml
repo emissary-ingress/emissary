@@ -46,19 +46,6 @@ commands:
       - attach_workspace:
           at: /home/circleci/project
 
-  "amb-skip-if-not-master-or-release":
-    steps:
-      - when:
-          condition:
-            not:
-              or:
-                - equal: [ master, << pipeline.git.branch >> ]
-                - matches:
-                    pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
-                    value: << pipeline.git.branch >>
-          steps:
-            - run: circleci step hault
-
   "amb-checkout":
     steps:
       - when:

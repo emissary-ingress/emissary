@@ -132,7 +132,6 @@ commands:
     steps:
       - amb-linux-install
       - amb-attach-workspace
-      - amb-skip-if-not-master-or-release
       - run:
           name: "promote build to passed"
           command: |

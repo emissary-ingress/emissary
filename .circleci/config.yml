@@ -120,7 +120,6 @@ commands:
     steps:
     - amb-linux-install
     - amb-attach-workspace
-    - amb-skip-if-not-master-or-release
     - run:
         name: "promote build to passed"
         command: |
@@ -355,20 +354,6 @@ commands:
     steps:
     - attach_workspace:
         at: /home/circleci/project
-  amb-skip-if-not-master-or-release:
-    steps:
-    - when:
-        condition:
-          not:
-            or:
-            - equal:
-              - master
-              - << pipeline.git.branch >>
-            - matches:
-                pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
-                value: << pipeline.git.branch >>
-        steps:
-        - run: circleci step hault
   amb-checkout:
     steps:
     - when:
@@ -823,7 +808,18 @@ jobs:
   oss-promote-dev-to-passed:
     executor: oss-linux
     steps:
-    - job-promote-passed-ci-build
+    - run: echo 'step'
+    - when:
+        condition:
+          or:
+          - equal:
+            - master
+            - << pipeline.git.branch >>
+          - matches:
+              pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
+              value: << pipeline.git.branch >>
+        steps:
+        - job-promote-passed-ci-build
   oss-promote-pr-to-passed:
     executor: oss-linux
     steps:
