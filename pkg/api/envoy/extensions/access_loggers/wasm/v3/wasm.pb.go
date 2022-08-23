@@ -8,7 +8,7 @@ package envoy_extensions_access_loggers_wasm_v3
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/extensions/wasm/v3"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/wasm/v3"
 	proto "github.com/golang/protobuf/proto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"

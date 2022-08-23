@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 import copy
 import json
@@ -6,8 +6,11 @@ import json
 from ..config import Config
 from ..utils import dump_json
 
+from .irhost import IRHost
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
+from .irtcpmappinggroup import IRTCPMappingGroup
+from .irutils import selector_matches
 
 if TYPE_CHECKING:
     from .ir import IR # pragma: no cover
@@ -15,50 +18,259 @@ if TYPE_CHECKING:
 
 class IRListener (IRResource):
     """
-    IRListener is Ambassador's concept of a listener.
-
-    Note that an IRListener is a _very different beast_ than an Envoy listener.
-    An IRListener is pretty straightforward right now: a port, whether TLS is
-    required, whether we're doing Proxy protocol.
-
-    NOTE WELL: at present, all IRListeners are considered to be equals --
-    specifically, every Mapping is assumed to belong to every IRListener. That
-    may change later, but that's why you don't see Mappings associated with an
-    IRListener when creating the IRListener.
-
-    An Envoy listener, by contrast, is something more akin to an environment
-    definition. See V2Listener for more.
+    IRListener is a pretty direct translation of the Ambassador Listener resource.
     """
 
-    def __init__(self, ir: 'IR', aconf: Config,
-                 service_port: int,
-                 # require_tls: bool,
-                 use_proxy_proto: bool,
-                 redirect_listener: bool = False,
+    bind_address: str       # Often "0.0.0.0", but can be overridden.
+    service_port: int
+    use_proxy_proto: bool
+    hostname: str
+    context: Optional[IRTLSContext]
+    insecure_only: bool     # Was this synthesized solely due to an insecure_addl_port?
+    namespace_literal: str  # Literal namespace to be matched
+    namespace_selector: Dict[str, str]  # Namespace selector
+    host_selector: Dict[str, str]   # Host selector
 
-                 rkey: str="ir.listener",
+    AllowedKeys = {
+        'bind_address',
+        'l7Depth',
+        'hostBinding',  # Note that hostBinding gets processed and deleted in setup.
+        'port',
+        'protocol',
+        'protocolStack',
+        'securityModel',
+        'statsPrefix',
+    }
+
+    ProtocolStacks: Dict[str, List[str]] = {
+        # HTTP: accepts cleartext HTTP/1.1 sessions over TCP.
+        "HTTP": [ "HTTP", "TCP" ],
+
+        # HTTPS: accepts encrypted HTTP/1.1 or HTTP/2 sessions using TLS over TCP.
+        "HTTPS": [ "TLS", "HTTP", "TCP" ],
+
+        # HTTPPROXY: accepts cleartext HTTP/1.1 sessions using the HAProxy PROXY protocol over TCP.
+        "HTTPPROXY": [ "PROXY", "HTTP", "TCP" ],
+
+        # HTTPSPROXY: accepts encrypted HTTP/1.1 or HTTP/2 sessions using the HAProxy PROXY protocol over TLS over TCP.
+        "HTTPSPROXY": [ "TLS", "PROXY", "HTTP", "TCP" ],
+
+        # TCP: accepts raw TCP sessions.
+        "TCP": [ "TCP" ],
+
+        # TLS: accepts TLS over TCP.
+        "TLS": [ "TLS", "TCP" ],
+
+        # # UDP: accepts UDP packets.
+        # "UDP": [ "UDP" ],
+    }
+
+    def __init__(self, ir: 'IR', aconf: Config,
+                 rkey: str,      # REQUIRED
+                 name: str,      # REQUIRED
+                 location: str,  # REQUIRED
+                 namespace: Optional[str]=None,
                  kind: str="IRListener",
-                 name: str="ir.listener",
+                 apiVersion: str="getambassador.io/v3alpha1",
+                 insecure_only: bool=False,
                  **kwargs) -> None:
-        # print("IRListener __init__ (%s %s %s)" % (kind, name, kwargs))
+        ir.logger.debug("IRListener __init__ (%s %s %s)" % (kind, name, kwargs))
+
+        # A note: we copy hostBinding from kwargs in this loop, but we end up processing
+        # and deleting it in setup(). This is arranged this way because __init__ can't
+        # return an error, but setup() can.
+
+        new_args = {
+            x: kwargs[x] for x in kwargs.keys()
+            if x in IRListener.AllowedKeys
+        }
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
-            service_port=service_port,
-            # require_tls=require_tls,
-            use_proxy_proto=use_proxy_proto,
-            **kwargs)
+            ir=ir, aconf=aconf, rkey=rkey, location=location,
+            kind=kind, name=name, namespace=namespace, apiVersion=apiVersion,
+            insecure_only=insecure_only,
+            **new_args
+        )
 
-        self.redirect_listener: bool = redirect_listener
-        # self.require_tls: bool = require_tls
+    def setup(self, ir: 'IR', aconf: Config) -> bool:
+        # Default hostBinding information early, so that we don't have to worry about it
+        # ever being unset. We default to only looking for Hosts in our own namespace, and
+        # to not using selectors beyond that.
+        self.namespace_literal = self.namespace
+        self.namespace_selector = {}
+        self.host_selector = {}
 
-    def pretty(self) -> str:
-        ctx = self.get('context', None)
-        ctx_name = '-none-' if not ctx else ctx.name
+        # Was a bind address specified?
+        if not self.get('bind_address', None):
+            # Nope, use the default.
+            self.bind_address = Config.envoy_bind_address
 
-        return "<Listener %s for authority=%s:%d, ctx=%s, secure_action=%s, insecure_action=%s, insecure_port=%s>" % \
-               (self.name, self.hostname, self.service_port, ctx_name,
-                self.secure_action, self.insecure_action, self.insecure_addl_port)
+        ir.logger.debug(f"Listener {self.name} setting up on {self.bind_address}:{self.port}")
+
+        pstack = self.get("protocolStack", None)
+        protocol = self.get("protocol", None)
+        securityModel = self.get("securityModel", None)
+
+        if pstack:
+            ir.logger.debug(f"Listener {self.name} has pstack {pstack}")
+            # It's an error to specify both protocol and protocolStack.
+            if protocol:
+                self.post_error("protocol and protocolStack may not both be specified; using protocolStack and ignoring protocol")
+                self.protocol = None
+        elif not protocol:
+            # It's also an error to specify neither protocol nor protocolStack.
+            self.post_error("one of protocol and protocolStack must be specified")
+            return False
+        else:
+            # OK, we have a protocol, does it have a corresponding protocolStack?
+            pstack = IRListener.ProtocolStacks.get(protocol, None)
+
+            # This should be impossible, but just in case.
+            if not pstack:
+                self.post_error(f"protocol %s is not valid", protocol)
+                return False
+
+            ir.logger.debug(f"Listener {self.name} forcing pstack {';'.join(pstack)}")
+            self.protocolStack = pstack
+
+        if not securityModel:
+            self.post_error("securityModel is required")
+            return False
+
+        # Deal with statsPrefix, if it's not set.
+        if not self.get("statsPrefix", ""):
+            # OK, we need to default the thing per the protocolStack...
+            tlsActive = "TLS" in self.protocolStack
+            httpActive = "HTTP" in self.protocolStack
+
+            if httpActive:
+                if tlsActive:
+                    self.statsPrefix = "ingress_https"
+                else:
+                    self.statsPrefix = "ingress_http"
+            elif tlsActive:
+                self.statsPrefix = f"ingress_tls_{self.port}"
+            else:
+                self.statsPrefix = f"ingress_tcp_{self.port}"
+
+        # Deal with hostBinding. First up, namespaces.
+        hostbinding = self.get("hostBinding", None)
+
+        if not hostbinding:
+            self.post_error("hostBinding is required")
+            return False
+
+        # We don't want self.hostBinding any more: the relevant stuff will be stored elsewhere
+        # for ease of use.
+        #
+        # XXX You can't do del(self.hostBinding) here, because underneath everything, an
+        # IRListener is a Resource, and Resources are really much more like dicts than we
+        # like to admit.
+        del(self["hostBinding"])
+
+        # We are going to require at least one of 'namespace' and 'selector' in the
+        # hostBinding. (Really, K8s validation should be enforcing this before we get
+        # here, anyway.)
+
+        hb_namespace = hostbinding.get("namespace", None)
+        hb_selector = hostbinding.get("selector", None)
+
+        if not hb_namespace and not hb_selector:
+            # Bzzt.
+            self.post_error("hostBinding must have at least one of namespace or selector")
+            return False
+
+        if hb_namespace:
+            # Again, technically K8s validation should enforce this, but just in case...
+            nsfrom = hb_namespace.get("from", None)
+
+            if not nsfrom:
+                self.post_error("hostBinding.namespace.from is required")
+                return False
+
+            if nsfrom.lower() == 'all':
+                self.namespace_literal = "*"    # Special, obviously.
+            elif nsfrom.lower() == 'self':
+                self.namespace_literal = self.namespace
+            elif nsfrom.lower() == 'selector':
+                # Augh. We can't actually support this yet, since the Python side of
+                # Ambassador has no sense of Namespace objects, so it can't look at the
+                # namespace labels!
+                #
+                # (K8s validation should prevent this from happening.)
+                self.post_error("hostBinding.namespace.from=selector is not yet supported")
+
+                # # When nsfrom == SELECTOR, we must have a selector.
+                # nsselector: Optional[Dict[str, Any]] = hb_namespace.get("selector", None)
+
+                # if not nsselector:
+                #     self.post_error("hostBinding.namespace.selector is required when hostBinding.namespace.from is SELECTOR")
+                #     return False
+
+                # match: Optional[Dict[str, str]] = nsselector.get("matchLabels", None)
+
+                # if not match:
+                #     self.post_error("hostBinding.namespace.selector currently supports only matchLabels")
+                #     return False
+
+                # self.namespace_literal = "*"
+                # self.namespace_selector = match
+
+        # OK, after all that, look at the host selector itself.
+        if hb_selector:
+            if not "matchLabels" in hb_selector:
+                self.post_error("hostBinding.selector currently supports only matchLabels")
+                return False
+
+            # This is not a typo -- save hb_selector here. The selector_matches function
+            # takes it this way for whenever we want to add to it.
+            self.host_selector = hb_selector
+
+        return True
+
+    def matches_host(self, host: IRHost) -> bool:
+        """
+        Returns True IFF this Listener wants to take the given IRHost -- meaning,
+        the Host's namespace and selectors match what we want.
+        """
+        nsmatch = (self.namespace_literal == "*") or (self.namespace_literal == host.namespace)
+
+        if not nsmatch:
+            self.ir.logger.debug("    namespace mismatch (we're %s), DROP %s", self.namespace_literal, host)
+            return False
+
+        if not selector_matches(self.ir.logger, self.host_selector, host.metadata_labels):
+            self.ir.logger.debug("    selector mismatch, DROP %s", host)
+            return False
+
+        self.ir.logger.debug("    TAKE %s", host)
+        return True
+
+    def __str__(self) -> str:
+        pstack = "????"
+
+        if self.get("protocolStack"):
+            pstack = ";".join(self.protocolStack)
+
+        securityModel = self.get("securityModel") or "????"
+
+        hsstr = ""
+
+        if self.host_selector:
+            hsstr = "; ".join([ f"{k}={v}" for k, v in self.host_selector.items() ])
+
+        nsstr = ""
+
+        if self.namespace_selector:
+            nsstr = "; ".join([ f"{k}={v}" for k, v in self.namespace_selector.items() ])
+
+        return "<Listener %s on %s:%d (%s -- %s) ns %s sel %s, host sel %s (statsPrefix %s)>" % \
+               (self.name, self.bind_address, self.port, securityModel, pstack,
+                self.namespace_literal, nsstr, hsstr, self.statsPrefix)
+
+    # Deliberately matches IRTCPMappingGroup.bind_to()
+    def bind_to(self) -> str:
+        return f"{self.bind_address}-{self.port}"
 
 
 class ListenerFactory:
@@ -66,213 +278,148 @@ class ListenerFactory:
     def load_all(cls, ir: 'IR', aconf: Config) -> None:
         amod = ir.ambassador_module
 
-        # An IRListener roughly corresponds to something partway between an Envoy
-        # FilterChain and an Envoy VirtualHost -- it's a single domain entry (which
-        # could be a wildcard) that can have routes and such associated with it.
-        # Or rather, an IRListener more likely corresponds to a *pair* of Envoy
-        # VirtualHosts; one for cleartext and one for TLS.
-        #
-        # A single IRListener can require TLS, or not. If TLS is around, it can
-        # require a specific SNI host. Since it contains VirtualHosts, it can also
-        # do things like require the PROXY protocol, and we can use an IRListener
-        # to say "any host without TLS", then do things on a per-host basis within
-        # it -- but the guts of all _that_ are down in V2Listener, since it's very
-        # highly Envoy-specific.
-        #
-        # Port-based TCPMappings also happen down in V2Listener at the moment. This
-        # means that if you try to do a port-based TCPMapping for a port that you
-        # also try to have an IRListener on, that won't work. That's OK for now.
-        #
-        # The way this works goes like this:
-        #
-        # 1. Collect all our TLSContexts with their host entries.
-        # 2. Walk our Hosts and figure out which port(s) each needs to listen on.
-        #    If a Host has TLS info, pull the corresponding TLSContext from the set
-        #    of leftover TLSContexts.
-        # 3. If any TLSContexts are left when we're done with Hosts, walk over those
-        #    and treat them like a Host that's asking for secure routing, using the
-        #    global redirect_cleartext_from setting to decide what to do for insecure
-        #    routing.
-        #
-        # So. First build our set of TLSContexts.
-        unused_contexts: Dict[str, IRTLSContext] = {}
-        ctx: Optional[IRTLSContext]
+        listeners = aconf.get_config('listeners')
 
-        for ctx in ir.get_tls_contexts():
-            if ctx.is_active:
-                ctx_hosts = ctx.get('hosts', [])
+        if listeners:
+            for config in listeners.values():
+                ir.logger.debug("ListenerFactory: creating Listener for %s" % repr(config.as_dict()))
 
-                if ctx_hosts:
-                    # This is a termination context.
-                    for hostname in ctx_hosts:
-                        extant_context = unused_contexts.get(hostname, None)
+                listener = IRListener(ir, aconf, **config)
 
-                        if extant_context:
-                            ir.post_error("TLSContext %s claims hostname %s, which was already claimed by %s" %
-                                          (ctx.name, hostname, extant_context.name))
-                            continue
+                if listener.is_active():
+                    listener.referenced_by(config)
+                    listener.sourced_by(config)
 
-                        unused_contexts[hostname] = ctx
-
-        # Next, start with an empty set of listeners...
-        listeners: Dict[str, IRListener] = {}
-
-        cls.dump_info(ir, "AT START", listeners, unused_contexts)
-
-        # OK. Walk hosts.
-        hosts = ir.get_hosts() or []
-
-        for host in hosts:
-            ir.logger.debug(f"ListenerFactory: consider Host {host.pretty()}")
-
-            hostname = host.hostname
-            request_policy = host.get('requestPolicy', {})
-            insecure_policy = request_policy.get('insecure', {})
-            insecure_action = insecure_policy.get('action', 'Redirect')
-            insecure_addl_port = insecure_policy.get('additionalPort', None)
-
-            # The presence of a TLSContext matching our hostname is good enough
-            # to go on here, so let's see if there is one.
-            ctx = unused_contexts.get(hostname, None)
-
-            # Let's also check to see if the host has a context defined. If it
-            # does, check for mismatches.
-            if host.context:
-                if ctx:
-                    if ctx != host.context:
-                        # Huh. This is actually "impossible" but let's complain about it
-                        # anyway.
-                        ir.post_error("Host %s and mismatched TLSContext %s both claim hostname %s?" %
-                                      (host.name, ctx.name, hostname))
-                        # Skip this Host, something weird is going on.
-                        continue
-
-                    # Force additionalPort to 8080 if it's not set at all.
-                    if insecure_addl_port is None:
-                        ir.logger.debug(f"ListenerFactory: Host {hostname} has TLS active, defaulting additionalPort to 8080")
-                        insecure_addl_port = 8080
+                    ir.logger.debug(f"ListenerFactory: saving Listener {listener}")
+                    ir.save_listener(listener)
                 else:
-                    # Huh. This is actually a different kind of "impossible".
-                    ctx = host.context
-                    ir.post_error("Host %s contains unsaved TLSContext %s?" %
-                                  (host.name, ctx.name))
-                    # DON'T skip this Host. This "can't happen" but it clearly did.
-
-            # OK, once here, either ctx is not None, or this Host isn't interested in
-            # TLS termination.
-
-            if ctx:
-                ir.logger.debug(f"ListenerFactory: Host {hostname} terminating TLS with context {ctx.name}")
-
-                # We could check for the secure action here, but we're only supporting
-                # 'route' right now.
-
-            # So. At this point, we know the hostname, the TLSContext, the secure action,
-            # the insecure action, and any additional insecure port. Save everything.
-
-            listener = IRListener(
-                ir=ir, aconf=aconf, location=host.location,
-                service_port=amod.service_port,
-                hostname=hostname,
-                # require_tls=amod.get('x_forwarded_proto_redirect', False),
-                use_proxy_proto=amod.use_proxy_proto,
-                context=ctx,
-                secure_action='Route',
-                insecure_action=insecure_action,
-                insecure_addl_port=insecure_addl_port
-            )
-
-            # Do we somehow have a collision on the hostname?
-            extant_listener = listeners.get(hostname, None)
-
-            if extant_listener:
-                # Uh whut.
-                ir.post_error("Hostname %s is defined by both Host %s and Host %s?" %
-                              (hostname, extant_listener.name, listener.name))
-                continue
-
-            # OK, so far so good. Save what we have so far...
-            listeners[hostname] = listener
-
-            # ...make sure we don't try to use this hostname's TLSContext again...
-            unused_contexts.pop(hostname, None)
-
-        cls.dump_info(ir, "AFTER HOSTS", listeners, unused_contexts)
-
-        # Walk the remaining unused contexts, if any, and turn them into listeners too.
-        for hostname, ctx in unused_contexts.items():
-            insecure_action = 'Reject'
-            insecure_addl_port = None
-
-            redirect_cleartext_from = ctx.get('redirect_cleartext_from', None)
-
-            if ir.edge_stack_allowed and ctx.is_fallback:
-                # If this is the fallback context in Edge Stack, force redirection:
-                # this way the fallback context will listen on both ports, to make
-                # things easier on the user.
-                redirect_cleartext_from = 8080
-
-            if redirect_cleartext_from is not None:
-                insecure_action = 'Redirect'
-                insecure_addl_port = redirect_cleartext_from
-
-            listener = IRListener(
-                ir=ir, aconf=aconf, location=ctx.location,
-                service_port=amod.service_port,
-                hostname=hostname,
-                # require_tls=amod.get('x_forwarded_proto_redirect', False),
-                use_proxy_proto=amod.use_proxy_proto,
-                context=ctx,
-                secure_action='Route',
-                insecure_action=insecure_action,
-                insecure_addl_port=insecure_addl_port,
-                forward_client_cert_details=amod.get('forward_client_cert_details'),
-                set_current_client_cert_details=amod.get('set_current_client_cert_details')
-            )
-
-            listeners[hostname] = listener
-
-        unused_contexts = {}
-
-        cls.dump_info(ir, "AFTER CONTEXTS", listeners, unused_contexts)
-
-        # If we have no listeners, that implies that we had no Hosts _and_ no termination contexts,
-        # so let's synthesize a fallback listener. We'll default to using Route as the insecure action
-        # (which means accepting either TLS or cleartext), but x_forwarded_proto_redirect can override
-        # that.
-
-        xfp_redirect = amod.get('x_forwarded_proto_redirect', False)
-        insecure_action = "Redirect" if xfp_redirect else "Route"
-
-        if not listeners:
-            listeners['*'] = IRListener(
-                ir=ir, aconf=aconf, location=amod.location,
-                service_port=amod.service_port,
-                hostname='*',
-                # require_tls=amod.get('x_forwarded_proto_redirect', False),
-                use_proxy_proto=amod.use_proxy_proto,
-                context=None,
-                secure_action='Route',
-                insecure_action=insecure_action,
-                insecure_addl_port=None
-            )
-
-        cls.dump_info(ir, "AFTER FALLBACK", listeners, unused_contexts)
-
-        # OK. Now that all that's taken care of, add these listeners to the IR.
-        for hostname, listener in listeners.items():
-            ir.add_listener(listener)
-
-    @classmethod
-    def dump_info(cls, ir, what, listeners, unused_contexts):
-        ir.logger.debug(f"ListenerFactory: {what}")
-
-        pretty_listeners = {k: v.pretty() for k, v in listeners.items()}
-        ir.logger.debug(f"listeners: {dump_json(pretty_listeners, pretty=True)}")
-
-        pretty_contexts = {k: v.pretty() for k, v in unused_contexts.items()}
-        ir.logger.debug(f"unused_contexts: {dump_json(pretty_contexts, pretty=True)}")
+                    ir.logger.debug(f"ListenerFactory: not saving inactive Listener {listener}")
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:
-        pass
+        # If we have no listeners at all, add the default listeners.
+        # if not ir.listeners:
+        #     # Do we have any Hosts using TLS?
+        #     tls_active = False
+
+        #     for host in ir.hosts.values():
+        #         if host.context:
+        #             tls_active = True
+
+        #     if tls_active:
+        #         ir.logger.debug("ListenerFactory: synthesizing default listeners (TLS)")
+
+        #         # Add the default HTTP listener.
+        #         #
+        #         # We use protocol HTTPS here so that the TLS inspector is active; that
+        #         # lets us make better decisions about the security of a given request.
+        #         ir.save_listener(IRListener(
+        #             ir, aconf, "-internal-", f"ambassador-listener-8080", "-internal-",
+        #             port=8080,
+        #             protocol="HTTPS",   # Not a typo! See above.
+        #             securityModel="XFP",
+        #             hostBinding={
+        #                 "namespace": {
+        #                     "from": "SELF"
+        #                 }
+        #             }
+        #         ))
+
+        #         # Add the default HTTPS listener.
+        #         ir.save_listener(IRListener(
+        #             ir, aconf, "-internal-", "ambassador-listener-8443", "-internal-",
+        #             port=8443,
+        #             protocol="HTTPS",
+        #             securityModel="XFP",
+        #             hostBinding={
+        #                 "namespace": {
+        #                     "from": "SELF"
+        #                 }
+        #             }
+        #         ))
+        #     else:
+        #         ir.logger.debug("ListenerFactory: synthesizing default listener (cleartext)")
+
+        #         # Add the default HTTP listener.
+        #         #
+        #         # We use protocol HTTP here because no, we don't want TLS active.
+        #         ir.save_listener(IRListener(
+        #             ir, aconf, "-internal-", "ambassador-listener-8080", "-internal-",
+        #             port=8080,
+        #             protocol="HTTP",   # Not a typo! See above.
+        #             securityModel="XFP",
+        #             hostBinding={
+        #                 "namespace": {
+        #                     "from": "SELF"
+        #                 }
+        #             }
+        #         ))
+
+        # # After that, cycle over our Hosts and see if any refer to
+        # # insecure.additionalPorts that don't already have Listeners.
+        # for host in ir.get_hosts():
+        #     # Hosts don't choose bind addresses, so if we see an insecure_addl_port,
+        #     # look for it on Config.envoy_bind_address.
+        #     if (host.insecure_addl_port is not None) and (host.insecure_addl_port > 0):
+        #         listener_key = f"{Config.envoy_bind_address}-{host.insecure_addl_port}"
+
+        #         if listener_key not in ir.listeners:
+        #             ir.logger.debug("ListenerFactory: synthesizing listener for Host %s insecure.additionalPort %d",
+        #                             host.hostname, host.insecure_addl_port)
+
+        #             name = "insecure-for-%d" % host.insecure_addl_port
+
+        #             # Note that we don't specify the bind address here, so that it
+        #             # lands on Config.envoy_bind_address.
+        #             ir.save_listener(IRListener(
+        #                 ir, aconf, "-internal-", name, "-internal-",
+        #                 port=host.insecure_addl_port,
+        #                 protocol="HTTPS",   # Not a typo! See "Add the default HTTP listener" above.
+        #                 securityModel="INSECURE",
+        #                 insecure_only=True,
+        #                 hostBinding={
+        #                     "namespace": {
+        #                         "from": "SELF"
+        #                     }
+        #                 }
+        #             ))
+
+        # Finally, cycle over our TCPMappingGroups and make sure we have
+        # Listeners for all of them, too.
+        for group in ir.ordered_groups():
+            if not isinstance(group, IRTCPMappingGroup):
+                continue
+
+            # OK. If we have a Listener binding here already, use it -- that lets the user override
+            # any choices we might make if they want to. If there's no Listener here, though, we'll
+            # need to create one.
+            #
+            # (Note that group.bind_to() cleverly uses the same format as IRListener.bind_to().)
+            group_key = group.bind_to()
+
+            if group_key not in ir.listeners:
+                # Nothing already exists, so fab one up. Use TLS if and only if a host match is specified;
+                # with no host match, use TCP.
+                group_host = group.get('host', None)
+                protocol = "TLS" if group_host else "TCP"
+                bind_address = group.get('address') or Config.envoy_bind_address
+                name = f"listener-{bind_address}-{group.port}"
+
+                ir.logger.debug("ListenerFactory: synthesizing %s listener for TCPMappingGroup on %s:%d" %
+                                (protocol, bind_address, group.port))
+
+                # The securityModel of a TCP listener is kind of a no-op at this point. We'll set it
+                # to SECURE because that seems more rational than anything else. I guess.
+
+                ir.save_listener(IRListener(
+                    ir, aconf, '-internal-', name, '-internal-',
+                    bind_address=bind_address,
+                    port=group.port,
+                    protocol=protocol,
+                    securityModel="SECURE",  # See above.
+                    hostBinding={
+                        "namespace": {
+                            "from": "SELF"
+                        }
+                    }
+                ))

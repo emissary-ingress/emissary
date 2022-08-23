@@ -1,19 +1,20 @@
 package kubeapply
 
 import (
+	"context"
+	"errors"
 	"fmt"
-	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
 	"syscall"
 	"time"
 
-	"github.com/pkg/errors"
-
-	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/dlib/derror"
+	"github.com/datawire/dlib/dexec"
+	"github.com/datawire/dlib/dlog"
 )
 
 // errorDeadlineExceeded is returned from YAMLCollection.applyAndWait
@@ -25,14 +26,14 @@ var errorDeadlineExceeded = errors.New("timeout exceeded")
 // look in the standard default places for cluster configuration.  If
 // any phase takes longer than perPhaseTimeout to become ready, then
 // it returns early with an error.
-func Kubeapply(kubeinfo *k8s.KubeInfo, perPhaseTimeout time.Duration, debug, dryRun bool, files ...string) error {
+func Kubeapply(ctx context.Context, kubeinfo *k8s.KubeInfo, perPhaseTimeout time.Duration, debug, dryRun bool, files ...string) error {
 	collection, err := CollectYAML(files...)
 	if err != nil {
-		return err
+		return fmt.Errorf("CollectYAML: %w", err)
 	}
 
-	if err = collection.ApplyAndWait(kubeinfo, perPhaseTimeout, debug, dryRun); err != nil {
-		return err
+	if err = collection.ApplyAndWait(ctx, kubeinfo, perPhaseTimeout, debug, dryRun); err != nil {
+		return fmt.Errorf("ApplyAndWait: %w", err)
 	}
 
 	return nil
@@ -90,6 +91,7 @@ func (collection YAMLCollection) addFile(path string) {
 // than perPhaseTimeout to become ready, then it returns early with an
 // error.
 func (collection YAMLCollection) ApplyAndWait(
+	ctx context.Context,
 	kubeinfo *k8s.KubeInfo,
 	perPhaseTimeout time.Duration,
 	debug, dryRun bool,
@@ -106,10 +108,10 @@ func (collection YAMLCollection) ApplyAndWait(
 
 	for _, phaseName := range phaseNames {
 		deadline := time.Now().Add(perPhaseTimeout)
-		err := applyAndWait(kubeinfo, deadline, debug, dryRun, collection[phaseName])
+		err := applyAndWait(ctx, kubeinfo, deadline, debug, dryRun, collection[phaseName])
 		if err != nil {
-			if err == errorDeadlineExceeded {
-				err = errors.Errorf("phase %q not ready after %v", phaseName, perPhaseTimeout)
+			if errors.Is(err, errorDeadlineExceeded) {
+				err = fmt.Errorf("phase %q not ready after %v: %w", phaseName, perPhaseTimeout, err)
 			}
 			return err
 		}
@@ -117,15 +119,15 @@ func (collection YAMLCollection) ApplyAndWait(
 	return nil
 }
 
-func applyAndWait(kubeinfo *k8s.KubeInfo, deadline time.Time, debug, dryRun bool, filenames []string) error {
-	expanded, err := expand(filenames)
+func applyAndWait(ctx context.Context, kubeinfo *k8s.KubeInfo, deadline time.Time, debug, dryRun bool, sourceFilenames []string) error {
+	expandedFilenames, err := expand(ctx, sourceFilenames)
 	if err != nil {
-		return err
+		return fmt.Errorf("expanding YAML: %w", err)
 	}
 
 	cli, err := k8s.NewClient(kubeinfo)
 	if err != nil {
-		return errors.Wrapf(err, "kubeapply: error connecting to cluster %v", kubeinfo)
+		return fmt.Errorf("connecting to cluster %v: %w", kubeinfo, err)
 	}
 	waiter, err := NewWaiter(cli.Watcher())
 	if err != nil {
@@ -133,52 +135,54 @@ func applyAndWait(kubeinfo *k8s.KubeInfo, deadline time.Time, debug, dryRun bool
 	}
 
 	valid := make(map[string]bool)
-	var msgs []string
-	for _, n := range expanded {
-		err := waiter.Scan(n)
-		if err != nil {
-			msgs = append(msgs, fmt.Sprintf("%s: %v\n", n, err))
-			valid[n] = false
-		} else {
-			valid[n] = true
+	var scanErrs derror.MultiError
+	for _, filename := range expandedFilenames {
+		valid[filename] = true
+		if err := waiter.Scan(ctx, filename); err != nil {
+			scanErrs = append(scanErrs, fmt.Errorf("watch %q: %w", filename, err))
+			valid[filename] = false
 		}
 	}
-
-	if len(msgs) == 0 {
-		err = kubectlApply(kubeinfo, dryRun, expanded)
-	}
-
 	if !debug {
-		for _, n := range expanded {
-			if valid[n] {
-				err := os.Remove(n)
-				if err != nil {
-					log.Print(err)
+		// Unless the debug flag is on, clean up temporary expanded files when we're
+		// finished.
+		defer func() {
+			for _, filename := range expandedFilenames {
+				if valid[filename] {
+					if err := os.Remove(filename); err != nil {
+						// os.Remove returns an *io/fs.PathError that
+						// already includes the filename; no need for us to
+						// explicitly include the filename in the log line.
+						dlog.Error(ctx, err)
+					}
 				}
 			}
-		}
+		}()
+	}
+	if len(scanErrs) > 0 {
+		return fmt.Errorf("waiter: %w", scanErrs)
 	}
 
-	if err != nil {
+	if err := kubectlApply(ctx, kubeinfo, dryRun, expandedFilenames); err != nil {
 		return err
 	}
 
-	if len(msgs) > 0 {
-		return errors.Errorf("errors expanding templates:\n  %s", strings.Join(msgs, "\n  "))
+	finished, err := waiter.Wait(ctx, deadline)
+	if err != nil {
+		return err
 	}
-
-	if !waiter.Wait(deadline) {
+	if !finished {
 		return errorDeadlineExceeded
 	}
 
 	return nil
 }
 
-func expand(names []string) ([]string, error) {
-	fmt.Printf("expanding %s\n", strings.Join(names, " "))
+func expand(ctx context.Context, names []string) ([]string, error) {
+	dlog.Printf(ctx, "expanding %s\n", strings.Join(names, " "))
 	var result []string
 	for _, n := range names {
-		resources, err := LoadResources(n)
+		resources, err := LoadResources(ctx, n)
 		if err != nil {
 			return nil, err
 		}
@@ -192,7 +196,7 @@ func expand(names []string) ([]string, error) {
 	return result, nil
 }
 
-func kubectlApply(info *k8s.KubeInfo, dryRun bool, filenames []string) error {
+func kubectlApply(ctx context.Context, info *k8s.KubeInfo, dryRun bool, filenames []string) error {
 	args := []string{"apply"}
 	if dryRun {
 		args = append(args, "--dry-run")
@@ -213,13 +217,9 @@ func kubectlApply(info *k8s.KubeInfo, dryRun bool, filenames []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("kubectl %s\n", strings.Join(kargs, " "))
+	dlog.Printf(ctx, "kubectl %s\n", strings.Join(kargs, " "))
 	/* #nosec */
-	cmd := exec.Command("kubectl", kargs...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
-	if err != nil {
+	if err := dexec.CommandContext(ctx, "kubectl", kargs...).Run(); err != nil {
 		return err
 	}
 

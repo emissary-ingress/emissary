@@ -80,3 +80,5 @@ jobs:
             [{ "title": "Repository", "value": "${{ github.repository }}", "short": true },
              { "title": "Branch", "value": "${{ github.ref }}", "short": true},
              { "title": "Pull Request", "value": "${{ steps.step-create-pr.outputs.pr_url }}"}]
+      - uses: ./.github/actions/after-job
+        if: always()

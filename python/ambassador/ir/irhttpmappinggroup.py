@@ -51,13 +51,17 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         # 'timeout_ms': True
     }
 
+    # We don't flatten cluster_key and stats_name because the whole point of those
+    # two is that you're asking for something special with stats. Note that we also
+    # don't do collision checking specially for the stats_name: if you ask for the
+    # same stats_name in two unrelated mappings, on your own head be it.
+
     DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
     DoNotFlattenKeys.update({
         'add_request_headers': True,    # do this manually.
         'add_response_headers': True,   # do this manually.
         'cluster': True,
-        'cluster_key': True,
-        'host': True,
+        'cluster_key': True,            # See above about stats.
         'kind': True,
         'location': True,
         'name': True,
@@ -65,6 +69,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         'rkey': True,
         'route_weight': True,
         'service': True,
+        'stats_name': True,             # See above about stats.
         'weight': True,
     })
 
@@ -214,7 +219,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                                 marker: Optional[str] = None) -> IRCluster:
         # Find or create the cluster for this Mapping...
 
-        # self.ir.logger.info(f"AC4M: {self.group_id} Mapping {mapping.name}")
+        self.ir.logger.debug(f"IRHTTPMappingGroup: {self.group_id} adding cluster for Mapping {mapping.name} (key {mapping.cluster_key})")
 
         cluster: Optional[IRCluster] = None
 
@@ -228,7 +233,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                 assert(isinstance(cached_cluster, IRCluster))
                 cluster = cached_cluster
 
-                self.ir.logger.debug(f"IRHTTPMappingGroup: got Cluster from cache for {mapping.cluster_key}")
+                self.ir.logger.debug(f"IRHTTPMappingGroup: got Cluster from cache for {mapping.cluster_key}")
 
         if not cluster:
             # OK, we have to actually do some work.
@@ -251,6 +256,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                                 cluster_max_connection_lifetime_ms=mapping.get('cluster_max_connection_lifetime_ms', None),
                                 circuit_breakers=mapping.get('circuit_breakers', None),
                                 marker=marker,
+                                stats_name=mapping.get('stats_name'),
                                 respect_dns_ttl=mapping.get('respect_dns_ttl', False))
 
         # Make sure that the cluster is actually in our IR...
@@ -279,6 +285,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             mapping.cluster_key = stored.cache_key
 
         # Finally, return the stored cluster. Done.
+        self.ir.logger.debug(f"IRHTTPMappingGroup: %s returning cluster %s for Mapping %s", self.group_id, stored, mapping.name)
         return stored
 
     def finalize(self, ir: 'IR', aconf: Config) -> List[IRCluster]:
@@ -294,6 +301,8 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         add_request_headers: Dict[str, Any] = {}
         add_response_headers: Dict[str, Any] = {}
         metadata_labels: Dict[str, str] = {}
+
+        self.ir.logger.debug(f"IRHTTPMappingGroup: finalize %s", self.group_id)
 
         for mapping in sorted(self.mappings, key=lambda m: m.route_weight):
             # if verbose:
@@ -406,10 +415,13 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         redir = self.get('host_redirect', None)
 
         if not redir:
+            self.ir.logger.debug(f"IRHTTPMappingGroup: checking mapping clusters for %s", self.group_id)
+
             for mapping in self.mappings:
                 mapping.cluster = self.add_cluster_for_mapping(mapping, mapping.cluster_tag)
 
-            self.logger.debug(f"Normalizing weights in mappings now...")
+            self.ir.logger.debug(f"IRHTTPMappingGroup: normalizing weights for %s", self.group_id)
+
             if not self.normalize_weights_in_mappings():
                 self.post_error(f"Could not normalize mapping weights, ignoring...")
                 return []

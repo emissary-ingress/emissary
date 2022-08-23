@@ -53,7 +53,15 @@ class IRBaseMappingGroup (IRResource):
 
         return self._cache_key
 
-    def normalize_weights_in_mappings(self):
+    def normalize_weights_in_mappings(self) -> bool:
+        # If there's only one mapping in the group, it's automatically weighted
+        # at 100%.
+        if len(self.mappings) == 1:
+            self.logger.debug("Assigning weight 100 to single mapping %s in group", self.mappings[0].name)
+            self.mappings[0]._weight = 100
+            return True
+
+        # For multiple mappings, we need to normalize the weights.
         weightless_mappings = []
         num_weightless_mappings = 0
 
@@ -69,9 +77,9 @@ class IRBaseMappingGroup (IRResource):
                 # increment current weight by mapping's weight
                 current_weight += round(mapping.weight)
 
-                # set mapping's new weight to current weight
-                self.logger.debug(f"Assigning weight {current_weight} to mapping {mapping.name}")
-                mapping.weight = current_weight
+                # set mapping's calculated weight to current weight
+                self.logger.debug(f"Assigning calculated weight {current_weight} to mapping {mapping.name}")
+                mapping._weight = current_weight
 
                 # add this mapping to normalized mappings
                 normalized_mappings.append(mapping)
@@ -79,15 +87,31 @@ class IRBaseMappingGroup (IRResource):
                 num_weightless_mappings += 1
                 weightless_mappings.append(mapping)
 
+        # Did we go over 100%?
         if current_weight > 100:
-            self.post_error(f"Total weight of mappings exceed 100, please reconfigure for correct behavior...")
+            self.post_error(f"Total weight of mappings exceeds 100, please reconfigure for correct behavior...")
             return False
 
         if num_weightless_mappings > 0:
+            # You might expect that we'd want to generate errors for the case where we hit 100%
+            # but still have weightless mappings -- however, that would mess up a workflow where
+            # you add a canary Mapping, scale it to 100%, and then delete the original Mapping
+            # (much like we do for Argo rollouts).
+            #
+            # Likewise, you might expect that we'd generate errors if we're at less than 100% and
+            # have no weightless mappings. We don't do that because it's not entirely clear what 
+            # to do -- a straightforward answer is to simply scale the weights we do have to hit
+            # 100%, and we may well do that for the next major version.
+            #
+            # At any rate: since we didn't go over, let's divide the remaining weight equally to
+            # the weightless mappings. Note that if current_weight == 100, then remaining_weight
+            # will be 0, and none of the weightless mappings will actually get traffic -- but that's
+            # what we want in the "scale the canary to 100% and then delete the original" case
+            # described above. (Not coincidentally, our CanaryDiffMapping tests exercise this.)
             remaining_weight = 100 - current_weight
             weight_per_weightless_mapping = round(remaining_weight/num_weightless_mappings)
 
-            self.logger.debug(f"Assigning weight {weight_per_weightless_mapping} of remaining weight {remaining_weight} to each of {num_weightless_mappings} weightless mappings")
+            self.logger.debug(f"Assigning calculated weight {weight_per_weightless_mapping} of remaining weight {remaining_weight} to each of {num_weightless_mappings} weightless mappings")
 
             # Now, let's add weight to every weightless mapping and push to normalized_mappings
             for i, weightless_mapping in enumerate(weightless_mappings):
@@ -99,7 +123,7 @@ class IRBaseMappingGroup (IRResource):
                     current_weight += weight_per_weightless_mapping
 
                 self.logger.debug(f"Assigning weight {current_weight} to weightless mapping {weightless_mapping.name}")
-                weightless_mapping['weight'] = current_weight
+                weightless_mapping._weight = current_weight
                 normalized_mappings.append(weightless_mapping)
 
         self.mappings = normalized_mappings

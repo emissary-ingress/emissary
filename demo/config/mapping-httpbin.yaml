@@ -1,7 +1,8 @@
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 name:  httpbin_mapping
 prefix: /httpbin/
+hostname: "*"
 service: httpbin.org:80
 host_rewrite: httpbin.org

@@ -1,0 +1,59 @@
+name: promote-to-rc
+"on":
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+'
+jobs:
+  promote-to-rc:
+    runs-on: ubuntu-latest
+    name: promote-to-rc
+    env:
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
+      AWS_EC2_METADATA_DISABLED: true
+      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+      RELEASE_REGISTRY: ${{ secrets.RELEASE_REGISTRY }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: "Install Deps"
+        uses: ./.github/actions/setup-deps
+      - name: "Docker Login"
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
+          username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
+      - id: step-main
+        run: |
+          make release/promote-oss/to-rc
+          echo "::set-output name=version::$(go run ./tools/src/goversion | sed s/^v//)"
+          echo "::set-output name=chart_version::$(go run ./tools/src/goversion --dir-prefix=chart | sed s/^v//)"
+      - id: check-slack-webhook
+        name: Assign slack webhook variable
+        run: echo '::set-output name=slack_webhook_url::${{secrets.SLACK_WEBHOOK_URL}}'
+      - name: Slack notification
+        if: steps.check-slack-webhook.outputs.slack_webhook_url && always()
+        uses: edge/simple-slack-notify@master
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        with:
+          # TODO: actually put the RC info in the slack message
+          status: ${{ job.status }}
+          success_text: |
+            Emissary RC for ${{ github.ref }} successfully built:
+            \`\`\`
+            export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/${{ steps.step-main.outputs.version }}
+            export HELM_CHART_VERSION=${{ steps.step-main.outputs.chart_version }}
+            \`\`\`
+          failure_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build failed'
+          cancelled_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build was cancelled'
+          fields: |
+            [{ "title": "Repository", "value": "${env.GITHUB_REPOSITORY}", "short": true },
+             { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true },
+             { "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}
+            ]
+      - uses: ./.github/actions/after-job
+        if: always()

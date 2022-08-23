@@ -9,8 +9,4 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: {environ[KAT_CLIENT_DOCKER_IMAGE]}
-    # FIXME(lukeshu): Adjust the certs in selfsigned.py so that we can drop this
-    env:
-    - name: "GODEBUG"
-      value: "x509ignoreCN=0"
+    image: {images[kat-client]}

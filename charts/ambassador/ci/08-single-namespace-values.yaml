@@ -1,8 +1,0 @@
-service:
-  type: NodePort
-
-deploymentStrategy:
-  type: Recreate
-
-scope:
-  singleNamespace: true

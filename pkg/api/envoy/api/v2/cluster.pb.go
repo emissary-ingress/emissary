@@ -8,11 +8,11 @@ package envoy_api_v2
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/annotations"
-	auth "github.com/datawire/ambassador/pkg/api/envoy/api/v2/auth"
-	cluster "github.com/datawire/ambassador/pkg/api/envoy/api/v2/cluster"
-	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
-	_type "github.com/datawire/ambassador/pkg/api/envoy/type"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/annotations"
+	auth "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/auth"
+	cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/cluster"
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	_type "github.com/datawire/ambassador/v2/pkg/api/envoy/type"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	any "github.com/golang/protobuf/ptypes/any"

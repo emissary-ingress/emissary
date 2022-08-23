@@ -1,7 +1,8 @@
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 name:  qotm_mapping
 prefix: /qotm/
+hostname: "*"
 rewrite: /
 service: 127.0.0.1:5000

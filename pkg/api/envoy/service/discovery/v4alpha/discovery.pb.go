@@ -8,7 +8,7 @@ package envoy_service_discovery_v4alpha
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v4alpha "github.com/datawire/ambassador/pkg/api/envoy/config/core/v4alpha"
+	v4alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v4alpha"
 	proto "github.com/golang/protobuf/proto"
 	any "github.com/golang/protobuf/ptypes/any"
 	duration "github.com/golang/protobuf/ptypes/duration"

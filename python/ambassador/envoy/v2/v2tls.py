@@ -118,7 +118,7 @@ class V2TLSContext(Dict):
     def add_context(self, ctx: IRTLSContext) -> None:
         if TYPE_CHECKING:
             # This is needed because otherwise self.__setitem__ confuses things.
-            handler: Callable[[str, str], None]
+            handler: Callable[[str, str], None] # pragma: no cover
 
         if ctx.is_fallback:
             self.is_fallback = True

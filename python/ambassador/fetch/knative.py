@@ -98,7 +98,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
                 spec=spec,
             )
 
-            self.logger.debug(f"Generated mapping from Knative {obj.kind}: {mapping}")
+            self.logger.debug(f"Generated Mapping from Knative {obj.kind}: {mapping}")
             self.manager.emit(mapping)
 
     def _make_status(self, generation: int = 1, lb_domain: Optional[str] = None) -> Dict[str, Any]:

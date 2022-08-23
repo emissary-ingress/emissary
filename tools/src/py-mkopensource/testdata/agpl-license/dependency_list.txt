@@ -1,0 +1,11 @@
+Name: pyagent
+Version: 0.1.2
+Summary: Agent Core Module Python Version
+Home-page: https://github.com/X-I-A/pyagent
+Author: Soral
+Author-email: soral@x-i-a.com
+License: AGPLv3+
+Location: /home/andres/source/production/emissary/tools/src/py-mkopensource/testdata/agpl-license/venv/lib/python3.9/site-packages
+Requires: xialib
+Required-by: 
+

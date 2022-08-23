@@ -1,0 +1,99 @@
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  namespace: bar0
+  name: bar-cache
+spec:
+  prefix: /bar-0/
+  service: bar-0.example.com:6666
+
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  namespace: bar1
+  name: bar-cache
+spec:
+  prefix: /bar-1/
+  service: bar-1.example.com:6666
+
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  namespace: bar2
+  name: bar-cache
+spec:
+  prefix: /bar-2/
+  service: bar-2.example.com:6666
+
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  namespace: bar3
+  name: bar-cache
+spec:
+  prefix: /bar-3/
+  service: bar-3.example.com:6666
+
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  namespace: bar4
+  name: bar-cache
+spec:
+  prefix: /bar-4/
+  service: bar-4.example.com:6666
+
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  namespace: bar5
+  name: bar-cache
+spec:
+  prefix: /bar-5/
+  service: bar-5.example.com:6666
+
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  namespace: bar6
+  name: bar-cache
+spec:
+  prefix: /bar-6/
+  service: bar-6.example.com:6666
+
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  namespace: bar7
+  name: bar-cache
+spec:
+  prefix: /bar-7/
+  service: bar-7.example.com:6666
+
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  namespace: bar8
+  name: bar-cache
+spec:
+  prefix: /bar-8/
+  service: bar-8.example.com:6666
+
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  namespace: bar9
+  name: bar-cache
+spec:
+  prefix: /bar-9/
+  service: bar-9.example.com:6666

@@ -11,11 +11,6 @@ _prelude.go.HAVE    = $(call lazyonce,_prelude.go.HAVE,$(shell which go 2>/dev/n
 _prelude.go.GOPATH  = $(call lazyonce,_prelude.go.GOPATH,$(shell go env GOPATH))
 _prelude.go.VERSION = $(call lazyonce,_prelude.go.VERSION,$(patsubst go%,%,$(filter go1%,$(shell go version))))
 
-# Possible values of GOHOSTOS/GOHOSTARCH:
-# https://golang.org/doc/install/source#environment
-export GOHOSTOS   = $(call lazyonce,GOHOSTOS  ,$(if $(_prelude.go.HAVE),$(shell go env GOHOSTOS  ),$(shell uname -s | tr A-Z a-z)))
-export GOHOSTARCH = $(call lazyonce,GOHOSTARCH,$(if $(_prelude.go.HAVE),$(shell go env GOHOSTARCH),$(patsubst i%86,386,$(patsubst x86_64,amd64,$(shell uname -m)))))
-
 #
 # Pure functions for working with Go version strings
 
@@ -85,26 +80,5 @@ _prelude.go.VERSION.HAVE = $(if $(_prelude.go.HAVE),$(call _prelude.go.VERSION.g
 #
 # Building Go programs for use by build-aux
 
-_prelude.go.error_unsupported = $(error This Makefile requires Go '1.11.4' or newer; you $(if $(_prelude.go.HAVE),have '$(_prelude.go.VERSION)',do not seem to have Go))
-_prelude.go.ensure = $(if $(call _prelude.go.VERSION.HAVE,1.11.4),,$(_prelude.go.error_unsupported))
-
-# All of this funny business with locking can be ditched once we drop
-# support for Go 1.11.  (When removing it, be aware that go-mod.mk
-# uses `_prelude.go.*` variables).
-
-_prelude.go.lock.unsupported = $(_prelude.go.error_unsupported)
-# The second $(if) is just to make sure that any output isn't part of what we return.
-_prelude.go.lock.1_11 = $(FLOCK)$(if $@, $(_prelude.go.GOPATH)/pkg/mod $(if $(shell mkdir -p $(_prelude.go.GOPATH)/pkg/mod),))
-_prelude.go.lock.current =
-
-# _prelude.go.lock is a slightly magical variable.  When evaluated as a dependency in a  
-#
-#     target: dependencies
-#
-# line, it evaluates as an "Executable" (see ./docs/conventions.md).
-# When evaluated as part of a recipe, it evaluates as a command prefix
-# with arguments.
-_prelude.go.lock = $(_prelude.go.lock.$(strip \
-    $(if $(call _prelude.go.VERSION.HAVE, 1.12beta1), current,\
-    $(if $(call _prelude.go.VERSION.HAVE, 1.11.4),    1_11,\
-                                                      unsupported))))
+_prelude.go.error_unsupported = $(error This Makefile requires Go '1.17' or newer; you $(if $(_prelude.go.HAVE),have '$(_prelude.go.VERSION)',do not seem to have Go))
+_prelude.go.ensure = $(if $(call _prelude.go.VERSION.HAVE,1.17),,$(_prelude.go.error_unsupported))

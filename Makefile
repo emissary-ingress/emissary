@@ -1,63 +1,69 @@
-# Sanitize the environment a bit.
-unexport ENV      # bad configuration mechanism
-unexport BASH_ENV # bad configuration mechanism, but CircleCI insists on it
-unexport CDPATH   # should not be exported, but some people do
-unexport IFS      # should not be exported, but some people do
+# Real early setup
+OSS_HOME := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))# Do this *before* 'include'ing anything else
+include build-aux/init-sanitize-env.mk
+include build-aux/init-configure-make-itself.mk
+include build-aux/prelude.mk # In Haskell, "Prelude" is what they call the stdlib builtins that get get imported by default before anything else
+include build-aux/tools.mk
 
-# In the days before Bash 2.05 (April 2001), Bash had a hack in it
-# where it would load the interactive-shell configuration when run
-# from sshd, I guess to work around buggy sshd implementations that
-# didn't run the shell as login or interactive or something like that.
-# But that hack was removed in Bash 2.05 in 2001.  And the changelog
-# indicates that the heuristics it used to decide whether to do that
-# were buggy to begin with, and it would often trigger when it
-# shouldn't.  BUT DEBIAN PATCHES BASH TO ADD THAT HACK BACK IN!  And,
-# more importantly, Ubuntu 20.04 (which our CircleCI uses) inherits
-# that patch from Debian.  And the heuristic that Bash uses
-# incorrectly triggers inside of Make in our CircleCI jobs!  So, unset
-# SSH_CLIENT and SSH2_CLIENT to disable that.
-unexport SSH_CLIENT
-unexport SSH2_CLIENT
+# To support contributors building project on M1 Macs we will default container builds to run as linux/amd64 rather than
+# the host architecture. Setting the corresponding environment variable allows overriding it if want to work with other architectures.
+BUILD_ARCH ?= linux/amd64
 
-NAME ?= ambassador
+# Bootstrapping the build env
+ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
+  $(_prelude.go.ensure)
+  ifneq ($(filter $(shell go env GOROOT),$(subst :, ,$(shell go env GOPATH))),)
+    $(error Your $$GOPATH (where *your* Go stuff goes) and $$GOROOT (where Go *itself* is installed) are both set to the same directory ($(shell go env GOROOT)); it is remarkable that it has not blown up catastrophically before now)
+  endif
+  ifneq ($(foreach gopath,$(subst :, ,$(shell go env GOPATH)),$(filter $(gopath)/%,$(CURDIR))),)
+    $(error Your emissary.git checkout is inside of your $$GOPATH ($(shell go env GOPATH)); Emissary-ingress uses Go modules and so GOPATH need not be pointed at it (in a post-modules world, the only role of GOPATH is to store the module download cache); and indeed some of the Kubernetes tools will get confused if GOPATH is pointed at it)
+  endif
 
-OSS_HOME := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+  VERSION := $(or $(VERSION),$(shell go run ./tools/src/goversion))
+  $(if $(filter v2.%,$(VERSION)),\
+    ,$(error VERSION variable is invalid: It must be a v2.* string, but is '$(VERSION)'))
+  $(if $(findstring +,$(VERSION)),\
+    $(error VERSION variable is invalid: It must not contain + characters, but is '$(VERSION)'),)
+  export VERSION
 
+  CHART_VERSION := $(or $(CHART_VERSION),$(shell go run ./tools/src/goversion --dir-prefix=chart))
+  $(if $(filter v7.%,$(CHART_VERSION)),\
+    ,$(error CHART_VERSION variable is invalid: It must be a v7.* string, but is '$(CHART_VERSION)'))
+  export CHART_VERSION
+
+  $(info [make] VERSION=$(VERSION))
+  $(info [make] CHART_VERSION=$(CHART_VERSION))
+endif
+
+# If SOURCE_DATE_EPOCH isn't set, AND the tree isn't dirty, then set
+# SOURCE_DATE_EPOCH to the commit timestamp.
+#
+# if [[ -z "$SOURCE_DATE_EPOCH" ]] && [[ -z "$(git status --porcelain)" ]]; then
+ifeq ($(SOURCE_DATE_EPOCH)$(shell git status --porcelain),)
+  SOURCE_DATE_EPOCH := $(shell git log -1 --pretty=%ct)
+endif
+ifneq ($(SOURCE_DATE_EPOCH),)
+  export SOURCE_DATE_EPOCH
+  $(info [make] SOURCE_DATE_EPOCH=$(SOURCE_DATE_EPOCH))
+endif
+
+# Everything else...
+
+NAME ?= emissary
 _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
 IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
-images: python/ambassador.version
-push: python/ambassador.version
-
-# Assume that any rule ending with '.clean' is phony.
-.PHONY: %.clean
-
-# Also provide a basic *.clean implementation... well, it'd be.  But
-# because of what I'm convinced is a bug in Make, it is confusing this
-# %.clean rule with the %.docker.clean rule.  So I named this one
-# `%.rm`.  But I'd have liked to name it `%.clean`.
-%.rm:
-	rm -f $*
-.PHONY: %.rm
-
+include $(OSS_HOME)/build-aux/ci.mk
+include $(OSS_HOME)/build-aux/main.mk
+include $(OSS_HOME)/build-aux/check.mk
 include $(OSS_HOME)/builder/builder.mk
 include $(OSS_HOME)/_cxx/envoy.mk
-include $(OSS_HOME)/charts/ambassador/Makefile
-include $(OSS_HOME)/charts/charts.mk
-include $(OSS_HOME)/manifests/manifests.mk
+include $(OSS_HOME)/releng/release.mk
 
 $(call module,ambassador,$(OSS_HOME))
 
-include $(OSS_HOME)/build-aux-local/generate.mk
-include $(OSS_HOME)/build-aux-local/lint.mk
-
-include $(OSS_HOME)/docs/yaml.mk
-
-# Configure GNU Make itself
-SHELL = bash
-.SECONDARY:
-.DELETE_ON_ERROR:
-.PHONY: FORCE
+include $(OSS_HOME)/build-aux/generate.mk
+include $(OSS_HOME)/build-aux/lint.mk
 
 .git/hooks/prepare-commit-msg:
 	ln -s $(OSS_HOME)/tools/hooks/prepare-commit-msg $(OSS_HOME)/.git/hooks/prepare-commit-msg
@@ -75,20 +81,21 @@ deploy: push preflight-cluster
 	$(MAKE) deploy-only
 .PHONY: deploy
 
-deploy-only: preflight-dev-kubeconfig
+deploy-only: preflight-dev-kubeconfig $(tools/kubectl) build-output/yaml-$(patsubst v%,%,$(VERSION)) $(boguschart_dir)
 	mkdir -p $(OSS_HOME)/build/helm/ && \
-	(kubectl --kubeconfig $(DEV_KUBECONFIG) create ns ambassador || true) && \
-	helm template ambassador --include-crds --output-dir $(OSS_HOME)/build/helm -n ambassador charts/ambassador/ \
+	($(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) create ns ambassador || true) && \
+	helm template ambassador --output-dir $(OSS_HOME)/build/helm -n ambassador $(boguschart_dir) \
 		--set createNamespace=true \
 		--set service.selector.service=ambassador \
 		--set replicaCount=1 \
 		--set enableAES=false \
-		--set image.fullImageOverride=$$(sed -n 2p docker/ambassador.docker.push.remote) && \
-	kubectl --kubeconfig $(DEV_KUBECONFIG) apply -f $(OSS_HOME)/build/helm/ambassador/crds/ && \
-	kubectl --kubeconfig $(DEV_KUBECONFIG) apply -f $(OSS_HOME)/build/helm/ambassador/templates && \
+		--set image.fullImageOverride=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) && \
+	$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) apply -f build-output/yaml-$(patsubst v%,%,$(VERSION))/emissary-crds.yaml
+	$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) -n emissary-system wait --for condition=available --timeout=90s deploy emissary-apiext && \
+	$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) apply -f $(OSS_HOME)/build/helm/emissary-ingress/templates && \
 	rm -rf $(OSS_HOME)/build/helm
-	kubectl --kubeconfig $(DEV_KUBECONFIG) -n ambassador wait --for condition=available --timeout=90s deploy --all
-	@printf "$(GRN)Your ambassador service IP:$(END) $(BLD)$$(kubectl --kubeconfig $(DEV_KUBECONFIG) get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}')$(END)\n"
-	@printf "$(GRN)Your ambassador image:$(END) $(BLD)$$(kubectl --kubeconfig $(DEV_KUBECONFIG) get -n ambassador deploy ambassador -o 'go-template={{(index .spec.template.spec.containers 0).image}}')$(END)\n"
-	@printf "$(GRN)Your built image:$(END) $(BLD)$$(sed -n 2p docker/ambassador.docker.push.remote)$(END)\n"
+	$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) -n ambassador wait --for condition=available --timeout=90s deploy --all
+	@printf "$(GRN)Your ambassador service IP:$(END) $(BLD)$$($(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}')$(END)\n"
+	@printf "$(GRN)Your ambassador image:$(END) $(BLD)$$($(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) get -n ambassador deploy ambassador -o 'go-template={{(index .spec.template.spec.containers 0).image}}')$(END)\n"
+	@printf "$(GRN)Your built image:$(END) $(BLD)$$(sed -n 2p docker/$(LCNAME).docker.push.remote)$(END)\n"
 .PHONY: deploy-only

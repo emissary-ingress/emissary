@@ -1,15 +1,17 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, EGRPC
+from abstract_tests import AmbassadorTest, EGRPC, Node
 
 class AcceptanceGrpcStatsTest(AmbassadorTest):
     def init(self):
         self.target = EGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:
@@ -20,9 +22,10 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 grpc: True
+hostname: "*"
 prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
@@ -30,9 +33,10 @@ service: {self.target.path.k8s}
 """)
 
         yield self, self.format("""
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  metrics
+hostname: "*"
 prefix: /metrics
 rewrite: /metrics
 service: http://127.0.0.1:8877
@@ -99,10 +103,10 @@ class GrpcStatsTestOnlySelectedServices(AmbassadorTest):
     def init(self):
         self.target = EGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:
@@ -116,9 +120,10 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 grpc: True
+hostname: "*"
 prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
@@ -126,9 +131,10 @@ service: {self.target.path.k8s}
 """)
 
         yield self, self.format("""
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  metrics
+hostname: "*"
 prefix: /metrics
 rewrite: /metrics
 service: http://127.0.0.1:8877
@@ -190,10 +196,10 @@ class GrpcStatsTestNoUpstreamAllMethodsFalseInvalidKeys(AmbassadorTest):
     def init(self):
         self.target = EGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:
@@ -205,9 +211,10 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 grpc: True
+hostname: "*"
 prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
@@ -215,9 +222,10 @@ service: {self.target.path.k8s}
 """)
 
         yield self, self.format("""
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  metrics
+hostname: "*"
 prefix: /metrics
 rewrite: /metrics
 service: http://127.0.0.1:8877

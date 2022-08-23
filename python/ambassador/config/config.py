@@ -13,7 +13,7 @@
 # limitations under the License
 import socket
 
-from typing import Any, Callable, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, Iterable, List, Optional, Tuple, Union, TYPE_CHECKING
 from typing import cast as typecast
 
 import collections
@@ -34,6 +34,8 @@ from ..resource import Resource
 from .acresource import ACResource
 from .acmapping import ACMapping
 
+if TYPE_CHECKING:
+    from ambassador.fetch.fetcher import ResourceFetcher
 
 #############################################################################
 ## config.py -- the main configuration parser for Ambassador
@@ -45,12 +47,19 @@ from .acmapping import ACMapping
 # StringOrList is either a string or a list of strings.
 StringOrList = Union[str, List[str]]
 
-# Validator is a callable that accepts an ACResource and validates it. The
-# return value is a RichStatus.
-#
-# The assumption here is that Config.get_validator() will return something
-# like a lambda that's tailored to the apiVersion and kind of the resource.
-Validator = Callable[[ACResource], RichStatus]
+
+def envoy_api_version():
+    """
+    Return the Envoy API version we should be using.
+    """
+    env_version = os.environ.get('AMBASSADOR_ENVOY_API_VERSION', 'V3')
+
+    version = env_version.upper()
+
+    if version == 'V2' or env_version == 'V3':
+        return version
+
+    return 'V2'
 
 
 class Config:
@@ -61,12 +70,15 @@ class Config:
     single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_SINGLE_NAMESPACE'))
     certs_single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_CERTS_SINGLE_NAMESPACE', os.environ.get('AMBASSADOR_SINGLE_NAMESPACE')))
     enable_endpoints: ClassVar[bool] = not bool(os.environ.get('AMBASSADOR_DISABLE_ENDPOINTS'))
-    legacy_mode: ClassVar[bool] = parse_bool(os.environ.get('AMBASSADOR_LEGACY_MODE'))
+    log_resources: ClassVar[bool] = parse_bool(os.environ.get('AMBASSADOR_LOG_RESOURCES'))
+    envoy_api_version: ClassVar[str] = envoy_api_version()
+    envoy_bind_address: ClassVar[str] = os.environ.get('AMBASSADOR_ENVOY_BIND_ADDRESS', "0.0.0.0")
 
     StorageByKind: ClassVar[Dict[str, str]] = {
         'authservice': "auth_configs",
         'consulresolver': "resolvers",
         'host': "hosts",
+        'listener': "listeners",
         'mapping': "mappings",
         'kubernetesendpointresolver': "resolvers",
         'kubernetesserviceresolver': "resolvers",
@@ -79,26 +91,17 @@ class Config:
     }
 
     SupportedVersions: ClassVar[Dict[str, str]] = {
-        "v0": "is deprecated, consider upgrading",
-        "v1": "ok",
-        "v2": "ok"
-    }
-
-    NoSchema: ClassVar = {
-        'secret',
-        'service',
-        'consulresolver',
-        'kubernetesendpointresolver',
-        'kubernetesserviceresolver'
+        "v2": "is deprecated, consider upgrading",
+        "v3alpha1": "ok",
     }
 
     # INSTANCE VARIABLES
     ambassador_nodename: str = "ambassador"     # overridden in Config.reset
 
+    schema_dir_path: str                        # where to look for JSONSchema files
     current_resource: Optional[ACResource] = None
     helm_chart: Optional[str]
 
-    validators: Dict[str, Validator]
     config: Dict[str, Dict[str, ACResource]]
 
     breakers: Dict[str, ACResource]
@@ -109,23 +112,25 @@ class Config:
     # rkey => ACResource
     sources: Dict[str, ACResource]
 
+    # Invalid objects (currently loaded using load_invalid())
+    invalid: List[Dict]
+
     errors: Dict[str, List[dict]]           # errors to post to the UI
     notices: Dict[str, List[str]]           # notices to post to the UI
     fatal_errors: int
     object_errors: int
 
-    # fast_validation_disagreements tracks places where entrypoint.go says a
-    # resource is invalid, but Python says it's OK.
-    fast_validation_disagreements: Dict[str, List[str]]
-
     def __init__(self, schema_dir_path: Optional[str]=None) -> None:
-
         self.logger = logging.getLogger("ambassador.config")
 
         if not schema_dir_path:
             # Note that this "resource_filename" has to do with setuptool packages, not
             # with our ACResource class.
             schema_dir_path = resource_filename(Requirement.parse("ambassador"), "schemas")
+
+        # Once here, we know that schema_dir_path cannot be None. assert that, for mypy's
+        # benefit.
+        assert schema_dir_path is not None
 
         self.statsd: Dict[str, Any] = {
             'enabled': (os.environ.get('STATSD_ENABLED', '').lower() == 'true'),
@@ -161,7 +166,6 @@ class Config:
         self.current_resource = None
         self.helm_chart = None
 
-        self.validators = {}
         self.config = {}
 
         self.breakers = {}
@@ -169,6 +173,7 @@ class Config:
 
         self.counters = collections.defaultdict(lambda: 0)
 
+        self.invalid = []
         self.sources = {}
 
         # Save our magic internal sources.
@@ -179,8 +184,6 @@ class Config:
         self.notices = {}
         self.fatal_errors = 0
         self.object_errors = 0
-
-        self.fast_validation_disagreements = {}
 
         # Build up the Ambassador node name.
         #
@@ -205,7 +208,6 @@ class Config:
         od: Dict[str, Any] = {
             '_errors': self.errors,
             '_notices': self.notices,
-            '_fast_validation_disagreements': self.fast_validation_disagreements,
             '_sources': {}
         }
 
@@ -282,25 +284,37 @@ class Config:
         """
         self.sources[resource.rkey] = resource
 
+    def load_invalid(self, fetcher: 'ResourceFetcher') -> None:
+        """
+        Loads the invalid resources from a ResourceFetcher. This and load_all() should be
+        combined.
+        """
+
+        self.invalid = fetcher.invalid
+
     def load_all(self, resources: Iterable[ACResource]) -> None:
         """
         Loads all of a set of ACResources. It is the caller's responsibility to arrange for
         the set of ACResources to be sorted in some way that makes sense.
         """
 
-        self.logger.debug(f"Loading config; legacy mode is {'enabled' if Config.legacy_mode else 'disabled'}")
+        self.logger.debug(f"Loading config")
 
         rcount = 0
 
         for resource in resources:
-            self.logger.debug(f"Trying to parse resource: {resource}")
+            if Config.log_resources:
+                self.logger.debug("Trying to parse resource: %s", resource)
 
             rcount += 1
 
             if not self.good_ambassador_id(resource):
                 continue
 
-            self.logger.debug("LOAD_ALL: %s @ %s" % (resource, resource.location))
+            if Config.log_resources:
+                self.logger.debug("LOAD_ALL: %s @ %s", resource, resource.location)
+            else:
+                self.logger.debug("LOAD_ALL: process %s", resource.location)
 
             rc = self.process(resource)
 
@@ -308,7 +322,7 @@ class Config:
                 # Object error. Not good but we'll allow the system to start.
                 self.post_error(rc, resource=resource)
 
-        self.logger.debug("LOAD_ALL: processed %d resource%s" % (rcount, "" if (rcount == 1) else "s"))
+        self.logger.debug("LOAD_ALL: processed %d resource%s", rcount, "" if (rcount == 1) else "s")
 
         if self.fatal_errors:
             # Kaboom.
@@ -435,23 +449,12 @@ class Config:
             return RichStatus.fromError("must have apiVersion, kind, and name")
 
         apiVersion = resource.apiVersion
-        originalApiVersion = apiVersion
 
-        # The Canonical API Version for our resources always starts with "getambassador.io/",
-        # but it used to always start with "ambassador/". Translate as needed for backward
-        # compatibility.
-
-        if apiVersion.startswith('ambassador/'):
-            apiVersion = apiVersion.replace('ambassador/', 'getambassador.io/')
-            resource.apiVersion = apiVersion
-
-        is_ambassador = False
-
-        # OK. If it really starts with getambassador.io/, we're good, and we can strip
-        # that off to make comparisons and keying easier.
         if apiVersion.startswith("getambassador.io/"):
-            is_ambassador = True
-            apiVersion = apiVersion.split('/')[1]
+            version = apiVersion.split('/', 1)[1].lower()
+            status = Config.SupportedVersions.get(version, 'is not supported')
+            if status != 'ok':
+                self.post_notice(f"apiVersion {apiVersion} {status}", resource=resource)
         elif apiVersion.startswith('networking.internal.knative.dev'):
             # This is not an Ambassador resource, we're trying to parse Knative
             # here
@@ -462,214 +465,22 @@ class Config:
         ns = resource.get('namespace') or self.ambassador_namespace
         name = f"{resource.name} ns {ns}"
 
-        version = apiVersion.lower()
-
-        # Is this deprecated?
-        if is_ambassador:
-            status = Config.SupportedVersions.get(version, 'is not supported')
-
-            if status != 'ok':
-                self.post_notice(f"apiVersion {originalApiVersion} {status}", resource=resource)
-
-        if resource.kind.lower() in Config.NoSchema:
-            return RichStatus.OK(msg=f"no schema for {resource.kind} {name} so calling it good")
-
-        # OK, now we need to decide what more we need to do. Start by assuming that we will,
-        # in fact, need to do full schema validation for this object.
-
-        need_validation = True
-
-        # If we're not running in legacy mode, though...
-        if not Config.legacy_mode:
-            # ...then entrypoint.go will have already done validation, and we'll
-            # trust that its validation is good _UNLESS THIS IS A MODULE_. Why?
-            # Well, at present entrypoint.go can't actually validate Modules _at all_
-            # (because Module.spec.config is just a dict of anything, pretty much),
-            # and that means it can't check for Modules with missing configs, and
-            # Modules with missing configs will crash Ambassador.
-
-            if resource.kind.lower() != "module":
-                need_validation = False
-
-        # Finally, does the resource specifically demand validation? (This is currently
-        # just for resources from annotations, which entrypoint.go doesn't yet validate.)
-        if resource.get('_force_validation', False):
-            # Yup, so we'll honor that.
-            need_validation = True
-            del(resource['_force_validation'])
-
-        # Did entrypoint.go flag errors here? (This can only happen if we're not in
-        # legacy mode -- in a later version we'll short-circuit earlier, but for now
-        # we're going to re-validate as a sanity check.)
+        # Did entrypoint.go flag errors here that we should show to the user?
         #
         # (It's still called watt_errors because our other docs talk about "watt
         # snapshots", and I'm OK with retaining that name for the format.)
-
-        watt_errors = None
-
         if 'errors' in resource:
-            # Pop the errors out of this resource, since we can't validate in Python
-            # while it's present!
+            # Pop the errors out of this resource...
             errors = resource.pop('errors').split('\n')
 
-            # This weird list comprehension around 'errors' is just filtering out any
-            # empty lines.
+            # ...strip any empty lines in the error list with this one weird list
+            # comprehension...
             watt_errors = '; '.join([error for error in errors if error])
 
+            # ...and, assuming that we're left with any error message, post it.
             if watt_errors:
-                # Yup, we really had errors here. Mark as needing re-validation for
-                # now.
-                need_validation = True
+                return RichStatus.fromError(watt_errors)
 
-        # OK, assume that we won't be validating so we can just report that...
-        rc = RichStatus.OK(msg=f"validation not needed for {apiVersion} {resource.kind} {name} so calling it good")
-
-        # ...then, let's see whether reality matches our assumption.
-        if need_validation:
-            # Aha, we need to do validation -- either we're in legacy mode, or
-            # entrypoint.go reported errors. So if we can do validation, do it.
-
-            # Do we have a validator that can work on this object?
-            validator = self.get_validator(apiVersion, resource.kind)
-
-            if validator:
-                rc = validator(resource)
-            else:
-                # No validator, so, uh, call it good.
-                rc = RichStatus.OK(msg=f"no validator for {apiVersion} {resource.kind} {name} so calling it good")
-
-            if watt_errors:
-                # entrypoint.go reported errors. Did we find errors or not?
-
-                if rc:
-                    # We did not. Post this into fast_validation_disagreements
-                    fvd = self.fast_validation_disagreements.setdefault(resource.rkey, [])
-                    fvd.append(watt_errors)
-                    self.logger.debug(f"validation disagreement: good {resource.kind} {name} has watt errors {watt_errors}")
-
-                    # Note that we override entrypoint.go here by returning the successful
-                    # result from our validator. That's intentional for now.
-                else:
-                    # We don't like it either. Stick with the entrypoint.go errors (since we
-                    # know, a priori, that fast validation is enabled, so the incoming error
-                    # makes more sense to report).
-                    rc = RichStatus.fromError(watt_errors)
-
-        # One way or the other, we're done here. Finally.
-        self.logger.debug(f"validation {rc}")
-        return rc
-
-    def get_validator(self, apiVersion: str, kind: str) -> Validator:
-        schema_key = "%s-%s" % (apiVersion, kind)
-
-        validator = self.validators.get(schema_key, None)
-
-        if not validator:
-            validator = self.get_proto_validator(apiVersion, kind)
-
-        if not validator:
-            validator = self.get_jsonschema_validator(apiVersion, kind)
-
-        if not validator:
-            # Ew. Early binding for Python lambdas is kinda weird.
-            validator = typecast(Validator,
-                                 lambda resource, args=(apiVersion, kind): self.cannot_validate(*args))
-
-        if validator:
-            self.validators[schema_key] = validator
-
-        return validator
-
-    def cannot_validate(self, apiVersion: str, kind: str) -> RichStatus:
-        self.logger.debug(f"Cannot validate getambassador.io/{apiVersion} {kind}")
-
-        return RichStatus.OK(msg="Not validating getambassador.io/{apiVersion} {kind}")
-
-    def get_proto_validator(self, apiVersion, kind) -> Optional[Validator]:
-        # See if we can import a protoclass...
-        proto_modname = f"ambassador.proto.{apiVersion}.{kind}_pb2"
-        proto_classname = f"{kind}Spec"
-        m = None
-
-        try:
-            m = importlib.import_module(proto_modname)
-        except ModuleNotFoundError:
-            self.logger.debug(f"no proto in {proto_modname}")
-            return None
-
-        protoclass = getattr(m, proto_classname, None)
-
-        if not protoclass:
-            self.logger.debug(f"no class {proto_classname} in {proto_modname}")
-            return None
-
-        self.logger.debug(f"using validate_with_proto for getambassador.io/{apiVersion} {kind}")
-
-        # Ew. Early binding for Python lambdas is kinda weird.
-        return typecast(Validator,
-                        lambda resource, protoclass=protoclass: self.validate_with_proto(resource, protoclass))
-
-    def validate_with_proto(self, resource: ACResource, protoclass: Any) -> RichStatus:
-        # This is... a little odd.
-        #
-        # First, protobuf works with JSON, not dictionaries. Second, by the time we get here,
-        # the metadata has been folded in, and our *Spec protos (HostSpec, etc) don't include
-        # the metadata (by design).
-        #
-        # So. We make a copy, strip the metadata fields, serialize, and _then_ see if  we can
-        # parse it. Yuck.
-
-        rdict = resource.as_dict()
-        rdict.pop('apiVersion', None)
-        rdict.pop('kind', None)
-
-        name = rdict.pop('name', None)
-        namespace = rdict.pop('namespace', None)
-        metadata_labels = rdict.pop('metadata_labels', None)
-        generation = rdict.pop('generation', None)
-
-        serialized = dump_json(rdict)
-
-        try:
-            json_format.Parse(serialized, protoclass())
-        except json_format.ParseError as e:
-            return RichStatus.fromError(str(e))
-
-        return RichStatus.OK(msg=f"good {resource.kind}")
-
-    def get_jsonschema_validator(self, apiVersion, kind) -> Optional[Validator]:
-        # Do we have a JSONSchema on disk for this?
-        schema_path = os.path.join(self.schema_dir_path, apiVersion, f"{kind}.schema")
-
-        try:
-            schema = json.load(open(schema_path, "r"))
-
-            # Note that we'll never get here if the schema doesn't parse.
-            if schema:
-                self.logger.debug(f"using validate_with_jsonschema for getambassador.io/{apiVersion} {kind}")
-
-                # Ew. Early binding for Python lambdas is kinda weird.
-                return typecast(Validator,
-                                lambda resource, schema=schema: self.validate_with_jsonschema(resource, schema))
-        except OSError:
-            self.logger.debug(f"no schema at {schema_path}, not validating")
-            return None
-        except json.decoder.JSONDecodeError as e:
-            self.logger.warning(f"corrupt schema at {schema_path}, skipping ({e})")
-            return None
-
-        # This can't actually happen -- the only way to get here is to have an uncaught
-        # exception. But it shuts up mypy so WTF.
-        return None
-
-    def validate_with_jsonschema(self, resource: ACResource, schema: dict) -> RichStatus:
-        try:
-            jsonschema.validate(resource.as_dict(), schema)
-        except jsonschema.exceptions.ValidationError as e:
-            # Nope. Bzzzzt.
-            return RichStatus.fromError(f"not a valid {resource.kind}: {e}")
-
-        # All good. Return an OK.
         return RichStatus.OK(msg=f"good {resource.kind}")
 
     def safe_store(self, storage_name: str, resource: ACResource, allow_log: bool=True) -> None:

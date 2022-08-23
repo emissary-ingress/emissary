@@ -1,3 +1,5 @@
+# syntax = docker/dockerfile:1.3
+
 ###
 # This dockerfile builds all the source code and docker images for the
 # edge stack.
@@ -18,7 +20,7 @@
 
 # This argument controls the base image that is used for the release
 # containers.
-ARG base="docker.io/frolvlad/alpine-glibc:alpine-3.12_glibc-2.32"
+ARG base="i-forgot-to-set-build-arg-base"
 
 # This argument sets the base image for the build container image. This
 # base image contains only third-party code.
@@ -38,9 +40,6 @@ FROM ${builderbase} as builder
 WORKDIR /buildroot
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
-
-# Some of the tests need redis-server to run
-RUN apk add redis
 
 COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
 
@@ -66,8 +65,6 @@ ENTRYPOINT [ "/bin/bash" ]
 
 FROM ${builderbase} as golang
 
-ARG version="i-forgot-to-set-build-arg-version"
-
 WORKDIR /go
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
@@ -75,19 +72,20 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local
 # Build the golang binaries
 ADD api api
 ADD cmd cmd
-ADD internal internal
 ADD pkg pkg
 ADD vendor vendor
 ADD go.mod go.mod
 ADD go.sum go.sum
-RUN mkdir -p /go/bin && \
-	time go build -mod=vendor -o /go/bin/ ./cmd/...
+
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    mkdir -p /go/bin && \
+    time go build -mod=vendor -o /go/bin/ ./cmd/...
 
 ########################################
 # The artifact build stage
 ########################################
 
-FROM ${builderbase} as artifact-stage
+FROM ${builderbase} as artifacts
 
 WORKDIR /buildroot/ambassador
 
@@ -101,7 +99,7 @@ ADD python python
 RUN time pip install --no-deps -e python
 
 # Run post-compile.sh
-ADD build-aux-local build-aux-local
+ADD build-aux build-aux
 ADD post-compile.sh post-compile.sh
 RUN bash post-compile.sh
 
@@ -113,22 +111,22 @@ RUN mkdir -p /ambassador/sidecars && \
 
 # These will be extracted into the optimized image later
 ADD demo demo
-ADD docs/yaml/ambassador/ambassador-crds.yaml docs/yaml/ambassador/ambassador-crds.yaml
+ADD manifests/emissary/emissary-crds.yaml.in manifests/emissary/emissary-crds.yaml
 
 ########################################
 # The optimized images
 ########################################
 
-FROM artifact-stage as artifacts
-
 FROM ${base} as ambassador
+
+ARG py_version="i-forgot-to-set-build-arg-py-version"
 
 # Always have an "ambassador" user as UID 8888. This is what we recommend
 # people run as. (Note that the "-D" actually leaves the password locked.)
 RUN adduser ambassador -u 8888 -G root -D -H -s /bin/false
 
 # External stuff that should change infrequently
-RUN apk --no-cache add bash curl python3 libcap htop
+RUN apk --no-cache add bash curl=~7.80 python3=${py_version} libcap htop
 RUN apk upgrade --no-cache
 RUN ln -s /usr/bin/python3 /usr/bin/python
 COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
@@ -139,7 +137,7 @@ COPY --from=artifacts /opt/image-build /opt/image-build
 RUN /opt/image-build/install.sh
 
 # External Python packages we use
-COPY --from=artifacts /usr/lib/python3.8/site-packages /usr/lib/python3.8/site-packages
+COPY --from=artifacts /usr/lib/python3.9/site-packages /usr/lib/python3.9/site-packages
 
 # Our envoy. The capabilities here grant the wrapper the ability to use the
 # cap_net_bind_service cap and for Envoy to inherit it.
@@ -155,13 +153,16 @@ RUN setcap cap_net_bind_service=p /opt/ambassador/bin/wrapper
 COPY --from=artifacts /buildroot/ambassador/python /buildroot/ambassador/python
 RUN cd /buildroot/ambassador/python && python setup.py install
 
+# Delete some things that cause problems for security scanners.
+RUN python -m pip uninstall -y pip
+RUN find / \( -iname '*sqlite*' -o -iname '*gdbm*' -o -iname '*smtplib*' -o -iname '*piptools*' -o -iname '*pip_tools*' -o -iname '*ensurepip*' \) -exec rm -rf -- '{}' \+
+
 # Configuration, Docker demo stuff, the AES WebUI. The /ambassador bit changes
 # in post-install so it's always stale. But it's pretty small, so it's not too
 # bad to re-push every time.
 COPY --from=artifacts /ambassador /ambassador
 COPY --from=artifacts /buildroot/ambassador/demo/config /ambassador/ambassador-demo-config
 COPY --from=artifacts /buildroot/ambassador/demo/services /ambassador/demo-services
-COPY --from=artifacts /buildroot/ambassador/docs/yaml/ambassador/ambassador-crds.yaml /opt/ambassador/etc/crds.yaml
 
 # Fix permissions to allow correctly running as a non root user
 # XXX: We could combine everything into one tree in the builder, fix permissions
@@ -181,27 +182,3 @@ WORKDIR /ambassador
 ENV HOME=/tmp/ambassador
 
 ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]
-
-########################################
-
-FROM ${base} as kat-client
-
-COPY --from=artifacts /buildroot/bin/kat-client /usr/bin/kat-client
-RUN mkdir /work && ln -s /usr/bin/kat-client /work/kat_client
-CMD [ "sleep", "3600" ]
-
-########################################
-
-FROM ${base} as kat-server
-
-COPY --from=artifacts /buildroot/bin/kat-server /usr/bin/kat-server
-
-WORKDIR /work
-COPY builder/server.crt server.crt
-COPY builder/server.key server.key
-
-ENV GRPC_VERBOSITY=debug
-ENV GRPC_TRACE=tcp,http,api
-
-EXPOSE 8080
-CMD [ "kat-server" ]

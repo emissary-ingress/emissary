@@ -1,0 +1,6 @@
+The Emissary-ingress Python code makes use of the following Free and Open Source
+libraries:
+
+    Name                Version  License(s)
+    ----                -------  ----------
+    django-crans-theme  0.1.1    GNU General Public License v2.0 only

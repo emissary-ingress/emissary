@@ -5,8 +5,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/datawire/ambassador/pkg/agent"
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/agent"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -43,7 +43,8 @@ func TestRolloutStore(t *testing.T) {
 				defer wg.Done()
 				name := fmt.Sprintf("Rollout%d", i)
 				callback := newGenericCallback("argoproj.io/v1alpha1", "Rollout", name, agent.CallbackEventAdded)
-				rs.FromCallback(callback)
+				_, err := rs.FromCallback(callback)
+				assert.NoError(t, err)
 			}(i)
 		}
 		wg.Wait()
@@ -72,7 +73,8 @@ func TestApplicationStore(t *testing.T) {
 				defer wg.Done()
 				name := fmt.Sprintf("Application%d", i)
 				callback := newGenericCallback("argoproj.io/v1alpha1", "Application", name, agent.CallbackEventUpdated)
-				as.FromCallback(callback)
+				_, err := as.FromCallback(callback)
+				assert.NoError(t, err)
 			}(i)
 		}
 		wg.Wait()

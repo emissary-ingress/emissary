@@ -8,9 +8,9 @@ package envoy_admin_v4alpha
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v4alpha "github.com/datawire/ambassador/pkg/api/envoy/config/cluster/v4alpha"
-	v4alpha1 "github.com/datawire/ambassador/pkg/api/envoy/config/core/v4alpha"
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/type/v3"
+	v4alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v4alpha"
+	v4alpha1 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v4alpha"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/type/v3"
 	proto "github.com/golang/protobuf/proto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"

@@ -6,7 +6,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Mapping
       name:  qotm_mapping
       prefix: /qotm/
@@ -14,7 +14,7 @@ metadata:
       load_balancer:
         policy: round_robin
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Mapping
       name:  watt_mapping
       prefix: /bar/

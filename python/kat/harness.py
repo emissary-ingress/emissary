@@ -18,14 +18,15 @@ import time
 import threading
 import traceback
 
-from .utils import ShellCommand, namespace_manifest
+from .utils import ShellCommand
 from ambassador.utils import parse_bool
 
 from yaml.scanner import ScannerError as YAMLScanError
 
+import tests.integration.manifests as integration_manifests
 from multi import multi
 from .parser import dump, load, Tag
-from tests.manifests import httpbin_manifests, websocket_echo_server_manifests
+from tests.manifests import httpbin_manifests, websocket_echo_server_manifests, cleartext_host_manifest, default_listener_manifest
 from tests.kubeutils import apply_kube_artifacts
 
 import yaml as pyyaml
@@ -65,7 +66,6 @@ if EDGE_STACK:
     if not SOURCE_ROOT:
         SOURCE_ROOT = "/buildroot/apro"
     GOLD_ROOT = os.path.join(SOURCE_ROOT, "tests/pytest/gold")
-    MANIFEST_ROOT = os.path.join(SOURCE_ROOT, "tests/pytest/manifests")
 else:
     # We're either not running in Edge Stack or we're not sure, so just assume OSS.
     print("RUNNING IN OSS")
@@ -74,31 +74,7 @@ else:
     if not SOURCE_ROOT:
         SOURCE_ROOT = "/buildroot/ambassador"
     GOLD_ROOT = os.path.join(SOURCE_ROOT, "python/tests/gold")
-    MANIFEST_ROOT = os.path.join(SOURCE_ROOT, "python/tests/integration/manifests")
 
-def load_manifest(manifest_name: str) -> str:
-    return open(os.path.join(MANIFEST_ROOT, f"{manifest_name.lower()}.yaml"), "r").read()
-
-
-class TestImage:
-    def __init__(self, *args, **kwargs) -> None:
-        self.images: Dict[str, str] = {}
-
-        default_registry = os.environ.get('TEST_SERVICE_REGISTRY', 'docker.io/datawire/test_services')
-        default_version = os.environ.get('TEST_SERVICE_VERSION', '0.0.3')
-
-        for svc in ['auth', 'auth-tls', 'ratelimit', 'shadow', 'stats']:
-            key = svc.replace('-', '_').upper()
-
-            image = os.environ.get(f'TEST_SERVICE_{key}', f'{default_registry}:test-{svc}-{default_version}')
-
-            self.images[svc] = image
-
-    def __getitem__(self, key: str) -> str:
-        return self.images[key]
-
-
-GLOBAL_TEST_IMAGE = TestImage()
 
 def run(cmd):
     status = os.system(cmd)
@@ -107,7 +83,7 @@ def run(cmd):
 
 
 def kube_version_json():
-    result = subprocess.Popen('kubectl version -o json', stdout=subprocess.PIPE, shell=True)
+    result = subprocess.Popen('tools/bin/kubectl version -o json', stdout=subprocess.PIPE, shell=True)
     stdout, _ = result.communicate()
     return json.loads(stdout)
 
@@ -362,8 +338,6 @@ class Node(ABC):
         self.skip_node = False
         self.xfail = None
 
-        self.test_image = GLOBAL_TEST_IMAGE
-
         name = kwargs.pop("name", None)
 
         if 'namespace' in kwargs:
@@ -489,7 +463,7 @@ class Node(ABC):
             # it, bring it up-to-date with the environment created in abstract_tests.py
             envstuff = ["env", f"AMBASSADOR_NAMESPACE={ambassador_namespace}"]
 
-            cmd = ["mockery", k8s_yaml_path,
+            cmd = ["mockery", "--debug", k8s_yaml_path,
                    "-w", "python /ambassador/watch_hook.py",
                    "--kat", self.ambassador_id,
                    "--diff", gold_path]
@@ -599,13 +573,7 @@ class Node(ABC):
             return self.parent.depth + 1
 
     def format(self, st, **kwargs):
-        serviceAccountExtra = ''
-        if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
-            serviceAccountExtra = """
-imagePullSecrets:
-- name: dev-image-pull-secret
-"""
-        return st.format(self=self, environ=os.environ, serviceAccountExtra=serviceAccountExtra, **kwargs)
+        return integration_manifests.format(st, self=self, **kwargs)
 
     def get_fqdn(self, name: str) -> str:
         if self.namespace and (self.namespace != 'default'):
@@ -641,14 +609,14 @@ imagePullSecrets:
             if DEV:
                 os.system(f'docker logs {self.path.k8s} >{log_path} 2>&1')
             else:
-                os.system(f'kubectl logs -n {self.namespace} {self.path.k8s} >{log_path} 2>&1')
+                os.system(f'tools/bin/kubectl logs -n {self.namespace} {self.path.k8s} >{log_path} 2>&1')
 
                 event_path = f'/tmp/kat-events-{self.path.k8s}'
 
                 fs1 = f'involvedObject.name={self.path.k8s}'
                 fs2 = f'involvedObject.namespace={self.namespace}'
 
-                cmd = f'kubectl get events -o json --field-selector "{fs1}" --field-selector "{fs2}"'
+                cmd = f'tools/bin/kubectl get events -o json --field-selector "{fs1}" --field-selector "{fs2}"'
                 os.system(f'echo ==== "{cmd}" >{event_path}')
                 os.system(f'{cmd} >>{event_path} 2>&1')
 
@@ -1055,7 +1023,7 @@ def run_queries(name: str, queries: Sequence[Query]) -> Sequence[Result]:
 
     # run(f"{CLIENT_GO} -input {path_urls} -output {path_results} 2> {path_log}")
     res = ShellCommand.run('Running queries',
-            f"kubectl exec -n default -i kat /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'",
+            f"tools/bin/kubectl exec -n default -i kat /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'",
             shell=True)
 
     if not res:
@@ -1103,8 +1071,7 @@ class Superpod:
         return ports
 
     def get_manifest_list(self) -> List[Dict[str, Any]]:
-        SUPERPOD_POD = load_manifest("superpod_pod")
-        manifest = load('superpod', SUPERPOD_POD.format(environ=os.environ), Tag.MAPPING)
+        manifest = load('superpod', integration_manifests.format(integration_manifests.load("superpod_pod")), Tag.MAPPING)
 
         assert len(manifest) == 1, "SUPERPOD manifest must have exactly one object"
 
@@ -1137,28 +1104,6 @@ class Superpod:
 
         return list(manifest)
 
-CLEARTEXT_HOST_YAML = '''
----
-apiVersion: getambassador.io/v2
-kind: Host
-metadata:
-  name: cleartext-host-{self.path.k8s}
-  labels:
-    scope: AmbassadorTest
-  namespace: %s
-spec:
-  ambassador_id: [ "{self.ambassador_id}" ]
-  hostname: "*"
-  selector:
-    matchLabels:
-      hostname: {self.path.k8s}
-  acmeProvider:
-    authority: none
-  requestPolicy:
-    insecure:
-      action: Route
-      # additionalPort: 8080
-'''
 
 class Runner:
 
@@ -1247,10 +1192,10 @@ class Runner:
             finally:
                 self.done = True
 
-    def get_manifests_and_namespace(self, selected) -> Tuple[Any, str]:
+    def get_manifests_and_namespaces(self, selected) -> Tuple[Any, List[str]]:
         manifests: OrderedDict[Any, list] = OrderedDict()  # type: ignore
         superpods: Dict[str, Superpod] = {}
-
+        namespaces = []
         for n in (n for n in self.nodes if n in selected and not n.xfail):
             manifest = None
             nsp = None
@@ -1288,12 +1233,11 @@ class Runner:
 
                 # print(f'superpodifying {n.name}')
 
-                # Next up: use the BACKEND_SERVICE manifest as a template...
-                BACKEND_SERVICE = load_manifest("backend_service")
-                yaml = n.format(BACKEND_SERVICE)
+                # Next up: use the backend_service.yaml manifest as a template...
+                yaml = n.format(integration_manifests.load("backend_service"))
                 manifest = load(n.path, yaml, Tag.MAPPING)
 
-                assert len(manifest) == 1, "BACKEND_SERVICE manifest must have exactly one object"
+                assert len(manifest) == 1, "backend_service.yaml manifest must have exactly one object"
 
                 m = manifest[0]
 
@@ -1314,14 +1258,36 @@ class Runner:
                 yaml = n.manifests()
 
                 if yaml is not None:
-                    add_cleartext_host = getattr(n, 'edge_stack_cleartext_host', False)
                     is_plain_test = n.path.k8s.startswith("plain-")
 
-                    if EDGE_STACK and n.is_ambassador and add_cleartext_host and not is_plain_test:
-                        # print(f"{n.path.k8s} adding Host")
+                    if n.is_ambassador and not is_plain_test:
+                        add_default_http_listener = getattr(n, 'add_default_http_listener', True)
+                        add_default_https_listener = getattr(n, 'add_default_https_listener', True)
+                        add_cleartext_host = getattr(n, 'edge_stack_cleartext_host', False)
 
-                        host_yaml = CLEARTEXT_HOST_YAML % nsp
-                        yaml += host_yaml
+                        if add_default_http_listener:
+                            # print(f"{n.path.k8s} adding default HTTP Listener")
+                            yaml += default_listener_manifest % {
+                                "namespace": nsp,
+                                "port": 8080,
+                                "protocol": "HTTPS",
+                                "securityModel": "XFP"
+                            }
+
+                        if add_default_https_listener:
+                            # print(f"{n.path.k8s} adding default HTTPS Listener")
+                            yaml += default_listener_manifest % {
+                                "namespace": nsp,
+                                "port": 8443,
+                                "protocol": "HTTPS",
+                                "securityModel": "XFP"
+                            }
+
+                        if EDGE_STACK and add_cleartext_host:
+                            # print(f"{n.path.k8s} adding Host")
+
+                            host_yaml = cleartext_host_manifest % nsp
+                            yaml += host_yaml
 
                     yaml = n.format(yaml)
 
@@ -1353,11 +1319,13 @@ class Runner:
 
                 # ...and, finally, save the manifest list.
                 manifests[n] = list(manifest)
+                if str(nsp) not in namespaces:
+                    namespaces.append(str(nsp))
 
         for superpod in superpods.values():
             manifests[superpod] = superpod.get_manifest_list()
 
-        return manifests, str(nsp)
+        return manifests, namespaces
 
     def do_local_checks(self, selected, fname) -> bool:
         if RUN_MODE == 'envoy':
@@ -1382,7 +1350,7 @@ class Runner:
 
     def _setup_k8s(self, selected):
         # First up, get the full manifest and save it to disk.
-        manifests, namespace = self.get_manifests_and_namespace(selected)
+        manifests, namespaces = self.get_manifests_and_namespaces(selected)
 
         configs = OrderedDict()
         for n in (n for n in self.nodes if n in selected and not n.xfail):
@@ -1405,7 +1373,7 @@ class Runner:
                         if n.ambassador_id:
                             for obj in yaml:
                                 if "ambassador_id" not in obj:
-                                    obj["ambassador_id"] = n.ambassador_id
+                                    obj["ambassador_id"] = [n.ambassador_id]
 
                         configs[n].append((target, yaml))
                     except YAMLScanError as e:
@@ -1520,12 +1488,9 @@ class Runner:
         manifest_changed, manifest_reason = has_changed(yaml, fname)
 
         # First up: CRDs.
-        CRDS = load_manifest("crds")
-        input_crds = CRDS
-
+        input_crds = integration_manifests.crd_manifests()
         if is_knative_compatible():
-            KNATIVE_SERVING_CRDS = load_manifest("knative_serving_crds")
-            input_crds += KNATIVE_SERVING_CRDS
+            input_crds += integration_manifests.load("knative_serving_crds")
 
         # Strip out all of the schema validation, so that we can test with broken CRDs.
         # (KAT isn't really in the business of testing to be sure that Kubernetes can
@@ -1543,7 +1508,34 @@ class Runner:
             if not crd:
                 continue
 
-            crd["spec"].pop("validation", None)
+            if crd["apiVersion"] == "apiextensions.k8s.io/v1":
+                # We can't naively strip the schema validation from apiextensions.k8s.io/v1 CRDs
+                # because it is required; otherwise the API server would refuse to create the CRD,
+                # telling us:
+                #
+                #     CustomResourceDefinition.apiextensions.k8s.io "…" is invalid: spec.versions[0].schema.openAPIV3Schema: Required value: schemas are required
+                #
+                # So instead we must replace it with a schema that allows anything.
+                for version in crd["spec"]["versions"]:
+                    if "schema" in version:
+                        version["schema"] = {
+                            'openAPIV3Schema': {
+                                'type': 'object',
+                                'properties': {
+                                    'apiVersion': { 'type': 'string' },
+                                    'kind':       { 'type': 'string' },
+                                    'metadata':   { 'type': 'object' },
+                                    'spec': {
+                                        'type': 'object',
+                                        'x-kubernetes-preserve-unknown-fields': True,
+                                    },
+                                },
+                            },
+                        }
+            elif crd["apiVersion"] == "apiextensions.k8s.io/v1beta1":
+                crd["spec"].pop("validation", None)
+                for version in crd["spec"]["versions"]:
+                    version.pop("schema", None)
             stripped_crds.append(crd)
 
         final_crds = pyyaml.dump_all(stripped_crds, Dumper=pyyaml_dumper)
@@ -1553,13 +1545,13 @@ class Runner:
             print(f'CRDS changed ({reason}), applying.')
             if not ShellCommand.run_with_retry(
                     'Apply CRDs',
-                    'kubectl', 'apply', '-f', '/tmp/k8s-CRDs.yaml',
+                    'tools/bin/kubectl', 'apply', '-f', '/tmp/k8s-CRDs.yaml',
                     retries=5, sleep_seconds=10):
                 raise RuntimeError("Failed applying CRDs")
 
             tries_left = 10
 
-            while os.system('kubectl get crd mappings.getambassador.io > /dev/null 2>&1') != 0:
+            while os.system('tools/bin/kubectl get crd mappings.getambassador.io > /dev/null 2>&1') != 0:
                 tries_left -= 1
 
                 if tries_left <= 0:
@@ -1571,15 +1563,15 @@ class Runner:
             print(f'CRDS unchanged {reason}, skipping apply.')
 
         # Next up: the KAT pod.
-        KAT_CLIENT_POD = load_manifest("kat_client_pod")
+        kat_client_manifests = integration_manifests.load("kat_client_pod")
         if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
-            KAT_CLIENT_POD = namespace_manifest("default") + KAT_CLIENT_POD
-        changed, reason = has_changed(KAT_CLIENT_POD.format(environ=os.environ), "/tmp/k8s-kat-pod.yaml")
+            kat_client_manifests = integration_manifests.namespace_manifest("default") + kat_client_manifests
+        changed, reason = has_changed(integration_manifests.format(kat_client_manifests), "/tmp/k8s-kat-pod.yaml")
 
         if changed:
             print(f'KAT pod definition changed ({reason}), applying')
             if not ShellCommand.run_with_retry('Apply KAT pod',
-                    'kubectl', 'apply', '-f' , '/tmp/k8s-kat-pod.yaml', '-n', 'default',
+                    'tools/bin/kubectl', 'apply', '-f' , '/tmp/k8s-kat-pod.yaml', '-n', 'default',
                     retries=5, sleep_seconds=10):
                 raise RuntimeError('Could not apply manifest for KAT pod')
 
@@ -1588,7 +1580,7 @@ class Runner:
 
             while True:
                 if ShellCommand.run("wait for KAT pod",
-                                    'kubectl', '-n', 'default', 'wait', '--timeout=30s', '--for=condition=Ready', 'pod', 'kat'):
+                                    'tools/bin/kubectl', '-n', 'default', 'wait', '--timeout=30s', '--for=condition=Ready', 'pod', 'kat'):
                     print("KAT pod ready")
                     break
 
@@ -1604,15 +1596,15 @@ class Runner:
 
         # Use a dummy pod to get around the !*@&#$!*@&# DockerHub rate limit.
         # XXX Better: switch to GCR.
-        dummy_pod = load_manifest("dummy_pod")
+        dummy_pod = integration_manifests.load("dummy_pod")
         if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
-            dummy_pod = namespace_manifest("default") + dummy_pod
-        changed, reason = has_changed(dummy_pod.format(environ=os.environ), "/tmp/k8s-dummy-pod.yaml")
+            dummy_pod = integration_manifests.namespace_manifest("default") + dummy_pod
+        changed, reason = has_changed(integration_manifests.format(dummy_pod), "/tmp/k8s-dummy-pod.yaml")
 
         if changed:
             print(f'Dummy pod definition changed ({reason}), applying')
             if not ShellCommand.run_with_retry('Apply dummy pod',
-                    'kubectl', 'apply', '-f' , '/tmp/k8s-dummy-pod.yaml', '-n', 'default',
+                    'tools/bin/kubectl', 'apply', '-f' , '/tmp/k8s-dummy-pod.yaml', '-n', 'default',
                     retries=5, sleep_seconds=10):
                 raise RuntimeError('Could not apply manifest for dummy pod')
 
@@ -1621,7 +1613,7 @@ class Runner:
 
             while True:
                 if ShellCommand.run("wait for dummy pod",
-                                    'kubectl', '-n', 'default', 'wait', '--timeout=30s', '--for=condition=Ready', 'pod', 'dummy-pod'):
+                                    'tools/bin/kubectl', '-n', 'default', 'wait', '--timeout=30s', '--for=condition=Ready', 'pod', 'dummy-pod'):
                     print("Dummy pod ready")
                     break
 
@@ -1639,24 +1631,26 @@ class Runner:
         if os.environ.get("DEV_CLEAN_K8S_RESOURCES", False):
             print("Clearing cluster...")
             ShellCommand.run('clear old Kubernetes namespaces',
-                             'kubectl', 'delete', 'namespaces', '-l', 'scope=AmbassadorTest',
+                             'tools/bin/kubectl', 'delete', 'namespaces', '-l', 'scope=AmbassadorTest',
                              verbose=True)
             ShellCommand.run('clear old Kubernetes pods etc.',
-                             'kubectl', 'delete', 'all', '-l', 'scope=AmbassadorTest', '--all-namespaces',
+                             'tools/bin/kubectl', 'delete', 'all', '-l', 'scope=AmbassadorTest', '--all-namespaces',
                              verbose=True)
 
         # XXX: better prune selector label
         if manifest_changed:
             print(f"manifest changed ({manifest_reason}), applying...")
             if not ShellCommand.run_with_retry('Applying k8s manifests',
-                    'kubectl', 'apply', '--prune', '-l', 'scope=%s' % self.scope, '-f', fname,
+                    'tools/bin/kubectl', 'apply', '--prune', '-l', 'scope=%s' % self.scope, '-f', fname,
                     retries=5, sleep_seconds=10):
                 raise RuntimeError('Could not apply manifests')
             self.applied_manifests = True
 
         # Finally, install httpbin and the websocket-echo-server.
-        apply_kube_artifacts(namespace, httpbin_manifests)
-        apply_kube_artifacts(namespace, websocket_echo_server_manifests)
+        print(f"applying http_manifests + websocket_echo_server_manifests to namespaces: {namespaces}")
+        for namespace in namespaces:
+            apply_kube_artifacts(namespace, httpbin_manifests)
+            apply_kube_artifacts(namespace, websocket_echo_server_manifests)
 
         for n in self.nodes:
             if n in selected and not n.xfail:
@@ -1820,7 +1814,7 @@ class Runner:
 
         fname = f'/tmp/pods-{scope_for_path}.json'
         if not ShellCommand.run_with_retry('Getting pods',
-            f'kubectl get pod {label_for_scope} --all-namespaces -o json > {fname}',
+            f'tools/bin/kubectl get pod {label_for_scope} --all-namespaces -o json > {fname}',
             shell=True, retries=5, sleep_seconds=10):
             raise RuntimeError('Could not get pods')
 

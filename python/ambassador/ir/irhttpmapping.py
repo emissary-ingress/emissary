@@ -54,7 +54,6 @@ class IRHTTPMapping (IRBaseMapping):
     cors: IRCORS
     retry_policy: IRRetryPolicy
     error_response_overrides: Optional[IRErrorResponse]
-    sni: bool
     query_parameters: List[KeyValueDecorator]
     regex_rewrite: Dict[str,str]
 
@@ -93,7 +92,8 @@ class IRHTTPMapping (IRBaseMapping):
         "error_response_overrides": False,
         "grpc": False,
         # Do not include headers
-        "host": False,          # See notes above
+        # Do not include host
+        # Do not include hostname
         "host_redirect": False,
         "host_regex": False,
         "host_rewrite": False,
@@ -101,6 +101,7 @@ class IRHTTPMapping (IRBaseMapping):
         "keepalive": False,
         "labels": False,        # Not supported in v0; requires v1+; handled in setup
         "load_balancer": False,
+        "metadata_labels": False,
         # Do not include method
         "method_regex": False,
         "path_redirect": False,
@@ -122,6 +123,7 @@ class IRHTTPMapping (IRBaseMapping):
         # Do not include rewrite
         "service": False,       # See notes above
         "shadow": False,
+        "stats_name": True,
         "timeout_ms": False,
         "tls": False,
         "use_websocket": False,
@@ -140,7 +142,7 @@ class IRHTTPMapping (IRBaseMapping):
                  namespace: Optional[str] = None,
                  metadata_labels: Optional[Dict[str, str]] = None,
                  kind: str="IRHTTPMapping",
-                 apiVersion: str="getambassador.io/v2",   # Not a typo! See below.
+                 apiVersion: str="getambassador.io/v3alpha1",   # Not a typo! See below.
                  precedence: int=0,
                  rewrite: str="/",
                  cluster_tag: Optional[str]=None,
@@ -188,20 +190,84 @@ class IRHTTPMapping (IRBaseMapping):
         query_parameters = []
         regex_rewrite = kwargs.get('regex_rewrite', {})
 
+        # Start by assuming that nothing in our arguments mentions hosts (so no host and no host_regex).
+        host = None
+        host_regex = False
+
+        # Also start self.host as unspecified.
+        self.host = None
+
+        # OK. Start by looking for a :authority header match.
         if 'headers' in kwargs:
             for name, value in kwargs.get('headers', {}).items():
                 if value is True:
                     hdrs.append(KeyValueDecorator(name))
                 else:
-                    hdrs.append(KeyValueDecorator(name, value))
+                    # An exact match on the :authority header is special -- treat it like
+                    # they set the "host" element (but note that we'll allow the actual
+                    # "host" element to override it later).
+                    if name.lower() == ':authority':
+                        # This is an _exact_ match, so it mustn't contain a "*" -- that's illegal in the DNS.
+                        if "*" in value:
+                            # We can't call self.post_error() yet, because we're not initialized yet. So we cheat a bit
+                            # and defer the error for later.
+                            new_args["_deferred_error"] = f":authority exact-match '{value}' contains *, which cannot match anything."
+                            ir.logger.debug("IRHTTPMapping %s: self.host contains * (%s, :authority)", name, value)
+                        else:
+                            # No globs, just save it. (We'll end up using it as a glob later, in the Envoy
+                            # config part of the world, but that's OK -- a glob with no "*" in it will always
+                            # match only itself.)
+                            host = value
+                            ir.logger.debug("IRHTTPMapping %s: self.host == %s (:authority)", name, self.host)
+                            # DO NOT save the ':authority' match here -- we'll pick it up after we've checked
+                            # for hostname, too.
+                    else:
+                        # It's not an :authority match, so we're good.
+                        hdrs.append(KeyValueDecorator(name, value))
 
         if 'regex_headers' in kwargs:
+            # DON'T do anything special with a regex :authority match: we can't
+            # do host-based filtering within the IR for it anyway.
             for name, value in kwargs.get('regex_headers', {}).items():
                 hdrs.append(KeyValueDecorator(name, value, regex=True))
 
         if 'host' in kwargs:
-            hdrs.append(KeyValueDecorator(":authority", kwargs['host'], kwargs.get('host_regex', False)))
-            self.tls_context = self.match_tls_context(kwargs['host'], ir)
+            # It's deliberate that we'll allow kwargs['host'] to silently override an exact :authority
+            # header match.
+            host = kwargs['host']
+            host_regex = kwargs.get('host_regex', False)
+
+            # If it's not a regex, it's an exact match -- make sure it doesn't contain a '*'.
+            if not host_regex:
+                if "*" in host:
+                    # We can't call self.post_error() yet, because we're not initialized yet. So we cheat a bit
+                    # and defer the error for later.
+                    new_args["_deferred_error"] = f"host exact-match {host} contains *, which cannot match anything."
+                    ir.logger.debug("IRHTTPMapping %s: self.host contains * (%s, host)", name, host)
+                else:
+                    ir.logger.debug("IRHTTPMapping %s: self.host == %s (host)", name, self.host)
+
+        # Finally, check for 'hostname'.
+        if 'hostname' in kwargs:
+            # It's deliberate that we allow kwargs['hostname'] to override anything else -- even a regex host.
+            # Yell about it, though.
+            if host:
+                ir.logger.warning("Mapping %s in namespace %s: both host and hostname are set, using hostname and ignoring host", name, namespace)
+
+            # No need to be so careful about "*" here, since hostname is defined to be a glob.
+            host = kwargs['hostname']
+            host_regex = False
+            ir.logger.debug("IRHTTPMapping %s: self.host gl~ %s (hostname)", name, self.host)
+
+        # If we have a host, include a ":authority" match. We're treating this as if it were
+        # an exact match, but that's because the ":authority" match is handling specially by
+        # Envoy.
+        if host:
+            hdrs.append(KeyValueDecorator(":authority", host, host_regex))
+
+            # Finally, if our host isn't a regex, save it in self.host.
+            if not host_regex:
+                self.host = host
 
         if 'method' in kwargs:
             hdrs.append(KeyValueDecorator(":method", kwargs['method'], kwargs.get('method_regex', False)))
@@ -223,7 +289,6 @@ class IRHTTPMapping (IRBaseMapping):
             add_request_hdrs = kwargs['add_request_headers']
         else:
             add_request_hdrs = self.lookup_default('add_request_headers', {})
-
 
         if 'add_response_headers' in kwargs:
             add_response_hdrs = kwargs['add_response_headers']
@@ -306,6 +371,12 @@ class IRHTTPMapping (IRBaseMapping):
             del self[other]
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
+        # First things first: handle any deferred error.
+        _deferred_error = self.get("_deferred_error")
+        if _deferred_error:
+            self.post_error(_deferred_error)
+            return False
+
         if not super().setup(ir, aconf):
             return False
 
@@ -338,58 +409,6 @@ class IRHTTPMapping (IRBaseMapping):
             else:
                 return False
 
-        # Likewise, labels is supported only in V1+:
-        if 'labels' in self:
-            if self.apiVersion == 'getambassador.io/v0':
-                self.post_error("labels not supported in getambassador.io/v0 Mapping resources")
-                return False
-
-        if 'rate_limits' in self:
-            if self.apiVersion != 'getambassador.io/v0':
-                self.post_error("rate_limits supported only in getambassador.io/v0 Mapping resources")
-                return False
-
-            # Let's turn this into a set of labels instead.
-            labels = []
-            rlcount = 0
-
-            for rate_limit in self.pop('rate_limits', []):
-                rlcount += 1
-
-                # Since this is a V0 Mapping, prepend the static default stuff that we were implicitly
-                # forcing back in the pre-0.50 days.
-
-                label: List[Any] = [
-                    'source_cluster',
-                    'destination_cluster',
-                    'remote_address'
-                ]
-
-                # Next up: old rate_limit "descriptor" becomes label "generic_key".
-                rate_limit_descriptor = rate_limit.get('descriptor', None)
-
-                if rate_limit_descriptor:
-                    label.append({ 'generic_key': rate_limit_descriptor })
-
-                # Header names get turned into omit-if-not-present header dictionaries.
-                rate_limit_headers = rate_limit.get('headers', [])
-
-                for rate_limit_header in rate_limit_headers:
-                    label.append({
-                        rate_limit_header: {
-                            'header': rate_limit_header,
-                            'omit_if_not_present': True
-                        }
-                    })
-
-                labels.append({
-                    'v0_ratelimit_%02d' % rlcount: label
-                })
-
-            if labels:
-                domain = 'ambassador' if not ir.ratelimit else ir.ratelimit.domain
-                self['labels'] = { domain: labels }
-
         if self.get('load_balancer', None) is not None:
             if not self.validate_load_balancer(self['load_balancer']):
                 self.post_error("Invalid load_balancer specified: {}, invalidating mapping".format(self['load_balancer']))
@@ -403,6 +422,10 @@ class IRHTTPMapping (IRBaseMapping):
         self._enforce_mutual_exclusion('path_redirect', 'prefix_redirect')
         self._enforce_mutual_exclusion('path_redirect', 'regex_redirect')
         self._enforce_mutual_exclusion('prefix_redirect', 'regex_redirect')
+
+        ir.logger.debug("Mapping %s: setup OK: host %s hostname %s regex %s",
+                        self.name, self.get('host'), self.get('hostname'), self.get('host_regex'))
+
         return True
 
     @staticmethod

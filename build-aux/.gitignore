@@ -17,15 +17,17 @@
 /docker-registry.yaml.o
 /docker-registry.deploy
 
-# go-mod.mk
-/go-test.tap
+# generate.mk
 /go1*.src.tar.gz
-
-# go-mod.mk
-/gopath/
+/go-version.txt
+/py-version.txt
+/pip-show.txt
 
 # var.mk
 /.var.*
+
+# builder.mk
+/pytest-kat.txt
 
 # --- Files ignored by older versions ---
 # Remove the tail of this list when the commit making the change gets

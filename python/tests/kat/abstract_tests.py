@@ -1,3 +1,6 @@
+from typing import Any, ClassVar, Generator, List, Optional, Sequence, Tuple, Union
+from typing import cast as typecast
+
 import sys
 
 import base64
@@ -7,29 +10,20 @@ import shutil
 import subprocess
 import yaml
 
-yaml_loader = yaml.SafeLoader
-yaml_dumper = yaml.SafeDumper
+# These type: ignores are because, weirdly, the yaml.CSafe* variants don't share
+# a type with their non-C variants. No clue why not.
+yaml_loader = yaml.SafeLoader # type: ignore
+yaml_dumper = yaml.SafeDumper # type: ignore
 
 try:
-    yaml_loader = yaml.CSafeLoader
-    yaml_dumper = yaml.CSafeDumper
+    yaml_loader = yaml.CSafeLoader # type: ignore
+    yaml_dumper = yaml.CSafeDumper # type: ignore
 except AttributeError:
     pass
 
-from typing import Any, ClassVar, Dict, List, Optional, Sequence
-from typing import cast as typecast
-
-from kat.harness import abstract_test, sanitize, Name, Node, Test, Query, load_manifest
+import tests.integration.manifests as integration_manifests
+from kat.harness import abstract_test, sanitize, Name, Node, Test, Query
 from kat.utils import ShellCommand
-
-RBAC_CLUSTER_SCOPE = load_manifest("rbac_cluster_scope")
-RBAC_NAMESPACE_SCOPE = load_manifest("rbac_namespace_scope")
-AMBASSADOR = load_manifest("ambassador")
-BACKEND = load_manifest("backend")
-GRPC_ECHO_BACKEND = load_manifest("grpc_echo_backend")
-AUTH_BACKEND = load_manifest("auth_backend")
-GRPC_AUTH_BACKEND = load_manifest("grpc_auth_backend")
-GRPC_RLS_BACKEND = load_manifest("grpc_rls_backend")
 
 AMBASSADOR_LOCAL = """
 ---
@@ -97,13 +91,12 @@ class AmbassadorTest(Test):
     is_ambassador = True
     allow_edge_stack_redirect = False
     edge_stack_cleartext_host = True
-    envoy_api_version = None
+    envoy_api_version: Optional[str] = None
 
-
-    env = []
+    env: List[str] = []
 
     def manifests(self) -> str:
-        rbac = RBAC_CLUSTER_SCOPE
+        rbac = integration_manifests.load("rbac_cluster_scope")
 
         self.manifest_envs += """
     - name: POLL_EVERY_SECS
@@ -112,16 +105,10 @@ class AmbassadorTest(Test):
       value: "8500"
 """
 
-        if os.environ.get('AMBASSADOR_LEGACY_MODE', 'false').lower() == 'true':
-            self.manifest_envs += """
-    - name: AMBASSADOR_LEGACY_MODE
-      value: "true"
-"""
-
-        if os.environ.get('AMBASSADOR_FAST_RECONFIGURE', 'false').lower() == 'true':
+        if os.environ.get('AMBASSADOR_FAST_RECONFIGURE', 'true').lower() == 'false':
             self.manifest_envs += """
     - name: AMBASSADOR_FAST_RECONFIGURE
-      value: "true"
+      value: "false"
 """
 
         amb_debug = []
@@ -133,6 +120,8 @@ class AmbassadorTest(Test):
             self.manifest_envs += """
     - name: AMBASSADOR_DEBUG
       value: "%s"
+    - name: AES_LOG_LEVEL
+      value: "debug"
 """ % ":".join(amb_debug)
 
         if self.ambassador_id:
@@ -146,7 +135,7 @@ class AmbassadorTest(Test):
     - name: AMBASSADOR_SINGLE_NAMESPACE
       value: "yes"
 """
-            rbac = RBAC_NAMESPACE_SCOPE
+            rbac = integration_manifests.load("rbac_namespace_scope")
 
         if self.disable_endpoints:
             self.manifest_envs += """
@@ -164,11 +153,11 @@ class AmbassadorTest(Test):
     - name: AMBASSADOR_ENVOY_API_VERSION
       value: "{self.envoy_api_version}"
 """
-        elif os.environ.get('KAT_USE_ENVOY_V2', '') != '':
+        elif os.environ.get('AMBASSADOR_ENVOY_API_VERSION', '') != '':
             self.manifest_envs += """
     - name: AMBASSADOR_ENVOY_API_VERSION
-      value: "V2"
-"""
+      value: "%s"
+""" % os.environ["AMBASSADOR_ENVOY_API_VERSION"]
 
         eports = ""
 
@@ -182,22 +171,25 @@ class AmbassadorTest(Test):
 """
 
         if DEV:
-            return self.format(rbac + AMBASSADOR_LOCAL, extra_ports=eports)
+            return self.format(rbac + AMBASSADOR_LOCAL,
+                               extra_ports=eports)
         else:
-            return self.format(rbac + AMBASSADOR,
-                               image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=self.manifest_envs, extra_ports=eports, capabilities_block = "")
+            return self.format(rbac + integration_manifests.load('ambassador'),
+                               envs=self.manifest_envs,
+                               extra_ports=eports,
+                               capabilities_block="")
 
-    # Will tear this out of the harness shortly
-    @property
-    def ambassador_id(self) -> str:
-        if self._ambassador_id is None:
-            return self.name.k8s
-        else:
-            return typecast(str, self._ambassador_id)
+    # # Will tear this out of the harness shortly
+    # @property
+    # def ambassador_id(self) -> str:
+    #     if self._ambassador_id is None:
+    #         return self.name.k8s
+    #     else:
+    #         return typecast(str, self._ambassador_id)
 
-    @ambassador_id.setter
-    def ambassador_id(self, val: str) -> None:
-        self._ambassador_id = val
+    # @ambassador_id.setter
+    # def ambassador_id(self, val: str) -> None:
+    #     self._ambassador_id = val
 
     @property
     def index(self) -> int:
@@ -257,7 +249,7 @@ class AmbassadorTest(Test):
         else:
             nsp = getattr(self, 'namespace', None) or 'default'
 
-            cmd = ShellCommand("kubectl", "get", "-n", nsp, "-o", "yaml", "secret", self.path.k8s)
+            cmd = ShellCommand("tools/bin/kubectl", "get", "-n", nsp, "-o", "yaml", "secret", self.path.k8s)
 
             if not cmd.check(f'fetch secret for {self.path.k8s}'):
                 pytest.exit(f'could not fetch secret for {self.path.k8s}')
@@ -392,7 +384,7 @@ class ServiceType(Node):
         if self._manifests:
             self.use_superpod = False
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield from ()
 
     def manifests(self):
@@ -416,9 +408,9 @@ class ServiceTypeGrpc(Node):
 
     def __init__(self, service_manifests: str=None, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._manifests = service_manifests or BACKEND
+        self._manifests = service_manifests or integration_manifests.load("backend")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield from ()
 
     def manifests(self):
@@ -440,7 +432,9 @@ class EGRPC(ServiceType):
     skip_variant: ClassVar[bool] = True
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, service_manifests=GRPC_ECHO_BACKEND, **kwargs)
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = integration_manifests.load("grpc_echo_backend")
+        super().__init__(*args, **kwargs)
 
     def requirements(self):
         yield ("url", Query("http://%s/echo.EchoService/Echo" % self.path.fqdn,
@@ -453,7 +447,9 @@ class AHTTP(ServiceType):
     skip_variant: ClassVar[bool] = True
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, service_manifests=AUTH_BACKEND, **kwargs)
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = integration_manifests.load("auth_backend")
+        super().__init__(*args, **kwargs)
 
 
 class AGRPC(ServiceType):
@@ -462,7 +458,9 @@ class AGRPC(ServiceType):
     def __init__(self, protocol_version: str="v2", *args, **kwargs) -> None:
         self.protocol_version = protocol_version
 
-        super().__init__(*args, service_manifests=GRPC_AUTH_BACKEND, **kwargs)
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = integration_manifests.load("grpc_auth_backend")
+        super().__init__(*args, **kwargs)
 
     def requirements(self):
         yield ("pod", self.path.k8s)
@@ -472,7 +470,21 @@ class RLSGRPC(ServiceType):
 
     def __init__(self, protocol_version: str="v2", *args, **kwargs) -> None:
         self.protocol_version = protocol_version
-        super().__init__(*args, service_manifests=GRPC_RLS_BACKEND, **kwargs)
+
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = integration_manifests.load("grpc_rls_backend")
+        super().__init__(*args, **kwargs)
+
+    def requirements(self):
+        yield ("pod", self.path.k8s)
+
+class ALSGRPC(ServiceType):
+    skip_variant: ClassVar[bool] = True
+
+    def __init__(self, *args, **kwargs) -> None:
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = integration_manifests.load("grpc_als_backend")
+        super().__init__(*args, **kwargs)
 
     def requirements(self):
         yield ("pod", self.path.k8s)
@@ -503,7 +515,7 @@ class OptionTest(Test):
     skip_local_instead_of_xfail = "Plain (OptionTests)"
 
     @classmethod
-    def variants(cls):
+    def variants(cls) -> Generator[Node, None, None]:
         if cls.VALUES is None:
             yield cls()
         else:

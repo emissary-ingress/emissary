@@ -1,3 +1,6 @@
+# The `test-stats` image gets built by `build-aux/check.mk` for use by
+# `python/tests/ingegration/manifests.py`.
+
 # Copyright 2018 Datawire. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-FROM alpine:3.11
+FROM docker.io/frolvlad/alpine-glibc:alpine-3.15
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
@@ -28,33 +31,20 @@ LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
 # blindly hack up this file.
 
 # We need curl, pip, and dnsutils (for nslookup).
-RUN apk --no-cache add curl python3 bind-tools jq
-RUN python3 -m ensurepip && \
-    rm -r /usr/lib/python*/ensurepip && \
-    pip3 install --upgrade pip setuptools && \
-    if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip ; fi && \
-    if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi && \
-    rm -r /root/.cache
+RUN apk --no-cache add curl python3 py3-pip bind-tools jq
 
-# Set WORKDIR to /application which is the root of all our apps then COPY
-# only requirements.txt to avoid screwing up Docker caching and causing a
-# full reinstall of all dependencies when dependencies are not changed.
-
+# Set WORKDIR to /application which is the root of all our apps.
 WORKDIR /application
-COPY requirements.txt .
 
+# COPY only requirements.txt to avoid screwing up Docker caching and
+# causing a full reinstall of all dependencies when dependencies are
+# not changed.
+COPY requirements.txt .
 # Install application dependencies
 RUN pip3 install -r requirements.txt
 
-# COPY the app code and configuration into place, then perform any final
-# configuration steps.
+# COPY the app code and configuration into place
+COPY stats-test.py stats-web.py entrypoint.sh ./
 
-COPY stats-test.py ./
-COPY stats-web.py ./
-
-# COPY the entrypoint script and make it runnable.
-COPY entrypoint.sh .
-RUN chmod 755 entrypoint.sh
-
+# perform any final configuration steps.
 ENTRYPOINT /application/entrypoint.sh
-

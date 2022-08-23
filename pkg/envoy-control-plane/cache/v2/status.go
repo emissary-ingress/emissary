@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
 )
 
 // NodeHash computes string identifiers for Envoy nodes.

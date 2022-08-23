@@ -49,7 +49,7 @@ class V2Cluster(Cacheable):
         assert(len(cluster.envoy_name) <= 60)
 
         cmap_entry = cluster.clustermap_entry()
-        if Config.legacy_mode or (cmap_entry['kind'] == 'KubernetesServiceResolver'):
+        if cmap_entry['kind'] == 'KubernetesServiceResolver':
             ctype = cluster.type.upper()
             # For now we are only allowing Logical_dns for the cluster since it is similar enough to strict_dns that we dont need any other config changes
             # It should be easy to add the other dns_types here in the future if we decide to support them
@@ -67,12 +67,19 @@ class V2Cluster(Cacheable):
             'dns_lookup_family': dns_lookup_family
         }
 
+        if cluster.get('stats_name', ''):
+            fields['alt_stat_name'] = cluster.stats_name
+
         if cluster.respect_dns_ttl:
             fields['respect_dns_ttl'] = cluster.respect_dns_ttl
 
         if ctype == 'EDS':
-            fields['eds_cluster_config'] = { 'eds_config': {'ads': {}},
-                                             'service_name': cmap_entry['endpoint_path']}
+            fields['eds_cluster_config'] = {
+                'eds_config': {
+                    'ads': {},
+                },
+                'service_name': cmap_entry['endpoint_path']
+            }
         else:
             fields['load_assignment'] = {
                 'cluster_name': cluster.envoy_name,
@@ -264,6 +271,7 @@ class V2Cluster(Cacheable):
                 if cached_ircluster is not None:
                     config.cache.add(cluster)
                     config.cache.link(ircluster, cluster)
+                    config.cache.dump("V2Cluster synth %s", cache_key)
             else:
                 # Cache hit. We know a priori that it's a V2Cluster, but let's assert
                 # that rather than casting.

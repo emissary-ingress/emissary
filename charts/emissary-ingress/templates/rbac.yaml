@@ -1,0 +1,157 @@
+{{- if .Values.rbac.create -}}
+
+---
+######################################################################
+# Aggregate                                                          #
+######################################################################
+# This ClusterRole has an empty `rules` and instead sets
+# `aggregationRule` in order to aggregate several other ClusterRoles
+# together, to avoid the need for multiple ClusterRoleBindings.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "ambassador.rbacName" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    {{- include "ambassador.labels" . | nindent 4 }}
+    product: aes
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.getambassador.io/role-group: {{ include "ambassador.rbacName" . }}
+rules: []
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "ambassador.rbacName" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    {{- include "ambassador.labels" . | nindent 4 }}
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "ambassador.rbacName" . }}
+subjects:
+  - name: {{ include "ambassador.serviceAccountName" . }}
+    namespace: {{ include "ambassador.namespace" . }}
+    kind: ServiceAccount
+
+---
+######################################################################
+# No namespace                                                       #
+######################################################################
+# These ClusterRoles should be limited to resource types that are
+# non-namespaced, and therefore cannot be put in a Role, even if
+# Emissary is in single-namespace mode.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "ambassador.rbacName" . }}-crd
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    {{- include "ambassador.labels" . | nindent 4 }}
+    product: aes
+    rbac.getambassador.io/role-group: {{ include "ambassador.rbacName" . }}
+rules:
+  - apiGroups: [ "apiextensions.k8s.io" ]
+    resources: [ "customresourcedefinitions" ]
+    verbs: ["get", "list", "watch", "delete"]
+
+---
+######################################################################
+# All namespaces                                                     #
+######################################################################
+apiVersion: rbac.authorization.k8s.io/v1
+{{- if .Values.scope.singleNamespace }}
+kind: Role
+metadata:
+  name: {{ include "ambassador.rbacName" . }}
+  namespace: {{ include "ambassador.namespace" . }}
+{{- else }}
+kind: ClusterRole
+metadata:
+  name: {{ include "ambassador.rbacName" . }}-watch
+{{- end }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    {{- include "ambassador.labels" . | nindent 4 }}
+    product: aes
+    rbac.getambassador.io/role-group: {{ include "ambassador.rbacName" . }}
+rules:
+  - apiGroups: [""]
+    resources:
+    - namespaces
+    - services
+    - secrets
+    - configmaps
+    - endpoints
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: [ "getambassador.io" ]
+    resources: [ "*" ]
+    verbs: ["get", "list", "watch", "update", "patch", "create", "delete" ]
+
+  - apiGroups: [ "getambassador.io" ]
+    resources: [ "mappings/status" ]
+    verbs: ["update"]
+
+  - apiGroups: [ "networking.internal.knative.dev" ]
+    resources: [ "clusteringresses", "ingresses" ]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: [ "networking.x-k8s.io" ]
+    resources: [ "*" ]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: [ "networking.internal.knative.dev" ]
+    resources: [ "ingresses/status", "clusteringresses/status" ]
+    verbs: ["update"]
+
+  - apiGroups: [ "extensions", "networking.k8s.io" ]
+    resources: [ "ingresses", "ingressclasses" ]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: [ "extensions", "networking.k8s.io" ]
+    resources: [ "ingresses/status" ]
+    verbs: ["update"]
+
+  {{- if or .Values.rbac.podSecurityPolicies .Values.security.podSecurityPolicy }}
+
+  - apiGroups: ['policy']
+    resources: ['podsecuritypolicies']
+    verbs: ['use']
+    resourceNames:
+    {{- if .Values.rbac.podSecurityPolicies }}
+      {{- toYaml .Values.rbac.podSecurityPolicies | nindent 6 }}
+    {{- end }}
+    {{- if .Values.security.podSecurityPolicy }}
+    - {{ include "ambassador.fullname" . }}
+    {{- end }}
+  {{- end }}
+{{- if .Values.scope.singleNamespace }}
+---
+# This RoleBinding is only needed if single
+# .Values.scope.singleNamespace because otherwise the ClusterRole will
+# be aggregated in to the master ClusterRole via aggregationRule.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "ambassador.rbacName" . }}
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    {{- include "ambassador.labels" . | nindent 4 }}
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "ambassador.rbacName" . }}
+subjects:
+  - name: {{ include "ambassador.serviceAccountName" . }}
+    namespace: {{ include "ambassador.namespace" . }}
+    kind: ServiceAccount
+{{- end }}
+
+{{- end -}}

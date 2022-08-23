@@ -42,12 +42,6 @@ class V2Tracing(dict):
         # appended above.
         if name.lower() == 'envoy.zipkin':
             driver_config['@type'] = 'type.googleapis.com/envoy.config.trace.v2.ZipkinConfig'
-            # The collector_endpoint is mandatory now.
-            if not driver_config.get('collector_endpoint'):
-                driver_config['collector_endpoint'] = '/api/v1/spans'
-            # Make 128-bit traceid the default
-            if not 'trace_id_128bit' in driver_config:
-                driver_config['trace_id_128bit'] = True
         elif name.lower() == 'envoy.tracers.datadog':
             driver_config['@type'] = 'type.googleapis.com/envoy.config.trace.v2.DatadogConfig'
             if not driver_config.get('service_name'):

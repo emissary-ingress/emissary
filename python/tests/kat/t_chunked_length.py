@@ -1,5 +1,7 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 import json
 
 class AllowChunkedLengthTestTrue(AmbassadorTest):
@@ -8,19 +10,20 @@ class AllowChunkedLengthTestTrue(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: ambassador
 kind:  Module
 name:  ambassador
 config:
   allow_chunked_length: true
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 name:  {self.target.path.k8s}-foo
 prefix: /foo/
+hostname: "*"
 service: {self.target.path.fqdn}
 """)
 

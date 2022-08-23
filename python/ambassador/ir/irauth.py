@@ -52,10 +52,10 @@ class IRAuth (IRFilter):
                 self._load_auth(config, ir)
 
         if not self.hosts:
-            self.logger.debug("IRAuth: found no hosts! going inactive")
+            self.logger.debug("IRAuth: no AuthServices, going inactive")
             return False
 
-        self.logger.debug("IRAuth: found some hosts! going active")
+        self.logger.debug("IRAuth: going active")
 
         return True
 
@@ -77,7 +77,9 @@ class IRAuth (IRFilter):
                 host_rewrite=self.get('host_rewrite', False),
                 ctx_name=ctx_name,
                 grpc=grpc,
-                marker='extauth'
+                marker='extauth',
+                stats_name=self.get("stats_name", None),
+                circuit_breakers=self.get("circuit_breakers", None),
             )
 
             cluster.referenced_by(self)
@@ -125,6 +127,14 @@ class IRAuth (IRFilter):
             if add_linkerd_headers is None:
                 self["add_linkerd_headers"] = ir.ambassador_module.get('add_linkerd_headers', False)
 
+        if module.get('circuit_breakers', None):
+            self['circuit_breakers'] = module.get('circuit_breakers')
+        else:
+            cb = ir.ambassador_module.get('circuit_breakers')
+
+            if cb:
+                self['circuit_breakers'] = cb
+
         self["allow_request_body"] = module.get("allow_request_body", False)
         self["include_body"] = module.get("include_body", None)
         self["api_version"] = module.get("apiVersion", None)
@@ -151,8 +161,8 @@ class IRAuth (IRFilter):
         if self["api_version"] == None:
             self.post_error(RichStatus.fromError("AuthService config requires apiVersion field"))
 
-        if (self["api_version"] != "getambassador.io/v0") and (self["proto"] == None):
-            self.post_error(RichStatus.fromError("AuthService after v0 requires proto field."))
+        if self["proto"] == None:
+            self.post_error(RichStatus.fromError("AuthService requires proto field."))
 
         if self.get("include_body") and self.get("allow_request_body"):
             self.post_error('AuthService ignoring allow_request_body since include_body is present')

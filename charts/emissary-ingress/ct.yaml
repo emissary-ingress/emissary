@@ -1,0 +1,35 @@
+# See https://github.com/helm/chart-testing
+
+# note: all the values files in ci/*-values.yaml will
+#       be tested automatically. For each configuration,
+#       all the tests in templates/tests/*.yaml
+#       will be checked.
+
+################################################
+# github
+################################################
+
+remote: origin
+
+################################################
+# chart
+################################################
+
+charts:
+  - ./
+chart-dirs:
+  - ./
+
+helm-extra-args: --timeout 600s
+
+# namespace: ambassador
+# release-label: release
+
+################################################
+# checks and validations
+################################################
+
+validate-maintainers: false
+validate-chart-schema: true
+validate-yaml: false
+# check-version-increment: true

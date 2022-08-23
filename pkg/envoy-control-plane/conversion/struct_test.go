@@ -21,9 +21,9 @@ import (
 	pstruct "github.com/golang/protobuf/ptypes/struct"
 	"github.com/google/go-cmp/cmp"
 
-	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/conversion"
+	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/conversion"
 )
 
 func TestConversion(t *testing.T) {

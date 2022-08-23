@@ -1,0 +1,9 @@
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  namespace: default
+  name: long-foo-0
+spec:
+  prefix: /long-foo-0/
+  service: myverylongservicenameoverfourtycharacterslong

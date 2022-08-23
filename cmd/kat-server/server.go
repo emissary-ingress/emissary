@@ -1,11 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"os"
 
-	srv "github.com/datawire/ambassador/cmd/kat-server/services"
+	srv "github.com/datawire/ambassador/v2/cmd/kat-server/services"
+	"github.com/datawire/dlib/dlog"
 )
 
 const (
@@ -20,6 +21,7 @@ const (
 )
 
 func main() {
+	ctx := context.Background() // first line in main()
 	listeners := make([]srv.Service, 0)
 	var s srv.Service
 
@@ -29,7 +31,7 @@ func main() {
 		t = "http"
 	}
 
-	log.Printf("Running as type %s", t)
+	dlog.Printf(ctx, "Running as type %s", t)
 
 	switch t {
 	case "grpc_echo":
@@ -97,6 +99,16 @@ func main() {
 		}
 
 		listeners = append(listeners, s)
+	case "grpc_als":
+		s = &srv.GRPCALS{
+			HTTPListener: srv.HTTPListener{
+				CleartextPort: Port,
+				TLSPort:       SSLPort,
+				TLSCert:       Crt,
+				TLSKey:        Key,
+			},
+		}
+		listeners = append(listeners, s)
 	case "grpc_agent":
 		s = &srv.GRPCAgent{
 			Port: Port,
@@ -111,45 +123,45 @@ func main() {
 			eName := fmt.Sprintf("BACKEND_%d", port)
 			clearBackend := os.Getenv(eName)
 
-			log.Printf("clear: checking %s -- %s", eName, clearBackend)
+			dlog.Printf(ctx, "clear: checking %s -- %s", eName, clearBackend)
 
 			if len(clearBackend) <= 0 {
 				if port == 8080 {
 					// Default for backwards compatibility.
 					clearBackend = os.Getenv("BACKEND")
 
-					log.Printf("clear: fallback to BACKEND -- %s", clearBackend)
+					dlog.Printf(ctx, "clear: fallback to BACKEND -- %s", clearBackend)
 				}
 			}
 
 			if len(clearBackend) <= 0 {
-				log.Printf("clear: bailing, no backend")
+				dlog.Printf(ctx, "clear: bailing, no backend")
 				break
 			}
 
 			eName = fmt.Sprintf("BACKEND_%d", securePort)
 			secureBackend := os.Getenv(eName)
 
-			log.Printf("secure: checking %s -- %s", eName, secureBackend)
+			dlog.Printf(ctx, "secure: checking %s -- %s", eName, secureBackend)
 
 			if len(secureBackend) <= 0 {
 				if securePort == 8443 {
 					// Default for backwards compatibility.
 					secureBackend = os.Getenv("BACKEND")
 
-					log.Printf("secure: fallback to BACKEND -- %s", clearBackend)
+					dlog.Printf(ctx, "secure: fallback to BACKEND -- %s", clearBackend)
 				}
 			}
 
 			if len(secureBackend) <= 0 {
-				log.Printf("secure: bailing, no backend")
+				dlog.Printf(ctx, "secure: bailing, no backend")
 				break
 			}
 
 			if clearBackend != secureBackend {
-				log.Printf("BACKEND_%d and BACKEND_%d do not match", port, securePort)
+				dlog.Printf(ctx, "BACKEND_%d and BACKEND_%d do not match", port, securePort)
 			} else {
-				log.Printf("creating HTTP listener for %s on ports %d/%d", clearBackend, port, securePort)
+				dlog.Printf(ctx, "creating HTTP listener for %s on ports %d/%d", clearBackend, port, securePort)
 
 				s = &srv.HTTP{
 					Port:          port,
@@ -173,7 +185,7 @@ func main() {
 		first := true
 
 		for _, s := range listeners {
-			c := s.Start()
+			c := s.Start(ctx)
 
 			if first {
 				waitFor = c
@@ -183,6 +195,7 @@ func main() {
 
 		<-waitFor
 	} else {
-		log.Fatal("no listeners, exiting")
+		dlog.Error(ctx, "no listeners, exiting")
+		os.Exit(1)
 	}
 }

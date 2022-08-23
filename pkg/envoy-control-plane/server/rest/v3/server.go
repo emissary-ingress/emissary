@@ -19,8 +19,8 @@ package rest
 import (
 	"context"
 	"errors"
-	discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v3"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v3"
+	discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
 )
 
 type Server interface {

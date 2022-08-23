@@ -15,7 +15,7 @@ from uuid import uuid4
 class Scout:
 
     def __init__(self, app, version, install_id=None,
-                 id_plugin=None, id_plugin_args={}, scout_host="kubernaut.io", **kwargs):
+                 id_plugin=None, id_plugin_args={}, scout_host="metriton.datawire.io", **kwargs):
         """
         Create a new Scout instance for later reports.
 

@@ -25,10 +25,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	discovery "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/resource/v2"
+	discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v2"
 )
 
 type Server interface {

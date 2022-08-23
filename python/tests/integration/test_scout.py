@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import os
 import time
@@ -12,9 +12,9 @@ from tests.runutils import run_and_assert
 
 DOCKER_IMAGE = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
 
-child = None                    # see docker_start()
+child: Optional[pexpect.spawnbase.SpawnBase] = None           # see docker_start()
+diagd_host: Optional[str] = None # see docker_start()
 child_name = "diagd-unset"      # see docker_start() and docker_kill()
-diagd_host = None               # see docker_start()
 
 SEQUENCES = [
     (

@@ -8,18 +8,19 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
+	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v3"
+	io_prometheus_client "github.com/prometheus/client_model/go"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/pkg/errors"
-
-	"github.com/datawire/ambassador/pkg/api/agent"
-	"github.com/datawire/ambassador/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
-	"github.com/datawire/dlib/derror"
+	"github.com/datawire/ambassador/v2/pkg/api/agent"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -29,7 +30,9 @@ const cloudConnectTokenKey = "CLOUD_CONNECT_TOKEN"
 type Comm interface {
 	Close() error
 	Report(context.Context, *agent.Snapshot, string) error
+	ReportCommandResult(context.Context, *agent.CommandResult, string) error
 	Directives() <-chan *agent.Directive
+	StreamMetrics(context.Context, *agent.StreamMetricsMessage, string) error
 }
 
 type atomicBool struct {
@@ -49,7 +52,7 @@ func (ab *atomicBool) Set(v bool) {
 	ab.value = v
 }
 
-// Agent is the component that talks to the CEPC Director, which is a cloud
+// Agent is the component that talks to the DCP Director, which is a cloud
 // service run by Datawire.
 type Agent struct {
 	// Connectivity to the Director
@@ -81,6 +84,9 @@ type Agent struct {
 	// current cluster state of core resources
 	coreStore *coreStore
 
+	// apiDocsStore holds OpenAPI documents from cluster Mappings
+	apiDocsStore *APIDocsStore
+
 	// rolloutStore holds Argo Rollouts state from cluster
 	rolloutStore *RolloutStore
 	// applicationStore holds Argo Applications state from cluster
@@ -99,6 +105,18 @@ type Agent struct {
 
 	// Field selector for the k8s resources that the agent watches
 	agentWatchFieldSelector string
+
+	// A mutex related to the metrics endpoint action, to avoid concurrent (and useless) pushes.
+	metricsRelayMutex sync.Mutex
+	// Timestamp to keep in memory to Prevent from making too many requests to the Ambassador
+	// Cloud API.
+	metricsBackoffUntil time.Time
+
+	// Used to accumulate metrics for a same timestamp before pushing them to the cloud.
+	aggregatedMetrics map[string][]*io_prometheus_client.MetricFamily
+
+	// Extra headers to inject into RPC requests to ambassador cloud.
+	rpcExtraHeaders []string
 }
 
 func getEnvWithDefault(envVarKey string, defaultValue string) string {
@@ -110,7 +128,7 @@ func getEnvWithDefault(envVarKey string, defaultValue string) string {
 }
 
 // New returns a new Agent.
-func NewAgent(directiveHandler DirectiveHandler) *Agent {
+func NewAgent(directiveHandler DirectiveHandler, rolloutsGetterFactory rolloutsGetterFactory) *Agent {
 	reportPeriodFromEnv := os.Getenv("AGENT_REPORTING_PERIOD")
 	var reportPeriod time.Duration
 	if reportPeriodFromEnv != "" {
@@ -124,7 +142,21 @@ func NewAgent(directiveHandler DirectiveHandler) *Agent {
 		reportPeriod = defaultMinReportPeriod
 	}
 	if directiveHandler == nil {
-		directiveHandler = &BasicDirectiveHandler{DefaultMinReportPeriod: defaultMinReportPeriod}
+		directiveHandler = &BasicDirectiveHandler{
+			DefaultMinReportPeriod: defaultMinReportPeriod,
+			rolloutsGetterFactory:  rolloutsGetterFactory,
+		}
+	}
+
+	var rpcExtraHeaders = make([]string, 0)
+
+	if os.Getenv("RPC_INTERCEPT_HEADER_KEY") != "" &&
+		os.Getenv("RPC_INTERCEPT_HEADER_VALUE") != "" {
+		rpcExtraHeaders = append(
+			rpcExtraHeaders,
+			os.Getenv("RPC_INTERCEPT_HEADER_KEY"),
+			os.Getenv("RPC_INTERCEPT_HEADER_VALUE"),
+		)
 	}
 
 	return &Agent{
@@ -141,6 +173,9 @@ func NewAgent(directiveHandler DirectiveHandler) *Agent {
 		directiveHandler:             directiveHandler,
 		reportRunning:                atomicBool{value: false},
 		agentWatchFieldSelector:      getEnvWithDefault("AGENT_WATCH_FIELD_SELECTOR", "metadata.namespace!=kube-system"),
+		metricsBackoffUntil:          time.Now().Add(defaultMinReportPeriod),
+		rpcExtraHeaders:              rpcExtraHeaders,
+		aggregatedMetrics:            map[string][]*io_prometheus_client.MetricFamily{},
 	}
 }
 
@@ -253,14 +288,6 @@ func (a *Agent) handleAPIKeyConfigChange(ctx context.Context, secrets []kates.Se
 // Watt/Diag snapshots, reports to the Director, and executes directives from
 // the Director.
 func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
-	defer func() {
-		err := derror.PanicToError(recover())
-		if err != nil {
-			err = errors.Wrap(err, "Agent panicked and will no longer report snapshots")
-			dlog.Errorln(ctx, err)
-		}
-	}()
-
 	client, err := kates.NewClient(kates.ClientConfig{})
 	if err != nil {
 		return err
@@ -278,9 +305,11 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 		Kind:          "secrets.",
 		FieldSelector: fmt.Sprintf("metadata.name=%s", a.agentCloudResourceConfigName),
 	}
-	configAcc := client.Watch(ctx, agentCMQuery, agentSecretQuery)
-	err = a.waitForAPIKey(ctx, configAcc)
+	configAcc, err := client.Watch(ctx, agentCMQuery, agentSecretQuery)
 	if err != nil {
+		return err
+	}
+	if err := a.waitForAPIKey(ctx, configAcc); err != nil {
 		dlog.Errorf(ctx, "Error waiting for api key: %+v", err)
 		return err
 	}
@@ -308,7 +337,10 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 
 	// If the user didn't setup RBAC to allow the agent to get pods, the watch will just return
 	// no pods, log that it didn't have permission to get pods, and carry along.
-	coreAcc := client.Watch(ctx, podQuery, cmQuery, deployQuery, endpointQuery)
+	coreAcc, err := client.Watch(ctx, podQuery, cmQuery, deployQuery, endpointQuery)
+	if err != nil {
+		return err
+	}
 
 	ns := kates.NamespaceAll
 	dc := NewDynamicClient(client.DynamicInterface(), NewK8sInformer)
@@ -322,8 +354,8 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 }
 
 type accumulator interface {
-	Changed() chan struct{}
-	FilteredUpdate(target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool
+	Changed() <-chan struct{}
+	FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error)
 }
 
 func (a *Agent) waitForAPIKey(ctx context.Context, configAccumulator accumulator) error {
@@ -340,7 +372,11 @@ func (a *Agent) waitForAPIKey(ctx context.Context, configAccumulator accumulator
 		case <-ctx.Done():
 			return nil
 		case <-configAccumulator.Changed():
-			if !configAccumulator.FilteredUpdate(&configSnapshot, &[]*kates.Delta{}, isValid) {
+			updated, err := configAccumulator.FilteredUpdate(ctx, &configSnapshot, &[]*kates.Delta{}, isValid)
+			if err != nil {
+				return err
+			}
+			if !updated {
 				continue
 			}
 			a.handleAPIKeyConfigChange(ctx, configSnapshot.Secrets, configSnapshot.ConfigMaps)
@@ -366,6 +402,7 @@ func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator
 		return err
 	}
 
+	a.apiDocsStore = NewAPIDocsStore()
 	applicationStore := NewApplicationStore()
 	rolloutStore := NewRolloutStore()
 	coreSnapshot := CoreSnapshot{}
@@ -386,12 +423,20 @@ func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator
 		case <-time.After(1 * time.Second):
 			// just a ticker, this will fallthru to the snapshot getting thing
 		case <-configAccumulator.Changed():
-			if !configAccumulator.FilteredUpdate(&configSnapshot, &[]*kates.Delta{}, isValid) {
+			updated, err := configAccumulator.FilteredUpdate(ctx, &configSnapshot, &[]*kates.Delta{}, isValid)
+			if err != nil {
+				return err
+			}
+			if !updated {
 				continue
 			}
 			a.handleAPIKeyConfigChange(ctx, configSnapshot.Secrets, configSnapshot.ConfigMaps)
 		case <-coreAccumulator.Changed():
-			if !coreAccumulator.FilteredUpdate(&coreSnapshot, &[]*kates.Delta{}, isValid) {
+			updated, err := coreAccumulator.FilteredUpdate(ctx, &coreSnapshot, &[]*kates.Delta{}, isValid)
+			if err != nil {
+				return err
+			}
+			if !updated {
 				continue
 			}
 			a.coreStore = NewCoreStore(&coreSnapshot)
@@ -448,13 +493,15 @@ func (a *Agent) MaybeReport(ctx context.Context) {
 
 	// It's time to send a report
 	if a.comm == nil {
-		// The communications channel to the CEPC was not yet created or was
+		// The communications channel to the DCP was not yet created or was
 		// closed above, due to a change in identity, or close elsewhere, due to
 		// a change in endpoint configuration.
-		newComm, err := NewComm(ctx, a.connInfo, a.agentID, a.ambassadorAPIKey)
+		newComm, err := NewComm(
+			ctx, a.connInfo, a.agentID, a.ambassadorAPIKey, a.rpcExtraHeaders)
+
 		if err != nil {
-			dlog.Warnf(ctx, "Failed to dial the CEPC: %v", err)
-			dlog.Warn(ctx, "CEPC functionality disabled until next retry")
+			dlog.Warnf(ctx, "Failed to dial the DCP: %v", err)
+			dlog.Warn(ctx, "DCP functionality disabled until next retry")
 
 			return
 		}
@@ -472,11 +519,6 @@ func (a *Agent) MaybeReport(ctx context.Context) {
 		defer func() {
 			if err != nil {
 				dlog.Warnf(ctx, "failed to report: %+v", err)
-			}
-			recoveredError := derror.PanicToError(recover())
-			if recoveredError != nil {
-				err = recoveredError
-				dlog.Warnf(ctx, "panicked while sending report: %+v", err)
 			}
 			dlog.Debugf(ctx, "Finished sending snapshot report, sleeping for %s", delay.String())
 			time.Sleep(delay)
@@ -566,6 +608,11 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 			snapshot.Kubernetes.ArgoApplications = a.applicationStore.StateOfWorld()
 			dlog.Debugf(ctx, "Found %d argo applications", len(snapshot.Kubernetes.ArgoApplications))
 		}
+		if a.apiDocsStore != nil {
+			a.apiDocsStore.ProcessSnapshot(ctx, snapshot)
+			snapshot.APIDocs = a.apiDocsStore.StateOfWorld()
+			dlog.Debugf(ctx, "Found %d api docs", len(snapshot.APIDocs))
+		}
 	}
 
 	if err = snapshot.Sanitize(); err != nil {
@@ -587,6 +634,80 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 	a.reportToSend = report
 
 	return nil
+}
+
+var allowedMetricsSuffixes = []string{"upstream_rq_total", "upstream_rq_time", "upstream_rq_5xx"}
+
+// MetricsRelayHandler is invoked as a callback when the agent receive metrics from Envoy (sink).
+func (a *Agent) MetricsRelayHandler(
+	ctx context.Context,
+	in *envoyMetrics.StreamMetricsMessage,
+) {
+	metrics := in.GetEnvoyMetrics()
+
+	if a.comm != nil && !a.reportingStopped {
+		p, ok := peer.FromContext(ctx)
+
+		if !ok {
+			dlog.Warnf(ctx, "peer not found in context")
+			return
+		}
+
+		a.ambassadorAPIKeyMutex.Lock()
+		apikey := a.ambassadorAPIKey
+		a.ambassadorAPIKeyMutex.Unlock()
+
+		newMetrics := make([]*io_prometheus_client.MetricFamily, 0, len(metrics))
+
+		for _, metricFamily := range metrics {
+			for _, suffix := range allowedMetricsSuffixes {
+				if strings.HasSuffix(metricFamily.GetName(), suffix) {
+					newMetrics = append(newMetrics, metricFamily)
+					break
+				}
+			}
+		}
+
+		instanceID := p.Addr.String()
+
+		a.metricsRelayMutex.Lock()
+		defer a.metricsRelayMutex.Unlock()
+		// Collect metrics until next report.
+		if time.Now().Before(a.metricsBackoffUntil) {
+			dlog.Infof(ctx, "Append %d metric(s) to stack from %s",
+				len(newMetrics), instanceID,
+			)
+			a.aggregatedMetrics[instanceID] = newMetrics
+			return
+		}
+
+		// Otherwise, we reached a new batch of metric, send everything.
+		outMessage := &agent.StreamMetricsMessage{
+			Identity:     a.agentID,
+			EnvoyMetrics: []*io_prometheus_client.MetricFamily{},
+		}
+
+		for key, instanceMetrics := range a.aggregatedMetrics {
+			outMessage.EnvoyMetrics = append(outMessage.EnvoyMetrics, instanceMetrics...)
+			delete(a.aggregatedMetrics, key)
+		}
+
+		if relayedMetricCount := len(outMessage.GetEnvoyMetrics()); relayedMetricCount > 0 {
+
+			dlog.Infof(ctx, "Relaying %d metric(s)", relayedMetricCount)
+
+			if err := a.comm.StreamMetrics(ctx, outMessage, apikey); err != nil {
+				dlog.Errorf(ctx, "error streaming metric(s): %+v", err)
+			}
+		}
+
+		// Configure next push.
+		a.metricsBackoffUntil = time.Now().Add(defaultMinReportPeriod)
+
+		dlog.Infof(ctx, "Next metrics relay scheduled for %s",
+			a.metricsBackoffUntil.UTC().String())
+
+	}
 }
 
 // ClearComm ends the current connection to the Director, if it exists, thereby

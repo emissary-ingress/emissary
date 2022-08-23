@@ -3,7 +3,7 @@ import sys
 
 import pytest
 
-from tests.utils import install_ambassador, get_code_with_retry
+from tests.integration.utils import install_ambassador, get_code_with_retry
 from tests.kubeutils import apply_kube_artifacts, delete_kube_artifacts
 from tests.runutils import run_with_retry, run_and_assert
 from tests.manifests import qotm_manifests
@@ -16,9 +16,27 @@ class WattTesting:
     def apply_manifests(self):
         pass
 
+    def create_listeners(self, namespace):
+        manifest = f"""
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: listener-8080
+spec:
+  port: 8080
+  protocol: HTTP
+  securityModel: INSECURE
+  hostBinding:
+    namespace:
+      from: SELF
+"""
+
+        apply_kube_artifacts(namespace=namespace, artifacts=manifest)
+
     def apply_qotm_endpoint_manifests(self, namespace):
         qotm_resolver = f"""
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: KubernetesEndpointResolver
 metadata:
   name: qotm-resolver
@@ -31,12 +49,13 @@ metadata:
     def create_qotm_mapping(self, namespace):
         qotm_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name:  qotm-mapping
   namespace: {namespace}
 spec:
+  hostname: "*"
   prefix: /qotm/
   service: qotm.{namespace}
   resolver: qotm-resolver
@@ -49,12 +68,13 @@ spec:
     def delete_qotm_mapping(self, namespace):
         qotm_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name:  qotm-mapping
   namespace: {namespace}
 spec:
+  hostname: "*"
   prefix: /qotm/
   service: qotm.{namespace}
   resolver: qotm-resolver
@@ -70,6 +90,9 @@ spec:
         # Install Ambassador
         install_ambassador(namespace=namespace)
 
+        # Set up our listener.
+        self.create_listeners(namespace)
+
         # Install QOTM
         apply_kube_artifacts(namespace=namespace, artifacts=qotm_manifests)
 
@@ -77,8 +100,8 @@ spec:
         self.apply_qotm_endpoint_manifests(namespace=namespace)
 
         # Now let's wait for ambassador and QOTM pods to become ready
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=qotm', '-n', namespace])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=qotm', '-n', namespace])
 
         # Assume we can reach Ambassador through telepresence
         qotm_host = "ambassador." + namespace

@@ -1,13 +1,17 @@
 package dtest
 
 import (
-	"github.com/datawire/ambassador/pkg/dtest_k3s"
+	dtest_k3s "github.com/datawire/dtest"
 )
 
+type KubeVersion = dtest_k3s.KubeVersion
+
+var Kube22 = dtest_k3s.Kube22
+
 var DockerRegistry = dtest_k3s.DockerRegistry
-var Kubeconfig = dtest_k3s.Kubeconfig
+var KubeVersionConfig = dtest_k3s.KubeVersionConfig
 var GetKubeconfig = dtest_k3s.GetKubeconfig
-var K3sUp = dtest_k3s.K3sUp
+var K3sVersionUp = dtest_k3s.K3sVersionUp
 var K3sDown = dtest_k3s.K3sDown
 var RegistryUp = dtest_k3s.RegistryUp
 var RegistryDown = dtest_k3s.RegistryDown

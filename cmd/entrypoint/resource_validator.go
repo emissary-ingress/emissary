@@ -2,11 +2,10 @@ package entrypoint
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
-	"strings"
 
-	"github.com/datawire/ambassador/pkg/kates"
+	getambassadorio "github.com/datawire/ambassador/v2/pkg/api/getambassador.io"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/dlib/dlog"
 )
 
 type resourceValidator struct {
@@ -14,37 +13,22 @@ type resourceValidator struct {
 	katesValidator *kates.Validator
 }
 
-func newResourceValidator() *resourceValidator {
-	crdYAML, err := ioutil.ReadFile(findCRDFilename())
-	if err != nil {
-		panic(err)
-	}
-
-	crdObjs, err := kates.ParseManifests(string(crdYAML))
-	if err != nil {
-		panic(err)
-	}
-	katesValidator, err := kates.NewValidator(nil, crdObjs)
-	if err != nil {
-		panic(err)
-	}
-
+func newResourceValidator() (*resourceValidator, error) {
 	return &resourceValidator{
-		katesValidator: katesValidator,
+		katesValidator: getambassadorio.NewValidator(),
 		invalid:        map[string]*kates.Unstructured{},
-	}
+	}, nil
 }
 
 func (v *resourceValidator) isValid(ctx context.Context, un *kates.Unstructured) bool {
-	key := string(un.GetUID())
 	err := v.katesValidator.Validate(ctx, un)
+
 	if err != nil {
-		copy := un.DeepCopy()
-		copy.Object["errors"] = err.Error()
-		v.invalid[key] = copy
+		dlog.Errorf(ctx, "validation error: %s %s/%s -- %s", un.GetKind(), un.GetNamespace(), un.GetName(), err.Error())
+		v.addInvalid(ctx, un, err.Error())
 		return false
 	} else {
-		delete(v.invalid, key)
+		v.removeInvalid(ctx, un)
 		return true
 	}
 }
@@ -57,19 +41,19 @@ func (v *resourceValidator) getInvalid() []*kates.Unstructured {
 	return result
 }
 
-func findCRDFilename() string {
-	searchPath := []string{
-		"/opt/ambassador/etc/crds.yaml",
-		"docs/yaml/ambassador/ambassador-crds.yaml",
-		"../../docs/yaml/ambassador/ambassador-crds.yaml",
-		"ambassador/docs/yaml/ambassador/ambassador-crds.yaml",
-	}
+// The addInvalid method adds a resource to the Validator's list of invalid
+// resources.
+func (v *resourceValidator) addInvalid(ctx context.Context, un *kates.Unstructured, errorMessage string) {
+	key := string(un.GetUID())
 
-	for _, candidate := range searchPath {
-		if fileExists(candidate) {
-			return candidate
-		}
-	}
+	copy := un.DeepCopy()
+	copy.Object["errors"] = errorMessage
+	v.invalid[key] = copy
+}
 
-	panic(fmt.Sprintf("couldn't find CRDs at any of the following locations: %s", strings.Join(searchPath, ", ")))
+// The removeInvalid method removes a resource from the Validator's list of
+// invalid resources.
+func (v *resourceValidator) removeInvalid(ctx context.Context, un *kates.Unstructured) {
+	key := string(un.GetUID())
+	delete(v.invalid, key)
 }

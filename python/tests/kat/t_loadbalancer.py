@@ -1,9 +1,10 @@
+from typing import Generator, Tuple, Union
+
 import os
 
+import tests.integration.manifests as integration_manifests
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 from kat.harness import Query
-
-from abstract_tests import AmbassadorTest, HTTP
-from abstract_tests import ServiceType
 
 
 LOADBALANCER_POD = """
@@ -18,7 +19,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: {environ[KAT_SERVER_DOCKER_IMAGE]}
+    image: {images[kat-server]}
     ports:
     - containerPort: 8080
     env:
@@ -34,27 +35,30 @@ class LoadBalancerTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-0
+hostname: "*"
 prefix: /{self.name}-0/
 service: {self.target.path.fqdn}
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-1
+hostname: "*"
 prefix: /{self.name}-1/
 service: {self.target.path.fqdn}
 resolver:  endpoint
 load_balancer:
   policy: round_robin
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-2
+hostname: "*"
 prefix: /{self.name}-2/
 service: {self.target.path.fqdn}
 resolver: endpoint
@@ -62,9 +66,10 @@ load_balancer:
   policy: ring_hash
   header: test-header
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-3
+hostname: "*"
 prefix: /{self.name}-3/
 service: {self.target.path.fqdn}
 resolver: endpoint
@@ -72,9 +77,10 @@ load_balancer:
   policy: ring_hash
   source_ip: True
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-4
+hostname: "*"
 prefix: /{self.name}-4/
 service: {self.target.path.fqdn}
 resolver: endpoint
@@ -83,9 +89,10 @@ load_balancer:
   cookie:
     name: test-cookie
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-5
+hostname: "*"
 prefix: /{self.name}-5/
 service: {self.target.path.fqdn}
 resolver: endpoint
@@ -96,9 +103,10 @@ load_balancer:
   header: test-header
   source_ip: True
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-6
+hostname: "*"
 prefix: /{self.name}-6/
 service: {self.target.path.fqdn}
 resolver: endpoint
@@ -107,27 +115,30 @@ load_balancer:
   cookie:
     name: test-cookie
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-7
+hostname: "*"
 prefix: /{self.name}-7/
 service: {self.target.path.fqdn}
 resolver: endpoint
 load_balancer:
   policy: rr
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-8
+hostname: "*"
 prefix: /{self.name}-8/
 service: {self.target.path.fqdn}
 resolver: endpoint
 load_balancer:
   policy: least_request
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-9
+hostname: "*"
 prefix: /{self.name}-9/
 service: {self.target.path.fqdn}
 resolver: endpoint
@@ -159,9 +170,18 @@ class GlobalLoadBalancing(AmbassadorTest):
     def manifests(self) -> str:
         backend = self.name.lower() + '-backend'
         return \
-               LOADBALANCER_POD.format(name='{}-1'.format(self.path.k8s), backend=backend, backend_env='{}-1'.format(self.path.k8s), environ=os.environ) + \
-               LOADBALANCER_POD.format(name='{}-2'.format(self.path.k8s), backend=backend, backend_env='{}-2'.format(self.path.k8s), environ=os.environ) + \
-               LOADBALANCER_POD.format(name='{}-3'.format(self.path.k8s), backend=backend, backend_env='{}-3'.format(self.path.k8s), environ=os.environ) + """
+               integration_manifests.format(LOADBALANCER_POD,
+                                            name='{}-1'.format(self.path.k8s),
+                                            backend=backend,
+                                            backend_env='{}-1'.format(self.path.k8s)) + \
+               integration_manifests.format(LOADBALANCER_POD,
+                                            name='{}-2'.format(self.path.k8s),
+                                            backend=backend,
+                                            backend_env='{}-2'.format(self.path.k8s)) + \
+               integration_manifests.format(LOADBALANCER_POD,
+                                            name='{}-3'.format(self.path.k8s),
+                                            backend=backend,
+                                            backend_env='{}-3'.format(self.path.k8s)) + """
 ---
 apiVersion: v1
 kind: Service
@@ -179,9 +199,9 @@ spec:
 """.format(backend=backend) + \
     super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -190,9 +210,10 @@ config:
     policy: ring_hash
     header: LB-HEADER
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-header
+hostname: "*"
 prefix: /{self.name}-header/
 service: globalloadbalancing-service
 load_balancer:
@@ -200,9 +221,10 @@ load_balancer:
   cookie:
     name: lb-cookie
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-generic
+hostname: "*"
 prefix: /{self.name}-generic/
 service: globalloadbalancing-service
 """)
@@ -306,9 +328,18 @@ class PerMappingLoadBalancing(AmbassadorTest):
     def manifests(self) -> str:
         backend = self.name.lower() + '-backend'
         return \
-               LOADBALANCER_POD.format(name='{}-1'.format(self.path.k8s), backend=backend, backend_env='{}-1'.format(self.path.k8s), environ=os.environ) + \
-               LOADBALANCER_POD.format(name='{}-2'.format(self.path.k8s), backend=backend, backend_env='{}-2'.format(self.path.k8s), environ=os.environ) + \
-               LOADBALANCER_POD.format(name='{}-3'.format(self.path.k8s), backend=backend, backend_env='{}-3'.format(self.path.k8s), environ=os.environ) + """
+               integration_manifests.format(LOADBALANCER_POD,
+                                            name='{}-1'.format(self.path.k8s),
+                                            backend=backend,
+                                            backend_env='{}-1'.format(self.path.k8s)) + \
+               integration_manifests.format(LOADBALANCER_POD,
+                                            name='{}-2'.format(self.path.k8s),
+                                            backend=backend,
+                                            backend_env='{}-2'.format(self.path.k8s)) + \
+               integration_manifests.format(LOADBALANCER_POD,
+                                            name='{}-3'.format(self.path.k8s),
+                                            backend=backend,
+                                            backend_env='{}-3'.format(self.path.k8s)) + """
 ---
 apiVersion: v1
 kind: Service
@@ -326,14 +357,15 @@ spec:
 """.format(backend=backend) + \
     super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         for policy in ['ring_hash', 'maglev']:
             self.policy = policy
             yield self, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-header-{self.policy}
+hostname: "*"
 prefix: /{self.name}-header-{self.policy}/
 service: permappingloadbalancing-service
 resolver: endpoint
@@ -341,9 +373,10 @@ load_balancer:
   policy: {self.policy}
   header: LB-HEADER
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-sourceip-{self.policy}
+hostname: "*"
 prefix: /{self.name}-sourceip-{self.policy}/
 service: permappingloadbalancing-service
 resolver: endpoint
@@ -351,9 +384,10 @@ load_balancer:
   policy: {self.policy}
   source_ip: true
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-cookie-{self.policy}
+hostname: "*"
 prefix: /{self.name}-cookie-{self.policy}/
 service: permappingloadbalancing-service
 resolver: endpoint
@@ -364,9 +398,10 @@ load_balancer:
     ttl: 125s
     path: /foo
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-cookie-no-ttl-{self.policy}
+hostname: "*"
 prefix: /{self.name}-cookie-no-ttl-{self.policy}/
 service: permappingloadbalancing-service
 resolver: endpoint

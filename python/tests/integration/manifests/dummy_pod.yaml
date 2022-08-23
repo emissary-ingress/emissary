@@ -22,7 +22,7 @@ spec:
             fieldPath: metadata.labels
   containers:
   - name: ambassador
-    image: {environ[AMBASSADOR_DOCKER_IMAGE]}
+    image: {images[emissary]}
     imagePullPolicy: Always
     command: [ "sh" ]
     args: [ "-c", "while true; do sleep 3600; done" ]

@@ -1,5 +1,11 @@
-# Docker build pin files
-docker/*.pin
+/build-output/
+
+*.tgz
+*.img.tar
+*.layer.tar
+.*.stamp
+/docker/kat-server/server.crt
+/docker/kat-server/server.key
 
 *.pyc
 *~
@@ -22,25 +28,19 @@ __pycache__
 *.local.sh
 
 # binaries
-/bin
-/bin_*/
+/charts/docgen
 
 # helm chart
-charts/ambassador/ci/tests/values
-charts/ambassador/artifacts
-charts/ambassador/k3dconfig
+charts/emissary-ingress/ci/tests/values
+charts/emissary-ingress/artifacts
+charts/emissary-ingress/k3dconfig
+charts/yq
 
 vendor_bootstrap_hack.go
-
-/tools/sandbox/grpc_auth/docker-compose.yml
-/tools/sandbox/grpc_web/docker-compose.yaml
-/tools/sandbox/http_auth/docker-compose.yml
 
 /docker/images.sh
 /docker/images.tar
 /docker/volume.tar
-/docker/container.txt
-/docker/container.txt.stamp
 *.docker
 *.docker.stamp
 *.docker.tag.*
@@ -51,6 +51,10 @@ vendor_bootstrap_hack.go
 /python/build
 dist
 
+# kubeapply
+*.yaml.o
+
+# misc
 *.out
 *.log
 *.tmp
@@ -94,7 +98,21 @@ ambassador-secrets-deployment.yaml
 *failures.txt
 *.swp
 .ambassador_ignore_ingress_class
+/test-chart-values.yaml
+# `.coverage.HOSTNAME.PID.NNN` - I'm not sure what causes these to get written, but `make pytest-kat` does it
+.coverage.*.*.*
 
 # --- Files ignored by older versions ---
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
+
+# 2022-05-19
+/bin
+/bin_*/
+# 2022-04-18
+/build-aux/version-hack.stamp.mk
+/manifests/emissary/*.yaml
+/docs/yaml/versions.yml
+# 2022-01-31
+/docker/container.txt
+/docker/container.txt.stamp

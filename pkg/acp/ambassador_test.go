@@ -1,11 +1,11 @@
 package acp_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/acp"
+	"github.com/datawire/ambassador/v2/pkg/acp"
+	"github.com/datawire/dlib/dlog"
 	"github.com/datawire/dlib/dtime"
 )
 
@@ -77,7 +77,7 @@ func TestAmbassadorHappyPath(t *testing.T) {
 
 	// Fetch readiness.
 	m.stepSec(10)
-	m.aw.FetchEnvoyReady(context.Background())
+	m.aw.FetchEnvoyReady(dlog.NewTestContext(t, false))
 	m.check(4, 40, true, true)
 
 	// Make sure it stays happy.
@@ -99,7 +99,7 @@ func TestAmbassadorUnrealisticallyHappy(t *testing.T) {
 	m.stepSec(10)
 	m.aw.NoteSnapshotSent()
 	m.aw.NoteSnapshotProcessed()
-	m.aw.FetchEnvoyReady(context.Background())
+	m.aw.FetchEnvoyReady(dlog.NewTestContext(t, false))
 	m.check(2, 20, true, true)
 
 	// Make sure it stays happy.

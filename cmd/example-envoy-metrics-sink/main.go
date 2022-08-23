@@ -1,55 +1,55 @@
 package main
 
 import (
+	"context"
 	"io"
-	"log"
-	"net"
+	"os"
 
-	v2 "github.com/datawire/ambassador/pkg/api/envoy/service/metrics/v2"
-	"github.com/golang/protobuf/jsonpb"
+	"github.com/datawire/dlib/dhttp"
+	"github.com/datawire/dlib/dlog"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/encoding/protojson"
+
+	v2_metrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v2"
 )
 
+type server struct{}
+
+var _ v2_metrics.MetricsServiceServer = &server{}
+
 func main() {
-	grpcServer := grpc.NewServer()
-	v2.RegisterMetricsServiceServer(grpcServer, New())
+	ctx := context.Background()
 
-	l, err := net.Listen("tcp", ":8123")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+	grpcMux := grpc.NewServer()
+	v2_metrics.RegisterMetricsServiceServer(grpcMux, &server{})
+
+	sc := &dhttp.ServerConfig{
+		Handler: grpcMux,
 	}
 
-	log.Println("Listening on tcp://localhost:8123")
-	grpcServer.Serve(l)
-}
+	dlog.Print(ctx, "starting...")
 
-type server struct {
-	marshaler jsonpb.Marshaler
-}
-
-var _ v2.MetricsServiceServer = &server{}
-
-// New ...
-func New() v2.MetricsServiceServer {
-	return &server{
-		marshaler: jsonpb.Marshaler{
-			Indent: "  ",
-		},
+	if err := sc.ListenAndServe(ctx, ":8080"); err != nil {
+		dlog.Errorf(ctx, "shut down with error: %v", err)
+		os.Exit(1)
 	}
+
+	dlog.Print(ctx, "shut down without error")
 }
 
-func (s *server) StreamMetrics(stream v2.MetricsService_StreamMetricsServer) error {
-	log.Println("Started stream")
+func (s *server) StreamMetrics(stream v2_metrics.MetricsService_StreamMetricsServer) error {
+	dlog.Println(stream.Context(), "Started stream")
 	for {
 		in, err := stream.Recv()
-		log.Println("Received value")
+
 		if err == io.EOF {
 			return nil
 		}
+
 		if err != nil {
 			return err
 		}
-		str, _ := s.marshaler.MarshalToString(in)
-		log.Println(str)
+
+		dlog.Println(stream.Context(), protojson.Format(in))
 	}
 }

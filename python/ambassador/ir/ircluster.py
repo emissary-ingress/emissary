@@ -48,6 +48,7 @@ class IRCluster (IRResource):
                  cluster_idle_timeout_ms: Optional[int] = None,
                  cluster_max_connection_lifetime_ms: Optional[int] = None,
                  marker: Optional[str] = None,  # extra marker for this context name
+                 stats_name: Optional[str] = None, # Override the stats name for this cluster
 
                  ctx_name: Optional[Union[str, bool]]=None,
                  host_rewrite: Optional[str]=None,
@@ -288,6 +289,15 @@ class IRCluster (IRResource):
             'respect_dns_ttl': respect_dns_ttl,
         }
 
+        # If we have a stats_name, use it. If not, default it to the service to make life
+        # easier for people trying to find stats later -- but translate unusual characters
+        # to underscores, just in case.
+
+        if stats_name:
+            new_args['stats_name'] = stats_name
+        else:
+            new_args['stats_name'] = re.sub(r'[^0-9A-Za-z_]', '_', service)
+
         if grpc:
             new_args['grpc'] = True
 
@@ -335,20 +345,10 @@ class IRCluster (IRResource):
         # Resolve our actual targets.
         targets = ir.resolve_targets(self, self._resolver, self._hostname, self._namespace, self._port)
 
-        if targets or not Config.legacy_mode:
-            # Great.
-            self.targets = targets
+        self.targets = targets
 
-            if not targets:
-                self.ir.logger.debug("accepting cluster with no endpoints: %s" % self.name)
-        else:
-            self.post_error("no endpoints found, disabling cluster")
-
-            # This is a legit error. If we can't find _anything_ to route to, something is
-            # badly broken. (Note that the KubernetesServiceResolver will return a single
-            # endpoint with the DNS name of the service as the address, so it's not a special
-            # case here.)
-            return False
+        if not targets:
+            self.ir.logger.debug("accepting cluster with no endpoints: %s" % self.name)
 
         return True
 

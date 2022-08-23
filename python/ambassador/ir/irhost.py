@@ -3,20 +3,23 @@ from typing import Dict, List, Optional, TYPE_CHECKING
 
 import os
 
-from ..utils import SavedSecret
+from ..utils import SavedSecret, dump_json
 from ..config import Config
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
+from .irutils import hostglob_matches, selector_matches
 
 if TYPE_CHECKING:
     from .ir import IR # pragma: no cover
+    from .irhttpmappinggroup import IRHTTPMappingGroup
 
 
 class IRHost(IRResource):
     AllowedKeys = {
         'acmeProvider',
         'hostname',
-        'matchLabels',
+        'mappingSelector',
+        'metadata_labels',
         'requestPolicy',
         'selector',
         'tlsSecret',
@@ -24,13 +27,18 @@ class IRHost(IRResource):
         'tls',
     }
 
+    hostname: str
+    secure_action: str
+    insecure_action: str
+    insecure_addl_port: Optional[int]
+
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str,      # REQUIRED
                  name: str,      # REQUIRED
                  location: str,  # REQUIRED
                  namespace: Optional[str]=None,
                  kind: str="IRHost",
-                 apiVersion: str="getambassador.io/v2",   # Not a typo! See below.
+                 apiVersion: str="getambassador.io/v3alpha1",   # Not a typo! See below.
                  **kwargs) -> None:
 
         new_args = {
@@ -49,8 +57,31 @@ class IRHost(IRResource):
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         ir.logger.debug(f"Host {self.name} setting up")
 
+        if not self.get('hostname', None):
+            self.hostname = '*'
+
         tls_ss: Optional[SavedSecret] = None
         pkey_ss: Optional[SavedSecret] = None
+
+        # Go ahead and cache some things to make life easier later.
+        request_policy = self.get('requestPolicy', {})
+
+        # XXX This will change later!!
+        self.secure_action = 'Route'
+
+        insecure_policy = request_policy.get('insecure', {})
+        self.insecure_action = insecure_policy.get('action', 'Redirect')
+        self.insecure_addl_port: Optional[int] = insecure_policy.get('additionalPort', None)
+
+        # If we have no mappingSelector, check for selector.
+        mapsel = self.get('mappingSelector', None)
+
+        if not mapsel:
+            mapsel = self.get('selector', None)
+
+            if mapsel:
+                self.mappingSelector = mapsel
+                del self['selector']
 
         if self.get('tlsSecret', None):
             tls_secret = self.tlsSecret
@@ -90,59 +121,15 @@ class IRHost(IRResource):
                         return False
 
                     if host_tls_context_name:
+                        # They named a TLSContext, so try to use that. self.save_context will check the
+                        # context to make sure it works for us, and save it if so.
                         ir.logger.debug(f"Host {self.name}: resolving spec.tlsContext: {host_tls_context_name}")
 
-                        if not ir.has_tls_context(host_tls_context_name):
-                            self.post_error(f"Host {self.name}: Specified TLSContext does not exist: "
-                                            f"{host_tls_context_name}")
+                        if not self.save_context(ir, host_tls_context_name, tls_ss, tls_name):
                             return False
 
-                        host_tls_context = ir.get_tls_context(host_tls_context_name)
-                        assert(host_tls_context)    # For mypy -- we checked above to be sure it exists.
-
-                        # First make sure that the TLSContext is "compatible" i.e. it at least has the same cert related
-                        # configuration as the one in this Host AND hosts are same as well.
-
-                        if host_tls_context.has_secret():
-                            secret_name = host_tls_context.secret_name()
-                            assert(secret_name)     # For mypy -- we checked above to be sure it exists.
-
-                            context_ss = self.resolve(ir, secret_name)
-
-                            self.logger.debug(f"Host {self.name}, ctx {host_tls_context.name}, secret {secret_name}, resolved {context_ss}")
-
-                            if str(context_ss) != str(tls_ss):
-                                self.post_error(f"Secret info mismatch between Host: {self.name} (secret: {tls_name})"
-                                                f" and TLSContext: {host_tls_context_name} (secret: {secret_name})")
-                                return False
-                        else:
-                            host_tls_context.set_secret_name(tls_name)
-
-                        context_hosts = host_tls_context.get('hosts')
-                        host_hosts = [ self.name ]
-
-                        if self.hostname:
-                            host_hosts.append(self.hostname)
-
-                        if context_hosts:
-                            is_valid_hosts = False
-
-                            for host_tc in context_hosts:
-                                if host_tc in host_hosts:
-                                    is_valid_hosts = True
-
-                            if not is_valid_hosts:
-                                self.post_error(f"Hosts mismatch between Host: {self.name} (accepted hosts: {host_hosts}) and "
-                                                f"TLSContext {host_tls_context_name} (hosts: {context_hosts})")
-                        else:
-                            host_tls_context['hosts'] = [self.hostname or self.name]
-
-                        self.logger.debug(f"Host {self.name}, final ctx {host_tls_context.name}: {host_tls_context.as_json()}")
-
-                        # All seems good, this context belongs to self now!
-                        self.context = host_tls_context
-
                     elif host_tls_config:
+                        # They defined a TLSContext inline, so go set that up if we can.
                         ir.logger.debug(f"Host {self.name}: examining spec.tls {host_tls_config}")
 
                         camel_snake_map = {
@@ -156,6 +143,8 @@ class IRHost(IRResource):
                             'certChainFile': 'cert_chain_file',
                             'privateKeyFile': 'private_key_file',
                             'cacertChainFile': 'cacert_chain_file',
+                            'crlSecret': 'crl_secret',
+                            'crlFile': 'crl_file',
                             'caSecret': 'ca_secret',
                             # 'sni': 'sni' (this field is not required in snake-camel but adding for completeness)
                         }
@@ -189,11 +178,17 @@ class IRHost(IRResource):
 
                         tls_config_context = IRTLSContext(ir, aconf, **tls_context_init, **host_tls_config)
 
-                        match_labels = self.get('matchLabels')
-                        if not match_labels:
-                            match_labels = self.get('match_labels')
-                        if match_labels:
-                            tls_config_context['metadata_labels'] = match_labels
+                        # This code was here because, while 'selector' was controlling things to be watched
+                        # for, we figured we should update the labels on this generated TLSContext so that
+                        # it would actually match the 'selector'. Nothing was actually using that, though, so
+                        # we're not doing that any more.
+                        #
+                        #-----------------------------------------------------------------------------------
+                        # # XXX This seems kind of pointless -- nothing looks at the context's labels?
+                        # match_labels = self.get('selector', {}).get('matchLabels')
+
+                        # if match_labels:
+                        #     tls_config_context['metadata_labels'] = match_labels
 
                         if tls_config_context.is_active():
                             self.context = tls_config_context
@@ -207,8 +202,12 @@ class IRHost(IRResource):
                             return False
 
                     elif implicit_tls_exists:
+                        # They didn't say anything explicitly, but it happens that a context with the
+                        # correct name for this Host already exists. Save that, if it works out for us.
                         ir.logger.debug(f"Host {self.name}: TLSContext {ctx_name} already exists")
 
+                        if not self.save_context(ir, ctx_name, tls_ss, tls_name):
+                            return False
                     else:
                         ir.logger.debug(f"Host {self.name}: creating TLSContext {ctx_name}")
 
@@ -240,7 +239,7 @@ class IRHost(IRResource):
                         else:
                             ir.logger.error(f"Host {self.name}: new TLSContext {ctx_name} is not valid")
                 else:
-                    ir.logger.error(f"Host {self.name}: continuing with invalid TLS secret {tls_name}")
+                    ir.logger.error(f"Host {self.name}: invalid TLS secret {tls_name}, marking inactive")
                     return False
 
         if self.get('acmeProvider', None):
@@ -251,17 +250,25 @@ class IRHost(IRResource):
                 authority = acme.get('authority', None)
 
                 if authority and (authority.lower() != 'none'):
-                    # ACME is active. Are they trying to not set insecure.additionalPort?
-                    request_policy = self.get('requestPolicy', {})
-                    insecure_policy = request_policy.get('insecure', {})
+                    # ACME is active, which means that we must have an insecure_addl_port.
+                    # Make sure we do -- if no port is set at all, just silently default it,
+                    # but if for some reason they tried to force it disabled, be noisy.
 
-                    # Default the additionalPort to 8080. This can be overridden by the user
-                    # explicitly setting it to -1.
-                    insecure_addl_port = insecure_policy.get('additionalPort', 8080)
+                    override_insecure = False
 
-                    if insecure_addl_port < 0:
-                        # Bzzzt.
+                    if self.insecure_addl_port is None:
+                        # Override silently, since it's not set at all.
+                        override_insecure = True
+                    elif self.insecure_addl_port < 0:
+                        # Override noisily, since they tried to explicitly disable it.
                         self.post_error("ACME requires insecure.additionalPort to function; forcing to 8080")
+                        override_insecure = True
+
+                    if override_insecure:
+                        # Force self.insecure_addl_port...
+                        self.insecure_addl_port = 8080
+
+                        # ...but also update the actual policy dict, too.
                         insecure_policy['additionalPort'] = 8080
 
                         if 'action' not in insecure_policy:
@@ -283,20 +290,132 @@ class IRHost(IRResource):
                     pkey_ss = self.resolve(ir, pkey_name)
 
                     if not pkey_ss:
-                        ir.logger.error(f"Host {self.name}: continuing with invalid private key secret {pkey_name}")
+                        ir.logger.error(f"Host {self.name}: continuing with invalid private key secret {pkey_name}; ACME will not be able to renew this certificate")
+                        self.post_error(f"continuing with invalid ACME private key secret {pkey_name}; ACME will not be able to renew this certificate")
 
-        ir.logger.debug(f"Host setup OK: {self.pretty()}")
+        ir.logger.debug(f"Host setup OK: {self}")
         return True
 
-    def pretty(self) -> str:
+    # Check a TLSContext name, and save the linked TLSContext if it'll work for us.
+    def save_context(self, ir: 'IR', ctx_name: str, tls_ss: SavedSecret, tls_name: str):
+        # First obvious thing: does a TLSContext with the right name even exist?
+        if not ir.has_tls_context(ctx_name):
+            self.post_error("Host %s: Specified TLSContext does not exist: %s" % (self.name, ctx_name))
+            return False
+
+        ctx = ir.get_tls_context(ctx_name)
+        assert(ctx)    # For mypy -- we checked above to be sure it exists.
+
+        # Make sure that the TLSContext is "compatible" i.e. it at least has the same cert related
+        # configuration as the one in this Host AND hosts are same as well.
+
+        if ctx.has_secret():
+            secret_name = ctx.secret_name()
+            assert(secret_name)     # For mypy -- if has_secret() is true, secret_name() will be there.
+
+            # This is a little weird. Basically we're going to resolve the secret (which should just
+            # be a cache lookup here) so that we can use SavedSecret.__str__() as a serializer to
+            # compare the configurations.
+            context_ss = self.resolve(ir, secret_name)
+
+            self.logger.debug(f"Host {self.name}, ctx {ctx.name}, secret {secret_name}, resolved {context_ss}")
+
+            if str(context_ss) != str(tls_ss):
+                self.post_error("Secret info mismatch between Host %s (secret: %s) and TLSContext %s: (secret: %s)" %
+                                (self.name, tls_name, ctx_name, secret_name))
+                return False
+        else:
+            # This will often be a no-op.
+            ctx.set_secret_name(tls_name)
+
+        # TLS config is good, let's make sure the hosts line up too.
+        context_hosts = ctx.get('hosts')
+
+        # XXX WTF? self.name is not OK as a hostname! Leaving this for the moment, but it's
+        # almost certainly getting shredded before 2.0 GAs.
+        host_hosts = [ self.name ]
+
+        if self.hostname:
+            host_hosts.append(self.hostname)
+
+        if context_hosts:
+            is_valid_hosts = False
+
+            # XXX Should we be doing a glob check here?
+            for host_tc in context_hosts:
+                if host_tc in host_hosts:
+                    is_valid_hosts = True
+
+            if not is_valid_hosts:
+                self.post_error("Hosts mismatch between Host %s (accepted hosts: %s) and TLSContext %s (hosts: %s)" %
+                                (self.name, host_hosts, ctx_name, context_hosts))
+                # XXX Shouldn't we return false here?
+        else:
+            # XXX WTF? self.name is not OK as a hostname!
+            ctx['hosts'] = [self.hostname or self.name]
+
+        self.logger.debug(f"Host {self.name}, final ctx {ctx.name}: {ctx.as_json()}")
+
+        # All seems good, this context belongs to self now!
+        self.context = ctx
+
+        return True
+
+    def matches_httpgroup(self, group: 'IRHTTPMappingGroup') -> bool:
+        """
+        Make sure a given IRHTTPMappingGroup is a match for this Host, meaning
+        that at least one of the following is true:
+
+        - The Host specifies mappingSelector.matchLabels, and the group has matching labels
+        - The group specifies a host glob, and the Host has a matching domain.
+
+        A Mapping that specifies no host can never match a Host that specifies no
+        mappingSelector.
+        """
+
+        host_match = False
+        sel_match = False
+
+        group_regex = group.get('host_regex') or False
+
+        if group_regex:
+            # It matches.
+            host_match = True
+            self.logger.debug("-- hostname %s group regex => %s", self.hostname, host_match)
+        else:
+            # It is NOT A TYPO that we use group.get("host") here -- whether the Mapping supplies
+            # "hostname" or "host", the Mapping code normalizes to "host" internally.
+
+            # It's possible for group.host_redirect to be None instead of missing, and it's also
+            # conceivably possible for group.host_redirect.host to be "", which we'd rather be
+            # None. Hence we do this two-line dance to massage the various cases.
+            host_redirect = (group.get('host_redirect') or {}).get('host')
+            group_glob = group.get('host') or host_redirect  # NOT A TYPO: see above.
+
+            if group_glob:
+                host_match = hostglob_matches(self.hostname, group_glob)
+                self.logger.debug("-- hostname %s group glob %s => %s", self.hostname, group_glob, host_match)
+
+        mapsel = self.get('mappingSelector')
+
+        if mapsel:
+            sel_match = selector_matches(self.logger, mapsel, group.get('metadata_labels', {}))
+            self.logger.debug("-- host sel %s group labels %s => %s",
+                             dump_json(mapsel), dump_json(group.get('metadata_labels')), sel_match)
+
+        return host_match or sel_match
+
+    def __str__(self) -> str:
         request_policy = self.get('requestPolicy', {})
         insecure_policy = request_policy.get('insecure', {})
         insecure_action = insecure_policy.get('action', 'Redirect')
         insecure_addl_port = insecure_policy.get('additionalPort', None)
 
         ctx_name = self.context.name if self.context else "-none-"
-        return "<Host %s for %s ctx %s ia %s iap %s>" % (self.name, self.hostname or '*', ctx_name,
-                                                         insecure_action, insecure_addl_port)
+        return "<Host %s for %s ns %s ctx %s ia %s iap %s>" % (
+            self.name, self.hostname or '*', self.namespace, ctx_name,
+            insecure_action, insecure_addl_port
+        )
 
     def resolve(self, ir: 'IR', secret_name: str) -> SavedSecret:
         # Try to use our namespace for secret resolution. If we somehow have no
@@ -323,55 +442,74 @@ class HostFactory:
                     host.referenced_by(config)
                     host.sourced_by(config)
 
-                    ir.logger.debug(f"HostFactory: saving host {host.pretty()}")
+                    ir.logger.debug(f"HostFactory: saving host {host}")
                     ir.save_host(host)
                 else:
-                    ir.logger.debug(f"HostFactory: not saving inactive host {host.pretty()}")
+                    ir.logger.debug(f"HostFactory: not saving inactive host {host}")
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:
-        if ir.edge_stack_allowed:
-            # We're running Edge Stack. Figure out how many hosts we have, and whether
-            # we have any termination contexts.
+        # First up: how many Hosts do we have?
+        host_count = len(ir.get_hosts() or [])
+
+        # Do we have any termination contexts for TLS? (If not, we'll need to bring the
+        # fallback cert into play.)
+        #
+        # (This empty_contexts stuff mypy silliness to deal with the fact that ir.get_tls_contexts()
+        # returns a ValuesView[IRTLSContext] rather than a List[IRTLSContext].
+        empty_contexts: List[IRTLSContext] = []
+        contexts: List[IRTLSContext] = list(ir.get_tls_contexts()) or empty_contexts
+
+        found_termination_context = False
+        for ctx in contexts:
+            if ctx.get('hosts'):  # not None and not the empty list
+                found_termination_context = True
+                break
+
+        ir.logger.debug(f"HostFactory: Host count %d, %s TLS termination contexts" %
+                        (host_count, "with" if found_termination_context else "no"))
+
+        # OK, do we have any Hosts?
+        if host_count == 0:
+            # Nope. First up, scream if we _do_ have termination contexts...
+            if found_termination_context:
+                ir.post_error("No Hosts defined, but TLSContexts exist that terminate TLS. The TLSContexts are being ignored.")
+
+            # If we don't have a fallback secret, don't try to use it.
             #
-            # If we're running as an intercept agent, there should be a Host in all cases.
-            host_count = len(ir.get_hosts() or [])
+            # We use the Ambassador's namespace here because we'll be creating the
+            # fallback Host in the Ambassador's namespace.
+            fallback_ss = ir.resolve_secret(ir.ambassador_module, "fallback-self-signed-cert", ir.ambassador_namespace)
 
-            # This is mostly mypy silliness to deal with the fact that ir.get_tls_contexts()
-            # returns a ValuesView[IRTLSContext] rather than a List[IRTLSContext].
-            empty_contexts: List[IRTLSContext] = []
-            contexts: List[IRTLSContext] = list(ir.get_tls_contexts()) or empty_contexts
+            host: IRHost
 
-            found_termination_context = False
-            for ctx in contexts:
-                if ctx.get('hosts'):  # not None and not the empty list
-                    found_termination_context = True
+            if not fallback_ss:
+                ir.aconf.post_notice("No TLS termination and no fallback cert -- defaulting to cleartext-only.")
+                ir.logger.debug("HostFactory: creating cleartext-only default host")
 
-            ir.logger.debug(f"HostFactory: FTC {found_termination_context}, host_count {host_count}")
-
-            if (host_count == 0) and not found_termination_context:
-                # We have no Hosts and no termination contexts, so we know that this is an unconfigured
-                # installation. Set up the fallback TLSContext so we can redirect people to the UI.
-                ir.logger.debug("Creating fallback context")
-                ctx_name = "fallback-self-signed-context"
-                tls_name = "fallback-self-signed-cert"
-
-                new_ctx = dict(
-                    rkey=f"{ctx_name}.99999",
-                    name=ctx_name,
+                host = IRHost(ir, aconf,
+                    rkey="-internal",
+                    name="default-host",
                     location="-internal-",
-                    hosts=["*"],
-                    secret=tls_name,
-                    is_fallback=True
+                    hostname="*",
+                    requestPolicy={ "insecure": { "action": "Route" }},
+                )
+            else:
+                ir.logger.debug(f"HostFactory: creating TLS-enabled default Host")
+
+                host = IRHost(ir, aconf,
+                    rkey="-internal",
+                    name="default-host",
+                    location="-internal-",
+                    hostname="*",
+                    tlsSecret={ "name": "fallback-self-signed-cert" }
                 )
 
-                if not os.environ.get('AMBASSADOR_NO_TLS_REDIRECT', None):
-                    new_ctx['redirect_cleartext_from'] = 8080
+            if not host.is_active():
+                ir.post_error("Synthesized default host is inactive? %s" % dump_json(host.as_dict()))
+            else:
+                host.referenced_by(ir.ambassador_module)
+                host.sourced_by(ir.ambassador_module)
 
-                # XXX mypy doesn't like Dict[str, object] as the keyword args to IRTLSContext, but so far,
-                # everything I've tried just causes more trouble elsewhere. (Flynn)
-                ctx = IRTLSContext(ir, aconf, **new_ctx)    # type: ignore
-
-                assert ctx.is_active()
-                if ctx.resolve_secret(tls_name):
-                    ir.save_tls_context(ctx)
+                ir.logger.debug(f"HostFactory: saving host {host}")
+                ir.save_host(host)

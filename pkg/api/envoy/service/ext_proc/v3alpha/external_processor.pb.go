@@ -9,9 +9,9 @@ package envoy_service_ext_proc_v3alpha
 import (
 	context "context"
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/config/core/v3"
-	v3alpha "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/ext_proc/v3alpha"
-	v31 "github.com/datawire/ambassador/pkg/api/envoy/type/v3"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
+	v3alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/ext_proc/v3alpha"
+	v31 "github.com/datawire/ambassador/v2/pkg/api/envoy/type/v3"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	_struct "github.com/golang/protobuf/ptypes/struct"

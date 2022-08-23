@@ -8,8 +8,8 @@ package envoy_admin_v2alpha
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
-	_type "github.com/datawire/ambassador/pkg/api/envoy/type"
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	_type "github.com/datawire/ambassador/v2/pkg/api/envoy/type"
 	proto "github.com/golang/protobuf/proto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"

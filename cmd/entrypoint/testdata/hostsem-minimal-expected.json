@@ -1,0 +1,91 @@
+[
+  {
+    "name": "ambassador-listener-8080",
+    "port": 8080,
+    "chains": [
+      {
+        "server_names": null,
+        "transport_protocol": "",
+        "vhosts": [
+          {
+            "name": "ambassador-listener-8080-*",
+            "routes": [
+              {
+                "scheme": "implicit-http",
+                "host": "*",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "*",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "*",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "*",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "*",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "*",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "*",
+                "path": "/test-mapping/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "*",
+                "path": "/test-mapping/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_test_service_default"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

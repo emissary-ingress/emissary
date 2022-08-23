@@ -1,5 +1,7 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 import json
 
 # tests that using logical_dns does not impact requests
@@ -10,14 +12,15 @@ class LogicalDnsType(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-foo
 prefix: /foo/
 service: {self.target.path.fqdn}
+hostname: "*"
 dns_type: logical_dns
 """)
 
@@ -35,14 +38,15 @@ class LogicalDnsTypeEndpoint(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-foo
 prefix: /foo/
 service: {self.target.path.fqdn}
+hostname: "*"
 dns_type: logical_dns
 resolver: endpoint
 """)
@@ -61,13 +65,14 @@ class DnsTtl(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
-name:  {self.target.path.k8s}-foo
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+name: {self.target.path.k8s}-foo
 prefix: /foo/
+hostname: "*"
 service: {self.target.path.fqdn}
 respect_dns_ttl: true
 """)
@@ -86,13 +91,14 @@ class DnsTtlEndpoint(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
-name:  {self.target.path.k8s}-foo
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+name: {self.target.path.k8s}-foo
 prefix: /foo/
+hostname: "*"
 service: {self.target.path.fqdn}
 respect_dns_ttl: true
 resolver: endpoint
@@ -112,13 +118,14 @@ class DnsTtlDnsType(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="target")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
-name:  {self.target.path.k8s}-foo
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+name: {self.target.path.k8s}-foo
 prefix: /foo/
+hostname: "*"
 service: {self.target.path.fqdn}
 respect_dns_ttl: true
 dns_type: logical_dns

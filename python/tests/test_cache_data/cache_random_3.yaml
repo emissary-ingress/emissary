@@ -1,9 +1,0 @@
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  namespace: default
-  name: foo-6
-spec:
-  prefix: /foo-6/
-  service: httpbin.org

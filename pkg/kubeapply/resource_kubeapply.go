@@ -2,6 +2,7 @@ package kubeapply
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -16,8 +17,8 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 
-	"github.com/datawire/ambassador/pkg/k8s"
-	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/dlib/dexec"
 )
 
 var readyChecks = map[string]func(k8s.Resource) bool{
@@ -99,59 +100,52 @@ func isTemplate(input []byte) bool {
 	return strings.Contains(string(input), "@TEMPLATE@")
 }
 
-func image(dir, dockerfile string) (string, error) {
-	var result string
-	errs := supervisor.Run("BLD", func(p *supervisor.Process) error {
-		iidfile, err := ioutil.TempFile("", "iid")
-		if err != nil {
-			return err
-		}
-		defer os.Remove(iidfile.Name())
-		err = iidfile.Close()
-		if err != nil {
-			return err
-		}
-
-		ctx := filepath.Dir(filepath.Join(dir, dockerfile))
-		cmd := p.Command("docker", "build", "-f", filepath.Base(dockerfile), ".", "--iidfile", iidfile.Name())
-		cmd.Dir = ctx
-		err = cmd.Run()
-		if err != nil {
-			return err
-		}
-		content, err := ioutil.ReadFile(iidfile.Name())
-		if err != nil {
-			return err
-		}
-		iid := strings.Split(strings.TrimSpace(string(content)), ":")[1]
-		short := iid[:12]
-
-		registry := strings.TrimSpace(os.Getenv("DOCKER_REGISTRY"))
-		if registry == "" {
-			return errors.Errorf("please set the DOCKER_REGISTRY environment variable")
-		}
-		tag := fmt.Sprintf("%s/kubeapply:%s", registry, short)
-
-		cmd = p.Command("docker", "tag", iid, tag)
-		err = cmd.Run()
-		if err != nil {
-			return err
-		}
-
-		result = tag
-
-		cmd = p.Command("docker", "push", tag)
-		return cmd.Run()
-	})
-	if len(errs) > 0 {
-		return "", errors.Errorf("errors building %s: %v", dockerfile, errs)
+func image(ctx context.Context, dir, dockerfile string) (string, error) {
+	iidfile, err := ioutil.TempFile("", "iid")
+	if err != nil {
+		return "", err
 	}
-	return result, nil
+	defer os.Remove(iidfile.Name())
+	err = iidfile.Close()
+	if err != nil {
+		return "", err
+	}
+
+	dockerCtx := filepath.Dir(filepath.Join(dir, dockerfile))
+	cmd := dexec.CommandContext(ctx, "docker", "build", "-f", filepath.Base(dockerfile), ".", "--iidfile", iidfile.Name())
+	cmd.Dir = dockerCtx
+	err = cmd.Run()
+	if err != nil {
+		return "", err
+	}
+	content, err := ioutil.ReadFile(iidfile.Name())
+	if err != nil {
+		return "", err
+	}
+	iid := strings.Split(strings.TrimSpace(string(content)), ":")[1]
+	short := iid[:12]
+
+	registry := strings.TrimSpace(os.Getenv("DOCKER_REGISTRY"))
+	if registry == "" {
+		return "", errors.Errorf("please set the DOCKER_REGISTRY environment variable")
+	}
+	tag := fmt.Sprintf("%s/kubeapply:%s", registry, short)
+
+	if err := dexec.CommandContext(ctx, "docker", "tag", iid, tag).Run(); err != nil {
+		return "", err
+	}
+
+	cmd = dexec.CommandContext(ctx, "docker", "push", tag)
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+
+	return tag, nil
 }
 
 // ExpandResource takes a path to a YAML file, and returns its
 // contents, with any kubeapply templating expanded.
-func ExpandResource(path string) (result []byte, err error) {
+func ExpandResource(ctx context.Context, path string) (result []byte, err error) {
 	input, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %v", path, err)
@@ -161,7 +155,7 @@ func ExpandResource(path string) (result []byte, err error) {
 		usedImage := false
 		funcs["image"] = func(dockerfile string) (string, error) {
 			usedImage = true
-			return image(filepath.Dir(path), dockerfile)
+			return image(ctx, filepath.Dir(path), dockerfile)
 		}
 		tmpl := template.New(filepath.Base(path)).Funcs(funcs)
 		_, err := tmpl.Parse(string(input))
@@ -219,9 +213,9 @@ imagePullSecrets:
 
 // LoadResources is like ExpandResource, but follows it up by actually
 // parsing the YAML.
-func LoadResources(path string) (result []k8s.Resource, err error) {
+func LoadResources(ctx context.Context, path string) (result []k8s.Resource, err error) {
 	var input []byte
-	input, err = ExpandResource(path)
+	input, err = ExpandResource(ctx, path)
 	if err != nil {
 		return
 	}

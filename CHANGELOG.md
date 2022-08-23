@@ -1,84 +1,126 @@
 <!-- -*- fill-column: 100 -*- -->
-<!-- This is a GENERATED FILE, edit docs/releaseNotes.yml and "make generate" to change. -->
+# CHANGELOG -- this is a GENERATED FILE, edit docs/releaseNotes.yml and "make generate" to change.
 
-# Changelog
+## EMISSARY-INGRESS and AMBASSADOR EDGE STACK
 
-## AMBASSADOR EDGE STACK
+Emissary-ingress is a Kubernatives-native, self-service, open-source API gateway
+and ingress controller. It is a CNCF Incubation project, formerly known as the
+Ambassador API Gateway.
 
 Ambassador Edge Stack is a comprehensive, self-service solution for exposing,
 securing, and managing the boundary between end users and your Kubernetes services.
-The core of Ambassador Edge Stack is Emissary Ingress, the open-source API gateway
-built on the Envoy proxy.
+The core of Ambassador Edge Stack is Emissary-ingress.
 
-Ambassador Edge Stack provides all the capabilities of the Emissary Ingress,
-as well as additional capabilities including:
+**Note well:**
 
-- The Edge Policy Console, a graphical UI to visualize and manage all of your edge policies;
-- Security features such as automatic TLS setup via ACME integration, OAuth/OpenID Connect
-  integration, rate limiting, and fine-grained access control; and
-- Developer onboarding assistance, including an API catalog, Swagger/OpenAPI documentation
-  support, and a fully customizable developer portal.
+- Ambassador Edge Stack provides all the capabilities of Emissary-ingress,
+  as well as additional capabilities including:
 
-Note: The Ambassador Edge Stack is free for all users, and includes all the functionality
-of Emissary Ingress in addition to the additional capabilities mentioned above. Due to
-popular demand, we’re offering a free tier of our core features as part of the Ambassador
-Edge Stack, designed for startups.
+  - Security features such as automatic TLS setup via ACME integration, OAuth/OpenID Connect
+    integration, rate limiting, and fine-grained access control; and
+  - Developer onboarding assistance, including an API catalog, Swagger/OpenAPI documentation
+    support, and a fully customizable developer portal.
 
-In general, references to "Ambassador" in this CHANGELOG and the rest of the Ambassador
-Edge Stack documentation refer both to the Ambassador Edge Stack and Emissary Ingress.
+- Emissary-ingress can do everything that Ambassador Edge Stack can do, but you'll need to
+  write your own code to take advantage of the capabilities above.
+
+- Ambassador Edge Stack is free for all users: due to popular demand, Ambassador Edge Stack
+  offers a free usage tier of its core features, designed for startups.
+
+In general, references to "Ambassador" in documentation (including this CHANGELOG)
+refer both to Emissary-ingress and to the Ambassador Edge Stack.
 
 ## UPCOMING BREAKING CHANGES
 
-#### `Ingress` Resources and Namespaces
+### Emissary 3.0.0
 
-In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, TLS secrets
-in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
+ - **No `protocol_version: v2`**: Support for specifying `protocol_version: v2` in `AuthService`,
+   `RateLimitService`, and `LogService` resources will be removed.  These resources each have a
+   `protocol_version` field that controls whether Envoy speaks the `v2` transport API or the `v3`
+   transport API when speaking to that service.  Due to Envoy's removal of all v2 Envoy APIs, the
+   `v2` value will no longer be supported.  Note that `protocol_version: v2` is the default in
+   current versions of Emissary.
 
-#### Regex Matching
+   Users who use these resource types but don't explicitly say `protocol_version: v3` will need to
+   adjust their service implementations to understand the v3 protocols, and then update Emissary
+   resources to say `protocol_version` before upgrading to Emissary-ingress 3.0.0.
 
-In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, the `regex_type` and `regex_max_size`
-fields will be removed from the `ambassador` `Module`, and Ambassador will support only Envoy `safe_regex`
-matching. Note that `safe_regex` matching has been Ambassador's default since Ambassador v0.83.0.
+ - **No `regex_type: unsafe`**: The `regex_type` field will be removed from the `ambassador`
+   `Module`, meaning that it will not be possible to instruct Envoy to use the [ECMAScript Regex][]
+   engine rather than the default [RE2][] engine.
 
-This change is being made because the `regex` field for `HeaderMatcher`, `RouteMatch`, and `StringMatcher` was
-[deprecated in favor of safe_regex] in Envoy v1.12.0, then removed entirely from the Envoy V3 APIs. Additionally,
-setting [max_program_size was deprecated] in Envoy v1.15.0. As such, `regex_type: unsafe` and setting
-`regex_max_size` are not supported when `AMBASSADOR_ENVOY_API_VERSION` is set to `V3`.
+   Users who rely on the specific ECMAScript Regex syntax will need to rewrite their regular
+   expressions with RE2 syntax before upgrading to Emissary-ingress 3.0.0.
 
-Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/type/matcher/v3/regex.proto.html) for more information.
+ - **No Zipkin `collector_endpoint_version: HTTP_JSON_V1`**: Support for specifying
+   `collector_endpoint_version: HTTP_JSON_V1` for a Zipkin `TracingService` will be removed.  The
+   `HTTP_JSON_V1` value corresponds to Zipkin's old API-v1, while the `HTTP_JSON` value corresponds
+   to the Zipkin's new API-v2.
 
-[deprecated in favor of safe_regex]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.12.0.html?highlight=regex#deprecated
-[max_program_size was deprecated]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.15.0.html?highlight=max_program_size
+   For current versions of Emissary-ingress (>=1.14.0 and <3.0.0), the behavior is that if the
+   `TracingService` does not specify which Zipkin API to use, it will normally default to using
+   `HTTP_JSON`, but can be made to default to `HTTP_JSON_V1` by setting the
+   `AMBASSADOR_ENVOY_API_VERSION=V2` environment variable.  In Emissary-ingress 3.0.0 this
+   environment variable will no longer have any impact on what the default Zipkin API is, and
+   explicitly setting the API in the `TracingService` will no longer support the `HTTP_JSON_V1`
+   value.
 
-#### Zipkin Collector Versions
+   Users who rely on `HTTP_JSON_V1` will need to migrate their Emissary-ingress 2.3 install to use
+   either `HTTP_JSON` or `HTTP_PROTO` before upgrading to Emissary-ingress 3.0.0.
 
-In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, support for the [HTTP_JSON_V1] Zipkin
-collector version will be removed.
+With the removal of `regex_type: unsafe` and `collector_endpoint_version: HTTP_JSON_V1`, there will
+be no more user-visible effects of the `AMBASSADOR_ENVOY_API_VERSION` environment variable, and so
+it will be removed; but as it won't be user-visible this isn't considered a breaking change.
 
-This change is being made because the HTTP_JSON_V1 collector was deprecated in Envoy v1.12.0, then removed
-entirely from the Envoy V3 APIs. As such, the HTTP_JSON_V1 collector is not supported when
-`AMBASSADOR_ENVOY_API_VERSION` is set to `V3`: you will need to migrate to the HTTP_JSON or HTTP_PROTO
-collectors before using V3 APIs.
+[ECMASCript Regex]: https://en.cppreference.com/w/cpp/regex/ecmascript
+[RE2]: https://github.com/google/re2
 
-Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version) for more information.
+### Emissary 3.0.0 or later
 
-[HTTP_JSON_V1]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version
+ - In a future version of Emissary-ingress, **no sooner than Emissary-ingress v3.0.0**, TLS secrets
+   in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 ## RELEASE NOTES
 
-## [1.14.5] TBD
-[1.14.5]: https://github.com/emissary-ingress/emissary/compare/v1.14.4...v1.14.5
+## [2.4.0] TBD
+[2.4.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v2.4.0
 
-### Emissary Ingress and Ambassador Edge Stack
+### Emissary-ingress and Ambassador Edge Stack
+
+## [1.14.5] TBD
+[1.14.5]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v1.14.5
+
+### Emissary-ingress and Ambassador Edge Stack
 
 - Bugfix: When using gzip compression, upstream services will no longer receive compressed data.
   This bug was introduced in 1.14.0. The fix restores the default behavior of not sending compressed
-  data to upstream services.
+  data to upstream services. ([3818])
+
+[3818]: https://github.com/emissary-ingress/emissary/issues/3818
+
+## [2.3.2] August 01, 2022
+[2.3.2]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v2.3.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming
+  from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
+  ensure that all the nodes composing the emissary ingress cluster are reporting properly.
+
+- Security: Updated Golang to 1.17.12 to address the CVEs: CVE-2022-23806, CVE-2022-28327,
+  CVE-2022-24675, CVE-2022-24921, CVE-2022-23772.
+
+- Security: Updated Curl to 7.80.0-r2 to address the CVEs: CVE-2022-32207, CVE-2022-27782,
+  CVE-2022-27781, CVE-2022-27780.
+
+- Security: Updated openSSL-dev to 1.1.1q-r0 to address CVE-2022-2097.
+
+- Security: Updated ncurses to 1.1.1q-r0 to address CVE-2022-29458
 
 ## [1.14.4] June 13, 2022
-[1.14.4]: https://github.com/emissary-ingress/emissary/compare/v1.14.3...v1.14.4
+[1.14.4]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v1.14.4
 
-### Emissary Ingress and Ambassador Edge Stack
+### Emissary-ingress and Ambassador Edge Stack
 
 - Security: We have backported patches from the Envoy 1.19.5 security update to Emissary-ingress's
   1.17-based Envoy, addressing CVE-2022-29224 and CVE-2022-29225.  Emissary-ingress is not affected
@@ -86,24 +128,143 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   href="https://github.com/emissary-ingress/emissary/issues/2846">does not support internal
   redirects</a>, and does not use Envoy's built-in OAuth2 filter.
 
-## [1.14.3] February 24, 2022
-[1.14.3]: https://github.com/emissary-ingress/emissary/compare/v1.14.2...v1.14.3
+## [2.3.1] June 09, 2022
+[2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1
 
-### Emissary Ingress and Ambassador Edge Stack
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: A regression was introduced in 2.3.0 that leaked zipkin default config fields into the
+  configuration for the other drivers (lightstep, etc...). This caused Emissary-ingress to crash on
+  startup. This issue has been resolved to ensure that the defaults are only applied when driver is
+  `zipkin` ([#4267])
+
+- Security: We have backported patches from the Envoy 1.19.5 security update to Emissary-ingress's
+  1.17-based Envoy, addressing CVE-2022-29224 and CVE-2022-29225.  Emissary-ingress is not affected
+  by CVE-2022-29226, CVE-2022-29227, or CVE-2022-29228; as it <a
+  href="https://github.com/emissary-ingress/emissary/issues/2846">does not support internal
+  redirects</a>, and does not use Envoy's built-in OAuth2 filter.
+
+[#4267]: https://github.com/emissary-ingress/emissary/issues/4267
+
+## [2.3.0] June 06, 2022
+[2.3.0]: https://github.com/emissary-ingress/emissary/compare/v2.2.2...v2.3.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Security: Completely remove gdbm, pip, smtplib, and sqlite packages, as they are unused.
+
+- Feature: It is now possible to set `propagation_modes` in the `TracingService` config when using
+  lightstep as the driver. (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!) ([#4179])
+
+- Feature: It is now possible to set `crl_secret` in `Host` and `TLSContext` resources to check peer
+  certificates against a certificate revocation list. ([#1743])
+
+- Feature: Previously, a `LogService` would always have Emissary-ingress communicate with the
+  external log service using the `envoy.service.accesslog.v2.AccessLogService` API. It is now
+  possible for the `LogService` to specify `protocol_version: v3` to use the newer
+  `envoy.service.accesslog.v3.AccessLogService` API instead.  This functionality is not available if
+  you set the `AMBASSADOR_ENVOY_API_VERSION=V2` environment variable.
+
+- Bugfix: When CORS is specified (either in a `Mapping` or in the `Ambassador` `Module`), CORS
+  processing will happen before authentication. This corrects a problem where XHR to authenticated
+  endpoints would fail.
+
+- Bugfix: In 2.x releases of Emissary-ingress when there are multiple `Mapping`s that have the same
+  `metadata.name` across multiple namespaces, their old config would not properly be removed from
+  the cache when their config was updated. This resulted in an inability to update configuration for
+  groups of `Mapping`s that share the same name until the Emissary-ingress pods restarted.
+
+- Bugfix: It is now possible for a `TracingService` to specify `collector_endpoint_version:
+  HTTP_JSON_V1` when using xDS v3 to configure Envoy (which has been the default since
+  Emissary-ingress 1.14.0).  The `HTTP_JSON_V1` value configures Envoy to speak to Zipkin using
+  Zipkin's old API-v1, while the `HTTP_JSON` value configures Envoy to speak to Zipkin using
+  Zipkin's new API-v2. In previous versions of Emissary-ingress it was only possible to use
+  `HTTP_JSON_V1` when explicitly setting the `AMBASSADOR_ENVOY_API_VERSION=V2` environment variable
+  to force use of xDS v2 to configure Envoy.
+
+[#4179]: https://github.com/emissary-ingress/emissary/pull/4179
+[#1743]: https://github.com/emissary-ingress/emissary/issues/1743
+
+## [2.2.2] February 25, 2022
+[2.2.2]: https://github.com/emissary-ingress/emissary/compare/v2.2.1...v2.2.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: You may now choose to enable TLS Secret validation by setting the
+  `AMBASSADOR_FORCE_SECRET_VALIDATION=true` environment variable. The default configuration does not
+  enforce secret validation.
+
+- Bugfix: Kubernetes Secrets that should contain an EC (Elliptic Curve) TLS Private Key are now
+  properly validated. ([4134])
+
+- Change: The new delay between two metrics syncs is now 30s. ([#4122])
+
+[4134]: https://github.com/emissary-ingress/emissary/issues/4134
+[#4122]: https://github.com/emissary-ingress/emissary/pull/4122
+
+## [1.14.3] February 25, 2022
+[1.14.3]: https://github.com/emissary-ingress/emissary/compare/v2.2.1...v1.14.3
+
+### Emissary-ingress and Ambassador Edge Stack
 
 - Security: Upgraded Envoy to address security vulnerabilities CVE-2021-43824, CVE-2021-43825,
   CVE-2021-43826, CVE-2022-21654, and CVE-2022-21655.
 
-## [1.14.2] September 29, 2021
-[1.14.2]: https://github.com/emissary-ingress/emissary/compare/v1.14.1...v1.14.2
+## [2.2.1] February 22, 2022
+[2.2.1]: https://github.com/emissary-ingress/emissary/compare/v2.2.0...v2.2.1
 
-### Emissary Ingress and Ambassador Edge Stack
+### Emissary-ingress and Ambassador Edge Stack
 
-- Feature: You can now set `respect_dns_ttl` in Ambassador Mappings. When true it configures that
-  upstream's refresh rate to be set to resource record’s TTL
+- Change: Support for the Envoy V2 API is deprecated as of Emissary-ingress v2.1, and will be
+  removed in Emissary-ingress v3.0. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will be
+  removed at the same time. Only the Envoy V3 API will be supported (this has been the default since
+  Emissary-ingress v1.14.0).
 
-- Feature: You can now set `dns_type` to in Ambassador Mappings to use Envoy's `logical_dns`
-  resolution instead of the default `strict_dns`.
+- Bugfix: The Ambassador Agent now correctly supports requests to cancel a rollout.
+
+## [2.2.0] February 10, 2022
+[2.2.0]: https://github.com/emissary-ingress/emissary/compare/v2.1.2...v2.2.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: Support for the Envoy V2 API is deprecated as of Emissary-ingress v2.1, and will be
+  removed in Emissary-ingress v3.0. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will be
+  removed at the same time. Only the Envoy V3 API will be supported (this has been the default since
+  Emissary-ingress v1.14.0).
+
+- Change: Emissary-ingress will now watch for ConfigMap or Secret resources specified by the
+  `AGENT_CONFIG_RESOURCE_NAME` environment variable in order to allow all components (and not only
+  the Ambassador Agent) to authenticate requests to Ambassador Cloud.
+
+- Security: Emissary-ingress has updated Alpine to 3.15, and Python and Go dependencies to their
+  latest compatible versions, to incorporate numerous security patches.
+
+- Feature: Emissary-ingress now supports the metric `ambassador_log_level{label="debug"}` which will
+  be set to 1 if debug logging is enabled for the running Emissary instance, or to 0 if not. This
+  can help to be sure that a running production instance was not actually left doing debugging
+  logging, for example. (Thanks to <a href="https://github.com/jfrabaute">Fabrice</a>!) ([#3906])
+
+- Feature: Emissary-ingress is now leveraging a new Envoy Proxy patch that allows Envoy to accept
+  escaped '%' characters in its configuration. This means that error_response_overrides and other
+  custom user content can now contain '%' symbols escaped as '%%'. ([DW Envoy: 74]) ([Upstream Envoy: 19383])
+
+- Feature: Support for streaming Envoy metrics about the clusters to Ambassador Cloud. ([#4053])
+
+- Feature: The Ambassador agent now receives commands to manipulate Rollouts (pause, continue, and
+  abort are currently supported) via directives and executes them in the cluster. A report is sent
+  to Ambassador Cloud including the command ID, whether it ran successfully, and an error message in
+  case there was any. ([#4040])
+
+- Bugfix: Kubernetes Secrets that should contain TLS certificates are now validated before being
+  accepted for configuration. A Secret that contains an invalid TLS certificate will be logged as an
+  invalid resource. ([#3821])
+
+[#3906]: https://github.com/emissary-ingress/emissary/issues/3906
+[DW Envoy: 74]: https://github.com/datawire/envoy/pull/74
+[Upstream Envoy: 19383]: https://github.com/envoyproxy/envoy/pull/19383
+[#4053]: https://github.com/emissary-ingress/emissary/pull/4053
+[#4040]: https://github.com/emissary-ingress/emissary/pull/4040
+[#3821]: https://github.com/emissary-ingress/emissary/issues/3821
 
 ### Ambassador Edge Stack only
 
@@ -111,10 +272,346 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   configure the DevPortal to use server definitions from the OpenAPI document when displaying
   connection information for services in the DevPortal.
 
+## [2.1.2] January 25, 2022
+[2.1.2]: https://github.com/emissary-ingress/emissary/compare/v2.1.0...v2.1.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: Support for the Envoy V2 API is deprecated as of Emissary-ingress v2.1, and will be
+  removed in Emissary-ingress v3.0. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will be
+  removed at the same time. Only the Envoy V3 API will be supported (this has been the default since
+  Emissary-ingress v1.14.0).
+
+- Change: Docker BuildKit is enabled for all Emissary builds. Additionally, the Go build cache is
+  fully enabled when building images, speeding up repeated builds.
+
+- Bugfix: Emissary-ingress 2.1.0 generated invalid Envoy configuration for `getambassador.io/v2`
+  `Mappings` that set `spec.cors.origins` to a string rather than a list of strings; this has been
+  fixed, and these `Mappings` should once again function correctly.
+
+- Bugfix: Changes to the `weight` of `Mapping` in a canary group will now always be correctly
+  managed during reconfiguration; such changes could have been missed in earlier releases.
+
+- Bugfix: A `Mapping` that is not part of a canary group, but that has a `weight` less than 100,
+  will be correctly configured to receive all traffic as if the `weight` were 100.
+
+- Bugfix: Using `rewrite: ""` in a `Mapping` is correctly handled to mean "do not rewrite the path
+  at all".
+
+- Bugfix: Any `Mapping` that uses the `host_redirect` field is now properly discovered and used.
+  Thanks to <a href="https://github.com/gferon">Gabriel Féron</a> for contributing this bugfix! ([#3709])
+
+- Bugfix: `Mapping`s with DNS wildcard `hostname` will now be correctly matched with `Host`s.
+  Previously, the case where both the `Host` and the `Mapping` use DNS wildcards for their hostnames
+  could sometimes not correctly match when they should have.
+
+- Bugfix: If the `ambassador` `Module` sets a global default for `add_request_headers`,
+  `add_response_headers`, `remove_request_headers`, or `remove_response_headers`, it is often
+  desirable to be able to turn off that setting locally for a specific `Mapping`. For several
+  releases this has not been possible for `Mappings` that are native Kubernetes resources (as
+  opposed to annotations), as an empty value ("mask the global default") was erroneously considered
+  to be equivalent to unset ("inherit the global default").  This is now fixed.
+
+- Bugfix: It is now possible to set a `Mapping` `spec.error_response_overrides` `body.text_format`
+  to an empty string or `body.json_format` to an empty dict.  Previously, this was possible for
+  annotations but not for native Kubernetes resources.
+
+- Bugfix: Resources that exist as `getambassador.io/config` annotations rather than as native
+  Kubernetes resources are now validated and internally converted to v3alpha1 and, the same as
+  native Kubernetes resources.
+
+- Bugfix: Resource validation errors are now reported more consistently; it was the case that in
+  some situations a validation error would not be reported.
+
+[#3709]: https://github.com/emissary-ingress/emissary/issues/3709
+
+## 2.1.1 not issued
+
+*Emissary-ingress 2.1.1 was not issued; Ambassador Edge Stack 2.1.1 uses Emissary-ingress 2.1.0.*
+
+## [2.1.0] December 16, 2021
+[2.1.0]: https://github.com/emissary-ingress/emissary/compare/v2.0.5...v2.1.0
+
+*Emissary-ingress 2.1.0 is not recommended; upgrade to 2.1.2 instead.*
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: Support for the Envoy V2 API is deprecated as of Emissary-ingress v2.1, and will be
+  removed in Emissary-ingress v3.0. The `AMBASSADOR_ENVOY_API_VERSION` environment variable will be
+  removed at the same time. Only the Envoy V3 API will be supported (this has been the default since
+  Emissary-ingress v1.14.0).
+
+- Feature: Emissary-ingress supports `getambassador.io/v2` CRDs, to simplify migration from
+  Emissary-ingress 1.X. **Note:** it is important to read the <a
+  href="https://www.getambassador.io/docs/emissary/latest/topics/install/migration-matrix">migration
+  documentation</a> before starting migration.
+
+- Bugfix: The incremental reconfiguration cache could miss some updates when multiple `Mapping`s had
+  the same `prefix` ("canary"ing multiple `Mapping`s together). This has been corrected, so that all
+  such updates correctly take effect. ([#3945])
+
+- Bugfix: When using Kubernetes Secrets to store ACME private keys (as the Edge Stack ACME client
+  does), an error would always be logged about the Secret not being present, even though it was
+  present, and everything was working correctly. This error is no longer logged.
+
+- Bugfix: When using gzip compression, upstream services will no longer receive compressed data.
+  This bug was introduced in 1.14.0. The fix restores the default behavior of not sending compressed
+  data to upstream services. ([#3818])
+
+- Security: Update to busybox 1.34.1 to resolve CVE-2021-28831, CVE-2021-42378, CVE-2021-42379,
+  CVE-2021-42380, CVE-2021-42381, CVE-2021-42382, CVE-2021-42383, CVE-2021-42384, CVE-2021-42385,
+  and CVE-2021-42386.
+
+- Security: Update Python dependencies to resolve CVE-2020-28493 (jinja2), CVE-2021-28363 (urllib3),
+  and CVE-2021-33503 (urllib3).
+
+- Security: Previous built images included some Python packages used only for test. These have now
+  been removed, resolving CVE-2020-29651.
+
+[#3945]: https://github.com/emissary-ingress/emissary/issues/3945
+[#3818]: https://github.com/emissary-ingress/emissary/issues/3818
+
+## [2.0.5] November 08, 2021
+[2.0.5]: https://github.com/emissary-ingress/emissary/compare/v2.0.4...v2.0.5
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Feature: It is now possible to set the `circuit_breakers` for `AuthServices`, exactly the same as
+  for `Mappings` and `TCPMappings`. This makes it possible to configure your `AuthService` to be
+  able to handle more than 1024 concurrent requests.
+
+- Bugfix: Any token delimited by '%' is now validated agains a whitelist of valid Envoy command
+  operators. Any mapping containing an `error_response_overrides` section with invalid command
+  operators will be discarded.
+
+- Bugfix: The `Host` CRD now correctly supports the `mappingSelector` element, as documented. As a
+  transition aid, `selector` is a synonym for `mappingSelector`; a future version of
+  Emissary-ingress will remove the `selector` element. ([#3902])
+
+[#3902]: https://github.com/emissary-ingress/emissary/issues/3902
+
+## [2.0.4] October 19, 2021
+[2.0.4]: https://github.com/emissary-ingress/emissary/compare/v2.0.3-ea...v2.0.4
+
+We're pleased to introduce Emissary-ingress 2.0.4 for general availability! The 2.X family
+introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
+installations, reduce global configuration to better handle multitenant or multiorganizational
+installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a
+href="https://a8r.io/slack">Slack</a> and let us know what you think.
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: The `x.getambassador.io/v3alpha1` API version has become the `getambassador.io/v3alpha1`
+  API version.  The `Ambassador-` prefixes from `x.getambassador.io/v3alpha1` resource kind names
+  (e.g. `AmbassadorHost`) have been removed for ease of migration from Emissary-ingress 1.x.  As
+  with previous 2.0.x releases, you **must** supply a `Host` (`AmbassadorHost` in previous 2.0.x
+  releases) resource to terminate TLS: unlike in 1.x it is no longer sufficient to define a
+  `TLSContext` (although `TLSContext`s are still the best way to define TLS configuration
+  information to be shared across multiple `Host`s). **Note that `getambassador.io/v3alpha1` is the
+  only supported API version for 2.0.4** &mdash; full support for `getambassador.io/v2` will arrive
+  soon in a later 2.X version.
+
+- Feature: The `getambassador.io/v3alpha1` API version and the published chart and manifests have
+  been updated to support Kubernetes 1.22. Thanks to <a href="https://github.com/imoisharma">Mohit
+  Sharma</a> for contributions to this feature!
+
+- Feature: You can now set `dns_type` between `strict_dns` and `logical_dns` in a `Mapping` to
+  configure the Service Discovery Type.
+
+- Feature: You can now set `respect_dns_ttl` to `true` to force the DNS refresh rate for a `Mapping`
+  to be set to the record's TTL obtained from DNS resolution.
+
+- Feature: You can now set `buffer_limit_bytes` in the `ambassador` `Module` to to change the size
+  of the upstream read and write buffers. The default is 1MiB.
+
+- Bugfix: The release now shows its actual released version number, rather than the internal
+  development version number. ([#3854])
+
+- Bugfix: Large configurations no longer cause Emissary-ingress to be unable to communicate with
+  Ambassador Cloud. ([#3593])
+
+- Bugfix: The `l7Depth` element of the `Listener` CRD is properly supported.
+
+[#3854]: https://github.com/emissary-ingress/emissary/issues/3854
+[#3593]: https://github.com/emissary-ingress/emissary/issues/3593
+
+## [2.0.3-ea] September 16, 2021
+[2.0.3-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.2-ea...v2.0.3-ea
+
+We're pleased to introduce Emissary-ingress 2.0.3 as a **developer preview**. The 2.X family
+introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
+installations, reduce global configuration to better handle multitenant or multiorganizational
+installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a
+href="https://a8r.io/slack">Slack</a> and let us know what you think.
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Feature: The environment variable `AES_LOG_LEVEL` now also sets the log level for the `diagd`
+  logger. ([#3686]) ([#3666])
+
+- Feature: You can now set `dns_type` in the `AmbassadorMapping` to configure how Envoy will use the
+  DNS for the service.
+
+- Bugfix: It is no longer necessary to set `DOCKER_BUILDKIT=0` when building Emissary. A future
+  change will fully support BuildKit. ([#3707])
+
+[#3686]: https://github.com/emissary-ingress/emissary/issues/3686
+[#3666]: https://github.com/emissary-ingress/emissary/issues/3666
+[#3707]: https://github.com/emissary-ingress/emissary/issues/3707
+
+## [2.0.2-ea] August 24, 2021
+[2.0.2-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.1-ea...v2.0.2-ea
+
+We're pleased to introduce Emissary-ingress 2.0.2 as a **developer preview**. The 2.X family
+introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
+installations, reduce global configuration to better handle multitenant or multiorganizational
+installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a
+href="https://a8r.io/slack">Slack</a> and let us know what you think.
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: Upgraded envoy to 1.17.4 to address security vulnerabilities CVE-2021-32777,
+  CVE-2021-32778, CVE-2021-32779, and CVE-2021-32781.
+
+- Feature: You can now set `allow_chunked_length` in the Ambassador Module to configure the same
+  value in Envoy.
+
+- Change: Envoy-configuration snapshots get saved (as `ambex-#.json`) in `/ambassador/snapshots`.
+  The number of snapshots is controlled by the `AMBASSADOR_AMBEX_SNAPSHOT_COUNT` environment
+  variable; set it to 0 to disable. The default is 30.
+
+## [2.0.1-ea] August 12, 2021
+[2.0.1-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.0-ea...v2.0.1-ea
+
+We're pleased to introduce Emissary-ingress 2.0.1 as a **developer preview**. The 2.X family
+introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
+installations, reduce global configuration to better handle multitenant or multiorganizational
+installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a
+href="https://a8r.io/slack">Slack</a> and let us know what you think.
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Feature: Ambassador Agent reports sidecar process information and `AmbassadorMapping` OpenAPI
+  documentation to Ambassador Cloud to provide more visibility into services and clusters.
+
+- Feature: The optional `stats_prefix` element of the `AmbassadorListener` CRD now determines the
+  prefix of HTTP statistics emitted for a specific `AmbassadorListener`.
+
+- Feature: The optional `stats_name` element of `AmbassadorMapping`, `AmbassadorTCPMapping`,
+  `AuthService`, `LogService`, `RateLimitService`, and `TracingService` now sets the name under
+  which cluster statistics will be logged. The default is the `service`, with non-alphanumeric
+  characters replaced by underscores.
+
+- Bugfix: We have updated to `k8s.io/klog/v2` to track upstream and to quiet unnecessary log output.
+
+- Change: Logs now include subsecond time resolutions, rather than just seconds.
+
+- Change: Set `AMBASSADOR_AMBEX_NO_RATELIMIT` to `true` to completely disable ratelimiting Envoy
+  reconfiguration under memory pressure. This can help performance with the endpoint or Consul
+  resolvers, but could make OOMkills more likely with large configurations. The default is `false`,
+  meaning that the rate limiter is active.
+
+## [2.0.0-ea] June 24, 2021
+[2.0.0-ea]: https://github.com/emissary-ingress/emissary/compare/v1.14.2...v2.0.0-ea
+
+We're pleased to introduce Emissary-ingress 2.0.0 as a **developer preview**. The 2.X family
+introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
+installations, reduce global configuration to better handle multitenant or multiorganizational
+installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a
+href="https://a8r.io/slack">Slack</a> and let us know what you think.
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Feature: Emissary-ingress 2.0.0 introduces API version `x.getambassador.io/v3alpha1` for
+  configuration changes that are not backwards compatible with the 1.X family.  API versions
+  `getambassador.io/v0`, `getambassador.io/v1`, and `getambassador.io/v2` are deprecated.  Further
+  details are available in the <a
+  href="https://www.getambassador.io/docs/emissary/latest/about/changes-2.x/#1-configuration-api-version-getambassadoriov3alpha1">Major
+  Changes in 2.X</a> document.
+
+- Feature: The new `AmbassadorListener` CRD defines where and how to listen for requests from the
+  network, and which `AmbassadorHost` definitions should be used to process those requests. Note
+  that the `AmbassadorListener` CRD is **mandatory** and consolidates *all* port configuration; see
+  the <a
+  href="https://www.getambassador.io/docs/emissary/latest/topics/running/listener">`AmbassadorListener`
+  documentation</a> for more details.
+
+- Feature: Where `AmbassadorMapping`'s `host` field is either an exact match or (with `host_regex`
+  set) a regex, the new `hostname` element is always a DNS glob. Use `hostname` instead of `host`
+  for best results.
+
+- Feature: The behavior of the Ambassador module `prune_unreachable_routes` field is now automatic,
+  which should reduce Envoy memory requirements for installations with many `AmbassadorHost`s
+
+- Bugfix: Each `AmbassadorHost` can specify its `requestPolicy.insecure.action` independently of any
+  other `AmbassadorHost`, allowing for HTTP routing as flexible as HTTPS routing. ([#2888])
+
+- Bugfix: Emissary-ingress 2.0.0 fixes a regression in detecting the Ambassador Kubernetes service
+  that could cause the wrong IP or hostname to be used in Ingress statuses -- thanks, <a
+  href="https://github.com/impl">Noah Fontes</a>!
+
+- Bugfix: Emissary-ingress 2.0.0 fixes a bug where mTLS could use the wrong configuration when SNI
+  and the `:authority` header didn't match
+
+- Change: The `TLSContext` `redirect_cleartext_from` and `AmbassadorHost`
+  `requestPolicy.insecure.additionalPort` elements are no longer supported. Use a
+  `AmbassadorListener` for this functionality instead.
+
+- Change: The `use_proxy_protocol` element of the Ambassador `Module` is no longer supported, as it
+  is now part of the `AmbassadorListener` resource (and can be set per-`AmbassadorListener` rather
+  than globally).
+
+- Change: An `AmbassadorMapping` will only be matched with an `AmbassadorHost` if the
+  `AmbassadorMapping`'s `host` or the `AmbassadorHost`'s `selector` (or both) are explicitly set,
+  and match. This change can significantly improve Emissary-ingress's memory footprint when many
+  `AmbassadorHost`s are involved. Further details are available in the <a
+  href="https://www.getambassador.io/docs/emissary/latest/about/changes-2.x/#host-and-mapping-association">Major
+  Changes in 2.X</a> document.
+
+- Change: An `AmbassadorHost` or `Ingress` resource is now required when terminating TLS -- simply
+  creating a `TLSContext` is not sufficient. Further details are available in the <a
+  href="https://www.getambassador.io/docs/emissary/latest/about/changes-2.x/#host-tlscontext-and-tls-termination">`AmbassadorHost`
+  CRD documentation.</a>
+
+- Change: By default, Emissary-ingress will configure Envoy using the V3 Envoy API. This change is
+  mostly transparent to users, but note that Envoy V3 does not support unsafe regular expressions
+  or, e.g., Zipkin's V1 collector protocol. Further details are available in the <a
+  href="https://www.getambassador.io/docs/emissary/latest/about/changes-2.x">Major Changes in
+  2.X</a> document.
+
+- Change: The `tls` module and the `tls` field in the Ambassador module are no longer supported.
+  Please use `TLSContext` resources instead.
+
+- Change: The environment variable `AMBASSADOR_FAST_RECONFIGURE` is now set by default, enabling the
+  higher-performance implementation of the code that Emissary-ingress uses to generate and validate
+  Envoy configurations.
+
+- Change: Service Preview and the `AGENT_SERVICE` environment variable are no longer supported. The
+  Telepresence product replaces this functionality.
+
+- Change: The `edgectl` CLI tool has been deprecated; please use the `emissary-ingress` helm chart
+  instead.
+
+[#2888]: https://github.com/datawire/ambassador/issues/2888
+
+## [1.14.2] September 29, 2021
+[1.14.2]: https://github.com/emissary-ingress/emissary/compare/v1.14.1...v1.14.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Feature: You can now set `respect_dns_ttl` in Ambassador Mappings. When true it configures that
+  upstream's refresh rate to be set to resource record’s TTL
+
+- Feature: You can now set `dns_type` in Ambassador Mappings to use Envoy's `logical_dns` resolution
+  instead of the default `strict_dns`.
+
+- Feature: You can now set `buffer_limit_bytes` in the `ambassador` `Module` to to change the size
+  of the upstream read and write buffers. The default is 1MiB.
+
 ## [1.14.1] August 24, 2021
 [1.14.1]: https://github.com/emissary-ingress/emissary/compare/v1.14.0...v1.14.1
 
-### Emissary Ingress and Ambassador Edge Stack
+### Emissary-ingress and Ambassador Edge Stack
 
 - Change: Upgraded Envoy to 1.17.4 to address security vulnerabilities CVE-2021-32777,
   CVE-2021-32778, CVE-2021-32779, and CVE-2021-32781.
@@ -122,21 +619,21 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## [1.14.0] August 19, 2021
 [1.14.0]: https://github.com/emissary-ingress/emissary/compare/v1.13.10...v1.14.0
 
-### Emissary Ingress and Ambassador Edge Stack
-
-- Change: Logs now include subsecond time resolutions, rather than just seconds.
+### Emissary-ingress and Ambassador Edge Stack
 
 - Change: Update from Envoy 1.15 to 1.17.3
-
-- Change: `AMBASSADOR_ENVOY_API_VERSION` now defaults to `V3`
 
 - Feature: You can now set `allow_chunked_length` in the Ambassador Module to configure the same
   value in Envoy.
 
+- Change: `AMBASSADOR_ENVOY_API_VERSION` now defaults to `V3`
+
+- Change: Logs now include subsecond time resolutions, rather than just seconds.
+
 ## [1.13.10] July 28, 2021
 [1.13.10]: https://github.com/emissary-ingress/emissary/compare/v1.13.9...v1.13.10
 
-### Emissary Ingress and Ambassador Edge Stack
+### Emissary-ingress and Ambassador Edge Stack
 
 - Bugfix: Fixed a regression when specifying a comma separated string for `cors.origins` on the
   `Mapping` resource. ([#3609](https://github.com/emissary-ingress/emissary/issues/3609))
@@ -164,7 +661,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## [1.13.9] June 30, 2021
 [1.13.9]: https://github.com/emissary-ingress/emissary/compare/v1.13.8...v1.13.9
 
-### Emissary Ingress and Ambassador Edge Stack
+### Emissary-ingress and Ambassador Edge Stack
 
 - Bugfix: Configuring multiple TCPMappings with the same ports (but different hosts) no longer
   generates invalid Envoy configuration.
@@ -172,7 +669,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## [1.13.8] June 08, 2021
 [1.13.8]: https://github.com/emissary-ingress/emissary/compare/v1.13.7...v1.13.8
 
-### Emissary Ingress and Ambassador Edge Stack
+### Emissary-ingress and Ambassador Edge Stack
 
 - Bugfix: Ambassador Agent now accurately reports up-to-date Endpoint information to Ambassador
   Cloud
@@ -184,7 +681,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## [1.13.7] June 03, 2021
 [1.13.7]: https://github.com/datawire/ambassador/compare/v1.13.6...v1.13.7
 
-### Emissary Ingress and Ambassador Edge Stack
+### Emissary-ingress and Ambassador Edge Stack
 
 - Feature: Add AMBASSADOR_JSON_LOGGING to enable JSON for most of the Ambassador control plane. Some
   (but few) logs from gunicorn and the Kubernetes client-go package still log text.
@@ -198,18 +695,18 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## [1.13.6] May 24, 2021
 [1.13.6]: https://github.com/datawire/ambassador/compare/v1.13.5...v1.13.6
 
-### Emissary Ingress and Ambassador Edge Stack
+### Emissary-ingress and Ambassador Edge Stack
 
 - Bugfix: Fixed a regression where Ambassador snapshot data was logged at the INFO label when using
-  AMBASSADOR_LEGACY_MODE=true
+  `AMBASSADOR_LEGACY_MODE=true`.
 
 ## [1.13.5] May 13, 2021
 [1.13.5]: https://github.com/datawire/ambassador/compare/v1.13.4...v1.13.5
 
-### Emissary Ingress and Ambassador Edge Stack
+### Emissary-ingress and Ambassador Edge Stack
 
-- Bugfix: Fix a regression from 1.8.0 that prevented Ambassador module config keys `proper_case` and
-  `preserve_external_request_id` from working correctly.
+- Bugfix: Fix a regression from 1.8.0 that prevented `ambassador` `Module` config keys `proper_case`
+  and `preserve_external_request_id` from working correctly.
 
 - Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the
   wrong IP or hostname to be used in Ingress statuses (thanks, [Noah
@@ -218,9 +715,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## [1.13.4] May 11, 2021
 [1.13.4]: https://github.com/datawire/ambassador/compare/v1.13.3...v1.13.4
 
-### Emissary Ingress and Ambassador Edge Stack
+### Emissary-ingress and Ambassador Edge Stack
 
-- Bugfix: Incorporate the Envoy 1.15.5 security update by adding the
+- Security: Incorporate the Envoy 1.15.5 security update by adding the
   `reject_requests_with_escaped_slashes` option to the Ambassador module.
 
 ## [1.13.3] May 03, 2021
@@ -253,7 +750,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-*Note*: Support for the deprecated `v2alpha` `protocol_version` has been removed from the `AuthService` and `RateLimitService`.
+**Note**: Support for the deprecated `v2alpha` `protocol_version` has been removed from the `AuthService` and `RateLimitService`.
 
 - Feature: Added support for the [Mapping AuthService setting] `auth_context_extensions`, allowing supplying custom per-mapping information to external auth services (thanks, [Giridhar Pathak](https://github.com/gpathak)!).
 - Feature: Added support in ambassador-agent for reporting [Argo Rollouts] and [Argo Applications] to Ambassador Cloud
@@ -609,7 +1106,7 @@ update the `Status` of a `Mapping` unless you explicitly set
 tooling that relies on `Mapping` status updates, we do not recommend setting
 `AMBASSADOR_UPDATE_MAPPING_STATUS`.
 
-*In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use
+**In Ambassador 1.7**, TLS secrets in `Ingress` resources will not be able to use
 `.namespace` suffixes to cross namespaces.
 
 ### Ambassador Edge Stack only
@@ -1271,11 +1768,11 @@ NOTE: this switches the default regex engine! See the documentation for the `amb
 - Bugfix: Prevent spurious duplicate-resource errors when loading config from the filesystem
 
 [#1255]: https://github.com/datawire/ambassador/issues/1255
-[#1292]: https://github.com/datawire/ambassador/issuse/1292
+[#1292]: https://github.com/datawire/ambassador/issues/1292
 [#1461]: https://github.com/datawire/ambassador/issues/1461
-[#1578]: https://github.com/datawire/ambassador/issuse/1578
-[#1579]: https://github.com/datawire/ambassador/issuse/1579
-[#1594]: https://github.com/datawire/ambassador/issuse/1594
+[#1578]: https://github.com/datawire/ambassador/issues/1578
+[#1579]: https://github.com/datawire/ambassador/issues/1579
+[#1594]: https://github.com/datawire/ambassador/issues/1594
 [#1622]: https://github.com/datawire/ambassador/issues/1622
 [#1625]: https://github.com/datawire/ambassador/issues/1625
 

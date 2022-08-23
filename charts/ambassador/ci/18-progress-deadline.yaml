@@ -1,3 +1,0 @@
-# configures progressDeadlineSeconds for deployments
-progressDeadlines:
-  ambassador: 800 

@@ -9,8 +9,8 @@ package envoy_service_accesslog_v4alpha
 import (
 	context "context"
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v4alpha "github.com/datawire/ambassador/pkg/api/envoy/config/core/v4alpha"
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/data/accesslog/v3"
+	v4alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v4alpha"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/data/accesslog/v3"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"

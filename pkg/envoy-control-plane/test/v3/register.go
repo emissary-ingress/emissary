@@ -19,15 +19,15 @@ package test
 import (
 	"google.golang.org/grpc"
 
-	accessloggrpc "github.com/datawire/ambassador/pkg/api/envoy/service/accesslog/v3"
-	clusterservice "github.com/datawire/ambassador/pkg/api/envoy/service/cluster/v3"
-	discoverygrpc "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v3"
-	endpointservice "github.com/datawire/ambassador/pkg/api/envoy/service/endpoint/v3"
-	listenerservice "github.com/datawire/ambassador/pkg/api/envoy/service/listener/v3"
-	routeservice "github.com/datawire/ambassador/pkg/api/envoy/service/route/v3"
-	runtimeservice "github.com/datawire/ambassador/pkg/api/envoy/service/runtime/v3"
-	secretservice "github.com/datawire/ambassador/pkg/api/envoy/service/secret/v3"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/server/v3"
+	accessloggrpc "github.com/datawire/ambassador/v2/pkg/api/envoy/service/accesslog/v3"
+	clusterservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/cluster/v3"
+	discoverygrpc "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
+	endpointservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/endpoint/v3"
+	listenerservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/listener/v3"
+	routeservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/route/v3"
+	runtimeservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/runtime/v3"
+	secretservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/secret/v3"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v3"
 )
 
 // RegisterAccessLogServer starts an accessloggrpc service.

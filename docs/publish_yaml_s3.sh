@@ -1,72 +1,69 @@
 #!/bin/bash
 
-set -e
+set -e -o pipefail
 
-CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-[ -d "$CURR_DIR" ] || { echo "FATAL: no current dir";  exit 1; }
-basedir=$1
-shift
-if [[ -z ${basedir} ]] || [[ ! -d ${basedir} ]]; then
-    echo "must supply basedir as first argument"
-    exit 1
-fi
-basedir=`realpath ${basedir}`/
+errusage() {
+    printf >&2 'Usage: %s DIR\n' "$0"
+    if [[ $# -gt 0 ]]; then
+        local msg
+        # shellcheck disable=SC2059
+        printf -v msg "$@"
+        printf >&2 '%s: error: %s\n' "$0" "$msg"
+    fi
+    exit 2
+}
 
-[ -n "$AWS_ACCESS_KEY_ID"     ] || (echo "AWS_ACCESS_KEY_ID is not set" ; exit 1)
-[ -n "$AWS_SECRET_ACCESS_KEY" ] || (echo "AWS_SECRET_ACCESS_KEY is not set" ; exit 1)
+[[ $# == 1                     ]] || errusage 'wrong number of args: %d' $#
+[[ -d "$1"                     ]] || errusage 'DIR is not a directory: %q' "$dir"
+[[ -n "$AWS_ACCESS_KEY_ID"     ]] || errusage "AWS_ACCESS_KEY_ID is not set"
+[[ -n "$AWS_SECRET_ACCESS_KEY" ]] || errusage "AWS_SECRET_ACCESS_KEY is not set"
+[[ "${VERSION:-}" == v2.*      ]] || errusage "VERSION must be set to a 'v2.*' string"
+dir=$1
+while [[ "$dir" == */ ]]; do
+    dir=${dir%/}
+done
+version=${VERSION#v}
 
-ver_yaml=${CURR_DIR}/yaml/versions.yml
-
-version=$(grep version ${ver_yaml} | awk ' { print $2 }')
-if [[ -n "${VERSION_OVERRIDE}" ]] ; then
-    version=${VERSION_OVERRIDE}
-fi
-
-if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
+if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] ; then
     # if this is a stable version, working directory must be clean
     # otherwise this is an rc or test version and we don't care
     if [ -n "$(git status --porcelain)" ] ; then
         echo "working tree is dirty, aborting"
         exit 1
     fi
-elif [[ "${BUMP_STABLE}" = "true" ]] ; then
+elif [[ "$BUMP_STABLE" = "true" ]] ; then
     # if this isn't an X.Y.Z version, don't let allow bumping stable
     echo "Cannot bump stable unless this is an X.Y.Z tag"
     exit 1
 fi
 
-echo ${version} > stable.txt
-if [ -z "$AWS_BUCKET" ] ; then
-    AWS_BUCKET=datawire-static-files
+echo "$version" > stable.txt
+if [ -z "$AWS_S3_BUCKET" ] ; then
+    AWS_S3_BUCKET=datawire-static-files
 fi
 
 # make this something different than ambassador, emissary, or edge-stack
 # so we don't conflict with the new hotness we're doing for 2.0
-unversioned_base_s3_key=yaml/ambassador-docs/
+unversioned_base_s3_key=yaml/v2-docs/
 base_s3_key=${unversioned_base_s3_key}${version}
 aws s3api put-object \
-    --bucket "$AWS_BUCKET" \
-    --key ${base_s3_key}
+    --bucket "$AWS_S3_BUCKET" \
+    --key "${base_s3_key}"
 
 echo "Pushing files to s3..."
-for file in "$@"; do
-    if [[ ! -f ${file} ]] ; then
-        echo "${file} is not a file...."
-        exit 1
-    fi
-    file=`realpath ${file}`
-    s3_key=`echo ${file} | sed "s#${basedir}##"`
-    s3_key="${base_s3_key}/${s3_key}"
+find "$dir" -type f -print0 | while read -r -d '' file; do
+    s3_key=${base_s3_key}/${file#"${dir}/"}
     aws s3api put-object \
-        --bucket "$AWS_BUCKET" \
-        --key ${s3_key} \
-        --body "$file" &&  echo "... ${s3_key} pushed"
+        --bucket "$AWS_S3_BUCKET" \
+        --key "${s3_key}" \
+        --body "$file"
+    echo "... ${s3_key} pushed"
 done
 
 if [[ "${BUMP_STABLE}" = "true" ]] ; then
     echo "Bumping stable version for yaml/${dir}"
     aws s3api put-object \
-        --bucket "$AWS_BUCKET" \
+        --bucket "$AWS_S3_BUCKET" \
         --key "${unversioned_base_s3_key}stable.txt" \
         --body stable.txt
 fi

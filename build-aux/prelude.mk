@@ -36,36 +36,21 @@
 #  - Variable: export GOHOSTOS
 #  - Variable: export GOHOSTARCH
 #  - Variable: build-aux.dir
-#  - Variable: build-aux.bindir
-#  - Function: build-aux.bin-go.rule
-#  - Executable: FLOCK           ?= $(CURDIR)/build-aux/bin/flock # or /usr/bin/flock
-#  - Executable: WRITE_IFCHANGED ?= $(CURDIR)/build-aux/bin/write-ifchanged
-#  - Executable: COPY_IFCHANGED  ?= $(CURDIR)/build-aux/bin/copy-ifchanged
-#  - Executable: MOVE_IFCHANGED  ?= $(CURDIR)/build-aux/bin/move-ifchanged
-#  - Executable: TAP_DRIVER      ?= $(CURDIR)/build-aux/bin/tap-driver
 #
 #  Other support:
 #  - Function: joinlist
 #  - Function: quote.shell
 #  - Function: lazyonce
+#  - .PHONY Target: noop
 #  - .PHONY Target: FORCE
 #
 #  Internal use:
 #  - Variable: _prelude.go.VERSION      (exposed as go-mod.mk:go.goversion)
 #  - Function: _prelude.go.VERSION.HAVE (exposed as go-mod.mk:go.goversion.HAVE)
-#  - Variable: _prelude.go.lock         (exposed as go-mod.mk:go.lock)
 #  - Variable: _prelude.go.ensure       (used by go-mod.mk)
 #
 ## common.mk targets ##
 #  - clobber
-#
-# `include`ing this file on its own does not introduce a dependency on
-# `go`, but:
-#   - Calling the `build-aux.bin-go.rule` function introduces a hard
-#     dependency Go 1.11.4+.
-#   - Using the $(FLOCK) executable introduces a hard dependency on Go
-#     1.11+ on systems that don't have a native `flock(1)` program
-#     (macOS).
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _prelude.mk := $(lastword $(MAKEFILE_LIST))
 
@@ -125,45 +110,13 @@ endif
 # Variable constants
 
 build-aux.dir = $(patsubst %/,%,$(dir $(_prelude.mk)))
-build-aux.bindir = $(abspath $(build-aux.dir)/bin)
-
-#
-# Executables
-#
-# Have this section toward the end, so that it can eagerly use stuff
-# defined above.
-
-FLOCK           ?= $(call lazyonce,FLOCK,$(or $(shell which flock 2>/dev/null),$(_prelude.go.ensure)$(build-aux.bindir)/flock))
-COPY_IFCHANGED  ?= $(build-aux.bindir)/copy-ifchanged
-MOVE_IFCHANGED  ?= $(build-aux.bindir)/move-ifchanged
-WRITE_IFCHANGED ?= $(build-aux.bindir)/write-ifchanged
-TAP_DRIVER      ?= $(build-aux.bindir)/tap-driver
-
-$(build-aux.bindir):
-	mkdir $@
-
-clobber: _clobber-prelude
-_clobber-prelude:
-	rm -rf $(build-aux.bindir)
-.PHONY: _clobber-prelude
-
-$(build-aux.bindir)/%: $(build-aux.dir)/bin-sh/%.sh | $(build-aux.bindir)
-	install $< $@
-
-# Usage: $(eval $(call build-aux.bin-go.rule,BINARY_NAME,GO_PACKAGE))
-define build-aux.bin-go.rule
-$$(build-aux.bindir)/.$(strip $1).stamp: $$(build-aux.bindir)/.%.stamp: $$(build-aux.dir)/bin-go/%/go.mod $$(_prelude.go.lock) FORCE | $$(build-aux.bindir)
-	cd $$(<D) && GO111MODULE=on $$(_prelude.go.lock)go build -o $$(abspath $$@) $2
-endef
-$(build-aux.bindir)/%: $(build-aux.bindir)/.%.stamp $(COPY_IFCHANGED)
-	$(COPY_IFCHANGED) $< $@
-
-# bin/.flock.stamp doesn't use build-aux.bin-go.rule, because bootstrapping
-$(build-aux.bindir)/.flock.stamp: $(build-aux.bindir)/.%.stamp: $(build-aux.dir)/bin-go/%/go.mod $(shell find $(build-aux.dir)/bin-go/flock) | $(build-aux.bindir)
-	cd $(<D) && GO111MODULE=on go build -o $(abspath $@) github.com/datawire/build-aux/bin-go/flock
 
 #
 # Targets
+
+noop:
+	@true
+.PHONY: noop
 
 # Sometimes we have a file-target that we want Make to always try to
 # re-generate (such as compiling a Go program; we would like to let

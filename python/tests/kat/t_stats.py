@@ -1,12 +1,13 @@
 import os
-import re
+from typing import Generator, Tuple, Union
 
-from kat.harness import Query, load_manifest
+import tests.integration.manifests as integration_manifests
+from abstract_tests import DEV, AmbassadorTest, HTTP, Node
+from kat.harness import Query
 
-from abstract_tests import DEV, AmbassadorTest, HTTP
-
-AMBASSADOR = load_manifest("ambassador")
-RBAC_CLUSTER_SCOPE = load_manifest("rbac_cluster_scope")
+STATSD_TEST_CLUSTER = "statsdtest_http"
+ALT_STATSD_TEST_CLUSTER = "short-stats-name"
+DOGSTATSD_TEST_CLUSTER = "dogstatsdtest_http"
 
 GRAPHITE_CONFIG = """
 ---
@@ -28,8 +29,10 @@ spec:
       - name: {0}
         image: {1}
         env:
+        - name: STATSD_TEST_DEBUG
+          value: "true"
         - name: STATSD_TEST_CLUSTER
-          value: cluster_http___statsdtest_http
+          value: {2}
 ---
 apiVersion: v1
 kind: Service
@@ -73,7 +76,7 @@ spec:
         image: {1}
         env:
         - name: STATSD_TEST_CLUSTER
-          value: cluster_http___dogstatsdtest_http
+          value: {2}
 ---
 apiVersion: v1
 kind: Service
@@ -99,6 +102,8 @@ spec:
 class StatsdTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
+        self.target2 = HTTP(name="alt-statsd")
+        self.stats_name = ALT_STATSD_TEST_CLUSTER
         if DEV:
             self.skip_node = True
 
@@ -108,30 +113,46 @@ class StatsdTest(AmbassadorTest):
       value: 'true'
 """
 
-        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="", capabilities_block="") + \
-               GRAPHITE_CONFIG.format('statsd-sink', self.test_image['stats'])
+        return self.format(integration_manifests.load("rbac_cluster_scope") + integration_manifests.load("ambassador"),
+                           envs=envs,
+                           extra_ports="",
+                           capabilities_block="") + \
+               GRAPHITE_CONFIG.format(
+                   'statsd-sink',
+                   integration_manifests.get_images()['test-stats'],
+                   f"{STATSD_TEST_CLUSTER}:{ALT_STATSD_TEST_CLUSTER}")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+name:  {self.name}-alt
+hostname: "*"
+prefix: /{self.name}-alt/
+stats_name: {self.stats_name}
+service: http://{self.target2.path.fqdn}
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-reset
+hostname: "*"
 case_sensitive: false
 prefix: /reset/
 rewrite: /RESET/
 service: statsd-sink
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  metrics
+hostname: "*"
 prefix: /metrics
 rewrite: /metrics
 service: http://127.0.0.1:8877
@@ -144,29 +165,53 @@ service: http://127.0.0.1:8877
     def queries(self):
         for i in range(1000):
             yield Query(self.url(self.name + "/"), phase=1)
+            yield Query(self.url(self.name + "-alt/"), phase=1)
 
         yield Query("http://statsd-sink/DUMP/", phase=2)
         yield Query(self.url("metrics"), phase=2)
 
     def check(self):
+        # self.results[-2] is the JSON dump from our test statsd-sink service.
         stats = self.results[-2].json or {}
 
-        cluster_stats = stats.get('cluster_http___statsdtest_http', {})
+        cluster_stats = stats.get(STATSD_TEST_CLUSTER, {})
         rq_total = cluster_stats.get('upstream_rq_total', -1)
         rq_200 = cluster_stats.get('upstream_rq_200', -1)
 
-        assert rq_total == 1000, f'expected 1000 total calls, got {rq_total}'
-        assert rq_200 > 990, f'expected 1000 successful calls, got {rq_200}'
+        assert rq_total == 1000, f'{STATSD_TEST_CLUSTER}: expected 1000 total calls, got {rq_total}'
+        assert rq_200 > 990, f'{STATSD_TEST_CLUSTER}: expected 1000 successful calls, got {rq_200}'
 
+        cluster_stats = stats.get(ALT_STATSD_TEST_CLUSTER, {})
+        rq_total = cluster_stats.get('upstream_rq_total', -1)
+        rq_200 = cluster_stats.get('upstream_rq_200', -1)
+
+        assert rq_total == 1000, f'{ALT_STATSD_TEST_CLUSTER}: expected 1000 total calls, got {rq_total}'
+        assert rq_200 > 990, f'{ALT_STATSD_TEST_CLUSTER}: expected 1000 successful calls, got {rq_200}'
+
+        # self.results[-1] is the text dump from Envoy's '/metrics' endpoint.
         metrics = self.results[-1].text
+
+        # Somewhere in here, we want to see a metric explicitly for both our "real"
+        # cluster and our alt cluster, returning a 200. Are they there?
         wanted_metric = 'envoy_cluster_internal_upstream_rq'
         wanted_status = 'envoy_response_code="200"'
-        wanted_cluster_name = 'envoy_cluster_name="cluster_http___statsdtest_http'
+        wanted_cluster_name = f'envoy_cluster_name="{STATSD_TEST_CLUSTER}"'
+        alt_wanted_cluster_name = f'envoy_cluster_name="{ALT_STATSD_TEST_CLUSTER}"'
+
+        found_normal = False
+        found_alt = False
 
         for line in metrics.split("\n"):
             if wanted_metric in line and wanted_status in line and wanted_cluster_name in line:
-                return
-        assert False, 'wanted metric not found in prometheus metrics'
+                print(f"line '{line}'")
+                found_normal = True
+
+            if wanted_metric in line and wanted_status in line and alt_wanted_cluster_name in line:
+                print(f"line '{line}'")
+                found_alt = True
+
+        assert found_normal, f"wanted {STATSD_TEST_CLUSTER} in Prometheus metrics, but didn't find it"
+        assert found_alt, f"wanted {ALT_STATSD_TEST_CLUSTER} in Prometheus metrics, but didn't find it"
 
 
 class DogstatsdTest(AmbassadorTest):
@@ -185,23 +230,30 @@ class DogstatsdTest(AmbassadorTest):
       value: 'true'
 """
 
-        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="", capabilities_block="") + \
-               DOGSTATSD_CONFIG.format('dogstatsd-sink', self.test_image['stats'])
+        return self.format(integration_manifests.load("rbac_cluster_scope") + integration_manifests.load('ambassador'),
+                           envs=envs,
+                           extra_ports="",
+                           capabilities_block="") + \
+               DOGSTATSD_CONFIG.format(
+                   'dogstatsd-sink',
+                   integration_manifests.get_images()['test-stats'],
+                   DOGSTATSD_TEST_CLUSTER)
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-reset
 case_sensitive: false
+hostname: "*"
 prefix: /reset/
 rewrite: /RESET/
 service: dogstatsd-sink
@@ -220,7 +272,7 @@ service: dogstatsd-sink
     def check(self):
         stats = self.results[-1].json or {}
 
-        cluster_stats = stats.get('cluster_http___dogstatsdtest_http', {})
+        cluster_stats = stats.get(DOGSTATSD_TEST_CLUSTER, {})
         rq_total = cluster_stats.get('upstream_rq_total', -1)
         rq_200 = cluster_stats.get('upstream_rq_200', -1)
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -20,9 +18,9 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/datawire/ambassador/pkg/api/agent"
-	"github.com/datawire/ambassador/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/ambassador/v2/pkg/api/agent"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -44,16 +42,6 @@ func getRandomAmbassadorID() string {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 	return string(b)
-}
-
-// gets a context for logging and canceling
-func getCtxLog() (context.Context, context.CancelFunc) {
-	llog := logrus.New()
-	llog.SetLevel(logrus.DebugLevel)
-	ctx, cancel := context.WithCancel(context.Background())
-	ctx = dlog.WithLogger(ctx, dlog.WrapLogrus(llog))
-
-	return ctx, cancel
 }
 
 func TestHandleAPIKeyConfigChange(t *testing.T) {
@@ -205,8 +193,8 @@ func TestHandleAPIKeyConfigChange(t *testing.T) {
 		},
 	}
 	for _, tc := range testcases {
-		t.Run(tc.testName, func(innerT *testing.T) {
-			ctx, _ := getCtxLog()
+		t.Run(tc.testName, func(t *testing.T) {
+			ctx := dlog.NewTestContext(t, false)
 
 			tc.agent.handleAPIKeyConfigChange(ctx, tc.secrets, tc.configMaps)
 
@@ -282,7 +270,7 @@ func TestProcessSnapshot(t *testing.T) {
 		},
 		{
 			// ProcessSnapshot should set the Agent.connInfo to the parsed url from the
-			// ambassador module's CEPC config
+			// ambassador module's DCP config
 			testName: "module-contains-connection-info",
 			address:  "http://somecooladdress:1234",
 			inputSnap: &snapshotTypes.Snapshot{
@@ -380,43 +368,43 @@ func TestProcessSnapshot(t *testing.T) {
 				ApiVersion:  snapshotTypes.ApiVersion,
 			},
 			expectedConnInfo: &ConnInfo{hostname: "app.getambassador.io", port: "443", secure: true},
-			assertionFunc: func(t1 *testing.T, agentSnap *agent.Snapshot) {
-				assert.NotEmpty(t1, agentSnap.RawSnapshot)
+			assertionFunc: func(t *testing.T, agentSnap *agent.Snapshot) {
+				assert.NotEmpty(t, agentSnap.RawSnapshot)
 				ambSnap := &snapshotTypes.Snapshot{}
 				err := json.Unmarshal(agentSnap.RawSnapshot, ambSnap)
-				assert.Nil(t1, err)
-				assert.Equal(t1, len(ambSnap.Kubernetes.Services), 2)
-				assert.Equal(t1, len(ambSnap.Kubernetes.Pods), 2)
+				assert.Nil(t, err)
+				assert.Equal(t, len(ambSnap.Kubernetes.Services), 2)
+				assert.Equal(t, len(ambSnap.Kubernetes.Pods), 2)
 				for _, p := range ambSnap.Kubernetes.Pods {
-					assert.Contains(t1, []string{"pod1", "pod2"}, p.ObjectMeta.Name)
+					assert.Contains(t, []string{"pod1", "pod2"}, p.ObjectMeta.Name)
 				}
 			},
 		},
 	}
 
 	for _, testcase := range snapshotTests {
-		t.Run(testcase.testName, func(innerT *testing.T) {
-			a := NewAgent(nil)
-			ctx, _ := getCtxLog()
+		t.Run(testcase.testName, func(t *testing.T) {
+			a := NewAgent(nil, nil)
+			ctx := dlog.NewTestContext(t, false)
 			a.coreStore = &coreStore{podStore: testcase.podStore}
 			a.connAddress = testcase.address
 
 			actualRet := a.ProcessSnapshot(ctx, testcase.inputSnap, "ambassador-host")
 
-			assert.Equal(innerT, testcase.ret, actualRet)
+			assert.Equal(t, testcase.ret, actualRet)
 			if testcase.res == nil {
-				assert.Nil(innerT, a.reportToSend)
+				assert.Nil(t, a.reportToSend)
 			} else {
-				assert.NotNil(innerT, a.reportToSend)
-				assert.Equal(innerT, testcase.res.Identity, a.reportToSend.Identity)
-				assert.Equal(innerT, testcase.res.ContentType, a.reportToSend.ContentType)
-				assert.Equal(innerT, testcase.res.ApiVersion, a.reportToSend.ApiVersion)
+				assert.NotNil(t, a.reportToSend)
+				assert.Equal(t, testcase.res.Identity, a.reportToSend.Identity)
+				assert.Equal(t, testcase.res.ContentType, a.reportToSend.ContentType)
+				assert.Equal(t, testcase.res.ApiVersion, a.reportToSend.ApiVersion)
 			}
 			if testcase.expectedConnInfo != nil {
-				assert.Equal(innerT, testcase.expectedConnInfo, a.connInfo)
+				assert.Equal(t, testcase.expectedConnInfo, a.connInfo)
 			}
 			if testcase.assertionFunc != nil {
-				testcase.assertionFunc(innerT, a.reportToSend)
+				testcase.assertionFunc(t, a.reportToSend)
 			}
 		})
 	}
@@ -427,27 +415,28 @@ type mockAccumulator struct {
 	targetInterface interface{}
 }
 
-func (m *mockAccumulator) Changed() chan struct{} {
+func (m *mockAccumulator) Changed() <-chan struct{} {
 	return m.changedChan
 }
 
-func (m *mockAccumulator) FilteredUpdate(target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool {
+func (m *mockAccumulator) FilteredUpdate(_ context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error) {
 	rawtarget, err := json.Marshal(m.targetInterface)
-
 	if err != nil {
-		return false
+		return false, err
 	}
-	err = json.Unmarshal(rawtarget, target)
-	return true
+	if err := json.Unmarshal(rawtarget, target); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // Set up a watch and send a MinReportPeriod directive to the directive channel
 // Make sure that Agent.MinReportPeriod is set to this new value
 func TestWatchReportPeriodDirective(t *testing.T) {
 	t.Parallel()
-	ctx, cancel := getCtxLog()
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 
-	a := NewAgent(nil)
+	a := NewAgent(nil, nil)
 	watchDone := make(chan error)
 
 	directiveChan := make(chan *agent.Directive)
@@ -506,9 +495,9 @@ func TestWatchReportPeriodDirective(t *testing.T) {
 // make sure nothing errors or panics
 func TestWatchEmptyDirectives(t *testing.T) {
 	t.Parallel()
-	ctx, cancel := getCtxLog()
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 
-	a := NewAgent(nil)
+	a := NewAgent(nil, nil)
 	id := agent.Identity{}
 	a.agentID = &id
 	watchDone := make(chan error)
@@ -568,9 +557,9 @@ func TestWatchEmptyDirectives(t *testing.T) {
 // Then, send a snapshot through the channel and ensure that it doesn't get sent to the agent com
 func TestWatchStopReportingDirective(t *testing.T) {
 	t.Parallel()
-	ctx, cancel := getCtxLog()
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 
-	a := NewAgent(nil)
+	a := NewAgent(nil, nil)
 	id := agent.Identity{}
 	a.agentID = &id
 	watchDone := make(chan error)
@@ -634,9 +623,9 @@ func TestWatchStopReportingDirective(t *testing.T) {
 // channel, and that the error doesn't make things sad.
 func TestWatchErrorSendingSnapshot(t *testing.T) {
 	t.Parallel()
-	ctx, cancel := getCtxLog()
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 	ambId := getRandomAmbassadorID()
-	a := NewAgent(nil)
+	a := NewAgent(nil, nil)
 	a.reportingStopped = false
 	a.reportRunning.Set(false)
 	// set to 3 seconds so we can reliably assert that reportRunning is true later
@@ -661,18 +650,20 @@ func TestWatchErrorSendingSnapshot(t *testing.T) {
 			Kubernetes: &snapshotTypes.KubernetesSnapshot{},
 		}
 		enSnapshot, err := json.Marshal(&snapshot)
-		if err != nil {
-			t.Fatal("error marshalling snapshot")
+		if !assert.NoError(t, err) {
+			return
 		}
-		w.Write(enSnapshot)
+		_, err = w.Write(enSnapshot)
+		assert.NoError(t, err)
+
 	}))
 	defer ts.Close()
-	expectedErrorMessage := "Error sending report"
+	mockError := errors.New("MockClient: Error sending report")
 
 	client := &MockClient{
 		// force an error
 		reportFunc: func(ctx context.Context, in *agent.Snapshot) (*agent.SnapshotResponse, error) {
-			return nil, errors.New(expectedErrorMessage)
+			return nil, mockError
 		},
 	}
 	c := &RPCComm{
@@ -706,8 +697,7 @@ func TestWatchErrorSendingSnapshot(t *testing.T) {
 	case err := <-a.reportComplete:
 		// make sure that we got an error and that error is the same one we configured the
 		// mock client to send
-		assert.NotNil(t, err)
-		assert.Equal(t, expectedErrorMessage, err.Error())
+		assert.ErrorIs(t, err, mockError)
 		assert.False(t, a.reportRunning.Value())
 		cancel()
 	case err := <-watchDone:
@@ -734,10 +724,10 @@ func TestWatchErrorSendingSnapshot(t *testing.T) {
 // we send a SnapshotTs that makes sense (so the agent com can throw out older snapshots)
 func TestWatchWithSnapshot(t *testing.T) {
 	t.Parallel()
-	ctx, cancel := getCtxLog()
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 	clusterID := "coolcluster"
 	ambId := getRandomAmbassadorID()
-	a := NewAgent(nil)
+	a := NewAgent(nil, nil)
 	a.reportingStopped = false
 	a.reportRunning.Set(false)
 
@@ -802,10 +792,11 @@ func TestWatchWithSnapshot(t *testing.T) {
 	var snapshotSentTime time.Time
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		enSnapshot, err := json.Marshal(&snapshot)
-		if err != nil {
-			t.Fatal("error marshalling snapshot")
+		if !assert.NoError(t, err) {
+			return
 		}
-		w.Write(enSnapshot)
+		_, err = w.Write(enSnapshot)
+		assert.NoError(t, err)
 		snapshotSentTime = time.Now()
 	}))
 	defer ts.Close()
@@ -992,9 +983,9 @@ func TestWatchWithSnapshot(t *testing.T) {
 // Make sure we don't try to send anything and that nothing errors or panics
 func TestWatchEmptySnapshot(t *testing.T) {
 	t.Parallel()
-	ctx, cancel := getCtxLog()
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 
-	a := NewAgent(nil)
+	a := NewAgent(nil, nil)
 	minReport, err := time.ParseDuration("1ms")
 	assert.Nil(t, err)
 	a.minReportPeriod = minReport
@@ -1014,7 +1005,7 @@ func TestWatchEmptySnapshot(t *testing.T) {
 			t.Fatal("error marshalling snapshot")
 		}
 
-		w.Write(enSnapshot)
+		_, _ = w.Write(enSnapshot)
 		select {
 		case snapshotRequested <- true:
 		default:
@@ -1030,12 +1021,6 @@ func TestWatchEmptySnapshot(t *testing.T) {
 	rolloutCallback := make(chan *GenericCallback)
 	appCallback := make(chan *GenericCallback)
 	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				watchDone <- errors.New(fmt.Sprintf("%v", r))
-				t.Errorf("Panic-ed while sending an empty snapshot")
-			}
-		}()
 		err := a.watch(ctx, ts.URL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
