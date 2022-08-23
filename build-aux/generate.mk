@@ -40,7 +40,9 @@ generate/files       = $(generate-fast/files)
 generate/precious    =
 # Whole directories with rules for each individual file in it
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) $(OSS_HOME)/pkg/api/kat/
+generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%_grpc.pb.go                    , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto')) $(OSS_HOME)/pkg/api/agent/
+generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%_grpc.pb.go                    , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto'))
 # Whole directories with one rule for the whole directory
 generate/files      += $(OSS_HOME)/api/envoy/                # recipe in _cxx/envoy.mk
 generate/files      += $(OSS_HOME)/api/pb/                   # recipe in _cxx/envoy.mk
@@ -140,13 +142,20 @@ $(OSS_HOME)/python/tests/selfsigned.py: %: %.gen $(tools/testcert-gen)
 proto_path += $(OSS_HOME)/api # input files must be within the path
 
 # The "M{FOO}={BAR}" options map from .proto files to Go package names.
-proto_options/go += plugins=grpc
+proto_options/go ?=
 #proto_options/go += Mgoogle/protobuf/duration.proto=github.com/golang/protobuf/ptypes/duration
+
+proto_options/go-grpc ?=
 
 $(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go)
 	$(tools/protoc) \
 	  $(addprefix --proto_path=,$(proto_path)) \
 	  --plugin=$(tools/protoc-gen-go) --go_out=$(OSS_HOME)/pkg/api $(addprefix --go_opt=,$(proto_options/go)) \
+	  $<
+$(OSS_HOME)/pkg/api/%_grpc.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go-grpc)
+	$(tools/protoc) \
+	  $(addprefix --proto_path=,$(proto_path)) \
+	  --plugin=$(tools/protoc-gen-go-grpc) --go-grpc_out=$(OSS_HOME)/pkg/api $(addprefix --go-grpc_opt=,$(proto_options/go-grpc)) \
 	  $<
 
 clean: _generate_clean

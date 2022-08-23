@@ -53,24 +53,26 @@ $(tools.bindir)/%: $(tools.srcdir)/%.py
 # `go get`-able things
 # ====================
 #
-tools/chart-doc-gen   = $(tools.bindir)/chart-doc-gen
-tools/controller-gen  = $(tools.bindir)/controller-gen
-tools/conversion-gen  = $(tools.bindir)/conversion-gen
-tools/crane           = $(tools.bindir)/crane
-tools/go-mkopensource = $(tools.bindir)/go-mkopensource
-tools/golangci-lint   = $(tools.bindir)/golangci-lint
-tools/kubestatus      = $(tools.bindir)/kubestatus
-tools/ocibuild        = $(tools.bindir)/ocibuild
-tools/protoc-gen-go   = $(tools.bindir)/protoc-gen-go
-tools/yq              = $(tools.bindir)/yq
+tools/chart-doc-gen      = $(tools.bindir)/chart-doc-gen
+tools/controller-gen     = $(tools.bindir)/controller-gen
+tools/conversion-gen     = $(tools.bindir)/conversion-gen
+tools/crane              = $(tools.bindir)/crane
+tools/go-mkopensource    = $(tools.bindir)/go-mkopensource
+tools/golangci-lint      = $(tools.bindir)/golangci-lint
+tools/kubestatus         = $(tools.bindir)/kubestatus
+tools/ocibuild           = $(tools.bindir)/ocibuild
+tools/protoc-gen-go      = $(tools.bindir)/protoc-gen-go
+tools/protoc-gen-go-grpc = $(tools.bindir)/protoc-gen-go-grpc
+tools/yq                 = $(tools.bindir)/yq
 $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(tools.srcdir)/%/go.mod
 	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import "(.*)".*,\1,p' pin.go)
 # Let these use the main Emissary go.mod instead of having their own go.mod.
-tools.main-gomod += $(tools/protoc-gen-go)   # ensure runtime libraries are consistent
-tools.main-gomod += $(tools/controller-gen)  # ensure runtime libraries are consistent
-tools.main-gomod += $(tools/conversion-gen)  # ensure runtime libraries are consistent
-tools.main-gomod += $(tools/go-mkopensource) # ensure it is consistent with py-mkopensource
-tools.main-gomod += $(tools/kubestatus)      # is actually part of Emissary
+tools.main-gomod += $(tools/controller-gen)     # ensure runtime libraries are consistent
+tools.main-gomod += $(tools/conversion-gen)     # ensure runtime libraries are consistent
+tools.main-gomod += $(tools/protoc-gen-go)      # ensure runtime libraries are consistent
+tools.main-gomod += $(tools/protoc-gen-go-grpc) # ensure runtime libraries are consistent
+tools.main-gomod += $(tools/go-mkopensource)    # ensure it is consistent with py-mkopensource
+tools.main-gomod += $(tools/kubestatus)         # is actually part of Emissary
 $(tools.main-gomod): $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(OSS_HOME)/go.mod
 	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import "(.*)".*,\1,p' pin.go)
 

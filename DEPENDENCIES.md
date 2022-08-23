@@ -108,6 +108,7 @@ following Free and Open Source software:
     google.golang.org/appengine                                                                v1.6.7                                       Apache License 2.0
     google.golang.org/genproto                                                                 v0.0.0-20220204002441-d6cc3cc0770e           Apache License 2.0
     google.golang.org/grpc                                                                     v1.44.0                                      Apache License 2.0
+    google.golang.org/grpc/cmd/protoc-gen-go-grpc                                              v1.2.0                                       Apache License 2.0
     google.golang.org/protobuf                                                                 v1.27.1                                      3-clause BSD license
     gopkg.in/inf.v0                                                                            v0.9.1                                       3-clause BSD license
     gopkg.in/yaml.v2                                                                           v2.4.0                                       Apache License 2.0, MIT license
