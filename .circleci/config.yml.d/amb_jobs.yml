@@ -28,8 +28,6 @@ commands:
     steps:
       - amb-linux-install
       - amb-checkout
-      - amb-skip-if-no-changes-not-release:
-          to: charts/ambassador
       - install-k3d
       # We might need to be logged in the registry to pull the Envoy
       # image or the builder-base image.
@@ -165,7 +163,6 @@ commands:
       - amb-linux-install
       - amb-checkout
       - amb-save-workspace
-      - amb-skip-if-no-code-changes-not-release
       - amb-config-registry
 
       # main
@@ -228,7 +225,6 @@ commands:
       - amb-linux-install
       - install-gotestsum
       - amb-checkout
-      - amb-skip-if-no-code-changes-not-release
       - amb-config-registry
       - run:
           name: "Test"
@@ -269,7 +265,6 @@ commands:
       # setup
       - amb-linux-install
       - amb-checkout
-      - amb-skip-if-no-code-changes-not-release
       # pytest-envoy can be skipped unless the envoy.mk file changes, or the ambex control
       # plane changes, or the gold files change.
       - when:
@@ -278,8 +273,6 @@ commands:
               - equal: [ "pytest-envoy", << parameters.test >> ]
               - equal: [ "pytest-envoy-v2", << parameters.test >> ]
           steps:
-            - amb-skip-if-no-changes-not-release:
-                to: "(/envoy\\.mk$|python/tests/gold/|pytest/gold/|cmd/ambex|python/ambassador/envoy/)"
             - run: |
                 if [[ -z "$KUBECEPTION_TOKEN" ]]; then
                   circleci step halt
