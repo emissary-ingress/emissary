@@ -266,16 +266,6 @@ commands:
       - amb-checkout
       # pytest-envoy can be skipped unless the envoy.mk file changes, or the ambex control
       # plane changes, or the gold files change.
-      - when:
-          condition:
-            or:
-              - equal: [ "pytest-envoy", << parameters.test >> ]
-              - equal: [ "pytest-envoy-v2", << parameters.test >> ]
-          steps:
-            - run: |
-                if [[ -z "$KUBECEPTION_TOKEN" ]]; then
-                  circleci step halt
-                fi
       - run:
           name: "Set USE_LOCAL_K3S_CLUSTER=1"
           command:
