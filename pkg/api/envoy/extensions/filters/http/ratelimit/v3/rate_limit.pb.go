@@ -822,7 +822,7 @@ func (*RateLimitConfig_Override_DynamicMetadata_) isRateLimitConfig_Override_Ove
 //
 // .. code-block:: cpp
 //
-//   ("source_cluster", "<local service cluster>")
+//	("source_cluster", "<local service cluster>")
 //
 // <local service cluster> is derived from the :option:`--service-cluster` option.
 type RateLimitConfig_Action_SourceCluster struct {
@@ -867,18 +867,18 @@ func (*RateLimitConfig_Action_SourceCluster) Descriptor() ([]byte, []int) {
 //
 // .. code-block:: cpp
 //
-//   ("destination_cluster", "<routed target cluster>")
+//	("destination_cluster", "<routed target cluster>")
 //
 // Once a request matches against a route table rule, a routed cluster is determined by one of
 // the following :ref:`route table configuration <envoy_v3_api_msg_config.route.v3.RouteConfiguration>`
 // settings:
 //
-// * :ref:`cluster <envoy_v3_api_field_config.route.v3.RouteAction.cluster>` indicates the upstream cluster
-//   to route to.
-// * :ref:`weighted_clusters <envoy_v3_api_field_config.route.v3.RouteAction.weighted_clusters>`
-//   chooses a cluster randomly from a set of clusters with attributed weight.
-// * :ref:`cluster_header <envoy_v3_api_field_config.route.v3.RouteAction.cluster_header>` indicates which
-//   header in the request contains the target cluster.
+//   - :ref:`cluster <envoy_v3_api_field_config.route.v3.RouteAction.cluster>` indicates the upstream cluster
+//     to route to.
+//   - :ref:`weighted_clusters <envoy_v3_api_field_config.route.v3.RouteAction.weighted_clusters>`
+//     chooses a cluster randomly from a set of clusters with attributed weight.
+//   - :ref:`cluster_header <envoy_v3_api_field_config.route.v3.RouteAction.cluster_header>` indicates which
+//     header in the request contains the target cluster.
 type RateLimitConfig_Action_DestinationCluster struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -918,11 +918,11 @@ func (*RateLimitConfig_Action_DestinationCluster) Descriptor() ([]byte, []int) {
 }
 
 // The following descriptor entry is appended when a header contains a key that matches the
-// ``header_name``:
+// “header_name“:
 //
 // .. code-block:: cpp
 //
-//   ("<descriptor_key>", "<header_value_queried_from_header>")
+//	("<descriptor_key>", "<header_value_queried_from_header>")
 type RateLimitConfig_Action_RequestHeaders struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -998,7 +998,7 @@ func (x *RateLimitConfig_Action_RequestHeaders) GetSkipIfAbsent() bool {
 //
 // .. code-block:: cpp
 //
-//   ("remote_address", "<trusted address from x-forwarded-for>")
+//	("remote_address", "<trusted address from x-forwarded-for>")
 type RateLimitConfig_Action_RemoteAddress struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1041,7 +1041,7 @@ func (*RateLimitConfig_Action_RemoteAddress) Descriptor() ([]byte, []int) {
 //
 // .. code-block:: cpp
 //
-//   ("generic_key", "<descriptor_value>")
+//	("generic_key", "<descriptor_value>")
 type RateLimitConfig_Action_GenericKey struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1104,7 +1104,7 @@ func (x *RateLimitConfig_Action_GenericKey) GetDescriptorKey() string {
 //
 // .. code-block:: cpp
 //
-//   ("header_match", "<descriptor_value>")
+//	("header_match", "<descriptor_value>")
 type RateLimitConfig_Action_HeaderValueMatch struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1182,7 +1182,7 @@ func (x *RateLimitConfig_Action_HeaderValueMatch) GetHeaders() []*v33.HeaderMatc
 //
 // .. code-block:: cpp
 //
-//   ("<descriptor_key>", "<value_queried_from_metadata>")
+//	("<descriptor_key>", "<value_queried_from_metadata>")
 type RateLimitConfig_Action_MetaData struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

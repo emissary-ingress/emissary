@@ -26,7 +26,7 @@ const (
 // HttpProtocolOptions specifies Http upstream protocol options. This object
 // is used in
 // :ref:`typed_extension_protocol_options<envoy_v3_api_field_config.cluster.v3.Cluster.typed_extension_protocol_options>`,
-// keyed by the name ``envoy.extensions.upstreams.http.v3.HttpProtocolOptions``.
+// keyed by the name “envoy.extensions.upstreams.http.v3.HttpProtocolOptions“.
 //
 // This controls what protocol(s) should be used for upstream and how said protocol(s) are configured.
 //
@@ -35,35 +35,36 @@ const (
 //
 // .. code::
 //
-//   clusters:
-//     - name: some_service
-//       connect_timeout: 5s
-//       upstream_http_protocol_options:
-//         auto_sni: true
-//       common_http_protocol_options:
-//         idle_timeout: 1s
-//       http2_protocol_options:
-//         max_concurrent_streams: 100
-//        .... [further cluster config]
+//	clusters:
+//	  - name: some_service
+//	    connect_timeout: 5s
+//	    upstream_http_protocol_options:
+//	      auto_sni: true
+//	    common_http_protocol_options:
+//	      idle_timeout: 1s
+//	    http2_protocol_options:
+//	      max_concurrent_streams: 100
+//	     .... [further cluster config]
 //
 // Would now look like this:
 //
 // .. code::
 //
-//   clusters:
-//     - name: some_service
-//       connect_timeout: 5s
-//       typed_extension_protocol_options:
-//         envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
-//           "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
-//           upstream_http_protocol_options:
-//             auto_sni: true
-//           common_http_protocol_options:
-//             idle_timeout: 1s
-//           explicit_http_config:
-//             http2_protocol_options:
-//               max_concurrent_streams: 100
-//        .... [further cluster config]
+//	clusters:
+//	  - name: some_service
+//	    connect_timeout: 5s
+//	    typed_extension_protocol_options:
+//	      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+//	        "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+//	        upstream_http_protocol_options:
+//	          auto_sni: true
+//	        common_http_protocol_options:
+//	          idle_timeout: 1s
+//	        explicit_http_config:
+//	          http2_protocol_options:
+//	            max_concurrent_streams: 100
+//	     .... [further cluster config]
+//
 // [#next-free-field: 6]
 type HttpProtocolOptions struct {
 	state         protoimpl.MessageState
@@ -360,9 +361,9 @@ func (x *HttpProtocolOptions_UseDownstreamHttpConfig) GetHttp3ProtocolOptions() 
 
 // If this is used, the cluster can use either HTTP/1 or HTTP/2, and will use whichever
 // protocol is negotiated by ALPN with the upstream.
-// Clusters configured with ``AutoHttpConfig`` will use the highest available
+// Clusters configured with “AutoHttpConfig“ will use the highest available
 // protocol; HTTP/2 if supported, otherwise HTTP/1.
-// If the upstream does not support ALPN, ``AutoHttpConfig`` will fail over to HTTP/1.
+// If the upstream does not support ALPN, “AutoHttpConfig“ will fail over to HTTP/1.
 // This can only be used with transport sockets which support ALPN. Using a
 // transport socket which does not support ALPN will result in configuration
 // failure. The transport layer may be configured with custom ALPN, but the default ALPN

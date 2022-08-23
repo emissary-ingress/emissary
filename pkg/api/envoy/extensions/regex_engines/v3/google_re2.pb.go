@@ -25,8 +25,8 @@ const (
 // the documented `syntax <https://github.com/google/re2/wiki/Syntax>`_. The engine is designed
 // to complete execution in linear time as well as limit the amount of memory used.
 //
-// Envoy emits two stats for tracking the program size of regexes: the histogram ``re2.program_size``,
-// which records the program size, and the counter ``re2.exceeded_warn_level``, which is incremented
+// Envoy emits two stats for tracking the program size of regexes: the histogram “re2.program_size“,
+// which records the program size, and the counter “re2.exceeded_warn_level“, which is incremented
 // each time the program size exceeds the warn level threshold.
 type GoogleRE2 struct {
 	state         protoimpl.MessageState

@@ -30,11 +30,11 @@ const (
 // stream info necessary for proxying to the stream info (as the test filter
 // does :repo:`here <test/integration/filters/header_to_proxy_filter.cc>`) then
 //
-// * Upstream connections will be directed to the specified proxy address rather
-//   than the host's address
-// * Upstream TLS connections will have a raw HTTP/1.1 CONNECT header prefaced
-//   to the payload, and 200 response stripped (if less than 200 bytes)
-// * Plaintext HTTP/1.1 connections will be sent with a fully qualified URL.
+//   - Upstream connections will be directed to the specified proxy address rather
+//     than the host's address
+//   - Upstream TLS connections will have a raw HTTP/1.1 CONNECT header prefaced
+//     to the payload, and 200 response stripped (if less than 200 bytes)
+//   - Plaintext HTTP/1.1 connections will be sent with a fully qualified URL.
 //
 // This transport socket is not compatible with HTTP/3, plaintext HTTP/2, or raw TCP.
 type Http11ProxyUpstreamTransport struct {

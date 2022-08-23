@@ -1008,8 +1008,8 @@ func (x *Watchdog) GetMultikillThreshold() *v35.Percent {
 // If using an unsafe action that could get stuck or deadlock, it important to
 // have an out of band system to terminate the process.
 //
-// The interface for the extension is ``Envoy::Server::Configuration::FatalAction``.
-// ``FatalAction`` extensions live in the ``envoy.extensions.fatal_actions`` API
+// The interface for the extension is “Envoy::Server::Configuration::FatalAction“.
+// “FatalAction“ extensions live in the “envoy.extensions.fatal_actions“ API
 // namespace.
 type FatalAction struct {
 	state         protoimpl.MessageState
@@ -1336,14 +1336,14 @@ func (x *LayeredRuntime) GetLayers() []*RuntimeLayer {
 //
 // .. code-block:: text
 //
-//   foo: bar
-//   foo: eep
+//	foo: bar
+//	foo: eep
 //
 // Then they will eventually be folded into:
 //
 // .. code-block:: text
 //
-//   foo: bar, eep
+//	foo: bar, eep
 //
 // Inline headers provide O(1) search performance, but each inline header imposes
 // an additional memory overhead on all instances of the corresponding type of

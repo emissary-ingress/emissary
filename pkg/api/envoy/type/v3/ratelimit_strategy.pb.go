@@ -177,14 +177,14 @@ func (*RateLimitStrategy_TokenBucket) isRateLimitStrategy_Strategy() {}
 // Allows to specify the desired requests per second (RPS, QPS), requests per minute (QPM, RPM),
 // etc., without specifying a rate limiting algorithm implementation.
 //
-// ``RequestsPerTimeUnit`` strategy does not demand any specific rate limiting algorithm to be
+// “RequestsPerTimeUnit“ strategy does not demand any specific rate limiting algorithm to be
 // used (in contrast to the :ref:`TokenBucket <envoy_v3_api_msg_type.v3.TokenBucket>`,
 // for example). It implies that the implementation details of rate limiting algorithm are
 // irrelevant as long as the configured number of "requests per time unit" is achieved.
 //
-// Note that the ``TokenBucket`` is still a valid implementation of the ``RequestsPerTimeUnit``
+// Note that the “TokenBucket“ is still a valid implementation of the “RequestsPerTimeUnit“
 // strategy, and may be chosen to enforce the rate limit. However, there's no guarantee it will be
-// the ``TokenBucket`` in particular, and not the Leaky Bucket, the Sliding Window, or any other
+// the “TokenBucket“ in particular, and not the Leaky Bucket, the Sliding Window, or any other
 // rate limiting algorithm that fulfills the requirements.
 type RateLimitStrategy_RequestsPerTimeUnit struct {
 	state         protoimpl.MessageState

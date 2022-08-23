@@ -32,42 +32,44 @@ const (
 //
 // name: demo-v1
 // route:
-//   matcher_tree:
-//     input:
-//       name: request-service
-//       typed_config:
-//         "@type": type.googleapis.com/envoy.extensions.filters.network.meta_protocol_proxy.matcher.v3.ServiceMatchInput
-//     exact_match_map:
-//       map:
-//         org.apache.dubbo.samples.basic.api.DemoService:
-//           matcher:
-//             matcher_list:
-//               matchers:
-//               - predicate:
-//                   and_matcher:
-//                     predicate:
-//                     - single_predicate:
-//                         input:
-//                           name: request-properties
-//                           typed_config:
-//                             "@type": type.googleapis.com/envoy.extensions.filters.network.meta_protocol_proxy.matcher.v3.PropertyMatchInput
-//                             property_name: version
-//                         value_match:
-//                           exact: v1
-//                     - single_predicate:
-//                         input:
-//                           name: request-properties
-//                           typed_config:
-//                             "@type": type.googleapis.com/envoy.extensions.filters.network.meta_protocol_proxy.matcher.v3.PropertyMatchInput
-//                             property_name: user
-//                         value_match:
-//                           exact: john
-//                 on_match:
-//                   action:
-//                     name: route
-//                     typed_config:
-//                       "@type": type.googleapis.com/envoy.extensions.filters.network.meta_protocol_proxy.matcher.action.v3.routeAction
-//                       cluster: outbound|20880|v1|org.apache.dubbo.samples.basic.api.demoservice
+//
+//	matcher_tree:
+//	  input:
+//	    name: request-service
+//	    typed_config:
+//	      "@type": type.googleapis.com/envoy.extensions.filters.network.meta_protocol_proxy.matcher.v3.ServiceMatchInput
+//	  exact_match_map:
+//	    map:
+//	      org.apache.dubbo.samples.basic.api.DemoService:
+//	        matcher:
+//	          matcher_list:
+//	            matchers:
+//	            - predicate:
+//	                and_matcher:
+//	                  predicate:
+//	                  - single_predicate:
+//	                      input:
+//	                        name: request-properties
+//	                        typed_config:
+//	                          "@type": type.googleapis.com/envoy.extensions.filters.network.meta_protocol_proxy.matcher.v3.PropertyMatchInput
+//	                          property_name: version
+//	                      value_match:
+//	                        exact: v1
+//	                  - single_predicate:
+//	                      input:
+//	                        name: request-properties
+//	                        typed_config:
+//	                          "@type": type.googleapis.com/envoy.extensions.filters.network.meta_protocol_proxy.matcher.v3.PropertyMatchInput
+//	                          property_name: user
+//	                      value_match:
+//	                        exact: john
+//	              on_match:
+//	                action:
+//	                  name: route
+//	                  typed_config:
+//	                    "@type": type.googleapis.com/envoy.extensions.filters.network.meta_protocol_proxy.matcher.action.v3.routeAction
+//	                    cluster: outbound|20880|v1|org.apache.dubbo.samples.basic.api.demoservice
+//
 // [#not-implemented-hide:]
 type RouteConfiguration struct {
 	state         protoimpl.MessageState

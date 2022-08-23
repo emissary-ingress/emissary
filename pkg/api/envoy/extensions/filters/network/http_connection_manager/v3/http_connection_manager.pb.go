@@ -2114,13 +2114,14 @@ func (x *HttpConnectionManager_SetCurrentClientCertDetails) GetUri() bool {
 //
 // .. warning::
 //
-//    The current implementation of upgrade headers does not handle
-//    multi-valued upgrade headers. Support for multi-valued headers may be
-//    added in the future if needed.
+//	The current implementation of upgrade headers does not handle
+//	multi-valued upgrade headers. Support for multi-valued headers may be
+//	added in the future if needed.
 //
 // .. warning::
-//    The current implementation of upgrade headers does not work with HTTP/2
-//    upstreams.
+//
+//	The current implementation of upgrade headers does not work with HTTP/2
+//	upstreams.
 type HttpConnectionManager_UpgradeConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2200,10 +2201,10 @@ func (x *HttpConnectionManager_UpgradeConfig) GetEnabled() *wrappers.BoolValue {
 // path will be visible internally if a transformation is enabled. Any path rewrites that the
 // router performs (e.g. :ref:`regex_rewrite
 // <envoy_v3_api_field_config.route.v3.RouteAction.regex_rewrite>` or :ref:`prefix_rewrite
-// <envoy_v3_api_field_config.route.v3.RouteAction.prefix_rewrite>`) will apply to the ``:path`` header
+// <envoy_v3_api_field_config.route.v3.RouteAction.prefix_rewrite>`) will apply to the “:path“ header
 // destined for the upstream.
 //
-// Note: access logging and tracing will show the original ``:path`` header.
+// Note: access logging and tracing will show the original “:path“ header.
 type HttpConnectionManager_PathNormalizationOptions struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2285,7 +2286,8 @@ func (x *HttpConnectionManager_PathNormalizationOptions) GetHttpFilterTransforma
 //
 // The Proxy-Status header is a string of the form:
 //
-//   "<server_name>; error=<error_type>; details=<details>"
+//	"<server_name>; error=<error_type>; details=<details>"
+//
 // [#next-free-field: 7]
 type HttpConnectionManager_ProxyStatusConfig struct {
 	state         protoimpl.MessageState
@@ -2556,18 +2558,18 @@ func (*ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_) isSco
 //
 // .. code::
 //
-//              <0> <1>   <-- index
-//    X-Header: a=b;c=d
-//    |         || |
-//    |         || \----> <element_separator>
-//    |         ||
-//    |         |\----> <element.separator>
-//    |         |
-//    |         \----> <element.key>
-//    |
-//    \----> <name>
+//	          <0> <1>   <-- index
+//	X-Header: a=b;c=d
+//	|         || |
+//	|         || \----> <element_separator>
+//	|         ||
+//	|         |\----> <element.separator>
+//	|         |
+//	|         \----> <element.key>
+//	|
+//	\----> <name>
 //
-//    Each 'a=b' key-value pair constitutes an 'element' of the header field.
+//	Each 'a=b' key-value pair constitutes an 'element' of the header field.
 type ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

@@ -24,7 +24,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Metrics Service is configured as a built-in ``envoy.stat_sinks.metrics_service`` :ref:`StatsSink
+// Metrics Service is configured as a built-in “envoy.stat_sinks.metrics_service“ :ref:`StatsSink
 // <envoy_v3_api_msg_config.metrics.v3.StatsSink>`. This opaque configuration will be used to create
 // Metrics Service.
 //
@@ -32,11 +32,11 @@ const (
 //
 // .. code-block:: yaml
 //
-//     stats_sinks:
-//       - name: envoy.stat_sinks.metrics_service
-//         typed_config:
-//           "@type": type.googleapis.com/envoy.config.metrics.v3.MetricsServiceConfig
-//           transport_api_version: V3
+//	stats_sinks:
+//	  - name: envoy.stat_sinks.metrics_service
+//	    typed_config:
+//	      "@type": type.googleapis.com/envoy.config.metrics.v3.MetricsServiceConfig
+//	      transport_api_version: V3
 //
 // [#extension: envoy.stat_sinks.metrics_service]
 type MetricsServiceConfig struct {

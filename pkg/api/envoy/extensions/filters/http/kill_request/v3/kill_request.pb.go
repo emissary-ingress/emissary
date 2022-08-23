@@ -23,8 +23,8 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// On which direction should the filter check for the ``kill_request_header``.
-// Default to ``REQUEST`` if unspecified.
+// On which direction should the filter check for the “kill_request_header“.
+// Default to “REQUEST“ if unspecified.
 type KillRequest_Direction int32
 
 const (

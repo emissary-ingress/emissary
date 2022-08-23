@@ -444,7 +444,7 @@ func (*ThriftFilter_TypedConfig) isThriftFilter_ConfigType() {}
 // ThriftProtocolOptions specifies Thrift upstream protocol options. This object is used in
 // in
 // :ref:`typed_extension_protocol_options<envoy_v3_api_field_config.cluster.v3.Cluster.typed_extension_protocol_options>`,
-// keyed by the name ``envoy.filters.network.thrift_proxy``.
+// keyed by the name “envoy.filters.network.thrift_proxy“.
 type ThriftProtocolOptions struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

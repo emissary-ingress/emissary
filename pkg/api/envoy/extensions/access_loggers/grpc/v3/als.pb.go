@@ -26,7 +26,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Configuration for the built-in ``envoy.access_loggers.http_grpc``
+// Configuration for the built-in “envoy.access_loggers.http_grpc“
 // :ref:`AccessLog <envoy_v3_api_msg_config.accesslog.v3.AccessLog>`. This configuration will
 // populate :ref:`StreamAccessLogsMessage.http_logs
 // <envoy_v3_api_field_service.accesslog.v3.StreamAccessLogsMessage.http_logs>`.
@@ -108,8 +108,8 @@ func (x *HttpGrpcAccessLogConfig) GetAdditionalResponseTrailersToLog() []string 
 	return nil
 }
 
-// Configuration for the built-in ``envoy.access_loggers.tcp_grpc`` type. This configuration will
-// populate ``StreamAccessLogsMessage.tcp_logs``.
+// Configuration for the built-in “envoy.access_loggers.tcp_grpc“ type. This configuration will
+// populate “StreamAccessLogsMessage.tcp_logs“.
 // [#extension: envoy.access_loggers.tcp_grpc]
 type TcpGrpcAccessLogConfig struct {
 	state         protoimpl.MessageState

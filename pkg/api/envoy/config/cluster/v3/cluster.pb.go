@@ -484,7 +484,7 @@ func (Cluster_RingHashLbConfig_HashFunction) EnumDescriptor() ([]byte, []int) {
 	return file_envoy_config_cluster_v3_cluster_proto_rawDescGZIP(), []int{1, 7, 0}
 }
 
-// Cluster list collections. Entries are ``Cluster`` resources or references.
+// Cluster list collections. Entries are “Cluster“ resources or references.
 // [#not-implemented-hide:]
 type ClusterCollection struct {
 	state         protoimpl.MessageState

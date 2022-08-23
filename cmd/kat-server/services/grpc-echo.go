@@ -34,6 +34,8 @@ type GRPC struct {
 	SecureBackend string
 	Cert          string
 	Key           string
+
+	pb.UnsafeEchoServiceServer
 }
 
 // DefaultOpts sets gRPC service options.

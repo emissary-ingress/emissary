@@ -27,7 +27,7 @@ const (
 // For example, the size of an HTTP request, or the status code of an HTTP response.
 //
 // Each attribute has a type and a name, which is logically defined as a proto message field
-// of the ``AttributeContext``. The ``AttributeContext`` is a collection of individual attributes
+// of the “AttributeContext“. The “AttributeContext“ is a collection of individual attributes
 // supported by Envoy authorization system.
 // [#comment: The following items are left out of this proto
 // Request.Auth field for jwt tokens
@@ -134,8 +134,8 @@ func (x *AttributeContext) GetMetadataContext() *v3.Metadata {
 
 // This message defines attributes for a node that handles a network request.
 // The node can be either a service or an application that sends, forwards,
-// or receives the request. Service peers should fill in the ``service``,
-// ``principal``, and ``labels`` as appropriate.
+// or receives the request. Service peers should fill in the “service“,
+// “principal“, and “labels“ as appropriate.
 // [#next-free-field: 6]
 type AttributeContext_Peer struct {
 	state         protoimpl.MessageState

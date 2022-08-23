@@ -275,7 +275,7 @@ func (x *OkHttpResponse) GetQueryParametersToRemove() []string {
 	return nil
 }
 
-// Intended for gRPC and Network Authorization servers ``only``.
+// Intended for gRPC and Network Authorization servers “only“.
 type CheckResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

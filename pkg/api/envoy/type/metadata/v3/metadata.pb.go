@@ -22,29 +22,28 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// MetadataKey provides a general interface using ``key`` and ``path`` to retrieve value from
+// MetadataKey provides a general interface using “key“ and “path“ to retrieve value from
 // :ref:`Metadata <envoy_v3_api_msg_config.core.v3.Metadata>`.
 //
 // For example, for the following Metadata:
 //
 // .. code-block:: yaml
 //
-//    filter_metadata:
-//      envoy.xxx:
-//        prop:
-//          foo: bar
-//          xyz:
-//            hello: envoy
+//	filter_metadata:
+//	  envoy.xxx:
+//	    prop:
+//	      foo: bar
+//	      xyz:
+//	        hello: envoy
 //
 // The following MetadataKey will retrieve a string value "bar" from the Metadata.
 //
 // .. code-block:: yaml
 //
-//    key: envoy.xxx
-//    path:
-//    - key: prop
-//    - key: foo
-//
+//	key: envoy.xxx
+//	path:
+//	- key: prop
+//	- key: foo
 type MetadataKey struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

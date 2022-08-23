@@ -24,7 +24,8 @@ const (
 )
 
 // Configuration for the OpenTelemetry tracer.
-//  [#extension: envoy.tracers.opentelemetry]
+//
+//	[#extension: envoy.tracers.opentelemetry]
 type OpenTelemetryConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

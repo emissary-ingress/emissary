@@ -3,7 +3,7 @@ following Free and Open Source software:
 
     Name                                                                                       Version                                      License(s)
     ----                                                                                       -------                                      ----------
-    the Go language standard library ("std")                                                   v1.18.5                                      3-clause BSD license
+    the Go language standard library ("std")                                                   v1.19                                        3-clause BSD license
     cloud.google.com/go/compute                                                                v1.2.0                                       Apache License 2.0
     github.com/Azure/go-ansiterm                                                               v0.0.0-20210617225240-d185dfc1b5a1           MIT license
     github.com/Azure/go-autorest                                                               v14.2.0+incompatible                         Apache License 2.0
@@ -108,6 +108,7 @@ following Free and Open Source software:
     google.golang.org/appengine                                                                v1.6.7                                       Apache License 2.0
     google.golang.org/genproto                                                                 v0.0.0-20220204002441-d6cc3cc0770e           Apache License 2.0
     google.golang.org/grpc                                                                     v1.44.0                                      Apache License 2.0
+    google.golang.org/grpc/cmd/protoc-gen-go-grpc                                              v1.2.0                                       Apache License 2.0
     google.golang.org/protobuf                                                                 v1.28.1                                      3-clause BSD license
     gopkg.in/inf.v0                                                                            v0.9.1                                       3-clause BSD license
     gopkg.in/yaml.v2                                                                           v2.4.0                                       Apache License 2.0, MIT license

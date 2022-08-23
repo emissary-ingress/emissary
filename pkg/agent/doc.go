@@ -13,7 +13,7 @@ It was introduced in AES 1.7.0. Ultimately, the goal is to be able to present a
 cloud-based UI similar to the Edge Policy Console, but for now we just want to
 display some information about what this AES knows is running in the cluster.
 
-Implementation Goals
+# Implementation Goals
 
 Minimal impact when disabled. The Agent is optional. If the user does not turn
 on the Agent, the associated code should do very little, thereby having almost
@@ -33,7 +33,7 @@ This is different from other opt-in features, because there is the potential for
 external factors to break Ambassador that were not introduced by the user, but
 rather by Datawire.
 
-Overview
+# Overview
 
 Datawire runs a microservice called AgentCom that implements the Director gRPC
 service. The client for that service is the Agent; it runs in the user’s
@@ -58,7 +58,7 @@ the cloud UI to configure Ambassador and the cluster on behalf of the user. For
 now, aside from flow control, the only command implemented is to log a short
 string to Ambassador's log.
 
-Design layers
+# Design layers
 
 * Protocol Buffers for data
 
@@ -163,7 +163,7 @@ AES components will not be blocked or otherwise affected and there will be no
 backlog. This mechanism has existed for a while; I’m only mentioning it because
 this is the only non-Agent source for events into the Reporting layer.
 
-Communication
+# Communication
 
 Reporting and retrieving operations share an identity message that includes the
 account ID, which is how the cloud app identifies this particular Ambassador,
@@ -192,7 +192,7 @@ report period is implemented on the Agent side by sleeping in the RPC Goroutine
 after the RPC completes; the Agent won’t launch a new RPC until that Goroutine
 finishes and returns a result.
 
-Interesting Cases
+# Interesting Cases
 
 * Agent is disabled
 
@@ -239,7 +239,7 @@ inconsistent, the Agent relies on the gRPC library's error reporting. The Agent
 reacts to all errors in the same way: log the error and try again later. In all
 cases, that later time is the next time the Agent decides to report.
 
-Evolving the project
+# Evolving the project
 
 Users may run a given release of Ambassador for a very long time after future
 versions have been released. Datawire may add new features to the AgentCom side
@@ -265,6 +265,5 @@ to de-duplicate reports as needed. Similarly, every replica executes all
 directives retrieved. It is safe to do so in the current trivial implementation,
 but adding commands that modify the cluster state will require considering how
 to keep Agents from stepping on each other.
-
 */
 package agent

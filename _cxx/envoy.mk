@@ -274,6 +274,10 @@ $(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(OSS_HOME)/_cxx/envoy/build_g
 	  find "$$tmpdir" -name '*.bak' -delete; \
 	  mv "$$tmpdir/$*" $@; \
 	}
+# Envoy's build system still uses an old `protoc-gen-go` that emits
+# code that Go 1.19's `gofmt` isn't happy with.  Even generated code
+# should be gofmt-clean, so gofmt it as a post-processing step.
+	gofmt -w -s ./pkg/api/envoy
 
 # The unmodified go-control-plane
 $(OSS_HOME)/_cxx/go-control-plane: FORCE
@@ -307,6 +311,7 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane,g' \
 	    -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/emissary-ingress/emissary/v3/pkg/api/envoy,g' \
 	    -- {} +; \
+	  sed -i.bak -e 's/^package/\n&/' "$$tmpdir/log/log_test.go"; \
 	  find "$$tmpdir" -name '*.bak' -delete; \
 	  mv "$$tmpdir" $(abspath $@); \
 	}

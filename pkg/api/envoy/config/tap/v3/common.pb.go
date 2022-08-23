@@ -467,9 +467,9 @@ func (x *HttpHeadersMatch) GetHeaders() []*v32.HeaderMatcher {
 //
 // .. attention::
 //
-//   Searching for patterns in HTTP body is potentially cpu intensive. For each specified pattern, http body is scanned byte by byte to find a match.
-//   If multiple patterns are specified, the process is repeated for each pattern. If location of a pattern is known, ``bytes_limit`` should be specified
-//   to scan only part of the http body.
+//	Searching for patterns in HTTP body is potentially cpu intensive. For each specified pattern, http body is scanned byte by byte to find a match.
+//	If multiple patterns are specified, the process is repeated for each pattern. If location of a pattern is known, ``bytes_limit`` should be specified
+//	to scan only part of the http body.
 type HttpGenericBodyMatch struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -796,7 +796,7 @@ func (*StreamingAdminSink) Descriptor() ([]byte, []int) {
 // BufferedAdminSink configures a tap output to collect traces without returning them until
 // one of multiple criteria are satisfied.
 // Similar to StreamingAdminSink, it is only allowed to specify the buffered admin output
-// sink if the tap is being configured from the ``/tap`` admin endpoint.
+// sink if the tap is being configured from the “/tap“ admin endpoint.
 type BufferedAdminSink struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
