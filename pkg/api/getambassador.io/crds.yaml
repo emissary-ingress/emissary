@@ -926,22 +926,18 @@ spec:
                     type: string
                 type: object
               tlsSecret:
-                description: "Name of the Kubernetes secret into which to save generated
+                description: Name of the Kubernetes secret into which to save generated
                   certificates.  If ACME is enabled (see $acmeProvider), then the
-                  default is $hostname; otherwise the default is \"\".  If the value
-                  is \"\", then we do not do TLS for this Host. \n Note that this
-                  is a native-Kubernetes-style core.v1.LocalObjectReference, not an
-                  Ambassador-style `{name}.{namespace}` string.  Because we're opinionated,
-                  it does not support referencing a Secret in another namespace (because
-                  most native Kubernetes resources don't support that), but if we
-                  ever abandon that opinion and decide to support non-local references
-                  it, it would be by adding a `namespace:` field by changing it from
-                  a core.v1.LocalObjectReference to a core.v1.SecretReference, not
-                  by adopting the `{name}.{namespace}` notation."
+                  default is $hostname; otherwise the default is "".  If the value
+                  is "", then we do not do TLS for this Host.
                 properties:
                   name:
-                    description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                      TODO: Add other useful fields. apiVersion, kind, uid?'
+                    description: Name is unique within a namespace to reference a
+                      secret resource.
+                    type: string
+                  namespace:
+                    description: Namespace defines the space within which the secret
+                      name must be unique.
                     type: string
                 type: object
             type: object
@@ -1257,22 +1253,18 @@ spec:
                     type: string
                 type: object
               tlsSecret:
-                description: "Name of the Kubernetes secret into which to save generated
+                description: Name of the Kubernetes secret into which to save generated
                   certificates.  If ACME is enabled (see $acmeProvider), then the
-                  default is $hostname; otherwise the default is \"\".  If the value
-                  is \"\", then we do not do TLS for this Host. \n Note that this
-                  is a native-Kubernetes-style core.v1.LocalObjectReference, not an
-                  Ambassador-style `{name}.{namespace}` string.  Because we're opinionated,
-                  it does not support referencing a Secret in another namespace (because
-                  most native Kubernetes resources don't support that), but if we
-                  ever abandon that opinion and decide to support non-local references
-                  it, it would be by adding a `namespace:` field by changing it from
-                  a core.v1.LocalObjectReference to a core.v1.SecretReference, not
-                  by adopting the `{name}.{namespace}` notation."
+                  default is $hostname; otherwise the default is "".  If the value
+                  is "", then we do not do TLS for this Host.
                 properties:
                   name:
-                    description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                      TODO: Add other useful fields. apiVersion, kind, uid?'
+                    description: Name is unique within a namespace to reference a
+                      secret resource.
+                    type: string
+                  namespace:
+                    description: Namespace defines the space within which the secret
+                      name must be unique.
                     type: string
                 type: object
             type: object
