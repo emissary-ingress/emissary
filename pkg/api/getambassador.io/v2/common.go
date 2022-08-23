@@ -147,8 +147,8 @@ type ErrorResponseOverride struct {
 // attention to this resource.  May either be a string or a list of
 // strings.  If no value is provided, the default is:
 //
-//    ambassador_id:
-//    - "default"
+//	ambassador_id:
+//	- "default"
 //
 // +kubebuilder:validation:Type="d6e-union:string,array"
 type AmbassadorID []string
