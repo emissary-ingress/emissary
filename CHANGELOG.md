@@ -86,7 +86,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   href="https://github.com/emissary-ingress/emissary/issues/2846">does not support internal
   redirects</a>, and does not use Envoy's built-in OAuth2 filter.
 
-## [1.14.3] February 24, 2022
+## [1.14.3] February 25, 2022
 [1.14.3]: https://github.com/emissary-ingress/emissary/compare/v1.14.2...v1.14.3
 
 ### Emissary Ingress and Ambassador Edge Stack
