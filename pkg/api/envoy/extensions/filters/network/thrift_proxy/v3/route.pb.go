@@ -490,7 +490,7 @@ func (x *WeightedCluster) GetClusters() []*WeightedCluster_ClusterWeight {
 //
 // .. note::
 //
-//   Shadowing will not be triggered if the primary cluster does not exist.
+//	Shadowing will not be triggered if the primary cluster does not exist.
 type RouteAction_RequestMirrorPolicy struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

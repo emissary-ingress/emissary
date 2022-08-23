@@ -186,23 +186,23 @@ func (*Filter_ConfigDiscovery) isFilter_ConfigType() {}
 //
 // The following order applies:
 //
-// 1. Destination port.
-// 2. Destination IP address.
-// 3. Server name (e.g. SNI for TLS protocol),
-// 4. Transport protocol.
-// 5. Application protocols (e.g. ALPN for TLS protocol).
-// 6. Directly connected source IP address (this will only be different from the source IP address
-//    when using a listener filter that overrides the source address, such as the :ref:`Proxy Protocol
-//    listener filter <config_listener_filters_proxy_protocol>`).
-// 7. Source type (e.g. any, local or external network).
-// 8. Source IP address.
-// 9. Source port.
+//  1. Destination port.
+//  2. Destination IP address.
+//  3. Server name (e.g. SNI for TLS protocol),
+//  4. Transport protocol.
+//  5. Application protocols (e.g. ALPN for TLS protocol).
+//  6. Directly connected source IP address (this will only be different from the source IP address
+//     when using a listener filter that overrides the source address, such as the :ref:`Proxy Protocol
+//     listener filter <config_listener_filters_proxy_protocol>`).
+//  7. Source type (e.g. any, local or external network).
+//  8. Source IP address.
+//  9. Source port.
 //
 // For criteria that allow ranges or wildcards, the most specific value in any
 // of the configured filter chains that matches the incoming connection is going
-// to be used (e.g. for SNI ``www.example.com`` the most specific match would be
-// ``www.example.com``, then ``*.example.com``, then ``*.com``, then any filter
-// chain without ``server_names`` requirements).
+// to be used (e.g. for SNI “www.example.com“ the most specific match would be
+// “www.example.com“, then “*.example.com“, then “*.com“, then any filter
+// chain without “server_names“ requirements).
 //
 // A different way to reason about the filter chain matches:
 // Suppose there exists N filter chains. Prune the filter chain set using the above 8 steps.
@@ -558,22 +558,22 @@ func (x *FilterChain) GetOnDemandConfiguration() *FilterChain_OnDemandConfigurat
 //
 // .. code-block:: yaml
 //
-//  destination_port_range:
-//   start: 3306
-//   end: 3307
+//	destination_port_range:
+//	 start: 3306
+//	 end: 3307
 //
 // * Matches if the destination port is 3306 or 15000.
 //
 // .. code-block:: yaml
 //
-//  or_match:
-//    rules:
-//      - destination_port_range:
-//          start: 3306
-//          end: 3307
-//      - destination_port_range:
-//          start: 15000
-//          end: 15001
+//	or_match:
+//	  rules:
+//	    - destination_port_range:
+//	        start: 3306
+//	        end: 3307
+//	    - destination_port_range:
+//	        start: 15000
+//	        end: 15001
 //
 // [#next-free-field: 6]
 type ListenerFilterChainMatchPredicate struct {

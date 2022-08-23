@@ -172,7 +172,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -383,7 +383,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -572,7 +572,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1384,7 +1384,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1480,7 +1480,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1556,7 +1556,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1804,7 +1804,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -2353,7 +2353,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -2957,7 +2957,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -3270,7 +3270,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -3500,7 +3500,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -3695,7 +3695,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:

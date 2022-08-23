@@ -1,10 +1,10 @@
 // This script is to help generate any flat yaml files from the emissary helm chart.
 //
 // This script takes two arguments:
-//   1. A multi-doc yaml file generated from running:
-//       `helm template emissary -f [VALUES_FILE.yaml] -n [NAMESPACE] ./build-output/chart-{VER}_{CHART_VER}/`
-//   2. A yaml file listing the required kubernetes resources from the generated helm template to
-//      output to stdout. See ../aes/require.yaml for an example
+//  1. A multi-doc yaml file generated from running:
+//     `helm template emissary -f [VALUES_FILE.yaml] -n [NAMESPACE] ./build-output/chart-{VER}_{CHART_VER}/`
+//  2. A yaml file listing the required kubernetes resources from the generated helm template to
+//     output to stdout. See ../aes/require.yaml for an example
 //
 // This script will output to stdout the resources from 1) iff they are referenced in 2). It will
 // preserve the ordering from 2), and will error if any resources named in 2) are missing in 1)

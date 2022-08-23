@@ -85,54 +85,63 @@ func (RBAC_Action) EnumDescriptor() ([]byte, []int) {
 }
 
 // Role Based Access Control (RBAC) provides service-level and method-level access control for a
-// service. Requests are allowed or denied based on the ``action`` and whether a matching policy is
+// service. Requests are allowed or denied based on the “action“ and whether a matching policy is
 // found. For instance, if the action is ALLOW and a matching policy is found the request should be
 // allowed.
 //
 // RBAC can also be used to make access logging decisions by communicating with access loggers
 // through dynamic metadata. When the action is LOG and at least one policy matches, the
-// ``access_log_hint`` value in the shared key namespace 'envoy.common' is set to ``true`` indicating
+// “access_log_hint“ value in the shared key namespace 'envoy.common' is set to “true“ indicating
 // the request should be logged.
 //
 // Here is an example of RBAC configuration. It has two policies:
 //
-// * Service account ``cluster.local/ns/default/sa/admin`` has full access to the service, and so
-//   does "cluster.local/ns/default/sa/superuser".
+//   - Service account “cluster.local/ns/default/sa/admin“ has full access to the service, and so
+//     does "cluster.local/ns/default/sa/superuser".
 //
-// * Any user can read (``GET``) the service at paths with prefix ``/products``, so long as the
-//   destination port is either 80 or 443.
+//   - Any user can read (“GET“) the service at paths with prefix “/products“, so long as the
+//     destination port is either 80 or 443.
 //
-//  .. code-block:: yaml
+//     .. code-block:: yaml
 //
-//   action: ALLOW
-//   policies:
+//     action: ALLOW
+//     policies:
 //     "service-admin":
-//       permissions:
-//         - any: true
-//       principals:
-//         - authenticated:
-//             principal_name:
-//               exact: "cluster.local/ns/default/sa/admin"
-//         - authenticated:
-//             principal_name:
-//               exact: "cluster.local/ns/default/sa/superuser"
-//     "product-viewer":
-//       permissions:
-//           - and_rules:
-//               rules:
-//                 - header:
-//                     name: ":method"
-//                     string_match:
-//                       exact: "GET"
-//                 - url_path:
-//                     path: { prefix: "/products" }
-//                 - or_rules:
-//                     rules:
-//                       - destination_port: 80
-//                       - destination_port: 443
-//       principals:
-//         - any: true
+//     permissions:
 //
+//   - any: true
+//     principals:
+//
+//   - authenticated:
+//     principal_name:
+//     exact: "cluster.local/ns/default/sa/admin"
+//
+//   - authenticated:
+//     principal_name:
+//     exact: "cluster.local/ns/default/sa/superuser"
+//     "product-viewer":
+//     permissions:
+//
+//   - and_rules:
+//     rules:
+//
+//   - header:
+//     name: ":method"
+//     string_match:
+//     exact: "GET"
+//
+//   - url_path:
+//     path: { prefix: "/products" }
+//
+//   - or_rules:
+//     rules:
+//
+//   - destination_port: 80
+//
+//   - destination_port: 443
+//     principals:
+//
+//   - any: true
 type RBAC struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -867,7 +876,7 @@ func (x *Action) GetAction() RBAC_Action {
 	return RBAC_ALLOW
 }
 
-// Used in the ``and_rules`` and ``or_rules`` fields in the ``rule`` oneof. Depending on the context,
+// Used in the “and_rules“ and “or_rules“ fields in the “rule“ oneof. Depending on the context,
 // each are applied with the associated behavior.
 type Permission_Set struct {
 	state         protoimpl.MessageState
@@ -916,7 +925,7 @@ func (x *Permission_Set) GetRules() []*Permission {
 	return nil
 }
 
-// Used in the ``and_ids`` and ``or_ids`` fields in the ``identifier`` oneof.
+// Used in the “and_ids“ and “or_ids“ fields in the “identifier“ oneof.
 // Depending on the context, each are applied with the associated behavior.
 type Principal_Set struct {
 	state         protoimpl.MessageState

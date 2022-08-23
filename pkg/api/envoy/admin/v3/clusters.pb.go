@@ -24,7 +24,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Admin endpoint uses this wrapper for ``/clusters`` to display cluster status information.
+// Admin endpoint uses this wrapper for “/clusters“ to display cluster status information.
 // See :ref:`/clusters <operations_admin_interface_clusters>` for more information.
 type Clusters struct {
 	state         protoimpl.MessageState

@@ -145,23 +145,25 @@ func (x *RateLimitQuotaResponse) GetBucketAction() []*RateLimitQuotaResponse_Buc
 // The identifier for the bucket. Used to match the bucket between the control plane (RLQS server),
 // and the data plane (RLQS client), f.e.:
 //
-// * the data plane sends a usage report for requests matched into the bucket with ``BucketId``
-//   to the control plane
-// * the control plane sends an assignment for the bucket with ``BucketId`` to the data plane
-//   Bucket ID.
+//   - the data plane sends a usage report for requests matched into the bucket with “BucketId“
+//     to the control plane
+//   - the control plane sends an assignment for the bucket with “BucketId“ to the data plane
+//     Bucket ID.
 //
 // Example:
 //
 // .. validated-code-block:: yaml
-//   :type-name: envoy.service.rate_limit_quota.v3.BucketId
 //
-//   bucket:
-//     name: my_bucket
-//     env: staging
+//	:type-name: envoy.service.rate_limit_quota.v3.BucketId
+//
+//	bucket:
+//	  name: my_bucket
+//	  env: staging
 //
 // .. note::
-//   The order of ``BucketId`` keys do not matter. Buckets ``{ a: 'A', b: 'B' }`` and
-//   ``{ b: 'B', a: 'A' }`` are identical.
+//
+//	The order of ``BucketId`` keys do not matter. Buckets ``{ a: 'A', b: 'B' }`` and
+//	``{ b: 'B', a: 'A' }`` are identical.
 type BucketId struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -212,8 +214,9 @@ func (x *BucketId) GetBucket() map[string]string {
 // The usage report for a bucket.
 //
 // .. note::
-//   Note that the first report sent for a ``BucketId`` indicates to the RLQS server that
-//   the RLQS client is subscribing for the future assignments for this ``BucketId``.
+//
+//	Note that the first report sent for a ``BucketId`` indicates to the RLQS server that
+//	the RLQS client is subscribing for the future assignments for this ``BucketId``.
 type RateLimitQuotaUsageReports_BucketQuotaUsage struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -401,17 +404,17 @@ func (*RateLimitQuotaResponse_BucketAction_AbandonAction_) isRateLimitQuotaRespo
 //
 // **Applying the first assignment to the bucket**
 //
-// Once the data plane receives the ``QuotaAssignmentAction``, it must send the current usage
+// Once the data plane receives the “QuotaAssignmentAction“, it must send the current usage
 // report for the bucket, and start rate limiting requests matched into the bucket
 // using the strategy configured in the :ref:`rate_limit_strategy
 // <envoy_v3_api_field_service.rate_limit_quota.v3.RateLimitQuotaResponse.BucketAction.QuotaAssignmentAction.rate_limit_strategy>`
-// field. The assignment becomes bucket's ``active`` assignment.
+// field. The assignment becomes bucket's “active“ assignment.
 //
 // **Expiring the assignment**
 //
 // The duration of the assignment defined in the :ref:`assignment_time_to_live
 // <envoy_v3_api_field_service.rate_limit_quota.v3.RateLimitQuotaResponse.BucketAction.QuotaAssignmentAction.assignment_time_to_live>`
-// field. When the duration runs off, the assignment is ``expired``, and no longer ``active``.
+// field. When the duration runs off, the assignment is “expired“, and no longer “active“.
 // The data plane should stop applying the rate limiting strategy to the bucket, and transition
 // the bucket to the "expired assignment" state. This activates the behavior configured in the
 // :ref:`expired_assignment_behavior <envoy_v3_api_field_extensions.filters.http.rate_limit_quota.v3.RateLimitQuotaBucketSettings.expired_assignment_behavior>`
@@ -419,15 +422,17 @@ func (*RateLimitQuotaResponse_BucketAction_AbandonAction_) isRateLimitQuotaRespo
 //
 // **Replacing the assignment**
 //
-// * If the rate limiting strategy is different from bucket's ``active`` assignment, or
-//   the current bucket assignment is ``expired``, the data plane must immediately
-//   end the current assignment, report the bucket usage, and apply the new assignment.
-//   The new assignment becomes bucket's ``active`` assignment.
-// `` If the rate limiting strategy is the same as the bucket's ``active`` (not ``expired``)
-//   assignment, the data plane should extend the duration of the ``active`` assignment
-//   for the duration of the new assignment provided in the :ref:`assignment_time_to_live
-//   <envoy_v3_api_field_service.rate_limit_quota.v3.RateLimitQuotaResponse.BucketAction.QuotaAssignmentAction.assignment_time_to_live>`
-//   field. The ``active`` assignment is considered unchanged.
+//   - If the rate limiting strategy is different from bucket's “active“ assignment, or
+//     the current bucket assignment is “expired“, the data plane must immediately
+//     end the current assignment, report the bucket usage, and apply the new assignment.
+//     The new assignment becomes bucket's “active“ assignment.
+//
+// “ If the rate limiting strategy is the same as the bucket's “active“ (not “expired“)
+//
+//	assignment, the data plane should extend the duration of the ``active`` assignment
+//	for the duration of the new assignment provided in the :ref:`assignment_time_to_live
+//	<envoy_v3_api_field_service.rate_limit_quota.v3.RateLimitQuotaResponse.BucketAction.QuotaAssignmentAction.assignment_time_to_live>`
+//	field. The ``active`` assignment is considered unchanged.
 type RateLimitQuotaResponse_BucketAction_QuotaAssignmentAction struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -526,15 +531,15 @@ func (x *RateLimitQuotaResponse_BucketAction_QuotaAssignmentAction) GetRateLimit
 // If a new request is matched into a bucket previously abandoned, the data plane must behave
 // as if it has never tracked the bucket, and it's the first request matched into it:
 //
-// 1. The process of :ref:`subscription and reporting
-//    <envoy_v3_api_field_extensions.filters.http.rate_limit_quota.v3.RateLimitQuotaBucketSettings.reporting_interval>`
-//    starts from the beginning.
-// 2. The bucket transitions to the :ref:`"no assignment"
-//    <envoy_v3_api_field_extensions.filters.http.rate_limit_quota.v3.RateLimitQuotaBucketSettings.no_assignment_behavior>`
-//    state.
-// 3. Once the new assignment is received, it's applied per
-//    "Applying the first assignment to the bucket" section of the :ref:`QuotaAssignmentAction
-//    <envoy_v3_api_msg_service.rate_limit_quota.v3.RateLimitQuotaResponse.BucketAction.QuotaAssignmentAction>`.
+//  1. The process of :ref:`subscription and reporting
+//     <envoy_v3_api_field_extensions.filters.http.rate_limit_quota.v3.RateLimitQuotaBucketSettings.reporting_interval>`
+//     starts from the beginning.
+//  2. The bucket transitions to the :ref:`"no assignment"
+//     <envoy_v3_api_field_extensions.filters.http.rate_limit_quota.v3.RateLimitQuotaBucketSettings.no_assignment_behavior>`
+//     state.
+//  3. Once the new assignment is received, it's applied per
+//     "Applying the first assignment to the bucket" section of the :ref:`QuotaAssignmentAction
+//     <envoy_v3_api_msg_service.rate_limit_quota.v3.RateLimitQuotaResponse.BucketAction.QuotaAssignmentAction>`.
 type RateLimitQuotaResponse_BucketAction_AbandonAction struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

@@ -456,7 +456,7 @@ type PluginConfig_VmConfig struct {
 
 func (*PluginConfig_VmConfig) isPluginConfig_Vm() {}
 
-// WasmService is configured as a built-in ``envoy.wasm_service`` :ref:`WasmService
+// WasmService is configured as a built-in “envoy.wasm_service“ :ref:`WasmService
 // <config_wasm_service>` This opaque configuration will be used to create a Wasm Service.
 type WasmService struct {
 	state         protoimpl.MessageState

@@ -280,7 +280,7 @@ func (*ProcessingRequest_RequestTrailers) isProcessingRequest_Request() {}
 
 func (*ProcessingRequest_ResponseTrailers) isProcessingRequest_Request() {}
 
-// For every ProcessingRequest received by the server with the ``async_mode`` field
+// For every ProcessingRequest received by the server with the “async_mode“ field
 // set to false, the server must send back exactly one ProcessingResponse message.
 // [#next-free-field: 10]
 type ProcessingResponse struct {

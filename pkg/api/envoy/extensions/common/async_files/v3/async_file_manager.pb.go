@@ -23,7 +23,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Configuration to instantiate or select a singleton ``AsyncFileManager``.
+// Configuration to instantiate or select a singleton “AsyncFileManager“.
 type AsyncFileManagerConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

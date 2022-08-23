@@ -130,7 +130,7 @@ func (x *AdditionalAddress) GetAddress() *v3.Address {
 	return nil
 }
 
-// Listener list collections. Entries are ``Listener`` resources or references.
+// Listener list collections. Entries are “Listener“ resources or references.
 // [#not-implemented-hide:]
 type ListenerCollection struct {
 	state         protoimpl.MessageState

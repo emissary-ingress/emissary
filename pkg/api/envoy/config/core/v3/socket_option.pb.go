@@ -81,13 +81,13 @@ func (SocketOption_SocketState) EnumDescriptor() ([]byte, []int) {
 //
 // .. code-block:: json
 //
-//  {
-//    "description": "support tcp keep alive",
-//    "state": 0,
-//    "level": 1,
-//    "name": 9,
-//    "int_value": 1,
-//  }
+//	{
+//	  "description": "support tcp keep alive",
+//	  "state": 0,
+//	  "level": 1,
+//	  "name": 9,
+//	  "int_value": 1,
+//	}
 //
 // 1 means SOL_SOCKET and 9 means SO_KEEPALIVE on Linux.
 // With the above configuration, `TCP Keep-Alives <https://www.freesoft.org/CIE/RFC/1122/114.htm>`_

@@ -195,9 +195,9 @@ func (*Filter_TypedConfig) isFilter_ConfigType() {}
 //
 // For criteria that allow ranges or wildcards, the most specific value in any
 // of the configured filter chains that matches the incoming connection is going
-// to be used (e.g. for SNI ``www.example.com`` the most specific match would be
-// ``www.example.com``, then ``*.example.com``, then ``*.com``, then any filter
-// chain without ``server_names`` requirements).
+// to be used (e.g. for SNI “www.example.com“ the most specific match would be
+// “www.example.com“, then “*.example.com“, then “*.com“, then any filter
+// chain without “server_names“ requirements).
 //
 // [#comment: Implemented rules are kept in the preference order, with deprecated fields
 // listed at the end, because that's how we want to list them in the docs.
@@ -516,22 +516,22 @@ func (x *FilterChain) GetName() string {
 //
 // .. code-block:: yaml
 //
-//  destination_port_range:
-//   start: 3306
-//   end: 3307
+//	destination_port_range:
+//	 start: 3306
+//	 end: 3307
 //
 // * Matches if the destination port is 3306 or 15000.
 //
 // .. code-block:: yaml
 //
-//  or_match:
-//    rules:
-//      - destination_port_range:
-//          start: 3306
-//          end: 3307
-//      - destination_port_range:
-//          start: 15000
-//          end: 15001
+//	or_match:
+//	  rules:
+//	    - destination_port_range:
+//	        start: 3306
+//	        end: 3307
+//	    - destination_port_range:
+//	        start: 15000
+//	        end: 15001
 //
 // [#next-free-field: 6]
 type ListenerFilterChainMatchPredicate struct {

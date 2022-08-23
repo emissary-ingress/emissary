@@ -22,7 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Admin endpoint uses this wrapper for ``/listeners`` to display listener status information.
+// Admin endpoint uses this wrapper for “/listeners“ to display listener status information.
 // See :ref:`/listeners <operations_admin_interface_listeners>` for more information.
 type Listeners struct {
 	state         protoimpl.MessageState

@@ -279,11 +279,11 @@ func (x *RateLimitQuotaOverride) GetBucketMatchers() *v31.Matcher {
 	return nil
 }
 
-// Rate Limit Quota Bucket Settings to apply on the successful ``bucket_matchers`` match.
+// Rate Limit Quota Bucket Settings to apply on the successful “bucket_matchers“ match.
 //
 // Specify this message in the :ref:`Matcher.OnMatch.action
 // <envoy_v3_api_field_.xds.type.matcher.v3.Matcher.OnMatch.action>` field of the
-// ``bucket_matchers`` matcher tree to assign the matched requests to the Quota Bucket.
+// “bucket_matchers“ matcher tree to assign the matched requests to the Quota Bucket.
 // Usage example: :ref:`RateLimitQuotaFilterConfig.bucket_matchers
 // <envoy_v3_api_field_extensions.filters.http.rate_limit_quota.v3.RateLimitQuotaFilterConfig.bucket_matchers>`.
 // [#next-free-field: 6]
@@ -751,7 +751,7 @@ func (x *RateLimitQuotaBucketSettings_DenyResponseSettings) GetResponseHeadersTo
 	return nil
 }
 
-// ``BucketIdBuilder`` makes it possible to build :ref:`BucketId
+// “BucketIdBuilder“ makes it possible to build :ref:`BucketId
 // <envoy_v3_api_msg_service.rate_limit_quota.v3.BucketId>` with values substituted
 // from the dynamic properties associated with each individual request. See usage examples in
 // the docs to :ref:`bucket_id_builder

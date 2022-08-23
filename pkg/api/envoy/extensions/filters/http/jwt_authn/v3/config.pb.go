@@ -34,7 +34,7 @@ const (
 //
 // A JwtProvider message specifies how a JSON Web Token (JWT) can be verified. It specifies:
 //
-// * issuer: the principal that issues the JWT. If specified, it has to match the ``iss`` field in JWT.
+// * issuer: the principal that issues the JWT. If specified, it has to match the “iss“ field in JWT.
 // * allowed audiences: the ones in the token have to be listed here.
 // * how to fetch public key JWKS to verify the token signature.
 // * how to extract JWT token in the request.
@@ -44,17 +44,17 @@ const (
 //
 // .. code-block:: yaml
 //
-//     issuer: https://example.com
-//     audiences:
-//     - bookstore_android.apps.googleusercontent.com
-//     - bookstore_web.apps.googleusercontent.com
-//     remote_jwks:
-//       http_uri:
-//         uri: https://example.com/.well-known/jwks.json
-//         cluster: example_jwks_cluster
-//         timeout: 1s
-//       cache_duration:
-//         seconds: 300
+//	issuer: https://example.com
+//	audiences:
+//	- bookstore_android.apps.googleusercontent.com
+//	- bookstore_web.apps.googleusercontent.com
+//	remote_jwks:
+//	  http_uri:
+//	    uri: https://example.com/.well-known/jwks.json
+//	    cluster: example_jwks_cluster
+//	    timeout: 1s
+//	  cache_duration:
+//	    seconds: 300
 //
 // [#next-free-field: 15]
 type JwtProvider struct {
@@ -775,56 +775,56 @@ func (x *ProviderWithAudiences) GetAudiences() []string {
 //
 // .. code-block:: yaml
 //
-//  # Example 1: not required with an empty message
+//	# Example 1: not required with an empty message
 //
-//  # Example 2: require A
-//  provider_name: provider-A
+//	# Example 2: require A
+//	provider_name: provider-A
 //
-//  # Example 3: require A or B
-//  requires_any:
-//    requirements:
-//      - provider_name: provider-A
-//      - provider_name: provider-B
+//	# Example 3: require A or B
+//	requires_any:
+//	  requirements:
+//	    - provider_name: provider-A
+//	    - provider_name: provider-B
 //
-//  # Example 4: require A and B
-//  requires_all:
-//    requirements:
-//      - provider_name: provider-A
-//      - provider_name: provider-B
+//	# Example 4: require A and B
+//	requires_all:
+//	  requirements:
+//	    - provider_name: provider-A
+//	    - provider_name: provider-B
 //
-//  # Example 5: require A and (B or C)
-//  requires_all:
-//    requirements:
-//      - provider_name: provider-A
-//      - requires_any:
-//        requirements:
-//          - provider_name: provider-B
-//          - provider_name: provider-C
+//	# Example 5: require A and (B or C)
+//	requires_all:
+//	  requirements:
+//	    - provider_name: provider-A
+//	    - requires_any:
+//	      requirements:
+//	        - provider_name: provider-B
+//	        - provider_name: provider-C
 //
-//  # Example 6: require A or (B and C)
-//  requires_any:
-//    requirements:
-//      - provider_name: provider-A
-//      - requires_all:
-//        requirements:
-//          - provider_name: provider-B
-//          - provider_name: provider-C
+//	# Example 6: require A or (B and C)
+//	requires_any:
+//	  requirements:
+//	    - provider_name: provider-A
+//	    - requires_all:
+//	      requirements:
+//	        - provider_name: provider-B
+//	        - provider_name: provider-C
 //
-//  # Example 7: A is optional (if token from A is provided, it must be valid, but also allows
-//  missing token.)
-//  requires_any:
-//    requirements:
-//    - provider_name: provider-A
-//    - allow_missing: {}
+//	# Example 7: A is optional (if token from A is provided, it must be valid, but also allows
+//	missing token.)
+//	requires_any:
+//	  requirements:
+//	  - provider_name: provider-A
+//	  - allow_missing: {}
 //
-//  # Example 8: A is optional and B is required.
-//  requires_all:
-//    requirements:
-//    - requires_any:
-//        requirements:
-//        - provider_name: provider-A
-//        - allow_missing: {}
-//    - provider_name: provider-B
+//	# Example 8: A is optional and B is required.
+//	requires_all:
+//	  requirements:
+//	  - requires_any:
+//	      requirements:
+//	      - provider_name: provider-A
+//	      - allow_missing: {}
+//	  - provider_name: provider-B
 //
 // [#next-free-field: 7]
 type JwtRequirement struct {
@@ -1082,8 +1082,8 @@ func (x *JwtRequirementAndList) GetRequirements() []*JwtRequirement {
 //
 // .. code-block:: yaml
 //
-//    - match:
-//        prefix: /healthz
+//   - match:
+//     prefix: /healthz
 //
 // In above example, "requires" field is empty for /healthz prefix match,
 // it means that requests matching the path prefix don't require JWT authentication.
@@ -1092,9 +1092,9 @@ func (x *JwtRequirementAndList) GetRequirements() []*JwtRequirement {
 //
 // .. code-block:: yaml
 //
-//    - match:
-//        prefix: /
-//      requires: { provider_name: provider-A }
+//   - match:
+//     prefix: /
+//     requires: { provider_name: provider-A }
 //
 // In above example, all requests matched the path prefix require jwt authentication
 // from "provider-A".
@@ -1205,19 +1205,19 @@ func (*RequirementRule_Requires) isRequirementRule_RequirementType() {}
 func (*RequirementRule_RequirementName) isRequirementRule_RequirementType() {}
 
 // This message specifies Jwt requirements based on stream_info.filterState.
-// This FilterState should use ``Router::StringAccessor`` object to set a string value.
+// This FilterState should use “Router::StringAccessor“ object to set a string value.
 // Other HTTP filters can use it to specify Jwt requirements dynamically.
 //
 // Example:
 //
 // .. code-block:: yaml
 //
-//    name: jwt_selector
-//    requires:
-//      issuer_1:
-//        provider_name: issuer1
-//      issuer_2:
-//        provider_name: issuer2
+//	name: jwt_selector
+//	requires:
+//	  issuer_1:
+//	    provider_name: issuer1
+//	  issuer_2:
+//	    provider_name: issuer2
 //
 // If a filter set "jwt_selector" with "issuer_1" to FilterState for a request,
 // jwt_authn filter will use JwtRequirement{"provider_name": "issuer1"} to verify.
@@ -1285,41 +1285,41 @@ func (x *FilterStateRule) GetRequires() map[string]*JwtRequirement {
 //
 // .. code-block:: yaml
 //
-//   providers:
-//      provider1:
-//        issuer: issuer1
-//        audiences:
-//        - audience1
-//        - audience2
-//        remote_jwks:
-//          http_uri:
-//            uri: https://example.com/.well-known/jwks.json
-//            cluster: example_jwks_cluster
-//            timeout: 1s
-//      provider2:
-//        issuer: issuer2
-//        local_jwks:
-//          inline_string: jwks_string
+//	providers:
+//	   provider1:
+//	     issuer: issuer1
+//	     audiences:
+//	     - audience1
+//	     - audience2
+//	     remote_jwks:
+//	       http_uri:
+//	         uri: https://example.com/.well-known/jwks.json
+//	         cluster: example_jwks_cluster
+//	         timeout: 1s
+//	   provider2:
+//	     issuer: issuer2
+//	     local_jwks:
+//	       inline_string: jwks_string
 //
-//   rules:
-//      # Not jwt verification is required for /health path
-//      - match:
-//          prefix: /health
+//	rules:
+//	   # Not jwt verification is required for /health path
+//	   - match:
+//	       prefix: /health
 //
-//      # Jwt verification for provider1 is required for path prefixed with "prefix"
-//      - match:
-//          prefix: /prefix
-//        requires:
-//          provider_name: provider1
+//	   # Jwt verification for provider1 is required for path prefixed with "prefix"
+//	   - match:
+//	       prefix: /prefix
+//	     requires:
+//	       provider_name: provider1
 //
-//      # Jwt verification for either provider1 or provider2 is required for all other requests.
-//      - match:
-//          prefix: /
-//        requires:
-//          requires_any:
-//            requirements:
-//              - provider_name: provider1
-//              - provider_name: provider2
+//	   # Jwt verification for either provider1 or provider2 is required for all other requests.
+//	   - match:
+//	       prefix: /
+//	     requires:
+//	       requires_any:
+//	         requirements:
+//	           - provider_name: provider1
+//	           - provider_name: provider2
 //
 // [#next-free-field: 6]
 type JwtAuthentication struct {

@@ -28,7 +28,7 @@ const (
 // provider of http tracer, then
 // :ref:`start_child_span <envoy_v3_api_field_extensions.filters.http.router.v3.Router.start_child_span>`
 // in the router must be set to true to get the correct topology and tracing data. Moreover, SkyWalking
-// Tracer does not support SkyWalking extension header (``sw8-x``) temporarily.
+// Tracer does not support SkyWalking extension header (“sw8-x“) temporarily.
 // [#extension: envoy.tracers.skywalking]
 type SkyWalkingConfig struct {
 	state         protoimpl.MessageState

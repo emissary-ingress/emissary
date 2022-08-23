@@ -21,7 +21,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Determines the action for requests that contain ``%2F``, ``%2f``, ``%5C`` or ``%5c`` sequences in the URI path.
+// Determines the action for requests that contain “%2F“, “%2f“, “%5C“ or “%5c“ sequences in the URI path.
 // This operation occurs before URL normalization and the merge slashes transformations if they were enabled.
 type HeaderValidatorConfig_UriPathNormalizationOptions_PathWithEscapedSlashesAction int32
 
@@ -103,10 +103,10 @@ func (HeaderValidatorConfig_UriPathNormalizationOptions_PathWithEscapedSlashesAc
 // #. HTTP/3 header map validity according to `RFC 9114 section 4.3  <https://www.rfc-editor.org/rfc/rfc9114.html>`_
 // #. Syntax of HTTP/3 pseudo headers
 // #. Syntax of Content-Length and Transfer-Encoding
-// #. Validation of HTTP/1 requests with both ``Content-Length`` and ``Transfer-Encoding`` headers
+// #. Validation of HTTP/1 requests with both “Content-Length“ and “Transfer-Encoding“ headers
 // #. Normalization of the URI path according to `Normalization and Comparison <https://datatracker.ietf.org/doc/html/rfc3986#section-6>`_
-//    without `case normalization <https://datatracker.ietf.org/doc/html/rfc3986#section-6.2.2.1>`_
 //
+//	without `case normalization <https://datatracker.ietf.org/doc/html/rfc3986#section-6.2.2.1>`_
 type HeaderValidatorConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

@@ -1,6 +1,6 @@
 module github.com/emissary-ingress/emissary/v3
 
-go 1.18
+go 1.19
 
 // If you're editing this file, there's a few things you should know:
 //

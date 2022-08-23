@@ -338,7 +338,7 @@ func (x *RedisProxy) GetDownstreamAuthUsername() *v3.DataSource {
 
 // RedisProtocolOptions specifies Redis upstream protocol options. This object is used in
 // :ref:`typed_extension_protocol_options<envoy_v3_api_field_config.cluster.v3.Cluster.typed_extension_protocol_options>`,
-// keyed by the name ``envoy.filters.network.redis_proxy``.
+// keyed by the name “envoy.filters.network.redis_proxy“.
 type RedisProtocolOptions struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

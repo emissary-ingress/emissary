@@ -554,7 +554,7 @@ func (x *HistogramBucketSettings) GetBuckets() []float64 {
 	return nil
 }
 
-// Stats configuration proto schema for built-in ``envoy.stat_sinks.statsd`` sink. This sink does not support
+// Stats configuration proto schema for built-in “envoy.stat_sinks.statsd“ sink. This sink does not support
 // tagged metrics.
 // [#extension: envoy.stat_sinks.statsd]
 type StatsdSink struct {
@@ -677,7 +677,7 @@ func (*StatsdSink_Address) isStatsdSink_StatsdSpecifier() {}
 
 func (*StatsdSink_TcpClusterName) isStatsdSink_StatsdSpecifier() {}
 
-// Stats configuration proto schema for built-in ``envoy.stat_sinks.dog_statsd`` sink.
+// Stats configuration proto schema for built-in “envoy.stat_sinks.dog_statsd“ sink.
 // The sink emits stats with `DogStatsD <https://docs.datadoghq.com/guides/dogstatsd/>`_
 // compatible tags. Tags are configurable via :ref:`StatsConfig
 // <envoy_v3_api_msg_config.metrics.v3.StatsConfig>`.
@@ -774,7 +774,7 @@ type DogStatsdSink_Address struct {
 
 func (*DogStatsdSink_Address) isDogStatsdSink_DogStatsdSpecifier() {}
 
-// Stats configuration proto schema for built-in ``envoy.stat_sinks.hystrix`` sink.
+// Stats configuration proto schema for built-in “envoy.stat_sinks.hystrix“ sink.
 // The sink emits stats in `text/event-stream
 // <https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events>`_
 // formatted stream for use by `Hystrix dashboard
