@@ -200,7 +200,7 @@ func parseArgs(ctx context.Context, rawArgs ...string) (*Args, error) {
 	// This is a stop gap solution to resolve 503s on certification rotation
 	edsByPass := os.Getenv("AMBASSADOR_EDS_BYPASS")
 	if v, err := strconv.ParseBool(edsByPass); err == nil && v {
-		dlog.Info(ctx, "AMBASSADOR_EDS_BYPASS has been set to true. EDS will not be bypassed and endpoints will be inserted manually.")
+		dlog.Info(ctx, "AMBASSADOR_EDS_BYPASS has been set to true. EDS will be bypassed and endpoints will be inserted manually.")
 		args.edsByPass = v
 	}
 
