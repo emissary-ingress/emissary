@@ -4,7 +4,7 @@ from typing import Generator, Literal, Tuple, Union
 
 import pytest
 
-from abstract_tests import AGRPC, AHTTP, HTTP, AmbassadorTest, Node, ServiceType
+from abstract_tests import AGRPC, AHTTP, HTTP, AmbassadorTest, Node, ServiceType, WebsocketEcho
 from ambassador import Config
 from kat.harness import EDGE_STACK, Query
 from tests.selfsigned import TLSCerts
@@ -980,11 +980,13 @@ service: {self.target.path.fqdn}
 class AuthenticationWebsocketTest(AmbassadorTest):
 
     auth: ServiceType
+    backend: ServiceType
 
     def init(self):
         if EDGE_STACK:
             self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.auth = HTTP(name="auth")
+        self.backend = WebsocketEcho()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format(
@@ -1005,7 +1007,7 @@ kind: Mapping
 name: {self.name}
 hostname: "*"
 prefix: /{self.name}/
-service: websocket-echo-server.default
+service: {self.backend.path.fqdn}
 use_websocket: true
 """
         )

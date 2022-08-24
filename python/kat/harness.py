@@ -36,11 +36,7 @@ import tests.integration.manifests as integration_manifests
 from ambassador.utils import parse_bool
 from multi import multi
 from tests.kubeutils import apply_kube_artifacts
-from tests.manifests import (
-    cleartext_host_manifest,
-    default_listener_manifest,
-    websocket_echo_server_manifests,
-)
+from tests.manifests import cleartext_host_manifest, default_listener_manifest
 
 from .parser import Tag, dump, load
 from .utils import ShellCommand
@@ -1786,11 +1782,6 @@ class Runner:
             ):
                 raise RuntimeError("Could not apply manifests")
             self.applied_manifests = True
-
-        # Finally, install the websocket-echo-server.
-        print(f"applying websocket_echo_server_manifests to namespaces: {namespaces}")
-        for namespace in namespaces:
-            apply_kube_artifacts(namespace, websocket_echo_server_manifests)
 
         for n in self.nodes:
             if n in selected and not n.xfail:
