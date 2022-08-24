@@ -62,7 +62,7 @@ commands:
       - run:
           name: "Docker login"
           command: |
-            if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
+            if [[ -n "$DOCKER_BUILD_USERNAME" && -n "$DOCKER_BUILD_PASSWORD" ]]; then
               tries=0
               while true; do
                 if [ "$tries" -gt 10 ] ; then
