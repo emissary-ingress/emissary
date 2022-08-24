@@ -138,7 +138,7 @@ type Args struct {
 	snapdirPath string
 	numsnaps    int
 
-	// edsByPass will bypass using EDS and will insert the endpoints into the custer data manually
+	// edsByPass will bypass using EDS and will insert the endpoints into the cluster data manually
 	// This is a stop gap solution to resolve 503s on certification rotation
 	edsByPass bool
 }
@@ -196,10 +196,11 @@ func parseArgs(ctx context.Context, rawArgs ...string) (*Args, error) {
 		dlog.Errorf(ctx, "Invalid AMBASSADOR_AMBEX_SNAPSHOT_COUNT: %s, using %d", numsnapStr, args.numsnaps)
 	}
 
-	// edsByPass will bypass using EDS and will insert the endpoints into the custer data manually
+	// edsByPass will bypass using EDS and will insert the endpoints into the cluster data manually
 	// This is a stop gap solution to resolve 503s on certification rotation
 	edsByPass := os.Getenv("AMBASSADOR_EDS_BY_PASS")
-	if edsByPass == "true" {
+	if strings.ToLower(edsByPass) == "true" {
+		dlog.Info(ctx, "AMBASSADOR_EDS_BY_PASS has been set to true. EDS will not be bypassed and endpoints will be inserted manually.")
 		args.edsByPass = true
 	}
 

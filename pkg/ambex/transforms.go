@@ -265,14 +265,14 @@ func JoinEdsClusters(ctx context.Context, clusters []ecp_cache_types.Resource, e
 		// The issue is CDS gets updated and waits for EDS to send ClusterLoadAssignment.
 		// During this wait period calls that are coming through get hit with a 503 since the cluster is in a warming state.
 		// The solution is to "hijack" the cluster and insert all the endpoints instead of relying on EDS.
-		// Not there will be a discrepancy between envoy/envoy.json and the config envoy has
+		// Now there will be a discrepancy between envoy/envoy.json and the config envoy.
 		if edsByPass {
 			if ep, ok := edsEndpoints[ref]; ok {
 				c.LoadAssignment = ep
 				c.EdsClusterConfig = nil
 
-				// Type 1 is STRICT_DNS
-				c.ClusterDiscoveryType = &apiv2.Cluster_Type{Type: 1}
+				// Type 0 is STATIC
+				c.ClusterDiscoveryType = &apiv2.Cluster_Type{Type: 0}
 			}
 		} else {
 			var source string
@@ -320,14 +320,14 @@ func JoinEdsClustersV3(ctx context.Context, clusters []ecp_cache_types.Resource,
 		// The issue is CDS gets updated and waits for EDS to send ClusterLoadAssignment.
 		// During this wait period calls that are coming through get hit with a 503 since the cluster is in a warming state.
 		// The solution is to "hijack" the cluster and insert all the endpoints instead of relying on EDS.
-		// Not there will be a discrepancy between envoy/envoy.json and the config envoy has
+		// Now there will be a discrepancy between envoy/envoy.json and the config envoy.
 		if edsByPass {
 			if ep, ok := edsEndpoints[ref]; ok {
 				c.LoadAssignment = ep
 				c.EdsClusterConfig = nil
 
-				// Type 1 is STRICT_DNS
-				c.ClusterDiscoveryType = &apiv3_cluster.Cluster_Type{Type: 1}
+				// Type 0 is STATIC
+				c.ClusterDiscoveryType = &apiv3_cluster.Cluster_Type{Type: 0}
 			}
 		} else {
 			var source string
