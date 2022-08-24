@@ -1,6 +1,15 @@
 from typing import Generator, Tuple, Union
 
-from abstract_tests import HTTP, AmbassadorTest, HTTPBin, MappingTest, Node, OptionTest, ServiceType
+from abstract_tests import (
+    HTTP,
+    AmbassadorTest,
+    HTTPBin,
+    MappingTest,
+    Node,
+    OptionTest,
+    ServiceType,
+    WebsocketEcho,
+)
 from ambassador.constants import Constants
 from kat.harness import EDGE_STACK, Query, variants
 
@@ -330,11 +339,10 @@ service: http://{self.target.path.fqdn}:80.invalid
 class WebSocketMapping(MappingTest):
 
     parent: AmbassadorTest
+    target: ServiceType
 
-    @classmethod
-    def variants(cls) -> Generator[Node, None, None]:
-        for st in variants(ServiceType):
-            yield cls(st, name="{self.target.name}")
+    def init(self):
+        MappingTest.init(self, WebsocketEcho())
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format(
@@ -345,7 +353,7 @@ kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
-service: websocket-echo-server.plain-namespace
+service: {self.target.path.fqdn}
 use_websocket: true
 """
         )
