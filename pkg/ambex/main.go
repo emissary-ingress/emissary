@@ -198,10 +198,10 @@ func parseArgs(ctx context.Context, rawArgs ...string) (*Args, error) {
 
 	// edsByPass will bypass using EDS and will insert the endpoints into the cluster data manually
 	// This is a stop gap solution to resolve 503s on certification rotation
-	edsByPass := os.Getenv("AMBASSADOR_EDS_BY_PASS")
-	if strings.ToLower(edsByPass) == "true" {
-		dlog.Info(ctx, "AMBASSADOR_EDS_BY_PASS has been set to true. EDS will not be bypassed and endpoints will be inserted manually.")
-		args.edsByPass = true
+	edsByPass := os.Getenv("AMBASSADOR_EDS_BYPASS")
+	if v, err := strconv.ParseBool(edsByPass); err == nil && v {
+		dlog.Info(ctx, "AMBASSADOR_EDS_BYPASS has been set to true. EDS will not be bypassed and endpoints will be inserted manually.")
+		args.edsByPass = v
 	}
 
 	return &args, nil

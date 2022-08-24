@@ -91,7 +91,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   Host. The `tlsSecret` field in the Host has a new subfield `namespace` that will allow the use of
   secrets from different namespaces.
 
-- Change: Set `AMBASSADOR_EDS_BY_PASS` to `true` to bypass EDS handling of endpoints and have
+- Change: Set `AMBASSADOR_EDS_BYPASS` to `true` to bypass EDS handling of endpoints and have
   endpoints be inserted to clusters manually. This can help resolve with `503 UH` caused by
   certification rotation relating to a delay between EDS + CDS. The default is `false`.
 

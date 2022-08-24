@@ -45,7 +45,7 @@ items:
       - title: Allow bypassing of EDS for manual endpoint insertion
         type: change
         body: >-
-          Set `AMBASSADOR_EDS_BY_PASS` to `true` to bypass EDS handling of endpoints and have endpoints be
+          Set `AMBASSADOR_EDS_BYPASS` to `true` to bypass EDS handling of endpoints and have endpoints be
           inserted to clusters manually. This can help resolve with `503 UH` caused by certification rotation relating to
           a delay between EDS + CDS. The default is `false`.
 
