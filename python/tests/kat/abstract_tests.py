@@ -527,6 +527,18 @@ class HTTPBin(ServiceType):
         yield ("url", Query("http://%s/status/200" % self.path.fqdn))
 
 
+class WebsocketEcho(ServiceType):
+    skip_variant: ClassVar[bool] = True
+
+    def __init__(self, *args, **kwargs) -> None:
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = integration_manifests.load("websocket_echo_backend")
+        super().__init__(*args, **kwargs)
+
+    def requirements(self):
+        yield ("url", Query("http://%s/" % self.path.fqdn, expected=404))
+
+
 @abstract_test
 class MappingTest(Test):
 

@@ -75,42 +75,6 @@ spec:
 """
 
 
-websocket_echo_server_manifests = """
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: websocket-echo-server
-spec:
-  selector:
-    service: websocket-echo-server
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8080
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: websocket-echo-server
-spec:
-  selector:
-    matchLabels:
-      service: websocket-echo-server
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        service: websocket-echo-server
-    spec:
-      containers:
-      - name: websocket-echo-server
-        image: docker.io/johnesmet/go-websocket-echo-server:latest
-"""
-
-
 # This is a little weird -- you need to fill in the '%s' with the namespace
 # you want before you use 'format' to fill in other things from 'self'.
 cleartext_host_manifest = """
