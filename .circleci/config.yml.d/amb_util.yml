@@ -46,19 +46,6 @@ commands:
       - attach_workspace:
           at: /home/circleci/project
 
-  "amb-skip-if-not-master-or-release":
-    steps:
-      - when:
-          condition:
-            not:
-              or:
-                - equal: [ master, << pipeline.git.branch >> ]
-                - matches:
-                    pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
-                    value: << pipeline.git.branch >>
-          steps:
-            - run: circleci step hault
-
   "amb-checkout":
     steps:
       - when:
@@ -75,11 +62,11 @@ commands:
       - run:
           name: "Docker login"
           command: |
-            if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
+            if [[ -n "$DOCKER_BUILD_USERNAME" && -n "$DOCKER_BUILD_PASSWORD" ]]; then
               tries=0
               while true; do
                 if [ "$tries" -gt 10 ] ; then
-                  circleci step halt
+                  exit 1
                 fi
 
                 fail=0
@@ -93,7 +80,7 @@ commands:
                   ((tries++))
                   sleep 30
                 else
-                  circleci step halt
+                  exit 1
                 fi
               done
             fi

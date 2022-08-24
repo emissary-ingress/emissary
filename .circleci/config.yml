@@ -120,7 +120,6 @@ commands:
     steps:
     - amb-linux-install
     - amb-attach-workspace
-    - amb-skip-if-not-master-or-release
     - run:
         name: "promote build to passed"
         command: |
@@ -247,17 +246,7 @@ commands:
     - amb-checkout
     - # pytest-envoy can be skipped unless the envoy.mk file changes, or the ambex control
       # plane changes, or the gold files change.
-      when:
-        condition:
-          or:
-          - equal: ["pytest-envoy", << parameters.test >>]
-          - equal: ["pytest-envoy-v2", << parameters.test >>]
-        steps:
-        - run: |
-            if [[ -z "$KUBECEPTION_TOKEN" ]]; then
-              circleci step halt
-            fi
-    - run:
+      run:
         name: "Set USE_LOCAL_K3S_CLUSTER=1"
         command: echo >>"$BASH_ENV" 'export USE_LOCAL_K3S_CLUSTER=1'
     - run:
@@ -355,20 +344,6 @@ commands:
     steps:
     - attach_workspace:
         at: /home/circleci/project
-  amb-skip-if-not-master-or-release:
-    steps:
-    - when:
-        condition:
-          not:
-            or:
-            - equal:
-              - master
-              - << pipeline.git.branch >>
-            - matches:
-                pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
-                value: << pipeline.git.branch >>
-        steps:
-        - run: circleci step hault
   amb-checkout:
     steps:
     - when:
@@ -388,11 +363,11 @@ commands:
     - run:
         name: "Docker login"
         command: |
-          if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
+          if [[ -n "$DOCKER_BUILD_USERNAME" && -n "$DOCKER_BUILD_PASSWORD" ]]; then
             tries=0
             while true; do
               if [ "$tries" -gt 10 ] ; then
-                circleci step halt
+                exit 1
               fi
 
               fail=0
@@ -406,7 +381,7 @@ commands:
                 ((tries++))
                 sleep 30
               else
-                circleci step halt
+                exit 1
               fi
             done
           fi
@@ -823,7 +798,18 @@ jobs:
   oss-promote-dev-to-passed:
     executor: oss-linux
     steps:
-    - job-promote-passed-ci-build
+    - run: echo 'step'
+    - when:
+        condition:
+          or:
+          - equal:
+            - master
+            - << pipeline.git.branch >>
+          - matches:
+              pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
+              value: << pipeline.git.branch >>
+        steps:
+        - job-promote-passed-ci-build
   oss-promote-pr-to-passed:
     executor: oss-linux
     steps:
