@@ -41,6 +41,14 @@ items:
           Previously the <code>Host</code> resource could only use secrets that are in the namespace as the
           Host. The <code>tlsSecret</code> field in the Host has a new subfield <code>namespace</code> that will allow
           the use of secrets from different namespaces.
+
+      - title: Allow bypassing of EDS for manual endpoint insertion
+        type: change
+        body: >-
+          Set `AMBASSADOR_EDS_BY_PASS` to `true` to bypass EDS handling of endpoints and have endpoints be
+          inserted to clusters manually. This can help resolve with `503 UH` caused by certification rotation relating to
+          a delay between EDS + CDS. The default is `false`.
+
   - version: 2.3.2
     date: '2022-08-01'
     notes:

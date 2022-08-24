@@ -246,7 +246,7 @@ func V3ListenerToRdsListener(lnr *apiv3_listener.Listener) (*apiv3_listener.List
 // the supplied list. If there is no map entry for a given cluster, an empty ClusterLoadAssignment
 // will be synthesized. The result is a set of endpoints that are consistent (by the
 // go-control-plane's definition of consistent) with the input clusters.
-func JoinEdsClusters(ctx context.Context, clusters []ecp_cache_types.Resource, edsEndpoints map[string]*apiv2.ClusterLoadAssignment) (endpoints []ecp_cache_types.Resource) {
+func JoinEdsClusters(ctx context.Context, clusters []ecp_cache_types.Resource, edsEndpoints map[string]*apiv2.ClusterLoadAssignment, edsByPass bool) (endpoints []ecp_cache_types.Resource) {
 	for _, clu := range clusters {
 		c := clu.(*apiv2.Cluster)
 		// Don't mess with non EDS clusters.
@@ -254,27 +254,42 @@ func JoinEdsClusters(ctx context.Context, clusters []ecp_cache_types.Resource, e
 			continue
 		}
 
-		// By default envoy will use the cluster name to lookup ClusterLoadAssignments unless the
+		// By default, envoy will use the cluster name to lookup ClusterLoadAssignments unless the
 		// ServiceName is supplied in the EdsClusterConfig.
 		ref := c.EdsClusterConfig.ServiceName
 		if ref == "" {
 			ref = c.Name
 		}
 
-		var source string
-		ep, ok := edsEndpoints[ref]
-		if ok {
-			source = "found"
-		} else {
-			ep = &apiv2.ClusterLoadAssignment{
-				ClusterName: ref,
-				Endpoints:   []*apiv2_endpoint.LocalityLbEndpoints{},
-			}
-			source = "synthesized"
-		}
+		// This change was introduced as a stop gap solution to mitigate the 503 issues when certificates are rotated.
+		// The issue is CDS gets updated and waits for EDS to send ClusterLoadAssignment.
+		// During this wait period calls that are coming through get hit with a 503 since the cluster is in a warming state.
+		// The solution is to "hijack" the cluster and insert all the endpoints instead of relying on EDS.
+		// Now there will be a discrepancy between envoy/envoy.json and the config envoy.
+		if edsByPass {
+			if ep, ok := edsEndpoints[ref]; ok {
+				c.LoadAssignment = ep
+				c.EdsClusterConfig = nil
 
-		dlog.Debugf(ctx, "%s envoy v2 ClusterLoadAssignment for cluster %s: %v", source, c.Name, ep)
-		endpoints = append(endpoints, ep)
+				// Type 0 is STATIC
+				c.ClusterDiscoveryType = &apiv2.Cluster_Type{Type: 0}
+			}
+		} else {
+			var source string
+			ep, ok := edsEndpoints[ref]
+			if ok {
+				source = "found"
+			} else {
+				ep = &apiv2.ClusterLoadAssignment{
+					ClusterName: ref,
+					Endpoints:   []*apiv2_endpoint.LocalityLbEndpoints{},
+				}
+				source = "synthesized"
+			}
+
+			dlog.Debugf(ctx, "%s envoy v2 ClusterLoadAssignment for cluster %s: %v", source, c.Name, ep)
+			endpoints = append(endpoints, ep)
+		}
 	}
 
 	return
@@ -286,7 +301,7 @@ func JoinEdsClusters(ctx context.Context, clusters []ecp_cache_types.Resource, e
 // the supplied list. If there is no map entry for a given cluster, an empty ClusterLoadAssignment
 // will be synthesized. The result is a set of endpoints that are consistent (by the
 // go-control-plane's definition of consistent) with the input clusters.
-func JoinEdsClustersV3(ctx context.Context, clusters []ecp_cache_types.Resource, edsEndpoints map[string]*apiv3_endpoint.ClusterLoadAssignment) (endpoints []ecp_cache_types.Resource) {
+func JoinEdsClustersV3(ctx context.Context, clusters []ecp_cache_types.Resource, edsEndpoints map[string]*apiv3_endpoint.ClusterLoadAssignment, edsByPass bool) (endpoints []ecp_cache_types.Resource) {
 	for _, clu := range clusters {
 		c := clu.(*apiv3_cluster.Cluster)
 		// Don't mess with non EDS clusters.
@@ -294,27 +309,43 @@ func JoinEdsClustersV3(ctx context.Context, clusters []ecp_cache_types.Resource,
 			continue
 		}
 
-		// By default envoy will use the cluster name to lookup ClusterLoadAssignments unless the
+		// By default, envoy will use the cluster name to lookup ClusterLoadAssignments unless the
 		// ServiceName is supplied in the EdsClusterConfig.
 		ref := c.EdsClusterConfig.ServiceName
 		if ref == "" {
 			ref = c.Name
 		}
 
-		var source string
-		ep, ok := edsEndpoints[ref]
-		if ok {
-			source = "found"
-		} else {
-			ep = &apiv3_endpoint.ClusterLoadAssignment{
-				ClusterName: ref,
-				Endpoints:   []*apiv3_endpoint.LocalityLbEndpoints{},
+		// This change was introduced as a stop gap solution to mitigate the 503 issues when certificates are rotated.
+		// The issue is CDS gets updated and waits for EDS to send ClusterLoadAssignment.
+		// During this wait period calls that are coming through get hit with a 503 since the cluster is in a warming state.
+		// The solution is to "hijack" the cluster and insert all the endpoints instead of relying on EDS.
+		// Now there will be a discrepancy between envoy/envoy.json and the config envoy.
+		if edsByPass {
+			if ep, ok := edsEndpoints[ref]; ok {
+				c.LoadAssignment = ep
+				c.EdsClusterConfig = nil
+
+				// Type 0 is STATIC
+				c.ClusterDiscoveryType = &apiv3_cluster.Cluster_Type{Type: 0}
 			}
-			source = "synthesized"
+		} else {
+			var source string
+			ep, ok := edsEndpoints[ref]
+			if ok {
+				source = "found"
+			} else {
+				ep = &apiv3_endpoint.ClusterLoadAssignment{
+					ClusterName: ref,
+					Endpoints:   []*apiv3_endpoint.LocalityLbEndpoints{},
+				}
+				source = "synthesized"
+			}
+
+			dlog.Debugf(ctx, "%s envoy v3 ClusterLoadAssignment for cluster %s: %v", source, c.Name, ep)
+			endpoints = append(endpoints, ep)
 		}
 
-		dlog.Debugf(ctx, "%s envoy v3 ClusterLoadAssignment for cluster %s: %v", source, c.Name, ep)
-		endpoints = append(endpoints, ep)
 	}
 
 	return
