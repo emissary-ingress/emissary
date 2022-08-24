@@ -60,7 +60,7 @@ items:
         docs: https://groups.google.com/g/envoy-announce/c/8nP3Kn4jV7k
 
   - version: 1.14.3
-    date: '2022-02-24'
+    date: '2022-02-25'
     notes:
       - title: Envoy security updates
         type: security
