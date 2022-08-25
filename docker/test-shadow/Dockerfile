@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
@@ -30,8 +30,9 @@ LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
 # NOTE: If you don't know what you're doing, it's probably a mistake to
 # blindly hack up this file.
 
-# We need curl, pip, and dnsutils (for nslookup).
-RUN apt-get update && apt-get -q install -y \
+# We need curl, pip, and dnsutils (for nslookup) -- and dnsutils mustn't
+# be trying to prompt for time zones or the like.
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -q install -y \
     curl \
     python3-pip \
     dnsutils
