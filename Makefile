@@ -10,15 +10,13 @@ include build-aux/tools.mk
 BUILD_ARCH ?= linux/amd64
 
 # Bootstrapping the build env
-#
-# _go-version/deps and _go-version/cmd should mostly only be used via
-# go-version.txt (in generate.mk), but we have declared them early
-# here for bootstrapping the build env.  Don't use them directly (not
-# via go-version.txt) except for bootstrapping.
-_go-version/deps = docker/base-python/Dockerfile
-_go-version/cmd = sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $(_go-version/deps)
+$(OSS_HOME)/build-aux/go-version.txt: docker/base-python/Dockerfile
+# Keep this command in-sync with the $(shell …) below.
+	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
+clean: build-aux/go-version.txt.rm
 ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
-  $(call _prelude.go.ensure,$(shell $(_go-version/cmd)))
+  # Keep this $(shell …) expression in-sync with go-version.txt above.
+  $(call _prelude.go.ensure,$(shell sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < docker/base-python/Dockerfile))
   ifneq ($(filter $(shell go env GOROOT),$(subst :, ,$(shell go env GOPATH))),)
     $(error Your $$GOPATH (where *your* Go stuff goes) and $$GOROOT (where Go *itself* is installed) are both set to the same directory ($(shell go env GOROOT)); it is remarkable that it has not blown up catastrophically before now)
   endif

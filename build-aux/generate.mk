@@ -345,10 +345,6 @@ $(OSS_HOME)/build-aux/pip-show.txt: docker/base-pip.docker.tag.local
 	docker run --rm "$$(cat docker/base-pip.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
 clean: build-aux/pip-show.txt.rm
 
-$(OSS_HOME)/build-aux/go-version.txt: $(_go-version/deps)
-	$(_go-version/cmd) > $@
-clean: build-aux/go-version.txt.rm
-
 $(OSS_HOME)/build-aux/py-version.txt: docker/base-python/Dockerfile
 	{ grep -o 'python3=\S*' | cut -d= -f2; } < $< > $@
 clean: build-aux/py-version.txt.rm
