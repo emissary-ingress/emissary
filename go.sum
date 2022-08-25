@@ -279,6 +279,7 @@ github.com/clusterhq/flocker-go v0.0.0-20160920122132-2b8b7259d313/go.mod h1:P1w
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
 github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
+github.com/cncf/udpa/go v0.0.0-20210930031921-04548b0d99d4 h1:hzAQntlaYRkVSFEfj9OTWlVV1H155FMD8BTKktLv0QI=
 github.com/cncf/udpa/go v0.0.0-20210930031921-04548b0d99d4/go.mod h1:6pvJx4me5XPnfI9Z40ddWsdw2W/uZgQLFXToKeRcDiI=
 github.com/cncf/xds/go v0.0.0-20210312221358-fbca930ec8ed/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
 github.com/cncf/xds/go v0.0.0-20210805033703-aa0b78936158/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
@@ -348,6 +349,8 @@ github.com/datawire/dtest v0.0.0-20210928162311-722b199c4c2f h1:Yz+xVYWkSARvfJ0e
 github.com/datawire/dtest v0.0.0-20210928162311-722b199c4c2f/go.mod h1:D/jb71PHlfUjfNSUVpXQAscXsXy3x+CY+c52lPnW2qU=
 github.com/datawire/go-mkopensource v0.0.0-20220218163159-cc298d9fabc4 h1:brHMnjdzg0cFM8HGwXyYhpEK1esLHPmrFu1N/cRFRPA=
 github.com/datawire/go-mkopensource v0.0.0-20220218163159-cc298d9fabc4/go.mod h1:u8J6vyaKZZSKl/sFtiQLV8I6n8xqDdPOXdY9mAQzmNg=
+github.com/datawire/go-mkopensource v0.0.0-20220825180801-6a09712a0245 h1:CojqFxkf+20qZ18rFzMegEsIq3wxOEI6J9WtHG+GhfQ=
+github.com/datawire/go-mkopensource v0.0.0-20220825180801-6a09712a0245/go.mod h1:u8J6vyaKZZSKl/sFtiQLV8I6n8xqDdPOXdY9mAQzmNg=
 github.com/davecgh/go-spew v0.0.0-20161028175848-04cdfd42973b/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

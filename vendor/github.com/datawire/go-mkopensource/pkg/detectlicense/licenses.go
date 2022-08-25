@@ -439,6 +439,13 @@ func IdentifyLicenses(body []byte) map[License]struct{} {
 	case reMatch(regexp.MustCompile(reQuote(rackspaceHeader)+reApacheLicense.String()), body):
 		// github.com/gophercloud/gophercloud/LICENSE
 		licenses[Apache2] = struct{}{}
+	case reMatch(regexp.MustCompile(reApacheLicense.String()+
+		`\n-+\n\nSome files carry the following license, noted at the top of each file:\n`+
+		reMIT.String()),
+		body):
+		// gvisor.dev/gvisor/LICENSE
+		licenses[Apache2] = struct{}{}
+		licenses[MIT] = struct{}{}
 	case reMatch(regexp.MustCompile(fmt.Sprintf(`%s=*\s*The lexer and parser[^\n]*\n[^\n]*below\.%s`, reMIT, reMIT)), body):
 		// github.com/kevinburke/ssh_config/LICENSE
 		licenses[MIT] = struct{}{}

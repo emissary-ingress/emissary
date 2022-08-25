@@ -58,6 +58,9 @@ github.com/asaskevich/govalidator
 ## explicit
 github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1
+# github.com/cncf/udpa/go v0.0.0-20210930031921-04548b0d99d4
+## explicit; go 1.11
+github.com/cncf/udpa/go/udpa/annotations
 # github.com/cncf/xds/go v0.0.0-20220121163655-4a2b9fdd466b
 ## explicit; go 1.11
 github.com/cncf/xds/go/udpa/annotations
@@ -84,7 +87,7 @@ github.com/datawire/dlib/internal/sigint
 # github.com/datawire/dtest v0.0.0-20210928162311-722b199c4c2f
 ## explicit; go 1.16
 github.com/datawire/dtest
-# github.com/datawire/go-mkopensource v0.0.0-20220218163159-cc298d9fabc4
+# github.com/datawire/go-mkopensource v0.0.0-20220825180801-6a09712a0245
 ## explicit; go 1.17
 github.com/datawire/go-mkopensource/cmd/go-mkopensource
 github.com/datawire/go-mkopensource/pkg/dependencies

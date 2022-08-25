@@ -7,8 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/datawire/go-mkopensource/pkg/dependencies"
-	"github.com/datawire/go-mkopensource/pkg/scanningerrors"
 	"io"
 	"os"
 	"os/exec"
@@ -20,18 +18,20 @@ import (
 
 	"github.com/spf13/pflag"
 
+	"github.com/datawire/go-mkopensource/pkg/dependencies"
 	"github.com/datawire/go-mkopensource/pkg/detectlicense"
 	"github.com/datawire/go-mkopensource/pkg/golist"
+	"github.com/datawire/go-mkopensource/pkg/scanningerrors"
 )
 
 type CLIArgs struct {
-	OutputFormat    string
-	OutputName      string
-	OutputType      string
-	ApplicationType string
-
-	GoTarFilename string
-	Package       string
+	OutputFormat       string
+	OutputName         string
+	OutputType         string
+	ApplicationType    string
+	UnparsablePackages string
+	GoTarFilename      string
+	Package            string
 }
 
 const (
@@ -62,6 +62,8 @@ func parseArgs() (*CLIArgs, error) {
 		fmt.Sprintf("Where will the application run. One of: %s, %s\n"+
 			"Internal applications are run on Ambassador servers.\n"+
 			"External applications run on customer machines", internalApplication, externalApplication))
+	argparser.StringVar(&args.UnparsablePackages, "unparsable-packages", "",
+		"Yaml file containing SPDX License IDs for packages that have valid licenses, but cannot be parsed by this license checker")
 
 	if err := argparser.Parse(os.Args[1:]); err != nil {
 		return nil, err
@@ -278,11 +280,27 @@ func Main(args *CLIArgs) error {
 	sort.Strings(pkgNames)
 	pkgLicenses := make(map[string]map[detectlicense.License]struct{})
 	licErrs := []error(nil)
+
+	var unparsablePackages map[string]map[detectlicense.License]struct{}
+	if args.UnparsablePackages != "" {
+		if unparsablePackages, err = detectlicense.ReadPackageLicensesFromFile(args.UnparsablePackages); err != nil {
+			return err
+		}
+	}
 	for _, pkgName := range pkgNames {
 		pkgLicenses[pkgName], err = detectlicense.DetectLicenses(pkgName, pkgVersions[pkgName], pkgFiles[pkgName])
 		if err != nil {
-			err = fmt.Errorf(`Package %q: %w`, pkgName, err)
-			licErrs = append(licErrs, err)
+			if licenses, ok := unparsablePackages[pkgName]; ok {
+				pkgLicenses[pkgName] = licenses
+			} else {
+				err = fmt.Errorf(`Package %q: %w`, pkgName, err)
+				licErrs = append(licErrs, err)
+			}
+		} else {
+			if _, ok := unparsablePackages[pkgName]; ok {
+				licErrs = append(licErrs, fmt.Errorf(`Package %q has a valid license. It must removed from %s`,
+					pkgName, args.UnparsablePackages))
+			}
 		}
 	}
 
