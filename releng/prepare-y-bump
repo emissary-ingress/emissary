@@ -81,7 +81,7 @@ gawk -i inplace \
      '
        BEGIN { done=0 }
        /^## v/ && !done {
-         print "## " chart_next_xy ".0"
+         print "## v" chart_next_xy ".0"
          print ""
          print "- Upgrade Emissary to v" next_xy ".0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)"
          print ""

@@ -32,13 +32,8 @@ jobs:
       - name: Detect version numbers
         id: get-versions
         run: |
-          # Set VERSION and CHART_VERSION
-          eval "$(make noop | sed 's/^\[make\] //')"
-          test -n "${VERSION:-}"
-          test -n "${CHART_VERSION:-}"
-
           # Set tag_majorminor
-          tag_majorminor=$(cut -d. -f1,2 <<<"${VERSION#v}")
+          tag_majorminor=$(git describe --tags --match='v*'|sed 's/^v//'|cut -d. -f1,2)
           echo "::set-output name=tag_majorminor::${tag_majorminor}"
 
           # Set branch_majorminor

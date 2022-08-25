@@ -4,6 +4,7 @@ package dlog
 
 import (
 	"context"
+	"fmt"
 	"log"
 )
 
@@ -39,6 +40,9 @@ func getLogger(ctx context.Context) Logger {
 //
 // You should only really ever call WithLogger from the initial
 // process set up (i.e. directly inside your 'main()' function).
+//
+// If the logger implements OptimizedLogger, then dlog will take
+// advantage of that.
 func WithLogger(ctx context.Context, logger Logger) context.Context {
 	return context.WithValue(ctx, loggerContextKey{}, logger)
 }
@@ -61,22 +65,41 @@ func StdLogger(ctx context.Context, level LogLevel) *log.Logger {
 	return getLogger(ctx).StdLogger(level)
 }
 
+func sprintln(args ...interface{}) string {
+	// Trim the trailing newline; what we care about is that spaces are added in between
+	// arguments, not that there's a trailing newline.  See also: logrus.Entry.sprintlnn
+	msg := fmt.Sprintln(args...)
+	return msg[:len(msg)-1]
+}
+
 // If you change any of these, you should also change convenience.go.gen and run `make generate`.
 
 func Log(ctx context.Context, lvl LogLevel, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Log(lvl, args...)
+	if opt, ok := l.(OptimizedLogger); ok {
+		opt.UnformattedLog(lvl, args...)
+	} else {
+		l.Log(lvl, fmt.Sprint(args...))
+	}
 }
 
 func Logln(ctx context.Context, lvl LogLevel, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Logln(lvl, args...)
+	if opt, ok := l.(OptimizedLogger); ok {
+		opt.UnformattedLogln(lvl, args...)
+	} else {
+		l.Log(lvl, sprintln(args...))
+	}
 }
 
 func Logf(ctx context.Context, lvl LogLevel, format string, args ...interface{}) {
 	l := getLogger(ctx)
 	l.Helper()
-	l.Logf(lvl, format, args...)
+	if opt, ok := l.(OptimizedLogger); ok {
+		opt.UnformattedLogf(lvl, format, args...)
+	} else {
+		l.Log(lvl, fmt.Sprintf(format, args...))
+	}
 }

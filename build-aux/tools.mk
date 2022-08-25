@@ -108,7 +108,7 @@ $(tools.bindir)/%: $(tools.bindir)/.%.stamp $(tools/copy-ifchanged)
 # `replace`s that keeping in-sync would be more trouble than it's
 # worth.
 tools/telepresence   = $(tools.bindir)/telepresence
-TELEPRESENCE_VERSION = 2.4.2
+TELEPRESENCE_VERSION = 2.6.6
 $(tools.bindir)/telepresence: $(tools.mk)
 	mkdir -p $(@D)
 	curl -s --fail -L https://app.getambassador.io/download/tel2/$(GOHOSTOS)/$(GOHOSTARCH)/$(TELEPRESENCE_VERSION)/telepresence -o $@
