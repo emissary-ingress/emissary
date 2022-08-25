@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	// 1st-party libs
-	aa "github.com/datawire/ambassador-agent"
+	"github.com/datawire/ambassador-agent/cmd/agent"
 	"github.com/emissary-ingress/emissary/v3/pkg/busy"
 	"github.com/emissary-ingress/emissary/v3/pkg/environment"
 
@@ -57,7 +57,7 @@ func main() {
 		"kubestatus": {Setup: environment.EnvironmentSetupEntrypoint, Run: kubestatus.Main},
 		"entrypoint": {Setup: noop, Run: entrypoint.Main},
 		"reproducer": {Setup: noop, Run: reproducer.Main},
-		"agent":      {Setup: environment.EnvironmentSetupEntrypoint, Run: aa.Main},
+		"agent":      {Setup: environment.EnvironmentSetupEntrypoint, Run: agent.Main},
 		"version":    {Setup: noop, Run: showVersion},
 		"apiext":     {Setup: noop, Run: apiext.Main},
 	})

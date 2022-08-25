@@ -339,6 +339,8 @@ github.com/creack/pty v1.1.11/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ
 github.com/cyphar/filepath-securejoin v0.2.2/go.mod h1:FpkQEhXnPnOthhzymB7CGsFk2G9VLXONKD9G7QGMM+4=
 github.com/daixiang0/gci v0.0.0-20200727065011-66f1df783cb2/go.mod h1:+AV8KmHTGxxwp/pY84TLQfFKp2vuKXXJVzF3kD/hfR4=
 github.com/daixiang0/gci v0.2.4/go.mod h1:+AV8KmHTGxxwp/pY84TLQfFKp2vuKXXJVzF3kD/hfR4=
+github.com/datawire/ambassador-agent v0.0.4 h1:TmMQdnEH5T9tl56HpM3wlpGq20GM7Ks05XxAWr8wcbE=
+github.com/datawire/ambassador-agent v0.0.4/go.mod h1:nMNIVJ7A4bYYGWnJd2J0zbCZksPHwksHkk/rqEvlzKo=
 github.com/datawire/dlib v1.2.4-0.20210629021142-e221f3b9c3b8/go.mod h1:OdrErY06tawcmEkhTLeb1k3IN2HyzT3zcW4DsqQsJOM=
 github.com/datawire/dlib v1.2.5-0.20211116212847-0316f8d7af2b h1:R9Omzc7gM7eIN0FWhxaPiH4NftPihXNewgVGQCfXok8=
 github.com/datawire/dlib v1.2.5-0.20211116212847-0316f8d7af2b/go.mod h1:NiGDmetmbkBvtznpWSx6C0vA0s0LK9aHna3LJDqjruk=
