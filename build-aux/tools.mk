@@ -2,7 +2,8 @@
 #
 # It depends on:
 #  - The `go` binary being installed in PATH.
-#  - OSS_HOME being set.
+#  - A `go.mod` file in the current directory.
+#  - A `build-aux/go-version.txt` file, or the ability to make one.
 # That should be it.
 
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
@@ -24,9 +25,9 @@ clobber-tools:
 go-mod-tidy: $(patsubst $(tools.srcdir)/%/go.mod,go-mod-tidy/tools/%,$(wildcard $(tools.srcdir)/*/go.mod))
 
 .PHONY: go-mod-tidy/tools/%
-go-mod-tidy/tools/%: $(OSS_HOME)/build-aux/go-version.txt
+go-mod-tidy/tools/%: build-aux/go-version.txt
 	rm -f $(tools.srcdir)/$*/go.sum
-	cd $(tools.srcdir)/$* && GOFLAGS=-mod=mod go mod tidy -compat=$$(cut -d. -f1,2 < $<) -go=$$(cut -d. -f1,2 < $<)
+	cd $(tools.srcdir)/$* && GOFLAGS=-mod=mod go mod tidy -compat=$$(cut -d. -f1,2 < $(abspath $<)) -go=$$(cut -d. -f1,2 < $(abspath $<))
 
 # Shell scripts
 # =============
@@ -73,7 +74,7 @@ tools.main-gomod += $(tools/protoc-gen-go)      # ensure runtime libraries are c
 tools.main-gomod += $(tools/protoc-gen-go-grpc) # ensure runtime libraries are consistent
 tools.main-gomod += $(tools/go-mkopensource)    # ensure it is consistent with py-mkopensource
 tools.main-gomod += $(tools/kubestatus)         # is actually part of Emissary
-$(tools.main-gomod): $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(OSS_HOME)/go.mod
+$(tools.main-gomod): $(tools.bindir)/%: $(tools.srcdir)/%/pin.go go.mod
 	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import "(.*)".*,\1,p' pin.go)
 
 # Local Go sources

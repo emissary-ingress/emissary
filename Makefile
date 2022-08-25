@@ -10,11 +10,11 @@ include build-aux/tools.mk
 BUILD_ARCH ?= linux/amd64
 
 # Bootstrapping the build env
-$(OSS_HOME)/build-aux/go-version.txt: docker/base-python/Dockerfile
+build-aux/go-version.txt: docker/base-python/Dockerfile
 # Keep this command in-sync with the $(shell …) below.
 	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
 clean: build-aux/go-version.txt.rm
-ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
+ifneq ($(MAKECMDGOALS),build-aux/go-version.txt)
   # Keep this $(shell …) expression in-sync with go-version.txt above.
   $(call _prelude.go.ensure,$(shell sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < docker/base-python/Dockerfile))
   ifneq ($(filter $(shell go env GOROOT),$(subst :, ,$(shell go env GOPATH))),)
