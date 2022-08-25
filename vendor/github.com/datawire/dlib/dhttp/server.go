@@ -331,7 +331,7 @@ func (sc *ServerConfig) serve(ctx context.Context, serveFn func(*http.Server) er
 	case <-workersDoneCh:
 	}
 
-	// Trigger the hard shutdown.  This is probably not nescessary in the <-workersDoneCh case,
+	// Trigger the hard shutdown.  This is probably not necessary in the <-workersDoneCh case,
 	// but let's do it in both cases, just to be safe (the "close" calls should be safe no-ops
 	// in the <-workersDoneCh case).
 	//
@@ -423,7 +423,7 @@ func (sc *ServerConfig) ListenAndServeTLS(ctx context.Context, addr, certFile, k
 	// If you're comparing this method to *http.Server.ListenAndServeTLS, then you're probably
 	// thinking "Don't we need a `defer ln.Close()` here!?" (and also probably wondering why
 	// *http.Server needs that statement).  The answer is "no, we don't need it", because we
-	// handle that in ServeTLS instead (and see the comments there about why it's nescessary).
+	// handle that in ServeTLS instead (and see the comments there about why it's necessary).
 
 	return sc.ServeTLS(ctx, ln, certFile, keyFile)
 }

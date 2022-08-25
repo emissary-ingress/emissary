@@ -50,6 +50,9 @@ func (errs MultiError) Error() string {
 			prefix := fmt.Sprintf("\n %d. ", i+1)
 			for j, line := range strings.SplitAfter(err.Error(), "\n") {
 				if j == 1 {
+					// After the first line (j==0), change the prefix to just be
+					// spaces.  Exclude the leading "\n" from the prefix because
+					// .SplitAfter leaves each line with a trailing "\n".
 					prefix = strings.Repeat(" ", len(prefix)-1)
 				}
 				buf.WriteString(prefix)
