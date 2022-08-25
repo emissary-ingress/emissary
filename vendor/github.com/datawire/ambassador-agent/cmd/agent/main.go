@@ -26,20 +26,15 @@ const (
 	ExternalSnapshotPort = 8005
 )
 
-var version string
-
 // HACK to allow main to be imported by emissary-ingress
-func Main() error {
-	var (
-		ctx       = context.Background()
-		argparser = &cobra.Command{
-			Use:           os.Args[0],
-			Version:       version,
-			RunE:          run,
-			SilenceErrors: true,
-			SilenceUsage:  true,
-		}
-	)
+func Main(ctx context.Context, version string, args ...string) error {
+	argparser := &cobra.Command{
+		Use:           os.Args[0],
+		Version:       version,
+		RunE:          run,
+		SilenceErrors: true,
+		SilenceUsage:  true,
+	}
 
 	argparser.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
 		if err == nil {
@@ -49,6 +44,7 @@ func Main() error {
 		return nil
 	})
 
+	argparser.SetArgs(args)
 	return argparser.ExecuteContext(ctx)
 }
 
