@@ -72,6 +72,25 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [3.0.1] TBD
+[3.0.1]: https://github.com/emissary-ingress/emissary/compare/v3.0.0...v3.0.1
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming
+  from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
+  ensure that all the nodes composing the emissary ingress cluster are reporting properly.
+
+- Security: Updated Golang to 1.17.12 to address the CVEs: CVE-2022-23806, CVE-2022-28327,
+  CVE-2022-24675, CVE-2022-24921, CVE-2022-23772.
+
+- Security: Updated Curl to 7.80.0-r2 to address the CVEs: CVE-2022-32207, CVE-2022-27782,
+  CVE-2022-27781, CVE-2022-27780.
+
+- Security: Updated openSSL-dev to 1.1.1q-r0 to address CVE-2022-2097.
+
+- Security: Updated ncurses to 1.1.1q-r0 to address CVE-2022-29458
+
 ## [3.0.0] June 27, 2022
 [3.0.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v3.0.0
 
@@ -142,6 +161,30 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 - Feature: With the ugprade to Envoy 1.22, Emissary-ingress can now be configured to listen for
   HTTP/3 connections using QUIC and the UDP network protocol. It currently only supports for
   connections between downstream clients and Emissary-ingress.
+
+## [2.4.0] TBD
+[2.4.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v2.4.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+## [2.3.2] August 01, 2022
+[2.3.2]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v2.3.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming
+  from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
+  ensure that all the nodes composing the emissary ingress cluster are reporting properly.
+
+- Security: Updated Golang to 1.17.12 to address the CVEs: CVE-2022-23806, CVE-2022-28327,
+  CVE-2022-24675, CVE-2022-24921, CVE-2022-23772.
+
+- Security: Updated Curl to 7.80.0-r2 to address the CVEs: CVE-2022-32207, CVE-2022-27782,
+  CVE-2022-27781, CVE-2022-27780.
+
+- Security: Updated openSSL-dev to 1.1.1q-r0 to address CVE-2022-2097.
+
+- Security: Updated ncurses to 1.1.1q-r0 to address CVE-2022-29458
 
 ## [2.3.1] June 09, 2022
 [2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1

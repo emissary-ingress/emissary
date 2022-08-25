@@ -19,6 +19,18 @@ numbering uses [semantic versioning](http://semver.org).
   when running the chart's test suite; it was not meant to be created
   in users' clusters.
 
+## 7.5.0
+
+- Upgrade Emissary to v2.4.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
+## v7.4.2
+
+- Update Emissary chart image to version v2.3.2 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
+## v7.4.1
+
+- Update Emissary chart image to version v2.3.1 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
 ## v7.4.0
 
 - Update change Emissary chart image to version v2.3.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
