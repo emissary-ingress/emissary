@@ -11,12 +11,11 @@ BUILD_ARCH ?= linux/amd64
 
 # Bootstrapping the build env
 build-aux/go-version.txt: docker/base-python/Dockerfile
-# Keep this command in-sync with the $(shell …) below.
 	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
 clean: build-aux/go-version.txt.rm
 ifneq ($(MAKECMDGOALS),build-aux/go-version.txt)
-  # Keep this $(shell …) expression in-sync with go-version.txt above.
-  $(call _prelude.go.ensure,$(shell sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < docker/base-python/Dockerfile))
+  $(shell $(MAKE) build-aux/go-version.txt >/dev/null && $(MAKE) -f build-aux/tools.mk tools/bin/goversion >/dev/null) # what a terrible hack
+  $(call _prelude.go.ensure,$(shell cat build-aux/go-version.txt))
   ifneq ($(filter $(shell go env GOROOT),$(subst :, ,$(shell go env GOPATH))),)
     $(error Your $$GOPATH (where *your* Go stuff goes) and $$GOROOT (where Go *itself* is installed) are both set to the same directory ($(shell go env GOROOT)); it is remarkable that it has not blown up catastrophically before now)
   endif
@@ -24,14 +23,14 @@ ifneq ($(MAKECMDGOALS),build-aux/go-version.txt)
     $(error Your emissary.git checkout is inside of your $$GOPATH ($(shell go env GOPATH)); Emissary-ingress uses Go modules and so GOPATH need not be pointed at it (in a post-modules world, the only role of GOPATH is to store the module download cache); and indeed some of the Kubernetes tools will get confused if GOPATH is pointed at it)
   endif
 
-  VERSION := $(or $(VERSION),$(shell go run ./tools/src/goversion))
+  VERSION := $(or $(VERSION),$(shell ./tools/bin/goversion))
   $(if $(filter v3.%,$(VERSION)),\
     ,$(error VERSION variable is invalid: It must be a v3.* string, but is '$(VERSION)'))
   $(if $(findstring +,$(VERSION)),\
     $(error VERSION variable is invalid: It must not contain + characters, but is '$(VERSION)'),)
   export VERSION
 
-  CHART_VERSION := $(or $(CHART_VERSION),$(shell go run ./tools/src/goversion --dir-prefix=chart))
+  CHART_VERSION := $(or $(CHART_VERSION),$(shell ./tools/bin/goversion --dir-prefix=chart))
   $(if $(filter v8.%,$(CHART_VERSION)),\
     ,$(error CHART_VERSION variable is invalid: It must be a v8.* string, but is '$(CHART_VERSION)'))
   export CHART_VERSION
