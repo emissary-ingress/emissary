@@ -138,9 +138,9 @@ type Args struct {
 	snapdirPath string
 	numsnaps    int
 
-	// edsByPass will bypass using EDS and will insert the endpoints into the cluster data manually
+	// edsBypass will bypass using EDS and will insert the endpoints into the cluster data manually
 	// This is a stop gap solution to resolve 503s on certification rotation
-	edsByPass bool
+	edsBypass bool
 }
 
 func parseArgs(ctx context.Context, rawArgs ...string) (*Args, error) {
@@ -196,12 +196,12 @@ func parseArgs(ctx context.Context, rawArgs ...string) (*Args, error) {
 		dlog.Errorf(ctx, "Invalid AMBASSADOR_AMBEX_SNAPSHOT_COUNT: %s, using %d", numsnapStr, args.numsnaps)
 	}
 
-	// edsByPass will bypass using EDS and will insert the endpoints into the cluster data manually
+	// edsBypass will bypass using EDS and will insert the endpoints into the cluster data manually
 	// This is a stop gap solution to resolve 503s on certification rotation
-	edsByPass := os.Getenv("AMBASSADOR_EDS_BY_PASS")
-	if strings.ToLower(edsByPass) == "true" {
-		dlog.Info(ctx, "AMBASSADOR_EDS_BY_PASS has been set to true. EDS will not be bypassed and endpoints will be inserted manually.")
-		args.edsByPass = true
+	edsBypass := os.Getenv("AMBASSADOR_EDS_BYPASS")
+	if v, err := strconv.ParseBool(edsBypass); err == nil && v {
+		dlog.Info(ctx, "AMBASSADOR_EDS_BYPASS has been set to true. EDS will be bypassed and endpoints will be inserted manually.")
+		args.edsBypass = v
 	}
 
 	return &args, nil
@@ -425,7 +425,7 @@ func update(
 	ctx context.Context,
 	snapdirPath string,
 	numsnaps int,
-	edsByPass bool,
+	edsBypass bool,
 	config ecp_v2_cache.SnapshotCache,
 	configv3 ecp_v3_cache.SnapshotCache,
 	generation *int,
@@ -582,8 +582,8 @@ func update(
 	// warmup sequence in scenarios where the endpoint data for a cluster is really flapping into
 	// and out of existence. In that circumstance we want to faithfully relay to envoy that the
 	// cluster exists but currently has no endpoints.
-	endpoints := JoinEdsClusters(ctx, clusters, edsEndpoints, edsByPass)
-	endpointsv3 := JoinEdsClustersV3(ctx, clustersv3, edsEndpointsV3, edsByPass)
+	endpoints := JoinEdsClusters(ctx, clusters, edsEndpoints, edsBypass)
+	endpointsv3 := JoinEdsClustersV3(ctx, clustersv3, edsEndpointsV3, edsBypass)
 
 	// Create a new configuration snapshot from everything we have just loaded from disk.
 	curgen := *generation
@@ -831,7 +831,7 @@ func Main(
 			ctx,
 			args.snapdirPath,
 			args.numsnaps,
-			args.edsByPass,
+			args.edsBypass,
 			config,
 			configv3,
 			&generation,
@@ -854,7 +854,7 @@ func Main(
 					ctx,
 					args.snapdirPath,
 					args.numsnaps,
-					args.edsByPass,
+					args.edsBypass,
 					config,
 					configv3,
 					&generation,
@@ -878,7 +878,7 @@ func Main(
 					ctx,
 					args.snapdirPath,
 					args.numsnaps,
-					args.edsByPass,
+					args.edsBypass,
 					config,
 					configv3,
 					&generation,
@@ -897,7 +897,7 @@ func Main(
 					ctx,
 					args.snapdirPath,
 					args.numsnaps,
-					args.edsByPass,
+					args.edsBypass,
 					config,
 					configv3,
 					&generation,
