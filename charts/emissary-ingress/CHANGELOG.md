@@ -5,9 +5,17 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+(no changes yet)
+
+## v8.1.0
+
+- Upgrade Emissary to v3.1.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
 - Change: The default for the `module` value has changed to enable serving remote client requests to the <code>:8877/ambassador/v0/diag/</code> endpoint by default.
 
 ## v8.0.0
+
+- Upgrade Emissary to v3.0.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 
 - Change: The default for the `module` value has changed to disable
   the `/ambassador/v0/` → `127.0.0.1:8877` synthetic Mapping by
@@ -37,6 +45,18 @@ numbering uses [semantic versioning](http://semver.org).
 - Add "lifecycle" option to main container. This can be used, for example, to add a lifecycle.preStop hook. Thanks to [Eric Totten](https://github.com/etotten) for the contribution!
 - Add `ambassador_id` to listener manifests rendered when using `createDefaultListeners: true` with `AMBASSADOR_ID` set in environment variables. Thanks to [Jennifer Reed](https://github.com/ServerNinja) for the contribution!
 - Feature: Added configurable IngressClass resource to be compliant with Kubernetes 1.22+ ingress specification.
+
+## v7.3.2
+
+- Upgrade Emissary to v2.2.2 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
+## v7.3.1
+
+- Upgrade Emissary to v2.2.1 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
+## v7.3.0
+
+- Upgrade Emissary to v2.2.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 
 ## v7.2.2
 
