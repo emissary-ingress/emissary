@@ -18,10 +18,10 @@ package sotw
 import (
 	"context"
 	"errors"
+	"reflect"
 	"strconv"
 	"sync/atomic"
 
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -29,11 +29,11 @@ import (
 	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
-	streamv3 "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/stream/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/stream/v3"
 )
 
 type Server interface {
-	StreamHandler(stream Stream, typeURL string) error
+	StreamHandler(stream stream.Stream, typeURL string) error
 }
 
 type Callbacks interface {
@@ -41,7 +41,7 @@ type Callbacks interface {
 	// Returning an error will end processing and close the stream. OnStreamClosed will still be called.
 	OnStreamOpen(context.Context, int64, string) error
 	// OnStreamClosed is called immediately prior to closing an xDS stream with a stream ID.
-	OnStreamClosed(int64)
+	OnStreamClosed(int64, *core.Node)
 	// OnStreamRequest is called once a request is received on a stream.
 	// Returning an error will end processing and close the stream. OnStreamClosed will still be called.
 	OnStreamRequest(int64, *discovery.DiscoveryRequest) error
@@ -63,49 +63,6 @@ type server struct {
 	streamCount int64
 }
 
-// Generic RPC stream.
-type Stream interface {
-	grpc.ServerStream
-
-	Send(*discovery.DiscoveryResponse) error
-	Recv() (*discovery.DiscoveryRequest, error)
-}
-
-// watches for all xDS resource types
-type watches struct {
-	endpoints        chan cache.Response
-	clusters         chan cache.Response
-	routes           chan cache.Response
-	scopedRoutes     chan cache.Response
-	listeners        chan cache.Response
-	secrets          chan cache.Response
-	runtimes         chan cache.Response
-	extensionConfigs chan cache.Response
-
-	endpointCancel        func()
-	clusterCancel         func()
-	routeCancel           func()
-	scopedRouteCancel     func()
-	listenerCancel        func()
-	secretCancel          func()
-	runtimeCancel         func()
-	extensionConfigCancel func()
-
-	endpointNonce        string
-	clusterNonce         string
-	routeNonce           string
-	scopedRouteNonce     string
-	listenerNonce        string
-	secretNonce          string
-	runtimeNonce         string
-	extensionConfigNonce string
-
-	// Opaque resources share a muxed channel. Nonces and watch cancellations are indexed by type URL.
-	responses     chan cache.Response
-	cancellations map[string]func()
-	nonces        map[string]string
-}
-
 // Discovery response that is sent over GRPC stream
 // We need to record what resource names are already sent to a client
 // So if the client requests a new name we can respond back
@@ -115,52 +72,8 @@ type lastDiscoveryResponse struct {
 	resources map[string]struct{}
 }
 
-// Initialize all watches
-func (values *watches) Init() {
-	// muxed channel needs a buffer to release go-routines populating it
-	values.responses = make(chan cache.Response, 5)
-	values.cancellations = make(map[string]func())
-	values.nonces = make(map[string]string)
-}
-
-// Token response value used to signal a watch failure in muxed watches.
-var errorResponse = &cache.RawResponse{}
-
-// Cancel all watches
-func (values *watches) Cancel() {
-	if values.endpointCancel != nil {
-		values.endpointCancel()
-	}
-	if values.clusterCancel != nil {
-		values.clusterCancel()
-	}
-	if values.routeCancel != nil {
-		values.routeCancel()
-	}
-	if values.scopedRouteCancel != nil {
-		values.scopedRouteCancel()
-	}
-	if values.listenerCancel != nil {
-		values.listenerCancel()
-	}
-	if values.secretCancel != nil {
-		values.secretCancel()
-	}
-	if values.runtimeCancel != nil {
-		values.runtimeCancel()
-	}
-	if values.extensionConfigCancel != nil {
-		values.extensionConfigCancel()
-	}
-	for _, cancel := range values.cancellations {
-		if cancel != nil {
-			cancel()
-		}
-	}
-}
-
 // process handles a bi-di stream request
-func (s *server) process(stream Stream, reqCh <-chan *discovery.DiscoveryRequest, defaultTypeURL string) error {
+func (s *server) process(str stream.Stream, reqCh <-chan *discovery.DiscoveryRequest, defaultTypeURL string) error {
 	// increment stream count
 	streamID := atomic.AddInt64(&s.streamCount, 1)
 
@@ -168,16 +81,19 @@ func (s *server) process(stream Stream, reqCh <-chan *discovery.DiscoveryRequest
 	// ignores stale nonces. nonce is only modified within send() function.
 	var streamNonce int64
 
-	streamState := streamv3.NewStreamState(false, map[string]string{})
+	streamState := stream.NewStreamState(false, map[string]string{})
 	lastDiscoveryResponses := map[string]lastDiscoveryResponse{}
 
 	// a collection of stack allocated watches per request type
-	var values watches
-	values.Init()
+	watches := newWatches()
+
+	// node may only be set on the first discovery request
+	var node = &core.Node{}
+
 	defer func() {
-		values.Cancel()
+		watches.close()
 		if s.callbacks != nil {
-			s.callbacks.OnStreamClosed(streamID)
+			s.callbacks.OnStreamClosed(streamID, node)
 		}
 	}()
 
@@ -208,121 +124,36 @@ func (s *server) process(stream Stream, reqCh <-chan *discovery.DiscoveryRequest
 		if s.callbacks != nil {
 			s.callbacks.OnStreamResponse(resp.GetContext(), streamID, resp.GetRequest(), out)
 		}
-		return out.Nonce, stream.Send(out)
+		return out.Nonce, str.Send(out)
 	}
 
 	if s.callbacks != nil {
-		if err := s.callbacks.OnStreamOpen(stream.Context(), streamID, defaultTypeURL); err != nil {
+		if err := s.callbacks.OnStreamOpen(str.Context(), streamID, defaultTypeURL); err != nil {
 			return err
 		}
 	}
 
-	// node may only be set on the first discovery request
-	var node = &core.Node{}
+	// recompute dynamic channels for this stream
+	watches.recompute(s.ctx, reqCh)
 
 	for {
-		select {
-		case <-s.ctx.Done():
+		// The list of select cases looks like this:
+		// 0: <- ctx.Done
+		// 1: <- reqCh
+		// 2...: per type watches
+		index, value, ok := reflect.Select(watches.cases)
+		switch index {
+		// ctx.Done() -> if we receive a value here we return as no further computation is needed
+		case 0:
 			return nil
-		// config watcher can send the requested resources types in any order
-		case resp, more := <-values.endpoints:
-			if !more {
-				return status.Errorf(codes.Unavailable, "endpoints watch failed")
-			}
-			nonce, err := send(resp)
-			if err != nil {
-				return err
-			}
-			values.endpointNonce = nonce
-
-		case resp, more := <-values.clusters:
-			if !more {
-				return status.Errorf(codes.Unavailable, "clusters watch failed")
-			}
-			nonce, err := send(resp)
-			if err != nil {
-				return err
-			}
-			values.clusterNonce = nonce
-
-		case resp, more := <-values.routes:
-			if !more {
-				return status.Errorf(codes.Unavailable, "routes watch failed")
-			}
-			nonce, err := send(resp)
-			if err != nil {
-				return err
-			}
-			values.routeNonce = nonce
-
-		case resp, more := <-values.scopedRoutes:
-			if !more {
-				return status.Errorf(codes.Unavailable, "scopedRoutes watch failed")
-			}
-			nonce, err := send(resp)
-			if err != nil {
-				return err
-			}
-			values.scopedRouteNonce = nonce
-
-		case resp, more := <-values.listeners:
-			if !more {
-				return status.Errorf(codes.Unavailable, "listeners watch failed")
-			}
-			nonce, err := send(resp)
-			if err != nil {
-				return err
-			}
-			values.listenerNonce = nonce
-
-		case resp, more := <-values.secrets:
-			if !more {
-				return status.Errorf(codes.Unavailable, "secrets watch failed")
-			}
-			nonce, err := send(resp)
-			if err != nil {
-				return err
-			}
-			values.secretNonce = nonce
-
-		case resp, more := <-values.runtimes:
-			if !more {
-				return status.Errorf(codes.Unavailable, "runtimes watch failed")
-			}
-			nonce, err := send(resp)
-			if err != nil {
-				return err
-			}
-			values.runtimeNonce = nonce
-
-		case resp, more := <-values.extensionConfigs:
-			if !more {
-				return status.Errorf(codes.Unavailable, "extensionConfigs watch failed")
-			}
-			nonce, err := send(resp)
-			if err != nil {
-				return err
-			}
-			values.extensionConfigNonce = nonce
-
-		case resp, more := <-values.responses:
-			if more {
-				if resp == errorResponse {
-					return status.Errorf(codes.Unavailable, "resource watch failed")
-				}
-				typeURL := resp.GetRequest().TypeUrl
-				nonce, err := send(resp)
-				if err != nil {
-					return err
-				}
-				values.nonces[typeURL] = nonce
-			}
-
-		case req, more := <-reqCh:
+		// Case 1 handles any request inbound on the stream and handles all initialization as needed
+		case 1:
 			// input stream ended or errored out
-			if !more {
+			if !ok {
 				return nil
 			}
+
+			req := value.Interface().(*discovery.DiscoveryRequest)
 			if req == nil {
 				return status.Errorf(codes.Unavailable, "empty request")
 			}
@@ -359,88 +190,50 @@ func (s *server) process(stream Stream, reqCh <-chan *discovery.DiscoveryRequest
 				}
 			}
 
-			// cancel existing watches to (re-)request a newer version
-			switch {
-			case req.TypeUrl == resource.EndpointType:
-				if values.endpointNonce == "" || values.endpointNonce == nonce {
-					if values.endpointCancel != nil {
-						values.endpointCancel()
-					}
-					values.endpoints = make(chan cache.Response, 1)
-					values.endpointCancel = s.cache.CreateWatch(req, streamState, values.endpoints)
+			typeURL := req.GetTypeUrl()
+			responder := make(chan cache.Response, 1)
+			if w, ok := watches.responders[typeURL]; ok {
+				// We've found a pre-existing watch, lets check and update if needed.
+				// If these requirements aren't satisfied, leave an open watch.
+				if w.nonce == "" || w.nonce == nonce {
+					w.close()
+
+					watches.addWatch(typeURL, &watch{
+						cancel:   s.cache.CreateWatch(req, streamState, responder),
+						response: responder,
+					})
 				}
-			case req.TypeUrl == resource.ClusterType:
-				if values.clusterNonce == "" || values.clusterNonce == nonce {
-					if values.clusterCancel != nil {
-						values.clusterCancel()
-					}
-					values.clusters = make(chan cache.Response, 1)
-					values.clusterCancel = s.cache.CreateWatch(req, streamState, values.clusters)
-				}
-			case req.TypeUrl == resource.RouteType:
-				if values.routeNonce == "" || values.routeNonce == nonce {
-					if values.routeCancel != nil {
-						values.routeCancel()
-					}
-					values.routes = make(chan cache.Response, 1)
-					values.routeCancel = s.cache.CreateWatch(req, streamState, values.routes)
-				}
-			case req.TypeUrl == resource.ScopedRouteType:
-				if values.scopedRouteNonce == "" || values.scopedRouteNonce == nonce {
-					if values.scopedRouteCancel != nil {
-						values.scopedRouteCancel()
-					}
-					values.scopedRoutes = make(chan cache.Response, 1)
-					values.scopedRouteCancel = s.cache.CreateWatch(req, streamState, values.scopedRoutes)
-				}
-			case req.TypeUrl == resource.ListenerType:
-				if values.listenerNonce == "" || values.listenerNonce == nonce {
-					if values.listenerCancel != nil {
-						values.listenerCancel()
-					}
-					values.listeners = make(chan cache.Response, 1)
-					values.listenerCancel = s.cache.CreateWatch(req, streamState, values.listeners)
-				}
-			case req.TypeUrl == resource.SecretType:
-				if values.secretNonce == "" || values.secretNonce == nonce {
-					if values.secretCancel != nil {
-						values.secretCancel()
-					}
-					values.secrets = make(chan cache.Response, 1)
-					values.secretCancel = s.cache.CreateWatch(req, streamState, values.secrets)
-				}
-			case req.TypeUrl == resource.RuntimeType:
-				if values.runtimeNonce == "" || values.runtimeNonce == nonce {
-					if values.runtimeCancel != nil {
-						values.runtimeCancel()
-					}
-					values.runtimes = make(chan cache.Response, 1)
-					values.runtimeCancel = s.cache.CreateWatch(req, streamState, values.runtimes)
-				}
-			case req.TypeUrl == resource.ExtensionConfigType:
-				if values.extensionConfigNonce == "" || values.extensionConfigNonce == nonce {
-					if values.extensionConfigCancel != nil {
-						values.extensionConfigCancel()
-					}
-					values.extensionConfigs = make(chan cache.Response, 1)
-					values.extensionConfigCancel = s.cache.CreateWatch(req, streamState, values.extensionConfigs)
-				}
-			default:
-				typeURL := req.TypeUrl
-				responseNonce, seen := values.nonces[typeURL]
-				if !seen || responseNonce == nonce {
-					if cancel, seen := values.cancellations[typeURL]; seen && cancel != nil {
-						cancel()
-					}
-					values.cancellations[typeURL] = s.cache.CreateWatch(req, streamState, values.responses)
-				}
+			} else {
+				// No pre-existing watch exists, let's create one.
+				// We need to precompute the watches first then open a watch in the cache.
+				watches.addWatch(typeURL, &watch{
+					cancel:   s.cache.CreateWatch(req, streamState, responder),
+					response: responder,
+				})
 			}
+
+			// Recompute the dynamic select cases for this stream.
+			watches.recompute(s.ctx, reqCh)
+		default:
+			// Channel n -> these are the dynamic list of responders that correspond to the stream request typeURL
+			if !ok {
+				// Receiver channel was closed. TODO(jpeach): probably cancel the watch or something?
+				return status.Errorf(codes.Unavailable, "resource watch %d -> failed", index)
+			}
+
+			res := value.Interface().(cache.Response)
+			nonce, err := send(res)
+			if err != nil {
+				return err
+			}
+
+			watches.responders[res.GetRequest().TypeUrl].nonce = nonce
 		}
 	}
 }
 
 // StreamHandler converts a blocking read call to channels and initiates stream processing
-func (s *server) StreamHandler(stream Stream, typeURL string) error {
+func (s *server) StreamHandler(stream stream.Stream, typeURL string) error {
 	// a channel for receiving incoming requests
 	reqCh := make(chan *discovery.DiscoveryRequest)
 	go func() {

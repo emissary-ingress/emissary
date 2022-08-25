@@ -21,13 +21,13 @@ func StaticInstallID(id string) func(*Reporter) (string, error) {
 // instead of os.UserConfigDir() because on we want the GOOS=linux
 // behavior on macOS, because:
 //
-//  - For consistency with Telepresence; as that's what scout.py does,
-//    and Telepresence uses scout.py
-//  - This is what existing versions of edgectl do (for consistency
-//    with Telepresence)
-//  - It's what many macOS users expect any way; they expect XDG file
-//    paths to work, because other cross-platform unix-y applications
-//    (like gcloud & pgcli) use them.
+//   - For consistency with Telepresence; as that's what scout.py does,
+//     and Telepresence uses scout.py
+//   - This is what existing versions of edgectl do (for consistency
+//     with Telepresence)
+//   - It's what many macOS users expect any way; they expect XDG file
+//     paths to work, because other cross-platform unix-y applications
+//     (like gcloud & pgcli) use them.
 //
 // That said, neither Telepresence nor existing versions of edgectl
 // obey XDG_CONFIG_HOME.

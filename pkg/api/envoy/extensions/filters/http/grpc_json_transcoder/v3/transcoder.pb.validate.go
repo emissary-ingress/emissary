@@ -377,6 +377,8 @@ func (m *GrpcJsonTranscoder_RequestValidationOptions) validate(all bool) error {
 
 	// no validation rules for RejectUnknownQueryParameters
 
+	// no validation rules for RejectBindingBodyFieldCollisions
+
 	if len(errors) > 0 {
 		return GrpcJsonTranscoder_RequestValidationOptionsMultiError(errors)
 	}

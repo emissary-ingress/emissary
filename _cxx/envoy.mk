@@ -1,4 +1,4 @@
-#
+#
 # Variables that the dev might set in the env or CLI
 
 # Set to non-empty to enable compiling Envoy as-needed.
@@ -8,12 +8,12 @@ ENVOY_TEST_LABEL ?= //test/...
 # Set RSYNC_EXTRAS=Pv or something to increase verbosity.
 RSYNC_EXTRAS ?=
 
-#
+#
 # Variables that are meant to be set by editing this file
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,https://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= f96adbeb45342bb8b37345df11fc395aa4b1fcda
+  ENVOY_COMMIT ?= 82fe811db6c54ef801e9b94d23eb2fcf2d2153f0
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
@@ -33,7 +33,7 @@ RSYNC_EXTRAS ?=
 # which commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an
 # automated way!  Still look at the commit yourself to make sure it seems sane; blindly trusting
 # machines is bad, mmkay?
-ENVOY_GO_CONTROL_PLANE_COMMIT = v0.10.1
+ENVOY_GO_CONTROL_PLANE_COMMIT = 8bcd7ee0191add0cec98e58202bf2950f8ac25b0
 
 # Set ENVOY_DOCKER_REPO to the list of mirrors that we should
 # sanity-check that things get pushed to.
@@ -46,7 +46,7 @@ else
   ENVOY_DOCKER_REPOS += gcr.io/datawire/ambassador-base
 endif
 
-#
+#
 # Intro
 
 include $(OSS_HOME)/build-aux/prelude.mk
@@ -117,7 +117,7 @@ guess-envoy-go-control-plane-commit: $(OSS_HOME)/_cxx/envoy $(OSS_HOME)/_cxx/go-
 	}
 .PHONY: guess-envoy-go-control-plane-commit
 
-#
+#
 # Envoy sources and build container
 
 $(OSS_HOME)/_cxx/envoy: FORCE
@@ -173,7 +173,7 @@ $(OSS_HOME)/_cxx/envoy-build-container.txt.clean: %.clean:
 	if docker volume inspect envoy-build &>/dev/null; then docker volume rm envoy-build >/dev/null; fi
 clean: $(OSS_HOME)/_cxx/envoy-build-container.txt.clean
 
-#
+#
 # Things that run in the Envoy build container
 #
 # We do everything with rsync and a persistent build-container
@@ -243,7 +243,7 @@ envoy-shell: $(ENVOY_BASH.deps)
 	)
 .PHONY: envoy-shell
 
-#
+#
 # Recipes used by `make generate`; files that get checked in to Git (i.e. protobufs and Go code)
 #
 # These targets are depended on by `make generate` in `build-aux/generate.mk`.
@@ -255,6 +255,7 @@ $(OSS_HOME)/api/envoy: $(OSS_HOME)/api/%: $(OSS_HOME)/_cxx/envoy
 # Go generated from the protobufs
 $(OSS_HOME)/_cxx/envoy/build_go: $(ENVOY_BASH.deps) FORCE
 	$(call ENVOY_BASH.cmd, \
+      $(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
 	    $(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generate_protobufs; generate_protobufs("@envoy_api//...", "/root/envoy/build_go", "envoy_api")'; \
 	)
 	test -d $@ && touch $@
@@ -273,6 +274,10 @@ $(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(OSS_HOME)/_cxx/envoy/build_g
 	  find "$$tmpdir" -name '*.bak' -delete; \
 	  mv "$$tmpdir/$*" $@; \
 	}
+# Envoy's build system still uses an old `protoc-gen-go` that emits
+# code that Go 1.19's `gofmt` isn't happy with.  Even generated code
+# should be gofmt-clean, so gofmt it as a post-processing step.
+	gofmt -w -s ./pkg/api/envoy
 
 # The unmodified go-control-plane
 $(OSS_HOME)/_cxx/go-control-plane: FORCE
@@ -306,12 +311,13 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane,g' \
 	    -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/emissary-ingress/emissary/v3/pkg/api/envoy,g' \
 	    -- {} +; \
+	  sed -i.bak -e 's/^package/\n&/' "$$tmpdir/log/log_test.go"; \
 	  find "$$tmpdir" -name '*.bak' -delete; \
 	  mv "$$tmpdir" $(abspath $@); \
 	}
 	cd $(OSS_HOME) && gofmt -w -s ./pkg/envoy-control-plane/
 
-#
+#
 # `make update-base`: Recompile Envoy and do all of the related things.
 
 update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-envoy/envoy-static-stripped $(OSS_HOME)/_cxx/envoy-build-image.txt

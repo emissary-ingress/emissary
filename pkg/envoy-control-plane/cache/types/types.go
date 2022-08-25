@@ -37,6 +37,7 @@ const (
 	Cluster
 	Route
 	ScopedRoute
+	VirtualHost
 	Listener
 	Secret
 	Runtime

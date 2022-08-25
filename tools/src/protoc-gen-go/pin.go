@@ -3,4 +3,4 @@
 
 package ignore
 
-import "github.com/golang/protobuf/protoc-gen-go"
+import "google.golang.org/protobuf/cmd/protoc-gen-go"

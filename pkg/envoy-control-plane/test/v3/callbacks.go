@@ -5,7 +5,9 @@ import (
 	"log"
 	"sync"
 
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
 	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
 )
 
 type Callbacks struct {
@@ -18,6 +20,8 @@ type Callbacks struct {
 	mu             sync.Mutex
 }
 
+var _ server.Callbacks = &Callbacks{}
+
 func (cb *Callbacks) Report() {
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
@@ -29,9 +33,9 @@ func (cb *Callbacks) OnStreamOpen(_ context.Context, id int64, typ string) error
 	}
 	return nil
 }
-func (cb *Callbacks) OnStreamClosed(id int64) {
+func (cb *Callbacks) OnStreamClosed(id int64, node *core.Node) {
 	if cb.Debug {
-		log.Printf("stream %d closed\n", id)
+		log.Printf("stream %d of node %s closed\n", id, node.Id)
 	}
 }
 func (cb *Callbacks) OnDeltaStreamOpen(_ context.Context, id int64, typ string) error {
@@ -40,9 +44,9 @@ func (cb *Callbacks) OnDeltaStreamOpen(_ context.Context, id int64, typ string) 
 	}
 	return nil
 }
-func (cb *Callbacks) OnDeltaStreamClosed(id int64) {
+func (cb *Callbacks) OnDeltaStreamClosed(id int64, node *core.Node) {
 	if cb.Debug {
-		log.Printf("delta stream %d closed\n", id)
+		log.Printf("delta stream %d of node %s closed\n", id, node.Id)
 	}
 }
 func (cb *Callbacks) OnStreamRequest(int64, *discovery.DiscoveryRequest) error {

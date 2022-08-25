@@ -215,9 +215,10 @@ func (r ResourceType) String() string {
 // cluster-specific canonical information about that resource type.
 //
 // For example, with Kubernetes v1.10.5:
-//  "pod"        -> {Group: "",           Version: "v1",      Name: "pods",        Kind: "Pod",        Namespaced: true}
-//  "deployment" -> {Group: "extensions", Version: "v1beta1", Name: "deployments", Kind: "Deployment", Namespaced: true}
-//  "svc.v1."    -> {Group: "",           Version: "v1",      Name: "services",    Kind: "Service",    Namespaced: true}
+//
+//	"pod"        -> {Group: "",           Version: "v1",      Name: "pods",        Kind: "Pod",        Namespaced: true}
+//	"deployment" -> {Group: "extensions", Version: "v1beta1", Name: "deployments", Kind: "Deployment", Namespaced: true}
+//	"svc.v1."    -> {Group: "",           Version: "v1",      Name: "services",    Kind: "Service",    Namespaced: true}
 //
 // Newer versions of Kubernetes might instead put "pod" in the "core"
 // group, or put "deployment" in apps/v1 instead of

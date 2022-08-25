@@ -42,18 +42,17 @@ import (
 // Not all the edgestack resources are defined as conveniently, so the Dispatcher design is expected
 // to be extended in two ways to handle resources with more complex interdependencies:
 //
-//   1. Grouping -- This feature would cover resources that need to be processed as a group,
-//      e.g. Mappings that get grouped together based on prefix. Instead of dispatching at the
-//      granularity of a single resource, the dispatcher will track groups of resources that need to
-//      be processed together via a logical "hash" function provided at registration. Whenever any
-//      item in a given bucket changes, the dispatcher will transform the entire bucket.
+//  1. Grouping -- This feature would cover resources that need to be processed as a group,
+//     e.g. Mappings that get grouped together based on prefix. Instead of dispatching at the
+//     granularity of a single resource, the dispatcher will track groups of resources that need to
+//     be processed together via a logical "hash" function provided at registration. Whenever any
+//     item in a given bucket changes, the dispatcher will transform the entire bucket.
 //
-//   2. Dependencies -- This feature would cover resources that need to lookup the contents of other
-//      resources in order to properly implement their transform. This would be done by passing the
-//      transform function a Query API. Any resources queried by the transform would be
-//      automatically tracked as a dependency of that resource. The dependencies would then be used
-//      to perform invalidation whenever a resource is Upsert()ed.
-//
+//  2. Dependencies -- This feature would cover resources that need to lookup the contents of other
+//     resources in order to properly implement their transform. This would be done by passing the
+//     transform function a Query API. Any resources queried by the transform would be
+//     automatically tracked as a dependency of that resource. The dependencies would then be used
+//     to perform invalidation whenever a resource is Upsert()ed.
 type Dispatcher struct {
 	// Map from kind to transform function.
 	transforms map[string]func(kates.Object) (*CompiledConfig, error)
@@ -196,7 +195,8 @@ func (d *Dispatcher) GetErrors() []*CompiledItem {
 	return result
 }
 
-// GetSnapshot returns a version and a snapshot.
+// GetSnapshot returns a version and a snapshot if the snapshot is consistent
+// Important: a nil snapshot can be returned so you must check to to make sure it exists
 func (d *Dispatcher) GetSnapshot(ctx context.Context) (string, *ecp_v3_cache.Snapshot) {
 	if d.snapshot == nil {
 		d.buildSnapshot(ctx)
@@ -206,8 +206,13 @@ func (d *Dispatcher) GetSnapshot(ctx context.Context) (string, *ecp_v3_cache.Sna
 
 // GetListener returns a *v3listener.Listener with the specified name or nil if none exists.
 func (d *Dispatcher) GetListener(ctx context.Context, name string) *v3listener.Listener {
-	_, snap := d.GetSnapshot(ctx)
-	for _, rsrc := range snap.Resources[ecp_cache_types.Listener].Items {
+	_, snapshot := d.GetSnapshot(ctx)
+	// ensure that snapshot is not nil before trying to use
+	if snapshot == nil {
+		return nil
+	}
+
+	for _, rsrc := range snapshot.Resources[ecp_cache_types.Listener].Items {
 		l := rsrc.Resource.(*v3listener.Listener)
 		if l.Name == name {
 			return l
@@ -220,8 +225,13 @@ func (d *Dispatcher) GetListener(ctx context.Context, name string) *v3listener.L
 // GetRouteConfiguration returns a *apiv2.RouteConfiguration with the specified name or nil if none
 // exists.
 func (d *Dispatcher) GetRouteConfiguration(ctx context.Context, name string) *v3route.RouteConfiguration {
-	_, snap := d.GetSnapshot(ctx)
-	for _, rsrc := range snap.Resources[ecp_cache_types.Route].Items {
+	_, snapshot := d.GetSnapshot(ctx)
+	// ensure snapshot is valid before attempting to access members to prevent panic
+	if snapshot == nil {
+		return nil
+	}
+
+	for _, rsrc := range snapshot.Resources[ecp_cache_types.Route].Items {
 		r := rsrc.Resource.(*v3route.RouteConfiguration)
 		if r.Name == name {
 			return r
@@ -372,7 +382,7 @@ func (d *Dispatcher) buildSnapshot(ctx context.Context) {
 		bs, _ := json.MarshalIndent(snapshot, "", "  ")
 		dlog.Errorf(ctx, "Dispatcher Snapshot inconsistency: %v: %s", err, bs)
 	} else {
-		d.snapshot = &snapshot
+		d.snapshot = snapshot
 		d.endpointWatches = endpointWatches
 	}
 }

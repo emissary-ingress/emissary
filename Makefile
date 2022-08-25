@@ -10,8 +10,15 @@ include build-aux/tools.mk
 BUILD_ARCH ?= linux/amd64
 
 # Bootstrapping the build env
+#
+# _go-version/deps and _go-version/cmd should mostly only be used via
+# go-version.txt (in generate.mk), but we have declared them early
+# here for bootstrapping the build env.  Don't use them directly (not
+# via go-version.txt) except for bootstrapping.
+_go-version/deps = docker/base-python/Dockerfile
+_go-version/cmd = sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $(_go-version/deps)
 ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
-  $(_prelude.go.ensure)
+  $(call _prelude.go.ensure,$(shell $(_go-version/cmd)))
   ifneq ($(filter $(shell go env GOROOT),$(subst :, ,$(shell go env GOPATH))),)
     $(error Your $$GOPATH (where *your* Go stuff goes) and $$GOROOT (where Go *itself* is installed) are both set to the same directory ($(shell go env GOROOT)); it is remarkable that it has not blown up catastrophically before now)
   endif
@@ -132,3 +139,19 @@ $(RUN_EMISSARY_AGENT):
 irun-emissary-agent: bin/run-emissary-agent.sh ## Run emissary-agent using the environment variables fetched by the intercept.
 	bin/run-emissary-agent.sh
 
+## Helper target for setting up local dev environment when working with python components
+## such as pytests, diagd, etc...
+.PHONY: python-dev-setup
+python-dev-setup:
+# recreate venv and upgrade pip
+	rm -rf venv
+	python3 -m venv venv
+	venv/bin/python3 -m pip install --upgrade pip
+
+# install deps, dev deps and diagd
+	./venv/bin/pip install -r python/requirements.txt
+	./venv/bin/pip install -r python/requirements-dev.txt
+	./venv/bin/pip install -e python
+
+# activate venv
+	@echo "run 'source ./venv/bin/activate' to activate venv in local shell"

@@ -32,6 +32,24 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 3.2.0
+    prevVersion: 3.1.0
+    date: 'TBD'
+    notes:
+      - title: Envoy upgraded to 1.23
+        type: change
+        body: >-
+          The envoy version included in $productName$ has been upgraded from 1.22 to the latest patch
+          release of 1.23. This provides $productName$ with the latest security patches, performances enhancments,
+          and features offered by the envoy proxy.
+        docs: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.23/v1.23.0
+      - title: Add support for Host resources using secrets from different namespaces
+        type: feature
+        body: >-
+          Previously the <code>Host</code> resource could only use secrets that are in the namespace as the
+          Host. The <code>tlsSecret</code> field in the Host has a new subfield <code>namespace</code> that will allow
+          the use of secrets from different namespaces.
+
   - version: 3.1.1
     prevVersion: 3.1.0
     date: 'TBD'
