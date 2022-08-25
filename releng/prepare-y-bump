@@ -14,16 +14,16 @@ chart_next_xy=${chart_this_xy%.*}.$((${chart_this_xy##*.}+1))
 
 refs=()
 
-if test -z "$(git for-each-ref "refs/remotes/*/release/v${this_xy}")" || true; then
+if test -z "$(git for-each-ref "refs/remotes/*/release/v${this_xy}")"; then
 	# We are on 'master', which will become the next_xy branch,
 	# and we need to create a 'release/v${this_xy}' branch.
 
-	# git branch "release/v${this_xy}"
-	# refs+=("release/v${this_xy}")
+	git branch "release/v${this_xy}"
+	refs+=("release/v${this_xy}")
 
-	# git branch "${USER}/v${next_xy}"
-	# git switch "${USER}/v${next_xy}"
-	# refs+=("${USER}/v${next_xy}")
+	git branch "${USER}/v${next_xy}"
+	git switch "${USER}/v${next_xy}"
+	refs+=("${USER}/v${next_xy}")
 
 	echo 'Editing README.md...'
 	gawk -i inplace \
