@@ -1,0 +1,39 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {self.path.k8s}
+spec:
+  selector:
+    backend: {self.path.k8s}
+  ports:
+  - protocol: UDP
+    port: 8125
+    targetPort: 8125
+    name: statsd-metrics
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+    name: statsd-http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {self.path.k8s}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      backend: {self.path.k8s}
+  template:
+    metadata:
+      labels:
+        backend: {self.path.k8s}
+    spec:
+      containers:
+      - name: statsd
+        image: {images[test-stats]}
+        env:
+        - name: STATSD_TEST_CLUSTER
+          value: {self.target_cluster}
+      restartPolicy: Always
