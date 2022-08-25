@@ -343,8 +343,9 @@ github.com/cyphar/filepath-securejoin v0.2.2/go.mod h1:FpkQEhXnPnOthhzymB7CGsFk2
 github.com/daixiang0/gci v0.0.0-20200727065011-66f1df783cb2/go.mod h1:+AV8KmHTGxxwp/pY84TLQfFKp2vuKXXJVzF3kD/hfR4=
 github.com/daixiang0/gci v0.2.4/go.mod h1:+AV8KmHTGxxwp/pY84TLQfFKp2vuKXXJVzF3kD/hfR4=
 github.com/datawire/dlib v1.2.4-0.20210629021142-e221f3b9c3b8/go.mod h1:OdrErY06tawcmEkhTLeb1k3IN2HyzT3zcW4DsqQsJOM=
-github.com/datawire/dlib v1.2.5-0.20211116212847-0316f8d7af2b h1:R9Omzc7gM7eIN0FWhxaPiH4NftPihXNewgVGQCfXok8=
 github.com/datawire/dlib v1.2.5-0.20211116212847-0316f8d7af2b/go.mod h1:NiGDmetmbkBvtznpWSx6C0vA0s0LK9aHna3LJDqjruk=
+github.com/datawire/dlib v1.3.0 h1:KkmyXU1kwm3oPBk1ypR70YbcOlEXWzEbx5RE0iRXTGk=
+github.com/datawire/dlib v1.3.0/go.mod h1:NiGDmetmbkBvtznpWSx6C0vA0s0LK9aHna3LJDqjruk=
 github.com/datawire/dtest v0.0.0-20210928162311-722b199c4c2f h1:Yz+xVYWkSARvfJ0e3LWwF1N5F+zJI9pCZ9R41OtkrKE=
 github.com/datawire/dtest v0.0.0-20210928162311-722b199c4c2f/go.mod h1:D/jb71PHlfUjfNSUVpXQAscXsXy3x+CY+c52lPnW2qU=
 github.com/datawire/go-mkopensource v0.0.0-20220218163159-cc298d9fabc4 h1:brHMnjdzg0cFM8HGwXyYhpEK1esLHPmrFu1N/cRFRPA=

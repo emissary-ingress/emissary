@@ -34,6 +34,7 @@ changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.
 items:
   - version: 2.4.0
     date: 'TBD'
+    prevVersion: 2.3.2
     notes:
       - title: Add support for Host resources using secrets from different namespaces
         type: feature
@@ -49,8 +50,23 @@ items:
           inserted to clusters manually. This can help resolve with `503 UH` caused by certification rotation relating to
           a delay between EDS + CDS. The default is `false`.
 
+  - version: 1.14.5
+    date: 'TBD'
+    notes:
+      - title: When using gzip, upstreams will no longer receive encoded data
+        type: bugfix
+        body: >-
+          When using gzip compression, upstream services will no longer receive compressed
+          data. This bug was introduced in 1.14.0. The fix restores the default behavior of
+          not sending compressed data to upstream services.
+        github:
+        - title: 3818
+          link: https://github.com/emissary-ingress/emissary/issues/3818
+        docs: https://github.com/emissary-ingress/emissary/issues/3818
+
   - version: 2.3.2
     date: '2022-08-01'
+    prevVersion: 2.3.1
     notes:
       - title: Fix regression in the agent for the metrics transfer.
         type: bugfix
@@ -76,6 +92,19 @@ items:
         type: security
         body: >-
           Updated ncurses to 1.1.1q-r0 to address CVE-2022-29458
+
+  - version: 1.14.4
+    date: '2022-06-13'
+    notes:
+      - title: Envoy security updates
+        type: security
+        body: >-
+          We have backported patches from the Envoy 1.19.5 security update to $productName$'s
+          1.17-based Envoy, addressing CVE-2022-29224 and CVE-2022-29225.  $productName$ is not
+          affected by CVE-2022-29226, CVE-2022-29227, or CVE-2022-29228; as it <a
+          href="https://github.com/emissary-ingress/emissary/issues/2846">does not support internal
+          redirects</a>, and does not use Envoy's built-in OAuth2 filter.
+        docs: https://groups.google.com/g/envoy-announce/c/8nP3Kn4jV7k
 
   - version: 2.3.1
     date: '2022-06-09'
@@ -160,6 +189,7 @@ items:
 
   - version: 2.2.2
     date: '2022-02-25'
+    prevVersion: 2.2.1
     notes:
       - title: TLS Secret validation is now opt-in
         type: change
@@ -184,6 +214,16 @@ items:
         github:
           - title: "#4122"
             link: https://github.com/emissary-ingress/emissary/pull/4122
+
+  - version: 1.14.3
+    date: '2022-02-25'
+    notes:
+      - title: Envoy security updates
+        type: security
+        body: >-
+          Upgraded Envoy to address security vulnerabilities CVE-2021-43824, CVE-2021-43825, CVE-2021-43826,
+          CVE-2022-21654, and CVE-2022-21655.
+        docs: https://groups.google.com/g/envoy-announce/c/bIUgEDKHl4g
 
   - version: 2.2.1
     date: '2022-02-22'
@@ -824,16 +864,6 @@ items:
         body: The <code>edgectl</code> CLI tool has been deprecated; please use the <code>emissary-ingress</code> helm chart instead.
         docs: topics/install/helm/
         type: change
-
-  - version: 1.14.3
-    date: '2022-02-25'
-    notes:
-      - title: Envoy security updates
-        type: security
-        body: >-
-          Upgraded Envoy to address security vulnerabilities CVE-2021-43824, CVE-2021-43825, CVE-2021-43826,
-          CVE-2022-21654, and CVE-2022-21655.
-        docs: https://groups.google.com/g/envoy-announce/c/bIUgEDKHl4g
 
   - version: 1.14.2
     date: '2021-09-29'

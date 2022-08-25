@@ -67,7 +67,7 @@ github.com/cncf/udpa/go/xds/core/v3
 github.com/cncf/xds/go/udpa/annotations
 github.com/cncf/xds/go/xds/annotations/v3
 github.com/cncf/xds/go/xds/core/v3
-# github.com/datawire/dlib v1.2.5-0.20211116212847-0316f8d7af2b
+# github.com/datawire/dlib v1.3.0
 ## explicit; go 1.15
 github.com/datawire/dlib/dcontext
 github.com/datawire/dlib/derrgroup
