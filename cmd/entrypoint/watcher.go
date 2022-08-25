@@ -372,6 +372,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 	reconcileSecretsTimer := dbg.Timer("reconcileSecrets")
 	reconcileConsulTimer := dbg.Timer("reconcileConsul")
 	reconcileAuthServicesTimer := dbg.Timer("reconcileAuthServices")
+	reconcileRateLimitServicesTimer := dbg.Timer("reconcileRateLimitServices")
 
 	endpointsChanged := false
 	dispatcherChanged := false
@@ -454,6 +455,13 @@ func (sh *SnapshotHolder) K8sUpdate(
 		})
 		if err != nil {
 			dlog.Errorf(ctx, "[WATCHER]: ERROR reconciling AuthServices: %v", err)
+			return false, err
+		}
+		reconcileRateLimitServicesTimer.Time(func() {
+			err = ReconcileRateLimit(ctx, sh, &deltas)
+		})
+		if err != nil {
+			dlog.Errorf(ctx, "[WATCHER]: ERROR reconciling RateLimitServices: %v", err)
 			return false, err
 		}
 

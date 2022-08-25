@@ -5,14 +5,16 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/getkin/kin-openapi/jsoninfo"
 	"github.com/go-openapi/jsonpointer"
+
+	"github.com/getkin/kin-openapi/jsoninfo"
 )
 
 type Links map[string]*LinkRef
 
-func (l Links) JSONLookup(token string) (interface{}, error) {
-	ref, ok := l[token]
+// JSONLookup implements github.com/go-openapi/jsonpointer#JSONPointable
+func (links Links) JSONLookup(token string) (interface{}, error) {
+	ref, ok := links[token]
 	if ok == false {
 		return nil, fmt.Errorf("object has no field %q", token)
 	}
@@ -25,31 +27,36 @@ func (l Links) JSONLookup(token string) (interface{}, error) {
 
 var _ jsonpointer.JSONPointable = (*Links)(nil)
 
-// Link is specified by OpenAPI/Swagger standard version 3.0.
+// Link is specified by OpenAPI/Swagger standard version 3.
+// See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#linkObject
 type Link struct {
 	ExtensionProps
-	OperationID  string                 `json:"operationId,omitempty" yaml:"operationId,omitempty"`
+
 	OperationRef string                 `json:"operationRef,omitempty" yaml:"operationRef,omitempty"`
+	OperationID  string                 `json:"operationId,omitempty" yaml:"operationId,omitempty"`
 	Description  string                 `json:"description,omitempty" yaml:"description,omitempty"`
 	Parameters   map[string]interface{} `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 	Server       *Server                `json:"server,omitempty" yaml:"server,omitempty"`
 	RequestBody  interface{}            `json:"requestBody,omitempty" yaml:"requestBody,omitempty"`
 }
 
-func (value *Link) MarshalJSON() ([]byte, error) {
-	return jsoninfo.MarshalStrictStruct(value)
+// MarshalJSON returns the JSON encoding of Link.
+func (link *Link) MarshalJSON() ([]byte, error) {
+	return jsoninfo.MarshalStrictStruct(link)
 }
 
-func (value *Link) UnmarshalJSON(data []byte) error {
-	return jsoninfo.UnmarshalStrictStruct(data, value)
+// UnmarshalJSON sets Link to a copy of data.
+func (link *Link) UnmarshalJSON(data []byte) error {
+	return jsoninfo.UnmarshalStrictStruct(data, link)
 }
 
-func (value *Link) Validate(ctx context.Context) error {
-	if value.OperationID == "" && value.OperationRef == "" {
+// Validate returns an error if Link does not comply with the OpenAPI spec.
+func (link *Link) Validate(ctx context.Context) error {
+	if link.OperationID == "" && link.OperationRef == "" {
 		return errors.New("missing operationId or operationRef on link")
 	}
-	if value.OperationID != "" && value.OperationRef != "" {
-		return fmt.Errorf("operationId %q and operationRef %q are mutually exclusive", value.OperationID, value.OperationRef)
+	if link.OperationID != "" && link.OperationRef != "" {
+		return fmt.Errorf("operationId %q and operationRef %q are mutually exclusive", link.OperationID, link.OperationRef)
 	}
 	return nil
 }

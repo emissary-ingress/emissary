@@ -32,10 +32,68 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 3.1.1
+    prevVersion: 3.1.0
+    date: 'TBD'
+    notes: []
+
   - version: 3.0.1
+    prevVersion: 3.0.0
     date: 'TBD'
     notes:
       - title: Fix regression in the agent for the metrics transfer.
+        type: bugfix
+        body: >-
+          A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming from
+          emissary ingress before sending them to Ambassador cloud. This issue has been resolved to ensure
+          that all the nodes composing the emissary ingress cluster are reporting properly.
+      - title: Update Golang to 1.17.12
+        type: security
+        body: >-
+          Updated Golang to 1.17.12 to address the CVEs: CVE-2022-23806, CVE-2022-28327, CVE-2022-24675,
+          CVE-2022-24921, CVE-2022-23772.
+      - title: Update Curl to 7.80.0-r2
+        type: security
+        body: >-
+          Updated Curl to 7.80.0-r2 to address the CVEs: CVE-2022-32207, CVE-2022-27782, CVE-2022-27781,
+          CVE-2022-27780.
+      - title: Update openSSL-dev to 1.1.1q-r0
+        type: security
+        body: >-
+          Updated openSSL-dev to 1.1.1q-r0 to address CVE-2022-2097.
+      - title: Update ncurses to 1.1.1q-r0
+        type: security
+        body: >-
+          Updated ncurses to 1.1.1q-r0 to address CVE-2022-29458
+
+  - version: 3.1.0
+    date: '2022-08-01'
+    notes:
+      - title: Add support for OpenAPI 2 contracts
+        type: feature
+        body: >-
+          The agent is now able to parse api contracts using swagger 2, and to convert them to OpenAPI 3, making them
+          available for use in the dev portal.
+      - title: Add new secrets sync directive to the Agent
+        type: feature
+        body: >-
+          Adds a new command to the agent directive service to manage secrets. This allows
+          a third party product to manage CRDs that depend upon a secret.
+      - title: Add additional pprof endpoints
+        type: feature
+        body: >-
+          Add additional pprof endpoints to allow for profiling $productName$:
+            - CPU profiles (/debug/pprof/profile)
+            - tracing (/debug/pprof/trace)
+            - command line running (/debug/pprof/cmdline)
+            - program counters (/debug/pprof/symbol)
+      - title: Default YAML enables the diagnostics interface from non-local clients on the admin service port
+        type: change
+        body: >-
+          In the standard published <code>.yaml</code> files, the <code>Module</code> resource enables serving
+          remote client requests to the <code>:8877/ambassador/v0/diag/</code> endpoint.
+          The associated Helm chart release also now enables it by default.
+      - title: fix regression in the agent for the metrics transfer.
         type: bugfix
         body: >-
           A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming from

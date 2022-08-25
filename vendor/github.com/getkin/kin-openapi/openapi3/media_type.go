@@ -3,11 +3,13 @@ package openapi3
 import (
 	"context"
 
-	"github.com/getkin/kin-openapi/jsoninfo"
 	"github.com/go-openapi/jsonpointer"
+
+	"github.com/getkin/kin-openapi/jsoninfo"
 )
 
 // MediaType is specified by OpenAPI/Swagger 3.0 standard.
+// See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#mediaTypeObject
 type MediaType struct {
 	ExtensionProps
 
@@ -59,19 +61,22 @@ func (mediaType *MediaType) WithEncoding(name string, enc *Encoding) *MediaType 
 	return mediaType
 }
 
+// MarshalJSON returns the JSON encoding of MediaType.
 func (mediaType *MediaType) MarshalJSON() ([]byte, error) {
 	return jsoninfo.MarshalStrictStruct(mediaType)
 }
 
+// UnmarshalJSON sets MediaType to a copy of data.
 func (mediaType *MediaType) UnmarshalJSON(data []byte) error {
 	return jsoninfo.UnmarshalStrictStruct(data, mediaType)
 }
 
-func (value *MediaType) Validate(ctx context.Context) error {
-	if value == nil {
+// Validate returns an error if MediaType does not comply with the OpenAPI spec.
+func (mediaType *MediaType) Validate(ctx context.Context) error {
+	if mediaType == nil {
 		return nil
 	}
-	if schema := value.Schema; schema != nil {
+	if schema := mediaType.Schema; schema != nil {
 		if err := schema.Validate(ctx); err != nil {
 			return err
 		}
@@ -79,6 +84,7 @@ func (value *MediaType) Validate(ctx context.Context) error {
 	return nil
 }
 
+// JSONLookup implements github.com/go-openapi/jsonpointer#JSONPointable
 func (mediaType MediaType) JSONLookup(token string) (interface{}, error) {
 	switch token {
 	case "schema":

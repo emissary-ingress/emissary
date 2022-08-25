@@ -368,6 +368,7 @@ metadata:
 spec:
   config:
     diagnostics:
+      allow_non_local: true
       enabled: false
 ---
 apiVersion: v1
@@ -566,6 +567,15 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - create
+  - delete
+  - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
