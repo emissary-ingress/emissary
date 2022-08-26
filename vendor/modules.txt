@@ -65,7 +65,7 @@ github.com/cncf/xds/go/xds/annotations/v3
 github.com/cncf/xds/go/xds/core/v3
 github.com/cncf/xds/go/xds/type/matcher/v3
 github.com/cncf/xds/go/xds/type/v3
-# github.com/datawire/ambassador-agent v0.0.6
+# github.com/datawire/ambassador-agent v0.0.7
 ## explicit; go 1.18
 github.com/datawire/ambassador-agent/cmd/agent
 github.com/datawire/ambassador-agent/pkg/agent

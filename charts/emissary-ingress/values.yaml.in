@@ -32,7 +32,7 @@ canary:
     # Controlls the image repository for the canary deployment.
     repository: ''
     # Controlls the tag for the canary deployments image.repository. Uses the repository from the main deployment if the canay.image.repository is not set.
-    tag: '0.0.2'
+    tag: ''
   # Environment variables to be used for the canary deployment, see `envRaw` for usage example
   envRaw: {}
 
@@ -146,7 +146,7 @@ image:
   # Emissary Ingress docker repo
   repository: @imageRepo@
   # Emissary Ingress docker tag
-  tag: '0.0.2'
+  tag: @version@
   # Pod container image pull policy
   pullPolicy: IfNotPresent
 
@@ -395,9 +395,9 @@ agent:
   rpcAddress: https://app.getambassador.io/
   createArgoRBAC: true
   image:
-    # Leave blank to use image.repository and image.tag
-    tag:
-    repository:
+    tag: 0.0.7
+    repository: docker.io/ambassador/ambassador-agent
+    pullPolicy: IfNotPresent
 
 deploymentTool: ''
 

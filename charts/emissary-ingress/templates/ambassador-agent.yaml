@@ -2,15 +2,13 @@
 {{- $allowAgent := false -}}
 
   {{- /* This next bit is ugly. */ -}}
-  {{- /* Case 1: "fullImageOverride" means don't bother checking the tag. */ -}}
+  {{- /* Case 1: REMOVED */ -}}
   {{- /* Case 2: Otherwise, if it's not a semver-style version number,    */ -}}
   {{- /*         assume we have a power user and turn the agent on.       */ -}}
   {{- /* Case 3: Otherwise, it's OSS and we need at least 1.13.0.         */ -}}
 
-{{- if .Values.image.fullImageOverride }}
-  {{- /* Case 1 */ -}}
-  {{- $allowAgent = true }}
-{{- else if not (regexMatch "^\\d+\\.\\d+\\.\\d+$" .Values.image.tag ) }}
+
+{{- if not (regexMatch "^\\d+\\.\\d+\\.\\d+$" .Values.image.tag ) }}
   {{- /* Case 2 above: power user */ -}}
   {{- $allowAgent = true }}
 {{- else if ne (semver "1.13.0" | (semver .Values.image.tag).Compare) -1 }}
@@ -226,8 +224,8 @@ spec:
       serviceAccountName: {{ include "ambassador.fullname" . }}-agent
       containers:
       - name: agent
-        image: {{ include "ambassador.image" . }}
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        image: "{{ .Values.agent.image.repository }}:{{ .Values.agent.image.tag }}"
+        imagePullPolicy: {{ .Values.agent.image.pullPolicy }}
         command: [ "agent" ]
         ports:
           - containerPort: 8080
