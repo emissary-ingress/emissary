@@ -55,6 +55,14 @@ items:
           Set `AMBASSADOR_EDS_BYPASS` to `true` to bypass EDS handling of endpoints and have endpoints be
           inserted to clusters manually. This can help resolve with `503 UH` caused by certification rotation relating to
           a delay between EDS + CDS. The default is `false`.
+      - title: Correctly manage cluster names when service names are very long
+        type: bugfix
+        body: >-
+          Distinct services with names that are the same in the first forty characters
+          will no longer be incorrectly mapped to the same cluster.
+        github:
+        - title: "#4354"
+          link: https://github.com/emissary-ingress/emissary/issues/4354
 
   - version: 3.1.1
     prevVersion: 3.1.0
