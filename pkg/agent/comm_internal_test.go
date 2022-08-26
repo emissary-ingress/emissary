@@ -13,8 +13,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/datawire/ambassador/v2/pkg/api/agent"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/agent"
 )
 
 type MockClient struct {
@@ -62,6 +62,36 @@ func (m *MockClient) Report(ctx context.Context, in *agent.Snapshot, opts ...grp
 		return m.reportFunc(ctx, in)
 	}
 	return nil, nil
+}
+
+type mockStreamDiagnosticsClient struct {
+	ctx     context.Context
+	opts    []grpc.CallOption
+	parent  *MockClient
+	content []byte
+}
+
+func (s *mockStreamDiagnosticsClient) Send(chunk *agent.RawDiagnosticsChunk) error {
+	s.content = append(s.content, chunk.Chunk...)
+	return nil
+}
+func (s *mockStreamDiagnosticsClient) CloseAndRecv() (*agent.DiagnosticsResponse, error) {
+	return nil, nil
+}
+
+func (s *mockStreamDiagnosticsClient) Header() (metadata.MD, error) { return nil, nil }
+func (s *mockStreamDiagnosticsClient) Trailer() metadata.MD         { return nil }
+func (s *mockStreamDiagnosticsClient) CloseSend() error             { return nil }
+func (s *mockStreamDiagnosticsClient) Context() context.Context     { return s.ctx }
+func (s *mockStreamDiagnosticsClient) SendMsg(m interface{}) error  { return nil }
+func (s *mockStreamDiagnosticsClient) RecvMsg(m interface{}) error  { return nil }
+
+func (m *MockClient) StreamDiagnostics(ctx context.Context, opts ...grpc.CallOption) (agent.Director_StreamDiagnosticsClient, error) {
+	return &mockStreamDiagnosticsClient{
+		ctx:    ctx,
+		opts:   opts,
+		parent: m,
+	}, nil
 }
 
 func (m *MockClient) StreamMetrics(ctx context.Context, opts ...grpc.CallOption) (agent.Director_StreamMetricsClient, error) {
@@ -144,18 +174,6 @@ func (m *MockClient) Recv() (*agent.Directive, error) {
 func (m *MockClient) Retrieve(ctx context.Context, in *agent.Identity, opts ...grpc.CallOption) (agent.Director_RetrieveClient, error) {
 	fmt.Println("Retrieve called")
 	return m, nil
-}
-
-type retrvsnapshotclient struct {
-	grpc.ClientStream
-}
-
-func (r *retrvsnapshotclient) Recv() (*agent.RawSnapshotChunk, error) {
-	return nil, nil
-}
-
-func (m *MockClient) RetrieveSnapshot(context.Context, *agent.Identity, ...grpc.CallOption) (agent.Director_RetrieveSnapshotClient, error) {
-	return &retrvsnapshotclient{}, nil
 }
 
 func TestComm(t *testing.T) {

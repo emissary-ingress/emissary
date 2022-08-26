@@ -4,3 +4,7 @@ resources:
   - { kind: ClusterRoleBinding, name: «self.path.k8s»                                    }
   - { kind: ClusterRole,        name: «self.path.k8s»-crd                                }
   - { kind: ClusterRole,        name: «self.path.k8s»-watch                              }
+disableResources:
+  - { kind: Service,            name: «self.path.k8s»,       namespace: «self.namespace» }
+  - { kind: Service,            name: «self.path.k8s»-admin, namespace: «self.namespace» }
+  - { kind: Deployment,         name: «self.path.k8s»,       namespace: «self.namespace» }

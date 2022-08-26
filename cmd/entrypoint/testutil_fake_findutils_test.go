@@ -3,12 +3,12 @@ package entrypoint_test
 import (
 	"testing"
 
-	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
-	v3listener "github.com/datawire/ambassador/v2/pkg/api/envoy/config/listener/v3"
-	route "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v3"
-	http "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+	bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
+	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
+	route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
+	http "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
 	"github.com/stretchr/testify/assert"
 )
 

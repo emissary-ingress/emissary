@@ -1,8 +1,7 @@
 from typing import Generator, Tuple, Union
 
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
 from kat.harness import Query
-
-from abstract_tests import AmbassadorTest, HTTP, Node, ServiceType
 
 
 class GzipMinimumConfigTest(AmbassadorTest):
@@ -12,7 +11,8 @@ class GzipMinimumConfigTest(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -20,8 +20,10 @@ name:  ambassador
 config:
   gzip:
     enabled: true
-""")
-        yield self, self.format("""
+"""
+        )
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -29,13 +31,14 @@ name:  {self.target.path.k8s}
 hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
-""")
+"""
+        )
 
     def queries(self):
         yield Query(self.url("target/"), headers={"Accept-Encoding": "gzip"}, expected=200)
 
     def check(self):
-        assert self.results[0].headers["Content-Encoding"] == [ "gzip" ]
+        assert self.results[0].headers["Content-Encoding"] == ["gzip"]
 
 
 class GzipTest(AmbassadorTest):
@@ -45,7 +48,8 @@ class GzipTest(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -56,8 +60,10 @@ config:
     window_bits: 15
     content_type:
     - text/plain
-""")
-        yield self, self.format("""
+"""
+        )
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -65,13 +71,14 @@ name:  {self.target.path.k8s}
 hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
-""")
+"""
+        )
 
     def queries(self):
         yield Query(self.url("target/"), headers={"Accept-Encoding": "gzip"}, expected=200)
 
     def check(self):
-        assert self.results[0].headers["Content-Encoding"] == [ "gzip" ]
+        assert self.results[0].headers["Content-Encoding"] == ["gzip"]
 
 
 class GzipNotSupportedContentTypeTest(AmbassadorTest):
@@ -81,7 +88,8 @@ class GzipNotSupportedContentTypeTest(AmbassadorTest):
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -91,8 +99,10 @@ config:
     min_content_length: 32
     content_type:
     - application/json
-""")
-        yield self, self.format("""
+"""
+        )
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -100,7 +110,8 @@ name:  {self.target.path.k8s}
 hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
-""")
+"""
+        )
 
     def queries(self):
         yield Query(self.url("target/"), headers={"Accept-Encoding": "gzip"}, expected=200)

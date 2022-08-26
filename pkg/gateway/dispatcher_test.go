@@ -11,20 +11,20 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/anypb"
 
-	// envoy api v2
-	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	apiv2_core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	apiv2_listener "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/listener"
-	apiv2_httpman "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
+	// envoy api v3
+	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
+	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
+	v3httpman "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
 
 	// envoy control plane
-	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	ecp_wellknown "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+	ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	ecp_wellknown "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
 
 	// first-party libraries
-	"github.com/datawire/ambassador/v2/pkg/gateway"
-	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/gateway"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 func assertErrorContains(t *testing.T, err error, msg string) {
@@ -190,7 +190,7 @@ func compile_Foo(f *Foo) (*gateway.CompiledConfig, error) {
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
 		Listeners: []*gateway.CompiledListener{
 			{
-				Listener: &apiv2.Listener{Name: f.Spec.Value},
+				Listener: &v3listener.Listener{Name: f.Spec.Value},
 			},
 		},
 	}, nil
@@ -239,17 +239,17 @@ func compile_FooWithRouteConfigName(f *Foo) (*gateway.CompiledConfig, error) {
 	name := f.Spec.Value
 	rcName := fmt.Sprintf("%s-routeconfig", name)
 
-	hcm := &apiv2_httpman.HttpConnectionManager{
+	hcm := &v3httpman.HttpConnectionManager{
 		StatPrefix: name,
-		HttpFilters: []*apiv2_httpman.HttpFilter{
+		HttpFilters: []*v3httpman.HttpFilter{
 			{Name: ecp_wellknown.CORS},
 			{Name: ecp_wellknown.Router},
 		},
-		RouteSpecifier: &apiv2_httpman.HttpConnectionManager_Rds{
-			Rds: &apiv2_httpman.Rds{
-				ConfigSource: &apiv2_core.ConfigSource{
-					ConfigSourceSpecifier: &apiv2_core.ConfigSource_Ads{
-						Ads: &apiv2_core.AggregatedConfigSource{},
+		RouteSpecifier: &v3httpman.HttpConnectionManager_Rds{
+			Rds: &v3httpman.Rds{
+				ConfigSource: &v3core.ConfigSource{
+					ConfigSourceSpecifier: &v3core.ConfigSource_Ads{
+						Ads: &v3core.AggregatedConfigSource{},
 					},
 				},
 				RouteConfigName: rcName,
@@ -261,14 +261,14 @@ func compile_FooWithRouteConfigName(f *Foo) (*gateway.CompiledConfig, error) {
 		return nil, err
 	}
 
-	l := &apiv2.Listener{
+	l := &v3listener.Listener{
 		Name: name,
-		FilterChains: []*apiv2_listener.FilterChain{
+		FilterChains: []*v3listener.FilterChain{
 			{
-				Filters: []*apiv2_listener.Filter{
+				Filters: []*v3listener.Filter{
 					{
 						Name:       ecp_wellknown.HTTPConnectionManager,
-						ConfigType: &apiv2_listener.Filter_TypedConfig{TypedConfig: hcmAny},
+						ConfigType: &v3listener.Filter_TypedConfig{TypedConfig: hcmAny},
 					},
 				},
 			},
@@ -283,36 +283,41 @@ func compile_FooWithRouteConfigName(f *Foo) (*gateway.CompiledConfig, error) {
 
 func TestDispatcherAssemblyWithEmptyRouteConfigName(t *testing.T) {
 	t.Parallel()
+
 	ctx := dlog.NewTestContext(t, false)
+
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", wrapFooCompiler(compile_FooWithEmptyRouteConfigName))
+
+	err := disp.Register("Foo", wrapFooCompiler(compileFooWithEmptyRouteConfigName))
 	require.NoError(t, err)
+
 	foo := makeFoo("default", "foo", "bar")
-	assert.NoError(t, disp.Upsert(foo))
-	l := disp.GetListener(ctx, "bar")
-	require.NotNil(t, l)
-	assert.Equal(t, "bar", l.Name)
-	// This is a bit weird, but the go control plane's consistency check seems to imply that an
-	// empty route config name is ok.
-	r := disp.GetRouteConfiguration(ctx, "")
-	require.NotNil(t, r)
-	assert.Equal(t, "", r.Name)
+	err = disp.Upsert(foo)
+	assert.NoError(t, err)
+
+	// due to inconsistent SanptShot the listener returned should be nil
+	listener := disp.GetListener(ctx, "bar")
+	require.Nil(t, listener)
 }
 
-func compile_FooWithEmptyRouteConfigName(f *Foo) (*gateway.CompiledConfig, error) {
+// compileFooWithEmptyRouteConfigName generates invalid RDS route configuration due to the
+// RouteConfigname being empty. This will lead to an inconsistent snapshot, so calls
+// to GetSnapShot will return a nil snapshot
+func compileFooWithEmptyRouteConfigName(f *Foo) (*gateway.CompiledConfig, error) {
 	name := f.Spec.Value
 
-	hcm := &apiv2_httpman.HttpConnectionManager{
+	hcm := &v3httpman.HttpConnectionManager{
 		StatPrefix: name,
-		HttpFilters: []*apiv2_httpman.HttpFilter{
+		HttpFilters: []*v3httpman.HttpFilter{
 			{Name: ecp_wellknown.CORS},
 			{Name: ecp_wellknown.Router},
 		},
-		RouteSpecifier: &apiv2_httpman.HttpConnectionManager_Rds{
-			Rds: &apiv2_httpman.Rds{
-				ConfigSource: &apiv2_core.ConfigSource{
-					ConfigSourceSpecifier: &apiv2_core.ConfigSource_Ads{
-						Ads: &apiv2_core.AggregatedConfigSource{},
+		RouteSpecifier: &v3httpman.HttpConnectionManager_Rds{
+			Rds: &v3httpman.Rds{
+				// explicitly adding RDS Config with no name to trigger snapshot Consistency to fail
+				ConfigSource: &v3core.ConfigSource{
+					ConfigSourceSpecifier: &v3core.ConfigSource_Ads{
+						Ads: &v3core.AggregatedConfigSource{},
 					},
 				},
 			},
@@ -323,14 +328,14 @@ func compile_FooWithEmptyRouteConfigName(f *Foo) (*gateway.CompiledConfig, error
 		return nil, err
 	}
 
-	l := &apiv2.Listener{
+	l := &v3listener.Listener{
 		Name: name,
-		FilterChains: []*apiv2_listener.FilterChain{
+		FilterChains: []*v3listener.FilterChain{
 			{
-				Filters: []*apiv2_listener.Filter{
+				Filters: []*v3listener.Filter{
 					{
 						Name:       ecp_wellknown.HTTPConnectionManager,
-						ConfigType: &apiv2_listener.Filter_TypedConfig{TypedConfig: hcmAny},
+						ConfigType: &v3listener.Filter_TypedConfig{TypedConfig: hcmAny},
 					},
 				},
 			},
@@ -361,9 +366,9 @@ func TestDispatcherAssemblyWithoutRds(t *testing.T) {
 func compile_FooWithoutRds(f *Foo) (*gateway.CompiledConfig, error) {
 	name := f.Spec.Value
 
-	hcm := &apiv2_httpman.HttpConnectionManager{
+	hcm := &v3httpman.HttpConnectionManager{
 		StatPrefix: name,
-		HttpFilters: []*apiv2_httpman.HttpFilter{
+		HttpFilters: []*v3httpman.HttpFilter{
 			{Name: ecp_wellknown.CORS},
 			{Name: ecp_wellknown.Router},
 		},
@@ -373,17 +378,17 @@ func compile_FooWithoutRds(f *Foo) (*gateway.CompiledConfig, error) {
 		return nil, err
 	}
 
-	l := &apiv2.Listener{
+	l := &v3listener.Listener{
 		Name: name,
-		FilterChains: []*apiv2_listener.FilterChain{
+		FilterChains: []*v3listener.FilterChain{
 			{
-				Filters: []*apiv2_listener.Filter{
+				Filters: []*v3listener.Filter{
 					{
 						Name: ecp_wellknown.RateLimit,
 					},
 					{
 						Name:       ecp_wellknown.HTTPConnectionManager,
-						ConfigType: &apiv2_listener.Filter_TypedConfig{TypedConfig: hcmAny},
+						ConfigType: &v3listener.Filter_TypedConfig{TypedConfig: hcmAny},
 					},
 				},
 			},
@@ -405,10 +410,16 @@ func TestDispatcherAssemblyEndpointDefaulting(t *testing.T) {
 	foo := makeFoo("default", "foo", "bar")
 	err = disp.Upsert(foo)
 	require.NoError(t, err)
-	_, snap := disp.GetSnapshot(ctx)
+
+	_, snapshot := disp.GetSnapshot(ctx)
+	if snapshot == nil {
+		assert.Fail(t, "unable to get a valid consistent snapshot")
+		return // ensure that linter is happy due to possible nil pointer dereference below
+	}
+
 	found := false
-	for _, r := range snap.Resources[ecp_cache_types.Endpoint].Items {
-		cla := r.Resource.(*apiv2.ClusterLoadAssignment)
+	for _, r := range snapshot.Resources[ecp_cache_types.Endpoint].Items {
+		cla := r.Resource.(*v3endpoint.ClusterLoadAssignment)
 		if cla.ClusterName == "foo" && len(cla.Endpoints) == 0 {
 			found = true
 		}

@@ -146,7 +146,9 @@ chart_tgz = $(patsubst %.d,%.tgz,$(chart_dir))
 chart: $(chart_tgz)
 PHONY: chart
 
-boguschart_dir = build-output/chart-2.0.0-bogus_7.0.0-bogus.d
+_major_version = $(firstword $(subst ., ,$(patsubst v%,%,$(VERSION))))
+_chart_major_version = $(firstword $(subst ., ,$(patsubst v%,%,$(CHART_VERSION))))
+boguschart_dir = build-output/chart-$(_major_version).0.0-bogus_$(_chart_major_version).0.0-bogus.d
 boguschart_tgz = $(patsubst %.d,%.tgz,$(boguschart_dir))
 
 # YAML manifests

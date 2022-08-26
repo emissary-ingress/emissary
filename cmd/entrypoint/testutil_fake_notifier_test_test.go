@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/ambassador/v2/cmd/entrypoint"
+	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
 	"github.com/stretchr/testify/require"
 )
 

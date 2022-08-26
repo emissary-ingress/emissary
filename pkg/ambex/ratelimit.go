@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/datawire/ambassador/v2/pkg/debug"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/debug"
 )
 
 // An Update encapsulates everything needed to perform an update (of envoy configuration). The

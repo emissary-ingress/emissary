@@ -12,6 +12,7 @@ import "validate/validate.proto";
 option java_package = "io.envoyproxy.envoy.api.v2.core";
 option java_outer_classname = "ProtocolProto";
 option java_multiple_files = true;
+option go_package = "github.com/envoyproxy/go-control-plane/envoy/api/v2/core";
 option (udpa.annotations.file_migrate).move_to_package = "envoy.config.core.v3";
 option (udpa.annotations.file_status).package_version_status = FROZEN;
 
@@ -99,6 +100,8 @@ message Http1ProtocolOptions {
     message ProperCaseWords {
     }
 
+    // custom message is datawire code
+    // remove if possible
     message Custom {
       // Custom header rewrite rules.
       // In each rule of the map, the key is a case-insensitive header name. The value
@@ -117,7 +120,7 @@ message Http1ProtocolOptions {
       // are not covered. For example, the "TE" header will be formatted as "Te".
       ProperCaseWords proper_case_words = 1;
 
-      // Formats the header according to custom rules.
+      // Formats the header according to custom rules
       Custom custom = 2;
     }
   }

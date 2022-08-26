@@ -1,13 +1,24 @@
-
 from enum import Enum, auto
 from io import StringIO
 from typing import Any, Callable, Mapping, Sequence, Type
-from yaml import compose, compose_all, dump_all, MappingNode, SequenceNode, ScalarNode, Node, add_representer
+
+from yaml import (
+    MappingNode,
+    Node,
+    ScalarNode,
+    SequenceNode,
+    add_representer,
+    compose,
+    compose_all,
+    dump_all,
+)
+
 
 class ViewMode(Enum):
     PYTHON = auto()
     STRING = auto()
     NODE = auto()
+
 
 class Tag(Enum):
     SEQUENCE = compose("[]").tag
@@ -18,8 +29,8 @@ class Tag(Enum):
     BOOL = compose("true").tag
     NULL = compose("null").tag
 
-class View:
 
+class View:
     def __init__(self, node: Node, mode: ViewMode) -> None:
         self.node = node
         self.mode = mode
@@ -34,8 +45,8 @@ class View:
     def mode_ify(self):
         return self
 
-class MappingView(View, Mapping):
 
+class MappingView(View, Mapping):
     def get(self, key, default=None):
         for k, v in self.node.value:
             if k.value == key:
@@ -84,11 +95,13 @@ class MappingView(View, Mapping):
         return len(self.node.value)
 
     def __repr__(self):
-        return "{%s}" % ", ".join("%r: %r" % (view(k, ViewMode.PYTHON), view(v, ViewMode.PYTHON))
-                                  for k, v in self.node.value)
+        return "{%s}" % ", ".join(
+            "%r: %r" % (view(k, ViewMode.PYTHON), view(v, ViewMode.PYTHON))
+            for k, v in self.node.value
+        )
+
 
 class SequenceView(View, Sequence):
-
     def __getitem__(self, idx):
         return view(self.node.value[idx], self.mode)
 
@@ -115,16 +128,17 @@ class SequenceView(View, Sequence):
     def __repr__(self):
         return repr([v for v in self])
 
+
 PYJECTIONS = {
     Tag.INT: lambda x: int(x),
     Tag.FLOAT: lambda x: float(x),
     Tag.STRING: lambda x: x,
     Tag.BOOL: lambda x: x.lower() in ("y", "yes", "true", "on"),
-    Tag.NULL: lambda x: None
+    Tag.NULL: lambda x: None,
 }
 
-class ScalarView(View):
 
+class ScalarView(View):
     def mode_ify(self):
         if self.mode == ViewMode.PYTHON:
             return PYJECTIONS[Tag(self.tag)](self.node.value)
@@ -136,15 +150,18 @@ class ScalarView(View):
     def __repr__(self):
         return self.node.value
 
+
 VIEWS: Mapping[Type[Node], Type[View]] = {
     MappingNode: MappingView,
     SequenceNode: SequenceView,
-    ScalarNode: ScalarView
+    ScalarNode: ScalarView,
 }
+
 
 def view(value: Any, mode: ViewMode) -> Any:
     nd = node(value)
     return VIEWS[type(nd)](nd, mode).mode_ify()
+
 
 COERCIONS: Mapping[Type, Callable[[Any], Node]] = {
     MappingNode: lambda n: n,
@@ -159,11 +176,13 @@ COERCIONS: Mapping[Type, Callable[[Any], Node]] = {
     bool: lambda b: ScalarNode(Tag.BOOL.value, str(b)),
     int: lambda i: ScalarNode(Tag.INT.value, str(i)),
     float: lambda f: ScalarNode(Tag.FLOAT.value, str(f)),
-    dict: lambda d: MappingNode(Tag.MAPPING.value, [(node(k), node(v)) for k, v in d.items()])
+    dict: lambda d: MappingNode(Tag.MAPPING.value, [(node(k), node(v)) for k, v in d.items()]),
 }
+
 
 def node(value: Any) -> Node:
     return COERCIONS[type(value)](value)
+
 
 def load(name: str, value: Any, *allowed: Tag) -> SequenceView:
     if isinstance(value, str):
@@ -172,18 +191,22 @@ def load(name: str, value: Any, *allowed: Tag) -> SequenceView:
     result = view(SequenceNode(Tag.SEQUENCE.value, list(compose_all(value))), ViewMode.PYTHON)
     for r in view(result, ViewMode.NODE):
         if r.tag not in allowed:
-            raise ValueError("expecting %s, got %s" % (", ".join(t.name for t in allowed),
-                                                       r.node.tag))
+            raise ValueError(
+                "expecting %s, got %s" % (", ".join(t.name for t in allowed), r.node.tag)
+            )
     return result
+
 
 def dump(value: SequenceView):
     st = dump_all(value, default_flow_style=False)
-    if not st.startswith('---'):
-        st = '---\n' + st
+    if not st.startswith("---"):
+        st = "---\n" + st
     return st
+
 
 def view_representer(dumper, data):
     return data.node
+
 
 add_representer(SequenceView, view_representer)
 add_representer(MappingView, view_representer)

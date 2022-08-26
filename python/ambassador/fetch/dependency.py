@@ -1,12 +1,22 @@
-from typing import Any, Collection, Iterator, Mapping, MutableSet, Optional, Protocol, Sequence, Type, TypeVar
-
-from collections import defaultdict
 import dataclasses
+from collections import defaultdict
+from typing import (
+    Any,
+    Collection,
+    Iterator,
+    Mapping,
+    MutableSet,
+    Optional,
+    Protocol,
+    Sequence,
+    Type,
+    TypeVar,
+)
 
 from .k8sobject import KubernetesObject
 
 
-class Dependency (Protocol):
+class Dependency(Protocol):
     """
     Dependencies link information provided by processors of a given Watt
     invocation to other processors that need the processed result. This results
@@ -14,10 +24,11 @@ class Dependency (Protocol):
     without direct knowledge of where data is coming from.
     """
 
-    def watt_key(self) -> str: ...
+    def watt_key(self) -> str:
+        ...
 
 
-class ServiceDependency (Dependency):
+class ServiceDependency(Dependency):
     """
     A dependency that exposes information about the Kubernetes service for
     Ambassador itself.
@@ -29,20 +40,20 @@ class ServiceDependency (Dependency):
         self.ambassador_service = None
 
     def watt_key(self) -> str:
-        return 'service'
+        return "service"
 
 
-class SecretDependency (Dependency):
+class SecretDependency(Dependency):
     """
     A dependency that is satisfied once secret information has been mapped and
     emitted.
     """
 
     def watt_key(self) -> str:
-        return 'secret'
+        return "secret"
 
 
-class IngressClassesDependency (Dependency):
+class IngressClassesDependency(Dependency):
     """
     A dependency that provides the list of ingress classes that are valid (i.e.,
     have the proper controller) for this cluster.
@@ -54,16 +65,18 @@ class IngressClassesDependency (Dependency):
         self.ingress_classes = set()
 
     def watt_key(self) -> str:
-        return 'ingressclasses'
+        return "ingressclasses"
 
 
-D = TypeVar('D', bound=Dependency)
+D = TypeVar("D", bound=Dependency)
 
 
-class DependencyMapping (Protocol):
+class DependencyMapping(Protocol):
+    def __contains__(self, key: Type[D]) -> bool:
+        ...
 
-    def __contains__(self, key: Type[D]) -> bool: ...
-    def __getitem__(self, key: Type[D]) -> D: ...
+    def __getitem__(self, key: Type[D]) -> D:
+        ...
 
 
 class DependencyInjector:
@@ -140,7 +153,7 @@ class DependencyGraph:
 
         # No roots of a graph with at least one vertex indicates a cycle.
         if len(queue) == 0:
-            raise ValueError('cyclic')
+            raise ValueError("cyclic")
 
         while len(queue) > 0:
             cur = queue.pop(0)
@@ -151,7 +164,7 @@ class DependencyGraph:
                 if in_counts[obj] == 0:
                     queue.append(obj)
 
-        assert sum(in_counts.values()) == 0, 'Traversal did not reach every vertex exactly once'
+        assert sum(in_counts.values()) == 0, "Traversal did not reach every vertex exactly once"
 
 
 class DependencyManager:

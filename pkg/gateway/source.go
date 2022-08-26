@@ -3,7 +3,7 @@ package gateway
 import (
 	"fmt"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 type Source interface {

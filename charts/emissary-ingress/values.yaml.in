@@ -15,7 +15,7 @@ barePod: false
 
 test:
   # If true, Create test Pod to verify the Ambassador service works correctly (Only created on helm test)
-  enabled: true
+  enabled: false
   # Image to use for the test Pod
   image: busybox
 
@@ -344,7 +344,10 @@ resolvers: # +doc-gen:break
 #
 # Note: The Module can only be named ambassador. There can only be one Module
 # installed per-namespace.
-module: {}
+module:
+  diagnostics:
+    enabled: false
+    allow_non_local: true
 
 # DEPRECATED: Enabling the prometheus exporter creates a sidecar and configures ambassador to use it
 #
@@ -383,12 +386,12 @@ prometheusExporter: # +doc-gen:break
 
 # Configure the ambassador agent
 agent:
-  # If `true`, installs the ambassador-agent Deployment, ServiceAccount and ClusterRole in the ambassador namespace, enabling the Service Catalog
+  # If `true`, installs the ambassador-agent Deployment, ServiceAccount and ClusterRole in the ambassador namespace, enabling the Ambassador Cloud connectivity.
   enabled: true
-  # API token for reporting snapshots to the [Service Catalog](https://app.getambassador.io/cloud/catalog/);
+  # API token for reporting snapshots to [Ambassador Cloud](https://app.getambassador.io/cloud/);
   # If empty, agent will not report snapshots
   cloudConnectToken: ''
-  # Address of the ambassador Service Catalog rpc server.
+  # Address of the Ambassador Cloud rpc server.
   rpcAddress: https://app.getambassador.io/
   createArgoRBAC: true
   image:

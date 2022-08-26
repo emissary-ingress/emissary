@@ -13,15 +13,15 @@ import (
 	"strings"
 
 	// 1st-party libs
-	"github.com/datawire/ambassador/v2/pkg/busy"
-	"github.com/datawire/ambassador/v2/pkg/environment"
+	"github.com/emissary-ingress/emissary/v3/pkg/busy"
+	"github.com/emissary-ingress/emissary/v3/pkg/environment"
 
 	// commands
-	"github.com/datawire/ambassador/v2/cmd/agent"
-	"github.com/datawire/ambassador/v2/cmd/apiext"
-	"github.com/datawire/ambassador/v2/cmd/entrypoint"
-	"github.com/datawire/ambassador/v2/cmd/kubestatus"
-	"github.com/datawire/ambassador/v2/cmd/reproducer"
+	"github.com/emissary-ingress/emissary/v3/cmd/agent"
+	"github.com/emissary-ingress/emissary/v3/cmd/apiext"
+	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
+	"github.com/emissary-ingress/emissary/v3/cmd/kubestatus"
+	"github.com/emissary-ingress/emissary/v3/cmd/reproducer"
 )
 
 func noop(_ context.Context) {}

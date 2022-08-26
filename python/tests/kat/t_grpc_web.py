@@ -1,10 +1,9 @@
+import json
 from typing import Generator, Tuple, Union
 
-import json
-
+from abstract_tests import EGRPC, AmbassadorTest, Node, ServiceType
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, ServiceType, EGRPC, Node
 
 class AcceptanceGrpcWebTest(AmbassadorTest):
 
@@ -14,16 +13,19 @@ class AcceptanceGrpcWebTest(AmbassadorTest):
         self.target = EGRPC()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
     enable_grpc_web: True
-""")
+"""
+        )
 
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -33,24 +35,33 @@ prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
 service: {self.target.path.k8s}
-""")
+"""
+        )
 
     def queries(self):
         # [0]
-        yield Query(self.url("echo.EchoService/Echo"),
-                    headers={ "content-type": "application/grpc-web-text",
-                              "accept": "application/grpc-web-text",
-                              "requested-status": "0" },
-                    expected=200,
-                    grpc_type="web")
+        yield Query(
+            self.url("echo.EchoService/Echo"),
+            headers={
+                "content-type": "application/grpc-web-text",
+                "accept": "application/grpc-web-text",
+                "kat-req-echo-requested-status": "0",
+            },
+            expected=200,
+            grpc_type="web",
+        )
 
         # [1]
-        yield Query(self.url("echo.EchoService/Echo"),
-                    headers={ "content-type": "application/grpc-web-text",
-                              "accept": "application/grpc-web-text",
-                              "requested-status": "7" },
-                    expected=200,
-                    grpc_type="web")
+        yield Query(
+            self.url("echo.EchoService/Echo"),
+            headers={
+                "content-type": "application/grpc-web-text",
+                "accept": "application/grpc-web-text",
+                "kat-req-echo-requested-status": "7",
+            },
+            expected=200,
+            grpc_type="web",
+        )
 
     def check(self):
         # print('AcceptanceGrpcWebTest results:')
@@ -67,7 +78,7 @@ service: {self.target.path.k8s}
         gstat = self.results[0].headers.get("Grpc-Status", "-none-")
         # print(f'    grpc-status {gstat}')
 
-        if gstat == [ '0' ]:
+        if gstat == ["0"]:
             assert True
         else:
             assert False, f'0: got {gstat} instead of ["0"]'

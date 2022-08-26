@@ -22,6 +22,7 @@ import "validate/validate.proto";
 option java_package = "io.envoyproxy.envoy.api.v2.route";
 option java_outer_classname = "RouteComponentsProto";
 option java_multiple_files = true;
+option go_package = "github.com/envoyproxy/go-control-plane/envoy/api/v2/route";
 option (udpa.annotations.file_migrate).move_to_package = "envoy.config.route.v3";
 option (udpa.annotations.file_status).package_version_status = FROZEN;
 
@@ -300,7 +301,7 @@ message WeightedCluster {
     // An integer between 0 and :ref:`total_weight
     // <envoy_api_field_route.WeightedCluster.total_weight>`. When a request matches the route,
     // the choice of an upstream cluster is determined by its weight. The sum of weights across all
-    // entries in the clusters array must add up to the total_weight, which defaults to 100.
+    // entries in the clusters array must add up to the total_weight, if total_weight is greater than 0.
     google.protobuf.UInt32Value weight = 2;
 
     // Optional endpoint metadata match criteria used by the subset load balancer. Only endpoints in
@@ -675,8 +676,8 @@ message RouteAction {
 
     message FilterState {
       // The name of the Object in the per-request filterState, which is an
-      // Envoy::Http::Hashable object. If there is no data associated with the key,
-      // or the stored object is not Envoy::Http::Hashable, no hash will be produced.
+      // Envoy::Hashable object. If there is no data associated with the key,
+      // or the stored object is not Envoy::Hashable, no hash will be produced.
       string key = 1 [(validate.rules).string = {min_bytes: 1}];
     }
 
@@ -1149,7 +1150,7 @@ message HedgePolicy {
   bool hedge_on_per_try_timeout = 3;
 }
 
-// [#next-free-field: 10]
+// [#next-free-field: 9]
 message RedirectAction {
   enum RedirectResponseCode {
     // Moved Permanently HTTP Status Code - 301.
@@ -1218,31 +1219,6 @@ message RedirectAction {
     //   :ref:`RouteAction's prefix_rewrite <envoy_api_field_route.RouteAction.prefix_rewrite>`.
     string prefix_rewrite = 5
         [(validate.rules).string = {well_known_regex: HTTP_HEADER_VALUE strict: false}];
-
-    // Indicates that during redirect, portions of the path that match the
-    // pattern should be rewritten, even allowing the substitution of capture
-    // groups from the pattern into the new path as specified by the rewrite
-    // substitution string. This is useful to allow application paths to be
-    // rewritten in a way that is aware of segments with variable content like
-    // identifiers.
-    //
-    // Examples using Google's `RE2 <https://github.com/google/re2>`_ engine:
-    //
-    // * The path pattern ``^/service/([^/]+)(/.*)$`` paired with a substitution
-    //   string of ``\2/instance/\1`` would transform ``/service/foo/v1/api``
-    //   into ``/v1/api/instance/foo``.
-    //
-    // * The pattern ``one`` paired with a substitution string of ``two`` would
-    //   transform ``/xxx/one/yyy/one/zzz`` into ``/xxx/two/yyy/two/zzz``.
-    //
-    // * The pattern ``^(.*?)one(.*)$`` paired with a substitution string of
-    //   ``\1two\2`` would replace only the first occurrence of ``one``,
-    //   transforming path ``/xxx/one/yyy/one/zzz`` into ``/xxx/two/yyy/one/zzz``.
-    //
-    // * The pattern ``(?i)/xxx/`` paired with a substitution string of ``/yyy/``
-    //   would do a case-insensitive match and transform path ``/aaa/XxX/bbb`` to
-    //   ``/aaa/yyy/bbb``.
-    type.matcher.RegexMatchAndSubstitute regex_rewrite = 9;
   }
 
   // The HTTP status code to use in the redirect response. The default response

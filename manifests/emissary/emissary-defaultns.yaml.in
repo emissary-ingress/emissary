@@ -353,6 +353,24 @@ spec:
             path: labels
         name: ambassador-pod-info
 ---
+apiVersion: getambassador.io/v2
+kind: Module
+metadata:
+  labels:
+    app.kubernetes.io/component: emissary-ingress-ratelimit
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
+    app.kubernetes.io/name: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    product: aes
+  name: ambassador
+  namespace: default
+spec:
+  config:
+    diagnostics:
+      allow_non_local: true
+      enabled: false
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -548,6 +566,16 @@ rules:
   verbs:
   - get
   - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - create
+  - delete
+  - patch
   - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1

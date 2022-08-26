@@ -93,7 +93,7 @@
 //
 // Have conversion-gen help write the code to convert to and from
 // newer CRD versions (use v3alpha1 as a "hub" version).
-// +k8s:conversion-gen=github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1
+// +k8s:conversion-gen=github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1
 
 //////////////////////////////////////////////////////////////////////
 // 2. Package documentation //////////////////////////////////////////

@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict
-
 import logging
+from typing import Any, Dict
 
 ######
 # Utilities for hostglob_matches
 #
 # hostglob_matches_start has g1 starting with '*' and g2 not ending with '*';
 # it's OK for g2 to start with a wilcard too.
+
 
 def hostglob_matches_start(g1: str, g2: str, g2start: bool) -> bool:
     # Leading "*" cannot match an empty string, so unless we have a wildcard
@@ -48,6 +48,7 @@ def hostglob_matches_start(g1: str, g2: str, g2start: bool) -> bool:
 # hostglob_matches_end has g1 ending with '*' and g2 not starting with '*';
 # it's OK for g2 to end with a wilcard too.
 
+
 def hostglob_matches_end(g1: str, g2: str, g2end: bool) -> bool:
     # Leading "*" cannot match an empty string, so unless we have a wildcard
     # for g2, we have to have g1 longer than g2.
@@ -71,6 +72,7 @@ def hostglob_matches_end(g1: str, g2: str, g2end: bool) -> bool:
 
 
 ################
+
 
 def hostglob_matches(g1: str, g2: str) -> bool:
     """
@@ -102,10 +104,10 @@ def hostglob_matches(g1: str, g2: str) -> bool:
 
     # OK, we don't have the simple-"*" case, so any wildcards must be at
     # the start or end, and they must be a component alone.
-    g1start = (g1[0]  == "*")
-    g1end =   (g1[-1] == "*")
-    g2start = (g2[0]  == "*")
-    g2end =   (g2[-1] == "*")
+    g1start = g1[0] == "*"
+    g1end = g1[-1] == "*"
+    g2start = g2[0] == "*"
+    g2end = g2[-1] == "*"
 
     # logging.debug("  g1start=%s g1end=%s g2start=%s g2end=%s", g1start, g1end, g2start, g2end)
 
@@ -122,8 +124,8 @@ def hostglob_matches(g1: str, g2: str) -> bool:
         return False
 
     # OK, if we're here, we have a wildcard to check. There are a few cases
-    # here, so we'll start with the easy one: one value starts with "*" and 
-    # the other ends with "*", because those can always overlap as long as 
+    # here, so we'll start with the easy one: one value starts with "*" and
+    # the other ends with "*", because those can always overlap as long as
     # the overlap between isn't empty -- and in this method, we only need to
     # concern ourselves with being sure that there is a possibility of a match
     # to both.
@@ -132,13 +134,13 @@ def hostglob_matches(g1: str, g2: str) -> bool:
         return True
 
     # OK, now we have to actually do some work. Again, we really only have to
-    # be convinced that it's possible for something to match, so e.g. 
+    # be convinced that it's possible for something to match, so e.g.
     #
     # *example.com, example.com
     #
     # is not a valid pair, because that "*" must never match an empty string.
     # However,
-    #  
+    #
     # *example.com, *.example.com
     #
     # is fine, because e.g. "foo.example.com" matches both.
@@ -162,7 +164,10 @@ def hostglob_matches(g1: str, g2: str) -> bool:
 ################
 ## selector_matches is a utility for doing K8s label selector matching.
 
-def selector_matches(logger: logging.Logger, selector: Dict[str, Any], labels: Dict[str, str]) -> bool:
+
+def selector_matches(
+    logger: logging.Logger, selector: Dict[str, Any], labels: Dict[str, str]
+) -> bool:
     match: Dict[str, str] = selector.get("matchLabels") or {}
 
     if not match:

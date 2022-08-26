@@ -5,17 +5,17 @@
 //
 // According to the Linux "man-pages"[1] flock(2) documentation:
 //
-//     CONFORMING TO
-//            4.4BSD (the flock() call first appeared in 4.2BSD).  A
-//            version of flock(), possibly implemented in terms of
-//            fcntl(2), appears on most UNIX systems.
+//	CONFORMING TO
+//	       4.4BSD (the flock() call first appeared in 4.2BSD).  A
+//	       version of flock(), possibly implemented in terms of
+//	       fcntl(2), appears on most UNIX systems.
 //
 // At the very least, macOS has flock(2).
 //
-// [1]: https://www.kernel.org/doc/man-pages/
-//
 // No, BSD/macOS shlock(1) is not an accepable substitute.  It is the
 // opposite of robust.
+//
+// [1]: https://www.kernel.org/doc/man-pages/
 package main
 
 import (

@@ -3,7 +3,10 @@ package agent
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"github.com/getkin/kin-openapi/openapi2"
+	"github.com/getkin/kin-openapi/openapi2conv"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -13,13 +16,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/datawire/dlib/dlog"
+	amb "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/pkg/errors"
-
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
-	"github.com/datawire/dlib/dlog"
 )
 
 // APIDocsStore is responsible for collecting the API docs from Mapping resources in a k8s cluster.
@@ -241,15 +243,10 @@ type openAPIDoc struct {
 func newOpenAPI(ctx context.Context, docBytes []byte, baseURL string, prefix string, keepExistingPrefix bool) *openAPIDoc {
 	dlog.Debugf(ctx, "Trying to create new OpenAPI doc: base_url=%q prefix=%q", baseURL, prefix)
 
-	loader := openapi3.NewLoader()
-	doc, err := loader.LoadFromData(docBytes)
+	doc, err := parseToOpenAPIV3(docBytes)
+
 	if err != nil {
-		dlog.Errorln(ctx, "failed to load OpenAPI spec:", err)
-		return nil
-	}
-	err = doc.Validate(loader.Context)
-	if err != nil {
-		dlog.Errorln(ctx, "failed to validate OpenAPI spec:", err)
+		dlog.Errorln(ctx, "failed to force open api contract to v3:", err)
 		return nil
 	}
 
@@ -286,17 +283,63 @@ func newOpenAPI(ctx context.Context, docBytes []byte, baseURL string, prefix str
 		}}
 	}
 
-	json, err := doc.MarshalJSON()
+	docJSON, err := doc.MarshalJSON()
 	if err != nil {
 		dlog.Errorln(ctx, "failed to marshal OpenAPI spec:", err)
 		return nil
 	}
 
 	return &openAPIDoc{
-		JSON:    json,
+		JSON:    docJSON,
 		Type:    "OpenAPI",
 		Version: "v3",
 	}
+
+}
+
+func parseToOpenAPIV3(docBytes []byte) (*openapi3.T, error) {
+	var (
+		err   error
+		v3Doc *openapi3.T
+	)
+
+	loader := openapi3.NewLoader()
+	v3Doc, err = loader.LoadFromData(docBytes)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to load OAS doc: %w", err)
+	}
+
+	v3Err := v3Doc.Validate(loader.Context)
+	if v3Err != nil {
+		v2Doc := &openapi2.T{}
+		if err = json.Unmarshal(docBytes, v2Doc); err != nil {
+			return nil, fmt.Errorf(
+				"failed to unmarshal doc to OAS2 after OAS3 validation failure, v2: %v, v3: %v",
+				v3Err, err,
+			)
+		}
+
+		v3Doc, err = openapi2conv.ToV3(v2Doc)
+
+		if err != nil {
+			return nil, fmt.Errorf(
+				"failed to convert OAS2 after OAS3 validation failure, v2: %v, v3: %v",
+				v3Err, err,
+			)
+		}
+
+		err = v3Doc.Validate(loader.Context)
+
+		if err != nil {
+			return nil, fmt.Errorf(
+				"failed to validate either original or converted OAS3 contracts, v2: %v, v3: %v",
+				v3Err, err,
+			)
+		}
+	}
+
+	return v3Doc, nil
 }
 
 func buildMappingRequestHeaders(mappingHeaders map[string]string) []Header {

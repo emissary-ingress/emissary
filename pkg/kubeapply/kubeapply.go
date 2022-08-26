@@ -11,10 +11,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/datawire/ambassador/v2/pkg/k8s"
 	"github.com/datawire/dlib/derror"
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/k8s"
 )
 
 // errorDeadlineExceeded is returned from YAMLCollection.applyAndWait
