@@ -3098,6 +3098,10 @@ spec:
             properties:
               domain:
                 type: string
+              failure_mode_deny:
+                description: FailureModeDeny when set to true, envoy will deny traffic
+                  if it is unable to communicate with the rate limit service.
+                type: boolean
               protocol_version:
                 enum:
                 - v2
@@ -3143,6 +3147,10 @@ spec:
                 type: array
               domain:
                 type: string
+              failure_mode_deny:
+                description: FailureModeDeny when set to true, envoy will deny traffic
+                  if it is unable to communicate with the rate limit service.
+                type: boolean
               protocol_version:
                 description: ProtocolVersion is the envoy api transport protocol version
                 enum:
