@@ -54,7 +54,7 @@ following Free and Open Source software:
     github.com/googleapis/gnostic                                                              v0.5.5                                       Apache License 2.0
     github.com/gorilla/websocket                                                               v1.5.0                                       2-clause BSD license
     github.com/gregjones/httpcache                                                             v0.0.0-20190611155906-901d90724c79           MIT license
-    github.com/hashicorp/consul/api                                                            v1.12.0                                      Mozilla Public License 2.0
+    github.com/hashicorp/consul/api                                                            v1.14.0                                      Mozilla Public License 2.0
     github.com/hashicorp/go-cleanhttp                                                          v0.5.2                                       Mozilla Public License 2.0
     github.com/hashicorp/go-hclog                                                              v1.1.0                                       MIT license
     github.com/hashicorp/go-immutable-radix                                                    v1.3.1                                       Mozilla Public License 2.0
