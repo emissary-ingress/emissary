@@ -164,6 +164,7 @@ $(tools/ct).d/bin/ct: $(tools.srcdir)/ct/pin.go $(tools.srcdir)/ct/go.mod
 	}
 $(tools/ct).d/bin/kubectl: $(tools/kubectl)
 	mkdir -p $(@D)
+	rm -f $@
 	ln -s ../../kubectl $@
 $(tools/ct).d/dir.txt: $(tools.srcdir)/ct/pin.go $(tools.srcdir)/ct/go.mod
 	mkdir -p $(@D)
