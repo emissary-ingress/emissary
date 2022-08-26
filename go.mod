@@ -85,7 +85,7 @@ require (
 	github.com/argoproj/argo-rollouts v1.1.1
 	github.com/census-instrumentation/opencensus-proto v0.3.0
 	github.com/cncf/xds/go v0.0.0-20220121163655-4a2b9fdd466b
-	github.com/datawire/dlib v1.2.5-0.20211116212847-0316f8d7af2b
+	github.com/datawire/dlib v1.3.0
 	github.com/datawire/dtest v0.0.0-20210928162311-722b199c4c2f
 	github.com/datawire/go-mkopensource v0.0.0-20220218163159-cc298d9fabc4
 	github.com/envoyproxy/protoc-gen-validate v0.6.7

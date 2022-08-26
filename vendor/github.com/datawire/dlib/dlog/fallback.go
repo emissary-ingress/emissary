@@ -69,6 +69,9 @@ func getFallbackLogger() Logger {
 // not passed around correctly.  However, the default fallback logger
 // is Logrus and will behave reasonably; in order to make using dlog a
 // safe "no brainer".
+//
+// If the logger implements OptimizedLogger, then dlog will take
+// advantage of that.
 func SetFallbackLogger(l Logger) {
 	fallbackLoggerMu.Lock()
 	defer fallbackLoggerMu.Unlock()

@@ -658,7 +658,8 @@ I'd put this in the pull request template, but so few PRs change Envoy...
 - [ ] It's been tested with...
   - [ ] `make check-envoy`
 
-The `check-envoy-version` CI job should check all of those things, except for `make check-envoy`.
+The `check-envoy-version` CI job should check all of those things,
+except for `make check-envoy`.
 
 ### Developing Emissary-ingress (Ambassador Labs -only advice)
 
