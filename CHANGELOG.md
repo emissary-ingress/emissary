@@ -85,6 +85,14 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   Host. The `tlsSecret` field in the Host has a new subfield `namespace` that will allow the use of
   secrets from different namespaces.
 
+- Feature: Previously the `Host` resource could only use secrets that are in the namespace as the
+  Host. The `tlsSecret` field in the Host has a new subfield `namespace` that will allow the use of
+  secrets from different namespaces.
+
+- Change: Set `AMBASSADOR_EDS_BYPASS` to `true` to bypass EDS handling of endpoints and have
+  endpoints be inserted to clusters manually. This can help resolve with `503 UH` caused by
+  certification rotation relating to a delay between EDS + CDS. The default is `false`.
+
 ## [3.1.1] TBD
 [3.1.1]: https://github.com/emissary-ingress/emissary/compare/v3.1.0...v3.1.1
 
@@ -221,6 +229,14 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 [2.4.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v2.4.0
 
 ### Emissary-ingress and Ambassador Edge Stack
+
+- Feature: Previously the `Host` resource could only use secrets that are in the namespace as the
+  Host. The `tlsSecret` field in the Host has a new subfield `namespace` that will allow the use of
+  secrets from different namespaces.
+
+- Change: Set `AMBASSADOR_EDS_BYPASS` to `true` to bypass EDS handling of endpoints and have
+  endpoints be inserted to clusters manually. This can help resolve with `503 UH` caused by
+  certification rotation relating to a delay between EDS + CDS. The default is `false`.
 
 ## [1.14.5] TBD
 [1.14.5]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v1.14.5

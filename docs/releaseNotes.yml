@@ -49,6 +49,18 @@ items:
           Previously the <code>Host</code> resource could only use secrets that are in the namespace as the
           Host. The <code>tlsSecret</code> field in the Host has a new subfield <code>namespace</code> that will allow
           the use of secrets from different namespaces.
+      - title: Add support for Host resources using secrets from different namespaces
+        type: feature
+        body: >-
+          Previously the <code>Host</code> resource could only use secrets that are in the namespace as the
+          Host. The <code>tlsSecret</code> field in the Host has a new subfield <code>namespace</code> that will allow
+          the use of secrets from different namespaces.
+      - title: Allow bypassing of EDS for manual endpoint insertion
+        type: change
+        body: >-
+          Set `AMBASSADOR_EDS_BYPASS` to `true` to bypass EDS handling of endpoints and have endpoints be
+          inserted to clusters manually. This can help resolve with `503 UH` caused by certification rotation relating to
+          a delay between EDS + CDS. The default is `false`.
 
   - version: 3.1.1
     prevVersion: 3.1.0
@@ -234,7 +246,20 @@ items:
   - version: 2.4.0
     date: 'TBD'
     prevVersion: 2.3.2
-    notes: []
+    notes:
+      - title: Add support for Host resources using secrets from different namespaces
+        type: feature
+        body: >-
+          Previously the <code>Host</code> resource could only use secrets that are in the namespace as the
+          Host. The <code>tlsSecret</code> field in the Host has a new subfield <code>namespace</code> that will allow
+          the use of secrets from different namespaces.
+
+      - title: Allow bypassing of EDS for manual endpoint insertion
+        type: change
+        body: >-
+          Set `AMBASSADOR_EDS_BYPASS` to `true` to bypass EDS handling of endpoints and have endpoints be
+          inserted to clusters manually. This can help resolve with `503 UH` caused by certification rotation relating to
+          a delay between EDS + CDS. The default is `false`.
 
   - version: 1.14.5
     date: 'TBD'
