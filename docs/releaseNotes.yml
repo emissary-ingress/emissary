@@ -49,12 +49,6 @@ items:
           Previously the <code>Host</code> resource could only use secrets that are in the namespace as the
           Host. The <code>tlsSecret</code> field in the Host has a new subfield <code>namespace</code> that will allow
           the use of secrets from different namespaces.
-      - title: Add support for Host resources using secrets from different namespaces
-        type: feature
-        body: >-
-          Previously the <code>Host</code> resource could only use secrets that are in the namespace as the
-          Host. The <code>tlsSecret</code> field in the Host has a new subfield <code>namespace</code> that will allow
-          the use of secrets from different namespaces.
       - title: Allow bypassing of EDS for manual endpoint insertion
         type: change
         body: >-
