@@ -352,15 +352,15 @@ class IRHTTPMapping(IRBaseMapping):
             new_args["tls"] = ir.agent_origination_ctx.name
 
         if "query_parameters" in kwargs:
-            for name, value in kwargs.get("query_parameters", {}).items():
-                if value is True:
-                    query_parameters.append(KeyValueDecorator(name))
+            for pname, pvalue in kwargs.get("query_parameters", {}).items():
+                if pvalue is True:
+                    query_parameters.append(KeyValueDecorator(pname))
                 else:
-                    query_parameters.append(KeyValueDecorator(name, value))
+                    query_parameters.append(KeyValueDecorator(pname, pvalue))
 
         if "regex_query_parameters" in kwargs:
-            for name, value in kwargs.get("regex_query_parameters", {}).items():
-                query_parameters.append(KeyValueDecorator(name, value, regex=True))
+            for pname, pvalue in kwargs.get("regex_query_parameters", {}).items():
+                query_parameters.append(KeyValueDecorator(pname, pvalue, regex=True))
 
         if "regex_rewrite" in kwargs:
             if rewrite and rewrite != "/":
