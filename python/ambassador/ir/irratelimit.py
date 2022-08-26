@@ -80,6 +80,7 @@ class IRRateLimit(IRFilter):
             "domain": self.domain,
             "timeout_ms": config.get("timeout_ms", 20),
             "request_type": "both",  # XXX configurability!
+            "failure_mode_deny": config.get("failure_mode_deny", False),
         }
 
         self.sourced_by(config)
