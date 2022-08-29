@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-import json
+import hashlib
 import logging
 import os
 from ipaddress import ip_address
@@ -480,7 +480,11 @@ class IR:
             if len(name) > 60:
                 # Too long. Gather this cluster by name prefix and normalize
                 # its name below.
-                short_name = name[0:40]
+                h = hashlib.new("sha1")
+                h.update(name.encode("utf-8"))
+                hd = h.hexdigest()[0:16].upper()
+
+                short_name = name[0:40] + "-" + hd
 
                 cluster = self.clusters[name]
                 self.logger.debug(f"COLLISION: compress {name} to {short_name}")
