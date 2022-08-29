@@ -13,11 +13,11 @@ import (
 	"strings"
 
 	// 1st-party libs
+	"github.com/datawire/ambassador-agent/cmd/agent"
 	"github.com/emissary-ingress/emissary/v3/pkg/busy"
 	"github.com/emissary-ingress/emissary/v3/pkg/environment"
 
 	// commands
-	"github.com/emissary-ingress/emissary/v3/cmd/agent"
 	"github.com/emissary-ingress/emissary/v3/cmd/apiext"
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
 	"github.com/emissary-ingress/emissary/v3/cmd/kubestatus"

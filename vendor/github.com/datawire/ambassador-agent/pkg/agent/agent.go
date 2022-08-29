@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -18,8 +19,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
+	"github.com/datawire/ambassador-agent/pkg/api/agent"
 	"github.com/datawire/dlib/dlog"
-	"github.com/emissary-ingress/emissary/v3/pkg/api/agent"
 	envoyMetrics "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/metrics/v3"
 	diagnosticsTypes "github.com/emissary-ingress/emissary/v3/pkg/diagnostics/v1"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"

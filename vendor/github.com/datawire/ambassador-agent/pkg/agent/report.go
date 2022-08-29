@@ -1,7 +1,7 @@
 package agent
 
 import (
-	"github.com/emissary-ingress/emissary/v3/pkg/api/agent"
+	"github.com/datawire/ambassador-agent/pkg/api/agent"
 	diagnosticsTypes "github.com/emissary-ingress/emissary/v3/pkg/diagnostics/v1"
 	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )

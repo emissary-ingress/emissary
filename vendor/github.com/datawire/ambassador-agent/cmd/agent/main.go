@@ -7,13 +7,12 @@ import (
 	"net"
 	"os"
 
+	"github.com/datawire/ambassador-agent/pkg/agent"
 	"github.com/spf13/cobra"
 	"k8s.io/klog/v2"
 
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
-	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
-	"github.com/emissary-ingress/emissary/v3/pkg/agent"
 	"github.com/emissary-ingress/emissary/v3/pkg/busy"
 	"github.com/emissary-ingress/emissary/v3/pkg/logutil"
 )
@@ -23,7 +22,31 @@ const (
 	AdminDiagnosticsPort     = 8877
 	DefaultSnapshotURLFmt    = "http://ambassador-admin:%d/snapshot-external"
 	DefaultDiagnosticsURLFmt = "http://ambassador-admin:%d/ambassador/v0/diag/?json=true"
+
+	ExternalSnapshotPort = 8005
 )
+
+// HACK to allow main to be imported by emissary-ingress
+func Main(ctx context.Context, version string, args ...string) error {
+	argparser := &cobra.Command{
+		Use:           os.Args[0],
+		Version:       version,
+		RunE:          run,
+		SilenceErrors: true,
+		SilenceUsage:  true,
+	}
+
+	argparser.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
+		if err == nil {
+			return nil
+		}
+		dlog.Errorf(ctx, "%s\nSee '%s --help'.\n", err, cmd.CommandPath())
+		return nil
+	})
+
+	argparser.SetArgs(args)
+	return argparser.ExecuteContext(ctx)
+}
 
 func run(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
@@ -55,7 +78,7 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 	snapshotURL := os.Getenv("AES_SNAPSHOT_URL")
 	if snapshotURL == "" {
-		snapshotURL = fmt.Sprintf(DefaultSnapshotURLFmt, entrypoint.ExternalSnapshotPort)
+		snapshotURL = fmt.Sprintf(DefaultSnapshotURLFmt, ExternalSnapshotPort)
 	}
 
 	diagnosticsURL := os.Getenv("AES_DIAGNOSTICS_URL")
@@ -86,23 +109,4 @@ func run(cmd *cobra.Command, args []string) error {
 	})
 
 	return grp.Wait()
-}
-
-func Main(ctx context.Context, version string, args ...string) error {
-	argparser := &cobra.Command{
-		Use:           os.Args[0],
-		Version:       version,
-		RunE:          run,
-		SilenceErrors: true,
-		SilenceUsage:  true,
-	}
-	argparser.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
-		if err == nil {
-			return nil
-		}
-		dlog.Errorf(ctx, "%s\nSee '%s --help'.\n", err, cmd.CommandPath())
-		return nil
-	})
-	argparser.SetArgs(args)
-	return argparser.ExecuteContext(ctx)
 }
