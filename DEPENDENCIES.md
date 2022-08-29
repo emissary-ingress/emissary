@@ -23,6 +23,7 @@ following Free and Open Source software:
     github.com/asaskevich/govalidator                                                          v0.0.0-20210307081110-f21760c49a8d           MIT license
     github.com/census-instrumentation/opencensus-proto                                         v0.3.0                                       Apache License 2.0
     github.com/cncf/xds/go                                                                     v0.0.0-20220121163655-4a2b9fdd466b           Apache License 2.0
+    github.com/datawire/ambassador-agent                                                       v0.0.7                                       Apache License 2.0
     github.com/datawire/dlib                                                                   v1.3.0                                       Apache License 2.0
     github.com/datawire/dtest                                                                  v0.0.0-20210928162311-722b199c4c2f           Apache License 2.0
     github.com/datawire/go-mkopensource                                                        v0.0.0-20220218163159-cc298d9fabc4           Apache License 2.0

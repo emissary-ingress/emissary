@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.9
 # -*- fill-column: 70 -*-
 
 # Copyright 2020, 2022 Datawire. All rights reserved.
