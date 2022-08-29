@@ -36,7 +36,7 @@ following Free and Open Source software:
     github.com/fatih/camelcase                                                                 v1.0.0                                       MIT license
     github.com/fatih/color                                                                     v1.13.0                                      MIT license
     github.com/fsnotify/fsnotify                                                               v1.5.4                                       3-clause BSD license
-    github.com/getkin/kin-openapi                                                              v0.97.0                                      MIT license
+    github.com/getkin/kin-openapi                                                              v0.98.0                                      MIT license
     github.com/go-errors/errors                                                                v1.4.2                                       MIT license
     github.com/go-logr/logr                                                                    v0.4.0                                       Apache License 2.0
     github.com/go-openapi/jsonpointer                                                          v0.19.5                                      Apache License 2.0

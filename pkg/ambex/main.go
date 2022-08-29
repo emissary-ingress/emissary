@@ -120,6 +120,10 @@ type Args struct {
 
 	snapdirPath string
 	numsnaps    int
+
+	// edsBypass will bypass using EDS and will insert the endpoints into the cluster data manually
+	// This is a stop gap solution to resolve 503s on certification rotation
+	edsBypass bool
 }
 
 func parseArgs(ctx context.Context, rawArgs ...string) (*Args, error) {
@@ -173,6 +177,14 @@ func parseArgs(ctx context.Context, rawArgs ...string) (*Args, error) {
 	if (err != nil) || (args.numsnaps < 0) {
 		args.numsnaps = 30
 		dlog.Errorf(ctx, "Invalid AMBASSADOR_AMBEX_SNAPSHOT_COUNT: %s, using %d", numsnapStr, args.numsnaps)
+	}
+
+	// edsBypass will bypass using EDS and will insert the endpoints into the cluster data manually
+	// This is a stop gap solution to resolve 503s on certification rotation
+	edsBypass := os.Getenv("AMBASSADOR_EDS_BYPASS")
+	if v, err := strconv.ParseBool(edsBypass); err == nil && v {
+		dlog.Info(ctx, "AMBASSADOR_EDS_BYPASS has been set to true. EDS will be bypassed and endpoints will be inserted manually.")
+		args.edsBypass = v
 	}
 
 	return &args, nil
@@ -358,6 +370,7 @@ func update(
 	ctx context.Context,
 	snapdirPath string,
 	numsnaps int,
+	edsBypass bool,
 	configv3 ecp_v3_cache.SnapshotCache,
 	generation *int,
 	dirs []string,
@@ -473,7 +486,7 @@ func update(
 	// warmup sequence in scenarios where the endpoint data for a cluster is really flapping into
 	// and out of existence. In that circumstance we want to faithfully relay to envoy that the
 	// cluster exists but currently has no endpoints.
-	endpointsv3 := JoinEdsClustersV3(ctx, clustersv3, edsEndpointsV3)
+	endpointsv3 := JoinEdsClustersV3(ctx, clustersv3, edsEndpointsV3, edsBypass)
 
 	// Create a new configuration snapshot from everything we have just loaded from disk.
 	curgen := *generation
@@ -694,6 +707,7 @@ func Main(
 			ctx,
 			args.snapdirPath,
 			args.numsnaps,
+			args.edsBypass,
 			configv3,
 			&generation,
 			args.dirs,
@@ -714,6 +728,7 @@ func Main(
 					ctx,
 					args.snapdirPath,
 					args.numsnaps,
+					args.edsBypass,
 					configv3,
 					&generation,
 					args.dirs,
@@ -734,6 +749,7 @@ func Main(
 					ctx,
 					args.snapdirPath,
 					args.numsnaps,
+					args.edsBypass,
 					configv3,
 					&generation,
 					args.dirs,
@@ -750,6 +766,7 @@ func Main(
 					ctx,
 					args.snapdirPath,
 					args.numsnaps,
+					args.edsBypass,
 					configv3,
 					&generation,
 					args.dirs,

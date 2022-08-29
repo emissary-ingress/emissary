@@ -29,8 +29,11 @@ jobs:
           this_branch=release/${this_ver}
           echo "::set-output name=this_branch::${this_branch}"
 
-          next_ver=$(git for-each-ref --format='%(refname:lstrip=4)' 'refs/remotes/origin/release/v*' | sort --version-sort | grep -A1 -Fx "$this_ver" | sed 1d)
+          next_ver=$(git for-each-ref --format='%(refname:lstrip=4)' 'refs/remotes/origin/release/v*' | sort --version-sort | grep -vFx -e 'v3.0' -e 'v3.1' | grep -A1 -Fx "$this_ver" | sed 1d)
           if test -n "$next_ver"; then
+            if test "$next_ver" = v2.0; then
+              next_ver=v2.4
+            fi
             next_branch="release/${next_ver}"
           else
             next_ver="${this_ver%.*}.$((${this_ver##*.}+1))"
@@ -63,6 +66,7 @@ jobs:
           echo "::set-output name=pr_url::${url}"
       - id: check-slack-webhook
         name: Assign slack webhook variable
+        if: always()
         run: echo '::set-output name=slack_webhook_url::${{secrets.SLACK_WEBHOOK_URL}}'
       - name: Slack notification
         if: steps.check-slack-webhook.outputs.slack_webhook_url && always()

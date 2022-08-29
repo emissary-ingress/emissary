@@ -85,6 +85,38 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   Host. The `tlsSecret` field in the Host has a new subfield `namespace` that will allow the use of
   secrets from different namespaces.
 
+- Feature: Previously the `Host` resource could only use secrets that are in the namespace as the
+  Host. The `tlsSecret` field in the Host has a new subfield `namespace` that will allow the use of
+  secrets from different namespaces.
+
+- Change: Set `AMBASSADOR_EDS_BYPASS` to `true` to bypass EDS handling of endpoints and have
+  endpoints be inserted to clusters manually. This can help resolve with `503 UH` caused by
+  certification rotation relating to a delay between EDS + CDS. The default is `false`.
+
+## [3.1.1] TBD
+[3.1.1]: https://github.com/emissary-ingress/emissary/compare/v3.1.0...v3.1.1
+
+### Emissary-ingress and Ambassador Edge Stack
+
+## [3.0.1] TBD
+[3.0.1]: https://github.com/emissary-ingress/emissary/compare/v3.0.0...v3.0.1
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming
+  from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
+  ensure that all the nodes composing the emissary ingress cluster are reporting properly.
+
+- Security: Updated Golang to 1.17.12 to address the CVEs: CVE-2022-23806, CVE-2022-28327,
+  CVE-2022-24675, CVE-2022-24921, CVE-2022-23772.
+
+- Security: Updated Curl to 7.80.0-r2 to address the CVEs: CVE-2022-32207, CVE-2022-27782,
+  CVE-2022-27781, CVE-2022-27780.
+
+- Security: Updated openSSL-dev to 1.1.1q-r0 to address CVE-2022-2097.
+
+- Security: Updated ncurses to 1.1.1q-r0 to address CVE-2022-29458
+
 ## [3.1.0] August 01, 2022
 [3.1.0]: https://github.com/emissary-ingress/emissary/compare/v3.0.0...v3.1.0
 
@@ -193,6 +225,60 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   HTTP/3 connections using QUIC and the UDP network protocol. It currently only supports for
   connections between downstream clients and Emissary-ingress.
 
+## [2.4.0] TBD
+[2.4.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v2.4.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Feature: Previously the `Host` resource could only use secrets that are in the namespace as the
+  Host. The `tlsSecret` field in the Host has a new subfield `namespace` that will allow the use of
+  secrets from different namespaces.
+
+- Change: Set `AMBASSADOR_EDS_BYPASS` to `true` to bypass EDS handling of endpoints and have
+  endpoints be inserted to clusters manually. This can help resolve with `503 UH` caused by
+  certification rotation relating to a delay between EDS + CDS. The default is `false`.
+
+## [1.14.5] TBD
+[1.14.5]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v1.14.5
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: When using gzip compression, upstream services will no longer receive compressed data.
+  This bug was introduced in 1.14.0. The fix restores the default behavior of not sending compressed
+  data to upstream services. ([3818])
+
+[3818]: https://github.com/emissary-ingress/emissary/issues/3818
+
+## [2.3.2] August 01, 2022
+[2.3.2]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v2.3.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming
+  from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
+  ensure that all the nodes composing the emissary ingress cluster are reporting properly.
+
+- Security: Updated Golang to 1.17.12 to address the CVEs: CVE-2022-23806, CVE-2022-28327,
+  CVE-2022-24675, CVE-2022-24921, CVE-2022-23772.
+
+- Security: Updated Curl to 7.80.0-r2 to address the CVEs: CVE-2022-32207, CVE-2022-27782,
+  CVE-2022-27781, CVE-2022-27780.
+
+- Security: Updated openSSL-dev to 1.1.1q-r0 to address CVE-2022-2097.
+
+- Security: Updated ncurses to 1.1.1q-r0 to address CVE-2022-29458
+
+## [1.14.4] June 13, 2022
+[1.14.4]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v1.14.4
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Security: We have backported patches from the Envoy 1.19.5 security update to Emissary-ingress's
+  1.17-based Envoy, addressing CVE-2022-29224 and CVE-2022-29225.  Emissary-ingress is not affected
+  by CVE-2022-29226, CVE-2022-29227, or CVE-2022-29228; as it <a
+  href="https://github.com/emissary-ingress/emissary/issues/2846">does not support internal
+  redirects</a>, and does not use Envoy's built-in OAuth2 filter.
+
 ## [2.3.1] June 09, 2022
 [2.3.1]: https://github.com/emissary-ingress/emissary/compare/v2.3.0...v2.3.1
 
@@ -266,6 +352,14 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 [4134]: https://github.com/emissary-ingress/emissary/issues/4134
 [#4122]: https://github.com/emissary-ingress/emissary/pull/4122
+
+## [1.14.3] February 25, 2022
+[1.14.3]: https://github.com/emissary-ingress/emissary/compare/v2.2.1...v1.14.3
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Security: Upgraded Envoy to address security vulnerabilities CVE-2021-43824, CVE-2021-43825,
+  CVE-2021-43826, CVE-2022-21654, and CVE-2022-21655.
 
 ## [2.2.1] February 22, 2022
 [2.2.1]: https://github.com/emissary-ingress/emissary/compare/v2.2.0...v2.2.1
@@ -569,7 +663,7 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
   meaning that the rate limiter is active.
 
 ## [2.0.0-ea] June 24, 2021
-[2.0.0-ea]: https://github.com/emissary-ingress/emissary/compare/v1.14.3...v2.0.0-ea
+[2.0.0-ea]: https://github.com/emissary-ingress/emissary/compare/v1.14.2...v2.0.0-ea
 
 We're pleased to introduce Emissary-ingress 2.0.0 as a **developer preview**. The 2.X family
 introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
@@ -650,14 +744,6 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
   instead.
 
 [#2888]: https://github.com/datawire/ambassador/issues/2888
-
-## [1.14.3] February 25, 2022
-[1.14.3]: https://github.com/emissary-ingress/emissary/compare/v1.14.2...v1.14.3
-
-### Emissary-ingress and Ambassador Edge Stack
-
-- Security: Upgraded Envoy to address security vulnerabilities CVE-2021-43824, CVE-2021-43825,
-  CVE-2021-43826, CVE-2022-21654, and CVE-2022-21655.
 
 ## [1.14.2] September 29, 2021
 [1.14.2]: https://github.com/emissary-ingress/emissary/compare/v1.14.1...v1.14.2
