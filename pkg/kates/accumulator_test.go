@@ -18,6 +18,7 @@ type Snap struct {
 func TestBootstrapNoNotifyBeforeSync(t *testing.T) {
 	// Create a set of 10 configmaps to give us some resources to watch.
 	ctx, cli := testClient(t, nil)
+	var cms [10]*ConfigMap 
 	for i := 0; i < 10; i++ {
 		cm := &ConfigMap{
 			TypeMeta: TypeMeta{
@@ -32,6 +33,7 @@ func TestBootstrapNoNotifyBeforeSync(t *testing.T) {
 		}
 		err := cli.Upsert(ctx, cm, cm, &cm)
 		require.NoError(t, err)
+		cms[i] = cm
 	}
 
 	// Use a separate client for watching so we can bypass any caching.
@@ -58,6 +60,14 @@ func TestBootstrapNoNotifyBeforeSync(t *testing.T) {
 	// ConfigMaps prior to starting te Watch, all 10 of those ConfigMaps should be present in the
 	// first update.
 	assert.Equal(t, 10, len(snap.ConfigMaps))
+
+	t.Cleanup(func() {
+		for _, cm := range cms {
+			if err := cli.Delete(ctx, cm, nil); err != nil && !IsNotFound(err) {
+				t.Error(err)
+			}
+		}
+	})
 }
 
 // Make sure we still notify on bootstrap if there are no resources that satisfy a Watch.
