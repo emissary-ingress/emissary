@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
-	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
+	apiv3_core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	apiv3_endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
 )
 
 // The Endpoints struct is how Endpoint data gets communicated to ambex. This is a bit simpler than
@@ -32,16 +32,16 @@ func (e *Endpoints) RoutesString() string {
 }
 
 // ToMap_v3 produces a map with the envoy v3 friendly forms of all the endpoint data.
-func (e *Endpoints) ToMap_v3() map[string]*v3endpoint.ClusterLoadAssignment {
-	result := map[string]*v3endpoint.ClusterLoadAssignment{}
+func (e *Endpoints) ToMap_v3() map[string]*apiv3_endpoint.ClusterLoadAssignment {
+	result := map[string]*apiv3_endpoint.ClusterLoadAssignment{}
 	for name, eps := range e.Entries {
-		var endpoints []*v3endpoint.LbEndpoint
+		var endpoints []*apiv3_endpoint.LbEndpoint
 		for _, ep := range eps {
 			endpoints = append(endpoints, ep.ToLbEndpoint_v3())
 		}
-		loadAssignment := &v3endpoint.ClusterLoadAssignment{
+		loadAssignment := &apiv3_endpoint.ClusterLoadAssignment{
 			ClusterName: name,
-			Endpoints:   []*v3endpoint.LocalityLbEndpoints{{LbEndpoints: endpoints}},
+			Endpoints:   []*apiv3_endpoint.LocalityLbEndpoints{{LbEndpoints: endpoints}},
 		}
 		result[name] = loadAssignment
 	}
@@ -57,16 +57,16 @@ type Endpoint struct {
 }
 
 // ToLBEndpoint_v3 translates to envoy v3 frinedly form of the Endpoint data.
-func (e *Endpoint) ToLbEndpoint_v3() *v3endpoint.LbEndpoint {
-	return &v3endpoint.LbEndpoint{
-		HostIdentifier: &v3endpoint.LbEndpoint_Endpoint{
-			Endpoint: &v3endpoint.Endpoint{
-				Address: &v3core.Address{
-					Address: &v3core.Address_SocketAddress{
-						SocketAddress: &v3core.SocketAddress{
-							Protocol: v3core.SocketAddress_Protocol(v3core.SocketAddress_Protocol_value[e.Protocol]),
+func (e *Endpoint) ToLbEndpoint_v3() *apiv3_endpoint.LbEndpoint {
+	return &apiv3_endpoint.LbEndpoint{
+		HostIdentifier: &apiv3_endpoint.LbEndpoint_Endpoint{
+			Endpoint: &apiv3_endpoint.Endpoint{
+				Address: &apiv3_core.Address{
+					Address: &apiv3_core.Address_SocketAddress{
+						SocketAddress: &apiv3_core.SocketAddress{
+							Protocol: apiv3_core.SocketAddress_Protocol(apiv3_core.SocketAddress_Protocol_value[e.Protocol]),
 							Address:  e.Ip,
-							PortSpecifier: &v3core.SocketAddress_PortValue{
+							PortSpecifier: &apiv3_core.SocketAddress_PortValue{
 								PortValue: e.Port,
 							},
 							Ipv4Compat: true,

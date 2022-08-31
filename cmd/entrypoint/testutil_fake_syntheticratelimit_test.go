@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
-	v3bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
-	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
+	apiv3_bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
+	apiv3_cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
@@ -63,13 +63,13 @@ spec:
 			assert.Equal(t, "edge-stack-ratelimit-test", snap.Kubernetes.RateLimitServices[0].Name)
 
 			// Check for a cluster name matching the provided RateLimitService
-			isRateLimitCluster := func(c *v3cluster.Cluster) bool {
+			isRateLimitCluster := func(c *apiv3_cluster.Cluster) bool {
 				return strings.Contains(c.Name, "cluster_127_0_0_1_8500_foo")
 			}
 
 			// Grab the next Envoy config that has an Edge Stack ratelimit cluster on
 			// 127.0.0.1:8500
-			envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+			envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 				return FindCluster(envoy, isRateLimitCluster) != nil
 			})
 			require.NoError(t, err)
@@ -118,13 +118,13 @@ spec:
 			assert.Equal(t, "v3", snap.Kubernetes.RateLimitServices[0].Spec.ProtocolVersion)
 
 			// Check for a cluster name matching the provided RateLimitService
-			isRateLimitCluster := func(c *v3cluster.Cluster) bool {
+			isRateLimitCluster := func(c *apiv3_cluster.Cluster) bool {
 				return strings.Contains(c.Name, "cluster_127_0_0_1_8500_foo")
 			}
 
 			// Grab the next Envoy config that has an Edge Stack rateLimit cluster on
 			// 127.0.0.1:8500
-			envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+			envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 				return FindCluster(envoy, isRateLimitCluster) != nil
 			})
 			require.NoError(t, err)
@@ -175,13 +175,13 @@ spec:
 			assert.Equal(t, "edge-stack-ratelimit-test", snap.Kubernetes.RateLimitServices[0].Name)
 
 			// Check for a cluster name matching the provided RateLimitService
-			isRateLimitCluster := func(c *v3cluster.Cluster) bool {
+			isRateLimitCluster := func(c *apiv3_cluster.Cluster) bool {
 				return strings.Contains(c.Name, "cluster_127_0_0_1_8500_foo")
 			}
 
 			// Grab the next Envoy config that has an Edge Stack rateLimit cluster on
 			// 127.0.0.1:8500
-			envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+			envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 				return FindCluster(envoy, isRateLimitCluster) != nil
 			})
 			require.NoError(t, err)
@@ -228,13 +228,13 @@ spec:
 	assert.Equal(t, "synthetic_edge_stack_rate_limit", snap.Kubernetes.RateLimitServices[0].Name)
 
 	// Check for a cluster name matching the provided RateLimitService
-	isRateLimitCluster := func(c *v3cluster.Cluster) bool {
+	isRateLimitCluster := func(c *apiv3_cluster.Cluster) bool {
 		return strings.Contains(c.Name, "cluster_127_0_0_1_8500_default")
 	}
 
 	// Grab the next Envoy config that has an Edge Stack rateLimit cluster on
 	// 127.0.0.1:8500
-	envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 		return FindCluster(envoy, isRateLimitCluster) != nil
 	})
 	require.NoError(t, err)
@@ -315,13 +315,13 @@ spec:
 	assert.Equal(t, "edge-stack-ratelimit-test", snap.Kubernetes.RateLimitServices[0].Name)
 
 	// Check for a cluster name matching the provided RateLimitService
-	isRateLimitCluster := func(c *v3cluster.Cluster) bool {
+	isRateLimitCluster := func(c *apiv3_cluster.Cluster) bool {
 		return strings.Contains(c.Name, "cluster_127_0_0_1_8500_foo")
 	}
 
 	// Grab the next Envoy config that has an Edge Stack rateLimit cluster on
 	// 127.0.0.1:8500
-	envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 		return FindCluster(envoy, isRateLimitCluster) != nil
 	})
 	require.NoError(t, err)
@@ -367,13 +367,13 @@ spec:
 	assert.Equal(t, "synthetic_edge_stack_rate_limit", snap.Kubernetes.RateLimitServices[0].Name)
 
 	// Check for a cluster name matching the provided RateLimitService
-	isRateLimitCluster := func(c *v3cluster.Cluster) bool {
+	isRateLimitCluster := func(c *apiv3_cluster.Cluster) bool {
 		return strings.Contains(c.Name, "cluster_127_0_0_1_8500_default")
 	}
 
 	// Grab the next Envoy config that has an Edge Stack rateLimit cluster on
 	// 127.0.0.1:8500
-	envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 		return FindCluster(envoy, isRateLimitCluster) != nil
 	})
 	require.NoError(t, err)
@@ -410,13 +410,13 @@ spec:
 	assert.Equal(t, "edge-stack-ratelimit-test", snap.Kubernetes.RateLimitServices[0].Name)
 
 	// Check for a cluster name matching the provided RateLimitService
-	isRateLimitCluster = func(c *v3cluster.Cluster) bool {
+	isRateLimitCluster = func(c *apiv3_cluster.Cluster) bool {
 		return strings.Contains(c.Name, "cluster_127_0_0_1_8500_foo")
 	}
 
 	// Grab the next Envoy config that has an Edge Stack rateLimit cluster on
 	// 127.0.0.1:8500
-	envoyConfig, err = f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err = f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 		return FindCluster(envoy, isRateLimitCluster) != nil
 	})
 	require.NoError(t, err)
@@ -462,13 +462,13 @@ spec:
 	assert.Equal(t, "v3", snap.Kubernetes.RateLimitServices[0].Spec.ProtocolVersion)
 
 	// Check for a cluster name matching the provided RateLimitService
-	isRateLimitCluster := func(c *v3cluster.Cluster) bool {
+	isRateLimitCluster := func(c *apiv3_cluster.Cluster) bool {
 		return strings.Contains(c.Name, "cluster_127_0_0_1_8500_foo")
 	}
 
 	// Grab the next Envoy config that has an Edge Stack rateLimit cluster on
 	// 127.0.0.1:8500
-	envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 		return FindCluster(envoy, isRateLimitCluster) != nil
 	})
 	require.NoError(t, err)

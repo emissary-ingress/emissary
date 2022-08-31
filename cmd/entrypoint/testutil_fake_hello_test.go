@@ -13,8 +13,8 @@ import (
 	"github.com/datawire/dlib/dlog"
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
 	"github.com/emissary-ingress/emissary/v3/pkg/ambex"
-	v3bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
-	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
+	apiv3_bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
+	apiv3_cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
@@ -231,7 +231,7 @@ func TestFakeHelloWithEnvoyConfig(t *testing.T) {
 	// control plane.
 	f.Flush()
 
-	// Grab the next snapshot that has mappings. The v3bootstrap logic should actually gaurantee this
+	// Grab the next snapshot that has mappings. The apiv3_bootstrap logic should actually gaurantee this
 	// is also the first mapping, but we aren't trying to test that here.
 	snap, err := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
 		return len(snap.Kubernetes.Mappings) > 0
@@ -244,12 +244,12 @@ func TestFakeHelloWithEnvoyConfig(t *testing.T) {
 	// Create a predicate that will recognize the cluster we care about. The surjection from
 	// Mappings to clusters is a bit opaque, so we just look for a cluster that contains the name
 	// hello.
-	isHelloCluster := func(c *v3cluster.Cluster) bool {
+	isHelloCluster := func(c *apiv3_cluster.Cluster) bool {
 		return strings.Contains(c.Name, "hello")
 	}
 
 	// Grab the next envoy config that satisfies our predicate.
-	envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 		return FindCluster(envoy, isHelloCluster) != nil
 	})
 	require.NoError(t, err)
@@ -279,7 +279,7 @@ func TestFakeHelloWithEnvoyConfig(t *testing.T) {
 	assert.Equal(t, 0, features.Invalid["Secret"])
 }
 
-func FindCluster(envoyConfig *v3bootstrap.Bootstrap, predicate func(*v3cluster.Cluster) bool) *v3cluster.Cluster {
+func FindCluster(envoyConfig *apiv3_bootstrap.Bootstrap, predicate func(*apiv3_cluster.Cluster) bool) *apiv3_cluster.Cluster {
 	for _, cluster := range envoyConfig.StaticResources.Clusters {
 		if predicate(cluster) {
 			return cluster
@@ -351,7 +351,7 @@ func TestFakeHelloConsul(t *testing.T) {
 	// Feed the control plane the kubernetes resources supplied in the referenced file. In this case
 	// that includes a consul resolver and a mapping that uses that consul resolver.
 	assert.NoError(t, f.UpsertFile("testdata/FakeHelloConsul.yaml"))
-	// This test is a bit more interesting for the control plane from a v3bootstrapping perspective,
+	// This test is a bit more interesting for the control plane from a apiv3_bootstrapping perspective,
 	// so we invoke Flush() manually rather than using AutoFlush(true). The control plane needs to
 	// figure out that there is a mapping that depends on consul endpoint data, and it needs to wait
 	// until that data is available before producing the first snapshot.
@@ -395,7 +395,7 @@ func TestFakeHelloConsul(t *testing.T) {
 	assert.Len(t, endpoints.Entries, 2)
 	assert.Equal(t, "1.2.3.4", endpoints.Entries["consul/dc1/hello"][0].Ip)
 
-	// Grab the next snapshot that has both mappings, tcpmappings, and a Consul resolver. The v3bootstrap logic
+	// Grab the next snapshot that has both mappings, tcpmappings, and a Consul resolver. The apiv3_bootstrap logic
 	// should actually guarantee this is also the first mapping, but we aren't trying to test
 	// that here.
 	snap, err := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
@@ -417,15 +417,15 @@ func TestFakeHelloConsul(t *testing.T) {
 	// Create a predicate that will recognize the cluster we care about. The surjection from
 	// Mappings to clusters is a bit opaque, so we just look for a cluster that contains the name
 	// hello.
-	isHelloTCPCluster := func(c *v3cluster.Cluster) bool {
+	isHelloTCPCluster := func(c *apiv3_cluster.Cluster) bool {
 		return strings.Contains(c.Name, "hello_tcp")
 	}
-	isHelloCluster := func(c *v3cluster.Cluster) bool {
+	isHelloCluster := func(c *apiv3_cluster.Cluster) bool {
 		return strings.Contains(c.Name, "hello") && !isHelloTCPCluster(c)
 	}
 
 	// Grab the next envoy config that satisfies our predicate.
-	envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 		return FindCluster(envoy, isHelloCluster) != nil
 	})
 	require.NoError(t, err)

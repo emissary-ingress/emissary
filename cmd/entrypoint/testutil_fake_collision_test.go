@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
-	v3bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
-	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
+	apiv3_bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
+	apiv3_cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
 )
 
-func ClusterHasAltName(altName string) func(*v3cluster.Cluster) bool {
-	return func(c *v3cluster.Cluster) bool {
+func ClusterHasAltName(altName string) func(*apiv3_cluster.Cluster) bool {
+	return func(c *apiv3_cluster.Cluster) bool {
 		return c.AltStatName == altName
 	}
 }
@@ -35,7 +35,7 @@ func TestFakeCollision(t *testing.T) {
 	// "subway_staging_stable_staging_3000", and one with an AltStatName of
 	// "subway_staging_stable_staging_3001".
 
-	envoyConfig, err := f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(config *apiv3_bootstrap.Bootstrap) bool {
 		// Three clusters...
 		if len(config.StaticResources.Clusters) != 3 {
 			return false
@@ -121,7 +121,7 @@ func TestFakeCollision(t *testing.T) {
 	// AltStatName of "subway_staging_stable_staging_3000", like one of our original
 	// clusters.
 
-	envoyConfig, err = f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err = f.GetEnvoyConfig(func(config *apiv3_bootstrap.Bootstrap) bool {
 		// Four clusters...
 		if len(config.StaticResources.Clusters) != 4 {
 			return false

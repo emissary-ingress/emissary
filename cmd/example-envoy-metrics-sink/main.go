@@ -11,18 +11,18 @@ import (
 	"github.com/datawire/dlib/dhttp"
 	"github.com/datawire/dlib/dlog"
 
-	v2_metrics "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/metrics/v2"
+	apiv2_svc_metrics "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/metrics/v2"
 )
 
 type server struct{}
 
-var _ v2_metrics.MetricsServiceServer = &server{}
+var _ apiv2_svc_metrics.MetricsServiceServer = &server{}
 
 func main() {
 	ctx := context.Background()
 
 	grpcMux := grpc.NewServer()
-	v2_metrics.RegisterMetricsServiceServer(grpcMux, &server{})
+	apiv2_svc_metrics.RegisterMetricsServiceServer(grpcMux, &server{})
 
 	sc := &dhttp.ServerConfig{
 		Handler: grpcMux,
@@ -38,7 +38,7 @@ func main() {
 	dlog.Print(ctx, "shut down without error")
 }
 
-func (s *server) StreamMetrics(stream v2_metrics.MetricsService_StreamMetricsServer) error {
+func (s *server) StreamMetrics(stream apiv2_svc_metrics.MetricsService_StreamMetricsServer) error {
 	dlog.Println(stream.Context(), "Started stream")
 	for {
 		in, err := stream.Recv()

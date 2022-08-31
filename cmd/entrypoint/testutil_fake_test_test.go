@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
-	v3bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
-	v3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/v3"
+	apiv3_bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
+	apiv3_type "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
@@ -18,7 +18,7 @@ func AnySnapshot(_ *snapshot.Snapshot) bool {
 	return true
 }
 
-func AnyConfig(_ *v3bootstrap.Bootstrap) bool {
+func AnyConfig(_ *apiv3_bootstrap.Bootstrap) bool {
 	return true
 }
 
@@ -60,7 +60,7 @@ func TestFake(t *testing.T) {
 
 }
 
-func assertRoutePresent(t *testing.T, envoyConfig *v3bootstrap.Bootstrap, cluster string, weight int) {
+func assertRoutePresent(t *testing.T, envoyConfig *apiv3_bootstrap.Bootstrap, cluster string, weight int) {
 	t.Helper()
 
 	listener := mustFindListenerByName(t, envoyConfig, "ambassador-listener-8080")
@@ -68,11 +68,11 @@ func assertRoutePresent(t *testing.T, envoyConfig *v3bootstrap.Bootstrap, cluste
 
 	for _, r := range routes {
 		assert.Equal(t, uint32(weight), r.Match.RuntimeFraction.DefaultValue.Numerator)
-		assert.Equal(t, v3.FractionalPercent_HUNDRED, r.Match.RuntimeFraction.DefaultValue.Denominator)
+		assert.Equal(t, apiv3_type.FractionalPercent_HUNDRED, r.Match.RuntimeFraction.DefaultValue.Denominator)
 	}
 }
 
-func assertRouteNotPresent(t *testing.T, envoyConfig *v3bootstrap.Bootstrap, cluster string) {
+func assertRouteNotPresent(t *testing.T, envoyConfig *apiv3_bootstrap.Bootstrap, cluster string) {
 	t.Helper()
 
 	listener := mustFindListenerByName(t, envoyConfig, "ambassador-listener-8080")
@@ -82,8 +82,8 @@ func assertRouteNotPresent(t *testing.T, envoyConfig *v3bootstrap.Bootstrap, clu
 }
 
 func TestWeightWithCache(t *testing.T) {
-	get_envoy_config := func(f *entrypoint.Fake, want_foo bool, want_bar bool) (*v3bootstrap.Bootstrap, error) {
-		return f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
+	get_envoy_config := func(f *entrypoint.Fake, want_foo bool, want_bar bool) (*apiv3_bootstrap.Bootstrap, error) {
+		return f.GetEnvoyConfig(func(config *apiv3_bootstrap.Bootstrap) bool {
 			c_foo := FindCluster(config, ClusterNameContains("cluster_foo_"))
 			c_bar := FindCluster(config, ClusterNameContains("cluster_bar_"))
 

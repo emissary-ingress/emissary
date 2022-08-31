@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
-	v3bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
-	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
+	apiv3_bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
+	apiv3_cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
@@ -67,13 +67,13 @@ spec:
 			// (Http_Filters are harder to check since they always have the same name).
 			// The namespace for this extauthz cluster should be foo (since that is the
 			// namespace of the valid AuthService above).
-			isAuthCluster := func(c *v3cluster.Cluster) bool {
+			isAuthCluster := func(c *apiv3_cluster.Cluster) bool {
 				return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_foo")
 			}
 
 			// Grab the next Envoy config that has an Edge Stack auth cluster on
 			// 127.0.0.1:8500
-			envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+			envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 				return FindCluster(envoy, isAuthCluster) != nil
 			})
 			require.NoError(t, err)
@@ -126,13 +126,13 @@ spec:
 			// (Http_Filters are harder to check since they always have the same name).
 			// The namespace for this extauthz cluster should be "foo" (since that is
 			// the namespace of the AuthService).
-			isAuthCluster := func(c *v3cluster.Cluster) bool {
+			isAuthCluster := func(c *apiv3_cluster.Cluster) bool {
 				return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_foo")
 			}
 
 			// Grab the next Envoy config that has an Edge Stack auth cluster on
 			// 127.0.0.1:8500
-			envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+			envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 				return FindCluster(envoy, isAuthCluster) != nil
 			})
 			require.NoError(t, err)
@@ -188,13 +188,13 @@ spec:
 			// (Http_Filters are harder to check since they always have the same name).
 			// The namespace for this extauthz cluster should be "foo" (since that is
 			// the namespace of the valid AuthService above).
-			isAuthCluster := func(c *v3cluster.Cluster) bool {
+			isAuthCluster := func(c *apiv3_cluster.Cluster) bool {
 				return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_foo")
 			}
 
 			// Grab the next Envoy config that has an Edge Stack auth cluster on
 			// 127.0.0.1:8500
-			envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+			envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 				return FindCluster(envoy, isAuthCluster) != nil
 			})
 			require.NoError(t, err)
@@ -245,12 +245,12 @@ spec:
 	// Check for an ext_authz cluster name matching the synthetic AuthService.  The namespace
 	// for this extauthz cluster should be default (since that is the namespace of the synthetic
 	// AuthService).
-	isAuthCluster := func(c *v3cluster.Cluster) bool {
+	isAuthCluster := func(c *apiv3_cluster.Cluster) bool {
 		return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_default")
 	}
 
 	// Grab the next Envoy config that has an Edge Stack auth cluster on 127.0.0.1:8500
-	envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 		return FindCluster(envoy, isAuthCluster) != nil
 	})
 	require.NoError(t, err)
@@ -337,12 +337,12 @@ spec:
 	// Check for an ext_authz cluster name matching the provided AuthService (Http_Filters are
 	// harder to check since they always have the same name).  The namespace for this extauthz
 	// cluster should be foo (since that is the namespace of the valid AuthService above)
-	isAuthCluster := func(c *v3cluster.Cluster) bool {
+	isAuthCluster := func(c *apiv3_cluster.Cluster) bool {
 		return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_foo")
 	}
 
 	// Grab the next Envoy config that has an Edge Stack auth cluster on 127.0.0.1:8500
-	envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 		return FindCluster(envoy, isAuthCluster) != nil
 	})
 	require.NoError(t, err)
@@ -390,12 +390,12 @@ spec:
 	// Check for an ext_authz cluster name matching the synthetic AuthService.  The namespace
 	// for this extauthz cluster should be default (since that is the namespace of the synthetic
 	// AuthService).
-	isAuthCluster := func(c *v3cluster.Cluster) bool {
+	isAuthCluster := func(c *apiv3_cluster.Cluster) bool {
 		return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_default")
 	}
 
 	// Grab the next Envoy config that has an Edge Stack auth cluster on 127.0.0.1:8500
-	envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 		return FindCluster(envoy, isAuthCluster) != nil
 	})
 	require.NoError(t, err)
@@ -435,12 +435,12 @@ spec:
 	// Check for an ext_authz cluster name matching the provided AuthService (Http_Filters are
 	// harder to check since they always have the same name).  The namespace for this extauthz
 	// cluster should be foo (since that is the namespace of the valid AuthService above).
-	isAuthCluster = func(c *v3cluster.Cluster) bool {
+	isAuthCluster = func(c *apiv3_cluster.Cluster) bool {
 		return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_foo")
 	}
 
 	// Grab the next Envoy config that has an Edge Stack auth cluster on 127.0.0.1:8500
-	envoyConfig, err = f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err = f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 		return FindCluster(envoy, isAuthCluster) != nil
 	})
 	require.NoError(t, err)
@@ -490,12 +490,12 @@ spec:
 	// Check for an ext_authz cluster name matching the synthetic AuthService.  The namespace
 	// for this extauthz cluster should be default (since that is the namespace of the synthetic
 	// AuthService).
-	isAuthCluster := func(c *v3cluster.Cluster) bool {
+	isAuthCluster := func(c *apiv3_cluster.Cluster) bool {
 		return strings.Contains(c.Name, "cluster_extauth_127_0_0_1_8500_foo")
 	}
 
 	// Grab the next Envoy config that has an Edge Stack auth cluster on 127.0.0.1:8500
-	envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 		return FindCluster(envoy, isAuthCluster) != nil
 	})
 	require.NoError(t, err)
@@ -546,12 +546,12 @@ spec:
 	// Check for an ext_authz cluster name matching the provided AuthService (Http_Filters are
 	// harder to check since they always have the same name).  the namespace for this extauthz
 	// cluster should be foo (since that is the namespace of the valid AuthService above).
-	isAuthCluster := func(c *v3cluster.Cluster) bool {
+	isAuthCluster := func(c *apiv3_cluster.Cluster) bool {
 		return strings.Contains(c.Name, "cluster_extauth_dummy_service_foo")
 	}
 
 	// Grab the next Envoy config that has an Edge Stack auth cluster on 127.0.0.1:8500
-	envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(envoy *apiv3_bootstrap.Bootstrap) bool {
 		return FindCluster(envoy, isAuthCluster) != nil
 	})
 	require.NoError(t, err)
