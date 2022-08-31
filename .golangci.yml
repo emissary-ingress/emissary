@@ -6,6 +6,7 @@ linters:
     - depguard
     - errcheck
     - gofmt
+    - goimports
     - govet
     - unused
 linters-settings: # please keep this list sorted
@@ -25,6 +26,12 @@ linters-settings: # please keep this list sorted
       - "(net/http.ResponseWriter).Write"
   gofmt:
     simplify: true
+  goimports:
+    # TODO: replace 'goimports' with 'gci', which lets us be more
+    # prescriptive.  The blocker switching to gci that is that a while
+    # back it broke support for having multiple named prefixes in the
+    # same section together.
+    local-prefixes: github.com/emissary-ingress,github.com/datawire
   unused:
     # treat code as a program (not a library) and report unused
     # exported identifiers
