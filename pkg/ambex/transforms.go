@@ -173,61 +173,6 @@ func V3ListenerToRdsListener(lnr *v3listener.Listener) (*v3listener.Listener, []
 	return l, routes, nil
 }
 
-// JoinEdsClusters will perform an outer join operation between the eds clusters in the supplied
-// clusterlist and the eds endpoint data in the supplied map. It will return a slice of
-// ClusterLoadAssignments (cast to []ecp_cache_types.Resource) with endpoint data for all the eds clusters in
-// the supplied list. If there is no map entry for a given cluster, an empty ClusterLoadAssignment
-// will be synthesized. The result is a set of endpoints that are consistent (by the
-// go-control-plane's definition of consistent) with the input clusters.
-func JoinEdsClusters(ctx context.Context, clusters []ecp_cache_types.Resource, edsEndpoints map[string]*v3endpoint.ClusterLoadAssignment, edsBypass bool) (endpoints []ecp_cache_types.Resource) {
-	for _, clu := range clusters {
-		c := clu.(*v3cluster.Cluster)
-		// Don't mess with non EDS clusters.
-		if c.EdsClusterConfig == nil {
-			continue
-		}
-
-		// By default, envoy will use the cluster name to lookup ClusterLoadAssignments unless the
-		// ServiceName is supplied in the EdsClusterConfig.
-		ref := c.EdsClusterConfig.ServiceName
-		if ref == "" {
-			ref = c.Name
-		}
-
-		// This change was introduced as a stop gap solution to mitigate the 503 issues when certificates are rotated.
-		// The issue is CDS gets updated and waits for EDS to send ClusterLoadAssignment.
-		// During this wait period calls that are coming through get hit with a 503 since the cluster is in a warming state.
-		// The solution is to "hijack" the cluster and insert all the endpoints instead of relying on EDS.
-		// Now there will be a discrepancy between envoy/envoy.json and the config envoy.
-		if edsBypass {
-			if ep, ok := edsEndpoints[ref]; ok {
-				c.LoadAssignment = ep
-				c.EdsClusterConfig = nil
-
-				// Type 0 is STATIC
-				c.ClusterDiscoveryType = &v3cluster.Cluster_Type{Type: 0}
-			}
-		} else {
-			var source string
-			ep, ok := edsEndpoints[ref]
-			if ok {
-				source = "found"
-			} else {
-				ep = &v3endpoint.ClusterLoadAssignment{
-					ClusterName: ref,
-					Endpoints:   []*v3endpoint.LocalityLbEndpoints{},
-				}
-				source = "synthesized"
-			}
-
-			dlog.Debugf(ctx, "%s envoy v2 ClusterLoadAssignment for cluster %s: %v", source, c.Name, ep)
-			endpoints = append(endpoints, ep)
-		}
-	}
-
-	return
-}
-
 // JoinEdsClustersV3 will perform an outer join operation between the eds clusters in the supplied
 // clusterlist and the eds endpoint data in the supplied map. It will return a slice of
 // ClusterLoadAssignments (cast to []ecp_cache_types.Resource) with endpoint data for all the eds clusters in
