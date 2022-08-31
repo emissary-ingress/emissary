@@ -267,12 +267,17 @@ func JoinEdsClusters(ctx context.Context, clusters []ecp_cache_types.Resource, e
 		// The solution is to "hijack" the cluster and insert all the endpoints instead of relying on EDS.
 		// Now there will be a discrepancy between envoy/envoy.json and the config envoy.
 		if edsBypass {
+			c.EdsClusterConfig = nil
+			// Type 0 is STATIC
+			c.ClusterDiscoveryType = &apiv2.Cluster_Type{Type: 0}
+
 			if ep, ok := edsEndpoints[ref]; ok {
 				c.LoadAssignment = ep
-				c.EdsClusterConfig = nil
-
-				// Type 0 is STATIC
-				c.ClusterDiscoveryType = &apiv2.Cluster_Type{Type: 0}
+			} else {
+				c.LoadAssignment = &apiv2.ClusterLoadAssignment{
+					ClusterName: ref,
+					Endpoints:   []*apiv2_endpoint.LocalityLbEndpoints{},
+				}
 			}
 		} else {
 			var source string
@@ -322,12 +327,17 @@ func JoinEdsClustersV3(ctx context.Context, clusters []ecp_cache_types.Resource,
 		// The solution is to "hijack" the cluster and insert all the endpoints instead of relying on EDS.
 		// Now there will be a discrepancy between envoy/envoy.json and the config envoy.
 		if edsBypass {
+			c.EdsClusterConfig = nil
+			// Type 0 is STATIC
+			c.ClusterDiscoveryType = &apiv3_cluster.Cluster_Type{Type: 0}
+
 			if ep, ok := edsEndpoints[ref]; ok {
 				c.LoadAssignment = ep
-				c.EdsClusterConfig = nil
-
-				// Type 0 is STATIC
-				c.ClusterDiscoveryType = &apiv3_cluster.Cluster_Type{Type: 0}
+			} else {
+				c.LoadAssignment = &apiv3_endpoint.ClusterLoadAssignment{
+					ClusterName: ref,
+					Endpoints:   []*apiv3_endpoint.LocalityLbEndpoints{},
+				}
 			}
 		} else {
 			var source string
