@@ -626,9 +626,7 @@ spec:
         product: aes
     spec:
       containers:
-      - command:
-        - agent
-        env:
+      - env:
         - name: AGENT_NAMESPACE
           valueFrom:
             fieldRef:

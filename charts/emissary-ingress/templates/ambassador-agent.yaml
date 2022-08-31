@@ -225,7 +225,6 @@ spec:
       - name: agent
         image: "{{ .Values.agent.image.repository }}:{{ .Values.agent.image.tag }}"
         imagePullPolicy: {{ .Values.agent.image.pullPolicy }}
-        command: [ "agent" ]
         ports:
           - containerPort: 8080
             name: http
