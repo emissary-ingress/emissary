@@ -13,8 +13,8 @@ import (
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/yaml"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/kates/k8s_resource_types"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates/k8s_resource_types"
 )
 
 func testVersionEquiv(t *testing.T, filename, expectedAPIVersion string, convert func(kates.Object) (kates.Object, error)) {

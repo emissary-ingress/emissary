@@ -66,20 +66,20 @@ func _make(sudo bool, f func()) *exec.Cmd {
 // this to work). The resulting commands that are returned can be
 // started/stopped at any point later in your test, e.g.:
 //
-//     func TestMain(m *testing.M) {
-//         testprocess.Dispatch()
-//         os.Exit(m.Run())
-//     }
+//	func TestMain(m *testing.M) {
+//	    testprocess.Dispatch()
+//	    os.Exit(m.Run())
+//	}
 //
-//     var fooCmd = testprocess.Make(func() { doFoo(); })
-//     var barCmd = testprocess.Make(func() { doBar(); })
-//     var bazcmd = testprocess.Make(func() { doBaz(); })
+//	var fooCmd = testprocess.Make(func() { doFoo(); })
+//	var barCmd = testprocess.Make(func() { doBar(); })
+//	var bazcmd = testprocess.Make(func() { doBaz(); })
 //
-//     func TestSomething(t *testing.T) {
-//         ...
-//         err := fooCmd.Run()
-//         ...
-//     }
+//	func TestSomething(t *testing.T) {
+//	    ...
+//	    err := fooCmd.Run()
+//	    ...
+//	}
 //
 // It is permissible, but not required, to call flag.Parse before
 // calling testprocess.Dispatch.  If flag.Parse has not been called,
@@ -117,8 +117,7 @@ func Dispatch() {
 // to Make must be *before* the call to testprocess.Dispatch; possibly
 // from a global variable initializer, e.g.:
 //
-//     var myCmd = testprocess.Make(func() { doSomething(); })
-//
+//	var myCmd = testprocess.Make(func() { doSomething(); })
 func Make(f func()) *exec.Cmd {
 	if dispatched {
 		// panic because it's a bug in the code, and a stack

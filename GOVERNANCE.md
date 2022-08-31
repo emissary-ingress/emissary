@@ -26,7 +26,20 @@ Ideally, all project decisions are resolved by consensus. If impossible, any mai
 
 A supermajority is defined as two-thirds of members in the group.
 
-A supermajority of [Maintainers](#maintainers) is required for adding or removing maintainers. Voting on decisions can happen on the mailing list, GitHub, Slack, email, or via a voting service, when appropriate. Maintainers can either vote "agree, yes, +1", "disagree, no, -1", or "abstain". A vote passes when supermajority is met. An abstain vote equals not voting at all.
+A supermajority of [Maintainers](#maintainers) is required for adding or removing maintainers. 
+
+### Voting Process
+
+Voting on decisions will be conducted using GitHub: 
+
+- Open an issue, if an appropriate issue is not already present.
+- Write a description of the issue at hand in a comment on the issue. The description must include:
+   - A summary of the vote to be taken;
+   - Whether the vote requires a majority or a supermajority; and
+   - The meaning of a yay vote and a nay vote, if not obvious.
+    
+   For example, when voting to add a maintainer, the meanings of yay and nay are straightforward. On the other hand, for a choice between two alternatives, the comment should spell out which alternative is supported by a yay vote, and which by a nay vote.
+- Maintainers vote by placing emoji on the comment: :thumbsup: for yay, :thumbsdown: for nay.
 
 ## Updating Governance
 

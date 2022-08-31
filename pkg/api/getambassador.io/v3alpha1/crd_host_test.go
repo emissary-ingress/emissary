@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"sigs.k8s.io/yaml"
 
-	crds "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	crds "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 )
 
 func TestHostState(t *testing.T) {

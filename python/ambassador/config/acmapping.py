@@ -16,7 +16,6 @@ from typing import Optional
 
 from .acresource import ACResource
 
-
 #############################################################################
 ## mapping.py -- the mapping configuration object for Ambassador
 ##
@@ -36,34 +35,36 @@ from .acresource import ACResource
 # DictOfStringOrBool = Dict[str, StringOrBool]
 
 
-class ACMapping (ACResource):
+class ACMapping(ACResource):
     """
     ACMappings are ACResources with a bunch of extra stuff.
 
     TODO: moar docstring.
     """
 
-    def __init__(self, rkey: str, location: str, *,
-                 name: str,
-                 kind: str="Mapping",
-                 apiVersion: Optional[str]=None,
-                 serialization: Optional[str]=None,
-
-                 service: str,
-                 prefix: str,
-                 prefix_regex: bool=False,
-                 rewrite: Optional[str]="/",
-                 case_sensitive: bool=False,
-                 grpc: bool=False,
-                 bypass_auth: bool=False,
-                 bypass_error_response_overrides: bool=False,
-
-                 # We don't list "method" or "method_regex" above because if they're
-                 # not present, we want them to be _not present_. Having them be always
-                 # present with an optional method is too annoying for schema validation
-                 # at this point.
-
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        rkey: str,
+        location: str,
+        *,
+        name: str,
+        kind: str = "Mapping",
+        apiVersion: Optional[str] = None,
+        serialization: Optional[str] = None,
+        service: str,
+        prefix: str,
+        prefix_regex: bool = False,
+        rewrite: Optional[str] = "/",
+        case_sensitive: bool = False,
+        grpc: bool = False,
+        bypass_auth: bool = False,
+        bypass_error_response_overrides: bool = False,
+        # We don't list "method" or "method_regex" above because if they're
+        # not present, we want them to be _not present_. Having them be always
+        # present with an optional method is too annoying for schema validation
+        # at this point.
+        **kwargs
+    ) -> None:
         """
         Initialize an ACMapping from the raw fields of its ACResource.
         """
@@ -72,17 +73,20 @@ class ACMapping (ACResource):
 
         # First init our superclass...
 
-        super().__init__(rkey, location,
-                         kind=kind,
-                         name=name,
-                         apiVersion=apiVersion,
-                         serialization=serialization,
-                         service=service,
-                         prefix=prefix,
-                         prefix_regex=prefix_regex,
-                         rewrite=rewrite,
-                         case_sensitive=case_sensitive,
-                         grpc=grpc,
-                         bypass_auth=bypass_auth,
-                         bypass_error_response_overrides=bypass_error_response_overrides,
-                         **kwargs)
+        super().__init__(
+            rkey,
+            location,
+            kind=kind,
+            name=name,
+            apiVersion=apiVersion,
+            serialization=serialization,
+            service=service,
+            prefix=prefix,
+            prefix_regex=prefix_regex,
+            rewrite=rewrite,
+            case_sensitive=case_sensitive,
+            grpc=grpc,
+            bypass_auth=bypass_auth,
+            bypass_error_response_overrides=bypass_error_response_overrides,
+            **kwargs
+        )

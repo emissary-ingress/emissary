@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/emissary-ingress/emissary/v3/pkg/k8s"
 )
 
 func TestQKind(t *testing.T) {

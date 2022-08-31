@@ -3,7 +3,7 @@ package entrypoint
 import (
 	"sync"
 
-	"github.com/datawire/ambassador/v2/pkg/consulwatch"
+	"github.com/emissary-ingress/emissary/v3/pkg/consulwatch"
 )
 
 type ConsulStore struct {

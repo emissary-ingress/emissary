@@ -11,6 +11,7 @@
 //   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
+
 package log
 
 import (
@@ -68,4 +69,9 @@ func TestNilLoggerFuncs(t *testing.T) {
 	xdsLogger.Infof("info")
 	xdsLogger.Warnf("warn")
 	xdsLogger.Errorf("error")
+}
+
+func TestDefaultLogger(t *testing.T) {
+	logger := NewDefaultLogger()
+	assert.NotNil(t, logger)
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 // Tests whether providing a Filter with a bogus spec
@@ -41,6 +41,7 @@ func TestFindFilterSecrets(t *testing.T) {
 		inputSpec    map[string]interface{}
 		expectedRefs []snapshotTypes.SecretRef
 	}
+
 	// Iterate each test for all our API Versions
 	apiVersions := []string{"getambassador.io/v2", "getambassador.io/v3alpha1"}
 	subtests := map[string]subtest{
@@ -54,7 +55,9 @@ func TestFindFilterSecrets(t *testing.T) {
 					"secretNamespace":  "bar",
 				},
 			},
-			expectedRefs: []snapshotTypes.SecretRef{{Namespace: "bar", Name: "namespaced-secret"}},
+			expectedRefs: []snapshotTypes.SecretRef{
+				{Namespace: "bar", Name: "namespaced-secret"},
+			},
 		},
 		"noNamespace": {
 			inputSpec: map[string]interface{}{
@@ -64,12 +67,32 @@ func TestFindFilterSecrets(t *testing.T) {
 					"clientURL":        "https://dummy-client-url.com",
 					"secretName":       "namespaced-secret",
 				},
+				"APIKey": map[string]interface{}{
+					"http_header": "x-api-key",
+					"keys": []interface{}{
+						map[string]interface{}{
+							"value": "super-secret",
+						},
+						map[string]interface{}{
+							"secretName": "namespaced-secret-api",
+						},
+						map[string]interface{}{
+							"secretName":      "namespaced-secret-api-2",
+							"secretNamespace": "",
+						},
+					},
+				},
 			},
-			expectedRefs: []snapshotTypes.SecretRef{{Namespace: "foo", Name: "namespaced-secret"}},
+			expectedRefs: []snapshotTypes.SecretRef{
+				{Namespace: "foo", Name: "namespaced-secret"},
+				{Namespace: "foo", Name: "namespaced-secret-api"},
+				{Namespace: "foo", Name: "namespaced-secret-api-2"},
+			},
 		},
-		"bogusOAuth": {
+		"bogus": {
 			inputSpec: map[string]interface{}{
 				"OAuth2": true,
+				"APIKey": true,
 			},
 			expectedRefs: []snapshotTypes.SecretRef{},
 		},
@@ -80,6 +103,17 @@ func TestFindFilterSecrets(t *testing.T) {
 					"clientID":         "dummy-id",
 					"clientURL":        "https://dummy-client-url.com",
 					"secretName":       true,
+				},
+				"APIKey": map[string]interface{}{
+					"http_header": "x-api-key",
+					"keys": []interface{}{
+						map[string]interface{}{
+							"value": "super-secret",
+						},
+						map[string]interface{}{
+							"secretName": true,
+						},
+					},
 				},
 			},
 			expectedRefs: []snapshotTypes.SecretRef{},
@@ -102,6 +136,15 @@ func TestFindFilterSecrets(t *testing.T) {
 					"authorizationURL": "https://login.example.com/dummy-client/v2",
 					"clientID":         "dummy-id",
 					"clientURL":        "https://dummy-client-url.com",
+				},
+				"APIKey": map[string]interface{}{
+					"http_header": "x-api-key",
+					"keys": []interface{}{
+						map[string]interface{}{
+							"value": "super-secret",
+						},
+						map[string]interface{}{},
+					},
 				},
 			},
 			expectedRefs: []snapshotTypes.SecretRef{},

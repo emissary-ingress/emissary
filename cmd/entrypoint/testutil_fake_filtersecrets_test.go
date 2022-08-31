@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 type subtest struct {
@@ -67,7 +67,6 @@ type: Opaque
 			snap, err := f.GetSnapshot(hasSecret("namespaced-secret", "bar"))
 			require.NoError(t, err)
 			assert.NotNil(t, snap)
-			t.Setenv("EDGE_STACK", "")
 		})
 	}
 }
@@ -112,7 +111,6 @@ type: Opaque
 			snap, err := f.GetSnapshot(hasSecret("namespaced-secret", "foo"))
 			require.NoError(t, err)
 			assert.NotNil(t, snap)
-			t.Setenv("EDGE_STACK", "")
 		})
 	}
 }

@@ -43,7 +43,7 @@ After reading this document if you have questions we encourage you to join us on
     - [4. Building and testing your hacked-up Envoy](#4-building-and-testing-your-hacked-up-envoy)
     - [5. Finalizing your changes](#5-finalizing-your-changes)
     - [6. Checklist for landing the changes](#6-checklist-for-landing-the-changes)
-  - [Developing Emissary-ingress (Datawire-only advice)](#developing-emissary-ingress-datawire-only-advice)
+  - [Developing Emissary-ingress (Ambassador Labs -only advice)](#developing-emissary-ingress-ambassador-labs--only-advice)
     - [Updating license documentation](#updating-license-documentation)
     - [Upgrading Python dependencies](#upgrading-python-dependencies)
 - [FAQ](#faq)
@@ -430,7 +430,7 @@ formats:
 Given an input source, running
 
 ```bash
-ambassador dump --ir --v2 [$input_flags] $input > test.json
+ambassador dump --ir --xds [$input_flags] $input > test.json
 ```
 
 will dump the Ambassador IR and v2 Envoy configuration into `test.json`. Here
@@ -457,7 +457,7 @@ This is a bit more complex than anyone likes, but here goes:
 Building and testing Envoy can be very resource intensive.  A laptop
 often can build Envoy... if you plug in an external hard drive, point
 a fan at it, and leave it running overnight and most of the next day.
-At Datawire, we'll often spin up a temporary build machine in GCE, so
+At Ambassador Labs, we'll often spin up a temporary build machine in GCE, so
 that we can build it very quickly.
 
 As of Envoy 1.15.0, we've measure the resource use to build and test
@@ -480,7 +480,7 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
 
 #### 2. Setting up your workspace to hack on Envoy
 
-1. From your `ambassador.git` checkout, get Ambassador's current
+1. From your `emissary.git` checkout, get Emissary-ingress's current
    version of the Envoy sources, and create a branch from that:
 
    ```shell
@@ -496,7 +496,7 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
    export ENVOY_COMMIT='-'
    ```
 
-   Building Envoy is slow, and most Ambassador contributors do not
+   Building Envoy is slow, and most Emissary-ingress contributors do not
    want to rebuild Envoy, so we require the first two environment
    variables as a safety.
 
@@ -509,6 +509,17 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
        the cached build for).
     3. Don't push the build of Envoy to a Docker cache (since you're
        still actively working on it).
+
+3. To build Envoy in FIPS mode, set the following variable:
+
+   ```shell
+   export FIPS_MODE=true
+   ```
+
+   It is important to note that while building Envoy in FIPS mode is
+   required for FIPS compliance, additional steps may be necessary.
+   Emissary does not claim to be FIPS compliant or certified.
+   See [here](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/security/ssl#fips-140-2) for more information on FIPS and Envoy.
 
 #### 3. Hacking on Envoy
 
@@ -559,15 +570,15 @@ Modify the sources in `./_cxx/envoy/`.
      that the test was too big and was skipped and that you need to
      throw more hardware at it.
 
-- **Build or test Ambassador** with the usual `make` commands, with
+- **Build or test Emissary-ingress** with the usual `make` commands, with
   the exception that you MUST run `make update-base` first whenever
   Envoy needs to be recompiled; it won't happen automatically.  So
-  `make test` to build-and-test Ambassador would become `make
-  update-base && make test`, and `make images` to just build
-  Ambassador would become `make update-base && make images`.  By
+  `make test` to build-and-test Emissary-ingress would become 
+  `make update-base && make test`, and `make images` to just build
+  Emissary-ingress would become `make update-base && make images`.  By
   default (to keep the tests fast), the tests avoid running much
   traffic through Envoy, and instead just check that the Envoy
-  configuration that Ambassador generates hasn't changed since the
+  configuration that Emissary-ingress generates hasn't changed since the
   previous version (since we generally trust that Envoy works, and
   doesn't change as often).  Since you *are* changing Envoy, you'll
   need to run the tests with `KAT_RUN_MODE=envoy` set in the
@@ -580,7 +591,7 @@ Once you're happy with your changes to Envoy:
 1. Ensure they're committed to `_cxx/envoy/` and push/PR them into
    <https://github.com/datawire/envoy> branch `rebase/master`.
 
-   If you're outside of Datawire, you'll need to
+   If you're outside of Ambassador Labs, you'll need to
     a. Create a fork of <https://github.com/datawire/envoy> on the
        GitHub web interface
     b. Add it as a remote to your `./_cxx/envoy/`:
@@ -601,55 +612,58 @@ Once you're happy with your changes to Envoy:
 
    The image will be pushed to `$ENVOY_DOCKER_REPO`, by default
    `ENVOY_DOCKER_REPO=docker.io/datawire/ambassador-base`; if you're
-   outside of Datawire, you can skip this step if you don't want to
+   outside of Ambassador Labs, you can skip this step if you don't want to
    share your Envoy binary anywhere. If you don't skip this step,
    you'll need to `export
    ENVOY_DOCKER_REPO=${your-envoy-docker-registry}` to tell it to push
    somewhere other than Datawire's registry.
 
-   If you're at Datawire, you'll then want to make sure that the image
+   If you're at Ambassador Labs, you'll then want to make sure that the image
    is also pushed to the backup container registries:
 
    ```shell
-   TAG=GET_THIS_FROM_THE_make_update-base_OUTPUT
+   # upload image to the mirror in GCR
+   SHA=GET_THIS_FROM_THE_make_update-base_OUTPUT
+   TAG="envoy-0.$SHA.opt"
+   FULL_TAG="envoy-full-0.$SHA.opt"
+   docker pull "docker.io/emissaryingress/base-envoy:envoy-0.$TAG.opt"
+   docker tag "docker.io/emissaryingress/base-envoy:$TAG" "gcr.io/datawire/ambassador-base:$TAG"
+   docker push "gcr.io/datawire/ambassador-base:$TAG"
 
-   source_registry=docker.io/datawire
-   docker pull "$source_registry/ambassador-base:$TAG"
-   for target_registry in quay.io/datawire gcr.io/datawire; do
-     docker tag "$source_registry/ambassador-base:$TAG" "$target_registry/ambassador-base:$TAG"
-     docker push "$target_registry/ambassador-base:$TAG"
-   done
+   ## repeat for the "FULL" version which has debug symbols enabled for envoy. It is large (GB's) big.
+   TAG=envoy-full-0.386367b8c99f843fbc2a42a38fe625fce480de19.opt
+   docker pull "docker.io/emissaryingress/base-envoy:$FULL_TAG"
+   docker tag "docker.io/emissaryingress/base-envoy:$FULL_TAG" "gcr.io/datawire/ambassador-base:$FULL_TAG"
+   docker push "gcr.io/datawire/ambassador-base:$FULL_TAG"
    ```
 
-   If you're outside of Datawire, you can skip this step if you
+   If you're outside of Ambassador Labs, you can skip this step if you
    don't want to share your Envoy binary anywhere.  If you don't
    skip this step, you'll need to `export
    ENVOY_DOCKER_REPO=${your-envoy-docker-registry}` to tell it to
    push somewhere other than Datawire's registry.
 
-4. Push/PR the `envoy.mk` `ENVOY_COMMIT` change to
-   <https://github.com/datawire/ambassador> (or
-   <https://github.com/datawire/apro> if you're inside Datawire).
+4. Push and PR the `envoy.mk` `ENVOY_COMMIT` change to
+   <https://github.com/emissary-ingress/emissary>.
 
 #### 6. Checklist for landing the changes
 
 I'd put this in the pull request template, but so few PRs change Envoy...
 
 - [ ] The image has been pushed to...
-  - [ ] `docker.io/datawire/ambassador-base`
+  - [ ] `docker.io/emissaryingress/base-envoy`
   - [ ] `gcr.io/datawire/ambassador-base`
-- [ ] The envoy.git commit has been tagged as `datawire-$(git
-   describe --tags --match='v*')` (the `--match` is to prevent
-   `datawire-*` tags from stacking on each other).
+- [ ] The envoy.git commit has been tagged as `datawire-$(gitdescribe --tags --match='v*')` 
+      (the `--match` is to prevent `datawire-*` tags from stacking on each other).
 - [ ] It's been tested with...
   - [ ] `make check-envoy`
 
 The `check-envoy-version` CI job should check all of those things,
 except for `make check-envoy`.
 
-### Developing Emissary-ingress (Datawire-only advice)
+### Developing Emissary-ingress (Ambassador Labs -only advice)
 
-At the moment, these techniques will only work internally to Datawire. Mostly
+At the moment, these techniques will only work internally to Ambassador Labs. Mostly
 this is because they require credentials to access internal resources at the
 moment, though in several cases we're working to fix that.
 
@@ -789,13 +803,13 @@ If you want to run the Go tests for `cmd/entrypoint`, you'll need `diagd`
 in your `PATH`. See the instructions below about `Setting up diagd` to do
 that.
 
-| Group           | Command                                                             |
-|-----------------|---------------------------------------------------------------------|
-| All Tests       | `make test`                                                         |
-| All Golang      | `make gotest`                                                       |
-| All Python      | `make pytest`                                                       |
+| Group           | Command                                                                |
+| --------------- | ---------------------------------------------------------------------- |
+| All Tests       | `make test`                                                            |
+| All Golang      | `make gotest`                                                          |
+| All Python      | `make pytest`                                                          |
 | Some/One Golang | `make gotest GOTEST_PKGS=./cmd/entrypoint GOTEST_ARGS="-run TestName"` |
-| Some/One Python | `make pytest PYTEST_ARGS="-k TestName"`                             |
+| Some/One Python | `make pytest PYTEST_ARGS="-k TestName"`                                |
 
 Please note the python tests use a local cache to speed up test
 results. If you make a code update that changes the generated envoy
@@ -834,14 +848,12 @@ We strongly recommend using an editor that can do realtime type checking
 can do this now) and also running the type checker by hand before submitting
 anything:
 
-- `make mypy` will start check all the Ambassador code
+- `make lint/mypy` will check all the Ambassador code
 
-Since `make mypy` uses the daemon for caching, it should be very fast after
-the first run. Ambassador code should produce *no* warnings and *no* errors.
+Ambassador code should produce *no* warnings and *no* errors.
 
-If you're concerned that the cache is somehow wrong (or if you just want the
-daemon to not be there any more), `make mypy-clean` will stop the daemon
-and clear the cache.
+If you're concerned that the mypy cache is somehow wrong, delete the
+`.mypy_cache/` directory to clear the cache.
 
 ### How do I get the source code for a release?
 

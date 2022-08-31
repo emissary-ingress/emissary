@@ -1,4 +1,10 @@
 resources:
-  - { kind: Service,            name: «self.path.k8s»,                    namespace: «self.namespace» }
-  - { kind: Service,            name: «self.path.k8s»-admin,              namespace: «self.namespace» }
-  - { kind: Pod,                name: «self.path.k8s»,                    namespace: «self.namespace» }
+  - { kind: Service,            name: «self.path.k8s»,       namespace: «self.namespace» }
+  - { kind: Service,            name: «self.path.k8s»-admin, namespace: «self.namespace» }
+  - { kind: Pod,                name: «self.path.k8s»,       namespace: «self.namespace» }
+disableResources:
+  - { kind: ClusterRole,        name: «self.path.k8s»                                    }
+  - { kind: ServiceAccount,     name: «self.path.k8s»,       namespace: «self.namespace» }
+  - { kind: ClusterRoleBinding, name: «self.path.k8s»                                    }
+  - { kind: ClusterRole,        name: «self.path.k8s»-crd                                }
+  - { kind: ClusterRole,        name: «self.path.k8s»-watch                              }

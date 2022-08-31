@@ -19,7 +19,7 @@ func GetAgentService() string {
 	return ""
 }
 
-func GetAmbassadorId() string {
+func GetAmbassadorID() string {
 	id := os.Getenv("AMBASSADOR_ID")
 	if id != "" {
 		return id
@@ -67,7 +67,7 @@ func GetEnvoyBootstrapFile() string {
 	return env("ENVOY_BOOTSTRAP_FILE", path.Join(GetAmbassadorConfigBaseDir(), "bootstrap-ads.json"))
 }
 
-func GetEnvoyBaseId() string {
+func GetEnvoyBaseID() string {
 	return env("AMBASSADOR_ENVOY_BASE_ID", "0")
 }
 
@@ -140,10 +140,6 @@ func GetEnvoyConfigFile() string {
 	return env("envoy_config_file", path.Join(GetEnvoyDir(), "envoy.json"))
 }
 
-func GetEnvoyAPIVersion() string {
-	return env("AMBASSADOR_ENVOY_API_VERSION", "V3")
-}
-
 func GetAmbassadorDebug() string {
 	return env("AMBASSADOR_DEBUG", "")
 }
@@ -153,7 +149,7 @@ func isDebug(name string) bool {
 }
 
 func GetEnvoyFlags() []string {
-	result := []string{"-c", GetEnvoyBootstrapFile(), "--base-id", GetEnvoyBaseId()}
+	result := []string{"-c", GetEnvoyBootstrapFile(), "--base-id", GetEnvoyBaseID()}
 	svc := GetAgentService()
 	if svc != "" {
 		result = append(result, "--drain-time-s", "1")
@@ -168,12 +164,6 @@ func GetEnvoyFlags() []string {
 	concurrency := GetEnvoyConcurrency()
 	if concurrency != "" {
 		result = append(result, "--concurrency", concurrency)
-	}
-	envoyAPIVersion := GetEnvoyAPIVersion()
-	if strings.ToUpper(envoyAPIVersion) == "V3" {
-		result = append(result, "--bootstrap-version", "3")
-	} else {
-		result = append(result, "--bootstrap-version", "2")
 	}
 	return result
 }

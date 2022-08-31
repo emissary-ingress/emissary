@@ -1,18 +1,17 @@
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Type, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Type, Union
 
 from ..config import Config
-
 from .irbasemapping import IRBaseMapping
 from .irhttpmapping import IRHTTPMapping
 from .irtcpmapping import IRTCPMapping
 
 if TYPE_CHECKING:
-    from .ir import IR # pragma: no cover
+    from .ir import IR  # pragma: no cover
 
 
 def unique_mapping_name(aconf: Config, name: str) -> str:
-    http_mappings = aconf.get_config('mappings') or {}
-    tcp_mappings = aconf.get_config('tcpmappings') or {}
+    http_mappings = aconf.get_config("mappings") or {}
+    tcp_mappings = aconf.get_config("tcpmappings") or {}
 
     basename = name
     counter = 0
@@ -26,19 +25,25 @@ def unique_mapping_name(aconf: Config, name: str) -> str:
 
 class MappingFactory:
     @classmethod
-    def load_all(cls, ir: 'IR', aconf: Config) -> None:
+    def load_all(cls, ir: "IR", aconf: Config) -> None:
         cls.load_config(ir, aconf, "Mapping", "mappings", IRHTTPMapping)
         cls.load_config(ir, aconf, "TCPMapping", "tcpmappings", IRTCPMapping)
 
     @classmethod
-    def load_config(cls, ir: 'IR', aconf: Config,
-                    kind: str, config_name: str, mapping_class: Type[IRBaseMapping]) -> None:
+    def load_config(
+        cls,
+        ir: "IR",
+        aconf: Config,
+        kind: str,
+        config_name: str,
+        mapping_class: Type[IRBaseMapping],
+    ) -> None:
         config_info = aconf.get_config(config_name)
 
         if not config_info:
             return
 
-        assert(len(config_info) > 0)    # really rank paranoia on my part...
+        assert len(config_info) > 0  # really rank paranoia on my part...
 
         live_mappings: List[IRBaseMapping] = []
 
@@ -58,7 +63,7 @@ class MappingFactory:
             else:
                 # Cache hit. We know a priori that anything in the cache under a Mapping
                 # key must be an IRBaseMapping, but let's assert that rather than casting.
-                assert(isinstance(cached_mapping, IRBaseMapping))
+                assert isinstance(cached_mapping, IRBaseMapping)
                 mapping = cached_mapping
 
             if mapping:
@@ -70,7 +75,9 @@ class MappingFactory:
         for mapping in live_mappings:
             if mapping.cache_key in ir.invalidate_groups_for:
                 group_key = mapping.group_class().key_for_id(mapping.group_id)
-                ir.logger.debug("IR: MappingFactory invalidating %s for %s", group_key, mapping.name)
+                ir.logger.debug(
+                    "IR: MappingFactory invalidating %s for %s", group_key, mapping.name
+                )
                 ir.cache.invalidate(group_key)
 
         ir.logger.debug("IR: MappingFactory adding live mappings")
@@ -82,7 +89,7 @@ class MappingFactory:
         ir.cache.dump("MappingFactory")
 
     @classmethod
-    def finalize(cls, ir: 'IR', aconf: Config) -> None:
+    def finalize(cls, ir: "IR", aconf: Config) -> None:
         # OK. We've created whatever IRMappings we need. Time to create the clusters
         # they need.
 

@@ -16,9 +16,9 @@ go-mod-tidy:
 .PHONY: go-mod-tidy
 
 go-mod-tidy: go-mod-tidy/main
-go-mod-tidy/main:
+go-mod-tidy/main: build-aux/go-version.txt
 	rm -f go.sum
-	GOFLAGS=-mod=mod go mod tidy
+	GOFLAGS=-mod=mod go mod tidy -compat=$$(cut -d. -f1,2 < $<) -go=$$(cut -d. -f1,2 < $<)
 .PHONY: go-mod-tidy/main
 
 #
@@ -40,12 +40,12 @@ generate/files       = $(generate-fast/files)
 generate/precious    =
 # Whole directories with rules for each individual file in it
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) $(OSS_HOME)/pkg/api/kat/
+generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%_grpc.pb.go                    , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto')) $(OSS_HOME)/pkg/api/agent/
+generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%_grpc.pb.go                    , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto'))
 # Whole directories with one rule for the whole directory
 generate/files      += $(OSS_HOME)/api/envoy/                # recipe in _cxx/envoy.mk
-generate/files      += $(OSS_HOME)/api/pb/                   # recipe in _cxx/envoy.mk
 generate/files      += $(OSS_HOME)/pkg/api/envoy/            # recipe in _cxx/envoy.mk
-generate/files      += $(OSS_HOME)/pkg/api/pb/               # recipe in _cxx/envoy.mk
 generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/  # recipe in _cxx/envoy.mk
 # Individual files: Misc
 generate/files      += $(OSS_HOME)/DEPENDENCIES.md
@@ -58,10 +58,6 @@ generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v3alpha1/zz_generate
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml.in
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns.yaml.in
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns.yaml.in
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns-agent.yaml.in
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns-agent.yaml.in
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-emissaryns-migration.yaml.in
-generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-defaultns-migration.yaml.in
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
@@ -80,7 +76,7 @@ generate:
 # This (generating specific targets early, then having a separate `_generate`) is a hack.  Because the
 # full value of $(generate/files) is based on the listing of files in $(OSS_HOME)/api/, we need to
 # make sure that those directories are fully populated before we evaluate the full $(generate/files).
-	$(MAKE) $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
+	$(MAKE) $(OSS_HOME)/api/envoy
 	$(MAKE) _generate
 _generate:
 	@echo '$(MAKE) $$(generate/files)'; $(MAKE) $(patsubst %/,%,$(generate/files))
@@ -136,70 +132,25 @@ $(OSS_HOME)/python/tests/selfsigned.py: %: %.gen $(tools/testcert-gen)
 #
 # `make generate` protobuf rules
 
-# Usage: $(call protoc,output_module,output_basedir[,plugin_files])
-#
-# Using the $(call protoc,...) macro will execute the `protoc` program
-# to generate the single output file $@ from $< using the
-# 'output_module' argument.
-#
-# Nomenclature:
-#   The `protoc` program uses "plugins" that add support for new "output
-#   modules" to the protoc.
-#
-# Arguments:
-#   - output_module: The protoc module to run.
-#   - output_basedir: Where the protobuf "namespace" starts; such that
-#     $@ is "{output_basedir}/{protobuf_packagename}/{filename}"
-#   - plugin_files: A whitespace-separated list of plugin files to
-#     load (necessary if output_module isn't built-in to protoc)
-#
-# Configuration:
-#   This macro takes most of its configuration from global variables:
-#
-#    - proto_path: A whitespace-separated list of directories to look
-#      for .proto files in.  Input files must be within this path.
-#    - proto_options/$(output_module): A whitespace-separated list of
-#      configuration options specific to this output module.
-#
-#   Having these as global variables instead of arguments makes it a
-#   lot easier to wrangle having large tables of options that some
-#   modules require.
-#
-# Example:
-#
-#    The Make snippet
-#
-#        proto_path  = $(CURDIR)/input_dir
-#        proto_path += $(CURDIR)/vendor/lib
-#        proto_options/example  = key1=val1
-#        proto_options/example += key2=val2
-#
-#        $(CURDIR)/output_dir/mypkg/myfile.pb.example: $(CURDIR)/input_dir/mypkg/myfile.proto /usr/bin/protoc-gen-example
-#                $(call protoc,example,$(CURDIR)/output_dir,\
-#                    /usr/bin/protoc-gen-example)
-#
-#    would run the command
-#
-#        $(tools/protoc) \
-#            --proto_path=$(CURDIR)/input_dir,$(CURDIR)/vendor/lib \
-#            --plugin=/usr/bin/protoc-gen-example \
-#            --example_out=key1=val1,key2=val2:$(CURDIR)/output_dir
-protoc = @echo PROTOC --$1_out=$2 $<; mkdir -p $2 && $(tools/protoc) \
-  $(addprefix --proto_path=,$(proto_path)) \
-  $(addprefix --plugin=,$3) \
-  --$1_out=$(if $(proto_options/$(strip $1)),$(call joinlist,$(comma),$(proto_options/$(strip $1))):)$2 \
-  $<
-
 # proto_path is a list of where to look for .proto files.
 proto_path += $(OSS_HOME)/api # input files must be within the path
-proto_path += $(OSS_HOME)/vendor # for "k8s.io/..."
 
 # The "M{FOO}={BAR}" options map from .proto files to Go package names.
-proto_options/go += plugins=grpc
+proto_options/go ?=
 #proto_options/go += Mgoogle/protobuf/duration.proto=github.com/golang/protobuf/ptypes/duration
+
+proto_options/go-grpc ?=
+
 $(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go)
-	$(call protoc,go,$(OSS_HOME)/pkg/api,\
-	    $(tools/protoc-gen-go))
+	$(tools/protoc) \
+	  $(addprefix --proto_path=,$(proto_path)) \
+	  --plugin=$(tools/protoc-gen-go) --go_out=$(OSS_HOME)/pkg/api $(addprefix --go_opt=,$(proto_options/go)) \
+	  $<
+$(OSS_HOME)/pkg/api/%_grpc.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go-grpc)
+	$(tools/protoc) \
+	  $(addprefix --proto_path=,$(proto_path)) \
+	  --plugin=$(tools/protoc-gen-go-grpc) --go-grpc_out=$(OSS_HOME)/pkg/api $(addprefix --go-grpc_opt=,$(proto_options/go-grpc)) \
+	  $<
 
 clean: _generate_clean
 _generate_clean:
@@ -394,10 +345,6 @@ $(OSS_HOME)/build-aux/pip-show.txt: docker/base-pip.docker.tag.local
 	docker run --rm "$$(cat docker/base-pip.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
 clean: build-aux/pip-show.txt.rm
 
-$(OSS_HOME)/build-aux/go-version.txt: docker/base-python/Dockerfile
-	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
-clean: build-aux/go-version.txt.rm
-
 $(OSS_HOME)/build-aux/py-version.txt: docker/base-python/Dockerfile
 	{ grep -o 'python3=\S*' | cut -d= -f2; } < $< > $@
 clean: build-aux/py-version.txt.rm
@@ -408,21 +355,21 @@ build-aux/go.src.tar.gz.clean:
 	rm -f build-aux/go1*.src.tar.gz
 clobber: build-aux/go.src.tar.gz.clean
 
-$(OSS_HOME)/DEPENDENCIES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
-	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
+$(OSS_HOME)/DEPENDENCIES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
+	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat build-aux/go-version.txt).src.tar.gz
 	set -e; { \
 		cd $(OSS_HOME); \
-		$(tools/go-mkopensource) --output-format=txt --package=mod --application-type=external --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz; \
+		$(tools/go-mkopensource) --output-format=txt --package=mod --application-type=external --gotar=build-aux/go$$(cat build-aux/go-version.txt).src.tar.gz; \
 		echo; \
 		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource); \
 	} > $@
 
-$(OSS_HOME)/DEPENDENCY_LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
-	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
+$(OSS_HOME)/DEPENDENCY_LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
+	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat build-aux/go-version.txt).src.tar.gz
 	echo -e "Emissary-ingress incorporates Free and Open Source software under the following licenses:\n" > $@
 	set -e; { \
 		cd $(OSS_HOME); \
-		$(tools/go-mkopensource) --output-format=txt --package=mod --output-type=json --application-type=external --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' ; \
+		$(tools/go-mkopensource) --output-format=txt --package=mod --output-type=json --application-type=external --gotar=build-aux/go$$(cat build-aux/go-version.txt).src.tar.gz | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' ; \
 		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource) --output-type=json | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"'; \
 	} | sort | uniq | sed -e 's/\[\([^]]*\)]()/\1/' >> $@
 

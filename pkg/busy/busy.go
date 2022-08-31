@@ -29,8 +29,8 @@ type Command struct {
 //
 // If you find yourself adding any other access to this blob of global state:
 //
-//     Stop.  You don't want more global state.  I (LukeShu) promise you there's a better way to do
-//     whatever you're attempting, and that adding more global state is not what you really want.
+//	Stop.  You don't want more global state.  I (LukeShu) promise you there's a better way to do
+//	whatever you're attempting, and that adding more global state is not what you really want.
 var logrusLogger *logrus.Logger
 
 func init() {

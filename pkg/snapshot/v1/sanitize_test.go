@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 func getUnstructured(objStr string) *kates.Unstructured {

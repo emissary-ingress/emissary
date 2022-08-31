@@ -1,28 +1,34 @@
 package services
 
 import (
+	// stdlib
 	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
 
+	// third party
 	"google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
-	pb "github.com/datawire/ambassador/v2/pkg/api/envoy/service/auth/v3"
-	envoy_type "github.com/datawire/ambassador/v2/pkg/api/envoy/type/v3"
+	// first party (protobuf)
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	pb "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/auth/v3"
+	envoy_type "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/v3"
+
+	// first party
+	"github.com/datawire/dlib/dgroup"
+	"github.com/datawire/dlib/dhttp"
 	"github.com/datawire/dlib/dlog"
 )
 
-// GRPCAUTHV3 server object (all fields are required).
-type GRPCAUTHV3 struct {
+// GRPCAuthV3 server object (all fields are required).
+type GRPCAuthV3 struct {
 	Port            int16
 	Backend         string
 	SecurePort      int16
@@ -33,64 +39,49 @@ type GRPCAUTHV3 struct {
 }
 
 // Start initializes the HTTP server.
-func (g *GRPCAUTHV3) Start(ctx context.Context) <-chan bool {
-	dlog.Printf(ctx, "GRPCAUTHV3: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
+func (g *GRPCAuthV3) Start(ctx context.Context) <-chan bool {
+	dlog.Printf(ctx, "GRPCAuthV3: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
-	exited := make(chan bool)
-	proto := "tcp"
+	grpcHandler := grpc.NewServer()
+	dlog.Printf(ctx, "registering v3 service")
+	pb.RegisterAuthorizationServer(grpcHandler, g)
 
-	go func() {
-		port := fmt.Sprintf(":%v", g.Port)
+	cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
+	if err != nil {
+		dlog.Error(ctx, err)
+		panic(err) // TODO: do something better
+	}
 
-		ln, err := net.Listen(proto, port)
-		if err != nil {
-			dlog.Error(ctx, err)
-			panic(err) // TODO: do something better
-		}
+	sc := &dhttp.ServerConfig{
+		Handler: grpcHandler,
+		TLSConfig: &tls.Config{
+			Certificates: []tls.Certificate{cer},
+		},
+	}
 
-		s := grpc.NewServer()
-		dlog.Printf(ctx, "registering v3 service")
-		pb.RegisterAuthorizationServer(s, g)
-		if err := s.Serve(ln); err != nil {
-			panic(err) // TODO: do something better
-		}
-
-		defer ln.Close()
-		close(exited)
-	}()
-
-	go func() {
-		cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
-		if err != nil {
-			dlog.Error(ctx, err)
-			panic(err) // TODO: do something better
-		}
-
-		config := &tls.Config{Certificates: []tls.Certificate{cer}}
-		port := fmt.Sprintf(":%v", g.SecurePort)
-		ln, err := tls.Listen(proto, port, config)
-		if err != nil {
-			dlog.Error(ctx, err)
-			panic(err) // TODO: do something better
-		}
-
-		s := grpc.NewServer()
-		dlog.Printf(ctx, "registering v2 service")
-		pb.RegisterAuthorizationServer(s, g)
-		if err := s.Serve(ln); err != nil {
-			panic(err) // TODO: do something better
-		}
-
-		defer ln.Close()
-		close(exited)
-	}()
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
+	grp.Go("cleartext", func(ctx context.Context) error {
+		return sc.ListenAndServe(ctx, fmt.Sprintf(":%v", g.Port))
+	})
+	grp.Go("tls", func(ctx context.Context) error {
+		return sc.ListenAndServeTLS(ctx, fmt.Sprintf(":%v", g.SecurePort), "", "")
+	})
 
 	dlog.Print(ctx, "starting gRPC authorization service")
+
+	exited := make(chan bool)
+	go func() {
+		if err := grp.Wait(); err != nil {
+			dlog.Error(ctx, err)
+			panic(err) // TODO: do something better
+		}
+		close(exited)
+	}()
 	return exited
 }
 
 // Check checks the request object.
-func (g *GRPCAUTHV3) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResponse, error) {
+func (g *GRPCAuthV3) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResponse, error) {
 	rs := &ResponseV3{}
 
 	rheader := r.GetAttributes().GetRequest().GetHttp().GetHeaders()
@@ -99,20 +90,33 @@ func (g *GRPCAUTHV3) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckRe
 		rheader["body"] = rbody
 	}
 
-	// Sets requested HTTP status.
-	rs.SetStatus(ctx, rheader["requested-status"])
+	rContextExtensions := r.GetAttributes().GetContextExtensions()
+	if rContextExtensions != nil {
+		val, err := json.Marshal(rContextExtensions)
+		if err != nil {
+			val = []byte(fmt.Sprintf("Error: %v", err))
+		}
 
-	rs.AddHeader(false, "x-grpc-service-protocol-version", g.ProtocolVersion)
+		rs.AddHeader(false, "kat-resp-extauth-context-extensions", string(val))
+	}
+
+	// Sets requested HTTP status.
+	rs.SetStatus(ctx, rheader["kat-req-extauth-requested-status"])
+
+	rs.AddHeader(false, "kat-resp-extauth-protocol-version", g.ProtocolVersion)
 
 	// Sets requested headers.
-	for _, key := range strings.Split(rheader["requested-header"], ",") {
-		if val := rheader[key]; len(val) > 0 {
-			rs.AddHeader(false, key, val)
+	// Don't bother if we'll be returning a pb.CheckResponse_OkResponse; it'd be a no-op in that case.
+	if rs.status != http.StatusOK && rs.status != 0 {
+		for _, key := range strings.Split(strings.ToLower(rheader["kat-req-extauth-requested-header"]), ",") {
+			if val := rheader[key]; val != "" {
+				rs.AddHeader(false, key, val)
+			}
 		}
 	}
 
 	// Append requested headers.
-	for _, token := range strings.Split(rheader["x-grpc-auth-append"], ";") {
+	for _, token := range strings.Split(rheader["kat-req-extauth-append"], ";") {
 		header := strings.Split(strings.TrimSpace(token), "=")
 		if len(header) > 1 {
 			dlog.Printf(ctx, "appending header %s : %s", header[0], header[1])
@@ -121,14 +125,14 @@ func (g *GRPCAUTHV3) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckRe
 	}
 
 	// Sets requested Cookies.
-	for _, v := range strings.Split(rheader["requested-cookie"], ",") {
+	for _, v := range strings.Split(rheader["kat-req-extauth-requested-cookie"], ",") {
 		val := strings.Trim(v, " ")
 		rs.AddHeader(false, "Set-Cookie", fmt.Sprintf("%s=%s", val, val))
 	}
 
 	// Sets requested location.
-	if len(rheader["requested-location"]) > 0 {
-		rs.AddHeader(false, "Location", rheader["requested-location"])
+	if loc := rheader["kat-req-extauth-requested-location"]; loc != "" {
+		rs.AddHeader(false, "Location", loc)
 	}
 
 	// Parses request headers.

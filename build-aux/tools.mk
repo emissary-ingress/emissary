@@ -2,7 +2,8 @@
 #
 # It depends on:
 #  - The `go` binary being installed in PATH.
-#  - OSS_HOME being set.
+#  - A `go.mod` file in the current directory.
+#  - A `build-aux/go-version.txt` file, or the ability to make one.
 # That should be it.
 
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
@@ -24,9 +25,9 @@ clobber-tools:
 go-mod-tidy: $(patsubst $(tools.srcdir)/%/go.mod,go-mod-tidy/tools/%,$(wildcard $(tools.srcdir)/*/go.mod))
 
 .PHONY: go-mod-tidy/tools/%
-go-mod-tidy/tools/%:
+go-mod-tidy/tools/%: build-aux/go-version.txt
 	rm -f $(tools.srcdir)/$*/go.sum
-	cd $(tools.srcdir)/$* && GOFLAGS=-mod=mod go mod tidy
+	cd $(tools.srcdir)/$* && GOFLAGS=-mod=mod go mod tidy -compat=$$(cut -d. -f1,2 < $(abspath $<)) -go=$$(cut -d. -f1,2 < $(abspath $<))
 
 # Shell scripts
 # =============
@@ -53,25 +54,28 @@ $(tools.bindir)/%: $(tools.srcdir)/%.py
 # `go get`-able things
 # ====================
 #
-tools/chart-doc-gen   = $(tools.bindir)/chart-doc-gen
-tools/controller-gen  = $(tools.bindir)/controller-gen
-tools/conversion-gen  = $(tools.bindir)/conversion-gen
-tools/crane           = $(tools.bindir)/crane
-tools/go-mkopensource = $(tools.bindir)/go-mkopensource
-tools/golangci-lint   = $(tools.bindir)/golangci-lint
-tools/kubestatus      = $(tools.bindir)/kubestatus
-tools/ocibuild        = $(tools.bindir)/ocibuild
-tools/protoc-gen-go   = $(tools.bindir)/protoc-gen-go
-tools/yq              = $(tools.bindir)/yq
+tools/chart-doc-gen      = $(tools.bindir)/chart-doc-gen
+tools/controller-gen     = $(tools.bindir)/controller-gen
+tools/conversion-gen     = $(tools.bindir)/conversion-gen
+tools/crane              = $(tools.bindir)/crane
+tools/go-mkopensource    = $(tools.bindir)/go-mkopensource
+tools/golangci-lint      = $(tools.bindir)/golangci-lint
+tools/goversion          = $(tools.bindir)/goversion
+tools/kubestatus         = $(tools.bindir)/kubestatus
+tools/ocibuild           = $(tools.bindir)/ocibuild
+tools/protoc-gen-go      = $(tools.bindir)/protoc-gen-go
+tools/protoc-gen-go-grpc = $(tools.bindir)/protoc-gen-go-grpc
+tools/yq                 = $(tools.bindir)/yq
 $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(tools.srcdir)/%/go.mod
 	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import "(.*)".*,\1,p' pin.go)
 # Let these use the main Emissary go.mod instead of having their own go.mod.
-tools.main-gomod += $(tools/protoc-gen-go)   # ensure runtime libraries are consistent
-tools.main-gomod += $(tools/controller-gen)  # ensure runtime libraries are consistent
-tools.main-gomod += $(tools/conversion-gen)  # ensure runtime libraries are consistent
-tools.main-gomod += $(tools/go-mkopensource) # ensure it is consistent with py-mkopensource
-tools.main-gomod += $(tools/kubestatus)      # is actually part of Emissary
-$(tools.main-gomod): $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(OSS_HOME)/go.mod
+tools.main-gomod += $(tools/controller-gen)     # ensure runtime libraries are consistent
+tools.main-gomod += $(tools/conversion-gen)     # ensure runtime libraries are consistent
+tools.main-gomod += $(tools/protoc-gen-go)      # ensure runtime libraries are consistent
+tools.main-gomod += $(tools/protoc-gen-go-grpc) # ensure runtime libraries are consistent
+tools.main-gomod += $(tools/go-mkopensource)    # ensure it is consistent with py-mkopensource
+tools.main-gomod += $(tools/kubestatus)         # is actually part of Emissary
+$(tools.main-gomod): $(tools.bindir)/%: $(tools.srcdir)/%/pin.go go.mod
 	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import "(.*)".*,\1,p' pin.go)
 
 # Local Go sources
@@ -82,7 +86,6 @@ tools/filter-yaml     = $(tools.bindir)/filter-yaml
 tools/fix-crds        = $(tools.bindir)/fix-crds
 tools/flock           = $(tools.bindir)/flock
 tools/gotest2tap      = $(tools.bindir)/gotest2tap
-tools/goversion       = $(tools.bindir)/goversion
 tools/py-mkopensource = $(tools.bindir)/py-mkopensource
 tools/py-split-tests  = $(tools.bindir)/py-split-tests
 tools/testcert-gen    = $(tools.bindir)/testcert-gen
@@ -126,7 +129,7 @@ $(tools.bindir)/k3d: $(tools.mk)
 # PROTOC_VERSION must be at least 3.8.0 in order to contain the fix so that it doesn't generate
 # invalid Python if you name an Enum member the same as a Python keyword.
 tools/protoc    = $(tools.bindir)/protoc
-PROTOC_VERSION  = 3.20.1
+PROTOC_VERSION  = 21.5
 PROTOC_ZIP     := protoc-$(PROTOC_VERSION)-$(patsubst darwin,osx,$(GOHOSTOS))-$(patsubst arm64,aarch_64,$(shell uname -m)).zip
 $(tools.dir)/downloads/$(PROTOC_ZIP):
 	mkdir -p $(@D)
@@ -162,6 +165,7 @@ $(tools/ct).d/bin/ct: $(tools.srcdir)/ct/pin.go $(tools.srcdir)/ct/go.mod
 	}
 $(tools/ct).d/bin/kubectl: $(tools/kubectl)
 	mkdir -p $(@D)
+	rm -f $@
 	ln -s ../../kubectl $@
 $(tools/ct).d/dir.txt: $(tools.srcdir)/ct/pin.go $(tools.srcdir)/ct/go.mod
 	mkdir -p $(@D)

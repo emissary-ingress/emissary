@@ -39,6 +39,12 @@ type RateLimitServiceSpec struct {
 
 	// +k8s:conversion-gen:rename=StatsName
 	V3StatsName string `json:"v3StatsName,omitempty"`
+
+	// +k8s:conversion-gen:rename=FailureModeDeny
+	//
+	// FailureModeDeny when set to true, envoy will deny traffic if it
+	// is unable to communicate with the rate limit service.
+	V3FailureModeDeny bool `json:"failure_mode_deny,omitempty"`
 }
 
 // RateLimitService is the Schema for the ratelimitservices API

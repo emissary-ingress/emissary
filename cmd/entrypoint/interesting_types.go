@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 // thingToWatch is... uh... a thing we're gonna watch. Specifically, it's a

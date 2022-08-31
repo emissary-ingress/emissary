@@ -7,9 +7,9 @@ import (
 
 	"google.golang.org/grpc"
 
-	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v3"
 	"github.com/datawire/dlib/dhttp"
 	"github.com/datawire/dlib/dlog"
+	envoyMetrics "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/metrics/v3"
 )
 
 type StreamHandler func(ctx context.Context, in *envoyMetrics.StreamMetricsMessage)

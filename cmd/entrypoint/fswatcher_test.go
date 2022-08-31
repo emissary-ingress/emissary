@@ -14,9 +14,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
 )
 
 type fswMetadata struct {

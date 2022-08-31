@@ -72,9 +72,9 @@ type PreviewURLSpec struct {
 
 // What type of Preview URL is allowed?
 //
-//  - path
-//  - wildcard
-//  - datawire // FIXME rename this before release
+//   - path
+//   - wildcard
+//   - datawire // FIXME rename this before release
 //
 // +kubebuilder:validation:Enum={"Path"}
 type PreviewURLType string

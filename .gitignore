@@ -116,3 +116,6 @@ ambassador-secrets-deployment.yaml
 # 2022-01-31
 /docker/container.txt
 /docker/container.txt.stamp
+
+# telepresence
+emissary-agent.env

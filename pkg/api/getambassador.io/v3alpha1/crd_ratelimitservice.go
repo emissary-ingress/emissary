@@ -33,9 +33,16 @@ type RateLimitServiceSpec struct {
 	Timeout *MillisecondDuration `json:"timeout_ms,omitempty"`
 	Domain  string               `json:"domain,omitempty"`
 	TLS     string               `json:"tls,omitempty"`
+
+	// ProtocolVersion is the envoy api transport protocol version
+	//
 	// +kubebuilder:validation:Enum={"v2","v3"}
 	ProtocolVersion string `json:"protocol_version,omitempty"`
 	StatsName       string `json:"stats_name,omitempty"`
+
+	// FailureModeDeny when set to true, envoy will deny traffic if it
+	// is unable to communicate with the rate limit service.
+	FailureModeDeny bool `json:"failure_mode_deny,omitempty"`
 
 	V2ExplicitTLS *V2ExplicitTLS `json:"v2ExplicitTLS,omitempty"`
 }

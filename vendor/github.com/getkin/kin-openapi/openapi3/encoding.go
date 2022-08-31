@@ -8,6 +8,7 @@ import (
 )
 
 // Encoding is specified by OpenAPI/Swagger 3.0 standard.
+// See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#encodingObject
 type Encoding struct {
 	ExtensionProps
 
@@ -38,10 +39,12 @@ func (encoding *Encoding) WithHeaderRef(name string, ref *HeaderRef) *Encoding {
 	return encoding
 }
 
+// MarshalJSON returns the JSON encoding of Encoding.
 func (encoding *Encoding) MarshalJSON() ([]byte, error) {
 	return jsoninfo.MarshalStrictStruct(encoding)
 }
 
+// UnmarshalJSON sets Encoding to a copy of data.
 func (encoding *Encoding) UnmarshalJSON(data []byte) error {
 	return jsoninfo.UnmarshalStrictStruct(data, encoding)
 }
@@ -61,11 +64,12 @@ func (encoding *Encoding) SerializationMethod() *SerializationMethod {
 	return sm
 }
 
-func (value *Encoding) Validate(ctx context.Context) error {
-	if value == nil {
+// Validate returns an error if Encoding does not comply with the OpenAPI spec.
+func (encoding *Encoding) Validate(ctx context.Context) error {
+	if encoding == nil {
 		return nil
 	}
-	for k, v := range value.Headers {
+	for k, v := range encoding.Headers {
 		if err := ValidateIdentifier(k); err != nil {
 			return nil
 		}
@@ -75,7 +79,7 @@ func (value *Encoding) Validate(ctx context.Context) error {
 	}
 
 	// Validate a media types's serialization method.
-	sm := value.SerializationMethod()
+	sm := encoding.SerializationMethod()
 	switch {
 	case sm.Style == SerializationForm && sm.Explode,
 		sm.Style == SerializationForm && !sm.Explode,

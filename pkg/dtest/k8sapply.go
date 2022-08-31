@@ -5,10 +5,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/datawire/ambassador/v2/pkg/k8s"
-	"github.com/datawire/ambassador/v2/pkg/kubeapply"
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/k8s"
+	"github.com/emissary-ingress/emissary/v3/pkg/kubeapply"
 )
 
 // K8sApply applies the supplied manifests to the cluster indicated by

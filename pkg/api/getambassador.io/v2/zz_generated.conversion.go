@@ -20,7 +20,7 @@
 package v2
 
 import (
-	v3alpha1 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	v3alpha1 "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
@@ -4762,6 +4762,10 @@ func autoConvert_v2_RateLimitServiceSpec_To_v3alpha1_RateLimitServiceSpec(in *Ra
 		in, out := &in.V3StatsName, &out.StatsName
 		*out = *in
 	}
+	if true {
+		in, out := &in.V3FailureModeDeny, &out.FailureModeDeny
+		*out = *in
+	}
 	return nil
 }
 
@@ -4804,6 +4808,10 @@ func autoConvert_v3alpha1_RateLimitServiceSpec_To_v2_RateLimitServiceSpec(in *v3
 	}
 	if true {
 		in, out := &in.StatsName, &out.V3StatsName
+		*out = *in
+	}
+	if true {
+		in, out := &in.FailureModeDeny, &out.V3FailureModeDeny
 		*out = *in
 	}
 	// WARNING: in.V2ExplicitTLS requires manual conversion: does not exist in peer-type

@@ -10,8 +10,12 @@ include build-aux/tools.mk
 BUILD_ARCH ?= linux/amd64
 
 # Bootstrapping the build env
-ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
-  $(_prelude.go.ensure)
+build-aux/go-version.txt: docker/base-python/Dockerfile
+	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
+clean: build-aux/go-version.txt.rm
+ifneq ($(MAKECMDGOALS),build-aux/go-version.txt)
+  $(shell $(MAKE) build-aux/go-version.txt >/dev/null && $(MAKE) -f build-aux/tools.mk tools/bin/goversion >/dev/null) # what a terrible hack
+  $(call _prelude.go.ensure,$(shell cat build-aux/go-version.txt))
   ifneq ($(filter $(shell go env GOROOT),$(subst :, ,$(shell go env GOPATH))),)
     $(error Your $$GOPATH (where *your* Go stuff goes) and $$GOROOT (where Go *itself* is installed) are both set to the same directory ($(shell go env GOROOT)); it is remarkable that it has not blown up catastrophically before now)
   endif
@@ -19,16 +23,16 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
     $(error Your emissary.git checkout is inside of your $$GOPATH ($(shell go env GOPATH)); Emissary-ingress uses Go modules and so GOPATH need not be pointed at it (in a post-modules world, the only role of GOPATH is to store the module download cache); and indeed some of the Kubernetes tools will get confused if GOPATH is pointed at it)
   endif
 
-  VERSION := $(or $(VERSION),$(shell go run ./tools/src/goversion))
-  $(if $(filter v2.%,$(VERSION)),\
-    ,$(error VERSION variable is invalid: It must be a v2.* string, but is '$(VERSION)'))
+  VERSION := $(or $(VERSION),$(shell ./tools/bin/goversion))
+  $(if $(filter v3.%,$(VERSION)),\
+    ,$(error VERSION variable is invalid: It must be a v3.* string, but is '$(VERSION)'))
   $(if $(findstring +,$(VERSION)),\
     $(error VERSION variable is invalid: It must not contain + characters, but is '$(VERSION)'),)
   export VERSION
 
-  CHART_VERSION := $(or $(CHART_VERSION),$(shell go run ./tools/src/goversion --dir-prefix=chart))
-  $(if $(filter v7.%,$(CHART_VERSION)),\
-    ,$(error CHART_VERSION variable is invalid: It must be a v7.* string, but is '$(CHART_VERSION)'))
+  CHART_VERSION := $(or $(CHART_VERSION),$(shell ./tools/bin/goversion --dir-prefix=chart))
+  $(if $(filter v8.%,$(CHART_VERSION)),\
+    ,$(error CHART_VERSION variable is invalid: It must be a v8.* string, but is '$(CHART_VERSION)'))
   export CHART_VERSION
 
   $(info [make] VERSION=$(VERSION))
@@ -99,3 +103,52 @@ deploy-only: preflight-dev-kubeconfig $(tools/kubectl) build-output/yaml-$(patsu
 	@printf "$(GRN)Your ambassador image:$(END) $(BLD)$$($(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) get -n ambassador deploy ambassador -o 'go-template={{(index .spec.template.spec.containers 0).image}}')$(END)\n"
 	@printf "$(GRN)Your built image:$(END) $(BLD)$$(sed -n 2p docker/$(LCNAME).docker.push.remote)$(END)\n"
 .PHONY: deploy-only
+
+##############################################
+##@ Telepresence based runners
+##############################################
+
+.PHONY: tel-quit
+tel-quit: ## Quit telepresence
+	telepresence quit
+
+tel-list: ## List intercepts
+	telepresence list
+
+EMISSARY_AGENT_ENV=emissary-agent.env
+
+.PHONY: intercept-emissary-agent
+intercept-emissary-agent:
+	telepresence intercept --namespace ambassador ambassador-agent -p 8080:http \
+		--http-header=test-$(USER)=1 --preview-url=false --env-file $(EMISSARY_AGENT_ENV)
+
+.PHONY: leave-emissary-agent
+leave-emissary-agent:
+	telepresence leave ambassador-agent-ambassador
+
+RUN_EMISSARY_AGENT=bin/run-emissary-agent.sh
+$(RUN_EMISSARY_AGENT):
+	@test -e $(EMISSARY_AGENT_ENV) || echo "Environment file $(EMISSARY_AGENT_ENV) does not exist, please run 'make intercept-emissary-agent' to create it."
+	echo 'AES_LOG_LEVEL=debug AES_SNAPSHOT_URL=http://ambassador-admin.ambassador:8005/snapshot-external AES_DIAGNOSTICS_URL="http://ambassador-admin.ambassador:8877/ambassador/v0/diag/?json=true" AES_REPORT_DIAGNOSTICS_TO_CLOUD=true go run ./cmd/busyambassador agent' >> $(RUN_EMISSARY_AGENT)
+	chmod a+x $(RUN_EMISSARY_AGENT)
+
+.PHONY: irun-emissary-agent
+irun-emissary-agent: bin/run-emissary-agent.sh ## Run emissary-agent using the environment variables fetched by the intercept.
+	bin/run-emissary-agent.sh
+
+## Helper target for setting up local dev environment when working with python components
+## such as pytests, diagd, etc...
+.PHONY: python-dev-setup
+python-dev-setup:
+# recreate venv and upgrade pip
+	rm -rf venv
+	python3 -m venv venv
+	venv/bin/python3 -m pip install --upgrade pip
+
+# install deps, dev deps and diagd
+	./venv/bin/pip install -r python/requirements.txt
+	./venv/bin/pip install -r python/requirements-dev.txt
+	./venv/bin/pip install -e python
+
+# activate venv
+	@echo "run 'source ./venv/bin/activate' to activate venv in local shell"
