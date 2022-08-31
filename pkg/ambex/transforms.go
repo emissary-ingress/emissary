@@ -26,7 +26,7 @@ import (
 	"github.com/datawire/dlib/dlog"
 )
 
-// ListenerToRdsListener will take a listener definition and extract any inline RouteConfigurations
+// V3ListenerToRdsListener will take a listener definition and extract any inline RouteConfigurations
 // replacing them with a reference to an RDS supplied route configuration. It does not modify the
 // supplied listener, any configuration included in the result is copied from the input.
 //
@@ -34,84 +34,84 @@ import (
 // identity transform for any inputs not matching the expected form.
 //
 // Example Input (that will get transformed in a non-identity way):
-//   - a listener configured with an http connection manager
-//   - that specifies an http router
-//   - that supplies its RouteConfiguration inline via the route_config field
 //
-//   {
-//     "name": "...",
-//     ...,
-//     "filter_chains": [
-//       {
-//         "filter_chain_match": {...},
-//         "filters": [
-//           {
-//             "name": "envoy.filters.network.http_connection_manager",
-//             "typed_config": {
-//               "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
-//               "http_filters": [...],
-//               "route_config": {
-//                 "virtual_hosts": [
-//                   {
-//                     "name": "ambassador-listener-8443-*",
-//                     "domains": ["*"],
-//                     "routes": [...],
-//                   }
-//                 ]
-//               }
-//             }
-//           }
-//         ]
-//       }
-//     ]
-//   }
+//	// - a listener configured with an http connection manager
+//	// - that specifies an http router
+//	// - that supplies its RouteConfiguration inline via the route_config field
+//
+//	{
+//	  "name": "...",
+//	  ...,
+//	  "filter_chains": [
+//	    {
+//	      "filter_chain_match": {...},
+//	      "filters": [
+//	        {
+//	          "name": "envoy.filters.network.http_connection_manager",
+//	          "typed_config": {
+//	            "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
+//	            "http_filters": [...],
+//	            "route_config": {
+//	              "virtual_hosts": [
+//	                {
+//	                  "name": "ambassador-listener-8443-*",
+//	                  "domains": ["*"],
+//	                  "routes": [...],
+//	                }
+//	              ]
+//	            }
+//	          }
+//	        }
+//	      ]
+//	    }
+//	  ]
+//	}
 //
 // Example Output:
-//   - a duplicate listener that defines the "rds" field instead of the "route_config" field
-//   - and a list of route configurations
-//   - with route_config_name supplied in such a way as to correlate the two together
 //
-//   lnr, routes, err := ListenerToRdsListener(...)
+//	// - a duplicate listener that defines the "rds" field instead of the "route_config" field
+//	// - and a list of route configurations
+//	// - with route_config_name supplied in such a way as to correlate the two together
 //
-//   lnr = {
-//     "name": "...",
-//     ...,
-//     "filter_chains": [
-//       {
-//         "filter_chain_match": {...},
-//         "filters": [
-//           {
-//             "name": "envoy.filters.network.http_connection_manager",
-//             "typed_config": {
-//               "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
-//               "http_filters": [...],
-//               "rds": {
-//                 "config_source": {
-//                   "ads": {}
-//                 },
-//                 "route_config_name": "ambassador-listener-8443-routeconfig-0"
-//               }
-//             }
-//           }
-//         ]
-//       }
-//     ]
-//   }
+//	lnr, routes, err := ListenerToRdsListener(...)
 //
-//  routes = [
-//    {
-//      "name": "ambassador-listener-8443-routeconfig-0",
-//      "virtual_hosts": [
-//        {
-//          "name": "ambassador-listener-8443-*",
-//          "domains": ["*"],
-//          "routes": [...],
-//        }
-//      ]
-//    }
-//  ]
-
-// V3ListenerToRdsListener is the v3 variety of ListnerToRdsListener
+//	lnr = {
+//	  "name": "...",
+//	  ...,
+//	  "filter_chains": [
+//	    {
+//	      "filter_chain_match": {...},
+//	      "filters": [
+//	        {
+//	          "name": "envoy.filters.network.http_connection_manager",
+//	          "typed_config": {
+//	            "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
+//	            "http_filters": [...],
+//	            "rds": {
+//	              "config_source": {
+//	                "ads": {}
+//	              },
+//	              "route_config_name": "ambassador-listener-8443-routeconfig-0"
+//	            }
+//	          }
+//	        }
+//	      ]
+//	    }
+//	  ]
+//	}
+//
+//	routes = [
+//	  {
+//	    "name": "ambassador-listener-8443-routeconfig-0",
+//	    "virtual_hosts": [
+//	      {
+//	        "name": "ambassador-listener-8443-*",
+//	        "domains": ["*"],
+//	        "routes": [...],
+//	      }
+//	    ]
+//	  }
+//	]
 func V3ListenerToRdsListener(lnr *apiv3_listener.Listener) (*apiv3_listener.Listener, []*apiv3_route.RouteConfiguration, error) {
 	l := proto.Clone(lnr).(*apiv3_listener.Listener)
 	var routes []*apiv3_route.RouteConfiguration
