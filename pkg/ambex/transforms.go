@@ -200,17 +200,12 @@ func JoinEdsClustersV3(ctx context.Context, clusters []ecp_cache_types.Resource,
 		// The solution is to "hijack" the cluster and insert all the endpoints instead of relying on EDS.
 		// Now there will be a discrepancy between envoy/envoy.json and the config envoy.
 		if edsBypass {
-			c.EdsClusterConfig = nil
-			// Type 0 is STATIC
-			c.ClusterDiscoveryType = &v3cluster.Cluster_Type{Type: 0}
-
 			if ep, ok := edsEndpoints[ref]; ok {
 				c.LoadAssignment = ep
-			} else {
-				c.LoadAssignment = &v3endpoint.ClusterLoadAssignment{
-					ClusterName: ref,
-					Endpoints:   []*v3endpoint.LocalityLbEndpoints{},
-				}
+				c.EdsClusterConfig = nil
+
+				// Type 0 is STATIC
+				c.ClusterDiscoveryType = &v3cluster.Cluster_Type{Type: 0}
 			}
 		} else {
 			var source string
