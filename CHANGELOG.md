@@ -95,6 +95,10 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   endpoints be inserted to clusters manually. This can help resolve with `503 UH` caused by
   certification rotation relating to a delay between EDS + CDS. The default is `false`.
 
+- Bugfix: Emissary-ingress 2.0.0 introduced a bug where a `TCPMapping` that uses SNI, instead of
+  using the hostname glob in the `TCPMapping`, uses the hostname glob in the `Host` that the TLS
+  termination configuration comes from.
+
 ## [1.14.5] TBD
 [1.14.5]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v1.14.5
 

@@ -745,7 +745,6 @@ class TCPMappingSNISharedContextTest(TCPMappingTLSTerminationTest):
 
     def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
         super().init(tls_src)
-        self.xfail = "bug (2.3): filter chains have identical (conflicting) matching rules"
         self.target_a = HTTP(name="target-a")
         self.target_b = HTTP(name="target-b")
 

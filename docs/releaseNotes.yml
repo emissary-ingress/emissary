@@ -50,6 +50,13 @@ items:
           inserted to clusters manually. This can help resolve with `503 UH` caused by certification rotation relating to
           a delay between EDS + CDS. The default is `false`.
 
+      - title: TCPMappings use correct SNI configuration
+        type: bugfix
+        body: >-
+          $productName$ 2.0.0 introduced a bug where a <code>TCPMapping</code> that uses SNI,
+          instead of using the hostname glob in the <code>TCPMapping</code>, uses the hostname glob
+          in the <code>Host</code> that the TLS termination configuration comes from.
+
   - version: 1.14.5
     date: 'TBD'
     notes:

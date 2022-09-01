@@ -85,10 +85,10 @@ class V3Chain:
         else:
             return 'http'
 
-    def add_host(self, host: IRHost) -> None:
+    def add_host(self, host: IRHost, hostname: Optional[str]=None) -> None:
         if self._log_debug:
-            self._logger.debug(f"      CHAIN UPDATE: add HTTP host: hostname={repr(host.hostname)}")
-        self.hosts[host.hostname] = host
+            self._logger.debug(f"      CHAIN UPDATE: add HTTP host: hostname={repr(hostname or host.hostname)}")
+        self.hosts[hostname or host.hostname] = host
 
         # Don't mess with the context if we're a cleartext chain...
         if not self.context:
@@ -650,8 +650,8 @@ class V3Listener:
                                                     self.name, self.bind_to, group_host, host)
 
                     if hostglob_matches(host.hostname, group_host):
-                        chain = self.add_chain('tcp', host.context, host.hostname)
-                        chain.add_host(host)
+                        chain = self.add_chain('tcp', host.context, group_host)
+                        chain.add_host(host, hostname=group_host)
                         chain.add_tcpmapping(irgroup)
 
     def compute_httpchains(self) -> None:
