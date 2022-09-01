@@ -82,7 +82,6 @@ replace (
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/argoproj/argo-rollouts v1.1.1
 	github.com/census-instrumentation/opencensus-proto v0.3.0
 	github.com/cncf/xds/go v0.0.0-20220121163655-4a2b9fdd466b
 	github.com/datawire/dlib v1.3.0
@@ -90,7 +89,6 @@ require (
 	github.com/datawire/go-mkopensource v0.0.0-20220218163159-cc298d9fabc4
 	github.com/envoyproxy/protoc-gen-validate v0.6.7
 	github.com/fsnotify/fsnotify v1.5.4
-	github.com/getkin/kin-openapi v0.98.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.7
 	github.com/google/uuid v1.3.0
@@ -118,7 +116,6 @@ require (
 	k8s.io/cli-runtime v0.21.9
 	k8s.io/client-go v0.21.9
 	k8s.io/code-generator v0.21.9
-	k8s.io/klog/v2 v2.10.0
 	k8s.io/kube-openapi v0.0.0-20211110012726-3cc51fd1e909
 	k8s.io/kubectl v0.21.9
 	k8s.io/kubernetes v1.21.9
@@ -147,7 +144,6 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
-	github.com/emicklei/go-restful v2.15.0+incompatible // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
@@ -175,7 +171,6 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/invopop/yaml v0.1.0 // indirect
 	github.com/josharian/intern v1.0.1-0.20211109044230-42b52b674af5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
@@ -211,6 +206,7 @@ require (
 	k8s.io/apiserver v0.21.9 // indirect
 	k8s.io/component-base v0.21.9 // indirect
 	k8s.io/gengo v0.0.0-20201214224949-b6c5ce23f027 // indirect
+	k8s.io/klog/v2 v2.10.0 // indirect
 	k8s.io/utils v0.0.0-20210802155522-efc7438f0176 // indirect
 	sigs.k8s.io/kustomize/api v0.8.8 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.10.17 // indirect

@@ -626,9 +626,7 @@ spec:
         product: aes
     spec:
       containers:
-      - command:
-        - agent
-        env:
+      - env:
         - name: AGENT_NAMESPACE
           valueFrom:
             fieldRef:
@@ -639,7 +637,7 @@ spec:
           value: https://app.getambassador.io/
         - name: AES_SNAPSHOT_URL
           value: http://emissary-ingress-admin.emissary:8005/snapshot-external
-        image: $imageRepo$:$version$
+        image: docker.io/ambassador/ambassador-agent:0.0.7
         imagePullPolicy: IfNotPresent
         name: agent
         ports:

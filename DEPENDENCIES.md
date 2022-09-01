@@ -18,7 +18,6 @@ following Free and Open Source software:
     github.com/Masterminds/sprig                                                               v2.22.0+incompatible                         MIT license
     github.com/PuerkitoBio/purell                                                              v1.1.1                                       3-clause BSD license
     github.com/PuerkitoBio/urlesc                                                              v0.0.0-20170810143723-de5bf2ad4578           3-clause BSD license
-    github.com/argoproj/argo-rollouts                                                          v1.1.1                                       Apache License 2.0
     github.com/armon/go-metrics                                                                v0.3.10                                      MIT license
     github.com/asaskevich/govalidator                                                          v0.0.0-20210307081110-f21760c49a8d           MIT license
     github.com/census-instrumentation/opencensus-proto                                         v0.3.0                                       Apache License 2.0
@@ -28,14 +27,12 @@ following Free and Open Source software:
     github.com/datawire/go-mkopensource                                                        v0.0.0-20220218163159-cc298d9fabc4           Apache License 2.0
     github.com/davecgh/go-spew                                                                 v1.1.1                                       ISC license
     github.com/docker/distribution                                                             v2.8.1+incompatible                          Apache License 2.0
-    github.com/emicklei/go-restful                                                             v2.15.0+incompatible                         MIT license
     github.com/envoyproxy/protoc-gen-validate                                                  v0.6.7                                       Apache License 2.0
     github.com/evanphx/json-patch                                                              v5.6.0+incompatible                          3-clause BSD license
     github.com/exponent-io/jsonpath                                                            v0.0.0-20210407135951-1de76d718b3f           MIT license
     github.com/fatih/camelcase                                                                 v1.0.0                                       MIT license
     github.com/fatih/color                                                                     v1.13.0                                      MIT license
     github.com/fsnotify/fsnotify                                                               v1.5.4                                       3-clause BSD license
-    github.com/getkin/kin-openapi                                                              v0.98.0                                      MIT license
     github.com/go-errors/errors                                                                v1.4.2                                       MIT license
     github.com/go-logr/logr                                                                    v0.4.0                                       Apache License 2.0
     github.com/go-openapi/jsonpointer                                                          v0.19.5                                      Apache License 2.0
@@ -64,7 +61,6 @@ following Free and Open Source software:
     github.com/huandu/xstrings                                                                 v1.3.2                                       MIT license
     github.com/imdario/mergo                                                                   v0.3.12                                      3-clause BSD license
     github.com/inconshreveable/mousetrap                                                       v1.0.0                                       Apache License 2.0
-    github.com/invopop/yaml                                                                    v0.1.0                                       3-clause BSD license, MIT license
     github.com/josharian/intern                                                                v1.0.1-0.20211109044230-42b52b674af5         MIT license
     github.com/json-iterator/go                                                                v1.1.12                                      MIT license
     github.com/kballard/go-shellquote                                                          v0.0.0-20180428030007-95032a82bc51           MIT license

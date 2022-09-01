@@ -7,8 +7,9 @@ numbering uses [semantic versioning](http://semver.org).
 
 - Upgrade Emissary to v3.2.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 
-
 - Bugfix: The default Role configuration of the Ambassador Agent Deployment will allow it to correctly watch Secret resources for Ambassador Cloud tokens.
+
+- Change: The ambassador-agent now uses image options from values.yaml.in
 
 ## v8.1.0
 
@@ -22,11 +23,11 @@ numbering uses [semantic versioning](http://semver.org).
 
 - Change: The default for the `module` value has changed to disable
   the `/ambassador/v0/` → `127.0.0.1:8877` synthetic Mapping by
-  default.  We have long recommended to turn this off for production
+  default. We have long recommended to turn this off for production
   use; it is now off by default.
 
 - Bugfix: The default values no trigger the creation of an
-  "emissary-test-ready" Pod.  This Pod was meant to only be created
+  "emissary-test-ready" Pod. This Pod was meant to only be created
   when running the chart's test suite; it was not meant to be created
   in users' clusters.
 
@@ -73,7 +74,7 @@ number in-sync with the edge-stack chart.
 ## v7.2.0
 
 - Update Emissary chart image to version v2.1.0: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
-- Change: It is now *always* nescessary to manually apply `emissary-crds.yaml` before applying the chart.
+- Change: It is now _always_ nescessary to manually apply `emissary-crds.yaml` before applying the chart.
 - Bugfix: When setting `adminService.snapshotPort`, it now points at the correct port on the Pod.
 
 ## v7.1.10
@@ -169,7 +170,6 @@ Emissary Ingress chart v7.0.0-ea provides early access to Emissary 2.0 features.
 ## v6.7.9
 
 - Update Ambassador chart image to version 1.13.6: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
-
 
 ## v6.7.8
 
@@ -294,7 +294,7 @@ Emissary Ingress chart v7.0.0-ea provides early access to Emissary 2.0 features.
 ## v6.5.9
 
 - Update Ambassador to version 1.8.0: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
-- Bugfix: The RBAC for AES now grants permission to "patch" Events.v1.core.  Previously it granted "create" but not "patch".
+- Bugfix: The RBAC for AES now grants permission to "patch" Events.v1.core. Previously it granted "create" but not "patch".
 
 ## v6.5.8
 
@@ -393,7 +393,7 @@ If you would like to use the default `PodSecurityPolicy`, make sure to unset `se
 - Add option to install ambassador-injector, alongside Service Preview.
 - Add additional security policy configurations.
 
-   `securityContext` has been deprecated in favor of `security` which allows you to set container and pod security contexts as well as a default `PodSecurityPolicy`.
+  `securityContext` has been deprecated in favor of `security` which allows you to set container and pod security contexts as well as a default `PodSecurityPolicy`.
 
 ## v6.3.6
 

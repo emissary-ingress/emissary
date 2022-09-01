@@ -17,7 +17,6 @@ import (
 	"github.com/emissary-ingress/emissary/v3/pkg/environment"
 
 	// commands
-	"github.com/emissary-ingress/emissary/v3/cmd/agent"
 	"github.com/emissary-ingress/emissary/v3/cmd/apiext"
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
 	"github.com/emissary-ingress/emissary/v3/cmd/kubestatus"
@@ -57,7 +56,6 @@ func main() {
 		"kubestatus": {Setup: environment.EnvironmentSetupEntrypoint, Run: kubestatus.Main},
 		"entrypoint": {Setup: noop, Run: entrypoint.Main},
 		"reproducer": {Setup: noop, Run: reproducer.Main},
-		"agent":      {Setup: environment.EnvironmentSetupEntrypoint, Run: agent.Main},
 		"version":    {Setup: noop, Run: showVersion},
 		"apiext":     {Setup: noop, Run: apiext.Main},
 	})
