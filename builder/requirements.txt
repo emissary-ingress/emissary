@@ -49,7 +49,7 @@ pyparsing==2.4.7          # via packaging
 pyrsistent==0.17.3        # via jsonschema
 pytest-cov==2.10.1        # via -r requirements.in
 pytest-rerunfailures==9.1.1  # via -r requirements.in
-pytest==6.1.2             # via -r requirements.in, pytest-cov, pytest-rerunfailures
+pytest==6.2.5             # via -r requirements.in, pytest-cov, pytest-rerunfailures
 python-dateutil==2.8.1    # via kubernetes
 python-json-logger==2.0.1  # via -r requirements.in
 pyyaml==5.4.1             # via -r requirements.in, kubernetes
@@ -62,7 +62,7 @@ sigtools==2.0.2           # via clize
 six==1.15.0               # via clize, google-auth, jsonschema, kubernetes, packaging, protobuf, python-dateutil, sigtools, websocket-client
 smmap==3.0.4              # via gitdb
 toml==0.10.2              # via pytest
-typed-ast==1.4.1          # via mypy
+typed-ast==1.4.3          # via mypy
 typing-extensions==3.7.4.3  # via mypy
 urllib3==1.26.3           # via kubernetes, requests
 websocket-client==0.57.0  # via kubernetes
