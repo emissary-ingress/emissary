@@ -7,21 +7,6 @@
 # envoy.mk, because that's a whole other bag of gross.
 
 #
-# `go mod tidy`
-#
-# This `go mod tidy` business only belongs in generate.mk because for the moment we're checking
-# 'vendor/' in to Git.
-
-go-mod-tidy:
-.PHONY: go-mod-tidy
-
-go-mod-tidy: go-mod-tidy/main
-go-mod-tidy/main: $(OSS_HOME)/build-aux/go-version.txt
-	rm -f go.sum
-	GOFLAGS=-mod=mod go mod tidy -compat=$$(cut -d. -f1,2 < $<) -go=$$(cut -d. -f1,2 < $<)
-.PHONY: go-mod-tidy/main
-
-#
 # The main `make generate` entrypoints and listings
 
 # - Let $(generate/files) be a listing of all files or directories that `make generate` will create.
@@ -108,10 +93,6 @@ joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(wo
 comma=,
 
 gomoddir = $(shell cd $(OSS_HOME); go list -mod=readonly $1/... >/dev/null 2>/dev/null; go list -mod=readonly -m -f='{{.Dir}}' $1)
-
-#
-# Rules for downloading ("vendoring") sources from elsewhere
-
 
 #
 # `make generate` certificate generation
@@ -340,24 +321,6 @@ $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_
 
 #
 # Generate report on dependencies
-
-$(OSS_HOME)/build-aux/pip-show.txt: docker/base-pip.docker.tag.local
-	docker run --rm "$$(cat docker/base-pip.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
-clean: build-aux/pip-show.txt.rm
-
-$(OSS_HOME)/build-aux/go-version.txt: $(_go-version/deps)
-	$(_go-version/cmd) > $@
-clean: build-aux/go-version.txt.rm
-
-$(OSS_HOME)/build-aux/py-version.txt: docker/base-python/Dockerfile
-	{ grep -o 'python3=\S*' | cut -d= -f2; } < $< > $@
-clean: build-aux/py-version.txt.rm
-
-$(OSS_HOME)/build-aux/go1%.src.tar.gz:
-	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
-build-aux/go.src.tar.gz.clean:
-	rm -f build-aux/go1*.src.tar.gz
-clobber: build-aux/go.src.tar.gz.clean
 
 $(OSS_HOME)/DEPENDENCIES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
