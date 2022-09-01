@@ -703,6 +703,37 @@ class V3Listener(dict):
 
         logger = self.config.ir.logger
 
+        # Below, we're going to do the moral equivalent of joining two tables. Like so:
+        #
+        # foreach chain:
+        #   foreach route_variant:
+        #      foreach chain.matching_hosts(rv.route):
+        #         // make envoy configs
+        #
+        # def chain.matching_hosts(route):
+        #   // does any host in this chain match any host-glob in the route?
+        #
+        # The algorithm above is O(chains * route_variants).
+        #
+        # Our route_variants always use basic hostnames, not globs (no *s). This means we can index
+        # the route_variants to go from O(c*r) time to O(c+r)
+        index = {}
+        for rv in self.config.route_variants:
+            group = rv.route._group
+
+            host_redirect = (group.get('host_redirect') or {}).get('host')
+            if host_redirect:
+                raise Exception(f'We expect host_redirect to never be set: {rv}')
+            group_glob = group.get('host')
+            if not group_glob:
+                raise Exception(f'We expect host to always be set: {rv}')
+
+            key = group_glob
+            if key not in index:
+                index[key] = []
+
+            index[key].append(rv)
+
         for chain_key, chain in self._chains.items():
             # Only look at HTTP(S) chains.
             if (chain.type != "http") and (chain.type != "https"):
@@ -714,10 +745,17 @@ class V3Listener(dict):
             # Remember whether we found an ACME route.
             found_acme = False
 
+            # consult the index
+            rvs = []
+            for host in chain.hosts.values():
+                key = host.hostname
+                if key in index:
+                    rvs.extend(index[key])
+
             # The data structure we're walking here is config.route_variants rather than
             # config.routes. There's a one-to-one correspondence between the two, but we use the
             # V3RouteVariants to lazily cache some of the work that we're doing across chains.
-            for rv in self.config.route_variants:
+            for rv in rvs:
                 if self._log_debug:
                     logger.debug("  CHECK ROUTE: %s", v3prettyroute(dict(rv.route)))
 
@@ -787,6 +825,7 @@ class V3Listener(dict):
                             if self._log_debug:
                                 logger.debug("      %s - %s: drop from %s %s%s",
                                              matcher, action, self.name, hostname, extra_info)
+
 
             # If we're on Edge Stack and we don't already have an ACME route, add one.
             if self.config.ir.edge_stack_allowed and not found_acme:
