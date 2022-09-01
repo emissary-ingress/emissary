@@ -20,8 +20,8 @@ runs:
       id: step-detect-go
       shell: bash
       run: |
-        make "build-aux/go-version.txt"
-        echo "::set-output name=go_version::$(cat "build-aux/go-version.txt")"
+        make "$PWD/build-aux/go-version.txt"
+        echo "::set-output name=go_version::$(cat "$PWD/build-aux/go-version.txt")"
     - name: "Install Go (${{ steps.step-detect-go.outputs.go_version }})"
       uses: actions/setup-go@v2
       with:
