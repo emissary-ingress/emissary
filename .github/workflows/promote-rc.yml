@@ -28,9 +28,9 @@ jobs:
           password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
       - id: step-main
         run: |
-          make release/promote-oss/to-rc tools/bin/goversion
-          echo "::set-output name=version::$(./tools/bin/goversion | sed s/^v//)"
-          echo "::set-output name=chart_version::$(./tools/bin/goversion --dir-prefix=chart | sed s/^v//)"
+          make release/promote-oss/to-rc
+          echo "::set-output name=version::$(go run ./tools/src/goversion | sed s/^v//)"
+          echo "::set-output name=chart_version::$(go run ./tools/src/goversion --dir-prefix=chart | sed s/^v//)"
       - id: check-slack-webhook
         name: Assign slack webhook variable
         run: echo '::set-output name=slack_webhook_url::${{secrets.SLACK_WEBHOOK_URL}}'

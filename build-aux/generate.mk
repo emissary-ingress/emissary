@@ -16,7 +16,7 @@ go-mod-tidy:
 .PHONY: go-mod-tidy
 
 go-mod-tidy: go-mod-tidy/main
-go-mod-tidy/main: build-aux/go-version.txt
+go-mod-tidy/main: $(OSS_HOME)/build-aux/go-version.txt
 	rm -f go.sum
 	GOFLAGS=-mod=mod go mod tidy -compat=$$(cut -d. -f1,2 < $<) -go=$$(cut -d. -f1,2 < $<)
 .PHONY: go-mod-tidy/main
@@ -345,6 +345,10 @@ $(OSS_HOME)/build-aux/pip-show.txt: docker/base-pip.docker.tag.local
 	docker run --rm "$$(cat docker/base-pip.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
 clean: build-aux/pip-show.txt.rm
 
+$(OSS_HOME)/build-aux/go-version.txt: $(_go-version/deps)
+	$(_go-version/cmd) > $@
+clean: build-aux/go-version.txt.rm
+
 $(OSS_HOME)/build-aux/py-version.txt: docker/base-python/Dockerfile
 	{ grep -o 'python3=\S*' | cut -d= -f2; } < $< > $@
 clean: build-aux/py-version.txt.rm
@@ -355,21 +359,21 @@ build-aux/go.src.tar.gz.clean:
 	rm -f build-aux/go1*.src.tar.gz
 clobber: build-aux/go.src.tar.gz.clean
 
-$(OSS_HOME)/DEPENDENCIES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
-	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat build-aux/go-version.txt).src.tar.gz
+$(OSS_HOME)/DEPENDENCIES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
+	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
 		cd $(OSS_HOME); \
-		$(tools/go-mkopensource) --output-format=txt --package=mod --application-type=external --gotar=build-aux/go$$(cat build-aux/go-version.txt).src.tar.gz; \
+		$(tools/go-mkopensource) --output-format=txt --package=mod --application-type=external --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz; \
 		echo; \
 		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource); \
 	} > $@
 
-$(OSS_HOME)/DEPENDENCY_LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
-	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat build-aux/go-version.txt).src.tar.gz
+$(OSS_HOME)/DEPENDENCY_LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
+	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	echo -e "Emissary-ingress incorporates Free and Open Source software under the following licenses:\n" > $@
 	set -e; { \
 		cd $(OSS_HOME); \
-		$(tools/go-mkopensource) --output-format=txt --package=mod --output-type=json --application-type=external --gotar=build-aux/go$$(cat build-aux/go-version.txt).src.tar.gz | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' ; \
+		$(tools/go-mkopensource) --output-format=txt --package=mod --output-type=json --application-type=external --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' ; \
 		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource) --output-type=json | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"'; \
 	} | sort | uniq | sed -e 's/\[\([^]]*\)]()/\1/' >> $@
 
