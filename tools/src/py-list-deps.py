@@ -295,4 +295,3 @@ if __name__ == "__main__":
     args = argparser.parse_args()
     deps = main(inputdirs=args.input_dir, include_dev=bool(args.include_dev))
     print("\n".join(sorted(deps)))
-    
