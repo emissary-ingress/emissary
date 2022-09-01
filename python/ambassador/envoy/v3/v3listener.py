@@ -50,7 +50,7 @@ if TYPE_CHECKING:
 
 
 class V3Chain(dict):
-    def __init__(self, config: "V3Config", type: str, host: Optional[IRHost]) -> None:
+    def __init__(self, config: "V3Config", type: str, host: Optional[IRHost], hostname: Optional[str]=None) -> None:
         self._config = config
         self._logger = self._config.ir.logger
         self._log_debug = self._logger.isEnabledFor(logging.DEBUG)
@@ -63,15 +63,21 @@ class V3Chain(dict):
         self.context: Optional[IRTLSContext] = None
         self.hosts: Dict[str, IRHost] = {}
 
-        # It's OK if an HTTP chain has no Host.
+        # It's OK if an HTTP chain has no Host. And of course the hostname may be
+        # None in all cases.
         if host:
-            self.add_host(host)
+            self.add_host(host, hostname)
 
         self.routes: List[DictifiedV3Route] = []
         self.tcpmappings: List[IRTCPMappingGroup] = []
 
-    def add_host(self, host: IRHost) -> None:
-        self.hosts[host.hostname] = host
+    def add_host(self, host: IRHost, hostname: Optional[str]=None)-> None:
+        hostname = hostname or host.hostname
+        self.hosts[hostname] = host
+
+        if self._log_debug:
+            self._logger.debug("Added host %s to chain %s with key %s", host.hostname, self, hostname)
+            self._logger.debug("  hostglobs %s", self.hostglobs())
 
         # Don't mess with the context if we're an HTTP chain...
         if self.type.lower() == "http":
@@ -210,7 +216,7 @@ class V3Listener(dict):
 
                     self.add_tcp_group(irgroup)
 
-    def add_chain(self, chain_type: str, host: Optional[IRHost]) -> V3Chain:
+    def add_chain(self, chain_type: str, host: Optional[IRHost], hostname: Optional[str]=None) -> V3Chain:
         # Add a chain for a specific Host to this listener, while dealing with the fundamental
         # asymmetry that filter_chain_match can - and should - use SNI whenever the chain has
         # TLS available, but that's simply not available for chains without TLS.
@@ -225,19 +231,26 @@ class V3Listener(dict):
 
         chain_key = chain_type
         hoststr = host.hostname if host else "(no host)"
-        hostname = (host.hostname if host else None) or "*"
 
-        if host:
+        if not hostname:
+            hostname = (host.hostname if host else None) or "*"
+
+        if hostname:
             chain_key = "%s-%s" % (chain_type, hostname)
 
         chain = self._chains.get(chain_key)
 
         if chain is not None:
             if host:
-                chain.add_host(host)
                 if self._log_debug:
                     self.config.ir.logger.debug(
-                        "      CHAIN ADD: host %s chain_key %s -- %s", hoststr, chain_key, chain
+                        "      CHAIN ADD coming up: hoststr %s, hostname %s", hoststr, hostname
+                    )
+
+                chain.add_host(host, hostname)
+                if self._log_debug:
+                    self.config.ir.logger.debug(
+                        "      CHAIN ADD: host %s chain_key %s -- %s", hostname, chain_key, chain
                     )
             else:
                 if self._log_debug:
@@ -245,7 +258,7 @@ class V3Listener(dict):
                         "      CHAIN NOOP: host %s chain_key %s -- %s", hoststr, chain_key, chain
                     )
         else:
-            chain = V3Chain(self.config, chain_type, host)
+            chain = V3Chain(self.config, chain_type, host, hostname=hostname)
             self._chains[chain_key] = chain
             if self._log_debug:
                 self.config.ir.logger.debug(
@@ -302,7 +315,16 @@ class V3Listener(dict):
                     )
 
                 if hostglob_matches(host.hostname, group_host):
-                    chain = self.add_chain("tcp", host)
+                    # Always use the TCPMapping host here: we know that it matches the
+                    # Host's hostname, and we expect that the TCPMapping is more restrictive.
+                    #
+                    # XXX Alternately, figure out which one is more restrictive and use that.
+                    if self._log_debug:
+                        self.config.ir.logger.debug(
+                            "      add_chain TCP, host %s, hostname %s", host, group_host
+                        )
+
+                    chain = self.add_chain("tcp", host, hostname=group_host)
                     chain.add_tcpmapping(irgroup)
 
     # access_log constructs the access_log configuration for this V3Listener
