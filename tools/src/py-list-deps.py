@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.9
+#!/usr/bin/env python3
 # -*- fill-column: 70 -*-
 
 # Copyright 2020, 2022 Datawire. All rights reserved.
@@ -86,11 +86,12 @@ def parse_members(filepath: str) -> Set[str]:
         # XXX: This doesn't recognize all the the statement types,
         # just the ones that Emissary currently uses in __init__.py
         # files.
-        if isinstance(node, ast.Import) or  isinstance(node, ast.ImportFrom):
+        if isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom):
             members.update(alias.asname or alias.name for alias in node.names)
         elif isinstance(node, ast.FunctionDef):
             members.update([node.name])
     return members
+
 
 class ImportedItem(NamedTuple):
     """
@@ -100,6 +101,7 @@ class ImportedItem(NamedTuple):
     """
     module: str
     member: Optional[str]
+
 
 def parse_imports(filepath: str) -> List[ImportedItem]:
     """parse_imports parses a .py file and returns a list of all of the
@@ -117,8 +119,10 @@ def parse_imports(filepath: str) -> List[ImportedItem]:
         elif isinstance(node, ast.ImportFrom):
             #     from {'.'*node.level}{node.module} import {node.names}
             modname = ('.'*(node.level or 0)) + (node.module or '')
-            imports += [ImportedItem(modname, alias.name) for alias in node.names]
+            imports += [ImportedItem(modname, alias.name)
+                        for alias in node.names]
     return imports
+
 
 def dirpath_is_in_stdlib(dirpath: str) -> bool:
     # Where isort does a similar thing, they have a comment saying the
@@ -138,11 +142,13 @@ def dirpath_is_in_stdlib(dirpath: str) -> bool:
     if ('site-packages' in dirpath) or ('dist-packages' in dirpath):
         return False
 
-    stdlib_prefix = os.path.normcase(os.path.realpath(sysconfig.get_paths()['stdlib']))
+    stdlib_prefix = os.path.normcase(
+        os.path.realpath(sysconfig.get_paths()['stdlib']))
     if dirpath.startswith(stdlib_prefix):
         return True
 
     return False
+
 
 def is_in_stdlib(item: ImportedItem) -> bool:
     if item.module.startswith('.'):
@@ -173,6 +179,7 @@ def is_in_stdlib(item: ImportedItem) -> bool:
     sys.path = original_sys_path
     return in_stdlib
 
+
 def is_local(localpaths: List[str], item: ImportedItem) -> bool:
     if item.module.startswith('.'):
         return True
@@ -182,13 +189,15 @@ def is_local(localpaths: List[str], item: ImportedItem) -> bool:
 
     return False
 
+
 def isfile_case(filepath: str) -> bool:
     """Like os.path.isfile, but requires the case of the basename to match
     (relevent on macOS case-insensitive filesystem).
     """
     return os.path.isfile(filepath) and (os.path.basename(filepath) in os.listdir(os.path.dirname(filepath)))
 
-def import_to_filepath(localpaths: List[str], item: ImportedItem, fromfilepath: Optional[str]=None) -> Optional[str]:
+
+def import_to_filepath(localpaths: List[str], item: ImportedItem, fromfilepath: Optional[str] = None) -> Optional[str]:
     modname = item.module
     if modname.startswith('.'):
         if not fromfilepath:
@@ -213,8 +222,10 @@ def import_to_filepath(localpaths: List[str], item: ImportedItem, fromfilepath: 
 
     return None
 
+
 def mod_startswith(modname: str, prefix: str) -> bool:
     return (modname == prefix) or modname.startswith(prefix+'.')
+
 
 def import_to_distribname(item: ImportedItem) -> str:
     if mod_startswith(item.module, 'scout'):
@@ -231,6 +242,7 @@ def import_to_distribname(item: ImportedItem) -> str:
         return 'python-json-logger'
     else:
         return item.module.split('.')[0]
+
 
 def deps_for_pyfile(inputdir: str, filepath: str) -> Set[str]:
     localpaths = [inputdir]
@@ -249,6 +261,7 @@ def deps_for_pyfile(inputdir: str, filepath: str) -> Set[str]:
             deps.add(import_to_distribname(item))
 
     return deps
+
 
 def main(inputdirs: List[str], include_dev: bool = False) -> Set[str]:
     # setuptools 49.1.2 by opt-in and 60.0.0 by opt-out add a global
@@ -288,9 +301,12 @@ def main(inputdirs: List[str], include_dev: bool = False) -> Set[str]:
                     deps = deps.union(deps_for_pyfile(inputdir, filepath))
     return deps
 
+
 if __name__ == "__main__":
-    argparser = argparse.ArgumentParser(description="Look at Python3 source files, and print out a list of Python distributions that those sources depend on")
-    argparser.add_argument('--include-dev', action=argparse.BooleanOptionalAction)
+    argparser = argparse.ArgumentParser(
+        description="Look at Python3 source files, and print out a list of Python distributions that those sources depend on")
+    argparser.add_argument(
+        '--include-dev', action=argparse.BooleanOptionalAction)
     argparser.add_argument('input_dir', nargs='+')
     args = argparser.parse_args()
     deps = main(inputdirs=args.input_dir, include_dev=bool(args.include_dev))
