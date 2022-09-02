@@ -44,7 +44,7 @@ following Free and Open Source software:
     github.com/golang-jwt/jwt/v4                                                               v4.2.0                                       MIT license
     github.com/golang/protobuf                                                                 v1.5.2                                       3-clause BSD license
     github.com/google/btree                                                                    v1.0.1                                       Apache License 2.0
-    github.com/google/go-cmp                                                                   v0.5.7                                       3-clause BSD license
+    github.com/google/go-cmp                                                                   v0.5.8                                       3-clause BSD license
     github.com/google/gofuzz                                                                   v1.2.0                                       Apache License 2.0
     github.com/google/shlex                                                                    v0.0.0-20191202100458-e7afc7fbc510           Apache License 2.0
     github.com/google/uuid                                                                     v1.3.0                                       3-clause BSD license
