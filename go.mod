@@ -90,7 +90,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v0.6.7
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/golang/protobuf v1.5.2
-	github.com/google/go-cmp v0.5.7
+	github.com/google/go-cmp v0.5.8
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/hashicorp/consul/api v1.12.0
