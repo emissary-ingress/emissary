@@ -7,12 +7,6 @@ updates:
     open-pull-requests-limit: 10
 
   - package-ecosystem: gomod
-    directory: "/tools/src/yq"
-    schedule:
-      interval: daily
-    open-pull-requests-limit: 10
-
-  - package-ecosystem: gomod
     directory: "/tools/src/chart-doc-gen"
     schedule:
       interval: daily
@@ -42,6 +36,12 @@ updates:
       interval: daily
     open-pull-requests-limit: 10
 
+  - package-ecosystem: gomod
+    directory: "/tools/src/yq"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+
   - package-ecosystem: pip
     directory: "/docker/test-auth"
     schedule:
@@ -65,6 +65,7 @@ updates:
     schedule:
       interval: daily
     open-pull-requests-limit: 10
+
   - package-ecosystem: docker
     directory: "/docker/base-python"
     schedule:
