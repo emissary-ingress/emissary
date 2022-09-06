@@ -48,8 +48,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [chart-publish]
     name: "Create GitHub release"
-    env:
-      GIT_TOKEN: ${{ secrets.GH_GITHUB_API_KEY }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -58,7 +56,7 @@ jobs:
         uses: ./.github/actions/setup-deps
       - name: "gh auth login"
         run: |
-          echo "${GIT_TOKEN}" | gh auth login --with-token
+          gh auth login --with-token <<<'${{ secrets.GH_GITHUB_API_KEY }}'
       - name: Create GitHub release
         id: step-create-gh-release
         run: |
