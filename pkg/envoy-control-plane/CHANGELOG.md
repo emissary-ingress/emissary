@@ -1,5 +1,36 @@
 # Changelog
 
+## Release v0.10.3
+
+### Changed
+
+- Documentation rewrite in the `/docs` folder (#520)
+- Updated go module version to 1.16 (#536)
+- Exposed `ApiTypePrefix` (#553)
+- Envoy Protos Commit SHA: `97dfffde06115e58261dbab3707ad70d5c86ba1f`
+
+### Added
+
+- Initial support of the Virtual Host Discovery Service VHDS (#529)
+- Added linear cache method `UpdateResources` (#546)
+
+### Fixed
+
+- Scoped routes consistency check (#515)
+- Scoped routes references (#518)
+- Fixed go routine leaks in server unit tests (#519)
+- Linear cache no longer requires linear time for applying delta updates (#547)
+
+## Release v0.10.1
+
+### Changed
+
+- Envoy Protos Commit SHA: `9cc74781d818aaa58b9cca9602fe8dc62181…`
+### Fixed
+
+- Release to fix broken `GOSUMDB` checksum when using `v0.10.0`. Please pin to this release and ignore `v0.10.0`.
+
+
 ## Release v0.10.0
 
 ### Added

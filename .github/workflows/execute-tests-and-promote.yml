@@ -8,7 +8,6 @@ name: job-promote-to-passed
   pull_request: {}
 
 jobs:
-
   lint: ########################################################################
     runs-on: ubuntu-latest
     env:
@@ -251,6 +250,8 @@ jobs:
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
+    outputs:
+      image-tag: ${{ steps.build-image.outputs.image-tag }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -268,12 +269,46 @@ jobs:
         shell: bash
         run: |
           make push
+      - name: "capture image tag"
+        id: build-image
+        shell: bash
+        run: |
+          echo "::set-output name=image-tag::$(tools/build/version.sh)"
       - name: "make push-dev"
         shell: bash
         run: |
           make push-dev
       - uses: ./.github/actions/after-job
         if: always()
+
+  ######################################################################
+  ######################### CVE Scanning ###############################
+  trivy-container-scan:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      # upload of results to github uses git so checkout of code is needed
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: "Log image-tag"
+        shell: bash
+        run: echo ${{needs.build.outputs.image-tag}}
+      - name: Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "${{secrets.DEV_REGISTRY}}/emissary:${{needs.build.outputs.image-tag}}"
+          format: "sarif"
+          exit-code: 0 # only warn for now until we have backed it into our processes
+          output: "trivy-results.sarif"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+      - name: Upload Scan to GitHub Security Tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: "trivy-results.sarif"
 
   ##############################################################################
   pass:
@@ -287,6 +322,7 @@ jobs:
       - check-pytest
       - check-pytest-unit
       - check-chart
+      - trivy-container-scan
     runs-on: ubuntu-latest
     steps:
       - name: No-Op

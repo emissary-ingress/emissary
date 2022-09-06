@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/datawire/go-mkopensource/pkg/scanningerrors"
 	"io"
 	"net/textproto"
 	"os"
 	"sort"
 	"strings"
 	"text/tabwriter"
+
+	"github.com/datawire/go-mkopensource/pkg/scanningerrors"
 
 	"github.com/datawire/dlib/derror"
 	"github.com/datawire/go-mkopensource/pkg/dependencies"
@@ -44,6 +45,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"gitdb", "4.0.5", "BSD License"}:              {BSD3},
 		{"idna", "2.7", "BSD-like"}:                    {BSD3, PSF, Unicode2015},
 		{"idna", "2.8", "BSD-like"}:                    {BSD3, PSF, Unicode2015},
+		{"importlib-metadata", "4.12.0", "None"}:       {Apache2},
 		{"importlib-resources", "5.4.0", "UNKNOWN"}:    {Apache2},
 		{"itsdangerous", "1.1.0", "BSD"}:               {BSD3},
 		{"jsonpatch", "1.32", "Modified BSD License"}:  {BSD3},
@@ -69,7 +71,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"webencodings", "0.5.1", "BSD"}:               {BSD3},
 		{"websocket-client", "0.57.0", "BSD"}:          {BSD3},
 		{"websocket-client", "1.2.3", "Apache-2.0"}:    {Apache2},
-		{"zipp", "3.6.0", "UNKNOWN"}:                   {MIT},
+		{"zipp", "3.8.1", "None"}:                      {MIT},
 
 		// These are packages with non-trivial strings to parse, and
 		// it's easier to just hard-code it.

@@ -1,7 +1,9 @@
 package test
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"sync"
 	"time"
 
@@ -36,8 +38,11 @@ func (svc *AccessLogService) StreamAccessLogs(stream accessloggrpc.AccessLogServ
 	var logName string
 	for {
 		msg, err := stream.Recv()
+		if errors.Is(err, io.EOF) {
+			break
+		}
 		if err != nil {
-			return nil
+			return err
 		}
 		if msg.Identifier != nil {
 			logName = msg.Identifier.LogName
@@ -76,4 +81,6 @@ func (svc *AccessLogService) StreamAccessLogs(stream accessloggrpc.AccessLogServ
 			}
 		}
 	}
+
+	return nil
 }

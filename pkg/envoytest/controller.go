@@ -82,7 +82,8 @@ func NewEnvoyController(address string) *EnvoyController {
 
 // Configure will update the envoy configuration and block until the reconfiguration either succeeds
 // or signals an error.
-func (e *EnvoyController) Configure(ctx context.Context, node, version string, snapshot ecp_v3_cache.Snapshot) (*status.Status, error) {
+func (e *EnvoyController) Configure(ctx context.Context, node, version string, snapshot ecp_v3_cache.ResourceSnapshot) (*status.Status, error) {
+
 	err := e.configCache.SetSnapshot(ctx, node, snapshot)
 	if err != nil {
 		return nil, err
@@ -226,7 +227,7 @@ func (ecc ecCallbacks) OnStreamOpen(_ context.Context, sid int64, stype string) 
 }
 
 // OnStreamClosed implements ecp_v3_server.Callbacks.
-func (ecc ecCallbacks) OnStreamClosed(sid int64) {
+func (ecc ecCallbacks) OnStreamClosed(sid int64, node *v3core.Node) {
 	//e.Infof("Stream closed[%v]", sid)
 }
 
@@ -280,7 +281,7 @@ func (ecc ecCallbacks) OnDeltaStreamOpen(ctx context.Context, sid int64, stype s
 }
 
 // OnDeltaStreamClosed implements ecp_v3_server.Callbacks.
-func (ecc ecCallbacks) OnDeltaStreamClosed(sid int64) {
+func (ecc ecCallbacks) OnDeltaStreamClosed(sid int64, node *v3core.Node) {
 }
 
 // OnStreamDeltaRequest implements ecp_v3_server.Callbacks.

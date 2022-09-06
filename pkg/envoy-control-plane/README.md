@@ -1,8 +1,8 @@
 # control-plane
 
-![example workflow](https://github.com/envoyproxy/go-control-plane/actions/workflows/ci.yaml/badge.svg)
+![CI Status](https://github.com/envoyproxy/go-control-plane/actions/workflows/ci.yaml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/envoyproxy/go-control-plane)](https://goreportcard.com/report/github.com/envoyproxy/go-control-plane)
-[![GoDoc](https://godoc.org/github.com/envoyproxy/go-control-plane?status.svg)](https://godoc.org/github.com/envoyproxy/go-control-plane)
+[![GoDoc](https://pkg.go.dev/badge/github.com/envoyproxy/go-control-plane.svg)](https://pkg.go.dev/github.com/envoyproxy/go-control-plane)
 
 This repository contains a Go-based implementation of an API server that
 implements the discovery service APIs defined in
@@ -39,7 +39,7 @@ feedback, we might decided to revisit this aspect at a later point in time.
 
 ## Requirements
 
-1. Go 1.11+
+1. Go 1.16+
 
 ## Quick start
 

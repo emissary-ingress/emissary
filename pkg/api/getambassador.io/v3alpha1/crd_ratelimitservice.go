@@ -40,6 +40,10 @@ type RateLimitServiceSpec struct {
 	ProtocolVersion string `json:"protocol_version,omitempty"`
 	StatsName       string `json:"stats_name,omitempty"`
 
+	// FailureModeDeny when set to true, envoy will deny traffic if it
+	// is unable to communicate with the rate limit service.
+	FailureModeDeny bool `json:"failure_mode_deny,omitempty"`
+
 	V2ExplicitTLS *V2ExplicitTLS `json:"v2ExplicitTLS,omitempty"`
 }
 

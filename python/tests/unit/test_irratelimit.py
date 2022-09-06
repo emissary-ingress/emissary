@@ -51,6 +51,7 @@ def _get_ratelimit_default_conf():
         "domain": "ambassador",
         "request_type": "both",
         "timeout": "0.020s",
+        "failure_mode_deny": False,
         "rate_limit_service": {
             "transport_api_version": "V3",
             "grpc_service": {
@@ -186,6 +187,7 @@ spec:
   timeout_ms: 500
   tls: rl-tls-context
   protocol_version: v3
+  failure_mode_deny: True
 """.format(
         SERVICE_NAME
     )
@@ -196,6 +198,7 @@ spec:
     ] = "cluster_{}_someotherns".format(SERVICE_NAME)
     config["timeout"] = "0.500s"
     config["domain"] = "otherdomain"
+    config["failure_mode_deny"] = True
 
     econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())

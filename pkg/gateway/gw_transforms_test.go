@@ -125,8 +125,10 @@ spec:
 			return err
 		}
 
+		// Note: we know that the snapshot will not be nil, so no need to check. If it was then there is a
+		// programming error with the test, so we are OK with it panic'ing and failing the test.
 		version, snapshot := d.GetSnapshot(ctx)
-		if status, err := e.Configure(ctx, "test-id", version, *snapshot); err != nil {
+		if status, err := e.Configure(ctx, "test-id", version, snapshot); err != nil {
 			return err
 		} else if status != nil {
 			return fmt.Errorf("envoy error: %s", status.Message)
@@ -255,8 +257,9 @@ func checkReady(ctx context.Context, url string) error {
 		_, err := http.Get(url)
 		if err != nil {
 			dlog.Infof(ctx, "error %v, retrying...", err)
-			time.Sleep(delay)
 			delay = delay * 2
+			time.Sleep(delay)
+			continue
 		}
 		return nil
 	}

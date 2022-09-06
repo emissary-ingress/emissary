@@ -172,7 +172,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -383,7 +383,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -432,14 +432,14 @@ spec:
     schema:
       openAPIV3Schema:
         description: "DevPortal is the Schema for the DevPortals API \n DevPortal
-          resources specify the `what` and `how` is shown in a DevPortal: \n * `what`
-          is in a DevPortal can be controlled with   - a `selector`, that can be used
-          for filtering `Mappings`.   - a `docs` listing of (services, url) * `how`
-          is a pointer to some `contents` (a checkout of a Git repository   with go-templates/markdown/css).
-          \n Multiple `DevPortal`s can exist in the cluster, and the Dev Portal server
-          will show them at different endpoints. A `DevPortal` resource with a special
-          name, `ambassador`, will be used for configuring the default Dev Portal
-          (served at `/docs/` by default)."
+          resources specify the `what` and `how` is shown in a DevPortal: \n  1. `what`
+          is in a DevPortal can be controlled with \n     - a `selector`, that can
+          be used for filtering `Mappings`. \n     - a `docs` listing of (services,
+          url) \n  2. `how` is a pointer to some `contents` (a checkout of a Git repository
+          \    with go-templates/markdown/css). \n Multiple `DevPortal`s can exist
+          in the cluster, and the Dev Portal server will show them at different endpoints.
+          A `DevPortal` resource with a special name, `ambassador`, will be used for
+          configuring the default Dev Portal (served at `/docs/` by default)."
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -545,14 +545,14 @@ spec:
     schema:
       openAPIV3Schema:
         description: "DevPortal is the Schema for the DevPortals API \n DevPortal
-          resources specify the `what` and `how` is shown in a DevPortal: \n * `what`
-          is in a DevPortal can be controlled with   - a `selector`, that can be used
-          for filtering `Mappings`.   - a `docs` listing of (services, url) * `how`
-          is a pointer to some `contents` (a checkout of a Git repository   with go-templates/markdown/css).
-          \n Multiple `DevPortal`s can exist in the cluster, and the Dev Portal server
-          will show them at different endpoints. A `DevPortal` resource with a special
-          name, `ambassador`, will be used for configuring the default Dev Portal
-          (served at `/docs/` by default)."
+          resources specify the `what` and `how` is shown in a DevPortal: \n  1. `what`
+          is in a DevPortal can be controlled with \n     - a `selector`, that can
+          be used for filtering `Mappings`. \n     - a `docs` listing of (services,
+          url) \n  2. `how` is a pointer to some `contents` (a checkout of a Git repository
+          \    with go-templates/markdown/css). \n Multiple `DevPortal`s can exist
+          in the cluster, and the Dev Portal server will show them at different endpoints.
+          A `DevPortal` resource with a special name, `ambassador`, will be used for
+          configuring the default Dev Portal (served at `/docs/` by default)."
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -572,7 +572,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -897,22 +897,18 @@ spec:
                     type: string
                 type: object
               tlsSecret:
-                description: "Name of the Kubernetes secret into which to save generated
+                description: Name of the Kubernetes secret into which to save generated
                   certificates.  If ACME is enabled (see $acmeProvider), then the
-                  default is $hostname; otherwise the default is \"\".  If the value
-                  is \"\", then we do not do TLS for this Host. \n Note that this
-                  is a native-Kubernetes-style core.v1.LocalObjectReference, not an
-                  Ambassador-style `{name}.{namespace}` string.  Because we're opinionated,
-                  it does not support referencing a Secret in another namespace (because
-                  most native Kubernetes resources don't support that), but if we
-                  ever abandon that opinion and decide to support non-local references
-                  it, it would be by adding a `namespace:` field by changing it from
-                  a core.v1.LocalObjectReference to a core.v1.SecretReference, not
-                  by adopting the `{name}.{namespace}` notation."
+                  default is $hostname; otherwise the default is "".  If the value
+                  is "", then we do not do TLS for this Host.
                 properties:
                   name:
-                    description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                      TODO: Add other useful fields. apiVersion, kind, uid?'
+                    description: Name is unique within a namespace to reference a
+                      secret resource.
+                    type: string
+                  namespace:
+                    description: Namespace defines the space within which the secret
+                      name must be unique.
                     type: string
                 type: object
             type: object
@@ -1229,22 +1225,18 @@ spec:
                     type: string
                 type: object
               tlsSecret:
-                description: "Name of the Kubernetes secret into which to save generated
+                description: Name of the Kubernetes secret into which to save generated
                   certificates.  If ACME is enabled (see $acmeProvider), then the
-                  default is $hostname; otherwise the default is \"\".  If the value
-                  is \"\", then we do not do TLS for this Host. \n Note that this
-                  is a native-Kubernetes-style core.v1.LocalObjectReference, not an
-                  Ambassador-style `{name}.{namespace}` string.  Because we're opinionated,
-                  it does not support referencing a Secret in another namespace (because
-                  most native Kubernetes resources don't support that), but if we
-                  ever abandon that opinion and decide to support non-local references
-                  it, it would be by adding a `namespace:` field by changing it from
-                  a core.v1.LocalObjectReference to a core.v1.SecretReference, not
-                  by adopting the `{name}.{namespace}` notation."
+                  default is $hostname; otherwise the default is "".  If the value
+                  is "", then we do not do TLS for this Host.
                 properties:
                   name:
-                    description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                      TODO: Add other useful fields. apiVersion, kind, uid?'
+                    description: Name is unique within a namespace to reference a
+                      secret resource.
+                    type: string
+                  namespace:
+                    description: Namespace defines the space within which the secret
+                      name must be unique.
                     type: string
                 type: object
             type: object
@@ -1392,7 +1384,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1488,7 +1480,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1564,7 +1556,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1812,7 +1804,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -2361,7 +2353,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -2965,7 +2957,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -3039,6 +3031,10 @@ spec:
             properties:
               domain:
                 type: string
+              failure_mode_deny:
+                description: FailureModeDeny when set to true, envoy will deny traffic
+                  if it is unable to communicate with the rate limit service.
+                type: boolean
               protocol_version:
                 enum:
                 - v2
@@ -3084,6 +3080,10 @@ spec:
                 type: array
               domain:
                 type: string
+              failure_mode_deny:
+                description: FailureModeDeny when set to true, envoy will deny traffic
+                  if it is unable to communicate with the rate limit service.
+                type: boolean
               protocol_version:
                 description: ProtocolVersion is the envoy api transport protocol version
                 enum:
@@ -3278,7 +3278,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -3508,7 +3508,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -3703,7 +3703,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:

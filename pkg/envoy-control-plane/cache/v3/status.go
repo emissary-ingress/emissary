@@ -41,8 +41,7 @@ func (IDHash) ID(node *core.Node) string {
 
 var _ NodeHash = IDHash{}
 
-// StatusInfo tracks the server state for the remote Envoy node.
-// Not all fields are used by all cache implementations.
+// StatusInfo publishes information about nodes that are watching the xDS cache.
 type StatusInfo interface {
 	// GetNode returns the node metadata.
 	GetNode() *core.Node
@@ -58,14 +57,9 @@ type StatusInfo interface {
 
 	// GetLastDeltaWatchRequestTime returns the timestamp of the last delta discovery watch request.
 	GetLastDeltaWatchRequestTime() time.Time
-
-	// SetLastDeltaWatchRequestTime will set the current time of the last delta discovery watch request
-	SetLastDeltaWatchRequestTime(time.Time)
-
-	// SetDeltaResponseWatch will set the provided delta response watch to the associate watch ID
-	SetDeltaResponseWatch(int64, DeltaResponseWatch)
 }
 
+// statusInfo tracks the server state for the remote Envoy node.
 type statusInfo struct {
 	// node is the constant Envoy node metadata.
 	node *core.Node
@@ -148,20 +142,15 @@ func (info *statusInfo) GetLastDeltaWatchRequestTime() time.Time {
 	return info.lastDeltaWatchRequestTime
 }
 
-// GetDeltaStreamState will pull the stream state with the version map out of a specific watch
-func (info *statusInfo) GetDeltaStreamState(watchID int64) stream.StreamState {
-	info.mu.RLock()
-	defer info.mu.RUnlock()
-	return info.deltaWatches[watchID].StreamState
-}
-
-func (info *statusInfo) SetLastDeltaWatchRequestTime(t time.Time) {
+// setLastDeltaWatchRequestTime will set the current time of the last delta discovery watch request.
+func (info *statusInfo) setLastDeltaWatchRequestTime(t time.Time) {
 	info.mu.Lock()
 	defer info.mu.Unlock()
 	info.lastDeltaWatchRequestTime = t
 }
 
-func (info *statusInfo) SetDeltaResponseWatch(id int64, drw DeltaResponseWatch) {
+// setDeltaResponseWatch will set the provided delta response watch for the associated watch ID.
+func (info *statusInfo) setDeltaResponseWatch(id int64, drw DeltaResponseWatch) {
 	info.mu.Lock()
 	defer info.mu.Unlock()
 	info.deltaWatches[id] = drw

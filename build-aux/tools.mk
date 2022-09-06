@@ -24,9 +24,9 @@ clobber-tools:
 go-mod-tidy: $(patsubst $(tools.srcdir)/%/go.mod,go-mod-tidy/tools/%,$(wildcard $(tools.srcdir)/*/go.mod))
 
 .PHONY: go-mod-tidy/tools/%
-go-mod-tidy/tools/%:
+go-mod-tidy/tools/%: $(OSS_HOME)/build-aux/go-version.txt
 	rm -f $(tools.srcdir)/$*/go.sum
-	cd $(tools.srcdir)/$* && GOFLAGS=-mod=mod go mod tidy
+	cd $(tools.srcdir)/$* && GOFLAGS=-mod=mod go mod tidy -compat=$$(cut -d. -f1,2 < $<) -go=$$(cut -d. -f1,2 < $<)
 
 # Shell scripts
 # =============
@@ -53,24 +53,26 @@ $(tools.bindir)/%: $(tools.srcdir)/%.py
 # `go get`-able things
 # ====================
 #
-tools/chart-doc-gen   = $(tools.bindir)/chart-doc-gen
-tools/controller-gen  = $(tools.bindir)/controller-gen
-tools/conversion-gen  = $(tools.bindir)/conversion-gen
-tools/crane           = $(tools.bindir)/crane
-tools/go-mkopensource = $(tools.bindir)/go-mkopensource
-tools/golangci-lint   = $(tools.bindir)/golangci-lint
-tools/kubestatus      = $(tools.bindir)/kubestatus
-tools/ocibuild        = $(tools.bindir)/ocibuild
-tools/protoc-gen-go   = $(tools.bindir)/protoc-gen-go
-tools/yq              = $(tools.bindir)/yq
+tools/chart-doc-gen      = $(tools.bindir)/chart-doc-gen
+tools/controller-gen     = $(tools.bindir)/controller-gen
+tools/conversion-gen     = $(tools.bindir)/conversion-gen
+tools/crane              = $(tools.bindir)/crane
+tools/go-mkopensource    = $(tools.bindir)/go-mkopensource
+tools/golangci-lint      = $(tools.bindir)/golangci-lint
+tools/kubestatus         = $(tools.bindir)/kubestatus
+tools/ocibuild           = $(tools.bindir)/ocibuild
+tools/protoc-gen-go      = $(tools.bindir)/protoc-gen-go
+tools/protoc-gen-go-grpc = $(tools.bindir)/protoc-gen-go-grpc
+tools/yq                 = $(tools.bindir)/yq
 $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(tools.srcdir)/%/go.mod
 	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import "(.*)".*,\1,p' pin.go)
 # Let these use the main Emissary go.mod instead of having their own go.mod.
-tools.main-gomod += $(tools/protoc-gen-go)   # ensure runtime libraries are consistent
-tools.main-gomod += $(tools/controller-gen)  # ensure runtime libraries are consistent
-tools.main-gomod += $(tools/conversion-gen)  # ensure runtime libraries are consistent
-tools.main-gomod += $(tools/go-mkopensource) # ensure it is consistent with py-mkopensource
-tools.main-gomod += $(tools/kubestatus)      # is actually part of Emissary
+tools.main-gomod += $(tools/controller-gen)     # ensure runtime libraries are consistent
+tools.main-gomod += $(tools/conversion-gen)     # ensure runtime libraries are consistent
+tools.main-gomod += $(tools/protoc-gen-go)      # ensure runtime libraries are consistent
+tools.main-gomod += $(tools/protoc-gen-go-grpc) # ensure runtime libraries are consistent
+tools.main-gomod += $(tools/go-mkopensource)    # ensure it is consistent with py-mkopensource
+tools.main-gomod += $(tools/kubestatus)         # is actually part of Emissary
 $(tools.main-gomod): $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(OSS_HOME)/go.mod
 	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import "(.*)".*,\1,p' pin.go)
 
@@ -108,7 +110,7 @@ $(tools.bindir)/%: $(tools.bindir)/.%.stamp $(tools/copy-ifchanged)
 # `replace`s that keeping in-sync would be more trouble than it's
 # worth.
 tools/telepresence   = $(tools.bindir)/telepresence
-TELEPRESENCE_VERSION = 2.4.2
+TELEPRESENCE_VERSION = 2.6.6
 $(tools.bindir)/telepresence: $(tools.mk)
 	mkdir -p $(@D)
 	curl -s --fail -L https://app.getambassador.io/download/tel2/$(GOHOSTOS)/$(GOHOSTARCH)/$(TELEPRESENCE_VERSION)/telepresence -o $@
@@ -126,7 +128,7 @@ $(tools.bindir)/k3d: $(tools.mk)
 # PROTOC_VERSION must be at least 3.8.0 in order to contain the fix so that it doesn't generate
 # invalid Python if you name an Enum member the same as a Python keyword.
 tools/protoc    = $(tools.bindir)/protoc
-PROTOC_VERSION  = 3.20.1
+PROTOC_VERSION  = 21.5
 PROTOC_ZIP     := protoc-$(PROTOC_VERSION)-$(patsubst darwin,osx,$(GOHOSTOS))-$(patsubst arm64,aarch_64,$(shell uname -m)).zip
 $(tools.dir)/downloads/$(PROTOC_ZIP):
 	mkdir -p $(@D)

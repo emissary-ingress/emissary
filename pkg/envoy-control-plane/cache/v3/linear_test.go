@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -43,6 +44,9 @@ func verifyResponse(t *testing.T, ch <-chan Response, version string, num int) {
 	if r.GetRequest().TypeUrl != testType {
 		t.Errorf("unexpected empty request type URL: %q", r.GetRequest().TypeUrl)
 	}
+	if r.GetContext() == nil {
+		t.Errorf("unexpected empty response context")
+	}
 	out, err := r.GetDiscoveryResponse()
 	if err != nil {
 		t.Fatal(err)
@@ -66,13 +70,13 @@ type resourceInfo struct {
 	version string
 }
 
-func verifyDeltaResponse(t *testing.T, ch <-chan DeltaResponse, resources []resourceInfo, deleted []string) {
+func validateDeltaResponse(t *testing.T, resp DeltaResponse, resources []resourceInfo, deleted []string) {
 	t.Helper()
-	r := <-ch
-	if r.GetDeltaRequest().TypeUrl != testType {
-		t.Errorf("unexpected empty request type URL: %q", r.GetDeltaRequest().TypeUrl)
+
+	if resp.GetDeltaRequest().TypeUrl != testType {
+		t.Errorf("unexpected empty request type URL: %q", resp.GetDeltaRequest().TypeUrl)
 	}
-	out, err := r.GetDeltaDiscoveryResponse()
+	out, err := resp.GetDeltaDiscoveryResponse()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -115,6 +119,18 @@ func verifyDeltaResponse(t *testing.T, ch <-chan DeltaResponse, resources []reso
 	}
 }
 
+func verifyDeltaResponse(t *testing.T, ch <-chan DeltaResponse, resources []resourceInfo, deleted []string) {
+	t.Helper()
+	var r DeltaResponse
+	select {
+	case r = <-ch:
+	case <-time.After(5 * time.Second):
+		t.Error("timeout waiting for delta response")
+		return
+	}
+	validateDeltaResponse(t, r, resources, deleted)
+}
+
 func checkWatchCount(t *testing.T, c *LinearCache, name string, count int) {
 	t.Helper()
 	if i := c.NumWatches(name); i != count {
@@ -126,6 +142,22 @@ func checkDeltaWatchCount(t *testing.T, c *LinearCache, count int) {
 	t.Helper()
 	if i := c.NumDeltaWatches(); i != count {
 		t.Errorf("unexpected number of delta watches: got %d, want %d", i, count)
+	}
+}
+
+func checkVersionMapNotSet(t *testing.T, c *LinearCache) {
+	t.Helper()
+	if c.versionMap != nil {
+		t.Errorf("version map is set on the cache with %d elements", len(c.versionMap))
+	}
+}
+
+func checkVersionMapSet(t *testing.T, c *LinearCache) {
+	t.Helper()
+	if c.versionMap == nil {
+		t.Errorf("version map is not set on the cache")
+	} else if len(c.versionMap) != len(c.resources) {
+		t.Errorf("version map has the wrong number of elements: %d instead of %d expected", len(c.versionMap), len(c.resources))
 	}
 }
 
@@ -157,6 +189,14 @@ func hashResource(t *testing.T, resource types.Resource) string {
 	return v
 }
 
+func createWildcardDeltaWatch(c *LinearCache, w chan DeltaResponse) {
+	state := stream.NewStreamState(true, nil)
+	c.CreateDeltaWatch(&DeltaRequest{TypeUrl: testType}, state, w)
+	resp := <-w
+	state.SetResourceVersions(resp.GetNextVersionMap())
+	c.CreateDeltaWatch(&DeltaRequest{TypeUrl: testType}, state, w) // Ensure the watch is set properly with cache values
+}
+
 func TestLinearInitialResources(t *testing.T) {
 	streamState := stream.NewStreamState(false, map[string]string{})
 	c := NewLinearCache(testType, WithInitialResources(map[string]types.Resource{"a": testResource("a"), "b": testResource("b")}))
@@ -165,6 +205,7 @@ func TestLinearInitialResources(t *testing.T) {
 	verifyResponse(t, w, "0", 1)
 	c.CreateWatch(&Request{TypeUrl: testType}, streamState, w)
 	verifyResponse(t, w, "0", 2)
+	checkVersionMapNotSet(t, c)
 }
 
 func TestLinearCornerCases(t *testing.T) {
@@ -195,6 +236,7 @@ func TestLinearBasic(t *testing.T) {
 	w1 := make(chan Response, 1)
 	c.CreateWatch(&Request{ResourceNames: []string{"a"}, TypeUrl: testType, VersionInfo: "0"}, streamState, w1)
 	mustBlock(t, w1)
+	checkVersionMapNotSet(t, c)
 
 	w := make(chan Response, 1)
 	c.CreateWatch(&Request{TypeUrl: testType, VersionInfo: "0"}, streamState, w)
@@ -222,6 +264,8 @@ func TestLinearBasic(t *testing.T) {
 	verifyResponse(t, w, "3", 1)
 	c.CreateWatch(&Request{TypeUrl: testType, VersionInfo: "0"}, streamState, w)
 	verifyResponse(t, w, "3", 2)
+	// Ensure the version map was not created as we only ever used stow watches
+	checkVersionMapNotSet(t, c)
 }
 
 func TestLinearSetResources(t *testing.T) {
@@ -446,13 +490,15 @@ func TestLinearDeltaExistingResources(t *testing.T) {
 	err = c.UpdateResource("b", b)
 	assert.NoError(t, err)
 
-	state := stream.NewStreamState(false, map[string]string{"b": "", "c": ""}) // watching b and c - not interested in a
+	state := stream.NewStreamState(false, nil)
+	state.SetSubscribedResourceNames(map[string]struct{}{"b": {}, "c": {}}) // watching b and c - not interested in a
 	w := make(chan DeltaResponse, 1)
 	c.CreateDeltaWatch(&DeltaRequest{TypeUrl: testType}, state, w)
 	checkDeltaWatchCount(t, c, 0)
 	verifyDeltaResponse(t, w, []resourceInfo{{"b", hashB}}, []string{})
 
-	state = stream.NewStreamState(false, map[string]string{"a": "", "b": ""})
+	state = stream.NewStreamState(false, nil)
+	state.SetSubscribedResourceNames(map[string]struct{}{"a": {}, "b": {}})
 	w = make(chan DeltaResponse, 1)
 	c.CreateDeltaWatch(&DeltaRequest{TypeUrl: testType}, state, w)
 	checkDeltaWatchCount(t, c, 0)
@@ -470,13 +516,15 @@ func TestLinearDeltaInitialResourcesVersionSet(t *testing.T) {
 	err = c.UpdateResource("b", b)
 	assert.NoError(t, err)
 
-	state := stream.NewStreamState(false, map[string]string{"a": "", "b": hashB})
+	state := stream.NewStreamState(false, map[string]string{"b": hashB})
+	state.SetSubscribedResourceNames(map[string]struct{}{"a": {}, "b": {}})
 	w := make(chan DeltaResponse, 1)
 	c.CreateDeltaWatch(&DeltaRequest{TypeUrl: testType}, state, w)
 	checkDeltaWatchCount(t, c, 0)
 	verifyDeltaResponse(t, w, []resourceInfo{{"a", hashA}}, nil) // b is up to date and shouldn't be returned
 
 	state = stream.NewStreamState(false, map[string]string{"a": hashA, "b": hashB})
+	state.SetSubscribedResourceNames(map[string]struct{}{"a": {}, "b": {}})
 	w = make(chan DeltaResponse, 1)
 	c.CreateDeltaWatch(&DeltaRequest{TypeUrl: testType}, state, w)
 	mustBlockDelta(t, w)
@@ -499,14 +547,19 @@ func TestLinearDeltaResourceUpdate(t *testing.T) {
 	hashB := hashResource(t, b)
 	err = c.UpdateResource("b", b)
 	assert.NoError(t, err)
+	// There is currently no delta watch
+	checkVersionMapNotSet(t, c)
 
-	state := stream.NewStreamState(false, map[string]string{"a": "", "b": ""})
+	state := stream.NewStreamState(false, nil)
+	state.SetSubscribedResourceNames(map[string]struct{}{"a": {}, "b": {}})
 	w := make(chan DeltaResponse, 1)
 	c.CreateDeltaWatch(&DeltaRequest{TypeUrl: testType}, state, w)
 	checkDeltaWatchCount(t, c, 0)
 	verifyDeltaResponse(t, w, []resourceInfo{{"b", hashB}, {"a", hashA}}, nil)
+	checkVersionMapSet(t, c)
 
 	state = stream.NewStreamState(false, map[string]string{"a": hashA, "b": hashB})
+	state.SetSubscribedResourceNames(map[string]struct{}{"a": {}, "b": {}})
 	w = make(chan DeltaResponse, 1)
 	c.CreateDeltaWatch(&DeltaRequest{TypeUrl: testType}, state, w)
 	mustBlockDelta(t, w)
@@ -519,6 +572,7 @@ func TestLinearDeltaResourceUpdate(t *testing.T) {
 	err = c.UpdateResource("a", a)
 	assert.NoError(t, err)
 	verifyDeltaResponse(t, w, []resourceInfo{{"a", hashA}}, nil)
+	checkVersionMapSet(t, c)
 }
 
 func TestLinearDeltaResourceDelete(t *testing.T) {
@@ -532,13 +586,15 @@ func TestLinearDeltaResourceDelete(t *testing.T) {
 	err = c.UpdateResource("b", b)
 	assert.NoError(t, err)
 
-	state := stream.NewStreamState(false, map[string]string{"a": "", "b": ""})
+	state := stream.NewStreamState(false, nil)
+	state.SetSubscribedResourceNames(map[string]struct{}{"a": {}, "b": {}})
 	w := make(chan DeltaResponse, 1)
 	c.CreateDeltaWatch(&DeltaRequest{TypeUrl: testType}, state, w)
 	checkDeltaWatchCount(t, c, 0)
 	verifyDeltaResponse(t, w, []resourceInfo{{"b", hashB}, {"a", hashA}}, nil)
 
 	state = stream.NewStreamState(false, map[string]string{"a": hashA, "b": hashB})
+	state.SetSubscribedResourceNames(map[string]struct{}{"a": {}, "b": {}})
 	w = make(chan DeltaResponse, 1)
 	c.CreateDeltaWatch(&DeltaRequest{TypeUrl: testType}, state, w)
 	mustBlockDelta(t, w)
@@ -550,4 +606,170 @@ func TestLinearDeltaResourceDelete(t *testing.T) {
 	hashA = hashResource(t, a)
 	c.SetResources(map[string]types.Resource{"a": a})
 	verifyDeltaResponse(t, w, []resourceInfo{{"a", hashA}}, []string{"b"})
+}
+
+func TestLinearDeltaMultiResourceUpdates(t *testing.T) {
+	c := NewLinearCache(testType)
+
+	state := stream.NewStreamState(false, nil)
+	state.SetSubscribedResourceNames(map[string]struct{}{"a": {}, "b": {}})
+	w := make(chan DeltaResponse, 1)
+	checkVersionMapNotSet(t, c)
+	assert.Equal(t, 0, c.NumResources())
+
+	// Initial update
+	c.CreateDeltaWatch(&DeltaRequest{TypeUrl: testType}, state, w)
+	mustBlockDelta(t, w)
+	checkDeltaWatchCount(t, c, 1)
+	// The version map should now be created, even if empty
+	checkVersionMapSet(t, c)
+	a := &endpoint.ClusterLoadAssignment{ClusterName: "a"}
+	hashA := hashResource(t, a)
+	b := &endpoint.ClusterLoadAssignment{ClusterName: "b"}
+	hashB := hashResource(t, b)
+	err := c.UpdateResources(map[string]types.Resource{"a": a, "b": b}, nil)
+	assert.NoError(t, err)
+	resp := <-w
+	validateDeltaResponse(t, resp, []resourceInfo{{"a", hashA}, {"b", hashB}}, nil)
+	checkVersionMapSet(t, c)
+	assert.Equal(t, 2, c.NumResources())
+	state.SetResourceVersions(resp.GetNextVersionMap())
+
+	// Multiple updates
+	c.CreateDeltaWatch(&DeltaRequest{TypeUrl: testType}, state, w)
+	mustBlockDelta(t, w)
+	checkDeltaWatchCount(t, c, 1)
+	a = &endpoint.ClusterLoadAssignment{ClusterName: "a", Endpoints: []*endpoint.LocalityLbEndpoints{ //resource update
+		{Priority: 10},
+	}}
+	b = &endpoint.ClusterLoadAssignment{ClusterName: "b", Endpoints: []*endpoint.LocalityLbEndpoints{ //resource update
+		{Priority: 15},
+	}}
+	hashA = hashResource(t, a)
+	hashB = hashResource(t, b)
+	err = c.UpdateResources(map[string]types.Resource{"a": a, "b": b}, nil)
+	assert.NoError(t, err)
+	resp = <-w
+	validateDeltaResponse(t, resp, []resourceInfo{{"a", hashA}, {"b", hashB}}, nil)
+	checkVersionMapSet(t, c)
+	assert.Equal(t, 2, c.NumResources())
+	state.SetResourceVersions(resp.GetNextVersionMap())
+
+	// Update/add/delete
+	c.CreateDeltaWatch(&DeltaRequest{TypeUrl: testType}, state, w)
+	mustBlockDelta(t, w)
+	checkDeltaWatchCount(t, c, 1)
+	a = &endpoint.ClusterLoadAssignment{ClusterName: "a", Endpoints: []*endpoint.LocalityLbEndpoints{ //resource update
+		{Priority: 15},
+	}}
+	d := &endpoint.ClusterLoadAssignment{ClusterName: "d", Endpoints: []*endpoint.LocalityLbEndpoints{}} // resource created, but not watched
+	hashA = hashResource(t, a)
+	err = c.UpdateResources(map[string]types.Resource{"a": a, "d": d}, []string{"b"})
+	assert.NoError(t, err)
+	assert.Contains(t, c.resources, "d", "resource with name d not found in cache")
+	assert.NotContains(t, c.resources, "b", "resource with name b was found in cache")
+	resp = <-w
+	validateDeltaResponse(t, resp, []resourceInfo{{"a", hashA}}, []string{"b"})
+	checkVersionMapSet(t, c)
+	assert.Equal(t, 2, c.NumResources())
+	state.SetResourceVersions(resp.GetNextVersionMap())
+
+	// Re-add previously deleted watched resource
+	c.CreateDeltaWatch(&DeltaRequest{TypeUrl: testType}, state, w)
+	mustBlockDelta(t, w)
+	checkDeltaWatchCount(t, c, 1)
+	b = &endpoint.ClusterLoadAssignment{ClusterName: "b", Endpoints: []*endpoint.LocalityLbEndpoints{}} // recreate watched resource
+	hashB = hashResource(t, b)
+	err = c.UpdateResources(map[string]types.Resource{"b": b}, []string{"d"})
+	assert.NoError(t, err)
+	assert.Contains(t, c.resources, "b", "resource with name b not found in cache")
+	assert.NotContains(t, c.resources, "d", "resource with name d was found in cache")
+	resp = <-w
+	validateDeltaResponse(t, resp, []resourceInfo{{"b", hashB}}, nil) // d is not watched and should not be returned
+	checkVersionMapSet(t, c)
+	assert.Equal(t, 2, c.NumResources())
+	state.SetResourceVersions(resp.GetNextVersionMap())
+
+	// Wildcard create/update
+	createWildcardDeltaWatch(c, w)
+	mustBlockDelta(t, w)
+	checkDeltaWatchCount(t, c, 1)
+	b = &endpoint.ClusterLoadAssignment{ClusterName: "b", Endpoints: []*endpoint.LocalityLbEndpoints{ //resource update
+		{Priority: 15},
+	}}
+	d = &endpoint.ClusterLoadAssignment{ClusterName: "d", Endpoints: []*endpoint.LocalityLbEndpoints{}} // resource create
+	hashB = hashResource(t, b)
+	hashD := hashResource(t, d)
+	err = c.UpdateResources(map[string]types.Resource{"b": b, "d": d}, nil)
+	assert.NoError(t, err)
+	verifyDeltaResponse(t, w, []resourceInfo{{"b", hashB}, {"d", hashD}}, nil)
+	checkVersionMapSet(t, c)
+	assert.Equal(t, 3, c.NumResources())
+
+	// Wildcard update/delete
+	createWildcardDeltaWatch(c, w)
+	mustBlockDelta(t, w)
+	checkDeltaWatchCount(t, c, 1)
+	a = &endpoint.ClusterLoadAssignment{ClusterName: "a", Endpoints: []*endpoint.LocalityLbEndpoints{ //resource update
+		{Priority: 25},
+	}}
+	hashA = hashResource(t, a)
+	err = c.UpdateResources(map[string]types.Resource{"a": a}, []string{"d"})
+	assert.NoError(t, err)
+	assert.NotContains(t, c.resources, "d", "resource with name d was found in cache")
+	verifyDeltaResponse(t, w, []resourceInfo{{"a", hashA}}, []string{"d"})
+
+	checkDeltaWatchCount(t, c, 0)
+	// Confirm that the map is still set even though there is currently no watch
+	checkVersionMapSet(t, c)
+	assert.Equal(t, 2, c.NumResources())
+}
+
+func TestLinearMixedWatches(t *testing.T) {
+	c := NewLinearCache(testType)
+	a := &endpoint.ClusterLoadAssignment{ClusterName: "a"}
+	err := c.UpdateResource("a", a)
+	assert.NoError(t, err)
+	b := &endpoint.ClusterLoadAssignment{ClusterName: "b"}
+	hashB := hashResource(t, b)
+	err = c.UpdateResource("b", b)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, c.NumResources())
+
+	sotwState := stream.NewStreamState(false, nil)
+	w := make(chan Response, 1)
+	c.CreateWatch(&Request{ResourceNames: []string{"a", "b"}, TypeUrl: testType, VersionInfo: c.getVersion()}, sotwState, w)
+	mustBlock(t, w)
+	checkVersionMapNotSet(t, c)
+
+	a = &endpoint.ClusterLoadAssignment{ClusterName: "a", Endpoints: []*endpoint.LocalityLbEndpoints{ //resource update
+		{Priority: 25},
+	}}
+	hashA := hashResource(t, a)
+	err = c.UpdateResources(map[string]types.Resource{"a": a}, nil)
+	assert.NoError(t, err)
+	// This behavior is currently invalid for cds and lds, but due to a current limitation of linear cache sotw implementation
+	verifyResponse(t, w, c.getVersion(), 1)
+	checkVersionMapNotSet(t, c)
+
+	c.CreateWatch(&Request{ResourceNames: []string{"a", "b"}, TypeUrl: testType, VersionInfo: c.getVersion()}, sotwState, w)
+	mustBlock(t, w)
+	checkVersionMapNotSet(t, c)
+
+	deltaState := stream.NewStreamState(false, map[string]string{"a": hashA, "b": hashB})
+	deltaState.SetSubscribedResourceNames(map[string]struct{}{"a": {}, "b": {}})
+	wd := make(chan DeltaResponse, 1)
+
+	// Initial update
+	c.CreateDeltaWatch(&DeltaRequest{TypeUrl: testType}, deltaState, wd)
+	mustBlockDelta(t, wd)
+	checkDeltaWatchCount(t, c, 1)
+	checkVersionMapSet(t, c)
+
+	err = c.UpdateResources(nil, []string{"b"})
+	assert.NoError(t, err)
+	checkVersionMapSet(t, c)
+
+	verifyResponse(t, w, c.getVersion(), 0)
+	verifyDeltaResponse(t, wd, nil, []string{"b"})
 }

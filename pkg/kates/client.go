@@ -49,11 +49,11 @@ import (
 //
 // Differences from kubectl:
 //
-//  - You can also use a Client to update the status of a resource.
-//  - The Client struct cannot perform an apply operation.
-//  - The Client provides Read/write coherence (more about this below).
-//  - The Client provides load shedding via event coalescing for watches.
-//  - The Client provides bootstrapping of multiple watches.
+//   - You can also use a Client to update the status of a resource.
+//   - The Client struct cannot perform an apply operation.
+//   - The Client provides Read/write coherence (more about this below).
+//   - The Client provides load shedding via event coalescing for watches.
+//   - The Client provides bootstrapping of multiple watches.
 //
 // The biggest difference from kubectl (and also from using client-go directly) is the Read/Write
 // coherence it provides. Kubernetes Watches are inherently asynchronous. This means that if a
@@ -71,11 +71,11 @@ import (
 //
 // Additionally, the Accumulator API provides two key pieces of watch related functionality:
 //
-//   1. By coalescing multiple updates behind the scenes, the Accumulator API provides a natural
-//      form of load shedding if a user of the API cannot keep up with every single update.
+//  1. By coalescing multiple updates behind the scenes, the Accumulator API provides a natural
+//     form of load shedding if a user of the API cannot keep up with every single update.
 //
-//   2. The Accumulator API is guaranteed to bootstrap (i.e. perform an initial List operation) on
-//      all watches prior to notifying the user that resources are available to process.
+//  2. The Accumulator API is guaranteed to bootstrap (i.e. perform an initial List operation) on
+//     all watches prior to notifying the user that resources are available to process.
 type Client struct {
 	config    *ConfigFlags
 	cli       dynamic.Interface
@@ -262,14 +262,14 @@ func (c *Client) ServerVersion() (*VersionInfo, error) {
 // `*metav1.APIResourceList` object, and now you're wondering why this needs to be anything more
 // than `return input.APIResources`.  Well:
 //
-//   1. The various DiscoveryInterface calls don't return a List, they actually return an array of
-//      Lists, where the Lists are grouped by the group/version of the resources.  So we need to
-//      flatten those out.
-//   2. I guess the reason they group them that way is to avoid repeating the group and version in
-//      each resource, because the List objects themselvs have .Group and .Version set, but the
-//      APIresource objects don't.  This lets them save 10s of bytes on an infrequently use API
-//      call!  Anyway, we'll need to fill those in on the returned objects because we're discarding
-//      the grouping.
+//  1. The various DiscoveryInterface calls don't return a List, they actually return an array of
+//     Lists, where the Lists are grouped by the group/version of the resources.  So we need to
+//     flatten those out.
+//  2. I guess the reason they group them that way is to avoid repeating the group and version in
+//     each resource, because the List objects themselvs have .Group and .Version set, but the
+//     APIresource objects don't.  This lets them save 10s of bytes on an infrequently use API
+//     call!  Anyway, we'll need to fill those in on the returned objects because we're discarding
+//     the grouping.
 func processAPIResourceLists(listsByGV []*metav1.APIResourceList) []APIResource {
 	// Do some book-keeping to allow us to pre-allocate the entire list.
 	count := 0
@@ -1083,14 +1083,14 @@ func parseLogLine(line string) (timestamp string, output string) {
 // LogEvent struct is designed to hold enough information that it is feasible to invoke PodLogs multiple times with a
 // single channel in order to multiplex log output from many pods, e.g.:
 //
-//   events := make(chan LogEvent)
-//   client.PodLogs(ctx, pod1, options, events)
-//   client.PodLogs(ctx, pod2, options, events)
-//   client.PodLogs(ctx, pod3, options, events)
+//	events := make(chan LogEvent)
+//	client.PodLogs(ctx, pod1, options, events)
+//	client.PodLogs(ctx, pod2, options, events)
+//	client.PodLogs(ctx, pod3, options, events)
 //
-//   for event := range events {
-//       fmt.Printf("%s: %s: %s", event.PodId, event.Timestamp, event.Output)
-//   }
+//	for event := range events {
+//	    fmt.Printf("%s: %s: %s", event.PodId, event.Timestamp, event.Output)
+//	}
 //
 // The above code will print log output from all 3 pods.
 func (c *Client) PodLogs(ctx context.Context, pod *Pod, options *PodLogOptions, events chan<- LogEvent) error {
