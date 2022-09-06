@@ -74,6 +74,14 @@ items:
           deny traffic when it is unable to communicate to the RateLimitService 
           returning a 500.
         docs: https://www.getambassador.io/docs/emissary/latest/topics/running/services/rate-limit-service/
+      - title: Add environment variables to configure healthcheck server's bind address, port and IP family.
+        type: feature
+        body: >-
+          The healthcheck server's bind address, bind port and IP family can now be configured using environment variables.
+          The main advantage of this is that it allows the healthcheck server to be configured for IPv6-only k8s environments.
+          <code>AMBASSADOR_HEALTHCHECK_BIND_ADDRESS</code> - The address to bind the healthcheck server to.
+          <code>AMBASSADOR_HEALTHCHECK_BIND_PORT</code> - The port to bind the healthcheck server to.
+          <code>AMBASSADOR_HEALTHCHECK_IP_FAMILY</code> - The IP family to use for the healthcheck server.
 
       - title: Add environment variables to the healthcheck server.
         type: feature
@@ -117,7 +125,6 @@ items:
         type: security
         body: >-
           Updated ncurses to 1.1.1q-r0 to address CVE-2022-29458
-
   - version: 3.1.0
     date: '2022-08-01'
     notes:

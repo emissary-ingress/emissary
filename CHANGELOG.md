@@ -152,6 +152,13 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   ensure that all the nodes composing the emissary ingress cluster are reporting properly.
 
 
+- Feature: The healthcheck server's bind address, bind port and IP family can now be configured
+  using environment variables. The main advantage of this is that it allows the healthcheck server
+  to be configured for IPv6-only k8s environments. `AMBASSADOR_HEALTHCHECK_BIND_ADDRESS` - The
+  address to bind the healthcheck server to. `AMBASSADOR_HEALTHCHECK_BIND_PORT` - The port to bind
+  the healthcheck server to. `AMBASSADOR_HEALTHCHECK_IP_FAMILY` - The IP family to use for the
+  healthcheck server.
+
 ## [3.0.0] June 27, 2022
 [3.0.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v3.0.0
 
