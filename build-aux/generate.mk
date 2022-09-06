@@ -35,6 +35,7 @@ generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/  # recipe in _cxx/en
 # Individual files: Misc
 generate/files      += $(OSS_HOME)/DEPENDENCIES.md
 generate/files      += $(OSS_HOME)/DEPENDENCY_LICENSES.md
+generate-fast/files += .github/dependabot.yml
 generate-fast/files += $(OSS_HOME)/CHANGELOG.md
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion.go
 generate-fast/files += $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion-spoke.go
@@ -348,3 +349,6 @@ $(OSS_HOME)/CHANGELOG.md: $(OSS_HOME)/docs/CHANGELOG.tpl $(OSS_HOME)/docs/releas
 	  -v $(OSS_HOME)/docs/CHANGELOG.tpl:/tmp/CHANGELOG.tpl \
 	  -v $(OSS_HOME)/docs/releaseNotes.yml:/tmp/releaseNotes.yml \
 	  hairyhenderson/gomplate --verbose --file /tmp/CHANGELOG.tpl --datasource relnotes=/tmp/releaseNotes.yml > CHANGELOG.md
+
+.github/dependabot.yml: %: %.gen FORCE
+	$< >$@
