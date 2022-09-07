@@ -1393,7 +1393,7 @@ class IR:
             if resolver:
                 if resolver.kind == "KubernetesServiceResolver":
                     group_resolver_kube_service += 1
-                elif resolver.kind == "KubernetesEndpoinhResolver":
+                elif resolver.kind == "KubernetesEndpointResolver":
                     group_resolver_kube_endpoint += 1
                 elif resolver.kind == "ConsulResolver":
                     group_resolver_consul += 1
