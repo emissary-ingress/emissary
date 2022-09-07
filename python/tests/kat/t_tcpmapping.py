@@ -1,4 +1,4 @@
-from typing import Dict, Generator, Tuple, Union
+from typing import Dict, Generator, Literal, Tuple, Union
 
 from kat.harness import Query
 
@@ -361,6 +361,7 @@ class TCPMappingTLSOriginationV2SchemeTest(AmbassadorTest):
     target: ServiceType
 
     def init(self) -> None:
+        self.xfail = "bug (2.3): v2 TCPMappings don't ignore the scheme"
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -395,6 +396,34 @@ spec:
         assert self.results[1].json["request"]["tls"]["enabled"] == True
         assert self.results[2].json["backend"] == self.target.path.k8s
         assert self.results[2].json["request"]["tls"]["enabled"] == False
+
+
+class TCPMappingTLSOriginationV3SchemeTest(AmbassadorTest):
+    extra_ports = [ 6789, 6790 ]
+    target: ServiceType
+
+    def init(self) -> None:
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return format('''
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: {self.name.k8s}-1
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  port: 6789
+  service: https://{self.target.path.fqdn}:443
+''') + super().manifests()
+
+    def queries(self):
+        yield Query(self.url("", port=6789))
+
+    def check(self):
+        assert self.results[0].json["backend"] == self.target.path.k8s
+        assert self.results[0].json["request"]["tls"]["enabled"] == True
 
 
 class TCPMappingTLSOriginationContextTest(AmbassadorTest):
@@ -551,6 +580,18 @@ spec:
 
 @abstract_test
 class TCPMappingTLSTerminationTest(AmbassadorTest):
+    tls_src: Literal['tlscontext', 'host']
+
+    @classmethod
+    def variants(cls) -> Generator[Node, None, None]:
+        for tls_src in ['tlscontext', 'host']:
+            yield cls(tls_src, name="{self.tls_src}")
+
+    def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
+        if tls_src == 'tlscontext':
+            self.xfail = "bug (2.3): TCPMappings can't match directly with termination TLSContexts"
+        self.tls_src = tls_src
+
     def manifests(self) -> str:
         return f'''
 ---
@@ -574,7 +615,8 @@ class TCPMappingTLSTerminationBasicTest(TCPMappingTLSTerminationTest):
     extra_ports = [ 6789 ]
     target: ServiceType
 
-    def init(self) -> None:
+    def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
+        super().init(tls_src)
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -588,6 +630,7 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
   tls.key: {TLSCerts["tls-context-host-2"].k8s_key}
+''' + (f'''
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
@@ -597,6 +640,18 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   secret: {self.name.k8s}-servercert
   hosts: [ "tls-context-host-2" ]
+''' if self.tls_src == 'tlscontext' else f'''
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.name.k8s}-tlsserver
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "tls-context-host-2"
+  tlsSecret:
+    name: {self.name.k8s}-servercert
+''') + f'''
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
@@ -622,7 +677,8 @@ class TCPMappingTLSTerminationCrossNamespaceTest(TCPMappingTLSTerminationTest):
     extra_ports = [ 6789 ]
     target: ServiceType
 
-    def init(self) -> None:
+    def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
+        super().init(tls_src)
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -637,6 +693,7 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
   tls.key: {TLSCerts["tls-context-host-2"].k8s_key}
+''' + (f'''
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
@@ -647,6 +704,19 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   secret: {self.name.k8s}-servercert
   hosts: [ "tls-context-host-2" ]
+''' if self.tls_src == 'tlscontext' else f'''
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.name.k8s}-tlsserver
+  namespace: other-namespace
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "tls-context-host-2"
+  tlsSecret:
+    name: {self.name.k8s}-servercert
+''') + f'''
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
@@ -673,7 +743,9 @@ class TCPMappingSNISharedContextTest(TCPMappingTLSTerminationTest):
     target_a: ServiceType
     target_b: ServiceType
 
-    def init(self) -> None:
+    def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
+        super().init(tls_src)
+        self.xfail = "bug (2.3): filter chains have identical (conflicting) matching rules"
         self.target_a = HTTP(name="target-a")
         self.target_b = HTTP(name="target-b")
 
@@ -690,6 +762,7 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["*.domain.com"].k8s_crt}
   tls.key: {TLSCerts["*.domain.com"].k8s_key}
+''' + (f'''
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
@@ -701,6 +774,22 @@ spec:
   hosts:
     - "a.domain.com"
     - "b.domain.com"
+''' if self.tls_src == 'tlscontext' else f'''
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.name.k8s}-tlsserver
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*.domain.com"
+  tlsSecret:
+    name: {self.name.k8s}-servercert
+  requestPolicy:
+    insecure:
+      action: Route
+      additionalPort: 8080
+''') + f'''
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
@@ -741,8 +830,8 @@ class TCPMappingSNISeparateContextsTest(TCPMappingTLSTerminationTest):
     target_a: ServiceType
     target_b: ServiceType
 
-    def init(self) -> None:
-        self.xfail = "bug (1.14): it uses the same secret for both"
+    def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
+        super().init(tls_src)
         self.target_a = HTTP(name="target-a")
         self.target_b = HTTP(name="target-b")
 
@@ -766,6 +855,7 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
   tls.key: {TLSCerts["tls-context-host-2"].k8s_key}
+''' + (f'''
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
@@ -784,6 +874,28 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   secret: {self.name.k8s}-servercert-b
   hosts: [tls-context-host-2]
+''' if self.tls_src == 'tlscontext' else f'''
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.name.k8s}-tlsserver-a
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "tls-context-host-1"
+  tlsSecret:
+    name: {self.name.k8s}-servercert-a
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.name.k8s}-tlsserver-b
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "tls-context-host-2"
+  tlsSecret:
+    name: {self.name.k8s}-servercert-b
+''') + f'''
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
@@ -825,8 +937,16 @@ class TCPMappingSNIWithHTTPTest(AmbassadorTest):
 
     target: ServiceType
 
-    def init(self) -> None:
+    tls_src: Literal['tlscontext', 'host']
+
+    @classmethod
+    def variants(cls) -> Generator[Node, None, None]:
+        for tls_src in ['tlscontext', 'host']:
+            yield cls(tls_src, name="{self.tls_src}")
+
+    def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
         self.xfail = "bug (1.14): emits 2 Envoy listeners; one HTTP, one TLS; remarkably Envoy doesn't complain, it just lets the first one (HTTP) win"
+        self.tls_src = tls_src
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -863,6 +983,7 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
   tls.key: {TLSCerts["tls-context-host-2"].k8s_key}
+''' + (f'''
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
@@ -872,6 +993,18 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   secret: {self.name.k8s}-servercert
   hosts: [ "tls-context-host-2" ]
+''' if self.tls_src == 'tlscontext' else f'''
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.name.k8s}-tlsserver
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "tls-context-host-2"
+  tlsSecret:
+    name: {self.name.k8s}-servercert
+''') + f'''
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
