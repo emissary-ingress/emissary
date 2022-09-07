@@ -34,7 +34,7 @@ class MockSecretHandler(SecretHandler):
             TLSCerts["acook"].pubcert, TLSCerts["acook"].privkey, decode_b64=False)
 
 
-def _get_envoy_config(yaml):
+def _get_envoy_config(yaml, version='V2'):
 
     aconf = Config()
     fetcher = ResourceFetcher(logger, aconf)
@@ -47,7 +47,7 @@ def _get_envoy_config(yaml):
     ir = IR(aconf, file_checker=lambda path: True, secret_handler=secret_handler)
 
     assert ir
-    return EnvoyConfig.generate(ir)
+    return EnvoyConfig.generate(ir, version)
 
 
 def lightstep_tracing_service_manifest():
@@ -138,7 +138,7 @@ def test_tracing_config_v2():
     assert_valid_envoy_config(bootstrap_config, v2=True)
 
 @pytest.mark.compilertest
-def test_tracing_zipkin_defaults():
+def test_tracing_zipkin_defaults_v3_config():
 
     yaml = """
 ---
@@ -152,7 +152,7 @@ spec:
     driver: zipkin
 """
 
-    econf = _get_envoy_config(yaml)
+    econf = _get_envoy_config(yaml, version="V3")
 
     bootstrap_config, _, _ = econf.split_config()
     assert "tracing" in bootstrap_config
@@ -170,9 +170,42 @@ spec:
         }
     }
 
+def test_tracing_zipkin_defaults_v2_config():
+
+    yaml = """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TracingService
+metadata:
+    name: myts
+    namespace: default
+spec:
+    service: zipkin-test:9411
+    driver: zipkin
+"""
+
+    econf = _get_envoy_config(yaml, version="V2")
+
+    bootstrap_config, _, _ = econf.split_config()
+    assert "tracing" in bootstrap_config
+
+    assert bootstrap_config["tracing"] == {
+        "http": {
+            "name": "envoy.zipkin",
+            "typed_config": {
+                "@type": "type.googleapis.com/envoy.config.trace.v2.ZipkinConfig",
+                "collector_endpoint": "/api/v2/spans",
+                "collector_endpoint_version": "HTTP_JSON",
+                "trace_id_128bit": True,
+                "collector_cluster": "cluster_tracing_zipkin_test_9411_default",
+            },
+        }
+    }
+
+
 
 @pytest.mark.compilertest
-def test_tracing_cluster_fields():
+def test_tracing_cluster_fields_v2_config():
 
     yaml = """
 ---
@@ -187,7 +220,47 @@ spec:
     stats_name: tracingservice
 """
 
-    econf = _get_envoy_config(yaml)
+    econf = _get_envoy_config(yaml, version="V2")
+
+    bootstrap_config, _, _ = econf.split_config()
+    assert "tracing" in bootstrap_config
+
+    cluster_name = "cluster_tracing_zipkin_test_9411_default"
+    assert bootstrap_config["tracing"] == {
+        "http": {
+            "name": "envoy.zipkin",
+            "typed_config": {
+                "@type": "type.googleapis.com/envoy.config.trace.v2.ZipkinConfig",
+                "collector_endpoint": "/api/v2/spans",
+                "collector_endpoint_version": "HTTP_JSON",
+                "trace_id_128bit": True,
+                "collector_cluster": cluster_name,
+            },
+        }
+    }
+
+    def check_fields(cluster):
+        assert cluster["alt_stat_name"] == "tracingservice"
+
+    econf_foreach_cluster(econf.as_dict(), check_fields, name=cluster_name)
+
+@pytest.mark.compilertest
+def test_tracing_cluster_fields_v3_config():
+
+    yaml = """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TracingService
+metadata:
+    name: myts
+    namespace: default
+spec:
+    service: zipkin-test:9411
+    driver: zipkin
+    stats_name: tracingservice
+"""
+
+    econf = _get_envoy_config(yaml, version="V3")
 
     bootstrap_config, _, _ = econf.split_config()
     assert "tracing" in bootstrap_config

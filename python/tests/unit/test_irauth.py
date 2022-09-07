@@ -98,7 +98,7 @@ spec:
     assert ext_auth_config['typed_config']['transport_api_version'] == 'V3'
 
 
-def test_cluster_fields():
+def test_cluster_fields_v3_config():
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -113,7 +113,40 @@ spec:
   stats_name: authservice
 """
 
-    econf = _get_envoy_config(yaml)
+    econf = _get_envoy_config(yaml, version="V3")
+
+    conf = econf.as_dict()
+    ext_auth_config = _get_ext_auth_config(conf)
+
+    cluster_name = "cluster_extauth_someservice_default"
+
+    assert ext_auth_config
+    assert (
+        ext_auth_config["typed_config"]["grpc_service"]["envoy_grpc"]["cluster_name"]
+        == cluster_name
+    )
+
+    def check_fields(cluster):
+        assert cluster["alt_stat_name"] == "authservice"
+
+    econf_foreach_cluster(econf.as_dict(), check_fields, name=cluster_name)
+
+def test_cluster_fields_v2_config():
+    yaml = """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: AuthService
+metadata:
+  name:  mycoolauthservice
+  namespace: default
+spec:
+  auth_service: someservice
+  protocol_version: "v3"
+  proto: grpc
+  stats_name: authservice
+"""
+
+    econf = _get_envoy_config(yaml, version="V2")
 
     conf = econf.as_dict()
     ext_auth_config = _get_ext_auth_config(conf)
