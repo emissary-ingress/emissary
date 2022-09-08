@@ -265,6 +265,10 @@ func canonGVK(rawString string) (canonKind string, canonGroupVersion string, err
 		return "Filter", "getambassador.io/v3alpha1", nil
 	case "filterpolicy", "filterpolicies":
 		return "Filterpolicy", "getambassador.io/v3alpha1", nil
+	case "cache", "caches":
+		return "Cache", "getambassador.io/v3alpha1", nil
+	case "cachepolicy", "cachepolicies":
+		return "CachePolicy", "getambassador.io/v3alpha1", nil
 	default:
 		return "", "", fmt.Errorf("I don't know how to canonicalize kind: %q", rawString)
 	}

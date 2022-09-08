@@ -40,6 +40,7 @@ following Free and Open Source software:
     github.com/go-openapi/spec                                                                 v0.20.4                                      Apache License 2.0
     github.com/go-openapi/swag                                                                 v0.21.1                                      Apache License 2.0
     github.com/gobuffalo/flect                                                                 v0.2.3                                       MIT license
+    github.com/gobwas/glob                                                                     v0.2.3                                       MIT license
     github.com/gogo/protobuf                                                                   v1.3.2                                       3-clause BSD license
     github.com/golang-jwt/jwt/v4                                                               v4.2.0                                       MIT license
     github.com/golang/protobuf                                                                 v1.5.2                                       3-clause BSD license

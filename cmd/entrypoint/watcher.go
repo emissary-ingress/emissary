@@ -12,6 +12,7 @@ import (
 
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
+	cachingv1 "github.com/emissary-ingress/emissary/v3/internal/ir/caching/v1"
 	"github.com/emissary-ingress/emissary/v3/pkg/acp"
 	"github.com/emissary-ingress/emissary/v3/pkg/ambex"
 	"github.com/emissary-ingress/emissary/v3/pkg/debug"
@@ -376,10 +377,11 @@ func (sh *SnapshotHolder) K8sUpdate(
 	reconcileAuthServicesTimer := dbg.Timer("reconcileAuthServices")
 	reconcileRateLimitServicesTimer := dbg.Timer("reconcileRateLimitServices")
 
-	endpointsChanged := false
-	dispatcherChanged := false
+	xdsIRChanged := false
+
 	var endpoints *ambex.Endpoints
 	var dispSnapshot *ecp_v3_cache.Snapshot
+
 	changed, err := func() (bool, error) {
 		dlog.Debugf(ctx, "[WATCHER]: processing cluster changes detected by the kubernetes watcher")
 		sh.mutex.Lock()
@@ -472,7 +474,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 		// endpoint info again even if endpoints have not changed.
 		if sh.endpointRoutingInfo.watchesChanged() {
 			dlog.Infof(ctx, "[WATCHER]: endpoint watches changed: %v", sh.endpointRoutingInfo.endpointWatches)
-			endpointsChanged = true
+			xdsIRChanged = true
 		}
 
 		endpointsOnly := true
@@ -482,14 +484,18 @@ func (sh *SnapshotHolder) K8sUpdate(
 			if delta.Kind == "Endpoints" {
 				key := fmt.Sprintf("%s:%s", delta.Namespace, delta.Name)
 				if sh.endpointRoutingInfo.endpointWatches[key] || sh.dispatcher.IsWatched(delta.Namespace, delta.Name) {
-					endpointsChanged = true
+					xdsIRChanged = true
 				}
 			} else {
 				endpointsOnly = false
 			}
 
+			if delta.Kind == "Cache" || delta.Kind == "CachePolicy" {
+				xdsIRChanged = true
+			}
+
 			if sh.dispatcher.IsRegistered(delta.Kind) {
-				dispatcherChanged = true
+				xdsIRChanged = true
 				if delta.DeltaType == kates.ObjectDelete {
 					sh.dispatcher.DeleteKey(delta.Kind, delta.Namespace, delta.Name)
 				}
@@ -499,7 +505,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 			sh.snapshotChangeCount += 1
 		}
 
-		if endpointsChanged || dispatcherChanged {
+		if xdsIRChanged {
 			endpoints = makeEndpoints(ctx, sh.k8sSnapshot, sh.consulSnapshot.Endpoints)
 			for _, gwc := range sh.k8sSnapshot.GatewayClasses {
 				if err := sh.dispatcher.Upsert(gwc); err != nil {
@@ -535,10 +541,22 @@ func (sh *SnapshotHolder) K8sUpdate(
 		return changed, err
 	}
 
-	if endpointsChanged || dispatcherChanged {
+	if xdsIRChanged {
+		var cachePolicies = []cachingv1.CachePolicyContext{}
+		var cacheMap = cachingv1.CacheMap{}
+
+		if ok, err := IsEdgeStack(); ok && err == nil {
+			dlog.Debug(ctx, "[WATCHER]: generating caching IR")
+
+			cachePolicies = cachingv1.TranslateCachePolicies(ctx, sh.k8sSnapshot.CachePolicies)
+			cacheMap = cachingv1.TranslateCaches(ctx, sh.k8sSnapshot.Caches)
+		}
+
 		fastpath := &ambex.FastpathSnapshot{
-			Endpoints: endpoints,
-			Snapshot:  dispSnapshot,
+			Endpoints:     endpoints,
+			Snapshot:      dispSnapshot,
+			CachePolicies: cachePolicies,
+			CacheMap:      cacheMap,
 		}
 		fastpathProcessor(ctx, fastpath)
 	}

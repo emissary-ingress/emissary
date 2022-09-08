@@ -82,8 +82,10 @@ import (
 	v3routeconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/access_loggers/file/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/access_loggers/grpc/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/cache/simple_http_cache/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/compression/gzip/compressor/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/buffer/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/cache/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/compressor/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/cors/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/ext_authz/v3"
@@ -420,6 +422,18 @@ func update(
 			bs := m.(*v3bootstrap.Bootstrap)
 			sr := bs.StaticResources
 			for _, lst := range sr.Listeners {
+				var enrichedListener = lst
+
+				if fastpathSnapshot != nil {
+					var err error
+					enrichedListener, err = injectCacheFilter(lst, fastpathSnapshot.CachePolicies, fastpathSnapshot.CacheMap)
+					if err != nil {
+						dlog.Errorf(ctx, "Error injecting cache policies into listener: %+v", err)
+						listenersv3 = append(listenersv3, proto.Clone(lst).(ecp_cache_types.Resource))
+						continue
+					}
+				}
+
 				// When the RouteConfiguration is embedded in the listener, it will cause envoy to
 				// go through a complete drain cycle whenever there is a routing change and that
 				// will potentially disrupt in-flight requests. By converting all listeners to use
@@ -427,10 +441,10 @@ func update(
 				// set of circumstances where the listener definition itself changes, and this in
 				// turn reduces the set of circumstances where envoy has to go through that drain
 				// process and disrupt in-flight requests.
-				rdsListener, routeConfigs, err := V3ListenerToRdsListener(lst)
+				rdsListener, routeConfigs, err := V3ListenerToRdsListener(enrichedListener)
 				if err != nil {
 					dlog.Errorf(ctx, "Error converting listener to RDS: %+v", err)
-					listenersv3 = append(listenersv3, proto.Clone(lst).(ecp_cache_types.Resource))
+					listenersv3 = append(listenersv3, proto.Clone(enrichedListener).(ecp_cache_types.Resource))
 					continue
 				}
 				listenersv3 = append(listenersv3, rdsListener)
@@ -452,6 +466,8 @@ func update(
 
 	if fastpathSnapshot != nil && fastpathSnapshot.Snapshot != nil {
 		for _, lst := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Listener].Items {
+
+			// TODO := These listeners came via the Gateway API so they could be enriched prior to adding it to snapshot ??
 			listenersv3 = append(listenersv3, lst.Resource)
 		}
 		for _, route := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Route].Items {

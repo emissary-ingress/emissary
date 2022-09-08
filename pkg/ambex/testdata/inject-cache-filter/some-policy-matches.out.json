@@ -1,0 +1,71 @@
+{
+    "address": {
+        "socket_address": {
+            "address": "0.0.0.0",
+            "port_value": 8080
+        }
+    },
+    "filter_chains": [
+        {
+            "filters": [
+                {
+                    "name": "envoy.filters.network.http_connection_manager",
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                        "route_config": {
+                            "name": "local_route",
+                            "virtual_hosts": [
+                                {
+                                    "domains": ["foo.com"]
+                                }
+                            ]
+                        },
+                        "http_filters": [
+                            {
+                                "name": "envoy.filters.http.router",
+                                "typed_config": {
+                                    "@type": "type.googleapis.com/envoy.extensions.filters.http.router.v3.Router"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "filters": [
+                {
+                    "name": "envoy.filters.network.http_connection_manager",
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                        "route_config": {
+                            "name": "local_route",
+                            "virtual_hosts": [
+                                {
+                                    "domains": ["bar.com"]
+                                }
+                            ]
+                        },
+                        "http_filters": [
+                            {
+                                "name": "envoy.filters.http.cache",
+                                "typed_config": {
+                                    "@type": "type.googleapis.com/envoy.extensions.filters.http.cache.v3.CacheConfig",
+                                    "typed_config": {
+                                        "@type": "type.googleapis.com/envoy.extensions.cache.simple_http_cache.v3.SimpleHttpCacheConfig"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "envoy.filters.http.router",
+                                "typed_config": {
+                                    "@type": "type.googleapis.com/envoy.extensions.filters.http.router.v3.Router"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}

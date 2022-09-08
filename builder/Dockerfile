@@ -73,6 +73,7 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local
 ADD api api
 ADD cmd cmd
 ADD pkg pkg
+ADD internal internal
 ADD vendor vendor
 ADD go.mod go.mod
 ADD go.sum go.sum

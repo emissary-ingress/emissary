@@ -119,6 +119,10 @@ func GetInterestingTypes(ctx context.Context, serverTypeList []kates.APIResource
 		"FilterPolicies": {{typename: "filterpolicies.v3alpha1.getambassador.io"}},
 		"Filters":        {{typename: "filters.v3alpha1.getambassador.io"}},
 
+		// Unstructured from Edge Stack'
+		"Caches":        {{typename: "caches.v3alpha1.getambassador.io"}},
+		"CachePolicies": {{typename: "cachepolicies.v3alpha1.getambassador.io"}},
+
 		// Native Emissary types
 		"AuthServices":                {{typename: "authservices.v3alpha1.getambassador.io"}},
 		"ConsulResolvers":             {{typename: "consulresolvers.v3alpha1.getambassador.io"}},

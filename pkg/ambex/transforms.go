@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	// third-party libraries
+	"github.com/gobwas/glob"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
@@ -24,6 +25,8 @@ import (
 
 	// first-party libraries
 	"github.com/datawire/dlib/dlog"
+
+	cachingv1 "github.com/emissary-ingress/emissary/v3/internal/ir/caching/v1"
 )
 
 // ListenerToRdsListener will take a listener definition and extract any inline RouteConfigurations
@@ -232,4 +235,105 @@ func JoinEdsClustersV3(ctx context.Context, clusters []ecp_cache_types.Resource,
 	}
 
 	return
+}
+
+// injectCacheFilter will check to see if a cache policy and cache exists for the filter chains in the listener
+// If found then the cache filter is injected
+func injectCacheFilter(listener *v3listener.Listener, cachePolicies []cachingv1.CachePolicyContext, cachesMap cachingv1.CacheMap) (*v3listener.Listener, error) {
+	if listener == nil {
+		return nil, fmt.Errorf("nil listener, unable to inject cache filter")
+	}
+	enrichedListener := proto.Clone(listener).(*v3listener.Listener)
+
+	for _, filterChain := range enrichedListener.FilterChains {
+		for _, netFilter := range filterChain.Filters {
+			if netFilter.Name != ecp_wellknown.HTTPConnectionManager {
+				continue
+			}
+
+			// Note that the hcm configuration is stored in a protobuf any, so the
+			// GetHTTPConnectionManager is actually returning an unmarshalled copy
+			// that will need to be saved back to the filters
+			hcm := ecp_v3_resource.GetHTTPConnectionManager(netFilter)
+			if hcm == nil {
+				// Only http caching is supported so a filter chain with a connection manager is required
+				continue
+			}
+
+			// inject prior to route filter so that auth, ratelimit, cors, can be executed prior to cache filter
+			if len(hcm.HttpFilters) == 0 {
+				// TODO: provide more context about listener, filter/filter chain, host for debugging purposes
+				// fmt.Errorf("only %d http filters are configured for listener %s, at least 1 required", len(hcm.HttpFilters), listener.Name)
+				continue
+			}
+
+			routeConfig := hcm.GetRouteConfig()
+			if routeConfig == nil {
+				// safety check because we are unable to check vhost if RDS was being used at this point
+				continue
+			}
+
+			cacheRuleMatch, found := checkVHostMatchCachePolicy(routeConfig.GetVirtualHosts(), cachePolicies)
+			if !found {
+				continue
+			}
+
+			cache, ok := cachesMap[cacheRuleMatch.CacheRef.String()]
+			if !ok {
+				continue
+			}
+
+			if cache.ProviderType != cachingv1.InMemoryCacheProvider {
+				continue
+			}
+
+			cacheConfig, _ := anypb.New(cache.ToCacheConfig())
+			cacheFilter := &v3httpman.HttpFilter{
+				Name: "envoy.filters.http.cache",
+				ConfigType: &v3httpman.HttpFilter_TypedConfig{
+					TypedConfig: cacheConfig,
+				},
+			}
+
+			cacheFilterIndex := len(hcm.HttpFilters) - 1
+			hcm.HttpFilters = append(hcm.HttpFilters[:cacheFilterIndex+1], hcm.HttpFilters[cacheFilterIndex:]...)
+			hcm.HttpFilters[cacheFilterIndex] = cacheFilter
+
+			// Because the hcm is a protobuf any, we need to remarshal it, we can't simply
+			// expect the above modifications to take effect on our clone of the input. There is
+			// also a protobuf oneof that includes the deprecated config and typed_config
+			// fields.
+			updatedHCM, _ := anypb.New(hcm)
+			netFilter.ConfigType = &v3listener.Filter_TypedConfig{TypedConfig: updatedHCM}
+		}
+	}
+
+	return enrichedListener, nil
+}
+
+func checkVHostMatchCachePolicy(vhosts []*v3route.VirtualHost, policies []cachingv1.CachePolicyContext) (cachingv1.CacheRuleMatch, bool) {
+	for _, vh := range vhosts {
+		for _, domain := range vh.Domains {
+			for _, cachePolicy := range policies {
+				for _, rule := range cachePolicy.Rules {
+
+					g, err := glob.Compile(rule.Host)
+					if err != nil {
+						continue
+					}
+
+					if g.Match(domain) {
+						cacheRuleMatch := cachingv1.CacheRuleMatch{
+							PolicyNamespacedName: cachePolicy.NamespacedName,
+							CacheRuleContext:     rule,
+						}
+
+						return cacheRuleMatch, true
+					}
+				}
+			}
+		}
+	}
+
+	return cachingv1.CacheRuleMatch{}, false
 }

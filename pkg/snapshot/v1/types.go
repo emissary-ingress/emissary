@@ -95,6 +95,12 @@ type KubernetesSnapshot struct {
 	FilterPolicies []*kates.Unstructured `json:"filterpolicies.v3alpha1.getambassador.io,omitempty"`
 	Filters        []*kates.Unstructured `json:"filters.v3alpha1.getambassador.io,omitempty"`
 
+	// CachePolices contains an unstructured list of CachePolicy custom resources
+	CachePolicies []*kates.Unstructured `json:"cachepolicies.v3alpha1.getambassador.io,omitempty"`
+
+	// Caches contains an unstructured list of Cache custom resources
+	Caches []*kates.Unstructured `json:"caches.v3alpha1.getambassador.io,omitempty"`
+
 	K8sSecrets []*kates.Secret             `json:"-"`      // Secrets from Kubernetes
 	FSSecrets  map[SecretRef]*kates.Secret `json:"-"`      // Secrets from the filesystem
 	Secrets    []*kates.Secret             `json:"secret"` // Secrets we'll feed to Ambassador
