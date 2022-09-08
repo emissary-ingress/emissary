@@ -151,10 +151,14 @@ name:  {self.target.path.k8s}
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
 add_request_headers:
-  x-cert-start: { value: "%DOWNSTREAM_PEER_CERT_V_START%" }
-  x-cert-end: { value: "%DOWNSTREAM_PEER_CERT_V_END%" }
-  x-cert-start-custom: { value: "%DOWNSTREAM_PEER_CERT_V_START(%b %e %H:%M:%S %Y %Z)%" }
-  x-cert-end-custom: { value: "%DOWNSTREAM_PEER_CERT_V_END(%b %e %H:%M:%S %Y %Z)%" }
+  x-cert-start:
+    value: "%DOWNSTREAM_PEER_CERT_V_START%"
+  x-cert-end:
+    value: "%DOWNSTREAM_PEER_CERT_V_END%"
+  x-cert-start-custom:
+    value: "%DOWNSTREAM_PEER_CERT_V_START(%b %e %H:%M:%S %Y %Z)%"
+  x-cert-end-custom:
+    value: "%DOWNSTREAM_PEER_CERT_V_END(%b %e %H:%M:%S %Y %Z)%"
 """
         )
 
