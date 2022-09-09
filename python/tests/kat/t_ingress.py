@@ -29,7 +29,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: ambassador
     getambassador.io/ambassador-id: {self.ambassador_id}
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
   rules:
   - http:
@@ -55,7 +55,7 @@ spec:
                 "-n",
                 "default",
                 "-f",
-                f"metadata.name={self.name.k8s}",
+                f"metadata.name={self.path.k8s}",
                 "-u",
                 "/dev/fd/0",
             ]
@@ -118,7 +118,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: ambassador
     getambassador.io/ambassador-id: {self.ambassador_id}
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
   rules:
   - http:
@@ -144,7 +144,7 @@ spec:
                 "-n",
                 "default",
                 "-f",
-                f"metadata.name={self.name.k8s}",
+                f"metadata.name={self.path.k8s}",
                 "-u",
                 "/dev/fd/0",
             ]
@@ -208,7 +208,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: ambassador
     getambassador.io/ambassador-id: {self.ambassador_id}
-  name: {self.name.k8s}
+  name: {self.path.k8s}
   namespace: alt-namespace
 spec:
   rules:
@@ -235,7 +235,7 @@ spec:
                 "-n",
                 "default",
                 "-f",
-                f"metadata.name={self.name.k8s}",
+                f"metadata.name={self.path.k8s}",
                 "-u",
                 "/dev/fd/0",
             ]
@@ -307,7 +307,7 @@ metadata:
       ambassador_id: [{self.ambassador_id}]
     kubernetes.io/ingress.class: ambassador
     getambassador.io/ambassador-id: {self.ambassador_id}
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
   rules:
   - http:
@@ -332,7 +332,7 @@ spec:
             "-n",
             "default",
             "-f",
-            f"metadata.name={self.name.k8s}",
+            f"metadata.name={self.path.k8s}",
             "-u",
             "/dev/fd/0",
         ]
@@ -388,7 +388,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: ambassador
     getambassador.io/ambassador-id: {self.ambassador_id}
-  name: {self.name.k8s}
+  name: {self.path.k8s}
   namespace: same-ingress-1
 spec:
   rules:
@@ -411,7 +411,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: ambassador
     getambassador.io/ambassador-id: {self.ambassador_id}
-  name: {self.name.k8s}
+  name: {self.path.k8s}
   namespace: same-ingress-2
 spec:
   rules:
@@ -438,7 +438,7 @@ spec:
                 "-n",
                 "default",
                 "-f",
-                f"metadata.name={self.name.k8s}",
+                f"metadata.name={self.path.k8s}",
                 "-u",
                 "/dev/fd/0",
             ]
@@ -496,7 +496,7 @@ class IngressStatusTestWithIngressClass(AmbassadorTest):
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {self.name.k8s}-ext
+  name: {self.path.k8s}-ext
 rules:
 - apiGroups: ["networking.k8s.io"]
   resources: ["ingressclasses"]
@@ -505,11 +505,11 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {self.name.k8s}-ext
+  name: {self.path.k8s}-ext
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {self.name.k8s}-ext
+  name: {self.path.k8s}-ext
 subjects:
 - kind: ServiceAccount
   name: {self.path.k8s}
@@ -520,7 +520,7 @@ kind: IngressClass
 metadata:
   annotations:
     getambassador.io/ambassador-id: {self.ambassador_id}
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
   controller: getambassador.io/ingress-controller
 ---
@@ -529,9 +529,9 @@ kind: Ingress
 metadata:
   annotations:
     getambassador.io/ambassador-id: {self.ambassador_id}
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
-  ingressClassName: {self.name.k8s}
+  ingressClassName: {self.path.k8s}
   rules:
   - http:
       paths:
@@ -556,7 +556,7 @@ spec:
                 "-n",
                 "default",
                 "-f",
-                f"metadata.name={self.name.k8s}",
+                f"metadata.name={self.path.k8s}",
                 "-u",
                 "/dev/fd/0",
             ]
