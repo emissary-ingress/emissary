@@ -3,7 +3,6 @@ from typing import ClassVar, Generator, Tuple, Union
 
 import pytest
 
-import tests.integration.manifests as integration_manifests
 from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType, StatsDSink
 from kat.harness import Query
 
@@ -19,49 +18,13 @@ class CircuitBreakingTest(AmbassadorTest):
         self.statsd = StatsDSink(target_cluster=self.TARGET_CLUSTER)
 
     def manifests(self) -> str:
-        envs = """
+        self.manifest_envs += f"""
     - name: STATSD_ENABLED
       value: 'true'
     - name: STATSD_HOST
       value: '{self.statsd.path.fqdn}'
 """
-
-        return """
----
-apiVersion: getambassador.io/v3alpha1
-kind: Listener
-metadata:
-  name: cleartext-listener
-  labels:
-    kat-ambassador-id: {self.ambassador_id}
-spec:
-  ambassador_id: [ {self.ambassador_id} ]
-  port: 8080
-  protocol: HTTP
-  securityModel: INSECURE
-  hostBinding:
-    selector:
-      matchLabels:
-        kat-ambassador-id: {self.ambassador_id}
----
-apiVersion: getambassador.io/v3alpha1
-kind: Host
-metadata:
-  name: cleartext-host
-  labels:
-    kat-ambassador-id: {self.ambassador_id}
-spec:
-  ambassador_id: [ {self.ambassador_id} ]
-  requestPolicy:
-    insecure:
-      action: Route
-""" + self.format(
-            integration_manifests.load("rbac_cluster_scope")
-            + integration_manifests.load("ambassador"),
-            envs=envs,
-            extra_ports="",
-            capabilities_block="",
-        )
+        return super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format(
