@@ -321,7 +321,7 @@ pytest-kat-envoy3: push-pytest-images # doing this all at once is too much for C
 	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
 # ... so we have a separate rule to run things split up
 build-aux/.pytest-kat.txt.stamp: $(OSS_HOME)/venv push-pytest-images $(tools/kubectl) FORCE
-	. venv/bin/activate && set -o pipefail && pytest --collect-only python/tests/kat 2>&1 | sed -En 's/.*<Function (.*)>/\1/p' | sed 's/[].].*//' | sort -u > $@
+	. venv/bin/activate && set -o pipefail && pytest --collect-only python/tests/kat 2>&1 | sed -En 's/.*<Function (.*)>/\1/p' | cut -d. -f1 | sort -u > $@
 build-aux/pytest-kat.txt: build-aux/%: build-aux/.%.stamp $(tools/copy-ifchanged)
 	$(tools/copy-ifchanged) $< $@
 clean: build-aux/.pytest-kat.txt.stamp.rm build-aux/pytest-kat.txt.rm
