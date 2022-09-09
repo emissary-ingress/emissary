@@ -1,7 +1,6 @@
 import os
 from typing import Generator, Tuple, Union
 
-import tests.integration.manifests as integration_manifests
 from abstract_tests import DEV, HTTP, AmbassadorTest, Node, ServiceType, StatsDSink
 from kat.harness import Query
 
@@ -22,20 +21,13 @@ class StatsdTest(AmbassadorTest):
             self.skip_node = True
 
     def manifests(self) -> str:
-        envs = """
+        self.manifest_envs += f"""
     - name: STATSD_ENABLED
       value: 'true'
     - name: STATSD_HOST
       value: {self.sink.path.fqdn}
 """
-
-        return self.format(
-            integration_manifests.load("rbac_cluster_scope")
-            + integration_manifests.load("ambassador"),
-            envs=envs,
-            extra_ports="",
-            capabilities_block="",
-        )
+        return super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format(
@@ -149,7 +141,7 @@ class DogstatsdTest(AmbassadorTest):
             self.skip_node = True
 
     def manifests(self) -> str:
-        envs = f"""
+        self.manifest_envs += f"""
     - name: STATSD_ENABLED
       value: 'true'
     - name: STATSD_HOST
@@ -157,14 +149,7 @@ class DogstatsdTest(AmbassadorTest):
     - name: DOGSTATSD
       value: 'true'
 """
-
-        return self.format(
-            integration_manifests.load("rbac_cluster_scope")
-            + integration_manifests.load("ambassador"),
-            envs=envs,
-            extra_ports="",
-            capabilities_block="",
-        )
+        return super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format(
