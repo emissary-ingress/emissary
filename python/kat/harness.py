@@ -338,22 +338,22 @@ class Node(ABC):
     children: List["Node"]
     name: Name
     ambassador_id: str
-    namespace: str = None  # type: ignore
+    namespace: str
     is_ambassador = False
     local_result: Optional[Dict[str, str]] = None
     xfail: Optional[str]
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(
+        self,
+        *args,
+        name: Optional[str] = None,
+        namespace: Optional[str] = None,
+        _clone: Optional["Node"] = None,
+        **kwargs,
+    ) -> None:
         # If self.skip is set to true, this node is skipped
         self.skip_node = False
         self.xfail = None
-
-        name = kwargs.pop("name", None)
-
-        if "namespace" in kwargs:
-            self.namespace = kwargs.pop("namespace", None)
-
-        _clone: Node = kwargs.pop("_clone", None)
 
         if _clone:
             args = _clone._args  # type: ignore
@@ -375,7 +375,11 @@ class Node(ABC):
         saved = _local.current
         self.parent = _local.current
 
-        if not self.namespace:
+        if namespace:
+            self.namespace = namespace
+        if not getattr(self, "namespace", ""):
+            # We do the above `getattr` instead of just an `else` because subclasses might set a
+            # default namespace; so `self.namespace` might already be set before calling __init__().
             if self.parent and self.parent.namespace:
                 # We have no namespace assigned, but our parent does have a namespace
                 # defined. Copy the namespace down from our parent.
