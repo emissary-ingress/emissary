@@ -1,33 +1,24 @@
-from typing import Generator, Tuple, Union
+from typing import ClassVar, Generator, Tuple, Union
 
 from abstract_tests import HTTP, AmbassadorTest, MappingTest, Node, ServiceType
 from kat.harness import Query
 
 
-class ShadowTestCANFLAKE(MappingTest):
-    parent: AmbassadorTest
-    target: ServiceType
-    shadow: ServiceType
+class ShadowBackend(ServiceType):
+    skip_variant: ClassVar[bool] = True
 
-    # XXX This type: ignore is here because we're deliberately overriding the
-    # parent's init to have a different signature... but it's also intimately
-    # (nay, incestuously) related to the variant()'s yield() above, and I really
-    # don't want to deal with that right now. So. We'll deal with it later.
-    def init(self) -> None:  # type: ignore
-        self.target = HTTP(name="target")
-        self.options = []
-
-    def manifests(self) -> str:
-        return (
-            """
+    def __init__(self, *args, **kwargs) -> None:
+        kwargs[
+            "service_manifests"
+        ] = """
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: shadow
+  name: {self.path.k8s}
 spec:
   selector:
-    app: shadow
+    backend: {self.path.k8s}
   ports:
   - port: 80
     name: http
@@ -37,18 +28,18 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shadow
+  name: {self.path.k8s}
 spec:
   selector:
     matchLabels:
-      app: shadow
+      backend: {self.path.k8s}
   replicas: 1
   strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: shadow
+        backend: {self.path.k8s}
     spec:
       containers:
       - name: shadow
@@ -57,8 +48,22 @@ spec:
         - name: http
           containerPort: 3000
 """
-            + super().manifests()
-        )
+        super().__init__(*args, **kwargs)
+
+    def requirements(self):
+        yield ("url", Query(f"http://{self.path.fqdn}/clear/"))
+
+
+class ShadowTestCANFLAKE(MappingTest):
+    shadow: ServiceType
+
+    # XXX This type: ignore is here because we're deliberately overriding the
+    # parent's init to have a different signature... but it's also intimately
+    # (nay, incestuously) related to the variant()'s yield() above, and I really
+    # don't want to deal with that right now. So. We'll deal with it later.
+    def init(self) -> None:  # type: ignore
+        MappingTest.init(self, HTTP(name="target"))
+        self.shadow = ShadowBackend()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format(
@@ -86,7 +91,7 @@ name:  {self.name}-shadow
 hostname: "*"
 prefix: /{self.name}/mark/
 rewrite: /mark/
-service: shadow.plain-namespace
+service: {self.shadow.path.fqdn}
 shadow: true
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -95,7 +100,7 @@ name:  {self.name}-weighted-shadow
 hostname: "*"
 prefix: /{self.name}/weighted-mark/
 rewrite: /mark/
-service: shadow.plain-namespace
+service: {self.shadow.path.fqdn}
 weight: 10
 shadow: true
 ---
@@ -105,13 +110,9 @@ name:  {self.name}-checkshadow
 hostname: "*"
 prefix: /{self.name}/check/
 rewrite: /check/
-service: shadow.plain-namespace
+service: {self.shadow.path.fqdn}
 """
         )
-
-    def requirements(self):
-        yield from super().requirements()
-        yield ("url", Query("http://shadow.plain-namespace/clear/"))
 
     def queries(self):
         # There should be no Ambassador errors. At all.
