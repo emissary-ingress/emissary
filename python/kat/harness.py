@@ -13,7 +13,19 @@ from abc import ABC
 from collections import OrderedDict
 from functools import singledispatch
 from hashlib import sha256
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    NamedTuple,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 import pytest
 import yaml as pyyaml
@@ -291,20 +303,16 @@ def variants(cls, *args, **kwargs) -> Tuple[Any]:
     return tuple(a for n in get_nodes(cls) for a in n.variants(*args, **kwargs))  # type: ignore
 
 
-class Name(str):
+class Name(NamedTuple):
+    name: str
     namespace: Optional[str]
 
-    def __new__(cls, value, namespace: Optional[str] = None):
-        s = super().__new__(cls, value)
-        s.namespace = namespace
-        return s
+    @property
+    def k8s(self) -> str:
+        return self.name.replace(".", "-").lower()
 
     @property
-    def k8s(self):
-        return self.replace(".", "-").lower()
-
-    @property
-    def fqdn(self):
+    def fqdn(self) -> str:
         r = self.k8s
 
         if self.namespace and (self.namespace != "default"):
@@ -340,7 +348,7 @@ class Node(ABC):
 
     parent: Optional["Node"]
     children: List["Node"]
-    name: Name
+    name: str
     ambassador_id: str
     namespace: str
     is_ambassador = False
@@ -362,7 +370,7 @@ class Node(ABC):
             args = _clone._args  # type: ignore
             kwargs = _clone._kwargs  # type: ignore
             if name:
-                name = Name("-".join((_clone.name, name)))
+                name = "-".join((_clone.name, name))
             else:
                 name = _clone.name
             self._args = _clone._args  # type: ignore
@@ -371,9 +379,9 @@ class Node(ABC):
             self._args = args
             self._kwargs = kwargs
             if name:
-                name = Name("-".join((self.__class__.__name__, name)))
+                name = "-".join((self.__class__.__name__, name))
             else:
-                name = Name(self.__class__.__name__)
+                name = self.__class__.__name__
 
         saved = _local.current
         self.parent = _local.current
@@ -400,7 +408,9 @@ class Node(ABC):
         finally:
             _local.current = saved
 
-        self.name = Name(self.format(name or self.__class__.__name__))
+        # This has to come after the above to init(), because the format-string might reference
+        # things that get set by init().
+        self.name = self.format(name)
 
         names = {}  # type: ignore
         for c in self.children:
@@ -568,14 +578,10 @@ class Node(ABC):
 
     @property
     def path(self) -> Name:
-        return self.relpath(None)
-
-    def relpath(self, ancestor):
-        if self.parent is ancestor:
-            return Name(self.name, namespace=self.namespace)
+        if self.parent is None:
+            return Name(self.name, self.namespace)
         else:
-            assert self.parent
-            return Name(self.parent.relpath(ancestor) + "." + self.name, namespace=self.namespace)
+            return Name(self.parent.path.name + "." + self.name, self.namespace)
 
     @property
     def traversal(self):
@@ -609,7 +615,7 @@ class Node(ABC):
 
     @functools.lru_cache()
     def matches(self, pattern):
-        if fnmatch.fnmatch(self.path, "*%s*" % pattern):
+        if fnmatch.fnmatch(self.path.name, "*%s*" % pattern):
             return True
         for c in self.children:
             if c.matches(pattern):
@@ -700,7 +706,7 @@ class Test(Node):
     @property
     def ambassador_id(self):
         if self.parent is None:
-            return self.name.k8s
+            return self.path.k8s
         else:
             return self.parent.ambassador_id
 
@@ -785,7 +791,7 @@ class Query:
     def as_json(self):
         assert self.parent
         result = {
-            "test": self.parent.path,
+            "test": self.parent.path.name,
             "id": id(self),
             "url": self.url,
             "insecure": self.insecure,
@@ -1184,7 +1190,7 @@ class Runner:
         self.roots = tuple(v for c in classes for v in variants(c))
         self.nodes = [n for r in self.roots for n in r.traversal if not n.skip_node]
         self.tests = [n for n in self.nodes if isinstance(n, Test)]
-        self.ids = [t.path for t in self.tests]
+        self.ids = [t.path.name for t in self.tests]
         self.done = False
         self.skip_nonlocal_tests = False
         self.ids_to_strip: Dict[str, bool] = {}
@@ -1474,7 +1480,7 @@ class Runner:
                             continue
                         break
                 else:
-                    assert False, "no service found for target: %s" % target.path
+                    assert False, "no service found for target: %s" % target.path.name
 
         yaml = ""
 

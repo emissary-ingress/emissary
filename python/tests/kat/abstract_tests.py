@@ -92,7 +92,7 @@ class AmbassadorTest(Test):
     _ambassador_id: Optional[str] = None
     single_namespace: bool = False
     disable_endpoints: bool = False
-    name: Name
+    name: str
     path: Name
     extra_ports: Optional[List[int]] = None
     debug_diagd: bool = True
@@ -179,18 +179,6 @@ class AmbassadorTest(Test):
                 extra_ports=eports,
                 capabilities_block="",
             )
-
-    # # Will tear this out of the harness shortly
-    # @property
-    # def ambassador_id(self) -> str:
-    #     if self._ambassador_id is None:
-    #         return self.name.k8s
-    #     else:
-    #         return typecast(str, self._ambassador_id)
-
-    # @ambassador_id.setter
-    # def ambassador_id(self, val: str) -> None:
-    #     self._ambassador_id = val
 
     @property
     def index(self) -> int:
