@@ -472,8 +472,11 @@ class IRHost(IRResource):
                 dump_json(group.get("metadata_labels")),
                 sel_match,
             )
+        else:
+            # if the host does not have a mapping selector it matches any label set
+            sel_match = True
 
-        return host_match or sel_match
+        return host_match and sel_match
 
     def __str__(self) -> str:
         request_policy = self.get("requestPolicy", {})

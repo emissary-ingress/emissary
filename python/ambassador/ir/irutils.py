@@ -181,14 +181,11 @@ def selector_matches(
         logger.debug("    no incoming labels => False")
         return False
 
-    selmatch = False
-
+    # every selector label must exist and be equal
     for k, v in match.items():
-        if labels.get(k) == v:
-            logger.debug("    selector match for %s=%s => True", k, v)
-            return True
+        if labels.get(k) != v:
+            logger.debug("    selector match for %s=%s => False", k, v)
+            return False
 
-        logger.debug("    selector miss on %s=%s", k, v)
-
-    logger.debug("    all selectors miss => False")
-    return False
+    logger.debug("    all selectors match => True")
+    return True
