@@ -422,11 +422,18 @@ class IRHost(IRResource):
         mapsel = self.get('mappingSelector')
 
         if mapsel:
-            sel_match = selector_matches(self.logger, mapsel, group.get('metadata_labels', {}))
-            self.logger.debug("-- host sel %s group labels %s => %s",
-                             dump_json(mapsel), dump_json(group.get('metadata_labels')), sel_match)
+            sel_match = selector_matches(self.logger, mapsel, group.get("metadata_labels", {}))
+            self.logger.debug(
+                "-- host sel %s group labels %s => %s",
+                dump_json(mapsel),
+                dump_json(group.get("metadata_labels")),
+                sel_match,
+            )
+        else:
+            # if the host does not have a mapping selector it matches any label set
+            sel_match = True
 
-        return host_match or sel_match
+        return host_match and sel_match
 
     def __str__(self) -> str:
         request_policy = self.get('requestPolicy', {})
