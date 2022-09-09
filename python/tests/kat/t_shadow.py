@@ -54,7 +54,7 @@ spec:
         yield ("url", Query(f"http://{self.path.fqdn}/clear/"))
 
 
-class ShadowTestCANFLAKE(MappingTest):
+class ShadowTest(MappingTest):
     shadow: ServiceType
 
     # XXX This type: ignore is here because we're deliberately overriding the

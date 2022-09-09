@@ -29,18 +29,19 @@ import t_loadbalancer
 import t_logservice
 import t_lua_scripts
 import t_mappingtests_default  # mapping tests executed in the default namespace
+import t_mappingtests_plain
 import t_max_req_header_kb
 import t_no_ui
-import t_plain  # t_plain include t_mappingtests_plain and t_optiontests as imports; these tests require each other and need to be executed as a set
+import t_optiontests
+import t_plain
 import t_queryparameter_routing
 import t_ratelimit
 import t_redirect
 import t_regexrewrite_forwarding
 import t_request_header
 import t_retrypolicy
-
-# import t_shadow
-# import t_stats # t_stats has tests for statsd and dogstatsd. It's too flaky to run all the time.
+import t_shadow
+import t_stats
 import t_tcpmapping
 import t_tls
 import t_tracing
