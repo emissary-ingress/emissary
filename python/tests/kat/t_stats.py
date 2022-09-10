@@ -82,13 +82,14 @@ service: http://127.0.0.1:8877
     def check(self):
         # self.results[-2] is the JSON dump from our test self.sink service.
         stats = self.results[-2].json or {}
+        print(f"stats = {repr(stats)}")
 
         cluster_stats = stats.get(STATSD_TEST_CLUSTER, {})
         rq_total = cluster_stats.get("upstream_rq_total", -1)
         rq_200 = cluster_stats.get("upstream_rq_200", -1)
 
         assert rq_total == 1000, f"{STATSD_TEST_CLUSTER}: expected 1000 total calls, got {rq_total}"
-        assert rq_200 > 990, f"{STATSD_TEST_CLUSTER}: expected 1000 successful calls, got {rq_200}"
+        assert rq_200 > 900, f"{STATSD_TEST_CLUSTER}: expected ~1000 successful calls, got {rq_200}"
 
         cluster_stats = stats.get(ALT_STATSD_TEST_CLUSTER, {})
         rq_total = cluster_stats.get("upstream_rq_total", -1)
@@ -98,8 +99,8 @@ service: http://127.0.0.1:8877
             rq_total == 1000
         ), f"{ALT_STATSD_TEST_CLUSTER}: expected 1000 total calls, got {rq_total}"
         assert (
-            rq_200 > 990
-        ), f"{ALT_STATSD_TEST_CLUSTER}: expected 1000 successful calls, got {rq_200}"
+            rq_200 > 900
+        ), f"{ALT_STATSD_TEST_CLUSTER}: expected ~1000 successful calls, got {rq_200}"
 
         # self.results[-1] is the text dump from Envoy's '/metrics' endpoint.
         metrics = self.results[-1].text
@@ -185,10 +186,11 @@ service: {self.sink.path.fqdn}
 
     def check(self):
         stats = self.results[-1].json or {}
+        print(f"stats = {repr(stats)}")
 
         cluster_stats = stats.get(DOGSTATSD_TEST_CLUSTER, {})
         rq_total = cluster_stats.get("upstream_rq_total", -1)
         rq_200 = cluster_stats.get("upstream_rq_200", -1)
 
         assert rq_total == 1000, f"expected 1000 total calls, got {rq_total}"
-        assert rq_200 > 990, f"expected 1000 successful calls, got {rq_200}"
+        assert rq_200 > 900, f"expected ~1000 successful calls, got {rq_200}"
