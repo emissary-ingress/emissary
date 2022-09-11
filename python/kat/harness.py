@@ -18,6 +18,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, U
 import pytest
 import yaml as pyyaml
 from packaging import version
+from yaml.parser import ParserError as YAMLParseError
 from yaml.scanner import ScannerError as YAMLScanError
 
 import tests.integration.manifests as integration_manifests
@@ -1429,7 +1430,7 @@ class Runner:
                     try:
                         for o in load(n.path, cfg, Tag.MAPPING):
                             parent_config.merge(o)
-                    except YAMLScanError as e:
+                    except (YAMLScanError, YAMLParseError) as e:
                         raise Exception("Parse Error: %s, input text:\n%s" % (e, cfg))
                 else:
                     target = cfg[0]
@@ -1443,7 +1444,7 @@ class Runner:
                                     obj["ambassador_id"] = [n.ambassador_id]
 
                         configs[n].append((target, yaml_view))
-                    except YAMLScanError as e:
+                    except (YAMLScanError, YAMLParseError) as e:
                         raise Exception("Parse Error: %s, input text:\n%s" % (e, cfg[1]))
 
         for tgt_cfgs in configs.values():
