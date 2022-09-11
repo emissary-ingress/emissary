@@ -1,4 +1,5 @@
 import json
+from random import random
 from typing import ClassVar, Generator, Tuple, Union
 
 from abstract_tests import AHTTP, HTTP, AmbassadorTest, Node, ServiceType
@@ -18,6 +19,10 @@ class Zipkin(ServiceType):
     skip_variant: ClassVar[bool] = True
 
     def __init__(self, *args, **kwargs) -> None:
+        # We want to reset Zipkin between test runs.  StatsD has a handy "reset" call that can do
+        # this... but the only way to reset Zipkin is to roll over the Pod.  So, 'nonce' is a
+        # horrible hack to get the Pod to roll over each invocation.
+        self.nonce = random()
         kwargs[
             "service_manifests"
         ] = """
@@ -45,7 +50,7 @@ spec:
       backend: {self.path.k8s}
   replicas: 1
   strategy:
-    type: RollingUpdate
+    type: Recreate # rolling would be bad with the nonce hack
   template:
     metadata:
       labels:
@@ -57,6 +62,9 @@ spec:
         ports:
         - name: http
           containerPort: 9411
+        env:
+        - name: _nonce
+          value: '{self.nonce}'
 """
         super().__init__(*args, **kwargs)
 
