@@ -141,8 +141,8 @@ tag_headers:
 
         assert self.results[101].backend.name == "raw"
 
-        tracelist = {x: True for x in self.results[101].backend.response}
-
+        tracelist = set(x for x in self.results[101].backend.response)
+        print(f"tracelist = {tracelist}")
         assert "router cluster_tracingtest_http_default egress" in tracelist
 
         # Look for the host that we actually queried, since that's what appears in the spans.
@@ -236,8 +236,8 @@ driver: zipkin
 
         assert self.results[101].backend.name == "raw"
 
-        tracelist = {x: True for x in self.results[101].backend.response}
-
+        tracelist = set(x for x in self.results[101].backend.response)
+        print(f"tracelist = {tracelist}")
         assert "router cluster_tracingtestlongclustername_http_default egress" in tracelist
 
         # Look for the host that we actually queried, since that's what appears in the spans.
@@ -514,8 +514,8 @@ config:
 
         assert self.results[101].backend.name == "raw"
 
-        tracelist = {x: True for x in self.results[101].backend.response}
-
+        tracelist = set(x for x in self.results[101].backend.response)
+        print(f"tracelist = {tracelist}")
         assert "router cluster_tracingtestzipkinv2_http_default egress" in tracelist
 
         # Look for the host that we actually queried, since that's what appears in the spans.
