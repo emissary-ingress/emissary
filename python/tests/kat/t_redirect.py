@@ -125,6 +125,7 @@ class RedirectTestsWithProxyProto(AmbassadorTest):
     target: ServiceType
 
     def init(self):
+        self.xfail = "2.0.0-ea dropped Module.spec.config.use_proxy_proto in favor of Listeners... this test needs re-thought in that world, and also needs to check more things, it's too anemic to be useful as-is"
         self.target = HTTP()
 
     def requirements(self):

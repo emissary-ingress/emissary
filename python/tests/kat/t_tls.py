@@ -20,6 +20,7 @@ class TLSContextsTest(AmbassadorTest):
     """
 
     def init(self):
+        self.add_default_https_listener = False
         self.target = HTTP()
 
         if EDGE_STACK:
