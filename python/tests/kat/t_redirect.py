@@ -52,6 +52,16 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["localhost"].k8s_crt}
   tls.key: {TLSCerts["localhost"].k8s_key}
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
+  tlsSecret:
+    name: redirect-cert
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:

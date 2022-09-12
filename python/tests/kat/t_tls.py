@@ -35,6 +35,15 @@ data:
   tls.crt: {TLSCerts["master.datawire.io"].k8s_crt}
 kind: Secret
 type: Opaque
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  tlsSecret:
+    name: test-tlscontexts-secret
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -97,6 +106,17 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["ambassador.example.com"].k8s_crt}
   tls.key: {TLSCerts["ambassador.example.com"].k8s_key}
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  tlsSecret:
+    name: test-clientcert-server-secret
+  tls:
+    cert_required: True
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -225,6 +245,18 @@ spec:
   secret: ccauthctx-server-secret
   ca_secret: ccauthctx-client-secret
   cert_required: True
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
+  tlsSecret:
+    name: ccauthctx-server-secret
+  tlsContext:
+    name: ccauthctx-tls
 """) + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -322,6 +354,18 @@ spec:
   ca_secret: ccauthctxcrl-client-secret
   crl_secret: ccauthctxcrl-crl-secret
   cert_required: True
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
+  tlsSecret:
+    name: ccauthctxcrl-server-secret
+  tlsContext:
+    name: ccauthctxcrl-tls
 """) + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -609,6 +653,60 @@ metadata:
   labels:
     kat-ambassador-id: tlscontexttest
 type: kubernetes.io/tls
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-1
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  tlsSecret:
+    name: test-tlscontext-secret-1
+    namespace: secret-namespace
+  tlsContext:
+    name: {self.name}-same-context-1
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-2
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-2
+  tlsSecret:
+    name: test-tlscontext-secret-2
+  tlsContext:
+    name: {self.name}-same-context-2
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-no-secret
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  tlsContext:
+    name: {self.name}-no-secret
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-same-context-error
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  tlsContext:
+    name: {self.name}-same-context-error
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-rcf-error
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  tlsContext:
+    name: {self.name}-rcf-error
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -933,6 +1031,16 @@ spec:
               number: 80
         path: /tls-context-same/
         pathType: Prefix
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
+  tlsSecret:
+    name: test-tlscontext-secret-ingress-0
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -1097,6 +1205,18 @@ metadata:
   labels:
     kat-ambassador-id: tlscontextprotocolmaxversion
 type: kubernetes.io/tls
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  tlsSecret:
+    name: secret.max-version
+  tlsContext:
+    name: {self.name}-same-context-1
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -1215,6 +1335,18 @@ metadata:
   labels:
     kat-ambassador-id: tlscontextprotocolminversion
 type: kubernetes.io/tls
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  tlsSecret:
+    name: secret.min-version
+  tlsContext:
+    name: {self.name}-same-context-1
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -1313,6 +1445,18 @@ metadata:
   labels:
     kat-ambassador-id: tlscontextciphersuites
 type: kubernetes.io/tls
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  tlsSecret:
+    name: secret.cipher-suites
+  tlsContext:
+    name: {self.name}-same-context-1
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -1463,6 +1607,42 @@ data:
   tls.key: {TLSCerts["*.domain.com"].k8s_key}
 kind: Secret
 type: kubernetes.io/tls
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-apex
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: domain.com
+  tlsSecret:
+    name: tlscoalescing-certs
+  tlsContext:
+    name: tlscoalescing-context
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-a
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: a.domain.com
+  tlsSecret:
+    name: tlscoalescing-certs
+  tlsContext:
+    name: tlscoalescing-context
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-b
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: b.domain.com
+  tlsSecret:
+    name: tlscoalescing-certs
+  tlsContext:
+    name: tlscoalescing-context
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -1526,6 +1706,22 @@ config:
 
     def manifests(self) -> str:
         return self.format('''
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: a.domain.com
+  tlsSecret:
+    name: {self.name.k8s}
+  tlsContext:
+    name: {self.name.k8s}
+  requestPolicy:
+    insecure:
+      action: Redirect
+      additionalPort: 8080
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
