@@ -1324,11 +1324,6 @@ service: https://{self.target.path.fqdn}
 class TLSContextProtocolMaxVersion(AmbassadorTest):
     # Here we're testing that the client can't exceed the maximum TLS version
     # configured.
-    #
-    # XXX 2019-09-11: vet that the test client's support for TLS v1.3 is up-to-date.
-    # It appears not to be.
-
-    # debug = True
 
     def init(self):
         self.target = HTTP()
