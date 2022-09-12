@@ -74,7 +74,6 @@ items:
           deny traffic when it is unable to communicate to the RateLimitService 
           returning a 500.
         docs: https://www.getambassador.io/docs/emissary/latest/topics/running/services/rate-limit-service/
-
       - title: Properly populate alt_state_name for Tracing, Auth and RateLimit Services
         type: bugfix
         body: >-
@@ -82,6 +81,11 @@ items:
           or the <code>AuthService</code> would have no affect because it was not being properly passed to the Envoy cluster
           config. This has been fixed and the <code>alt_stats_name</code> field in the cluster config is now set correctly.
           (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
+      - title: Add support for config change batch window before reconfiguring Envoy
+        type: feature
+        body: >-
+          The <code>AMBASSADOR_RECONFIG_MAX_DELAY</code> env var can be optionally set to batch changes for the specified 
+          non-negative window period in seconds before doing an Envoy reconfiguration. Default is "1" if not set.
 
   - version: 3.1.1
     prevVersion: 3.1.0
