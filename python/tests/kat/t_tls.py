@@ -1936,6 +1936,8 @@ secret_namespacing: False
 
 
 class TLSCoalescing(AmbassadorTest):
+    # Tests for https://github.com/emissary-ingress/emissary/issues/2403
+
     def init(self):
         self.target = HTTP()
 
@@ -2014,14 +2016,6 @@ hosts:
     def scheme(self) -> str:
         return "https"
 
-    @staticmethod
-    def _go_close_connection_error(url):
-        """
-        :param url: url passed to the query
-        :return: error message string that Go's net/http package throws when server closes connection
-        """
-        return "Get {}: EOF".format(url)
-
     def queries(self):
         yield Query(
             self.url("ambassador/v0/diag/"),
@@ -2037,7 +2031,14 @@ hosts:
         )
 
     def requirements(self):
-        yield ("url", Query(self.url("ambassador/v0/check_ready"), insecure=True, sni=True))
+        for r in super().requirements():
+            query = r[1]
+            query.headers = {"Host": "domain.com"}
+            query.sni = (
+                True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            )
+            query.insecure = True
+            yield (r[0], query)
 
 
 class TLSInheritFromModule(AmbassadorTest):
