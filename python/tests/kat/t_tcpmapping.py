@@ -588,8 +588,6 @@ class TCPMappingTLSTerminationTest(AmbassadorTest):
             yield cls(tls_src, name="{self.tls_src}")
 
     def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
-        if tls_src == 'tlscontext':
-            self.xfail = "bug (2.3): TCPMappings can't match directly with termination TLSContexts"
         self.tls_src = tls_src
 
     def manifests(self) -> str:

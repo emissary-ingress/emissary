@@ -127,6 +127,32 @@ class V2Chain:
         return f"CHAIN: tls={bool(self.context)} hostglobs={repr(sorted(self.hostglobs()))}"
 
 
+def tlscontext_for_tcpmapping(irgroup: IRTCPMappingGroup, config: 'V2Config') -> Optional['IRTLSContext']:
+    group_host = irgroup.get('host')
+    if not group_host:
+        return None
+
+    # We can pair directly with a 'TLSContext', or get a TLS config through a 'Host'.
+    #
+    # Give 'Hosts' precedence.  Why?  IDK, it felt right.
+
+    # First, Hosts:
+
+    for irhost in sorted(config.ir.get_hosts(), key=lambda h: h.hostname):
+        if irhost.context and hostglob_matches(irhost.hostname, group_host):
+            return irhost.context
+
+    # Second, TLSContexts:
+
+    for context in config.ir.get_tls_contexts():
+        for context_host in context.get('hosts') or []:
+            # Note: this is *not* glob matching.
+            if context_host == group_host:
+                return context
+
+    return None
+
+
 # Model an Envoy listener.
 #
 # In Envoy, Listeners are the top-level configuration element defining a port on which we'll
@@ -612,23 +638,11 @@ class V2Listener:
                 # so just add this immediately as a "*" chain.
                 self.add_chain('tcp', None, '*').add_tcphost(irgroup)
             else: # TLS/SNI
-                # What matching Hosts do we have?
-                for host in sorted(self.config.ir.get_hosts(), key=lambda h: h.hostname):
-                    # They're asking for a hostname match here, which _cannot happen_ without
-                    # SNI -- so don't take any hosts that don't have a TLSContext.
-
-                    if not host.context:
-                        if self._log_debug:
-                            self.config.ir.logger.debug("V2Listener %s @ %s TCP %s: skip %s",
-                                                        self.name, self.bind_to, group_host, host)
-                        continue
-
-                    if self._log_debug:
-                        self.config.ir.logger.debug("V2Listener %s @ %s TCP %s: consider %s",
-                                                    self.name, self.bind_to, group_host, host)
-
-                    if hostglob_matches(host.hostname, group_host):
-                        self.add_chain('tcp', host.context, group_host).add_tcphost(irgroup)
+                context = tlscontext_for_tcpmapping(irgroup, self.config)
+                if not context:
+                    irgroup.post_error("No matching TLSContext found, disabling!")
+                    continue
+                self.add_chain('tcp', context, group_host).add_tcphost(irgroup)
 
     def compute_httpchains(self) -> None:
         # Compute the set of chains we need, HTTP version. The core here is matching

@@ -99,6 +99,11 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   using the hostname glob in the `TCPMapping`, uses the hostname glob in the `Host` that the TLS
   termination configuration comes from.
 
+- Bugfix: Emissary-ingress 2.0.0 introduced a bug where a `TCPMapping` that terminates TLS must have
+  a corresponding `Host` that it can take the TLS configuration from. This was semi-intentional, but
+  didn't make much sense.  You can now use a `TLSContext` without a `Host`as in Emissary-ingress 1.y
+  releases, or a `Host` with or without a `TLSContext` as in prior 2.y releases.
+
 ## [1.14.5] TBD
 [1.14.5]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v1.14.5
 

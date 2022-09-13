@@ -57,6 +57,15 @@ items:
           instead of using the hostname glob in the <code>TCPMapping</code>, uses the hostname glob
           in the <code>Host</code> that the TLS termination configuration comes from.
 
+      - title: TCPMappings configure TLS termination without a Host resource
+        type: bugfix
+        body: >-
+          $productName$ 2.0.0 introduced a bug where a <code>TCPMapping</code> that terminates TLS
+          must have a corresponding <code>Host</code> that it can take the TLS configuration from.
+          This was semi-intentional, but didn't make much sense.  You can now use a
+          <code>TLSContext</code> without a <code>Host</code>as in $productName$ 1.y releases, or a
+          <code>Host</code> with or without a <code>TLSContext</code> as in prior 2.y releases.
+
   - version: 1.14.5
     date: 'TBD'
     notes:
