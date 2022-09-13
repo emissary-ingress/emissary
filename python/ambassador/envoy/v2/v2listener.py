@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-from typing import Any, Dict, List, Literal, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Literal, Optional, Tuple, TYPE_CHECKING, Union
 from typing import cast as typecast
 
 from os import environ
@@ -46,25 +46,20 @@ if TYPE_CHECKING:
 # also can have a TLS context to say which certificate to serve if a connection is to be
 # processed by the chain.
 #
-# A basic asymmetry of the chain is that the filter_chain_match can only do hostname matching
-# if TLS (and thus SNI) is in play, which means for our purposes that a chain _with_ TLS enabled
-# is fundamentally different from a chain _without_ TLS enabled. We encapsulate that idea in
-# the "type" parameter, which can be "http", "https", or "tcp" depending on how the chain will
-# be used. (And yes, that implies that at the moment, you can't mix HTTP Mappings and TCP Mappings
-# on the same port. Possible near-future feature.)
+# A basic asymmetry of the chain is that the filter_chain_match can only do hostname matching if SNI
+# is available (i.e. we're terminating TLS), which means for our purposes that a chain _with_ TLS
+# enabled is fundamentally different from a chain _without_ TLS enabled.  Whether a chain has TLS
+# enabled can be checked with the truthiness of `chain.context`.
 
 class V2Chain:
     _config: 'V2Config'
     _logger: logging.Logger
     _log_debug: bool
 
-    # We can have multiple hosts here, primarily so that HTTP chains can DTRT --
-    # but it would be fine to have multiple HTTPS hosts too, as long as they all
-    # share a TLSContext.
+    # We can have multiple hosts here, primarily so that cleartext HTTP chains can DTRT.
     context: Optional['IRTLSContext']
-    hosts: Dict[str, IRHost]
+    hosts: Dict[str, Union[IRHost, IRTCPMappingGroup]]
     routes: List[DictifiedV2Route]
-    tcpmappings: List[IRTCPMappingGroup]
 
     def __init__(self, config: 'V2Config', context: Optional['IRTLSContext']) -> None:
         self._config = config
@@ -74,30 +69,42 @@ class V2Chain:
         self.context = context
         self.hosts = {}
         self.routes = []
-        self.tcpmappings = []
 
-    @property
-    def type(self) -> Literal['tcp', 'http', 'https']:
-        if len(self.tcpmappings) > 0:
-            return 'tcp'
-        elif self.context:
-            return 'https'
-        else:
-            return 'http'
-
-    def add_host(self, host: IRHost, hostname: Optional[str]=None) -> None:
+    def add_tcphost(self, tcpmapping: IRTCPMappingGroup) -> None:
         if self._log_debug:
-            self._logger.debug(f"      CHAIN UPDATE: add HTTP host: hostname={repr(hostname or host.hostname)}")
-        self.hosts[hostname or host.hostname] = host
+            self._logger.debug(f"      CHAIN UPDATE: add TCP host: hostname={repr(tcpmapping.get('host'))}")
 
-        # Don't mess with the context if we're a cleartext chain...
-        if not self.context:
+        if len(self.hosts) > 0:
+            # If we have SNI, then each host gets its own chain, so we should never have more than 1
+            # self.hosts; if we don't have SNI then a single TLSContext takes over the entire chain
+            # and so we shouldn't have more than 1 self.hosts then either.
+            other = next(iter(self.hosts.values()))
+            other_type = "TCPMapping" if isinstance(other, IRTCPMappingGroup) else "Host"
+            tcpmapping.post_error("TCPMapping {tcpmapping.name}: discarding because it conflicts with {other_type} {other.name}")
             return
 
-        # OK, we're some type where TLS makes sense. Do the thing.
-        if host.context and host.context != self.context:
-            self._config.ir.post_error("Chain context mismatch: Host %s cannot combine with %s" %
-                                       (host.name, ", ".join(sorted(self.hosts.keys()))))
+        self.hosts[tcpmapping.get('host') or '*'] = tcpmapping
+
+    def add_httphost(self, host: IRHost) -> None:
+        if self._log_debug:
+            self._logger.debug(f"      CHAIN UPDATE: add HTTP host: hostname={repr(host.hostname)}")
+
+        if self.context:
+            # If we have SNI, then each host gets its own chain, so we should never have more than 1
+            # self.hosts
+            if len(self.hosts) > 0:
+                other = next(iter(self.hosts.values()))
+                other_type = "TCPMapping" if isinstance(other, IRTCPMappingGroup) else "Host"
+                host.post_error("TLS Host {host.name}: discarding because it conflicts with {other_type} {other.name}")
+                return
+        else:
+            # If we don't have SNI then a single TLSContext takes over the entire chain.
+            for other in self.hosts.values():
+                if isinstance(other, IRTCPMappingGroup):
+                    host.post_error("Cleartext Host {host.name}: discarding because it conflicts with TCPMapping {other.name}")
+                    return
+
+        self.hosts[host.hostname] = host
 
     def hostglobs(self) -> List[str]:
         # Get a list of host globs currently set up for this chain.
@@ -105,23 +112,19 @@ class V2Chain:
 
     def matching_hosts(self, route: V2Route) -> List[IRHost]:
         # Get a list of _IRHosts_ that the given route should be matched with.
-        rv: List[IRHost] = [ host for host in self.hosts.values() if host.matches_httpgroup(route._group) ]
-
+        rv: List[IRHost] = []
+        for host in self.hosts.values():
+            if isinstance(host, IRHost) and host.matches_httpgroup(route._group):
+                rv.append(host)
         return rv
 
     def add_route(self, route: DictifiedV2Route) -> None:
         self.routes.append(route)
 
-    def add_tcpmapping(self, tcpmapping: IRTCPMappingGroup) -> None:
-        if self._log_debug:
-            self._logger.debug(f"      CHAIN UPDATE: add TCP host: hostname={repr(tcpmapping.get('host'))}")
-        self.tcpmappings.append(tcpmapping)
-
     def __str__(self) -> str:
         ctxstr = f" ctx {self.context.name}" if self.context else ""
 
-        return "CHAIN: %s%s [ %s ]" % \
-               (self.type.upper(), ctxstr, ", ".join(sorted(self.hostglobs())))
+        return f"CHAIN: tls={bool(self.context)} hostglobs={repr(sorted(self.hostglobs()))}"
 
 
 # Model an Envoy listener.
@@ -522,13 +525,13 @@ class V2Listener:
         logger = self.config.ir.logger
 
         for chain_key, chain in self._chains.items():
-            if chain.type != "tcp":
-                continue
-
             if self._log_debug:
                 logger.debug("BUILD CHAIN %s - %s", chain_key, chain)
 
-            for irgroup in chain.tcpmappings:
+            for irgroup in chain.hosts.values():
+                if not isinstance(irgroup, IRTCPMappingGroup):
+                    continue
+
                 # First up, which clusters do we need to talk to?
                 clusters = [{
                     'name': mapping.cluster.envoy_name,
@@ -573,7 +576,7 @@ class V2Listener:
                 # make sure that we don't have two chains with an empty filter_match
                 # criterion (since Envoy will reject such a configuration).
 
-                if len(chain_hosts) > 0:
+                if len(chain_hosts) > 0 and ("*" not in chain_hosts):
                     filter_chain_match['server_names'] = chain_hosts
 
                 # Once all of that is done, hook in the match...
@@ -607,7 +610,7 @@ class V2Listener:
             if not group_host: # cleartext
                 # Special case. No Host in a TCPMapping means an unconditional forward,
                 # so just add this immediately as a "*" chain.
-                self.add_chain('tcp', None, '*').add_tcpmapping(irgroup)
+                self.add_chain('tcp', None, '*').add_tcphost(irgroup)
             else: # TLS/SNI
                 # What matching Hosts do we have?
                 for host in sorted(self.config.ir.get_hosts(), key=lambda h: h.hostname):
@@ -625,9 +628,7 @@ class V2Listener:
                                                     self.name, self.bind_to, group_host, host)
 
                     if hostglob_matches(host.hostname, group_host):
-                        chain = self.add_chain('tcp', host.context, group_host)
-                        chain.add_host(host, hostname=group_host)
-                        chain.add_tcpmapping(irgroup)
+                        self.add_chain('tcp', host.context, group_host).add_tcphost(irgroup)
 
     def compute_httpchains(self) -> None:
         # Compute the set of chains we need, HTTP version. The core here is matching
@@ -672,7 +673,7 @@ class V2Listener:
                 if self._log_debug:
                     self.config.ir.logger.debug("      take SECURE %s", host)
 
-                self.add_chain('https', host.context, host.hostname).add_host(host)
+                self.add_chain('https', host.context, host.hostname).add_httphost(host)
 
             # Same idea on the insecure side: only skip the Host if the Listener's securityModel
             # is INSECURE but the Host's insecure_action is Reject.
@@ -680,7 +681,7 @@ class V2Listener:
                 if self._log_debug:
                     self.config.ir.logger.debug("      take INSECURE %s", host)
 
-                self.add_chain('http', None, host.hostname).add_host(host)
+                self.add_chain('http', None, host.hostname).add_httphost(host)
 
     def compute_routes(self) -> None:
         # Compute the set of valid HTTP routes for _each chain_ in this Listener.
@@ -691,7 +692,7 @@ class V2Listener:
 
         for chain_key, chain in self._chains.items():
             # Only look at HTTP(S) chains.
-            if (chain.type != "http") and (chain.type != "https"):
+            if not any(isinstance(h, IRHost) for h in chain.hosts.values()):
                 continue
 
             if self._log_debug:
@@ -818,12 +819,15 @@ class V2Listener:
         filter_chains: Dict[str, Dict[str, Any]] = {}
 
         for chain_key, chain in self._chains.items():
+            if not any(isinstance(h, IRHost) for h in chain.hosts.values()):
+                continue
+
             if self._log_debug:
                 self._irlistener.logger.debug("FHTTP %s / %s / %s", self, chain_key, chain)
 
             filter_chain: Optional[Dict[str, Any]] = None
 
-            if chain.type == "http":
+            if not chain.context: # cleartext
                 # All HTTP chains get collapsed into one here, using domains to separate them.
                 # This works because we don't need to offer TLS certs (we can't anyway), and
                 # because of that, SNI (and thus filter server_names matches) aren't things.
@@ -844,7 +848,7 @@ class V2Listener:
                 else:
                     if self._log_debug:
                         self._irlistener.logger.debug("FHTTP   use filter_chain %s: vhosts %d", chain_key, len(filter_chain["_vhosts"]))
-            elif chain.type == "https":
+            else: # TLS/SNI
                 # Since chain_key is a dictionary key in its own right, we can't already
                 # have a matching chain for this.
 
@@ -883,13 +887,13 @@ class V2Listener:
 
                 # ...and save it.
                 filter_chains[chain_key] = filter_chain
-            else:
-                # The chain type is neither HTTP nor HTTPS -- must be a TCP chain. Skip it.
-                continue
 
             # OK, we have the filter_chain variable set -- build the Envoy virtual_hosts for it.
 
             for host in chain.hosts.values():
+                if not isinstance(host, IRHost):
+                    continue
+
                 # Make certain that no internal keys from the route make it into the Envoy
                 # configuration.
                 routes = []
@@ -1003,4 +1007,4 @@ class V2Listener:
             if v2listener._filter_chains:
                 config.listeners.append(v2listener)
             else:
-                irlistener.post_error("No matching Hosts found, disabling!")
+                irlistener.post_error("No matching Hosts/TCPMappings found, disabling!")
