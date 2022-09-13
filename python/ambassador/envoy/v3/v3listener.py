@@ -132,7 +132,6 @@ class V3Listener(dict):
         bindstr = f"-{self.bind_address}" if (self.bind_address != "0.0.0.0") else ""
         self.name = irlistener.name or f"ambassador-listener{bindstr}-{self.port}"
 
-        self.use_proxy_proto = False
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
         self.per_connection_buffer_limit_bytes: Optional[int] = None
@@ -990,14 +989,6 @@ class V3Listener(dict):
             listener["listener_filters"] = self.listener_filters
 
         return listener
-
-    def pretty(self) -> dict:
-        return {
-            "name": self.name,
-            "bind_address": self.bind_address,
-            "port": self.port,
-            "chains": self._chains,
-        }
 
     def __str__(self) -> str:
         return "<V3Listener %s %s on %s:%d [%s]>" % (
