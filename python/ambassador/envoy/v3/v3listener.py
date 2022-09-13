@@ -812,9 +812,7 @@ class V3Listener:
             # V3RouteVariants to lazily cache some of the work that we're doing across chains.
             for rv in self.config.route_variants:
                 if self._log_debug:
-                    self.config.ir.logger.debug(
-                        f"        consider route {v3prettyroute(dict(rv.route))}"
-                    )
+                    self.config.ir.logger.debug(f"        consider route {v3prettyroute(rv.route)}")
 
                 matching_hosts = chain.matching_hosts(rv.route)
 

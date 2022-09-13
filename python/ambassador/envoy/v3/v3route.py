@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
 from typing import cast as typecast
 
@@ -39,21 +40,17 @@ def v3prettyroute(route: Union[routev3.Route, "V3Route"]) -> str:
         value = match.get("safe_regex", {}).get("regex", None)
 
     if not value:
-        key = "!!URX!!"
-        value = match.get("unsafe_regex", None)
-
-    if not value:
         key = "???"
         value = "-none-"
 
     match_str = f"{key} {value}"
 
-    headers = match.get("headers", {})
+    headers: List[routev3.HeaderMatcher] = match.get("headers", [])
     xfp: Optional[str] = None
     host: Optional[str] = None
 
     for header in headers:
-        name = header.get("name", None).lower()
+        name = header.get("name", "").lower()
         exact = header.get("exact_match", None)
 
         if header == ":authority":
@@ -209,7 +206,7 @@ class V3RouteVariants:
     def matcher_xfp(self, variant: routev3.Route, value: Optional[str]) -> None:
         # We're going to create a new XFP match, so start by making a
         # copy of the match struct...
-        match_copy = dict(variant["match"])
+        match_copy = deepcopy(variant["match"])
         variant["match"] = match_copy
 
         # ...then make a copy of match["headers"], but don't include
