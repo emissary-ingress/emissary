@@ -53,7 +53,7 @@ if TYPE_CHECKING:
 # be used. (And yes, that implies that at the moment, you can't mix HTTP Mappings and TCP Mappings
 # on the same port. Possible near-future feature.)
 
-class V2Chain(dict):
+class V2Chain:
     def __init__(self, config: 'V2Config', type: str, host: Optional[IRHost]) -> None:
         self._config = config
         self._logger = self._config.ir.logger
@@ -120,7 +120,7 @@ class V2Chain(dict):
 # There is a one-to-one correspondence between an IRListener and an Envoy listener: the logic
 # here is all about constructing the Envoy configuration implied by the IRListener.
 
-class V2Listener(dict):
+class V2Listener:
     config: 'V2Config'
     _irlistener: IRListener
 
