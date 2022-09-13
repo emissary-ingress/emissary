@@ -142,11 +142,11 @@ libraries:
     ----                -------    ----------
     CacheControl        0.12.10    Apache License 2.0
     Cython              0.29.24    Apache License 2.0
-    Flask               2.0.2      3-clause BSD license
-    Jinja2              3.0.3      3-clause BSD license
-    MarkupSafe          2.0.1      3-clause BSD license
+    Flask               2.2.1      3-clause BSD license
+    Jinja2              3.1.2      3-clause BSD license
+    MarkupSafe          2.1.1      3-clause BSD license
     PyYAML              5.4.1      MIT license
-    Werkzeug            2.0.2      3-clause BSD license
+    Werkzeug            2.2.1      3-clause BSD license
     appdirs             1.4.4      MIT license
     attrs               21.4.0     MIT license
     cachetools          5.0.0      MIT license
@@ -164,6 +164,7 @@ libraries:
     gunicorn            20.1.0     MIT license
     html5lib            1.1        MIT license
     idna                3.3        3-clause BSD license
+    importlib-metadata  4.12.0     Apache License 2.0
     itsdangerous        2.0.1      3-clause BSD license
     jsonpatch           1.32       3-clause BSD license
     jsonpointer         2.2        3-clause BSD license
@@ -197,3 +198,4 @@ libraries:
     urllib3             1.26.8     MIT license
     webencodings        0.5.1      3-clause BSD license
     websocket-client    1.2.3      Apache License 2.0
+    zipp                3.8.1      MIT license
