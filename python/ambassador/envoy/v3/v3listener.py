@@ -211,7 +211,7 @@ class V3Listener:
         # representations) that won't get logged anyway.
         self._log_debug = self.config.ir.logger.isEnabledFor(logging.DEBUG)
         if self._log_debug:
-            self.config.ir.logger.debug(f"V3Listener {self.name} created -- {self._security_model}, l7Depth {self._l7_depth}")
+            self.config.ir.logger.debug(f"V3Listener {self.name}: created: port={self.port} security_model={self._security_model} l7depth={self._l7_depth}")
 
         # Build out our listener filters, and figure out if we're an HTTP listener
         # in the process.
@@ -551,7 +551,7 @@ class V3Listener:
 
     def finalize(self) -> None:
         if self._log_debug:
-            self.config.ir.logger.debug(f"V3Listener: ==== finalize {self}")
+            self.config.ir.logger.debug(f"V3Listener {self}: finalize ============================")
 
         # We do TCP chains before HTTP chains so that TCPMappings have precedence over Hosts.  This
         # is important because 2.x releases prior to 2.4 required you to create a Host for the
@@ -572,11 +572,12 @@ class V3Listener:
     def finalize_tcp(self) -> None:
         # Finalize a TCP listener, which amounts to walking all our TCP chains and
         # setting up Envoy configuration structures for them.
-        logger = self.config.ir.logger
+
+        self.config.ir.logger.debug("  finalize_tcp")
 
         for chain_key, chain in self._chains.items():
             if self._log_debug:
-                logger.debug("BUILD CHAIN %s - %s", chain_key, chain)
+                self.config.ir.logger.debug(f"    build chain[{repr(chain_key)}]={chain}")
 
             for irgroup in chain.hosts.values():
                 if not isinstance(irgroup, IRTCPMappingGroup):
@@ -644,27 +645,29 @@ class V3Listener:
                 self._filter_chains.append(filter_chain)
 
     def compute_tcpchains(self) -> None:
+        self.config.ir.logger.debug("  compute_tcpchains")
+
         for irgroup in self.config.ir.ordered_groups():
             # Only look at TCPMappingGroups here...
             if not isinstance(irgroup, IRTCPMappingGroup):
                 continue
 
+            if self._log_debug:
+                self.config.ir.logger.debug(f"    consider {irgroup}")
+
             # ...and make sure the group in question wants the same bind
             # address that we do.
             if irgroup.bind_to() != self.bind_to:
-                # self.config.ir.logger.debug("V3Listener %s: skip TCPMappingGroup on %s", self.bind_to, irgroup.bind_to())
+                self.config.ir.logger.debug("      reject")
                 continue
+
+            self.config.ir.logger.debug("      accept")
 
             # Add a chain, same as we do in compute_httpchains, just for a 'TCPMappingGroup' rather
             # than for a 'Host'.  Same deal applies with TLS: you can't do host-based matching
             # without it.
 
             group_host = irgroup.get('host', None)
-
-            if self._log_debug:
-                self.config.ir.logger.debug("V3Listener %s on %s: take TCPMappingGroup on %s (%s)",
-                                            self.name, self.bind_to, irgroup.bind_to(), group_host or "i'*'")
-
             if not group_host: # cleartext
                 # Special case. No Host in a TCPMapping means an unconditional forward,
                 # so just add this immediately as a "*" chain.
@@ -680,15 +683,15 @@ class V3Listener:
         # Compute the set of chains we need, HTTP version. The core here is matching
         # up Hosts with this Listener, and creating a chain for each Host.
 
-        self.config.ir.logger.debug("V3Listener %s: checking hosts for %s", self.name, self)
+        self.config.ir.logger.debug("  compute_httpchains")
 
         for host in sorted(self.config.ir.get_hosts(), key=lambda h: h.hostname):
             if self._log_debug:
-                self.config.ir.logger.debug("  consider %s", host)
+                self.config.ir.logger.debug(f"    consider {host}")
 
             # First up: drop this host if nothing matches at all.
             if not self._irlistener.matches_host(host):
-                # Bzzzt.
+                self.config.ir.logger.debug("      reject: hostglobs don't match")
                 continue
 
             # OK, if we're still here, then it's a question of matching the Listener's
@@ -703,9 +706,7 @@ class V3Listener:
             # here.)
 
             if self._insecure_only and (self.port != host.insecure_addl_port):
-                if self._log_debug:
-                    self.config.ir.logger.debug("      drop %s, insecure-only port mismatch", host.name)
-
+                self.config.ir.logger.debug("      reject: insecure-only port mismatch")
                 continue
 
             # OK, we can't drop it for that, so we need to check the actions.
@@ -716,17 +717,13 @@ class V3Listener:
             # HTTPS chain for this Host, as long as we think TLS is OK.
             host_will_reject_secure = ((not host.secure_action) or (host.secure_action == "Reject"))
             if self._tls_ok and host.context and (not ((self._security_model == "SECURE") and host_will_reject_secure)):
-                if self._log_debug:
-                    self.config.ir.logger.debug("      take SECURE %s", host)
-
+                self.config.ir.logger.debug("      accept SECURE")
                 self.add_chain('https', host.context, host.hostname).add_httphost(host)
 
             # Same idea on the insecure side: only skip the Host if the Listener's securityModel
             # is INSECURE but the Host's insecure_action is Reject.
             if not ((self._security_model == "INSECURE") and (host.insecure_action == "Reject")):
-                if self._log_debug:
-                    self.config.ir.logger.debug("      take INSECURE %s", host)
-
+                self.config.ir.logger.debug("      accept INSECURE")
                 self.add_chain('http', None, host.hostname).add_httphost(host)
 
     def compute_routes(self) -> None:
@@ -734,15 +731,16 @@ class V3Listener:
         #
         # Note that a route using XFP can match _any_ chain, whether HTTP or HTTPS.
 
-        logger = self.config.ir.logger
+        self.config.ir.logger.debug("  compute_routes")
 
         for chain_key, chain in self._chains.items():
+            if self._log_debug:
+                self.config.ir.logger.debug(f"    consider chain[{repr(chain_key)}]={chain}")
+
             # Only look at HTTP(S) chains.
             if not any(isinstance(h, IRHost) for h in chain.hosts.values()):
+                self.config.ir.logger.debug("      reject: is non-HTTP")
                 continue
-
-            if self._log_debug:
-                logger.debug("MATCH CHAIN %s - %s", chain_key, chain)
 
             # Remember whether we found an ACME route.
             found_acme = False
@@ -752,16 +750,16 @@ class V3Listener:
             # V3RouteVariants to lazily cache some of the work that we're doing across chains.
             for rv in self.config.route_variants:
                 if self._log_debug:
-                    logger.debug("  CHECK ROUTE: %s", v3prettyroute(dict(rv.route)))
+                    self.config.ir.logger.debug(f"        consider route {v3prettyroute(dict(rv.route))}")
 
                 matching_hosts = chain.matching_hosts(rv.route)
 
                 if self._log_debug:
-                    logger.debug("    = matching_hosts %s", ", ".join([ h.hostname for h in matching_hosts ]))
+                    self.config.ir.logger.debug(f"          matching_hosts={[h.hostname for h in matching_hosts]}")
 
                 if not matching_hosts:
                     if self._log_debug:
-                        logger.debug(f"    drop outright: no hosts match {sorted(rv.route['_host_constraints'])}")
+                        self.config.ir.logger.debug(f"          reject: no hosts match {sorted(rv.route['_host_constraints'])}")
                     continue
 
                 for host in matching_hosts:
@@ -772,6 +770,9 @@ class V3Listener:
                     # "candidates" is host, matcher, action, V3RouteVariants
                     candidates: List[Tuple[IRHost, str, str, V3RouteVariants]] = []
                     hostname = host.hostname
+
+                    if self._log_debug:
+                        self.config.ir.logger.debug(f"          host={hostname}")
 
                     if (host.secure_action is not None) and (self._security_model != "INSECURE"):
                         # We have a secure action, and we're willing to believe that at least some of
@@ -810,16 +811,14 @@ class V3Listener:
                             # really mean "redirect to HTTPS" specifically.
 
                             if self._log_debug:
-                                logger.debug("      %s - %s: accept on %s %s%s",
-                                             matcher, action, self.name, hostname, extra_info)
+                                self.config.ir.logger.debug(f"          route: accept matcher={matcher} action={action} {extra_info}")
 
                             variant = dict(rv.get_variant(matcher, action.lower()))
                             variant["_host_constraints"] = set([ hostname ])
                             chain.add_route(variant)
                         else:
                             if self._log_debug:
-                                logger.debug("      %s - %s: drop from %s %s%s",
-                                             matcher, action, self.name, hostname, extra_info)
+                                self.config.ir.logger.debug(f"          route: reject matcher={matcher} action={action} {extra_info}")
 
             # If we're on Edge Stack and we don't already have an ACME route, add one.
             if self.config.ir.edge_stack_allowed and not found_acme:
@@ -831,8 +830,7 @@ class V3Listener:
                     # Uh whut? how is Edge Stack running exactly?
                     raise Exception("Edge Stack claims to be running, but we have no sidecar cluster??")
 
-                if self._log_debug:
-                    logger.debug("      punching a hole for ACME")
+                self.config.ir.logger.debug("      punching a hole for ACME")
 
                 # Make sure to include _host_constraints in here for now.
                 #
@@ -853,7 +851,7 @@ class V3Listener:
 
             if self._log_debug:
                 for route in chain.routes:
-                    logger.debug("  CHAIN ROUTE: %s" % v3prettyroute(route))
+                    self.config.ir.logger.debug("  CHAIN ROUTE: %s" % v3prettyroute(route))
 
     def finalize_http(self) -> None:
         # Finalize everything HTTP. Like the TCP side of the world, this is about walking
@@ -862,6 +860,8 @@ class V3Listener:
         # All of our HTTP chains get collapsed into a single chain with (likely) multiple
         # domains here.
 
+        self.config.ir.logger.debug("  finalize_http")
+
         filter_chains: Dict[str, Dict[str, Any]] = {}
 
         for chain_key, chain in self._chains.items():
@@ -869,11 +869,13 @@ class V3Listener:
                 continue
 
             if self._log_debug:
-                self._irlistener.logger.debug("FHTTP %s / %s / %s", self, chain_key, chain)
+                self._irlistener.logger.debug(f"    build chain[{repr(chain_key)}]={chain}")
 
             filter_chain: Optional[Dict[str, Any]] = None
 
             if not chain.context: # cleartext
+                if self._log_debug:
+                    self._irlistener.logger.debug(f"      cleartext for hostglobs={chain.hostglobs()}")
                 # All HTTP chains get collapsed into one here, using domains to separate them.
                 # This works because we don't need to offer TLS certs (we can't anyway), and
                 # because of that, SNI (and thus filter server_names matches) aren't things.
@@ -905,6 +907,9 @@ class V3Listener:
                 filter_chain_match: Dict[str, Any] = {}
 
                 chain_hosts = chain.hostglobs()
+
+                if self._log_debug:
+                    self._irlistener.logger.debug(f"      tls for hostglobs={chain_hosts}")
 
                 # Set up the server_names part of the match, if we have any names.
                 #
@@ -947,6 +952,9 @@ class V3Listener:
             for host in chain.hosts.values():
                 if not isinstance(host, IRHost):
                     continue
+
+                if self._log_debug:
+                    self._irlistener.logger.debug(f"      adding vhost {repr(host.hostname)}")
 
                 # Make certain that no internal keys from the route make it into the Envoy
                 # configuration.
@@ -1040,22 +1048,20 @@ class V3Listener:
     @classmethod
     def generate(cls, config: 'V3Config') -> None:
         config.listeners = []
-        logger = config.ir.logger
 
         for key in config.ir.listeners.keys():
             irlistener = config.ir.listeners[key]
             v3listener = V3Listener(config, irlistener)
             v3listener.finalize()
 
-            config.ir.logger.info(f"V3Listener: ==== GENERATED {v3listener}")
-
-            if v3listener._log_debug:
-                for k in sorted(v3listener._chains.keys()):
-                    chain = v3listener._chains[k]
-                    config.ir.logger.debug("    %s", chain)
-
-                    for r in chain.routes:
-                        config.ir.logger.debug("      %s", v3prettyroute(r))
+            config.ir.logger.info(f"V3Listener {v3listener}: generated ===========================")
+            if config.ir.logger.isEnabledFor(logging.DEBUG):
+                if v3listener._log_debug:
+                    for k in sorted(v3listener._chains.keys()):
+                        chain = v3listener._chains[k]
+                        config.ir.logger.debug(f"  chain {chain}")
+                        for r in chain.routes:
+                            config.ir.logger.debug(f"    route {v3prettyroute(r)}")
 
             # Does this listener have any filter chains?
             if v3listener._filter_chains:
