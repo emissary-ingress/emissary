@@ -339,7 +339,7 @@ class IRHost(IRResource):
             # This is a little weird. Basically we're going to resolve the secret (which should just
             # be a cache lookup here) so that we can use SavedSecret.__str__() as a serializer to
             # compare the configurations.
-            context_ss = self.resolve(ir, secret_name, None)
+            context_ss = ctx.resolve_secret(secret_name)
 
             self.logger.debug(f"Host {self.name}, ctx {ctx.name}, secret {secret_name}, resolved {context_ss}")
 
