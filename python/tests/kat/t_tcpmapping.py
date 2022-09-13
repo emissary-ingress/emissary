@@ -942,7 +942,6 @@ class TCPMappingSNIWithHTTPTest(AmbassadorTest):
             yield cls(tls_src, name="{self.tls_src}")
 
     def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
-        self.xfail = "bug (1.14): emits 2 Envoy listeners; one HTTP, one TLS; remarkably Envoy doesn't complain, it just lets the first one (HTTP) win"
         self.tls_src = tls_src
         self.target = HTTP()
 

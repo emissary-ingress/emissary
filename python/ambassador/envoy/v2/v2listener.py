@@ -259,6 +259,7 @@ class V2Listener:
 
         hostname = hostname or '*'
 
+        chain_key = "tls" if context else "cleartext"
         # I (LukeShu) can't really give an explanation of why `or chain_type == 'http'` belongs in
         # this expression (it's what the above comment "we can - and do - separate HTTP chains into
         # specific domains" is referring to), other than that it needs to be here in order for
@@ -266,8 +267,8 @@ class V2Listener:
         # compute_routes() and remove `or chain_type = 'http'`... I'd have to study compute_routes()
         # a lot more in order to be able to answer that; but in the mean time, including it in the
         # expression keeps things working.
-        separate_by_host = bool(context) or chain_type == 'http'
-        chain_key = f"{chain_type}-{hostname}" if separate_by_host else chain_type
+        if context or chain_type == 'http':
+            chain_key += f"-{hostname}"
 
         chain = self._chains.get(chain_key)
         verb = "REUSED" if chain else "CREATE"
@@ -535,15 +536,21 @@ class V2Listener:
         if self._log_debug:
             self.config.ir.logger.debug(f"V2Listener: ==== finalize {self}")
 
-        # Next, deal with HTTP stuff if this is an HTTP Listener.
+        # We do TCP chains before HTTP chains so that TCPMappings have precedence over Hosts.  This
+        # is important because 2.x releases prior to 2.4 required you to create a Host for the
+        # TCPMapping to steal the TLS termination config from (so TCPMapping users coming from 2.3
+        # will _very likely_ have "conflicting" Hosts and TCPMappings), and also didn't support
+        # TCPMappings and Hosts on the same Listener (so 2.3 didn't see these as "conflicts").  But
+        # now that we do support them together on the same Listener, we do see them as conflicts,
+        # and so we keep compatibility with 2.3 by saying "in the event of a conflict, TCPMappings
+        # have precedence over Hosts."
+        self.compute_tcpchains()
+        self.finalize_tcp()
+
         if self._base_http_config:
             self.compute_httpchains()
             self.compute_routes()
             self.finalize_http()
-        else:
-            # TCP is a lot simpler.
-            self.compute_tcpchains()
-            self.finalize_tcp()
 
     def finalize_tcp(self) -> None:
         # Finalize a TCP listener, which amounts to walking all our TCP chains and

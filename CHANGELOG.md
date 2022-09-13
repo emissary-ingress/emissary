@@ -104,6 +104,11 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   didn't make much sense.  You can now use a `TLSContext` without a `Host`as in Emissary-ingress 1.y
   releases, or a `Host` with or without a `TLSContext` as in prior 2.y releases.
 
+- Bugfix: Prior releases of Emissary-ingress had the arbitrary limitation that a `TCPMapping` cannot
+  be used on the same port that HTTP is served on, even if TLS+SNI would make this possible. 
+  Emissary-ingress now allows `TCPMappings` to be used on the same `Listener` port as HTTP `Hosts`,
+  as long as that `Listener` terminates TLS.
+
 ## [1.14.5] TBD
 [1.14.5]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v1.14.5
 

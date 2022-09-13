@@ -66,6 +66,15 @@ items:
           <code>TLSContext</code> without a <code>Host</code>as in $productName$ 1.y releases, or a
           <code>Host</code> with or without a <code>TLSContext</code> as in prior 2.y releases.
 
+      - title: TCPMappings and HTTP Hosts can coexist on Listeners that terminate TLS
+        type: bugfix
+        body: >-
+          Prior releases of $productName$ had the arbitrary limitation that a
+          <code>TCPMapping</code> cannot be used on the same port that HTTP is served on, even if
+          TLS+SNI would make this possible.  $productName$ now allows <code>TCPMappings</code> to be
+          used on the same <code>Listener</code> port as HTTP <code>Hosts</code>, as long as that
+          <code>Listener</code> terminates TLS.
+
   - version: 1.14.5
     date: 'TBD'
     notes:
