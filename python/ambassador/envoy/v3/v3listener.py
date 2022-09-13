@@ -236,42 +236,6 @@ class V3Listener(dict):
 
         return chain
 
-    def add_tcp_group(self, irgroup: IRTCPMappingGroup) -> None:
-        # The TCP analog of add_chain -- it adds a chain, too, but works with a TCP
-        # mapping group rather than a Host. Same deal applies with TLS: you can't do
-        # host-based matching without it.
-
-        group_host = irgroup.get('host', None)
-
-        if self._log_debug:
-            self.config.ir.logger.debug("V3Listener %s on %s: take TCPMappingGroup on %s (%s)",
-                                        self.name, self.bind_to, irgroup.bind_to(), group_host or "i'*'")
-
-        if not group_host:
-            # Special case. No Host in a TCPMapping means an unconditional forward,
-            # so just add this immediately as a "*" chain.
-            chain = self.add_chain("tcp", None)
-            chain.add_tcpmapping(irgroup)
-        else:
-            # What matching Hosts do we have?
-            for host in sorted(self.config.ir.get_hosts(), key=lambda h: h.hostname):
-                # They're asking for a hostname match here, which _cannot happen_ without
-                # SNI -- so don't take any hosts that don't have a TLSContext.
-
-                if not host.context:
-                    if self._log_debug:
-                        self.config.ir.logger.debug("V3Listener %s @ %s TCP %s: skip %s",
-                                                    self.name, self.bind_to, group_host, host)
-                    continue
-
-                if self._log_debug:
-                    self.config.ir.logger.debug("V3Listener %s @ %s TCP %s: consider %s",
-                                                self.name, self.bind_to, group_host, host)
-
-                if hostglob_matches(host.hostname, group_host):
-                    chain = self.add_chain("tcp", host)
-                    chain.add_tcpmapping(irgroup)
-
     # access_log constructs the access_log configuration for this V3Listener
     def access_log(self) -> List[dict]:
         access_log: List[dict] = []
@@ -640,8 +604,40 @@ class V3Listener(dict):
                 # self.config.ir.logger.debug("V3Listener %s: skip TCPMappingGroup on %s", self.bind_to, irgroup.bind_to())
                 continue
 
-            self.add_tcp_group(irgroup)
+            # Add a chain, same as we do in compute_httpchains, just for a 'TCPMappingGroup' rather
+            # than for a 'Host'.  Same deal applies with TLS: you can't do host-based matching
+            # without it.
 
+            group_host = irgroup.get('host', None)
+
+            if self._log_debug:
+                self.config.ir.logger.debug("V3Listener %s on %s: take TCPMappingGroup on %s (%s)",
+                                            self.name, self.bind_to, irgroup.bind_to(), group_host or "i'*'")
+
+            if not group_host:
+                # Special case. No Host in a TCPMapping means an unconditional forward,
+                # so just add this immediately as a "*" chain.
+                chain = self.add_chain("tcp", None)
+                chain.add_tcpmapping(irgroup)
+            else:
+                # What matching Hosts do we have?
+                for host in sorted(self.config.ir.get_hosts(), key=lambda h: h.hostname):
+                    # They're asking for a hostname match here, which _cannot happen_ without
+                    # SNI -- so don't take any hosts that don't have a TLSContext.
+
+                    if not host.context:
+                        if self._log_debug:
+                            self.config.ir.logger.debug("V3Listener %s @ %s TCP %s: skip %s",
+                                                        self.name, self.bind_to, group_host, host)
+                        continue
+
+                    if self._log_debug:
+                        self.config.ir.logger.debug("V3Listener %s @ %s TCP %s: consider %s",
+                                                    self.name, self.bind_to, group_host, host)
+
+                    if hostglob_matches(host.hostname, group_host):
+                        chain = self.add_chain("tcp", host)
+                        chain.add_tcpmapping(irgroup)
 
     def compute_httpchains(self) -> None:
         # Compute the set of chains we need, HTTP version. The core here is matching
