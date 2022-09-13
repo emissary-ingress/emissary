@@ -14,21 +14,33 @@
 import logging
 import sys
 from os import environ
-from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Set, Tuple, Union
 from typing import cast as typecast
+
+import ambassador.envoy.proto.config.core.v3 as corev3
+import ambassador.envoy.proto.config.listener.v3 as listenerv3
+import ambassador.envoy.proto.config.route.v3 as routev3
 
 from ...ir.irhost import IRHost
 from ...ir.irlistener import IRListener
 from ...ir.irtcpmappinggroup import IRTCPMappingGroup
 from ...utils import dump_json, parse_bool
 from .v3httpfilter import V3HTTPFilter
-from .v3route import DictifiedV3Route, V3Route, V3RouteVariants, hostglob_matches, v3prettyroute
+from .v3route import V3Route, V3RouteVariants, hostglob_matches, v3prettyroute
 from .v3tls import V3TLSContext
 
 if TYPE_CHECKING:
     from ...ir.irhost import IRHost  # pragma: no cover
     from ...ir.irtlscontext import IRTLSContext  # pragma: no cover
     from . import V3Config  # pragma: no cover
+
+
+class FilterChainWithVHosts(listenerv3.FilterChain, total=False):
+    _vhosts: Dict[str, routev3.VirtualHost]
+
+
+class RouteWithConstraints(routev3.Route, total=False):
+    _host_constraints: Set[str]
 
 
 # Model an Envoy filter chain.
@@ -56,7 +68,7 @@ class V3Chain:
     # We can have multiple hosts here, primarily so that cleartext HTTP chains can DTRT.
     context: Optional["IRTLSContext"]
     hosts: Dict[str, Union[IRHost, IRTCPMappingGroup]]
-    routes: List[DictifiedV3Route]
+    routes: List[RouteWithConstraints]
 
     def __init__(self, config: "V3Config", context: Optional["IRTLSContext"]) -> None:
         self._config = config
@@ -123,7 +135,7 @@ class V3Chain:
                 rv.append(host)
         return rv
 
-    def add_route(self, route: DictifiedV3Route) -> None:
+    def add_route(self, route: RouteWithConstraints) -> None:
         self.routes.append(route)
 
     def __str__(self) -> str:
@@ -173,6 +185,14 @@ class V3Listener:
     config: "V3Config"
     _irlistener: IRListener
 
+    name: str
+    listener_filters: List[listenerv3.ListenerFilter]
+    traffic_direction: Literal['UNSPECIFIED', 'INBOUND', 'OUTBOUND']
+    _filter_chains: List[listenerv3.FilterChain]
+    _base_http_config: Optional[Dict[str, Any]]
+    _chains: Dict[str, V3Chain]
+    _tls_ok: bool
+
     @property
     def bind_address(self) -> str:
         return self._irlistener.bind_address
@@ -214,12 +234,12 @@ class V3Listener:
         bindstr = f"-{self.bind_address}" if (self.bind_address != "0.0.0.0") else ""
         self.name = irlistener.name or f"ambassador-listener{bindstr}-{self.port}"
 
-        self.listener_filters: List[dict] = []
-        self.traffic_direction: str = "UNSPECIFIED"
-        self._filter_chains: List[dict] = []
-        self._base_http_config: Optional[Dict[str, Any]] = None
-        self._chains: Dict[str, V3Chain] = {}
-        self._tls_ok: bool = False
+        self.listener_filters = []
+        self.traffic_direction = "UNSPECIFIED"
+        self._filter_chains = []
+        self._base_http_config = None
+        self._chains = {}
+        self._tls_ok = False
 
         # It's important from a performance perspective to wrap debug log statements
         # with this check so we don't end up generating log strings (or even JSON
@@ -632,7 +652,7 @@ class V3Listener:
                 ]
 
                 # From that, we can sort out a basic tcp_proxy filter config.
-                tcp_filter = {
+                tcp_filter: listenerv3.Filter = {
                     "name": "envoy.filters.network.tcp_proxy",
                     "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy",
@@ -642,13 +662,13 @@ class V3Listener:
                 }
 
                 # OK. Basic filter chain entry next.
-                filter_chain: Dict[str, Any] = {
+                filter_chain: listenerv3.FilterChain = {
                     "name": f"tcphost-{irgroup.name}",
                     "filters": [tcp_filter],
                 }
 
                 # The chain as a whole has a single matcher.
-                filter_chain_match: Dict[str, Any] = {}
+                filter_chain_match: listenerv3.FilterChainMatch = {}
 
                 chain_hosts = chain.hostglobs()
 
@@ -867,7 +887,12 @@ class V3Listener:
                                     f"          route: accept matcher={matcher} action={action} {extra_info}"
                                 )
 
-                            variant = dict(rv.get_variant(matcher, action.lower()))
+                            # This is a safe typecast because it's going from routev3.Route to
+                            # RouteWithConstraints, which just opens up the _host_constraints
+                            # member.
+                            variant: RouteWithConstraints = typecast(
+                                RouteWithConstraints, dict(rv.get_variant(matcher, action.lower()))
+                            )
                             variant["_host_constraints"] = set([hostname])
                             chain.add_route(variant)
                         else:
@@ -920,7 +945,7 @@ class V3Listener:
 
         self.config.ir.logger.debug("  finalize_http")
 
-        filter_chains: Dict[str, Dict[str, Any]] = {}
+        filter_chains: Dict[str, FilterChainWithVHosts] = {}
 
         for chain_key, chain in self._chains.items():
             if not any(isinstance(h, IRHost) for h in chain.hosts.values()):
@@ -929,7 +954,7 @@ class V3Listener:
             if self._log_debug:
                 self._irlistener.logger.debug(f"    build chain[{repr(chain_key)}]={chain}")
 
-            filter_chain: Optional[Dict[str, Any]] = None
+            filter_chain: Optional[FilterChainWithVHosts] = None
 
             if not chain.context:  # cleartext
                 if self._log_debug:
@@ -970,7 +995,7 @@ class V3Listener:
                     "name": f"httpshost-{next(iter(chain.hosts.values())).name}",
                     "_vhosts": {},
                 }
-                filter_chain_match: Dict[str, Any] = {}
+                filter_chain_match: listenerv3.FilterChainMatch = {}
 
                 chain_hosts = chain.hostglobs()
 
@@ -1024,15 +1049,19 @@ class V3Listener:
 
                 # Make certain that no internal keys from the route make it into the Envoy
                 # configuration.
-                routes = []
+                routes: List[routev3.Route] = []
 
                 for r in chain.routes:
-                    routes.append({k: v for k, v in r.items() if k[0] != "_"})
+                    # This is a safe typecast because 'r' is a RouteWithConstraints; removing the
+                    # added "_" fields makes it just a Route.
+                    routes.append(
+                        typecast(routev3.Route, {k: v for k, v in r.items() if k[0] != "_"})
+                    )
 
                 # Do we - somehow - already have a vhost for this hostname? (This should
                 # be "impossible".)
 
-                vhost: Dict[str, Any] = filter_chain["_vhosts"].get(host.hostname, None)
+                vhost = filter_chain["_vhosts"].get(host.hostname, None)
 
                 if not vhost:
                     vhost = {
@@ -1085,8 +1114,8 @@ class V3Listener:
             # ...and save it.
             self._filter_chains.append(filter_chain)
 
-    def as_dict(self) -> dict:
-        listener = {
+    def as_dict(self) -> listenerv3.Listener:
+        listener: listenerv3.Listener = {
             "name": self.name,
             "address": {
                 "socket_address": {

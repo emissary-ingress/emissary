@@ -15,6 +15,8 @@
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
 from typing import cast as typecast
 
+import ambassador.envoy.proto.config.route.v3 as routev3
+
 from ...cache import Cacheable
 from ...ir.irbasemapping import IRBaseMapping
 from ...ir.irhttpmappinggroup import IRHTTPMappingGroup
@@ -26,14 +28,7 @@ if TYPE_CHECKING:
     from . import V3Config  # pragma: no cover
 
 
-# This is the root of a certain amount of ugliness in this file -- it's a V3Route
-# that's been turned into a plain old dict, so it can be easily JSONified. The
-# problem is that that currently happens earlier than it should; I'm hoping to fix
-# that shortly.
-DictifiedV3Route = Dict[str, Any]
-
-
-def v3prettyroute(route: DictifiedV3Route) -> str:
+def v3prettyroute(route: Union[routev3.Route, "V3Route"]) -> str:
     match = route["match"]
 
     key = "PFX"
@@ -149,7 +144,7 @@ class V3RouteVariants:
     """
 
     route: "V3Route"
-    variants: Dict[str, DictifiedV3Route]
+    variants: Dict[str, routev3.Route]
 
     def __init__(self, route: "V3Route") -> None:
         self.route = route
@@ -158,14 +153,14 @@ class V3RouteVariants:
     # get_variant might return a cached variant, or it might make a new one.
     # Whatever. The important thing is that you can specify a matcher name
     # and an action name, to mechanically turn a route into a variant of that route.
-    def get_variant(self, matcher: str, action: str) -> DictifiedV3Route:
+    def get_variant(self, matcher: str, action: str) -> routev3.Route:
         matcher = matcher.lower()
         action = action.lower()
 
         # First, check the cache.
         key = f"{matcher}-{action}"
 
-        variant: Optional[DictifiedV3Route] = self.variants.get(key, None)
+        variant: Optional[routev3.Route] = self.variants.get(key, None)
 
         if variant:
             # Hit! Good to go.
@@ -179,7 +174,7 @@ class V3RouteVariants:
         if not matcher_handler:
             raise Exception(f"Invalid route matcher {matcher} requested")
 
-        variant = dict(self.route)
+        variant = typecast(routev3.Route, dict(self.route))
         matcher_handler(variant)
 
         # Repeat for the action.
@@ -194,11 +189,11 @@ class V3RouteVariants:
         return self.variants[key]
 
     # Always match: don't add anything to the route.
-    def matcher_always(self, variant: DictifiedV3Route) -> None:
+    def matcher_always(self, variant: routev3.Route) -> None:
         pass
 
     # Match XFP=https.
-    def matcher_xfp_https(self, variant: DictifiedV3Route) -> None:
+    def matcher_xfp_https(self, variant: routev3.Route) -> None:
         self.matcher_xfp(variant, "https")
 
     # Match XFP=http... but we turn that into "don't match XFP at all"
@@ -207,11 +202,11 @@ class V3RouteVariants:
     #
     # (We could also have done this as "invert XFP=https" but this is a
     # better fit for what we'e done historically.)
-    def matcher_xfp_http(self, variant: DictifiedV3Route) -> None:
+    def matcher_xfp_http(self, variant: routev3.Route) -> None:
         self.matcher_xfp(variant, None)
 
     # Heavy lifting for the XFP matchers.
-    def matcher_xfp(self, variant: DictifiedV3Route, value: Optional[str]) -> None:
+    def matcher_xfp(self, variant: routev3.Route, value: Optional[str]) -> None:
         # We're going to create a new XFP match, so start by making a
         # copy of the match struct...
         match_copy = dict(variant["match"])
