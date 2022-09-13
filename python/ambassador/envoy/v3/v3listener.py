@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Literal, Optional, Tuple, TYPE_CHECKING
 from typing import cast as typecast
 
 from os import environ
@@ -121,25 +121,45 @@ class V3Chain(dict):
 # here is all about constructing the Envoy configuration implied by the IRListener.
 
 class V3Listener(dict):
+    config: 'V3Config'
+    _irlistener: IRListener
+
+    @property
+    def bind_address(self) -> str:
+        return self._irlistener.bind_address
+    @property
+    def port(self) -> int:
+        return self._irlistener.port
+    @property
+    def bind_to(self) -> str:
+        return f"{self.bind_address}-{self.port}"
+    @property
+    def _stats_prefix(self) -> str:
+        return self._irlistener.statsPrefix
+    @property
+    def _security_model(self) -> Literal['XFP', 'SECURE', 'INSECURE']:
+        return self._irlistener.securityModel
+    @property
+    def _l7_depth(self) -> int:
+        return self._irlistener.get('l7Depth', 0)
+    @property
+    def _insecure_only(self) -> bool:
+        return self._irlistener.insecure_only
+    @property
+    def per_connection_buffer_limit_bytes(self) -> Optional[int]:
+        return self.config.ir.ambassador_module.get('buffer_limit_bytes', None)
+
     def __init__(self, config: 'V3Config', irlistener: IRListener) -> None:
         super().__init__()
 
         self.config = config
-        self.bind_address = irlistener.bind_address
-        self.port = irlistener.port
-        self.bind_to = f"{self.bind_address}-{self.port}"
+        self._irlistener = irlistener   # We cache the IRListener to use its match method later
 
         bindstr = f"-{self.bind_address}" if (self.bind_address != "0.0.0.0") else ""
         self.name = irlistener.name or f"ambassador-listener{bindstr}-{self.port}"
 
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
-        self.per_connection_buffer_limit_bytes: Optional[int] = None
-        self._irlistener = irlistener   # We cache the IRListener to use its match method later
-        self._stats_prefix = irlistener.statsPrefix
-        self._security_model: str = irlistener.securityModel
-        self._l7_depth: int = irlistener.get('l7Depth', 0)
-        self._insecure_only: bool = False
         self._filter_chains: List[dict] = []
         self._base_http_config: Optional[Dict[str, Any]] = None
         self._chains: Dict[str, V3Chain] = {}
@@ -151,13 +171,6 @@ class V3Listener(dict):
         self._log_debug = self.config.ir.logger.isEnabledFor(logging.DEBUG)
         if self._log_debug:
             self.config.ir.logger.debug(f"V3Listener {self.name} created -- {self._security_model}, l7Depth {self._l7_depth}")
-
-        # If the IRListener is marked insecure-only, so are we.
-        self._insecure_only = irlistener.insecure_only
-
-        buffer_limit_bytes = self.config.ir.ambassador_module.get('buffer_limit_bytes', None)
-        if buffer_limit_bytes:
-            self.per_connection_buffer_limit_bytes = buffer_limit_bytes
 
         # Build out our listener filters, and figure out if we're an HTTP listener
         # in the process.
