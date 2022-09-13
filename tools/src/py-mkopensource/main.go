@@ -44,6 +44,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"gitdb", "4.0.5", "BSD License"}:              {BSD3},
 		{"idna", "2.7", "BSD-like"}:                    {BSD3, PSF, Unicode2015},
 		{"idna", "2.8", "BSD-like"}:                    {BSD3, PSF, Unicode2015},
+		{"importlib-metadata", "4.12.0", "None"}:       {Apache2},
 		{"importlib-resources", "5.4.0", "UNKNOWN"}:    {Apache2},
 		{"itsdangerous", "1.1.0", "BSD"}:               {BSD3},
 		{"jsonpatch", "1.32", "Modified BSD License"}:  {BSD3},
