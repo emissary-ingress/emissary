@@ -61,41 +61,43 @@ class V3Chain:
     # We can have multiple hosts here, primarily so that HTTP chains can DTRT --
     # but it would be fine to have multiple HTTPS hosts too, as long as they all
     # share a TLSContext.
-    type: Literal['tcp', 'http', 'https']
     context: Optional['IRTLSContext']
     hosts: Dict[str, IRHost]
     routes: List[DictifiedV3Route]
     tcpmappings: List[IRTCPMappingGroup]
 
-    def __init__(self, config: 'V3Config', type: Literal['tcp', 'http', 'https'], host: Optional[IRHost]) -> None:
+    def __init__(self, config: 'V3Config', context: Optional['IRTLSContext']) -> None:
         self._config = config
         self._logger = self._config.ir.logger
         self._log_debug = self._logger.isEnabledFor(logging.DEBUG)
 
-        self.type = type
-        self.context = None
+        self.context = context
         self.hosts = {}
         self.routes = []
         self.tcpmappings = []
 
-        # It's OK if an HTTP chain has no Host.
-        if host:
-            self.add_host(host)
+    @property
+    def type(self) -> Literal['tcp', 'http', 'https']:
+        if len(self.tcpmappings) > 0:
+            return 'tcp'
+        elif self.context:
+            return 'https'
+        else:
+            return 'http'
 
     def add_host(self, host: IRHost) -> None:
+        if self._log_debug:
+            self._logger.debug(f"      CHAIN UPDATE: add HTTP host: hostname={repr(host.hostname)}")
         self.hosts[host.hostname] = host
 
-        # Don't mess with the context if we're an HTTP chain...
-        if self.type.lower() == "http":
+        # Don't mess with the context if we're a cleartext chain...
+        if not self.context:
             return
 
         # OK, we're some type where TLS makes sense. Do the thing.
-        if host.context:
-            if not self.context:
-                self.context = host.context
-            elif self.context != host.context:
-                self._config.ir.post_error("Chain context mismatch: Host %s cannot combine with %s" %
-                                           (host.name, ", ".join(sorted(self.hosts.keys()))))
+        if host.context and host.context != self.context:
+            self._config.ir.post_error("Chain context mismatch: Host %s cannot combine with %s" %
+                                       (host.name, ", ".join(sorted(self.hosts.keys()))))
 
     def hostglobs(self) -> List[str]:
         # Get a list of host globs currently set up for this chain.
@@ -111,6 +113,8 @@ class V3Chain:
         self.routes.append(route)
 
     def add_tcpmapping(self, tcpmapping: IRTCPMappingGroup) -> None:
+        if self._log_debug:
+            self._logger.debug(f"      CHAIN UPDATE: add TCP host: hostname={repr(tcpmapping.get('host'))}")
         self.tcpmappings.append(tcpmapping)
 
     def __str__(self) -> str:
@@ -206,7 +210,7 @@ class V3Listener:
                 # Nothing to do.
                 pass
 
-    def add_chain(self, chain_type: Literal['tcp', 'http', 'https'], host: Optional[IRHost]) -> V3Chain:
+    def add_chain(self, chain_type: Literal['tcp', 'http', 'https'], context: Optional['IRTLSContext'], hostname: str) -> V3Chain:
         # Add a chain for a specific Host to this listener, while dealing with the fundamental
         # asymmetry that filter_chain_match can - and should - use SNI whenever the chain has
         # TLS available, but that's simply not available for chains without TLS.
@@ -219,28 +223,30 @@ class V3Listener:
         # answer is just that it would needlessly add nesting to all our loops and such (this
         # is also why there's no vhost data structure).
 
-        chain_key: str = chain_type
-        hoststr = host.hostname if host else '(no host)'
-        hostname = (host.hostname if host else None) or '*'
+        if chain_type == 'http':
+            assert not context
+        if chain_type == 'https':
+            assert context
 
-        if host:
-            chain_key = "%s-%s" % (chain_type, hostname)
+        hostname = hostname or '*'
+
+        # I (LukeShu) can't really give an explanation of why `or chain_type == 'http'` belongs in
+        # this expression (it's what the above comment "we can - and do - separate HTTP chains into
+        # specific domains" is referring to), other than that it needs to be here in order for
+        # compute_routes() to work correctly.  Maybe that's bad and we should go fix
+        # compute_routes() and remove `or chain_type = 'http'`... I'd have to study compute_routes()
+        # a lot more in order to be able to answer that; but in the mean time, including it in the
+        # expression keeps things working.
+        separate_by_host = bool(context) or chain_type == 'http'
+        chain_key = f"{chain_type}-{hostname}" if separate_by_host else chain_type
 
         chain = self._chains.get(chain_key)
-
-        if chain is not None:
-            if host:
-                chain.add_host(host)
-                if self._log_debug:
-                    self.config.ir.logger.debug("      CHAIN ADD: host %s chain_key %s -- %s", hoststr, chain_key, chain)
-            else:
-                if self._log_debug:
-                    self.config.ir.logger.debug("      CHAIN NOOP: host %s chain_key %s -- %s", hoststr, chain_key, chain)
-        else:
-            chain = V3Chain(self.config, chain_type, host)
+        verb = "REUSED" if chain else "CREATE"
+        if chain is None:
+            chain = V3Chain(self.config, context)
             self._chains[chain_key] = chain
-            if self._log_debug:
-                self.config.ir.logger.debug("      CHAIN CREATE: host %s chain_key %s -- %s", hoststr, chain_key, chain)
+        if self._log_debug:
+            self.config.ir.logger.debug(f"      CHAIN {verb}: tls={bool(context)} host={repr(hostname)} => chains[{repr(chain_key)}]={chain}")
 
         return chain
 
@@ -623,12 +629,11 @@ class V3Listener:
                 self.config.ir.logger.debug("V3Listener %s on %s: take TCPMappingGroup on %s (%s)",
                                             self.name, self.bind_to, irgroup.bind_to(), group_host or "i'*'")
 
-            if not group_host:
+            if not group_host: # cleartext
                 # Special case. No Host in a TCPMapping means an unconditional forward,
                 # so just add this immediately as a "*" chain.
-                chain = self.add_chain("tcp", None)
-                chain.add_tcpmapping(irgroup)
-            else:
+                self.add_chain('tcp', None, '*').add_tcpmapping(irgroup)
+            else: # TLS/SNI
                 # What matching Hosts do we have?
                 for host in sorted(self.config.ir.get_hosts(), key=lambda h: h.hostname):
                     # They're asking for a hostname match here, which _cannot happen_ without
@@ -645,7 +650,8 @@ class V3Listener:
                                                     self.name, self.bind_to, group_host, host)
 
                     if hostglob_matches(host.hostname, group_host):
-                        chain = self.add_chain("tcp", host)
+                        chain = self.add_chain('tcp', host.context, host.hostname)
+                        chain.add_host(host)
                         chain.add_tcpmapping(irgroup)
 
     def compute_httpchains(self) -> None:
@@ -691,7 +697,7 @@ class V3Listener:
                 if self._log_debug:
                     self.config.ir.logger.debug("      take SECURE %s", host)
 
-                self.add_chain("https", host)
+                self.add_chain('https', host.context, host.hostname).add_host(host)
 
             # Same idea on the insecure side: only skip the Host if the Listener's securityModel
             # is INSECURE but the Host's insecure_action is Reject.
@@ -699,7 +705,7 @@ class V3Listener:
                 if self._log_debug:
                     self.config.ir.logger.debug("      take INSECURE %s", host)
 
-                self.add_chain("http", host)
+                self.add_chain('http', None, host.hostname).add_host(host)
 
     def compute_routes(self) -> None:
         # Compute the set of valid HTTP routes for _each chain_ in this Listener.
