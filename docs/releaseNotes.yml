@@ -43,6 +43,18 @@ items:
           release of 1.23. This provides $productName$ with the latest security patches, performances enhancments,
           and features offered by the envoy proxy.
         docs: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.23/v1.23.0
+      - title: Fixed <code>mappingSelector</code> associating <code>Hosts</code> with <code>Mappings</code>
+        type: change
+        body: >-
+          Changes to label matching will change how <code>Hosts</code> are associated with <code>Mappings</code>. There was a bug with label
+          selectors that was causing <code>Hosts</code> to be incorrectly being associated with more <code>Mappings</code> than intended.
+          If any single label from the selector was matched then the <code>Host</code> would be associated with the <code>Mapping</code>.
+          Now it has been updated to correctly only associate a <code>Host</code> with a <code>Mapping</code> if <b>all</b> labels required by
+          the selector are present. This brings the <code>mappingSelector</code> field in-line with how label selectors are used
+          in Kubernetes. To avoid unexpected behaviour after the upgrade, add all labels that Hosts have in their
+          <code>mappingSelector</code> to <code>Mappings</code> you want to associate with the <code>Host</code>. You can opt-out of the new behaviour
+          by setting the environment variable <code>DISABLE_STRICT_LABEL_SELECTORS</code> to <code>"true"</code> (default: <code>"false"</code>).
+          (Thanks to <a href="https://github.com/f-herceg">Filip Herceg</a> and <a href="https://github.com/dynajoe">Joe Andaverde</a>!).
       - title: Add support for Host resources using secrets from different namespaces
         type: feature
         body: >-
@@ -67,24 +79,24 @@ items:
         type: feature
         body: >-
           By default, when Envoy is unable to communicate with the configured
-          RateLimitService then it will allow traffic through. The 
-          <code>RateLimitService</code> resource now exposes the 
-          <a href="https://www.envoyproxy.io/docs/envoy/v1.23.0/configuration/http/http_filters/rate_limit_filter">failure_mode_deny</a> 
-          option. Set <code>failure_mode_deny: true</code>, then Envoy will 
-          deny traffic when it is unable to communicate to the RateLimitService 
+          RateLimitService then it will allow traffic through. The
+          <code>RateLimitService</code> resource now exposes the
+          <a href="https://www.envoyproxy.io/docs/envoy/v1.23.0/configuration/http/http_filters/rate_limit_filter">failure_mode_deny</a>
+          option. Set <code>failure_mode_deny: true</code>, then Envoy will
+          deny traffic when it is unable to communicate to the RateLimitService
           returning a 500.
         docs: https://www.getambassador.io/docs/emissary/latest/topics/running/services/rate-limit-service/
       - title: Properly populate alt_state_name for Tracing, Auth and RateLimit Services
         type: bugfix
         body: >-
-          Previously, setting the <code>stats_name</code> for the <code>TracingService</code>, <code>RateLimitService</code> 
+          Previously, setting the <code>stats_name</code> for the <code>TracingService</code>, <code>RateLimitService</code>
           or the <code>AuthService</code> would have no affect because it was not being properly passed to the Envoy cluster
           config. This has been fixed and the <code>alt_stats_name</code> field in the cluster config is now set correctly.
           (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
       - title: Add support for config change batch window before reconfiguring Envoy
         type: feature
         body: >-
-          The <code>AMBASSADOR_RECONFIG_MAX_DELAY</code> env var can be optionally set to batch changes for the specified 
+          The <code>AMBASSADOR_RECONFIG_MAX_DELAY</code> env var can be optionally set to batch changes for the specified
           non-negative window period in seconds before doing an Envoy reconfiguration. Default is "1" if not set.
 
   - version: 3.1.1
@@ -268,8 +280,25 @@ items:
           connections using QUIC and the UDP network protocol. It currently only supports for connections
           between downstream clients and $productName$.
 
-  - version: 2.4.0
+  - version: 2.5.0
     date: 'TBD'
+    prevVersion: 2.4.0
+    notes:
+      - title: Fixed <code>mappingSelector</code> associating <code>Hosts</code> with <code>Mappings</code>
+        type: change
+        body: >-
+          Changes to label matching will change how <code>Hosts</code> are associated with <code>Mappings</code>. There was a bug with label
+          selectors that was causing <code>Hosts</code> to be incorrectly being associated with more <code>Mappings</code> than intended.
+          If any single label from the selector was matched then the <code>Host</code> would be associated with the <code>Mapping</code>.
+          Now it has been updated to correctly only associate a <code>Host</code> with a <code>Mapping</code> if <b>all</b> labels required by
+          the selector are present. This brings the <code>mappingSelector</code> field in-line with how label selectors are used
+          in Kubernetes. To avoid unexpected behaviour after the upgrade, add all labels that Hosts have in their
+          <code>mappingSelector</code> to <code>Mappings</code> you want to associate with the <code>Host</code>. You can opt-out of the new behaviour
+          by setting the environment variable <code>DISABLE_STRICT_LABEL_SELECTORS</code> to <code>"true"</code> (default: <code>"false"</code>).
+          (Thanks to <a href="https://github.com/f-herceg">Filip Herceg</a> and <a href="https://github.com/dynajoe">Joe Andaverde</a>!).
+
+  - version: 2.4.0
+    date: '2022-09-19'
     prevVersion: 2.3.2
     notes:
       - title: Add support for Host resources using secrets from different namespaces
@@ -289,7 +318,7 @@ items:
       - title: Properly populate alt_state_name for Tracing, Auth and RateLimit Services
         type: bugfix
         body: >-
-          Previously, setting the <code>stats_name</code> for the <code>TracingService</code>, <code>RateLimitService</code> 
+          Previously, setting the <code>stats_name</code> for the <code>TracingService</code>, <code>RateLimitService</code>
           or the <code>AuthService</code> would have no affect because it was not being properly passed to the Envoy cluster
           config. This has been fixed and the <code>alt_stats_name</code> field in the cluster config is now set correctly.
           (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
@@ -297,7 +326,7 @@ items:
       - title: Add support for config change batch window before reconfiguring Envoy
         type: feature
         body: >-
-          The <code>AMBASSADOR_RECONFIG_MAX_DELAY</code> env var can be optionally set to batch changes for the specified 
+          The <code>AMBASSADOR_RECONFIG_MAX_DELAY</code> env var can be optionally set to batch changes for the specified
           non-negative window period in seconds before doing an Envoy reconfiguration. Default is "1" if not set.
 
   - version: 1.14.5

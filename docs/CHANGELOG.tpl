@@ -32,6 +32,19 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
 
 ## UPCOMING BREAKING CHANGES
 
+### Emissary 3.2.0 and 2.5.0
+
+ - Changes to label matching will change how `Hosts` are associated with `Mappings`. There
+   was a bug with label selectors that was causing `Hosts` to be incorrectly being associated with
+   more `Mappings` than intended. If any single label from the selector was matched then the `Host`
+   would be associated with the `Mapping`. Now it has been updated to correctly only associate a
+   `Host` with a `Mapping` if **all** labels required by the selector are present. This brings the
+   `mappingSelector` field in-line with how label selectors are used in Kubernetes. To avoid
+   unexpected behaviour after the upgrade, add all labels that Hosts have in their `mappingSelector`
+   to `Mappings` you want to associate with the `Host`. You can opt-out of the new behaviour by
+   setting the environment variable `DISABLE_STRICT_LABEL_SELECTORS` to `"true"`
+   (default: `"false"`).
+
 ### Emissary 3.0.0
 
  - **No `protocol_version: v2`**: Support for specifying `protocol_version: v2` in `AuthService`,
