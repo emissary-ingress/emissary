@@ -541,15 +541,6 @@ class V2Listener(dict):
         if self._log_debug:
             self.config.ir.logger.debug(f"V2Listener: ==== finalize {self}")
 
-        # OK. Assemble the high-level stuff for Envoy.
-        self.address = {
-            "socket_address": {
-                "address": self.bind_address,
-                "port_value": self.port,
-                "protocol": "TCP"
-            }
-        }
-
         # Next, deal with HTTP stuff if this is an HTTP Listener.
         if self._base_http_config:
             self.compute_chains()
@@ -955,7 +946,13 @@ class V2Listener(dict):
     def as_dict(self) -> dict:
         listener = {
             "name": self.name,
-            "address": self.address,
+            "address": {
+                "socket_address": {
+                    "address": self.bind_address,
+                    "port_value": self.port,
+                    "protocol": "TCP"
+                }
+            },
             "filter_chains": self._filter_chains,
             "traffic_direction": self.traffic_direction
         }
