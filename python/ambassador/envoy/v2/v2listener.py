@@ -195,21 +195,8 @@ class V2Listener(dict):
                 })
 
             if proto == "TCP":
-                # TCP doesn't require any specific listener filters, but it
-                # does require stuff in the filter chains. We can go ahead and
-                # tackle that here.
-                for irgroup in self.config.ir.ordered_groups():
-                    # Only look at TCPMappingGroups here...
-                    if not isinstance(irgroup, IRTCPMappingGroup):
-                        continue
-
-                    # ...and make sure the group in question wants the same bind
-                    # address that we do.
-                    if irgroup.bind_to() != self.bind_to:
-                        # self.config.ir.logger.debug("V2Listener %s: skip TCPMappingGroup on %s", self.bind_to, irgroup.bind_to())
-                        continue
-
-                    self.add_tcp_group(irgroup)
+                # Nothing to do.
+                pass
 
     def add_chain(self, chain_type: str, host: Optional[IRHost]) -> V2Chain:
         # Add a chain for a specific Host to this listener, while dealing with the fundamental
@@ -543,11 +530,12 @@ class V2Listener(dict):
 
         # Next, deal with HTTP stuff if this is an HTTP Listener.
         if self._base_http_config:
-            self.compute_chains()
+            self.compute_httpchains()
             self.compute_routes()
             self.finalize_http()
         else:
             # TCP is a lot simpler.
+            self.compute_tcpchains()
             self.finalize_tcp()
 
     def finalize_tcp(self) -> None:
@@ -615,7 +603,22 @@ class V2Listener(dict):
                 # ...and stick this chain into our filter.
                 self._filter_chains.append(filter_chain)
 
-    def compute_chains(self) -> None:
+    def compute_tcpchains(self) -> None:
+        for irgroup in self.config.ir.ordered_groups():
+            # Only look at TCPMappingGroups here...
+            if not isinstance(irgroup, IRTCPMappingGroup):
+                continue
+
+            # ...and make sure the group in question wants the same bind
+            # address that we do.
+            if irgroup.bind_to() != self.bind_to:
+                # self.config.ir.logger.debug("V2Listener %s: skip TCPMappingGroup on %s", self.bind_to, irgroup.bind_to())
+                continue
+
+            self.add_tcp_group(irgroup)
+
+
+    def compute_httpchains(self) -> None:
         # Compute the set of chains we need, HTTP version. The core here is matching
         # up Hosts with this Listener, and creating a chain for each Host.
 
