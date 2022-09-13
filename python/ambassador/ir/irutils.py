@@ -13,7 +13,10 @@
 # limitations under the License
 
 import logging
+import os
 from typing import Any, Dict
+
+from ambassador.utils import parse_bool
 
 ######
 # Utilities for hostglob_matches
@@ -181,11 +184,19 @@ def selector_matches(
         logger.debug("    no incoming labels => False")
         return False
 
+    # Ambassador (2.0-2.3) & (3.0-3.1) consider a match on a single label as a "good enough" match.
+    # In versions 2.4+ and 3.2+ _ALL_ labels in a selector must be present for it to be considered a match.
+    # DISABLE_STRICT_LABEL_SELECTORS provides a way to restore the old unintended loose matching behaviour
+    # in the event that it is desired. The ability to disable strict label matching will be removed in a future version.
+    disable_strict_selectors = parse_bool(os.environ.get("DISABLE_STRICT_LABEL_SELECTORS", "false"))
+
     # For every label in mappingSelector, there must be a label with same value in Mapping itself.
     for k, v in match.items():
         if labels.get(k) == v:
             logger.debug("    selector match for %s=%s => True", k, v)
-        else:
+            if disable_strict_selectors:
+                return True
+        elif not disable_strict_selectors:
             logger.debug("    selector miss for %s=%s => False", k, v)
             return False
 
