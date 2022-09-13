@@ -543,6 +543,7 @@ class V2Listener:
 
                 # OK. Basic filter chain entry next.
                 filter_chain: Dict[str, Any] = {
+                    'name': f"tcphost-{irgroup.name}",
                     'filters': [
                         tcp_filter
                     ]
@@ -834,6 +835,7 @@ class V2Listener:
                     if self._log_debug:
                         self._irlistener.logger.debug("FHTTP   create filter_chain %s / empty match", chain_key)
                     filter_chain = {
+                        "name": "httphost-shared",
                         "filter_chain_match": {},
                         "_vhosts": {}
                     }
@@ -847,6 +849,7 @@ class V2Listener:
                 # have a matching chain for this.
 
                 filter_chain = {
+                    "name": f"httpshost-{next(iter(chain.hosts.values())).name}",
                     "_vhosts": {}
                 }
                 filter_chain_match: Dict[str, Any] = {}
