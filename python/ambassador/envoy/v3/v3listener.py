@@ -54,25 +54,33 @@ if TYPE_CHECKING:
 # on the same port. Possible near-future feature.)
 
 class V3Chain:
-    def __init__(self, config: 'V3Config', type: str, host: Optional[IRHost]) -> None:
+    _config: 'V3Config'
+    _logger: logging.Logger
+    _log_debug: bool
+
+    # We can have multiple hosts here, primarily so that HTTP chains can DTRT --
+    # but it would be fine to have multiple HTTPS hosts too, as long as they all
+    # share a TLSContext.
+    type: Literal['tcp', 'http', 'https']
+    context: Optional['IRTLSContext']
+    hosts: Dict[str, IRHost]
+    routes: List[DictifiedV3Route]
+    tcpmappings: List[IRTCPMappingGroup]
+
+    def __init__(self, config: 'V3Config', type: Literal['tcp', 'http', 'https'], host: Optional[IRHost]) -> None:
         self._config = config
         self._logger = self._config.ir.logger
         self._log_debug = self._logger.isEnabledFor(logging.DEBUG)
 
         self.type = type
-
-        # We can have multiple hosts here, primarily so that HTTP chains can DTRT --
-        # but it would be fine to have multiple HTTPS hosts too, as long as they all
-        # share a TLSContext.
-        self.context: Optional[IRTLSContext]= None
-        self.hosts: Dict[str, IRHost] = {}
+        self.context = None
+        self.hosts = {}
+        self.routes = []
+        self.tcpmappings = []
 
         # It's OK if an HTTP chain has no Host.
         if host:
             self.add_host(host)
-
-        self.routes: List[DictifiedV3Route] = []
-        self.tcpmappings: List[IRTCPMappingGroup] = []
 
     def add_host(self, host: IRHost) -> None:
         self.hosts[host.hostname] = host
@@ -198,7 +206,7 @@ class V3Listener:
                 # Nothing to do.
                 pass
 
-    def add_chain(self, chain_type: str, host: Optional[IRHost]) -> V3Chain:
+    def add_chain(self, chain_type: Literal['tcp', 'http', 'https'], host: Optional[IRHost]) -> V3Chain:
         # Add a chain for a specific Host to this listener, while dealing with the fundamental
         # asymmetry that filter_chain_match can - and should - use SNI whenever the chain has
         # TLS available, but that's simply not available for chains without TLS.
@@ -211,7 +219,7 @@ class V3Listener:
         # answer is just that it would needlessly add nesting to all our loops and such (this
         # is also why there's no vhost data structure).
 
-        chain_key = chain_type
+        chain_key: str = chain_type
         hoststr = host.hostname if host else '(no host)'
         hostname = (host.hostname if host else None) or '*'
 
