@@ -662,7 +662,7 @@ class V2Listener:
             # Listener can ever produce will be rejected. In any other case, we'll set up an
             # HTTPS chain for this Host, as long as we think TLS is OK.
             host_will_reject_secure = ((not host.secure_action) or (host.secure_action == "Reject"))
-            if self._tls_ok and (not ((self._security_model == "SECURE") and host_will_reject_secure)):
+            if self._tls_ok and host.context and (not ((self._security_model == "SECURE") and host_will_reject_secure)):
                 if self._log_debug:
                     self.config.ir.logger.debug("      take SECURE %s", host)
 
@@ -870,11 +870,7 @@ class V2Listener:
                 # Likewise, an HTTPS chain will ask for TLS.
                 filter_chain_match["transport_protocol"] = "tls"
 
-                if chain.context:
-                    # ...uh. How could we not have a context if we're doing TLS?
-                    # Note that we're modifying the filter_chain itself here, not
-                    # filter_chain_match.
-                    filter_chain["tls_context"] = V2TLSContext(chain.context)
+                filter_chain["tls_context"] = V2TLSContext(chain.context)
 
                 # Finally, stash the match in the chain...
                 filter_chain["filter_chain_match"] = filter_chain_match
