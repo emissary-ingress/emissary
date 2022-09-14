@@ -436,6 +436,17 @@ class IRHost(IRResource):
                 sel_match,
             )
 
+        groupName = group.get("name") or "None"
+
+        # The synthetic Mappings for diagnostics, readiness, and liveness probes always match all Hosts.
+        # They can all still be disabled if desired via the Ambassador Module resource
+        if groupName in [
+            "GROUP: internal_readiness_probe_mapping",
+            "GROUP: internal_liveness_probe_mapping",
+            "GROUP: internal_diagnostics_probe_mapping",
+        ]:
+            return True
+
         # Ambassador (2.0-2.3) & (3.0-3.1) consider a match on a single label as a "good enough" match.
         # In versions 2.4+ and 3.2+ _ALL_ labels in a selector must be present for it to be considered a match.
         # DISABLE_STRICT_LABEL_SELECTORS provides a way to restore the old unintended loose matching behaviour
