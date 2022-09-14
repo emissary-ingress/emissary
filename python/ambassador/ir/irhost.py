@@ -2,11 +2,14 @@ import copy
 import os
 from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
+from ambassador.utils import parse_bool
+
 from ..utils import SavedSecret, dump_json
 from ..config import Config
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
 from .irutils import hostglob_matches, selector_matches
+
 
 if TYPE_CHECKING:
     from .ir import IR # pragma: no cover
@@ -396,6 +399,7 @@ class IRHost(IRResource):
         mappingSelector.
         """
 
+        has_hostname = False
         host_match = False
         sel_match = False
 
@@ -403,6 +407,7 @@ class IRHost(IRResource):
 
         if group_regex:
             # It matches.
+            has_hostname = True
             host_match = True
             self.logger.debug("-- hostname %s group regex => %s", self.hostname, host_match)
         else:
@@ -416,6 +421,7 @@ class IRHost(IRResource):
             group_glob = group.get('host') or host_redirect  # NOT A TYPO: see above.
 
             if group_glob:
+                has_hostname = True
                 host_match = hostglob_matches(self.hostname, group_glob)
                 self.logger.debug("-- hostname %s group glob %s => %s", self.hostname, group_glob, host_match)
 
@@ -429,11 +435,31 @@ class IRHost(IRResource):
                 dump_json(group.get("metadata_labels")),
                 sel_match,
             )
-        else:
-            # if the host does not have a mapping selector it matches any label set
-            sel_match = True
 
-        return host_match and sel_match
+        # Ambassador (2.0-2.3) & (3.0-3.1) consider a match on a single label as a "good enough" match.
+        # In versions 2.4+ and 3.2+ _ALL_ labels in a selector must be present for it to be considered a match.
+        # DISABLE_STRICT_LABEL_SELECTORS provides a way to restore the old unintended loose matching behaviour
+        # in the event that it is desired. The ability to disable strict label matching will be removed in a future version.
+        disable_strict_selectors = parse_bool(
+            os.environ.get("DISABLE_STRICT_LABEL_SELECTORS", "false")
+        )
+        if disable_strict_selectors:
+            return host_match or sel_match
+
+        if mapsel:
+            if has_hostname:
+                # If both mappingSelector and hostname are present, then they must both be a match
+                return host_match and sel_match
+            else:
+                # If the Mapping does not provide a hostname, then only the mappingSelector must match
+                return sel_match
+        else:
+            if has_hostname:
+                # If there is no mappingSelector then it must only match the provided hostname
+                return host_match
+            else:
+                # If there is no mappingSelector or hostname then it cannot match anything
+                return False
 
     def __str__(self) -> str:
         request_policy = self.get('requestPolicy', {})
