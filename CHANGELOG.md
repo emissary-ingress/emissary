@@ -32,8 +32,18 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
 
 ## UPCOMING BREAKING CHANGES
 
-### Emissary 3.1.0
- - Changes to label matching will change how Hosts match Mappings. Hosts were matching any labels found in Mappings, now it's changed to match `all labels`. To avoid unexpected behaviour after the upgrade, add all labels that Hosts have in their mappingSelector to Mappings you want it to match.
+### Emissary 3.2.0 and 2.4.0
+
+ - Changes to label matching will change how `Hosts` are associated with `Mappings`. There
+   was a bug with label selectors that was causing `Hosts` to be incorrectly being associated with
+   more `Mappings` than intended. If any single label from the selector was matched then the `Host`
+   would be associated with the `Mapping`. Now it has been updated to correctly only associate a
+   `Host` with a `Mapping` if **all** labels required by the selector are present. This brings the
+   `mappingSelector` field in-line with how label selectors are used in Kubernetes. To avoid
+   unexpected behaviour after the upgrade, add all labels that Hosts have in their `mappingSelector`
+   to `Mappings` you want to associate with the `Host`. You can opt-out of the new behaviour by
+   setting the environment variable `DISABLE_STRICT_LABEL_SELECTORS` to `"true"`
+   (default: `"false"`).
 
 ### Emissary 3.0.0
 
@@ -98,7 +108,19 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   endpoints be inserted to clusters manually. This can help resolve with `503 UH` caused by
   certification rotation relating to a delay between EDS + CDS. The default is `false`.
 
-- Bugfix: Previously, setting the `stats_name` for the `TracingService`, `RateLimitService`  or the
+- Change: Changes to label matching will change how `Hosts` are associated with `Mappings`. There
+  was a bug with label selectors that was causing `Hosts` to be incorrectly being associated with
+  more `Mappings` than intended. If any single label from the selector was matched then the `Host`
+  would be associated with the `Mapping`. Now it has been updated to correctly only associate a
+  `Host` with a `Mapping` if **all** labels required by the selector are present. This brings the
+  `mappingSelector` field in-line with how label selectors are used in Kubernetes. To avoid
+  unexpected behaviour after the upgrade, add all labels that Hosts have in their `mappingSelector`
+  to `Mappings` you want to associate with the `Host`. You can opt-out of the new behaviour by
+  setting the environment variable `DISABLE_STRICT_LABEL_SELECTORS` to `"true"`
+  (default: `"false"`). (Thanks to <a href="https://github.com/f-herceg">Filip Herceg</a> and
+  <a href="https://github.com/dynajoe">Joe Andaverde</a>!).
+
+- Bugfix: Previously, setting the `stats_name` for the `TracingService`, `RateLimitService` or the
   `AuthService` would have no affect because it was not being properly passed to the Envoy cluster
   config. This has been fixed and the `alt_stats_name` field in the cluster config is now set
   correctly. (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
