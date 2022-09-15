@@ -103,6 +103,10 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   config. This has been fixed and the `alt_stats_name` field in the cluster config is now set
   correctly. (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
 
+- Feature: The `AMBASSADOR_RECONFIG_MAX_DELAY` env var can be optionally set to batch changes for
+  the specified  non-negative window period in seconds before doing an Envoy reconfiguration.
+  Default is "1" if not set.
+
 [#4354]: https://github.com/emissary-ingress/emissary/issues/4354
 
 ## [3.1.1] TBD
