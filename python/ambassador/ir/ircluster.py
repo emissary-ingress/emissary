@@ -315,7 +315,7 @@ class IRCluster(IRResource):
         if stats_name:
             new_args["stats_name"] = stats_name
         else:
-            new_args["stats_name"] = re.sub(r"[^0-9A-Za-z_]", "_", name)
+            new_args["stats_name"] = re.sub(r"[^0-9A-Za-z_]", "_", service)
 
         if grpc:
             new_args["grpc"] = True

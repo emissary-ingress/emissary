@@ -107,7 +107,15 @@ class EnvoyStats:
         when = self.last_update
         cstat = self.clusters
 
-        if name not in cstat:
+        cluster_exists = False
+        cname = None
+        for cluster_name in cstat.keys():
+            if cluster_name in name:
+                cluster_exists = True
+                cname = cluster_name
+                break
+
+        if not cluster_exists:
             return {
                 "valid": False,
                 "reason": "Cluster %s is not defined" % name,
@@ -116,7 +124,7 @@ class EnvoyStats:
                 "hcolor": "orange",
             }
 
-        cstat = dict(**cstat[name])
+        cstat = dict(**cstat[cname])
         cstat.update({"valid": True, "reason": "Cluster %s updated at %d" % (name, when)})
 
         pct = cstat.get("healthy_percent", None)
