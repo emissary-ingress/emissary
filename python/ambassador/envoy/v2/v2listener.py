@@ -657,17 +657,12 @@ class V2Listener:
 
             # OK, we can't drop it for that, so we need to check the actions.
 
-            security_model = self._security_model
-            secure_action = host.secure_action
-            insecure_action = host.insecure_action
-
             # If the Listener's securityModel is SECURE, but this host has a secure_action
             # of Reject (or empty), we'll skip this host, because the only requests this
             # Listener can ever produce will be rejected. In any other case, we'll set up an
             # HTTPS chain for this Host, as long as we think TLS is OK.
-
-            will_reject_secure = ((not secure_action) or (secure_action == "Reject"))
-            if self._tls_ok and (not ((security_model == "SECURE") and will_reject_secure)):
+            host_will_reject_secure = ((not host.secure_action) or (host.secure_action == "Reject"))
+            if self._tls_ok and (not ((self._security_model == "SECURE") and host_will_reject_secure)):
                 if self._log_debug:
                     self.config.ir.logger.debug("      take SECURE %s", host)
 
@@ -675,8 +670,7 @@ class V2Listener:
 
             # Same idea on the insecure side: only skip the Host if the Listener's securityModel
             # is INSECURE but the Host's insecure_action is Reject.
-
-            if not ((security_model == "INSECURE") and (insecure_action == "Reject")):
+            if not ((self._security_model == "INSECURE") and (host.insecure_action == "Reject")):
                 if self._log_debug:
                     self.config.ir.logger.debug("      take INSECURE %s", host)
 
