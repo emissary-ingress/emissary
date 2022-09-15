@@ -627,7 +627,7 @@ spec:
     authority: none
   mappingSelector:
     matchLabels:
-      hostname: tls-context-host-1
+      host-one: tls-context-host-1
   tlsSecret:
     name: {self.path.k8s}-test-tlscontext-secret-1
   requestPolicy:
@@ -650,7 +650,7 @@ kind: Mapping
 metadata:
   name: {self.path.k8s}-host-1-mapping
   labels:
-    hostname: tls-context-host-1
+    host-one: tls-context-host-1
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
@@ -767,6 +767,8 @@ metadata:
   name: {self.path.k8s}-host-shared-mapping
   labels:
     kat-ambassador-id: {self.ambassador_id}
+    host-one: tls-context-host-1
+    hostname: ambassador.example.com
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   hostname: "*"
@@ -791,9 +793,10 @@ spec:
                     expected=404)
         yield Query(self.url("target-3/", scheme="https"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True,
                     expected=404)
+        # host-shared-mapping must have the labels required by each Host even though it specifies `hostname: "*"`
         yield Query(self.url("target-shared/", scheme="https"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True,
                     expected=200)
-        yield Query(self.url(".well-known/acme-challenge/foo", scheme="https"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True,
+        yield Query(self.url(".well-known/acme-challenge/foo", scheme="https"),headers={"Host": "tls-context-host-1"}, insecure=True, sni=True,
                     expected=404)
         # 6-10: Host #1 - cleartext (action: Route)
         yield Query(self.url("target-1/", scheme="http"), headers={"Host": "tls-context-host-1"},
@@ -876,6 +879,624 @@ spec:
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
+
+
+class HostCRDLooseLabelSelector(AmbassadorTest):
+    """
+    Ambassador (2.0-2.3) & (3.0-3.1) consider a match on a single label as a "good enough" match.
+    In versions 2.4+ and 3.2+ _ALL_ labels in a selector must be present for it to be considered a match.
+    DISABLE_STRICT_LABEL_SELECTORS provides a way to restore the old unintended loose matching behaviour
+    in the event that it is desired. The ability to disable strict label matching will be removed in a future version.
+
+    When DISABLE_STRICT_LABEL_SELECTORS is "true", a Host should be associated with a Mapping if any of the labels in the
+    mappingSelector matches rather than requiring them all to match. Aditionally, even if the mappingSelector fails to match,
+    the Mapping should be associated with the Host if the hostname of the Mapping matches the Hostname of the Host
+    """
+
+    target: ServiceType
+
+    def init(self):
+        self.edge_stack_cleartext_host = False
+        self.target = HTTP(name="target")
+        self.manifest_envs += """
+    - name: DISABLE_STRICT_LABEL_SELECTORS
+      value: "true"
+"""
+
+    def manifests(self) -> str:
+        return (
+            self.format(
+                """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-host-1
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      host-one: tls-context-host-1
+      h: foo
+  tlsSecret:
+    name: {self.path.k8s}-test-tlscontext-secret-1
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-test-tlscontext-secret-1
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: """
+                + TLSCerts["tls-context-host-1"].k8s_crt
+                + """
+  tls.key: """
+                + TLSCerts["tls-context-host-1"].k8s_key
+                + """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-1-mapping
+  labels:
+    host-one: tls-context-host-1
+    h: bar # This does not match the mappingSelector of the host but for loose matching the above label satisfies the requirement
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "tls-context-host-1"
+  prefix: /target-1/
+  service: {self.target.path.fqdn}
+
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-host-2
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-2
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      host-two: tls-context-host-2
+      h: foo # Hosts 1 and 2 share a requirement for this label/val combo
+  tlsSecret:
+    name: {self.path.k8s}-test-tlscontext-secret-2
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-test-tlscontext-secret-2
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: """
+                + TLSCerts["tls-context-host-2"].k8s_crt
+                + """
+  tls.key: """
+                + TLSCerts["tls-context-host-2"].k8s_key
+                + """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-2-mapping
+  labels:
+    host-two: tls-context-host-2
+    h: foo # Both of these labels match the requirement by the host's selector
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  host: "tls-context-host-2"
+  prefix: /target-2/
+  service: {self.target.path.fqdn}
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-shared-label-mapping-all
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+    host-one: tls-context-host-1
+    host-two: tls-context-host-2
+    h: foo
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  prefix: /target-shared-labels-all/
+  service: {self.target.path.fqdn}
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-shared-label-mapping-one
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+    h: foo # This mapping only has this one label that is required by both hosts.
+    # With strict matching, neither should be associated, but with loose matching both should.
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  prefix: /target-shared-labels-one/
+  service: {self.target.path.fqdn}
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-shared-hostname
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*" # This Mapping does not have any of the required lables.
+  # With strict matching it should not work with either host, with loose matching it should work with both.
+  prefix: /target-shared-hostname/
+  service: {self.target.path.fqdn}
+"""
+            )
+            + super().manifests()
+        )
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        # 0: Get some info from diagd for self.check() to inspect
+        yield Query(
+            self.url("ambassador/v0/diag/?json=true&filter=errors"),
+            headers={"Host": "tls-context-host-1"},
+            insecure=True,
+            sni=True,
+        )
+
+        # 1-5: Host #1
+        yield Query(
+            self.url("target-1/", scheme="https"),
+            headers={"Host": "tls-context-host-1"},
+            insecure=True,
+            sni=True,
+            expected=200,
+        )
+        yield Query(
+            self.url("target-2/", scheme="https"),
+            headers={"Host": "tls-context-host-1"},
+            insecure=True,
+            sni=True,
+            expected=404,
+        )
+        yield Query(
+            self.url("target-shared-labels-all/", scheme="https"),
+            headers={"Host": "tls-context-host-1"},
+            insecure=True,
+            sni=True,
+            expected=200,
+        )
+        yield Query(
+            self.url("target-shared-labels-one/", scheme="https"),
+            headers={"Host": "tls-context-host-1"},
+            insecure=True,
+            sni=True,
+            expected=200,
+        )
+        yield Query(
+            self.url("target-shared-hostname/", scheme="https"),
+            headers={"Host": "tls-context-host-1"},
+            insecure=True,
+            sni=True,
+            expected=200,
+        )
+
+        # 11-15: Host #2
+        yield Query(
+            self.url("target-1/", scheme="https"),
+            headers={"Host": "tls-context-host-2"},
+            insecure=True,
+            sni=True,
+            expected=404,
+        )
+        yield Query(
+            self.url("target-2/", scheme="https"),
+            headers={"Host": "tls-context-host-2"},
+            insecure=True,
+            sni=True,
+            expected=200,
+        )
+        yield Query(
+            self.url("target-shared-labels-all/", scheme="https"),
+            headers={"Host": "tls-context-host-2"},
+            insecure=True,
+            sni=True,
+            expected=200,
+        )
+        yield Query(
+            self.url("target-shared-labels-one/", scheme="https"),
+            headers={"Host": "tls-context-host-2"},
+            insecure=True,
+            sni=True,
+            expected=200,
+        )
+        yield Query(
+            self.url("target-shared-hostname/", scheme="https"),
+            headers={"Host": "tls-context-host-2"},
+            insecure=True,
+            sni=True,
+            expected=200,
+        )
+
+    def check(self):
+        # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
+        errors = self.results[0].json or []
+        num_errors = len(errors)
+        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(num_errors, errors)
+
+        idx = 0
+
+        for result in self.results:
+            if result.status == 200 and result.query.headers and result.tls:
+                host_header = result.query.headers["Host"]
+                tls_common_name = result.tls[0]["Subject"]["CommonName"]
+
+                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (
+                    idx,
+                    host_header,
+                    tls_common_name,
+                )
+
+            idx += 1
+
+    def requirements(self):
+        # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-2"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-2"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+
+
+class HostCRDStrictLabelSelector(AmbassadorTest):
+    """
+    Ambassador (2.0-2.3) & (3.0-3.1) consider a match on a single label as a "good enough" match.
+    In versions 2.4+ and 3.2+ _ALL_ labels in a selector must be present for it to be considered a match.
+    DISABLE_STRICT_LABEL_SELECTORS provides a way to restore the old unintended loose matching behaviour
+    in the event that it is desired. The ability to disable strict label matching will be removed in a future version.
+
+    When DISABLE_STRICT_LABEL_SELECTORS is "true", a Host should be associated with a Mapping if any of the labels in the
+    mappingSelector matches rather than requiring them all to match. Aditionally, even if the mappingSelector fails to match,
+    the Mapping should be associated with the Host if the hostname of the Mapping matches the Hostname of the Host
+    """
+
+    target: ServiceType
+
+    def init(self):
+        self.edge_stack_cleartext_host = False
+        self.target = HTTP(name="target")
+
+    def manifests(self) -> str:
+        return (
+            self.format(
+                """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-host-1
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      host-one: tls-context-host-1
+      h: foo
+  tlsSecret:
+    name: {self.path.k8s}-test-tlscontext-secret-1
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-test-tlscontext-secret-1
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: """
+                + TLSCerts["tls-context-host-1"].k8s_crt
+                + """
+  tls.key: """
+                + TLSCerts["tls-context-host-1"].k8s_key
+                + """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-1-mapping
+  labels:
+    host-one: tls-context-host-1
+    h: bar # This does not match the mappingSelector of the host but for loose matching the above label satisfies the requirement
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "tls-context-host-1"
+  prefix: /target-1/
+  service: {self.target.path.fqdn}
+
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-host-2
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-2
+  acmeProvider:
+    authority: none
+  mappingSelector:
+    matchLabels:
+      host-two: tls-context-host-2
+      h: foo # Hosts 1 and 2 share a requirement for this label/val combo
+  tlsSecret:
+    name: {self.path.k8s}-test-tlscontext-secret-2
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-test-tlscontext-secret-2
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: """
+                + TLSCerts["tls-context-host-2"].k8s_crt
+                + """
+  tls.key: """
+                + TLSCerts["tls-context-host-2"].k8s_key
+                + """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-2-mapping
+  labels:
+    host-two: tls-context-host-2
+    h: foo # Both of these labels match the requirement by the host's selector
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  host: "tls-context-host-2"
+  prefix: /target-2/
+  service: {self.target.path.fqdn}
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-shared-label-mapping-all
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+    host-one: tls-context-host-1
+    host-two: tls-context-host-2
+    h: foo
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  prefix: /target-shared-labels-all/
+  service: {self.target.path.fqdn}
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-shared-label-mapping-one
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+    h: foo # This mapping only has this one label that is required by both hosts.
+    # With strict matching, neither should be associated, but with loose matching both should.
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  prefix: /target-shared-labels-one/
+  service: {self.target.path.fqdn}
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-shared-hostname
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*" # This Mapping does not have any of the required lables.
+  # With strict matching it should not work with either host, with loose matching it should work with both.
+  prefix: /target-shared-hostname/
+  service: {self.target.path.fqdn}
+"""
+            )
+            + super().manifests()
+        )
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        # 0: Get some info from diagd for self.check() to inspect
+        yield Query(
+            self.url("ambassador/v0/diag/?json=true&filter=errors"),
+            headers={"Host": "tls-context-host-1"},
+            insecure=True,
+            sni=True,
+        )
+
+        # 1-5: Host #1
+        yield Query(
+            self.url("target-1/", scheme="https"),
+            headers={"Host": "tls-context-host-1"},
+            insecure=True,
+            sni=True,
+            expected=404,
+        )
+        yield Query(
+            self.url("target-2/", scheme="https"),
+            headers={"Host": "tls-context-host-1"},
+            insecure=True,
+            sni=True,
+            expected=404,
+        )
+        yield Query(
+            self.url("target-shared-labels-all/", scheme="https"),
+            headers={"Host": "tls-context-host-1"},
+            insecure=True,
+            sni=True,
+            expected=200,
+        )
+        yield Query(
+            self.url("target-shared-labels-one/", scheme="https"),
+            headers={"Host": "tls-context-host-1"},
+            insecure=True,
+            sni=True,
+            expected=404,
+        )
+        yield Query(
+            self.url("target-shared-hostname/", scheme="https"),
+            headers={"Host": "tls-context-host-1"},
+            insecure=True,
+            sni=True,
+            expected=404,
+        )
+
+        # 11-15: Host #2
+        yield Query(
+            self.url("target-1/", scheme="https"),
+            headers={"Host": "tls-context-host-2"},
+            insecure=True,
+            sni=True,
+            expected=404,
+        )
+        yield Query(
+            self.url("target-2/", scheme="https"),
+            headers={"Host": "tls-context-host-2"},
+            insecure=True,
+            sni=True,
+            expected=200,
+        )
+        yield Query(
+            self.url("target-shared-labels-all/", scheme="https"),
+            headers={"Host": "tls-context-host-2"},
+            insecure=True,
+            sni=True,
+            expected=200,
+        )
+        yield Query(
+            self.url("target-shared-labels-one/", scheme="https"),
+            headers={"Host": "tls-context-host-2"},
+            insecure=True,
+            sni=True,
+            expected=404,
+        )
+        yield Query(
+            self.url("target-shared-hostname/", scheme="https"),
+            headers={"Host": "tls-context-host-2"},
+            insecure=True,
+            sni=True,
+            expected=404,
+        )
+
+    def check(self):
+        # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
+        errors = self.results[0].json or []
+        num_errors = len(errors)
+        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(num_errors, errors)
+
+        idx = 0
+
+        for result in self.results:
+            if result.status == 200 and result.query.headers and result.tls:
+                host_header = result.query.headers["Host"]
+                tls_common_name = result.tls[0]["Subject"]["CommonName"]
+
+                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (
+                    idx,
+                    host_header,
+                    tls_common_name,
+                )
+
+            idx += 1
+
+    def requirements(self):
+        # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-2"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-2"},
+                insecure=True,
+                sni=True,
+            ),
+        )
 
 
 class HostCRDWildcards(AmbassadorTest):
