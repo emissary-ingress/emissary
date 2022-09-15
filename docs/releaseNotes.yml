@@ -58,6 +58,12 @@ items:
           config. This has been fixed and the <code>alt_stats_name</code> field in the cluster config is now set correctly.
           (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
 
+      - title: Add support for config change batch window before reconfiguring Envoy
+        type: feature
+        body: >-
+          The <code>AMBASSADOR_RECONFIG_MAX_DELAY</code> env var can be optionally set to batch changes for the specified 
+          non-negative window period in seconds before doing an Envoy reconfiguration. Default is "1" if not set.
+
   - version: 1.14.5
     date: 'TBD'
     notes:
