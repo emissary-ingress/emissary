@@ -20,6 +20,8 @@
 # go-mod.mk
 /go-test.tap
 /go1*.src.tar.gz
+/go-version.txt
+/pip-show.txt
 
 # go-mod.mk
 /gopath/

@@ -15,6 +15,16 @@ generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 generate/files += $(OSS_HOME)/OPENSOURCE.md
 generate/files += $(OSS_HOME)/builder/requirements.txt
 generate/files += $(OSS_HOME)/CHANGELOG.md
+# Individual files: Test TLS Certificates
+generate/files += $(OSS_HOME)/builder/server.crt
+generate/files += $(OSS_HOME)/builder/server.key
+generate/files += $(OSS_HOME)/docker/test-auth/authsvc.crt
+generate/files += $(OSS_HOME)/docker/test-auth/authsvc.key
+generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.crt
+generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.key
+generate/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.crt
+generate/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.key
+generate/files += $(OSS_HOME)/python/tests/selfsigned.py
 
 generate: ## Update generated sources that get committed to git
 generate:
@@ -88,7 +98,7 @@ GOHOSTARCH=$(call lazyonce,GOHOSTARCH,$(shell go env GOHOSTARCH))
 PROTOC_VERSION            = 3.8.0
 PROTOC_PLATFORM           = $(patsubst darwin,osx,$(GOHOSTOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOHOSTARCH)))
 tools/protoc              = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/bin/protoc
-$(tools/protoc): $(OSS_HOME)/build-aux-local/generate.mk
+$(tools/protoc): $(OSS_HOME)/build-aux/generate.mk
 	mkdir -p $(dir $(@D))
 	set -o pipefail; curl --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip | bsdtar -C $(dir $(@D)) -xf -
 	chmod 755 $@
@@ -104,7 +114,7 @@ $(tools/protoc-gen-go): $(OSS_HOME)/go.mod
 GRPC_WEB_VERSION          = 1.0.3
 GRPC_WEB_PLATFORM         = $(GOHOSTOS)-x86_64
 tools/protoc-gen-grpc-web = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-grpc-web
-$(tools/protoc-gen-grpc-web): $(OSS_HOME)/build-aux-local/generate.mk
+$(tools/protoc-gen-grpc-web): $(OSS_HOME)/build-aux/generate.mk
 	mkdir -p $(@D)
 	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
 	chmod 755 $@
@@ -134,6 +144,32 @@ $(tools/py-mkopensource): FORCE
 
 #
 # `make generate` vendor rules
+
+#
+# `make generate` certificate generation
+
+$(OSS_HOME)/builder/server.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=kat-server.test.getambassador.io
+$(OSS_HOME)/builder/server.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=kat-server.test.getambassador.io
+
+$(OSS_HOME)/docker/test-auth/authsvc.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=authsvc.datawire.io
+$(OSS_HOME)/docker/test-auth/authsvc.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=authsvc.datawire.io
+
+$(OSS_HOME)/docker/test-ratelimit/ratelimit.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=ratelimit.datawire.io
+$(OSS_HOME)/docker/test-ratelimit/ratelimit.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=ratelimit.datawire.io
+
+$(OSS_HOME)/docker/test-shadow/shadowsvc.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=demosvc.datawire.io
+$(OSS_HOME)/docker/test-shadow/shadowsvc.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=demosvc.datawire.io
+
+$(OSS_HOME)/python/tests/selfsigned.py: %: %.gen $(tools/testcert-gen)
+	$@.gen $(tools/testcert-gen) >$@
 
 #
 # `make generate` protobuf rules
@@ -314,26 +350,26 @@ generate-clean: update-yaml-clean
 #
 # Generate report on dependencies
 
-$(OSS_HOME)/build-aux-local/pip-show.txt: sync
+$(OSS_HOME)/build-aux/pip-show.txt: sync
 	docker exec $$($(BUILDER)) sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
 
 $(OSS_HOME)/builder/requirements.txt: %.txt: %.in FORCE
 	$(BUILDER) pip-compile
 .PRECIOUS: $(OSS_HOME)/builder/requirements.txt
 
-$(OSS_HOME)/build-aux-local/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
+$(OSS_HOME)/build-aux/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
 	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
 
 $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
 
-$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux-local/go-version.txt $(OSS_HOME)/build-aux-local/pip-show.txt
-	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz
+$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
+	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
 		cd $(OSS_HOME); \
-		$(tools/go-mkopensource) --output-format=txt --package=mod --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz; \
+		$(tools/go-mkopensource) --output-format=txt --package=mod --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz; \
 		echo; \
-		{ sed 's/^---$$//' $(OSS_HOME)/build-aux-local/pip-show.txt; echo; } | $(tools/py-mkopensource); \
+		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource); \
 	} > $@
 
 python-setup: create-venv

@@ -165,10 +165,10 @@
               "tls_certificates": [
                 {
                   "certificate_chain": {
-                    "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
+                    "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.crt"
                   },
                   "private_key": {
-                    "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                    "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.key"
                   }
                 }
               ]
@@ -353,10 +353,10 @@
                 "tls_certificates": [
                   {
                     "certificate_chain": {
-                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
+                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.crt"
                     },
                     "private_key": {
-                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.key"
                     }
                   }
                 ]
@@ -499,10 +499,10 @@
                 "tls_certificates": [
                   {
                     "certificate_chain": {
-                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
+                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.crt"
                     },
                     "private_key": {
-                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.key"
                     }
                   }
                 ]
@@ -645,10 +645,10 @@
                 "tls_certificates": [
                   {
                     "certificate_chain": {
-                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
+                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.crt"
                     },
                     "private_key": {
-                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.key"
                     }
                   }
                 ]
@@ -701,10 +701,10 @@
                 "tls_certificates": [
                   {
                     "certificate_chain": {
-                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
+                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.crt"
                     },
                     "private_key": {
-                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.key"
                     }
                   }
                 ]
@@ -739,10 +739,10 @@
                 "tls_certificates": [
                   {
                     "certificate_chain": {
-                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
+                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.crt"
                     },
                     "private_key": {
-                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.key"
                     }
                   }
                 ]
@@ -777,10 +777,10 @@
                 "tls_certificates": [
                   {
                     "certificate_chain": {
-                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
+                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.crt"
                     },
                     "private_key": {
-                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                      "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/00120BAD05E89249A2AE0F532D44EAC827AAF7E6.key"
                     }
                   }
                 ]

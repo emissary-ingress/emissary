@@ -257,7 +257,7 @@ libraries:
     pyasn1-modules        0.2.8      2-clause BSD license
     pyparsing             2.4.7      MIT license
     pyrsistent            0.17.3     MIT license
-    pytest                6.1.2      MIT license
+    pytest                6.2.5      MIT license
     pytest-cov            2.10.1     MIT license
     pytest-rerunfailures  9.1.1      Mozilla Public License 2.0
     python-dateutil       2.8.1      3-clause BSD license, Apache License 2.0
@@ -273,7 +273,7 @@ libraries:
     six                   1.15.0     MIT license
     smmap                 3.0.4      3-clause BSD license
     toml                  0.10.2     MIT license
-    typed-ast             1.4.1      Apache License 2.0
+    typed-ast             1.4.3      Apache License 2.0
     typing-extensions     3.7.4.3    Python Software Foundation license
     urllib3               1.26.3     MIT license
     webencodings          0.5.1      3-clause BSD license

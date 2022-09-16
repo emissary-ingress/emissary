@@ -40,6 +40,7 @@ push: python/ambassador.version
 	rm -f $*
 .PHONY: %.rm
 
+include build-aux/tools.mk
 include $(OSS_HOME)/builder/builder.mk
 include $(OSS_HOME)/_cxx/envoy.mk
 include $(OSS_HOME)/charts/ambassador/Makefile
@@ -48,8 +49,8 @@ include $(OSS_HOME)/manifests/manifests.mk
 
 $(call module,ambassador,$(OSS_HOME))
 
-include $(OSS_HOME)/build-aux-local/generate.mk
-include $(OSS_HOME)/build-aux-local/lint.mk
+include $(OSS_HOME)/build-aux/generate.mk
+include $(OSS_HOME)/build-aux/lint.mk
 
 include $(OSS_HOME)/docs/yaml.mk
 
