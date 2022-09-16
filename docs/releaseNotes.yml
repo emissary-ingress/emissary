@@ -33,7 +33,7 @@
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
   - version: 2.4.0
-    date: 'TBD'
+    date: '2022-09-19'
     prevVersion: 2.3.2
     notes:
       - title: Add support for Host resources using secrets from different namespaces
