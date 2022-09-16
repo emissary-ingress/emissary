@@ -399,7 +399,7 @@ spec:
 
 
 class TCPMappingTLSOriginationV3SchemeTest(AmbassadorTest):
-    extra_ports = [ 6789, 6790 ]
+    extra_ports = [ 6789 ]
     target: ServiceType
 
     def init(self) -> None:

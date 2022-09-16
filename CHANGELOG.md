@@ -95,6 +95,15 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   endpoints be inserted to clusters manually. This can help resolve with `503 UH` caused by
   certification rotation relating to a delay between EDS + CDS. The default is `false`.
 
+- Bugfix: Previously, setting the `stats_name` for the `TracingService`, `RateLimitService` or the
+  `AuthService` would have no affect because it was not being properly passed to the Envoy cluster
+  config. This has been fixed and the `alt_stats_name` field in the cluster config is now set
+  correctly. (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
+
+- Feature: The `AMBASSADOR_RECONFIG_MAX_DELAY` env var can be optionally set to batch changes for
+  the specified non-negative window period in seconds before doing an Envoy reconfiguration. Default
+  is "1" if not set.
+
 - Bugfix: Emissary-ingress 2.0.0 introduced a bug where a `TCPMapping` that uses SNI, instead of
   using the hostname glob in the `TCPMapping`, uses the hostname glob in the `Host` that the TLS
   termination configuration comes from.
