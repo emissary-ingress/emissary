@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+import logging
+import os
 from typing import Any, Dict
 
-import logging
+from ambassador.utils import parse_bool
 
 ######
 # Utilities for hostglob_matches
@@ -122,8 +124,8 @@ def hostglob_matches(g1: str, g2: str) -> bool:
         return False
 
     # OK, if we're here, we have a wildcard to check. There are a few cases
-    # here, so we'll start with the easy one: one value starts with "*" and 
-    # the other ends with "*", because those can always overlap as long as 
+    # here, so we'll start with the easy one: one value starts with "*" and
+    # the other ends with "*", because those can always overlap as long as
     # the overlap between isn't empty -- and in this method, we only need to
     # concern ourselves with being sure that there is a possibility of a match
     # to both.
@@ -132,13 +134,13 @@ def hostglob_matches(g1: str, g2: str) -> bool:
         return True
 
     # OK, now we have to actually do some work. Again, we really only have to
-    # be convinced that it's possible for something to match, so e.g. 
+    # be convinced that it's possible for something to match, so e.g.
     #
     # *example.com, example.com
     #
     # is not a valid pair, because that "*" must never match an empty string.
     # However,
-    #  
+    #
     # *example.com, *.example.com
     #
     # is fine, because e.g. "foo.example.com" matches both.
@@ -176,14 +178,21 @@ def selector_matches(logger: logging.Logger, selector: Dict[str, Any], labels: D
         logger.debug("    no incoming labels => False")
         return False
 
-    selmatch = False
+    # Ambassador (2.0-2.3) & (3.0-3.1) consider a match on a single label as a "good enough" match.
+    # In versions 2.4+ and 3.2+ _ALL_ labels in a selector must be present for it to be considered a match.
+    # DISABLE_STRICT_LABEL_SELECTORS provides a way to restore the old unintended loose matching behaviour
+    # in the event that it is desired. The ability to disable strict label matching will be removed in a future version.
+    disable_strict_selectors = parse_bool(os.environ.get("DISABLE_STRICT_LABEL_SELECTORS", "false"))
 
+    # For every label in mappingSelector, there must be a label with same value in Mapping itself.
     for k, v in match.items():
         if labels.get(k) == v:
             logger.debug("    selector match for %s=%s => True", k, v)
-            return True
+            if disable_strict_selectors:
+                return True
+        elif not disable_strict_selectors:
+            logger.debug("    selector miss for %s=%s => False", k, v)
+            return False
 
-        logger.debug("    selector miss on %s=%s", k, v)
-
-    logger.debug("    all selectors miss => False")
-    return False
+    logger.debug(f"    all selectors match => True")
+    return True

@@ -50,10 +50,23 @@ items:
           inserted to clusters manually. This can help resolve with `503 UH` caused by certification rotation relating to
           a delay between EDS + CDS. The default is `false`.
 
+      - title: Fixed <code>mappingSelector</code> associating <code>Hosts</code> with <code>Mappings</code>
+        type: change
+        body: >-
+          Changes to label matching will change how <code>Hosts</code> are associated with <code>Mappings</code>. There was a bug with label
+          selectors that was causing <code>Hosts</code> to be incorrectly being associated with more <code>Mappings</code> than intended.
+          If any single label from the selector was matched then the <code>Host</code> would be associated with the <code>Mapping</code>.
+          Now it has been updated to correctly only associate a <code>Host</code> with a <code>Mapping</code> if **all** labels required by
+          the selector are present. This brings the <code>mappingSelector</code> field in-line with how label selectors are used
+          in Kubernetes. To avoid unexpected behaviour after the upgrade, add all labels that Hosts have in their
+          <code>mappingSelector</code> to <code>Mappings</code> you want to associate with the <code>Host</code>. You can opt-out of the new behaviour
+          by setting the environment variable <code>DISABLE_STRICT_LABEL_SELECTORS</code> to <code>"true"</code> (default: <code>"false"</code>).
+          (Thanks to <a href="https://github.com/f-herceg">Filip Herceg</a> and <a href="https://github.com/dynajoe">Joe Andaverde</a>!).
+
       - title: Properly populate alt_state_name for Tracing, Auth and RateLimit Services
         type: bugfix
         body: >-
-          Previously, setting the <code>stats_name</code> for the <code>TracingService</code>, <code>RateLimitService</code> 
+          Previously, setting the <code>stats_name</code> for the <code>TracingService</code>, <code>RateLimitService</code>
           or the <code>AuthService</code> would have no affect because it was not being properly passed to the Envoy cluster
           config. This has been fixed and the <code>alt_stats_name</code> field in the cluster config is now set correctly.
           (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
