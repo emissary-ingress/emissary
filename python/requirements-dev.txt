@@ -1,0 +1,20 @@
+# Dev requirements
+gitpython
+httpretty
+mypy
+packaging
+pexpect
+pyOpenSSL
+pytest==6.2.5
+pytest-cov
+pytest-rerunfailures
+retry
+
+# Type stubs
+types-orjson
+types-protobuf
+types-pyOpenSSL
+types-pyyaml
+types-requests
+types-retry
+types-setuptools

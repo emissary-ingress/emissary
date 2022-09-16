@@ -1,0 +1,19 @@
+{{- if and (.Values.test.enabled) (not .Values.daemonSet) }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "ambassador.fullname" . }}-test-ready"
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    {{- include "ambassador.labels" . | nindent 4 }}
+    profile: main
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+    - name: wget
+      image: {{ .Values.test.image | default "busybox" }}
+      command: ['wget']
+      args:  ['{{ include "ambassador.fullname" . }}:{{ include "ambassador.servicePort" . }}/ambassador/v0/check_ready']
+  restartPolicy: Never
+{{- end }}

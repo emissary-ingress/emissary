@@ -1,12 +1,12 @@
 from __future__ import annotations
-from typing import Any, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 
 import dataclasses
-import json
 import logging
+import os
 
 from ..config import ACResource, Config
-from ..utils import dump_yaml, parse_yaml, dump_json
+from ..utils import dump_yaml, parse_yaml, parse_bool, dump_json
 
 from .dependency import DependencyManager
 from .k8sobject import KubernetesObjectScope, KubernetesObject
@@ -21,10 +21,12 @@ class NormalizedResource:
 
     object: dict
     rkey: Optional[str] = None
+    log_resources: ClassVar[bool] = parse_bool(os.environ.get('AMBASSADOR_LOG_RESOURCES'))
 
     @classmethod
     def from_data(cls, kind: str, name: str, namespace: Optional[str] = None,
-                  generation: Optional[int] = None, version: str = 'v2',
+                  generation: Optional[int] = None, version: str = 'v3alpha1',
+                  api_group = 'getambassador.io',
                   labels: Optional[Dict[str, Any]] = None,
                   spec: Dict[str, Any] = None, errors: Optional[str] = None,
                   rkey: Optional[str] = None) -> NormalizedResource:
@@ -35,7 +37,7 @@ class NormalizedResource:
         if spec:
             ir_obj.update(spec)
 
-        ir_obj['apiVersion'] = f'getambassador.io/{version}'
+        ir_obj['apiVersion'] = f'{api_group}/{version}'
         ir_obj['kind'] = kind
         ir_obj['name'] = name
 
@@ -53,14 +55,22 @@ class NormalizedResource:
         return cls(ir_obj, rkey)
 
     @classmethod
-    def from_kubernetes_object(cls, obj: KubernetesObject) -> NormalizedResource:
-        if obj.gvk.api_group != 'getambassador.io':
-            raise ValueError(f'Cannot construct resource from non-Ambassador Kubernetes object with API version {obj.gvk.api_version}')
+    def from_kubernetes_object(cls, obj: KubernetesObject, rkey: Optional[str] = None) -> NormalizedResource:
         if obj.namespace is None:
             raise ValueError(f'Cannot construct resource from Kubernetes object {obj.key} without namespace')
 
         labels = dict(obj.labels)
-        labels['ambassador_crd'] = f"{obj.name}.{obj.namespace}"
+
+        if not rkey:  # rkey is only set for annotations
+            # Default rkey for native Kubernetes resources
+            rkey = f"{obj.name}.{obj.namespace}"
+            # Some other code uses the 'ambassador_crd' label to know which resource to update
+            # .status for with the apiserver.  Which is (IMO) a horrible hack, but I'm not up for
+            # changing it at the moment.
+            labels['ambassador_crd'] = rkey
+        else:
+            # Don't let it think that an annotation can have its status updated.
+            labels.pop('ambassador_crd', None)
 
         # When creating an Ambassador object from a Kubernetes object, we have to make
         # sure that we pay attention to 'errors', which will be set IFF watt's validation
@@ -73,28 +83,11 @@ class NormalizedResource:
             namespace=obj.namespace,
             generation=obj.generation,
             version=obj.gvk.version,
+            api_group=obj.gvk.api_group,
             labels=labels,
             spec=obj.spec,
+            rkey=rkey,
         )
-
-    @classmethod
-    def from_kubernetes_object_annotation(cls, obj: KubernetesObject) -> List[NormalizedResource]:
-        config = obj.annotations.get('getambassador.io/config')
-        if not config:
-            return []
-
-        def clean_normalize(r: Dict[str, Any]) -> NormalizedResource:
-            # Annotations should have to pass manual object validation.
-            r['_force_validation'] = True
-
-            if r.get('metadata_labels') is None and obj.labels:
-                r['metadata_labels'] = obj.labels
-            if r.get('namespace') is None and obj.scope == KubernetesObjectScope.NAMESPACE:
-                r['namespace'] = obj.namespace
-
-            return NormalizedResource(r, rkey=f'{obj.name}.{obj.namespace}')
-
-        return [clean_normalize(r) for r in parse_yaml(config) if r]
 
 
 class ResourceManager:
@@ -171,15 +164,11 @@ class ResourceManager:
         except Exception as e:
             self.aconf.post_error(e.args[0])
 
-        self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
+        if NormalizedResource.log_resources:
+            self.logger.debug("%s PROCESS %s save %s: %s", self.location, obj['kind'], rkey, serialization)
 
         return True
 
     def emit(self, resource: NormalizedResource):
         if self._emit(resource):
             self.locations.current.ocount += 1
-
-    def emit_annotated(self, resources: List[NormalizedResource]):
-        with self.locations.mark_annotated():
-            for resource in resources:
-                self.emit(resource)

@@ -5,13 +5,13 @@ import json
 
 from distutils.util import strtobool
 
-from .uiutil import run
+from .uiutil import run, check_command
 from .uiutil import run_txtcapture as run_capture
 
 
 # parse_bool is lifted from python/ambassador/utils.py -- it's just too useful.
 def parse_bool(s: Optional[Union[str, bool]]) -> bool:
-    """ 
+    """
     Parse a boolean value from a string. T, True, Y, y, 1 return True;
     other things return False.
     """
@@ -32,6 +32,10 @@ def parse_bool(s: Optional[Union[str, bool]]) -> bool:
         return strtobool(s)
     except ValueError:
         return False
+
+
+def branch_exists(branch_name: str) -> bool:
+    return check_command(["git", "rev-parse", "--verify", branch_name])
 
 
 def has_open_pr(gh_repo: str, base: str, branchname: str) -> bool:

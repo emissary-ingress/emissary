@@ -1,0 +1,52 @@
+# @TEMPLATE@
+apiVersion: v1
+kind: Service
+metadata:
+  name: agentcom-server
+spec:
+  type: ClusterIP
+  selector:
+    app: agentcom-server
+  ports:
+  - name: grpc-server
+    port: 8080
+    targetPort: grpc-server
+  - name: snapshot-server
+    port: 3001
+    targetPort: snapshot-server
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentcom-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agentcom-server
+  template:
+    metadata:
+      labels:
+        app: agentcom-server
+    spec:
+      containers:
+      - name: agentcom-server
+        image: {{env "KAT_SERVER_DOCKER_IMAGE" }}
+        env:
+          - name: "KAT_BACKEND_TYPE"
+            value: "grpc_agent"
+          - name: "KAT_GRPC_MAX_RECV_MSG_SIZE"
+            value: "65536" # 4 KiB
+        ports:
+        - name: grpc-server
+          containerPort: 8080
+        - name: snapshot-server
+          containerPort: 3001
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: emissary-ingress-agent-cloud-token
+  namespace: emissary
+data:
+  CLOUD_CONNECT_TOKEN: sometoken

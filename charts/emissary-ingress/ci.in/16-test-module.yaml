@@ -1,0 +1,10 @@
+module:
+  lua_scripts: |
+  function envoy_on_response(response_handle)
+    response_handle:headers():add("Lua-Scripts-Enabled", "Processed")
+  end
+
+  ip_allow:
+  - peer: 127.0.0.1
+  - remote: 99.99.0.0/16
+createDefaultListeners: true

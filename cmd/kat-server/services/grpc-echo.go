@@ -7,7 +7,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -19,11 +18,12 @@ import (
 	status "google.golang.org/grpc/status"
 
 	// first party (protobuf)
-	pb "github.com/datawire/ambassador/pkg/api/kat"
+	pb "github.com/datawire/ambassador/v2/pkg/api/kat"
 
 	// first party
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dhttp"
+	"github.com/datawire/dlib/dlog"
 )
 
 // GRPC server object (all fields are required).
@@ -45,15 +45,16 @@ func DefaultOpts() []grpc.ServerOption {
 }
 
 // Start initializes the gRPC server.
-func (g *GRPC) Start() <-chan bool {
-	log.Printf("GRPC: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
+func (g *GRPC) Start(ctx context.Context) <-chan bool {
+	dlog.Printf(ctx, "GRPC: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
 	grpcHandler := grpc.NewServer(DefaultOpts()...)
 	pb.RegisterEchoServiceServer(grpcHandler, g)
 
 	cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
 	if err != nil {
-		log.Fatal(err)
+		dlog.Error(ctx, err)
+		panic(err) // TODO: do something better
 	}
 
 	sc := &dhttp.ServerConfig{
@@ -63,7 +64,7 @@ func (g *GRPC) Start() <-chan bool {
 		},
 	}
 
-	grp := dgroup.NewGroup(context.TODO(), dgroup.GroupConfig{})
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
 	grp.Go("cleartext", func(ctx context.Context) error {
 		return sc.ListenAndServe(ctx, fmt.Sprintf(":%v", g.Port))
 	})
@@ -71,11 +72,14 @@ func (g *GRPC) Start() <-chan bool {
 		return sc.ListenAndServeTLS(ctx, fmt.Sprintf(":%v", g.SecurePort), "", "")
 	})
 
-	log.Print("starting gRPC echo service")
+	dlog.Print(ctx, "starting gRPC echo service")
 
 	exited := make(chan bool)
 	go func() {
-		log.Fatal(grp.Wait())
+		if err := grp.Wait(); err != nil {
+			dlog.Error(ctx, err)
+			panic(err) // TODO: do something better
+		}
 		close(exited)
 	}()
 	return exited
@@ -93,7 +97,7 @@ func (g *GRPC) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResponse, e
 	for k, v := range md {
 		buf.WriteString(fmt.Sprintf("%v : %s\n", k, strings.Join(v, ",")))
 	}
-	log.Println(buf.String())
+	dlog.Println(ctx, buf.String())
 
 	request := &pb.Request{
 		Headers: make(map[string]string),
@@ -124,7 +128,7 @@ func (g *GRPC) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResponse, e
 	// Check header and delay response.
 	if h, ok := md["Requested-Backend-Delay"]; ok {
 		if v, err := strconv.Atoi(h[0]); err == nil {
-			log.Printf("Delaying response by %v ms", v)
+			dlog.Printf(ctx, "Delaying response by %v ms", v)
 			time.Sleep(time.Duration(v) * time.Millisecond)
 		}
 	}
@@ -139,7 +143,9 @@ func (g *GRPC) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResponse, e
 				s := strings.Join(md[v], ",")
 				response.Headers[v] = s
 				p := metadata.Pairs(v, s)
-				grpc.SendHeader(ctx, p)
+				if err := grpc.SendHeader(ctx, p); err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
@@ -153,7 +159,7 @@ func (g *GRPC) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResponse, e
 
 	// Set a log message.
 	if data, err := json.MarshalIndent(echoRES, "", "  "); err == nil {
-		log.Printf("setting response: %s\n", string(data))
+		dlog.Printf(ctx, "setting response: %s\n", string(data))
 	}
 
 	// Checks if requested-status is a valid and not OK gRPC status.

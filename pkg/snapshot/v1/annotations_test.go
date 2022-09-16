@@ -1,28 +1,32 @@
-package snapshot
+package snapshot_test
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"sigs.k8s.io/yaml"
-
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8s_resource_types"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/datawire/dlib/dlog"
 )
 
-func getModuleSpec(rawconfig string) amb.UntypedDict {
+func getModuleSpec(t *testing.T, rawconfig string) amb.UntypedDict {
 	moduleConfig := amb.UntypedDict{}
-	json.Unmarshal([]byte(rawconfig), &moduleConfig)
+	if err := json.Unmarshal([]byte(rawconfig), &moduleConfig); err != nil {
+		t.Fatal(t)
+	}
 	return moduleConfig
 }
 
 func TestParseAnnotations(t *testing.T) {
 	mapping := `
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: quote-backend
 prefix: /backend/
@@ -30,6 +34,9 @@ service: quote:80
 `
 
 	svc := &kates.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Service",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "svc",
 			Namespace: "ambassador",
@@ -39,15 +46,42 @@ service: quote:80
 		},
 	}
 
+	svcWithEmptyAnnotation := &kates.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Service",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "svc-empty",
+			Namespace: "ambassador",
+			Annotations: map[string]string{
+				"getambassador.io/config": "",
+			},
+		},
+	}
+
+	svcWithMissingAnnotation := &kates.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Service",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        "svc-missing",
+			Namespace:   "ambassador",
+			Annotations: map[string]string{},
+		},
+	}
+
 	ingHost := `
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: cool-mapping
 prefix: /blah/
 `
 
-	ingress := &kates.Ingress{
+	ingress := &k8s_resource_types.Ingress{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Ingress",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ingress",
 			Namespace: "somens",
@@ -59,18 +93,21 @@ prefix: /blah/
 
 	ambSvcAnnotations := `
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:
   diagnostics:
     enabled: true
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: KubernetesEndpointResolver
 name: endpoint`
 
 	ambSvc := &kates.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Service",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ambassador",
 			Namespace: "ambassador",
@@ -82,12 +119,15 @@ name: endpoint`
 
 	unparsedAnnotation := `
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: dont-parse
 prefix: /blah/`
 
 	ignoredHost := &amb.Host{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Host",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ambassador",
 			Namespace: "ambassador",
@@ -97,128 +137,100 @@ prefix: /blah/`
 		},
 	}
 
-	ks := &KubernetesSnapshot{
-		Services:  []*kates.Service{svc, ambSvc},
-		Ingresses: []*kates.Ingress{ingress},
+	ks := &snapshotTypes.KubernetesSnapshot{
+		Services:  []*kates.Service{svc, ambSvc, svcWithEmptyAnnotation, svcWithMissingAnnotation},
+		Ingresses: []*snapshotTypes.Ingress{{Ingress: *ingress}},
 		Hosts:     []*amb.Host{ignoredHost},
 	}
 
-	ctx := context.Background()
+	ctx := dlog.NewTestContext(t, false)
 
-	ks.PopulateAnnotations(ctx)
-
-	assert.NotEmpty(t, ks.Annotations)
-	assert.Equal(t, len(ks.Annotations), 4)
-
-	expectedMappings := []*amb.Mapping{
-		{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "Mapping",
-				APIVersion: "getambassador.io/v2",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "cool-mapping",
-				Namespace: "somens",
-			},
-			Spec: amb.MappingSpec{
-				Prefix: "/blah/",
-			},
-		},
-		{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "Mapping",
-				APIVersion: "getambassador.io/v2",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "quote-backend",
-				Namespace: "ambassador",
-			},
-			Spec: amb.MappingSpec{
-				Prefix:  "/backend/",
-				Service: "quote:80",
+	err := ks.PopulateAnnotations(ctx)
+	assert.NoError(t, err)
+	assert.Equal(t, len(ks.Services), 4)
+	assert.Equal(t, map[string]snapshotTypes.AnnotationList{
+		"Service/svc.ambassador": {
+			&amb.Mapping{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Mapping",
+					APIVersion: "getambassador.io/v3alpha1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "quote-backend",
+					Namespace: "ambassador",
+				},
+				Spec: amb.MappingSpec{
+					Prefix:  "/backend/",
+					Service: "quote:80",
+				},
 			},
 		},
-	}
-	moduleConfigRaw := `{"diagnostics": {"enabled":true}}`
-	moduleConfig := amb.UntypedDict{}
-	json.Unmarshal([]byte(moduleConfigRaw), &moduleConfig)
-
-	expectedModule := &amb.Module{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Module",
-			APIVersion: "getambassador.io/v2",
+		"Ingress/ingress.somens": {
+			&kates.Unstructured{
+				Object: map[string]interface{}{
+					"apiVersion": "getambassador.io/v3alpha1",
+					"kind":       "Mapping",
+					"metadata": map[string]interface{}{
+						"name":      "cool-mapping",
+						"namespace": "somens",
+					},
+					"spec": map[string]interface{}{
+						"prefix": "/blah/",
+					},
+					"errors": "spec.service in body is required",
+				},
+			},
 		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "ambassador",
-			Namespace: "ambassador",
+		"Service/ambassador.ambassador": {
+			&amb.Module{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Module",
+					APIVersion: "getambassador.io/v3alpha1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "ambassador",
+					Namespace: "ambassador",
+				},
+				Spec: amb.ModuleSpec{
+					Config: getModuleSpec(t, `{"diagnostics":{"enabled":true}}`),
+				},
+			},
+			&amb.KubernetesEndpointResolver{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "KubernetesEndpointResolver",
+					APIVersion: "getambassador.io/v3alpha1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "endpoint",
+					Namespace: "ambassador",
+				},
+			},
 		},
-		Spec: amb.ModuleSpec{
-			Config: getModuleSpec(`{"diagnostics":{"enabled":true}}`),
-		},
-	}
-	expectedResolver := &amb.KubernetesEndpointResolver{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "KubernetesEndpointResolver",
-			APIVersion: "getambassador.io/v2",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "endpoint",
-			Namespace: "ambassador",
-		},
-	}
-
-	foundMappings := 0
-	foundModules := 0
-	foundResolvers := 0
-	for _, obj := range ks.Annotations {
-		switch obj.(type) {
-		case *amb.Mapping:
-			mapping := obj.(*amb.Mapping)
-			assert.Contains(t, expectedMappings, mapping)
-			foundMappings++
-		case *amb.Module:
-			module := obj.(*amb.Module)
-			assert.Equal(t, expectedModule, module)
-			foundModules++
-		case *amb.KubernetesEndpointResolver:
-			res := obj.(*amb.KubernetesEndpointResolver)
-			assert.Equal(t, expectedResolver, res)
-			foundResolvers++
-		}
-
-	}
-
-	assert.Equal(t, 1, foundModules)
-	assert.Equal(t, 1, foundResolvers)
-	assert.Equal(t, 2, foundMappings)
+	}, ks.Annotations)
 }
 
-func TestConvertAnnotation(tmain *testing.T) {
-	testcases := []struct {
-		testName     string
-		objString    string
-		kind         string
-		apiVersion   string
-		parentns     string
-		parentLabels map[string]string
-		expectedObj  kates.Object
+func TestConvertAnnotation(t *testing.T) {
+	testcases := map[string]struct {
+		inputString       string
+		inputParentNS     string
+		inputParentLabels map[string]string
+
+		outputObj kates.Object
 	}{
-		{
-			testName: "mapping",
-			objString: `
+		"mapping": {
+			inputString: `
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: cool-mapping
-prefix: /blah/`,
-			kind:         "Mapping",
-			apiVersion:   "getambassador.io/v2",
-			parentns:     "somens",
-			parentLabels: map[string]string{},
-			expectedObj: &amb.Mapping{
+prefix: /blah/
+service: quote:80`,
+			inputParentNS:     "somens",
+			inputParentLabels: map[string]string{},
+			outputObj: &amb.Mapping{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "Mapping",
-					APIVersion: "getambassador.io/v2",
+					APIVersion: "getambassador.io/v3alpha1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "cool-mapping",
@@ -226,26 +238,25 @@ prefix: /blah/`,
 					Labels:    map[string]string{},
 				},
 				Spec: amb.MappingSpec{
-					Prefix: "/blah/",
+					Prefix:  "/blah/",
+					Service: "quote:80",
 				},
 			},
 		},
-		{
-			testName: "old-group-v0",
-			objString: `
+		"old-group-v0": {
+			inputString: `
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: cool-mapping
-prefix: /blah/`,
-			kind:         "Mapping",
-			apiVersion:   "ambassador/v0",
-			parentns:     "somens",
-			parentLabels: map[string]string{},
-			expectedObj: &amb.Mapping{
+prefix: /blah/
+service: quote:80`,
+			inputParentNS:     "somens",
+			inputParentLabels: map[string]string{},
+			outputObj: &amb.Mapping{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "Mapping",
-					APIVersion: "getambassador.io/v2",
+					APIVersion: "getambassador.io/v3alpha1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "cool-mapping",
@@ -253,26 +264,25 @@ prefix: /blah/`,
 					Labels:    map[string]string{},
 				},
 				Spec: amb.MappingSpec{
-					Prefix: "/blah/",
+					Prefix:  "/blah/",
+					Service: "quote:80",
 				},
 			},
 		},
-		{
-			testName: "old-group-v1",
-			objString: `
+		"old-group-v1": {
+			inputString: `
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: cool-mapping
-prefix: /blah/`,
-			kind:         "Mapping",
-			apiVersion:   "ambassador/v1",
-			parentns:     "somens",
-			parentLabels: map[string]string{},
-			expectedObj: &amb.Mapping{
+prefix: /blah/
+service: quote:80`,
+			inputParentNS:     "somens",
+			inputParentLabels: map[string]string{},
+			outputObj: &amb.Mapping{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "Mapping",
-					APIVersion: "getambassador.io/v2",
+					APIVersion: "getambassador.io/v3alpha1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "cool-mapping",
@@ -280,28 +290,27 @@ prefix: /blah/`,
 					Labels:    map[string]string{},
 				},
 				Spec: amb.MappingSpec{
-					Prefix: "/blah/",
+					Prefix:  "/blah/",
+					Service: "quote:80",
 				},
 			},
 		},
-		{
-			testName: "label-override",
-			objString: `
+		"label-override": {
+			inputString: `
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: cool-mapping
 metadata_labels:
   bleep: blorp
-prefix: /blah/`,
-			kind:         "Mapping",
-			apiVersion:   "getambassador.io/v2",
-			parentns:     "somens",
-			parentLabels: map[string]string{"should": "override"},
-			expectedObj: &amb.Mapping{
+prefix: /blah/
+service: quote:80`,
+			inputParentNS:     "somens",
+			inputParentLabels: map[string]string{"should": "override"},
+			outputObj: &amb.Mapping{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "Mapping",
-					APIVersion: "getambassador.io/v2",
+					APIVersion: "getambassador.io/v3alpha1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "cool-mapping",
@@ -311,28 +320,27 @@ prefix: /blah/`,
 					},
 				},
 				Spec: amb.MappingSpec{
-					Prefix: "/blah/",
+					Prefix:  "/blah/",
+					Service: "quote:80",
 				},
 			},
 		},
-		{
-			testName: "parent-labels",
-			objString: `
+		"parent-labels": {
+			inputString: `
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: cool-mapping
-prefix: /blah/`,
-			kind:       "Mapping",
-			apiVersion: "getambassador.io/v2",
-			parentns:   "somens",
-			parentLabels: map[string]string{
+prefix: /blah/
+service: quote:80`,
+			inputParentNS: "somens",
+			inputParentLabels: map[string]string{
 				"use": "theselabels",
 			},
-			expectedObj: &amb.Mapping{
+			outputObj: &amb.Mapping{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "Mapping",
-					APIVersion: "getambassador.io/v2",
+					APIVersion: "getambassador.io/v3alpha1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "cool-mapping",
@@ -342,28 +350,26 @@ prefix: /blah/`,
 					},
 				},
 				Spec: amb.MappingSpec{
-					Prefix: "/blah/",
+					Prefix:  "/blah/",
+					Service: "quote:80",
 				},
 			},
 		},
-		{
-			testName: "module",
-			objString: `
+		"module": {
+			inputString: `
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:
   diagnostics:
     enabled: true`,
-			kind:         "Module",
-			apiVersion:   "getambassador.io/v2",
-			parentns:     "somens",
-			parentLabels: map[string]string{},
-			expectedObj: &amb.Module{
+			inputParentNS:     "somens",
+			inputParentLabels: map[string]string{},
+			outputObj: &amb.Module{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "Module",
-					APIVersion: "getambassador.io/v2",
+					APIVersion: "getambassador.io/v3alpha1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "ambassador",
@@ -371,32 +377,44 @@ config:
 					Labels:    map[string]string{},
 				},
 				Spec: amb.ModuleSpec{
-					Config: getModuleSpec(`{"diagnostics":{"enabled":true}}`),
+					Config: getModuleSpec(t, `{"diagnostics":{"enabled":true}}`),
 				},
 			},
 		},
 	}
 
-	for _, tc := range testcases {
-		tmain.Run(tc.testName, func(t *testing.T) {
-			kobj := kates.NewUnstructured(tc.kind, tc.apiVersion)
-
-			yaml.Unmarshal([]byte(tc.objString), kobj)
-			parent := &kates.Service{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "svc",
-					Namespace: tc.parentns,
-					Labels:    tc.parentLabels,
+	for tcName, tc := range testcases {
+		tc := tc
+		t.Run(tcName, func(t *testing.T) {
+			parentObj := &kates.Unstructured{
+				Object: map[string]interface{}{
+					"apiVersion": "v1",
+					"kind":       "Service",
+					"metadata": map[string]interface{}{
+						"name":      "parentname",
+						"namespace": tc.inputParentNS,
+						"labels": func() map[string]interface{} {
+							ret := make(map[string]interface{}, len(tc.inputParentLabels))
+							for k, v := range tc.inputParentLabels {
+								ret[k] = v
+							}
+							return ret
+						}(),
+						"annotations": map[string]interface{}{
+							"getambassador.io/config": tc.inputString,
+						},
+					},
 				},
 			}
 
-			ctx := context.Background()
+			ctx := dlog.NewTestContext(t, false)
 
-			converted, err := ConvertAnnotation(ctx, parent, kobj)
-			assert.NoError(t, err)
-			assert.NotEmpty(t, converted)
-			assert.Equal(t, tc.expectedObj, converted)
+			objs, err := snapshotTypes.ParseAnnotationResources(parentObj)
+			require.NoError(t, err)
+			require.Len(t, objs, 1)
+			obj, err := snapshotTypes.ValidateAndConvertObject(ctx, objs[0])
+			require.NoError(t, err)
+			assert.Equal(t, tc.outputObj, obj)
 		})
 	}
-
 }

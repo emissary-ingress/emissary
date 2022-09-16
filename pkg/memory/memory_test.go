@@ -1,10 +1,13 @@
 package memory
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/datawire/dlib/dlog"
 )
 
 // Test that we trigger "actions" (which we just use to log when interesting stuff happens) at the
@@ -65,14 +68,15 @@ func TestMemoryUsage(t *testing.T) {
 
 // Make sure we clear out exited processes after 10 refreshes.
 func TestMemoryUsageGCExited(t *testing.T) {
+	ctx := dlog.NewTestContext(t, false)
 	count := 0
 	m := &MemoryUsage{
 		limit:      unlimited,
 		perProcess: map[int]*ProcessUsage{},
-		readUsage: func() (memory, memory) {
+		readUsage: func(_ context.Context) (memory, memory) {
 			return 0, unlimited
 		},
-		readPerProcess: func() map[int]*ProcessUsage {
+		readPerProcess: func(_ context.Context) map[int]*ProcessUsage {
 			defer func() {
 				count = count + 1
 			}()
@@ -115,33 +119,33 @@ func TestMemoryUsageGCExited(t *testing.T) {
 	t.Log(m.String())
 
 	assert.Equal(t, 0, len(m.perProcess))
-	m.Refresh()
+	m.Refresh(ctx)
 	t.Log(m.String())
 	assert.Equal(t, 5, len(m.perProcess))
-	m.Refresh()
+	m.Refresh(ctx)
 	t.Log(m.String())
 	for i := 0; i < 10; i++ {
 		assert.Equal(t, 5, len(m.perProcess))
-		m.Refresh()
+		m.Refresh(ctx)
 		t.Log(m.String())
 	}
 
-	m.Refresh()
+	m.Refresh(ctx)
 	assert.Equal(t, 4, len(m.perProcess))
 	t.Log(m.String())
 	assert.NotContains(t, m.perProcess, 3)
 
-	m.Refresh()
+	m.Refresh(ctx)
 	assert.Equal(t, 3, len(m.perProcess))
 	t.Log(m.String())
 	assert.NotContains(t, m.perProcess, 4)
 
-	m.Refresh()
+	m.Refresh(ctx)
 	assert.Equal(t, 2, len(m.perProcess))
 	t.Log(m.String())
 	assert.NotContains(t, m.perProcess, 2)
 
-	m.Refresh()
+	m.Refresh(ctx)
 	assert.Equal(t, 2, len(m.perProcess))
 	t.Log(m.String())
 	assert.Contains(t, m.perProcess, 1)

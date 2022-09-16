@@ -9,9 +9,9 @@ package envoy_service_health_v4alpha
 import (
 	context "context"
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v4alpha1 "github.com/datawire/ambassador/pkg/api/envoy/config/cluster/v4alpha"
-	v4alpha "github.com/datawire/ambassador/pkg/api/envoy/config/core/v4alpha"
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/config/endpoint/v3"
+	v4alpha1 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v4alpha"
+	v4alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v4alpha"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/endpoint/v3"
 	proto "github.com/golang/protobuf/proto"
 	duration "github.com/golang/protobuf/ptypes/duration"
 	_ "google.golang.org/genproto/googleapis/api/annotations"

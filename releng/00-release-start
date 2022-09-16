@@ -1,0 +1,156 @@
+#!/usr/bin/env python3
+"""Updates version.yml and CHANGELOG.md for next version, then
+launch the `git citool` GUI to create a commit of it.
+"""
+
+import os
+import re
+import sys
+from contextlib import contextmanager
+from typing import Generator
+from shutil import which
+import argparse
+import subprocess
+
+from lib import re_ga, re_ea, get_gh_repo, vX, vY
+from lib.uiutil import Checker, CheckResult, run, check_command
+from lib.uiutil import run_txtcapture as run_capture
+from lib.start_release_updates import update_changelog_date
+from lib.gitutil import branch_exists, has_open_pr
+
+
+PR_MESSAGE = """
+All commits that are going out in {next_ver} release **must** be on {pr_branch}.
+This will allow the appropriate CI to run.
+
+Reviewers, please review the changelog and commits in this branch to make sure everything that needs to go out in the release is on this branch.
+"""
+
+
+def main(next_ver: str, commit: bool = True) -> int:
+    """Starts a release train.
+    This script will create a changelog entry and create PRs of applicable.
+    """
+    m = re_ga.match(next_ver)
+    if not m:
+        m = re_ea.match(next_ver)
+    assert m
+
+    if which("gh") is None:
+        print("gh tool is not installed.")
+        print("Please install the tool and rerun this script:")
+        print("https://github.com/cli/cli#installation")
+        return 1
+
+    if not os.getenv("GITHUB_TOKEN"):
+        run(["gh", "auth", "login"])
+
+    print()
+    print(f'Doing basic updates for v{next_ver}...')
+    print()
+
+    # This context manager and check function are pretty much just to produce
+    # a nice list of steps...
+
+    checker = Checker()
+
+    @contextmanager
+    def check(name: str) -> Generator[CheckResult, None, None]:
+        with checker.check(name) as subcheck:
+            yield subcheck
+    workbranch = ''
+    base_branch = ''
+    current_release_branch = f"rel/v{next_ver}"
+    release_branch = f"release/v{m[vX]}.{m[vY]}"
+    check_command(["git", "fetch", "--all"])
+
+    workbranch = current_release_branch
+    base_branch = release_branch
+    if branch_exists(current_release_branch):
+        with check(f"Checking out {current_release_branch}"):
+            run(["git", "checkout", current_release_branch])
+
+        if branch_exists("origin/" + current_release_branch):
+            with check(f"Bringing our branch it up to date with origin/{release_branch}"):
+                run(["git", "pull", "origin", current_release_branch])
+    else:
+        with check(f"Creating {current_release_branch}"):
+            run(["git", "checkout", "-b", current_release_branch])
+    if not checker.ok:
+        return 1
+    run(["git", "merge", f"origin/{release_branch}"])
+    with check(f"Checking for clean branch with no conflicts..."):
+        out = run_capture(["git", "status", "--porcelain"])
+        if out:
+            raise AssertionError(f"Merge conflicts on {current_release_branch}. Resolve these, then rerun this scrip")
+    if not checker.ok:
+        return 1
+
+    with check(f"Updating CHANGELOG.md with {next_ver}..."):
+        update_changelog_date(next_ver)
+    if not checker.ok:
+        return 1
+    if not commit:
+        print('not committing')
+        return 0
+
+    out = run_capture(["git", "status", "--porcelain"])
+    if not out:
+        print("No changes needed, all good.")
+        return 0
+
+    with check(f"Committing changes..."):
+        gitdir = run_capture(['git', 'rev-parse', '--git-dir'])
+        with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
+            msgfile.write(f"Update for v{next_ver}\n")
+        if os.getenv("AMBASSADOR_RELENG_NO_GUI"):
+            run(['git', 'commit', '-am', f'Update for v{next_ver}'])
+        else:
+            run(['git', 'citool'])
+        run(["git", "push", "-u", "origin", workbranch])
+    if not checker.ok:
+        return 1
+    if has_open_pr(get_gh_repo(), base_branch, current_release_branch):
+        run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo()])
+        return 0
+    pr_message = f"[v{next_ver}] Release Branch"
+    pr_body = PR_MESSAGE.format(next_ver=next_ver, pr_branch=current_release_branch)
+    if not checker.ok:
+        return 1
+
+    with check(f"Creating PR for {workbranch}"):
+        run(["gh", "pr", "create",
+                "--repo", get_gh_repo(),
+                "--base", base_branch,
+                "--title", pr_message,
+                "--body", pr_body])
+
+    if checker.ok:
+        if commit:
+            print(f'Update complete. CI triggered on the PR will generate RC artifacts to test')
+            print(f'Pushes to this branch will generate new RCs')
+            if os.getenv("AMBASSADOR_RELENG_NO_GUI"):
+                run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo()])
+            else:
+                run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo(), "--web"])
+        return 0
+    else:
+        return 1
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Start a release train')
+
+    parser.add_argument('--next-version', help='Next version to prep for', required=True)
+    parser.add_argument('--no-commit', dest='commit', action='store_false', default=True)
+
+    args = parser.parse_args()
+
+    if not re_ga.match(args.next_version) and not re_ea.match(args.next_version):
+        sys.stderr.write(f"{os.path.basename(sys.argv[0])}: Version must match X.Y.Z(-ea)?\n")
+        sys.exit(2)
+
+    sys.exit(main(
+        next_ver=args.next_version,
+        commit=args.commit
+    ))

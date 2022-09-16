@@ -45,8 +45,7 @@ import concurrent.futures
 
 from pkg_resources import Requirement, resource_filename
 
-import clize
-from clize import Parameter
+import click
 from flask import Flask, render_template, send_from_directory, request, jsonify, Response
 from flask import json as flask_json
 import gunicorn.app.base
@@ -92,8 +91,19 @@ if parse_bool(os.environ.get("AMBASSADOR_JSON_LOGGING", "false")):
     else:
         print("Could not find a logging manager. Some logging may not be properly JSON formatted!")
 else:
+    # Default log level
+    level = logging.INFO
+
+    # Check for env var log level
+    if level_name := os.getenv("AES_LOG_LEVEL"):
+        level_number = logging.getLevelName(level_name.upper())
+
+        if isinstance(level_number, int):
+            level = level_number
+
+    # Set defauts for all loggers
     logging.basicConfig(
-        level=logging.INFO,
+        level=level,
         format="%%(asctime)s diagd %s [P%%(process)dT%%(threadName)s] %%(levelname)s: %%(message)s" % __version__,
         datefmt="%Y-%m-%d %H:%M:%S"
     )
@@ -118,14 +128,6 @@ ambassador_targets = {
 
 def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
-
-
-def envoy_api_version():
-    env_version = os.environ.get('AMBASSADOR_ENVOY_API_VERSION', 'V3')
-    version = env_version.upper()
-    if version == 'V2' or env_version == 'V3':
-        return version
-    return 'V3'
 
 
 class DiagApp (Flask):
@@ -177,7 +179,7 @@ class DiagApp (Flask):
               config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
               metrics_endpoint: Optional[str], k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False,
               verbose=False, notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
-              report_action_keys=False, enable_fast_reconfigure=False, legacy_mode=False, clustermap_path=None):
+              report_action_keys=False, enable_fast_reconfigure=False, clustermap_path=None):
         self.health_checks = do_checks
         self.no_envoy = no_envoy
         self.debugging = reload
@@ -194,11 +196,9 @@ class DiagApp (Flask):
         self.metrics_endpoint = metrics_endpoint
         self.metrics_registry = CollectorRegistry(auto_describe=True)
         self.enable_fast_reconfigure = enable_fast_reconfigure
-        self.legacy_mode = legacy_mode
 
-        # This feels like overkill.
+        # Init logger, inherits settings from default
         self.logger = logging.getLogger("ambassador.diagd")
-        self.logger.setLevel(logging.INFO)
 
         # Initialize the Envoy stats manager...
         self.estatsmgr = EnvoyStatsMgr(self.logger)
@@ -231,10 +231,17 @@ class DiagApp (Flask):
                                  namespace='ambassador', registry=self.metrics_registry)
         self.diag_notices = Gauge(f'diagnostics_notices', f'Number of configuration notices',
                                  namespace='ambassador', registry=self.metrics_registry)
+        self.diag_log_level = Gauge(f'log_level', f'Debug log level enabled or not',
+                                 ["level"],
+                                 namespace='ambassador', registry=self.metrics_registry)
 
         if debug:
             self.logger.setLevel(logging.DEBUG)
+            self.diag_log_level.labels('debug').set(1)
             logging.getLogger('ambassador').setLevel(logging.DEBUG)
+        else:
+            self.diag_log_level.labels('debug').set(0)
+
 
         # Assume that we will NOT update Mapping status.
         ksclass: Type[KubeStatus] = KubeStatusNoMappings
@@ -468,7 +475,7 @@ class DiagApp (Flask):
         cache = Cache(self.logger)
         scc = SecretHandler(app.logger, "check_cache", app.snapshot_path, "check")
         ir = IR(self.aconf, secret_handler=scc, cache=cache)
-        econf = EnvoyConfig.generate(ir, envoy_api_version(), cache=cache)
+        econf = EnvoyConfig.generate(ir, Config.envoy_api_version, cache=cache)
 
         # This is testing code.
         # name = list(ir.clusters.keys())[0]
@@ -635,29 +642,19 @@ def _is_local_request() -> bool:
     """
     Determine if this request originated with localhost.
 
-    When we are not running in LEGACY_MODE, we rely on healthcheck_server.go setting
-    the X-Ambassador-Diag-IP header for us (and we rely on it overwriting anything
-    that's already there!).
-
-    When we _are_ running in LEGACY_MODE, we rely on an implementation detail of
-    Flask (or maybe of GUnicorn?): the existence of the REMOTE_ADDR environment
-    variable. This may not work as intended on other WSGI implementations, though if
-    the environment variable is missing entirely, the effect is to fail closed, i.e.
-    all requests will be rejected, in which case the problem will become apparent
-    very quickly.
+    We rely on healthcheck_server.go setting the X-Ambassador-Diag-IP header for us
+    (and we rely on it overwriting anything that's already there!).
 
     It might be possible to consider the environment variables SERVER_NAME and
     SERVER_PORT instead, as those are allegedly required by WSGI... but attempting
     to do so in Flask/GUnicorn yielded a worse implementation that was still not
     portable.
+
     """
 
     remote_addr: Optional[str] = ""
 
-    if not app.legacy_mode:
-        remote_addr = request.headers.get("X-Ambassador-Diag-IP")
-    else:
-        remote_addr = request.environ.get("REMOTE_ADDR")
+    remote_addr = request.headers.get("X-Ambassador-Diag-IP")
 
     return remote_addr == "127.0.0.1"
 
@@ -845,6 +842,22 @@ def handle_ping():
     return "ACK\n", 200
 
 
+@app.route("/_internal/v0/features", methods=[ 'GET' ])
+@internal_handler
+def handle_features():
+    # If we don't have an IR yet, do nothing.
+    #
+    # We don't bother grabbing the config_lock here because we're not changing
+    # anything, and an features request hitting at exactly the same moment as
+    # the first configure is a race anyway. If it fails, that's not a big deal,
+    # they can try again.
+    if not app.ir:
+          app.logger.debug("Features: configuration required first")
+          return "Can't do features before configuration", 503
+
+    return jsonify(app.ir.features()), 200
+
+
 @app.route('/_internal/v0/watt', methods=[ 'POST' ])
 @internal_handler
 def handle_watt_update():
@@ -1017,6 +1030,7 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 
     if loglevel:
         app.logger.debug("%s %s -- requesting loglevel %s" % (what, reqid, loglevel))
+        app.diag_log_level.labels('debug').set(1 if loglevel == 'debug' else 0)
 
         if not app.estatsmgr.update_log_levels(time.time(), level=loglevel):
             notice = { 'level': 'WARNING', 'message': "Could not update log level!" }
@@ -1522,95 +1536,70 @@ class AmbassadorEventWatcher(threading.Thread):
         with self.app.aconf_timer:
             aconf.load_all(fetcher.sorted())
 
+            # TODO(Flynn): This is an awful hack. Have aconf.load(fetcher) that does
+            # this correctly.
+            #
+            # I'm not doing this at this moment because aconf.load_all() is called in a
+            # lot of places, and I don't want to destablize 2.2.2.
+            aconf.load_invalid(fetcher)
+
         aconf_path = os.path.join(app.snapshot_path, "aconf-tmp.json")
         open(aconf_path, "w").write(aconf.as_json())
 
-        # Assume that this should be marked as a complete reconfigure.
-        config_type = "complete"
+        # OK. What kind of reconfiguration are we doing?
+        config_type, reset_cache, invalidate_groups_for = IR.check_deltas(self.logger, fetcher, self.app.cache)
 
-        # OK. If we have a cache...
-        if self.app.cache is not None:
-            # ...then we'll start by assuming that we'll need to reset it.
-            reset_cache = True
-
-            # Next up: are there any deltas?
-            if fetcher.deltas:
-                # Yes. We're going to walk over them all and assemble a list
-                # of things to delete and a count of errors while processing our
-                # list.
-
-                delta_errors = 0
-                to_invalidate: List[str] = []
-
-                for delta in fetcher.deltas:
-                    self.logger.debug(f"Delta: {delta}")
-
-                    # The "kind" of a Delta must be a string; assert that to make
-                    # mypy happy.
-
-                    delta_kind = delta['kind']
-                    assert(isinstance(delta_kind, str))
-
-                    # Only worry about Mappings and TCPMappings right now.
-                    if (delta_kind == 'Mapping') or (delta_kind == 'TCPMapping'):
-                        # XXX C'mon, mypy, is this cast really necessary?
-                        metadata = typecast(Dict[str, str], delta.get("metadata", {}))
-                        name = metadata.get("name", "")
-                        namespace = metadata.get("namespace", "")
-
-                        if not name or not namespace:
-                            # This is an error.
-                            delta_errors += 1
-
-                            self.logger.error(f"Delta object needs name and namespace: {delta}")
-                        else:
-                            key = IRBaseMapping.make_cache_key(delta_kind, name, namespace)
-                            to_invalidate.append(key)
-
-                # OK. If we have things to invalidate, and we have NO ERRORS...
-                if to_invalidate and not delta_errors:
-                    # ...then we can invalidate all those things instead of clearing the cache.
-                    reset_cache = False
-
-                    for key in to_invalidate:
-                        self.logger.debug(f"Delta: invalidating {key}")
-                        self.app.cache.invalidate(key)
-
-            # When all is said and done, reset the cache if necessary.
-            if reset_cache:
-                # This is _not_ an incremental reconfigure. Reset the cache...
-                self.logger.debug("RESETTING CACHE")
-                self.app.cache = Cache(self.logger)
-            else:
-                # OK, we're doing an incremental reconfigure.
-                config_type = "incremental"
+        if reset_cache:
+            self.logger.debug("RESETTING CACHE")
+            self.app.cache = Cache(self.logger)
 
         with self.app.ir_timer:
-            ir = IR(aconf, secret_handler=secret_handler, cache=self.app.cache)
+            ir = IR(aconf, secret_handler=secret_handler,
+                    invalidate_groups_for=invalidate_groups_for, cache=self.app.cache)
 
         ir_path = os.path.join(app.snapshot_path, "ir-tmp.json")
         open(ir_path, "w").write(ir.as_json())
 
         with self.app.econf_timer:
-            econf_api_version = envoy_api_version()
-            self.logger.debug("generating envoy configuration with api version %s" % econf_api_version)
-            econf = EnvoyConfig.generate(ir, econf_api_version, cache=self.app.cache)
+            self.logger.debug("generating envoy configuration with api version %s" % Config.envoy_api_version)
+            econf = EnvoyConfig.generate(ir, Config.envoy_api_version, cache=self.app.cache)
 
         # DON'T generate the Diagnostics here, because that turns out to be expensive.
         # Instead, we'll just reset app.diag to None, then generate it on-demand when
         # we need it.
-
+        #
+        # DO go ahead and split the Envoy config into its components for later, though.
         bootstrap_config, ads_config, clustermap = econf.split_config()
 
-        if not self.validate_envoy_config(ir, config=ads_config, retries=self.app.validation_retries):
-            self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
+        # OK. Assume that the Envoy config is valid...
+        econf_is_valid = True
+        econf_bad_reason = ""
+
+        # ...then look for reasons it's not valid.
+        if not econf.has_listeners():
+            # No listeners == something in the Ambassador config is totally horked.
+            # Probably this is the user not defining any Hosts that match
+            # the Listeners in the system.
+            #
+            # As it happens, Envoy is OK running a config with no listeners, and it'll
+            # answer on port 8001 for readiness checks, so... log a notice, but run with it.
+            self.logger.warning("No active listeners at all; check your Listener and Host configuration")
+        elif not self.validate_envoy_config(ir, config=ads_config, retries=self.app.validation_retries):
+            # Invalid Envoy config probably indicates a bug in Emissary itself. Sigh.
+            econf_is_valid = False
+            econf_bad_reason = "invalid envoy configuration generated"
+
+        # OK. Is the config invalid?
+        if not econf_is_valid:
+            # BZzzt. Don't post this update.
+            self.logger.info("no update performed (%s), continuing with current configuration..." % econf_bad_reason)
 
             # Don't use app.check_scout; it will deadlock.
             self.check_scout("attempted bad update")
 
             # DO stop the reconfiguration timer before leaving.
             self.app.config_timer.stop()
-            self._respond(rqueue, 500, 'ignoring: invalid Envoy configuration in snapshot %s' % snapshot)
+            self._respond(rqueue, 500, 'ignoring (%s) in snapshot %s' % (econf_bad_reason, snapshot))
             return
 
         snapcount = int(os.environ.get('AMBASSADOR_SNAPSHOT_COUNT', "4"))
@@ -2016,7 +2005,7 @@ class AmbassadorEventWatcher(threading.Thread):
             output.write(config_json)
 
         command = ['envoy', '--service-node', 'test-id', '--service-cluster', ir.ambassador_nodename, '--config-path', econf_validation_path, '--mode', 'validate']
-        if envoy_api_version() == "V2":
+        if Config.envoy_api_version == "V2":
             command.extend(["--bootstrap-version", "2"])
 
         v_exit = 0
@@ -2103,7 +2092,31 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         return self.application
 
 
-def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
+@click.command()
+@click.argument('snapshot-path',      type=click.Path(), required=False)
+@click.argument('bootstrap-path',     type=click.Path(), required=False)
+@click.argument('ads-path',           type=click.Path(), required=False)
+@click.option('--config-path',        type=click.Path(),                                 help="Optional configuration path to scan for Ambassador YAML files")
+@click.option('--k8s',                is_flag=True,                                      help="If True, assume config_path contains Kubernetes resources (only relevant with config_path)")
+@click.option('--ambex-pid',          type=int, default=0,                               help="Optional PID to signal with HUP after updating Envoy configuration", show_default=True)
+@click.option('--kick',               type=str,                                          help="Optional command to run after updating Envoy configuration")
+@click.option('--banner-endpoint',    type=str, default="http://127.0.0.1:8500/banner",  help="Optional endpoint of extra banner to include", show_default=True)
+@click.option('--metrics-endpoint',   type=str, default="http://127.0.0.1:8500/metrics", help="Optional endpoint of extra prometheus metrics to include", show_default=True)
+@click.option('--no-checks',          is_flag=True,                                      help="If True, don't do Envoy-cluster health checking")
+@click.option('--no-envoy',           is_flag=True,                                      help="If True, don't interact with Envoy at all")
+@click.option('--reload',             is_flag=True,                                      help="If True, run Flask in debug mode for live reloading")
+@click.option('--debug',              is_flag=True,                                      help="If True, do debug logging")
+@click.option('--dev-magic',          is_flag=True,                                      help="If True, override a bunch of things for Datawire dev-loop stuff")
+@click.option('--verbose',            is_flag=True,                                      help="If True, do really verbose debug logging")
+@click.option('--workers',            type=int,                                          help="Number of workers; default is based on the number of CPUs present")
+@click.option('--host',               type=str,                                          help="Interface on which to listen")
+@click.option('--port',               type=int, default=-1,                              help="Port on which to listen", show_default=True)
+@click.option('--notices',            type=click.Path(),                                 help="Optional file to read for local notices")
+@click.option('--validation-retries', type=int, default=5,                               help="Number of times to retry Envoy configuration validation after a timeout", show_default=True)
+@click.option('--allow-fs-commands',  is_flag=True,                                      help="If true, allow CONFIG_FS to support debug/testing commands")
+@click.option('--local-scout',        is_flag=True,                                      help="Don't talk to remote Scout at all; keep everything purely local")
+@click.option('--report-action-keys', is_flag=True,                                      help="Report action keys when chiming")
+def main(snapshot_path=None, bootstrap_path=None, ads_path=None,
           *, dev_magic=False, config_path=None, ambex_pid=0, kick=None,
           banner_endpoint="http://127.0.0.1:8500/banner", metrics_endpoint="http://127.0.0.1:8500/metrics", k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
@@ -2113,33 +2126,19 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     """
     Run the diagnostic daemon.
 
-    :param snapshot_path: Path to directory in which to save configuration snapshots and dynamic secrets
-    :param bootstrap_path: Path to which to write bootstrap Envoy configuration
-    :param ads_path: Path to which to write ADS Envoy configuration
-    :param config_path: Optional configuration path to scan for Ambassador YAML files
-    :param k8s: If True, assume config_path contains Kubernetes resources (only relevant with config_path)
-    :param ambex_pid: Optional PID to signal with HUP after updating Envoy configuration
-    :param kick: Optional command to run after updating Envoy configuration
-    :param banner_endpoint: Optional endpoint of extra banner to include
-    :param metrics_endpoint: Optional endpoint of extra prometheus metrics to include
-    :param no_checks: If True, don't do Envoy-cluster health checking
-    :param no_envoy: If True, don't interact with Envoy at all
-    :param reload: If True, run Flask in debug mode for live reloading
-    :param debug: If True, do debug logging
-    :param dev_magic: If True, override a bunch of things for Datawire dev-loop stuff
-    :param verbose: If True, do really verbose debug logging
-    :param workers: Number of workers; default is based on the number of CPUs present
-    :param host: Interface on which to listen
-    :param port: Port on which to listen
-    :param notices: Optional file to read for local notices
-    :param validation_retries: Number of times to retry Envoy configuration validation after a timeout
-    :param allow_fs_commands: If true, allow CONFIG_FS to support debug/testing commands
-    :param local_scout: Don't talk to remote Scout at all; keep everything purely local
-    :param report_action_keys: Report action keys when chiming
+    Arguments:
+
+      SNAPSHOT_PATH
+        Path to directory in which to save configuration snapshots and dynamic secrets
+
+      BOOTSTRAP_PATH
+        Path to which to write bootstrap Envoy configuration
+
+      ADS_PATH
+        Path to which to write ADS Envoy configuration
     """
 
-    enable_fast_reconfigure = parse_bool(os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "false"))
-    legacy_mode = parse_bool(os.environ.get("AMBASSADOR_LEGACY_MODE", "false"))
+    enable_fast_reconfigure = parse_bool(os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "true"))
 
     if port < 0:
         port = Constants.DIAG_PORT if not enable_fast_reconfigure else Constants.DIAG_PORT_ALT
@@ -2175,7 +2174,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick, banner_endpoint,
               metrics_endpoint, k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
               validation_retries, allow_fs_commands, local_scout, report_action_keys,
-              enable_fast_reconfigure, legacy_mode)
+              enable_fast_reconfigure)
 
     if not workers:
         workers = number_of_workers()
@@ -2189,10 +2188,6 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     app.logger.info("thread count %d, listening on %s" % (gunicorn_config['threads'], gunicorn_config['bind']))
 
     StandaloneApplication(app, gunicorn_config).run()
-
-
-def main():
-    clize.run(_main)
 
 
 if __name__ == "__main__":

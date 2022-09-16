@@ -1,0 +1,12 @@
+- apiVersion: "getambassador.io/v2"
+  kind: "Module"
+  metadata:
+      creationTimestamp: "2020-08-12T12:23:12Z"
+      generation: 1
+      name: "ambassador"
+      namespace: "ambassador"
+      resourceVersion: "28330"
+      uid: "9683c9be-de04-4d1e-b3a4-350acdc70ee4"
+  spec:
+      config:
+          lua_scripts: "function envoy_on_request(request_handle)\n  request_handle:headers():remove(\"x-token-c-optional-unset-rejected\")\nend\n"

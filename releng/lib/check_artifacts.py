@@ -13,7 +13,7 @@ import subprocess
 
 from . import ansiterm, assert_eq, build_version, get_is_private
 from .uiutil import Checker, CheckResult, run, run_bincapture, run_txtcapture
-from .mirror_artifacts import get_images
+from . import mirror_artifacts
 
 
 def docker_pull(tag: str) -> str:
@@ -69,14 +69,14 @@ def do_check_s3(checker: Checker,
             yield (out, body)
 
 
-def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = True,
-        release_channel: str = "", source_registry: str ="docker.io/datawire", image_append: str = "") -> int:
+def main(ga_ver: str, chart_ver: str, include_docker: bool = True,
+        release_channel: str = "", source_registry: str ="docker.io/datawire",
+        image_append: str = "", image_name: str = "emissary",
+        s3_bucket: str = "datawire-static-files") -> int:
     warning = """
  ==> Warning: FIXME: While this script is handy in the things that it
-     does check, there's still quite a bit that it doesn't check;
-     check_artifacts.py is still riddled with "TODO"s.  Don't be
-     lulled in to thinking that running this script means you don't
-     need to do anything else.
+     does check, there's still quite a bit more that it could check. Don't
+     be fooled into thinking that this script is complete.
 """
     print(f"{ansiterm.sgr.fg_red}{warning}{ansiterm.sgr}")
 
@@ -92,10 +92,10 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
                 tags = [ga_ver]
 
             for tag in tags:
+                repos = mirror_artifacts.default_repos
                 if is_private:
-                    images = [f'quay.io/datawire-private/ambassador:{tag}']
-                else:
-                    images = get_images(source_registry, "ambassador", tag, image_append)
+                    repos = {'quay.io/datawire-private/emissary'}
+                images = mirror_artifacts.enumerate_images(repos=repos, tag=tag)
                 for image in images:
                     with check.subcheck(name=image) as subcheck:
                         iid = docker_pull(image)
@@ -109,38 +109,6 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
                     if b != a:
                         subcheck.ok = False
 
-    def do_check_binary(checker: Checker, name: str, txt: bool, private: bool) -> None:
-        with checker.check(name=f'Executable: {name}', clear_on_success=False) as checker:
-            for platform in ['linux/amd64/{}', 'darwin/amd64/{}', 'windows/amd64/{}.exe']:
-                rc_body: Optional[bytes] = None
-                with do_check_s3(checker, f'{name}/{rc_ver}/{platform.format(name)}',
-                                 private=private) as (subcheck, body):
-                    if body is not None:
-                        rc_body = body
-                        # TODO: Validate the binary somehow
-                if ga:
-                    with do_check_s3(checker, f'{name}/{ga_ver}/{platform.format(name)}',
-                                     private=private) as (subcheck, body):
-                        if body is not None:
-                            assert body == rc_body
-            if txt:
-                if include_latest:
-                    with do_check_s3(checker, f'{name}/latest.txt', private=private) as (subcheck, body):
-                        if body is not None:
-                            subcheck.result = body.decode('UTF-8').strip()
-                            if is_private:
-                                assert subcheck.result != rc_ver
-                            else:
-                                assert_eq(subcheck.result, rc_ver)
-                if ga or is_private:
-                    with do_check_s3(checker, f'{name}/stable.txt', private=private) as (subcheck, body):
-                        if body is not None:
-                            subcheck.result = body.decode('UTF-8').strip()
-                            if is_private:
-                                assert subcheck.result != ga_ver
-                            else:
-                                assert_eq(subcheck.result, ga_ver)
-
     s3_login()
 
     checker = Checker()
@@ -148,14 +116,14 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
     if include_docker:
         do_check_docker(checker, 'ambassador')
         with checker.check('Ambassador S3 files', clear_on_success=False) as checker:
-            with do_check_s3(checker, name=f'ambassador/{release_channel}stable.txt') as (subcheck, body):
+            with do_check_s3(checker, name=f'emissary-ingress/{release_channel}stable.txt', bucket=s3_bucket) as (subcheck, body):
                 if body is not None:
                     subcheck.result = body.decode('UTF-8').strip()
                     if is_private:
                         assert subcheck.result != ga_ver
                     else:
                         assert_eq(subcheck.result, ga_ver)
-            with do_check_s3(checker, name=f'ambassador/{release_channel}app.json', bucket='scout-datawire-io',
+            with do_check_s3(checker, name=f'emissary-ingress/{release_channel}app.json', bucket='scout-datawire-io',
                              private=True) as (subcheck, body):
                 if body is not None:
                     subcheck.result = json.loads(body.decode('UTF-8')).get('latest_version', '')
@@ -164,11 +132,8 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
                     else:
                         assert_eq(subcheck.result, ga_ver)
 
-    with checker.check(name='Git tags') as check:
-        check.result = 'TODO'
-        raise NotImplementedError()
     with checker.check(name='Website YAML') as check:
-        yaml_str = http_cat('https://app.getambassador.io/yaml/ambassador/latest/ambassador.yaml').decode('utf-8')
+        yaml_str = http_cat('https://app.getambassador.io/yaml/emissary/latest/emissary-emissaryns.yaml').decode('utf-8')
         images = [
             line.strip()[len('image:'):].strip() for line in yaml_str.split("\n")
             if line.strip().startswith('image:')
@@ -179,20 +144,20 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
         if release_channel != '':
             check_tag = f"{check_tag}-{release_channel}"
         for image in images:
-            assert '/ambassador:' in image
+            assert '/emissary:' in image
             check.result = image.split(':', 1)[1]
             assert_eq(check.result, check_tag)
-    subprocess.run(['helm', 'repo', 'rm', 'emissary'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    subprocess.run(['helm', 'repo', 'add', 'emissary',
-            'https://s3.amazonaws.com/datawire-static-files/charts'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
     with checker.check(name="Updating helm repo"):
+        subprocess.run(['helm', 'repo', 'rm', 'emissary'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        subprocess.run(['helm', 'repo', 'add', 'emissary',
+                'https://s3.amazonaws.com/{}/charts'.format(s3_bucket)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
         run(['helm', 'repo', 'update'])
-    chart_version = ""
-    for line in fileinput.FileInput("charts/ambassador/Chart.yaml"):
-        if line.startswith("version:"):
-            chart_version = line.replace('version:', '').strip()
+
     with checker.check(name="Check Helm Chart"):
-        yaml_str = run_txtcapture(['helm', 'show', 'chart', '--version', chart_version, 'emissary/ambassador'])
+        yaml_str = run_txtcapture(['helm', 'show', 'chart', '--version', chart_ver, 'emissary/emissary-ingress'])
+
         versions = [
             line[len('appVersion:'):].strip() for line in yaml_str.split("\n") if line.startswith('appVersion:')
         ]
@@ -202,12 +167,29 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
         if release_channel != '':
             check_tag = f"{check_tag}-{release_channel}"
         assert_eq(check.result, check_tag)
-    with checker.check(name='ambassador.git GitHub release for chart') as check:
-        check.result = 'TODO'
-        raise NotImplementedError()
-    with checker.check(name='ambassador.git GitHub release for code') as check:
-        check.result = 'TODO'
-        raise NotImplementedError()
+
+    # The existence of a GitHub release implies the existence of its tag, and we check to
+    # make sure that the tag matches what we expect. Therefore we don't do a separate check
+    # for the tag. (It's true that you can delete the tag after the release; we're just not
+    # going to worry about that.)
+    with checker.check(name='ambassador.git GitHub release for chart (implies GitHub tag, too)') as check:
+        tag = run_txtcapture([
+            "gh", "release", "view",
+            "--json=tagName",
+            "--jq=.tagName",
+            "--repo=emissary-ingress/emissary",
+            f"chart/v{chart_ver}"])
+        assert_eq(tag.strip(), f"chart/v{chart_ver}")
+
+    # See above re tags.
+    with checker.check(name='ambassador.git GitHub release for code (implies GitHub tag, too)') as check:
+        tag = run_txtcapture([
+            "gh", "release", "view",
+            "--json=tagName",
+            "--jq=.tagName",
+            "--repo=emissary-ingress/emissary",
+            f"v{ga_ver}"])
+        assert_eq(tag.strip(), f"v{ga_ver}")
 
     if not checker.ok:
         return 1

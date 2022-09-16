@@ -1,0 +1,31 @@
+{{- if .Values.resolvers.endpoint.create }}
+---
+apiVersion: getambassador.io/v2
+kind: KubernetesEndpointResolver
+metadata:
+  name: {{ .Values.resolvers.endpoint.name }}
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    {{- include "ambassador.labels" . | nindent 4 }}
+{{- if hasKey .Values.env "AMBASSADOR_ID" }}
+spec:
+  ambassador_id: {{ .Values.env.AMBASSADOR_ID | quote }}
+{{- end }}
+{{- end }}
+{{- if .Values.resolvers.consul.create }}
+---
+apiVersion: getambassador.io/v2
+kind: ConsulResolver
+metadata:
+  name: {{ .Values.resolvers.consul.name }}
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    {{- include "ambassador.labels" . | nindent 4 }}
+spec:
+  {{- if hasKey .Values.env "AMBASSADOR_ID" }}
+  ambassador_id: {{ .Values.env.AMBASSADOR_ID | quote }}
+  {{- end }}
+  {{- toYaml .Values.resolvers.consul.spec | nindent 2 }}
+{{- end }}

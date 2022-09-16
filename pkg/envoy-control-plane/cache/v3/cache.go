@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v3"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
-	ttl "github.com/datawire/ambassador/pkg/envoy-control-plane/ttl/v3"
+	discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
+	ttl "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/ttl/v3"
 	"github.com/golang/protobuf/ptypes/any"
 )
 

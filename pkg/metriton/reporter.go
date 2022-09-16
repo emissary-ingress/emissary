@@ -27,7 +27,7 @@ var (
 	// The endpoint you should use by default
 	DefaultEndpoint = "https://metriton.datawire.io/scout"
 	// Use BetaEndpoint for testing purposes without polluting production data
-	BetaEndpoint = "https://kubernaut.io/beta/scout"
+	BetaEndpoint = "https://metriton.datawire.io/beta/scout"
 	// ScoutPyEndpoint is the default endpoint used by scout.py; it obeys the
 	// SCOUT_HOST and SCOUT_HTTPS environment variables.  I'm not sure when you should
 	// use it instead of DefaultEndpoint, but I'm putting it in Go so that I never
@@ -44,7 +44,7 @@ func getenvDefault(varname, def string) string {
 }
 
 func endpointFromEnv() string {
-	host := getenvDefault("SCOUT_HOST", "kubernaut.io")
+	host := getenvDefault("SCOUT_HOST", "metriton.datawire.io")
 	useHTTPS, _ := strconv.ParseBool(getenvDefault("SCOUT_HTTPS", "1"))
 	ret := &url.URL{
 		Scheme: "http",

@@ -1,0 +1,4 @@
+resources:
+  - { kind: Service,            name: «self.path.k8s»,                    namespace: «self.namespace» }
+  - { kind: Service,            name: «self.path.k8s»-admin,              namespace: «self.namespace» }
+  - { kind: Pod,                name: «self.path.k8s»,                    namespace: «self.namespace» }

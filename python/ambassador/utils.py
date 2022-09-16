@@ -169,7 +169,7 @@ def parse_bool(s: Optional[Union[str, bool]]) -> bool:
 
     # OK, we got _something_, so try strtobool.
     try:
-        return strtobool(s)
+        return bool(strtobool(s)) # the linter does not like a Literal[0, 1] being returned here
     except ValueError:
         return False
 
@@ -624,13 +624,18 @@ class SecretInfo:
         if not tls_key:
             tls_key = aconf_object.get('key_pem')
 
+        user_key = aconf_object.get('user_key', None)
+        if not user_key:
+            # We didn't have a 'user_key', do we have a `crl_pem` instead?
+            user_key = aconf_object.get('crl_pem', None)
+
         return SecretInfo(
             aconf_object.name,
             aconf_object.namespace,
             aconf_object.secret_type,
             tls_crt,
             tls_key,
-            aconf_object.get('user_key', None),
+            user_key,
             aconf_object.get('root-cert_pem', None)
         )
 

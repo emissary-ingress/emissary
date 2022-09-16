@@ -1,4 +1,4 @@
-from typing import ClassVar, FrozenSet
+from typing import ClassVar, FrozenSet, Optional
 
 from ..config import Config
 
@@ -118,8 +118,16 @@ class IngressProcessor (ManagedKubernetesProcessor):
         self.logger.debug(f"Handling Ingress {obj.name}...")
         self.aconf.incr_count('k8s_ingress')
 
+        # We'll generate an ingress_id to match up this Ingress with its Mappings, but
+        # only if this Ingress defines a Host. If no Host is defined, ingress_id will stay
+        # None.
+        ingress_id: Optional[str] = None
+
         ingress_tls = obj.spec.get('tls', [])
         for tls_count, tls in enumerate(ingress_tls):
+            # Use the name and namespace to make a unique ID for this Ingress. We'll use
+            # this for matching up this Ingress with its Mappings.
+            ingress_id = f"a10r-ingress-{obj.name}-{obj.namespace}"
 
             tls_secret = tls.get('secretName', None)
             if tls_secret is not None:
@@ -135,6 +143,11 @@ class IngressProcessor (ManagedKubernetesProcessor):
                         },
                         'tlsSecret': {
                             'name': tls_secret
+                        },
+                        'selector': {
+                            'matchLabels': {
+                                'a10r-k8s-ingress': ingress_id
+                            }
                         },
                         'requestPolicy': {
                             'insecure': {
@@ -162,19 +175,25 @@ class IngressProcessor (ManagedKubernetesProcessor):
         if db_service_name is not None and db_service_port is not None:
             db_mapping_identifier = f"{obj.name}-default-backend"
 
+            mapping_labels = dict(obj.labels)
+
+            if ingress_id:
+                mapping_labels["a10r-k8s-ingress"] = ingress_id
+
             default_backend_mapping = NormalizedResource.from_data(
                 'Mapping',
                 db_mapping_identifier,
                 namespace=obj.namespace,
-                labels=obj.labels,
+                labels=mapping_labels,
                 spec={
                     'ambassador_id': obj.ambassador_id,
+                    'hostname': '*',
                     'prefix': '/',
                     'service': f'{db_service_name}.{obj.namespace}:{db_service_port}'
                 },
             )
 
-            self.logger.debug(f"Generated mapping from Ingress {obj.name}: {default_backend_mapping}")
+            self.logger.debug(f"Generated Mapping from Ingress {obj.name}: {default_backend_mapping}")
             self.manager.emit(default_backend_mapping)
 
         # parse ingress.spec.rules
@@ -221,21 +240,29 @@ class IngressProcessor (ManagedKubernetesProcessor):
                             .replace('*', '^[a-z0-9]([-a-z0-9]*[a-z0-9])?', 1) + '$'
                         spec['host_regex'] = True
                     else:
-                        spec['host'] = rule_host
+                        # Use hostname since this can be a hostname of "*" too.
+                        spec['hostname'] = rule_host
+                else:
+                    # If there's no rule_host, and we don't have an ingress_id, force a hostname
+                    # of "*" so that the Mapping we generate doesn't get dropped.
+                    if not ingress_id:
+                        spec['hostname'] = "*"
+
+                mapping_labels = dict(obj.labels)
+
+                if ingress_id:
+                    mapping_labels["a10r-k8s-ingress"] = ingress_id
 
                 path_mapping = NormalizedResource.from_data(
                     'Mapping',
                     mapping_identifier,
                     namespace=obj.namespace,
-                    labels=obj.labels,
+                    labels=mapping_labels,
                     spec=spec,
                 )
 
-                self.logger.debug(f"Generated mapping from Ingress {obj.name}: {path_mapping}")
+                self.logger.debug(f"Generated Mapping from Ingress {obj.name}: {path_mapping}")
                 self.manager.emit(path_mapping)
 
         # let's make arrangements to update Ingress' status now
         self._update_status(obj)
-
-        # Let's see if our Ingress resource has Ambassador annotations on it
-        self.manager.emit_annotated(NormalizedResource.from_kubernetes_object_annotation(obj))

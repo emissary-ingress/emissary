@@ -13,13 +13,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 
-	"github.com/datawire/ambassador/cmd/ambex"
-	"github.com/datawire/ambassador/pkg/acp"
-	"github.com/datawire/ambassador/pkg/busy"
-	"github.com/datawire/ambassador/pkg/kates"
-	"github.com/datawire/ambassador/pkg/memory"
+	"github.com/datawire/ambassador/v2/pkg/acp"
+	"github.com/datawire/ambassador/v2/pkg/ambex"
+	"github.com/datawire/ambassador/v2/pkg/busy"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/logutil"
+	"github.com/datawire/ambassador/v2/pkg/memory"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
 )
@@ -76,11 +76,14 @@ import (
 // dies for any reason, the whole process will shutdown and some larger process
 // manager (e.g. kubernetes) is expected to take note and restart if
 // appropriate.
+
+const envAmbassadorDemoMode string = "AMBASSADOR_DEMO_MODE"
+
 func Main(ctx context.Context, Version string, args ...string) error {
 	// Setup logging according to AES_LOG_LEVEL
-	lvl := os.Getenv("AES_LOG_LEVEL")
-	if lvl != "" {
-		parsed, err := logrus.ParseLevel(lvl)
+	busy.SetLogLevel(logutil.DefaultLogLevel)
+	if lvl := os.Getenv("AES_LOG_LEVEL"); lvl != "" {
+		parsed, err := logutil.ParseLogLevel(lvl)
 		if err != nil {
 			dlog.Errorf(ctx, "Error parsing log level: %v", err)
 		} else {
@@ -88,7 +91,11 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		}
 	}
 
-	dlog.Infof(ctx, "Started Ambassador (version %s)", Version)
+	// The agent service is no longer supported, so clear it out.
+	// For good measure, we also unconditionally return the empty
+	// string in GetAgentService().
+	os.Unsetenv("AGENT_SERVICE")
+	dlog.Infof(ctx, "Started Ambassador (Version %s)", Version)
 
 	demoMode := false
 
@@ -98,6 +105,8 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		// Demo mode!
 		dlog.Infof(ctx, "DEMO MODE")
 		demoMode = true
+		// Set an environment variable so that other parts of the code can check if demo mode is active (mainly used for disabling synthetic authservice injection)
+		os.Setenv(envAmbassadorDemoMode, "true")
 	}
 
 	clusterID := GetClusterID(ctx)
@@ -111,10 +120,18 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	os.Setenv("PYTHONUNBUFFERED", "true")
 
 	// Make sure that all of the directories that we need actually exist.
-	ensureDir(GetHomeDir())
-	ensureDir(GetAmbassadorConfigBaseDir())
-	ensureDir(GetSnapshotDir())
-	ensureDir(GetEnvoyDir())
+	if err := ensureDir(GetHomeDir()); err != nil {
+		return err
+	}
+	if err := ensureDir(GetAmbassadorConfigBaseDir()); err != nil {
+		return err
+	}
+	if err := ensureDir(GetSnapshotDir()); err != nil {
+		return err
+	}
+	if err := ensureDir(GetEnvoyDir()); err != nil {
+		return err
+	}
 
 	// We use this to wait until the bootstrap config has been written before starting envoy.
 	envoyHUP := make(chan os.Signal, 1)
@@ -145,7 +162,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		return cmd.Run()
 	})
 
-	usage := memory.GetMemoryUsage()
+	usage := memory.GetMemoryUsage(ctx)
 	if !envbool("DEV_SHUTUP_MEMORY") {
 		group.Go("memory", func(ctx context.Context) error {
 			usage.Watch(ctx)
@@ -155,7 +172,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 
 	fastpathCh := make(chan *ambex.FastpathSnapshot)
 	group.Go("ambex", func(ctx context.Context) error {
-		return ambex.Main2(ctx, Version, usage.PercentUsed, fastpathCh, "--ads-listen-address",
+		return ambex.Main(ctx, Version, usage.PercentUsed, fastpathCh, "--ads-listen-address",
 			"127.0.0.1:8003", GetEnvoyDir())
 	})
 
@@ -177,8 +194,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		group.Go("watcher", func(ctx context.Context) error {
 			// We need to pass the AmbassadorWatcher to this (Kubernetes/Consul) watcher, so
 			// that it can tell the AmbassadorWatcher when snapshots are posted.
-			watcher(ctx, ambwatch, snapshot, fastpathCh, clusterID, Version)
-			return nil
+			return WatchAllTheThings(ctx, ambwatch, snapshot, fastpathCh, clusterID, Version)
 		})
 	}
 
@@ -191,10 +207,8 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	// entrypoint.sh for now, e.g. we don't check execute bits or anything like that.
 	sidecarDir := "/ambassador/sidecars"
 	sidecars, err := ioutil.ReadDir(sidecarDir)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			panic(err)
-		}
+	if err != nil && !os.IsNotExist(err) {
+		return err
 	}
 	for _, sidecar := range sidecars {
 		group.Go(sidecar.Name(), func(ctx context.Context) error {
@@ -220,17 +234,6 @@ func GetClusterID(ctx context.Context) (clusterID string) {
 	}
 
 	rootID := "00000000-0000-0000-0000-000000000000"
-
-	// *!&@*#!& kates panics.
-	defer func() {
-		err := recover()
-
-		if err != nil {
-			// Sigh.
-			dlog.Errorf(ctx, "GetClusterID: couldn't get ID: %s", err)
-			clusterID = clusterIDFromRootID(rootID)
-		}
-	}()
 
 	client, err := kates.NewClient(kates.ClientConfig{})
 	if err == nil {

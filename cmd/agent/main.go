@@ -4,16 +4,18 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net"
 	"os"
 
-	"github.com/datawire/ambassador/cmd/entrypoint"
-	"github.com/datawire/ambassador/pkg/agent"
-	"github.com/datawire/ambassador/pkg/busy"
-	"github.com/datawire/ambassador/pkg/logutil"
-	"github.com/datawire/dlib/dlog"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/klog/v2"
+
+	"github.com/datawire/ambassador/v2/cmd/entrypoint"
+	"github.com/datawire/ambassador/v2/pkg/agent"
+	"github.com/datawire/ambassador/v2/pkg/busy"
+	"github.com/datawire/ambassador/v2/pkg/logutil"
+	"github.com/datawire/dlib/dgroup"
+	"github.com/datawire/dlib/dlog"
 )
 
 // internal k8s service
@@ -21,7 +23,7 @@ const DefaultSnapshotURLFmt = "http://ambassador-admin:%d/snapshot-external"
 
 func run(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
-	ambAgent := agent.NewAgent(nil)
+	ambAgent := agent.NewAgent(nil, agent.NewArgoRolloutsGetter)
 
 	// all log things need to happen here because we still allow the agent to run in amb-sidecar
 	// and amb-sidecar should control all the logging if it's kicking off the agent.
@@ -32,7 +34,7 @@ func run(cmd *cobra.Command, args []string) error {
 	// list secrets initially.
 	klogLevel := 3
 	if logLevel != "" {
-		logrusLevel, err := logrus.ParseLevel(logLevel)
+		logrusLevel, err := logutil.ParseLogLevel(logLevel)
 		if err != nil {
 			dlog.Errorf(ctx, "error parsing log level, running with default level: %+v", err)
 		} else {
@@ -40,17 +42,34 @@ func run(cmd *cobra.Command, args []string) error {
 		}
 		klogLevel = logutil.LogrusToKLogLevel(logrusLevel)
 	}
-	klogFlags := flag.NewFlagSet(os.Args[0], flag.PanicOnError)
+	klogFlags := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	klog.InitFlags(klogFlags)
-	klogFlags.Parse([]string{fmt.Sprintf("-stderrthreshold=%d", klogLevel), "-v=2", "-logtostderr=false"})
+	if err := klogFlags.Parse([]string{fmt.Sprintf("-stderrthreshold=%d", klogLevel), "-v=2", "-logtostderr=false"}); err != nil {
+		return err
+	}
 	snapshotURL := os.Getenv("AES_SNAPSHOT_URL")
 	if snapshotURL == "" {
 		snapshotURL = fmt.Sprintf(DefaultSnapshotURLFmt, entrypoint.ExternalSnapshotPort)
 	}
 
-	ambAgent.Watch(ctx, snapshotURL)
+	metricsListener, err := net.Listen("tcp", ":8080")
+	if err != nil {
+		return err
+	}
+	dlog.Info(ctx, "metrics service listening on :8080")
 
-	return nil
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
+
+	grp.Go("metrics-server", func(ctx context.Context) error {
+		metricsServer := agent.NewMetricsServer(ambAgent.MetricsRelayHandler)
+		return metricsServer.Serve(ctx, metricsListener)
+	})
+
+	grp.Go("watch", func(ctx context.Context) error {
+		return ambAgent.Watch(ctx, snapshotURL)
+	})
+
+	return grp.Wait()
 }
 
 func Main(ctx context.Context, version string, args ...string) error {

@@ -2,13 +2,10 @@ package snapshot
 
 import (
 	"encoding/json"
-	"fmt"
-	"reflect"
-	"strings"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/kates"
-	"github.com/datawire/ambassador/pkg/watt"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/consulwatch"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
 
@@ -30,12 +27,15 @@ type Snapshot struct {
 	Kubernetes *KubernetesSnapshot
 	// The Consul field contains endpoint data for any mappings setup to use a
 	// consul resolver.
-	Consul *watt.ConsulSnapshot
+	Consul *ConsulSnapshot
 	// The Deltas field contains a list of deltas to indicate what has changed
 	// since the prior snapshot. This is only computed for the Kubernetes
 	// portion of the snapshot. Changes in the Consul endpoint data are not
 	// reflected in this field.
 	Deltas []*kates.Delta
+	// The APIDocs field contains a list of OpenAPI documents scrapped from
+	// Ambassador Mappings part of the KubernetesSnapshot
+	APIDocs []*APIDoc `json:"APIDocs,omitempty"`
 	// The Invalid field contains any kubernetes resources that have failed
 	// validation.
 	Invalid []*kates.Unstructured
@@ -43,20 +43,26 @@ type Snapshot struct {
 }
 
 type AmbassadorMetaInfo struct {
-	ClusterID         string `json:"cluster_id"`
-	AmbassadorID      string `json:"ambassador_id"`
-	AmbassadorVersion string `json:"ambassador_version"`
-	KubeVersion       string `json:"kube_version"`
+	ClusterID         string          `json:"cluster_id"`
+	AmbassadorID      string          `json:"ambassador_id"`
+	AmbassadorVersion string          `json:"ambassador_version"`
+	KubeVersion       string          `json:"kube_version"`
+	Sidecar           json.RawMessage `json:"sidecar"`
+}
+
+type ConsulSnapshot struct {
+	Endpoints map[string]consulwatch.Endpoints `json:",omitempty"`
 }
 
 type KubernetesSnapshot struct {
 	// k8s resources
-	IngressClasses []*kates.IngressClass `json:"ingressclasses"`
-	Ingresses      []*kates.Ingress      `json:"ingresses"`
-	Services       []*kates.Service      `json:"service"`
-	Endpoints      []*kates.Endpoints    `json:"Endpoints"`
+	IngressClasses []*IngressClass    `json:"ingressclasses"`
+	Ingresses      []*Ingress         `json:"ingresses"`
+	Services       []*kates.Service   `json:"service"`
+	Endpoints      []*kates.Endpoints `json:"Endpoints"`
 
 	// ambassador resources
+	Listeners   []*amb.Listener   `json:"Listener"`
 	Hosts       []*amb.Host       `json:"Host"`
 	Mappings    []*amb.Mapping    `json:"Mapping"`
 	TCPMappings []*amb.TCPMapping `json:"TCPMapping"`
@@ -86,17 +92,22 @@ type KubernetesSnapshot struct {
 	KNativeClusterIngresses []*kates.Unstructured `json:"clusteringresses.networking.internal.knative.dev,omitempty"`
 	KNativeIngresses        []*kates.Unstructured `json:"ingresses.networking.internal.knative.dev,omitempty"`
 
+	FilterPolicies []*kates.Unstructured `json:"filterpolicies.v3alpha1.getambassador.io,omitempty"`
+	Filters        []*kates.Unstructured `json:"filters.v3alpha1.getambassador.io,omitempty"`
+
 	K8sSecrets []*kates.Secret             `json:"-"`      // Secrets from Kubernetes
 	FSSecrets  map[SecretRef]*kates.Secret `json:"-"`      // Secrets from the filesystem
 	Secrets    []*kates.Secret             `json:"secret"` // Secrets we'll feed to Ambassador
 
-	Annotations []kates.Object `json:"-"`
+	ConfigMaps []*kates.ConfigMap `json:"ConfigMaps,omitempty"`
 
-	// Pods, Deployments and ConfigMaps were added to be used by Ambassador Agent so it can
+	// [kind/name.namespace][]kates.Object
+	Annotations map[string]AnnotationList `json:"annotations"`
+
+	// Pods and Deployments were added to be used by Ambassador Agent so it can
 	// report to AgentCom in Ambassador Cloud.
 	Pods        []*kates.Pod        `json:"Pods,omitempty"`
 	Deployments []*kates.Deployment `json:"Deployments,omitempty"`
-	ConfigMaps  []*kates.ConfigMap  `json:"ConfigMaps,omitempty"`
 
 	// ArgoRollouts represents the argo-rollout CRD state of the world that may or may not be present
 	// in the client's cluster. For this reason, Rollouts resources are fetched making use of the
@@ -113,13 +124,50 @@ type KubernetesSnapshot struct {
 	ArgoApplications []*kates.Unstructured `json:"ArgoApplications,omitempty"`
 }
 
-func (a *KubernetesSnapshot) Render() string {
-	result := &strings.Builder{}
-	v := reflect.ValueOf(a)
-	t := v.Type().Elem()
-	for i := 0; i < t.NumField(); i++ {
-		f := t.Field(i)
-		result.WriteString(fmt.Sprintf("%s: %d\n", f.Name, reflect.Indirect(v).Field(i).Len()))
+// AnnotationList is a []kates.Object that round-trips through JSON (kates.Object is an interface,
+// and you can't normally unmarshal in to an interface).
+//
+// The kates.Object will be the appropriate struct(-pointer) type for valid resources, and a
+// *kates.Unstructured for invalid resources.
+type AnnotationList []kates.Object
+
+// UnmarshalJSON implements json.Unmarshaler, and exists because unmarshalling directly in to an
+// interface (kates.Object) doesn't work.
+func (al *AnnotationList) UnmarshalJSON(bs []byte) error {
+	if string(bs) == "null" {
+		*al = AnnotationList{}
+		return nil
 	}
-	return result.String()
+	var untyped []*kates.Unstructured
+
+	// Unmarshal as unstructured
+	err := json.Unmarshal(bs, &untyped)
+	if err != nil {
+		return err
+	}
+
+	typed := make(AnnotationList, len(untyped))
+	for i, inObj := range untyped {
+		if _, isInvalid := inObj.Object["errors"]; isInvalid {
+			typed[i] = inObj
+		} else {
+			outObj, err := convertAnnotationObject(inObj)
+			if err != nil {
+				return err
+			}
+			typed[i] = outObj
+		}
+	}
+
+	*al = typed
+	return nil
+}
+
+// The APIDoc type is custom object built in the style of a Kubernetes resource (name, type, version)
+// which holds a reference to a Kubernetes object from which an OpenAPI document was scrapped (Data field)
+type APIDoc struct {
+	*kates.TypeMeta
+	Metadata  *kates.ObjectMeta      `json:"metadata,omitempty"`
+	TargetRef *kates.ObjectReference `json:"targetRef,omitempty"`
+	Data      []byte                 `json:"data,omitempty"`
 }

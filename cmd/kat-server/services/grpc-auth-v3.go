@@ -5,22 +5,20 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
-
-	// "os"
 	"strconv"
 	"strings"
 
-	core "github.com/datawire/ambassador/pkg/api/envoy/config/core/v3"
-	pb "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v3"
-	envoy_type "github.com/datawire/ambassador/pkg/api/envoy/type/v3"
-
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
+	pb "github.com/datawire/ambassador/v2/pkg/api/envoy/service/auth/v3"
+	envoy_type "github.com/datawire/ambassador/v2/pkg/api/envoy/type/v3"
+	"github.com/datawire/dlib/dlog"
 )
 
 // GRPCAUTHV3 server object (all fields are required).
@@ -35,8 +33,8 @@ type GRPCAUTHV3 struct {
 }
 
 // Start initializes the HTTP server.
-func (g *GRPCAUTHV3) Start() <-chan bool {
-	log.Printf("GRPCAUTHV3: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
+func (g *GRPCAUTHV3) Start(ctx context.Context) <-chan bool {
+	dlog.Printf(ctx, "GRPCAUTHV3: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
 	exited := make(chan bool)
 	proto := "tcp"
@@ -46,13 +44,16 @@ func (g *GRPCAUTHV3) Start() <-chan bool {
 
 		ln, err := net.Listen(proto, port)
 		if err != nil {
-			log.Fatal()
+			dlog.Error(ctx, err)
+			panic(err) // TODO: do something better
 		}
 
 		s := grpc.NewServer()
-		log.Printf("registering v3 service")
+		dlog.Printf(ctx, "registering v3 service")
 		pb.RegisterAuthorizationServer(s, g)
-		s.Serve(ln)
+		if err := s.Serve(ln); err != nil {
+			panic(err) // TODO: do something better
+		}
 
 		defer ln.Close()
 		close(exited)
@@ -61,28 +62,30 @@ func (g *GRPCAUTHV3) Start() <-chan bool {
 	go func() {
 		cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
 		if err != nil {
-			log.Fatal(err)
-			return
+			dlog.Error(ctx, err)
+			panic(err) // TODO: do something better
 		}
 
 		config := &tls.Config{Certificates: []tls.Certificate{cer}}
 		port := fmt.Sprintf(":%v", g.SecurePort)
 		ln, err := tls.Listen(proto, port, config)
 		if err != nil {
-			log.Fatal(err)
-			return
+			dlog.Error(ctx, err)
+			panic(err) // TODO: do something better
 		}
 
 		s := grpc.NewServer()
-		log.Printf("registering v2 service")
+		dlog.Printf(ctx, "registering v2 service")
 		pb.RegisterAuthorizationServer(s, g)
-		s.Serve(ln)
+		if err := s.Serve(ln); err != nil {
+			panic(err) // TODO: do something better
+		}
 
 		defer ln.Close()
 		close(exited)
 	}()
 
-	log.Print("starting gRPC authorization service")
+	dlog.Print(ctx, "starting gRPC authorization service")
 	return exited
 }
 
@@ -97,7 +100,7 @@ func (g *GRPCAUTHV3) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckRe
 	}
 
 	// Sets requested HTTP status.
-	rs.SetStatus(rheader["requested-status"])
+	rs.SetStatus(ctx, rheader["requested-status"])
 
 	rs.AddHeader(false, "x-grpc-service-protocol-version", g.ProtocolVersion)
 
@@ -112,7 +115,7 @@ func (g *GRPCAUTHV3) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckRe
 	for _, token := range strings.Split(rheader["x-grpc-auth-append"], ";") {
 		header := strings.Split(strings.TrimSpace(token), "=")
 		if len(header) > 1 {
-			log.Printf("appending header %s : %s", header[0], header[1])
+			dlog.Printf(ctx, "appending header %s : %s", header[0], header[1])
 			rs.AddHeader(true, header[0], header[1])
 		}
 	}
@@ -170,7 +173,7 @@ func (g *GRPCAUTHV3) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckRe
 	}
 
 	// Sets response body.
-	log.Printf("setting response body: %s", string(body))
+	dlog.Printf(ctx, "setting response body: %s", string(body))
 	rs.SetBody(string(body))
 
 	return rs.GetResponse(), nil
@@ -191,7 +194,7 @@ func (r *ResponseV3) AddHeader(a bool, k, v string) {
 			Key:   k,
 			Value: v,
 		},
-		Append: &wrappers.BoolValue{Value: a},
+		Append: &wrapperspb.BoolValue{Value: a},
 	}
 	r.headers = append(r.headers, val)
 }
@@ -211,18 +214,18 @@ func (r *ResponseV3) SetBody(s string) {
 }
 
 // SetStatus sets the authorization response HTTP status code.
-func (r *ResponseV3) SetStatus(s string) {
+func (r *ResponseV3) SetStatus(ctx context.Context, s string) {
 	if len(s) == 0 {
 		s = "200"
 	}
 	if val, err := strconv.Atoi(s); err == nil {
 		r.status = uint32(val)
 		r.AddHeader(false, "status", s)
-		log.Printf("setting HTTP status %v", r.status)
+		dlog.Printf(ctx, "setting HTTP status %v", r.status)
 	} else {
 		r.status = uint32(500)
 		r.AddHeader(false, "status", "500")
-		log.Printf("error setting HTTP status. Cannot parse string %s: %v.", s, err)
+		dlog.Printf(ctx, "error setting HTTP status. Cannot parse string %s: %v.", s, err)
 	}
 }
 

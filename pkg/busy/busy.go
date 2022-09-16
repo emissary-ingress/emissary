@@ -12,13 +12,15 @@ import (
 	"sort"
 	"strconv"
 
+	//nolint:depguard // This is one of the few places where it is approrpiate to not go through
+	// to initialize dlog.
 	"github.com/sirupsen/logrus"
 
 	"github.com/datawire/dlib/dlog"
 )
 
 type Command struct {
-	Setup func()
+	Setup func(ctx context.Context)
 	Run   func(ctx context.Context, version string, args ...string) error
 }
 
@@ -73,18 +75,14 @@ func Main(binName, humanName string, version string, cmds map[string]Command) {
 		os.Args = os.Args[1:]
 	}
 
-	cmd, cmdOk := cmds[name]
-	if cmdOk {
-		cmd.Setup()
-	}
-
 	logger := dlog.WrapLogrus(logrusLogger).
 		WithField("PID", os.Getpid()).
 		WithField("CMD", name)
-	ctx := dlog.WithLogger(context.Background(), logger)
+	ctx := dlog.WithLogger(context.Background(), logger) // early in Main()
 	dlog.SetFallbackLogger(logger.WithField("oops-i-did-not-pass-context-correctly", "THIS IS A BUG"))
 
-	if cmdOk {
+	if cmd, cmdOk := cmds[name]; cmdOk {
+		cmd.Setup(ctx)
 		if err := cmd.Run(ctx, version, os.Args[1:]...); err != nil {
 			dlog.Errorf(ctx, "shut down with error error: %v", err)
 			os.Exit(1)

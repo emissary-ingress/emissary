@@ -1,15 +1,16 @@
 #!/hint/python3
 
+import os
 import shlex
 import subprocess
 from contextlib import contextmanager
-from typing import Generator, List
+from typing import Generator, Iterable, List
 
 from .uiutil import run as _run
 from .uiutil import run_txtcapture
 
 
-def run(args: List[str]) -> None:
+def run(args: List[str], /) -> None:
     print("$ " + (" ".join(shlex.quote(arg) for arg in args)))
     _run(args)
 
@@ -29,31 +30,30 @@ def gcr_login() -> Generator[None, None, None]:
     subprocess.run(['docker', 'logout', 'https://gcr.io'], check=True)
 
 
-def get_images(source_registry: str, repo: str, tag: str, image_append: str = ''):
-    images = [f"{source_registry}/{repo}:{tag}",]
-    for registry in ['quay.io/datawire', 'gcr.io/datawire']:
-        dst = f'{registry}/{repo}:{tag}'
-        if image_append != '':
-            dst = f'{registry}/{repo}-{image_append}:{tag}'
-        images.append(dst)
-    return images
+default_repos = {
+    'docker.io/emissaryingress/emissary',
+    'gcr.io/datawire/emissary',
+}
+
+default_source_repo = 'docker.io/emissaryingress/emissary'
 
 
-def main(tags: List[str],
-         source_registry: str = 'docker.io/datawire',
-         repos: List[str] = ['ambassador',],
-         image_append: str = '') -> None:
+def enumerate_images(*, repos: Iterable[str] = default_repos, tag: str) -> Iterable[str]:
+    return [f"{repo}:{tag}" for repo in repos]
+
+
+def mirror_images(*, repos: Iterable[str] = default_repos, tag: str, source_repo: str = default_source_repo) -> None:
     print('Note: This script can be rerun.')
     print('If pushes to registries fail, you can rerun the command in your terminal to debug.')
     print('If pushes fail, it might be a credentials problem with gcr or quay.io or an issue with your gcloud installation.')
+
     with gcr_login():
-        for repo in repos:
-            for tag in tags:
-                images = get_images(source_registry, repo, tag, image_append)
-                src = f'{source_registry}/{repo}:{tag}'
-                run(['docker', 'pull', src])
-                for dst in images:
-                    if dst == src:
-                        continue
-                    run(['docker', 'tag', src, dst])
-                    run(['docker', 'push', dst])
+        src = f'{source_repo}:{tag}'
+        dsts = enumerate_images(repos=repos, tag=tag)
+
+        run(['docker', 'pull', src])
+        for dst in dsts:
+            if dst == src:
+                continue
+            run(['docker', 'tag', src, dst])
+            run(['docker', 'push', dst])

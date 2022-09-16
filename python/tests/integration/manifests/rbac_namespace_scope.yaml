@@ -1,42 +1,171 @@
-
+# GENERATED FILE: edits made by hand will not be preserved.
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: Role
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.getambassador.io/role-group: {self.path.k8s}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
 metadata:
+  labels:
+    app.kubernetes.io/instance: kat-rbac-singlenamespace
+    app.kubernetes.io/managed-by: kat
+    app.kubernetes.io/name: emissary-ingress
+    app.kubernetes.io/part-of: kat-rbac-singlenamespace
+    product: aes
   name: {self.path.k8s}
-rules:
-- apiGroups: [""]
-  resources: [ "services", "secrets", "namespaces", "endpoints" ]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [ "apiextensions.k8s.io" ]
-  resources: [ "customresourcedefinitions" ]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [ "getambassador.io" ]
-  resources: [ "*" ]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [ "networking.internal.knative.dev" ]
-  resources: [ "clusteringresses", "ingresses" ]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [ "networking.internal.knative.dev" ]
-  resources: [ "ingresses/status", "clusteringresses/status" ]
-  verbs: ["update"]
-- apiGroups: [ "extensions" ]
-  resources: [ "ingresses" ]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [ "extensions" ]
-  resources: [ "ingresses/status" ]
-  verbs: ["update"]
+rules: []
 ---
+{serviceAccountExtra}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  labels:
+    app.kubernetes.io/instance: kat-rbac-singlenamespace
+    app.kubernetes.io/managed-by: kat
+    app.kubernetes.io/name: emissary-ingress
+    app.kubernetes.io/part-of: kat-rbac-singlenamespace
+    product: aes
   name: {self.path.k8s}
-{serviceAccountExtra}
+  namespace: {self.namespace}
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: kat-rbac-singlenamespace
+    app.kubernetes.io/managed-by: kat
+    app.kubernetes.io/name: emissary-ingress
+    app.kubernetes.io/part-of: kat-rbac-singlenamespace
+    product: aes
+  name: {self.path.k8s}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {self.path.k8s}
+subjects:
+- kind: ServiceAccount
+  name: {self.path.k8s}
+  namespace: {self.namespace}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/instance: kat-rbac-singlenamespace
+    app.kubernetes.io/managed-by: kat
+    app.kubernetes.io/name: emissary-ingress
+    app.kubernetes.io/part-of: kat-rbac-singlenamespace
+    product: aes
+    rbac.getambassador.io/role-group: {self.path.k8s}
+  name: {self.path.k8s}-crd
+rules:
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - get
+  - list
+  - watch
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/instance: kat-rbac-singlenamespace
+    app.kubernetes.io/managed-by: kat
+    app.kubernetes.io/name: emissary-ingress
+    app.kubernetes.io/part-of: kat-rbac-singlenamespace
+    product: aes
+    rbac.getambassador.io/role-group: {self.path.k8s}
+  name: {self.path.k8s}
+  namespace: {self.namespace}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - services
+  - secrets
+  - configmaps
+  - endpoints
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - getambassador.io
+  resources:
+  - '*'
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - create
+  - delete
+- apiGroups:
+  - getambassador.io
+  resources:
+  - mappings/status
+  verbs:
+  - update
+- apiGroups:
+  - networking.internal.knative.dev
+  resources:
+  - clusteringresses
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.x-k8s.io
+  resources:
+  - '*'
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.internal.knative.dev
+  resources:
+  - ingresses/status
+  - clusteringresses/status
+  verbs:
+  - update
+- apiGroups:
+  - extensions
+  - networking.k8s.io
+  resources:
+  - ingresses
+  - ingressclasses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - extensions
+  - networking.k8s.io
+  resources:
+  - ingresses/status
+  verbs:
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  labels:
+    app.kubernetes.io/instance: kat-rbac-singlenamespace
+    app.kubernetes.io/managed-by: kat
+    app.kubernetes.io/name: emissary-ingress
+    app.kubernetes.io/part-of: kat-rbac-singlenamespace
+    product: aes
   name: {self.path.k8s}
+  namespace: {self.namespace}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

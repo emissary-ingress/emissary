@@ -1,8 +1,13 @@
 package logutil
 
 import (
+	//nolint: depguard
 	"github.com/sirupsen/logrus"
 )
+
+func ParseLogLevel(str string) (logrus.Level, error) {
+	return logrus.ParseLevel(str)
+}
 
 func LogrusToKLogLevel(level logrus.Level) int {
 	// Well this is disgusting. Logrus and klog use levels going in opposite directions,
@@ -19,3 +24,5 @@ func LogrusToKLogLevel(level logrus.Level) int {
 
 	return klogLevel
 }
+
+const DefaultLogLevel = logrus.InfoLevel

@@ -118,9 +118,6 @@ func NewFSWatcher(ctx context.Context) (*FSWatcher, error) {
 	// Start with the default error handler...
 	fsw.handleError = fsw.defaultErrorHandler
 
-	// ...and then go watch for events.
-	go fsw.watchForEvents(ctx)
-
 	return fsw, nil
 }
 
@@ -132,20 +129,21 @@ func (fsw *FSWatcher) SetErrorHandler(handler FSWErrorHandler) {
 // WatchDir starts watching a directory, using a specific handler function.
 // You'll need to separately call WatchDir for subdirectories if you want
 // recursive watches.
-func (fsw *FSWatcher) WatchDir(ctx context.Context, dir string, handler FSWEventHandler) {
+func (fsw *FSWatcher) WatchDir(ctx context.Context, dir string, handler FSWEventHandler) error {
 	fsw.mutex.Lock()
 	defer fsw.mutex.Unlock()
 
 	dlog.Infof(ctx, "FSW: watching %s", dir)
 
-	fsw.FSW.Add(dir)
+	if err := fsw.FSW.Add(dir); err != nil {
+		return err
+	}
 	fsw.handlers[dir] = handler
 
 	fileinfos, err := ioutil.ReadDir(dir)
 
 	if err != nil {
-		dlog.Errorf(ctx, "FSWatcher: couldn't scan %s: %s", dir, err)
-		return
+		return err
 	}
 
 	for _, info := range fileinfos {
@@ -160,6 +158,7 @@ func (fsw *FSWatcher) WatchDir(ctx context.Context, dir string, handler FSWEvent
 
 		handler(ctx, fswevent)
 	}
+	return nil
 }
 
 // The default error handler just logs the error.
@@ -168,7 +167,7 @@ func (fsw *FSWatcher) defaultErrorHandler(ctx context.Context, err error) {
 }
 
 // Watch for events, and handle them.
-func (fsw *FSWatcher) watchForEvents(ctx context.Context) {
+func (fsw *FSWatcher) Run(ctx context.Context) {
 	for {
 		select {
 		case event := <-fsw.FSW.Events:

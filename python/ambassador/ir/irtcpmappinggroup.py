@@ -102,11 +102,12 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
 
         self.referenced_by(mapping)
 
-        self.ir.logger.debug("%s: group now %s" % (self, self.as_json()))
+        # self.ir.logger.debug("%s: group now %s" % (self, self.as_json()))
 
+    # Deliberately matches IRListener.bind_to()
     def bind_to(self) -> str:
-        bind_addr = self.get('address') or '0.0.0.0'
-        return "%s-%s" % (bind_addr, self.port)
+        bind_addr = self.get('address') or Config.envoy_bind_address
+        return f"{bind_addr}-{self.port}"
 
     def add_cluster_for_mapping(self, mapping: IRBaseMapping,
                                 marker: Optional[str] = None) -> IRCluster:
@@ -122,7 +123,7 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
                 assert(isinstance(cached_cluster, IRCluster))
                 cluster = cached_cluster
 
-                self.ir.logger.debug(f"IRTCPMappingGroup: got Cluster from cache for {mapping.cluster_key}")
+                self.ir.logger.debug(f"IRTCPMappingGroup: got Cluster from cache for {mapping.cluster_key}")
 
         if not cluster:
             # Find or create the cluster for this Mapping...
@@ -136,7 +137,8 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
                                 enable_ipv6=mapping.get('enable_ipv6', None),
                                 circuit_breakers=mapping.get('circuit_breakers', None),
                                 marker=marker,
-                                allow_scheme=False)
+                                stats_name=self.get("stats_name", None)
+            )
 
         # Make sure that the cluster is really in our IR...
         stored = self.ir.add_cluster(cluster)

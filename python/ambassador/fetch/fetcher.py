@@ -57,6 +57,7 @@ k8sLabelMatcher = re.compile(r'([\w\-_./]+)=\"(.+)\"')
 class ResourceFetcher:
     manager: ResourceManager
     k8s_processor: KubernetesProcessor
+    invalid: List[Dict]
 
     def __init__(self, logger: logging.Logger, aconf: 'Config',
                  skip_init_dir: bool=False, watch_only=False) -> None:
@@ -82,6 +83,13 @@ class ResourceFetcher:
 
         # Deltas, for managing the cache.
         self.deltas: List[Dict[str, Union[str, Dict[str, str]]]] = []
+
+        # Paranoia: make sure self.invalid is empty.
+        #
+        # TODO(Flynn): The only reason this is here is because filesystem configuration
+        # doesn't use parse_watt. This is broken for many reasons; filesystem configuration
+        # should be handled by entrypoint, so that we can make the fetcher _much_ simpler.
+        self.invalid = []
 
         # HACK
         # If AGENT_SERVICE is set, skip the init dir: we'll force some defaults later
@@ -109,7 +117,7 @@ class ResourceFetcher:
                 # run outside of a container with this environment variable set.
                 automatic_manifests.append('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: ambassador-edge-stack
@@ -118,6 +126,7 @@ metadata:
     product: aes
     ambassador_diag_class: private
 spec:
+  hostname: "*"
   ambassador_id: [ "_automatic_" ]
   prefix: /.ambassador/
   rewrite: ""
@@ -209,7 +218,8 @@ spec:
                 # UGH. This parse_yaml is the one we imported from utils. XXX This needs to be fixed.
                 for obj in parse_yaml(serialization):
                     if k8s:
-                        self.handle_k8s(obj)
+                        with self.manager.locations.push_reset():
+                            self.handle_k8s(obj)
                     else:
                         self.manager.emit(NormalizedResource(obj, rkey=rkey))
             except yaml.error.YAMLError as e:
@@ -268,9 +278,9 @@ spec:
             # processed??? It's because they have error information that we need to
             # propagate to the user, and this is the simplest way to do that.
 
-            invalid: List[Dict] = watt_dict.get('Invalid') or []
+            self.invalid: List[Dict] = watt_dict.get('Invalid') or []
 
-            for obj in invalid:
+            for obj in self.invalid:
                 kind = obj.get('kind', None)
 
                 if not kind:
@@ -289,6 +299,9 @@ spec:
 
                 watt_list.append(obj)
 
+            # Remove annotations from the snapshot; we'll process them separately.
+            annotations = watt_k8s.pop('annotations', {})
+
             # These objects have to be processed first, in order, as they depend
             # on each other.
             watt_k8s_keys = list(self.manager.deps.sorted_watt_keys())
@@ -302,7 +315,12 @@ spec:
             for key in dict.fromkeys(watt_k8s_keys):
                 for obj in watt_k8s.get(key) or []:
                     # self.logger.debug(f"Handling Kubernetes {key}...")
-                    self.handle_k8s(obj)
+                    with self.manager.locations.push_reset():
+                        self.handle_k8s(obj)
+                        if 'errors' not in obj:
+                            ann_parent_key = f"{obj['kind']}/{obj['metadata']['name']}.{obj['metadata'].get('namespace')}"
+                            for ann_obj in (annotations.get(ann_parent_key) or []):
+                                self.handle_annotation(ann_parent_key, ann_obj)
 
             watt_consul = watt_dict.get('Consul', {})
             consul_endpoints = watt_consul.get('Endpoints', {})
@@ -340,7 +358,7 @@ spec:
         return sorted(self.elements, key=key)
 
     def handle_k8s(self, raw_obj: dict) -> None:
-        # self.logger.debug("handle_k8s obj %s" % dump_json(obj, pretty=True))
+        # self.logger.debug("handle_k8s obj %s" % dump_json(raw_obj, pretty=True))
 
         try:
             obj = KubernetesObject(raw_obj)
@@ -349,9 +367,20 @@ spec:
             # can't process it.
             return
 
-        with self.manager.locations.push_reset():
-            if not self.k8s_processor.try_process(obj):
-                self.logger.debug(f"{self.location}: skipping K8s {obj.gvk}")
+        if not self.k8s_processor.try_process(obj):
+            self.logger.debug(f"{self.location}: skipping K8s {obj.gvk}")
+
+    def handle_annotation(self, parent_key: str, raw_obj: dict) -> None:
+        try:
+            obj = KubernetesObject(raw_obj)
+        except ValueError:
+            # The object doesn't contain a kind, API version, or name, so we
+            # can't process it.
+            return
+
+        with self.manager.locations.mark_annotated():
+            rkey = parent_key.split('/', 1)[1]
+            self.manager.emit(NormalizedResource.from_kubernetes_object(obj, rkey=rkey))
 
     # Handler for Consul services
     def handle_consul_service(self,

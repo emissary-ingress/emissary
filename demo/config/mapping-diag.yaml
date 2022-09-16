@@ -1,7 +1,8 @@
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 name:  diag_mapping
 prefix: /ambassador/
+hostname: "*"
 rewrite: /ambassador/
 service: 127.0.0.1:8877

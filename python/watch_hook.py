@@ -26,6 +26,11 @@ DEFAULT_AES_SECRET_NAME = "ambassador-edge-stack"
 ENV_AES_SECRET_NAME = "AMBASSADOR_AES_SECRET_NAME"
 ENV_AES_SECRET_NAMESPACE = "AMBASSADOR_AES_SECRET_NAMESPACE"
 
+# the name of some env vars that can be used for overriding
+# the Cloud Connect Token resource name/namespace
+ENV_CLOUD_CONNECT_TOKEN_RESOURCE_NAME = "AGENT_CONFIG_RESOURCE_NAME"
+ENV_CLOUD_CONNECT_TOKEN_RESOURCE_NAMESPACE = "AGENT_NAMESPACE"
+DEFAULT_CLOUD_CONNECT_TOKEN_RESOURCE_NAME = "ambassador-agent-cloud-token"
 
 # Fake SecretHandler for our fake IR, below.
 
@@ -147,6 +152,14 @@ class WatchHook:
         global_label_selector = os.environ.get('AMBASSADOR_LABEL_SELECTOR', '')
         self.logger.debug('label-selector: %s' % global_label_selector)
 
+        cloud_connect_token_resource_name = os.getenv(ENV_CLOUD_CONNECT_TOKEN_RESOURCE_NAME, DEFAULT_CLOUD_CONNECT_TOKEN_RESOURCE_NAME)
+        cloud_connect_token_resource_namespace = os.getenv(ENV_CLOUD_CONNECT_TOKEN_RESOURCE_NAMESPACE, Config.ambassador_namespace)
+        self.logger.debug(f'cloud-connect-token: need configmap/secret {cloud_connect_token_resource_name}.{cloud_connect_token_resource_namespace}')
+        self.add_kube_watch(f'ConfigMap {cloud_connect_token_resource_name}', 'configmap', namespace=cloud_connect_token_resource_namespace,
+                            field_selector=f"metadata.name={cloud_connect_token_resource_name}")
+        self.add_kube_watch(f'Secret {cloud_connect_token_resource_name}', 'secret', namespace=cloud_connect_token_resource_namespace,
+                            field_selector=f"metadata.name={cloud_connect_token_resource_name}")
+
         # watch the AES Secret if the edge stack is running
         if self.fake.edge_stack_allowed:
             aes_secret_name = os.getenv(ENV_AES_SECRET_NAME, DEFAULT_AES_SECRET_NAME)
@@ -160,10 +173,15 @@ class WatchHook:
             sel = host.get('selector') or {}
             match_labels = sel.get('matchLabels') or {}
 
-            label_selector = None
+            label_selectors: List[str] = []
+
+            if global_label_selector:
+                label_selectors.append(global_label_selector)
 
             if match_labels:
-                label_selector = ','.join([f"{l}={v}" for l, v in match_labels.items()])
+                label_selectors += [ f"{l}={v}" for l, v in match_labels.items() ]
+
+            label_selector = ','.join(label_selectors) if label_selectors else None
 
             for wanted_kind in ['service', 'secret']:
                 self.add_kube_watch(f"Host {host.name}", wanted_kind, host.namespace,
@@ -225,6 +243,7 @@ class WatchHook:
             self.logger.debug(f'need secret {secret_info.name}.{secret_info.namespace}')
 
             self.add_kube_watch(f"needed secret", "secret", secret_info.namespace,
+                                label_selector=global_label_selector,
                                 field_selector=f"metadata.name={secret_info.name}")
 
         if self.fake.edge_stack_allowed:

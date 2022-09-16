@@ -27,6 +27,8 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
       - name: Detect version numbers
         id: get-versions
         run: |
@@ -52,7 +54,8 @@ jobs:
           echo "::set-output name=branch_majorminor::${branch_majorminor}"
 
           # Set relnotes_majorminor
-          relnotes_version=$(sed -n '/^ *- version: */{s/.*: *//;p;q;}' docs/releaseNotes.yml items[0].version)
+          make tools/bin/yq
+          relnotes_version=$(tools/bin/yq read docs/releaseNotes.yml items[0].version)
           relnotes_majorminor=$(cut -d. -f1,2 <<<"$relnotes_version")
           echo "::set-output name=relnotes_majorminor::${relnotes_majorminor}"
 

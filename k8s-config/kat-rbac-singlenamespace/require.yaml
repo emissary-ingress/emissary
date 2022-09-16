@@ -1,0 +1,7 @@
+resources:
+  - { kind: ClusterRole,        name: «self.path.k8s»                                    }
+  - { kind: ServiceAccount,     name: «self.path.k8s»,       namespace: «self.namespace» }
+  - { kind: ClusterRoleBinding, name: «self.path.k8s»                                    }
+  - { kind: ClusterRole,        name: «self.path.k8s»-crd                                }
+  - { kind: Role,               name: «self.path.k8s»,       namespace: «self.namespace» }
+  - { kind: RoleBinding,        name: «self.path.k8s»,       namespace: «self.namespace» }

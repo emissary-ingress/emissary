@@ -102,7 +102,7 @@ class Cache():
             self.logger.info(f"CACHE: cannot link, owned not cached: {owned}")
             return
 
-        # self.logger.info(f"CACHE: linking {owner_key} -> {owned_key}")
+        self.logger.debug(f"CACHE: linking {owner_key} -> {owned_key}")
 
         links = self.links.setdefault(owner_key, set())
         links.update([ owned_key ])
@@ -190,27 +190,30 @@ class Cache():
         item: Optional[CacheEntry] = self.cache.get(key, None)
 
         if item is not None:
-            self.logger.debug(f"CACHE: fetch {key}")
+            self.logger.debug(f"CACHE: got {key}")
             self.hits += 1
             return item[0]
         else:
-            self.logger.debug(f"CACHE: missing {key}")
+            self.logger.debug(f"CACHE: no {key}")
             self.misses += 1
             return None
 
-    def dump(self) -> None:
+    def dump(self, what, *args) -> None:
         """
         Dump the cache to the logger.
         """
 
-        for k in sorted(self.cache.keys()):
-            rsrc, on_delete = self.cache[k]
+        if self.logger.isEnabledFor(logging.DEBUG):
+            self.logger.debug("CACHE DUMP AFTER " + what, *args)
 
-            self.logger.info(f"CACHE: {k}, on_delete {self.fn_name(on_delete)}:")
+            for k in sorted(self.cache.keys()):
+                rsrc, on_delete = self.cache[k]
 
-            if k in self.links:
-                for owned in sorted(self.links[k]):
-                    self.logger.info(f"CACHE:   -> {owned}")
+                self.logger.debug(f"CACHE DUMP: {k}, on_delete {self.fn_name(on_delete)}:")
+
+                if k in self.links:
+                    for owned in sorted(self.links[k]):
+                        self.logger.debug(f"CACHE DUMP:   -> {owned}")
 
     def dump_stats(self) -> None:
         total = self.hits + self.misses
@@ -257,5 +260,6 @@ class NullCache(Cache):
         self.misses += 1
         return None
 
-    def dump(self) -> None:
-        self.logger.info("NullCache: empty")
+    def dump(self, what, *args) -> None:
+        pass
+        # self.logger.info("NullCache: empty")

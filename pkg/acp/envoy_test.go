@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/datawire/ambassador/pkg/acp"
+	"github.com/datawire/ambassador/v2/pkg/acp"
+	"github.com/datawire/dlib/dlog"
 )
 
 type fakeReadyMode string
@@ -86,7 +87,7 @@ func TestEnvoyHappyPath(t *testing.T) {
 	m.check(0, false)
 
 	// Fetch readiness.
-	m.ew.FetchEnvoyReady(context.Background())
+	m.ew.FetchEnvoyReady(dlog.NewTestContext(t, false))
 	m.check(1, true)
 }
 
@@ -95,7 +96,7 @@ func TestEnvoyError(t *testing.T) {
 	m.check(0, false)
 
 	// Fetch readiness.
-	m.ew.FetchEnvoyReady(context.Background())
+	m.ew.FetchEnvoyReady(dlog.NewTestContext(t, false))
 	m.check(1, false)
 }
 
@@ -104,7 +105,7 @@ func TestEnvoy503(t *testing.T) {
 	m.check(0, false)
 
 	// Fetch readiness.
-	m.ew.FetchEnvoyReady(context.Background())
+	m.ew.FetchEnvoyReady(dlog.NewTestContext(t, false))
 	m.check(1, false)
 }
 
@@ -113,11 +114,11 @@ func TestEnvoySadToHappy(t *testing.T) {
 	m.check(0, false)
 
 	// Fetch readiness.
-	m.ew.FetchEnvoyReady(context.Background())
+	m.ew.FetchEnvoyReady(dlog.NewTestContext(t, false))
 	m.check(1, false)
 
 	// Switch to the happy path.
 	m.f.setMode(Happy)
-	m.ew.FetchEnvoyReady(context.Background())
+	m.ew.FetchEnvoyReady(dlog.NewTestContext(t, false))
 	m.check(2, true)
 }

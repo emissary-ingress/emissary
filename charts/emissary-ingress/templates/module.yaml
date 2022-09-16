@@ -1,0 +1,20 @@
+{{- if .Values.module }}
+apiVersion: getambassador.io/v2
+kind: Module
+metadata:
+  name: ambassador
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    {{- include "ambassador.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "ambassador.name" . }}-ratelimit
+    product: aes
+spec:
+  {{- if .Values.env }}
+  {{- if hasKey .Values.env "AMBASSADOR_ID" }}
+  ambassador_id: {{ .Values.env.AMBASSADOR_ID | quote }}
+  {{- end }}
+  {{- end }}
+  config:
+    {{- toYaml .Values.module | nindent 4 }}
+{{- end }}

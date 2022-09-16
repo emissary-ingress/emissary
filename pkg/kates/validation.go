@@ -2,18 +2,18 @@ package kates
 
 import (
 	"context"
-	"strings"
+	"errors"
+	"fmt"
+	"path"
 	"sync"
 
 	apiextVInternal "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
 	apiextV1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextV1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
-	apiextValidation "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/validation"
 	"k8s.io/apiextensions-apiserver/pkg/apiserver/validation"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/kube-openapi/pkg/validation/validate"
 
-	"github.com/pkg/errors"
+	"github.com/datawire/dlib/derror"
 )
 
 // A Validator may be used in concert with a Client to perform
@@ -38,33 +38,28 @@ func NewValidator(client *Client, staticCRDs []Object) (*Validator, error) {
 	static := make(map[TypeMeta]*apiextVInternal.CustomResourceDefinition, len(staticCRDs))
 	for i, untypedCRD := range staticCRDs {
 		var crd apiextVInternal.CustomResourceDefinition
-		var gv schema.GroupVersion
 		switch untypedCRD.GetObjectKind().GroupVersionKind() {
 		case apiextV1beta1.SchemeGroupVersion.WithKind("CustomResourceDefinition"):
-			gv = apiextV1beta1.SchemeGroupVersion
 			var crdV1beta1 apiextV1beta1.CustomResourceDefinition
 			if err := convert(untypedCRD, &crdV1beta1); err != nil {
-				return nil, errors.Wrapf(err, "staticCRDs[%d]", i)
+				return nil, fmt.Errorf("staticCRDs[%d]: %w", i, err)
 			}
 			apiextV1beta1.SetDefaults_CustomResourceDefinition(&crdV1beta1)
 			if err := apiextV1beta1.Convert_v1beta1_CustomResourceDefinition_To_apiextensions_CustomResourceDefinition(&crdV1beta1, &crd, nil); err != nil {
-				return nil, errors.Wrapf(err, "staticCRDs[%d]", i)
+				return nil, fmt.Errorf("staticCRDs[%d]: %w", i, err)
 			}
 		case apiextV1.SchemeGroupVersion.WithKind("CustomResourceDefinition"):
-			gv = apiextV1.SchemeGroupVersion
 			var crdV1 apiextV1.CustomResourceDefinition
 			if err := convert(untypedCRD, &crdV1); err != nil {
-				return nil, errors.Wrapf(err, "staticCRDs[%d]", i)
+				return nil, fmt.Errorf("staticCRDs[%d]: %w", i, err)
 			}
 			apiextV1.SetDefaults_CustomResourceDefinition(&crdV1)
 			if err := apiextV1.Convert_v1_CustomResourceDefinition_To_apiextensions_CustomResourceDefinition(&crdV1, &crd, nil); err != nil {
-				return nil, errors.Wrapf(err, "staticCRDs[%d]", i)
+				return nil, fmt.Errorf("staticCRDs[%d]: %w", i, err)
 			}
 		default:
-			return nil, errors.Wrapf(errors.Errorf("unrecognized CRD GroupVersionKind: %v", untypedCRD.GetObjectKind().GroupVersionKind()), "staticCRDs[%d]", i)
-		}
-		if errs := apiextValidation.ValidateCustomResourceDefinition(&crd, gv); len(errs) > 0 {
-			return nil, errors.Wrapf(errs.ToAggregate(), "staticCRDs[%d]", i)
+			err := fmt.Errorf("unrecognized CRD GroupVersionKind: %v", untypedCRD.GetObjectKind().GroupVersionKind())
+			return nil, fmt.Errorf("staticCRDs[%d]: %w", i, err)
 		}
 		for _, version := range crd.Spec.Versions {
 			static[TypeMeta{
@@ -132,9 +127,22 @@ func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (*validate.Sc
 		}
 
 		if crd != nil {
-			validator, _, err = validation.NewSchemaValidator(crd.Spec.Validation)
-			if err != nil {
-				return nil, err
+			if crd.Spec.Validation != nil {
+				validator, _, err = validation.NewSchemaValidator(crd.Spec.Validation)
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				tmVersion := path.Base(tm.APIVersion)
+				for _, version := range crd.Spec.Versions {
+					if version.Name == tmVersion {
+						validator, _, err = validation.NewSchemaValidator(version.Schema)
+						if err != nil {
+							return nil, err
+						}
+						break
+					}
+				}
 			}
 		}
 
@@ -172,7 +180,7 @@ func (v *Validator) Validate(ctx context.Context, resource interface{}) error {
 
 	result := validator.Validate(resource)
 
-	var errs []error
+	var errs derror.MultiError
 	for _, e := range result.Errors {
 		errs = append(errs, e)
 	}
@@ -182,11 +190,7 @@ func (v *Validator) Validate(ctx context.Context, resource interface{}) error {
 	}
 
 	if len(errs) > 0 {
-		msg := strings.Builder{}
-		for _, e := range errs {
-			msg.WriteString(e.Error() + "\n")
-		}
-		return errors.New(msg.String())
+		return errs
 	}
 
 	return nil

@@ -3,10 +3,8 @@ package kates
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"reflect"
 	"strconv"
@@ -14,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/datawire/dlib/dlog"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
@@ -39,6 +36,9 @@ import (
 
 	// k8s plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+
+	kates_internal "github.com/datawire/ambassador/v2/pkg/kates_internal"
+	"github.com/datawire/dlib/dlog"
 )
 
 // The Client struct provides an interface to interact with the kubernetes api-server. You can think
@@ -77,12 +77,13 @@ import (
 //   2. The Accumulator API is guaranteed to bootstrap (i.e. perform an initial List operation) on
 //      all watches prior to notifying the user that resources are available to process.
 type Client struct {
-	config    *ConfigFlags
-	cli       dynamic.Interface
-	mapper    meta.RESTMapper
-	disco     discovery.CachedDiscoveryInterface
-	mutex     sync.Mutex
-	canonical map[string]*Unstructured
+	config                 *ConfigFlags
+	cli                    dynamic.Interface
+	mapper                 meta.RESTMapper
+	disco                  discovery.CachedDiscoveryInterface
+	mutex                  sync.Mutex
+	canonical              map[string]*Unstructured
+	maxAccumulatorInterval time.Duration
 
 	// This is an internal interface for testing, it lets us deliberately introduce delays into the
 	// implementation, e.g. effectively increasing the latency to the api server in a controllable
@@ -103,10 +104,17 @@ type ClientConfig struct {
 
 // The NewClient function constructs a new client with the supplied ClientConfig.
 func NewClient(options ClientConfig) (*Client, error) {
-	return NewClientFromConfigFlags(config(options))
+	return NewClientFromConfigFlags(options.toConfigFlags())
 }
 
-func NewClientFromFlagSet(flags *pflag.FlagSet) (*Client, error) {
+// NewClientFactory adds flags to a flagset (i.e. before flagset.Parse()), and returns a function to
+// be called after flagset.Parse() that uses the parsed flags to construct a *Client.
+func NewClientFactory(flags *pflag.FlagSet) func() (*Client, error) {
+	if flags.Parsed() {
+		// panic is OK because this is a programming error.
+		panic("kates.NewClientFactory(flagset) must be called before flagset.Parse()")
+	}
+
 	config := NewConfigFlags(false)
 
 	// We can disable or enable flags by setting them to
@@ -116,7 +124,13 @@ func NewClientFromFlagSet(flags *pflag.FlagSet) (*Client, error) {
 	// genericclioptions.NewConfigFlags().
 
 	config.AddFlags(flags)
-	return NewClientFromConfigFlags(config)
+
+	return func() (*Client, error) {
+		if !flags.Parsed() {
+			return nil, fmt.Errorf("kates client factory must be called after flagset.Parse()")
+		}
+		return NewClientFromConfigFlags(config)
+	}
 }
 
 func NewClientFromConfigFlags(config *ConfigFlags) (*Client, error) {
@@ -136,14 +150,15 @@ func NewClientFromConfigFlags(config *ConfigFlags) (*Client, error) {
 	}
 
 	return &Client{
-		config:       config,
-		cli:          cli,
-		mapper:       mapper,
-		disco:        disco,
-		canonical:    make(map[string]*Unstructured),
-		watchAdded:   func(oldObj, newObj *Unstructured) {},
-		watchUpdated: func(oldObj, newObj *Unstructured) {},
-		watchDeleted: func(oldObj, newObj *Unstructured) {},
+		config:                 config,
+		cli:                    cli,
+		mapper:                 mapper,
+		disco:                  disco,
+		canonical:              make(map[string]*Unstructured),
+		maxAccumulatorInterval: 1 * time.Second,
+		watchAdded:             func(oldObj, newObj *Unstructured) {},
+		watchUpdated:           func(oldObj, newObj *Unstructured) {},
+		watchDeleted:           func(oldObj, newObj *Unstructured) {},
 	}, nil
 }
 
@@ -198,12 +213,24 @@ func InCluster() bool {
 		err == nil && !fi.IsDir()
 }
 
+// Sets the max interval to wait before sending changes for snapshot updates. The interval must
+// be non-negative, otherwise it will return an error.
+func (c *Client) MaxAccumulatorInterval(interval time.Duration) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	if interval <= 0 {
+		return fmt.Errorf("interval must be positive")
+	}
+	c.maxAccumulatorInterval = interval
+	return nil
+}
+
 // DynamicInterface is an accessor method to the k8s dynamic client
 func (c *Client) DynamicInterface() dynamic.Interface {
 	return c.cli
 }
 
-func (c *Client) WaitFor(ctx context.Context, kindOrResource string) {
+func (c *Client) WaitFor(ctx context.Context, kindOrResource string) error {
 	for {
 		_, err := c.mappingFor(kindOrResource)
 		if err != nil {
@@ -211,26 +238,29 @@ func (c *Client) WaitFor(ctx context.Context, kindOrResource string) {
 			if ok {
 				select {
 				case <-time.After(1 * time.Second):
-					c.InvalidateCache()
+					if err := c.InvalidateCache(); err != nil {
+						return err
+					}
 					continue
 				case <-ctx.Done():
-					return
+					return nil
 				}
 			}
 		}
-		return
+		return nil
 	}
 }
 
-func (c *Client) InvalidateCache() {
+func (c *Client) InvalidateCache() error {
 	// TODO: it's possible that invalidate could be smarter now
 	// and use the methods on CachedDiscoveryInterface
 	mapper, disco, err := NewRESTMapper(c.config)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	c.mapper = mapper
 	c.disco = disco
+	return nil
 }
 
 // The ServerVersion() method returns a struct with information about
@@ -341,7 +371,7 @@ type Query struct {
 	LabelSelector string
 }
 
-func (c *Client) Watch(ctx context.Context, queries ...Query) *Accumulator {
+func (c *Client) Watch(ctx context.Context, queries ...Query) (*Accumulator, error) {
 	return newAccumulator(ctx, c, queries...)
 }
 
@@ -355,7 +385,7 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 	// resource instances of the kind being watched
 	lw := newListWatcher(ctx, cli, query, func(lw *lw) {
 		if lw.hasSynced() {
-			target <- rawUpdate{query.Name, true, nil, nil}
+			target <- rawUpdate{query.Name, true, nil, nil, time.Now()}
 		}
 	})
 	informer = cache.NewSharedInformer(lw, &Unstructured{}, 5*time.Minute)
@@ -394,7 +424,7 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 				// better/faster tests.
 				c.watchAdded(nil, obj.(*Unstructured))
 				lw.countAddEvent()
-				target <- rawUpdate{query.Name, lw.hasSynced(), nil, obj.(*Unstructured)}
+				target <- rawUpdate{query.Name, lw.hasSynced(), nil, obj.(*Unstructured), time.Now()}
 			},
 			UpdateFunc: func(oldObj, newObj interface{}) {
 				old := oldObj.(*Unstructured)
@@ -405,7 +435,7 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 				// nicer prettier set of hooks, but for now all we need is this hack for
 				// better/faster tests.
 				c.watchUpdated(old, new)
-				target <- rawUpdate{query.Name, lw.hasSynced(), old, new}
+				target <- rawUpdate{query.Name, lw.hasSynced(), old, new, time.Now()}
 			},
 			DeleteFunc: func(obj interface{}) {
 				var old *Unstructured
@@ -428,7 +458,7 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 				c.mutex.Lock()
 				delete(c.canonical, key)
 				c.mutex.Unlock()
-				target <- rawUpdate{query.Name, lw.hasSynced(), old, nil}
+				target <- rawUpdate{query.Name, lw.hasSynced(), old, nil, time.Now()}
 			},
 		},
 	)
@@ -441,6 +471,7 @@ type rawUpdate struct {
 	synced bool
 	old    *unstructured.Unstructured
 	new    *unstructured.Unstructured
+	ts     time.Time
 }
 
 type lw struct {
@@ -483,7 +514,7 @@ func (lw *lw) countAddEvent() {
 // dispatched to consider things synced at the dispatch layer.
 //
 // So to track syncedness properly for our users, when we do our first List() we remember how many
-// resourcees there are and we do not consider ourselves synced until we have dispatched at least as
+// resources there are and we do not consider ourselves synced until we have dispatched at least as
 // many Add events as there are resources.
 func (lw *lw) hasSynced() (result bool) {
 	lw.withMutex(func() {
@@ -575,10 +606,10 @@ func (c *Client) cliFor(mapping *meta.RESTMapping, namespace string) dynamic.Res
 	}
 }
 
-func (c *Client) cliForResource(resource *Unstructured) dynamic.ResourceInterface {
+func (c *Client) cliForResource(resource *Unstructured) (dynamic.ResourceInterface, error) {
 	mapping, err := c.mappingFor(resource.GroupVersionKind().GroupKind().String())
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// this will canonicalize the kind and version so any
@@ -589,7 +620,26 @@ func (c *Client) cliForResource(resource *Unstructured) dynamic.ResourceInterfac
 	if ns == "" {
 		ns = "default"
 	}
-	return c.cliFor(mapping, ns)
+	return c.cliFor(mapping, ns), nil
+}
+
+func (c *Client) newField(q Query) (*field, error) {
+	mapping, err := c.mappingFor(q.Kind)
+	if err != nil {
+		return nil, err
+	}
+	sel, err := ParseSelector(q.LabelSelector)
+	if err != nil {
+		return nil, err
+	}
+
+	return &field{
+		query:    q,
+		mapping:  mapping,
+		selector: sel,
+		values:   make(map[string]*Unstructured),
+		deltas:   make(map[string]*Delta),
+	}, nil
 }
 
 // mappingFor returns the RESTMapping for the Kind given, or the Kind referenced by the resource.
@@ -699,7 +749,10 @@ func (c *Client) Get(ctx context.Context, resource interface{}, target interface
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
-		cli := c.cliForResource(&un)
+		cli, err := c.cliForResource(&un)
+		if err != nil {
+			return err
+		}
 		res, err = cli.Get(ctx, un.GetName(), GetOptions{})
 		if err != nil {
 			return err
@@ -729,7 +782,10 @@ func (c *Client) Create(ctx context.Context, resource interface{}, target interf
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
-		cli := c.cliForResource(&un)
+		cli, err := c.cliForResource(&un)
+		if err != nil {
+			return err
+		}
 		res, err = cli.Create(ctx, &un, CreateOptions{})
 		if err != nil {
 			return err
@@ -759,7 +815,10 @@ func (c *Client) Update(ctx context.Context, resource interface{}, target interf
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
-		cli := c.cliForResource(&un)
+		cli, err := c.cliForResource(&un)
+		if err != nil {
+			return err
+		}
 		res, err = cli.Update(ctx, &un, UpdateOptions{})
 		if err != nil {
 			return err
@@ -791,7 +850,10 @@ func (c *Client) Patch(ctx context.Context, resource interface{}, pt PatchType, 
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
-		cli := c.cliForResource(&un)
+		cli, err := c.cliForResource(&un)
+		if err != nil {
+			return err
+		}
 		res, err = cli.Patch(ctx, un.GetName(), pt, data, PatchOptions{})
 		if err != nil {
 			return err
@@ -834,7 +896,10 @@ func (c *Client) Upsert(ctx context.Context, resource interface{}, source interf
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
-		cli := c.cliForResource(&un)
+		cli, err := c.cliForResource(&un)
+		if err != nil {
+			return err
+		}
 		create := false
 		rsrc := &un
 		if prev == "" {
@@ -897,7 +962,10 @@ func (c *Client) UpdateStatus(ctx context.Context, resource interface{}, target 
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
-		cli := c.cliForResource(&un)
+		cli, err := c.cliForResource(&un)
+		if err != nil {
+			return err
+		}
 		res, err = cli.UpdateStatus(ctx, &un, UpdateOptions{})
 		if err != nil {
 			return err
@@ -926,7 +994,10 @@ func (c *Client) Delete(ctx context.Context, resource interface{}, target interf
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
-		cli := c.cliForResource(&un)
+		cli, err := c.cliForResource(&un)
+		if err != nil {
+			return err
+		}
 		err = cli.Delete(ctx, un.GetName(), DeleteOptions{})
 		if err != nil {
 			return err
@@ -945,7 +1016,7 @@ func (c *Client) Delete(ctx context.Context, resource interface{}, target interf
 
 // Update the result of a watch with newer items from our local cache. This guarantees we never give
 // back stale objects that are known to be modified by us.
-func (c *Client) patchWatch(field *field) {
+func (c *Client) patchWatch(ctx context.Context, field *field) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -963,29 +1034,32 @@ func (c *Client) patchWatch(field *field) {
 			if can == nil {
 				// The object is deleted, but has not yet been reported so by the apiserver, so we
 				// remove it.
-				log.Println("Patching delete", field.mapping.GroupVersionKind.Kind, key)
+				dlog.Println(ctx, "Patching delete", field.mapping.GroupVersionKind.Kind, key)
 				delete(field.values, key)
-				field.deltas[key] = newDelta(ObjectDelete, can)
-			} else if gteq(item.GetResourceVersion(), can.GetResourceVersion()) {
+				field.deltas[key] = newDelta(ObjectDelete, item)
+			} else if newer, err := gteq(item.GetResourceVersion(), can.GetResourceVersion()); err != nil {
+				return err
+			} else if newer {
 				// The object in the watch result is the same or newer than our canonical value, so
 				// no need to track it anymore.
-				log.Println("Patching synced", field.mapping.GroupVersionKind.Kind, key)
+				dlog.Println(ctx, "Patching synced", field.mapping.GroupVersionKind.Kind, key)
 				delete(c.canonical, key)
 			} else {
 				// The object in the watch result is stale, so we update it with the canonical
 				// version and track it as a delta.
-				log.Println("Patching update", field.mapping.GroupVersionKind.Kind, key)
+				dlog.Println(ctx, "Patching update", field.mapping.GroupVersionKind.Kind, key)
 				field.values[key] = can
 				field.deltas[key] = newDelta(ObjectUpdate, can)
 			}
 		} else if can != nil && can.GroupVersionKind() == field.mapping.GroupVersionKind &&
 			field.selector.Matches(LabelSet(can.GetLabels())) {
 			// An object that was created locally is not yet present in the watch result, so we add it.
-			log.Println("Patching add", field.mapping.GroupVersionKind.Kind, key)
+			dlog.Println(ctx, "Patching add", field.mapping.GroupVersionKind.Kind, key)
 			field.values[key] = can
 			field.deltas[key] = newDelta(ObjectAdd, can)
 		}
 	}
+	return nil
 }
 
 // ==
@@ -1092,68 +1166,38 @@ func (c *Client) PodLogs(ctx context.Context, pod *Pod, options *PodLogOptions, 
 // kubernetes team was very adamant about the approach to pluggable stores being to create an etcd
 // shim rather than to go more abstract. I believe this makes it relatively safe to depend on in
 // practice.
-func gteq(v1, v2 string) bool {
+func gteq(v1, v2 string) (bool, error) {
 	i1, err := strconv.ParseInt(v1, 10, 64)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 	i2, err := strconv.ParseInt(v2, 10, 64)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
-	return i1 >= i2
+	return i1 >= i2, nil
 }
 
 func convert(in interface{}, out interface{}) error {
-	if out == nil {
-		return nil
-	}
-
-	jsonBytes, err := json.Marshal(in)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(jsonBytes, out)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return kates_internal.Convert(in, out)
 }
 
 func unKey(u *Unstructured) string {
 	return string(u.GetUID())
 }
 
-func config(options ClientConfig) *ConfigFlags {
-	flags := pflag.NewFlagSet("KubeInfo", pflag.PanicOnError)
+func (options ClientConfig) toConfigFlags() *ConfigFlags {
 	result := NewConfigFlags(false)
 
-	// We can disable or enable flags by setting them to
-	// nil/non-nil prior to calling .AddFlags().
-	//
-	// .Username and .Password are already disabled by default in
-	// genericclioptions.NewConfigFlags().
-
-	result.AddFlags(flags)
-
-	var args []string
 	if options.Kubeconfig != "" {
-		args = append(args, "--kubeconfig", options.Kubeconfig)
+		result.KubeConfig = &options.Kubeconfig
 	}
 	if options.Context != "" {
-		args = append(args, "--context", options.Context)
+		result.Context = &options.Context
 	}
 	if options.Namespace != "" {
-		args = append(args, "--namespace", options.Namespace)
+		result.Namespace = &options.Namespace
 	}
 
-	err := flags.Parse(args)
-	if err != nil {
-		// Args is constructed by us, we should never get an
-		// error, so it's ok to panic.
-		panic(err)
-	}
 	return result
 }

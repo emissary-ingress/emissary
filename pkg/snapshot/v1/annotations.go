@@ -3,8 +3,11 @@ package snapshot
 import (
 	"context"
 	"fmt"
+	"strings"
 
-	"github.com/datawire/ambassador/pkg/kates"
+	crdAll "github.com/datawire/ambassador/v2/pkg/api/getambassador.io"
+	crdCurrent "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/dlib/derror"
 )
 
@@ -15,19 +18,43 @@ func annotationKey(obj kates.Object) string {
 		obj.GetNamespace())
 }
 
-func (a *KubernetesSnapshot) PopulateAnnotations(ctx context.Context) error {
+var (
+	scheme    = crdAll.BuildScheme()
+	validator = crdAll.NewValidator()
+)
+
+func (s *KubernetesSnapshot) PopulateAnnotations(ctx context.Context) error {
 	var annotatable []kates.Object
-
-	for _, s := range a.Services {
-		annotatable = append(annotatable, s)
+	for _, svc := range s.Services {
+		annotatable = append(annotatable, svc)
+	}
+	for _, ing := range s.Ingresses {
+		annotatable = append(annotatable, ing)
 	}
 
-	for _, i := range a.Ingresses {
-		annotatable = append(annotatable, i)
-	}
-
+	s.Annotations = make(map[string]AnnotationList)
 	var errs derror.MultiError
-	a.Annotations, errs = getAnnotations(ctx, annotatable...)
+	for _, r := range annotatable {
+		key := annotationKey(r)
+		objs, err := ParseAnnotationResources(r)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", key, err))
+			continue
+		}
+		annotations := make(AnnotationList, len(objs))
+		for i, untypedObj := range objs {
+			typedObj, err := ValidateAndConvertObject(ctx, untypedObj)
+			if err != nil {
+				untypedObj.Object["errors"] = err.Error()
+				annotations[i] = untypedObj
+			} else {
+				annotations[i] = typedObj
+			}
+		}
+		if len(annotations) > 0 {
+			s.Annotations[key] = annotations
+		}
+	}
 
 	if len(errs) > 0 {
 		return errs
@@ -35,128 +62,113 @@ func (a *KubernetesSnapshot) PopulateAnnotations(ctx context.Context) error {
 	return nil
 }
 
-// getAnnotations extracts and converts any parseable annotations from the supplied resource. It
-// omits any malformed annotations and does not report the errors. This is ok for now because the
-// python code will catch and report any errors.
-func getAnnotations(ctx context.Context, resources ...kates.Object) ([]kates.Object, derror.MultiError) {
-	var result []kates.Object
-	var errs derror.MultiError
-	for _, r := range resources {
-		ann, ok := r.GetAnnotations()["getambassador.io/config"]
-		if ok {
-			key := annotationKey(r)
-			objs, err := kates.ParseManifestsToUnstructured(ann)
-			if err != nil {
-				errs = append(errs, fmt.Errorf("%s: %w", key, err))
-			} else {
-				for i, untypedObj := range objs {
-					typedObj, err := ConvertAnnotation(ctx, r, untypedObj.(*kates.Unstructured))
-					if err != nil {
-						errs = append(errs, fmt.Errorf("%s: annotation %d: %w", key, i, err))
-						result = append(result, untypedObj)
-					} else {
-						result = append(result, typedObj)
-					}
-				}
-			}
-		}
+// ValidateAndConvertObject validates an apiGroup=getambassador.io resource, and converts it to the
+// preferred version.
+//
+// This is meant for use on objects that come from annotations.  You should probably not be calling
+// this directly; the only reason it's public is for use by tests.
+func ValidateAndConvertObject(
+	ctx context.Context,
+	in kates.Object,
+) (out kates.Object, err error) {
+	// Validate it
+	gvk := in.GetObjectKind().GroupVersionKind()
+	if !scheme.Recognizes(gvk) {
+		return nil, fmt.Errorf("unsupported GroupVersionKind %q, ignoring", gvk)
+	}
+	if err := validator.Validate(ctx, in); err != nil {
+		return nil, err
 	}
 
-	return result, errs
+	// Convert it to the correct type+version.
+	out, err = convertAnnotationObject(in)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate it again (after conversion) just to be safe
+	if err := validator.Validate(ctx, out); err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }
 
-// Annotations require some post processing because they are weird. The older ones use "ambassador"
-// as the Group rather than "getambassador.io", and also don't put their fields underneath
-// "spec". These end up parsing as unstructured resources, this function converts them to the
-// appropriate structured resource.
+// convertAnnotationObject converts a valid kates.Object to the correct type+version.
+func convertAnnotationObject(in kates.Object) (kates.Object, error) {
+	_out, err := scheme.ConvertToVersion(in, crdCurrent.GroupVersion)
+	if err != nil {
+		return nil, err
+	}
+	out, ok := _out.(kates.Object)
+	if !ok {
+		return nil, fmt.Errorf("type %T doesn't implement kates.Object", _out)
+	}
+	return out, nil
+}
+
+// ParseAnnotationResources parses the annotations on an object, and munges them to be
+// Kubernetes-structured objects.  It does not do any validation or version conversion.
 //
-// NOTE: Right now this is only guaranteed to preserve enough fidelity to find secrets, this may
-// work well enough for other purposes, but some careful review is required before such use.
-func ConvertAnnotation(ctx context.Context, parent kates.Object, un *kates.Unstructured) (kates.Object, error) {
-	// XXX: steal luke's code
-	var tm kates.TypeMeta
-	err := convert(un, &tm)
+// You should probably not be calling this directly; the only reason it's public is for use by
+// tests.
+func ParseAnnotationResources(resource kates.Object) ([]*kates.Unstructured, error) {
+	annotationStr, annotationStrOK := resource.GetAnnotations()["getambassador.io/config"]
+	if !annotationStrOK {
+		return nil, nil
+	}
+	// Parse in to a scratch _annotationResources list instead of the final annotationResources, so that we can more
+	// easily prune invalid entries out before returning it.
+	_annotationResources, err := kates.ParseManifestsToUnstructured(annotationStr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("annotation getambassador.io/config: could not parse YAML: %w", err)
 	}
-
-	gvk := tm.GroupVersionKind()
-
-	// The Canonical Group for our resources is "getambassador.io", but it used to be
-	// "ambassador". Translate as needed for backward compatibility.
-	if gvk.Group == "ambassador" {
-		gvk.Group = "getambassador.io"
-	}
-
-	if gvk.Group != "getambassador.io" {
-		return nil, fmt.Errorf("annotation has unsupported GroupVersionKind %q, ignoring", gvk)
-	}
-
-	// This version munging is only kosher because right now we only care about preserving enough
-	// fidelty to find secrets. (The v2 schema is a superset of the v1 schema for reasons, but the
-	// semantics may not be the same non-secret fields, and who knows about v0.)
-	if gvk.Version == "v0" || gvk.Version == "v1" {
-		gvk.Version = "v2"
-	}
-
-	// Try to create a new typed object with the massaged group/version, if it doesn't work, bail
-	// and return the original resource.
-	apiVersion := gvk.GroupVersion().String()
-	result, err := kates.NewObject(gvk.Kind, apiVersion)
-	if err != nil {
-		return nil, err
-	}
-
-	// create our converted object with the massaged apiVersion
-	obj := make(map[string]interface{})
-	obj["kind"] = gvk.Kind
-	obj["apiVersion"] = apiVersion
-
-	// create our converted metadata
-	metadata := make(map[string]interface{})
-	obj["metadata"] = metadata
-
-	// default the namespace and labels based on the parent resource
-	metadata["namespace"] = parent.GetNamespace()
-	metadata["labels"] = parent.GetLabels()
-
-	// copy everything into our converted metadata
-	if orig, ok := un.Object["metadata"]; ok {
-		for k, v := range orig.(map[string]interface{}) {
-			metadata[k] = v
+	annotationResources := make([]*kates.Unstructured, 0, len(_annotationResources))
+	for _, _annotationResource := range _annotationResources {
+		annotationResource := _annotationResource.(*kates.Unstructured).Object
+		// Un-fold annotations with collapsed metadata/spec
+		if _, ok := annotationResource["apiVersion"].(string); !ok {
+			annotationResource["apiVersion"] = ""
 		}
-	}
-
-	// create our converted spec
-	spec := make(map[string]interface{})
-	obj["spec"] = spec
-
-	// copy everything into our converted spec
-	if orig, ok := un.Object["spec"]; ok {
-		for k, v := range orig.(map[string]interface{}) {
-			spec[k] = v
+		if dat, ok := annotationResource["metadata"].(map[string]interface{}); !ok || dat == nil {
+			annotationResource["metadata"] = map[string]interface{}{}
 		}
-	}
-
-	// copy top level entries into the right places underneath metadata and spec
-	for k, v := range un.Object {
-		switch k {
-		case "apiVersion", "kind", "metadata", "spec", "status":
-			// do nothing
-		case "name", "namespace", "generation":
-			metadata[k] = v
-		case "metadata_labels":
-			metadata["labels"] = v
-		default:
-			spec[k] = v
+		if dat, ok := annotationResource["spec"].(map[string]interface{}); !ok || dat == nil {
+			annotationResource["spec"] = map[string]interface{}{}
 		}
-	}
+		for k, v := range annotationResource {
+			switch k {
+			case "apiVersion", "kind", "metadata", "spec", "status":
+				// do nothing
+			case "name", "namespace", "generation":
+				annotationResource["metadata"].(map[string]interface{})[k] = v
+				delete(annotationResource, k)
+			case "metadata_labels":
+				annotationResource["metadata"].(map[string]interface{})["labels"] = v
+				delete(annotationResource, k)
+			default:
+				annotationResource["spec"].(map[string]interface{})[k] = v
+				delete(annotationResource, k)
+			}
+		}
 
-	// now convert our unstructured annotation into the correct golang struct
-	err = convert(obj, result)
-	if err != nil {
-		return nil, err
-	}
+		// Default attributes from the parent
+		if ns, ok := annotationResource["metadata"].(map[string]interface{})["namespace"].(string); !ok || ns == "" {
+			annotationResource["metadata"].(map[string]interface{})["namespace"] = resource.GetNamespace()
+		}
+		if annotationResource["metadata"].(map[string]interface{})["labels"] == nil && resource.GetLabels() != nil {
+			annotationResource["metadata"].(map[string]interface{})["labels"] = resource.GetLabels()
+		}
 
-	return result, nil
+		// The Canonical API Version for our resources always starts with "getambassador.io/",
+		// but it used to always start with "ambassador/". Translate as needed for backward
+		// compatibility.
+		if apiVersion := annotationResource["apiVersion"].(string); strings.HasPrefix(apiVersion, "ambassador/") {
+			annotationResource["apiVersion"] = "getambassador.io/" + strings.TrimPrefix(apiVersion, "ambassador/")
+		}
+
+		// Add it to the snapshot
+		annotationResources = append(annotationResources, &kates.Unstructured{Object: annotationResource})
+	}
+	return annotationResources, nil
 }

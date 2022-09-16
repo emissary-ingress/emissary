@@ -6,24 +6,30 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/envoy"
-	"github.com/datawire/ambassador/pkg/gateway"
-	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
+
+	"github.com/datawire/ambassador/v2/pkg/envoytest"
+	"github.com/datawire/ambassador/v2/pkg/gateway"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/dlib/dlog"
 )
 
 func TestGatewayMatches(t *testing.T) {
 	t.Parallel()
-	envoy.SetupRequestLogger(t, ":9000", ":9002")
-	e := envoy.SetupEnvoyController(t, ":8003")
-	envoy.SetupEnvoy(t, envoy.GetLoopbackAddr(8003), "8080:8080")
+	ctx := dlog.NewTestContext(t, false)
+	envoytest.SetupRequestLogger(t, ":9000", ":9002")
+	e := envoytest.SetupEnvoyController(t, ":8003")
+	addr, err := envoytest.GetLoopbackAddr(ctx, 8003)
+	require.NoError(t, err)
+	envoytest.SetupEnvoy(t, addr, "8080:8080")
 
 	d := makeDispatcher(t)
 
 	// One rule for each type of path match (exact, prefix, regex) and each type of header match
 	// (exact and regex).
-	err := d.UpsertYaml(`
+	err = d.UpsertYaml(`
 ---
 kind: Gateway
 apiVersion: networking.x-k8s.io/v1alpha1
@@ -40,6 +46,7 @@ apiVersion: networking.x-k8s.io/v1alpha1
 metadata:
   name: my-route
   namespace: default
+
 spec:
   rules:
   - matches:
@@ -84,15 +91,17 @@ spec:
 
 	require.NoError(t, err)
 
-	loopbackIp := envoy.GetLoopbackIp()
+	loopbackIp, err := envoytest.GetLoopbackIp(ctx)
+	require.NoError(t, err)
 
 	err = d.Upsert(makeEndpoint("default", "foo-backend-1", loopbackIp, 9000))
 	require.NoError(t, err)
 	err = d.Upsert(makeEndpoint("default", "foo-backend-2", loopbackIp, 9001))
 	require.NoError(t, err)
 
-	version, snapshot := d.GetSnapshot()
-	status := e.Configure("test-id", version, *snapshot)
+	version, snapshot := d.GetSnapshot(ctx)
+	status, err := e.Configure("test-id", version, *snapshot)
+	require.NoError(t, err)
 	if status != nil {
 		t.Fatalf("envoy error: %s", status.Message)
 	}
@@ -171,11 +180,17 @@ spec:
 
 func makeDispatcher(t *testing.T) *gateway.Dispatcher {
 	d := gateway.NewDispatcher()
-	err := d.Register("Gateway", gateway.Compile_Gateway)
+	err := d.Register("Gateway", func(untyped kates.Object) (*gateway.CompiledConfig, error) {
+		return gateway.Compile_Gateway(untyped.(*gw.Gateway))
+	})
 	require.NoError(t, err)
-	err = d.Register("HTTPRoute", gateway.Compile_HTTPRoute)
+	err = d.Register("HTTPRoute", func(untyped kates.Object) (*gateway.CompiledConfig, error) {
+		return gateway.Compile_HTTPRoute(untyped.(*gw.HTTPRoute))
+	})
 	require.NoError(t, err)
-	err = d.Register("Endpoints", gateway.Compile_Endpoints)
+	err = d.Register("Endpoints", func(untyped kates.Object) (*gateway.CompiledConfig, error) {
+		return gateway.Compile_Endpoints(untyped.(*kates.Endpoints))
+	})
 	require.NoError(t, err)
 	return d
 }

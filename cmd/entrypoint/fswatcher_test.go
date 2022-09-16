@@ -12,7 +12,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/ambassador/cmd/entrypoint"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/datawire/ambassador/v2/cmd/entrypoint"
+	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -27,7 +30,13 @@ type fswMetadata struct {
 	mutex        sync.Mutex
 }
 
-func newMetadata(t *testing.T) (*fswMetadata, error) {
+func newMetadata(t *testing.T) (context.Context, *fswMetadata, error) {
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
+	t.Cleanup(func() {
+		cancel()
+		assert.NoError(t, grp.Wait())
+	})
 	m := &fswMetadata{t: t}
 	m.bootstrapped = make(map[string]bool)
 	m.updates = make(map[string]int)
@@ -39,19 +48,22 @@ func newMetadata(t *testing.T) (*fswMetadata, error) {
 
 	if err != nil {
 		t.Errorf("could not create tempdir: %s", err)
-		return nil, err
+		return nil, nil, err
 	}
 
-	m.fsw, err = entrypoint.NewFSWatcher(context.TODO())
-
+	m.fsw, err = entrypoint.NewFSWatcher(ctx)
 	if err != nil {
 		t.Errorf("could not instantiate FSWatcher: %s", err)
-		return nil, err
+		return nil, nil, err
 	}
+	grp.Go("watch", func(ctx context.Context) error {
+		m.fsw.Run(ctx)
+		return nil
+	})
 
 	m.fsw.SetErrorHandler(m.errorHandler)
 
-	return m, nil
+	return ctx, m, nil
 }
 
 func (m *fswMetadata) done() {
@@ -64,7 +76,7 @@ func (m *fswMetadata) done() {
 	files, err := ioutil.ReadDir(m.dir)
 
 	if err != nil {
-		dlog.Errorf(context.TODO(), "m.done: couldn't scan %s: %s", m.dir, err)
+		m.t.Errorf("m.done: couldn't scan %s: %s", m.dir, err)
 		return
 	}
 
@@ -74,7 +86,7 @@ func (m *fswMetadata) done() {
 		err = os.Remove(path)
 
 		if err != nil {
-			dlog.Errorf(context.TODO(), "m.done: couldn't remove %s: %s", path, err)
+			m.t.Errorf("m.done: couldn't remove %s: %s", path, err)
 		}
 	}
 
@@ -90,12 +102,12 @@ func (m *fswMetadata) done() {
 }
 
 // Error handler: just count errors received.
-func (m *fswMetadata) errorHandler(ctx context.Context, err error) {
-	dlog.Infof(ctx, "errorHandler: got %s", err)
+func (m *fswMetadata) errorHandler(_ context.Context, err error) {
+	m.t.Logf("errorHandler: got %s", err)
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.errorCount++
-	dlog.Infof(ctx, "errorHandler: errorCount now %d", m.errorCount)
+	m.t.Logf("errorHandler: errorCount now %d", m.errorCount)
 }
 
 // Event handler: separately keep track of bootstrapped, updated, and deleted
@@ -111,7 +123,7 @@ func (m *fswMetadata) eventHandler(ctx context.Context, event entrypoint.FSWEven
 
 	opStr := fmt.Sprintf("%s %s%s", event.Time, bstr, event.Op)
 
-	dlog.Infof(context.TODO(), "eventHandler %s %s (dir %s)", opStr, base, dir)
+	m.t.Logf("eventHandler %s %s (dir %s)", opStr, base, dir)
 
 	if dir != m.dir {
 		m.t.Errorf("eventHandler: event for %s arrived, but we're watching %s", event.Path, m.dir)
@@ -152,10 +164,10 @@ func (m *fswMetadata) check(key string, wantedBootstrap bool, wantedUpdates int,
 	bootstrapped, ok := m.bootstrapped[key]
 
 	if !ok {
-		dlog.Infof(context.TODO(), "%s bootstrapped: wanted %v, got nothing", key, wantedBootstrap)
+		m.t.Logf("%s bootstrapped: wanted %v, got nothing", key, wantedBootstrap)
 		bootstrapped = false
 	} else {
-		dlog.Infof(context.TODO(), "%s bootstrapped: wanted %v, got %v", key, wantedBootstrap, bootstrapped)
+		m.t.Logf("%s bootstrapped: wanted %v, got %v", key, wantedBootstrap, bootstrapped)
 	}
 
 	if bootstrapped != wantedBootstrap {
@@ -167,10 +179,10 @@ func (m *fswMetadata) check(key string, wantedBootstrap bool, wantedUpdates int,
 	m.mutex.Unlock()
 
 	if !ok {
-		dlog.Infof(context.TODO(), "%s updates: wanted %d, got nothing", key, wantedUpdates)
+		m.t.Logf("%s updates: wanted %d, got nothing", key, wantedUpdates)
 		got = 0
 	} else {
-		dlog.Infof(context.TODO(), "%s updates: wanted %d, got %d", key, wantedUpdates, got)
+		m.t.Logf("%s updates: wanted %d, got %d", key, wantedUpdates, got)
 	}
 
 	if got != wantedUpdates {
@@ -182,10 +194,10 @@ func (m *fswMetadata) check(key string, wantedBootstrap bool, wantedUpdates int,
 	m.mutex.Unlock()
 
 	if !ok {
-		dlog.Infof(context.TODO(), "%s deletes: wanted %d, got nothing", key, wantedDeletes)
+		m.t.Logf("%s deletes: wanted %d, got nothing", key, wantedDeletes)
 		got = 0
 	} else {
-		dlog.Infof(context.TODO(), "%s deletes: wanted %d, got %d", key, wantedDeletes, got)
+		m.t.Logf("%s deletes: wanted %d, got %d", key, wantedDeletes, got)
 	}
 
 	if got != wantedDeletes {
@@ -197,7 +209,7 @@ func (m *fswMetadata) check(key string, wantedBootstrap bool, wantedUpdates int,
 func (m *fswMetadata) checkErrors(wanted int) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	dlog.Infof(context.TODO(), "checkErrors: wanted %d, have %d", wanted, m.errorCount)
+	m.t.Logf("checkErrors: wanted %d, have %d", wanted, m.errorCount)
 
 	if m.errorCount != wanted {
 		m.t.Errorf("errors: wanted %d, got %d", wanted, m.errorCount)
@@ -215,7 +227,7 @@ func (m *fswMetadata) writeFile(name string, count int, slow bool) bool {
 		return false
 	}
 
-	dlog.Infof(context.TODO(), "%s: opened %s", runtime.GOOS, path)
+	m.t.Logf("%s: opened %s", runtime.GOOS, path)
 
 	// If our caller wants slowness, give 'em slowness.
 	if slow {
@@ -223,7 +235,7 @@ func (m *fswMetadata) writeFile(name string, count int, slow bool) bool {
 	}
 
 	for i := 0; i < count; i++ {
-		dlog.Infof(context.TODO(), "writing chunk %d of %s", i, path)
+		m.t.Logf("writing chunk %d of %s", i, path)
 
 		_, err = f.WriteString("contents!\n")
 
@@ -232,7 +244,7 @@ func (m *fswMetadata) writeFile(name string, count int, slow bool) bool {
 			return false
 		}
 
-		dlog.Infof(context.TODO(), "syncing chunk %d of %s", i, path)
+		m.t.Logf("syncing chunk %d of %s", i, path)
 
 		// Make sure to flush the file.
 		err = f.Sync()
@@ -254,7 +266,7 @@ func (m *fswMetadata) writeFile(name string, count int, slow bool) bool {
 		m.t.Errorf("could not close %s: %s", path, err)
 	}
 
-	dlog.Infof(context.TODO(), "closed %s", path)
+	m.t.Logf("closed %s", path)
 
 	return true
 }
@@ -273,13 +285,13 @@ func (m *fswMetadata) sendError() {
 }
 
 func TestFSWatcherExtantFiles(t *testing.T) {
-	m, err := newMetadata(t)
+	ctx, m, err := newMetadata(t)
 
 	if err != nil {
 		return
 	}
 
-	dlog.Infof(context.TODO(), "FSW initialized for ExtantFiles (%s)", m.dir)
+	m.t.Logf("FSW initialized for ExtantFiles (%s)", m.dir)
 
 	defer m.done()
 
@@ -295,7 +307,7 @@ func TestFSWatcherExtantFiles(t *testing.T) {
 		return
 	}
 
-	m.fsw.WatchDir(context.TODO(), m.dir, m.eventHandler)
+	assert.NoError(t, m.fsw.WatchDir(ctx, m.dir, m.eventHandler))
 
 	m.check("f1", true, 1, 0)
 	m.check("f2", true, 1, 0)
@@ -309,15 +321,15 @@ func TestFSWatcherExtantFiles(t *testing.T) {
 }
 
 func TestFSWatcherNoExtantFiles(t *testing.T) {
-	m, err := newMetadata(t)
+	ctx, m, err := newMetadata(t)
 
 	if err != nil {
 		return
 	}
 
-	dlog.Infof(context.TODO(), "FSW initialized for NonExtantFiles (%s)", m.dir)
+	m.t.Logf("FSW initialized for NonExtantFiles (%s)", m.dir)
 
-	m.fsw.WatchDir(context.TODO(), m.dir, m.eventHandler)
+	assert.NoError(t, m.fsw.WatchDir(ctx, m.dir, m.eventHandler))
 
 	if !m.writeFile("f1", 1, false) {
 		return
@@ -349,15 +361,15 @@ func TestFSWatcherNoExtantFiles(t *testing.T) {
 }
 
 func TestFSWatcherSlow(t *testing.T) {
-	m, err := newMetadata(t)
+	ctx, m, err := newMetadata(t)
 
 	if err != nil {
 		return
 	}
 
-	dlog.Infof(context.TODO(), "FSW initialized for NonExtantFiles (%s)", m.dir)
+	m.t.Logf("FSW initialized for NonExtantFiles (%s)", m.dir)
 
-	m.fsw.WatchDir(context.TODO(), m.dir, m.eventHandler)
+	assert.NoError(t, m.fsw.WatchDir(ctx, m.dir, m.eventHandler))
 
 	if !m.writeFile("f1", 1, true) {
 		return

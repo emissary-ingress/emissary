@@ -8,8 +8,8 @@ package envoy_extensions_filters_network_thrift_proxy_v4alpha
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v4alpha1 "github.com/datawire/ambassador/pkg/api/envoy/config/core/v4alpha"
-	v4alpha "github.com/datawire/ambassador/pkg/api/envoy/config/route/v4alpha"
+	v4alpha1 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v4alpha"
+	v4alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v4alpha"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"

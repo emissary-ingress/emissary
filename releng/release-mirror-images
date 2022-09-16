@@ -4,28 +4,25 @@
 
 import os.path
 import sys
+import argparse
 
-from lib import mirror_artifacts, re_ga
-
-
-def main(ga_ver: str, source_registry: str, image_append: str = '') -> int:
-    mirror_artifacts.main([ga_ver], source_registry=source_registry, image_append=image_append)
-    return 0
+from lib import mirror_artifacts, re_ga, re_ea
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2 or not re_ga.match(sys.argv[1]):
-        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
+    parser = argparse.ArgumentParser(description='Mirror GA artifacts')
+
+    parser.add_argument('--ga-version', help='GA version', required=True)
+    parser.add_argument('--source-repo', help='docker registry of source image', default=mirror_artifacts.default_source_repo)
+    parser.add_argument("--repos", nargs="+", default=mirror_artifacts.default_repos)
+
+    args = parser.parse_args()
+    if not re_ga.match(args.ga_version) and not re_ea.match(args.ga_version):
+        sys.stderr.write(f"--ga-version must match X.Y.Z(-ea)?\n")
         sys.exit(2)
-    source_registry = 'docker.io/datawire'
-    if len(sys.argv) > 2:
-        source_registry = sys.argv[2]
-    image_append = ''
-    if len(sys.argv) > 3:
-        image_append = sys.argv[3]
-    ga_ver = sys.argv[1]
-    if len(sys.argv) > 4:
-        ga_ver = f"{ga_ver}-{sys.argv[4]}"
 
-
-    sys.exit(main(ga_ver=ga_ver, source_registry=source_registry, image_append=image_append))
+    mirror_artifacts.mirror_images(
+        repos=args.repos,
+        tag=args.ga_version,
+        source_repo=args.source_repo)
+    sys.exit(0)

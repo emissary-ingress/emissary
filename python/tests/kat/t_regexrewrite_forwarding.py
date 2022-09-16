@@ -1,7 +1,7 @@
-import json
+from typing import Generator, Tuple, Union
 
 from kat.harness import variants, Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 
 class RegexRewriteForwardingTest(AmbassadorTest):
     target: ServiceType
@@ -9,12 +9,13 @@ class RegexRewriteForwardingTest(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="foo")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format(r"""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  regex_rewrite_mapping
+hostname: "*"
 prefix: /foo/
 service: http://{self.target.path.fqdn}
 regex_rewrite:
@@ -39,12 +40,13 @@ class RegexRewriteForwardingWithExtractAndSubstituteTest(AmbassadorTest):
     def init(self):
         self.target = HTTP(name="foo")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format(r"""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  regex_rewrite_mapping
+hostname: "*"
 prefix: /foo/
 service: http://{self.target.path.fqdn}
 regex_rewrite:

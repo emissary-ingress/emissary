@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
 	"syscall"
 	"time"
@@ -18,17 +19,26 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	"github.com/datawire/ambassador/pkg/api/agent"
+	"github.com/datawire/ambassador/v2/pkg/api/agent"
 	"github.com/datawire/dlib/dhttp"
+	"github.com/datawire/dlib/dlog"
 )
 
 type GRPCAgent struct {
 	Port int16
 }
 
-func (a *GRPCAgent) Start() <-chan bool {
+func (a *GRPCAgent) Start(ctx context.Context) <-chan bool {
 	wg := &sync.WaitGroup{}
-	grpcHandler := grpc.NewServer()
+	var opts []grpc.ServerOption
+	if sizeStr := os.Getenv("KAT_GRPC_MAX_RECV_MSG_SIZE"); sizeStr != "" {
+		size, err := strconv.Atoi(sizeStr)
+		if err == nil {
+			dlog.Printf(ctx, "setting gRPC MaxRecvMsgSize to %d bytes", size)
+			opts = append(opts, grpc.MaxRecvMsgSize(size))
+		}
+	}
+	grpcHandler := grpc.NewServer(opts...)
 	dir := &director{}
 	agent.RegisterDirectorServer(grpcHandler, dir)
 	sc := &dhttp.ServerConfig{
@@ -36,13 +46,12 @@ func (a *GRPCAgent) Start() <-chan bool {
 	}
 	grpcErrChan := make(chan error)
 	httpErrChan := make(chan error)
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		log.Print("starting GRPC agentcom...")
+		dlog.Print(ctx, "starting GRPC agentcom...")
 		if err := sc.ListenAndServe(ctx, fmt.Sprintf(":%d", a.Port)); err != nil {
 			select {
 			case grpcErrChan <- err:
@@ -65,13 +74,13 @@ func (a *GRPCAgent) Start() <-chan bool {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(ret)
+		_, _ = w.Write(ret)
 	})
 
 	go func() {
 		defer wg.Done()
 
-		log.Print("Starting http server")
+		dlog.Print(ctx, "Starting http server")
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 			select {
 			case httpErrChan <- err:
@@ -88,19 +97,21 @@ func (a *GRPCAgent) Start() <-chan bool {
 
 		select {
 		case err := <-grpcErrChan:
-			log.Fatalf("GRPC service died: %+v", err)
+			dlog.Errorf(ctx, "GRPC service died: %+v", err)
+			panic(err) // TODO: do something better
 		case err := <-httpErrChan:
-			log.Fatalf("http service died: %+v", err)
+			dlog.Errorf(ctx, "http service died: %+v", err)
+			panic(err) // TODO: do something better
 		case <-c:
-			log.Print("Recieved shutdown")
+			dlog.Print(ctx, "Received shutdown")
 		}
 
-		ctx, timeout := context.WithTimeout(context.Background(), time.Second*30)
+		ctx, timeout := context.WithTimeout(ctx, time.Second*30)
 		defer timeout()
 		cancel()
 
 		grpcHandler.GracefulStop()
-		srv.Shutdown(ctx)
+		_ = srv.Shutdown(ctx)
 		wg.Wait()
 		close(exited)
 	}()
@@ -118,26 +129,14 @@ func (d *director) GetLastSnapshot() *agent.Snapshot {
 
 // Report is invoked when a new report with a snapshot arrives
 func (d *director) Report(ctx context.Context, snapshot *agent.Snapshot) (*agent.SnapshotResponse, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		log.Print("No metadata found, not allowing request")
-		err := status.Error(codes.PermissionDenied, "Missing grpc metadata")
-
-		return nil, err
-	}
-
-	apiKeyValues := md.Get("x-ambassador-api-key")
-	if len(apiKeyValues) == 0 || apiKeyValues[0] == "" {
-		log.Print("api key found, not allowing request")
-		err := status.Error(codes.PermissionDenied, "Missing api key")
-		return nil, err
-	}
-	log.Print("Recieved snapshot")
-	snapBytes, err := json.Marshal(snapshot)
+	err := checkContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	err = ioutil.WriteFile("/tmp/snapshot.json", snapBytes, 0644)
+
+	dlog.Print(ctx, "Received snapshot")
+
+	err = writeSnapshot(snapshot)
 	if err != nil {
 		return nil, err
 	}
@@ -148,4 +147,71 @@ func (d *director) Report(ctx context.Context, snapshot *agent.Snapshot) (*agent
 
 func (d *director) Retrieve(agentID *agent.Identity, stream agent.Director_RetrieveServer) error {
 	return nil
+}
+
+func checkContext(ctx context.Context) error {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		dlog.Print(ctx, "No metadata found, not allowing request")
+		err := status.Error(codes.PermissionDenied, "Missing grpc metadata")
+
+		return err
+	}
+
+	apiKeyValues := md.Get("x-ambassador-api-key")
+	if len(apiKeyValues) == 0 || apiKeyValues[0] == "" {
+		dlog.Print(ctx, "api key found, not allowing request")
+		err := status.Error(codes.PermissionDenied, "Missing api key")
+		return err
+	}
+	return nil
+}
+
+func writeSnapshot(snapshot *agent.Snapshot) error {
+	snapBytes, err := json.Marshal(snapshot)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile("/tmp/snapshot.json", snapBytes, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *director) ReportStream(server agent.Director_ReportStreamServer) error {
+	err := checkContext(server.Context())
+	if err != nil {
+		return err
+	}
+
+	var data []byte
+	for {
+		msg, err := server.Recv()
+		data = append(data, msg.GetChunk()...)
+		if err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				return err
+			}
+		}
+	}
+
+	var snapshot agent.Snapshot
+	err = json.Unmarshal(data, &snapshot)
+	if err != nil {
+		return err
+	}
+
+	dlog.Print(server.Context(), "Received snapshot")
+
+	err = writeSnapshot(&snapshot)
+	if err != nil {
+		return err
+	}
+
+	response := &agent.SnapshotResponse{}
+	err = server.SendMsg(response)
+	return err
 }

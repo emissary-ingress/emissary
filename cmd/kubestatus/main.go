@@ -4,14 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
 
-	"github.com/datawire/ambassador/pkg/k8s"
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/dlib/dlog"
 )
 
 func Main(ctx context.Context, version string, args ...string) error {
@@ -29,6 +29,7 @@ func Main(ctx context.Context, version string, args ...string) error {
 	statusFile := st.Flags().StringP("update", "u", "", "update with new status from file (must be json)")
 
 	st.RunE = func(cmd *cobra.Command, args []string) error {
+		ctx := cmd.Context()
 		var status map[string]interface{}
 
 		if *statusFile != "" {
@@ -84,7 +85,7 @@ func Main(ctx context.Context, version string, args ...string) error {
 			if namespace != "" {
 				obj.SetNamespace(namespace)
 			}
-			err = client.Get(context.TODO(), obj, obj)
+			err = client.Get(ctx, obj, obj)
 			if err != nil {
 				return err
 			}
@@ -96,13 +97,13 @@ func Main(ctx context.Context, version string, args ...string) error {
 				return nil
 			} else {
 				obj.Object["status"] = status
-				return client.UpdateStatus(context.TODO(), obj, obj)
+				return client.UpdateStatus(ctx, obj, obj)
 			}
 		}
 
 		var items []*kates.Unstructured
 
-		err = client.List(context.TODO(),
+		err = client.List(ctx,
 			kates.Query{
 				Kind:          kind,
 				Namespace:     namespace,
@@ -129,12 +130,9 @@ func Main(ctx context.Context, version string, args ...string) error {
 				}
 
 				obj.Object["status"] = status
-				err = client.UpdateStatus(context.TODO(), obj, nil)
+				err = client.UpdateStatus(ctx, obj, nil)
 				if err != nil {
-					// log.Debugf doesn't exist.
-					if true {
-						log.Printf("error updating resource: %v", err)
-					}
+					dlog.Debugf(ctx, "error updating resource: %v", err)
 				}
 			}
 		}

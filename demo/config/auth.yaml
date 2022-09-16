@@ -1,5 +1,5 @@
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  authentication
 config:

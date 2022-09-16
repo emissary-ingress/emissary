@@ -6,13 +6,13 @@ import time
 
 import pytest
 
-from kat.harness import is_knative_compatible
-from kat.harness import load_manifest
 from ambassador import Config, IR
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler, parse_bool
 
-from tests.utils import install_ambassador, get_code_with_retry, create_qotm_mapping
+import tests.integration.manifests as integration_manifests
+from kat.harness import is_knative_compatible
+from tests.integration.utils import install_ambassador, get_code_with_retry, create_qotm_mapping
 from tests.kubeutils import apply_kube_artifacts, delete_kube_artifacts
 from tests.runutils import run_with_retry, run_and_assert
 from tests.manifests import qotm_manifests
@@ -71,15 +71,15 @@ class KnativeTesting:
         namespace = 'knative-testing'
 
         # Install Knative
-        apply_kube_artifacts(namespace=None, artifacts=load_manifest("knative_serving_crds"))
-        apply_kube_artifacts(namespace='knative-serving', artifacts=load_manifest("knative_serving_0.18.0"))
-        run_and_assert(['kubectl', 'patch', 'configmap/config-network', '--type', 'merge', '--patch', r'{"data": {"ingress.class": "ambassador.ingress.networking.knative.dev"}}', '-n', 'knative-serving'])
+        apply_kube_artifacts(namespace=None, artifacts=integration_manifests.load("knative_serving_crds"))
+        apply_kube_artifacts(namespace='knative-serving', artifacts=integration_manifests.load("knative_serving_0.18.0"))
+        run_and_assert(['tools/bin/kubectl', 'patch', 'configmap/config-network', '--type', 'merge', '--patch', r'{"data": {"ingress.class": "ambassador.ingress.networking.knative.dev"}}', '-n', 'knative-serving'])
 
         # Wait for Knative to become ready
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=activator', '-n', 'knative-serving'])
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=controller', '-n', 'knative-serving'])
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=webhook', '-n', 'knative-serving'])
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=autoscaler', '-n', 'knative-serving'])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=activator', '-n', 'knative-serving'])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=controller', '-n', 'knative-serving'])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=webhook', '-n', 'knative-serving'])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=autoscaler', '-n', 'knative-serving'])
 
         # Install Ambassador
         install_ambassador(namespace=namespace, envs=[
@@ -94,8 +94,8 @@ class KnativeTesting:
         create_qotm_mapping(namespace=namespace)
 
         # Now let's wait for ambassador and QOTM pods to become ready
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=qotm', '-n', namespace])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=qotm', '-n', namespace])
 
         # Create kservice
         apply_kube_artifacts(namespace=namespace, artifacts=knative_service_example)
@@ -123,7 +123,7 @@ class KnativeTesting:
         print(f"{kservice_url} returns 404 with a random host")
 
         # Wait for kservice
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'ksvc', 'helloworld-go', '-n', namespace])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'ksvc', 'helloworld-go', '-n', namespace])
 
         # kservice pod takes some time to spin up, so let's try a few times
         code = 000

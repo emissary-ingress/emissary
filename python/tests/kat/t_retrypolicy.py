@@ -1,11 +1,11 @@
-# from email.utils import parsedate_to_datetime
+from typing import Generator, Tuple, Union
 
 import re
 
 from datetime import datetime
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, HTTP, ServiceType
+from abstract_tests import AmbassadorTest, HTTP, ServiceType, Node
 
 
 class RetryPolicyTest(AmbassadorTest):
@@ -14,12 +14,13 @@ class RetryPolicyTest(AmbassadorTest):
     def init(self) -> None:
         self.target = HTTP()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-normal
+hostname: "*"
 prefix: /{self.name}-normal/
 service: {self.target.path.fqdn}
 timeout_ms: 3000
@@ -27,9 +28,10 @@ timeout_ms: 3000
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target
+hostname: "*"
 prefix: /{self.name}-retry/
 service: {self.target.path.fqdn}
 timeout_ms: 3000
@@ -40,7 +42,7 @@ retry_policy:
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:

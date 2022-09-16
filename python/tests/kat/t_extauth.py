@@ -1,11 +1,15 @@
+from typing import Generator, Literal, Tuple, Union
+
 import json
 import pytest
 import os
 
-from kat.harness import Query
+from kat.harness import Query, EDGE_STACK
 
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, AHTTP, AGRPC
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, AHTTP, AGRPC, Node
 from tests.selfsigned import TLSCerts
+
+from ambassador import Config
 
 
 class AuthenticationGRPCTest(AmbassadorTest):
@@ -14,29 +18,32 @@ class AuthenticationGRPCTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = AGRPC(name="auth")
 
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: auth-context-mapping
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   service: {self.target.path.fqdn}
+  hostname: "*"
   prefix: /context-extensions-crd/
   auth_context_extensions:
     context: "auth-context-name"
     data: "auth-data"
 ''') + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -45,15 +52,17 @@ proto: grpc
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-context-extensions
+hostname: "*"
 prefix: /context-extensions/
 service: {self.target.path.fqdn}
 auth_context_extensions:
@@ -155,6 +164,8 @@ class AuthenticationHTTPPartialBufferTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = HTTP(name="auth")
 
@@ -171,16 +182,16 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-same-context-1
 secret: auth-partial-secret
 
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -204,9 +215,10 @@ include_body:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -249,6 +261,8 @@ class AuthenticationHTTPBufferedTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = HTTP(name="auth")
 
@@ -265,10 +279,10 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -276,12 +290,12 @@ config:
   buffer:
     max_request_bytes: 16384
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-same-context-1
 secret: auth-buffered-secret
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -307,9 +321,10 @@ include_body:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -391,6 +406,8 @@ class AuthenticationHTTPFailureModeAllowTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = HTTP(name="auth")
 
@@ -407,16 +424,16 @@ metadata:
 type: kubernetes.io/tls
 """ + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-failure-context
 secret: auth-failure-secret
 
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -432,9 +449,10 @@ failure_mode_allow: true
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -464,15 +482,17 @@ class AuthenticationTestV1(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth1 = AHTTP(name="auth1")
         self.auth2 = AHTTP(name="auth2")
         self.backend_counts = {}
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth1.path.k8s}
 auth_service: "{self.auth1.path.fqdn}"
@@ -495,7 +515,7 @@ status_on_error:
   code: 503
 
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth2.path.k8s}
 auth_service: "{self.auth2.path.fqdn}"
@@ -521,15 +541,17 @@ status_on_error:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.fqdn}-unauthed
+hostname: "*"
 prefix: /target/unauthed/
 service: {self.target.path.fqdn}
 bypass_auth: true
@@ -682,33 +704,39 @@ class AuthenticationTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
 path_prefix: "/extauth"
 
-allowed_headers:
+allowed_request_headers:
 - X-Foo
 - X-Bar
 - Requested-Location
 - Requested-Status
 - Requested-Header
+
+allowed_authorization_headers:
 - X-Foo
+- X-Bar
 - Extauth
 
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -814,12 +842,14 @@ class AuthenticationWebsocketTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.auth = HTTP(name="auth")
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -829,9 +859,10 @@ allowed_request_headers:
 - Requested-Status
 allow_request_body: true
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: {self.name}
+hostname: "*"
 prefix: /{self.name}/
 service: websocket-echo-server.default
 use_websocket: true
@@ -847,33 +878,43 @@ use_websocket: true
         assert self.results[-1].messages == ["one", "two", "three"]
 
 
-class AuthenticationGRPCV2Test(AmbassadorTest):
+class AuthenticationGRPCVerTest(AmbassadorTest):
 
     target: ServiceType
+    specified_protocol_version: Literal['v2', 'v3', 'default']
+    expected_protocol_version: Literal['v2', 'v3']
     auth: ServiceType
 
-    def init(self):
-        if os.environ.get('KAT_USE_ENVOY_V2', '') == '':
-            self.skip_node = True
-        self.target = HTTP()
-        self.auth = AGRPC(name="auth", protocol_version="v2")
+    @classmethod
+    def variants(cls) -> Generator[Node, None, None]:
+        for protocol_version in ['v2', 'v3', 'default']:
+            yield cls(protocol_version, name="{self.specified_protocol_version}")
 
-    def config(self):
+    def init(self, protocol_version: Literal['v2', 'v3', 'default']):
+        self.target = HTTP()
+        self.specified_protocol_version = protocol_version
+        self.expected_protocol_version = "v2" if protocol_version == "default" else protocol_version
+        if Config.envoy_api_version == "V2" and self.expected_protocol_version == "v3":
+            self.skip_node = True
+        self.auth = AGRPC(name="auth", protocol_version=self.expected_protocol_version)
+
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
 timeout_ms: 5000
-protocol_version: "v2"
 proto: grpc
-""")
+""") + ("" if self.specified_protocol_version == "default" else f"protocol_version: '{self.specified_protocol_version}'")
+
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -909,7 +950,7 @@ service: {self.target.path.fqdn}
         assert "baz" in self.results[0].backend.request.headers
         assert self.results[0].status == 401
         assert self.results[0].headers["Server"] == ["envoy"]
-        assert self.results[0].headers['X-Grpc-Service-Protocol-Version'] == ['v2']
+        assert self.results[0].headers['X-Grpc-Service-Protocol-Version'] == [self.expected_protocol_version]
 
         # [1] Verifies that Location header is returned from Envoy.
         assert self.results[1].backend.name == self.auth.path.k8s
@@ -917,7 +958,7 @@ service: {self.target.path.fqdn}
         assert self.results[1].backend.request.headers["requested-location"] == ["foo"]
         assert self.results[1].status == 302
         assert self.results[1].headers["Location"] == ["foo"]
-        assert self.results[1].headers['X-Grpc-Service-Protocol-Version'] == ['v2']
+        assert self.results[1].headers['X-Grpc-Service-Protocol-Version'] == [self.expected_protocol_version]
 
         # [2] Verifies Envoy returns whitelisted headers input by the user.
         assert self.results[2].backend.name == self.auth.path.k8s
@@ -927,7 +968,7 @@ service: {self.target.path.fqdn}
         assert self.results[2].status == 401
         assert self.results[2].headers["Server"] == ["envoy"]
         assert self.results[2].headers["X-Foo"] == ["foo"]
-        assert self.results[2].headers['X-Grpc-Service-Protocol-Version'] == ['v2']
+        assert self.results[2].headers['X-Grpc-Service-Protocol-Version'] == [self.expected_protocol_version]
 
         # [3] Verifies default whitelisted Authorization request header.
         assert self.results[3].backend.request.headers["requested-status"] == ["200"]
@@ -938,98 +979,4 @@ service: {self.target.path.fqdn}
         assert self.results[3].status == 200
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
-        assert self.results[3].backend.request.headers['x-grpc-service-protocol-version'] == ['v2']
-
-
-class AuthenticationGRPCV3Test(AmbassadorTest):
-
-    target: ServiceType
-    auth: ServiceType
-
-    def init(self):
-        if os.environ.get('KAT_USE_ENVOY_V2', '') != '':
-            self.skip_node = True
-        self.target = HTTP()
-        self.auth = AGRPC(name="auth", protocol_version="v3")
-
-    def config(self):
-        yield self, self.format("""
----
-apiVersion: ambassador/v2
-kind: AuthService
-name:  {self.auth.path.k8s}
-auth_service: "{self.auth.path.fqdn}"
-timeout_ms: 5000
-protocol_version: "v3"
-proto: grpc
-""")
-        yield self, self.format("""
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  {self.target.path.k8s}
-prefix: /target/
-service: {self.target.path.fqdn}
-""")
-
-    def queries(self):
-        # TODO add more
-        # [0]
-        yield Query(self.url("target/"), headers={"requested-status": "401",
-                                                  "baz": "baz",
-                                                  "request-header": "baz"}, expected=401)
-
-        # [1]
-        yield Query(self.url("target/"), headers={"requested-status": "302",
-                                                  "requested-location": "foo"}, expected=302)
-
-        # [2]
-        yield Query(self.url("target/"), headers={"requested-status": "401",
-                                                  "x-foo": "foo",
-                                                  "requested-header": "x-foo"}, expected=401)
-        # [3]
-        yield Query(self.url("target/"), headers={"requested-status": "200",
-                                                  "authorization": "foo-11111",
-                                                  "foo" : "foo",
-                                                  "x-grpc-auth-append": "foo=bar;baz=bar",
-                                                  "requested-header": "Authorization"}, expected=200)
-
-    def check(self):
-        # [0] Verifies all request headers sent to the authorization server.
-        assert self.results[0].backend.name == self.auth.path.k8s
-        assert self.results[0].backend.request.url.path == "/target/"
-        assert self.results[0].backend.request.headers["x-forwarded-proto"]== ["http"]
-        assert "user-agent" in self.results[0].backend.request.headers
-        assert "baz" in self.results[0].backend.request.headers
-        assert self.results[0].status == 401
-        assert self.results[0].headers["Server"] == ["envoy"]
-        assert self.results[0].headers['X-Grpc-Service-Protocol-Version'] == ['v3']
-
-        # [1] Verifies that Location header is returned from Envoy.
-        assert self.results[1].backend.name == self.auth.path.k8s
-        assert self.results[1].backend.request.headers["requested-status"] == ["302"]
-        assert self.results[1].backend.request.headers["requested-location"] == ["foo"]
-        assert self.results[1].status == 302
-        assert self.results[1].headers["Location"] == ["foo"]
-        assert self.results[1].headers['X-Grpc-Service-Protocol-Version'] == ['v3']
-
-        # [2] Verifies Envoy returns whitelisted headers input by the user.
-        assert self.results[2].backend.name == self.auth.path.k8s
-        assert self.results[2].backend.request.headers["requested-status"] == ["401"]
-        assert self.results[2].backend.request.headers["requested-header"] == ["x-foo"]
-        assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
-        assert self.results[2].status == 401
-        assert self.results[2].headers["Server"] == ["envoy"]
-        assert self.results[2].headers["X-Foo"] == ["foo"]
-        assert self.results[2].headers['X-Grpc-Service-Protocol-Version'] == ['v3']
-
-        # [3] Verifies default whitelisted Authorization request header.
-        assert self.results[3].backend.request.headers["requested-status"] == ["200"]
-        assert self.results[3].backend.request.headers["requested-header"] == ["Authorization"]
-        assert self.results[3].backend.request.headers["authorization"] == ["foo-11111"]
-        assert self.results[3].backend.request.headers["foo"] == ["foo,bar"]
-        assert self.results[3].backend.request.headers["baz"] == ["bar"]
-        assert self.results[3].status == 200
-        assert self.results[3].headers["Server"] == ["envoy"]
-        assert self.results[3].headers["Authorization"] == ["foo-11111"]
-        assert self.results[3].backend.request.headers['x-grpc-service-protocol-version'] == ['v3']
+        assert self.results[3].backend.request.headers['x-grpc-service-protocol-version'] == [self.expected_protocol_version]

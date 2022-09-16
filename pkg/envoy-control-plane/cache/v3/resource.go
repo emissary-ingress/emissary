@@ -18,17 +18,17 @@ package cache
 import (
 	"github.com/golang/protobuf/proto"
 
-	cluster "github.com/datawire/ambassador/pkg/api/envoy/config/cluster/v3"
-	core "github.com/datawire/ambassador/pkg/api/envoy/config/core/v3"
-	endpoint "github.com/datawire/ambassador/pkg/api/envoy/config/endpoint/v3"
-	listener "github.com/datawire/ambassador/pkg/api/envoy/config/listener/v3"
-	route "github.com/datawire/ambassador/pkg/api/envoy/config/route/v3"
-	hcm "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
-	auth "github.com/datawire/ambassador/pkg/api/envoy/extensions/transport_sockets/tls/v3"
-	runtime "github.com/datawire/ambassador/pkg/api/envoy/service/runtime/v3"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/resource/v3"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/wellknown"
+	cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
+	endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/config/endpoint/v3"
+	listener "github.com/datawire/ambassador/v2/pkg/api/envoy/config/listener/v3"
+	route "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v3"
+	hcm "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	auth "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/transport_sockets/tls/v3"
+	runtime "github.com/datawire/ambassador/v2/pkg/api/envoy/service/runtime/v3"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
 )
 
 // GetResponseType returns the enumeration for a valid xDS type URL

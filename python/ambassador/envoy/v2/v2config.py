@@ -21,8 +21,8 @@ from ...cache import Cache, NullCache
 from ..common import EnvoyConfig, sanitize_pre_json
 from .v2admin import V2Admin
 from .v2bootstrap import V2Bootstrap
-from .v2route import V2Route
-from .v2listener import V2Listener, V2TCPListener
+from .v2route import V2Route, V2RouteVariants
+from .v2listener import V2Listener
 from .v2cluster import V2Cluster
 from .v2_static_resources import V2StaticResources
 from .v2tracing import V2Tracing
@@ -43,12 +43,15 @@ class V2Config (EnvoyConfig):
     ratelimit: Optional[V2RateLimit]
     bootstrap: V2Bootstrap
     routes: List[V2Route]
-    listeners: List[Union[V2Listener,V2TCPListener]]
+    route_variants: List[V2RouteVariants]
+    listeners: List[V2Listener]
     clusters: List[V2Cluster]
     static_resources: V2StaticResources
     clustermap: Dict[str, Any]
 
     def __init__(self, ir: 'IR', cache: Optional[Cache]=None) -> None:
+        ir.logger.info("EnvoyConfig: Generating V2")
+
         # Init our superclass...
         super().__init__(ir)
 
@@ -64,6 +67,9 @@ class V2Config (EnvoyConfig):
         V2Cluster.generate(self)
         V2StaticResources.generate(self)
         V2Bootstrap.generate(self)
+
+    def has_listeners(self) -> bool:
+        return len(self.listeners) > 0
 
     def as_dict(self) -> Dict[str, Any]:
         bootstrap_config, ads_config, clustermap = self.split_config()
@@ -112,4 +118,3 @@ class V2Config (EnvoyConfig):
         bootstrap_config = dict(self.bootstrap)
 
         return bootstrap_config, ads_config, self.clustermap
-

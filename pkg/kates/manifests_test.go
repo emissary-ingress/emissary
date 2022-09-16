@@ -1,38 +1,14 @@
 package kates
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	v1 "k8s.io/api/core/v1"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 )
-
-var svc = `
-# leading comment
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: example-service
-  namespace: foo
-`
-
-func TestByName(t *testing.T) {
-	objs, err := ParseManifests(svc)
-	if err != nil {
-		panic(err)
-	}
-	_ = objs[0].(*v1.Service)
-	svcs := make(map[string]*Service)
-	ByName(objs, svcs)
-	assert.Equal(t, 1, len(svcs))
-	assert.Equal(t, objs[0], svcs["example-service"])
-}
 
 func TestMergeUpdate(t *testing.T) {
 	a := &Unstructured{}
@@ -84,7 +60,7 @@ func TestMergeUpdate(t *testing.T) {
 }
 
 const mapping = `---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name:  mapping-name
@@ -99,8 +75,8 @@ func TestParseManifestsResultTypes(t *testing.T) {
 	require.Equal(t, 1, len(objs))
 
 	m := objs[0]
-	t.Log(m)
-	t.Log(reflect.TypeOf(m))
+	t.Logf("value = %v", m)
+	t.Logf("type = %T", m)
 	_, ok := m.(*amb.Mapping)
 	require.True(t, ok)
 }

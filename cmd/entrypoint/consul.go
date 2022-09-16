@@ -7,10 +7,9 @@ import (
 
 	consulapi "github.com/hashicorp/consul/api"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/consulwatch"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
-	"github.com/datawire/ambassador/pkg/watt"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/consulwatch"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 )
 
 // consulMapping contains the necessary subset of Ambassador Mapping and TCPMapping
@@ -20,17 +19,20 @@ type consulMapping struct {
 	Resolver string
 }
 
-func ReconcileConsul(ctx context.Context, consul *consul, s *snapshotTypes.KubernetesSnapshot) {
+func ReconcileConsul(ctx context.Context, consulWatcher *consulWatcher, s *snapshotTypes.KubernetesSnapshot) error {
 	var mappings []consulMapping
-	for _, a := range s.Annotations {
-		m, ok := a.(*amb.Mapping)
-		if ok && include(m.Spec.AmbassadorID) {
-			mappings = append(mappings, consulMapping{Service: m.Spec.Service, Resolver: m.Spec.Resolver})
-		}
-
-		tm, ok := a.(*amb.TCPMapping)
-		if ok && include(tm.Spec.AmbassadorID) {
-			mappings = append(mappings, consulMapping{Service: tm.Spec.Service, Resolver: tm.Spec.Resolver})
+	for _, list := range s.Annotations {
+		for _, a := range list {
+			switch m := a.(type) {
+			case *amb.Mapping:
+				if include(m.Spec.AmbassadorID) {
+					mappings = append(mappings, consulMapping{Service: m.Spec.Service, Resolver: m.Spec.Resolver})
+				}
+			case *amb.TCPMapping:
+				if include(m.Spec.AmbassadorID) {
+					mappings = append(mappings, consulMapping{Service: m.Spec.Service, Resolver: m.Spec.Resolver})
+				}
+			}
 		}
 	}
 
@@ -53,11 +55,11 @@ func ReconcileConsul(ctx context.Context, consul *consul, s *snapshotTypes.Kuber
 		}
 	}
 
-	consul.reconcile(s.ConsulResolvers, mappings)
+	return consulWatcher.reconcile(ctx, s.ConsulResolvers, mappings)
 }
 
-type consul struct {
-	watcher                   Watcher
+type consulWatcher struct {
+	watchFunc                 watchConsulFunc
 	resolvers                 map[string]*resolver
 	firstReconcileHasHappened bool
 
@@ -75,19 +77,17 @@ type consul struct {
 	bootstrapped     bool
 }
 
-func newConsul(ctx context.Context, watcher Watcher) *consul {
-	result := &consul{
-		watcher:        watcher,
+func newConsulWatcher(watchFunc watchConsulFunc) *consulWatcher {
+	return &consulWatcher{
+		watchFunc:      watchFunc,
 		resolvers:      make(map[string]*resolver),
 		coalescedDirty: make(chan struct{}),
 		endpointsCh:    make(chan consulwatch.Endpoints),
 		endpoints:      make(map[string]consulwatch.Endpoints),
 	}
-	go result.run(ctx)
-	return result
 }
 
-func (c *consul) run(ctx context.Context) {
+func (c *consulWatcher) run(ctx context.Context) error {
 	dirty := false
 	for {
 		if dirty {
@@ -98,8 +98,7 @@ func (c *consul) run(ctx context.Context) {
 				c.updateEndpoints(ep)
 				dirty = true
 			case <-ctx.Done():
-				c.cleanup()
-				return
+				return c.cleanup(ctx)
 			}
 		} else {
 			select {
@@ -107,24 +106,23 @@ func (c *consul) run(ctx context.Context) {
 				c.updateEndpoints(ep)
 				dirty = true
 			case <-ctx.Done():
-				c.cleanup()
-				return
+				return c.cleanup(ctx)
 			}
 		}
 	}
 }
 
-func (c *consul) updateEndpoints(endpoints consulwatch.Endpoints) {
+func (c *consulWatcher) updateEndpoints(endpoints consulwatch.Endpoints) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.endpoints[endpoints.Service] = endpoints
 }
 
-func (c *consul) changed() chan struct{} {
+func (c *consulWatcher) changed() chan struct{} {
 	return c.coalescedDirty
 }
 
-func (c *consul) update(snap *watt.ConsulSnapshot) {
+func (c *consulWatcher) update(snap *snapshotTypes.ConsulSnapshot) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	snap.Endpoints = make(map[string]consulwatch.Endpoints, len(c.endpoints))
@@ -133,7 +131,7 @@ func (c *consul) update(snap *watt.ConsulSnapshot) {
 	}
 }
 
-func (c *consul) isBootstrapped() bool {
+func (c *consulWatcher) isBootstrapped() bool {
 	if !c.firstReconcileHasHappened {
 		return false
 	}
@@ -157,19 +155,19 @@ func (c *consul) isBootstrapped() bool {
 }
 
 // Stop all service watches.
-func (c *consul) cleanup() {
+func (c *consulWatcher) cleanup(ctx context.Context) error {
 	// XXX: do we care about a clean shutdown
 	/*go func() {
 		<-ctx.Done()
 		w.Stop()
 	}()*/
 
-	c.reconcile(nil, nil)
+	return c.reconcile(ctx, nil, nil)
 }
 
 // Start and stop consul service watches as needed in order to match the supplied set of resolvers
 // and mappings.
-func (c *consul) reconcile(resolvers []*amb.ConsulResolver, mappings []consulMapping) {
+func (c *consulWatcher) reconcile(ctx context.Context, resolvers []*amb.ConsulResolver, mappings []consulMapping) error {
 	// ==First we compute resolvers and their related mappings without actualy changing anything.==
 	resolversByName := make(map[string]*amb.ConsulResolver)
 	for _, cr := range resolvers {
@@ -235,7 +233,9 @@ func (c *consul) reconcile(resolvers []*amb.ConsulResolver, mappings []consulMap
 	// Finally we reconcile each mapping.
 	for rname, mappings := range mappingsByResolver {
 		res := c.resolvers[rname]
-		res.reconcile(c.watcher, mappings, c.endpointsCh)
+		if err := res.reconcile(ctx, c.watchFunc, mappings, c.endpointsCh); err != nil {
+			return err
+		}
 	}
 
 	// If this is the first time we are reconciling, we need to compute conditions for being
@@ -252,6 +252,7 @@ func (c *consul) reconcile(resolvers []*amb.ConsulResolver, mappings []consulMap
 		defer c.mutex.Unlock()
 		c.keysForBootstrap = keysForBootstrap
 	}
+	return nil
 }
 
 type resolver struct {
@@ -269,7 +270,7 @@ func (r *resolver) deleted() {
 	}
 }
 
-func (r *resolver) reconcile(watcher Watcher, mappings []consulMapping, endpoints chan consulwatch.Endpoints) {
+func (r *resolver) reconcile(ctx context.Context, watchFunc watchConsulFunc, mappings []consulMapping, endpoints chan consulwatch.Endpoints) error {
 	servicesByName := make(map[string]bool)
 	for _, m := range mappings {
 		// XXX: how to parse this?
@@ -277,7 +278,11 @@ func (r *resolver) reconcile(watcher Watcher, mappings []consulMapping, endpoint
 		servicesByName[svc] = true
 		w, ok := r.watches[svc]
 		if !ok {
-			w = watcher.Watch(r.resolver, svc, endpoints)
+			var err error
+			w, err = watchFunc(ctx, r.resolver, svc, endpoints)
+			if err != nil {
+				return err
+			}
 			r.watches[svc] = w
 		}
 	}
@@ -289,32 +294,33 @@ func (r *resolver) reconcile(watcher Watcher, mappings []consulMapping, endpoint
 			delete(r.watches, name)
 		}
 	}
+	return nil
 }
 
-type Watcher interface {
-	Watch(resolver *amb.ConsulResolver, svc string, endpoints chan consulwatch.Endpoints) Stopper
-}
+type watchConsulFunc func(ctx context.Context, resolver *amb.ConsulResolver, svc string, endpoints chan consulwatch.Endpoints) (Stopper, error)
 
 type Stopper interface {
 	Stop()
 }
 
-type consulWatcher struct{}
-
-func (cw *consulWatcher) Watch(resolver *amb.ConsulResolver, svc string,
-	endpointsCh chan consulwatch.Endpoints) Stopper {
+func watchConsul(
+	ctx context.Context,
+	resolver *amb.ConsulResolver,
+	svc string,
+	endpointsCh chan consulwatch.Endpoints,
+) (Stopper, error) {
 	// XXX: should this part be shared?
 	consulConfig := consulapi.DefaultConfig()
 	consulConfig.Address = resolver.Spec.Address
 	consul, err := consulapi.NewClient(consulConfig)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// this part is per service
 	w, err := consulwatch.New(consul, resolver.Spec.Datacenter, svc, true)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	w.Watch(func(endpoints consulwatch.Endpoints, e error) {
@@ -328,11 +334,10 @@ func (cw *consulWatcher) Watch(resolver *amb.ConsulResolver, svc string,
 	})
 
 	go func() {
-		err = w.Start(context.TODO())
-		if err != nil {
-			panic(err)
+		if err := w.Start(ctx); err != nil {
+			panic(err) // TODO: Find a better way of reporting errors from goroutines.
 		}
 	}()
 
-	return w
+	return w, nil
 }

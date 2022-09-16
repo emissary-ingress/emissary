@@ -5,16 +5,18 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
 
+	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dlog"
 )
 
 func GetAgentService() string {
-	return env("AGENT_SERVICE", "")
+	// Using an agent service is no longer supported, so return empty.
+	// For good measure, we also set AGENT_SERVICE to empty in the entrypoint.
+	return ""
 }
 
 func GetAmbassadorId() string {
@@ -195,7 +197,7 @@ func GetDiagdBindPort() string {
 }
 
 func IsEnvoyAvailable() bool {
-	_, err := exec.LookPath("envoy")
+	_, err := dexec.LookPath("envoy")
 	return err == nil
 }
 
@@ -248,17 +250,17 @@ func IsAmbassadorSingleNamespace() bool {
 	return envbool("AMBASSADOR_SINGLE_NAMESPACE")
 }
 
-func IsEdgeStack() bool {
+func IsEdgeStack() (bool, error) {
 	if envbool("EDGE_STACK") {
-		return true
+		return true, nil
 	}
 	_, err := os.Stat("/ambassador/.edge_stack")
 	if err == nil {
-		return true
+		return true, nil
 	} else if os.IsNotExist(err) {
-		return false
+		return false, nil
 	} else {
-		panic(err)
+		return false, err
 	}
 }
 
@@ -268,6 +270,14 @@ func GetLicenseSecretName() string {
 
 func GetLicenseSecretNamespace() string {
 	return env("AMBASSADOR_AES_SECRET_NAMESPACE", GetAmbassadorNamespace())
+}
+
+func GetCloudConnectTokenResourceName() string {
+	return env("AGENT_CONFIG_RESOURCE_NAME", "ambassador-agent-cloud-token")
+}
+
+func GetCloudConnectTokenResourceNamespace() string {
+	return env("AGENT_NAMESPACE", GetAmbassadorNamespace())
 }
 
 func GetEventHost() string {

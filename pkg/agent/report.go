@@ -1,11 +1,11 @@
 package agent
 
 import (
-	"github.com/datawire/ambassador/pkg/api/agent"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/ambassador/v2/pkg/api/agent"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 )
 
-// GetIdentity returns the Agent's CEPC Identity, if present, enabled, and
+// GetIdentity returns the Agent's DCP Identity, if present, enabled, and
 // configured by the user.
 func GetIdentity(ambassadorMeta *snapshotTypes.AmbassadorMetaInfo, ambHost string) *agent.Identity {
 	if ambassadorMeta == nil || ambassadorMeta.ClusterID == "" {

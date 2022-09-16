@@ -1,7 +1,7 @@
 package gateway_test
 
 import (
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -25,7 +25,7 @@ type Foo struct {
 
 type FooSpec struct {
 	Value    string
-	PanicArg interface{}
+	PanicArg error
 }
 
 func (f *Foo) DeepCopyObject() runtime.Object {

@@ -1,0 +1,18 @@
+{{ if .Values.security.podSecurityPolicy }}
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: {{ include "ambassador.fullname" . }}
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    {{- include "ambassador.labels" . | nindent 4 }}
+  {{- with .Values.security.podSecurityPolicy.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- with .Values.security.podSecurityPolicy.spec }}
+spec:
+  {{- toYaml . | nindent 2}}
+{{- end }}
+{{ end }}

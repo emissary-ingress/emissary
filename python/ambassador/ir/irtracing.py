@@ -74,11 +74,26 @@ class IRTracing(IRResource):
         # envoyv2 untyped "config" field. We actually use a "typed_config" in the final Envoy
         # config, see envoy/v2/v2tracer.py.
         driver_config = config.get("config", {})
-        if driver_config:
-            if 'collector_endpoint_version' in driver_config:
-                if not driver_config['collector_endpoint_version'] in ['HTTP_JSON_V1', 'HTTP_JSON', 'HTTP_PROTO']:
-                    self.post_error(RichStatus.fromError("collector_endpoint_version must be one of 'HTTP_JSON_V1, HTTP_JSON, HTTP_PROTO'"))
-                    return False
+
+        if driver == "zipkin":
+            # fill zipkin defaults
+            if not driver_config.get('collector_endpoint'):
+                driver_config['collector_endpoint'] = {
+                    'V2': '/api/v1/spans',
+                    'V3': '/api/v2/spans',
+                }[aconf.envoy_api_version]
+            if not driver_config.get('collector_endpoint_version'):
+                driver_config['collector_endpoint_version'] = {
+                    'V2': 'HTTP_JSON_V1',
+                    'V3': 'HTTP_JSON',
+                }[aconf.envoy_api_version]
+            if not 'trace_id_128bit' in driver_config:
+                # Make 128-bit traceid the default
+                driver_config['trace_id_128bit'] = True
+            # validate
+            if driver_config['collector_endpoint_version'] not in ['HTTP_JSON_V1', 'HTTP_JSON', 'HTTP_PROTO']:
+                self.post_error(RichStatus.fromError("collector_endpoint_version must be one of 'HTTP_JSON_V1, HTTP_JSON, HTTP_PROTO'"))
+                return False
 
         # OK, we have a valid config.
         self.sourced_by(config)
@@ -90,6 +105,8 @@ class IRTracing(IRResource):
         self.driver_config = driver_config
         self.tag_headers = config.get('tag_headers', [])
         self.sampling = config.get('sampling', {})
+
+        self.stats_name = config.get("stats_name", None)
 
         # XXX host_rewrite actually isn't in the schema right now.
         self.host_rewrite = config.get('host_rewrite', None)
@@ -109,7 +126,8 @@ class IRTracing(IRResource):
                 service=self.service,
                 host_rewrite=self.get('host_rewrite', None),
                 marker='tracing',
-                grpc=self.grpc
+                grpc=self.grpc,
+                stats_name=self.get("stats_name", None)
             )
         )
 

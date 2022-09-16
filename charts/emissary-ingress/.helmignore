@@ -1,0 +1,20 @@
+# IDE/text editor/OS stuff
+.project
+.idea/
+*.tmproj
+.vscode/
+#*#
+.#*
+*~
+.DS_Store
+*.swp
+
+# generic stuff
+*.bak
+*.tmp
+
+# stuff specific to the Emissary chart directory
+.gitignore
+readme.tpl
+OWNERS
+*.in

@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 )
 

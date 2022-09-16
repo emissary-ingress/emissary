@@ -51,9 +51,13 @@ indent_style = tab
 ; won't work.
 indent_style = tab
 
-[{*.sh,cluster-claim,cluster-unclaim}]
+[*.sh]
 indent_style = space
 indent_size = 4
+[docker-promote.sh]
+indent_style = tab
+indent_size = 8
+tab_width = 8
 
 [*.el]
 indent_style = space
@@ -65,3 +69,7 @@ indent_style = tab
 ; Emacs markdown-mode gets mixed tabs/spaces wrong, and so I have zero
 ; faith that any other tool gets it right.
 indent_style = space
+
+[*.proto]
+indent_style = space
+indent_size = 2

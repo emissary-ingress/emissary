@@ -1,6 +1,8 @@
+from typing import Generator, Tuple, Union
+
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, ServiceType, EGRPC
+from abstract_tests import AmbassadorTest, ServiceType, EGRPC, Node
 
 class AcceptanceGrpcTest(AmbassadorTest):
     target: ServiceType
@@ -8,19 +10,20 @@ class AcceptanceGrpcTest(AmbassadorTest):
     def init(self):
         self.target = EGRPC()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
 #         yield self, self.format("""
 # ---
-# apiVersion: ambassador/v0
+# apiVersion: getambassador.io/v3alpha1
 # kind:  Module
 # name:  ambassador
 # # """)
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 grpc: True
+hostname: "*"
 prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
@@ -65,20 +68,21 @@ class EndpointGrpcTest(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: KubernetesEndpointResolver
 metadata:
     name: my-endpoint
 spec:
-    ambassador_id: endpointgrpctest
+    ambassador_id: ["endpointgrpctest"]
 ''') + super().manifests()
 
-    def config(self):
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 grpc: True
+hostname: "*"
 prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
