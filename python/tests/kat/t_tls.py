@@ -1,3 +1,5 @@
+import hashlib
+from base64 import b64decode
 from typing import List, Generator, Tuple, Union
 
 from kat.harness import Query, EDGE_STACK
@@ -164,15 +166,22 @@ add_request_headers:
                     error=[ "tls: certificate required", "write: connection reset by peer" ])
 
     def check(self):
+        cert = TLSCerts["presto.example.com"].pubcert
+        # base64-decode the cert data after removing the "---BEGIN CERTIFICATE---" / "---END CERTIFICATE---" lines.
+        certraw = b64decode("\n".join(l for l in cert.split("\n") if not l.startswith("-")))
+        # take the sha256 sum aof that.
+        certhash = hashlib.sha256(certraw).hexdigest()
+
         assert self.results[0].backend.request.headers["x-forwarded-client-cert"] == \
-            ["Hash=c2d41a5977dcd28a3ba21f59ed5508cc6538defa810843d8a593e668306c8c4f;Subject=\"CN=presto.example.com,OU=Engineering,O=Presto,L=Bangalore,ST=KA,C=IN\""]
-        assert self.results[0].backend.request.headers["x-cert-start"] == ["2019-01-10T19:19:52.000Z"], \
+                [f'Hash={certhash};Subject="CN=presto.example.com,OU=Engineering,O=Ambassador Labs,L=Boston,ST=MA,C=US"'], \
+                "unexpected x-forwarded-client-cert value: %s" % self.results[0].backend.request.headers["x-forwarded-client-cert"]
+        assert self.results[0].backend.request.headers["x-cert-start"] == ["2021-11-10T13:12:00.000Z"], \
                 "unexpected x-cert-start value: %s" % self.results[0].backend.request.headers["x-cert-start"]
-        assert self.results[0].backend.request.headers["x-cert-end"] == ["2118-12-17T19:19:52.000Z"], \
+        assert self.results[0].backend.request.headers["x-cert-end"] == ["2099-11-10T13:12:00.000Z"], \
                 "unexpected x-cert-end value: %s" % self.results[0].backend.request.headers["x-cert-end"]
-        assert self.results[0].backend.request.headers["x-cert-start-custom"] == ["Jan 10 19:19:52 2019 UTC"], \
+        assert self.results[0].backend.request.headers["x-cert-start-custom"] == ["Nov 10 13:12:00 2021 UTC"], \
                 "unexpected x-cert-start-custom value: %s" % self.results[1].backend.request.headers["x-cert-start-custom"]
-        assert self.results[0].backend.request.headers["x-cert-end-custom"] == ["Dec 17 19:19:52 2118 UTC"], \
+        assert self.results[0].backend.request.headers["x-cert-end-custom"] == ["Nov 10 13:12:00 2099 UTC"], \
                 "unexpected x-cert-end-custom value: %s" % self.results[0].backend.request.headers["x-cert-end-custom"]
 
 
@@ -377,7 +386,12 @@ data:
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        fingerprint = hashlib.sha1((
+            TLSCerts["localhost"].pubcert+"\n"+
+            TLSCerts["localhost"].privkey+"\n"
+        ).encode('utf-8')).hexdigest().upper()
+
+        yield self, f'''
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -387,9 +401,9 @@ config:
   upstream:
     secret: test-origination-secret
   upstream-files:
-    cert_chain_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt
-    private_key_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key
-""")
+    cert_chain_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/{fingerprint}.crt
+    private_key_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/{fingerprint}.key
+'''
 
         yield self, self.format("""
 ---

@@ -28,6 +28,8 @@
 
 # builder.mk
 /pytest-kat.txt
+/pytest-kat-envoy2.txt
+/pytest-kat-envoy3.txt
 
 # --- Files ignored by older versions ---
 # Remove the tail of this list when the commit making the change gets

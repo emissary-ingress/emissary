@@ -318,21 +318,29 @@ pytest-integration: push-pytest-images
 
 pytest-kat-local: push-pytest-images
 	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
-pytest-kat-envoy3: push-pytest-images # doing this all at once is too much for CI...
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
-# ... so we have a separate rule to run things split up
-build-aux/.pytest-kat.txt.stamp: $(OSS_HOME)/venv push-pytest-images FORCE
-	. venv/bin/activate && set -o pipefail && pytest --collect-only python/tests/kat 2>&1 | sed -En 's/.*<Function (.*)>/\1/p' | sed 's/[].].*//' | sort -u > $@
-build-aux/pytest-kat.txt: build-aux/%: build-aux/.%.stamp $(tools/copy-ifchanged)
-	$(tools/copy-ifchanged) $< $@
-clean: build-aux/.pytest-kat.txt.stamp.rm build-aux/pytest-kat.txt.rm
-pytest-kat-envoy3-%: build-aux/pytest-kat.txt $(tools/py-split-tests)
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $(subst -of-, ,$*) <build-aux/pytest-kat.txt)' python/tests/kat"
+
 pytest-kat-envoy2: push-pytest-images # doing this all at once is too much for CI...
 	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
 # ... so we have a separate rule to run things split up
-pytest-kat-envoy2-%: build-aux/pytest-kat.txt $(tools/py-split-tests)
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $(subst -of-, ,$*) <build-aux/pytest-kat.txt)' python/tests/kat"
+build-aux/.pytest-kat-envoy2.txt.stamp: $(OSS_HOME)/venv push-pytest-images FORCE
+	. venv/bin/activate && set -o pipefail && AMBASSADOR_ENVOY_API_VERSION=V2 pytest --collect-only python/tests/kat 2>&1 | sed -En 's/.*<Function (.*)>/\1/p' | cut -d. -f1 | sort -u > $@
+build-aux/pytest-kat-envoy2.txt: build-aux/%: build-aux/.%.stamp $(tools/copy-ifchanged)
+	$(tools/copy-ifchanged) $< $@
+clean: build-aux/.pytest-kat-envoy2.txt.stamp.rm build-aux/pytest-kat-envoy2.txt.rm
+pytest-kat-envoy2-%: build-aux/pytest-kat-envoy2.txt $(tools/py-split-tests)
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $(subst -of-, ,$*) <build-aux/pytest-kat-envoy2.txt)' python/tests/kat"
+
+pytest-kat-envoy3: push-pytest-images # doing this all at once is too much for CI...
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
+# ... so we have a separate rule to run things split up
+build-aux/.pytest-kat-envoy3.txt.stamp: $(OSS_HOME)/venv push-pytest-images FORCE
+	. venv/bin/activate && set -o pipefail && pytest --collect-only python/tests/kat 2>&1 | sed -En 's/.*<Function (.*)>/\1/p' | cut -d. -f1 | sort -u > $@
+build-aux/pytest-kat-envoy3.txt: build-aux/%: build-aux/.%.stamp $(tools/copy-ifchanged)
+	$(tools/copy-ifchanged) $< $@
+clean: build-aux/.pytest-kat-envoy3.txt.stamp.rm build-aux/pytest-kat-envoy3.txt.rm
+pytest-kat-envoy3-%: build-aux/pytest-kat-envoy3.txt $(tools/py-split-tests)
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $(subst -of-, ,$*) <build-aux/pytest-kat-envoy3.txt)' python/tests/kat"
+
 .PHONY: pytest-kat-%
 
 build-output/bin/envoy: docker/base-envoy.docker.tag.local
