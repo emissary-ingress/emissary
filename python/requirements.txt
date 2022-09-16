@@ -50,7 +50,7 @@ markupsafe==2.1.1
     # via
     #   jinja2
     #   werkzeug
-oauthlib==3.2.0
+oauthlib==3.2.1
     # via requests-oauthlib
 orjson==3.6.6
     # via -r requirements.in
