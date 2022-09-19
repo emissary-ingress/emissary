@@ -132,6 +132,11 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   the specified non-negative window period in seconds before doing an Envoy reconfiguration. Default
   is "1" if not set.
 
+- Bugfix: If a `Host` or `TLSContext` contained a hostname with a `:` then when using the 
+  diagnostics endpoints `ambassador/v0/diagd` then an error would be thrown due to the parsing logic
+  not  being able to handle the extra colon. This has been fixed and Emissary-ingress will not throw
+  an error when parsing envoy metrics for the diagnostics user interface.
+
 [#4354]: https://github.com/emissary-ingress/emissary/issues/4354
 
 ## [3.1.1] TBD
