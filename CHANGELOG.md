@@ -32,6 +32,9 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
 
 ## UPCOMING BREAKING CHANGES
 
+### Emissary 3.1.0
+ - Changes to label matching will change how Hosts match Mappings. Hosts were matching any labels found in Mappings, now it's changed to match `all labels`. To avoid unexpected behaviour after the upgrade, add all labels that Hosts have in their mappingSelector to Mappings you want it to match.
+
 ### Emissary 3.0.0
 
  - **No `protocol_version: v2`**: Support for specifying `protocol_version: v2` in `AuthService`,

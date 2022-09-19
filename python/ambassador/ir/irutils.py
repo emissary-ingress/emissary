@@ -181,11 +181,13 @@ def selector_matches(
         logger.debug("    no incoming labels => False")
         return False
 
-    # every selector label must exist and be equal
+    # For every label in mappingSelector, there must be a label with same value in Mapping itself.
     for k, v in match.items():
-        if labels.get(k) != v:
-            logger.debug("    selector match for %s=%s => False", k, v)
+        if labels.get(k) == v:
+            logger.debug("    selector match for %s=%s => True", k, v)
+        else:
+            logger.debug("    selector miss for %s=%s => False", k, v)
             return False
 
-    logger.debug("    all selectors match => True")
+    logger.debug(f"    all selectors match => True")
     return True
