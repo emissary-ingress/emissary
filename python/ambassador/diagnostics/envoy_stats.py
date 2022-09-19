@@ -13,6 +13,7 @@
 # limitations under the License
 
 import logging
+import re
 import threading
 import time
 from dataclasses import dataclass
@@ -313,7 +314,10 @@ class EnvoyStatsMgr:
             if not line:
                 continue
 
-            key, value = line.split(":")
+            # TODO: Splitting from the right is a work-around for the
+            # following issue: https://github.com/emissary-ingress/emissary/issues/4528
+            # and needs to be addressed via a behavior change
+            key, value = line.rsplit(":", 1)
             keypath = key.split(".")
 
             node = envoy_stats

@@ -86,6 +86,14 @@ items:
         body: >-
           The <code>AMBASSADOR_RECONFIG_MAX_DELAY</code> env var can be optionally set to batch changes for the specified 
           non-negative window period in seconds before doing an Envoy reconfiguration. Default is "1" if not set.
+      
+      - title: Diagnostics stats properly handles parsing envoy metrics with colons
+        type: bugfix
+        body: >-
+          If a <code>Host</code> or <code>TLSContext</code> contained a hostname with a <code>:</code> then when using the 
+          diagnostics endpoints <code>ambassador/v0/diagd</code> then an error would be thrown due to the parsing logic not 
+          being able to handle the extra colon. This has been fixed and $productName$ will not throw an error when parsing
+          envoy metrics for the diagnostics user interface.
 
   - version: 3.1.1
     prevVersion: 3.1.0
