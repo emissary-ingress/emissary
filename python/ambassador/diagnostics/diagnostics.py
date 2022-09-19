@@ -119,7 +119,7 @@ class DiagResult:
         # Go ahead and grab Envoy cluster stats for all possible clusters.
         # XXX This might be a bit silly.
         self.cstats = {
-            cluster.envoy_name: self.estat.cluster_stats(cluster.stats_name)
+            cluster.name: self.estat.cluster_stats(cluster.stats_name)
             for cluster in self.diag.clusters.values()
         }
 
