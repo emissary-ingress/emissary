@@ -69,6 +69,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 {{ $ghName := "emissary-ingress/emissary" -}}
 
 {{ range $i, $release := $relnotes.items -}}
+{{ if ne $release.date "unplanned" -}}
 {{ $prevVersion := "1.13.3" -}}
 {{- if index $release "prevVersion" -}}
   {{- $prevVersion = $release.prevVersion -}}
@@ -118,6 +119,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 	strings.Indent 2 |
 	strings.TrimPrefix "  " }}
 {{ end }}{{ end -}}
+{{ end -}}
 {{ end }}
 ## [1.13.3] May 03, 2021
 [1.13.3]: https://github.com/datawire/ambassador/compare/v1.13.2...v1.13.3
