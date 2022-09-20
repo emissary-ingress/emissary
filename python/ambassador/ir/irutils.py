@@ -165,6 +165,20 @@ def hostglob_matches(g1: str, g2: str) -> bool:
 
 
 ################
+## disable_strict_selectors is a utility function to control the behaviour of label selectors for Host/Mapping association
+## and serves to provide a single place where the default value can be updated.
+##
+## Ambassador (2.0-2.3) & (3.0-3.1) consider a match on a single label as a "good enough" match.
+## In versions 2.5+ and 3.2+ _ALL_ labels in a selector must be present for it to be considered a match.
+## DISABLE_STRICT_LABEL_SELECTORS provides a way to restore the old unintended loose matching behaviour
+## in the event that it is desired. The ability to disable strict label matching will be removed in a future version
+
+
+def disable_strict_selectors() -> bool:
+    return parse_bool(os.environ.get("DISABLE_STRICT_LABEL_SELECTORS", "false"))
+
+
+################
 ## selector_matches is a utility for doing K8s label selector matching.
 
 
@@ -184,13 +198,7 @@ def selector_matches(
         logger.debug("    no incoming labels => False")
         return False
 
-    # Ambassador (2.0-2.3) & (3.0-3.1) consider a match on a single label as a "good enough" match.
-    # In versions 2.5+ and 3.2+ _ALL_ labels in a selector must be present for it to be considered a match.
-    # DISABLE_STRICT_LABEL_SELECTORS provides a way to restore the old unintended loose matching behaviour
-    # in the event that it is desired. The ability to disable strict label matching will be removed in a future version.
-    disable_strict_selectors = parse_bool(os.environ.get("DISABLE_STRICT_LABEL_SELECTORS", "false"))
-
-    if disable_strict_selectors:
+    if disable_strict_selectors():
         for k, v in match.items():
             if labels.get(k) == v:
                 logger.debug("    selector match for %s=%s => True", k, v)

@@ -8,7 +8,7 @@ from ..config import Config
 from ..utils import SavedSecret, dump_json
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
-from .irutils import hostglob_matches, selector_matches
+from .irutils import disable_strict_selectors, hostglob_matches, selector_matches
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover
@@ -489,14 +489,7 @@ class IRHost(IRResource):
         ]:
             return True
 
-        # Ambassador (2.0-2.3) & (3.0-3.1) consider a match on a single label as a "good enough" match.
-        # In versions 2.5+ and 3.2+ _ALL_ labels in a selector must be present for it to be considered a match.
-        # DISABLE_STRICT_LABEL_SELECTORS provides a way to restore the old unintended loose matching behaviour
-        # in the event that it is desired. The ability to disable strict label matching will be removed in a future version.
-        disable_strict_selectors = parse_bool(
-            os.environ.get("DISABLE_STRICT_LABEL_SELECTORS", "false")
-        )
-        if disable_strict_selectors:
+        if disable_strict_selectors():
             return host_match or sel_match
 
         if mapsel:
