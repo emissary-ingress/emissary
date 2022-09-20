@@ -77,12 +77,13 @@ import (
 //  2. The Accumulator API is guaranteed to bootstrap (i.e. perform an initial List operation) on
 //     all watches prior to notifying the user that resources are available to process.
 type Client struct {
-	config    *ConfigFlags
-	cli       dynamic.Interface
-	mapper    meta.RESTMapper
-	disco     discovery.CachedDiscoveryInterface
-	mutex     sync.Mutex
-	canonical map[string]*Unstructured
+	config                 *ConfigFlags
+	cli                    dynamic.Interface
+	mapper                 meta.RESTMapper
+	disco                  discovery.CachedDiscoveryInterface
+	mutex                  sync.Mutex
+	canonical              map[string]*Unstructured
+	maxAccumulatorInterval time.Duration
 
 	// This is an internal interface for testing, it lets us deliberately introduce delays into the
 	// implementation, e.g. effectively increasing the latency to the api server in a controllable
@@ -149,14 +150,15 @@ func NewClientFromConfigFlags(config *ConfigFlags) (*Client, error) {
 	}
 
 	return &Client{
-		config:       config,
-		cli:          cli,
-		mapper:       mapper,
-		disco:        disco,
-		canonical:    make(map[string]*Unstructured),
-		watchAdded:   func(oldObj, newObj *Unstructured) {},
-		watchUpdated: func(oldObj, newObj *Unstructured) {},
-		watchDeleted: func(oldObj, newObj *Unstructured) {},
+		config:                 config,
+		cli:                    cli,
+		mapper:                 mapper,
+		disco:                  disco,
+		canonical:              make(map[string]*Unstructured),
+		maxAccumulatorInterval: 1 * time.Second,
+		watchAdded:             func(oldObj, newObj *Unstructured) {},
+		watchUpdated:           func(oldObj, newObj *Unstructured) {},
+		watchDeleted:           func(oldObj, newObj *Unstructured) {},
 	}, nil
 }
 
@@ -209,6 +211,18 @@ func InCluster() bool {
 	return os.Getenv("KUBERNETES_SERVICE_HOST") != "" &&
 		os.Getenv("KUBERNETES_SERVICE_PORT") != "" &&
 		err == nil && !fi.IsDir()
+}
+
+// Sets the max interval to wait before sending changes for snapshot updates. The interval must
+// be non-negative, otherwise it will return an error.
+func (c *Client) MaxAccumulatorInterval(interval time.Duration) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	if interval <= 0 {
+		return fmt.Errorf("interval must be positive")
+	}
+	c.maxAccumulatorInterval = interval
+	return nil
 }
 
 // DynamicInterface is an accessor method to the k8s dynamic client
@@ -371,7 +385,7 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 	// resource instances of the kind being watched
 	lw := newListWatcher(ctx, cli, query, func(lw *lw) {
 		if lw.hasSynced() {
-			target <- rawUpdate{query.Name, true, nil, nil}
+			target <- rawUpdate{query.Name, true, nil, nil, time.Now()}
 		}
 	})
 	informer = cache.NewSharedInformer(lw, &Unstructured{}, 5*time.Minute)
@@ -410,7 +424,7 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 				// better/faster tests.
 				c.watchAdded(nil, obj.(*Unstructured))
 				lw.countAddEvent()
-				target <- rawUpdate{query.Name, lw.hasSynced(), nil, obj.(*Unstructured)}
+				target <- rawUpdate{query.Name, lw.hasSynced(), nil, obj.(*Unstructured), time.Now()}
 			},
 			UpdateFunc: func(oldObj, newObj interface{}) {
 				old := oldObj.(*Unstructured)
@@ -421,7 +435,7 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 				// nicer prettier set of hooks, but for now all we need is this hack for
 				// better/faster tests.
 				c.watchUpdated(old, new)
-				target <- rawUpdate{query.Name, lw.hasSynced(), old, new}
+				target <- rawUpdate{query.Name, lw.hasSynced(), old, new, time.Now()}
 			},
 			DeleteFunc: func(obj interface{}) {
 				var old *Unstructured
@@ -444,7 +458,7 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 				c.mutex.Lock()
 				delete(c.canonical, key)
 				c.mutex.Unlock()
-				target <- rawUpdate{query.Name, lw.hasSynced(), old, nil}
+				target <- rawUpdate{query.Name, lw.hasSynced(), old, nil, time.Now()}
 			},
 		},
 	)
@@ -457,6 +471,7 @@ type rawUpdate struct {
 	synced bool
 	old    *unstructured.Unstructured
 	new    *unstructured.Unstructured
+	ts     time.Time
 }
 
 type lw struct {
@@ -499,7 +514,7 @@ func (lw *lw) countAddEvent() {
 // dispatched to consider things synced at the dispatch layer.
 //
 // So to track syncedness properly for our users, when we do our first List() we remember how many
-// resourcees there are and we do not consider ourselves synced until we have dispatched at least as
+// resources there are and we do not consider ourselves synced until we have dispatched at least as
 // many Add events as there are resources.
 func (lw *lw) hasSynced() (result bool) {
 	lw.withMutex(func() {
