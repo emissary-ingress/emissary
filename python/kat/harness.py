@@ -343,6 +343,7 @@ class Node(ABC):
     namespace: str
     is_ambassador = False
     local_result: Optional[Dict[str, str]] = None
+    xfail: Optional[str]
 
     def __init__(
         self,

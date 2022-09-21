@@ -32,6 +32,19 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
 
 ## UPCOMING BREAKING CHANGES
 
+### Emissary 3.2.0 and 2.5.0
+
+ - Changes to label matching will change how `Hosts` are associated with `Mappings`. There
+   was a bug with label selectors that was causing `Hosts` to be incorrectly being associated with
+   more `Mappings` than intended. If any single label from the selector was matched then the `Host`
+   would be associated with the `Mapping`. Now it has been updated to correctly only associate a
+   `Host` with a `Mapping` if **all** labels required by the selector are present. This brings the
+   `mappingSelector` field in-line with how label selectors are used in Kubernetes. To avoid
+   unexpected behaviour after the upgrade, add all labels that Hosts have in their `mappingSelector`
+   to `Mappings` you want to associate with the `Host`. You can opt-out of the new behaviour by
+   setting the environment variable `DISABLE_STRICT_LABEL_SELECTORS` to `"true"`
+   (default: `"false"`).
+
 ### Emissary 3.0.0
 
  - **No `protocol_version: v2`**: Support for specifying `protocol_version: v2` in `AuthService`,
@@ -81,6 +94,18 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   patch release of 1.23. This provides Emissary-ingress with the latest security patches,
   performances enhancments, and features offered by the envoy proxy.
 
+- Change: Changes to label matching will change how `Hosts` are associated with `Mappings`. There
+  was a bug with label selectors that was causing `Hosts` to be incorrectly being associated with
+  more `Mappings` than intended. If any single label from the selector was matched then the `Host`
+  would be associated with the `Mapping`. Now it has been updated to correctly only associate a
+  `Host` with a `Mapping` if **all** labels required by the selector are present. This brings the
+  `mappingSelector` field in-line with how label selectors are used in Kubernetes. To avoid
+  unexpected behaviour after the upgrade, add all labels that Hosts have in their `mappingSelector`
+  to `Mappings` you want to associate with the `Host`. You can opt-out of the new behaviour by
+  setting the environment variable `DISABLE_STRICT_LABEL_SELECTORS` to `"true"` (default:
+  `"false"`). (Thanks to <a href="https://github.com/f-herceg">Filip Herceg</a> and <a
+  href="https://github.com/dynajoe">Joe Andaverde</a>!).
+
 - Feature: Previously the `Host` resource could only use secrets that are in the namespace as the
   Host. The `tlsSecret` field in the Host has a new subfield `namespace` that will allow the use of
   secrets from different namespaces.
@@ -93,17 +118,45 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   longer be incorrectly mapped to the same cluster. ([#4354])
 
 - Feature: By default, when Envoy is unable to communicate with the configured RateLimitService then
-  it will allow traffic through. The  `RateLimitService` resource now exposes the  <a
+  it will allow traffic through. The `RateLimitService` resource now exposes the <a
   href="https://www.envoyproxy.io/docs/envoy/v1.23.0/configuration/http/http_filters/rate_limit_filter">failure_mode_deny</a>
-  option. Set `failure_mode_deny: true`, then Envoy will  deny traffic when it is unable to
-  communicate to the RateLimitService  returning a 500.
+  option. Set `failure_mode_deny: true`, then Envoy will deny traffic when it is unable to
+  communicate to the RateLimitService returning a 500.
 
-- Bugfix: Previously, setting the `stats_name` for the `TracingService`, `RateLimitService`  or the
+- Bugfix: Previously, setting the `stats_name` for the `TracingService`, `RateLimitService` or the
   `AuthService` would have no affect because it was not being properly passed to the Envoy cluster
   config. This has been fixed and the `alt_stats_name` field in the cluster config is now set
   correctly. (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
 
+- Feature: The `AMBASSADOR_RECONFIG_MAX_DELAY` env var can be optionally set to batch changes for
+  the specified non-negative window period in seconds before doing an Envoy reconfiguration. Default
+  is "1" if not set.
+
+- Bugfix: If a `Host` or `TLSContext` contained a hostname with a `:` then when using the
+  diagnostics endpoints `ambassador/v0/diagd` then an error would be thrown due to the parsing logic
+  not being able to handle the extra colon. This has been fixed and Emissary-ingress will not throw
+  an error when parsing envoy metrics for the diagnostics user interface.
+
+- Feature: It is now possible to set `custom_tags` in the `TracingService`. Trace tags can be set
+  based on literal values, environment variables, or request headers. (Thanks to <a
+  href="https://github.com/psalaberria002">Paul</a>!) ([#4181])
+
+- Bugfix: Emissary-ingress 2.0.0 introduced a bug where a `TCPMapping` that uses SNI, instead of
+  using the hostname glob in the `TCPMapping`, uses the hostname glob in the `Host` that the TLS
+  termination configuration comes from.
+
+- Bugfix: Emissary-ingress 2.0.0 introduced a bug where a `TCPMapping` that terminates TLS must have
+  a corresponding `Host` that it can take the TLS configuration from. This was semi-intentional, but
+  didn't make much sense.  You can now use a `TLSContext` without a `Host`as in Emissary-ingress 1.y
+  releases, or a `Host` with or without a `TLSContext` as in prior 2.y releases.
+
+- Bugfix: Prior releases of Emissary-ingress had the arbitrary limitation that a `TCPMapping` cannot
+  be used on the same port that HTTP is served on, even if TLS+SNI would make this possible. 
+  Emissary-ingress now allows `TCPMappings` to be used on the same `Listener` port as HTTP `Hosts`,
+  as long as that `Listener` terminates TLS.
+
 [#4354]: https://github.com/emissary-ingress/emissary/issues/4354
+[#4181]: https://github.com/emissary-ingress/emissary/pull/4181
 
 ## [3.1.1] TBD
 [3.1.1]: https://github.com/emissary-ingress/emissary/compare/v3.1.0...v3.1.1
@@ -237,7 +290,24 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   HTTP/3 connections using QUIC and the UDP network protocol. It currently only supports for
   connections between downstream clients and Emissary-ingress.
 
-## [2.4.0] TBD
+## [2.5.0] TBD
+[2.5.0]: https://github.com/emissary-ingress/emissary/compare/v2.4.0...v2.5.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: Changes to label matching will change how `Hosts` are associated with `Mappings`. There
+  was a bug with label selectors that was causing `Hosts` to be incorrectly being associated with
+  more `Mappings` than intended. If any single label from the selector was matched then the `Host`
+  would be associated with the `Mapping`. Now it has been updated to correctly only associate a
+  `Host` with a `Mapping` if **all** labels required by the selector are present. This brings the
+  `mappingSelector` field in-line with how label selectors are used in Kubernetes. To avoid
+  unexpected behaviour after the upgrade, add all labels that Hosts have in their `mappingSelector`
+  to `Mappings` you want to associate with the `Host`. You can opt-out of the new behaviour by
+  setting the environment variable `DISABLE_STRICT_LABEL_SELECTORS` to `"true"` (default:
+  `"false"`). (Thanks to <a href="https://github.com/f-herceg">Filip Herceg</a> and <a
+  href="https://github.com/dynajoe">Joe Andaverde</a>!).
+
+## [2.4.0] September 19, 2022
 [2.4.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v2.4.0
 
 ### Emissary-ingress and Ambassador Edge Stack
@@ -250,10 +320,28 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   endpoints be inserted to clusters manually. This can help resolve with `503 UH` caused by
   certification rotation relating to a delay between EDS + CDS. The default is `false`.
 
-- Bugfix: Previously, setting the `stats_name` for the `TracingService`, `RateLimitService`  or the
+- Bugfix: Previously, setting the `stats_name` for the `TracingService`, `RateLimitService` or the
   `AuthService` would have no affect because it was not being properly passed to the Envoy cluster
   config. This has been fixed and the `alt_stats_name` field in the cluster config is now set
   correctly. (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
+
+- Feature: The `AMBASSADOR_RECONFIG_MAX_DELAY` env var can be optionally set to batch changes for
+  the specified non-negative window period in seconds before doing an Envoy reconfiguration. Default
+  is "1" if not set.
+
+- Bugfix: Emissary-ingress 2.0.0 introduced a bug where a `TCPMapping` that uses SNI, instead of
+  using the hostname glob in the `TCPMapping`, uses the hostname glob in the `Host` that the TLS
+  termination configuration comes from.
+
+- Bugfix: Emissary-ingress 2.0.0 introduced a bug where a `TCPMapping` that terminates TLS must have
+  a corresponding `Host` that it can take the TLS configuration from. This was semi-intentional, but
+  didn't make much sense.  You can now use a `TLSContext` without a `Host`as in Emissary-ingress 1.y
+  releases, or a `Host` with or without a `TLSContext` as in prior 2.y releases.
+
+- Bugfix: Prior releases of Emissary-ingress had the arbitrary limitation that a `TCPMapping` cannot
+  be used on the same port that HTTP is served on, even if TLS+SNI would make this possible. 
+  Emissary-ingress now allows `TCPMappings` to be used on the same `Listener` port as HTTP `Hosts`,
+  as long as that `Listener` terminates TLS.
 
 ## [1.14.5] TBD
 [1.14.5]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v1.14.5

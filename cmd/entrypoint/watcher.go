@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 
@@ -33,6 +35,16 @@ func WatchAllTheThings(
 	if err != nil {
 		return err
 	}
+	intv, err := strconv.Atoi(env("AMBASSADOR_RECONFIG_MAX_DELAY", "1"))
+	if err != nil {
+		return err
+	}
+	maxInterval := time.Duration(intv) * time.Second
+	err = client.MaxAccumulatorInterval(maxInterval)
+	if err != nil {
+		return err
+	}
+	dlog.Infof(ctx, "AMBASSADOR_RECONFIG_MAX_DELAY set to %d", intv)
 
 	serverTypeList, err := client.ServerResources()
 	if err != nil {

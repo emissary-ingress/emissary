@@ -2,11 +2,13 @@ import copy
 import os
 from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
+from ambassador.utils import parse_bool
+
 from ..config import Config
 from ..utils import SavedSecret, dump_json
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
-from .irutils import hostglob_matches, selector_matches
+from .irutils import disable_strict_selectors, hostglob_matches, selector_matches
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover
@@ -437,6 +439,7 @@ class IRHost(IRResource):
         mappingSelector.
         """
 
+        has_hostname = False
         host_match = False
         sel_match = False
 
@@ -444,6 +447,7 @@ class IRHost(IRResource):
 
         if group_regex:
             # It matches.
+            has_hostname = True
             host_match = True
             self.logger.debug("-- hostname %s group regex => %s", self.hostname, host_match)
         else:
@@ -457,6 +461,7 @@ class IRHost(IRResource):
             group_glob = group.get("host") or host_redirect  # NOT A TYPO: see above.
 
             if group_glob:
+                has_hostname = True
                 host_match = hostglob_matches(self.hostname, group_glob)
                 self.logger.debug(
                     "-- hostname %s group glob %s => %s", self.hostname, group_glob, host_match
@@ -473,7 +478,34 @@ class IRHost(IRResource):
                 sel_match,
             )
 
-        return host_match or sel_match
+        groupName = group.get("name") or "None"
+
+        # The synthetic Mappings for diagnostics, readiness, and liveness probes always match all Hosts.
+        # They can all still be disabled if desired via the Ambassador Module resource
+        if groupName in [
+            "GROUP: internal_readiness_probe_mapping",
+            "GROUP: internal_liveness_probe_mapping",
+            "GROUP: internal_diagnostics_probe_mapping",
+        ]:
+            return True
+
+        if disable_strict_selectors():
+            return host_match or sel_match
+
+        if mapsel:
+            if has_hostname:
+                # If both mappingSelector and hostname are present, then they must both be a match
+                return host_match and sel_match
+            else:
+                # If the Mapping does not provide a hostname, then only the mappingSelector must match
+                return sel_match
+        else:
+            if has_hostname:
+                # If there is no mappingSelector then it must only match the provided hostname
+                return host_match
+            else:
+                # If there is no mappingSelector or hostname then it cannot match anything
+                return False
 
     def __str__(self) -> str:
         request_policy = self.get("requestPolicy", {})

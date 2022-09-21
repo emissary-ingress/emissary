@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"time"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 )
@@ -78,6 +79,13 @@ const (
 	ObjectAdd DeltaType = iota
 	ObjectUpdate
 	ObjectDelete
+)
+
+type changeStatus int
+
+const (
+	awaitingDispatch changeStatus = iota
+	dispatched
 )
 
 func (dt DeltaType) MarshalJSON() ([]byte, error) {
@@ -165,45 +173,62 @@ func newAccumulator(ctx context.Context, client *Client, queries ...Query) (*Acc
 		client.watchRaw(ctx, q, rawUpdateCh, client.cliFor(field.mapping, q.Namespace))
 	}
 
-	acc := &Accumulator{client, fields, map[string]bool{}, 0, changed, sync.Mutex{}}
+	acc := &Accumulator{
+		client:   client,
+		fields:   fields,
+		excluded: map[string]bool{},
+		synced:   0,
+		changed:  changed,
+		mutex:    sync.Mutex{},
+	}
 
-	// This coalesces reads from rawUpdateCh to notifications that changes are available to be
-	// processed. This loop along with the logic in storeField guarantees the 3
-	// Goals/Requirements listed in the documentation for the Accumulator struct, i.e. Ensuring
-	// all Kinds are bootstrapped before any notification occurs, as well as ensuring that we
-	// continue to coalesce updates in the background while business logic is executing in order
-	// to ensure graceful load shedding.
-	go func() {
-		canSend := false
-
-		for {
-			var rawUp rawUpdate
-			if canSend {
-				select {
-				case changed <- struct{}{}:
-					canSend = false
-					continue
-				case rawUp = <-rawUpdateCh:
-				case <-ctx.Done():
-					return
-				}
-			} else {
-				select {
-				case rawUp = <-rawUpdateCh:
-				case <-ctx.Done():
-					return
-				}
-			}
-
-			// Don't overwrite canSend if storeField returns false. We may not yet have
-			// had a chance to send a notification down the changed channel.
-			if acc.storeUpdate(rawUp) {
-				canSend = true
-			}
-		}
-	}()
+	go acc.Listen(ctx, rawUpdateCh, client.maxAccumulatorInterval)
 
 	return acc, nil
+}
+
+// Listen for updates from rawUpdateCh and sends notifications, coalescing reads as neccessary.
+// This loop along with the logic in storeField isused to satisfy the 3 Goals/Requirements listed in
+// the documentation for the Accumulator struct, i.e. Ensuring all Kinds are bootstrapped before any
+// notification occurs, as well as ensuring that we continue to coalesce updates in the background while
+// business logic is executing in order to ensure graceful load shedding.
+func (a *Accumulator) Listen(ctx context.Context, rawUpdateCh <-chan rawUpdate, interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	var changeStatus changeStatus
+	var lastChangeSent time.Time
+	var synced bool
+
+	sendUpdate := func() {
+		a.changed <- struct{}{}
+		changeStatus = dispatched
+		lastChangeSent = time.Now()
+	}
+
+	for {
+		select {
+		// We have two paths here:
+		// 1. If we get new data and it has been past our set interval since we last updated anything,
+		//    we go ahead and immediately send that.
+		//
+		// 2. If we get new data but we just recently sent a change within our interval, we'll
+		//    wait until we get our next Tick before sending a change.
+		case rawUp := <-rawUpdateCh:
+			synced = a.storeUpdate(rawUp)
+			since := rawUp.ts.Sub(lastChangeSent)
+			if synced && since >= interval {
+				sendUpdate()
+			} else {
+				changeStatus = awaitingDispatch
+			}
+		case <-ticker.C:
+			if synced && changeStatus == awaitingDispatch {
+				sendUpdate()
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
 }
 
 func (a *Accumulator) Changed() <-chan struct{} {
