@@ -67,7 +67,7 @@ jobs:
             # pass on the PR.  But merging fails, don't sweat it; a
             # human having to fix the PR is still less work than a
             # human having to create the PR.
-            git merge "$next_branch" || git merge --abort
+            git merge "origin/$next_branch" || git merge --abort || true
           fi
 
           url=$(gh pr list --limit=1 --head="$merge_branch" --state=open --json=url --jq='.[0].url')
