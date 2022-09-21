@@ -85,6 +85,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 {{ $ghName := "emissary-ingress/emissary" -}}
 
 {{ range $i, $release := $relnotes.items -}}
+{{ if eq $release.date "unplanned" }}{{ continue }}{{ end -}}
 {{ $prevVersion := "1.13.3" -}}
 {{- if index $release "prevVersion" -}}
   {{- $prevVersion = $release.prevVersion -}}

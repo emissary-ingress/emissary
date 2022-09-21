@@ -65,7 +65,7 @@ items:
           non-negative window period in seconds before doing an Envoy reconfiguration. Default is "1" if not set.
 
   - version: 1.14.5
-    date: 'TBD'
+    date: 'unplanned'
     notes:
       - title: When using gzip, upstreams will no longer receive encoded data
         type: bugfix
