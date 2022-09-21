@@ -344,6 +344,7 @@ class Node(ABC):
     namespace: str = None  # type: ignore
     is_ambassador = False
     local_result: Optional[Dict[str, str]] = None
+    xfail: Optional[str]
 
     def __init__(self, *args, **kwargs) -> None:
         # If self.skip is set to true, this node is skipped

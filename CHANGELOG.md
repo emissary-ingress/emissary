@@ -132,14 +132,28 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   the specified non-negative window period in seconds before doing an Envoy reconfiguration. Default
   is "1" if not set.
 
-- Bugfix: If a `Host` or `TLSContext` contained a hostname with a `:` then when using the 
+- Bugfix: If a `Host` or `TLSContext` contained a hostname with a `:` then when using the
   diagnostics endpoints `ambassador/v0/diagd` then an error would be thrown due to the parsing logic
-  not  being able to handle the extra colon. This has been fixed and Emissary-ingress will not throw
+  not being able to handle the extra colon. This has been fixed and Emissary-ingress will not throw
   an error when parsing envoy metrics for the diagnostics user interface.
 
 - Feature: It is now possible to set `custom_tags` in the `TracingService`. Trace tags can be set
   based on literal values, environment variables, or request headers. (Thanks to <a
   href="https://github.com/psalaberria002">Paul</a>!) ([#4181])
+
+- Bugfix: Emissary-ingress 2.0.0 introduced a bug where a `TCPMapping` that uses SNI, instead of
+  using the hostname glob in the `TCPMapping`, uses the hostname glob in the `Host` that the TLS
+  termination configuration comes from.
+
+- Bugfix: Emissary-ingress 2.0.0 introduced a bug where a `TCPMapping` that terminates TLS must have
+  a corresponding `Host` that it can take the TLS configuration from. This was semi-intentional, but
+  didn't make much sense.  You can now use a `TLSContext` without a `Host`as in Emissary-ingress 1.y
+  releases, or a `Host` with or without a `TLSContext` as in prior 2.y releases.
+
+- Bugfix: Prior releases of Emissary-ingress had the arbitrary limitation that a `TCPMapping` cannot
+  be used on the same port that HTTP is served on, even if TLS+SNI would make this possible. 
+  Emissary-ingress now allows `TCPMappings` to be used on the same `Listener` port as HTTP `Hosts`,
+  as long as that `Listener` terminates TLS.
 
 [#4354]: https://github.com/emissary-ingress/emissary/issues/4354
 [#4181]: https://github.com/emissary-ingress/emissary/pull/4181
@@ -314,6 +328,20 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 - Feature: The `AMBASSADOR_RECONFIG_MAX_DELAY` env var can be optionally set to batch changes for
   the specified non-negative window period in seconds before doing an Envoy reconfiguration. Default
   is "1" if not set.
+
+- Bugfix: Emissary-ingress 2.0.0 introduced a bug where a `TCPMapping` that uses SNI, instead of
+  using the hostname glob in the `TCPMapping`, uses the hostname glob in the `Host` that the TLS
+  termination configuration comes from.
+
+- Bugfix: Emissary-ingress 2.0.0 introduced a bug where a `TCPMapping` that terminates TLS must have
+  a corresponding `Host` that it can take the TLS configuration from. This was semi-intentional, but
+  didn't make much sense.  You can now use a `TLSContext` without a `Host`as in Emissary-ingress 1.y
+  releases, or a `Host` with or without a `TLSContext` as in prior 2.y releases.
+
+- Bugfix: Prior releases of Emissary-ingress had the arbitrary limitation that a `TCPMapping` cannot
+  be used on the same port that HTTP is served on, even if TLS+SNI would make this possible. 
+  Emissary-ingress now allows `TCPMappings` to be used on the same `Listener` port as HTTP `Hosts`,
+  as long as that `Listener` terminates TLS.
 
 ## [1.14.5] TBD
 [1.14.5]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v1.14.5
