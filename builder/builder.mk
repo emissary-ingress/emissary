@@ -556,15 +556,6 @@ mypy: mypy-server
 	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal check
 .PHONY: mypy
 
-GOTEST_PKGS = github.com/datawire/ambassador/...
-GOTEST_MODDIRS = $(OSS_HOME)
-export GOTEST_PKGS
-export GOTEST_MODDIRS
-
-GOTEST_ARGS ?= -race -count=1
-GOTEST_ARGS += -parallel=150 # The ./pkg/envoy-control-plane/cache/v{2,3}/ tests require high parallelism to reliably work
-export GOTEST_ARGS
-
 create-venv:
 	[[ -d $(OSS_HOME)/venv ]] || python3 -m venv $(OSS_HOME)/venv
 .PHONY: create-venv
@@ -592,11 +583,14 @@ setup-diagd: create-venv
 	. $(OSS_HOME)/venv/bin/activate && $(MAKE) setup-venv
 .PHONY: setup-diagd
 
+GOTEST_ARGS ?= -race -count=1
+GOTEST_ARGS += -parallel=150 # The ./pkg/envoy-control-plane/cache/v{2,3}/ tests require high parallelism to reliably work
+GOTEST_PKGS ?= ./...
 gotest: setup-diagd
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
 	. $(OSS_HOME)/venv/bin/activate; \
 		EDGE_STACK=$(GOTEST_AES_ENABLED) \
-		$(OSS_HOME)/builder/builder.sh gotest-local
+		go test $(GOTEST_ARGS) $(GOTEST_PKGS)
 .PHONY: gotest
 
 # Ingress v1 conformance tests, using KIND and the Ingress Conformance Tests suite.

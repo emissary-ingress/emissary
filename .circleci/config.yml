@@ -204,7 +204,6 @@ commands:
     steps:
     # setup
     - amb-linux-install
-    - install-gotestsum
     - amb-checkout
     - amb-config-registry
     - run:
@@ -504,12 +503,6 @@ commands:
             echo "Chart version ${thisversion} doesn't match tag << pipeline.git.tag >>; aborting"
             exit 1
           fi
-  install-gotestsum:
-    steps:
-    - run:
-        name: "Install gotestsum"
-        command: |
-          go get gotest.tools/gotestsum
   install-redis:
     steps:
     - run:

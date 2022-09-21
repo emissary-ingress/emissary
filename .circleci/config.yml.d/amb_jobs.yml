@@ -222,7 +222,6 @@ commands:
     steps:
       # setup
       - amb-linux-install
-      - install-gotestsum
       - amb-checkout
       - amb-config-registry
       - run:

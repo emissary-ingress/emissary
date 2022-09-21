@@ -33,7 +33,7 @@ changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.
 items:
 
   - version: 1.14.5
-    date: 'TBD'
+    date: 'unplanned'
     notes:
       - title: When using gzip, upstreams will no longer receive encoded data
         type: bugfix

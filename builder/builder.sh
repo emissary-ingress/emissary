@@ -688,29 +688,6 @@ case "${cmd}" in
             exit 1
         fi
         ;;
-    gotest-local)
-        [ -n "${TEST_XML_DIR}" ] && mkdir -p ${TEST_XML_DIR}
-        fail=""
-        for MODDIR in ${GOTEST_MODDIRS} ; do
-            if [ -e "${MODDIR}/go.mod" ]; then
-                pkgs=$(cd ${MODDIR} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
-                if [ -n "${pkgs}" ]; then
-                    modname=`basename ${MODDIR}`
-                    junitarg=
-                    if [[ -n "${TEST_XML_DIR}" ]] ; then
-                        junitarg="--junitfile ${TEST_XML_DIR}/${modname}-gotest.xml"
-                    fi
-                    if ! (cd ${MODDIR} && gotestsum ${junitarg} --rerun-fails=3 --packages="${pkgs}" -- ${GOTEST_ARGS}) ; then
-                       fail="yes"
-                    fi
-                fi
-            fi
-        done
-
-        if [ "${fail}" = yes ]; then
-            exit 1
-        fi
-        ;;
     build-builder-base)
         build_builder_base >&2
         echo "${builder_base_image}"
