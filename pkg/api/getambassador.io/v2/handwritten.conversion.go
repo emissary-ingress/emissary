@@ -678,6 +678,8 @@ func Convert_v2_TracingServiceSpec_To_v3alpha1_TracingServiceSpec(in *TracingSer
 				},
 			})
 		}
+	} else if in.TagHeaders != nil && in.V3CustomTags != nil {
+		dlog.Warn(context.Background(), "CustomTags and TagHeaders cannot be set at the same time in a TracingService. ignoring TagHeaders since it is deprecated.")
 	}
 	return nil
 }
