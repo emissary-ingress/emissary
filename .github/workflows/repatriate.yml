@@ -62,6 +62,12 @@ jobs:
             # branch does not yet exist.
             git checkout -b "$merge_branch"
             git push --set-upstream origin "$merge_branch"
+            # Go ahead and try to merge in the target branch; this is
+            # necessary for the check-branch-version.yml checks to
+            # pass on the PR.  But merging fails, don't sweat it; a
+            # human having to fix the PR is still less work than a
+            # human having to create the PR.
+            git merge "$next_branch" || git merge --abort
           fi
 
           url=$(gh pr list --limit=1 --head="$merge_branch" --state=open --json=url --jq='.[0].url')
