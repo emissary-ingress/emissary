@@ -51,6 +51,7 @@ runs:
           tools/bin/kubectl cp xfpredirect:/tmp/ambassador/snapshots /tmp/test-logs/cluster/xfpredirect.snapshots || true
         fi
         cp /tmp/*.yaml /tmp/test-logs || true
+        cp /tmp/kat-* /tmp/test-logs || true
     - name: "Upload Logs"
       uses: actions/upload-artifact@v2
       with:
