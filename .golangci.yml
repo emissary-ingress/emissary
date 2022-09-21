@@ -5,7 +5,7 @@ linters:
   enable:
     - gofmt
     - govet
-    #- depguard # there's a bug in depguard with (or just exacerbated by?) Go 1.19 that causes it to have false positives
+    - depguard
     - unused
     - errcheck
 linters-settings:
