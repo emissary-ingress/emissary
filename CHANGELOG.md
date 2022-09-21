@@ -82,7 +82,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
-## [2.4.0] TBD
+## [2.4.0] September 19, 2022
 [2.4.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v2.4.0
 
 ### Emissary-ingress and Ambassador Edge Stack
@@ -95,14 +95,28 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   endpoints be inserted to clusters manually. This can help resolve with `503 UH` caused by
   certification rotation relating to a delay between EDS + CDS. The default is `false`.
 
-- Bugfix: Previously, setting the `stats_name` for the `TracingService`, `RateLimitService`  or the
+- Bugfix: Previously, setting the `stats_name` for the `TracingService`, `RateLimitService` or the
   `AuthService` would have no affect because it was not being properly passed to the Envoy cluster
   config. This has been fixed and the `alt_stats_name` field in the cluster config is now set
   correctly. (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
 
 - Feature: The `AMBASSADOR_RECONFIG_MAX_DELAY` env var can be optionally set to batch changes for
-  the specified  non-negative window period in seconds before doing an Envoy reconfiguration.
-  Default is "1" if not set.
+  the specified non-negative window period in seconds before doing an Envoy reconfiguration. Default
+  is "1" if not set.
+
+- Bugfix: Emissary-ingress 2.0.0 introduced a bug where a `TCPMapping` that uses SNI, instead of
+  using the hostname glob in the `TCPMapping`, uses the hostname glob in the `Host` that the TLS
+  termination configuration comes from.
+
+- Bugfix: Emissary-ingress 2.0.0 introduced a bug where a `TCPMapping` that terminates TLS must have
+  a corresponding `Host` that it can take the TLS configuration from. This was semi-intentional, but
+  didn't make much sense.  You can now use a `TLSContext` without a `Host`as in Emissary-ingress 1.y
+  releases, or a `Host` with or without a `TLSContext` as in prior 2.y releases.
+
+- Bugfix: Prior releases of Emissary-ingress had the arbitrary limitation that a `TCPMapping` cannot
+  be used on the same port that HTTP is served on, even if TLS+SNI would make this possible. 
+  Emissary-ingress now allows `TCPMappings` to be used on the same `Listener` port as HTTP `Hosts`,
+  as long as that `Listener` terminates TLS.
 
 ## [2.3.2] August 01, 2022
 [2.3.2]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v2.3.2

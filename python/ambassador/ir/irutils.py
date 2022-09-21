@@ -167,23 +167,23 @@ def selector_matches(logger: logging.Logger, selector: Dict[str, Any], labels: D
 
     if not match:
         # If there's no matchLabels to match, return True.
-        logger.debug("    no matchLabels in selector => True")
+        logger.debug("      no matchLabels in selector => True")
         return True
 
     # If we have stuff to match on, but no labels to actually match them, we
     # can short-circuit (and skip a weirder conditional down in the loop).
     if not labels:
-        logger.debug("    no incoming labels => False")
+        logger.debug("      no incoming labels => False")
         return False
 
     selmatch = False
 
     for k, v in match.items():
         if labels.get(k) == v:
-            logger.debug("    selector match for %s=%s => True", k, v)
+            logger.debug("      selector match for %s=%s => True", k, v)
             return True
 
-        logger.debug("    selector miss on %s=%s", k, v)
+        logger.debug("      selector miss on %s=%s", k, v)
 
-    logger.debug("    all selectors miss => False")
+    logger.debug("      all selectors miss => False")
     return False

@@ -588,8 +588,6 @@ class TCPMappingTLSTerminationTest(AmbassadorTest):
             yield cls(tls_src, name="{self.tls_src}")
 
     def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
-        if tls_src == 'tlscontext':
-            self.xfail = "bug (2.3): TCPMappings can't match directly with termination TLSContexts"
         self.tls_src = tls_src
 
     def manifests(self) -> str:
@@ -745,7 +743,6 @@ class TCPMappingSNISharedContextTest(TCPMappingTLSTerminationTest):
 
     def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
         super().init(tls_src)
-        self.xfail = "bug (2.3): filter chains have identical (conflicting) matching rules"
         self.target_a = HTTP(name="target-a")
         self.target_b = HTTP(name="target-b")
 
@@ -945,7 +942,6 @@ class TCPMappingSNIWithHTTPTest(AmbassadorTest):
             yield cls(tls_src, name="{self.tls_src}")
 
     def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
-        self.xfail = "bug (1.14): emits 2 Envoy listeners; one HTTP, one TLS; remarkably Envoy doesn't complain, it just lets the first one (HTTP) win"
         self.tls_src = tls_src
         self.target = HTTP()
 
