@@ -1,8 +1,7 @@
 from typing import Generator, Tuple, Union
 
+from abstract_tests import HTTP, AmbassadorTest, MappingTest, Node, ServiceType
 from kat.harness import Query
-
-from abstract_tests import AmbassadorTest, MappingTest, HTTP, ServiceType, Node
 
 
 class ShadowTestCANFLAKE(MappingTest):
@@ -14,12 +13,13 @@ class ShadowTestCANFLAKE(MappingTest):
     # parent's init to have a different signature... but it's also intimately
     # (nay, incestuously) related to the variant()'s yield() above, and I really
     # don't want to deal with that right now. So. We'll deal with it later.
-    def init(self) -> None: # type: ignore
+    def init(self) -> None:  # type: ignore
         self.target = HTTP(name="target")
         self.options = []
 
     def manifests(self) -> str:
-        return """
+        return (
+            """
 ---
 apiVersion: v1
 kind: Service
@@ -56,10 +56,13 @@ spec:
         ports:
         - name: http
           containerPort: 3000
-""" + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format("""
+        yield self.target, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -103,7 +106,8 @@ hostname: "*"
 prefix: /{self.name}/check/
 rewrite: /check/
 service: shadow.plain-namespace
-""")
+"""
+        )
 
     def requirements(self):
         yield from super().requirements()
@@ -119,7 +123,7 @@ service: shadow.plain-namespace
             # to our shadow service that's tallying calls by bucket. So, basically, each
             # shadow bucket 0-9 should end up with 10 call.s
             bucket = i % 10
-            yield Query(self.parent.url(f'{self.name}/mark/{bucket}'))
+            yield Query(self.parent.url(f"{self.name}/mark/{bucket}"))
 
         for i in range(500):
             # We also do a call to weighted-mark, which is exactly the same _but_ the
@@ -130,7 +134,7 @@ service: shadow.plain-namespace
             # shadow.
 
             bucket = (i % 10) + 100
-            yield Query(self.parent.url(f'{self.name}/weighted-mark/{bucket}'))
+            yield Query(self.parent.url(f"{self.name}/weighted-mark/{bucket}"))
 
         # Finally, in phase 2, grab the bucket counts.
         yield Query(self.parent.url("%s/check/" % self.name), phase=2)
@@ -141,18 +145,18 @@ service: shadow.plain-namespace
 
         # We shouldn't have any missing-CRD-types errors any more.
         for source, error in errors:
-          if (('could not find' in error) and ('CRD definitions' in error)):
-            assert False, f"Missing CRDs: {error}"
+            if ("could not find" in error) and ("CRD definitions" in error):
+                assert False, f"Missing CRDs: {error}"
 
-          if 'Ingress resources' in error:
-            assert False, f"Ingress resource error: {error}"
+            if "Ingress resources" in error:
+                assert False, f"Ingress resource error: {error}"
 
         # The default errors assume that we have missing CRDs, and that's not correct any more,
         # so don't try to use assert_default_errors here.
 
         for result in self.results:
             if "mark" in result.query.url:
-                assert not result.headers.get('X-Shadowed', False)
+                assert not result.headers.get("X-Shadowed", False)
             elif "check" in result.query.url:
                 data = result.json
                 weighted_total = 0
@@ -163,7 +167,7 @@ service: shadow.plain-namespace
                     value = data.get(str(i), -1)
                     error = abs(value - 10)
 
-                    assert error <= 2, f'bucket {i} should have 10 calls, got {value}'
+                    assert error <= 2, f"bucket {i} should have 10 calls, got {value}"
 
                     # Buckets 100-109 should also have 10 per bucket... but honestly, this is
                     # a pretty small sample size, and Envoy's randomization seems to kinda suck
@@ -183,4 +187,6 @@ service: shadow.plain-namespace
 
                 # See above for why we're just doing a >0 check here.
                 # assert abs(weighted_total - 50) <= 10, f'weighted buckets should have 50 total calls, got {weighted_total}'
-                assert weighted_total > 0, f'weighted buckets should have 50 total calls but got zero'
+                assert (
+                    weighted_total > 0
+                ), f"weighted buckets should have 50 total calls but got zero"

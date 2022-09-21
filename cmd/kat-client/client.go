@@ -26,8 +26,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
-	grpc_echo_pb "github.com/datawire/ambassador/v2/pkg/api/kat"
 	"github.com/datawire/dlib/dlog"
+	grpc_echo_pb "github.com/emissary-ingress/emissary/v3/pkg/api/kat"
 )
 
 // Should we output GRPCWeb debugging?

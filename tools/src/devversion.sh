@@ -74,7 +74,7 @@ main() {
                 printf '%s\n' "$vsemver"
                 return 0
             fi
-        done < <("${0%/*}"/goversion --all | grep '^v2\.')
+        done < <("${0%/*}"/goversion --all | grep '^v3\.')
         msg 'backing off for %ds then retrying...' "$backoff_secs"
         sleep "$backoff_secs"
     done

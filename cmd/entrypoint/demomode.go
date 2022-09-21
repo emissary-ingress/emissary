@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/datawire/ambassador/v2/pkg/acp"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/acp"
 )
 
 // bootDemoMode: start demo mode running. This is more obnoxious than one might

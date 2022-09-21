@@ -25,12 +25,6 @@ runs:
             /tmp/cov_html \
             /tmp/test-logs/cov_html
         fi
-        if test -d /tmp/test-data; then
-          rsync \
-            --archive \
-            /tmp/test-data_html \
-            /tmp/test-logs/test-data
-        fi
         if test -d ~/.cache/telepresence/logs; then
           rsync \
             --archive \

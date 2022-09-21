@@ -90,6 +90,8 @@ six==1.16.0
     #   google-auth
     #   kubernetes
     #   python-dateutil
+typing-extensions==4.2.0
+    # via -r requirements.in
 urllib3==1.26.8
     # via
     #   kubernetes

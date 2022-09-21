@@ -126,7 +126,7 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// respond with the requested status
-	status := r.Header.Get("Requested-Status")
+	status := r.Header.Get("Kat-Req-Http-Requested-Status")
 	if status == "" {
 		status = "200"
 	}
@@ -138,7 +138,7 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// copy the requested headers into the response
-	headers, ok := r.Header["Requested-Header"]
+	headers, ok := r.Header["Kat-Req-Http-Requested-Header"]
 	if ok {
 		for _, header := range headers {
 			canonical := http.CanonicalHeaderKey(header)
@@ -154,11 +154,11 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 		if len(body) > 0 {
 			dlog.Printf(ctx, "received body: %s", body)
 		}
-		w.Header()[http.CanonicalHeaderKey("Auth-Request-Body")] = []string{body}
+		w.Header()[http.CanonicalHeaderKey("Kat-Resp-Http-Request-Body")] = []string{body}
 	}
 	defer r.Body.Close()
 
-	cookies, ok := r.Header["Requested-Cookie"]
+	cookies, ok := r.Header["Kat-Req-Http-Requested-Cookie"]
 	if ok {
 		for _, v := range strings.Split(cookies[0], ",") {
 			val := strings.Trim(v, " ")
@@ -170,7 +170,7 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If they asked for a specific location to be returned, handle that too.
-	location, ok := r.Header["Requested-Location"]
+	location, ok := r.Header["Kat-Req-Http-Requested-Location"]
 
 	if ok {
 		w.Header()[http.CanonicalHeaderKey("Location")] = location
@@ -199,7 +199,7 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check header and delay response.
-	if h, ok := r.Header["Requested-Backend-Delay"]; ok {
+	if h, ok := r.Header["Kat-Req-Http-Requested-Backend-Delay"]; ok {
 		if v, err := strconv.Atoi(h[0]); err == nil {
 			dlog.Printf(ctx, "Delaying response by %v ms", v)
 			time.Sleep(time.Duration(v) * time.Millisecond)

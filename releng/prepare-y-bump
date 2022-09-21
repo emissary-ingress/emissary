@@ -59,37 +59,51 @@ else
 fi
 
 echo 'Editing docs/releaseNotes.yml...'
-gawk -i inplace \
-     -v next_xy="${next_xy}" \
-     '
-       BEGIN { done=0 }
-       /^  - version:/ && !done {
-         print "  - version: " next_xy ".0"
-         print "    date: '\''TBD'\''"
-         print "    notes: []"
-	 print ""
-	 done=1
-       } \
-       { print }
-     ' \
-    docs/releaseNotes.yml
+if ! grep -q -F -e "- version: ${next_xy}.0" docs/releaseNotes.yml; then
+	gawk -i inplace \
+	     -v next_xy="${next_xy}" \
+	     '
+	       BEGIN { done=0 }
+	       /^  - version:/ && !done {
+	         print "  - version: " next_xy ".0"
+	         print "    date: '\''TBD'\''"
+	         print "    notes: []"
+	         print ""
+	         done=1
+	       } \
+	       { print }
+	     ' \
+	    docs/releaseNotes.yml
+fi
 
 echo 'Editing charts/emissary-ingress/CHANGELOG.md...'
-gawk -i inplace \
-     -v next_xy="${next_xy}" \
-     -v chart_next_xy="${chart_next_xy}" \
-     '
-       BEGIN { done=0 }
-       /^## v/ && !done {
-         print "## v" chart_next_xy ".0"
-         print ""
-         print "- Upgrade Emissary to v" next_xy ".0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)"
-         print ""
-	 done=1
-       }
-       { print }
-     ' \
-     charts/emissary-ingress/CHANGELOG.md
+if ! grep -q -e "^## v{next_xy}\.0(\$| )" charts/emissary-ingress/CHANGELOG.md; then
+	gawk -i inplace \
+	     -v next_xy="${next_xy}" \
+	     -v chart_next_xy="${chart_next_xy}" \
+	     '
+	       BEGIN { done=0 }
+	       { del=0 }
+	       /^## Next Release/ && !done {
+	         print "## v" chart_next_xy ".0 (not yet released)"
+	         print ""
+	         print "- Upgrade Emissary to v" next_xy ".0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)"
+	         print ""
+	         done=1
+	         del=1
+	       }
+	       /^## v/ && !done {
+	         print "## v" chart_next_xy ".0 (not yet released)"
+	         print ""
+	         print "- Upgrade Emissary to v" next_xy ".0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)"
+	         print ""
+	         done=1
+	       }
+	       /no changes yet/ { del=1 }
+	       !del { print }
+	     ' \
+	     charts/emissary-ingress/CHANGELOG.md
+fi
 
 echo "Running 'make generate-fast'..."
 make generate-fast

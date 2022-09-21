@@ -11,9 +11,9 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
-	"github.com/datawire/ambassador/v2/pkg/acp"
-	"github.com/datawire/ambassador/v2/pkg/debug"
 	"github.com/datawire/dlib/dhttp"
+	"github.com/emissary-ingress/emissary/v3/pkg/acp"
+	"github.com/emissary-ingress/emissary/v3/pkg/debug"
 )
 
 func handleCheckAlive(w http.ResponseWriter, r *http.Request, ambwatch *acp.AmbassadorWatcher) {
@@ -74,6 +74,10 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) er
 
 	// Serve pprof endpoints to aid in live debugging.
 	sm.HandleFunc("/debug/pprof/", pprof.Index)
+	sm.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	sm.HandleFunc("/debug/pprof/trace", pprof.Trace)
+	sm.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	sm.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 
 	// For everything else, use a ReverseProxy to forward it to diagd.
 	//

@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/yaml"
 
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	v2 "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v2"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 )
 
 func marshalNormalized(t *testing.T, typed interface{}) string {
@@ -145,4 +145,152 @@ func TestConvert(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestConvertTracingService(t *testing.T) {
+
+	scheme := BuildScheme()
+
+	// v3alpha1 to v2
+
+	// only custom_tags set
+	o := &v2.TracingServiceSpec{}
+	err := scheme.Convert(&v3alpha1.TracingServiceSpec{
+		AmbassadorID: v3alpha1.AmbassadorID{},
+		CustomTags: []v3alpha1.TracingCustomTag{
+			{
+				Tag: "hola",
+				Header: &v3alpha1.TracingCustomTagTypeRequestHeader{
+					Name: "hola",
+				},
+			},
+		},
+	}, o, nil)
+	if err != nil {
+		t.Errorf("conversion failed. %v", err)
+	}
+	if len(o.V3CustomTags) != 1 {
+		t.Errorf("got %d; want 1", len(o.V3CustomTags))
+	}
+	if len(o.TagHeaders) != 0 {
+		t.Errorf("got %d; want 0", len(o.TagHeaders))
+	}
+
+	// both custom_tags and tag_headers set
+	o2 := &v2.TracingServiceSpec{}
+	err = scheme.Convert(&v3alpha1.TracingServiceSpec{
+		AmbassadorID:         v3alpha1.AmbassadorID{},
+		DeprecatedTagHeaders: []string{"hello"},
+		CustomTags: []v3alpha1.TracingCustomTag{
+			{
+				Tag: "hola",
+				Header: &v3alpha1.TracingCustomTagTypeRequestHeader{
+					Name: "hola",
+				},
+			},
+			{
+				Tag: "env",
+				Environment: &v3alpha1.TracingCustomTagTypeEnvironment{
+					Name: "env",
+				},
+			},
+		},
+	}, o2, nil)
+	if err != nil {
+		t.Errorf("conversion failed. %v", err)
+	}
+	if len(o2.V3CustomTags) != 2 {
+		t.Errorf("got %d; want 2", len(o2.V3CustomTags))
+	}
+	if len(o2.TagHeaders) != 0 {
+		t.Errorf("got %d; want 0", len(o2.TagHeaders))
+	}
+
+	// only tag_headers set
+	o3 := &v2.TracingServiceSpec{}
+	err = scheme.Convert(&v3alpha1.TracingServiceSpec{
+		AmbassadorID:         v3alpha1.AmbassadorID{},
+		DeprecatedTagHeaders: []string{"hello"},
+	}, o3, nil)
+	if err != nil {
+		t.Errorf("conversion failed. %v", err)
+	}
+	if len(o3.V3CustomTags) != 1 {
+		t.Errorf("got %d; want 1", len(o3.V3CustomTags))
+	}
+	if len(o3.TagHeaders) != 0 {
+		t.Errorf("got %d; want 0", len(o3.TagHeaders))
+	}
+
+	// v2 to v3alpha1
+
+	// only tag_headers set
+	out := &v3alpha1.TracingServiceSpec{}
+	err = scheme.Convert(&v2.TracingServiceSpec{
+		AmbassadorID: v2.AmbassadorID{},
+		TagHeaders:   []string{"hola"},
+	}, out, nil)
+	if err != nil {
+		t.Errorf("conversion failed. %v", err)
+	}
+	if len(out.CustomTags) != 1 {
+		t.Errorf("got %d; want 1", len(out.CustomTags))
+	}
+	if len(out.DeprecatedTagHeaders) != 0 {
+		t.Errorf("got %d; want 0", len(out.DeprecatedTagHeaders))
+	}
+
+	// only v3CustomTags set
+	out2 := &v3alpha1.TracingServiceSpec{}
+	err = scheme.Convert(&v2.TracingServiceSpec{
+		AmbassadorID: v2.AmbassadorID{},
+		V3CustomTags: []v3alpha1.TracingCustomTag{
+			{
+				Tag: "hello",
+				Header: &v3alpha1.TracingCustomTagTypeRequestHeader{
+					Name: "hello",
+				},
+			},
+		},
+	}, out2, nil)
+	if err != nil {
+		t.Errorf("conversion failed. %v", err)
+	}
+	if len(out2.CustomTags) != 1 {
+		t.Errorf("got %d; want 1", len(out2.CustomTags))
+	}
+	if len(out2.DeprecatedTagHeaders) != 0 {
+		t.Errorf("got %d; want 0", len(out2.DeprecatedTagHeaders))
+	}
+
+	// both custom_tags and tag_headers set
+	out3 := &v3alpha1.TracingServiceSpec{}
+	err = scheme.Convert(&v2.TracingServiceSpec{
+		AmbassadorID: v2.AmbassadorID{},
+		TagHeaders:   []string{"hola"},
+		V3CustomTags: []v3alpha1.TracingCustomTag{
+			{
+				Tag: "hello",
+				Header: &v3alpha1.TracingCustomTagTypeRequestHeader{
+					Name: "hello",
+				},
+			},
+			{
+				Tag: "hello2",
+				Environment: &v3alpha1.TracingCustomTagTypeEnvironment{
+					Name: "hello2",
+				},
+			},
+		},
+	}, out3, nil)
+	if err != nil {
+		t.Errorf("conversion failed. %v", err)
+	}
+	if len(out3.CustomTags) != 2 {
+		t.Errorf("got %d; want 2", len(out3.CustomTags))
+	}
+	if len(out3.DeprecatedTagHeaders) != 0 {
+		t.Errorf("got %d; want 0", len(out3.DeprecatedTagHeaders))
+	}
+
 }

@@ -32,6 +32,19 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
 
 ## UPCOMING BREAKING CHANGES
 
+### Emissary 3.2.0 and 2.5.0
+
+ - Changes to label matching will change how `Hosts` are associated with `Mappings`. There
+   was a bug with label selectors that was causing `Hosts` to be incorrectly being associated with
+   more `Mappings` than intended. If any single label from the selector was matched then the `Host`
+   would be associated with the `Mapping`. Now it has been updated to correctly only associate a
+   `Host` with a `Mapping` if **all** labels required by the selector are present. This brings the
+   `mappingSelector` field in-line with how label selectors are used in Kubernetes. To avoid
+   unexpected behaviour after the upgrade, add all labels that Hosts have in their `mappingSelector`
+   to `Mappings` you want to associate with the `Host`. You can opt-out of the new behaviour by
+   setting the environment variable `DISABLE_STRICT_LABEL_SELECTORS` to `"true"`
+   (default: `"false"`).
+
 ### Emissary 3.0.0
 
  - **No `protocol_version: v2`**: Support for specifying `protocol_version: v2` in `AuthService`,
@@ -44,13 +57,6 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
    Users who use these resource types but don't explicitly say `protocol_version: v3` will need to
    adjust their service implementations to understand the v3 protocols, and then update Emissary
    resources to say `protocol_version` before upgrading to Emissary-ingress 3.0.0.
-
- - **No `regex_type: unsafe`**: The `regex_type` field will be removed from the `ambassador`
-   `Module`, meaning that it will not be possible to instruct Envoy to use the [ECMAScript Regex][]
-   engine rather than the default [RE2][] engine.
-
-   Users who rely on the specific ECMAScript Regex syntax will need to rewrite their regular
-   expressions with RE2 syntax before upgrading to Emissary-ingress 3.0.0.
 
  - **No Zipkin `collector_endpoint_version: HTTP_JSON_V1`**: Support for specifying
    `collector_endpoint_version: HTTP_JSON_V1` for a Zipkin `TracingService` will be removed.  The
@@ -71,9 +77,6 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
 With the removal of `regex_type: unsafe` and `collector_endpoint_version: HTTP_JSON_V1`, there will
 be no more user-visible effects of the `AMBASSADOR_ENVOY_API_VERSION` environment variable, and so
 it will be removed; but as it won't be user-visible this isn't considered a breaking change.
-
-[ECMASCript Regex]: https://en.cppreference.com/w/cpp/regex/ecmascript
-[RE2]: https://github.com/google/re2
 
 ### Emissary 3.0.0 or later
 

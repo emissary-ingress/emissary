@@ -3,4 +3,4 @@
 
 package ignore
 
-import "github.com/datawire/ambassador/v2/cmd/busyambassador"
+import "github.com/emissary-ingress/emissary/v3/cmd/busyambassador"

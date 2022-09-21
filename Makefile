@@ -10,8 +10,15 @@ include build-aux/tools.mk
 BUILD_ARCH ?= linux/amd64
 
 # Bootstrapping the build env
+#
+# _go-version/deps and _go-version/cmd should mostly only be used via
+# go-version.txt (in generate.mk), but we have declared them early
+# here for bootstrapping the build env.  Don't use them directly (not
+# via go-version.txt) except for bootstrapping.
+_go-version/deps = docker/base-python/Dockerfile
+_go-version/cmd = sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $(_go-version/deps)
 ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
-  $(_prelude.go.ensure)
+  $(call _prelude.go.ensure,$(shell $(_go-version/cmd)))
   ifneq ($(filter $(shell go env GOROOT),$(subst :, ,$(shell go env GOPATH))),)
     $(error Your $$GOPATH (where *your* Go stuff goes) and $$GOROOT (where Go *itself* is installed) are both set to the same directory ($(shell go env GOROOT)); it is remarkable that it has not blown up catastrophically before now)
   endif
@@ -20,15 +27,15 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
   endif
 
   VERSION := $(or $(VERSION),$(shell go run ./tools/src/goversion))
-  $(if $(filter v2.%,$(VERSION)),\
-    ,$(error VERSION variable is invalid: It must be a v2.* string, but is '$(VERSION)'))
+  $(if $(filter v3.%,$(VERSION)),\
+    ,$(error VERSION variable is invalid: It must be a v3.* string, but is '$(VERSION)'))
   $(if $(findstring +,$(VERSION)),\
     $(error VERSION variable is invalid: It must not contain + characters, but is '$(VERSION)'),)
   export VERSION
 
   CHART_VERSION := $(or $(CHART_VERSION),$(shell go run ./tools/src/goversion --dir-prefix=chart))
-  $(if $(filter v7.%,$(CHART_VERSION)),\
-    ,$(error CHART_VERSION variable is invalid: It must be a v7.* string, but is '$(CHART_VERSION)'))
+  $(if $(filter v8.%,$(CHART_VERSION)),\
+    ,$(error CHART_VERSION variable is invalid: It must be a v8.* string, but is '$(CHART_VERSION)'))
   export CHART_VERSION
 
   $(info [make] VERSION=$(VERSION))

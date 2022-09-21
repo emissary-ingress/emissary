@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 // A K8sStore is implement just enough data structures to mock the watch aspect of kubernetes for
@@ -254,7 +254,7 @@ func canonGVK(rawString string) (canonKind string, canonGroupVersion string, err
 	case "module", "modules":
 		return "Module", "getambassador.io/v3alpha1", nil
 	case "ratelimitservice", "ratelimitservices":
-		return "RateLimitServices", "getambassador.io/v3alpha1", nil
+		return "RateLimitService", "getambassador.io/v3alpha1", nil
 	case "tcpmapping", "tcpmappings":
 		return "TCPMapping", "getambassador.io/v3alpha1", nil
 	case "tlscontext", "tlscontexts":

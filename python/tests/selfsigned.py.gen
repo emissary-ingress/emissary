@@ -25,6 +25,7 @@ cat <<_EOF_
 from base64 import b64encode
 from typing import Dict, List, NamedTuple, Optional
 
+
 class Cert(NamedTuple):
     names: List[str]
     pubcert: str
@@ -32,28 +33,33 @@ class Cert(NamedTuple):
 
     @property
     def k8s_crt(self) -> str:
-        return b64encode((self.pubcert+"\n").encode('utf-8')).decode('utf-8')
+        return b64encode((self.pubcert + "\n").encode("utf-8")).decode("utf-8")
 
     @property
     def k8s_key(self) -> str:
-        return b64encode((self.privkey+"\n").encode('utf-8')).decode('utf-8')
+        return b64encode((self.privkey + "\n").encode("utf-8")).decode("utf-8")
+
 
 def strip(s: str) -> str:
     return "\n".join(l.strip() for l in s.split("\n") if l.strip())
+
 
 _TLSCerts: List[Cert] = [
     Cert(
         names=["master.datawire.io"],
         # Note: This cert is also used to sign several other certs in
         # this file (as the issuer).
-        pubcert=strip("""
+        pubcert=strip(
+            """
             $(master.datawire.io cert | indent)
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             $(master.datawire.io key | indent)
-            """)
+            """
+        ),
     ),
-
     Cert(
         names=["presto.example.com"],
         # Note:
@@ -61,95 +67,120 @@ _TLSCerts: List[Cert] = [
         #     (rather than being self-signed).
         #  2. This cert is a client cert (rather than being a server
         #     cert).
-        pubcert=strip("""
+        pubcert=strip(
+            """
             $(testcert-gen ${cert} --is-client=true --is-server=false --hosts=presto.example.com --signed-by=<(master.datawire.io cert),<(master.datawire.io key) | indent)
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             $(testcert-gen ${key} --is-client=true --is-server=false --hosts=presto.example.com --signed-by=<(master.datawire.io cert),<(master.datawire.io key) | indent)
-            """)
+            """
+        ),
     ),
-
     Cert(
         names=["ratelimit.datawire.io"],
-        pubcert=strip("""
+        pubcert=strip(
+            """
             $(testcert-gen ${cert} --hosts=ratelimit.datawire.io | indent)
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             $(testcert-gen ${key} --hosts=ratelimit.datawire.io | indent)
-            """)
+            """
+        ),
     ),
-
     Cert(
         names=["ambassador.example.com"],
         # Note: This cert is signed by the "master.datawire.io" cert
         # (rather than being self-signed).
-        pubcert=strip("""
+        pubcert=strip(
+            """
             $(testcert-gen ${cert} --hosts=ambassador.example.com --signed-by=<(master.datawire.io cert),<(master.datawire.io key) | indent)
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             $(testcert-gen ${key} --hosts=ambassador.example.com --signed-by=<(master.datawire.io cert),<(master.datawire.io key) | indent)
-            """)
+            """
+        ),
     ),
-
     Cert(
         names=["tls-context-host-2"],
-        pubcert=strip("""
+        pubcert=strip(
+            """
             $(testcert-gen ${cert} --hosts=tls-context-host-2 | indent)
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             $(testcert-gen ${key} --hosts=tls-context-host-2 | indent)
-            """)
+            """
+        ),
     ),
-
     Cert(
         names=["tls-context-host-1"],
-        pubcert=strip("""
+        pubcert=strip(
+            """
             $(testcert-gen ${cert} --hosts=tls-context-host-1 | indent)
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             $(testcert-gen ${key} --hosts=tls-context-host-1 | indent)
-            """)
+            """
+        ),
     ),
-
     Cert(
         names=["localhost"],
-        pubcert=strip("""
+        pubcert=strip(
+            """
             $(testcert-gen ${cert} --hosts=localhost | indent)
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             $(testcert-gen ${key} --hosts=localhost | indent)
-            """)
+            """
+        ),
     ),
-
     Cert(
         names=[
             "a.domain.com",
             "b.domain.com",
             "*.domain.com",
-            #"localhost",  # don't clash with the other "localhost" cert
+            # "localhost",  # don't clash with the other "localhost" cert
             "127.0.0.1",
-            "0:0:0:0:0:0:0:1"
+            "0:0:0:0:0:0:0:1",
         ],
         # Note: This cert is signed by a cert not present in this file
         # (rather than being self-signed).
-        pubcert=strip("""
+        pubcert=strip(
+            """
             $(testcert-gen ${cert} --hosts='a.domain.com,b.domain.com,*.domain.com,localhost,127.0.0.1,::1' | indent)
-            """),
-        privkey=strip("""
+            """
+        ),
+        privkey=strip(
+            """
             $(testcert-gen ${key} --hosts='a.domain.com,b.domain.com,*.domain.com,localhost,127.0.0.1,::1' | indent)
-            """)
-       ),
-
+            """
+        ),
+    ),
     Cert(
         names=["acook"],
-        pubcert=strip("""
+        pubcert=strip(
+            """
             $(testcert-gen ${cert} --hosts=acook | indent)
-            """),
-        privkey=strip("""
-            $(testcert-gen ${key} --hosts=acook | indent)
-            """)
+            """
         ),
+        privkey=strip(
+            """
+            $(testcert-gen ${key} --hosts=acook | indent)
+            """
+        ),
+    ),
 ]
 
-TLSCerts: Dict[str, Cert] = { k: v for v in _TLSCerts for k in v.names }
+TLSCerts: Dict[str, Cert] = {k: v for v in _TLSCerts for k in v.names}
 _EOF_

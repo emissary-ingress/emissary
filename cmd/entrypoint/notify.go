@@ -10,8 +10,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/datawire/ambassador/v2/pkg/acp"
-	"github.com/datawire/ambassador/v2/pkg/debug"
+	"github.com/emissary-ingress/emissary/v3/pkg/acp"
+	"github.com/emissary-ingress/emissary/v3/pkg/debug"
 
 	"github.com/datawire/dlib/dlog"
 )

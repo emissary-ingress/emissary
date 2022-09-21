@@ -172,7 +172,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -221,6 +221,7 @@ spec:
                 - grpc
                 type: string
               protocol_version:
+                description: ProtocolVersion is the envoy api transport protocol version
                 enum:
                 - v2
                 - v3
@@ -390,7 +391,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -447,14 +448,14 @@ spec:
     schema:
       openAPIV3Schema:
         description: "DevPortal is the Schema for the DevPortals API \n DevPortal
-          resources specify the `what` and `how` is shown in a DevPortal: \n * `what`
-          is in a DevPortal can be controlled with   - a `selector`, that can be used
-          for filtering `Mappings`.   - a `docs` listing of (services, url) * `how`
-          is a pointer to some `contents` (a checkout of a Git repository   with go-templates/markdown/css).
-          \n Multiple `DevPortal`s can exist in the cluster, and the Dev Portal server
-          will show them at different endpoints. A `DevPortal` resource with a special
-          name, `ambassador`, will be used for configuring the default Dev Portal
-          (served at `/docs/` by default)."
+          resources specify the `what` and `how` is shown in a DevPortal: \n  1. `what`
+          is in a DevPortal can be controlled with \n     - a `selector`, that can
+          be used for filtering `Mappings`. \n     - a `docs` listing of (services,
+          url) \n  2. `how` is a pointer to some `contents` (a checkout of a Git repository
+          \    with go-templates/markdown/css). \n Multiple `DevPortal`s can exist
+          in the cluster, and the Dev Portal server will show them at different endpoints.
+          A `DevPortal` resource with a special name, `ambassador`, will be used for
+          configuring the default Dev Portal (served at `/docs/` by default)."
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -560,14 +561,14 @@ spec:
     schema:
       openAPIV3Schema:
         description: "DevPortal is the Schema for the DevPortals API \n DevPortal
-          resources specify the `what` and `how` is shown in a DevPortal: \n * `what`
-          is in a DevPortal can be controlled with   - a `selector`, that can be used
-          for filtering `Mappings`.   - a `docs` listing of (services, url) * `how`
-          is a pointer to some `contents` (a checkout of a Git repository   with go-templates/markdown/css).
-          \n Multiple `DevPortal`s can exist in the cluster, and the Dev Portal server
-          will show them at different endpoints. A `DevPortal` resource with a special
-          name, `ambassador`, will be used for configuring the default Dev Portal
-          (served at `/docs/` by default)."
+          resources specify the `what` and `how` is shown in a DevPortal: \n  1. `what`
+          is in a DevPortal can be controlled with \n     - a `selector`, that can
+          be used for filtering `Mappings`. \n     - a `docs` listing of (services,
+          url) \n  2. `how` is a pointer to some `contents` (a checkout of a Git repository
+          \    with go-templates/markdown/css). \n Multiple `DevPortal`s can exist
+          in the cluster, and the Dev Portal server will show them at different endpoints.
+          A `DevPortal` resource with a special name, `ambassador`, will be used for
+          configuring the default Dev Portal (served at `/docs/` by default)."
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -587,7 +588,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1407,7 +1408,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1512,7 +1513,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1597,7 +1598,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1845,7 +1846,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1885,6 +1886,7 @@ spec:
                   one valid value, we should just remove the thing.'
                 type: boolean
               protocol_version:
+                description: ProtocolVersion is the envoy api transport protocol version
                 enum:
                 - v2
                 - v3
@@ -2401,7 +2403,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -3007,19 +3009,23 @@ spec:
           metadata:
             type: object
           spec:
+            description: 'TODO(lukeshu): In v3alpha2, get rid of unnecessary nesting
+              and move `ModuleSpec.config.*` to `ModuleSpec.*`.'
             properties:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
                   type: string
                 type: array
               config:
-                description: UntypedDict is relatively opaque as a Go type, but it
-                  preserves its contents in a roundtrippable way.
+                description: "TODO(lukeshu): In v3alpha2, change the default from
+                  `diagnostics.enabled=true` to `diagnostics.enabled=false`.  This
+                  needs conversion support in apiext.  See the related comment in
+                  irambassador.py. \n TODO(lukeshu): Structurally type ModuleSpec.Config."
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
             required:
@@ -3092,6 +3098,10 @@ spec:
             properties:
               domain:
                 type: string
+              failure_mode_deny:
+                description: FailureModeDeny when set to true, envoy will deny traffic
+                  if it is unable to communicate with the rate limit service.
+                type: boolean
               protocol_version:
                 enum:
                 - v2
@@ -3137,7 +3147,12 @@ spec:
                 type: array
               domain:
                 type: string
+              failure_mode_deny:
+                description: FailureModeDeny when set to true, envoy will deny traffic
+                  if it is unable to communicate with the rate limit service.
+                type: boolean
               protocol_version:
+                description: ProtocolVersion is the envoy api transport protocol version
                 enum:
                 - v2
                 - v3
@@ -3338,7 +3353,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -3576,7 +3591,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -3746,6 +3761,51 @@ spec:
                 items:
                   type: string
                 type: array
+              v3CustomTags:
+                items:
+                  description: TracingCustomTag provides a data structure for capturing
+                    envoy's `type.tracing.v3.CustomTag`
+                  properties:
+                    environment:
+                      description: Environment explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal, Environment or Header must
+                        be supplied.
+                      properties:
+                        default_value:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    literal:
+                      description: Literal explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal, Environment or Header must
+                        be supplied.
+                      properties:
+                        value:
+                          type: string
+                      required:
+                      - value
+                      type: object
+                    request_header:
+                      description: Header explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal, Environment or Header must
+                        be supplied.
+                      properties:
+                        default_value:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    tag:
+                      type: string
+                  required:
+                  - tag
+                  type: object
+                type: array
               v3StatsName:
                 type: string
             required:
@@ -3779,7 +3839,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -3817,6 +3877,51 @@ spec:
                   trace_id_128bit:
                     type: boolean
                 type: object
+              custom_tags:
+                items:
+                  description: TracingCustomTag provides a data structure for capturing
+                    envoy's `type.tracing.v3.CustomTag`
+                  properties:
+                    environment:
+                      description: Environment explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal, Environment or Header must
+                        be supplied.
+                      properties:
+                        default_value:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    literal:
+                      description: Literal explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal, Environment or Header must
+                        be supplied.
+                      properties:
+                        value:
+                          type: string
+                      required:
+                      - value
+                      type: object
+                    request_header:
+                      description: Header explicitly specifies the protocol stack
+                        to set up. Exactly one of Literal, Environment or Header must
+                        be supplied.
+                      properties:
+                        default_value:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    tag:
+                      type: string
+                  required:
+                  - tag
+                  type: object
+                type: array
               driver:
                 enum:
                 - lightstep
@@ -3837,6 +3942,9 @@ spec:
               stats_name:
                 type: string
               tag_headers:
+                description: 'Deprecated: tag_headers is deprecated. Use custom_tags
+                  instead. `tag_headers: ["header"]` can be defined as `custom_tags:
+                  [{"request_header": {"name": "header"}}]`.'
                 items:
                   type: string
                 type: array

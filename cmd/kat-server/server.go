@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	srv "github.com/datawire/ambassador/v2/cmd/kat-server/services"
 	"github.com/datawire/dlib/dlog"
+	srv "github.com/emissary-ingress/emissary/v3/cmd/kat-server/services"
 )
 
 const (
@@ -49,7 +49,7 @@ func main() {
 	case "grpc_auth":
 		protocolVersion := os.Getenv("GRPC_AUTH_PROTOCOL_VERSION")
 		if protocolVersion == "v3" {
-			s = &srv.GRPCAUTHV3{
+			s = &srv.GRPCAuthV3{
 				Port:            Port,
 				Backend:         os.Getenv("BACKEND"),
 				SecurePort:      SSLPort,
@@ -59,7 +59,7 @@ func main() {
 				ProtocolVersion: protocolVersion,
 			}
 		} else {
-			s = &srv.GRPCAUTH{
+			s = &srv.GRPCAuthV2{
 				Port:            Port,
 				Backend:         os.Getenv("BACKEND"),
 				SecurePort:      SSLPort,
@@ -86,7 +86,7 @@ func main() {
 			}
 
 		} else {
-			s = &srv.GRPCRLS{
+			s = &srv.GRPCRLSV2{
 				Port:            Port,
 				Backend:         os.Getenv("BACKEND"),
 				SecurePort:      SSLPort,

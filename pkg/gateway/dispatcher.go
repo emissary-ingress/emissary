@@ -8,18 +8,22 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/types/known/durationpb"
 
-	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	apiv2_core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	apiv2_endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/endpoint"
-	apiv2_route "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/route"
+	// Envoy API v3
 
-	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
-	ecp_v2_resource "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v2"
-	ecp_wellknown "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
+	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
+	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
+	v3route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	// Envoy control plane API's
+	ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	ecp_v3_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+	ecp_v3_resource "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
+	ecp_wellknown "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
+
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 // The Dispatcher struct allows transforms to be registered for different kinds of kubernetes
@@ -38,18 +42,17 @@ import (
 // Not all the edgestack resources are defined as conveniently, so the Dispatcher design is expected
 // to be extended in two ways to handle resources with more complex interdependencies:
 //
-//   1. Grouping -- This feature would cover resources that need to be processed as a group,
-//      e.g. Mappings that get grouped together based on prefix. Instead of dispatching at the
-//      granularity of a single resource, the dispatcher will track groups of resources that need to
-//      be processed together via a logical "hash" function provided at registration. Whenever any
-//      item in a given bucket changes, the dispatcher will transform the entire bucket.
+//  1. Grouping -- This feature would cover resources that need to be processed as a group,
+//     e.g. Mappings that get grouped together based on prefix. Instead of dispatching at the
+//     granularity of a single resource, the dispatcher will track groups of resources that need to
+//     be processed together via a logical "hash" function provided at registration. Whenever any
+//     item in a given bucket changes, the dispatcher will transform the entire bucket.
 //
-//   2. Dependencies -- This feature would cover resources that need to lookup the contents of other
-//      resources in order to properly implement their transform. This would be done by passing the
-//      transform function a Query API. Any resources queried by the transform would be
-//      automatically tracked as a dependency of that resource. The dependencies would then be used
-//      to perform invalidation whenever a resource is Upsert()ed.
-//
+//  2. Dependencies -- This feature would cover resources that need to lookup the contents of other
+//     resources in order to properly implement their transform. This would be done by passing the
+//     transform function a Query API. Any resources queried by the transform would be
+//     automatically tracked as a dependency of that resource. The dependencies would then be used
+//     to perform invalidation whenever a resource is Upsert()ed.
 type Dispatcher struct {
 	// Map from kind to transform function.
 	transforms map[string]func(kates.Object) (*CompiledConfig, error)
@@ -57,7 +60,7 @@ type Dispatcher struct {
 
 	version         string
 	changeCount     int
-	snapshot        *ecp_v2_cache.Snapshot
+	snapshot        *ecp_v3_cache.Snapshot
 	endpointWatches map[string]bool
 }
 
@@ -192,19 +195,25 @@ func (d *Dispatcher) GetErrors() []*CompiledItem {
 	return result
 }
 
-// GetSnapshot returns a version and a snapshot.
-func (d *Dispatcher) GetSnapshot(ctx context.Context) (string, *ecp_v2_cache.Snapshot) {
+// GetSnapshot returns a version and a snapshot if the snapshot is consistent
+// Important: a nil snapshot can be returned so you must check to to make sure it exists
+func (d *Dispatcher) GetSnapshot(ctx context.Context) (string, *ecp_v3_cache.Snapshot) {
 	if d.snapshot == nil {
 		d.buildSnapshot(ctx)
 	}
 	return d.version, d.snapshot
 }
 
-// GetListener returns a *apiv2.Listener with the specified name or nil if none exists.
-func (d *Dispatcher) GetListener(ctx context.Context, name string) *apiv2.Listener {
-	_, snap := d.GetSnapshot(ctx)
-	for _, rsrc := range snap.Resources[ecp_cache_types.Listener].Items {
-		l := rsrc.Resource.(*apiv2.Listener)
+// GetListener returns a *v3listener.Listener with the specified name or nil if none exists.
+func (d *Dispatcher) GetListener(ctx context.Context, name string) *v3listener.Listener {
+	_, snapshot := d.GetSnapshot(ctx)
+	// ensure that snapshot is not nil before trying to use
+	if snapshot == nil {
+		return nil
+	}
+
+	for _, rsrc := range snapshot.Resources[ecp_cache_types.Listener].Items {
+		l := rsrc.Resource.(*v3listener.Listener)
 		if l.Name == name {
 			return l
 		}
@@ -215,10 +224,15 @@ func (d *Dispatcher) GetListener(ctx context.Context, name string) *apiv2.Listen
 
 // GetRouteConfiguration returns a *apiv2.RouteConfiguration with the specified name or nil if none
 // exists.
-func (d *Dispatcher) GetRouteConfiguration(ctx context.Context, name string) *apiv2.RouteConfiguration {
-	_, snap := d.GetSnapshot(ctx)
-	for _, rsrc := range snap.Resources[ecp_cache_types.Route].Items {
-		r := rsrc.Resource.(*apiv2.RouteConfiguration)
+func (d *Dispatcher) GetRouteConfiguration(ctx context.Context, name string) *v3route.RouteConfiguration {
+	_, snapshot := d.GetSnapshot(ctx)
+	// ensure snapshot is valid before attempting to access members to prevent panic
+	if snapshot == nil {
+		return nil
+	}
+
+	for _, rsrc := range snapshot.Resources[ecp_cache_types.Route].Items {
+		r := rsrc.Resource.(*v3route.RouteConfiguration)
 		if r.Name == name {
 			return r
 		}
@@ -251,8 +265,8 @@ func (d *Dispatcher) buildClusterMap() (map[string]string, map[string]bool) {
 	return refs, watches
 }
 
-func (d *Dispatcher) buildEndpointMap() map[string]*apiv2.ClusterLoadAssignment {
-	endpoints := map[string]*apiv2.ClusterLoadAssignment{}
+func (d *Dispatcher) buildEndpointMap() map[string]*v3endpoint.ClusterLoadAssignment {
+	endpoints := map[string]*v3endpoint.ClusterLoadAssignment{}
 	for _, config := range d.configs {
 		for _, la := range config.LoadAssignments {
 			endpoints[la.LoadAssignment.ClusterName] = la.LoadAssignment
@@ -276,13 +290,13 @@ func (d *Dispatcher) buildRouteConfigurations() ([]ecp_cache_types.Resource, []e
 	return listeners, routes
 }
 
-func (d *Dispatcher) buildRouteConfiguration(lst *CompiledListener) *apiv2.RouteConfiguration {
+func (d *Dispatcher) buildRouteConfiguration(lst *CompiledListener) *v3route.RouteConfiguration {
 	rdsName, isRds := getRdsName(lst.Listener)
 	if !isRds {
 		return nil
 	}
 
-	var routes []*apiv2_route.Route
+	var routes []*v3route.Route
 	for _, config := range d.configs {
 		for _, route := range config.Routes {
 			if lst.Predicate(route) {
@@ -291,9 +305,9 @@ func (d *Dispatcher) buildRouteConfiguration(lst *CompiledListener) *apiv2.Route
 		}
 	}
 
-	return &apiv2.RouteConfiguration{
+	return &v3route.RouteConfiguration{
 		Name: rdsName,
-		VirtualHosts: []*apiv2_route.VirtualHost{
+		VirtualHosts: []*v3route.VirtualHost{
 			{
 				Name:    rdsName,
 				Domains: lst.Domains,
@@ -305,14 +319,14 @@ func (d *Dispatcher) buildRouteConfiguration(lst *CompiledListener) *apiv2.Route
 
 // getRdsName returns the RDS route configuration name configured for the listener and a flag
 // indicating whether the listener uses Rds.
-func getRdsName(l *apiv2.Listener) (string, bool) {
+func getRdsName(l *v3listener.Listener) (string, bool) {
 	for _, fc := range l.FilterChains {
 		for _, f := range fc.Filters {
 			if f.Name != ecp_wellknown.HTTPConnectionManager {
 				continue
 			}
 
-			hcm := ecp_v2_resource.GetHTTPConnectionManager(f)
+			hcm := ecp_v3_resource.GetHTTPConnectionManager(f)
 			if hcm != nil {
 				rds := hcm.GetRds()
 				if rds != nil {
@@ -343,40 +357,43 @@ func (d *Dispatcher) buildSnapshot(ctx context.Context) {
 		if ok {
 			endpoints = append(endpoints, la)
 		} else {
-			endpoints = append(endpoints, &apiv2.ClusterLoadAssignment{
+			endpoints = append(endpoints, &v3endpoint.ClusterLoadAssignment{
 				ClusterName: key,
-				Endpoints:   []*apiv2_endpoint.LocalityLbEndpoints{},
+				Endpoints:   []*v3endpoint.LocalityLbEndpoints{},
 			})
 		}
 	}
 
 	listeners, routes := d.buildRouteConfigurations()
 
-	snapshot := ecp_v2_cache.NewSnapshot(
-		d.version,
-		endpoints,
-		clusters,
-		routes,
-		listeners,
-		nil, // runtimes
-		nil, // secrets
-	)
+	snapshotResources := map[ecp_v3_resource.Type][]ecp_cache_types.Resource{
+		ecp_v3_resource.EndpointType: endpoints,
+		ecp_v3_resource.ClusterType:  clusters,
+		ecp_v3_resource.RouteType:    routes,
+		ecp_v3_resource.ListenerType: listeners,
+	}
+
+	snapshot, err := ecp_v3_cache.NewSnapshot(d.version, snapshotResources)
+	if err != nil {
+		dlog.Errorf(ctx, "Dispatcher Snapshot Error: %v", err)
+	}
+
 	if err := snapshot.Consistent(); err != nil {
 		bs, _ := json.MarshalIndent(snapshot, "", "  ")
 		dlog.Errorf(ctx, "Dispatcher Snapshot inconsistency: %v: %s", err, bs)
 	} else {
-		d.snapshot = &snapshot
+		d.snapshot = snapshot
 		d.endpointWatches = endpointWatches
 	}
 }
 
-func makeCluster(name, path string) *apiv2.Cluster {
-	return &apiv2.Cluster{
+func makeCluster(name, path string) *v3cluster.Cluster {
+	return &v3cluster.Cluster{
 		Name:                 name,
 		ConnectTimeout:       &durationpb.Duration{Seconds: 10},
-		ClusterDiscoveryType: &apiv2.Cluster_Type{Type: apiv2.Cluster_EDS},
-		EdsClusterConfig: &apiv2.Cluster_EdsClusterConfig{
-			EdsConfig:   &apiv2_core.ConfigSource{ConfigSourceSpecifier: &apiv2_core.ConfigSource_Ads{}},
+		ClusterDiscoveryType: &v3cluster.Cluster_Type{Type: v3cluster.Cluster_EDS},
+		EdsClusterConfig: &v3cluster.Cluster_EdsClusterConfig{
+			EdsConfig:   &v3core.ConfigSource{ConfigSourceSpecifier: &v3core.ConfigSource_Ads{}},
 			ServiceName: path,
 		},
 	}

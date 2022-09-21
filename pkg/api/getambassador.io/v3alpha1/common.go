@@ -115,8 +115,8 @@ type ErrorResponseOverride struct {
 // AmbassadorID declares which Ambassador instances should pay
 // attention to this resource. If no value is provided, the default is:
 //
-//    ambassador_id:
-//    - "default"
+//	ambassador_id:
+//	- "default"
 //
 // TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to
 // `ambassador_ids` (plural).
@@ -128,6 +128,11 @@ func (aid AmbassadorID) Matches(envVar string) bool {
 	}
 	for _, item := range aid {
 		if item == envVar {
+			return true
+		}
+		if item == "_automatic_" {
+			// We always pay attention to the "_automatic_" ID -- it gives us a to
+			// easily always include certain configuration resources for Edge Stack.
 			return true
 		}
 	}

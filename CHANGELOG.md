@@ -32,6 +32,19 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
 
 ## UPCOMING BREAKING CHANGES
 
+### Emissary 3.2.0 and 2.5.0
+
+ - Changes to label matching will change how `Hosts` are associated with `Mappings`. There
+   was a bug with label selectors that was causing `Hosts` to be incorrectly being associated with
+   more `Mappings` than intended. If any single label from the selector was matched then the `Host`
+   would be associated with the `Mapping`. Now it has been updated to correctly only associate a
+   `Host` with a `Mapping` if **all** labels required by the selector are present. This brings the
+   `mappingSelector` field in-line with how label selectors are used in Kubernetes. To avoid
+   unexpected behaviour after the upgrade, add all labels that Hosts have in their `mappingSelector`
+   to `Mappings` you want to associate with the `Host`. You can opt-out of the new behaviour by
+   setting the environment variable `DISABLE_STRICT_LABEL_SELECTORS` to `"true"`
+   (default: `"false"`).
+
 ### Emissary 3.0.0
 
  - **No `protocol_version: v2`**: Support for specifying `protocol_version: v2` in `AuthService`,
@@ -44,13 +57,6 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
    Users who use these resource types but don't explicitly say `protocol_version: v3` will need to
    adjust their service implementations to understand the v3 protocols, and then update Emissary
    resources to say `protocol_version` before upgrading to Emissary-ingress 3.0.0.
-
- - **No `regex_type: unsafe`**: The `regex_type` field will be removed from the `ambassador`
-   `Module`, meaning that it will not be possible to instruct Envoy to use the [ECMAScript Regex][]
-   engine rather than the default [RE2][] engine.
-
-   Users who rely on the specific ECMAScript Regex syntax will need to rewrite their regular
-   expressions with RE2 syntax before upgrading to Emissary-ingress 3.0.0.
 
  - **No Zipkin `collector_endpoint_version: HTTP_JSON_V1`**: Support for specifying
    `collector_endpoint_version: HTTP_JSON_V1` for a Zipkin `TracingService` will be removed.  The
@@ -72,15 +78,234 @@ With the removal of `regex_type: unsafe` and `collector_endpoint_version: HTTP_J
 be no more user-visible effects of the `AMBASSADOR_ENVOY_API_VERSION` environment variable, and so
 it will be removed; but as it won't be user-visible this isn't considered a breaking change.
 
-[ECMASCript Regex]: https://en.cppreference.com/w/cpp/regex/ecmascript
-[RE2]: https://github.com/google/re2
-
 ### Emissary 3.0.0 or later
 
  - In a future version of Emissary-ingress, **no sooner than Emissary-ingress v3.0.0**, TLS secrets
    in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 ## RELEASE NOTES
+
+## [3.2.0] TBD
+[3.2.0]: https://github.com/emissary-ingress/emissary/compare/v3.1.0...v3.2.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: The envoy version included in Emissary-ingress has been upgraded from 1.22 to the latest
+  patch release of 1.23. This provides Emissary-ingress with the latest security patches,
+  performances enhancments, and features offered by the envoy proxy.
+
+- Change: Changes to label matching will change how `Hosts` are associated with `Mappings`. There
+  was a bug with label selectors that was causing `Hosts` to be incorrectly being associated with
+  more `Mappings` than intended. If any single label from the selector was matched then the `Host`
+  would be associated with the `Mapping`. Now it has been updated to correctly only associate a
+  `Host` with a `Mapping` if **all** labels required by the selector are present. This brings the
+  `mappingSelector` field in-line with how label selectors are used in Kubernetes. To avoid
+  unexpected behaviour after the upgrade, add all labels that Hosts have in their `mappingSelector`
+  to `Mappings` you want to associate with the `Host`. You can opt-out of the new behaviour by
+  setting the environment variable `DISABLE_STRICT_LABEL_SELECTORS` to `"true"` (default:
+  `"false"`). (Thanks to <a href="https://github.com/f-herceg">Filip Herceg</a> and <a
+  href="https://github.com/dynajoe">Joe Andaverde</a>!).
+
+- Feature: Previously the `Host` resource could only use secrets that are in the namespace as the
+  Host. The `tlsSecret` field in the Host has a new subfield `namespace` that will allow the use of
+  secrets from different namespaces.
+
+- Change: Set `AMBASSADOR_EDS_BYPASS` to `true` to bypass EDS handling of endpoints and have
+  endpoints be inserted to clusters manually. This can help resolve with `503 UH` caused by
+  certification rotation relating to a delay between EDS + CDS. The default is `false`.
+
+- Bugfix: Distinct services with names that are the same in the first forty characters will no
+  longer be incorrectly mapped to the same cluster. ([#4354])
+
+- Feature: By default, when Envoy is unable to communicate with the configured RateLimitService then
+  it will allow traffic through. The `RateLimitService` resource now exposes the <a
+  href="https://www.envoyproxy.io/docs/envoy/v1.23.0/configuration/http/http_filters/rate_limit_filter">failure_mode_deny</a>
+  option. Set `failure_mode_deny: true`, then Envoy will deny traffic when it is unable to
+  communicate to the RateLimitService returning a 500.
+
+- Bugfix: Previously, setting the `stats_name` for the `TracingService`, `RateLimitService` or the
+  `AuthService` would have no affect because it was not being properly passed to the Envoy cluster
+  config. This has been fixed and the `alt_stats_name` field in the cluster config is now set
+  correctly. (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
+
+- Feature: The `AMBASSADOR_RECONFIG_MAX_DELAY` env var can be optionally set to batch changes for
+  the specified non-negative window period in seconds before doing an Envoy reconfiguration. Default
+  is "1" if not set.
+
+- Bugfix: If a `Host` or `TLSContext` contained a hostname with a `:` then when using the
+  diagnostics endpoints `ambassador/v0/diagd` then an error would be thrown due to the parsing logic
+  not being able to handle the extra colon. This has been fixed and Emissary-ingress will not throw
+  an error when parsing envoy metrics for the diagnostics user interface.
+
+- Feature: It is now possible to set `custom_tags` in the `TracingService`. Trace tags can be set
+  based on literal values, environment variables, or request headers. (Thanks to <a
+  href="https://github.com/psalaberria002">Paul</a>!) ([#4181])
+
+- Bugfix: Emissary-ingress 2.0.0 introduced a bug where a `TCPMapping` that uses SNI, instead of
+  using the hostname glob in the `TCPMapping`, uses the hostname glob in the `Host` that the TLS
+  termination configuration comes from.
+
+- Bugfix: Emissary-ingress 2.0.0 introduced a bug where a `TCPMapping` that terminates TLS must have
+  a corresponding `Host` that it can take the TLS configuration from. This was semi-intentional, but
+  didn't make much sense.  You can now use a `TLSContext` without a `Host`as in Emissary-ingress 1.y
+  releases, or a `Host` with or without a `TLSContext` as in prior 2.y releases.
+
+- Bugfix: Prior releases of Emissary-ingress had the arbitrary limitation that a `TCPMapping` cannot
+  be used on the same port that HTTP is served on, even if TLS+SNI would make this possible. 
+  Emissary-ingress now allows `TCPMappings` to be used on the same `Listener` port as HTTP `Hosts`,
+  as long as that `Listener` terminates TLS.
+
+[#4354]: https://github.com/emissary-ingress/emissary/issues/4354
+[#4181]: https://github.com/emissary-ingress/emissary/pull/4181
+
+## [3.1.1] TBD
+[3.1.1]: https://github.com/emissary-ingress/emissary/compare/v3.1.0...v3.1.1
+
+### Emissary-ingress and Ambassador Edge Stack
+
+## [3.0.1] TBD
+[3.0.1]: https://github.com/emissary-ingress/emissary/compare/v3.0.0...v3.0.1
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming
+  from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
+  ensure that all the nodes composing the emissary ingress cluster are reporting properly.
+
+- Security: Updated Golang to 1.17.12 to address the CVEs: CVE-2022-23806, CVE-2022-28327,
+  CVE-2022-24675, CVE-2022-24921, CVE-2022-23772.
+
+- Security: Updated Curl to 7.80.0-r2 to address the CVEs: CVE-2022-32207, CVE-2022-27782,
+  CVE-2022-27781, CVE-2022-27780.
+
+- Security: Updated openSSL-dev to 1.1.1q-r0 to address CVE-2022-2097.
+
+- Security: Updated ncurses to 1.1.1q-r0 to address CVE-2022-29458
+
+## [3.1.0] August 01, 2022
+[3.1.0]: https://github.com/emissary-ingress/emissary/compare/v3.0.0...v3.1.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Feature: The agent is now able to parse api contracts using swagger 2, and to convert them to
+  OpenAPI 3, making them available for use in the dev portal.
+
+- Feature: Adds a new command to the agent directive service to manage secrets. This allows a third
+  party product to manage CRDs that depend upon a secret.
+
+- Feature: Add additional pprof endpoints to allow for profiling Emissary-ingress:
+    - CPU profiles
+  (/debug/pprof/profile)
+    - tracing (/debug/pprof/trace)
+    - command line running
+  (/debug/pprof/cmdline)
+    - program counters (/debug/pprof/symbol)
+
+- Change: In the standard published `.yaml` files, the `Module` resource enables serving remote
+  client requests to the `:8877/ambassador/v0/diag/` endpoint. The associated Helm chart release
+  also now enables it by default.
+
+- Bugfix: A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming
+  from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
+  ensure that all the nodes composing the emissary ingress cluster are reporting properly.
+
+- Security: Updated Golang to 1.17.12 to address the CVEs: CVE-2022-23806, CVE-2022-28327,
+  CVE-2022-24675, CVE-2022-24921, CVE-2022-23772.
+
+- Security: Updated Curl to 7.80.0-r2 to address the CVEs: CVE-2022-32207, CVE-2022-27782,
+  CVE-2022-27781, CVE-2022-27780.
+
+- Security: Updated openSSL-dev to 1.1.1q-r0 to address CVE-2022-2097.
+
+- Security: Updated ncurses to 1.1.1q-r0 to address CVE-2022-29458
+
+## [3.0.0] June 27, 2022
+[3.0.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v3.0.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: The envoy version included in Emissary-ingress has been upgraded from 1.17 to the latest
+  patch release of 1.22. This provides Emissary-ingress with the latest security patches,
+  performances enhancments, and features offered by the envoy proxy. One notable change that will
+  effect users is the removal of support for V2 tranport protocol. See below for more information.
+
+- Change: Emissary-ingress can no longer be made to configure Envoy using the v2 xDS configuration
+  API; it now always uses the v3 xDS API to configure Envoy.  This change should be mostly invisible
+  to users, with one notable exception: It removes support for `regex_type: unsafe`.
+  The
+  `regex_type` field will is removed from the `ambassador` `Module`, meaning that it is not be
+  possible to instruct Envoy to use the <a
+  href="https://en.cppreference.com/w/cpp/regex/ecmascript">ECMAScript Regex</a> engine rather than
+  the default <a href="https://github.com/google/re2">RE2</a> engine.
+  Users who rely on the specific
+  ECMAScript Regex syntax will need to rewrite their regular expressions with RE2 syntax before
+  upgrading to Emissary-ingress 3.0.0.
+  As the xDS version is no longer configurable and the range of
+  supported Zipkin protocols is reduced (see below), the AMBASSADOR_ENVOY_API_VERSION environment
+  variable has been removed.
+
+- Change: With the ugprade to Envoy 1.22, Emissary-ingress no longer supports the V2 transport
+  protocol. The `AuthService`, `LogService` and the `RateLimitService` will only support the v3
+  protocol_version. If protocol_version is not specified, the default value of `v2` will cause an
+  error to be posted. Therefore, you will need to set it to `protocol_version: "v3"`. If upgrading
+  from a previous version you will want to set it to "v3" and ensure it is working before upgrading
+  to Emissary-ingress 3.Y.
+
+- Change: With the upgrade to Envoy 1.22, the `zipkin` driver for the `TraceService` no longer
+  supports setting the `collector_endpoint_version: HTTP_JSON_V1`. This was removed in Envoy 1.20 -
+  <a href="https://github.com/envoyproxy/envoy/commit/db74e313b3651588e59c671af45077714ac32cef" />.
+  The new default will be `collector_endpoint_version: HTTP_JSON`, regardless of the
+  `AMBASSADOR_ENVOY_API_VERSION` environment variable.
+
+- Change: In the standard published `.yaml` files, now included is a `Module` resource that disables
+  the `/ambassador/v0/` → `127.0.0.1:8878` synthetic mapping.  We have long recommended to turn
+  this off for production use; it is now off in the standard YAML.  The associated Helm chart
+  release also now disables it by default.  A later apiVersion (`getambassador.io/v3alpha2` or
+  later) will likely change the `Module` CRD so that it is disabled if unspecified; but in the
+  mean-time, the default install procedure will now specify it to be disabled.
+
+- Change: This release does not include the publishing of `emissary-emissaryns-agent.yaml`,
+  `emissary-defaultns-agent.yaml`, `emissary-emissaryns-migration.yaml`, or
+  `emissary-defaultns-migration.yaml` files.  All four of these files existed solely as part of the
+  migration process from 1;y, but since 2.2.0 the `*-migration.yaml` files have not been part of the
+  migration instructions, and while the `*-agent.yaml` files remained part of the instructions they
+  were actually unnescessary.
+
+- Change: The previous version of Emissary-ingress was based on Envoy 1.17 and when using grpc_stats
+  with `all_methods` or `services` set, it would output metrics in the following format
+  `envoy_cluster_grpc_{ServiceName}_{statname}`. When neither of these fields are set it would be
+  aggregated to `envoy_cluster_grpc_{statname}`.
+  The new behavior since Envoy 1.18 will produce
+  metrics in the following format `envoy_cluster_grpc_{MethodName}_statsname` and
+  `envoy_cluster_grpc_statsname`.
+  After further investigation we found that Envoy doesn't properly
+  parse service names such as `cncf.telepresence.Manager/Status`. In the future, we will work
+  upstream Envoy to get this parsing logic fixed to ensure consistent metric naming.
+
+- Bugfix: Previously setting `grpc_stats` in the `ambassador` `Module` without setting either
+  `grpc_stats.services` or `grpc_stats.all_methods` would result in crashing. Now it behaves as if
+  `grpc_stats.all_methods=false`.
+
+- Feature: With the ugprade to Envoy 1.22, Emissary-ingress can now be configured to listen for
+  HTTP/3 connections using QUIC and the UDP network protocol. It currently only supports for
+  connections between downstream clients and Emissary-ingress.
+
+## [2.5.0] TBD
+[2.5.0]: https://github.com/emissary-ingress/emissary/compare/v2.4.0...v2.5.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Change: Changes to label matching will change how `Hosts` are associated with `Mappings`. There
+  was a bug with label selectors that was causing `Hosts` to be incorrectly being associated with
+  more `Mappings` than intended. If any single label from the selector was matched then the `Host`
+  would be associated with the `Mapping`. Now it has been updated to correctly only associate a
+  `Host` with a `Mapping` if **all** labels required by the selector are present. This brings the
+  `mappingSelector` field in-line with how label selectors are used in Kubernetes. To avoid
+  unexpected behaviour after the upgrade, add all labels that Hosts have in their `mappingSelector`
+  to `Mappings` you want to associate with the `Host`. You can opt-out of the new behaviour by
+  setting the environment variable `DISABLE_STRICT_LABEL_SELECTORS` to `"true"` (default:
+  `"false"`). (Thanks to <a href="https://github.com/f-herceg">Filip Herceg</a> and <a
+  href="https://github.com/dynajoe">Joe Andaverde</a>!).
 
 ## [2.4.0] September 19, 2022
 [2.4.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v2.4.0

@@ -1,15 +1,14 @@
 from __future__ import annotations
-from typing import Any, ClassVar, Dict, List, Optional
 
 import dataclasses
 import logging
 import os
+from typing import Any, ClassVar, Dict, List, Optional
 
 from ..config import ACResource, Config
-from ..utils import dump_yaml, parse_yaml, parse_bool, dump_json
-
+from ..utils import dump_json, dump_yaml, parse_bool, parse_yaml
 from .dependency import DependencyManager
-from .k8sobject import KubernetesObjectScope, KubernetesObject
+from .k8sobject import KubernetesObject, KubernetesObjectScope
 from .location import LocationManager
 
 
@@ -21,43 +20,54 @@ class NormalizedResource:
 
     object: dict
     rkey: Optional[str] = None
-    log_resources: ClassVar[bool] = parse_bool(os.environ.get('AMBASSADOR_LOG_RESOURCES'))
+    log_resources: ClassVar[bool] = parse_bool(os.environ.get("AMBASSADOR_LOG_RESOURCES"))
 
     @classmethod
-    def from_data(cls, kind: str, name: str, namespace: Optional[str] = None,
-                  generation: Optional[int] = None, version: str = 'v3alpha1',
-                  api_group = 'getambassador.io',
-                  labels: Optional[Dict[str, Any]] = None,
-                  spec: Dict[str, Any] = None, errors: Optional[str] = None,
-                  rkey: Optional[str] = None) -> NormalizedResource:
+    def from_data(
+        cls,
+        kind: str,
+        name: str,
+        namespace: Optional[str] = None,
+        generation: Optional[int] = None,
+        version: str = "v3alpha1",
+        api_group="getambassador.io",
+        labels: Optional[Dict[str, Any]] = None,
+        spec: Dict[str, Any] = None,
+        errors: Optional[str] = None,
+        rkey: Optional[str] = None,
+    ) -> NormalizedResource:
         if rkey is None:
-            rkey = f'{name}.{namespace}'
+            rkey = f"{name}.{namespace}"
 
         ir_obj = {}
         if spec:
             ir_obj.update(spec)
 
-        ir_obj['apiVersion'] = f'{api_group}/{version}'
-        ir_obj['kind'] = kind
-        ir_obj['name'] = name
+        ir_obj["apiVersion"] = f"{api_group}/{version}"
+        ir_obj["kind"] = kind
+        ir_obj["name"] = name
 
         if namespace is not None:
-            ir_obj['namespace'] = namespace
+            ir_obj["namespace"] = namespace
 
         if generation is not None:
-            ir_obj['generation'] = generation
+            ir_obj["generation"] = generation
 
-        ir_obj['metadata_labels'] = labels or {}
+        ir_obj["metadata_labels"] = labels or {}
 
         if errors:
-            ir_obj['errors'] = errors
+            ir_obj["errors"] = errors
 
         return cls(ir_obj, rkey)
 
     @classmethod
-    def from_kubernetes_object(cls, obj: KubernetesObject, rkey: Optional[str] = None) -> NormalizedResource:
+    def from_kubernetes_object(
+        cls, obj: KubernetesObject, rkey: Optional[str] = None
+    ) -> NormalizedResource:
         if obj.namespace is None:
-            raise ValueError(f'Cannot construct resource from Kubernetes object {obj.key} without namespace')
+            raise ValueError(
+                f"Cannot construct resource from Kubernetes object {obj.key} without namespace"
+            )
 
         labels = dict(obj.labels)
 
@@ -67,10 +77,10 @@ class NormalizedResource:
             # Some other code uses the 'ambassador_crd' label to know which resource to update
             # .status for with the apiserver.  Which is (IMO) a horrible hack, but I'm not up for
             # changing it at the moment.
-            labels['ambassador_crd'] = rkey
+            labels["ambassador_crd"] = rkey
         else:
             # Don't let it think that an annotation can have its status updated.
-            labels.pop('ambassador_crd', None)
+            labels.pop("ambassador_crd", None)
 
         # When creating an Ambassador object from a Kubernetes object, we have to make
         # sure that we pay attention to 'errors', which will be set IFF watt's validation
@@ -79,7 +89,7 @@ class NormalizedResource:
         return cls.from_data(
             obj.kind,
             obj.name,
-            errors=obj.get('errors'),
+            errors=obj.get("errors"),
             namespace=obj.namespace,
             generation=obj.generation,
             version=obj.gvk.version,
@@ -121,24 +131,26 @@ class ResourceManager:
             if not obj:
                 self.aconf.post_error("%s is empty" % self.location)
             else:
-                self.aconf.post_error("%s is not a dictionary? %s" %
-                                      (self.location, dump_json(obj, pretty=True)))
+                self.aconf.post_error(
+                    "%s is not a dictionary? %s" % (self.location, dump_json(obj, pretty=True))
+                )
             return True
 
         if not self.aconf.good_ambassador_id(obj):
             self.logger.debug("%s ignoring object with mismatched ambassador_id" % self.location)
             return True
 
-        if 'kind' not in obj:
+        if "kind" not in obj:
             # Bug!!
-            self.aconf.post_error("%s is missing 'kind'?? %s" %
-                                  (self.location, dump_json(obj, pretty=True)))
+            self.aconf.post_error(
+                "%s is missing 'kind'?? %s" % (self.location, dump_json(obj, pretty=True))
+            )
             return True
 
         # Is this a pragma object?
-        if obj['kind'] == 'Pragma':
+        if obj["kind"] == "Pragma":
             # Why did I think this was a good idea? [ :) ]
-            new_source = obj.get('source', None)
+            new_source = obj.get("source", None)
 
             if new_source:
                 # We don't save the old self.filename here, so this change will last until
@@ -149,9 +161,9 @@ class ResourceManager:
             return False
 
         if not rkey:
-            rkey = self.locations.current.filename_default('unknown')
+            rkey = self.locations.current.filename_default("unknown")
 
-        if obj['kind'] != 'Service':
+        if obj["kind"] != "Service":
             # Services are unique and don't get an object count appended to
             # them.
             rkey = "%s.%d" % (rkey, self.locations.current.ocount)
@@ -165,7 +177,9 @@ class ResourceManager:
             self.aconf.post_error(e.args[0])
 
         if NormalizedResource.log_resources:
-            self.logger.debug("%s PROCESS %s save %s: %s", self.location, obj['kind'], rkey, serialization)
+            self.logger.debug(
+                "%s PROCESS %s save %s: %s", self.location, obj["kind"], rkey, serialization
+            )
 
         return True
 

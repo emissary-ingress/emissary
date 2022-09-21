@@ -11,28 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-from typing import Any, Dict, List, Literal, Optional, Tuple, TYPE_CHECKING, Union
-from typing import cast as typecast
-
-from os import environ
-
 import logging
 import sys
+from os import environ
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import cast as typecast
 
 from ...ir.irhost import IRHost
 from ...ir.irlistener import IRListener
 from ...ir.irtcpmappinggroup import IRTCPMappingGroup
-
 from ...utils import dump_json, parse_bool
-
-from .v3httpfilter import V3HTTPFilter
-from .v3route import V3Route, DictifiedV3Route, V3RouteVariants, v3prettyroute, hostglob_matches
+from .v3route import DictifiedV3Route, V3Route, V3RouteVariants, hostglob_matches, v3prettyroute
 from .v3tls import V3TLSContext
 
 if TYPE_CHECKING:
-    from ...ir.irhost import IRHost             # pragma: no cover
-    from ...ir.irtlscontext import IRTLSContext # pragma: no cover
-    from . import V3Config                      # pragma: no cover
+    from ...ir.irhost import IRHost  # pragma: no cover
+    from ...ir.irtlscontext import IRTLSContext  # pragma: no cover
+    from . import V3Config  # pragma: no cover
 
 
 # Model an Envoy filter chain.
@@ -51,17 +46,18 @@ if TYPE_CHECKING:
 # enabled is fundamentally different from a chain _without_ TLS enabled.  Whether a chain has TLS
 # enabled can be checked with the truthiness of `chain.context`.
 
+
 class V3Chain:
-    _config: 'V3Config'
+    _config: "V3Config"
     _logger: logging.Logger
     _log_debug: bool
 
     # We can have multiple hosts here, primarily so that cleartext HTTP chains can DTRT.
-    context: Optional['IRTLSContext']
+    context: Optional["IRTLSContext"]
     hosts: Dict[str, Union[IRHost, IRTCPMappingGroup]]
     routes: List[DictifiedV3Route]
 
-    def __init__(self, config: 'V3Config', context: Optional['IRTLSContext']) -> None:
+    def __init__(self, config: "V3Config", context: Optional["IRTLSContext"]) -> None:
         self._config = config
         self._logger = self._config.ir.logger
         self._log_debug = self._logger.isEnabledFor(logging.DEBUG)
@@ -72,7 +68,9 @@ class V3Chain:
 
     def add_tcphost(self, tcpmapping: IRTCPMappingGroup) -> None:
         if self._log_debug:
-            self._logger.debug(f"      CHAIN UPDATE: add TCP host: hostname={repr(tcpmapping.get('host'))}")
+            self._logger.debug(
+                f"      CHAIN UPDATE: add TCP host: hostname={repr(tcpmapping.get('host'))}"
+            )
 
         if len(self.hosts) > 0:
             # If we have SNI, then each host gets its own chain, so we should never have more than 1
@@ -80,10 +78,12 @@ class V3Chain:
             # and so we shouldn't have more than 1 self.hosts then either.
             other = next(iter(self.hosts.values()))
             other_type = "TCPMapping" if isinstance(other, IRTCPMappingGroup) else "Host"
-            tcpmapping.post_error("TCPMapping {tcpmapping.name}: discarding because it conflicts with {other_type} {other.name}")
+            tcpmapping.post_error(
+                "TCPMapping {tcpmapping.name}: discarding because it conflicts with {other_type} {other.name}"
+            )
             return
 
-        self.hosts[tcpmapping.get('host') or '*'] = tcpmapping
+        self.hosts[tcpmapping.get("host") or "*"] = tcpmapping
 
     def add_httphost(self, host: IRHost) -> None:
         if self._log_debug:
@@ -95,13 +95,17 @@ class V3Chain:
             if len(self.hosts) > 0:
                 other = next(iter(self.hosts.values()))
                 other_type = "TCPMapping" if isinstance(other, IRTCPMappingGroup) else "Host"
-                host.post_error("TLS Host {host.name}: discarding because it conflicts with {other_type} {other.name}")
+                host.post_error(
+                    "TLS Host {host.name}: discarding because it conflicts with {other_type} {other.name}"
+                )
                 return
         else:
             # If we don't have SNI then a single TLSContext takes over the entire chain.
             for other in self.hosts.values():
                 if isinstance(other, IRTCPMappingGroup):
-                    host.post_error("Cleartext Host {host.name}: discarding because it conflicts with TCPMapping {other.name}")
+                    host.post_error(
+                        "Cleartext Host {host.name}: discarding because it conflicts with TCPMapping {other.name}"
+                    )
                     return
 
         self.hosts[host.hostname] = host
@@ -127,8 +131,10 @@ class V3Chain:
         return f"CHAIN: tls={bool(self.context)} hostglobs={repr(sorted(self.hostglobs()))}"
 
 
-def tlscontext_for_tcpmapping(irgroup: IRTCPMappingGroup, config: 'V3Config') -> Optional['IRTLSContext']:
-    group_host = irgroup.get('host')
+def tlscontext_for_tcpmapping(
+    irgroup: IRTCPMappingGroup, config: "V3Config"
+) -> Optional["IRTLSContext"]:
+    group_host = irgroup.get("host")
     if not group_host:
         return None
 
@@ -145,7 +151,7 @@ def tlscontext_for_tcpmapping(irgroup: IRTCPMappingGroup, config: 'V3Config') ->
     # Second, TLSContexts:
 
     for context in config.ir.get_tls_contexts():
-        for context_host in context.get('hosts') or []:
+        for context_host in context.get("hosts") or []:
             # Note: this is *not* glob matching.
             if context_host == group_host:
                 return context
@@ -161,42 +167,62 @@ def tlscontext_for_tcpmapping(irgroup: IRTCPMappingGroup, config: 'V3Config') ->
 # There is a one-to-one correspondence between an IRListener and an Envoy listener: the logic
 # here is all about constructing the Envoy configuration implied by the IRListener.
 
+
 class V3Listener:
-    config: 'V3Config'
+    config: "V3Config"
     _irlistener: IRListener
+
+    @property
+    def http3_enabled(self) -> bool:
+        return self._irlistener.http3_enabled
+
+    @property
+    def socket_protocol(self) -> Literal["TCP", "UDP"]:
+        return self._irlistener.socket_protocol
 
     @property
     def bind_address(self) -> str:
         return self._irlistener.bind_address
+
     @property
     def port(self) -> int:
         return self._irlistener.port
+
     @property
     def bind_to(self) -> str:
-        return f"{self.bind_address}-{self.port}"
+        return self._irlistener.bind_to()
+
     @property
     def _stats_prefix(self) -> str:
         return self._irlistener.statsPrefix
+
     @property
-    def _security_model(self) -> Literal['XFP', 'SECURE', 'INSECURE']:
+    def _security_model(self) -> Literal["XFP", "SECURE", "INSECURE"]:
         return self._irlistener.securityModel
+
     @property
     def _l7_depth(self) -> int:
-        return self._irlistener.get('l7Depth', 0)
+        return self._irlistener.get("l7Depth", 0)
+
     @property
     def _insecure_only(self) -> bool:
         return self._irlistener.insecure_only
+
     @property
     def per_connection_buffer_limit_bytes(self) -> Optional[int]:
-        return self.config.ir.ambassador_module.get('buffer_limit_bytes', None)
+        return self.config.ir.ambassador_module.get("buffer_limit_bytes", None)
 
-    def __init__(self, config: 'V3Config', irlistener: IRListener) -> None:
+    def __init__(self, config: "V3Config", irlistener: IRListener) -> None:
         super().__init__()
 
         self.config = config
-        self._irlistener = irlistener   # We cache the IRListener to use its match method later
+        self._irlistener = irlistener  # We cache the IRListener to use its match method later
 
-        bindstr = f"-{self.bind_address}" if (self.bind_address != "0.0.0.0") else ""
+        bindstr = (
+            f"-{irlistener.socket_protocol.lower()}-{self.bind_address}"
+            if (self.bind_address != "0.0.0.0")
+            else ""
+        )
         self.name = irlistener.name or f"ambassador-listener{bindstr}-{self.port}"
 
         self.listener_filters: List[dict] = []
@@ -211,7 +237,9 @@ class V3Listener:
         # representations) that won't get logged anyway.
         self._log_debug = self.config.ir.logger.isEnabledFor(logging.DEBUG)
         if self._log_debug:
-            self.config.ir.logger.debug(f"V3Listener {self.name}: created: port={self.port} security_model={self._security_model} l7depth={self._l7_depth}")
+            self.config.ir.logger.debug(
+                f"V3Listener {self.name}: created: port={self.port} security_model={self._security_model} l7depth={self._l7_depth}"
+            )
 
         # Build out our listener filters, and figure out if we're an HTTP listener
         # in the process.
@@ -222,24 +250,29 @@ class V3Listener:
 
             if proto == "PROXY":
                 # The PROXY protocol needs a listener filter.
-                self.listener_filters.append({
-                    'name': 'envoy.filters.listener.proxy_protocol'
-                })
+                self.listener_filters.append({"name": "envoy.filters.listener.proxy_protocol"})
 
             if proto == "TLS":
                 # TLS needs a listener filter _and_ we need to remember that this
                 # listener is OK with TLS-y things like a termination context, SNI,
                 # etc.
                 self._tls_ok = True
-                self.listener_filters.append({
-                    'name': 'envoy.filters.listener.tls_inspector'
-                })
+
+                ## When UDP we assume it is http/3 listener and configured for quic which has TLS built into the protocol
+                ## therefore, we only need to add this when socket_protocol is TCP
+                if self.isProtocolTCP():
+                    self.listener_filters.append({"name": "envoy.filters.listener.tls_inspector"})
 
             if proto == "TCP":
                 # Nothing to do.
                 pass
 
-    def add_chain(self, chain_type: Literal['tcp', 'http', 'https'], context: Optional['IRTLSContext'], hostname: str) -> V3Chain:
+    def add_chain(
+        self,
+        chain_type: Literal["tcp", "http", "https"],
+        context: Optional["IRTLSContext"],
+        hostname: str,
+    ) -> V3Chain:
         # Add a chain for a specific Host to this listener, while dealing with the fundamental
         # asymmetry that filter_chain_match can - and should - use SNI whenever the chain has
         # TLS available, but that's simply not available for chains without TLS.
@@ -252,12 +285,12 @@ class V3Listener:
         # answer is just that it would needlessly add nesting to all our loops and such (this
         # is also why there's no vhost data structure).
 
-        if chain_type == 'http':
+        if chain_type == "http":
             assert not context
-        if chain_type == 'https':
+        if chain_type == "https":
             assert context
 
-        hostname = hostname or '*'
+        hostname = hostname or "*"
 
         chain_key = "tls" if context else "cleartext"
         # I (LukeShu) can't really give an explanation of why `or chain_type == 'http'` belongs in
@@ -267,7 +300,7 @@ class V3Listener:
         # compute_routes() and remove `or chain_type = 'http'`... I'd have to study compute_routes()
         # a lot more in order to be able to answer that; but in the mean time, including it in the
         # expression keeps things working.
-        if context or chain_type == 'http':
+        if context or chain_type == "http":
             chain_key += f"-{hostname}"
 
         chain = self._chains.get(chain_key)
@@ -276,7 +309,9 @@ class V3Listener:
             chain = V3Chain(self.config, context)
             self._chains[chain_key] = chain
         if self._log_debug:
-            self.config.ir.logger.debug(f"      CHAIN {verb}: tls={bool(context)} host={repr(hostname)} => chains[{repr(chain_key)}]={chain}")
+            self.config.ir.logger.debug(
+                f"      CHAIN {verb}: tls={bool(context)} host={repr(hostname)} => chains[{repr(chain_key)}]={chain}"
+            )
 
         return chain
 
@@ -285,100 +320,102 @@ class V3Listener:
         access_log: List[dict] = []
 
         for al in self.config.ir.log_services.values():
-            access_log_obj: Dict[str, Any] = { "common_config": al.get_common_config() }
+            access_log_obj: Dict[str, Any] = {"common_config": al.get_common_config()}
             req_headers = []
             resp_headers = []
             trailer_headers = []
 
             for additional_header in al.get_additional_headers():
-                if additional_header.get('during_request', True):
-                    req_headers.append(additional_header.get('header_name'))
-                if additional_header.get('during_response', True):
-                    resp_headers.append(additional_header.get('header_name'))
-                if additional_header.get('during_trailer', True):
-                    trailer_headers.append(additional_header.get('header_name'))
+                if additional_header.get("during_request", True):
+                    req_headers.append(additional_header.get("header_name"))
+                if additional_header.get("during_response", True):
+                    resp_headers.append(additional_header.get("header_name"))
+                if additional_header.get("during_trailer", True):
+                    trailer_headers.append(additional_header.get("header_name"))
 
-            if al.driver == 'http':
-                access_log_obj['additional_request_headers_to_log'] = req_headers
-                access_log_obj['additional_response_headers_to_log'] = resp_headers
-                access_log_obj['additional_response_trailers_to_log'] = trailer_headers
-                access_log_obj['@type'] = 'type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.HttpGrpcAccessLogConfig'
-                access_log.append({
-                    "name": "envoy.access_loggers.http_grpc",
-                    "typed_config": access_log_obj
-                })
+            if al.driver == "http":
+                access_log_obj["additional_request_headers_to_log"] = req_headers
+                access_log_obj["additional_response_headers_to_log"] = resp_headers
+                access_log_obj["additional_response_trailers_to_log"] = trailer_headers
+                access_log_obj[
+                    "@type"
+                ] = "type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.HttpGrpcAccessLogConfig"
+                access_log.append(
+                    {"name": "envoy.access_loggers.http_grpc", "typed_config": access_log_obj}
+                )
             else:
                 # inherently TCP right now
                 # tcp loggers do not support additional headers
-                access_log_obj['@type'] = 'type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.TcpGrpcAccessLogConfig'
-                access_log.append({
-                    "name": "envoy.access_loggers.tcp_grpc",
-                    "typed_config": access_log_obj
-                })
+                access_log_obj[
+                    "@type"
+                ] = "type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.TcpGrpcAccessLogConfig"
+                access_log.append(
+                    {"name": "envoy.access_loggers.tcp_grpc", "typed_config": access_log_obj}
+                )
 
         # Use sane access log spec in JSON
         if self.config.ir.ambassador_module.envoy_log_type.lower() == "json":
-            log_format = self.config.ir.ambassador_module.get('envoy_log_format', None)
+            log_format = self.config.ir.ambassador_module.get("envoy_log_format", None)
             if log_format is None:
                 log_format = {
-                    'start_time': '%START_TIME%',
-                    'method': '%REQ(:METHOD)%',
-                    'path': '%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%',
-                    'protocol': '%PROTOCOL%',
-                    'response_code': '%RESPONSE_CODE%',
-                    'response_flags': '%RESPONSE_FLAGS%',
-                    'bytes_received': '%BYTES_RECEIVED%',
-                    'bytes_sent': '%BYTES_SENT%',
-                    'duration': '%DURATION%',
-                    'upstream_service_time': '%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%',
-                    'x_forwarded_for': '%REQ(X-FORWARDED-FOR)%',
-                    'user_agent': '%REQ(USER-AGENT)%',
-                    'request_id': '%REQ(X-REQUEST-ID)%',
-                    'authority': '%REQ(:AUTHORITY)%',
-                    'upstream_host': '%UPSTREAM_HOST%',
-                    'upstream_cluster': '%UPSTREAM_CLUSTER%',
-                    'upstream_local_address': '%UPSTREAM_LOCAL_ADDRESS%',
-                    'downstream_local_address': '%DOWNSTREAM_LOCAL_ADDRESS%',
-                    'downstream_remote_address': '%DOWNSTREAM_REMOTE_ADDRESS%',
-                    'requested_server_name': '%REQUESTED_SERVER_NAME%',
-                    'istio_policy_status': '%DYNAMIC_METADATA(istio.mixer:status)%',
-                    'upstream_transport_failure_reason': '%UPSTREAM_TRANSPORT_FAILURE_REASON%'
+                    "start_time": "%START_TIME%",
+                    "method": "%REQ(:METHOD)%",
+                    "path": "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%",
+                    "protocol": "%PROTOCOL%",
+                    "response_code": "%RESPONSE_CODE%",
+                    "response_flags": "%RESPONSE_FLAGS%",
+                    "bytes_received": "%BYTES_RECEIVED%",
+                    "bytes_sent": "%BYTES_SENT%",
+                    "duration": "%DURATION%",
+                    "upstream_service_time": "%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%",
+                    "x_forwarded_for": "%REQ(X-FORWARDED-FOR)%",
+                    "user_agent": "%REQ(USER-AGENT)%",
+                    "request_id": "%REQ(X-REQUEST-ID)%",
+                    "authority": "%REQ(:AUTHORITY)%",
+                    "upstream_host": "%UPSTREAM_HOST%",
+                    "upstream_cluster": "%UPSTREAM_CLUSTER%",
+                    "upstream_local_address": "%UPSTREAM_LOCAL_ADDRESS%",
+                    "downstream_local_address": "%DOWNSTREAM_LOCAL_ADDRESS%",
+                    "downstream_remote_address": "%DOWNSTREAM_REMOTE_ADDRESS%",
+                    "requested_server_name": "%REQUESTED_SERVER_NAME%",
+                    "istio_policy_status": "%DYNAMIC_METADATA(istio.mixer:status)%",
+                    "upstream_transport_failure_reason": "%UPSTREAM_TRANSPORT_FAILURE_REASON%",
                 }
 
                 tracing_config = self.config.ir.tracing
-                if tracing_config and tracing_config.driver == 'envoy.tracers.datadog':
-                    log_format['dd.trace_id'] = '%REQ(X-DATADOG-TRACE-ID)%'
-                    log_format['dd.span_id'] = '%REQ(X-DATADOG-PARENT-ID)%'
+                if tracing_config and tracing_config.driver == "envoy.tracers.datadog":
+                    log_format["dd.trace_id"] = "%REQ(X-DATADOG-TRACE-ID)%"
+                    log_format["dd.span_id"] = "%REQ(X-DATADOG-PARENT-ID)%"
 
-            access_log.append({
-                'name': 'envoy.access_loggers.file',
-                'typed_config': {
-                    '@type': 'type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog',
-                    'path': self.config.ir.ambassador_module.envoy_log_path,
-                    'json_format': log_format
+            access_log.append(
+                {
+                    "name": "envoy.access_loggers.file",
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
+                        "path": self.config.ir.ambassador_module.envoy_log_path,
+                        "json_format": log_format,
+                    },
                 }
-            })
+            )
         else:
             # Use a sane access log spec
-            log_format = self.config.ir.ambassador_module.get('envoy_log_format', None)
+            log_format = self.config.ir.ambassador_module.get("envoy_log_format", None)
 
             if not log_format:
-                log_format = 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"'
+                log_format = 'ACCESS [%START_TIME%] "%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% "%REQ(X-FORWARDED-FOR)%" "%REQ(USER-AGENT)%" "%REQ(X-REQUEST-ID)%" "%REQ(:AUTHORITY)%" "%UPSTREAM_HOST%"'
 
             if self._log_debug:
                 self.config.ir.logger.debug("V3Listener: Using log_format '%s'" % log_format)
-            access_log.append({
-                'name': 'envoy.access_loggers.file',
-                'typed_config': {
-                    '@type': 'type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog',
-                    'path': self.config.ir.ambassador_module.envoy_log_path,
-                    'log_format': {
-                        'text_format_source': {
-                            'inline_string': log_format + '\n'
-                        }
-                    }
+            access_log.append(
+                {
+                    "name": "envoy.access_loggers.file",
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
+                        "path": self.config.ir.ambassador_module.envoy_log_path,
+                        "log_format": {"text_format_source": {"inline_string": log_format + "\n"}},
+                    },
                 }
-            })
+            )
 
         return access_log
 
@@ -386,13 +423,21 @@ class V3Listener:
     # V3Listener's http_connection_manager filter.
     def base_http_config(self) -> Dict[str, Any]:
         base_http_config: Dict[str, Any] = {
-            'stat_prefix': self._stats_prefix,
-            'access_log': self.access_log(),
-            'http_filters': [],
-            'normalize_path': True
+            "stat_prefix": self._stats_prefix,
+            "access_log": self.access_log(),
+            "http_filters": [],
+            "normalize_path": True,
         }
 
+        # Instructs the HTTP Connection Mananger to support http/3. This is required for both TCP and UDP Listeners
+        if self.http3_enabled:
+            base_http_config["http3_protocol_options"] = {}
+            if self.isProtocolUDP():
+                base_http_config["codec_type"] = "HTTP3"
+
         # Assemble base HTTP filters
+        from .v3httpfilter import V3HTTPFilter
+
         for f in self.config.ir.filters:
             v3hf: dict = V3HTTPFilter(f, self.config)
 
@@ -402,51 +447,73 @@ class V3Listener:
             # v3config is generated before deciding if it needs to be
             # instantiated. See IRErrorResponse for an example.
             if v3hf:
-                base_http_config['http_filters'].append(v3hf)
+                base_http_config["http_filters"].append(v3hf)
 
-        if 'use_remote_address' in self.config.ir.ambassador_module:
-            base_http_config["use_remote_address"] = self.config.ir.ambassador_module.use_remote_address
+        if "use_remote_address" in self.config.ir.ambassador_module:
+            base_http_config[
+                "use_remote_address"
+            ] = self.config.ir.ambassador_module.use_remote_address
 
         if self._l7_depth > 0:
             base_http_config["xff_num_trusted_hops"] = self._l7_depth
 
-        if 'server_name' in self.config.ir.ambassador_module:
+        if "server_name" in self.config.ir.ambassador_module:
             base_http_config["server_name"] = self.config.ir.ambassador_module.server_name
 
-        listener_idle_timeout_ms = self.config.ir.ambassador_module.get('listener_idle_timeout_ms', None)
+        listener_idle_timeout_ms = self.config.ir.ambassador_module.get(
+            "listener_idle_timeout_ms", None
+        )
         if listener_idle_timeout_ms:
-            if 'common_http_protocol_options' in base_http_config:
-                base_http_config["common_http_protocol_options"]["idle_timeout"] = "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0)
+            if "common_http_protocol_options" in base_http_config:
+                base_http_config["common_http_protocol_options"]["idle_timeout"] = "%0.3fs" % (
+                    float(listener_idle_timeout_ms) / 1000.0
+                )
             else:
-                base_http_config["common_http_protocol_options"] = { 'idle_timeout': "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0) }
+                base_http_config["common_http_protocol_options"] = {
+                    "idle_timeout": "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0)
+                }
 
-        if 'headers_with_underscores_action' in self.config.ir.ambassador_module:
-            if 'common_http_protocol_options' in base_http_config:
-                base_http_config["common_http_protocol_options"]["headers_with_underscores_action"] = self.config.ir.ambassador_module.headers_with_underscores_action
+        if "headers_with_underscores_action" in self.config.ir.ambassador_module:
+            if "common_http_protocol_options" in base_http_config:
+                base_http_config["common_http_protocol_options"][
+                    "headers_with_underscores_action"
+                ] = self.config.ir.ambassador_module.headers_with_underscores_action
             else:
-                base_http_config["common_http_protocol_options"] = { 'headers_with_underscores_action': self.config.ir.ambassador_module.headers_with_underscores_action }
+                base_http_config["common_http_protocol_options"] = {
+                    "headers_with_underscores_action": self.config.ir.ambassador_module.headers_with_underscores_action
+                }
 
-        max_request_headers_kb = self.config.ir.ambassador_module.get('max_request_headers_kb', None)
+        max_request_headers_kb = self.config.ir.ambassador_module.get(
+            "max_request_headers_kb", None
+        )
         if max_request_headers_kb:
             base_http_config["max_request_headers_kb"] = max_request_headers_kb
 
-        if 'enable_http10' in self.config.ir.ambassador_module:
+        if "enable_http10" in self.config.ir.ambassador_module:
             http_options = base_http_config.setdefault("http_protocol_options", {})
-            http_options['accept_http_10'] = self.config.ir.ambassador_module.enable_http10
+            http_options["accept_http_10"] = self.config.ir.ambassador_module.enable_http10
 
-        if 'allow_chunked_length' in self.config.ir.ambassador_module:
+        if "allow_chunked_length" in self.config.ir.ambassador_module:
             if self.config.ir.ambassador_module.allow_chunked_length != None:
                 http_options = base_http_config.setdefault("http_protocol_options", {})
-                http_options['allow_chunked_length'] = self.config.ir.ambassador_module.allow_chunked_length
+                http_options[
+                    "allow_chunked_length"
+                ] = self.config.ir.ambassador_module.allow_chunked_length
 
-        if 'preserve_external_request_id' in self.config.ir.ambassador_module:
-            base_http_config["preserve_external_request_id"] = self.config.ir.ambassador_module.preserve_external_request_id
+        if "preserve_external_request_id" in self.config.ir.ambassador_module:
+            base_http_config[
+                "preserve_external_request_id"
+            ] = self.config.ir.ambassador_module.preserve_external_request_id
 
-        if 'forward_client_cert_details' in self.config.ir.ambassador_module:
-            base_http_config["forward_client_cert_details"] = self.config.ir.ambassador_module.forward_client_cert_details
+        if "forward_client_cert_details" in self.config.ir.ambassador_module:
+            base_http_config[
+                "forward_client_cert_details"
+            ] = self.config.ir.ambassador_module.forward_client_cert_details
 
-        if 'set_current_client_cert_details' in self.config.ir.ambassador_module:
-            base_http_config["set_current_client_cert_details"] = self.config.ir.ambassador_module.set_current_client_cert_details
+        if "set_current_client_cert_details" in self.config.ir.ambassador_module:
+            base_http_config[
+                "set_current_client_cert_details"
+            ] = self.config.ir.ambassador_module.set_current_client_cert_details
 
         if self.config.ir.tracing:
             base_http_config["generate_request_id"] = True
@@ -454,56 +521,43 @@ class V3Listener:
             base_http_config["tracing"] = {}
             self.traffic_direction = "OUTBOUND"
 
-            req_hdrs = self.config.ir.tracing.get('tag_headers', [])
+            custom_tags = self.config.ir.tracing.get("custom_tags", [])
+            if custom_tags:
+                base_http_config["tracing"]["custom_tags"] = custom_tags
 
-            if req_hdrs:
-                base_http_config["tracing"]["custom_tags"] = []
-                for hdr in req_hdrs:
-                    custom_tag = {
-                        "request_header": {
-                            "name": hdr,
-                            },
-                        "tag": hdr,
-                    }
-                    base_http_config["tracing"]["custom_tags"].append(custom_tag)
-
-
-            sampling = self.config.ir.tracing.get('sampling', {})
+            sampling = self.config.ir.tracing.get("sampling", {})
             if sampling:
-                client_sampling = sampling.get('client', None)
+                client_sampling = sampling.get("client", None)
                 if client_sampling is not None:
-                    base_http_config["tracing"]["client_sampling"] = {
-                        "value": client_sampling
-                    }
+                    base_http_config["tracing"]["client_sampling"] = {"value": client_sampling}
 
-                random_sampling = sampling.get('random', None)
+                random_sampling = sampling.get("random", None)
                 if random_sampling is not None:
-                    base_http_config["tracing"]["random_sampling"] = {
-                        "value": random_sampling
-                    }
+                    base_http_config["tracing"]["random_sampling"] = {"value": random_sampling}
 
-                overall_sampling = sampling.get('overall', None)
+                overall_sampling = sampling.get("overall", None)
                 if overall_sampling is not None:
-                    base_http_config["tracing"]["overall_sampling"] = {
-                        "value": overall_sampling
-                    }
+                    base_http_config["tracing"]["overall_sampling"] = {"value": overall_sampling}
 
-        proper_case: bool = self.config.ir.ambassador_module['proper_case']
+        proper_case: bool = self.config.ir.ambassador_module["proper_case"]
 
         # Get the list of downstream headers whose casing should be overriden
         # from the Ambassador module. We configure the upstream side of this
         # in v3cluster.py
-        header_case_overrides = self.config.ir.ambassador_module.get('header_case_overrides', None)
+        header_case_overrides = self.config.ir.ambassador_module.get("header_case_overrides", None)
         if header_case_overrides:
             if proper_case:
                 self.config.ir.post_error(
-                    "Only one of 'proper_case' or 'header_case_overrides' fields may be set on " +\
-                    "the Ambassador module. Honoring proper_case and ignoring " +\
-                    "header_case_overrides.")
+                    "Only one of 'proper_case' or 'header_case_overrides' fields may be set on "
+                    + "the Ambassador module. Honoring proper_case and ignoring "
+                    + "header_case_overrides."
+                )
                 header_case_overrides = None
             if not isinstance(header_case_overrides, list):
                 # The header_case_overrides field must be an array.
-                self.config.ir.post_error("Ambassador module config 'header_case_overrides' must be an array")
+                self.config.ir.post_error(
+                    "Ambassador module config 'header_case_overrides' must be an array"
+                )
                 header_case_overrides = None
             elif len(header_case_overrides) == 0:
                 # Allow an empty list to mean "do nothing".
@@ -516,12 +570,16 @@ class V3Listener:
             rules = []
             for hdr in header_case_overrides:
                 if not isinstance(hdr, str):
-                    self.config.ir.post_error("Skipping non-string header in 'header_case_overrides': {hdr}")
+                    self.config.ir.post_error(
+                        "Skipping non-string header in 'header_case_overrides': {hdr}"
+                    )
                     continue
                 rules.append(hdr)
 
             if len(rules) == 0:
-                self.config.ir.post_error(f"Could not parse any valid string headers in 'header_case_overrides': {header_case_overrides}")
+                self.config.ir.post_error(
+                    f"Could not parse any valid string headers in 'header_case_overrides': {header_case_overrides}"
+                )
             else:
                 # Create custom header rules that map the lowercase version of every element in
                 # `header_case_overrides` to the the respective original casing.
@@ -531,18 +589,16 @@ class V3Listener:
                 # overrides the response header case by remapping the lowercased version (the default
                 # casing in envoy) back to the casing provided in the config.
                 custom_header_rules: Dict[str, Dict[str, dict]] = {
-                    'custom': {
-                        'rules': {
-                            header.lower() : header for header in rules
-                        }
-                    }
+                    "custom": {"rules": {header.lower(): header for header in rules}}
                 }
                 http_options = base_http_config.setdefault("http_protocol_options", {})
                 http_options["header_key_format"] = custom_header_rules
 
         if proper_case:
-            proper_case_header: Dict[str, Dict[str, dict]] = {'header_key_format': {'proper_case_words': {}}}
-            if 'http_protocol_options' in base_http_config:
+            proper_case_header: Dict[str, Dict[str, dict]] = {
+                "header_key_format": {"proper_case_words": {}}
+            }
+            if "http_protocol_options" in base_http_config:
                 base_http_config["http_protocol_options"].update(proper_case_header)
             else:
                 base_http_config["http_protocol_options"] = proper_case_header
@@ -584,29 +640,25 @@ class V3Listener:
                     continue
 
                 # First up, which clusters do we need to talk to?
-                clusters = [{
-                    'name': mapping.cluster.envoy_name,
-                    'weight': mapping._weight
-                } for mapping in irgroup.mappings]
+                clusters = [
+                    {"name": mapping.cluster.envoy_name, "weight": mapping._weight}
+                    for mapping in irgroup.mappings
+                ]
 
                 # From that, we can sort out a basic tcp_proxy filter config.
                 tcp_filter = {
-                    'name': 'envoy.filters.network.tcp_proxy',
-                    'typed_config': {
-                        '@type': 'type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy',
-                        'stat_prefix': self._stats_prefix,
-                        'weighted_clusters': {
-                            'clusters': clusters
-                        }
-                    }
+                    "name": "envoy.filters.network.tcp_proxy",
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy",
+                        "stat_prefix": self._stats_prefix,
+                        "weighted_clusters": {"clusters": clusters},
+                    },
                 }
 
                 # OK. Basic filter chain entry next.
                 filter_chain: Dict[str, Any] = {
-                    'name': f"tcphost-{irgroup.name}",
-                    'filters': [
-                        tcp_filter
-                    ]
+                    "name": f"tcphost-{irgroup.name}",
+                    "filters": [tcp_filter],
                 }
 
                 # The chain as a whole has a single matcher.
@@ -623,12 +675,12 @@ class V3Listener:
                     # filter_chain_match.
                     envoy_ctx = V3TLSContext(chain.context)
 
-                    filter_chain['transport_socket'] = {
-                        'name': 'envoy.transport_sockets.tls',
-                        'typed_config': {
-                            '@type': 'type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext',
-                            **envoy_ctx
-                        }
+                    filter_chain["transport_socket"] = {
+                        "name": "envoy.transport_sockets.tls",
+                        "typed_config": {
+                            "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext",
+                            **envoy_ctx,
+                        },
                     }
 
                 # We do server-name matching whether or not we have TLS, just to help
@@ -636,10 +688,10 @@ class V3Listener:
                 # criterion (since Envoy will reject such a configuration).
 
                 if len(chain_hosts) > 0 and ("*" not in chain_hosts):
-                    filter_chain_match['server_names'] = chain_hosts
+                    filter_chain_match["server_names"] = chain_hosts
 
                 # Once all of that is done, hook in the match...
-                filter_chain['filter_chain_match'] = filter_chain_match
+                filter_chain["filter_chain_match"] = filter_chain_match
 
                 # ...and stick this chain into our filter.
                 self._filter_chains.append(filter_chain)
@@ -667,17 +719,17 @@ class V3Listener:
             # than for a 'Host'.  Same deal applies with TLS: you can't do host-based matching
             # without it.
 
-            group_host = irgroup.get('host', None)
-            if not group_host: # cleartext
+            group_host = irgroup.get("host", None)
+            if not group_host:  # cleartext
                 # Special case. No Host in a TCPMapping means an unconditional forward,
                 # so just add this immediately as a "*" chain.
-                self.add_chain('tcp', None, '*').add_tcphost(irgroup)
-            else: # TLS/SNI
+                self.add_chain("tcp", None, "*").add_tcphost(irgroup)
+            else:  # TLS/SNI
                 context = tlscontext_for_tcpmapping(irgroup, self.config)
                 if not context:
                     irgroup.post_error("No matching TLSContext found, disabling!")
                     continue
-                self.add_chain('tcp', context, group_host).add_tcphost(irgroup)
+                self.add_chain("tcp", context, group_host).add_tcphost(irgroup)
 
     def compute_httpchains(self) -> None:
         # Compute the set of chains we need, HTTP version. The core here is matching
@@ -715,16 +767,20 @@ class V3Listener:
             # of Reject (or empty), we'll skip this host, because the only requests this
             # Listener can ever produce will be rejected. In any other case, we'll set up an
             # HTTPS chain for this Host, as long as we think TLS is OK.
-            host_will_reject_secure = ((not host.secure_action) or (host.secure_action == "Reject"))
-            if self._tls_ok and host.context and (not ((self._security_model == "SECURE") and host_will_reject_secure)):
+            host_will_reject_secure = (not host.secure_action) or (host.secure_action == "Reject")
+            if (
+                self._tls_ok
+                and host.context
+                and (not ((self._security_model == "SECURE") and host_will_reject_secure))
+            ):
                 self.config.ir.logger.debug("      accept SECURE")
-                self.add_chain('https', host.context, host.hostname).add_httphost(host)
+                self.add_chain("https", host.context, host.hostname).add_httphost(host)
 
             # Same idea on the insecure side: only skip the Host if the Listener's securityModel
             # is INSECURE but the Host's insecure_action is Reject.
             if not ((self._security_model == "INSECURE") and (host.insecure_action == "Reject")):
                 self.config.ir.logger.debug("      accept INSECURE")
-                self.add_chain('http', None, host.hostname).add_httphost(host)
+                self.add_chain("http", None, host.hostname).add_httphost(host)
 
     def compute_routes(self) -> None:
         # Compute the set of valid HTTP routes for _each chain_ in this Listener.
@@ -750,16 +806,22 @@ class V3Listener:
             # V3RouteVariants to lazily cache some of the work that we're doing across chains.
             for rv in self.config.route_variants:
                 if self._log_debug:
-                    self.config.ir.logger.debug(f"        consider route {v3prettyroute(dict(rv.route))}")
+                    self.config.ir.logger.debug(
+                        f"        consider route {v3prettyroute(dict(rv.route))}"
+                    )
 
                 matching_hosts = chain.matching_hosts(rv.route)
 
                 if self._log_debug:
-                    self.config.ir.logger.debug(f"          matching_hosts={[h.hostname for h in matching_hosts]}")
+                    self.config.ir.logger.debug(
+                        f"          matching_hosts={[h.hostname for h in matching_hosts]}"
+                    )
 
                 if not matching_hosts:
                     if self._log_debug:
-                        self.config.ir.logger.debug(f"          reject: no hosts match {sorted(rv.route['_host_constraints'])}")
+                        self.config.ir.logger.debug(
+                            f"          reject: no hosts match {sorted(rv.route['_host_constraints'])}"
+                        )
                     continue
 
                 for host in matching_hosts:
@@ -777,20 +839,20 @@ class V3Listener:
                     if (host.secure_action is not None) and (self._security_model != "INSECURE"):
                         # We have a secure action, and we're willing to believe that at least some of
                         # our requests will be secure.
-                        matcher = 'always' if (self._security_model == 'SECURE') else 'xfp-https'
+                        matcher = "always" if (self._security_model == "SECURE") else "xfp-https"
 
-                        candidates.append(( host, matcher, 'Route', rv ))
+                        candidates.append((host, matcher, "Route", rv))
 
                     if (host.insecure_action is not None) and (self._security_model != "SECURE"):
                         # We have an insecure action, and we're willing to believe that at least some of
                         # our requests will be insecure.
-                        matcher = 'always' if (self._security_model == 'INSECURE') else 'xfp-http'
+                        matcher = "always" if (self._security_model == "INSECURE") else "xfp-http"
                         action = host.insecure_action
 
-                        candidates.append(( host, matcher, action, rv ))
+                        candidates.append((host, matcher, action, rv))
 
                     for host, matcher, action, rv in candidates:
-                        route_precedence = rv.route.get('_precedence', None)
+                        route_precedence = rv.route.get("_precedence", None)
                         extra_info = ""
 
                         if rv.route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
@@ -799,26 +861,34 @@ class V3Listener:
                             extra_info = " (force Route for ACME challenge)"
                             action = "Route"
                             found_acme = True
-                        elif (self.config.ir.edge_stack_allowed and
-                                (route_precedence == -1000000) and
-                                (rv.route["match"].get("safe_regex", {}).get("regex", None) == "^/$")):
+                        elif (
+                            self.config.ir.edge_stack_allowed
+                            and (route_precedence == -1000000)
+                            and (
+                                rv.route["match"].get("safe_regex", {}).get("regex", None) == "^/$"
+                            )
+                        ):
                             extra_info = " (force Route for fallback Mapping)"
                             action = "Route"
 
-                        if action != 'Reject':
+                        if action != "Reject":
                             # Worth noting here that "Route" really means "do what the V3Route really
                             # says", which might be a host redirect. When we talk about "Redirect", we
                             # really mean "redirect to HTTPS" specifically.
 
                             if self._log_debug:
-                                self.config.ir.logger.debug(f"          route: accept matcher={matcher} action={action} {extra_info}")
+                                self.config.ir.logger.debug(
+                                    f"          route: accept matcher={matcher} action={action} {extra_info}"
+                                )
 
                             variant = dict(rv.get_variant(matcher, action.lower()))
-                            variant["_host_constraints"] = set([ hostname ])
+                            variant["_host_constraints"] = set([hostname])
                             chain.add_route(variant)
                         else:
                             if self._log_debug:
-                                self.config.ir.logger.debug(f"          route: reject matcher={matcher} action={action} {extra_info}")
+                                self.config.ir.logger.debug(
+                                    f"          route: reject matcher={matcher} action={action} {extra_info}"
+                                )
 
             # If we're on Edge Stack and we don't already have an ACME route, add one.
             if self.config.ir.edge_stack_allowed and not found_acme:
@@ -828,7 +898,9 @@ class V3Listener:
 
                 if not self.config.ir.sidecar_cluster_name:
                     # Uh whut? how is Edge Stack running exactly?
-                    raise Exception("Edge Stack claims to be running, but we have no sidecar cluster??")
+                    raise Exception(
+                        "Edge Stack claims to be running, but we have no sidecar cluster??"
+                    )
 
                 self.config.ir.logger.debug("      punching a hole for ACME")
 
@@ -836,18 +908,18 @@ class V3Listener:
                 #
                 # XXX This is needed only because we're dictifying the V3Route too early.
 
-                chain.routes.insert(0, {
-                    "_host_constraints": set(),
-                    "match": {
-                        "case_sensitive": True,
-                        "prefix": "/.well-known/acme-challenge/"
+                chain.routes.insert(
+                    0,
+                    {
+                        "_host_constraints": set(),
+                        "match": {"case_sensitive": True, "prefix": "/.well-known/acme-challenge/"},
+                        "route": {
+                            "cluster": self.config.ir.sidecar_cluster_name,
+                            "prefix_rewrite": "/.well-known/acme-challenge/",
+                            "timeout": "3.000s",
+                        },
                     },
-                    "route": {
-                        "cluster": self.config.ir.sidecar_cluster_name,
-                        "prefix_rewrite": "/.well-known/acme-challenge/",
-                        "timeout": "3.000s"
-                    }
-                })
+                )
 
             if self._log_debug:
                 for route in chain.routes:
@@ -873,9 +945,17 @@ class V3Listener:
 
             filter_chain: Optional[Dict[str, Any]] = None
 
-            if not chain.context: # cleartext
+            if not chain.context:  # cleartext
+                # http/3 is built on quic which has TLS built-in. This means that our UDP Listener will only ever need routes
+                # that match the TLS Filter chain and will diverge from the TCP listener in that it will not support redirect
+                # therefore, we can exclude duplicating the filterchain and routes so hitting this endpoint using non-tls http will fail
+                if self.isProtocolUDP() and self.http3_enabled:
+                    continue
+
                 if self._log_debug:
-                    self._irlistener.logger.debug(f"      cleartext for hostglobs={chain.hostglobs()}")
+                    self._irlistener.logger.debug(
+                        f"      cleartext for hostglobs={chain.hostglobs()}"
+                    )
                 # All HTTP chains get collapsed into one here, using domains to separate them.
                 # This works because we don't need to offer TLS certs (we can't anyway), and
                 # because of that, SNI (and thus filter server_names matches) aren't things.
@@ -885,24 +965,30 @@ class V3Listener:
 
                 if not filter_chain:
                     if self._log_debug:
-                        self._irlistener.logger.debug("FHTTP   create filter_chain %s / empty match", chain_key)
+                        self._irlistener.logger.debug(
+                            "FHTTP   create filter_chain %s / empty match", chain_key
+                        )
                     filter_chain = {
                         "name": "httphost-shared",
                         "filter_chain_match": {},
-                        "_vhosts": {}
+                        "_vhosts": {},
                     }
 
                     filter_chains[chain_key] = filter_chain
                 else:
                     if self._log_debug:
-                        self._irlistener.logger.debug("FHTTP   use filter_chain %s: vhosts %d", chain_key, len(filter_chain["_vhosts"]))
-            else: # TLS/SNI
+                        self._irlistener.logger.debug(
+                            "FHTTP   use filter_chain %s: vhosts %d",
+                            chain_key,
+                            len(filter_chain["_vhosts"]),
+                        )
+            else:  # TLS/SNI
                 # Since chain_key is a dictionary key in its own right, we can't already
                 # have a matching chain for this.
 
                 filter_chain = {
                     "name": f"httpshost-{next(iter(chain.hosts.values())).name}",
-                    "_vhosts": {}
+                    "_vhosts": {},
                 }
                 filter_chain_match: Dict[str, Any] = {}
 
@@ -926,20 +1012,33 @@ class V3Listener:
                 # at all.
 
                 if (len(chain_hosts) > 0) and ("*" not in chain_hosts):
-                    filter_chain_match['server_names'] = chain_hosts
+                    filter_chain_match["server_names"] = chain_hosts
 
-                # Likewise, an HTTPS chain will ask for TLS.
-                filter_chain_match["transport_protocol"] = "tls"
+                # Likewise, an HTTPS chain will ask for TLS or QUIC (when udp)
+                filter_chain_match["transport_protocol"] = (
+                    "quic" if self.isProtocolUDP() and self.http3_enabled else "tls"
+                )
 
                 envoy_ctx = V3TLSContext(chain.context)
 
-                filter_chain['transport_socket'] = {
-                    'name': 'envoy.transport_sockets.tls',
-                    'typed_config': {
-                        '@type': 'type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext',
-                        **envoy_ctx
-                    }
+                envoy_tls_config = {
+                    "name": "envoy.transport_sockets.tls",
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext",
+                        **envoy_ctx,
+                    },
                 }
+
+                if self.isProtocolUDP():
+                    envoy_tls_config = {
+                        "name": "envoy.transport_sockets.quic",
+                        "typed_config": {
+                            "@type": "type.googleapis.com/envoy.extensions.transport_sockets.quic.v3.QuicDownstreamTransport",
+                            "downstream_tls_context": {**envoy_ctx},
+                        },
+                    }
+
+                filter_chain["transport_socket"] = envoy_tls_config
 
                 # Finally, stash the match in the chain...
                 filter_chain["filter_chain_match"] = filter_chain_match
@@ -961,7 +1060,7 @@ class V3Listener:
                 routes = []
 
                 for r in chain.routes:
-                    routes.append({ k: v for k, v in r.items() if k[0] != '_' })
+                    routes.append({k: v for k, v in r.items() if k[0] != "_"})
 
                 # Do we - somehow - already have a vhost for this hostname? (This should
                 # be "impossible".)
@@ -971,9 +1070,26 @@ class V3Listener:
                 if not vhost:
                     vhost = {
                         "name": f"{self.name}-{host.hostname}",
-                        "domains": [ host.hostname ],
-                        "routes": []
+                        "response_headers_to_add": [],
+                        "domains": [host.hostname],
+                        "routes": [],
                     }
+
+                    if self.http3_enabled and (self.socket_protocol == "TCP"):
+                        # Setting the alternative service header, tells the client to use the alternate location for future requests.
+                        # Clients such as chrome/firefox, etc... require this to instruct it to start speaking http/3 with the server.
+                        #
+                        # Additional reading on alt-svc header: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Alt-Svc
+                        #
+                        # The default sets the max-age in seconds to be 1 day and supports clients that speak h3 & h3-29 specifications
+                        alt_svc_hdr = {
+                            "key": "alt-svc",
+                            "value": f'h3=":443"; ma=86400, h3-29=":443"; ma=86400',
+                        }
+
+                        vhost["response_headers_to_add"].append({"header": alt_svc_hdr})
+                    else:
+                        del vhost["response_headers_to_add"]
 
                     filter_chain["_vhosts"][host.hostname] = vhost
 
@@ -985,21 +1101,25 @@ class V3Listener:
             http_config = dict(typecast(dict, self._base_http_config))
 
             # ...and unfold our vhosts dict into a list for Envoy.
-            http_config["route_config"] = {
-                "virtual_hosts": list(filter_chain["_vhosts"].values())
-            }
+            http_config["route_config"] = {"virtual_hosts": list(filter_chain["_vhosts"].values())}
 
             # Now that we've saved our vhosts as a list, drop the dict version.
-            del(filter_chain["_vhosts"])
+            del filter_chain["_vhosts"]
 
             # Finish up config for this filter chain...
-            if parse_bool(self.config.ir.ambassador_module.get("strip_matching_host_port", "false")):
+            if parse_bool(
+                self.config.ir.ambassador_module.get("strip_matching_host_port", "false")
+            ):
                 http_config["strip_matching_host_port"] = True
 
             if parse_bool(self.config.ir.ambassador_module.get("merge_slashes", "false")):
                 http_config["merge_slashes"] = True
 
-            if parse_bool(self.config.ir.ambassador_module.get("reject_requests_with_escaped_slashes", "false")):
+            if parse_bool(
+                self.config.ir.ambassador_module.get(
+                    "reject_requests_with_escaped_slashes", "false"
+                )
+            ):
                 http_config["path_with_escaped_slashes_action"] = "REJECT_REQUEST"
 
             filter_chain["filters"] = [
@@ -1007,8 +1127,8 @@ class V3Listener:
                     "name": "envoy.filters.network.http_connection_manager",
                     "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
-                        **http_config
-                    }
+                        **http_config,
+                    },
                 }
             ]
 
@@ -1016,23 +1136,29 @@ class V3Listener:
             self._filter_chains.append(filter_chain)
 
     def as_dict(self) -> dict:
-        listener = {
+        listener: dict = {
             "name": self.name,
             "address": {
                 "socket_address": {
                     "address": self.bind_address,
                     "port_value": self.port,
-                    "protocol": "TCP"
+                    "protocol": self.socket_protocol,  ## "TCP" or "UDP"
                 }
             },
             "filter_chains": self._filter_chains,
-            "traffic_direction": self.traffic_direction
+            "traffic_direction": self.traffic_direction,
         }
+
+        if self.isProtocolUDP():
+            listener["udp_listener_config"] = {
+                "quic_options": {},
+                "downstream_socket_config": {"prefer_gro": True},
+            }
 
         # We only want to add the buffer limit setting to the listener if specified in the module.
         # Otherwise, we want to leave it unset and allow Envoys Default 1MiB setting.
         if self.per_connection_buffer_limit_bytes:
-            listener['per_connection_buffer_limit_bytes'] = self.per_connection_buffer_limit_bytes
+            listener["per_connection_buffer_limit_bytes"] = self.per_connection_buffer_limit_bytes
 
         if self.listener_filters:
             listener["listener_filters"] = self.listener_filters
@@ -1042,11 +1168,22 @@ class V3Listener:
     def __str__(self) -> str:
         return "<V3Listener %s %s on %s:%d [%s]>" % (
             "HTTP" if self._base_http_config else "TCP",
-            self.name, self.bind_address, self.port, self._security_model
+            self.name,
+            self.bind_address,
+            self.port,
+            self._security_model,
         )
 
+    def isProtocolTCP(self) -> bool:
+        """Whether the listener is configured to use the TCP protocol or not?"""
+        return self.socket_protocol == "TCP"
+
+    def isProtocolUDP(self) -> bool:
+        """Whether the listener is configured to use the UDP protocol or not?"""
+        return self.socket_protocol == "UDP"
+
     @classmethod
-    def generate(cls, config: 'V3Config') -> None:
+    def generate(cls, config: "V3Config") -> None:
         config.listeners = []
 
         for key in config.ir.listeners.keys():

@@ -21,7 +21,7 @@ package v2
 
 import (
 	"encoding/json"
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -2635,6 +2635,13 @@ func (in *TracingServiceSpec) DeepCopyInto(out *TracingServiceSpec) {
 		in, out := &in.Config, &out.Config
 		*out = new(TraceConfig)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.V3CustomTags != nil {
+		in, out := &in.V3CustomTags, &out.V3CustomTags
+		*out = make([]v3alpha1.TracingCustomTag, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 }
 

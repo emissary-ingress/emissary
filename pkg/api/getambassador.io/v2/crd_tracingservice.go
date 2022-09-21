@@ -20,7 +20,7 @@
 package v2
 
 import (
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -60,6 +60,8 @@ type TracingServiceSpec struct {
 
 	// +k8s:conversion-gen:rename=StatsName
 	V3StatsName string `json:"v3StatsName,omitempty"`
+	// +k8s:conversion-gen:rename=CustomTags
+	V3CustomTags []v3alpha1.TracingCustomTag `json:"v3CustomTags,omitempty"`
 }
 
 // TracingService is the Schema for the tracingservices API

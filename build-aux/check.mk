@@ -59,8 +59,10 @@ docker/kat-server.img.tar.clean: docker/kat-server.rm-r
 #
 # Helm tests
 
-test-chart-values.yaml: docker/emissary.docker.push.remote
+test-chart-values.yaml: docker/emissary.docker.push.remote build-aux/check.mk
 	{ \
+	  echo 'test:'; \
+	  echo '  enabled: true'; \
 	  echo 'image:'; \
 	  sed -E -n '2s/^(.*):.*/  repository: \1/p' < $<; \
 	  sed -E -n '2s/.*:/  tag: /p' < $<; \

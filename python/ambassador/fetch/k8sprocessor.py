@@ -1,12 +1,10 @@
-from typing import FrozenSet, List, Mapping, Set
-
 import collections
 import logging
+from typing import FrozenSet, List, Mapping, Set
 
 from ..config import Config
-
 from .dependency import DependencyInjector
-from .k8sobject import KubernetesGVK, KubernetesObjectScope, KubernetesObjectKey, KubernetesObject
+from .k8sobject import KubernetesGVK, KubernetesObject, KubernetesObjectKey, KubernetesObjectScope
 from .resource import ResourceManager
 
 
@@ -54,7 +52,7 @@ class KubernetesProcessor:
         pass
 
 
-class ManagedKubernetesProcessor (KubernetesProcessor):
+class ManagedKubernetesProcessor(KubernetesProcessor):
     """
     An abstract processor that provides access to a resource manager.
     """
@@ -77,7 +75,7 @@ class ManagedKubernetesProcessor (KubernetesProcessor):
         return self.manager.deps.for_instance(self)
 
 
-class AggregateKubernetesProcessor (KubernetesProcessor):
+class AggregateKubernetesProcessor(KubernetesProcessor):
     """
     This processor aggregates many other processors into a single convenient
     processor.
@@ -107,7 +105,7 @@ class AggregateKubernetesProcessor (KubernetesProcessor):
             proc.finalize()
 
 
-class DeduplicatingKubernetesProcessor (KubernetesProcessor):
+class DeduplicatingKubernetesProcessor(KubernetesProcessor):
     """
     This processor delegates work to another processor but prevents the same
     Kubernetes object from being processed multiple times.
@@ -134,7 +132,7 @@ class DeduplicatingKubernetesProcessor (KubernetesProcessor):
         self.delegate.finalize()
 
 
-class CountingKubernetesProcessor (KubernetesProcessor):
+class CountingKubernetesProcessor(KubernetesProcessor):
     """
     This processor increments a given configuration counter when it receives an
     object.

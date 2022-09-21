@@ -12,15 +12,15 @@ import (
 
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 
-	"github.com/datawire/ambassador/v2/pkg/acp"
-	"github.com/datawire/ambassador/v2/pkg/ambex"
-	"github.com/datawire/ambassador/v2/pkg/debug"
-	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
-	"github.com/datawire/ambassador/v2/pkg/gateway"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
+	"github.com/emissary-ingress/emissary/v3/pkg/acp"
+	"github.com/emissary-ingress/emissary/v3/pkg/ambex"
+	"github.com/emissary-ingress/emissary/v3/pkg/debug"
+	ecp_v3_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/gateway"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
 func WatchAllTheThings(
@@ -56,7 +56,7 @@ func WatchAllTheThings(
 	interestingTypes := GetInterestingTypes(ctx, serverTypeList)
 	queries := GetQueries(ctx, interestingTypes)
 
-	ambassadorMeta := getAmbassadorMeta(GetAmbassadorId(), clusterID, version, client)
+	ambassadorMeta := getAmbassadorMeta(GetAmbassadorID(), clusterID, version, client)
 
 	// **** SETUP DONE for the Kubernetes Watcher
 
@@ -146,38 +146,40 @@ type FastpathProcessor func(context.Context, *ambex.FastpathSnapshot)
 // might expect. There are two really huge things you should be bearing in mind if you
 // need to work on this:
 //
-// 1. The set of things we're watching is not static, but it must converge.
+//  1. The set of things we're watching is not static, but it must converge.
 //
-//    An example: you can set up a Kubernetes watch that finds a KubernetesConsulResolver
-//    resource, which will then prompt a new Consul watch to happen. At present, nothing
-//    that that Consul watch could find is capable of prompting a new Kubernetes watch to
-//    be created. This is important: it would be fairly easy to change things such that
-//    there is a feedback loop where the set of things we watch does not converge on a
-//    stable set. If such a loop exists, fixing it will probably require grokking this
-//    watcher function, kates.Accumulator, and maybe the reconcilers in consul.go and
-//    endpoints.go as well.
+//     An example: you can set up a Kubernetes watch that finds a KubernetesConsulResolver
+//     resource, which will then prompt a new Consul watch to happen. At present, nothing
+//     that that Consul watch could find is capable of prompting a new Kubernetes watch to
+//     be created. This is important: it would be fairly easy to change things such that
+//     there is a feedback loop where the set of things we watch does not converge on a
+//     stable set. If such a loop exists, fixing it will probably require grokking this
+//     watcher function, kates.Accumulator, and maybe the reconcilers in consul.go and
+//     endpoints.go as well.
 //
-// 2. No one source of input events can be allowed to alter the event stream for another
-//    source.
+//  2. No one source of input events can be allowed to alter the event stream for another
+//     source.
 //
-//    An example: at one point, a bug in the watcher function resulted in the Kubernetes
-//    watcher being able to decide to short-circuit a watcher iteration -- which had the
-//    effect of allowing the K8s watcher to cause _Consul_ events to be ignored. That's
-//    not OK. To guard against this:
+//     An example: at one point, a bug in the watcher function resulted in the Kubernetes
+//     watcher being able to decide to short-circuit a watcher iteration -- which had the
+//     effect of allowing the K8s watcher to cause _Consul_ events to be ignored. That's
+//     not OK. To guard against this:
 //
-//    A. Refrain from adding state to the watcher loop.
-//    B. Try very very hard to keep logic that applies to a single source within that
-//       source's specific case in the watcher's select statement.
-//    C. Don't add any more select statements, so that B. above is unambiguous.
+//     A. Refrain from adding state to the watcher loop.
 //
-// 3. If you add a new channel to watch, you MUST make sure it has a way to let the loop
-//    know whether it saw real changes, so that the short-circuit logic works correctly.
-//    That said, recognize that the way it works now, with the state for the individual
-//    watchers in the watcher() function itself is a crock, and the path forward is to
-//    refactor them into classes that can separate things more cleanly.
+//     B. Try very very hard to keep logic that applies to a single source within that
+//     source's specific case in the watcher's select statement.
 //
-// 4. If you don't fully understand everything above, _do not touch this function without
-//    guidance_.
+//     C. Don't add any more select statements, so that B. above is unambiguous.
+//
+//  3. If you add a new channel to watch, you MUST make sure it has a way to let the loop
+//     know whether it saw real changes, so that the short-circuit logic works correctly.
+//     That said, recognize that the way it works now, with the state for the individual
+//     watchers in the watcher() function itself is a crock, and the path forward is to
+//     refactor them into classes that can separate things more cleanly.
+//
+//  4. If you don't fully understand everything above, _do not touch this function without
+//     guidance_.
 func watchAllTheThingsInternal(
 	ctx context.Context,
 	encoded *atomic.Value,
@@ -384,11 +386,12 @@ func (sh *SnapshotHolder) K8sUpdate(
 	reconcileSecretsTimer := dbg.Timer("reconcileSecrets")
 	reconcileConsulTimer := dbg.Timer("reconcileConsul")
 	reconcileAuthServicesTimer := dbg.Timer("reconcileAuthServices")
+	reconcileRateLimitServicesTimer := dbg.Timer("reconcileRateLimitServices")
 
 	endpointsChanged := false
 	dispatcherChanged := false
 	var endpoints *ambex.Endpoints
-	var dispSnapshot *ecp_v2_cache.Snapshot
+	var dispSnapshot *ecp_v3_cache.Snapshot
 	changed, err := func() (bool, error) {
 		dlog.Debugf(ctx, "[WATCHER]: processing cluster changes detected by the kubernetes watcher")
 		sh.mutex.Lock()
@@ -468,6 +471,13 @@ func (sh *SnapshotHolder) K8sUpdate(
 			dlog.Errorf(ctx, "[WATCHER]: ERROR reconciling AuthServices: %v", err)
 			return false, err
 		}
+		reconcileRateLimitServicesTimer.Time(func() {
+			err = ReconcileRateLimit(ctx, sh, &deltas)
+		})
+		if err != nil {
+			dlog.Errorf(ctx, "[WATCHER]: ERROR reconciling RateLimitServices: %v", err)
+			return false, err
+		}
 
 		sh.endpointRoutingInfo.reconcileEndpointWatches(ctx, sh.k8sSnapshot)
 		// Check if the set of endpoints we are interested in has changed. If so we need to send
@@ -522,7 +532,13 @@ func (sh *SnapshotHolder) K8sUpdate(
 					dlog.Error(ctx, err)
 				}
 			}
+
 			_, dispSnapshot = sh.dispatcher.GetSnapshot(ctx)
+			if dispSnapshot == nil {
+				err := fmt.Errorf("[Dispatch Snapshot]: unable to get valid snapshot")
+				dlog.Error(ctx, err)
+				return false, err
+			}
 		}
 		return true, nil
 	}()
@@ -543,7 +559,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 
 func (sh *SnapshotHolder) ConsulUpdate(ctx context.Context, consulWatcher *consulWatcher, fastpathProcessor FastpathProcessor) bool {
 	var endpoints *ambex.Endpoints
-	var dispSnapshot *ecp_v2_cache.Snapshot
+	var dispSnapshot *ecp_v3_cache.Snapshot
 	func() {
 		sh.mutex.Lock()
 		defer sh.mutex.Unlock()
