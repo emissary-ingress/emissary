@@ -1097,6 +1097,7 @@ def show_overview(reqid=None):
         else:
             return jsonify(tvars)
     else:
+        app.logger.debug("oveeerthereis %s" % dump_json(tvars, pretty=True))
         app.check_scout("overview")
         return Response(render_template("overview.html", **tvars))
 
