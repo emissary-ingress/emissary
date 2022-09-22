@@ -118,17 +118,6 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   Emissary-ingress now allows `TCPMappings` to be used on the same `Listener` port as HTTP `Hosts`,
   as long as that `Listener` terminates TLS.
 
-## [1.14.5] TBD
-[1.14.5]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v1.14.5
-
-### Emissary-ingress and Ambassador Edge Stack
-
-- Bugfix: When using gzip compression, upstream services will no longer receive compressed data.
-  This bug was introduced in 1.14.0. The fix restores the default behavior of not sending compressed
-  data to upstream services. ([3818])
-
-[3818]: https://github.com/emissary-ingress/emissary/issues/3818
-
 ## [2.3.2] August 01, 2022
 [2.3.2]: https://github.com/emissary-ingress/emissary/compare/v2.3.1...v2.3.2
 

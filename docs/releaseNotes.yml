@@ -90,7 +90,7 @@ items:
           <code>Listener</code> terminates TLS.
 
   - version: 1.14.5
-    date: 'TBD'
+    date: 'unplanned'
     notes:
       - title: When using gzip, upstreams will no longer receive encoded data
         type: bugfix
