@@ -558,7 +558,7 @@ class Diagnostics:
                     "type": type_name,
                     "_source": svc.location,
                     "name": url,
-                    "cluster": cluster.envoy_name,
+                    "cluster": cluster.name,
                     "_service_weight": svc_weight,
                 }
             )
