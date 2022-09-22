@@ -132,12 +132,11 @@ class AutoHostRewrite(OptionTest):
         for r in self.parent.results:
             assert r.backend
             assert r.backend.request
-            request_host = r.backend.request.host
-            response_host = self.parent.get_fqdn(r.backend.name)
+            requested_host_echoed = r.backend.request.host
+            responding_host = r.backend.name
 
-            assert (
-                response_host == request_host
-            ), f"backend {response_host} != request host {request_host}"
+            assert requested_host_echoed == self.parent.target.path.fqdn
+            assert responding_host == self.parent.target.path.k8s
 
 
 class Rewrite(OptionTest):

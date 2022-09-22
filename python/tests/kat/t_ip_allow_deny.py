@@ -48,7 +48,7 @@ class IPAllow(AmbassadorTest):
 apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
-  name: {self.name.k8s}-listener
+  name: {self.path.k8s}-listener
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
@@ -148,7 +148,7 @@ class IPDeny(AmbassadorTest):
 apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
-  name: {self.name.k8s}-listener
+  name: {self.path.k8s}-listener
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:

@@ -1926,18 +1926,18 @@ config:
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 metadata:
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   alpn_protocols: "h2,http/1.1"
   hosts:
   - a.domain.com
-  secret: {self.name.k8s}
+  secret: {self.path.k8s}
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}
+  name: {self.path.k8s}
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
@@ -1952,7 +1952,7 @@ data:
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
-  name: {self.name.k8s}-target-mapping
+  name: {self.path.k8s}-target-mapping
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   prefix: /foo

@@ -1,7 +1,8 @@
 import json
-from typing import Generator, Tuple, Union
+from random import random
+from typing import ClassVar, Generator, Tuple, Union
 
-from abstract_tests import AHTTP, HTTP, AmbassadorTest, Node
+from abstract_tests import AHTTP, HTTP, AmbassadorTest, Node, ServiceType
 from ambassador import Config
 from kat.harness import EDGE_STACK, Query
 
@@ -14,21 +15,25 @@ from kat.harness import EDGE_STACK, Query
 check_phase = 3
 
 
-class TracingTest(AmbassadorTest):
-    def init(self):
-        self.target = HTTP()
+class Zipkin(ServiceType):
+    skip_variant: ClassVar[bool] = True
 
-    def manifests(self) -> str:
-        return (
-            """
+    def __init__(self, *args, **kwargs) -> None:
+        # We want to reset Zipkin between test runs.  StatsD has a handy "reset" call that can do
+        # this... but the only way to reset Zipkin is to roll over the Pod.  So, 'nonce' is a
+        # horrible hack to get the Pod to roll over each invocation.
+        self.nonce = random()
+        kwargs[
+            "service_manifests"
+        ] = """
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: zipkin
+  name: {self.path.k8s}
 spec:
   selector:
-    app: zipkin
+    backend: {self.path.k8s}
   ports:
   - port: 9411
     name: http
@@ -38,18 +43,18 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zipkin
+  name: {self.path.k8s}
 spec:
   selector:
     matchLabels:
-      app: zipkin
+      backend: {self.path.k8s}
   replicas: 1
   strategy:
-    type: RollingUpdate
+    type: Recreate # rolling would be bad with the nonce hack
   template:
     metadata:
       labels:
-        app: zipkin
+        backend: {self.path.k8s}
     spec:
       containers:
       - name: zipkin
@@ -57,9 +62,20 @@ spec:
         ports:
         - name: http
           containerPort: 9411
+        env:
+        - name: _nonce
+          value: '{self.nonce}'
 """
-            + super().manifests()
-        )
+        super().__init__(*args, **kwargs)
+
+    def requirements(self):
+        yield ("url", Query(f"http://{self.path.fqdn}:9411/api/v2/services"))
+
+
+class TracingTest(AmbassadorTest):
+    def init(self):
+        self.target = HTTP()
+        self.zipkin = Zipkin()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
@@ -84,7 +100,7 @@ service: {self.target.path.fqdn}
 apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing
-service: zipkin:9411
+service: {self.zipkin.path.fqdn}:9411
 driver: zipkin
 tag_headers:
   - "x-watsup"
@@ -103,10 +119,6 @@ custom_tags:
 """
         )
 
-    def requirements(self):
-        yield from super().requirements()
-        yield ("url", Query("http://zipkin:9411/api/v2/services"))
-
     def queries(self):
         # Speak through each Ambassador to the traced service...
 
@@ -119,12 +131,14 @@ custom_tags:
 
         # ...then ask the Zipkin for services and spans. Including debug=True in these queries
         # is particularly helpful.
-        yield Query("http://zipkin:9411/api/v2/services", phase=check_phase)
+        yield Query(f"http://{self.zipkin.path.fqdn}:9411/api/v2/services", phase=check_phase)
         yield Query(
-            "http://zipkin:9411/api/v2/spans?serviceName=tracingtest-default", phase=check_phase
+            f"http://{self.zipkin.path.fqdn}:9411/api/v2/spans?serviceName=tracingtest-default",
+            phase=check_phase,
         )
         yield Query(
-            "http://zipkin:9411/api/v2/traces?serviceName=tracingtest-default", phase=check_phase
+            f"http://{self.zipkin.path.fqdn}:9411/api/v2/traces?serviceName=tracingtest-default",
+            phase=check_phase,
         )
 
         # The diagnostics page should load properly
@@ -146,9 +160,11 @@ custom_tags:
         assert self.results[101].backend
         assert self.results[101].backend.name == "raw"
 
-        tracelist = {x: True for x in self.results[101].backend.response}
-
-        assert "router cluster_tracingtest_http_default egress" in tracelist
+        tracelist = set(x for x in self.results[101].backend.response)
+        print(f"tracelist = {tracelist}")
+        assert (
+            "router cluster_tracingtest_http_default_svc_cluster_local_default egress" in tracelist
+        )
 
         # Look for the host that we actually queried, since that's what appears in the spans.
         assert self.results[0].backend
@@ -172,49 +188,11 @@ custom_tags:
 class TracingTestLongClusterName(AmbassadorTest):
     def init(self):
         self.target = HTTP()
-
-    def manifests(self) -> str:
-        return (
-            """
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: zipkinservicenamewithoversixtycharacterstoforcenamecompression
-spec:
-  selector:
-    app: zipkin-longclustername
-  ports:
-  - port: 9411
-    name: http
-    targetPort: http
-  type: ClusterIP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: zipkin-longclustername
-spec:
-  selector:
-    matchLabels:
-      app: zipkin-longclustername
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: zipkin-longclustername
-    spec:
-      containers:
-      - name: zipkin
-        image: openzipkin/zipkin:2.17
-        ports:
-        - name: http
-          containerPort: 9411
-"""
-            + super().manifests()
-        )
+        # The full name ends up being `{testname}-{zipkin}-{name}`; so the name we pass in doesn't
+        # need to be as long as you'd think.  Down in check() we'll do some asserts on
+        # self.zipkin.path.fqdn to make sure we got the desired length correct (we can't do those
+        # checks here because .path isn't populated yet during init()).
+        self.zipkin = Zipkin(name="longnamethatforcescompression")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
@@ -239,18 +217,9 @@ service: {self.target.path.fqdn}
 apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing-longclustername
-service: zipkinservicenamewithoversixtycharacterstoforcenamecompression:9411
+service: {self.zipkin.path.fqdn}:9411
 driver: zipkin
 """
-        )
-
-    def requirements(self):
-        yield from super().requirements()
-        yield (
-            "url",
-            Query(
-                "http://zipkinservicenamewithoversixtycharacterstoforcenamecompression:9411/api/v2/services"
-            ),
         )
 
     def queries(self):
@@ -262,15 +231,15 @@ driver: zipkin
         # ...then ask the Zipkin for services and spans. Including debug=True in these queries
         # is particularly helpful.
         yield Query(
-            "http://zipkinservicenamewithoversixtycharacterstoforcenamecompression:9411/api/v2/services",
+            f"http://{self.zipkin.path.fqdn}:9411/api/v2/services",
             phase=check_phase,
         )
         yield Query(
-            "http://zipkinservicenamewithoversixtycharacterstoforcenamecompression:9411/api/v2/spans?serviceName=tracingtestlongclustername-default",
+            f"http://{self.zipkin.path.fqdn}:9411/api/v2/spans?serviceName=tracingtestlongclustername-default",
             phase=check_phase,
         )
         yield Query(
-            "http://zipkinservicenamewithoversixtycharacterstoforcenamecompression:9411/api/v2/traces?serviceName=tracingtestlongclustername-default",
+            f"http://{self.zipkin.path.fqdn}:9411/api/v2/traces?serviceName=tracingtestlongclustername-default",
             phase=check_phase,
         )
 
@@ -279,6 +248,9 @@ driver: zipkin
         yield Query(self.url("ambassador/v0/diag/"), phase=check_phase)
 
     def check(self):
+        assert len(self.zipkin.path.fqdn.split(".")[0]) > 60
+        assert len(self.zipkin.path.fqdn.split(".")[0]) < 64
+
         for i in range(100):
             result = self.results[i]
             assert result.backend
@@ -294,9 +266,11 @@ driver: zipkin
         assert self.results[101].backend
         assert self.results[101].backend.name == "raw"
 
-        tracelist = {x: True for x in self.results[101].backend.response}
-
-        assert "router cluster_tracingtestlongclustername_http_default egress" in tracelist
+        tracelist = set(x for x in self.results[101].backend.response)
+        print(f"tracelist = {tracelist}")
+        assert (
+            "router cluster_tracingtestlongclustername_http_-2dc66d6d73240537-0 egress" in tracelist
+        )
 
         # Look for the host that we actually queried, since that's what appears in the spans.
         assert self.results[0].backend
@@ -312,49 +286,7 @@ driver: zipkin
 class TracingTestShortTraceId(AmbassadorTest):
     def init(self):
         self.target = HTTP()
-
-    def manifests(self) -> str:
-        return (
-            """
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: zipkin-64
-spec:
-  selector:
-    app: zipkin-64
-  ports:
-  - port: 9411
-    name: http
-    targetPort: http
-  type: ClusterIP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: zipkin-64
-spec:
-  selector:
-    matchLabels:
-      app: zipkin-64
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: zipkin-64
-    spec:
-      containers:
-      - name: zipkin
-        image: openzipkin/zipkin:2.17
-        ports:
-        - name: http
-          containerPort: 9411
-"""
-            + super().manifests()
-        )
+        self.zipkin = Zipkin()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
@@ -373,20 +305,18 @@ service: {self.target.path.fqdn}
         )
 
         # Configure the TracingService.
-        yield self, """
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing-64
-service: zipkin-64:9411
+service: {self.zipkin.path.fqdn}:9411
 driver: zipkin
 config:
   trace_id_128bit: false
 """
-
-    def requirements(self):
-        yield from super().requirements()
-        yield ("url", Query("http://zipkin-64:9411/api/v2/services"))
+        )
 
     def queries(self):
         # Speak through each Ambassador to the traced service...
@@ -394,7 +324,7 @@ config:
 
         # ...then ask the Zipkin for services and spans. Including debug=True in these queries
         # is particularly helpful.
-        yield Query("http://zipkin-64:9411/api/v2/traces", phase=check_phase)
+        yield Query(f"http://{self.zipkin.path.fqdn}:9411/api/v2/traces", phase=check_phase)
 
         # The diagnostics page should load properly
         yield Query(self.url("ambassador/v0/diag/"), phase=check_phase)
@@ -414,49 +344,7 @@ class TracingExternalAuthTest(AmbassadorTest):
             self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
-
-    def manifests(self) -> str:
-        return (
-            """
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: zipkin-auth
-spec:
-  selector:
-    app: zipkin-auth
-  ports:
-  - port: 9411
-    name: http
-    targetPort: http
-  type: ClusterIP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: zipkin-auth
-spec:
-  selector:
-    matchLabels:
-      app: zipkin-auth
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: zipkin-auth
-    spec:
-      containers:
-      - name: zipkin-auth
-        image: openzipkin/zipkin:2.17
-        ports:
-        - name: http
-          containerPort: 9411
-"""
-            + super().manifests()
-        )
+        self.zipkin = Zipkin()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format(
@@ -477,7 +365,7 @@ service: {self.target.path.fqdn}
 apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing-auth
-service: zipkin-auth:9411
+service: {self.zipkin.path.k8s}:9411
 driver: zipkin
 """
         )
@@ -495,10 +383,6 @@ allowed_request_headers:
 - Kat-Req-Extauth-Requested-Header
 """
         )
-
-    def requirements(self):
-        yield from super().requirements()
-        yield ("url", Query("http://zipkin-auth:9411/api/v2/services"))
 
     def queries(self):
         yield Query(
@@ -530,49 +414,7 @@ class TracingTestSampling(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
-
-    def manifests(self) -> str:
-        return (
-            """
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: zipkin-65
-spec:
-  selector:
-    app: zipkin-65
-  ports:
-  - port: 9411
-    name: http
-    targetPort: http
-  type: ClusterIP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: zipkin-65
-spec:
-  selector:
-    matchLabels:
-      app: zipkin-65
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: zipkin-65
-    spec:
-      containers:
-      - name: zipkin
-        image: openzipkin/zipkin:2.17
-        ports:
-        - name: http
-          containerPort: 9411
-"""
-            + super().manifests()
-        )
+        self.zipkin = Zipkin()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
@@ -591,20 +433,18 @@ service: {self.target.path.fqdn}
         )
 
         # Configure the TracingService.
-        yield self, """
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing-65
-service: zipkin-65:9411
+service: {self.zipkin.path.fqdn}:9411
 driver: zipkin
 sampling:
   overall: 10
 """
-
-    def requirements(self):
-        yield from super().requirements()
-        yield ("url", Query("http://zipkin-65:9411/api/v2/services"))
+        )
 
     def queries(self):
         # Speak through each Ambassador to the traced service...
@@ -613,7 +453,9 @@ sampling:
 
         # ...then ask the Zipkin for services and spans. Including debug=True in these queries
         # is particularly helpful.
-        yield Query("http://zipkin-65:9411/api/v2/traces?limit=10000", phase=check_phase)
+        yield Query(
+            f"http://{self.zipkin.path.fqdn}:9411/api/v2/traces?limit=10000", phase=check_phase
+        )
 
         # The diagnostics page should load properly
         yield Query(self.url("ambassador/v0/diag/"), phase=check_phase)
@@ -639,49 +481,7 @@ class TracingTestZipkinV2(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
-
-    def manifests(self) -> str:
-        return (
-            """
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: zipkin-v2
-spec:
-  selector:
-    app: zipkin-v2
-  ports:
-  - port: 9411
-    name: http
-    targetPort: http
-  type: ClusterIP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: zipkin-v2
-spec:
-  selector:
-    matchLabels:
-      app: zipkin-v2
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: zipkin-v2
-    spec:
-      containers:
-      - name: zipkin
-        image: openzipkin/zipkin:2.17
-        ports:
-        - name: http
-          containerPort: 9411
-"""
-            + super().manifests()
-        )
+        self.zipkin = Zipkin()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
@@ -705,18 +505,18 @@ service: {self.target.path.fqdn}
 apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing
-service: zipkin-v2:9411
+service: {self.zipkin.path.fqdn}:9411
 driver: zipkin
 config:
   collector_endpoint: /api/v2/spans
   collector_endpoint_version: HTTP_JSON
-  collector_hostname: zipkin-v2
+  collector_hostname: {self.zipkin.path.fqdn}
 """
         )
 
     def requirements(self):
         yield from super().requirements()
-        yield ("url", Query("http://zipkin-v2:9411/api/v2/services"))
+        yield ("url", Query(f"http://{self.zipkin.path.fqdn}:9411/api/v2/services"))
 
     def queries(self):
         # Speak through each Ambassador to the traced service...
@@ -726,13 +526,13 @@ config:
 
         # ...then ask the Zipkin for services and spans. Including debug=True in these queries
         # is particularly helpful.
-        yield Query("http://zipkin-v2:9411/api/v2/services", phase=check_phase)
+        yield Query(f"http://{self.zipkin.path.fqdn}:9411/api/v2/services", phase=check_phase)
         yield Query(
-            "http://zipkin-v2:9411/api/v2/spans?serviceName=tracingtestzipkinv2-default",
+            f"http://{self.zipkin.path.fqdn}:9411/api/v2/spans?serviceName=tracingtestzipkinv2-default",
             phase=check_phase,
         )
         yield Query(
-            "http://zipkin-v2:9411/api/v2/traces?serviceName=tracingtestzipkinv2-default",
+            f"http://{self.zipkin.path.fqdn}:9411/api/v2/traces?serviceName=tracingtestzipkinv2-default",
             phase=check_phase,
         )
 
@@ -755,9 +555,11 @@ config:
         assert self.results[101].backend
         assert self.results[101].backend.name == "raw"
 
-        tracelist = {x: True for x in self.results[101].backend.response}
-
-        assert "router cluster_tracingtestzipkinv2_http_default egress" in tracelist
+        tracelist = set(x for x in self.results[101].backend.response)
+        print(f"tracelist = {tracelist}")
+        assert (
+            "router cluster_tracingtestzipkinv2_http_default-606ec0a62fedc99c-0 egress" in tracelist
+        )
 
         # Look for the host that we actually queried, since that's what appears in the spans.
         assert self.results[0].backend
@@ -777,49 +579,7 @@ class TracingTestZipkinV1(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
-
-    def manifests(self) -> str:
-        return (
-            """
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: zipkin-v1
-spec:
-  selector:
-    app: zipkin-v1
-  ports:
-  - port: 9411
-    name: http
-    targetPort: http
-  type: ClusterIP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: zipkin-v1
-spec:
-  selector:
-    matchLabels:
-      app: zipkin-v1
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: zipkin-v1
-    spec:
-      containers:
-      - name: zipkin
-        image: openzipkin/zipkin:2.17
-        ports:
-        - name: http
-          containerPort: 9411
-"""
-            + super().manifests()
-        )
+        self.zipkin = Zipkin()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         # Use self.target here, because we want this mapping to be annotated
@@ -844,18 +604,14 @@ service: {self.target.path.fqdn}
 apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing
-service: zipkin-v1:9411
+service: {self.zipkin.path.fqdn}:9411
 driver: zipkin
 config:
   collector_endpoint: /api/v1/spans
   collector_endpoint_version: HTTP_JSON_V1
-  collector_hostname: zipkin-v1
+  collector_hostname: {self.zipkin.path.fqdn}
 """
         )
-
-    def requirements(self):
-        yield from super().requirements()
-        yield ("url", Query("http://zipkin-v1:9411/api/v2/services"))
 
     def queries(self):
         # Speak through each Ambassador to the traced service...
@@ -864,15 +620,15 @@ config:
             yield Query(self.url("target/"), phase=1)
 
         # result 100
-        yield Query("http://zipkin-v1:9411/api/v2/services", phase=check_phase)
+        yield Query(f"http://{self.zipkin.path.fqdn}:9411/api/v2/services", phase=check_phase)
         # result 101
         yield Query(
-            "http://zipkin-v1:9411/api/v2/spans?serviceName=tracingtestzipkinv1-default",
+            f"http://{self.zipkin.path.fqdn}:9411/api/v2/spans?serviceName=tracingtestzipkinv1-default",
             phase=check_phase,
         )
         # result 102
         yield Query(
-            "http://zipkin-v1:9411/api/v2/traces?serviceName=tracingtestzipkinv1-default",
+            f"http://{self.zipkin.path.fqdn}:9411/api/v2/traces?serviceName=tracingtestzipkinv1-default",
             phase=check_phase,
         )
 

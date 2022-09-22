@@ -1,116 +1,30 @@
 import os
-from typing import Generator, Tuple, Union
+from typing import ClassVar, Generator, Tuple, Union
 
 import pytest
 
-import tests.integration.manifests as integration_manifests
-from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType, StatsDSink
 from kat.harness import Query
-
-STATSD_MANIFEST = """
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {name}
-spec:
-  selector:
-    matchLabels:
-      service: {name}
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        service: {name}
-    spec:
-      containers:
-      - name: {name}
-        image: {image}
-        env:
-        - name: STATSD_TEST_CLUSTER
-          value: {target}
-      restartPolicy: Always
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: {name}
-  name: {name}
-spec:
-  ports:
-  - protocol: UDP
-    port: 8125
-    name: statsd-metrics
-  - protocol: TCP
-    port: 80
-    targetPort: 3000
-    name: statsd-http
-  selector:
-    service: {name}
-"""
 
 
 class CircuitBreakingTest(AmbassadorTest):
     target: ServiceType
+    statsd: ServiceType
 
     TARGET_CLUSTER = "cluster_circuitbreakingtest_http_cbdc1p1"
 
     def init(self):
         self.target = HTTP()
+        self.statsd = StatsDSink(target_cluster=self.TARGET_CLUSTER)
 
     def manifests(self) -> str:
-        envs = """
+        self.manifest_envs += f"""
     - name: STATSD_ENABLED
       value: 'true'
     - name: STATSD_HOST
-      value: 'cbstatsd-sink'
+      value: '{self.statsd.path.fqdn}'
 """
-
-        return (
-            """
----
-apiVersion: getambassador.io/v3alpha1
-kind: Listener
-metadata:
-  name: cleartext-listener
-  labels:
-    kat-ambassador-id: {self.ambassador_id}
-spec:
-  ambassador_id: [ {self.ambassador_id} ]
-  port: 8080
-  protocol: HTTP
-  securityModel: INSECURE
-  hostBinding:
-    selector:
-      matchLabels:
-        kat-ambassador-id: {self.ambassador_id}
----
-apiVersion: getambassador.io/v3alpha1
-kind: Host
-metadata:
-  name: cleartext-host
-  labels:
-    kat-ambassador-id: {self.ambassador_id}
-spec:
-  ambassador_id: [ {self.ambassador_id} ]
-  requestPolicy:
-    insecure:
-      action: Route
-"""
-            + self.format(
-                integration_manifests.load("rbac_cluster_scope")
-                + integration_manifests.load("ambassador"),
-                envs=envs,
-                extra_ports="",
-                capabilities_block="",
-            )
-            + STATSD_MANIFEST.format(
-                name="cbstatsd-sink",
-                image=integration_manifests.get_images()["test-stats"],
-                target=self.__class__.TARGET_CLUSTER,
-            )
-        )
+        return super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self, self.format(
@@ -134,7 +48,7 @@ case_sensitive: false
 hostname: "*"
 prefix: /reset/
 rewrite: /RESET/
-service: cbstatsd-sink
+service: {self.statsd.path.fqdn}
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -143,7 +57,7 @@ case_sensitive: false
 hostname: "*"
 prefix: /dump/
 rewrite: /DUMP/
-service: cbstatsd-sink
+service: {self.statsd.path.fqdn}
 """
         )
 

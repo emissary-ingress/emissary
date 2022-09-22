@@ -1,129 +1,33 @@
 import os
 from typing import Generator, Tuple, Union
 
-import tests.integration.manifests as integration_manifests
-from abstract_tests import DEV, HTTP, AmbassadorTest, Node
+from abstract_tests import DEV, HTTP, AmbassadorTest, Node, ServiceType, StatsDSink
 from kat.harness import Query
 
 STATSD_TEST_CLUSTER = "statsdtest_http"
 ALT_STATSD_TEST_CLUSTER = "short-stats-name"
 DOGSTATSD_TEST_CLUSTER = "dogstatsdtest_http"
 
-GRAPHITE_CONFIG = """
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {0}
-spec:
-  selector:
-    matchLabels:
-      service: {0}
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        service: {0}
-    spec:
-      containers:
-      - name: {0}
-        image: {1}
-        env:
-        - name: STATSD_TEST_DEBUG
-          value: "true"
-        - name: STATSD_TEST_CLUSTER
-          value: {2}
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: {0}
-  name: {0}
-spec:
-  ports:
-  - protocol: UDP
-    port: 8125
-    targetPort: 8125
-    name: statsd-metrics
-  - protocol: TCP
-    port: 80
-    targetPort: 3000
-    name: statsd-www
-  selector:
-    service: {0}
-"""
-
-
-DOGSTATSD_CONFIG = """
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {0}
-spec:
-  selector:
-    matchLabels:
-      service: {0}
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        service: {0}
-    spec:
-      containers:
-      - name: {0}
-        image: {1}
-        env:
-        - name: STATSD_TEST_CLUSTER
-          value: {2}
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: {0}
-  name: {0}
-spec:
-  ports:
-  - protocol: UDP
-    port: 8125
-    targetPort: 8125
-    name: statsd-metrics
-  - protocol: TCP
-    port: 80
-    targetPort: 3000
-    name: statsd-www
-  selector:
-    service: {0}
-"""
-
 
 class StatsdTest(AmbassadorTest):
+    sink: ServiceType
+
     def init(self):
         self.target = HTTP()
         self.target2 = HTTP(name="alt-statsd")
+        self.sink = StatsDSink(target_cluster=f"{STATSD_TEST_CLUSTER}:{ALT_STATSD_TEST_CLUSTER}")
         self.stats_name = ALT_STATSD_TEST_CLUSTER
         if DEV:
             self.skip_node = True
 
     def manifests(self) -> str:
-        envs = """
+        self.manifest_envs += f"""
     - name: STATSD_ENABLED
       value: 'true'
+    - name: STATSD_HOST
+      value: {self.sink.path.fqdn}
 """
-
-        return self.format(
-            integration_manifests.load("rbac_cluster_scope")
-            + integration_manifests.load("ambassador"),
-            envs=envs,
-            extra_ports="",
-            capabilities_block="",
-        ) + GRAPHITE_CONFIG.format(
-            "statsd-sink",
-            integration_manifests.get_images()["test-stats"],
-            f"{STATSD_TEST_CLUSTER}:{ALT_STATSD_TEST_CLUSTER}",
-        )
+        return super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format(
@@ -151,7 +55,7 @@ hostname: "*"
 case_sensitive: false
 prefix: /reset/
 rewrite: /RESET/
-service: statsd-sink
+service: {self.sink.path.fqdn}
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -172,11 +76,11 @@ service: http://127.0.0.1:8877
             yield Query(self.url(self.name + "/"), phase=1)
             yield Query(self.url(self.name + "-alt/"), phase=1)
 
-        yield Query("http://statsd-sink/DUMP/", phase=2)
+        yield Query(f"http://{self.sink.path.fqdn}/DUMP/", phase=2)
         yield Query(self.url("metrics"), phase=2)
 
     def check(self):
-        # self.results[-2] is the JSON dump from our test statsd-sink service.
+        # self.results[-2] is the JSON dump from our test self.sink service.
         stats = self.results[-2].json or {}
 
         cluster_stats = stats.get(STATSD_TEST_CLUSTER, {})
@@ -228,32 +132,24 @@ service: http://127.0.0.1:8877
 
 
 class DogstatsdTest(AmbassadorTest):
+    dogstatsd: ServiceType
+
     def init(self):
         self.target = HTTP()
+        self.sink = StatsDSink(target_cluster=DOGSTATSD_TEST_CLUSTER)
         if DEV:
             self.skip_node = True
 
     def manifests(self) -> str:
-        envs = """
+        self.manifest_envs += f"""
     - name: STATSD_ENABLED
       value: 'true'
     - name: STATSD_HOST
-      value: 'dogstatsd-sink'
+      value: {self.sink.path.fqdn}
     - name: DOGSTATSD
       value: 'true'
 """
-
-        return self.format(
-            integration_manifests.load("rbac_cluster_scope")
-            + integration_manifests.load("ambassador"),
-            envs=envs,
-            extra_ports="",
-            capabilities_block="",
-        ) + DOGSTATSD_CONFIG.format(
-            "dogstatsd-sink",
-            integration_manifests.get_images()["test-stats"],
-            DOGSTATSD_TEST_CLUSTER,
-        )
+        return super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
         yield self.target, self.format(
@@ -273,7 +169,7 @@ case_sensitive: false
 hostname: "*"
 prefix: /reset/
 rewrite: /RESET/
-service: dogstatsd-sink
+service: {self.sink.path.fqdn}
 """
         )
 
@@ -285,7 +181,7 @@ service: dogstatsd-sink
         for i in range(1000):
             yield Query(self.url(self.name + "/"), phase=1)
 
-        yield Query("http://dogstatsd-sink/DUMP/", phase=2)
+        yield Query(f"http://{self.sink.path.fqdn}/DUMP/", phase=2)
 
     def check(self):
         stats = self.results[-1].json or {}
