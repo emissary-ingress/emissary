@@ -12,23 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, Optional, Union
-
 import logging
+from typing import Any, Dict, Optional, Union
 
 from .cache import Cache
 from .config import Config
-from .ir import IR
-from .ir.ir import IRFileChecker
 from .envoy import EnvoyConfig
 from .fetch import ResourceFetcher
-from .utils import SecretHandler, NullSecretHandler, Timer
+from .ir import IR
+from .ir.ir import IRFileChecker
+from .utils import NullSecretHandler, SecretHandler, Timer
 
-def Compile(logger: logging.Logger, input_text: str,
-            cache: Optional[Cache]=None,
-            file_checker: Optional[IRFileChecker]=None,
-            secret_handler: Optional[SecretHandler]=None,
-            k8s=False, envoy_version="V2") -> Dict[str, Union[IR, EnvoyConfig]]:
+
+def Compile(
+    logger: logging.Logger,
+    input_text: str,
+    cache: Optional[Cache] = None,
+    file_checker: Optional[IRFileChecker] = None,
+    secret_handler: Optional[SecretHandler] = None,
+    k8s=False,
+    envoy_version="V2",
+) -> Dict[str, Union[IR, EnvoyConfig]]:
     """
     Compile is a helper function to take a bunch of YAML and compile it into an
     IR and, optionally, an Envoy config.
@@ -67,10 +71,9 @@ def Compile(logger: logging.Logger, input_text: str,
 
     ir = IR(aconf, cache=cache, file_checker=file_checker, secret_handler=secret_handler)
 
-    out: Dict[str, Union[IR, EnvoyConfig]] = { "ir": ir }
+    out: Dict[str, Union[IR, EnvoyConfig]] = {"ir": ir}
 
     if ir:
         out[envoy_version.lower()] = EnvoyConfig.generate(ir, envoy_version.upper(), cache=cache)
 
     return out
-

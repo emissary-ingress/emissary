@@ -1,7 +1,8 @@
 from typing import Generator, Tuple, Union
 
-from kat.harness import variants, Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
+from kat.harness import Query, variants
+
 
 class RegexRewriteForwardingTest(AmbassadorTest):
     target: ServiceType
@@ -10,7 +11,8 @@ class RegexRewriteForwardingTest(AmbassadorTest):
         self.target = HTTP(name="foo")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(r"""
+        yield self.target, self.format(
+            r"""
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -21,7 +23,8 @@ service: http://{self.target.path.fqdn}
 regex_rewrite:
     pattern: "/foo/baz"
     substitution: "/baz/foo"
-""")
+"""
+        )
 
     def queries(self):
         yield Query(self.url("foo/bar"), expected=200)
@@ -29,10 +32,11 @@ regex_rewrite:
         yield Query(self.url("ffoo/"), expected=404)
 
     def check(self):
-        assert self.results[0].backend.request.headers['x-envoy-original-path'][0] == f'/foo/bar'
+        assert self.results[0].backend.request.headers["x-envoy-original-path"][0] == f"/foo/bar"
         assert self.results[0].backend.request.url.path == "/foo/bar"
-        assert self.results[1].backend.request.headers['x-envoy-original-path'][0] == f'/foo/baz'
+        assert self.results[1].backend.request.headers["x-envoy-original-path"][0] == f"/foo/baz"
         assert self.results[1].backend.request.url.path == "/baz/foo"
+
 
 class RegexRewriteForwardingWithExtractAndSubstituteTest(AmbassadorTest):
     target: ServiceType
@@ -41,7 +45,8 @@ class RegexRewriteForwardingWithExtractAndSubstituteTest(AmbassadorTest):
         self.target = HTTP(name="foo")
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(r"""
+        yield self.target, self.format(
+            r"""
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -52,7 +57,8 @@ service: http://{self.target.path.fqdn}
 regex_rewrite:
     pattern: "/foo/([0-9]*)/list"
     substitution: "/bar/\\1"
-""")
+"""
+        )
 
     def queries(self):
         yield Query(self.url("foo/123456789/list"), expected=200)
@@ -61,7 +67,13 @@ regex_rewrite:
         yield Query(self.url("foo/"), expected=200)
 
     def check(self):
-        assert self.results[0].backend.request.headers['x-envoy-original-path'][0] == f'/foo/123456789/list'
+        assert (
+            self.results[0].backend.request.headers["x-envoy-original-path"][0]
+            == f"/foo/123456789/list"
+        )
         assert self.results[0].backend.request.url.path == "/bar/123456789"
-        assert self.results[1].backend.request.headers['x-envoy-original-path'][0] == f'/foo/987654321/list'
+        assert (
+            self.results[1].backend.request.headers["x-envoy-original-path"][0]
+            == f"/foo/987654321/list"
+        )
         assert self.results[1].backend.request.url.path == "/bar/987654321"

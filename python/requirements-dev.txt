@@ -9,6 +9,8 @@ pytest==6.2.5
 pytest-cov
 pytest-rerunfailures
 retry
+black==22.6.0
+isort
 
 # Type stubs
 types-orjson

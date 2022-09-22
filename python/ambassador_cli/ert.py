@@ -20,16 +20,15 @@
 # very specific to Ambassador.
 ########
 
-from typing import Any, Optional
-
 import functools
 import json
 import re
-
 from collections import OrderedDict
+from typing import Any, Optional
 
 import click
 import dpath.util
+
 
 def lookup(x: Any, path: str) -> Optional[Any]:
     try:
@@ -38,14 +37,15 @@ def lookup(x: Any, path: str) -> Optional[Any]:
         return None
 
 
-reSecret = re.compile(r'^.*/snapshots/([^/]+)/secrets-decoded/([^/]+)/[0-9A-F]+\.(.+)$')
+reSecret = re.compile(r"^.*/snapshots/([^/]+)/secrets-decoded/([^/]+)/[0-9A-F]+\.(.+)$")
 
 # Use this instead of click.option
 click_option = functools.partial(click.option, show_default=True)
 click_option_no_default = functools.partial(click.option, show_default=False)
 
+
 @click.command(help="Show a simplified Envoy config breakdown")
-@click.argument('envoy-config-path', type=click.Path(exists=True, readable=True))
+@click.argument("envoy-config-path", type=click.Path(exists=True, readable=True))
 def main(envoy_config_path: str) -> None:
     econf = json.load(open(envoy_config_path, "r"))
 
@@ -60,7 +60,7 @@ def main(envoy_config_path: str) -> None:
         lfiltstr = ""
 
         if lfilters:
-            lfilter_names = [ x["name"].replace("envoy.listener.", "") for x in lfilters ]
+            lfilter_names = [x["name"].replace("envoy.listener.", "") for x in lfilters]
             lfiltstr = f" [using {', '.join(lfilter_names)}]"
 
         print(f"LISTENER on {proto} {bind_addr}:{port}{lfiltstr}")
@@ -70,7 +70,7 @@ def main(envoy_config_path: str) -> None:
             match_proto = lookup(chain, "/filter_chain_match/transport_protocol")
             match_domains = lookup(chain, "/filter_chain_match/server_names")
 
-            match_domain_str = '*'
+            match_domain_str = "*"
 
             if match_domains:
                 match_domain_str = "/".join(match_domains)
@@ -135,7 +135,9 @@ def main(envoy_config_path: str) -> None:
 
                             if headers:
                                 for hdr in headers:
-                                    if (hdr["name"] == "x-forwarded-proto") and (hdr.get("exact_match") == "https"):
+                                    if (hdr["name"] == "x-forwarded-proto") and (
+                                        hdr.get("exact_match") == "https"
+                                    ):
                                         security = "secure"
                                     elif hdr["name"] == ":authority":
                                         authority = f"@{hdr['exact_match']}"
@@ -162,5 +164,5 @@ def main(envoy_config_path: str) -> None:
                             print(f"... ... ... {target}: {'; '.join(action_list)}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -1,19 +1,18 @@
 from typing import Dict, Generator, Literal, Tuple, Union
 
-from kat.harness import Query
-
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
-from tests.selfsigned import TLSCerts
-from kat.harness import abstract_test
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
+from kat.harness import Query, abstract_test
 from tests.integration.manifests import namespace_manifest
+from tests.selfsigned import TLSCerts
 
 # An AmbassadorTest subclass will actually create a running Ambassador.
 # "self" in this class will refer to the Ambassador.
 
+
 class TCPMappingTest(AmbassadorTest):
     # single_namespace = True
     namespace = "tcp-namespace"
-    extra_ports = [ 6789, 7654, 8765, 9876 ]
+    extra_ports = [6789, 7654, 8765, 9876]
 
     # This test is written assuming explicit control of which Hosts are present,
     # so don't let Edge Stack mess with that.
@@ -47,7 +46,10 @@ class TCPMappingTest(AmbassadorTest):
     # Kubernetes cluster before running any tests.
 
     def manifests(self) -> str:
-        return namespace_manifest("tcp-namespace") + namespace_manifest("other-namespace") + f"""
+        return (
+            namespace_manifest("tcp-namespace")
+            + namespace_manifest("other-namespace")
+            + f"""
 ---
 apiVersion: v1
 kind: Secret
@@ -127,13 +129,16 @@ spec:
   requestPolicy:
     insecure:
       action: Reject
-""" + super().manifests()
+"""
+            + super().manifests()
+        )
 
     # config() must _yield_ tuples of Node, Ambassador-YAML where the
     # Ambassador-YAML will be annotated onto the Node.
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
@@ -143,9 +148,11 @@ hosts:
 - tls-context-host-2
 - tls-context-host-3
 secret: supersecret
-""")
+"""
+        )
 
-        yield self.target1, self.format("""
+        yield self.target1, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TCPMapping
@@ -172,10 +179,12 @@ name:  {self.name}-1
 port: 6789
 host: tls-context-host-1
 service: {self.target1.path.fqdn}:80
-""")
+"""
+        )
 
         # Host-differentiated.
-        yield self.target2, self.format("""
+        yield self.target2, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TCPMapping
@@ -184,10 +193,12 @@ port: 6789
 host: tls-context-host-2
 service: {self.target2.path.fqdn}
 tls: {self.name}-tlscontext
-""")
+"""
+        )
 
         # Host-differentiated.
-        yield self.target3, self.format("""
+        yield self.target3, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TCPMapping
@@ -195,14 +206,47 @@ name:  {self.name}-3
 port: 6789
 host: tls-context-host-3
 service: https://{self.target3.path.fqdn}
-""")
+"""
+        )
 
     def requirements(self):
         # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
-        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
-        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
-        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
-        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-1"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_ready"),
+                headers={"Host": "tls-context-host-2"},
+                insecure=True,
+                sni=True,
+            ),
+        )
+        yield (
+            "url",
+            Query(
+                self.url("ambassador/v0/check_alive"),
+                headers={"Host": "tls-context-host-2"},
+                insecure=True,
+                sni=True,
+            ),
+        )
 
     # scheme defaults to HTTP; if you need to use HTTPS, have it return
     # "https"...
@@ -215,35 +259,41 @@ service: https://{self.target3.path.fqdn}
 
     def queries(self):
         # 0: should hit target1, and use TLS
-        yield Query(self.url(self.name + "/wtfo/", port=9876),
-                    insecure=True)
+        yield Query(self.url(self.name + "/wtfo/", port=9876), insecure=True)
 
         # 1: should hit target2, and use TLS
-        yield Query(self.url(self.name + "/wtfo/", port=7654, scheme='http'),
-                    insecure=True)
+        yield Query(self.url(self.name + "/wtfo/", port=7654, scheme="http"), insecure=True)
 
         # 2: should hit target1 via SNI, and use cleartext
-        yield Query(self.url(self.name + "/wtfo/", port=6789),
-                    headers={"Host": "tls-context-host-1"},
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url(self.name + "/wtfo/", port=6789),
+            headers={"Host": "tls-context-host-1"},
+            insecure=True,
+            sni=True,
+        )
 
         # 3: should hit target2 via SNI, and use TLS
-        yield Query(self.url(self.name + "/wtfo/", port=6789),
-                    headers={"Host": "tls-context-host-2"},
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url(self.name + "/wtfo/", port=6789),
+            headers={"Host": "tls-context-host-2"},
+            insecure=True,
+            sni=True,
+        )
 
         # 4: should hit target3 via SNI, and use TLS
-        yield Query(self.url(self.name + "/wtfo/", port=6789),
-                    headers={"Host": "tls-context-host-3"},
-                    insecure=True,
-                    sni=True)
+        yield Query(
+            self.url(self.name + "/wtfo/", port=6789),
+            headers={"Host": "tls-context-host-3"},
+            insecure=True,
+            sni=True,
+        )
 
         # 5: should error since port 8765 is bound only to localhost
-        yield Query(self.url(self.name + "/wtfo/", port=8765),
-                    error=[ 'connection reset by peer', 'EOF', 'connection refused' ],
-                    insecure=True)
+        yield Query(
+            self.url(self.name + "/wtfo/", port=8765),
+            error=["connection reset by peer", "EOF", "connection refused"],
+            insecure=True,
+        )
 
     # Once in check(), self.results is an ordered list of results from your
     # Queries. (You can also look at self.parent.results if you really want
@@ -251,11 +301,11 @@ service: https://{self.target3.path.fqdn}
 
     def check(self):
         for idx, target, tls_wanted in [
-            ( 0, self.target1, True ),
-            ( 1, self.target2, True ),
-            ( 2, self.target1, False ),
-            ( 3, self.target2, True ),
-            ( 4, self.target3, True ),
+            (0, self.target1, True),
+            (1, self.target2, True),
+            (2, self.target1, False),
+            (3, self.target2, True),
+            (4, self.target3, True),
             # ( 5, self.target1 ),
         ]:
             r = self.results[idx]
@@ -263,19 +313,25 @@ service: https://{self.target3.path.fqdn}
             backend_fqdn = target.get_fqdn(r.backend.name)
             tls_enabled = r.backend.request.tls.enabled
 
-            assert backend_fqdn == wanted_fqdn, f'{idx}: backend {backend_fqdn} != expected {wanted_fqdn}'
-            assert tls_enabled == tls_wanted, f'{idx}: TLS status {tls_enabled} != wanted {tls_wanted}'
+            assert (
+                backend_fqdn == wanted_fqdn
+            ), f"{idx}: backend {backend_fqdn} != expected {wanted_fqdn}"
+            assert (
+                tls_enabled == tls_wanted
+            ), f"{idx}: TLS status {tls_enabled} != wanted {tls_wanted}"
 
 
 class TCPMappingBasicTest(AmbassadorTest):
-    extra_ports = [ 6789 ]
+    extra_ports = [6789]
     target: ServiceType
 
     def init(self) -> None:
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return format('''
+        return (
+            format(
+                """
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
@@ -285,7 +341,10 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
   service: {self.target.path.fqdn}:80
-''') + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def queries(self):
         yield Query(self.url("", port=6789))
@@ -296,14 +355,17 @@ spec:
 
 
 class TCPMappingCrossNamespaceTest(AmbassadorTest):
-    extra_ports = [ 6789 ]
+    extra_ports = [6789]
     target: ServiceType
 
     def init(self) -> None:
         self.target = HTTP(namespace="other-namespace")
 
     def manifests(self) -> str:
-        return namespace_manifest("other-namespace") + format('''
+        return (
+            namespace_manifest("other-namespace")
+            + format(
+                """
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
@@ -313,7 +375,10 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
   service: {self.target.path.fqdn}:80
-''') + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def queries(self):
         yield Query(self.url("", port=6789))
@@ -324,14 +389,16 @@ spec:
 
 
 class TCPMappingTLSOriginationBoolTest(AmbassadorTest):
-    extra_ports = [ 6789 ]
+    extra_ports = [6789]
     target: ServiceType
 
     def init(self) -> None:
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return format('''
+        return (
+            format(
+                """
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
@@ -342,7 +409,10 @@ spec:
   port: 6789
   service: {self.target.path.fqdn}:443
   tls: true
-''') + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def queries(self):
         yield Query(self.url("", port=6789))
@@ -357,7 +427,7 @@ class TCPMappingTLSOriginationV2SchemeTest(AmbassadorTest):
     one, then it is ignored.  Since apiVersion v3alpha1 adds support for scheme://, add a test to
     make sure we don't break anyone who is inadvertently depending on it being ignored in v2."""
 
-    extra_ports = [ 6789, 6790 ]
+    extra_ports = [6789, 6790]
     target: ServiceType
 
     def init(self) -> None:
@@ -365,7 +435,9 @@ class TCPMappingTLSOriginationV2SchemeTest(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return format('''
+        return (
+            format(
+                """
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
@@ -384,11 +456,16 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6790
   service: https://{self.target.path.fqdn}:80
-''') + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def queries(self):
-        yield Query(self.url("", port=6789), expected=400) # kat-server returns HTTP 400 "Client sent an HTTP request to an HTTPS server."
-        yield Query(self.url("", port=6789, scheme='https'), insecure=True)
+        yield Query(
+            self.url("", port=6789), expected=400
+        )  # kat-server returns HTTP 400 "Client sent an HTTP request to an HTTPS server."
+        yield Query(self.url("", port=6789, scheme="https"), insecure=True)
         yield Query(self.url("", port=6790))
 
     def check(self):
@@ -399,14 +476,16 @@ spec:
 
 
 class TCPMappingTLSOriginationV3SchemeTest(AmbassadorTest):
-    extra_ports = [ 6789 ]
+    extra_ports = [6789]
     target: ServiceType
 
     def init(self) -> None:
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return format('''
+        return (
+            format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TCPMapping
@@ -416,7 +495,10 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6789
   service: https://{self.target.path.fqdn}:443
-''') + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def queries(self):
         yield Query(self.url("", port=6789))
@@ -427,7 +509,7 @@ spec:
 
 
 class TCPMappingTLSOriginationContextTest(AmbassadorTest):
-    extra_ports = [ 6789 ]
+    extra_ports = [6789]
     target: ServiceType
 
     def init(self) -> None:
@@ -435,7 +517,8 @@ class TCPMappingTLSOriginationContextTest(AmbassadorTest):
 
     def manifests(self) -> str:
         # Hafta provide a client cert, see https://github.com/emissary-ingress/emissary/issues/4476
-        return f'''
+        return (
+            f"""
 ---
 apiVersion: v1
 kind: Secret
@@ -464,7 +547,9 @@ spec:
   port: 6789
   service: {self.target.path.fqdn}:443
   tls: {self.name.k8s}-tlsclient
-''' + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def queries(self):
         yield Query(self.url("", port=6789))
@@ -476,7 +561,7 @@ spec:
 
 
 class TCPMappingTLSOriginationContextWithDotTest(AmbassadorTest):
-    extra_ports = [ 6789 ]
+    extra_ports = [6789]
     target: ServiceType
 
     def init(self) -> None:
@@ -484,7 +569,8 @@ class TCPMappingTLSOriginationContextWithDotTest(AmbassadorTest):
 
     def manifests(self) -> str:
         # Hafta provide a client cert, see https://github.com/emissary-ingress/emissary/issues/4476
-        return f'''
+        return (
+            f"""
 ---
 apiVersion: v1
 kind: Secret
@@ -513,7 +599,9 @@ spec:
   port: 6789
   service: {self.target.path.fqdn}:443
   tls: {self.name.k8s}.tlsclient
-''' + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def queries(self):
         yield Query(self.url("", port=6789))
@@ -528,7 +616,8 @@ class TCPMappingTLSOriginationContextCrossNamespaceTest(AmbassadorTest):
     """This test is a little funny.  You can actually select a TLSContext from any namespace without
     specifying the namespace.  That's bad design, but at the same time we don't want to break anyone
     by changing it."""
-    extra_ports = [ 6789 ]
+
+    extra_ports = [6789]
     target: ServiceType
 
     def init(self) -> None:
@@ -536,7 +625,9 @@ class TCPMappingTLSOriginationContextCrossNamespaceTest(AmbassadorTest):
 
     def manifests(self) -> str:
         # Hafta provide a client cert, see https://github.com/emissary-ingress/emissary/issues/4476
-        return namespace_manifest("other-namespace") + f'''
+        return (
+            namespace_manifest("other-namespace")
+            + f"""
 ---
 apiVersion: v1
 kind: Secret
@@ -567,7 +658,9 @@ spec:
   port: 6789
   service: {self.target.path.fqdn}:443
   tls: {self.name.k8s}-tlsclient
-''' + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def queries(self):
         yield Query(self.url("", port=6789))
@@ -580,18 +673,19 @@ spec:
 
 @abstract_test
 class TCPMappingTLSTerminationTest(AmbassadorTest):
-    tls_src: Literal['tlscontext', 'host']
+    tls_src: Literal["tlscontext", "host"]
 
     @classmethod
     def variants(cls) -> Generator[Node, None, None]:
-        for tls_src in ['tlscontext', 'host']:
+        for tls_src in ["tlscontext", "host"]:
             yield cls(tls_src, name="{self.tls_src}")
 
-    def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
+    def init(self, tls_src: Literal["tlscontext", "host"]) -> None:
         self.tls_src = tls_src
 
     def manifests(self) -> str:
-        return f'''
+        return (
+            f"""
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -606,19 +700,22 @@ spec:
     insecure:
       action: Route
       additionalPort: 8080
-''' + super().manifests()
+"""
+            + super().manifests()
+        )
 
 
 class TCPMappingTLSTerminationBasicTest(TCPMappingTLSTerminationTest):
-    extra_ports = [ 6789 ]
+    extra_ports = [6789]
     target: ServiceType
 
-    def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
+    def init(self, tls_src: Literal["tlscontext", "host"]) -> None:
         super().init(tls_src)
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return f'''
+        return (
+            f"""
 ---
 apiVersion: v1
 kind: Secret
@@ -628,7 +725,9 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
   tls.key: {TLSCerts["tls-context-host-2"].k8s_key}
-''' + (f'''
+"""
+            + (
+                f"""
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
@@ -638,7 +737,9 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   secret: {self.name.k8s}-servercert
   hosts: [ "tls-context-host-2" ]
-''' if self.tls_src == 'tlscontext' else f'''
+"""
+                if self.tls_src == "tlscontext"
+                else f"""
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -649,7 +750,9 @@ spec:
   hostname: "tls-context-host-2"
   tlsSecret:
     name: {self.name.k8s}-servercert
-''') + f'''
+"""
+            )
+            + f"""
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
@@ -660,11 +763,17 @@ spec:
   port: 6789
   host: tls-context-host-2
   service: {self.target.path.fqdn}:80
-''' + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def queries(self):
-        yield Query(self.url("", scheme="https", port=6789),
-                    sni=True, headers={"Host": "tls-context-host-2"}, ca_cert=TLSCerts["tls-context-host-2"].pubcert)
+        yield Query(
+            self.url("", scheme="https", port=6789),
+            sni=True,
+            headers={"Host": "tls-context-host-2"},
+            ca_cert=TLSCerts["tls-context-host-2"].pubcert,
+        )
 
     def check(self):
         assert self.results[0].json["backend"] == self.target.path.k8s
@@ -672,15 +781,17 @@ spec:
 
 
 class TCPMappingTLSTerminationCrossNamespaceTest(TCPMappingTLSTerminationTest):
-    extra_ports = [ 6789 ]
+    extra_ports = [6789]
     target: ServiceType
 
-    def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
+    def init(self, tls_src: Literal["tlscontext", "host"]) -> None:
         super().init(tls_src)
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return namespace_manifest("other-namespace") + f'''
+        return (
+            namespace_manifest("other-namespace")
+            + f"""
 ---
 apiVersion: v1
 kind: Secret
@@ -691,7 +802,9 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
   tls.key: {TLSCerts["tls-context-host-2"].k8s_key}
-''' + (f'''
+"""
+            + (
+                f"""
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
@@ -702,7 +815,9 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   secret: {self.name.k8s}-servercert
   hosts: [ "tls-context-host-2" ]
-''' if self.tls_src == 'tlscontext' else f'''
+"""
+                if self.tls_src == "tlscontext"
+                else f"""
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -714,7 +829,9 @@ spec:
   hostname: "tls-context-host-2"
   tlsSecret:
     name: {self.name.k8s}-servercert
-''') + f'''
+"""
+            )
+            + f"""
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
@@ -725,11 +842,17 @@ spec:
   port: 6789
   host: tls-context-host-2
   service: {self.target.path.fqdn}:80
-''' + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def queries(self):
-        yield Query(self.url("", scheme="https", port=6789),
-                    sni=True, headers={"Host": "tls-context-host-2"}, ca_cert=TLSCerts["tls-context-host-2"].pubcert)
+        yield Query(
+            self.url("", scheme="https", port=6789),
+            sni=True,
+            headers={"Host": "tls-context-host-2"},
+            ca_cert=TLSCerts["tls-context-host-2"].pubcert,
+        )
 
     def check(self):
         assert self.results[0].json["backend"] == self.target.path.k8s
@@ -737,11 +860,11 @@ spec:
 
 
 class TCPMappingSNISharedContextTest(TCPMappingTLSTerminationTest):
-    extra_ports = [ 6789 ]
+    extra_ports = [6789]
     target_a: ServiceType
     target_b: ServiceType
 
-    def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
+    def init(self, tls_src: Literal["tlscontext", "host"]) -> None:
         super().init(tls_src)
         self.target_a = HTTP(name="target-a")
         self.target_b = HTTP(name="target-b")
@@ -749,7 +872,8 @@ class TCPMappingSNISharedContextTest(TCPMappingTLSTerminationTest):
     def manifests(self) -> str:
         # Note that TCPMapping.spec.host matches with TLSContext.spec.hosts based on simple string
         # matching, not globbing.  See irbasemapping.py:match_tls_context()
-        return f'''
+        return (
+            f"""
 ---
 apiVersion: v1
 kind: Secret
@@ -759,7 +883,9 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["*.domain.com"].k8s_crt}
   tls.key: {TLSCerts["*.domain.com"].k8s_key}
-''' + (f'''
+"""
+            + (
+                f"""
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
@@ -771,7 +897,9 @@ spec:
   hosts:
     - "a.domain.com"
     - "b.domain.com"
-''' if self.tls_src == 'tlscontext' else f'''
+"""
+                if self.tls_src == "tlscontext"
+                else f"""
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -786,7 +914,9 @@ spec:
     insecure:
       action: Route
       additionalPort: 8080
-''') + f'''
+"""
+            )
+            + f"""
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
@@ -807,13 +937,23 @@ spec:
   port: 6789
   host: b.domain.com
   service: {self.target_b.path.fqdn}:80
-''' + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def queries(self):
-        yield Query(self.url("", scheme="https", port=6789),
-                    sni=True, headers={"Host": "a.domain.com"}, ca_cert=TLSCerts["*.domain.com"].pubcert)
-        yield Query(self.url("", scheme="https", port=6789),
-                    sni=True, headers={"Host": "b.domain.com"}, ca_cert=TLSCerts["*.domain.com"].pubcert)
+        yield Query(
+            self.url("", scheme="https", port=6789),
+            sni=True,
+            headers={"Host": "a.domain.com"},
+            ca_cert=TLSCerts["*.domain.com"].pubcert,
+        )
+        yield Query(
+            self.url("", scheme="https", port=6789),
+            sni=True,
+            headers={"Host": "b.domain.com"},
+            ca_cert=TLSCerts["*.domain.com"].pubcert,
+        )
 
     def check(self):
         assert self.results[0].json["backend"] == self.target_a.path.k8s
@@ -823,17 +963,18 @@ spec:
 
 
 class TCPMappingSNISeparateContextsTest(TCPMappingTLSTerminationTest):
-    extra_ports = [ 6789 ]
+    extra_ports = [6789]
     target_a: ServiceType
     target_b: ServiceType
 
-    def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
+    def init(self, tls_src: Literal["tlscontext", "host"]) -> None:
         super().init(tls_src)
         self.target_a = HTTP(name="target-a")
         self.target_b = HTTP(name="target-b")
 
     def manifests(self) -> str:
-        return f'''
+        return (
+            f"""
 ---
 apiVersion: v1
 kind: Secret
@@ -852,7 +993,9 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
   tls.key: {TLSCerts["tls-context-host-2"].k8s_key}
-''' + (f'''
+"""
+            + (
+                f"""
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
@@ -871,7 +1014,9 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   secret: {self.name.k8s}-servercert-b
   hosts: [tls-context-host-2]
-''' if self.tls_src == 'tlscontext' else f'''
+"""
+                if self.tls_src == "tlscontext"
+                else f"""
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -892,7 +1037,9 @@ spec:
   hostname: "tls-context-host-2"
   tlsSecret:
     name: {self.name.k8s}-servercert-b
-''') + f'''
+"""
+            )
+            + f"""
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
@@ -913,13 +1060,23 @@ spec:
   port: 6789
   host: tls-context-host-2
   service: {self.target_b.path.fqdn}:80
-''' + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def queries(self):
-        yield Query(self.url("", scheme="https", port=6789),
-                    sni=True, headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert)
-        yield Query(self.url("", scheme="https", port=6789),
-                    sni=True, headers={"Host": "tls-context-host-2"}, ca_cert=TLSCerts["tls-context-host-2"].pubcert)
+        yield Query(
+            self.url("", scheme="https", port=6789),
+            sni=True,
+            headers={"Host": "tls-context-host-1"},
+            ca_cert=TLSCerts["tls-context-host-1"].pubcert,
+        )
+        yield Query(
+            self.url("", scheme="https", port=6789),
+            sni=True,
+            headers={"Host": "tls-context-host-2"},
+            ca_cert=TLSCerts["tls-context-host-2"].pubcert,
+        )
 
     def check(self):
         assert self.results[0].json["backend"] == self.target_a.path.k8s
@@ -934,19 +1091,20 @@ class TCPMappingSNIWithHTTPTest(AmbassadorTest):
 
     target: ServiceType
 
-    tls_src: Literal['tlscontext', 'host']
+    tls_src: Literal["tlscontext", "host"]
 
     @classmethod
     def variants(cls) -> Generator[Node, None, None]:
-        for tls_src in ['tlscontext', 'host']:
+        for tls_src in ["tlscontext", "host"]:
             yield cls(tls_src, name="{self.tls_src}")
 
-    def init(self, tls_src: Literal['tlscontext', 'host']) -> None:
+    def init(self, tls_src: Literal["tlscontext", "host"]) -> None:
         self.tls_src = tls_src
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return f'''
+        return (
+            f"""
 # HTTP Host ##########################################################
 ---
 apiVersion: v1
@@ -979,7 +1137,9 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
   tls.key: {TLSCerts["tls-context-host-2"].k8s_key}
-''' + (f'''
+"""
+            + (
+                f"""
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
@@ -989,7 +1149,9 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   secret: {self.name.k8s}-servercert
   hosts: [ "tls-context-host-2" ]
-''' if self.tls_src == 'tlscontext' else f'''
+"""
+                if self.tls_src == "tlscontext"
+                else f"""
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -1000,7 +1162,9 @@ spec:
   hostname: "tls-context-host-2"
   tlsSecret:
     name: {self.name.k8s}-servercert
-''') + f'''
+"""
+            )
+            + f"""
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
@@ -1011,14 +1175,20 @@ spec:
   port: 8443
   host: tls-context-host-2
   service: {self.target.path.fqdn}:80
-''' + super().manifests()
+"""
+            + super().manifests()
+        )
 
     def scheme(self):
         return "https"
 
     def queries(self):
-        yield Query(self.url(""),
-                    sni=True, headers={"Host": "tls-context-host-2"}, ca_cert=TLSCerts["tls-context-host-2"].pubcert)
+        yield Query(
+            self.url(""),
+            sni=True,
+            headers={"Host": "tls-context-host-2"},
+            ca_cert=TLSCerts["tls-context-host-2"].pubcert,
+        )
 
     def check(self):
         assert self.results[0].json["backend"] == self.target.path.k8s
@@ -1026,14 +1196,16 @@ spec:
 
 
 class TCPMappingAddressTest(AmbassadorTest):
-    extra_ports = [ 6789, 6790 ]
+    extra_ports = [6789, 6790]
     target: ServiceType
 
     def init(self) -> None:
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return format('''
+        return (
+            format(
+                """
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
@@ -1053,12 +1225,16 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   port: 6790
   service: localhost:6789
-''') + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def queries(self):
         # Check that it only bound to localhost and doesn't allow external connections.
-        yield Query(self.url("", port=6789),
-                    error=[ 'connection reset by peer', 'EOF', 'connection refused' ])
+        yield Query(
+            self.url("", port=6789), error=["connection reset by peer", "EOF", "connection refused"]
+        )
         # Use a second mapping that proxies to the first to check that it was even created.
         yield Query(self.url("", port=6790))
 
@@ -1068,7 +1244,7 @@ spec:
 
 
 class TCPMappingWeightTest(AmbassadorTest):
-    extra_ports = [ 6789 ]
+    extra_ports = [6789]
     target70: ServiceType
     target30: ServiceType
 
@@ -1077,7 +1253,9 @@ class TCPMappingWeightTest(AmbassadorTest):
         self.target30 = HTTP(name="tgt30")
 
     def manifests(self) -> str:
-        return format('''
+        return (
+            format(
+                """
 ---
 apiVersion: getambassador.io/v2
 kind: TCPMapping
@@ -1098,7 +1276,10 @@ spec:
   port: 6789
   service: {self.target30.path.fqdn}:80
   weight: 30
-''') + super().manifests()
+"""
+            )
+            + super().manifests()
+        )
 
     def queries(self):
         for i in range(1000):
@@ -1108,12 +1289,12 @@ spec:
         counts: Dict[str, int] = {}
         for result in self.results:
             backend = result.json["backend"]
-            counts[backend] = counts.get(backend, 0)+1
-        assert counts[self.target70.path.k8s]+counts[self.target30.path.k8s] == 1000
+            counts[backend] = counts.get(backend, 0) + 1
+        assert counts[self.target70.path.k8s] + counts[self.target30.path.k8s] == 1000
         # Probabalistic, margin might need tuned
         margin = 150
-        assert abs(counts[self.target70.path.k8s]-700) < margin
-        assert abs(counts[self.target30.path.k8s]-300) < margin
+        assert abs(counts[self.target70.path.k8s] - 700) < margin
+        assert abs(counts[self.target30.path.k8s] - 300) < margin
 
 
 # TODO: Add tests for all of the config knobs for the upstream connection:

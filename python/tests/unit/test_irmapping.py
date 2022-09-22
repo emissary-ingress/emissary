@@ -7,14 +7,15 @@ import pytest
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s test %(levelname)s: %(message)s",
-    datefmt='%Y-%m-%d %H:%M:%S'
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import Config, IR
+from ambassador import IR, Config
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
+
 
 def _get_ir_config(yaml):
     aconf = Config()
@@ -50,8 +51,7 @@ docs:
     for i in conf.groups.values():
         all_mappings = all_mappings + i.mappings
 
-    slowsvc_mappings = [x for x in all_mappings if x['name'] == 'slowsvc-slow']
-    assert(len(slowsvc_mappings) == 1)
+    slowsvc_mappings = [x for x in all_mappings if x["name"] == "slowsvc-slow"]
+    assert len(slowsvc_mappings) == 1
     print(slowsvc_mappings[0].as_dict())
-    assert(slowsvc_mappings[0].docs['timeout_ms'] == 8000)
-
+    assert slowsvc_mappings[0].docs["timeout_ms"] == 8000

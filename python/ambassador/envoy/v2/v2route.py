@@ -12,19 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
 from typing import cast as typecast
 
-from ..common import EnvoyRoute
 from ...cache import Cacheable
-from ...ir.irhttpmappinggroup import IRHTTPMappingGroup
 from ...ir.irbasemapping import IRBaseMapping
+from ...ir.irhttpmappinggroup import IRHTTPMappingGroup
 from ...ir.irutils import hostglob_matches
-
+from ..common import EnvoyRoute
 from .v2ratelimitaction import V2RateLimitAction
 
 if TYPE_CHECKING:
-    from . import V2Config # pragma: no cover
+    from . import V2Config  # pragma: no cover
 
 
 # This is the root of a certain amount of ugliness in this file -- it's a V2Route
@@ -62,16 +61,16 @@ def v2prettyroute(route: DictifiedV2Route) -> str:
         name = header.get("name", None).lower()
         exact = header.get("exact_match", None)
 
-        if header == ':authority':
+        if header == ":authority":
             if exact:
                 host = exact
-            elif 'prefix_match' in header:
-                host = header['prefix_match'] + '*'
-            elif 'suffix_match' in header:
-                host = '*' + header['suffix_match']
-            elif 'safe_regex_match' in header:
-                host = header['safe_regex_match']['regex']
-        elif name == 'x-forwarded-proto':
+            elif "prefix_match" in header:
+                host = header["prefix_match"] + "*"
+            elif "suffix_match" in header:
+                host = "*" + header["suffix_match"]
+            elif "safe_regex_match" in header:
+                host = header["safe_regex_match"]["regex"]
+        elif name == "x-forwarded-proto":
             xfp = exact
 
     if xfp:
@@ -96,33 +95,26 @@ def v2prettyroute(route: DictifiedV2Route) -> str:
 
 # regex_matcher generates Envoy configuration to do a regex match in a Route. It's complex
 # here because it has to deal with safe and unsafe regexes.
-def regex_matcher(config: 'V2Config', regex: str, key="regex", safe_key=None, re_type=None) -> Dict[str, Any]:
+def regex_matcher(
+    config: "V2Config", regex: str, key="regex", safe_key=None, re_type=None
+) -> Dict[str, Any]:
     # If re_type is specified explicitly, do not query its value from config
     if re_type is None:
-        re_type = config.ir.ambassador_module.get('regex_type', 'safe').lower()
+        re_type = config.ir.ambassador_module.get("regex_type", "safe").lower()
 
     config.ir.logger.debug(f"re_type {re_type}")
 
     # 'safe' is the default. You must explicitly say "unsafe" to get the unsafe
     # regex matcher.
-    if re_type != 'unsafe':
-        max_size = int(config.ir.ambassador_module.get('regex_max_size', 200))
+    if re_type != "unsafe":
+        max_size = int(config.ir.ambassador_module.get("regex_max_size", 200))
 
         if not safe_key:
             safe_key = "safe_" + key
 
-        return {
-            safe_key: {
-                "google_re2": {
-                    "max_program_size": max_size
-                },
-                "regex": regex
-            }
-        }
+        return {safe_key: {"google_re2": {"max_program_size": max_size}, "regex": regex}}
     else:
-        return {
-            key: regex
-        }
+        return {key: regex}
 
 
 class V2RouteVariants:
@@ -168,10 +160,10 @@ class V2RouteVariants:
     such a lazy collection of route variants for a given V2Route.
     """
 
-    route: 'V2Route'
+    route: "V2Route"
     variants: Dict[str, DictifiedV2Route]
 
-    def __init__(self, route: 'V2Route') -> None:
+    def __init__(self, route: "V2Route") -> None:
         self.route = route
         self.variants = {}
 
@@ -240,17 +232,13 @@ class V2RouteVariants:
         # ...then make a copy of match["headers"], but don't include
         # any existing XFP header match.
         headers = match_copy.get("headers") or []
-        headers_copy = [ h for h in headers
-                         if h.get("name", "").lower() != "x-forwarded-proto" ]
+        headers_copy = [h for h in headers if h.get("name", "").lower() != "x-forwarded-proto"]
 
         # OK, if the new XFP value is anything, write a match for it. If not,
         # we'll just match any XFP.
 
         if value:
-            headers_copy.append({
-                "name": "x-forwarded-proto",
-                "exact_match": value
-            })
+            headers_copy.append({"name": "x-forwarded-proto", "exact_match": value})
 
         # Don't bother writing headers_copy back if it's empty.
         if headers_copy:
@@ -265,9 +253,7 @@ class V2RouteVariants:
     # instead.
     def action_redirect(self, variant) -> None:
         variant.pop("route", None)
-        variant["redirect"] = {
-            "https_redirect": True
-        }
+        variant["redirect"] = {"https_redirect": True}
 
 
 # Model an Envoy route.
@@ -280,8 +266,11 @@ class V2RouteVariants:
 # context-matching madness happens up at the chain level, so we only need to
 # mess with the one host glob at this point.
 
+
 class V2Route(Cacheable):
-    def __init__(self, config: 'V2Config', group: IRHTTPMappingGroup, mapping: IRBaseMapping) -> None:
+    def __init__(
+        self, config: "V2Config", group: IRHTTPMappingGroup, mapping: IRBaseMapping
+    ) -> None:
         super().__init__()
 
         # Save the logger and the group.
@@ -290,74 +279,81 @@ class V2Route(Cacheable):
 
         # Passing a list to set is _very important_ here, lest you get a set of
         # the individual characters in group.host!
-        self['_host_constraints'] = set( [ group.get("host") or "*" ] )
+        self["_host_constraints"] = set([group.get("host") or "*"])
 
-        if group.get('precedence'):
-            self['_precedence'] = group['precedence']
+        if group.get("precedence"):
+            self["_precedence"] = group["precedence"]
 
         envoy_route = EnvoyRoute(group).envoy_route
 
-        mapping_prefix = mapping.get('prefix', None)
-        route_prefix = mapping_prefix if mapping_prefix is not None else group.get('prefix')
+        mapping_prefix = mapping.get("prefix", None)
+        route_prefix = mapping_prefix if mapping_prefix is not None else group.get("prefix")
 
-        mapping_case_sensitive = mapping.get('case_sensitive', None)
-        case_sensitive = mapping_case_sensitive if mapping_case_sensitive is not None else group.get('case_sensitive', True)
+        mapping_case_sensitive = mapping.get("case_sensitive", None)
+        case_sensitive = (
+            mapping_case_sensitive
+            if mapping_case_sensitive is not None
+            else group.get("case_sensitive", True)
+        )
 
         runtime_fraction: Dict[str, Union[dict, str]] = {
-            'default_value': {
-                'numerator': mapping.get('_weight', 100),
-                'denominator': 'HUNDRED'
-            }
+            "default_value": {"numerator": mapping.get("_weight", 100), "denominator": "HUNDRED"}
         }
 
         if len(mapping) > 0:
-            if not 'cluster' in mapping:
-                config.ir.logger.error("%s: Mapping %s has no cluster? %s", mapping.rkey, route_prefix, mapping.as_json())
-                self['_failed'] = True
+            if not "cluster" in mapping:
+                config.ir.logger.error(
+                    "%s: Mapping %s has no cluster? %s",
+                    mapping.rkey,
+                    route_prefix,
+                    mapping.as_json(),
+                )
+                self["_failed"] = True
             else:
-                runtime_fraction['runtime_key'] = f'routing.traffic_shift.{mapping.cluster.envoy_name}'
+                runtime_fraction[
+                    "runtime_key"
+                ] = f"routing.traffic_shift.{mapping.cluster.envoy_name}"
 
-        match = {
-            'case_sensitive': case_sensitive,
-            'runtime_fraction': runtime_fraction
-        }
+        match = {"case_sensitive": case_sensitive, "runtime_fraction": runtime_fraction}
 
-        if envoy_route == 'prefix':
-            match['prefix'] = route_prefix
-        elif envoy_route == 'path':
-            match['path'] = route_prefix
+        if envoy_route == "prefix":
+            match["prefix"] = route_prefix
+        elif envoy_route == "path":
+            match["path"] = route_prefix
         else:
             # Cheat.
-            if config.ir.edge_stack_allowed and (self.get('_precedence', 0) == -1000000):
+            if config.ir.edge_stack_allowed and (self.get("_precedence", 0) == -1000000):
                 # Force the safe_regex engine.
-                match.update({
-                    "safe_regex": {
-                        "google_re2": {
-                            "max_program_size": 200,
-                        },
-                        "regex": route_prefix
+                match.update(
+                    {
+                        "safe_regex": {
+                            "google_re2": {
+                                "max_program_size": 200,
+                            },
+                            "regex": route_prefix,
+                        }
                     }
-                })
+                )
             else:
                 match.update(regex_matcher(config, route_prefix))
 
         headers = self.generate_headers(config, group)
         if len(headers) > 0:
-            match['headers'] = headers
+            match["headers"] = headers
 
         query_parameters = self.generate_query_parameters(config, group)
         if len(query_parameters) > 0:
-            match['query_parameters'] = query_parameters
+            match["query_parameters"] = query_parameters
 
-        self['match'] = match
+        self["match"] = match
 
         # `typed_per_filter_config` is used to pass typed configuration to Envoy filters
         typed_per_filter_config = {}
 
-        if mapping.get('bypass_error_response_overrides', False):
-            typed_per_filter_config['envoy.filters.http.response_map'] = {
-                '@type': 'type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMapPerRoute',
-                'disabled': True,
+        if mapping.get("bypass_error_response_overrides", False):
+            typed_per_filter_config["envoy.filters.http.response_map"] = {
+                "@type": "type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMapPerRoute",
+                "disabled": True,
             }
         else:
             # The error_response_overrides field is set on the Mapping as input config
@@ -367,7 +363,7 @@ class V2Route(Cacheable):
             #
             # Therefore, if the field is present at this point, it means it's a valid
             # IRErrorResponse with a 'config' field, since setup must have succeded.
-            error_response_overrides = mapping.get('error_response_overrides', None)
+            error_response_overrides = mapping.get("error_response_overrides", None)
             if error_response_overrides:
                 # The error reponse IR only has optional response map config to use.
                 # On this particular code path, we're protected by both Mapping schema
@@ -379,82 +375,75 @@ class V2Route(Cacheable):
                 if filter_config:
                     # The error response IR itself guarantees that any resulting config() has
                     # at least one mapper in 'mappers', so assert on that here.
-                    assert 'mappers' in filter_config
-                    assert len(filter_config['mappers']) > 0
-                    typed_per_filter_config['envoy.filters.http.response_map'] = {
-                        '@type': 'type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMapPerRoute',
+                    assert "mappers" in filter_config
+                    assert len(filter_config["mappers"]) > 0
+                    typed_per_filter_config["envoy.filters.http.response_map"] = {
+                        "@type": "type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMapPerRoute",
                         # The ResponseMapPerRoute Envoy config is similar to the ResponseMap filter
                         # config, except that it is wrapped in another object with key 'response_map'.
-                        'response_map': {
-                            'mappers': filter_config['mappers']
-                        }
+                        "response_map": {"mappers": filter_config["mappers"]},
                     }
 
-        if mapping.get('bypass_auth', False):
-            typed_per_filter_config['envoy.filters.http.ext_authz'] = {
-                '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute',
-                'disabled': True,
+        if mapping.get("bypass_auth", False):
+            typed_per_filter_config["envoy.filters.http.ext_authz"] = {
+                "@type": "type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute",
+                "disabled": True,
             }
         else:
             # Additional ext_auth configuration only makes sense when not bypassing auth.
-            auth_context_extensions = mapping.get('auth_context_extensions', False)
+            auth_context_extensions = mapping.get("auth_context_extensions", False)
             if auth_context_extensions:
-                typed_per_filter_config['envoy.filters.http.ext_authz'] = {
-                    '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute',
-                    'check_settings': {'context_extensions': auth_context_extensions}
+                typed_per_filter_config["envoy.filters.http.ext_authz"] = {
+                    "@type": "type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute",
+                    "check_settings": {"context_extensions": auth_context_extensions},
                 }
 
         if len(typed_per_filter_config) > 0:
-            self['typed_per_filter_config'] = typed_per_filter_config
+            self["typed_per_filter_config"] = typed_per_filter_config
 
-        request_headers_to_add = group.get('add_request_headers', None)
+        request_headers_to_add = group.get("add_request_headers", None)
         if request_headers_to_add:
-            self['request_headers_to_add'] = self.generate_headers_to_add(request_headers_to_add)
+            self["request_headers_to_add"] = self.generate_headers_to_add(request_headers_to_add)
 
-        response_headers_to_add = group.get('add_response_headers', None)
+        response_headers_to_add = group.get("add_response_headers", None)
         if response_headers_to_add:
-            self['response_headers_to_add'] = self.generate_headers_to_add(response_headers_to_add)
+            self["response_headers_to_add"] = self.generate_headers_to_add(response_headers_to_add)
 
-        request_headers_to_remove = group.get('remove_request_headers', None)
+        request_headers_to_remove = group.get("remove_request_headers", None)
         if request_headers_to_remove:
             if type(request_headers_to_remove) != list:
-                request_headers_to_remove = [ request_headers_to_remove ]
-            self['request_headers_to_remove'] = request_headers_to_remove
+                request_headers_to_remove = [request_headers_to_remove]
+            self["request_headers_to_remove"] = request_headers_to_remove
 
-        response_headers_to_remove = group.get('remove_response_headers', None)
+        response_headers_to_remove = group.get("remove_response_headers", None)
         if response_headers_to_remove:
             if type(response_headers_to_remove) != list:
-                response_headers_to_remove = [ response_headers_to_remove ]
-            self['response_headers_to_remove'] = response_headers_to_remove
+                response_headers_to_remove = [response_headers_to_remove]
+            self["response_headers_to_remove"] = response_headers_to_remove
 
-        host_redirect = group.get('host_redirect', None)
+        host_redirect = group.get("host_redirect", None)
 
         if host_redirect:
             # We have a host_redirect. Deal with it.
-            self['redirect'] = {
-                'host_redirect': host_redirect.service
-            }
+            self["redirect"] = {"host_redirect": host_redirect.service}
 
-            path_redirect = host_redirect.get('path_redirect', None)
-            prefix_redirect = host_redirect.get('prefix_redirect', None)
-            regex_redirect = host_redirect.get('regex_redirect', None)
-            response_code = host_redirect.get('redirect_response_code', None)
+            path_redirect = host_redirect.get("path_redirect", None)
+            prefix_redirect = host_redirect.get("prefix_redirect", None)
+            regex_redirect = host_redirect.get("regex_redirect", None)
+            response_code = host_redirect.get("redirect_response_code", None)
 
             # We enforce that only one of path_redirect or prefix_redirect is set in the IR.
             # But here, we just prefer path_redirect if that's set.
             if path_redirect:
-                self['redirect']['path_redirect'] = path_redirect
+                self["redirect"]["path_redirect"] = path_redirect
             elif prefix_redirect:
                 # In Envoy, it's called prefix_rewrite.
-                self['redirect']['prefix_rewrite'] = prefix_redirect
+                self["redirect"]["prefix_rewrite"] = prefix_redirect
             elif regex_redirect:
                 # In Envoy, it's called regex_rewrite.
-                self['redirect']['regex_rewrite'] = {
-                    'pattern': {
-                        'google_re2': {},
-                        'regex': regex_redirect.get('pattern', '')
-                    },
-                    'substitution': regex_redirect.get('substitution', '')
+                self["redirect"]["regex_rewrite"] = {
+                    "pattern": {"google_re2": {}, "regex": regex_redirect.get("pattern", "")},
+                    "substitution": regex_redirect.get("substitution", ""),
                 }
 
             # In Ambassador, we express the redirect_reponse_code as the actual
@@ -473,41 +462,42 @@ class V2Route(Cacheable):
                     enum_code = 4
                 else:
                     config.ir.post_error(
-                            f"Unknown redirect_response_code={response_code}, must be one of [301, 302, 303,307, 308]. Using default redirect_response_code=301")
+                        f"Unknown redirect_response_code={response_code}, must be one of [301, 302, 303,307, 308]. Using default redirect_response_code=301"
+                    )
                     enum_code = 0
-                self['redirect']['response_code'] = enum_code
+                self["redirect"]["response_code"] = enum_code
 
             return
 
         # Take the default `timeout_ms` value from the Ambassador module using `cluster_request_timeout_ms`.
         # If that isn't set, use 3000ms. The mapping below will override this if its own `timeout_ms` is set.
-        default_timeout_ms = config.ir.ambassador_module.get('cluster_request_timeout_ms', 3000)
+        default_timeout_ms = config.ir.ambassador_module.get("cluster_request_timeout_ms", 3000)
         route = {
-            'priority': group.get('priority'),
-            'timeout': "%0.3fs" % (mapping.get('timeout_ms', default_timeout_ms) / 1000.0),
-            'cluster': mapping.cluster.envoy_name
+            "priority": group.get("priority"),
+            "timeout": "%0.3fs" % (mapping.get("timeout_ms", default_timeout_ms) / 1000.0),
+            "cluster": mapping.cluster.envoy_name,
         }
 
-        idle_timeout_ms = mapping.get('idle_timeout_ms', None)
+        idle_timeout_ms = mapping.get("idle_timeout_ms", None)
 
         if idle_timeout_ms is not None:
-            route['idle_timeout'] = "%0.3fs" % (idle_timeout_ms / 1000.0)
+            route["idle_timeout"] = "%0.3fs" % (idle_timeout_ms / 1000.0)
 
         regex_rewrite = self.generate_regex_rewrite(config, group)
         if len(regex_rewrite) > 0:
-            route['regex_rewrite'] =  regex_rewrite
-        elif mapping.get('rewrite', None):
-            route['prefix_rewrite'] = mapping['rewrite']
+            route["regex_rewrite"] = regex_rewrite
+        elif mapping.get("rewrite", None):
+            route["prefix_rewrite"] = mapping["rewrite"]
 
-        if 'host_rewrite' in mapping:
-            route['host_rewrite'] = mapping['host_rewrite']
+        if "host_rewrite" in mapping:
+            route["host_rewrite"] = mapping["host_rewrite"]
 
-        if 'auto_host_rewrite' in mapping:
-            route['auto_host_rewrite'] = mapping['auto_host_rewrite']
+        if "auto_host_rewrite" in mapping:
+            route["auto_host_rewrite"] = mapping["auto_host_rewrite"]
 
         hash_policy = self.generate_hash_policy(group)
         if len(hash_policy) > 0:
-            route['hash_policy'] = [ hash_policy ]
+            route["hash_policy"] = [hash_policy]
 
         cors = None
 
@@ -521,7 +511,7 @@ class V2Route(Cacheable):
             cors = cors.dup()
             cors.set_id(group.group_id)
 
-            route['cors'] = cors.as_dict()
+            route["cors"] = cors.as_dict()
 
         retry_policy = None
 
@@ -531,7 +521,7 @@ class V2Route(Cacheable):
             retry_policy = config.ir.ambassador_module.retry_policy.as_dict()
 
         if retry_policy:
-            route['retry_policy'] = retry_policy
+            route["retry_policy"] = retry_policy
 
         # Is shadowing enabled?
         shadow = group.get("shadows", None)
@@ -539,16 +529,13 @@ class V2Route(Cacheable):
         if shadow:
             shadow = shadow[0]
 
-            weight = shadow.get('weight', 100)
+            weight = shadow.get("weight", 100)
 
-            route['request_mirror_policy'] = {
-                'cluster': shadow.cluster.envoy_name,
-                'runtime_fraction': {
-                    'default_value': {
-                        'numerator': weight,
-                        'denominator': 'HUNDRED'
-                    }
-                }
+            route["request_mirror_policy"] = {
+                "cluster": shadow.cluster.envoy_name,
+                "runtime_fraction": {
+                    "default_value": {"numerator": weight, "denominator": "HUNDRED"}
+                },
             }
 
         # Is RateLimit a thing?
@@ -575,10 +562,12 @@ class V2Route(Cacheable):
                     route["rate_limits"] = rate_limits
 
         # Save upgrade configs.
-        if group.get('allow_upgrade'):
-            route["upgrade_configs"] = [ { 'upgrade_type': proto } for proto in group.get('allow_upgrade', []) ]
+        if group.get("allow_upgrade"):
+            route["upgrade_configs"] = [
+                {"upgrade_type": proto} for proto in group.get("allow_upgrade", [])
+            ]
 
-        self['route'] = route
+        self["route"] = route
 
     # matches_domain and matches_domains are both still written assuming a _host_constraints
     # with more than element. Not changing that yet.
@@ -599,7 +588,7 @@ class V2Route(Cacheable):
             self.logger.debug(f"    - matches_domains: nonspecific domains")
             return True
 
-        if any([ self.matches_domain(domain) for domain in domains ]):
+        if any([self.matches_domain(domain) for domain in domains]):
             self.logger.debug(f"    - matches_domains: domain match")
             return True
 
@@ -607,9 +596,10 @@ class V2Route(Cacheable):
         return False
 
     @classmethod
-    def get_route(cls, config: 'V2Config', cache_key: str,
-                  irgroup: IRHTTPMappingGroup, mapping: IRBaseMapping) -> 'V2Route':
-        route: 'V2Route'
+    def get_route(
+        cls, config: "V2Config", cache_key: str, irgroup: IRHTTPMappingGroup, mapping: IRBaseMapping
+    ) -> "V2Route":
+        route: "V2Route"
 
         cached_route = config.cache[cache_key]
 
@@ -630,7 +620,7 @@ class V2Route(Cacheable):
         else:
             # Cache hit. We know a priori that it's a V2Route, but let's assert that
             # before casting.
-            assert(isinstance(cached_route, V2Route))
+            assert isinstance(cached_route, V2Route)
             route = cached_route
 
             # config.ir.logger.info(f"V2Route: cache hit for {cache_key}")
@@ -639,7 +629,7 @@ class V2Route(Cacheable):
         return route
 
     @classmethod
-    def generate(cls, config: 'V2Config') -> None:
+    def generate(cls, config: "V2Config") -> None:
         config.routes = []
 
         for irgroup in config.ir.ordered_groups():
@@ -647,7 +637,7 @@ class V2Route(Cacheable):
                 # We only want HTTP mapping groups here.
                 continue
 
-            if irgroup.get('host_redirect') is not None and len(irgroup.get('mappings', [])) == 0:
+            if irgroup.get("host_redirect") is not None and len(irgroup.get("mappings", [])) == 0:
                 # This is a host-redirect-only group, which is weird, but can happen. Do we
                 # have a cached route for it?
                 key = f"Route-{irgroup.group_id}-hostredirect"
@@ -658,7 +648,11 @@ class V2Route(Cacheable):
                 #
                 # (We could also have written V2Route to allow the mapping to be Optional, but that
                 # makes a lot of its constructor much uglier.)
-                route = config.save_element('route', irgroup, cls.get_route(config, key, irgroup, typecast(IRBaseMapping, {})))
+                route = config.save_element(
+                    "route",
+                    irgroup,
+                    cls.get_route(config, key, irgroup, typecast(IRBaseMapping, {})),
+                )
                 config.routes.append(route)
 
             # Repeat for our real mappings.
@@ -667,8 +661,8 @@ class V2Route(Cacheable):
 
                 route = cls.get_route(config, key, irgroup, mapping)
 
-                if not route.get('_failed', False):
-                    config.routes.append(config.save_element('route', irgroup, route))
+                if not route.get("_failed", False):
+                    config.routes.append(config.save_element("route", irgroup, route))
 
         # Once that's done, go build the variants on each route.
         config.route_variants = []
@@ -678,22 +672,22 @@ class V2Route(Cacheable):
             config.route_variants.append(V2RouteVariants(route))
 
     @staticmethod
-    def generate_headers(config: 'V2Config', mapping_group: IRHTTPMappingGroup) -> List[dict]:
+    def generate_headers(config: "V2Config", mapping_group: IRHTTPMappingGroup) -> List[dict]:
         headers = []
 
-        group_headers = mapping_group.get('headers', [])
+        group_headers = mapping_group.get("headers", [])
 
         for group_header in group_headers:
-            header_name = group_header.get('name')
-            header_value = group_header.get('value')
+            header_name = group_header.get("name")
+            header_value = group_header.get("value")
 
-            header = { 'name': header_name }
+            header = {"name": header_name}
 
             # Is this a regex?
-            if group_header.get('regex'):
-                header.update(regex_matcher(config, header_value, key='regex_match'))
+            if group_header.get("regex"):
+                header.update(regex_matcher(config, header_value, key="regex_match"))
             else:
-                if header_name == ':authority':
+                if header_name == ":authority":
                     # The authority header is special, because its value is a glob.
                     # (This works without the user marking it as such because '*' isn't
                     # valid in DNS names, so we know that treating a name with a '*' as
@@ -701,51 +695,49 @@ class V2Route(Cacheable):
                     if header_value == "*":
                         # This is actually a noop, so just don't include this header.
                         continue
-                    elif header_value.startswith('*'):
-                        header['suffix_match'] = header_value[1:]
-                    elif header_value.endswith('*'):
-                        header['prefix_match'] = header_value[:-1]
+                    elif header_value.startswith("*"):
+                        header["suffix_match"] = header_value[1:]
+                    elif header_value.endswith("*"):
+                        header["prefix_match"] = header_value[:-1]
                     else:
                         # But wait! What about 'foo.*.com'?? Turns out Envoy doesn't
                         # support that in the places it actually does host globbing,
                         # so we won't either for the moment.
-                        header['exact_match'] = header_value
+                        header["exact_match"] = header_value
                 else:
-                    header['exact_match'] = header_value
+                    header["exact_match"] = header_value
 
             headers.append(header)
 
         return headers
 
     @staticmethod
-    def generate_query_parameters(config: 'V2Config', mapping_group: IRHTTPMappingGroup) -> List[dict]:
+    def generate_query_parameters(
+        config: "V2Config", mapping_group: IRHTTPMappingGroup
+    ) -> List[dict]:
         query_parameters = []
 
-        group_query_parameters = mapping_group.get('query_parameters', [])
+        group_query_parameters = mapping_group.get("query_parameters", [])
 
         for group_query_parameter in group_query_parameters:
-            query_parameter = { 'name': group_query_parameter.get('name') }
+            query_parameter = {"name": group_query_parameter.get("name")}
 
-            if group_query_parameter.get('regex'):
-                query_parameter.update({
-                    'string_match': regex_matcher(
-                        config,
-                        group_query_parameter.get('value'),
-                        key='regex'
-                    )
-                })
+            if group_query_parameter.get("regex"):
+                query_parameter.update(
+                    {
+                        "string_match": regex_matcher(
+                            config, group_query_parameter.get("value"), key="regex"
+                        )
+                    }
+                )
             else:
-                value = group_query_parameter.get('value', None)
+                value = group_query_parameter.get("value", None)
                 if value is not None:
-                    query_parameter.update({
-                        'string_match': {
-                            'exact': group_query_parameter.get('value')
-                        }
-                    })
+                    query_parameter.update(
+                        {"string_match": {"exact": group_query_parameter.get("value")}}
+                    )
                 else:
-                    query_parameter.update({
-                        'present_match': True
-                    })
+                    query_parameter.update({"present_match": True})
 
             query_parameters.append(query_parameter)
 
@@ -754,30 +746,24 @@ class V2Route(Cacheable):
     @staticmethod
     def generate_hash_policy(mapping_group: IRHTTPMappingGroup) -> dict:
         hash_policy = {}
-        load_balancer = mapping_group.get('load_balancer', None)
+        load_balancer = mapping_group.get("load_balancer", None)
         if load_balancer is not None:
-            lb_policy = load_balancer.get('policy')
-            if lb_policy in ['ring_hash', 'maglev']:
-                cookie = load_balancer.get('cookie')
-                header = load_balancer.get('header')
-                source_ip = load_balancer.get('source_ip')
+            lb_policy = load_balancer.get("policy")
+            if lb_policy in ["ring_hash", "maglev"]:
+                cookie = load_balancer.get("cookie")
+                header = load_balancer.get("header")
+                source_ip = load_balancer.get("source_ip")
 
                 if cookie is not None:
-                    hash_policy['cookie'] = {
-                        'name': cookie.get('name')
-                    }
-                    if 'path' in cookie:
-                        hash_policy['cookie']['path'] = cookie['path']
-                    if 'ttl' in cookie:
-                        hash_policy['cookie']['ttl'] = cookie['ttl']
+                    hash_policy["cookie"] = {"name": cookie.get("name")}
+                    if "path" in cookie:
+                        hash_policy["cookie"]["path"] = cookie["path"]
+                    if "ttl" in cookie:
+                        hash_policy["cookie"]["ttl"] = cookie["ttl"]
                 elif header is not None:
-                    hash_policy['header'] = {
-                        'header_name': header
-                    }
+                    hash_policy["header"] = {"header_name": header}
                 elif source_ip is not None:
-                    hash_policy['connection_properties'] = {
-                        'source_ip': source_ip
-                    }
+                    hash_policy["connection_properties"] = {"source_ip": source_ip}
 
         return hash_policy
 
@@ -785,36 +771,31 @@ class V2Route(Cacheable):
     def generate_headers_to_add(header_dict: dict) -> List[dict]:
         headers = []
         for k, v in header_dict.items():
-                append = True
-                if isinstance(v,dict):
-                    if 'append' in v:
-                        append = bool(v['append'])
-                    headers.append({
-                        'header': {
-                            'key': k,
-                            'value': v['value']
-                        },
-                        'append': append
-                    })
-                else:
-                    headers.append({
-                        'header': {
-                            'key': k,
-                            'value': v
-                        },
-                        'append': append  # Default append True, for backward compatability
-                    })
+            append = True
+            if isinstance(v, dict):
+                if "append" in v:
+                    append = bool(v["append"])
+                headers.append({"header": {"key": k, "value": v["value"]}, "append": append})
+            else:
+                headers.append(
+                    {
+                        "header": {"key": k, "value": v},
+                        "append": append,  # Default append True, for backward compatability
+                    }
+                )
         return headers
 
     @staticmethod
-    def generate_regex_rewrite(config: 'V2Config', mapping_group: IRHTTPMappingGroup) -> dict:
+    def generate_regex_rewrite(config: "V2Config", mapping_group: IRHTTPMappingGroup) -> dict:
         regex_rewrite = {}
-        group_regex_rewrite = mapping_group.get('regex_rewrite', None)
+        group_regex_rewrite = mapping_group.get("regex_rewrite", None)
         if group_regex_rewrite is not None:
-            pattern = group_regex_rewrite.get('pattern', None)
-            if (pattern is not None):
-                regex_rewrite.update(regex_matcher(config, pattern, key='regex',safe_key='pattern', re_type='safe')) # regex_rewrite should never ever be unsafe
-        substitution = group_regex_rewrite.get('substitution', None)
-        if (substitution is not None):
+            pattern = group_regex_rewrite.get("pattern", None)
+            if pattern is not None:
+                regex_rewrite.update(
+                    regex_matcher(config, pattern, key="regex", safe_key="pattern", re_type="safe")
+                )  # regex_rewrite should never ever be unsafe
+        substitution = group_regex_rewrite.get("substitution", None)
+        if substitution is not None:
             regex_rewrite["substitution"] = substitution
         return regex_rewrite

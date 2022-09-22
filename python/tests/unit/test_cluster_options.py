@@ -1,7 +1,14 @@
-from tests.utils import econf_compile, econf_foreach_cluster, module_and_mapping_manifests, SUPPORTED_ENVOY_VERSIONS
-
 import os
+
 import pytest
+
+from tests.utils import (
+    SUPPORTED_ENVOY_VERSIONS,
+    econf_compile,
+    econf_foreach_cluster,
+    module_and_mapping_manifests,
+)
+
 
 # Tests if `setting` exists within the cluster config and has `expected` as the value for that setting
 # Use `exists` to test if you expect a setting to not exist
@@ -16,6 +23,7 @@ def _test_cluster_setting(yaml, setting, expected, exists=True, envoy_version="V
             assert setting not in cluster
 
     econf_foreach_cluster(econf, check)
+
 
 # Tests a setting in a cluster that has it's own fields. Example: common_http_protocol_options has multiple subfields
 def _test_cluster_subfields(yaml, setting, expectations={}, exists=True, envoy_version="V2"):
@@ -33,14 +41,17 @@ def _test_cluster_subfields(yaml, setting, expectations={}, exists=True, envoy_v
 
     econf_foreach_cluster(econf, check)
 
+
 # Test dns_type setting in Mapping
 @pytest.mark.compilertest
 def test_logical_dns_type():
     yaml = module_and_mapping_manifests(None, ["dns_type: logical_dns"])
     for v in SUPPORTED_ENVOY_VERSIONS:
         # The dns type is listed as just "type"
-        _test_cluster_setting(yaml, setting="type",
-            expected="LOGICAL_DNS", exists=True, envoy_version=v)
+        _test_cluster_setting(
+            yaml, setting="type", expected="LOGICAL_DNS", exists=True, envoy_version=v
+        )
+
 
 @pytest.mark.compilertest
 def test_strict_dns_type():
@@ -48,8 +59,10 @@ def test_strict_dns_type():
     yaml = module_and_mapping_manifests(None, ["dns_type: strict_dns"])
     for v in SUPPORTED_ENVOY_VERSIONS:
         # The dns type is listed as just "type"
-        _test_cluster_setting(yaml, setting="type",
-            expected="STRICT_DNS", exists=True, envoy_version=v)
+        _test_cluster_setting(
+            yaml, setting="type", expected="STRICT_DNS", exists=True, envoy_version=v
+        )
+
 
 @pytest.mark.compilertest
 def test_dns_type_wrong():
@@ -58,8 +71,10 @@ def test_dns_type_wrong():
     yaml = module_and_mapping_manifests(None, ["dns_type: something_new"])
     for v in SUPPORTED_ENVOY_VERSIONS:
         # The dns type is listed as just "type"
-        _test_cluster_setting(yaml, setting="type",
-            expected="STRICT_DNS", exists=True, envoy_version=v)
+        _test_cluster_setting(
+            yaml, setting="type", expected="STRICT_DNS", exists=True, envoy_version=v
+        )
+
 
 @pytest.mark.compilertest
 def test_logical_dns_type_endpoints():
@@ -67,8 +82,8 @@ def test_logical_dns_type_endpoints():
     yaml = module_and_mapping_manifests(None, ["dns_type: logical_dns", "resolver: endpoint"])
     for v in SUPPORTED_ENVOY_VERSIONS:
         # The dns type is listed as just "type"
-        _test_cluster_setting(yaml, setting="type",
-            expected="EDS", exists=True, envoy_version=v)
+        _test_cluster_setting(yaml, setting="type", expected="EDS", exists=True, envoy_version=v)
+
 
 @pytest.mark.compilertest
 def test_dns_ttl_module():
@@ -76,8 +91,10 @@ def test_dns_ttl_module():
     yaml = module_and_mapping_manifests(None, ["respect_dns_ttl: true"])
     for v in SUPPORTED_ENVOY_VERSIONS:
         # The dns type is listed as just "type"
-        _test_cluster_setting(yaml, setting="respect_dns_ttl",
-            expected=True, exists=True, envoy_version=v)
+        _test_cluster_setting(
+            yaml, setting="respect_dns_ttl", expected=True, exists=True, envoy_version=v
+        )
+
 
 @pytest.mark.compilertest
 def test_dns_ttl_mapping():
@@ -85,5 +102,6 @@ def test_dns_ttl_mapping():
     yaml = module_and_mapping_manifests(None, None)
     for v in SUPPORTED_ENVOY_VERSIONS:
         # The dns type is listed as just "type"
-        _test_cluster_setting(yaml, setting="respect_dns_ttl",
-            expected=False, exists=False, envoy_version=v)
+        _test_cluster_setting(
+            yaml, setting="respect_dns_ttl", expected=False, exists=False, envoy_version=v
+        )

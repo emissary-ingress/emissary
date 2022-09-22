@@ -1,11 +1,10 @@
+import json
 from typing import ClassVar, Dict, Generator, Sequence, Tuple, Union
 
-import json
 import pytest
 
+from abstract_tests import MappingTest, Node, OptionTest
 from kat.harness import Query, Test
-
-from abstract_tests import MappingTest, OptionTest, Node
 
 # This is the place to add new OptionTests.
 
@@ -15,19 +14,11 @@ class AddRequestHeaders(OptionTest):
     parent: Test
 
     VALUES: ClassVar[Sequence[Dict[str, Dict[str, Union[str, bool]]]]] = [
-        { "foo": { "value": "bar" } },
-        { "moo": { "value": "arf" } },
-        { "zoo": {
-            "append": True,
-            "value": "bar"
-        }},
-        { "xoo": {
-            "append": False,
-            "value": "dwe"
-        }},
-        { "aoo": {
-            "value": "tyu"
-        }}
+        {"foo": {"value": "bar"}},
+        {"moo": {"value": "arf"}},
+        {"zoo": {"append": True, "value": "bar"}},
+        {"xoo": {"append": False, "value": "dwe"}},
+        {"aoo": {"value": "tyu"}},
     ]
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -37,7 +28,7 @@ class AddRequestHeaders(OptionTest):
         for r in self.parent.results:
             for k, v in self.value.items():
                 actual = r.backend.request.headers.get(k.lower())
-                if isinstance(v,dict):
+                if isinstance(v, dict):
                     assert actual == [v["value"]], (actual, [v["value"]])
                 else:
                     assert actual == [v], (actual, [v])
@@ -48,19 +39,11 @@ class AddResponseHeaders(OptionTest):
     parent: Test
 
     VALUES: ClassVar[Sequence[Dict[str, Dict[str, Union[str, bool]]]]] = [
-        { "foo": { "value": "bar" } },
-        { "moo": { "value": "arf" } },
-        { "zoo": {
-            "append": True,
-            "value": "bar"
-        }},
-        { "xoo": {
-            "append": False,
-            "value": "dwe"
-        }},
-        { "aoo": {
-            "value": "tyu"
-        }}
+        {"foo": {"value": "bar"}},
+        {"moo": {"value": "arf"}},
+        {"zoo": {"append": True, "value": "bar"}},
+        {"xoo": {"append": False, "value": "dwe"}},
+        {"aoo": {"value": "tyu"}},
     ]
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -69,12 +52,16 @@ class AddResponseHeaders(OptionTest):
     def check(self):
         for r in self.parent.results:
             # Why do we end up with capitalized headers anyway??
-            lowercased_headers = { k.lower(): v for k, v in r.headers.items() }
+            lowercased_headers = {k.lower(): v for k, v in r.headers.items()}
 
             for k, v in self.value.items():
                 actual = lowercased_headers.get(k.lower())
-                if isinstance(v,dict):
-                    assert actual == [v["value"]], "expected %s: %s but got %s" % (k, v["value"], lowercased_headers)
+                if isinstance(v, dict):
+                    assert actual == [v["value"]], "expected %s: %s but got %s" % (
+                        k,
+                        v["value"],
+                        lowercased_headers,
+                    )
                 else:
                     assert actual == [v], "expected %s: %s but got %s" % (k, v, lowercased_headers)
 
@@ -83,7 +70,7 @@ class UseWebsocket(OptionTest):
     # TODO: add a check with a websocket client as soon as we have backend support for it
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield 'use_websocket: true'
+        yield "use_websocket: true"
 
 
 class CORS(OptionTest):
@@ -100,7 +87,7 @@ class CORS(OptionTest):
     def queries(self):
         for q in self.parent.queries():
             yield Query(q.url)  # redundant with parent
-            yield Query(q.url, headers={ "Origin": "https://www.test-cors.org" })
+            yield Query(q.url, headers={"Origin": "https://www.test-cors.org"})
 
     def check(self):
         # can assert about self.parent.results too
@@ -110,7 +97,9 @@ class CORS(OptionTest):
 
         assert self.results[1].backend.name == self.parent.target.path.k8s
         # Uh. Is it OK that this is case-sensitive?
-        assert self.results[1].headers["Access-Control-Allow-Origin"] == [ "https://www.test-cors.org" ]
+        assert self.results[1].headers["Access-Control-Allow-Origin"] == [
+            "https://www.test-cors.org"
+        ]
 
 
 class CaseSensitive(OptionTest):
@@ -140,7 +129,9 @@ class AutoHostRewrite(OptionTest):
             request_host = r.backend.request.host
             response_host = self.parent.get_fqdn(r.backend.name)
 
-            assert response_host == request_host, f'backend {response_host} != request host {request_host}'
+            assert (
+                response_host == request_host
+            ), f"backend {response_host} != request host {request_host}"
 
 
 class Rewrite(OptionTest):
@@ -176,4 +167,6 @@ class RemoveResponseHeaders(OptionTest):
 
     def check(self):
         for r in self.parent.results:
-            assert r.headers.get("x-envoy-upstream-service-time", None) == None, "x-envoy-upstream-service-time header was meant to be dropped but wasn't"
+            assert (
+                r.headers.get("x-envoy-upstream-service-time", None) == None
+            ), "x-envoy-upstream-service-time header was meant to be dropped but wasn't"

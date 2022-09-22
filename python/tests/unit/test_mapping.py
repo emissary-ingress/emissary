@@ -1,7 +1,9 @@
 import json
+
 import pytest
 
 from tests.utils import compile_with_cachecheck
+
 
 @pytest.mark.compilertest
 def test_mapping_host_star_error():
@@ -35,6 +37,7 @@ spec:
 
     # print(json.dumps(ir.as_dict(), sort_keys=True, indent=4))
 
+
 @pytest.mark.compilertest
 def test_mapping_host_authority_star_error():
     test_yaml = """
@@ -61,12 +64,15 @@ spec:
     assert len(errors) == 1, f"Expected 1 error but got {len(errors)}"
 
     assert errors[0]["ok"] == False
-    assert errors[0]["error"] == ":authority exact-match '*' contains *, which cannot match anything."
+    assert (
+        errors[0]["error"] == ":authority exact-match '*' contains *, which cannot match anything."
+    )
 
     for g in ir.groups.values():
         assert g.prefix != "/star/"
 
     # print(json.dumps(ir.as_dict(), sort_keys=True, indent=4))
+
 
 @pytest.mark.compilertest
 def test_mapping_host_ok():
@@ -88,7 +94,9 @@ spec:
     ir = r["ir"]
 
     errors = ir.aconf.errors
-    assert len(errors) == 0, "Expected no errors but got %s" % (json.dumps(errors, sort_keys=True, indent=4))
+    assert len(errors) == 0, "Expected no errors but got %s" % (
+        json.dumps(errors, sort_keys=True, indent=4)
+    )
 
     found = 0
 
@@ -100,6 +108,7 @@ spec:
     assert found == 1, "Expected 1 /wanted_group/ prefix, got %d" % found
 
     # print(json.dumps(ir.as_dict(), sort_keys=True, indent=4))
+
 
 @pytest.mark.compilertest
 def test_mapping_host_authority_ok():
@@ -122,7 +131,9 @@ spec:
     ir = r["ir"]
 
     errors = ir.aconf.errors
-    assert len(errors) == 0, "Expected no errors but got %s" % (json.dumps(errors, sort_keys=True, indent=4))
+    assert len(errors) == 0, "Expected no errors but got %s" % (
+        json.dumps(errors, sort_keys=True, indent=4)
+    )
 
     found = 0
 
@@ -134,6 +145,7 @@ spec:
     assert found == 1, "Expected 1 /wanted_group/ prefix, got %d" % found
 
     # print(json.dumps(ir.as_dict(), sort_keys=True, indent=4))
+
 
 @pytest.mark.compilertest
 def test_mapping_host_authority_and_host():
@@ -157,7 +169,9 @@ spec:
     ir = r["ir"]
 
     errors = ir.aconf.errors
-    assert len(errors) == 0, "Expected no errors but got %s" % (json.dumps(errors, sort_keys=True, indent=4))
+    assert len(errors) == 0, "Expected no errors but got %s" % (
+        json.dumps(errors, sort_keys=True, indent=4)
+    )
 
     found = 0
 
@@ -169,6 +183,7 @@ spec:
     assert found == 1, "Expected 1 /wanted_group/ prefix, got %d" % found
 
     # print(json.dumps(ir.as_dict(), sort_keys=True, indent=4))
+
 
 @pytest.mark.compilertest
 def test_mapping_hostname_ok():
@@ -190,7 +205,9 @@ spec:
     ir = r["ir"]
 
     errors = ir.aconf.errors
-    assert len(errors) == 0, "Expected no errors but got %s" % (json.dumps(errors, sort_keys=True, indent=4))
+    assert len(errors) == 0, "Expected no errors but got %s" % (
+        json.dumps(errors, sort_keys=True, indent=4)
+    )
 
     found = 0
 
@@ -202,6 +219,7 @@ spec:
     assert found == 1, "Expected 1 /wanted_group/ prefix, got %d" % found
 
     # print(json.dumps(ir.as_dict(), sort_keys=True, indent=4))
+
 
 @pytest.mark.compilertest
 def test_mapping_hostname_and_host():
@@ -224,7 +242,9 @@ spec:
     ir = r["ir"]
 
     errors = ir.aconf.errors
-    assert len(errors) == 0, "Expected no errors but got %s" % (json.dumps(errors, sort_keys=True, indent=4))
+    assert len(errors) == 0, "Expected no errors but got %s" % (
+        json.dumps(errors, sort_keys=True, indent=4)
+    )
 
     found = 0
 
@@ -236,6 +256,7 @@ spec:
     assert found == 1, "Expected 1 /wanted_group/ prefix, got %d" % found
 
     # print(json.dumps(ir.as_dict(), sort_keys=True, indent=4))
+
 
 @pytest.mark.compilertest
 def test_mapping_hostname_and_authority():
@@ -259,7 +280,9 @@ spec:
     ir = r["ir"]
 
     errors = ir.aconf.errors
-    assert len(errors) == 0, "Expected no errors but got %s" % (json.dumps(errors, sort_keys=True, indent=4))
+    assert len(errors) == 0, "Expected no errors but got %s" % (
+        json.dumps(errors, sort_keys=True, indent=4)
+    )
 
     found = 0
 
@@ -271,6 +294,7 @@ spec:
     assert found == 1, "Expected 1 /wanted_group/ prefix, got %d" % found
 
     # print(json.dumps(ir.as_dict(), sort_keys=True, indent=4))
+
 
 @pytest.mark.compilertest
 def test_mapping_hostname_and_host_and_authority():
@@ -295,7 +319,9 @@ spec:
     ir = r["ir"]
 
     errors = ir.aconf.errors
-    assert len(errors) == 0, "Expected no errors but got %s" % (json.dumps(errors, sort_keys=True, indent=4))
+    assert len(errors) == 0, "Expected no errors but got %s" % (
+        json.dumps(errors, sort_keys=True, indent=4)
+    )
 
     found = 0
 

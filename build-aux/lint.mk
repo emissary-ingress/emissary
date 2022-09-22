@@ -1,46 +1,87 @@
 include build-aux/tools.mk
 
-lint/go-dirs = $(OSS_HOME)
+#
+# Go
 
-lint:
-	@PS4=; set +ex; r=0; { \
-		printf "$(CYN)==>$(END) Linting $(BLU)Go$(END)...\n"; \
-		go_status=0; $(MAKE) golint || { go_status=$$?; r=$$go_status; }; \
-		\
-		printf "$(CYN)==>$(END) Linting $(BLU)Python$(END)...\n"; \
-		py_status=0; $(MAKE) mypy || { py_status=$$?; r=$$py_status; }; \
-		\
-		printf "$(CYN)==>$(END) Linting $(BLU)Helm$(END)...\n"; \
-		helm_status=0; $(MAKE) lint-chart || { helm_status=$$?; r=$$helm_status; }; \
-		\
-		set +x; \
-		printf "$(CYN)==>$(END) $(BLU)Go$(END)      lint $$(if [[ $$go_status     == 0 ]]; then printf "$(GRN)OK"; else printf "$(RED)FAIL"; fi)$(END)\n"; \
-		printf "$(CYN)==>$(END) $(BLU)Python$(END)  lint $$(if [[ $$py_status     == 0 ]]; then printf "$(GRN)OK"; else printf "$(RED)FAIL"; fi)$(END)\n"; \
-		printf "$(CYN)==>$(END) $(BLU)Helm$(END)    lint $$(if [[ $$helm_status   == 0 ]]; then printf "$(GRN)OK"; else printf "$(RED)FAIL"; fi)$(END)\n"; \
-		set -x; \
-		\
-		exit $$r; \
+lint-deps += $(tools/golangci-lint)
+lint-goals += lint/go
+lint/go: $(tools/golangci-lint)
+	$(tools/golangci-lint) run ./...
+.PHONY: lint/go
+
+format-goals += format/go
+format/go: $(tools/golangci-lint)
+	$(tools/golangci-lint) run --fix ./... || true
+.PHONY: format/go
+
+#
+# Python
+
+lint-deps += $(OSS_HOME)/venv
+
+lint-goals += lint/mypy
+lint/mypy: $(OSS_HOME)/venv
+	set -e; { \
+	  . $(OSS_HOME)/venv/bin/activate; \
+	  time mypy \
+	    --cache-fine-grained \
+	    --follow-imports=skip \
+	    --ignore-missing-imports \
+	    ./python/; \
 	}
-.PHONY: lint
+.PHONY: lint/mypy
 clean: .dmypy.json.rm .mypy_cache.rm-r
 
-golint: $(tools/golangci-lint)
-	@PS4=; set -x; r=0; { \
-		for dir in $(lint/go-dirs); do \
-			(cd $$dir && $(tools/golangci-lint) run ./...) || r=$$?; \
-		done; \
-		exit $$r; \
-	}
-.PHONY: golint
+lint-goals += lint/black
+lint/black: $(OSS_HOME)/venv
+	. $(OSS_HOME)/venv/bin/activate && black --check ./python/
+.PHONY: lint/black
 
-format: $(tools/golangci-lint)
-	@PS4=; set -x; { \
-		for dir in $(lint/go-dirs); do \
-			(cd $$dir && $(tools/golangci-lint) run --fix ./...) || true; \
-		done; \
-	}
-.PHONY: format
+format-goals += format/black
+format/black: $(OSS_HOME)/venv
+	. $(OSS_HOME)/venv/bin/activate && black ./python/
+.PHONY: format/black
 
-lint-chart: $(tools/ct) $(chart_dir)
+lint-goals += lint/isort
+lint/isort: $(OSS_HOME)/venv
+	. $(OSS_HOME)/venv/bin/activate && isort --check --diff ./python/
+.PHONY: lint/isort
+
+format-goals += format/isort
+format/isort: $(OSS_HOME)/venv
+	. $(OSS_HOME)/venv/bin/activate && isort ./python/
+.PHONY: format/isort
+
+#
+# Helm
+
+lint-deps += $(tools/ct) $(chart_dir)
+lint-goals += lint/chart
+lint/chart: $(tools/ct) $(chart_dir)
 	cd $(chart_dir) && $(abspath $(tools/ct)) lint --config=./ct.yaml
-.PHONY: lint-chart
+.PHONY: lint/chart
+
+#
+# All together now
+
+lint-deps: ## (QA) Everything necessary to lint (useful to separate out in the logs)
+lint-deps: $(lint-deps)
+.PHONY: lint-deps
+
+lint: ## (QA) Run the linters
+lint: lint-deps
+	@printf "$(GRN)==> $(BLU)Running linters...$(END)\n"
+	@{ \
+	  r=0; \
+	  for goal in $(lint-goals); do \
+	    printf " $(BLU)=> $${goal}$(END)\n"; \
+	    echo "$(MAKE) $${goal}"; \
+	    $(MAKE) "$${goal}" || r=$$?; \
+	  done; \
+	  exit $$r; \
+	}
+.PHONY: lint
+
+format: ## (QA) Automatically fix linter complaints
+format: $(format-goals)
+.PHONY: format

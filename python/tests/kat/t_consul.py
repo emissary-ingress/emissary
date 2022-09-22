@@ -1,20 +1,24 @@
 from typing import Generator, Tuple, Union
 
+from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
 from kat.harness import Query
-
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, Node
 from tests.selfsigned import TLSCerts
 
-SECRETS="""
+SECRETS = (
+    """
 ---
 apiVersion: v1
 metadata:
   name: {self.path.k8s}-client-cert-secret
 data:
-  tls.crt: """+TLSCerts["master.datawire.io"].k8s_crt+"""
+  tls.crt: """
+    + TLSCerts["master.datawire.io"].k8s_crt
+    + """
 kind: Secret
 type: Opaque
 """
+)
+
 
 class ConsulTest(AmbassadorTest):
     k8s_target: ServiceType
@@ -39,10 +43,11 @@ class ConsulTest(AmbassadorTest):
         # escaping, since this gets passed through self.format (hence two layers of
         # doubled braces) and JSON decoding (hence backslash-escaped double quotes,
         # and of course the backslashes themselves have to be escaped...)
-        self.datacenter_json = f'{{{{\\\"datacenter\\\":\\\"{self.datacenter}\\\"}}}}'
+        self.datacenter_json = f'{{{{\\"datacenter\\":\\"{self.datacenter}\\"}}}}'
 
     def manifests(self) -> str:
-        consul_manifest = self.format("""
+        consul_manifest = self.format(
+            """
 ---
 apiVersion: v1
 kind: Service
@@ -75,18 +80,26 @@ spec:
     - name: CONSUL_LOCAL_CONFIG
       value: "{self.datacenter_json}"
   restartPolicy: Always
-""")
+"""
+        )
 
         # Unlike usual, we have stuff both before and after super().manifests():
         # we want the namespace early, but we want the superclass before our other
         # manifests, because of some magic with ServiceAccounts?
-        return self.format("""
+        return (
+            self.format(
+                """
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: consul-test-namespace
-""") + super().manifests() + consul_manifest + self.format("""
+"""
+            )
+            + super().manifests()
+            + consul_manifest
+            + self.format(
+                """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: ConsulResolver
@@ -110,10 +123,14 @@ spec:
   resolver: {self.path.k8s}-resolver
   load_balancer:
     policy: round_robin
-""" + SECRETS)
+"""
+                + SECRETS
+            )
+        )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.k8s_target, self.format("""
+        yield self.k8s_target, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -154,35 +171,42 @@ name:  {self.path.k8s}-client-host
 requestPolicy:
   insecure:
     action: Route
-""")
+"""
+        )
 
     def requirements(self):
         yield from super().requirements()
-        yield("url", Query(self.format("http://{self.path.k8s}-consul:8500/ui/")))
+        yield ("url", Query(self.format("http://{self.path.k8s}-consul:8500/ui/")))
 
     def queries(self):
         # Deregister the Consul services in phase 0.
-        yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
-                    method="PUT",
-                    body={
-                        "Datacenter": self.datacenter,
-                        "Node": self.format("{self.path.k8s}-consul-service")
-                    },
-                    phase=0)
-        yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
-                    method="PUT",
-                    body={
-                        "Datacenter": self.datacenter,
-                        "Node": self.format("{self.path.k8s}-consul-ns-service")
-                    },
-                    phase=0)
-        yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
-                    method="PUT",
-                    body={
-                        "Datacenter": self.datacenter,
-                        "Node": self.format("{self.path.k8s}-consul-node")
-                    },
-                    phase=0)
+        yield Query(
+            self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
+            method="PUT",
+            body={
+                "Datacenter": self.datacenter,
+                "Node": self.format("{self.path.k8s}-consul-service"),
+            },
+            phase=0,
+        )
+        yield Query(
+            self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
+            method="PUT",
+            body={
+                "Datacenter": self.datacenter,
+                "Node": self.format("{self.path.k8s}-consul-ns-service"),
+            },
+            phase=0,
+        )
+        yield Query(
+            self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
+            method="PUT",
+            body={
+                "Datacenter": self.datacenter,
+                "Node": self.format("{self.path.k8s}-consul-node"),
+            },
+            phase=0,
+        )
 
         # The K8s service should be OK. The Consul services should 503 since they have no upstreams
         # in phase 1.
@@ -192,35 +216,47 @@ requestPolicy:
         yield Query(self.url(self.format("{self.path.k8s}_consul_node/")), expected=503, phase=1)
 
         # Register the Consul services in phase 2.
-        yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
-                    method="PUT",
-                    body={
-                        "Datacenter": self.datacenter,
-                        "Node": self.format("{self.path.k8s}-consul-service"),
-                        "Address": self.k8s_target.path.k8s,
-                        "Service": {"Service": self.format("{self.path.k8s}-consul-service"),
-                                    "Address": self.k8s_target.path.k8s,
-                                    "Port": 80}},
-                    phase=2)
-        yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
-                    method="PUT",
-                    body={
-                        "Datacenter": self.datacenter,
-                        "Node": self.format("{self.path.k8s}-consul-ns-service"),
-                        "Address": self.format("{self.k8s_ns_target.path.k8s}.consul-test-namespace"),
-                        "Service": {"Service": self.format("{self.path.k8s}-consul-ns-service"),
-                                    "Address": self.format("{self.k8s_ns_target.path.k8s}.consul-test-namespace"),
-                                    "Port": 80}},
-                    phase=2)
-        yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
-                    method="PUT",
-                    body={
-                        "Datacenter": self.datacenter,
-                        "Node": self.format("{self.path.k8s}-consul-node"),
-                        "Address": self.k8s_target.path.k8s,
-                        "Service": {"Service": self.format("{self.path.k8s}-consul-node"),
-                                    "Port": 80}},
-                    phase=2)
+        yield Query(
+            self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
+            method="PUT",
+            body={
+                "Datacenter": self.datacenter,
+                "Node": self.format("{self.path.k8s}-consul-service"),
+                "Address": self.k8s_target.path.k8s,
+                "Service": {
+                    "Service": self.format("{self.path.k8s}-consul-service"),
+                    "Address": self.k8s_target.path.k8s,
+                    "Port": 80,
+                },
+            },
+            phase=2,
+        )
+        yield Query(
+            self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
+            method="PUT",
+            body={
+                "Datacenter": self.datacenter,
+                "Node": self.format("{self.path.k8s}-consul-ns-service"),
+                "Address": self.format("{self.k8s_ns_target.path.k8s}.consul-test-namespace"),
+                "Service": {
+                    "Service": self.format("{self.path.k8s}-consul-ns-service"),
+                    "Address": self.format("{self.k8s_ns_target.path.k8s}.consul-test-namespace"),
+                    "Port": 80,
+                },
+            },
+            phase=2,
+        )
+        yield Query(
+            self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
+            method="PUT",
+            body={
+                "Datacenter": self.datacenter,
+                "Node": self.format("{self.path.k8s}-consul-node"),
+                "Address": self.k8s_target.path.k8s,
+                "Service": {"Service": self.format("{self.path.k8s}-consul-node"), "Port": 80},
+            },
+            phase=2,
+        )
 
         # All services should work in phase 3.
         yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=3)

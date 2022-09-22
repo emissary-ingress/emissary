@@ -14,19 +14,19 @@
 
 from multi import multi
 
-def test_when():
 
+def test_when():
     @multi
     def area(record):
         return record["shape"]
 
     @area.when("square")
     def area(square):
-        return square["width"]*square["height"]
+        return square["width"] * square["height"]
 
     @area.when("triangle")
     def area(tri):
-        return 0.5*tri["base"]*tri["height"]
+        return 0.5 * tri["base"] * tri["height"]
 
     assert area({"shape": "square", "width": 10, "height": 10}) == 100
     assert area({"shape": "triangle", "base": 10, "height": 10}) == 50
@@ -35,10 +35,13 @@ def test_when():
         area({"shape": "hourglass"})
         assert False, "should fail"
     except TypeError as e:
-        assert str(e) == "no match found for multi function area({'shape': 'hourglass'}): known keys ('square', 'triangle'), searched keys ('hourglass',)"
+        assert (
+            str(e)
+            == "no match found for multi function area({'shape': 'hourglass'}): known keys ('square', 'triangle'), searched keys ('hourglass',)"
+        )
+
 
 def test_default():
-
     @multi
     def fmt(obj):
         return type(obj)
@@ -74,8 +77,8 @@ def test_default():
     assert fmt(3.14159265359) == "3.14"
     assert fmt([1, 2, 3]) == "fmt(%r)" % [1, 2, 3]
 
-def test_multiple_keys():
 
+def test_multiple_keys():
     @multi
     def fib(x):
         return x
@@ -86,7 +89,7 @@ def test_multiple_keys():
 
     @fib.default
     def fib(x):
-        return fib(x-1) + fib(x-2)
+        return fib(x - 1) + fib(x - 2)
 
     assert fib(0) == 0
     assert fib(1) == 1
@@ -95,8 +98,8 @@ def test_multiple_keys():
     assert fib(4) == 3
     assert fib(5) == 5
 
-def test_generator():
 
+def test_generator():
     @multi
     def fib(x):
         yield x
@@ -108,7 +111,7 @@ def test_generator():
 
     @fib.when(int)
     def fib(x):
-        return fib(x-1) + fib(x-2)
+        return fib(x - 1) + fib(x - 2)
 
     assert fib(0) == 0
     assert fib(1) == 1
@@ -117,10 +120,9 @@ def test_generator():
     assert fib(4) == 3
     assert fib(5) == 5
 
+
 def test_method():
-
     class Foo:
-
         def __init__(self):
             pass
 
@@ -134,7 +136,7 @@ def test_method():
 
         @fib.default
         def fib(self, x):
-            return fib(x-1) + fib(x-2)
+            return fib(x - 1) + fib(x - 2)
 
     fib = Foo().fib
 
@@ -145,10 +147,9 @@ def test_method():
     assert fib(4) == 3
     assert fib(5) == 5
 
+
 def test_init():
-
     class Foo:
-
         @multi
         def __init__(self, x):
             return x
@@ -159,14 +160,14 @@ def test_init():
 
         @__init__.default
         def __init__(self, x):
-            self.x = 2*x
+            self.x = 2 * x
 
     assert Foo(0).x == 0
     assert Foo(1).x == 1
     assert Foo(2).x == 4
 
-def test_do():
 
+def test_do():
     @multi
     def foo(x):
         return x

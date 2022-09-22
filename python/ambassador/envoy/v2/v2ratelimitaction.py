@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, ClassVar, Dict, List, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List
 
 # from ...utils import RichStatus
 
 if TYPE_CHECKING:
-    from . import V2Config # pragma: no cover
+    from . import V2Config  # pragma: no cover
 
 
 class V2RateLimitAction(dict):
@@ -30,7 +30,7 @@ class V2RateLimitAction(dict):
 
     already_errored: ClassVar[bool] = False
 
-    def __init__(self, config: 'V2Config', rate_limit: Dict[str, Any]) -> None:
+    def __init__(self, config: "V2Config", rate_limit: Dict[str, Any]) -> None:
         super().__init__()
 
         self.valid = False
@@ -46,7 +46,9 @@ class V2RateLimitAction(dict):
         lkeys = rate_limit.keys()
         if len(lkeys) > 1:
             # "Impossible". This should've been caught earlier.
-            config.ir.post_error("Label for RateLimit has multiple entries instead of just one: %s" % rate_limit)
+            config.ir.post_error(
+                "Label for RateLimit has multiple entries instead of just one: %s" % rate_limit
+            )
             return
 
         lkey = list(lkeys)[0]
@@ -58,41 +60,52 @@ class V2RateLimitAction(dict):
             # This should be a dict with a single key.
             keylist = list(action.keys())
             if len(keylist) != 1:
-                config.ir.post_error("Label for RateLimit has invalid custom header '%s' (%s)" %
-                                     (action, rate_limit))
+                config.ir.post_error(
+                    "Label for RateLimit has invalid custom header '%s' (%s)" % (action, rate_limit)
+                )
                 continue
             dkey = keylist[0]
 
-            if dkey == 'source_cluster':
-                self.save_action({
-                    'source_cluster': {},
-                })
-            elif dkey == 'destination_cluster':
-                self.save_action({
-                    'destination_cluster': {},
-                })
-            elif dkey == 'remote_address':
-                self.save_action({
-                    'remote_address': {},
-                })
-            elif dkey == 'generic_key':
-                self.save_action({
-                    'generic_key': {
-                        # This is the v2ratelimitaction, and Envoy V2 doesn't support setting
-                        # the key for a generic_key. Sigh.
-                        #'descriptor_key': action[dkey].get('key', 'generic_key'),
-                        'descriptor_value': action[dkey]['value'],
-                    },
-                })
-            elif dkey == 'request_headers':
-                self.save_action({
-                    'request_headers': {
-                        'descriptor_key': action[dkey]['key'],
-                        'header_name': action[dkey]['header_name'],
-                        # Need to upgrade to Envoy API v3 to set `skip_if_absent`.
-                        #'skip_if_absent': action[dkey].get('omit_if_not_present', False),
-                    },
-                })
+            if dkey == "source_cluster":
+                self.save_action(
+                    {
+                        "source_cluster": {},
+                    }
+                )
+            elif dkey == "destination_cluster":
+                self.save_action(
+                    {
+                        "destination_cluster": {},
+                    }
+                )
+            elif dkey == "remote_address":
+                self.save_action(
+                    {
+                        "remote_address": {},
+                    }
+                )
+            elif dkey == "generic_key":
+                self.save_action(
+                    {
+                        "generic_key": {
+                            # This is the v2ratelimitaction, and Envoy V2 doesn't support setting
+                            # the key for a generic_key. Sigh.
+                            #'descriptor_key': action[dkey].get('key', 'generic_key'),
+                            "descriptor_value": action[dkey]["value"],
+                        },
+                    }
+                )
+            elif dkey == "request_headers":
+                self.save_action(
+                    {
+                        "request_headers": {
+                            "descriptor_key": action[dkey]["key"],
+                            "header_name": action[dkey]["header_name"],
+                            # Need to upgrade to Envoy API v3 to set `skip_if_absent`.
+                            #'skip_if_absent': action[dkey].get('omit_if_not_present', False),
+                        },
+                    }
+                )
             ### This whole bit doesn't work with the existing RateLimit filter. We're
             ### going to have to tweak it to allow request_headers with a default value.
             ###
@@ -142,7 +155,4 @@ class V2RateLimitAction(dict):
         self.valid = True
 
     def to_dict(self):
-        return {
-            'stage': self.stage,
-            'actions': self.actions
-        }
+        return {"stage": self.stage, "actions": self.actions}

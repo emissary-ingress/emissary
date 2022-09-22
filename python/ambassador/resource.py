@@ -1,17 +1,14 @@
+import json
 import sys
-
 from typing import Any, Dict, List, Optional, Type, TypeVar
 
-import json
-
-from .utils import parse_yaml, dump_json
 from .cache import Cacheable
+from .utils import dump_json, parse_yaml
+
+R = TypeVar("R", bound="Resource")
 
 
-R = TypeVar('R', bound='Resource')
-
-
-class Resource (Cacheable):
+class Resource(Cacheable):
     """
     A resource that's part of the overall Ambassador configuration world. This is
     the base class for IR resources, Ambassador-config resources, etc.
@@ -49,12 +46,11 @@ class Resource (Cacheable):
 
     # _errors: List[RichStatus]
     _errored: bool
-    _referenced_by: Dict[str, 'Resource']
+    _referenced_by: Dict[str, "Resource"]
 
-    def __init__(self, rkey: str, location: str, *,
-                 kind: str,
-                 serialization: Optional[str]=None,
-                 **kwargs) -> None:
+    def __init__(
+        self, rkey: str, location: str, *, kind: str, serialization: Optional[str] = None, **kwargs
+    ) -> None:
 
         if not rkey:
             raise Exception("Resource requires rkey")
@@ -64,22 +60,25 @@ class Resource (Cacheable):
 
         # print("Resource __init__ (%s %s)" % (kind, name))
 
-        super().__init__(rkey=rkey, location=location,
-                         kind=kind, serialization=serialization,
-                         # _errors=[],
-                         _referenced_by={},
-                         **kwargs)
+        super().__init__(
+            rkey=rkey,
+            location=location,
+            kind=kind,
+            serialization=serialization,
+            # _errors=[],
+            _referenced_by={},
+            **kwargs
+        )
 
-    def sourced_by(self, other: 'Resource'):
+    def sourced_by(self, other: "Resource"):
         self.rkey = other.rkey
         self.location = other.location
 
-
-    def referenced_by(self, other: 'Resource') -> None:
+    def referenced_by(self, other: "Resource") -> None:
         # print("%s %s REF BY %s %s" % (self.kind, self.name, other.kind, other.rkey))
         self._referenced_by[other.location] = other
 
-    def is_referenced_by(self, other_location) -> Optional['Resource']:
+    def is_referenced_by(self, other_location) -> Optional["Resource"]:
         return self._referenced_by.get(other_location, None)
 
     def __getattr__(self, key: str) -> Any:
@@ -92,16 +91,16 @@ class Resource (Cacheable):
         self[key] = value
 
     def __str__(self) -> str:
-        return("<%s %s>" % (self.kind, self.rkey))
+        return "<%s %s>" % (self.kind, self.rkey)
 
     def as_dict(self) -> Dict[str, Any]:
         ad = dict(self)
 
-        ad.pop('rkey', None)
-        ad.pop('serialization', None)
-        ad.pop('location', None)
-        ad.pop('_referenced_by', None)
-        ad.pop('_errored', None)
+        ad.pop("rkey", None)
+        ad.pop("serialization", None)
+        ad.pop("location", None)
+        ad.pop("_referenced_by", None)
+        ad.pop("_errored", None)
 
         return ad
 
@@ -109,12 +108,15 @@ class Resource (Cacheable):
         return dump_json(self.as_dict(), pretty=True)
 
     @classmethod
-    def from_resource(cls: Type[R], other: R,
-                      rkey: Optional[str]=None,
-                      location: Optional[str]=None,
-                      kind: Optional[str]=None,
-                      serialization: Optional[str]=None,
-                      **kwargs) -> R:
+    def from_resource(
+        cls: Type[R],
+        other: R,
+        rkey: Optional[str] = None,
+        location: Optional[str] = None,
+        kind: Optional[str] = None,
+        serialization: Optional[str] = None,
+        **kwargs
+    ) -> R:
         """
         Create a Resource by copying another Resource, possibly overriding elements
         along the way.
@@ -139,29 +141,31 @@ class Resource (Cacheable):
 
         # Don't include kind unless it comes in on this call.
         if kind:
-            new_attrs['kind'] = kind
+            new_attrs["kind"] = kind
         else:
-            new_attrs.pop('kind', None)
+            new_attrs.pop("kind", None)
 
         # Don't include serialization at all if we don't have one.
         if serialization:
-            new_attrs['serialization'] = serialization
+            new_attrs["serialization"] = serialization
         elif other.serialization:
-            new_attrs['serialization'] = other.serialization
+            new_attrs["serialization"] = other.serialization
 
         # Make sure that things that shouldn't propagate are gone...
-        new_attrs.pop('rkey', None)
-        new_attrs.pop('location', None)
-        new_attrs.pop('_errors', None)
-        new_attrs.pop('_errored', None)
-        new_attrs.pop('_referenced_by', None)
+        new_attrs.pop("rkey", None)
+        new_attrs.pop("location", None)
+        new_attrs.pop("_errors", None)
+        new_attrs.pop("_errored", None)
+        new_attrs.pop("_referenced_by", None)
 
         # ...and finally, use new_attrs for all the keyword args when we set up
         # the new instance.
         return cls(new_rkey, new_location, **new_attrs)
 
     @classmethod
-    def from_dict(cls: Type[R], rkey: str, location: str, serialization: Optional[str], attrs: Dict) -> R:
+    def from_dict(
+        cls: Type[R], rkey: str, location: str, serialization: Optional[str], attrs: Dict
+    ) -> R:
         """
         Create a Resource or subclass thereof from a dictionary. The new Resource's rkey
         and location must be handed in explicitly.
@@ -179,12 +183,12 @@ class Resource (Cacheable):
 
         # So this is a touch odd but here we go. We want to use the Kind here to find
         # the correct type.
-        ambassador = sys.modules['ambassador']
+        ambassador = sys.modules["ambassador"]
 
-        resource_class: Optional[Type[R]] = getattr(ambassador, attrs['kind'], None)
+        resource_class: Optional[Type[R]] = getattr(ambassador, attrs["kind"], None)
 
         if not resource_class:
-            resource_class = getattr(ambassador, 'AC' + attrs[ 'kind' ], cls)
+            resource_class = getattr(ambassador, "AC" + attrs["kind"], cls)
         assert resource_class
 
         # print("%s.from_dict: %s => %s" % (cls, attrs['kind'], resource_class))

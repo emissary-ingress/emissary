@@ -53,17 +53,23 @@
 #      def fib(x):
 #          return fib(x-1) + fib(x-2)
 
-import functools, inspect
+import functools
+import inspect
+
 
 def _error(multifun, keys, args, kwargs):
     sargs = [repr(a) for a in args] + ["%s=%r" for k, v in kwargs.items()]
-    raise TypeError("no match found for multi function %s(%s): known keys %r, searched keys %r" %
-                    (multifun.__name__, ", ".join(sargs), tuple(multifun.__multi__.keys()), tuple(keys)))
+    raise TypeError(
+        "no match found for multi function %s(%s): known keys %r, searched keys %r"
+        % (multifun.__name__, ", ".join(sargs), tuple(multifun.__multi__.keys()), tuple(keys))
+    )
+
 
 def multi(dispatch_fn):
     gen = inspect.isgeneratorfunction(dispatch_fn)
 
     if gen:
+
         def multifun(*args, **kwargs):
             for key in dispatch_fn(*args, **kwargs):
                 try:
@@ -74,7 +80,9 @@ def multi(dispatch_fn):
             else:
                 action = multifun.__multi_default__
             return action(*args, **kwargs)
+
     else:
+
         def multifun(*args, **kwargs):
             key = dispatch_fn(*args, **kwargs)
             action = multifun.__multi__.get(key, multifun.__multi_default__)
@@ -84,24 +92,29 @@ def multi(dispatch_fn):
     multifun.default = _default(multifun)
     multifun.__multi__ = {}
     # Default default
-    multifun.__multi_default__ = lambda *args, **kwargs: _error(multifun,
-                                                                dispatch_fn(*args, **kwargs) if gen
-                                                                else [dispatch_fn(*args, **kwargs)],
-                                                                args,
-                                                                kwargs)
+    multifun.__multi_default__ = lambda *args, **kwargs: _error(
+        multifun,
+        dispatch_fn(*args, **kwargs) if gen else [dispatch_fn(*args, **kwargs)],
+        args,
+        kwargs,
+    )
 
     functools.update_wrapper(multifun, dispatch_fn)
     return multifun
+
 
 def _when(multifun, keys):
     def apply_decorator(action):
         for k in keys:
             multifun.__multi__[k] = action
         return multifun
+
     return apply_decorator
+
 
 def _default(multifun):
     def apply_decorator(action):
         multifun.__multi_default__ = action
         return multifun
+
     return apply_decorator

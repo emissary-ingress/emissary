@@ -354,26 +354,6 @@ build-output/bin/envoy: docker/base-envoy.docker.tag.local
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
-mypy-server-stop: $(OSS_HOME)/venv
-	@printf "${CYN}==> ${GRN}Stopping mypy server${END}"
-	{ . $(OSS_HOME)/venv/bin/activate && dmypy stop; }
-.PHONY: mypy-server-stop
-
-mypy-server: $(OSS_HOME)/venv
-	{ . $(OSS_HOME)/venv/bin/activate && \
-	  if ! dmypy status >/dev/null; then \
-	    dmypy start -- --use-fine-grained-cache --follow-imports=skip --ignore-missing-imports ;\
-	    printf "${CYN}==> ${GRN}Started mypy server${END}\n" ;\
-	  else \
-		printf "${CYN}==> ${GRN}mypy server already running${END}\n" ;\
-	  fi }
-.PHONY: mypy-server
-
-mypy: mypy-server
-	@printf "${CYN}==> ${GRN}Running mypy${END}\n"
-	{ . $(OSS_HOME)/venv/bin/activate && time dmypy check python; }
-.PHONY: mypy
-
 $(OSS_HOME)/venv: python/requirements.txt python/requirements-dev.txt
 	rm -rf $@
 	python3 -m venv $@

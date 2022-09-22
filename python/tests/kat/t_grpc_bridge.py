@@ -1,8 +1,8 @@
 from typing import Generator, Tuple, Union
 
+from abstract_tests import EGRPC, AmbassadorTest, Node, ServiceType
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, ServiceType, EGRPC, Node
 
 class AcceptanceGrpcBridgeTest(AmbassadorTest):
 
@@ -12,16 +12,19 @@ class AcceptanceGrpcBridgeTest(AmbassadorTest):
         self.target = EGRPC()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
     enable_grpc_http11_bridge: True
-""")
+"""
+        )
 
-        yield self, self.format("""
+        yield self, self.format(
+            """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -31,20 +34,25 @@ prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
 service: {self.target.path.k8s}
-""")
+"""
+        )
 
     def queries(self):
         # [0]
-        yield Query(self.url("echo.EchoService/Echo"),
-                    headers={ "content-type": "application/grpc", "requested-status": "0" },
-                    expected=200,
-                    grpc_type="bridge")
+        yield Query(
+            self.url("echo.EchoService/Echo"),
+            headers={"content-type": "application/grpc", "requested-status": "0"},
+            expected=200,
+            grpc_type="bridge",
+        )
 
         # [1]
-        yield Query(self.url("echo.EchoService/Echo"),
-                    headers={ "content-type": "application/grpc", "requested-status": "7" },
-                    expected=503,
-                    grpc_type="bridge")
+        yield Query(
+            self.url("echo.EchoService/Echo"),
+            headers={"content-type": "application/grpc", "requested-status": "7"},
+            expected=503,
+            grpc_type="bridge",
+        )
 
     def check(self):
         # [0]

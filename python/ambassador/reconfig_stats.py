@@ -14,13 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import List, Optional, Tuple
-
 import datetime
 import logging
 import time
+from typing import List, Optional, Tuple
 
 PerfCounter = float
+
 
 class ReconfigStats:
     """
@@ -29,10 +29,14 @@ class ReconfigStats:
     before messing with this!
     """
 
-    def __init__(self, logger: logging.Logger,
-                 max_incr_between_checks=100, max_time_between_checks=600,
-                 max_config_between_timers=10, max_time_between_timers=120
-                ) -> None:
+    def __init__(
+        self,
+        logger: logging.Logger,
+        max_incr_between_checks=100,
+        max_time_between_checks=600,
+        max_config_between_timers=10,
+        max_time_between_timers=120,
+    ) -> None:
         """
         Initialize this ReconfigStats.
 
@@ -55,10 +59,7 @@ class ReconfigStats:
 
         # self.counts tracks how many of each kind of reconfiguration have
         # happened, for metrics.
-        self.counts = {
-            "incremental": 0,
-            "complete": 0
-        }
+        self.counts = {"incremental": 0, "complete": 0}
 
         # In many cases, the previous complete reconfigure will have fallen out
         # of self.reconfigures, so we remember its timestamp separately.
@@ -84,7 +85,7 @@ class ReconfigStats:
         self.checks = 0
         self.errors = 0
 
-    def mark(self, what: str, when: Optional[PerfCounter]=None) -> None:
+    def mark(self, what: str, when: Optional[PerfCounter] = None) -> None:
         """
         Mark that a reconfigure has occurred. The 'what' parameter is one of
         "complete" for a complete reconfigure, "incremental" for an incremental,
@@ -98,15 +99,15 @@ class ReconfigStats:
         if not when:
             when = time.perf_counter()
 
-        if (what == 'incremental') and not self.last_complete:
+        if (what == "incremental") and not self.last_complete:
             # You can't have an incremental without a complete to start.
             # If this is the first reconfigure, it's a complete reconfigure.
-            what = 'complete'
+            what = "complete"
 
         # Should we update all the counters?
         update_counters = True
 
-        if what == 'complete':
+        if what == "complete":
             # For a complete reconfigure, we need to clear all the outstanding
             # incrementals, and also remember when it happened.
             self.incrementals_outstanding = 0
@@ -118,13 +119,13 @@ class ReconfigStats:
             self.last_check = when
 
             self.logger.debug(f"MARK COMPLETE @ {when}")
-        elif what == 'incremental':
+        elif what == "incremental":
             # For an incremental reconfigure, we need to remember that we have
             # one more incremental outstanding.
             self.incrementals_outstanding += 1
 
             self.logger.debug(f"MARK INCREMENTAL @ {when}")
-        elif what == 'diag':
+        elif what == "diag":
             # Don't update all the counters for a diagnostic update.
             update_counters = False
         else:
@@ -143,7 +144,7 @@ class ReconfigStats:
         # trigger timer logging for diagnostics updates.
         self.configs_outstanding += 1
 
-    def needs_check(self, when: Optional[PerfCounter]=None) -> bool:
+    def needs_check(self, when: Optional[PerfCounter] = None) -> bool:
         """
         Determine if we need to do a complete reconfigure to doublecheck our
         incrementals. The logic here is that we need a check every 100 incrementals
@@ -164,7 +165,7 @@ class ReconfigStats:
         # Grab information about our last reconfiguration.
         what, _ = self.reconfigures[-1]
 
-        if what == 'complete':
+        if what == "complete":
             # Last reconfiguration was a complete reconfiguration, so
             # no need to check.
             # self.logger.debug(f"NEEDS_CHECK @ {when}: last was complete, skip")
@@ -189,7 +190,7 @@ class ReconfigStats:
         # We're good for outstanding incrementals. How about the max time between checks?
         # (We must have a last check time - which may be the time of the last complete
         # reconfigure, of course - to go on at this point.)
-        assert(self.last_check is not None)
+        assert self.last_check is not None
 
         delta = when - self.last_check
 
@@ -201,7 +202,7 @@ class ReconfigStats:
         # self.logger.debug(f"NEEDS_CHECK @ {when}: delta {delta}, skip")
         return False
 
-    def needs_timers(self, when: Optional[PerfCounter]=None) -> bool:
+    def needs_timers(self, when: Optional[PerfCounter] = None) -> bool:
         """
         Determine if we need to log the timers or not. The logic here is that
         we need to log every max_configs_between_timers incrementals or every
@@ -237,7 +238,7 @@ class ReconfigStats:
         # the time of our last complete reconfigure, which must always be set, as a
         # baseline.
 
-        assert(self.last_complete is not None)
+        assert self.last_complete is not None
 
         baseline = self.last_timer_log or self.last_complete
         delta = when - baseline
@@ -250,7 +251,7 @@ class ReconfigStats:
         # self.logger.debug(f"NEEDS_TIMERS @ {when}: delta {delta}, skip")
         return False
 
-    def mark_checked(self, result: bool, when: Optional[PerfCounter]=None) -> None:
+    def mark_checked(self, result: bool, when: Optional[PerfCounter] = None) -> None:
         """
         Mark that we have done a check, and note the results. This resets our
         outstanding incrementals to 0, and also resets our last check time.
@@ -269,7 +270,7 @@ class ReconfigStats:
 
         self.last_check = when or time.perf_counter()
 
-    def mark_timers_logged(self, when: Optional[PerfCounter]=None) -> None:
+    def mark_timers_logged(self, when: Optional[PerfCounter] = None) -> None:
         """
         Mark that we have logged timers. This resets our outstanding configurations
         to 0, and also resets our last timer log time.
@@ -299,12 +300,10 @@ class ReconfigStats:
         for what, when in self.reconfigures:
             self.logger.info(f"CACHE: {what} reconfigure at {self.isofmt(when, now_pc, now_dt)}")
 
-        for what in [ "incremental", "complete" ]:
+        for what in ["incremental", "complete"]:
             self.logger.info(f"CACHE: {what} count: {self.counts[what]}")
 
         self.logger.info(f"CACHE: incrementals outstanding: {self.incrementals_outstanding}")
         self.logger.info(f"CACHE: incremental checks: {self.checks}, errors {self.errors}")
         self.logger.info(f"CACHE: last_complete {self.isofmt(self.last_complete, now_pc, now_dt)}")
         self.logger.info(f"CACHE: last_check {self.isofmt(self.last_check, now_pc, now_dt)}")
-
-
