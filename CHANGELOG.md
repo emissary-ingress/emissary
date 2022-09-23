@@ -85,7 +85,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
-## [3.2.0] TBD
+## [3.2.0] September 26, 2022
 [3.2.0]: https://github.com/emissary-ingress/emissary/compare/v3.1.0...v3.2.0
 
 ### Emissary-ingress and Ambassador Edge Stack
@@ -104,7 +104,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   to `Mappings` you want to associate with the `Host`. You can opt-out of the new behaviour by
   setting the environment variable `DISABLE_STRICT_LABEL_SELECTORS` to `"true"` (default:
   `"false"`). (Thanks to <a href="https://github.com/f-herceg">Filip Herceg</a> and <a
-  href="https://github.com/dynajoe">Joe Andaverde</a>!).
+  href="https://github.com/dynajoe">Joe Andaverde</a>!).      
 
 - Feature: Previously the `Host` resource could only use secrets that are in the namespace as the
   Host. The `tlsSecret` field in the Host has a new subfield `namespace` that will allow the use of
@@ -112,7 +112,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 - Change: Set `AMBASSADOR_EDS_BYPASS` to `true` to bypass EDS handling of endpoints and have
   endpoints be inserted to clusters manually. This can help resolve with `503 UH` caused by
-  certification rotation relating to a delay between EDS + CDS. The default is `false`.
+  certification rotation relating to a delay between EDS + CDS. The default is `false`.     
 
 - Bugfix: Distinct services with names that are the same in the first forty characters will no
   longer be incorrectly mapped to the same cluster. ([#4354])
@@ -132,10 +132,10 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   the specified non-negative window period in seconds before doing an Envoy reconfiguration. Default
   is "1" if not set.
 
-- Bugfix: If a `Host` or `TLSContext` contained a hostname with a `:` then when using the
-  diagnostics endpoints `ambassador/v0/diagd` then an error would be thrown due to the parsing logic
-  not being able to handle the extra colon. This has been fixed and Emissary-ingress will not throw
-  an error when parsing envoy metrics for the diagnostics user interface.
+- Bugfix: If a `Host` or `TLSContext` contained a hostname with a `:` when using the diagnostics
+  endpoints `ambassador/v0/diagd` then an error would be thrown due to the parsing logic not being
+  able to handle the extra colon. This has been fixed and Emissary-ingress will not throw an error
+  when parsing envoy metrics for the diagnostics user interface.
 
 - Feature: It is now possible to set `custom_tags` in the `TracingService`. Trace tags can be set
   based on literal values, environment variables, or request headers. (Thanks to <a
@@ -157,30 +157,6 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 [#4354]: https://github.com/emissary-ingress/emissary/issues/4354
 [#4181]: https://github.com/emissary-ingress/emissary/pull/4181
-
-## [3.1.1] TBD
-[3.1.1]: https://github.com/emissary-ingress/emissary/compare/v3.1.0...v3.1.1
-
-### Emissary-ingress and Ambassador Edge Stack
-
-## [3.0.1] TBD
-[3.0.1]: https://github.com/emissary-ingress/emissary/compare/v3.0.0...v3.0.1
-
-### Emissary-ingress and Ambassador Edge Stack
-
-- Bugfix: A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming
-  from emissary ingress before sending them to Ambassador cloud. This issue has been resolved to
-  ensure that all the nodes composing the emissary ingress cluster are reporting properly.
-
-- Security: Updated Golang to 1.17.12 to address the CVEs: CVE-2022-23806, CVE-2022-28327,
-  CVE-2022-24675, CVE-2022-24921, CVE-2022-23772.
-
-- Security: Updated Curl to 7.80.0-r2 to address the CVEs: CVE-2022-32207, CVE-2022-27782,
-  CVE-2022-27781, CVE-2022-27780.
-
-- Security: Updated openSSL-dev to 1.1.1q-r0 to address CVE-2022-2097.
-
-- Security: Updated ncurses to 1.1.1q-r0 to address CVE-2022-29458
 
 ## [3.1.0] August 01, 2022
 [3.1.0]: https://github.com/emissary-ingress/emissary/compare/v3.0.0...v3.1.0
