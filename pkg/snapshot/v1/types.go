@@ -3,10 +3,11 @@ package snapshot
 import (
 	"encoding/json"
 
+	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
+
 	amb "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	"github.com/emissary-ingress/emissary/v3/pkg/consulwatch"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
-	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
 
 const ApiVersion = "v1"

@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/yaml"
+
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 func marshalManifests(manifests []*kates.Unstructured) ([]byte, error) {

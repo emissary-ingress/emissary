@@ -2,12 +2,14 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/datawire/go-mkopensource/pkg/dependencies"
-	"github.com/stretchr/testify/require"
 	"io"
 	"os"
 	"path"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/datawire/go-mkopensource/pkg/dependencies"
 )
 
 func TestMarkdownOutput(t *testing.T) {

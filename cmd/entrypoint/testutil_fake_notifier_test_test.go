@@ -6,8 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
 	"github.com/stretchr/testify/require"
+
+	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
 )
 
 func TestFakeNotifier(t *testing.T) {

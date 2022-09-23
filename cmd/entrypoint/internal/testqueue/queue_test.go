@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint/internal/testqueue"
 	"github.com/stretchr/testify/require"
+
+	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint/internal/testqueue"
 )
 
 func TestFakeQueueGet(t *testing.T) {

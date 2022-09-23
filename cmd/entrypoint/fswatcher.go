@@ -11,8 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/datawire/dlib/dlog"
 	"github.com/fsnotify/fsnotify"
+
+	"github.com/datawire/dlib/dlog"
 )
 
 // FSWatcher is a thing that can watch the filesystem for us, and

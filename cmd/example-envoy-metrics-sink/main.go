@@ -5,10 +5,11 @@ import (
 	"io"
 	"os"
 
-	"github.com/datawire/dlib/dhttp"
-	"github.com/datawire/dlib/dlog"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/encoding/protojson"
+
+	"github.com/datawire/dlib/dhttp"
+	"github.com/datawire/dlib/dlog"
 
 	v2_metrics "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/metrics/v2"
 )

@@ -1,8 +1,9 @@
 package gateway_test
 
 import (
-	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 // makeFoo, Foo, and FooSpec are all helpers for quickly/easily creating dummy resources for testing
