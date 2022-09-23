@@ -892,32 +892,22 @@ class V3Listener:
 
             # If we're on Edge Stack and we don't already have an ACME route, add one.
             if self.config.ir.edge_stack_allowed and not found_acme:
-                # The target cluster doesn't actually matter -- the auth service grabs the
-                # challenge and does the right thing. But we do need a cluster that actually
-                # exists, so use the sidecar cluster.
-
-                if not self.config.ir.sidecar_cluster_name:
-                    # Uh whut? how is Edge Stack running exactly?
-                    raise Exception(
-                        "Edge Stack claims to be running, but we have no sidecar cluster??"
-                    )
+                # This route is needed to trigger an ExtAuthz request for the AuthService.
+                # The auth service grabs the challenge and does the right thing.
+                # Rather than try to route to some existing cluster we can just return a
+                # direct response. What we return doesn't really matter but
+                # to match existing Edge Stack behavior we return a 404 response.
 
                 self.config.ir.logger.debug("      punching a hole for ACME")
 
-                # Make sure to include _host_constraints in here for now.
-                #
-                # XXX This is needed only because we're dictifying the V3Route too early.
-
+                # Make sure to include _host_constraints in here for now so it can be
+                # applied to the correct vhost during future proccessing
                 chain.routes.insert(
                     0,
                     {
                         "_host_constraints": set(),
                         "match": {"case_sensitive": True, "prefix": "/.well-known/acme-challenge/"},
-                        "route": {
-                            "cluster": self.config.ir.sidecar_cluster_name,
-                            "prefix_rewrite": "/.well-known/acme-challenge/",
-                            "timeout": "3.000s",
-                        },
+                        "direct_response": {"status": 404},
                     },
                 )
 
