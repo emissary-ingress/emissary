@@ -56,7 +56,7 @@ orjson==3.6.6
     # via -r requirements.in
 prometheus-client==0.13.1
     # via -r requirements.in
-protobuf==3.19.4
+protobuf==3.19.5
     # via -r requirements.in
 pyasn1==0.4.8
     # via
