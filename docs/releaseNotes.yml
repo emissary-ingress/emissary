@@ -115,14 +115,12 @@ items:
         github:
         - title: "#4181"
           link: https://github.com/emissary-ingress/emissary/pull/4181
-
       - title: TCPMappings use correct SNI configuration
         type: bugfix
         body: >-
           $productName$ 2.0.0 introduced a bug where a <code>TCPMapping</code> that uses SNI,
           instead of using the hostname glob in the <code>TCPMapping</code>, uses the hostname glob
           in the <code>Host</code> that the TLS termination configuration comes from.
-
       - title: TCPMappings configure TLS termination without a Host resource
         type: bugfix
         body: >-
@@ -131,7 +129,6 @@ items:
           This was semi-intentional, but didn't make much sense.  You can now use a
           <code>TLSContext</code> without a <code>Host</code>as in $productName$ 1.y releases, or a
           <code>Host</code> with or without a <code>TLSContext</code> as in prior 2.y releases.
-
       - title: TCPMappings and HTTP Hosts can coexist on Listeners that terminate TLS
         type: bugfix
         body: >-
@@ -140,6 +137,10 @@ items:
           TLS+SNI would make this possible.  $productName$ now allows <code>TCPMappings</code> to be
           used on the same <code>Listener</code> port as HTTP <code>Hosts</code>, as long as that
           <code>Listener</code> terminates TLS.
+      - title: Update Golang to 1.19.1
+        type: security
+        body: >-
+          Updated Golang to 1.19.1 to address the CVEs: CVE-2022-27664, CVE-2022-32190.
 
   - version: 3.1.0
     date: '2022-08-01'

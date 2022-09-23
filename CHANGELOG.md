@@ -155,6 +155,8 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   Emissary-ingress now allows `TCPMappings` to be used on the same `Listener` port as HTTP `Hosts`,
   as long as that `Listener` terminates TLS.
 
+- Security: Updated Golang to 1.19.1 to address the CVEs: CVE-2022-27664, CVE-2022-32190.
+
 [#4354]: https://github.com/emissary-ingress/emissary/issues/4354
 [#4181]: https://github.com/emissary-ingress/emissary/pull/4181
 
