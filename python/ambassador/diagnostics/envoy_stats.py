@@ -130,9 +130,15 @@ class EnvoyStats:
             elif pct < 90:
                 color = "yellow"
 
-            cstat.update({"health": "%d%% healthy" % pct, "hmetric": int(pct), "hcolor": color})
+            cstat.update({"health": "%d%% healthy" % pct, "hmetric": str(pct), "hcolor": color})
         else:
-            cstat.update({"health": "no requests yet", "hmetric": "waiting", "hcolor": "grey"})
+            cstat.update(
+                {
+                    "health": "Unknown health: no requests yet",
+                    "hmetric": "waiting",
+                    "hcolor": "grey",
+                }
+            )
 
         return cstat
 
