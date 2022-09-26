@@ -395,9 +395,9 @@ agent:
   rpcAddress: https://app.getambassador.io/
   createArgoRBAC: true
   image:
-    tag: 0.0.7
-    repository: docker.io/ambassador/ambassador-agent
-    pullPolicy: IfNotPresent
+    # Leave blank to use image.repository and image.tag
+    tag: 3.1.0
+    repository: docker.io/emissaryingress/emissary
 
 deploymentTool: ''
 

@@ -9,8 +9,6 @@ numbering uses [semantic versioning](http://semver.org).
 
 - Bugfix: The default Role configuration of the Ambassador Agent Deployment will allow it to correctly watch Secret resources for Ambassador Cloud tokens.
 
-- Change: The ambassador-agent now uses image options from values.yaml.in
-
 ## v8.1.0
 
 - Upgrade Emissary to v3.1.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
