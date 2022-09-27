@@ -5,7 +5,7 @@
 #    pip-compile
 #
 click==8.1.3              # via flask
-flask==1.0.2              # via -r requirements.in
+flask==2.2.2              # via -r requirements.in
 importlib-metadata==5.0.0  # via click
 itsdangerous==2.1.2       # via flask
 jinja2==2.10.1            # via flask
