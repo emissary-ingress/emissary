@@ -104,7 +104,7 @@ zipp==3.8.1
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==63.4.2
+setuptools==65.4.0
     # via
     #   -r requirements.in
     #   gunicorn
