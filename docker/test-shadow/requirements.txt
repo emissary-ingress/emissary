@@ -12,4 +12,4 @@ jinja2==2.10.1            # via flask
 markupsafe==2.0.1         # via jinja2
 typing-extensions==4.0.1  # via importlib-metadata
 werkzeug==2.0.2           # via flask
-zipp==3.6.0               # via importlib-metadata
+zipp==3.8.1               # via importlib-metadata
