@@ -3,13 +3,11 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
-## v8.2.0 (not yet released)
+## v8.2.0
 
 - Upgrade Emissary to v3.2.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 
 - Bugfix: The default Role configuration of the Ambassador Agent Deployment will allow it to correctly watch Secret resources for Ambassador Cloud tokens.
-
-- Change: The ambassador-agent now uses image options from values.yaml.in
 
 ## v8.1.0
 
