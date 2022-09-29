@@ -639,6 +639,10 @@ spec:
           value: https://app.getambassador.io/
         - name: AES_SNAPSHOT_URL
           value: http://emissary-ingress-admin.default:8005/snapshot-external
+        - name: AES_REPORT_DIAGNOSTICS_TO_CLOUD
+          value: "true"
+        - name: AES_DIAGNOSTICS_URL
+          value: http://emissary-ingress-admin.default:8877/ambassador/v0/diag/?json=true
         image: docker.io/emissaryingress/emissary:3.1.0
         imagePullPolicy: IfNotPresent
         name: agent

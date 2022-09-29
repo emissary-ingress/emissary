@@ -393,6 +393,10 @@ agent:
   cloudConnectToken: ''
   # Address of the Ambassador Cloud rpc server.
   rpcAddress: https://app.getambassador.io/
+
+  # If `true`, Ambassador Agent will report diagnostics to Ambassador Cloud
+  reportDiagnostics: true
+
   createArgoRBAC: true
   image:
     # Leave blank to use image.repository and image.tag
