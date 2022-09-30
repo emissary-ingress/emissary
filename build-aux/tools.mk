@@ -2,7 +2,8 @@
 #
 # It depends on:
 #  - The `go` binary being installed in PATH.
-#  - OSS_HOME being set.
+#  - A `go.mod` file in the current directory.
+#  - A `build-aux/go-version.txt` file, or the ability to make one.
 # That should be it.
 
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
@@ -24,9 +25,9 @@ clobber-tools:
 go-mod-tidy: $(patsubst $(tools.srcdir)/%/go.mod,go-mod-tidy/tools/%,$(wildcard $(tools.srcdir)/*/go.mod))
 
 .PHONY: go-mod-tidy/tools/%
-go-mod-tidy/tools/%: $(OSS_HOME)/build-aux/go-version.txt
+go-mod-tidy/tools/%: build-aux/go-version.txt
 	rm -f $(tools.srcdir)/$*/go.sum
-	cd $(tools.srcdir)/$* && GOFLAGS=-mod=mod go mod tidy -compat=$$(cut -d. -f1,2 < $<) -go=$$(cut -d. -f1,2 < $<)
+	cd $(tools.srcdir)/$* && GOFLAGS=-mod=mod go mod tidy -compat=$$(cut -d. -f1,2 < $(abspath $<)) -go=$$(cut -d. -f1,2 < $(abspath $<))
 
 # Shell scripts
 # =============
@@ -59,6 +60,7 @@ tools/conversion-gen     = $(tools.bindir)/conversion-gen
 tools/crane              = $(tools.bindir)/crane
 tools/go-mkopensource    = $(tools.bindir)/go-mkopensource
 tools/golangci-lint      = $(tools.bindir)/golangci-lint
+tools/goversion          = $(tools.bindir)/goversion
 tools/kubestatus         = $(tools.bindir)/kubestatus
 tools/ocibuild           = $(tools.bindir)/ocibuild
 tools/protoc-gen-go      = $(tools.bindir)/protoc-gen-go
@@ -73,7 +75,7 @@ tools.main-gomod += $(tools/protoc-gen-go)      # ensure runtime libraries are c
 tools.main-gomod += $(tools/protoc-gen-go-grpc) # ensure runtime libraries are consistent
 tools.main-gomod += $(tools/go-mkopensource)    # ensure it is consistent with py-mkopensource
 tools.main-gomod += $(tools/kubestatus)         # is actually part of Emissary
-$(tools.main-gomod): $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(OSS_HOME)/go.mod
+$(tools.main-gomod): $(tools.bindir)/%: $(tools.srcdir)/%/pin.go go.mod
 	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import "(.*)".*,\1,p' pin.go)
 
 # Local Go sources
@@ -84,7 +86,6 @@ tools/filter-yaml     = $(tools.bindir)/filter-yaml
 tools/fix-crds        = $(tools.bindir)/fix-crds
 tools/flock           = $(tools.bindir)/flock
 tools/gotest2tap      = $(tools.bindir)/gotest2tap
-tools/goversion       = $(tools.bindir)/goversion
 tools/py-mkopensource = $(tools.bindir)/py-mkopensource
 tools/py-split-tests  = $(tools.bindir)/py-split-tests
 tools/testcert-gen    = $(tools.bindir)/testcert-gen
@@ -164,6 +165,7 @@ $(tools/ct).d/bin/ct: $(tools.srcdir)/ct/pin.go $(tools.srcdir)/ct/go.mod
 	}
 $(tools/ct).d/bin/kubectl: $(tools/kubectl)
 	mkdir -p $(@D)
+	rm -f $@
 	ln -s ../../kubectl $@
 $(tools/ct).d/dir.txt: $(tools.srcdir)/ct/pin.go $(tools.srcdir)/ct/go.mod
 	mkdir -p $(@D)

@@ -273,7 +273,8 @@ jobs:
         id: build-image
         shell: bash
         run: |
-          echo "image-tag=$(tools/build/version.sh)" >> $GITHUB_OUTPUT
+          make tools/bin/goversion
+          echo "image-tag=$(./tools/bin/goversion | sed s/^v//)" >> $GITHUB_OUTPUT
       - name: "make push-dev"
         shell: bash
         run: |
