@@ -24,8 +24,6 @@ import (
 	"encoding/json"
 	"errors"
 	"time"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // The old `k8s.io/kube-openapi/cmd/openapi-gen` command had ways to
@@ -151,46 +149,12 @@ type StatusRange struct {
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Minimum=100
 	// +kubebuilder:validation:Maximum=599
-	Start int `json:"start,omitempty"`
+	Min int `json:"min,omitempty"`
 	// End of the statuses to include. Must be between 100 and 599 (inclusive)
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Minimum=100
 	// +kubebuilder:validation:Maximum=599
-	End int `json:"end,omitempty"`
-}
-
-// HealthCheck specifies settings for performing active health checking on upstreams
-type HealthCheck struct {
-	// Timeout for connecting to the health checking endpoint. Defaults to 3 seconds.
-	Timeout *metav1.Duration `json:"timeout,omitempty"`
-	// Interval between health checks. Defaults to every 5 seconds.
-	Interval *metav1.Duration `json:"interval,omitempty"`
-	// Number of non-expected responses for the upstream to be considered unhealthy. A single 503 will mark the upstream as unhealthy regardless of the threshold. Defaults to 2.
-	UnhealthyThreshold *int `json:"unhealthy_threshold,omitempty"`
-	// Number of expected responses for the upstream to be considered healthy. Defaults to 1.
-	HealthyThreshold *int             `json:"healthy_threshold,omitempty"`
-	HttpHealthCheck  *HttpHealthCheck `json:"http_health_check,omitempty"`
-	GrpcHealthCheck  *GrpcHealthCheck `json:"grpc_health_check,omitempty"`
-}
-
-// HealthCheck for HTTP upstreams. Only one of http_health_check or grpc_health_check may be specified
-type HttpHealthCheck struct {
-
-	// +kubebuilder:validation:Required
-	Path                 string                  `json:"path,omitempty"`
-	Host                 string                  `json:"hostname,omitempty"`
-	AddRequestHeaders    *map[string]AddedHeader `json:"add_request_headers,omitempty"`
-	RemoveRequestHeaders *[]string               `json:"remove_request_headers,omitempty"`
-	ExpectedStatuses     *[]StatusRange          `json:"expected_statuses,omitempty"`
-}
-
-// HealthCheck for gRPC upstreams. Only one of grpc_health_check or http_health_check may be specified
-type GrpcHealthCheck struct {
-	// The service name parameter which will be sent to gRPC service in the health check message
-	// +kubebuilder:validation:Required
-	ServiceName string `json:"service_name,omitempty"`
-	// The value of the :authority header in the gRPC health check request. If left empty the upstream name will be used.
-	Authority string `json:"authority,omitempty"`
+	Max int `json:"max,omitempty"`
 }
 
 // AmbassadorID declares which Ambassador instances should pay

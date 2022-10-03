@@ -1,6 +1,6 @@
 import logging
 import typing
-from typing import Any
+from typing import Any, List, Dict
 
 import pytest
 
@@ -76,10 +76,10 @@ spec:
   prefix: /test
   health_checks: {}
 """
-    testcases = [
+    testcases: List[Dict[str, Any]] = [
         {  # Test that the fields we leave out get assigned default values
             "name": "healthcheck_defaults",
-            "input": baseYaml.format([{"http_health_check": {"path": "/health"}}]),
+            "input": baseYaml.format([{"health_check": {"http": {"path": "/health"}}}]),
             # When fields such as healthy_threshold that have default values
             # are not supplied by the expected field then we will check that they have their default values
             "expected": [
@@ -95,8 +95,10 @@ spec:
             "input": baseYaml.format(
                 [
                     {
-                        "http_health_check": {
-                            "path": "/health",
+                        "health_check": {
+                            "http": {
+                                "path": "/health",
+                            }
                         },
                         "healthy_threshold": 5,
                         "unhealthy_threshold": 5,
@@ -123,10 +125,12 @@ spec:
                 [
                     {
                         # It is not valid to have both http and grpc on a single check (you can still mix and match, they just have to be separate entries in the list)
-                        "http_health_check": {
-                            "path": "/health",
+                        "health_check": {
+                            "http": {
+                                "path": "/health",
+                            },
+                            "grpc": {"upstream_name": "coolsvcname.default"},
                         },
-                        "grpc_health_check": {"service_name": "coolsvcname.default"},
                     }
                 ]
             ),
@@ -137,8 +141,10 @@ spec:
             "input": baseYaml.format(
                 [
                     {
-                        "http_health_check": {
-                            "hostname": "dummy.example",
+                        "health_check": {
+                            "http": {
+                                "hostname": "dummy.example",
+                            }
                         }
                     }
                 ]
@@ -150,8 +156,10 @@ spec:
             "input": baseYaml.format(
                 [
                     {
-                        "grpc_health_check": {
-                            "authority": "dummy.example",
+                        "health_check": {
+                            "http": {
+                                "authority": "dummy.example",
+                            }
                         }
                     }
                 ]
@@ -163,13 +171,17 @@ spec:
             "input": baseYaml.format(
                 [
                     {
-                        "grpc_health_check": {
-                            "service_name": "coolsvcname.default",
+                        "health_check": {
+                            "grpc": {
+                                "upstream_name": "coolsvcname.default",
+                            }
                         }
                     },
                     {
-                        "http_health_check": {
-                            "path": "/health",
+                        "health_check": {
+                            "http": {
+                                "path": "/health",
+                            }
                         }
                     },
                 ]
@@ -192,9 +204,11 @@ spec:
             "input": baseYaml.format(
                 [
                     {
-                        "grpc_health_check": {
-                            "service_name": "coolsvcname.default",
-                            "authority": "dummy.example",
+                        "health_check": {
+                            "grpc": {
+                                "upstream_name": "coolsvcname.default",
+                                "authority": "dummy.example",
+                            }
                         }
                     }
                 ]
@@ -213,9 +227,11 @@ spec:
             "input": baseYaml.format(
                 [
                     {
-                        "grpc_health_check": {
-                            "service_name": "coolsvcname.default",
-                            "authority": "dummy.example",
+                        "health_check": {
+                            "grpc": {
+                                "upstream_name": "coolsvcname.default",
+                                "authority": "dummy.example",
+                            }
                         }
                     }
                 ]
@@ -232,7 +248,7 @@ spec:
         {  # check that we can set hostname on a http health check
             "name": "healthcheck_http_hostname",
             "input": baseYaml.format(
-                [{"http_health_check": {"path": "/health", "hostname": "dummy.example"}}]
+                [{"health_check": {"http": {"path": "/health", "hostname": "dummy.example"}}}]
             ),
             "expected": [
                 {
@@ -249,12 +265,14 @@ spec:
             "input": baseYaml.format(
                 [
                     {
-                        "http_health_check": {
-                            "path": "/health",
-                            "expected_statuses": [
-                                {"start": 101, "end": 199},
-                                {"start": 201, "end": 299},
-                            ],
+                        "health_check": {
+                            "http": {
+                                "path": "/health",
+                                "expected_statuses": [
+                                    {"min": 101, "max": 199},
+                                    {"min": 201, "max": 299},
+                                ],
+                            }
                         }
                     }
                 ]
@@ -278,13 +296,15 @@ spec:
             "input": baseYaml.format(
                 [
                     {
-                        "http_health_check": {
-                            "path": "/health",
-                            "expected_statuses": [
-                                # this one is invalid since the start is larger than the end so we should just drop it.
-                                {"start": 300, "end": 100},
-                                {"start": 201, "end": 299},
-                            ],
+                        "health_check": {
+                            "http": {
+                                "path": "/health",
+                                "expected_statuses": [
+                                    # this one is invalid since the start is larger than the end so we should just drop it.
+                                    {"min": 300, "max": 100},
+                                    {"min": 201, "max": 299},
+                                ],
+                            }
                         }
                     }
                 ]
@@ -307,13 +327,15 @@ spec:
             "input": baseYaml.format(
                 [
                     {
-                        "http_health_check": {
-                            "path": "/health",
-                            "expected_statuses": [
-                                # these are both invalid so the whole field should be ignored
-                                {"start": 300, "end": 100},
-                                {"start": 400, "end": 300},
-                            ],
+                        "health_check": {
+                            "http": {
+                                "path": "/health",
+                                "expected_statuses": [
+                                    # these are both invalid so the whole field should be ignored
+                                    {"min": 300, "max": 100},
+                                    {"min": 400, "max": 300},
+                                ],
+                            }
                         }
                     }
                 ]
@@ -338,13 +360,15 @@ spec:
             "input": baseYaml.format(
                 [
                     {
-                        "http_health_check": {
-                            "path": "/health",
-                            "add_request_headers": {
-                                "fruit-one": {"append": False, "value": "banana"},
-                                "fruit-two": {"append": True, "value": "orange"},
-                                "fruit-three": {"value": "peach"},
-                            },
+                        "health_check": {
+                            "http": {
+                                "path": "/health",
+                                "add_request_headers": {
+                                    "fruit-one": {"append": False, "value": "banana"},
+                                    "fruit-two": {"append": True, "value": "orange"},
+                                    "fruit-three": {"value": "peach"},
+                                },
+                            }
                         }
                     }
                 ]
@@ -367,9 +391,11 @@ spec:
             "input": baseYaml.format(
                 [
                     {
-                        "http_health_check": {
-                            "path": "/health",
-                            "remove_request_headers": ["fruit-one", "fruit-two", "fruit-three"],
+                        "health_check": {
+                            "http": {
+                                "path": "/health",
+                                "remove_request_headers": ["fruit-one", "fruit-two", "fruit-three"],
+                            }
                         }
                     }
                 ]
@@ -388,10 +414,14 @@ spec:
             "input": baseYaml.format(
                 [
                     {
-                        "http_health_check": {"path": "/health"},
+                        "health_check": {
+                            "http": {"path": "/health"},
+                        }
                     },
                     {
-                        "http_health_check": {"hostname": "dummy.example"},
+                        "health_check": {
+                            "http": {"hostname": "dummy.example"},
+                        }
                     },
                 ]
             ),
@@ -399,20 +429,20 @@ spec:
         },
         {  # Test that we throw out the health check config when there is no endpoint resolver
             "name": "healthcheck_no_endpoint",
-            "input": noEndpointYaml.format([{"http_health_check": {"path": "/health"}}]),
+            "input": noEndpointYaml.format([{"health_check": {"http": {"path": "/health"}}}]),
             "expected": None,
         },
     ]
 
     for case in testcases:
 
-        caseYaml = typing.cast(typing.Dict[str, Any], case)["input"]  # seriously mypy???
-        testName = typing.cast(typing.Dict[str, Any], case)["name"]
+        caseYaml = case["input"]
+        testName = case["name"]
         econf = _get_envoy_config(caseYaml)
         cluster = _get_cluster_config(econf.clusters, "cluster_coolsvcname_default")
         assert cluster != False
 
-        expectedChecks = typing.cast(typing.Dict[str, Any], case)["expected"]
+        expectedChecks = case["expected"]
         if expectedChecks is None:
             assert "health_checks" not in cluster, "Failed healthcheck test {}".format(testName)
         else:

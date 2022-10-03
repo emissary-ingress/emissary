@@ -24,6 +24,7 @@ import (
 	"errors"
 	"strings"
 
+	v3alpha1 "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -87,7 +88,7 @@ type MappingSpec struct {
 
 	// +kubebuilder:validation:MinItems=1
 	// +k8s:conversion-gen:rename=HealthChecks
-	V3HealthChecks []HealthCheck `json:"v3health_checks,omitempty"`
+	V3HealthChecks []v3alpha1.HealthCheck `json:"v3health_checks,omitempty"`
 
 	// use_websocket is deprecated, and is equivlaent to setting
 	// `allow_upgrade: ["websocket"]`
