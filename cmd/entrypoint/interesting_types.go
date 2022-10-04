@@ -3,6 +3,7 @@ package entrypoint
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/datawire/dlib/dlog"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
@@ -41,6 +42,15 @@ func GetQueries(ctx context.Context, interestingTypes map[string]thingToWatch) [
 			FieldSelector: queryinfo.fieldselector,
 			LabelSelector: ls,
 		}
+
+		if selector := getWatchFieldSelector(queryinfo.typename); selector != "" {
+			query.FieldSelector = selector
+		}
+
+		if selector := getWatchLabelSelector(queryinfo.typename); selector != "" {
+			query.LabelSelector = selector
+		}
+
 		if query.FieldSelector == "" {
 			query.FieldSelector = fs
 		}
@@ -50,6 +60,42 @@ func GetQueries(ctx context.Context, interestingTypes map[string]thingToWatch) [
 	}
 
 	return queries
+}
+
+func getWatchFieldSelector(resourcegroup string) string {
+	fs := GetAmbassadorWatcherFieldSelector()
+	selectors := strings.Split(fs, ";")
+
+	for _, selector := range selectors {
+		byResourcegroup := strings.Split(selector, ":")
+		if len(byResourcegroup) > 1 {
+			if byResourcegroup[0] == resourcegroup {
+				return byResourcegroup[1]
+			}
+		} else {
+			return byResourcegroup[0]
+		}
+	}
+
+	return ""
+}
+
+func getWatchLabelSelector(resourcegroup string) string {
+	fs := GetAmbassadorWatcherLabelSelector()
+	selectors := strings.Split(fs, ";")
+
+	for _, selector := range selectors {
+		byResourcegroup := strings.Split(selector, ":")
+		if len(byResourcegroup) > 1 {
+			if byResourcegroup[0] == resourcegroup {
+				return byResourcegroup[1]
+			}
+		} else {
+			return byResourcegroup[0]
+		}
+	}
+
+	return ""
 }
 
 // GetInterestingTypes takes a list of available server types, and returns the types we think

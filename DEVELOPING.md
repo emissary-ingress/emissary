@@ -78,7 +78,7 @@ Here is a list of tools that are used by the build system to generate the build 
 - bash
 - rsync
 - golang - `go.mod` for current version
-- python 3.8 or 3.9
+- python 3.9
 - kubectl
 - a kubernetes cluster (you need permissions to create resources, i.e. crds, deployments, services, etc...)
 - a Docker registry
@@ -739,9 +739,10 @@ If you want to build within a container instead of setting up dependencies on yo
 
 1. `docker pull docker:latest`
 2. `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -it docker:latest sh`
-3. `apk add --update --no-cache bash build-base go curl rsync python3 python2 git libarchive-tools gawk jq`
-4. `git clone https://github.com/emissary-ingress/emissary.git && cd emissary`
-5. `make images`
+3. `apk add --update --no-cache bash build-base curl rsync python3 git libarchive-tools gawk jq`
+4. `cd /tmp; wget https://golang.org/dl/go1.19.1.linux-amd64.tar.gz; tar -C /usr/local -xzf go1.19.1.linux-amd64.tar.gz; export PATH=$PATH:/usr/local/go/bin`
+5. `git clone https://github.com/emissary-ingress/emissary.git && cd emissary`
+6. `make images`
 
 Steps 0 and 1 are run on your machine, and 2 - 4 are from within the docker container. The base image is a "Docker in Docker" image, ran with `-v /var/run/docker.sock:/var/run/docker.sock` in order to connect to your local daemon from the docker inside the container. More info on Docker in Docker [here](https://hub.docker.com/_/docker).
 

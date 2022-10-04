@@ -35,12 +35,22 @@ func GetAmbassadorNamespace() string {
 	return env("AMBASSADOR_NAMESPACE", "default")
 }
 
+// GetAmbassadorFieldSelector is depreacted, replaced by GetAmbassadorWatcherFieldSelector
 func GetAmbassadorFieldSelector() string {
 	return env("AMBASSADOR_FIELD_SELECTOR", "")
 }
 
+// GetAmbassadorLabelSelector is depreacted, replaced by GetAmbassadorWatcherLabelSelector
 func GetAmbassadorLabelSelector() string {
 	return env("AMBASSADOR_LABEL_SELECTOR", "")
+}
+
+func GetAmbassadorWatcherFieldSelector() string {
+	return env("AMBASSADOR_WATCHER_FIELD_SELECTOR", "")
+}
+
+func GetAmbassadorWatcherLabelSelector() string {
+	return env("AMBASSADOR_WATCHER_LABEL_SELECTOR", "")
 }
 
 func GetAmbassadorRoot() string {
