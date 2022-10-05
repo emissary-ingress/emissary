@@ -32,6 +32,15 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 3.2.1
+    prevVersion: 3.2.0
+    date: 'TBD'
+    notes:
+      - title: Update Golang to 1.19.2
+        type: security
+        body: >-
+          Updated Golang to 1.19.2 to address the CVEs: CVE-2022-2879, CVE-2022-2880, CVE-2022-41715.
+
   - version: 3.2.0
     prevVersion: 3.1.0
     date: '2022-09-26'

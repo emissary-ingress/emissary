@@ -85,6 +85,14 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [3.2.1] TBD
+[3.2.1]: https://github.com/emissary-ingress/emissary/compare/v3.2.0...v3.2.1
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Security: Updated Golang to 1.19.2 to address the CVEs: CVE-2022-2879, CVE-2022-2880,
+  CVE-2022-41715.
+
 ## [3.2.0] September 26, 2022
 [3.2.0]: https://github.com/emissary-ingress/emissary/compare/v3.1.0...v3.2.0
 
