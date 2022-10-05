@@ -55,7 +55,7 @@ autoscaling: # +doc-gen:break
       name: memory
       target:
         type: Utilization
-        averageUtilization: 180
+        averageUtilization: 100
   - type: Resource
     resource:
       name: cpu
