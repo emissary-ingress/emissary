@@ -33,6 +33,9 @@ func GetQueries(ctx context.Context, interestingTypes map[string]thingToWatch) [
 	fs := GetAmbassadorFieldSelector()
 	ls := GetAmbassadorLabelSelector()
 
+	globalFieldSelector, groupFieldSelectors := selectorParser(GetAmbassadorWatcherFieldSelector())
+	globalLabelSelector, groupLabelSelectors := selectorParser(GetAmbassadorWatcherLabelSelector())
+
 	var queries []kates.Query
 	for snapshotname, queryinfo := range interestingTypes {
 		query := kates.Query{
@@ -43,13 +46,8 @@ func GetQueries(ctx context.Context, interestingTypes map[string]thingToWatch) [
 			LabelSelector: ls,
 		}
 
-		if selector := getWatchFieldSelector(queryinfo.typename); selector != "" {
-			query.FieldSelector = selector
-		}
-
-		if selector := getWatchLabelSelector(queryinfo.typename); selector != "" {
-			query.LabelSelector = selector
-		}
+		query.FieldSelector = electSelector(globalFieldSelector, groupFieldSelectors, queryinfo.typename)
+		query.LabelSelector = electSelector(globalLabelSelector, groupLabelSelectors, queryinfo.typename)
 
 		if query.FieldSelector == "" {
 			query.FieldSelector = fs
@@ -62,40 +60,34 @@ func GetQueries(ctx context.Context, interestingTypes map[string]thingToWatch) [
 	return queries
 }
 
-func getWatchFieldSelector(resourcegroup string) string {
-	fs := GetAmbassadorWatcherFieldSelector()
-	selectors := strings.Split(fs, ";")
-
-	for _, selector := range selectors {
-		byResourcegroup := strings.Split(selector, ":")
-		if len(byResourcegroup) > 1 {
-			if byResourcegroup[0] == resourcegroup {
-				return byResourcegroup[1]
-			}
-		} else {
-			return byResourcegroup[0]
-		}
+func electSelector(globalSelector string, groupSelectors map[string]string, resource string) string {
+	// Check if there is a selector defined for resourcegroup.version
+	if v, ok := groupSelectors[resource]; ok {
+		return v
 	}
 
-	return ""
+	// Check if there is a selector defined for resourcegroup (without the api version)
+	if v, ok := groupSelectors[strings.Split(resource, ".")[0]]; ok {
+		return v
+	}
+
+	return globalSelector
 }
 
-func getWatchLabelSelector(resourcegroup string) string {
-	fs := GetAmbassadorWatcherLabelSelector()
-	selectors := strings.Split(fs, ";")
+func selectorParser(query string) (globalSelector string, groupSelectors map[string]string) {
+	selectors := strings.Split(query, ";")
+	groupSelectors = make(map[string]string)
 
 	for _, selector := range selectors {
 		byResourcegroup := strings.Split(selector, ":")
 		if len(byResourcegroup) > 1 {
-			if byResourcegroup[0] == resourcegroup {
-				return byResourcegroup[1]
-			}
+			groupSelectors[byResourcegroup[0]] = byResourcegroup[1]
 		} else {
-			return byResourcegroup[0]
+			globalSelector = byResourcegroup[0]
 		}
 	}
 
-	return ""
+	return globalSelector, groupSelectors
 }
 
 // GetInterestingTypes takes a list of available server types, and returns the types we think

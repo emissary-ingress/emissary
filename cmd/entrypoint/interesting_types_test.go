@@ -80,6 +80,54 @@ func TestInterestingTypesQueryies(t *testing.T) {
 				{Name: "Secrets", Kind: "secrets.v1", Namespace: "", FieldSelector: "type=kubernetes.io/tls", LabelSelector: "version=v2"},
 			},
 		},
+		{
+			name: "Combine resourcegroup and generic selector",
+			q: map[string]thingToWatch{
+				"Resource": {
+					typename: "resourcegroup.v1",
+				},
+				"Secrets": {
+					typename: "secrets.v1",
+				},
+			},
+			labelSelector: "secrets.v1:version=v2;version=v1",
+			expect: []kates.Query{
+				{Name: "Resource", Kind: "resourcegroup.v1", Namespace: "", FieldSelector: "", LabelSelector: "version=v1"},
+				{Name: "Secrets", Kind: "secrets.v1", Namespace: "", FieldSelector: "", LabelSelector: "version=v2"},
+			},
+		},
+		{
+			name: "resourcegroup selector is weighted more than a generic selector",
+			q: map[string]thingToWatch{
+				"Resource": {
+					typename: "resourcegroup.v1",
+				},
+				"Secrets": {
+					typename: "secrets.v1",
+				},
+			},
+			labelSelector: "version=v1;secrets.v1:version=v2",
+			expect: []kates.Query{
+				{Name: "Resource", Kind: "resourcegroup.v1", Namespace: "", FieldSelector: "", LabelSelector: "version=v1"},
+				{Name: "Secrets", Kind: "secrets.v1", Namespace: "", FieldSelector: "", LabelSelector: "version=v2"},
+			},
+		},
+		{
+			name: "Selector without specific apiversion",
+			q: map[string]thingToWatch{
+				"Resource": {
+					typename: "resourcegroup.v1",
+				},
+				"Secrets": {
+					typename: "secrets.v1",
+				},
+			},
+			labelSelector: "secrets:version=v1",
+			expect: []kates.Query{
+				{Name: "Resource", Kind: "resourcegroup.v1", Namespace: "", FieldSelector: "", LabelSelector: ""},
+				{Name: "Secrets", Kind: "secrets.v1", Namespace: "", FieldSelector: "", LabelSelector: "version=v1"},
+			},
+		},
 	}
 
 	defer func() {
