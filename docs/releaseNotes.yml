@@ -33,7 +33,7 @@
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
   - version: 2.4.1
-    date: 'TBD'
+    date: '2022-10-10'
     notes:
       - title: Diagnostics stats properly handles parsing envoy metrics with colons
         type: bugfix
