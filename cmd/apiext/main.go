@@ -7,12 +7,10 @@ import (
 	"strings"
 
 	k8sRuntime "k8s.io/apimachinery/pkg/runtime"
-	k8sRuntimeUtil "k8s.io/apimachinery/pkg/util/runtime"
 
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
-	v2 "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v2"
-	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
+	crdAll "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io"
 	"github.com/emissary-ingress/emissary/v3/pkg/busy"
 	"github.com/emissary-ingress/emissary/v3/pkg/k8s"
 	"github.com/emissary-ingress/emissary/v3/pkg/logutil"
@@ -47,9 +45,7 @@ func Main(ctx context.Context, version string, args ...string) error {
 		os.Exit(2)
 	}
 
-	scheme := k8sRuntime.NewScheme()
-	k8sRuntimeUtil.Must(v2.AddToScheme(scheme))
-	k8sRuntimeUtil.Must(v3alpha1.AddToScheme(scheme))
+	scheme := crdAll.BuildScheme()
 
 	return Run(ctx, PodNamespace(), args[0], 8080, 8443, scheme)
 }
