@@ -29,12 +29,24 @@ jobs:
           this_branch=release/${this_ver}
           echo "::set-output name=this_branch::${this_branch}"
 
-          next_ver=$(git for-each-ref --format='%(refname:lstrip=4)' 'refs/remotes/origin/release/v*' | sort --version-sort | grep -vFx -e 'v3.0' -e 'v3.1' | grep -A1 -Fx "$this_ver" | sed 1d)
+          next_ver=$(git for-each-ref --format='%(refname:lstrip=4)' 'refs/remotes/origin/release/v*' | sort --version-sort | grep -A1 -Fx "$this_ver" | sed 1d)
           if test -n "$next_ver"; then
-            if test "$next_ver" = v2.0; then
-              next_ver=v2.4
-            fi
-            next_branch="release/${next_ver}"
+            case "$next_ver" in
+              v2.0)
+                next_ver=v2.4
+                next_branch="release/${next_ver}"
+                ;;
+              v3.0)
+                next_ver=v3.2
+                next_branch="release/${next_ver}"
+                if ! git rev-parse "origin/${next_branch}" &>/dev/null; then
+                  next_branch='master'
+                fi
+                ;;
+              *)
+                next_branch="release/${next_ver}"
+                ;;
+            esac
           else
             next_ver="${this_ver%.*}.$((${this_ver##*.}+1))"
             next_branch='master'
@@ -50,6 +62,12 @@ jobs:
             # branch does not yet exist.
             git checkout -b "$merge_branch"
             git push --set-upstream origin "$merge_branch"
+            # Go ahead and try to merge in the target branch; this is
+            # necessary for the check-branch-version.yml checks to
+            # pass on the PR.  But merging fails, don't sweat it; a
+            # human having to fix the PR is still less work than a
+            # human having to create the PR.
+            git merge "origin/$next_branch" || git merge --abort || true
           fi
 
           url=$(gh pr list --limit=1 --head="$merge_branch" --state=open --json=url --jq='.[0].url')
