@@ -103,7 +103,7 @@ following Free and Open Source software:
     golang.org/x/xerrors                                                                       v0.0.0-20200804184101-5ec99f83aff1           3-clause BSD license
     google.golang.org/appengine                                                                v1.6.7                                       Apache License 2.0
     google.golang.org/genproto                                                                 v0.0.0-20220204002441-d6cc3cc0770e           Apache License 2.0
-    google.golang.org/grpc                                                                     v1.44.0                                      Apache License 2.0
+    google.golang.org/grpc                                                                     v1.50.0                                      Apache License 2.0
     google.golang.org/grpc/cmd/protoc-gen-go-grpc                                              v1.2.0                                       Apache License 2.0
     google.golang.org/protobuf                                                                 v1.28.1                                      3-clause BSD license
     gopkg.in/inf.v0                                                                            v0.9.1                                       3-clause BSD license
