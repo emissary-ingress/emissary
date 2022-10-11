@@ -43,17 +43,17 @@ const _ = proto.ProtoPackageIsVersion4
 //
 // .. code::
 //
-//   ...
-//   scoped_routes:
-//     name: foo-scoped-routes
-//     scope_key_builder:
-//       fragments:
-//         - header_value_extractor:
-//             name: X-Route-Selector
-//             element_separator: ,
-//             element:
-//               separator: =
-//               key: vip
+//	...
+//	scoped_routes:
+//	  name: foo-scoped-routes
+//	  scope_key_builder:
+//	    fragments:
+//	      - header_value_extractor:
+//	          name: X-Route-Selector
+//	          element_separator: ,
+//	          element:
+//	            separator: =
+//	            key: vip
 //
 // ScopedRouteConfiguration resources (specified statically via
 // :ref:`scoped_route_configurations_list<envoy_api_field_config.filter.network.http_connection_manager.v2.ScopedRoutes.scoped_route_configurations_list>`
@@ -61,31 +61,30 @@ const _ = proto.ProtoPackageIsVersion4
 //
 // .. code::
 //
-//  (1)
-//   name: route-scope1
-//   route_configuration_name: route-config1
-//   key:
-//      fragments:
-//        - string_key: 172.10.10.20
+//	(1)
+//	 name: route-scope1
+//	 route_configuration_name: route-config1
+//	 key:
+//	    fragments:
+//	      - string_key: 172.10.10.20
 //
-//  (2)
-//   name: route-scope2
-//   route_configuration_name: route-config2
-//   key:
-//     fragments:
-//       - string_key: 172.20.20.30
+//	(2)
+//	 name: route-scope2
+//	 route_configuration_name: route-config2
+//	 key:
+//	   fragments:
+//	     - string_key: 172.20.20.30
 //
 // A request from a client such as:
 //
 // .. code::
 //
-//     GET / HTTP/1.1
-//     Host: foo.com
-//     X-Route-Selector: vip=172.10.10.20
+//	GET / HTTP/1.1
+//	Host: foo.com
+//	X-Route-Selector: vip=172.10.10.20
 //
 // would result in the routing table defined by the `route-config1`
 // RouteConfiguration being assigned to the HTTP request/stream.
-//
 type ScopedRouteConfiguration struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

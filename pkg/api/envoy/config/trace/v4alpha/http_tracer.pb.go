@@ -36,8 +36,8 @@ const _ = proto.ProtoPackageIsVersion4
 //
 // .. attention::
 //
-//   Use of this message type has been deprecated in favor of direct use of
-//   :ref:`Tracing.Http <envoy_api_msg_config.trace.v4alpha.Tracing.Http>`.
+//	Use of this message type has been deprecated in favor of direct use of
+//	:ref:`Tracing.Http <envoy_api_msg_config.trace.v4alpha.Tracing.Http>`.
 type Tracing struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

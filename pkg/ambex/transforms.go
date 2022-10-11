@@ -42,82 +42,88 @@ import (
 // identity transform for any inputs not matching the expected form.
 //
 // Example Input (that will get transformed in a non-identity way):
+//
 //   - a listener configured with an http connection manager
+//
 //   - that specifies an http router
+//
 //   - that supplies its RouteConfiguration inline via the route_config field
 //
-//   {
+//     {
 //     "name": "...",
 //     ...,
 //     "filter_chains": [
-//       {
-//         "filter_chain_match": {...},
-//         "filters": [
-//           {
-//             "name": "envoy.filters.network.http_connection_manager",
-//             "typed_config": {
-//               "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
-//               "http_filters": [...],
-//               "route_config": {
-//                 "virtual_hosts": [
-//                   {
-//                     "name": "ambassador-listener-8443-*",
-//                     "domains": ["*"],
-//                     "routes": [...],
-//                   }
-//                 ]
-//               }
-//             }
-//           }
-//         ]
-//       }
+//     {
+//     "filter_chain_match": {...},
+//     "filters": [
+//     {
+//     "name": "envoy.filters.network.http_connection_manager",
+//     "typed_config": {
+//     "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
+//     "http_filters": [...],
+//     "route_config": {
+//     "virtual_hosts": [
+//     {
+//     "name": "ambassador-listener-8443-*",
+//     "domains": ["*"],
+//     "routes": [...],
+//     }
 //     ]
-//   }
+//     }
+//     }
+//     }
+//     ]
+//     }
+//     ]
+//     }
 //
 // Example Output:
+//
 //   - a duplicate listener that defines the "rds" field instead of the "route_config" field
+//
 //   - and a list of route configurations
+//
 //   - with route_config_name supplied in such a way as to correlate the two together
 //
-//   lnr, routes, err := ListenerToRdsListener(...)
+//     lnr, routes, err := ListenerToRdsListener(...)
 //
-//   lnr = {
+//     lnr = {
 //     "name": "...",
 //     ...,
 //     "filter_chains": [
-//       {
-//         "filter_chain_match": {...},
-//         "filters": [
-//           {
-//             "name": "envoy.filters.network.http_connection_manager",
-//             "typed_config": {
-//               "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
-//               "http_filters": [...],
-//               "rds": {
-//                 "config_source": {
-//                   "ads": {}
-//                 },
-//                 "route_config_name": "ambassador-listener-8443-routeconfig-0"
-//               }
-//             }
-//           }
-//         ]
-//       }
+//     {
+//     "filter_chain_match": {...},
+//     "filters": [
+//     {
+//     "name": "envoy.filters.network.http_connection_manager",
+//     "typed_config": {
+//     "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
+//     "http_filters": [...],
+//     "rds": {
+//     "config_source": {
+//     "ads": {}
+//     },
+//     "route_config_name": "ambassador-listener-8443-routeconfig-0"
+//     }
+//     }
+//     }
 //     ]
-//   }
+//     }
+//     ]
+//     }
 //
-//  routes = [
-//    {
-//      "name": "ambassador-listener-8443-routeconfig-0",
-//      "virtual_hosts": [
-//        {
-//          "name": "ambassador-listener-8443-*",
-//          "domains": ["*"],
-//          "routes": [...],
-//        }
-//      ]
-//    }
-//  ]
+//     routes = [
+//     {
+//     "name": "ambassador-listener-8443-routeconfig-0",
+//     "virtual_hosts": [
+//     {
+//     "name": "ambassador-listener-8443-*",
+//     "domains": ["*"],
+//     "routes": [...],
+//     }
+//     ]
+//     }
+//     ]
 func ListenerToRdsListener(lnr *apiv2.Listener) (*apiv2.Listener, []*apiv2.RouteConfiguration, error) {
 	l := proto.Clone(lnr).(*apiv2.Listener)
 	var routes []*apiv2.RouteConfiguration
