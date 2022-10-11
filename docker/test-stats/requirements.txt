@@ -12,7 +12,7 @@ itsdangerous==2.0.1
     # via flask
 jinja2==3.1.2
     # via flask
-markupsafe==2.0.1
+markupsafe==2.1.1
     # via jinja2
 werkzeug==2.0.2
     # via flask
