@@ -9,7 +9,7 @@ flask==2.2.2              # via -r requirements.in
 importlib-metadata==5.0.0 # via click
 itsdangerous==2.1.2       # via flask
 jinja2==3.1.2             # via flask
-markupsafe==2.0.1         # via jinja2
+markupsafe==2.1.1         # via jinja2
 typing-extensions==4.4.0  # via importlib-metadata
 werkzeug==2.2.2           # via flask
 zipp==3.9.0               # via importlib-metadata
