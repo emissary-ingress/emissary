@@ -6,6 +6,7 @@ numbering uses [semantic versioning](http://semver.org).
 ## v8.2.1 - TBD
 
 - Change: By default, the Ambassador agent will report diagnostics to the Ambassador Cloud
+- Change: updated auto-scaling resource cpu and memory variable ordering to help with git-ops syncing. Also, adjusted memory and cpu settings to be more friendly so that they do not cause the HPA auto-scaling to trigger during start-up. Thanks to [Ian Martin](https://github.com/aztechian) for the contribution!
 
 ## v8.2.0
 
