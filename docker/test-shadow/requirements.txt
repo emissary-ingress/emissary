@@ -11,5 +11,5 @@ itsdangerous==2.0.1       # via flask
 jinja2==2.10.1            # via flask
 markupsafe==2.0.1         # via jinja2
 typing-extensions==4.4.0  # via importlib-metadata
-werkzeug==2.0.2           # via flask
+werkzeug==2.2.2           # via flask
 zipp==3.9.0               # via importlib-metadata
