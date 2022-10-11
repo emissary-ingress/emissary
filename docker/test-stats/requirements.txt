@@ -10,7 +10,7 @@ flask==1.0.2
     # via -r requirements.in
 itsdangerous==2.0.1
     # via flask
-jinja2==2.10.1
+jinja2==3.1.2
     # via flask
 markupsafe==2.0.1
     # via jinja2
