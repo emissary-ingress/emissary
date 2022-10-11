@@ -52,16 +52,17 @@ autoscaling: # +doc-gen:break
   metrics:
   - type: Resource
     resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 60
-  - type: Resource
-    resource:
       name: memory
       target:
         type: Utilization
-        averageUtilization: 60
+        averageUtilization: 100
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 300
+
 
 podDisruptionBudget: {}
 
