@@ -49,6 +49,11 @@ items:
           The synthetic AuthService didn't correctly handle AmbassadorID, which was fixed in version 3.1 of $productName$.
           The fix has been backported to make sure the AuthService is handled correctly during upgrades.
 
+      - title: Bump GoLang to 1.19.2
+        type: security
+        body: >-
+          Bump Go from 1.17.12 to 1.19.2. This is to keep the Go version current.
+
   - version: 2.4.0
     date: '2022-09-19'
     prevVersion: 2.3.2
