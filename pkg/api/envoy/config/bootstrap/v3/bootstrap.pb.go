@@ -871,8 +871,8 @@ func (x *Watchdog) GetMultikillThreshold() *v34.Percent {
 // If using an unsafe action that could get stuck or deadlock, it important to
 // have an out of band system to terminate the process.
 //
-// The interface for the extension is “Envoy::Server::Configuration::FatalAction“.
-// *FatalAction* extensions live in the “envoy.extensions.fatal_actions“ API
+// The interface for the extension is ``Envoy::Server::Configuration::FatalAction``.
+// *FatalAction* extensions live in the ``envoy.extensions.fatal_actions`` API
 // namespace.
 type FatalAction struct {
 	state         protoimpl.MessageState

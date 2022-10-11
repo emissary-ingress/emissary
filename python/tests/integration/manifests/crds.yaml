@@ -172,7 +172,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -382,7 +382,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -433,12 +433,12 @@ spec:
         description: "DevPortal is the Schema for the DevPortals API \n DevPortal
           resources specify the `what` and `how` is shown in a DevPortal: \n * `what`
           is in a DevPortal can be controlled with   - a `selector`, that can be used
-          for filtering `Mappings`.   - a `docs` listing of (services, url) * `how`
-          is a pointer to some `contents` (a checkout of a Git repository   with go-templates/markdown/css).
-          \n Multiple `DevPortal`s can exist in the cluster, and the Dev Portal server
-          will show them at different endpoints. A `DevPortal` resource with a special
-          name, `ambassador`, will be used for configuring the default Dev Portal
-          (served at `/docs/` by default)."
+          for filtering `Mappings`.   - a `docs` listing of (services, url)   - `how`
+          is a pointer to some `contents` (a checkout of a Git repository     with
+          go-templates/markdown/css). \n Multiple `DevPortal`s can exist in the cluster,
+          and the Dev Portal server will show them at different endpoints. A `DevPortal`
+          resource with a special name, `ambassador`, will be used for configuring
+          the default Dev Portal (served at `/docs/` by default)."
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -546,12 +546,12 @@ spec:
         description: "DevPortal is the Schema for the DevPortals API \n DevPortal
           resources specify the `what` and `how` is shown in a DevPortal: \n * `what`
           is in a DevPortal can be controlled with   - a `selector`, that can be used
-          for filtering `Mappings`.   - a `docs` listing of (services, url) * `how`
-          is a pointer to some `contents` (a checkout of a Git repository   with go-templates/markdown/css).
-          \n Multiple `DevPortal`s can exist in the cluster, and the Dev Portal server
-          will show them at different endpoints. A `DevPortal` resource with a special
-          name, `ambassador`, will be used for configuring the default Dev Portal
-          (served at `/docs/` by default)."
+          for filtering `Mappings`.   - a `docs` listing of (services, url)   - `how`
+          is a pointer to some `contents` (a checkout of a Git repository     with
+          go-templates/markdown/css). \n Multiple `DevPortal`s can exist in the cluster,
+          and the Dev Portal server will show them at different endpoints. A `DevPortal`
+          resource with a special name, `ambassador`, will be used for configuring
+          the default Dev Portal (served at `/docs/` by default)."
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -571,7 +571,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1383,7 +1383,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1479,7 +1479,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1555,7 +1555,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1803,7 +1803,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -2351,7 +2351,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -2953,7 +2953,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -3263,7 +3263,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -3493,7 +3493,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -3688,7 +3688,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n    ambassador_id:    - \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:

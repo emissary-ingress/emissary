@@ -35,7 +35,7 @@ const _ = proto.ProtoPackageIsVersion4
 //
 // .. code-block:: cpp
 //
-//	("<descriptor_key>", "<expression_value>")
+//   ("<descriptor_key>", "<expression_value>")
 type Descriptor struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
