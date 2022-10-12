@@ -23,8 +23,21 @@ After reading this document if you have questions we encourage you to join us on
   - [Step 4: Building](#step-4-building)
   - [Step 5: Push](#step-5-push)
   - [Step 6: Deploy](#step-6-deploy)
-  - [What's Next?](#whats-next)
-- [Contributing a Pull Request](#contributing-a-pull-request)
+  - [Step 7: Dev-loop](#step-7-dev-loop)
+  - [What should I do next?](#what-should-i-do-next)
+- [Contributing](#contributing)
+  - [Submitting a Pull Request (PR)](#submitting-a-pull-request-pr)
+  - [Pull Request Review Process](#pull-request-review-process)
+  - [Rebasing a branch under review](#rebasing-a-branch-under-review)
+  - [Fixup commits during PR review](#fixup-commits-during-pr-review)
+- [Development Workflow](#development-workflow)
+  - [Branching Strategy](#branching-strategy)
+  - [Backport Strategy](#backport-strategy)
+    - [What if I need a patch to land in a previous supported version?](#what-if-i-need-a-patch-to-land-in-a-previous-supported-version)
+    - [What if my patch is only for a previous supported version?](#what-if-my-patch-is-only-for-a-previous-supported-version)
+    - [What if I'm still not sure?](#what-if-im-still-not-sure)
+  - [Merge Strategy](#merge-strategy)
+    - [What about merge commit strategy?](#what-about-merge-commit-strategy)
 - [Contributing to the Docs](#contributing-to-the-docs)
 - [Advanced Topics](#advanced-topics)
   - [Running Emissary-ingress internals locally](#running-emissary-ingress-internals-locally)
@@ -179,72 +192,282 @@ kubectl get pod -n ambassador
 
 🥳 If all has gone well then you should have your development environment setup for building and testing Emissary-ingress.
 
-### What's Next?
+### Step 7: Dev-loop
+
+Now that you are all setup and able to deploy a development container of Emissary-ingress to a cluster, it is time to start making some changes.
+
+Lookup an issue that you want to work on, assign it to yourself and if you have any questions feel free to ping us on slack in the #emissary-dev channel.
+
+Make a change to Emissary-ingress and when you want to test it in a live cluster just re-run
+
+`make deploy`
+
+This will:
+
+- recompile the go binary
+- rebuild containers
+- push them to the docker registry
+- rebuild helm charts and manifest
+- reapply manifest to cluster and re-deploy Emissary-ingress to the cluster
+
+> *Do I have to run the other make targets `make images` or `make push` ?*
+> No you don't have to because `make deploy` will actually run those commands for you. The steps above were meant to introduce you to the various make targets so that you aware of them and have options when developing.
+
+### What should I do next?
 
 Now that you have your dev system up and running here are some additional content that we recommend you check out:
 
 - [Emissary-ingress Architecture](ARCHITECTURE.md)
-- [Contributing a Pull Request](#contributing-a-pull-request)
+- [Contributing Code](#contributing)
 - [Contributing to Docs](#contributing-to-the-docs)
 - [Advanced Topics](#advanced-topics)
 - [Faq](#faq)
 
-## Contributing a Pull Request
+## Contributing
+
+This section goes over how to contribute code to the project and how to get started contributing. More information on how we manage our branches can be found below in [Development Workflow](#development-workflow).
 
 Before contributing be sure to read our [Code of Conduct](CODE_OF_CONDUCT.md) and [Governance](GOVERNANCE.md) to get an understanding of how our project is structured.
 
-1. **Identify an  Issue**
-   - Start by creating or searching for an open issue (*it is good to check open PR's too*)
-   - We will assign an issue to you so that others know who is working on it
+### Submitting a Pull Request (PR)
 
-2. **Cut a development branch from `master`**.
-   - We recommend that your branches start with your username.
-      - At Ambassador Labs we typically use `git-flow`-style naming, e.g. `flynn/dev/telepathic-ui`
-   - Please do not use a branch name starting with `release`.
+> If you haven't set up your development environment then please see the [Development Setup](#development-setup) section.
 
-3. If your development takes any significant time, **merge master back into your branch regularly**.
-   - Think "every morning" and "right before submitting a pull request."
-   - If you're using a branch name that starts with your username, `git rebase` is also OK and no one from Ambassador Labs will scream at you for force-pushing.
-   - Please do **not** rebase any branch that does **not** start with your username.
+When submitting a Pull Request (PR) here are a set of guidelines to follow:
 
-   ```bash
-   # make sure you local master branch has the latest
-   git checkout master
-   git pull -ff origin master
+1. Search for an [existing issue](https://github.com/emissary-ingress/emissary/issues) or create a [new issue](https://github.com/emissary-ingress/emissary/issues/new/choose).
 
-   # rebase development branch on master
-   # fix any conflicts if they occur during rebase
-   git checkout <your-dev-branch>
-   git rebase master
+2. Be sure to describe your proposed change and any open questions you might have in the issue. This allows us to collect historical context around an issue, provide feedback on the proposed solution and discuss what versions a fix should target.
 
-   # if you previously pushed your changes to Github then your rebase will require you to force push
-   git push origin <your-dev-branch> -f
+3. If you haven't done so already create a fork of the respository and clone it locally
+
+   ```shell
+   git clone <your-fork>
    ```
 
-4. **Code changes must have associated documentation updates.**
-   - Make changes in <https://github.com/datawire/ambassador-docs> as necessary,
-   and include a reference to those changes the pull request for your code
-   changes.
-   - See [Contributing to Docs](#contributing-to-the-docs) for more details.
+4. Cut a new patch branch from `master`:
 
-5. **Code changes must include passing tests.**
-   - See `python/tests/README.md` for more here.
-   - Your tests **must** actually test the change you're making.
-   - Your tests **must** pass in order for your change to be accepted.
+   ```shell
+   git checkout master
+   git checkout -b my-patch-branch master
+   ```
 
-6. **Commit** should summarize what was changed
+5. Make necessary code changes.
+
+   - Make sure you include test coverage for the change, see [How do I run Tests](#how-do-i-run-emissary-ingress-tests)
+   - Ensure code linting is passing by running `make lint`
+   - Code changes must have associated documentation updates.
+      - Make changes in <https://github.com/datawire/ambassador-docs> as necessary, and include a reference to those changes the pull request for your code changes.
+      - See [Contributing to Docs](#contributing-to-the-docs) for more details.
+  
+   > Smaller pull requests are easier to review and can get merged faster thus reducing potential for merge conflicts so it is recommend to keep them small and focused.
+
+6. Commit your changes using descriptive commit messages.
    - we **require** that all commits are signed off so please be sure to commit using the `--signoff` flag, e.g. `git commit --signoff`
    - commit message should summarize the fix and motivation for the proposed fix. Include issue # that the fix looks to address.
+   - we are "ok" with multiple commits but we may ask you to squash some commits during the PR review process
 
-7. When you have things working and tested, **submit a pull request back to `master`**.
-   - Make sure your branch is up-to-date with `master` right before submitting the PR, see previos steps on how to `rebase`
-   - The PR will trigger CI to perform a build and run tests.
-   - CI tests **must** be passing for the PR to be merged.
+7. Push your branch to your forked repository:
 
-8. One of the [Maintainers](MAINTAINERS.md) will review your PR and discuss any changes that need to be made
+   > It is good practice to make sure your change is rebased on the latest master to ensure it will merge cleanly so if it has been awhile since you rebased on upstream you should do it now to ensure there are no merge conflicts
 
-9. When all is well, maintainers will merge the PR into `master`, accepting your
-   change for the next Emissary-ingress release. Thanks!
+   ```shell
+   git push origin my-patch-branch
+   ```
+
+8. Submit a Pull Request from your fork targeting upstream `emissary/master`.
+
+Thanks for your contribution! One of the [Maintainers](MAINTAINERS.md) will review your PR and discuss any changes that need to be made.
+
+### Pull Request Review Process
+
+This is an opportunity for the Maintainers to review the code for accuracy and ensure that it solves the problem outlined in the issue. This is an iterative process and meant to ensure the quality of the code base. During this process we may ask you to break up Pull Request into smaller changes, squash commits, rebase on master, etc...
+
+Once you have been provided feedback:
+
+1. Make the required updates to the code per the review discussion
+2. Retest the code and ensure linting is still passing
+3. Commit the changes and push to Github
+   - see [Fixup Commits](#fixup-commits-during-pr-review) below
+4. Repeat these steps as necessary
+
+Once you have **two approvals** then one of the Maintainers will merge the PR.
+
+:tada: Thank you for contributing and being apart of the Emissary-ingress Community!
+
+### Rebasing a branch under review
+
+Many times the base branch will have new commits added to it which may cause merge conflicts with your open pull request. First, a good rule of thumb is to make pull request small so that these conflicts are less likely to occur but this is not always possible when have multiple people working on similiar features. Second, if it is just addressing commit feedback a `fixup` commit is also a good option so that the reviewers can see what changed since their last review.
+
+If you need to address merge conflicts then it is preferred that you use **Rebase** on the base branch rather than merging base branch into the feature branch. This ensures that when the PR is merged that it will cleanly replay on top of the base branch ensuring we maintain a clean linear history.
+
+To do a rebase you can do the following:
+
+```shell
+# add emissary.git as a remote repository, only needs to be done once
+git remote add upstream https://github.com/emissary-ingress/emissary.git
+
+# fetch upstream master
+git fetch upstream master
+
+# checkout local master and update it from upstream master
+git checkout master
+git pull -ff upstream master
+
+# rebase patch branch on local master
+git checkout my-patch-branch
+git rebase -i master
+```
+
+Once the merge conflicts are addressed and you are ready to push the code up you will need to force push your changes because during the rebase process the commit sha's are re-written and it has diverged from what is in your remote fork (Github).
+
+To force push a branch you can:
+
+```shell
+git push head --force-with-lease
+```
+
+> Note: the `--force-with-lease` is recommended over `--force` because it is safer because it will check if the remote branch had new commits added during your rebase. You can read more detail here: <https://itnext.io/git-force-vs-force-with-lease-9d0e753e8c41>
+
+### Fixup commits during PR review
+
+One of the major downsides to rebasing a branch is that it requires force pushing over the remote (Github) which then marks all the existing review history outdated. This makes it hard for a reviewer to figure out whether or not the new changes addressed the feedback.
+
+One way you can help the reviewer out is by using **fixup** commits. Fixup commits are special git commits that append `fixup!` to the subject of a commit. `Git` provides tools for easily creating these and also squashing them after the PR review process is done.
+
+Since this is a new commit on top of the other commits, you will not lose your previous review and the new commit can be reviewed independently to determine if the new changes addressed the feedback correctly. Then once the reviewers are happy we will ask you to squash them so that we when it is merged we will maintain a clean linear history.
+
+Here is a quick read on it: <https://jordanelver.co.uk/blog/2020/06/04/fixing-commits-with-git-commit-fixup-and-git-rebase-autosquash/>
+
+TL;DR;
+
+```shell
+# make code change and create new commit
+git commit --fixup <sha>
+
+# push to Github for review
+git push
+
+# reviewers are happy and ask you to do a final rebase before merging
+git rebase -i --autosquash master
+
+# final push before merging
+git push --force-with-lease
+```
+
+## Development Workflow
+
+This section introduces the development workflow used for this repository. It is recommended that both Contributors, Release Engineers and Maintainers familiarize themselves with this content.
+
+### Branching Strategy
+
+This repository follows a trunk based development workflow. Depending on what article you read there are slight nuances to this so this section will outline how this repository interprets that workflow.
+
+The most important branch is `master` this is our **Next Release** version and it should always be in a shippable state. This means that CI should be green and at any point we can decided to ship a new release from it. In a traditional trunk based development workflow, developers are encouraged to land partially finished work daily and to keep that work hidden behind feature flags. This repository does **NOT** follow that and instead if code lands on master it is something we are comfortable with shipping.
+
+We ship release candidate (RC) builds from the `master` branch (current major) and also from `release/v{major.minor}` branches (last major version) during our development cycles. Therefore, it is important that it remains shippable at all times!
+
+When we do a final release then we will cut a new `release/v{major.minor}` branch. These are long lived release branches which capture a snapshot in time for that release. For example here are some of the current release branches (as of writing this):
+
+- release/v3.2
+- release/v3.1
+- release/v3.0
+- release/v2.4
+- release/v2.3
+- release/v1.14
+
+These branches contain the codebase as it was at that time when the release was done. These branches have branch protection enabled to ensure that they are not removed or accidently overwritten. If we needed to do a security fix or bug patch then we may cut a new `.Z` patch release from an existing release branch. For example, the `release/v2.4` branch is currently on `2.4.1`.
+
+As you can see we currently support mutliple major versions of Emissary-ingress and you can read more about our [End-of-Life Policy](https://www.getambassador.io/docs/emissary/latest/about/aes-emissary-eol/).
+
+For more information on our current RC and Release process you can find that in our [Release Wiki](https://github.com/emissary-ingress/emissary/wiki).
+
+### Backport Strategy
+
+Since we follow a trunk based development workflow this means that the majority of the time your patch branch will be based off from `master` and that most Pull Request will target `master`.
+
+This ensures that we do not miss bug fixes or features for the "Next" shippable release and simplifies the mental-model for deciding how to get started contributing code.
+
+#### What if I need a patch to land in a previous supported version?
+
+Let's say I have a bug fix for CRD round trip conversion for AuthService, which is affecting both `v2.y` and `v3.y`.
+
+First within the issue we should discuss what versions we want to target. This can depend on current cycle work and any upcoming releases we may have.
+
+The general rules we follow are:
+
+1. land patch in "next" version which is `master`
+2. backport patch to any `release/v{major}.{minor}` branches
+
+So, let's say we discuss it and say that the "next" major version is a long ways away so we want to do a z patch release on our current minor version(`v3.2`) and we also want to do a z patch release on our last supported major version (`v2.4`).
+
+This means that these patches need to land in three separate branches:
+
+1. `master` - next release
+2. `release/v3.2` - patch release
+3. `release/v2.4` - patch release
+
+In this scenario, we first ask you to land the patch in the `master` branch and then provide separate PR's with the commits backported onto the `release/v*` branches.
+
+> Recommendation: using the `git cherry-pick -x` will add the source commit sha to the commit message. This helps with tracing work back to the original commit.
+
+#### What if my patch is only for a previous supported version?
+
+Although, this should be an edge case, it does happen where the code has diverged enough that a fix may only be relevant to an existing supported version. In these cases we may need to do a patch release for that older supported version.
+
+A good example, if we were to find a bug in the Envoy v2 protocol configuration we would only want to target the v2 release.
+
+In this scenario, the base branch that we would create our feature branch off from would be the latest `minor` version for that release. As of writing this, that would be the `release/v2.4` branch. We would **not** need to target master.
+
+But, let's say during our fix we notice other things that need to be addressed that would also need to be fixed in `master`. Then you need to submit a **separate Pull Request** that should first land on master and then follow the normal backporting process for the other patches.
+
+#### What if I'm still not sure?
+
+This is what the issue discussions and disucssion in Slack are for so that we can help guide you so feel free to ping us in the `#emissary-dev` channel on Slack to discuss directly with us.
+
+### Merge Strategy
+
+> The audience for this section is the Maintainers but also beneficial for Contributors so that they are familiar with how the project operates.
+
+Having a clean linear commit history for a repository makes it easier to understand what is being changed and reduces the mental load for new comers to the project.
+
+To maintain a clean linear commit history the following rules should be followed:
+
+First, always rebase patch branch on to base branch. This means **NO** merge commits from merging base branch into the patch branch. This can be accomplished using git rebase.
+
+```shell
+# first, make sure you pull latest upstream changes
+git fetch upstream
+git checkout master
+git pull -ff upstream/master
+
+# checkout patch branch and rebase interactive
+# you may have merge conflicts you need to resolve
+git checkout my-patch-branch
+git rebase -i master 
+```
+
+> Note: this does rewrite your commit shas so be aware when sharing branches with co-workers.
+
+Once the Pull Request is reviewed and has **two approvals** then a Maintainer can merge. Maintainers should follow prefer the following merge strategies:
+
+1. rebase and merge
+2. squash merge
+
+When `rebase and merge` is used your commits are played on top of the base branch so that it creates a clean linear history. This will maintain all the commits from the Pull Request. In most cases this should be the **preferred** merge strategy.
+
+When a Pull Request has lots of fixup commits, or pr feedback fixes then you should ask the Contributor to squash them as part of the PR process.
+
+If the contributor is unable to squash them then using a `squash merge` in some cases makes sense. **IMPORTANT**, when this does happen it is important that the commit messages are cleaned up and not just blindly accepted the way proposed by Github. Since it is easy to miss that cleanup step, this should be used less frequently compared to `rebase and merge`.
+
+#### What about merge commit strategy?
+
+> The audience for this section is the Maintainers but also beneficial for Contributors so that they are familiar with how the project operates.
+
+When maintaining a linear commit history, each commit tells the story of what was changed in the repository. When using `merge commits` it
+adds an additional commit to the history that is not necessary because the commit history and PR history already tell the story.
+
+Now `merge commits` can be useful when you are concerned with not rewriting the commit sha. Based on the current release process which includes using `rel/v` branches that are tagged and merged into `release/v` branches we must use a `merge commit` when merging these branches. This ensures that the commit sha a Git Tag is pointing at still exists once merged into the `release/v` branch.
 
 ## Contributing to the Docs
 
