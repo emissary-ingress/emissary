@@ -14,28 +14,28 @@ import (
 //
 // Example 1
 //
-//   var GlobalTimer = NewTimer()
+//	var GlobalTimer = NewTimer()
 //
-//   func foo() {
-//     GlobalTimer.Time(func() {
-//       // ...
-//     })
-//   }
+//	func foo() {
+//	  GlobalTimer.Time(func() {
+//	    // ...
+//	  })
+//	}
 //
 // Example 2
 //
-//   func foo() {
-//     stop := GlobalTimer.Start()
-//     defer stop()
-//     ...
-//   }
+//	func foo() {
+//	  stop := GlobalTimer.Start()
+//	  defer stop()
+//	  ...
+//	}
 //
 // Example 3
 //
-//   func foo() {
-//     defer GlobalTimer.Start()()
-//     ...
-//   }
+//	func foo() {
+//	  defer GlobalTimer.Start()()
+//	  ...
+//	}
 type Timer struct {
 	mutex sync.Mutex    // protects the whole struct
 	count int           // counts the number of actions that have been timed

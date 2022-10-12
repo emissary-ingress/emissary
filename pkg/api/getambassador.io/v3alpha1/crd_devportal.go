@@ -109,8 +109,8 @@ type DevPortalSpec struct {
 // * `what` is in a DevPortal can be controlled with
 //   - a `selector`, that can be used for filtering `Mappings`.
 //   - a `docs` listing of (services, url)
-// * `how` is a pointer to some `contents` (a checkout of a Git repository
-//   with go-templates/markdown/css).
+//   - `how` is a pointer to some `contents` (a checkout of a Git repository
+//     with go-templates/markdown/css).
 //
 // Multiple `DevPortal`s can exist in the cluster, and the Dev Portal server
 // will show them at different endpoints. A `DevPortal` resource with a special
