@@ -96,6 +96,12 @@ type Client struct {
 
 // The ClientConfig struct holds all the parameters and configuration
 // that can be passed upon construct of a new Client.
+// If you need support for additional parameters, consider creating a client with
+// NewClientFromConfigFlags like this:
+//
+// clientConfigFlags := NewConfigFlags(false)
+// clientConfigFlags.Impersonate = &username
+// client, err := NewClientFromConfigFlags(clientConfigFlags)
 type ClientConfig struct {
 	Kubeconfig string
 	Context    string
