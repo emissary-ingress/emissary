@@ -1,15 +1,16 @@
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  creationTimestamp: null
   name: statsd-sink
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      service: statsd-sink
   strategy: {}
   template:
     metadata:
-      creationTimestamp: null
       labels:
         service: statsd-sink
     spec:
@@ -18,12 +19,10 @@ spec:
         image: prom/statsd-exporter:v0.7.0
         resources: {}
       restartPolicy: Always
-status: {}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  creationTimestamp: null
   labels:
     service: statsd-sink
   name: statsd-sink
