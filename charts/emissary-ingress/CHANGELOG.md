@@ -5,7 +5,8 @@ numbering uses [semantic versioning](http://semver.org).
 ## v8.9.0
 
 - Upgrade Emissary to v3.9.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
-
+- Bugfix: with AMBASSADOR_ID set and `ingressClassResource` enabled, annotation `getambassador.io/ambassador-id` was missing for the generated IngressClass. Thanks to [Eivind Valderhaug](https://github.com/eevdev).
+185e5e75d (fix(helm): with AMBASSADOR_ID set and `ingressClassResource` enabled, annotation `getambassador.io/ambassador-id` was missing for the generated IngressClass)
 ## v8.8.0
 
 - Upgrade Emissary to v3.8.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
