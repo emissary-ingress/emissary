@@ -4,9 +4,6 @@ from typing import Generator, Tuple, Union
 from abstract_tests import AmbassadorTest, HealthCheckServer, Node
 from kat.harness import Query
 
-"2022-10-04T23:24:45Z"
-"2022-10-04T23:26:45Z"
-
 
 class ActiveHealthCheckTest(AmbassadorTest):
     def init(self):
@@ -42,33 +39,27 @@ health_checks:
             self.url("healthcheck/makeUnhealthy/"), phase=1
         )  # the deployment has 5 pods. This will make one of them start returning errors
 
-        # These two queries on their own in separate phases are just a hack way of getting the kat client
+        # These three queries on their own in separate phases are just a hack way of getting the kat client
         # to wait a little bit after the previous query so that the automated health checks have time to notice
         # that one of the pods is misbehaving before we start blasting requests out.
         yield Query(self.url("healthcheck/"), expected=[200, 500], phase=2)
         yield Query(self.url("healthcheck/"), expected=[200, 500], phase=3)
+        yield Query(self.url("healthcheck/"), expected=[200, 500], phase=4)
 
         # Make 1000 requests split into two groups to reduce any flakes
-        for _ in range(500):
-            yield Query(self.url("healthcheck/"), expected=[200, 500], phase=4)
-            time.sleep(0.06)
-
         for _ in range(500):
             yield Query(self.url("healthcheck/"), expected=[200, 500], phase=5)
             time.sleep(0.06)
 
-    def check(self):
-        print(self.results)
-        # Check the manual requests first
-        assert self.results[0].status == 200
-        assert self.results[1].status == 200
-        assert self.results[2].status == 200
+        for _ in range(500):
+            yield Query(self.url("healthcheck/"), expected=[200, 500], phase=6)
+            time.sleep(0.06)
 
+    def check(self):
         # Add up the number of 500 and 200 responses that we got.
         valid = 0
         errors = 0
-        for i in range(5, 1005):
-            assert (self.results[i].status == 200 or self.results[i].status == 500) == True
+        for i in range(6, 1006):
             if self.results[i].status == 200:
                 valid += 1
             elif self.results[i].status == 500:
@@ -78,7 +69,7 @@ health_checks:
         # assert 190 <= errors <= 210
         # assert 790 <= valid <= 810
 
-        # But since we configure health chekcing we should actually see 0 errors because the health checks noticed
+        # But since we configure health checking we should actually see 0 errors because the health checks noticed
         # that one of the pods was unhealthy and didn't route any traffic to it.
         msg = "Errors: {}, Valid: {}".format(errors, valid)
         assert errors == 0, msg
@@ -106,34 +97,35 @@ load_balancer:
         )  # The round robin load balancer is not necessary for the test but should help make the request distribution even across the pods
 
     def queries(self):
-        yield Query(self.url("healthcheck/"))  # Just making sure things are running
-        yield Query(self.url("ambassador/v0/diag/"))
+        yield Query(self.url("healthcheck/"), phase=1)  # Just making sure things are running
+        yield Query(self.url("ambassador/v0/diag/"), phase=1)
 
         yield Query(
-            self.url("healthcheck/makeUnhealthy/")
+            self.url("healthcheck/makeUnhealthy/"), phase=1
         )  # the deployment has 5 pods. This will make one of them start returning errors
 
-        # Make 1000 requests over the course of a minute
-        for _ in range(1000):
-            yield Query(self.url("healthcheck/"), expected=[200, 500])
+        # Make 1000 requests and split them up so that we're not hammering the service too much all at once.
+        for _ in range(500):
+            yield Query(self.url("healthcheck/"), expected=[200, 500], phase=2)
+            time.sleep(0.06)
+
+        for _ in range(500):
+            yield Query(self.url("healthcheck/"), expected=[200, 500], phase=3)
+            time.sleep(0.06)
 
     def check(self):
-        print(self.results)
-        # Check the manual requests first
-        assert self.results[0].status == 200
-        assert self.results[1].status == 200
-        assert self.results[2].status == 200
-
         # Since we haven't configured any health checking, we should expect to see a fair number of error responses
         valid = 0
         errors = 0
         for i in range(3, 1003):
-            assert (self.results[i].status == 200 or self.results[i].status == 500) == True
             if self.results[i].status == 200:
                 valid += 1
             elif self.results[i].status == 500:
                 errors += 1
+        msg = "Errors: {}, Valid: {}".format(errors, valid)
 
-        # with 1000 requests and 1/5 being an error response, we should have the following distribution +/- 10
-        assert 190 <= errors <= 210
-        assert 790 <= valid <= 810
+        # with 1000 requests and 1/5 being an error response, we should have the following distribution +/- some
+        # margin might need tuned
+        margin = 100
+        assert abs(errors - 200) < margin
+        assert abs(valid - 800) < margin

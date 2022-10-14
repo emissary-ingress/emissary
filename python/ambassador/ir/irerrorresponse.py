@@ -138,7 +138,7 @@ class IRErrorResponse(IRFilter):
         self._setup(ir, aconf)
         return True
 
-    def _setup(self, ir: "IR", aconf: Config):
+    def _setup(self, ir: "IR", aconf: Config) -> None:
         # Do nothing (and post no errors) if there's no config.
         if not self._ir_config:
             return

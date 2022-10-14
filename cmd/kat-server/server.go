@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/datawire/dlib/dlog"
 	srv "github.com/emissary-ingress/emissary/v3/cmd/kat-server/services"
@@ -114,7 +115,78 @@ func main() {
 			Port: Port,
 		}
 		listeners = append(listeners, s)
+	case "health_check_server":
+		port := Port
+		securePort := SSLPort
 
+		HealthyStatusCode, err := strconv.Atoi(os.Getenv("HEALTHY_STATUS_CODE"))
+		if err != nil {
+			HealthyStatusCode = 200
+		}
+		UnhealthyStatusCode, err := strconv.Atoi(os.Getenv("UNHEALTHY_STATUS_CODE"))
+		if err != nil {
+			UnhealthyStatusCode = 500
+		}
+
+		eName := fmt.Sprintf("BACKEND_%d", port)
+		clearBackend := os.Getenv(eName)
+
+		dlog.Printf(ctx, "clear: checking %s -- %s", eName, clearBackend)
+
+		if len(clearBackend) <= 0 {
+			if port == 8080 {
+				// Default for backwards compatibility.
+				clearBackend = os.Getenv("BACKEND")
+
+				dlog.Printf(ctx, "clear: fallback to BACKEND -- %s", clearBackend)
+			}
+		}
+
+		if len(clearBackend) <= 0 {
+			dlog.Printf(ctx, "clear: bailing, no backend")
+			break
+		}
+
+		eName = fmt.Sprintf("BACKEND_%d", securePort)
+		secureBackend := os.Getenv(eName)
+
+		dlog.Printf(ctx, "secure: checking %s -- %s", eName, secureBackend)
+
+		if len(secureBackend) <= 0 {
+			if securePort == 8443 {
+				// Default for backwards compatibility.
+				secureBackend = os.Getenv("BACKEND")
+
+				dlog.Printf(ctx, "secure: fallback to BACKEND -- %s", clearBackend)
+			}
+		}
+
+		if len(secureBackend) <= 0 {
+			dlog.Printf(ctx, "secure: bailing, no backend")
+			break
+		}
+
+		if clearBackend != secureBackend {
+			dlog.Printf(ctx, "BACKEND_%d and BACKEND_%d do not match", port, securePort)
+		} else {
+			dlog.Printf(ctx, "creating HTTP listener for %s on ports %d/%d", clearBackend, port, securePort)
+
+			s = &srv.HealthCheckServer{
+				Port:                port,
+				Backend:             clearBackend,
+				SecurePort:          securePort,
+				SecureBackend:       secureBackend,
+				Cert:                Crt,
+				Key:                 Key,
+				HealthyStatusCode:   HealthyStatusCode,
+				UnhealthyStatusCode: UnhealthyStatusCode,
+			}
+
+			listeners = append(listeners, s)
+		}
+
+		port++
+		securePort++
 	default:
 		port := Port
 		securePort := SSLPort

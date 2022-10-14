@@ -3,6 +3,7 @@ import sys
 import pytest
 
 # Import all the real tests from other files, to make it easier to pick and choose during development.
+import t_active_health_check
 import t_basics
 import t_bufferlimitbytes
 import t_chunked_length
