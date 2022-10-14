@@ -129,7 +129,7 @@ class IngressProcessor(ManagedKubernetesProcessor):
 
         # check the Ingress resource has either:
         #  - a `kubernetes.io/ingress.class: "ambassador"` annotation
-        #  - a `spec.ingressClassName` that references an IngressClass with
+        #  - a `spec.ingressClassName` that references an IngressClass with matching Ambassador ID if specified and
         #      `spec.controller: getambassador.io/ingress-controller`
         #
         # also worth noting, the kube-apiserver might assign the `spec.ingressClassName` if unspecified
@@ -142,8 +142,9 @@ class IngressProcessor(ManagedKubernetesProcessor):
             )
             return
 
-        # We don't want to deal with non-matching Ambassador IDs
-        if obj.ambassador_id != Config.ambassador_id:
+        # Ambassador ID, if specified, must match on either IngressClass or Ingress.
+        # The IngressClass, if we have one here, has already been checked for Ambassador ID in IngressClassProcessor._process
+        if not has_ingress_class and obj.ambassador_id != Config.ambassador_id:
             self.logger.debug(
                 f"Ingress {obj.name} does not have Ambassador ID {Config.ambassador_id}, ignoring..."
             )
