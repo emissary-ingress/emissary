@@ -170,3 +170,72 @@ spec:
         errors[0]["error"]
         == 'AuthService: protocol_version v2 is unsupported, protocol_version must be "v3"'
     )
+
+
+@pytest.mark.compilertest
+def test_basic_http_redirect_with_no_authservice():
+    """Test that http --> https redirect route exists when no AuthService is provided
+    and verify that the typed_per_filter_config is NOT included
+    """
+
+    yaml = """
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  hostname: "*"
+  prefix: /httpbin/
+  service: httpbin
+    """
+    econf = _get_envoy_config(yaml)
+
+    for rv in econf.route_variants:
+        if rv.route.get("match").get("prefix") == "/httpbin/":
+            xfp_http_redirect = rv.variants.get("xfp-http-redirect")
+            assert xfp_http_redirect
+            assert "redirect" in xfp_http_redirect
+            assert "typed_per_filter_config" not in xfp_http_redirect
+
+
+@pytest.mark.compilertest
+def test_basic_http_redirect_disables_ext_authz():
+    """Test that http --> https redirect route exists along with
+    typed_per_filter_config for disabling ext_authz when an AuthService exists
+    """
+
+    if EDGE_STACK:
+        pytest.xfail("XFailing for now, custom AuthServices not supported in Edge Stack")
+
+    yaml = """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: AuthService
+metadata:
+  name:  mycoolauthservice
+  namespace: default
+spec:
+  auth_service: someservice
+  proto: grpc
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  hostname: "*"
+  prefix: /httpbin/
+  service: httpbin
+    """
+    econf = _get_envoy_config(yaml)
+
+    for rv in econf.route_variants:
+        if rv.route.get("match").get("prefix") == "/httpbin/":
+            xfp_http_redirect = rv.variants.get("xfp-http-redirect")
+            assert xfp_http_redirect
+            assert "redirect" in xfp_http_redirect
+            per_filter_config = xfp_http_redirect.get("typed_per_filter_config")
+            assert per_filter_config.get("envoy.filters.http.ext_authz")
+            assert per_filter_config.get("envoy.filters.http.ext_authz").get("disabled") == True

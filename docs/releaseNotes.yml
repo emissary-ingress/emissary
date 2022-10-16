@@ -41,6 +41,25 @@ items:
         body: >-
           Updated Golang to 1.19.2 to address the CVEs: CVE-2022-2879, CVE-2022-2880, CVE-2022-41715.
 
+      - title: Fix regression in http to https redirects with AuthService
+        type: bugfix
+        body: >-
+          By default $productName$ adds routes for http to https redirection. When
+          an AuthService is applied in v2.Y of $productName$, Envoy would skip the
+          ext_authz call for non-tls http request and would perform the https 
+          redirect. In Envoy 1.20+ the behavior has changed where Envoy will 
+          always call the ext_authz filter and must be disabled on a per route 
+          basis. 
+          
+          This new behavior change introduced a regression in v3.0 of 
+          $productName$ when it was upgraded to Envoy 1.22. The http to https 
+          redirection no longer works when an AuthService was applied. This fix 
+          restores the previous behavior by disabling the ext_authz call on the 
+          https redirect routes.
+        github:
+        - title: "#4620"
+          link: https://github.com/emissary-ingress/emissary/issues/4620
+
   - version: 3.2.0
     prevVersion: 3.1.0
     date: '2022-09-26'

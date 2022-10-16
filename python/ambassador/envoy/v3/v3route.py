@@ -238,6 +238,16 @@ class V3RouteVariants:
     def action_redirect(self, variant) -> None:
         variant.pop("route", None)
         variant["redirect"] = {"https_redirect": True}
+        for filter in self.route._group.ir.filters:
+            if filter.kind == "IRAuth":
+                # Required to ensure that the redirect occurs prior to calling ext_authz
+                # when an AuthService is applied
+                variant["typed_per_filter_config"] = {
+                    "envoy.filters.http.ext_authz": {
+                        "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute",
+                        "disabled": True,
+                    }
+                }
 
 
 # Model an Envoy route.
