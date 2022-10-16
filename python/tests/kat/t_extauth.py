@@ -1348,3 +1348,100 @@ service: {self.target.path.fqdn}
         assert self.results[3].backend.request.headers["kat-resp-extauth-protocol-version"] == [
             self.expected_protocol_version
         ]
+
+
+class AuthenticationHTTPSRedirectTest(AmbassadorTest):
+    """
+    AuthenticationHTTPSREdirect: We expect that the http-to-https will occur
+    without calling the AuthService (ext_authz).
+    """
+
+    target: ServiceType
+    auth: ServiceType
+
+    def init(self):
+        if EDGE_STACK:
+            self.xfail = "custom AuthServices not supported in Edge Stack"
+        self.target = HTTP()
+        self.auth = AHTTP(name="auth")
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
+
+    def manifests(self) -> str:
+        return (
+            self.format(
+                """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [{self.ambassador_id}]
+  port: 8080
+  protocol: HTTP
+  securityModel: XFP
+  l7Depth: 1
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: AuthService
+metadata:
+  name:  {self.auth.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  auth_service: "{self.auth.path.fqdn}"
+  proto: http
+  protocol_version: "v3"
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-host
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name:  {self.target.path.k8s}
+spec:
+  ambassador_id: [{self.ambassador_id}]
+  hostname: "*"
+  prefix: /target/
+  service: {self.target.path.fqdn}
+"""
+            )
+            + super().manifests()
+        )
+
+    def requirements(self):
+        # The client doesn't follow redirects so we must force checks to
+        # match the XFP https route. The Listener is configured with
+        # l7depth: 1 so that Envoy trusts the header XFP header forwarded
+        # by the client.
+        yield (
+            "url",
+            Query(self.url("ambassador/v0/check_ready"), headers={"X-Forwarded-Proto": "https"}),
+        )
+        yield (
+            "url",
+            Query(self.url("ambassador/v0/check_alive"), headers={"X-Forwarded-Proto": "https"}),
+        )
+
+    def queries(self):
+        # send http request
+        yield Query(
+            self.url("target/", scheme="http"), headers={"X-Forwarded-Proto": "http"}, expected=301
+        )
+
+    def check(self):
+        # we should NOT make a call to the backend service, and we will
+        # rather envoy should have redirected to https
+        assert self.results[0].backend is None
+        assert self.results[0].headers["Location"] == [f"https://{self.path.fqdn}/target/"]

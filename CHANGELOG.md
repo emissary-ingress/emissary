@@ -93,6 +93,17 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 - Security: Updated Golang to 1.19.2 to address the CVEs: CVE-2022-2879, CVE-2022-2880,
   CVE-2022-41715.
 
+- Bugfix: By default Emissary-ingress adds routes for http to https redirection. When an AuthService
+  is applied in v2.Y of Emissary-ingress, Envoy would skip the ext_authz call for non-tls http
+  request and would perform the https  redirect. In Envoy 1.20+ the behavior has changed where Envoy
+  will  always call the ext_authz filter and must be disabled on a per route  basis. 
+  This new
+  behavior change introduced a regression in v3.0 of  Emissary-ingress when it was upgraded to Envoy
+  1.22. The http to https  redirection no longer works when an AuthService was applied. This fix 
+  restores the previous behavior by disabling the ext_authz call on the  https redirect routes. ([#4620])
+
+[#4620]: https://github.com/emissary-ingress/emissary/issues/4620
+
 ## [3.2.0] September 26, 2022
 [3.2.0]: https://github.com/emissary-ingress/emissary/compare/v3.1.0...v3.2.0
 
