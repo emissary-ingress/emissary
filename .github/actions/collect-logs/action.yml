@@ -39,7 +39,9 @@ runs:
           tools/bin/kubectl describe pods --all-namespaces >/tmp/test-logs/cluster/all-pods-described.txt || true
 
           tools/bin/kubectl get pods --all-namespaces -ocustom-columns="name:.metadata.name,namespace:.metadata.namespace" --no-headers | while read -r name namespace; do
+            echo "Pulling logs for ${name}.${namespace}"
             tools/bin/kubectl --namespace="$namespace" logs "$name" >"/tmp/test-logs/cluster/pod.${namespace}.${name}.log" || true
+            tools/bin/kubectl exec -n $namespace $name -- tar -czf /tmp/ambassador-config-base.tgz /tmp/ambassador --exclude=secrets-decoded --exclude=webui --exclude=sidecars && kubectl cp -n "$namespace" "$name":/tmp/ambassador-config-base.tgz /tmp/test-logs/cluster/${namespace}-${name}-pod-config-base.tgz || true
           done
 
           tools/bin/kubectl cp xfpredirect:/tmp/ambassador/snapshots /tmp/test-logs/cluster/xfpredirect.snapshots || true
