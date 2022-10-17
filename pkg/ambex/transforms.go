@@ -3,6 +3,9 @@ package ambex
 import (
 	// standard library
 	"context"
+	"crypto/md5"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 
 	// third-party libraries
@@ -89,7 +92,7 @@ import (
 //                 "config_source": {
 //                   "ads": {}
 //                 },
-//                 "route_config_name": "ambassador-listener-8443-routeconfig-0"
+//                 "route_config_name": "ambassador-listener-8443-routeconfig-376bf87fb310abb282f452533940481d-0"
 //               }
 //             }
 //           }
@@ -100,7 +103,7 @@ import (
 //
 //  routes = [
 //    {
-//      "name": "ambassador-listener-8443-routeconfig-0",
+//      "name": "ambassador-listener-8443-routeconfig-376bf87fb310abb282f452533940481d-0",
 //      "virtual_hosts": [
 //        {
 //          "name": "ambassador-listener-8443-*",
@@ -114,6 +117,10 @@ import (
 // V3ListenerToRdsListener is the v3 variety of ListnerToRdsListener
 func V3ListenerToRdsListener(lnr *v3listener.Listener) (*v3listener.Listener, []*v3route.RouteConfiguration, error) {
 	l := proto.Clone(lnr).(*v3listener.Listener)
+
+	// Keep track of number of filter chain matches that hash to the same key for collisions
+	matchKeyIndex := make(map[string]int)
+
 	var routes []*v3route.RouteConfiguration
 	for _, fc := range l.FilterChains {
 		for _, f := range fc.Filters {
@@ -135,10 +142,20 @@ func V3ListenerToRdsListener(lnr *v3listener.Listener) (*v3listener.Listener, []
 					if rc.Name == "" {
 						// Generate a unique name for the RouteConfiguration that we can use to
 						// correlate the listener to the RDS record. We use the listener name plus
-						// an index because there can be more than one route configuration
+						// filter_chain_match hash because there can be more than one route configuration
 						// associated with a given listener.
-						rc.Name = fmt.Sprintf("%s-routeconfig-%d", l.Name, len(routes))
+						filterChainMatch, _ := json.Marshal(fc.GetFilterChainMatch())
+
+						// Use MD5 because it's decently fast and cryptographic security isn't needed.
+						matchHash := md5.Sum(filterChainMatch)
+						matchKey := hex.EncodeToString(matchHash[:])
+
+						rc.Name = fmt.Sprintf("%s-routeconfig-%s-%d", l.Name, matchKey, matchKeyIndex[matchKey])
+
+						// Add or update map entry for this filter chain key to dedupe those that hash to the same key.
+						matchKeyIndex[matchKey]++
 					}
+
 					routes = append(routes, rc)
 					// Now that we have extracted and named the RouteConfiguration, we change the
 					// RouteSpecifier from the inline RouteConfig variation to RDS via ADS. This
