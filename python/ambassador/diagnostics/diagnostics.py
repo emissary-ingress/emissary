@@ -118,8 +118,10 @@ class DiagResult:
 
         # Go ahead and grab Envoy cluster stats for all possible clusters.
         # XXX This might be a bit silly.
-        self.cluster_names = [cluster.envoy_name for cluster in self.diag.clusters.values()]
-        self.cstats = {name: self.estat.cluster_stats(name) for name in self.cluster_names}
+        self.cstats = {
+            cluster.name: self.estat.cluster_stats(cluster.stats_name)
+            for cluster in self.diag.clusters.values()
+        }
 
         # Save the request host and scheme. We'll need them later.
         self.request_host = request.headers.get("Host", "*")
@@ -556,7 +558,7 @@ class Diagnostics:
                     "type": type_name,
                     "_source": svc.location,
                     "name": url,
-                    "cluster": cluster.envoy_name,
+                    "cluster": cluster.name,
                     "_service_weight": svc_weight,
                 }
             )

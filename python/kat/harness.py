@@ -13,22 +13,30 @@ from abc import ABC
 from collections import OrderedDict
 from functools import singledispatch
 from hashlib import sha256
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    NamedTuple,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 import pytest
 import yaml as pyyaml
 from packaging import version
+from yaml.parser import ParserError as YAMLParseError
 from yaml.scanner import ScannerError as YAMLScanError
 
 import tests.integration.manifests as integration_manifests
 from ambassador.utils import parse_bool
 from tests.kubeutils import apply_kube_artifacts
-from tests.manifests import (
-    cleartext_host_manifest,
-    default_listener_manifest,
-    httpbin_manifests,
-    websocket_echo_server_manifests,
-)
+from tests.manifests import cleartext_host_manifest, default_listener_manifest
 
 from .parser import SequenceView, Tag, dump, load
 from .utils import ShellCommand
@@ -290,26 +298,17 @@ def variants(cls, *args, **kwargs) -> Tuple[Any]:
     return tuple(a for n in get_nodes(cls) for a in n.variants(*args, **kwargs))  # type: ignore
 
 
-class Name(str):
-    namespace: Optional[str]
-
-    def __new__(cls, value, namespace: Optional[str] = None):
-        s = super().__new__(cls, value)
-        s.namespace = namespace
-        return s
+class Name(NamedTuple):
+    name: str
+    namespace: str
 
     @property
-    def k8s(self):
-        return self.replace(".", "-").lower()
+    def k8s(self) -> str:
+        return self.name.replace(".", "-").lower()
 
     @property
-    def fqdn(self):
-        r = self.k8s
-
-        if self.namespace and (self.namespace != "default"):
-            r += "." + self.namespace
-
-        return r
+    def fqdn(self) -> str:
+        return ".".join([self.k8s, self.namespace, "svc", "cluster", "local"])
 
 
 class NodeLocal(threading.local):
@@ -339,29 +338,30 @@ class Node(ABC):
 
     parent: Optional["Node"]
     children: List["Node"]
-    name: Name
+    name: str
     ambassador_id: str
-    namespace: str = None  # type: ignore
+    namespace: str
     is_ambassador = False
     local_result: Optional[Dict[str, str]] = None
+    xfail: Optional[str]
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(
+        self,
+        *args,
+        name: Optional[str] = None,
+        namespace: Optional[str] = None,
+        _clone: Optional["Node"] = None,
+        **kwargs,
+    ) -> None:
         # If self.skip is set to true, this node is skipped
         self.skip_node = False
         self.xfail: Optional[str] = None
-
-        name = kwargs.pop("name", None)
-
-        if "namespace" in kwargs:
-            self.namespace = kwargs.pop("namespace", None)
-
-        _clone: Node = kwargs.pop("_clone", None)
 
         if _clone:
             args = _clone._args  # type: ignore
             kwargs = _clone._kwargs  # type: ignore
             if name:
-                name = Name("-".join((_clone.name, name)))
+                name = "-".join((_clone.name, name))
             else:
                 name = _clone.name
             self._args = _clone._args  # type: ignore
@@ -370,14 +370,18 @@ class Node(ABC):
             self._args = args
             self._kwargs = kwargs
             if name:
-                name = Name("-".join((self.__class__.__name__, name)))
+                name = "-".join((self.__class__.__name__, name))
             else:
-                name = Name(self.__class__.__name__)
+                name = self.__class__.__name__
 
         saved = _local.current
         self.parent = _local.current
 
-        if not self.namespace:
+        if namespace:
+            self.namespace = namespace
+        if not getattr(self, "namespace", ""):
+            # We do the above `getattr` instead of just an `else` because subclasses might set a
+            # default namespace; so `self.namespace` might already be set before calling __init__().
             if self.parent and self.parent.namespace:
                 # We have no namespace assigned, but our parent does have a namespace
                 # defined. Copy the namespace down from our parent.
@@ -395,7 +399,9 @@ class Node(ABC):
         finally:
             _local.current = saved
 
-        self.name = Name(self.format(name or self.__class__.__name__))
+        # This has to come after the above to init(), because the format-string might reference
+        # things that get set by init().
+        self.name = self.format(name)
 
         names = {}  # type: ignore
         for c in self.children:
@@ -563,14 +569,10 @@ class Node(ABC):
 
     @property
     def path(self) -> Name:
-        return self.relpath(None)
-
-    def relpath(self, ancestor):
-        if self.parent is ancestor:
-            return Name(self.name, namespace=self.namespace)
+        if self.parent is None:
+            return Name(self.name, self.namespace)
         else:
-            assert self.parent
-            return Name(self.parent.relpath(ancestor) + "." + self.name, namespace=self.namespace)
+            return Name(self.parent.path.name + "." + self.name, self.namespace)
 
     @property
     def traversal(self):
@@ -596,15 +598,9 @@ class Node(ABC):
     def format(self, st, **kwargs):
         return integration_manifests.format(st, self=self, **kwargs)
 
-    def get_fqdn(self, name: str) -> str:
-        if self.namespace and (self.namespace != "default"):
-            return f"{name}.{self.namespace}"
-        else:
-            return name
-
     @functools.lru_cache()
     def matches(self, pattern):
-        if fnmatch.fnmatch(self.path, "*%s*" % pattern):
+        if fnmatch.fnmatch(self.path.name, "*%s*" % pattern):
             return True
         for c in self.children:
             if c.matches(pattern):
@@ -695,7 +691,7 @@ class Test(Node):
     @property
     def ambassador_id(self):
         if self.parent is None:
-            return self.name.k8s
+            return self.path.k8s
         else:
             return self.parent.ambassador_id
 
@@ -780,7 +776,7 @@ class Query:
     def as_json(self):
         assert self.parent
         result = {
-            "test": self.parent.path,
+            "test": self.parent.path.name,
             "id": id(self),
             "url": self.url,
             "insecure": self.insecure,
@@ -1179,7 +1175,7 @@ class Runner:
         self.roots = tuple(v for c in classes for v in variants(c))
         self.nodes = [n for r in self.roots for n in r.traversal if not n.skip_node]
         self.tests = [n for n in self.nodes if isinstance(n, Test)]
-        self.ids = [t.path for t in self.tests]
+        self.ids = [t.path.name for t in self.tests]
         self.done = False
         self.skip_nonlocal_tests = False
         self.ids_to_strip: Dict[str, bool] = {}
@@ -1429,7 +1425,7 @@ class Runner:
                     try:
                         for o in load(n.path, cfg, Tag.MAPPING):
                             parent_config.merge(o)
-                    except YAMLScanError as e:
+                    except (YAMLScanError, YAMLParseError) as e:
                         raise Exception("Parse Error: %s, input text:\n%s" % (e, cfg))
                 else:
                     target = cfg[0]
@@ -1443,7 +1439,7 @@ class Runner:
                                     obj["ambassador_id"] = [n.ambassador_id]
 
                         configs[n].append((target, yaml_view))
-                    except YAMLScanError as e:
+                    except (YAMLScanError, YAMLParseError) as e:
                         raise Exception("Parse Error: %s, input text:\n%s" % (e, cfg[1]))
 
         for tgt_cfgs in configs.values():
@@ -1469,7 +1465,7 @@ class Runner:
                             continue
                         break
                 else:
-                    assert False, "no service found for target: %s" % target.path
+                    assert False, "no service found for target: %s" % target.path.name
 
         yaml = ""
 
@@ -1782,14 +1778,6 @@ class Runner:
             ):
                 raise RuntimeError("Could not apply manifests")
             self.applied_manifests = True
-
-        # Finally, install httpbin and the websocket-echo-server.
-        print(
-            f"applying http_manifests + websocket_echo_server_manifests to namespaces: {namespaces}"
-        )
-        for namespace in namespaces:
-            apply_kube_artifacts(namespace, httpbin_manifests)
-            apply_kube_artifacts(namespace, websocket_echo_server_manifests)
 
         for n in self.nodes:
             if n in selected and not n.xfail:

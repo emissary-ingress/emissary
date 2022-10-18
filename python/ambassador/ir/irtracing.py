@@ -14,7 +14,9 @@ class IRTracing(IRResource):
     service: str
     driver: str
     driver_config: dict
+    # TODO: tag_headers is deprecated and should be removed once migrated to CRD v3
     tag_headers: list
+    custom_tags: list
     host_rewrite: Optional[str]
     sampling: dict
 
@@ -107,6 +109,7 @@ class IRTracing(IRResource):
         self.cluster = None
         self.driver_config = driver_config
         self.tag_headers = config.get("tag_headers", [])
+        self.custom_tags = config.get("custom_tags", [])
         self.sampling = config.get("sampling", {})
 
         self.stats_name = config.get("stats_name", None)

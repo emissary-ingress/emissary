@@ -116,5 +116,19 @@ copy_gold xfpredirect
 copy_gold empty empty-namespace
 copy_gold plain plain-namespace
 copy_gold tcpmappingtest tcp-namespace
+copy_gold tcpmappingbasictest
+copy_gold tcpmappingcrossnamespacetest
+copy_gold tcpmappingtlsoriginationbooltest
+copy_gold tcpmappingtlsoriginationv2schemetest
+copy_gold tcpmappingtlsoriginationcontexttest
+copy_gold tcpmappingtlsoriginationcontextwithdottest
+copy_gold tcpmappingtlsoriginationcontextcrossnamespacetest
+copy_gold tcpmappingtlsterminationbasictest
+copy_gold tcpmappingtlsterminationcrossnamespacetest
+copy_gold tcpmappingsnisharedcontexttest
+copy_gold tcpmappingsniseparatecontextstest
+copy_gold tcpmappingsniwithhttptest
+copy_gold tcpmappingaddresstest
+copy_gold tcpmappingweighttest
 
 printf "\n"

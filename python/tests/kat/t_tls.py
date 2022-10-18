@@ -1,3 +1,5 @@
+import hashlib
+from base64 import b64decode
 from typing import Generator, List, Tuple, Union
 
 from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
@@ -193,19 +195,28 @@ add_request_headers:
         )
 
     def check(self):
+        cert = TLSCerts["presto.example.com"].pubcert
+        # base64-decode the cert data after removing the "---BEGIN CERTIFICATE---" / "---END CERTIFICATE---" lines.
+        certraw = b64decode("\n".join(l for l in cert.split("\n") if not l.startswith("-")))
+        # take the sha256 sum aof that.
+        certhash = hashlib.sha256(certraw).hexdigest()
+
         assert self.results[0].backend
         assert self.results[0].backend.request
         assert self.results[0].backend.request.headers["x-forwarded-client-cert"] == [
-            'Hash=c2d41a5977dcd28a3ba21f59ed5508cc6538defa810843d8a593e668306c8c4f;Subject="CN=presto.example.com,OU=Engineering,O=Presto,L=Bangalore,ST=KA,C=IN"'
-        ]
+            f'Hash={certhash};Subject="CN=presto.example.com,OU=Engineering,O=Ambassador Labs,L=Boston,ST=MA,C=US"'
+        ], (
+            "unexpected x-forwarded-client-cert value: %s"
+            % self.results[0].backend.request.headers["x-forwarded-client-cert"]
+        )
         assert self.results[0].backend.request.headers["x-cert-start"] == [
-            "2019-01-10T19:19:52.000Z"
+            "2021-11-10T13:12:00.000Z"
         ], (
             "unexpected x-cert-start value: %s"
             % self.results[0].backend.request.headers["x-cert-start"]
         )
         assert self.results[0].backend.request.headers["x-cert-end"] == [
-            "2118-12-17T19:19:52.000Z"
+            "2099-11-10T13:12:00.000Z"
         ], (
             "unexpected x-cert-end value: %s"
             % self.results[0].backend.request.headers["x-cert-end"]
@@ -213,13 +224,13 @@ add_request_headers:
         assert self.results[1].backend
         assert self.results[1].backend.request
         assert self.results[0].backend.request.headers["x-cert-start-custom"] == [
-            "Jan 10 19:19:52 2019 UTC"
+            "Nov 10 13:12:00 2021 UTC"
         ], (
             "unexpected x-cert-start-custom value: %s"
             % self.results[1].backend.request.headers["x-cert-start-custom"]
         )
         assert self.results[0].backend.request.headers["x-cert-end-custom"] == [
-            "Dec 17 19:19:52 2118 UTC"
+            "Nov 10 13:12:00 2099 UTC"
         ], (
             "unexpected x-cert-end-custom value: %s"
             % self.results[0].backend.request.headers["x-cert-end-custom"]
@@ -454,8 +465,17 @@ data:
         )
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self, self.format(
-            """
+        fingerprint = (
+            hashlib.sha1(
+                (
+                    TLSCerts["localhost"].pubcert + "\n" + TLSCerts["localhost"].privkey + "\n"
+                ).encode("utf-8")
+            )
+            .hexdigest()
+            .upper()
+        )
+
+        yield self, f"""
 ---
 apiVersion: getambassador.io/v3alpha1
 kind:  Module
@@ -465,10 +485,9 @@ config:
   upstream:
     secret: test-origination-secret
   upstream-files:
-    cert_chain_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt
-    private_key_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key
+    cert_chain_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/{fingerprint}.crt
+    private_key_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/{fingerprint}.key
 """
-        )
 
         yield self, self.format(
             """
@@ -1907,18 +1926,18 @@ config:
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 metadata:
-  name: {self.name.k8s}
+  name: {self.path.k8s}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   alpn_protocols: "h2,http/1.1"
   hosts:
   - a.domain.com
-  secret: {self.name.k8s}
+  secret: {self.path.k8s}
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}
+  name: {self.path.k8s}
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
@@ -1933,7 +1952,7 @@ data:
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
-  name: {self.name.k8s}-target-mapping
+  name: {self.path.k8s}-target-mapping
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   prefix: /foo

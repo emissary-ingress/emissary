@@ -1,4 +1,24 @@
 {{- if .Values.agent.enabled }}
+{{- $allowAgent := false -}}
+
+  {{- /* This next bit is ugly. */ -}}
+  {{- /* Case 1: "fullImageOverride" means don't bother checking the tag. */ -}}
+  {{- /* Case 2: Otherwise, if it's not a semver-style version number,    */ -}}
+  {{- /*         assume we have a power user and turn the agent on.       */ -}}
+  {{- /* Case 3: Otherwise, it's OSS and we need at least 1.13.0.         */ -}}
+
+{{- if .Values.image.fullImageOverride }}
+  {{- /* Case 1 */ -}}
+  {{- $allowAgent = true }}
+{{- else if not (regexMatch "^\\d+\\.\\d+\\.\\d+$" .Values.image.tag ) }}
+  {{- /* Case 2 above: power user */ -}}
+  {{- $allowAgent = true }}
+{{- else if ne (semver "1.13.0" | (semver .Values.image.tag).Compare) -1 }}
+  {{- /* Case 3 above: OSS 1.13.0+ */ -}}
+  {{- $allowAgent = true }}
+{{- end }}
+
+{{- if $allowAgent }}
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -206,8 +226,9 @@ spec:
       serviceAccountName: {{ include "ambassador.fullname" . }}-agent
       containers:
       - name: agent
-        image: "{{ .Values.agent.image.repository }}:{{ .Values.agent.image.tag }}"
-        imagePullPolicy: {{ .Values.agent.image.pullPolicy }}
+        image: {{ include "agent.image" . }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: [ "agent" ]
         ports:
           - containerPort: 8080
             name: http
@@ -222,6 +243,10 @@ spec:
           value: {{ .Values.agent.rpcAddress }}
         - name: AES_SNAPSHOT_URL
           value: "http://{{ include "ambassador.fullname" . }}-admin.{{ include "ambassador.namespace" . }}:{{ .Values.adminService.snapshotPort }}/snapshot-external"
+        - name: AES_REPORT_DIAGNOSTICS_TO_CLOUD
+          value: {{ .Values.agent.reportDiagnostics | quote }}
+        - name: AES_DIAGNOSTICS_URL
+          value: "http://{{ include "ambassador.fullname" . }}-admin.{{ include "ambassador.namespace" . }}:{{ .Values.adminService.port }}/ambassador/v0/diag/?json=true"
   {{ if .Values.progressDeadlines }}
   {{ if hasKey .Values.progressDeadlines "agent" }}
   progressDeadlineSeconds: {{ .Values.progressDeadlines.agent }}
@@ -255,4 +280,5 @@ spec:
   selector:
     app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-agent
     app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
 {{- end }}

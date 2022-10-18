@@ -42,7 +42,7 @@ class HostCRDSingle(AmbassadorTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}-secret
+  name: {self.path.k8s}-secret
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
@@ -57,7 +57,7 @@ data:
 apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
-  name: {self.name.k8s}-host
+  name: {self.path.k8s}-host
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
@@ -66,7 +66,7 @@ spec:
   acmeProvider:
     authority: none
   tlsSecret:
-    name: {self.name.k8s}-secret
+    name: {self.path.k8s}-secret
   mappingSelector:
     matchLabels:
       hostname: {self.path.fqdn}
@@ -74,7 +74,7 @@ spec:
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
-  name: {self.name.k8s}-target-mapping
+  name: {self.path.k8s}-target-mapping
   labels:
     hostname: {self.path.fqdn}
 spec:
@@ -116,7 +116,7 @@ class HostCRDNo8080(AmbassadorTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}-secret
+  name: {self.path.k8s}-secret
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
@@ -131,7 +131,7 @@ data:
 apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
-  name: {self.name.k8s}-listener
+  name: {self.path.k8s}-listener
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
@@ -146,7 +146,7 @@ spec:
 apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
-  name: {self.name.k8s}-host
+  name: {self.path.k8s}-host
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
@@ -155,7 +155,7 @@ spec:
   acmeProvider:
     authority: none
   tlsSecret:
-    name: {self.name.k8s}-secret
+    name: {self.path.k8s}-secret
   mappingSelector:
     matchLabels:
       hostname: {self.path.fqdn}
@@ -166,7 +166,7 @@ spec:
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
-  name: {self.name.k8s}-target-mapping
+  name: {self.path.k8s}-target-mapping
   labels:
     hostname: {self.path.fqdn}
 spec:
@@ -308,7 +308,7 @@ class HostCRDManualContextCRL(AmbassadorTest):
 apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
-  name: {self.name.k8s}-listener
+  name: {self.path.k8s}-listener
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
@@ -451,7 +451,7 @@ class HostCRDSeparateTLSContext(AmbassadorTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}-secret
+  name: {self.path.k8s}-secret
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
@@ -478,7 +478,7 @@ spec:
     matchLabels:
       hostname: {self.path.fqdn}
   tlsSecret:
-    name: {self.name.k8s}-secret
+    name: {self.path.k8s}-secret
   tlsContext:
     name: {self.path.k8s}-separate-tls-context
 ---
@@ -490,7 +490,7 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  secret: {self.name.k8s}-secret
+  secret: {self.path.k8s}-secret
   min_tls_version: v1.2
   max_tls_version: v1.3
 ---
@@ -543,7 +543,7 @@ class HostCRDTLSConfig(AmbassadorTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.name.k8s}-secret
+  name: {self.path.k8s}-secret
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
@@ -570,7 +570,7 @@ spec:
     matchLabels:
       hostname: {self.path.fqdn}
   tlsSecret:
-    name: {self.name.k8s}-secret
+    name: {self.path.k8s}-secret
   tls:
     min_tls_version: v1.2
     max_tls_version: v1.3
@@ -2606,7 +2606,7 @@ data:
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
-  name: {self.name.k8s}-target-mapping
+  name: {self.path.k8s}-target-mapping
   labels:
     hostname: {self.path.fqdn}
 spec:
@@ -2704,7 +2704,7 @@ data:
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
-  name: {self.name.k8s}-target-mapping
+  name: {self.path.k8s}-target-mapping
   labels:
     hostname: {self.path.fqdn}
 spec:
@@ -2839,7 +2839,7 @@ data:
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
-  name: {self.name.k8s}-target-mapping
+  name: {self.path.k8s}-target-mapping
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   hostname: "*"

@@ -52,16 +52,17 @@ autoscaling: # +doc-gen:break
   metrics:
   - type: Resource
     resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 60
-  - type: Resource
-    resource:
       name: memory
       target:
         type: Utilization
-        averageUtilization: 60
+        averageUtilization: 100
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 300
+
 
 podDisruptionBudget: {}
 
@@ -393,11 +394,15 @@ agent:
   cloudConnectToken: ''
   # Address of the Ambassador Cloud rpc server.
   rpcAddress: https://app.getambassador.io/
+
+  # If `true`, Ambassador Agent will report diagnostics to Ambassador Cloud
+  reportDiagnostics: true
+
   createArgoRBAC: true
   image:
-    tag: 0.0.7
-    repository: docker.io/ambassador/ambassador-agent
-    pullPolicy: IfNotPresent
+    # Leave blank to use image.repository and image.tag
+    tag: 3.1.0
+    repository: docker.io/emissaryingress/emissary
 
 deploymentTool: ''
 

@@ -32,9 +32,31 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 3.3.0
+    prevVersion: 3.2.1
+    data: 'TBD'
+    notes:
+      - title: Add environment variables to configure healthcheck server's bind address, port and IP family.
+        type: feature
+        body: >-
+          The healthcheck server's bind address, bind port and IP family can now be configured using environment variables.
+          The main advantage of this is that it allows the healthcheck server to be configured for IPv6-only k8s environments.
+          <code>AMBASSADOR_HEALTHCHECK_BIND_ADDRESS</code> - The address to bind the healthcheck server to.
+          <code>AMBASSADOR_HEALTHCHECK_BIND_PORT</code> - The port to bind the healthcheck server to.
+          <code>AMBASSADOR_HEALTHCHECK_IP_FAMILY</code> - The IP family to use for the healthcheck server.
+          
+  - version: 3.2.1
+    prevVersion: 3.2.0
+    date: 'TBD'
+    notes:
+      - title: Update Golang to 1.19.2
+        type: security
+        body: >-
+          Updated Golang to 1.19.2 to address the CVEs: CVE-2022-2879, CVE-2022-2880, CVE-2022-41715.
+
   - version: 3.2.0
     prevVersion: 3.1.0
-    date: 'TBD'
+    date: '2022-09-26'
     notes:
       - title: Envoy upgraded to 1.23
         type: change
@@ -54,7 +76,7 @@ items:
           in Kubernetes. To avoid unexpected behaviour after the upgrade, add all labels that Hosts have in their
           <code>mappingSelector</code> to <code>Mappings</code> you want to associate with the <code>Host</code>. You can opt-out of the new behaviour
           by setting the environment variable <code>DISABLE_STRICT_LABEL_SELECTORS</code> to <code>"true"</code> (default: <code>"false"</code>).
-          (Thanks to <a href="https://github.com/f-herceg">Filip Herceg</a> and <a href="https://github.com/dynajoe">Joe Andaverde</a>!).
+          (Thanks to <a href="https://github.com/f-herceg">Filip Herceg</a> and <a href="https://github.com/dynajoe">Joe Andaverde</a>!).      
       - title: Add support for Host resources using secrets from different namespaces
         type: feature
         body: >-
@@ -66,7 +88,7 @@ items:
         body: >-
           Set `AMBASSADOR_EDS_BYPASS` to `true` to bypass EDS handling of endpoints and have endpoints be
           inserted to clusters manually. This can help resolve with `503 UH` caused by certification rotation relating to
-          a delay between EDS + CDS. The default is `false`.
+          a delay between EDS + CDS. The default is `false`.     
       - title: Correctly manage cluster names when service names are very long
         type: bugfix
         body: >-
@@ -85,15 +107,7 @@ items:
           option. Set <code>failure_mode_deny: true</code>, then Envoy will
           deny traffic when it is unable to communicate to the RateLimitService
           returning a 500.
-        docs: https://www.getambassador.io/docs/emissary/latest/topics/running/services/rate-limit-service/
-      - title: Add environment variables to configure healthcheck server's bind address, port and IP family.
-        type: feature
-        body: >-
-          The healthcheck server's bind address, bind port and IP family can now be configured using environment variables.
-          The main advantage of this is that it allows the healthcheck server to be configured for IPv6-only k8s environments.
-          <code>AMBASSADOR_HEALTHCHECK_BIND_ADDRESS</code> - The address to bind the healthcheck server to.
-          <code>AMBASSADOR_HEALTHCHECK_BIND_PORT</code> - The port to bind the healthcheck server to.
-          <code>AMBASSADOR_HEALTHCHECK_IP_FAMILY</code> - The IP family to use for the healthcheck server.
+        docs: https://www.getambassador.io/docs/emissary/latest/topics/running/services/rate-limit-service/      
       - title: Properly populate alt_state_name for Tracing, Auth and RateLimit Services
         type: bugfix
         body: >-
@@ -106,40 +120,50 @@ items:
         body: >-
           The <code>AMBASSADOR_RECONFIG_MAX_DELAY</code> env var can be optionally set to batch changes for the specified
           non-negative window period in seconds before doing an Envoy reconfiguration. Default is "1" if not set.
-
-  - version: 3.1.1
-    prevVersion: 3.1.0
-    date: 'TBD'
-    notes: []
-
-  - version: 3.0.1
-    prevVersion: 3.0.0
-    date: 'TBD'
-    notes:
-      - title: Fix regression in the agent for the metrics transfer.
+      - title: Diagnostics stats properly handles parsing envoy metrics with colons
         type: bugfix
         body: >-
-          A regression was introduced in 2.3.0 causing the agent to miss some of the metrics coming from
-          emissary ingress before sending them to Ambassador cloud. This issue has been resolved to ensure
-          that all the nodes composing the emissary ingress cluster are reporting properly.
-      - title: Update Golang to 1.17.12
+          If a <code>Host</code> or <code>TLSContext</code> contained a hostname with a <code>:</code> when using the
+          diagnostics endpoints <code>ambassador/v0/diagd</code> then an error would be thrown due to the parsing logic not
+          being able to handle the extra colon. This has been fixed and $productName$ will not throw an error when parsing
+          envoy metrics for the diagnostics user interface.
+      - title: Allow setting custom_tags for traces
+        type: feature
+        body: >-
+          It is now possible to set <code>custom_tags</code> in the
+          <code>TracingService</code>. Trace tags can be set based on
+          literal values, environment variables, or request headers.
+          (Thanks to <a href="https://github.com/psalaberria002">Paul</a>!)
+        github:
+        - title: "#4181"
+          link: https://github.com/emissary-ingress/emissary/pull/4181
+      - title: TCPMappings use correct SNI configuration
+        type: bugfix
+        body: >-
+          $productName$ 2.0.0 introduced a bug where a <code>TCPMapping</code> that uses SNI,
+          instead of using the hostname glob in the <code>TCPMapping</code>, uses the hostname glob
+          in the <code>Host</code> that the TLS termination configuration comes from.
+      - title: TCPMappings configure TLS termination without a Host resource
+        type: bugfix
+        body: >-
+          $productName$ 2.0.0 introduced a bug where a <code>TCPMapping</code> that terminates TLS
+          must have a corresponding <code>Host</code> that it can take the TLS configuration from.
+          This was semi-intentional, but didn't make much sense.  You can now use a
+          <code>TLSContext</code> without a <code>Host</code>as in $productName$ 1.y releases, or a
+          <code>Host</code> with or without a <code>TLSContext</code> as in prior 2.y releases.
+      - title: TCPMappings and HTTP Hosts can coexist on Listeners that terminate TLS
+        type: bugfix
+        body: >-
+          Prior releases of $productName$ had the arbitrary limitation that a
+          <code>TCPMapping</code> cannot be used on the same port that HTTP is served on, even if
+          TLS+SNI would make this possible.  $productName$ now allows <code>TCPMappings</code> to be
+          used on the same <code>Listener</code> port as HTTP <code>Hosts</code>, as long as that
+          <code>Listener</code> terminates TLS.
+      - title: Update Golang to 1.19.1
         type: security
         body: >-
-          Updated Golang to 1.17.12 to address the CVEs: CVE-2022-23806, CVE-2022-28327, CVE-2022-24675,
-          CVE-2022-24921, CVE-2022-23772.
-      - title: Update Curl to 7.80.0-r2
-        type: security
-        body: >-
-          Updated Curl to 7.80.0-r2 to address the CVEs: CVE-2022-32207, CVE-2022-27782, CVE-2022-27781,
-          CVE-2022-27780.
-      - title: Update openSSL-dev to 1.1.1q-r0
-        type: security
-        body: >-
-          Updated openSSL-dev to 1.1.1q-r0 to address CVE-2022-2097.
-      - title: Update ncurses to 1.1.1q-r0
-        type: security
-        body: >-
-          Updated ncurses to 1.1.1q-r0 to address CVE-2022-29458
+          Updated Golang to 1.19.1 to address the CVEs: CVE-2022-27664, CVE-2022-32190.
+          
   - version: 3.1.0
     date: '2022-08-01'
     notes:
@@ -335,6 +359,31 @@ items:
         body: >-
           The <code>AMBASSADOR_RECONFIG_MAX_DELAY</code> env var can be optionally set to batch changes for the specified
           non-negative window period in seconds before doing an Envoy reconfiguration. Default is "1" if not set.
+
+      - title: TCPMappings use correct SNI configuration
+        type: bugfix
+        body: >-
+          $productName$ 2.0.0 introduced a bug where a <code>TCPMapping</code> that uses SNI,
+          instead of using the hostname glob in the <code>TCPMapping</code>, uses the hostname glob
+          in the <code>Host</code> that the TLS termination configuration comes from.
+
+      - title: TCPMappings configure TLS termination without a Host resource
+        type: bugfix
+        body: >-
+          $productName$ 2.0.0 introduced a bug where a <code>TCPMapping</code> that terminates TLS
+          must have a corresponding <code>Host</code> that it can take the TLS configuration from.
+          This was semi-intentional, but didn't make much sense.  You can now use a
+          <code>TLSContext</code> without a <code>Host</code>as in $productName$ 1.y releases, or a
+          <code>Host</code> with or without a <code>TLSContext</code> as in prior 2.y releases.
+
+      - title: TCPMappings and HTTP Hosts can coexist on Listeners that terminate TLS
+        type: bugfix
+        body: >-
+          Prior releases of $productName$ had the arbitrary limitation that a
+          <code>TCPMapping</code> cannot be used on the same port that HTTP is served on, even if
+          TLS+SNI would make this possible.  $productName$ now allows <code>TCPMappings</code> to be
+          used on the same <code>Listener</code> port as HTTP <code>Hosts</code>, as long as that
+          <code>Listener</code> terminates TLS.
 
   - version: 1.14.5
     date: 'TBD'

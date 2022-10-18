@@ -189,13 +189,13 @@ def selector_matches(
 
     if not match:
         # If there's no matchLabels to match, return True.
-        logger.debug("    no matchLabels in selector => True")
+        logger.debug("      no matchLabels in selector => True")
         return True
 
     # If we have stuff to match on, but no labels to actually match them, we
     # can short-circuit (and skip a weirder conditional down in the loop).
     if not labels:
-        logger.debug("    no incoming labels => False")
+        logger.debug("      no incoming labels => False")
         return False
 
     if disable_strict_selectors():
@@ -204,18 +204,18 @@ def selector_matches(
                 logger.debug("    selector match for %s=%s => True", k, v)
                 return True
 
-            logger.debug("    selector miss on %s=%s", k, v)
+            logger.debug("      selector miss on %s=%s", k, v)
 
-        logger.debug("    all selectors miss => False")
+        logger.debug("      all selectors miss => False")
         return False
     else:
         # For every label in mappingSelector, there must be a label with same value in the Mapping itself.
         for k, v in match.items():
             if labels.get(k) == v:
-                logger.debug("    selector match for %s=%s => True", k, v)
+                logger.debug("      selector match for %s=%s => True", k, v)
             else:
-                logger.debug("    selector miss for %s=%s => False", k, v)
+                logger.debug("      selector miss for %s=%s => False", k, v)
                 return False
 
-        logger.debug("    all selectors match => True")
+        logger.debug("      all selectors match => True")
         return True

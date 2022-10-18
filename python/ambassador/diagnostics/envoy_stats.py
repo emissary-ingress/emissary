@@ -13,6 +13,7 @@
 # limitations under the License
 
 import logging
+import re
 import threading
 import time
 from dataclasses import dataclass
@@ -129,9 +130,15 @@ class EnvoyStats:
             elif pct < 90:
                 color = "yellow"
 
-            cstat.update({"health": "%d%% healthy" % pct, "hmetric": int(pct), "hcolor": color})
+            cstat.update({"health": "%d%% healthy" % pct, "hmetric": str(pct), "hcolor": color})
         else:
-            cstat.update({"health": "no requests yet", "hmetric": "waiting", "hcolor": "grey"})
+            cstat.update(
+                {
+                    "health": "Unknown health: no requests yet",
+                    "hmetric": "waiting",
+                    "hcolor": "grey",
+                }
+            )
 
         return cstat
 
@@ -207,7 +214,6 @@ class EnvoyStatsMgr:
         structures for others to look at.
         """
 
-        # self.logger.info("updating levels")
         text = self.fetch_log_levels(level)
 
         if not text:
@@ -242,8 +248,6 @@ class EnvoyStatsMgr:
                 x = levels.setdefault(level, {})
                 x[logtype] = True
 
-        # self.logger.info("levels: %s" % levels)
-
         loginfo: Dict[str, Union[str, List[str]]]
 
         if len(levels.keys()) == 1:
@@ -253,8 +257,6 @@ class EnvoyStatsMgr:
 
         with self.access_lock:
             self.loginfo = loginfo
-
-            # self.logger.info("loginfo: %s" % self.loginfo)
             return True
 
     def get_stats(self) -> EnvoyStats:
@@ -318,8 +320,10 @@ class EnvoyStatsMgr:
             if not line:
                 continue
 
-            # self.logger.info('line: %s' % line)
-            key, value = line.split(":")
+            # TODO: Splitting from the right is a work-around for the
+            # following issue: https://github.com/emissary-ingress/emissary/issues/4528
+            # and needs to be addressed via a behavior change
+            key, value = line.rsplit(":", 1)
             keypath = key.split(".")
 
             node = envoy_stats
@@ -331,13 +335,6 @@ class EnvoyStatsMgr:
                 node = node[key]
 
             value = value.strip()
-
-            # Skip histograms for the moment.
-            # if value.startswith("P0("):
-            #     continue
-            #     # for field in value.split(' '):
-            #     #     if field.startswith('P95('):
-            #     #         value = field.split(',')
 
             try:
                 node[keypath[-1]] = int(value)
@@ -372,14 +369,6 @@ class EnvoyStatsMgr:
             for cluster_name in envoy_stats["cluster"]:
                 cluster = envoy_stats["cluster"][cluster_name]
 
-                # # Toss any _%d -- that's madness with our Istio code at the moment.
-                # cluster_name = re.sub('_\d+$', '', cluster_name)
-
-                # mapping_name = active_cluster_map[cluster_name]
-                # active_mappings[mapping_name] = {}
-
-                # self.logger.info("cluster %s stats: %s" % (cluster_name, cluster))
-
                 healthy_percent: Optional[int]
 
                 healthy_members = cluster["membership_healthy"]
@@ -390,9 +379,6 @@ class EnvoyStatsMgr:
                 update_successes = cluster["update_success"]
                 update_percent = percentage(update_successes, update_attempts)
 
-                # Weird.
-                # upstream_ok = cluster.get('upstream_rq_2xx', 0)
-                # upstream_total = cluster.get('upstream_rq_pending_total', 0)
                 upstream_total = cluster.get("upstream_rq_completed", 0)
 
                 upstream_4xx = cluster.get("upstream_rq_4xx", 0)
@@ -401,14 +387,10 @@ class EnvoyStatsMgr:
 
                 upstream_ok = upstream_total - upstream_bad
 
-                # self.logger.info("%s total %s bad %s ok %s" % (cluster_name, upstream_total, upstream_bad, upstream_ok))
-
                 if upstream_total > 0:
                     healthy_percent = percentage(upstream_ok, upstream_total)
-                    # self.logger.debug("cluster %s is %d%% healthy" % (cluster_name, healthy_percent))
                 else:
                     healthy_percent = None
-                    # self.logger.debug("cluster %s has had no requests" % cluster_name)
 
                 active_clusters[cluster_name] = {
                     "healthy_members": healthy_members,
@@ -443,8 +425,6 @@ class EnvoyStatsMgr:
         with self.access_lock:
             self.stats = new_stats
 
-            # self.logger.info("stats updated")
-
     def update(self) -> None:
         """
         Update the Envoy stats object, including our take on Envoy's loglevel and
@@ -461,8 +441,6 @@ class EnvoyStatsMgr:
         the heavy lifting around talking to Envoy, managing the access_lock, and
         actually writing new data into the Envoy stats object.
         """
-
-        # self.logger.info("updating estats")
 
         # First up, try bailing early.
         if not self.update_lock.acquire(blocking=False):

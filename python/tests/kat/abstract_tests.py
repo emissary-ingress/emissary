@@ -92,7 +92,7 @@ class AmbassadorTest(Test):
     _ambassador_id: Optional[str] = None
     single_namespace: bool = False
     disable_endpoints: bool = False
-    name: Name
+    name: str
     path: Name
     extra_ports: Optional[List[int]] = None
     debug_diagd: bool = True
@@ -179,18 +179,6 @@ class AmbassadorTest(Test):
                 extra_ports=eports,
                 capabilities_block="",
             )
-
-    # # Will tear this out of the harness shortly
-    # @property
-    # def ambassador_id(self) -> str:
-    #     if self._ambassador_id is None:
-    #         return self.name.k8s
-    #     else:
-    #         return typecast(str, self._ambassador_id)
-
-    # @ambassador_id.setter
-    # def ambassador_id(self, val: str) -> None:
-    #     self._ambassador_id = val
 
     @property
     def index(self) -> int:
@@ -525,6 +513,44 @@ class ALSGRPC(ServiceType):
 
     def requirements(self):
         yield ("pod", self.path.k8s)
+
+
+class HTTPBin(ServiceType):
+    skip_variant: ClassVar[bool] = True
+
+    def __init__(self, *args, **kwargs) -> None:
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = integration_manifests.load("httpbin_backend")
+        super().__init__(*args, **kwargs)
+
+    def requirements(self):
+        yield ("url", Query("http://%s/status/200" % self.path.fqdn))
+
+
+class WebsocketEcho(ServiceType):
+    skip_variant: ClassVar[bool] = True
+
+    def __init__(self, *args, **kwargs) -> None:
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = integration_manifests.load("websocket_echo_backend")
+        super().__init__(*args, **kwargs)
+
+    def requirements(self):
+        yield ("url", Query("http://%s/" % self.path.fqdn, expected=404))
+
+
+class StatsDSink(ServiceType):
+    skip_variant: ClassVar[bool] = True
+    target_cluster: str
+
+    def __init__(self, target_cluster: str, *args, **kwargs) -> None:
+        self.target_cluster = target_cluster
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = integration_manifests.load("statsd_backend")
+        super().__init__(*args, **kwargs)
+
+    def requirements(self):
+        yield ("url", Query("http://%s/SUMMARY" % self.path.fqdn))
 
 
 @abstract_test

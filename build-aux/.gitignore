@@ -33,6 +33,10 @@
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# whenever-we-stop-working-on-2.x
+/pytest-kat-envoy2.txt
+/pytest-kat-envoy3.txt
+
 # 2019-07-01
 /teleproxy
 /kubeapply

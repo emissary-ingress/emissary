@@ -1,4 +1,4 @@
-from typing import Generator, Tuple, Union
+from typing import ClassVar, Generator, Tuple, Union
 
 from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
 from kat.harness import Query
@@ -20,9 +20,60 @@ type: Opaque
 )
 
 
+class ConsulPod(ServiceType):
+    skip_variant: ClassVar[bool] = True
+    service_account_name: str
+    datacenter_json: str
+
+    def __init__(self, service_account_name: str, datacenter_json: str, *args, **kwargs) -> None:
+        self.service_account_name = service_account_name
+        self.datacenter_json = datacenter_json
+        kwargs[
+            "service_manifests"
+        ] = """
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {self.path.k8s}
+spec:
+  type: ClusterIP
+  ports:
+  - name: consul
+    protocol: TCP
+    port: 8500
+    targetPort: 8500
+  selector:
+    backend: {self.path.k8s}
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {self.path.k8s}
+  annotations:
+    sidecar.istio.io/inject: "false"
+  labels:
+    backend: {self.path.k8s}
+spec:
+  serviceAccountName: {self.service_account_name}
+  containers:
+  - name: consul
+    image: consul:1.4.3
+    env:
+    - name: CONSUL_LOCAL_CONFIG
+      value: "{self.datacenter_json}"
+  restartPolicy: Always
+"""
+        super().__init__(*args, **kwargs)
+
+    def requirements(self):
+        yield ("url", Query("http://%s:8500/ui/" % self.path.fqdn))
+
+
 class ConsulTest(AmbassadorTest):
     k8s_target: ServiceType
     k8s_ns_target: ServiceType
+    consul_target: ServiceType
 
     def init(self):
         self.k8s_target = HTTP(name="k8s")
@@ -43,46 +94,12 @@ class ConsulTest(AmbassadorTest):
         # escaping, since this gets passed through self.format (hence two layers of
         # doubled braces) and JSON decoding (hence backslash-escaped double quotes,
         # and of course the backslashes themselves have to be escaped...)
-        self.datacenter_json = f'{{{{\\"datacenter\\":\\"{self.datacenter}\\"}}}}'
-
-    def manifests(self) -> str:
-        consul_manifest = self.format(
-            """
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {self.path.k8s}-consul
-spec:
-  type: ClusterIP
-  ports:
-  - name: consul
-    protocol: TCP
-    port: 8500
-    targetPort: 8500
-  selector:
-    service: {self.path.k8s}-consul
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: {self.path.k8s}-consul
-  annotations:
-    sidecar.istio.io/inject: "false"
-  labels:
-    service: {self.path.k8s}-consul
-spec:
-  serviceAccountName: {self.path.k8s}
-  containers:
-  - name: consul
-    image: consul:1.4.3
-    env:
-    - name: CONSUL_LOCAL_CONFIG
-      value: "{self.datacenter_json}"
-  restartPolicy: Always
-"""
+        self.consul_target = ConsulPod(
+            service_account_name="consultest",  # `=self.name.k8s`, but self.name isn't set yet
+            datacenter_json=f'{{{{\\"datacenter\\":\\"{self.datacenter}\\"}}}}',
         )
 
+    def manifests(self) -> str:
         # Unlike usual, we have stuff both before and after super().manifests():
         # we want the namespace early, but we want the superclass before our other
         # manifests, because of some magic with ServiceAccounts?
@@ -97,7 +114,6 @@ metadata:
 """
             )
             + super().manifests()
-            + consul_manifest
             + self.format(
                 """
 ---
@@ -107,7 +123,7 @@ metadata:
   name: {self.path.k8s}-resolver
 spec:
   ambassador_id: [consultest]
-  address: {self.path.k8s}-consul:$CONSUL_WATCHER_PORT
+  address: {self.consul_target.path.k8s}:$CONSUL_WATCHER_PORT
   datacenter: {self.datacenter}
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -174,14 +190,10 @@ requestPolicy:
 """
         )
 
-    def requirements(self):
-        yield from super().requirements()
-        yield ("url", Query(self.format("http://{self.path.k8s}-consul:8500/ui/")))
-
     def queries(self):
         # Deregister the Consul services in phase 0.
         yield Query(
-            self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
+            self.format("http://{self.consul_target.path.k8s}:8500/v1/catalog/deregister"),
             method="PUT",
             body={
                 "Datacenter": self.datacenter,
@@ -190,7 +202,7 @@ requestPolicy:
             phase=0,
         )
         yield Query(
-            self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
+            self.format("http://{self.consul_target.path.k8s}:8500/v1/catalog/deregister"),
             method="PUT",
             body={
                 "Datacenter": self.datacenter,
@@ -199,7 +211,7 @@ requestPolicy:
             phase=0,
         )
         yield Query(
-            self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
+            self.format("http://{self.consul_target.path.k8s}:8500/v1/catalog/deregister"),
             method="PUT",
             body={
                 "Datacenter": self.datacenter,
@@ -217,7 +229,7 @@ requestPolicy:
 
         # Register the Consul services in phase 2.
         yield Query(
-            self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
+            self.format("http://{self.consul_target.path.k8s}:8500/v1/catalog/register"),
             method="PUT",
             body={
                 "Datacenter": self.datacenter,
@@ -232,7 +244,7 @@ requestPolicy:
             phase=2,
         )
         yield Query(
-            self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
+            self.format("http://{self.consul_target.path.k8s}:8500/v1/catalog/register"),
             method="PUT",
             body={
                 "Datacenter": self.datacenter,
@@ -247,7 +259,7 @@ requestPolicy:
             phase=2,
         )
         yield Query(
-            self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
+            self.format("http://{self.consul_target.path.k8s}:8500/v1/catalog/register"),
             method="PUT",
             body={
                 "Datacenter": self.datacenter,

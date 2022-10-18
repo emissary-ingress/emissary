@@ -166,7 +166,6 @@ limitations under the License
                   <br/><br/>
                   <span style="color:{{ cluster._hcolor }}">
                     {% if cluster_stats[cluster.name].valid %}
-                      {{ 'Unknown health: ' if cluster._hmetric is not number }}
                       {{ cluster._health }}
                     {% else %}
                       Unknown health: {{ cluster_stats[cluster.name].reason }}

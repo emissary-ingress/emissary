@@ -261,7 +261,7 @@ class XFPRedirect(AmbassadorTest):
 apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
-  name: ambassador-listener-8080
+  name: {self.path.k8s}
 spec:
   ambassador_id: [{self.ambassador_id}]
   port: 8080
@@ -275,7 +275,7 @@ spec:
 apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
-  name: weird-xfp-test-host
+  name: {self.path.k8s}
 spec:
   ambassador_id: [{self.ambassador_id}]
   requestPolicy:
