@@ -32,19 +32,6 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
-  - version: 3.3.0
-    prevVersion: 3.2.1
-    data: 'TBD'
-    notes:
-      - title: Add environment variables to configure healthcheck server's bind address, port and IP family.
-        type: feature
-        body: >-
-          The healthcheck server's bind address, bind port and IP family can now be configured using environment variables.
-          The main advantage of this is that it allows the healthcheck server to be configured for IPv6-only k8s environments.
-          <code>AMBASSADOR_HEALTHCHECK_BIND_ADDRESS</code> - The address to bind the healthcheck server to.
-          <code>AMBASSADOR_HEALTHCHECK_BIND_PORT</code> - The port to bind the healthcheck server to.
-          <code>AMBASSADOR_HEALTHCHECK_IP_FAMILY</code> - The IP family to use for the healthcheck server.
-          
   - version: 3.2.1
     prevVersion: 3.2.0
     date: 'TBD'
@@ -53,6 +40,14 @@ items:
         type: security
         body: >-
           Updated Golang to 1.19.2 to address the CVEs: CVE-2022-2879, CVE-2022-2880, CVE-2022-41715.
+      - title: Add environment variables to configure healthcheck server's bind address, port and IP family.
+        type: feature
+        body: >-
+          The healthcheck server's bind address, bind port and IP family can now be configured using environment variables.
+          The main advantage of this is that it allows the healthcheck server to be configured for IPv6-only k8s environments.
+          <code>AMBASSADOR_HEALTHCHECK_BIND_ADDRESS</code> - The address to bind the healthcheck server to.
+          <code>AMBASSADOR_HEALTHCHECK_BIND_PORT</code> - The port to bind the healthcheck server to.
+          <code>AMBASSADOR_HEALTHCHECK_IP_FAMILY</code> - The IP family to use for the healthcheck server.
 
   - version: 3.2.0
     prevVersion: 3.1.0
