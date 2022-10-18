@@ -18,7 +18,7 @@
 # Third-party code
 ########################################
 
-FROM docker.io/frolvlad/alpine-glibc:alpine-3.15_glibc-2.34
+FROM docker.io/frolvlad/alpine-glibc:alpine-3.16_glibc-2.35
 
 WORKDIR /buildroot
 
