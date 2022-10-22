@@ -1350,9 +1350,10 @@ service: {self.target.path.fqdn}
         ]
 
 
-class AuthenticationHTTPSRedirectTest(AmbassadorTest):
+class AuthenticationDisabledOnRedirectTest(AmbassadorTest):
     """
-    AuthenticationHTTPSREdirect: We expect that the http-to-https will occur
+    AuthenticationDisableOnRedirectTest: ensures that when a route is configured
+    for https_redirect or host_redirect that it will perform the redirect
     without calling the AuthService (ext_authz).
     """
 
@@ -1365,12 +1366,27 @@ class AuthenticationHTTPSRedirectTest(AmbassadorTest):
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
         self.add_default_http_listener = False
-        self.add_default_https_listener = False
+        self.add_default_https_listener = True
 
     def manifests(self) -> str:
         return (
             self.format(
                 """
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-secret
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: """
+                + TLSCerts["localhost"].k8s_crt
+                + """
+  tls.key: """
+                + TLSCerts["localhost"].k8s_key
+                + """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Listener
@@ -1405,6 +1421,10 @@ metadata:
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   hostname: "*"
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: {self.path.k8s}-secret
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -1415,6 +1435,7 @@ spec:
   hostname: "*"
   prefix: /target/
   service: {self.target.path.fqdn}
+  host_redirect: true
 """
             )
             + super().manifests()
@@ -1440,8 +1461,19 @@ spec:
             self.url("target/", scheme="http"), headers={"X-Forwarded-Proto": "http"}, expected=301
         )
 
+        # send https request
+        yield Query(
+            self.url("target/", scheme="https"),
+            insecure=True,
+            headers={"X-Forwarded-Proto": "https"},
+            expected=301,
+        )
+
     def check(self):
-        # we should NOT make a call to the backend service, and we will
+        # we should NOT make a call to the backend service,
         # rather envoy should have redirected to https
         assert self.results[0].backend is None
         assert self.results[0].headers["Location"] == [f"https://{self.path.fqdn}/target/"]
+
+        assert self.results[1].backend is None
+        assert self.results[1].headers["Location"] == [f"https://{self.target.path.fqdn}/target/"]

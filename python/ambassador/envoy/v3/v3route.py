@@ -378,7 +378,7 @@ class V3Route(Cacheable):
                         "response_map": {"mappers": filter_config["mappers"]},
                     }
 
-        if mapping.get("bypass_auth", False):
+        if mapping.get("bypass_auth", False) or (group.get("host_redirect", None) != None):
             typed_per_filter_config["envoy.filters.http.ext_authz"] = {
                 "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute",
                 "disabled": True,
