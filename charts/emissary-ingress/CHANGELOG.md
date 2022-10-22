@@ -3,9 +3,12 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
-## v8.2.1 - TBD
+## v8.3.0 - TBD
+
+- Upgrade Emissary to v3.3.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 
 - Change: By default, the Ambassador agent will report diagnostics to the Ambassador Cloud
+
 - Change: updated auto-scaling resource cpu and memory variable ordering to help with git-ops syncing. Also, adjusted memory and cpu settings to be more friendly so that they do not cause the HPA auto-scaling to trigger during start-up. Thanks to [Ian Martin](https://github.com/aztechian) for the contribution!
 
 ## v8.2.0
