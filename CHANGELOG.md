@@ -85,8 +85,8 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
-## [3.2.1] TBD
-[3.2.1]: https://github.com/emissary-ingress/emissary/compare/v3.2.0...v3.2.1
+## [3.3.0] TBD
+[3.3.0]: https://github.com/emissary-ingress/emissary/compare/v3.2.0...v3.3.0
 
 ### Emissary-ingress and Ambassador Edge Stack
 
@@ -102,7 +102,17 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   1.22. The http to https  redirection no longer works when an AuthService was applied. This fix 
   restores the previous behavior by disabling the ext_authz call on the  https redirect routes. ([#4620])
 
+- Bugfix: When an AuthService is applied in v2.Y of Emissary-ingress,  Envoy would skip the
+  ext_authz call for all redirect routes and  would perform the redirect. In Envoy 1.20+ the
+  behavior has changed  where Envoy will always call the ext_authz filter so it must be  disabled on
+  a per route basis. 
+  This new behavior change introduced a regression in v3.0 of  Emissary-ingress
+  when it was upgraded to Envoy 1.22. The host_redirect  would call an AuthService prior to redirect
+  if applied. This fix  restores the previous behavior by disabling the ext_authz call on the 
+  host_redirect routes. ([#4640])
+
 [#4620]: https://github.com/emissary-ingress/emissary/issues/4620
+[#4640]: https://github.com/emissary-ingress/emissary/issues/4640
 
 ## [3.2.0] September 26, 2022
 [3.2.0]: https://github.com/emissary-ingress/emissary/compare/v3.1.0...v3.2.0

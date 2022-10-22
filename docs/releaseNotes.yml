@@ -32,7 +32,7 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
-  - version: 3.2.1
+  - version: 3.3.0
     prevVersion: 3.2.0
     date: 'TBD'
     notes:
@@ -59,6 +59,24 @@ items:
         github:
         - title: "#4620"
           link: https://github.com/emissary-ingress/emissary/issues/4620
+          
+      - title: Fix regression in host_redirects with AuthService
+        type: bugfix
+        body: >-
+          When an AuthService is applied in v2.Y of $productName$, 
+          Envoy would skip the ext_authz call for all redirect routes and 
+          would perform the redirect. In Envoy 1.20+ the behavior has changed 
+          where Envoy will always call the ext_authz filter so it must be 
+          disabled on a per route basis. 
+          
+          This new behavior change introduced a regression in v3.0 of 
+          $productName$ when it was upgraded to Envoy 1.22. The host_redirect 
+          would call an AuthService prior to redirect if applied. This fix 
+          restores the previous behavior by disabling the ext_authz call on the 
+          host_redirect routes.
+        github:
+        - title: "#4640"
+          link: https://github.com/emissary-ingress/emissary/issues/4640
 
   - version: 3.2.0
     prevVersion: 3.1.0
