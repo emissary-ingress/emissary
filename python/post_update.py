@@ -1,6 +1,5 @@
 import os
 import sys
-import urllib
 
 import requests
 

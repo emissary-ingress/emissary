@@ -66,7 +66,6 @@ def kube_v1():
         except FileNotFoundError:
             # Meh, just ride through.
             logger.info("No K8s")
-            pass
 
     return k8s_api
 

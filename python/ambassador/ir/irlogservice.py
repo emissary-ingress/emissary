@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Literal, Optional
 
 from ..config import Config
-from ..utils import RichStatus
 from .ircluster import IRCluster
 from .irresource import IRResource
 

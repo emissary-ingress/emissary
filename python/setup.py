@@ -14,7 +14,6 @@
 
 import os
 
-import setuptools
 from setuptools import find_packages, setup
 
 # from ambassador.VERSION import Version

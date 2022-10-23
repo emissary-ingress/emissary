@@ -6,7 +6,7 @@ import time
 
 import pytest
 
-from abstract_tests import HTTP, AmbassadorTest, ServiceType
+from abstract_tests import HTTP, AmbassadorTest
 from ambassador.utils import parse_bool
 from kat.harness import Query, is_ingress_class_compatible
 from tests.integration.manifests import namespace_manifest

@@ -1,6 +1,5 @@
 import logging
 
-import pexpect
 import pytest
 
 from ambassador_diag.diagd import ReconfigStats

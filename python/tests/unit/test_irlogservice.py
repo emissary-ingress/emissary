@@ -1,7 +1,5 @@
-import copy
 import logging
-import sys
-from typing import Literal, Union
+from typing import Literal
 
 import pytest
 

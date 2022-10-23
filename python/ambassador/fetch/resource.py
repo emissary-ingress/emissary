@@ -6,9 +6,9 @@ import os
 from typing import Any, ClassVar, Dict, List, Optional
 
 from ..config import ACResource, Config
-from ..utils import dump_json, dump_yaml, parse_bool, parse_yaml
+from ..utils import dump_json, dump_yaml, parse_bool
 from .dependency import DependencyManager
-from .k8sobject import KubernetesObject, KubernetesObjectScope
+from .k8sobject import KubernetesObject
 from .location import LocationManager
 
 

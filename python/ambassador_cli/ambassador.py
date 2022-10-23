@@ -23,15 +23,12 @@ import cProfile
 import json
 import logging
 import os
-import pstats
-import signal
 import sys
 import traceback
 from typing import TYPE_CHECKING, ClassVar, Optional, Set
 from typing import cast as typecast
 
 import click
-import orjson
 
 from ambassador import IR, Config, Diagnostics, Scout, Version
 from ambassador.envoy import EnvoyConfig, V3Config
@@ -564,7 +561,6 @@ def main():
 
     to see Ambassador's version.
     """
-    pass
 
 
 if __name__ == "__main__":

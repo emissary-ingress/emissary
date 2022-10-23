@@ -3,7 +3,6 @@ from random import random
 from typing import ClassVar, Generator, Tuple, Union
 
 from abstract_tests import AHTTP, HTTP, AmbassadorTest, Node, ServiceType
-from ambassador import Config
 from kat.harness import EDGE_STACK, Query
 
 # The phase that we should wait until before performing test checks. Normally

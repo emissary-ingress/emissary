@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-import json
 import re
 import urllib.parse
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from typing import cast as typecast
 
 from ..config import Config

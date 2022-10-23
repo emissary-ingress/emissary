@@ -1,7 +1,4 @@
-from typing import Generator, Tuple, Union
-
-from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
-from ambassador import Config
+from abstract_tests import HTTP, AmbassadorTest, ServiceType
 from kat.harness import EDGE_STACK, Query
 from tests.integration.manifests import namespace_manifest
 from tests.selfsigned import TLSCerts

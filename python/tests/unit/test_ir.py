@@ -1,8 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import List, Optional
-
-import pytest
+from typing import Optional
 
 from tests.utils import (
     Compile,
