@@ -1,5 +1,3 @@
-import os
-
 import pytest
 
 from tests.utils import econf_compile, econf_foreach_cluster, module_and_mapping_manifests

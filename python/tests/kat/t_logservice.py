@@ -1,8 +1,6 @@
-import json
 from typing import Generator, Literal, Tuple, Union, cast
 
 from abstract_tests import ALSGRPC, HTTP, AmbassadorTest, Node, ServiceType
-from ambassador import Config
 from kat.harness import Query
 
 

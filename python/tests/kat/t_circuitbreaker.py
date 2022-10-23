@@ -1,5 +1,4 @@
-import os
-from typing import ClassVar, Generator, Tuple, Union
+from typing import Generator, Tuple, Union
 
 import pytest
 

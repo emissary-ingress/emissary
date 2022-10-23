@@ -4,8 +4,6 @@
 #
 #    pip-compile --allow-unsafe --no-build-isolation
 #
-attrs==21.4.0
-    # via jsonschema
 cachetools==5.0.0
     # via google-auth
 certifi==2021.10.8
@@ -42,8 +40,6 @@ jsonpatch==1.32
     # via -r requirements.in
 jsonpointer==2.2
     # via jsonpatch
-jsonschema==4.4.0
-    # via -r requirements.in
 kubernetes==21.7.0
     # via -r requirements.in
 markupsafe==2.1.1
@@ -56,16 +52,12 @@ orjson==3.6.6
     # via -r requirements.in
 prometheus-client==0.13.1
     # via -r requirements.in
-protobuf==3.19.4
-    # via -r requirements.in
 pyasn1==0.4.8
     # via
     #   pyasn1-modules
     #   rsa
 pyasn1-modules==0.2.8
     # via google-auth
-pyrsistent==0.18.1
-    # via jsonschema
 python-dateutil==2.8.2
     # via kubernetes
 python-json-logger==2.0.2

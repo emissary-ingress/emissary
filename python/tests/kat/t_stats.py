@@ -1,4 +1,3 @@
-import os
 from typing import Generator, Tuple, Union
 
 from abstract_tests import DEV, HTTP, AmbassadorTest, Node, ServiceType, StatsDSink

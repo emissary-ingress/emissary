@@ -1,6 +1,4 @@
-import copy
 import logging
-import sys
 
 import pytest
 

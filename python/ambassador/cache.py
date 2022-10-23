@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Set, Tuple
+from typing import Any, Callable, Dict, Optional, Set, Tuple
 
 
 class Cacheable(dict):
@@ -242,7 +242,6 @@ class NullCache(Cache):
         self.logger = logger
         self.logger.debug("NullCache: INIT")
         self.reset_stats()
-        pass
 
     def add(self, rsrc: Cacheable, on_delete: Optional[DeletionHandler] = None) -> None:
         pass
@@ -252,7 +251,6 @@ class NullCache(Cache):
 
     def invalidate(self, key: str) -> None:
         self.invalidate_calls += 1
-        pass
 
     def __getitem__(self, key: str) -> Any:
         self.misses += 1

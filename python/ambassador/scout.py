@@ -8,7 +8,6 @@ import traceback
 from uuid import uuid4
 
 import requests
-from requests.exceptions import Timeout
 
 
 class Scout:

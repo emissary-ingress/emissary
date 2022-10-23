@@ -13,7 +13,7 @@
 # limitations under the License
 
 import logging
-from typing import Any, Dict, Literal, Optional, Union, cast
+from typing import Optional
 
 from typing_extensions import NotRequired, TypedDict
 
@@ -23,7 +23,7 @@ from .envoy import EnvoyConfig
 from .fetch import ResourceFetcher
 from .ir import IR
 from .ir.ir import IRFileChecker
-from .utils import NullSecretHandler, SecretHandler, Timer
+from .utils import NullSecretHandler, SecretHandler
 
 
 class _CompileResult(TypedDict):

@@ -5,7 +5,6 @@ from urllib.parse import urlparse
 
 from ...ir.ircluster import IRCluster
 from ...ir.irlogservice import IRLogService
-from ...ir.irratelimit import IRRateLimit
 from ...ir.irtracing import IRTracing
 from .v3cluster import V3Cluster
 
@@ -96,14 +95,6 @@ class V3Bootstrap(dict):
                 log_service = typecast(IRLogService, als)
                 assert log_service.cluster
                 clusters.append(V3Cluster(config, typecast(IRCluster, log_service.cluster)))
-
-        # if config.ratelimit:
-        #     self['rate_limit_service'] = dict(config.ratelimit)
-        #
-        #     ratelimit = typecast(IRRateLimit, config.ir.ratelimit)
-        #
-        #     assert ratelimit.cluster
-        #     clusters.append(V3Cluster(config, ratelimit.cluster))
 
         stats_sinks = []
 

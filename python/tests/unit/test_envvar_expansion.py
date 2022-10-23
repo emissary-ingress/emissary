@@ -1,7 +1,6 @@
 import logging
 import os
 import sys
-from typing import Optional
 
 import pytest
 
@@ -13,11 +12,8 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import IR, Config
+from ambassador import Config
 from ambassador.fetch import ResourceFetcher
-from ambassador.ir import IRResource
-from ambassador.ir.irbuffer import IRBuffer
-from ambassador.utils import NullSecretHandler
 
 yaml = """
 ---
