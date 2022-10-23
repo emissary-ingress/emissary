@@ -1,11 +1,7 @@
 import json
-import os
 from typing import Generator, Literal, Tuple, Union, cast
 
-import pytest
-
 from abstract_tests import AGRPC, AHTTP, HTTP, AmbassadorTest, Node, ServiceType, WebsocketEcho
-from ambassador import Config
 from kat.harness import EDGE_STACK, Query
 from tests.selfsigned import TLSCerts
 

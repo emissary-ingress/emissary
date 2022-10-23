@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Type, Union
+from typing import TYPE_CHECKING, List, Optional, Type
 
 from ..config import Config
 from .irbasemapping import IRBaseMapping

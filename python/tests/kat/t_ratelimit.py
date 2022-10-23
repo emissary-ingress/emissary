@@ -1,7 +1,6 @@
 from typing import Generator, Literal, Tuple, Union, cast
 
 from abstract_tests import HTTP, RLSGRPC, AmbassadorTest, Node, ServiceType
-from ambassador import Config
 from kat.harness import Query
 from tests.selfsigned import TLSCerts
 

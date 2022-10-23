@@ -13,7 +13,6 @@
 # limitations under the License
 
 import logging
-import re
 import threading
 import time
 from dataclasses import dataclass

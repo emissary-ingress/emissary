@@ -1,7 +1,5 @@
 import hashlib
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Union
-
-from ambassador.utils import RichStatus
+from typing import TYPE_CHECKING, ClassVar, Dict, List, Optional, Type, Union
 
 from ..config import Config
 from .irbasemapping import IRBaseMapping, normalize_service_name

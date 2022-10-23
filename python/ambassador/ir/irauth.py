@@ -6,7 +6,6 @@ from ..resource import Resource
 from ..utils import RichStatus
 from .ircluster import IRCluster
 from .irfilter import IRFilter
-from .irretrypolicy import IRRetryPolicy
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover
