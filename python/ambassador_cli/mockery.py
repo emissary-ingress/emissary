@@ -26,10 +26,8 @@ import errno
 import filecmp
 import functools
 import io
-import json
 import logging
 import os
-import shlex
 import shutil
 import sys
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
@@ -45,7 +43,6 @@ click_option_no_default = functools.partial(click.option, show_default=False)
 from ambassador import IR, Config, Diagnostics, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import SecretHandler, SecretInfo, dump_json, parse_bool, parse_yaml
-from kat.utils import ShellCommand
 
 if TYPE_CHECKING:
     from ambassador.ir import IRResource

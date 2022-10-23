@@ -1,5 +1,5 @@
-from abstract_tests import HTTP, AmbassadorTest, ServiceType
-from kat.harness import EDGE_STACK, Query
+from abstract_tests import AmbassadorTest
+from kat.harness import Query
 
 
 class NoUITestAllowNoLocal(AmbassadorTest):

@@ -2,7 +2,7 @@ from typing import Generator, Tuple, Union
 
 from abstract_tests import HTTP, AmbassadorTest, HTTPBin, Node, ServiceType
 from ambassador.constants import Constants
-from kat.harness import EDGE_STACK, Query, variants
+from kat.harness import Query
 from tests.integration.manifests import namespace_manifest
 
 # This is the place to add new MappingTests that run in the default namespace

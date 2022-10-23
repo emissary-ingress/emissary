@@ -15,7 +15,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador.diagnostics import EnvoyStats, EnvoyStatsMgr
+from ambassador.diagnostics import EnvoyStatsMgr
 
 
 class EnvoyStatsMocker:

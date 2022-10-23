@@ -1,9 +1,8 @@
 import datetime
-import json
 import logging
 import os
 import re
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, List, Optional, Union
 from typing import cast as typecast
 
 import semantic_version

@@ -6,7 +6,7 @@ import random
 import re
 import sys
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import pytest
 import yaml
@@ -22,8 +22,7 @@ logger.setLevel(logging.DEBUG)
 
 from ambassador import IR, Cache, Config, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
-from ambassador.ir.ir import IRFileChecker
-from ambassador.utils import NullSecretHandler, SecretHandler, Timer
+from ambassador.utils import NullSecretHandler
 
 
 class Builder:

@@ -2,7 +2,6 @@ import dataclasses
 from typing import Dict, FrozenSet, List, Optional
 
 from ..config import Config
-from ..utils import dump_json
 from .dependency import ServiceDependency
 from .k8sobject import KubernetesGVK, KubernetesObject, KubernetesObjectKey
 from .k8sprocessor import AggregateKubernetesProcessor, ManagedKubernetesProcessor

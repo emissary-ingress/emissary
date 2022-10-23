@@ -1,4 +1,3 @@
-import os
 from typing import Dict, Generator, Tuple, Union
 
 import tests.integration.manifests as integration_manifests

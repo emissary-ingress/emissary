@@ -1,7 +1,5 @@
 from typing import Generator, Tuple, Union
 
-import t_mappingtests_plain
-import t_optiontests
 from abstract_tests import AmbassadorTest, MappingTest, Node
 from kat.harness import EDGE_STACK, Query, variants
 from tests.integration.manifests import namespace_manifest

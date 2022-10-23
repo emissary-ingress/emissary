@@ -16,7 +16,6 @@ import urllib
 from typing import TYPE_CHECKING, Dict, List, Union
 
 from ...cache import Cacheable
-from ...config import Config
 from ...ir.ircluster import IRCluster
 from .v3tls import V3TLSContext
 
