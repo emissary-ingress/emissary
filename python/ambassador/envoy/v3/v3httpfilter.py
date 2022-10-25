@@ -78,6 +78,7 @@ def header_pattern_key(x: Dict[str, str]) -> List[Tuple[str, str]]:
 
 @singledispatch
 def V3HTTPFilter(irfilter: IRFilter, v3config: "V3Config"):
+    print("filter v3")
     # Fallback for the filters that don't have their own IR* type and therefor can't participate in
     # @singledispatch.
     fn = {
@@ -244,6 +245,10 @@ end
         }
 
     elif auth.proto == "http":
+        print("================================================================================")
+        print("auth")
+        print(auth)
+        print("================================================================================")
         allowed_authorization_headers = []
         headers_to_add = []
 
@@ -254,6 +259,11 @@ end
                     "value": v,
                 }
             )
+
+        print("================================================================================")
+        print("allowed_request_headers")
+        print(auth.get("allowed_request_headers", {}))
+        print("================================================================================")
 
         for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
             allowed_authorization_headers.append({"exact": key, "ignore_case": True})
