@@ -221,6 +221,13 @@ spec:
               path: /ambassador/v0/check_ready
               port: admin
             {{- toYaml .Values.readinessProbe | nindent 12 }}
+          {{- if .Values.startupProbe }}
+          startupProbe:
+            httpGet:
+              path: /ambassador/v0/check_ready
+              port: admin
+            {{- toYaml .Values.startupProbe | nindent 12 }}
+          {{- end }}
           {{- if .Values.lifecycle }}
           lifecycle:
             {{- toYaml .Values.lifecycle | nindent 12 }}

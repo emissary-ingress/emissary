@@ -90,6 +90,13 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Change: emissary-ingress can be slow to start when there is a lot of mappings. Kubernetes
+  recommends using a startupProbe over tweaking the initialDelaySeconds of the livenessProbe and
+  readinessProbe. The Helm chart was updated to allow setting a startupProbe on the emissary-ingress
+  deployment. ([#4649])
+
+[#4649]: https://github.com/emissary-ingress/emissary/pull/4649
+
 ## [3.4.0] January 03, 2023
 [3.4.0]: https://github.com/emissary-ingress/emissary/compare/v3.3.0...v3.4.0
 
