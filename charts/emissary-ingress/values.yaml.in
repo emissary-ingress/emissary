@@ -258,12 +258,16 @@ livenessProbe: # +doc-gen:break
   periodSeconds: 3
   failureThreshold: 3
 
-# Liveness probe for emissary pods
+# Readiness probe for emissary pods
 readinessProbe: # +doc-gen:break
   initialDelaySeconds: 30
   periodSeconds: 3
   failureThreshold: 3
 
+# Startup probe for emissary pods
+startupProbe: {}
+# periodSeconds: 10
+# failureThreshold: 6
 
 volumes: []
 
