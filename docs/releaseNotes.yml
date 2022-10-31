@@ -46,37 +46,45 @@ items:
         body: >-
           By default $productName$ adds routes for http to https redirection. When
           an AuthService is applied in v2.Y of $productName$, Envoy would skip the
-          ext_authz call for non-tls http request and would perform the https 
-          redirect. In Envoy 1.20+ the behavior has changed where Envoy will 
-          always call the ext_authz filter and must be disabled on a per route 
-          basis. 
-          
-          This new behavior change introduced a regression in v3.0 of 
-          $productName$ when it was upgraded to Envoy 1.22. The http to https 
-          redirection no longer works when an AuthService was applied. This fix 
-          restores the previous behavior by disabling the ext_authz call on the 
+          ext_authz call for non-tls http request and would perform the https
+          redirect. In Envoy 1.20+ the behavior has changed where Envoy will
+          always call the ext_authz filter and must be disabled on a per route
+          basis.
+
+          This new behavior change introduced a regression in v3.0 of
+          $productName$ when it was upgraded to Envoy 1.22. The http to https
+          redirection no longer works when an AuthService was applied. This fix
+          restores the previous behavior by disabling the ext_authz call on the
           https redirect routes.
         github:
         - title: "#4620"
           link: https://github.com/emissary-ingress/emissary/issues/4620
-          
+
       - title: Fix regression in host_redirects with AuthService
         type: bugfix
         body: >-
-          When an AuthService is applied in v2.Y of $productName$, 
-          Envoy would skip the ext_authz call for all redirect routes and 
-          would perform the redirect. In Envoy 1.20+ the behavior has changed 
-          where Envoy will always call the ext_authz filter so it must be 
-          disabled on a per route basis. 
-          
-          This new behavior change introduced a regression in v3.0 of 
-          $productName$ when it was upgraded to Envoy 1.22. The host_redirect 
-          would call an AuthService prior to redirect if applied. This fix 
-          restores the previous behavior by disabling the ext_authz call on the 
+          When an AuthService is applied in v2.Y of $productName$,
+          Envoy would skip the ext_authz call for all redirect routes and
+          would perform the redirect. In Envoy 1.20+ the behavior has changed
+          where Envoy will always call the ext_authz filter so it must be
+          disabled on a per route basis.
+
+          This new behavior change introduced a regression in v3.0 of
+          $productName$ when it was upgraded to Envoy 1.22. The host_redirect
+          would call an AuthService prior to redirect if applied. This fix
+          restores the previous behavior by disabling the ext_authz call on the
           host_redirect routes.
         github:
         - title: "#4640"
           link: https://github.com/emissary-ingress/emissary/issues/4640
+
+      - title: Fixed finding ingress resource tls secrets
+        type: bugfix
+        body: >-
+          Previous versions of $productName$ required a workaround using <code>TLSContexts</code> to find tls secrets referenced from
+          <code>Ingress</code> resources. Now tls secrets referenced are properly detected without requiring an additional <code>TLSContext</code> to
+          reference them.
+          (Thanks to <a href="https://github.com/olemarkus">Ole Markus</a>!).
 
   - version: 3.2.0
     prevVersion: 3.1.0
@@ -100,7 +108,7 @@ items:
           in Kubernetes. To avoid unexpected behaviour after the upgrade, add all labels that Hosts have in their
           <code>mappingSelector</code> to <code>Mappings</code> you want to associate with the <code>Host</code>. You can opt-out of the new behaviour
           by setting the environment variable <code>DISABLE_STRICT_LABEL_SELECTORS</code> to <code>"true"</code> (default: <code>"false"</code>).
-          (Thanks to <a href="https://github.com/f-herceg">Filip Herceg</a> and <a href="https://github.com/dynajoe">Joe Andaverde</a>!).      
+          (Thanks to <a href="https://github.com/f-herceg">Filip Herceg</a> and <a href="https://github.com/dynajoe">Joe Andaverde</a>!).
       - title: Add support for Host resources using secrets from different namespaces
         type: feature
         body: >-
@@ -112,7 +120,7 @@ items:
         body: >-
           Set `AMBASSADOR_EDS_BYPASS` to `true` to bypass EDS handling of endpoints and have endpoints be
           inserted to clusters manually. This can help resolve with `503 UH` caused by certification rotation relating to
-          a delay between EDS + CDS. The default is `false`.     
+          a delay between EDS + CDS. The default is `false`.
       - title: Correctly manage cluster names when service names are very long
         type: bugfix
         body: >-

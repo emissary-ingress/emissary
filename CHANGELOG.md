@@ -95,21 +95,26 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 - Bugfix: By default Emissary-ingress adds routes for http to https redirection. When an AuthService
   is applied in v2.Y of Emissary-ingress, Envoy would skip the ext_authz call for non-tls http
-  request and would perform the https  redirect. In Envoy 1.20+ the behavior has changed where Envoy
-  will  always call the ext_authz filter and must be disabled on a per route  basis. 
-  This new
-  behavior change introduced a regression in v3.0 of  Emissary-ingress when it was upgraded to Envoy
-  1.22. The http to https  redirection no longer works when an AuthService was applied. This fix 
-  restores the previous behavior by disabling the ext_authz call on the  https redirect routes. ([#4620])
+  request and would perform the https redirect. In Envoy 1.20+ the behavior has changed where Envoy
+  will always call the ext_authz filter and must be disabled on a per route basis.
+  This new behavior
+  change introduced a regression in v3.0 of Emissary-ingress when it was upgraded to Envoy 1.22. The
+  http to https redirection no longer works when an AuthService was applied. This fix restores the
+  previous behavior by disabling the ext_authz call on the https redirect routes. ([#4620])
 
-- Bugfix: When an AuthService is applied in v2.Y of Emissary-ingress,  Envoy would skip the
-  ext_authz call for all redirect routes and  would perform the redirect. In Envoy 1.20+ the
-  behavior has changed  where Envoy will always call the ext_authz filter so it must be  disabled on
-  a per route basis. 
-  This new behavior change introduced a regression in v3.0 of  Emissary-ingress
-  when it was upgraded to Envoy 1.22. The host_redirect  would call an AuthService prior to redirect
-  if applied. This fix  restores the previous behavior by disabling the ext_authz call on the 
-  host_redirect routes. ([#4640])
+- Bugfix: When an AuthService is applied in v2.Y of Emissary-ingress, Envoy would skip the ext_authz
+  call for all redirect routes and would perform the redirect. In Envoy 1.20+ the behavior has
+  changed where Envoy will always call the ext_authz filter so it must be disabled on a per route
+  basis.
+  This new behavior change introduced a regression in v3.0 of Emissary-ingress when it was
+  upgraded to Envoy 1.22. The host_redirect would call an AuthService prior to redirect if applied.
+  This fix restores the previous behavior by disabling the ext_authz call on the host_redirect
+  routes. ([#4640])
+
+- Bugfix: Previous versions of Emissary-ingress required a workaround using `TLSContexts` to find
+  tls secrets referenced from `Ingress` resources. Now tls secrets referenced are properly detected
+  without requiring an additional `TLSContext` to reference them. (Thanks to <a
+  href="https://github.com/olemarkus">Ole Markus</a>!).
 
 [#4620]: https://github.com/emissary-ingress/emissary/issues/4620
 [#4640]: https://github.com/emissary-ingress/emissary/issues/4640
@@ -133,7 +138,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   to `Mappings` you want to associate with the `Host`. You can opt-out of the new behaviour by
   setting the environment variable `DISABLE_STRICT_LABEL_SELECTORS` to `"true"` (default:
   `"false"`). (Thanks to <a href="https://github.com/f-herceg">Filip Herceg</a> and <a
-  href="https://github.com/dynajoe">Joe Andaverde</a>!).      
+  href="https://github.com/dynajoe">Joe Andaverde</a>!).
 
 - Feature: Previously the `Host` resource could only use secrets that are in the namespace as the
   Host. The `tlsSecret` field in the Host has a new subfield `namespace` that will allow the use of
@@ -141,7 +146,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 - Change: Set `AMBASSADOR_EDS_BYPASS` to `true` to bypass EDS handling of endpoints and have
   endpoints be inserted to clusters manually. This can help resolve with `503 UH` caused by
-  certification rotation relating to a delay between EDS + CDS. The default is `false`.     
+  certification rotation relating to a delay between EDS + CDS. The default is `false`.
 
 - Bugfix: Distinct services with names that are the same in the first forty characters will no
   longer be incorrectly mapped to the same cluster. ([#4354])
