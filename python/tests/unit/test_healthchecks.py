@@ -119,53 +119,6 @@ spec:
                 },
             ],
         },
-        {  # Check that a healthcheck with both http and grpc fields is ignored
-            "name": "healthcheck_http-grpc",
-            "input": baseYaml.format(
-                [
-                    {
-                        # It is not valid to have both http and grpc on a single check (you can still mix and match, they just have to be separate entries in the list)
-                        "health_check": {
-                            "http": {
-                                "path": "/health",
-                            },
-                            "grpc": {"upstream_name": "coolsvcname.default"},
-                        },
-                    }
-                ]
-            ),
-            "expected": None,
-        },
-        {  # Check that a http healthcheck without the path is ignored
-            "name": "healthcheck_no_path",
-            "input": baseYaml.format(
-                [
-                    {
-                        "health_check": {
-                            "http": {
-                                "hostname": "dummy.example",
-                            }
-                        }
-                    }
-                ]
-            ),
-            "expected": None,
-        },
-        {  # Check that a grpc healthcheck without the service is ignored
-            "name": "healthcheck_no_svc",
-            "input": baseYaml.format(
-                [
-                    {
-                        "health_check": {
-                            "http": {
-                                "authority": "dummy.example",
-                            }
-                        }
-                    }
-                ]
-            ),
-            "expected": None,
-        },
         {  # Check that both a grpc and http healthceck can be used at the same time
             "name": "healthcheck_http_plus_grpc",
             "input": baseYaml.format(
@@ -344,17 +297,6 @@ spec:
                 {"http_health_check": {"path": "/health"}},
             ],
         },
-        {  # Check that a healthcheck without http or grpc is ignored
-            "name": "healthcheck_no_http_or_grpc",
-            "input": baseYaml.format(
-                [
-                    {
-                        "healthy_threshold": 5,
-                    }
-                ]
-            ),
-            "expected": None,
-        },
         {  # check that append headers is true when not provided
             "name": "healthcheck_http_add_headers",
             "input": baseYaml.format(
@@ -408,24 +350,6 @@ spec:
                     }
                 },
             ],
-        },
-        {  # check that we can keep a valid healthcheck while ignoring a bad one
-            "name": "healthcheck_ignore_invalid",
-            "input": baseYaml.format(
-                [
-                    {
-                        "health_check": {
-                            "http": {"path": "/health"},
-                        }
-                    },
-                    {
-                        "health_check": {
-                            "http": {"hostname": "dummy.example"},
-                        }
-                    },
-                ]
-            ),
-            "expected": [{"http_health_check": {"path": "/health"}}],
         },
         {  # Test that we throw out the health check config when there is no endpoint resolver
             "name": "healthcheck_no_endpoint",

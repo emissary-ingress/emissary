@@ -46,14 +46,6 @@ class IRHealthChecks(IRResource):
         if not self._ir_config:
             return
 
-        # The health checking config must be an array
-        if not isinstance(self._ir_config, list):
-            self.post_error(
-                f"IRHealthChecks: health_checks: field must be an array, got {type(self._ir_config)}, Ignoring...",
-                log_level=logging.ERROR,
-            )
-            return
-
         # Do nothing (and post no errors) if there's config, but it's empty.
         if len(self._ir_config) == 0:
             return
@@ -72,13 +64,9 @@ class IRHealthChecks(IRResource):
         # Make sure each health check in the list has config for either a grpc health check or an http health check
         for hc in self._ir_config:
 
-            health_check_config = hc.get("health_check", None)
-            if health_check_config is None:
-                self.post_error(
-                    f"IRHealthChecks: health_check: field is required. Ignoring health-check {hc}",
-                    log_level=logging.ERROR,
-                )
-                continue
+            health_check_config = hc["health_check"]
+
+            # This should never happen but is necessary for the linting type checks
             if not isinstance(health_check_config, dict):
                 self.post_error(
                     f"IRHealthChecks: health_check: field must be an object, found {health_check_config}. Ignoring health-check {hc}",
@@ -86,28 +74,8 @@ class IRHealthChecks(IRResource):
                 )
                 continue
 
-            if not health_check_config:
-                self.post_error(
-                    f"IRHealthChecks: One of health_check.grpc or health_check.http must be provided in the health check config. Ignoring health-check: {hc}",
-                    log_level=logging.ERROR,
-                )
-                continue
-
             grpc_health_check = health_check_config.get("grpc", None)
             http_health_check = health_check_config.get("http", None)
-
-            if grpc_health_check is None and http_health_check is None:
-                self.post_error(
-                    f"IRHealthChecks: Either health_check.grpc or health_check.http must exist in the health check config. Ignoring health-check: {hc}",
-                    log_level=logging.ERROR,
-                )
-                continue
-            if grpc_health_check is not None and http_health_check is not None:
-                self.post_error(
-                    f"IRHealthChecks: Only one of health_check.grpc or health_check.http may exist in the health check config. Ignoring health-check: {hc}",
-                    log_level=logging.ERROR,
-                )
-                continue
 
             timeout = hc.get("timeout", "3s")  # default 3.0s timeout
             interval = hc.get("interval", "5s")  # default 5.0s Interval
@@ -130,14 +98,7 @@ class IRHealthChecks(IRResource):
                     )
                     continue
 
-                # Make sure we have a path
-                path = http_health_check.get("path", None)
-                if path is None:
-                    self.post_error(
-                        f"IRHealthChecks: health_check.http.path is a required field. Ignoring health-check: {hc}",
-                        log_level=logging.ERROR,
-                    )
-                    continue
+                path = http_health_check["path"]
                 http_mapper: Dict[str, Any] = {"path": path}
 
                 # Process header add/remove operations
@@ -175,18 +136,6 @@ class IRHealthChecks(IRResource):
                         # We add one to the end code because by default Envoy expects the start of the range to be
                         # inclusive, but the end of the range to be exclusive. Lets just make both inclusive for simplicity.
                         maxCode += 1
-                        if minCode < 100 or minCode > 600:
-                            self.post_error(
-                                f"IRHealthChecks: expected_statuses: {minCode} must be an integer >= 100 and < 600. Ignoring expected status for health-check {hc}",
-                                log_level=logging.ERROR,
-                            )
-                            continue
-                        if maxCode < 100 or maxCode > 600:
-                            self.post_error(
-                                f"IRHealthChecks: expected_statuses: {maxCode} must be an integer >= 100 and < 600. Ignoring expected status for health-check {hc}",
-                                log_level=logging.ERROR,
-                            )
-                            continue
                         if minCode > maxCode:
                             self.post_error(
                                 f"IRHealthChecks: expected_statuses: status range start value {minCode} cannot be higher than the end {maxCode} for range. Ignoring expected status for health-check {hc}",
@@ -210,15 +159,8 @@ class IRHealthChecks(IRResource):
                     )
                     continue
 
-                upstream_name = grpc_health_check.get("upstream_name", None)
-                if upstream_name is None:
-                    self.post_error(
-                        f"IRHealthChecks: health_check.grpc: required field upstream_name field not set, ignoring health-check {hc}",
-                        log_level=logging.ERROR,
-                    )
-                    continue
-                else:
-                    grpc_mapper: Dict[str, str] = {"service_name": upstream_name}
+                upstream_name = grpc_health_check["upstream_name"]
+                grpc_mapper: Dict[str, str] = {"service_name": upstream_name}
 
                 authority = grpc_health_check.get("authority", None)
                 if authority is not None:
