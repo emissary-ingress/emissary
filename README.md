@@ -41,7 +41,7 @@ Branches
 may be out of date.)
 
 - [`master`](https://github.com/emissary-ingress/emissary/tree/master) - branch for Emissary-ingress 3.3.z work (:heavy_check_mark: upcoming release)
-- [`release/v3.2`](https://github.com/emissary-ingress/emissary/tree/release/v3.2) - branch for Emissary-ingress 3.2.z work
+- [`release/v3.3`](https://github.com/emissary-ingress/emissary/tree/release/v3.3) - branch for Emissary-ingress 3.3.z work
 - [`release/v2.5`](https://github.com/emissary-ingress/emissary/tree/release/v2.5) - branch for Emissary-ingress 2.5.z work (:heavy_check_mark: upcoming release)
 - [`release/v1.14`](https://github.com/emissary-ingress/emissary/tree/release/v1.14) - branch for Emissary-ingress 1.14.z work (:heavy_check_mark: maintenance, supported through September 2022)
 
