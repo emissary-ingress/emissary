@@ -82,7 +82,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
-## [2.5.0] TBD
+## [2.5.0] November 03, 2022
 [2.5.0]: https://github.com/emissary-ingress/emissary/compare/v2.4.0...v2.5.0
 
 ### Emissary-ingress and Ambassador Edge Stack
@@ -91,10 +91,6 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   diagnostics endpoints `ambassador/v0/diagd` then an error would be thrown due to the parsing logic
   not  being able to handle the extra colon. This has been fixed and Emissary-ingress will not throw
   an error when parsing envoy metrics for the diagnostics user interface.
-
-- Bugfix: The synthetic AuthService didn't correctly handle AmbassadorID, which was fixed in version
-  3.1 of Emissary-ingress. The fix has been backported to make sure the AuthService is handled
-  correctly during upgrades.
 
 - Security: Bump Go from 1.17.12 to 1.19.2. This is to keep the Go version current.
 
