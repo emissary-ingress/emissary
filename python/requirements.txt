@@ -42,7 +42,7 @@ jsonpatch==1.32
     # via -r requirements.in
 jsonpointer==2.2
     # via jsonpatch
-jsonschema==4.4.0
+jsonschema==4.17.0
     # via -r requirements.in
 kubernetes==21.7.0
     # via -r requirements.in
