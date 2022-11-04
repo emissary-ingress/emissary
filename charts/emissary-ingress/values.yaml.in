@@ -409,6 +409,12 @@ agent:
     repository: docker.io/ambassador/ambassador-agent
     pullPolicy: IfNotPresent
 
+  podSecurityContext:
+    runAsUser: 8888
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+
 deploymentTool: ''
 
 # configure docker to pull from private registry

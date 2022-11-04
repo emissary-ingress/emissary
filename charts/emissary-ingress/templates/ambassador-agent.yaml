@@ -203,6 +203,10 @@ spec:
         {{- include "ambassador.labels" . | nindent 8 }}
         product: aes
     spec:
+      {{- with .Values.agent.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       serviceAccountName: {{ include "ambassador.fullname" . }}-agent
       containers:
       - name: agent
@@ -211,6 +215,10 @@ spec:
         ports:
           - containerPort: 8080
             name: http
+        {{- with .Values.agent.containerSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
         env:
         - name: AGENT_NAMESPACE
           valueFrom:

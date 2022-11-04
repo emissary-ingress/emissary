@@ -647,4 +647,8 @@ spec:
         ports:
         - containerPort: 8080
           name: http
+        securityContext:
+          allowPrivilegeEscalation: false
+      securityContext:
+        runAsUser: 8888
       serviceAccountName: emissary-ingress-agent

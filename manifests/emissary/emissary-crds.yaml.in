@@ -5423,6 +5423,8 @@ spec:
         app.kubernetes.io/name: emissary-apiext
         app.kubernetes.io/part-of: emissary-apiext
     spec:
+      securityContext:
+        runAsUser: 8888
       serviceAccountName: emissary-apiext
       containers:
         - name: emissary-apiext
@@ -5442,3 +5444,5 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 3
             failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
