@@ -495,7 +495,7 @@ endif
 
 release/promote-oss/to-rc: $(tools/devversion)
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: VERSION=%s does not look like an RC tag\n' "$(VERSION)"; exit 1)
+	@[[ "$(VERSION)" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+|-dev)$$ ]] || (printf '$(RED)ERROR: VERSION=%s does not look like an RC or dev tag\n' "$(VERSION)"; exit 1)
 	@set -e; { \
 	  dev_version=$$($(tools/devversion)); \
 	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN).$(END)\n"; \
