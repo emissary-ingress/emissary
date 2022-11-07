@@ -82,6 +82,17 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [2.5.1] TBD
+[2.5.1]: https://github.com/emissary-ingress/emissary/compare/v2.5.0...v2.5.1
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Security: Updated Golang to the latest z patch. We are not vulnerable to the CVE-2022-3602 that
+  was  released in 1.19.3 and you can read more about it here:
+  <https://medium.com/ambassador-api-gateway/ambassador-labs-security-impact-assessment-of-nov-1-openssl-golang-vulnerabilities-f11b5ec37a7e>.
+  Updating to the latest z patch as part of our normal dependency update process and this will help
+  reduce the noise of security scanners.
+
 ## [2.5.0] November 03, 2022
 [2.5.0]: https://github.com/emissary-ingress/emissary/compare/v2.4.0...v2.5.0
 
