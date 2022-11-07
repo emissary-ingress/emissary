@@ -39,7 +39,7 @@ RUN apk --no-cache add \
   libcap-dev \
   libffi-dev \
   ncurses=6.3_p20211120-r1 \
-  openssl-dev=1.1.1q-r0 \
+  openssl-dev~=1.1.1 \
   py3-pip=~20.3.4 \
   python3=~3.9.13 \
   python3-dev \
