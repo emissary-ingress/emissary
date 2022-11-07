@@ -25,8 +25,6 @@ class RedirectTests(AmbassadorTest):
         if EDGE_STACK:
             self.xfail = "Not yet supported in Edge Stack"
 
-        self.xfail = "FIXME: IHA"
-
         self.target = HTTP()
 
     def requirements(self):
@@ -54,6 +52,16 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["localhost"].k8s_crt}
   tls.key: {TLSCerts["localhost"].k8s_key}
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
+  tlsSecret:
+    name: redirect-cert
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -107,7 +115,7 @@ class RedirectTestsWithProxyProto(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.xfail = "FIXME: IHA"
+        self.xfail = "2.0.0-ea dropped Module.spec.config.use_proxy_proto in favor of Listeners... this test needs re-thought in that world, and also needs to check more things, it's too anemic to be useful as-is"
         self.target = HTTP()
 
     def requirements(self):
@@ -166,10 +174,7 @@ class RedirectTestsInvalidSecret(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
-
-        self.xfail = "FIXME: IHA"
+        self.xfail = "this is an invalid config, anything is allowed to happen"
         self.target = HTTP()
 
     def requirements(self):

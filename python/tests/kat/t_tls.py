@@ -20,12 +20,11 @@ class TLSContextsTest(AmbassadorTest):
     """
 
     def init(self):
+        self.add_default_https_listener = False
         self.target = HTTP()
 
         if EDGE_STACK:
             self.xfail = "Not yet supported in Edge Stack"
-
-        self.xfail = "FIXME: IHA"
 
     def manifests(self) -> str:
         return f"""
@@ -39,6 +38,15 @@ data:
   tls.crt: {TLSCerts["master.datawire.io"].k8s_crt}
 kind: Secret
 type: Opaque
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  tlsSecret:
+    name: test-tlscontexts-secret
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -76,7 +84,6 @@ service: {self.target.path.fqdn}
 class ClientCertificateAuthentication(AmbassadorTest):
 
     def init(self):
-        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -102,6 +109,17 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["ambassador.example.com"].k8s_crt}
   tls.key: {TLSCerts["ambassador.example.com"].k8s_key}
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  tlsSecret:
+    name: test-clientcert-server-secret
+  tls:
+    cert_required: True
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -137,10 +155,14 @@ name:  {self.target.path.k8s}
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
 add_request_headers:
-  x-cert-start: { value: "%DOWNSTREAM_PEER_CERT_V_START%" }
-  x-cert-end: { value: "%DOWNSTREAM_PEER_CERT_V_END%" }
-  x-cert-start-custom: { value: "%DOWNSTREAM_PEER_CERT_V_START(%b %e %H:%M:%S %Y %Z)%" }
-  x-cert-end-custom: { value: "%DOWNSTREAM_PEER_CERT_V_END(%b %e %H:%M:%S %Y %Z)%" }
+  x-cert-start:
+    value: "%DOWNSTREAM_PEER_CERT_V_START%"
+  x-cert-end:
+    value: "%DOWNSTREAM_PEER_CERT_V_END%"
+  x-cert-start-custom:
+    value: "%DOWNSTREAM_PEER_CERT_V_START(%b %e %H:%M:%S %Y %Z)%"
+  x-cert-end-custom:
+    value: "%DOWNSTREAM_PEER_CERT_V_END(%b %e %H:%M:%S %Y %Z)%"
 """)
 
     def scheme(self) -> str:
@@ -199,7 +221,6 @@ add_request_headers:
 class ClientCertificateAuthenticationContext(AmbassadorTest):
 
     def init(self):
-        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -238,6 +259,18 @@ spec:
   secret: ccauthctx-server-secret
   ca_secret: ccauthctx-client-secret
   cert_required: True
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
+  tlsSecret:
+    name: ccauthctx-server-secret
+  tlsContext:
+    name: ccauthctx-tls
 """) + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -286,7 +319,6 @@ service: {self.target.path.fqdn}
 class ClientCertificateAuthenticationContextCRL(AmbassadorTest):
 
     def init(self):
-        self.xfail = "FIXME: IHA"  # This test should cover TLSContext with a crl_secret
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -336,6 +368,18 @@ spec:
   ca_secret: ccauthctxcrl-client-secret
   crl_secret: ccauthctxcrl-crl-secret
   cert_required: True
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
+  tlsSecret:
+    name: ccauthctxcrl-server-secret
+  tlsContext:
+    name: ccauthctxcrl-tls
 """) + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -367,7 +411,6 @@ hostname: "*"
 class TLSOriginationSecret(AmbassadorTest):
 
     def init(self):
-        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -439,7 +482,6 @@ class TLS(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -526,7 +568,6 @@ class TLSInvalidSecret(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -590,7 +631,6 @@ class TLSContextTest(AmbassadorTest):
     # debug = True
 
     def init(self):
-        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
         if EDGE_STACK:
@@ -632,6 +672,60 @@ metadata:
   labels:
     kat-ambassador-id: tlscontexttest
 type: kubernetes.io/tls
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-1
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  tlsSecret:
+    name: test-tlscontext-secret-1
+    namespace: secret-namespace
+  tlsContext:
+    name: {self.name}-same-context-1
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-2
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-2
+  tlsSecret:
+    name: test-tlscontext-secret-2
+  tlsContext:
+    name: {self.name}-same-context-2
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-no-secret
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  tlsContext:
+    name: {self.name}-no-secret
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-same-context-error
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  tlsContext:
+    name: {self.name}-same-context-error
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-rcf-error
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  tlsContext:
+    name: {self.name}-rcf-error
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -865,7 +959,6 @@ redirect_cleartext_from: 8081
 class TLSIngressTest(AmbassadorTest):
 
     def init(self):
-        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -957,6 +1050,16 @@ spec:
               number: 80
         path: /tls-context-same/
         pathType: Prefix
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
+  tlsSecret:
+    name: test-tlscontext-secret-ingress-0
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -1096,19 +1199,12 @@ service: https://{self.target.path.fqdn}
 class TLSContextProtocolMaxVersion(AmbassadorTest):
     # Here we're testing that the client can't exceed the maximum TLS version
     # configured.
-    #
-    # XXX 2019-09-11: vet that the test client's support for TLS v1.3 is up-to-date.
-    # It appears not to be.
-
-    # debug = True
 
     def init(self):
         self.target = HTTP()
 
         if EDGE_STACK:
             self.xfail = "Not yet supported in Edge Stack"
-
-        self.xfail = "FIXME: IHA"
 
     def manifests(self) -> str:
         return f"""
@@ -1123,6 +1219,18 @@ metadata:
   labels:
     kat-ambassador-id: tlscontextprotocolmaxversion
 type: kubernetes.io/tls
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  tlsSecret:
+    name: secret.max-version
+  tlsContext:
+    name: {self.name}-same-context-1
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -1226,7 +1334,6 @@ class TLSContextProtocolMinVersion(AmbassadorTest):
     # debug = True
 
     def init(self):
-        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -1242,6 +1349,18 @@ metadata:
   labels:
     kat-ambassador-id: tlscontextprotocolminversion
 type: kubernetes.io/tls
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  tlsSecret:
+    name: secret.min-version
+  tlsContext:
+    name: {self.name}-same-context-1
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -1325,7 +1444,6 @@ class TLSContextCipherSuites(AmbassadorTest):
     # debug = True
 
     def init(self):
-        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -1341,6 +1459,18 @@ metadata:
   labels:
     kat-ambassador-id: tlscontextciphersuites
 type: kubernetes.io/tls
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  tlsSecret:
+    name: secret.cipher-suites
+  tlsContext:
+    name: {self.name}-same-context-1
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -1471,14 +1601,13 @@ secret_namespacing: False
 
 
 class TLSCoalescing(AmbassadorTest):
+    # Tests for https://github.com/emissary-ingress/emissary/issues/2403
 
     def init(self):
         self.target = HTTP()
 
         if EDGE_STACK:
             self.xfail = "Not yet supported in Edge Stack"
-
-        self.xfail = "FIXME: IHA"
 
     def manifests(self) -> str:
         return f"""
@@ -1493,6 +1622,42 @@ data:
   tls.key: {TLSCerts["*.domain.com"].k8s_key}
 kind: Secret
 type: kubernetes.io/tls
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-apex
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: domain.com
+  tlsSecret:
+    name: tlscoalescing-certs
+  tlsContext:
+    name: tlscoalescing-context
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-a
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: a.domain.com
+  tlsSecret:
+    name: tlscoalescing-certs
+  tlsContext:
+    name: tlscoalescing-context
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-b
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: b.domain.com
+  tlsSecret:
+    name: tlscoalescing-certs
+  tlsContext:
+    name: tlscoalescing-context
 """ + super().manifests()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -1511,14 +1676,6 @@ hosts:
     def scheme(self) -> str:
         return "https"
 
-    @staticmethod
-    def _go_close_connection_error(url):
-        """
-        :param url: url passed to the query
-        :return: error message string that Go's net/http package throws when server closes connection
-        """
-        return "Get {}: EOF".format(url)
-
     def queries(self):
         yield Query(self.url("ambassador/v0/diag/"),
                     headers={"Host": "a.domain.com"},
@@ -1530,14 +1687,18 @@ hosts:
                     sni=True)
 
     def requirements(self):
-        yield ("url", Query(self.url("ambassador/v0/check_ready"), insecure=True, sni=True))
+        for r in super().requirements():
+            query = r[1]
+            query.headers={"Host": "domain.com"}
+            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.insecure = True
+            yield (r[0], query)
 
 
 class TLSInheritFromModule(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.xfail = "FIXME: IHA"
         self.edge_stack_cleartext_host = False
         self.target = HTTP()
 
@@ -1557,6 +1718,22 @@ config:
 
     def manifests(self) -> str:
         return self.format('''
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: a.domain.com
+  tlsSecret:
+    name: {self.name.k8s}
+  tlsContext:
+    name: {self.name.k8s}
+  requestPolicy:
+    insecure:
+      action: Redirect
+      additionalPort: 8080
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
