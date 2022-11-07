@@ -143,6 +143,20 @@ type ErrorResponseOverride struct {
 	Body ErrorResponseOverrideBody `json:"body,omitempty"`
 }
 
+// A range of response statuses from Start to End inclusive
+type StatusRange struct {
+	// Start of the statuses to include. Must be between 100 and 599 (inclusive)
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Minimum=100
+	// +kubebuilder:validation:Maximum=599
+	Min int `json:"min,omitempty"`
+	// End of the statuses to include. Must be between 100 and 599 (inclusive)
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Minimum=100
+	// +kubebuilder:validation:Maximum=599
+	Max int `json:"max,omitempty"`
+}
+
 // AmbassadorID declares which Ambassador instances should pay
 // attention to this resource.  May either be a string or a list of
 // strings.  If no value is provided, the default is:

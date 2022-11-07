@@ -79,6 +79,8 @@ type MappingSpec struct {
 	Timeout     *MillisecondDuration `json:"timeout_ms,omitempty"`
 	IdleTimeout *MillisecondDuration `json:"idle_timeout_ms,omitempty"`
 	TLS         string               `json:"tls,omitempty"`
+	// +kubebuilder:validation:MinItems=1
+	HealthChecks []HealthCheck `json:"health_checks,omitempty"`
 
 	// use_websocket is deprecated, and is equivlaent to setting
 	// `allow_upgrade: ["websocket"]`

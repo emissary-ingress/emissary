@@ -20,6 +20,7 @@ from typing import cast as typecast
 
 from ..config import Config
 from ..utils import RichStatus
+from .irhealthchecks import IRHealthChecks
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
 
@@ -62,6 +63,7 @@ class IRCluster(IRResource):
         keepalive: Optional[dict] = None,
         circuit_breakers: Optional[list] = None,
         respect_dns_ttl: Optional[bool] = False,
+        health_checks: Optional[IRHealthChecks] = None,
         rkey: str = "-override-",
         kind: str = "IRCluster",
         apiVersion: str = "getambassador.io/v0",  # Not a typo! See below.
@@ -307,6 +309,7 @@ class IRCluster(IRResource):
             "cluster_idle_timeout_ms": cluster_idle_timeout_ms,
             "cluster_max_connection_lifetime_ms": cluster_max_connection_lifetime_ms,
             "respect_dns_ttl": respect_dns_ttl,
+            "health_checks": health_checks,
         }
 
         # If we have a stats_name, use it. If not, default it to the service to make life
@@ -377,6 +380,9 @@ class IRCluster(IRResource):
         if not targets:
             self.ir.logger.debug("accepting cluster with no endpoints: %s" % self.name)
 
+        # If we have health checking config then generate IR for it
+        if "health_checks" in self:
+            self.health_checks = IRHealthChecks(ir, aconf, self.get("health_checks", None))
         return True
 
     def is_edge_stack_sidecar(self) -> bool:

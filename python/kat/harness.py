@@ -865,17 +865,29 @@ class Result:
                     ("'%s'" % self.error) if self.error else "no error",
                 )
             else:
-                if self.query.expected != self.status:
-                    self.parent.log_kube_artifacts()
+                if isinstance(self.query.expected, list):
+                    if self.status not in self.query.expected:
+                        self.parent.log_kube_artifacts()
+                    assert (
+                        self.status in self.query.expected
+                    ), "%s: expected status code %s, got %s instead with error %s" % (
+                        self.query.url,
+                        self.query.expected,
+                        self.status,
+                        self.error,
+                    )
+                else:
 
-                assert (
-                    self.query.expected == self.status
-                ), "%s: expected status code %s, got %s instead with error %s" % (
-                    self.query.url,
-                    self.query.expected,
-                    self.status,
-                    self.error,
-                )
+                    if self.query.expected != self.status:
+                        self.parent.log_kube_artifacts()
+                    assert (
+                        self.query.expected == self.status
+                    ), "%s: expected status code %s, got %s instead with error %s" % (
+                        self.query.url,
+                        self.query.expected,
+                        self.status,
+                        self.error,
+                    )
 
     def as_dict(self) -> Dict[str, Any]:
         od = {

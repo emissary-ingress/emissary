@@ -1,0 +1,56 @@
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {self.path.k8s}
+spec:
+  selector:
+    healthcheck: {self.path.k8s}
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8443
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {self.path.k8s}
+  labels:
+    healthcheck: {self.path.k8s}
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      healthcheck: {self.path.k8s}
+  strategy:
+    type: Recreate # rolling would be bad with the nonce hack
+  template:
+    metadata:
+      labels:
+        healthcheck: {self.path.k8s}
+    spec:
+      containers:
+      - name: health-check-server
+        image: {images[kat-server]}
+        ports:
+        - containerPort: 8080
+        - containerPort: 8443
+        env:
+        - name: BACKEND
+          value: {self.path.k8s}
+        - name: KAT_BACKEND_TYPE
+          value: health_check_server
+        - name: BACKEND
+          value: {self.path.k8s}
+        - name: HEALTHY_STATUS_CODE
+          value: "200"
+        - name: UNHEALTHY_STATUS_CODE
+          value: "500"
+        - name: _nonce
+          value: '{self.nonce}'

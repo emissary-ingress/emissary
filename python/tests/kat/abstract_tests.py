@@ -3,6 +3,7 @@ import os
 import shutil
 import subprocess
 import sys
+from random import random
 from typing import Any, ClassVar, Generator, List, Optional, Sequence, Tuple, Union
 from typing import cast as typecast
 
@@ -464,6 +465,25 @@ class EGRPC(ServiceType):
                 grpc_type="real",
             ),
         )
+
+
+class HealthCheckServer(ServiceType):
+    skip_variant: ClassVar[bool] = True
+
+    def __init__(self, *args, **kwargs) -> None:
+        # We want to reset the health check server between runs since the test involves making one
+        # of the pods unhealthy. 'nonce' is a
+        # horrible hack to get the Pod to roll over each invocation.
+        self.nonce = random()
+        self.use_superpod = False
+        # Do this unconditionally, because that's the point of this class.
+        kwargs["service_manifests"] = integration_manifests.load("health_check_server")
+        super().__init__(*args, **kwargs)
+
+    def requirements(self):
+        yield ("deployment", self.path.k8s)
+        yield ("url", Query("http://%s" % self.path.fqdn))
+        yield ("url", Query("https://%s" % self.path.fqdn))
 
 
 class AHTTP(ServiceType):

@@ -23,6 +23,8 @@ package v3alpha1
 import (
 	"encoding/json"
 	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // V2ExplicitTLS controls some vanity/stylistic elements when converting
@@ -110,6 +112,62 @@ type ErrorResponseOverride struct {
 	// The new response body
 	// +kubebuilder:validation:Required
 	Body ErrorResponseOverrideBody `json:"body,omitempty"`
+}
+
+// A range of response statuses from Start to End inclusive
+type StatusRange struct {
+	// Start of the statuses to include. Must be between 100 and 599 (inclusive)
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Minimum=100
+	// +kubebuilder:validation:Maximum=599
+	Min int `json:"min,omitempty"`
+	// End of the statuses to include. Must be between 100 and 599 (inclusive)
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Minimum=100
+	// +kubebuilder:validation:Maximum=599
+	Max int `json:"max,omitempty"`
+}
+
+// HealthCheck specifies settings for performing active health checking on upstreams
+type HealthCheck struct {
+	// Timeout for connecting to the health checking endpoint. Defaults to 3 seconds.
+	Timeout *metav1.Duration `json:"timeout,omitempty"`
+	// Interval between health checks. Defaults to every 5 seconds.
+	Interval *metav1.Duration `json:"interval,omitempty"`
+	// Number of non-expected responses for the upstream to be considered unhealthy. A single 503 will mark the upstream as unhealthy regardless of the threshold. Defaults to 2.
+	UnhealthyThreshold *int `json:"unhealthy_threshold,omitempty"`
+	// Number of expected responses for the upstream to be considered healthy. Defaults to 1.
+	HealthyThreshold *int `json:"healthy_threshold,omitempty"`
+
+	// Configuration for where the healthcheck request should be made to
+	// +kubebuilder:validation:Required
+	HealthCheckLocation HealthCheckLocation `json:"health_check,omitempty"`
+}
+
+// +kubebuilder:validation:MinProperties=1
+// +kubebuilder:validation:MaxProperties=1
+type HealthCheckLocation struct {
+	HTTPHealthCheck *HTTPHealthCheck `json:"http,omitempty"`
+	GRPCHealthCheck *GRPCHealthCheck `json:"grpc,omitempty"`
+}
+
+// HealthCheck for HTTP upstreams. Only one of http_health_check or grpc_health_check may be specified
+type HTTPHealthCheck struct {
+	// +kubebuilder:validation:Required
+	Path                 string                 `json:"path,omitempty"`
+	Host                 string                 `json:"hostname,omitempty"`
+	AddRequestHeaders    map[string]AddedHeader `json:"add_request_headers,omitempty"`
+	RemoveRequestHeaders []string               `json:"remove_request_headers,omitempty"`
+	ExpectedStatuses     []StatusRange          `json:"expected_statuses,omitempty"`
+}
+
+// HealthCheck for gRPC upstreams. Only one of grpc_health_check or http_health_check may be specified
+type GRPCHealthCheck struct {
+	// The upstream name parameter which will be sent to gRPC service in the health check message
+	// +kubebuilder:validation:Required
+	UpstreamName string `json:"upstream_name,omitempty"`
+	// The value of the :authority header in the gRPC health check request. If left empty the upstream name will be used.
+	Authority string `json:"authority,omitempty"`
 }
 
 // AmbassadorID declares which Ambassador instances should pay
