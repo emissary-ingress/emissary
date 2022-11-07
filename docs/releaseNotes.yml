@@ -36,6 +36,14 @@ items:
     prevVersion: 3.3.0
     date: 'TBD'
     notes:
+      - title: Update Golang to 1.19.3
+        type: security
+        body: >-
+          Updated Golang to the latest z patch. We are not vulnerable to the CVE-2022-3602 that was 
+          released in 1.19.3 and you can read more about it here: <https://medium.com/ambassador-api-gateway/ambassador-labs-security-impact-assessment-of-nov-1-openssl-golang-vulnerabilities-f11b5ec37a7e>.
+          Updating to the latest z patch as part of our normal dependency update process
+          and this will help reduce the noise of security scanners.
+
       - title: Add support for active health checking configuration.
         type: feature
         body: >-
