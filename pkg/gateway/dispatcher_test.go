@@ -12,10 +12,10 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	// envoy api v3
-	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
-	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
-	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
-	v3httpman "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	apiv3_core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	apiv3_endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
+	apiv3_listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
+	apiv3_httpman "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
 
 	// envoy control plane
 	ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
@@ -190,7 +190,7 @@ func compile_Foo(f *Foo) (*gateway.CompiledConfig, error) {
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
 		Listeners: []*gateway.CompiledListener{
 			{
-				Listener: &v3listener.Listener{Name: f.Spec.Value},
+				Listener: &apiv3_listener.Listener{Name: f.Spec.Value},
 			},
 		},
 	}, nil
@@ -239,17 +239,17 @@ func compile_FooWithRouteConfigName(f *Foo) (*gateway.CompiledConfig, error) {
 	name := f.Spec.Value
 	rcName := fmt.Sprintf("%s-routeconfig", name)
 
-	hcm := &v3httpman.HttpConnectionManager{
+	hcm := &apiv3_httpman.HttpConnectionManager{
 		StatPrefix: name,
-		HttpFilters: []*v3httpman.HttpFilter{
+		HttpFilters: []*apiv3_httpman.HttpFilter{
 			{Name: ecp_wellknown.CORS},
 			{Name: ecp_wellknown.Router},
 		},
-		RouteSpecifier: &v3httpman.HttpConnectionManager_Rds{
-			Rds: &v3httpman.Rds{
-				ConfigSource: &v3core.ConfigSource{
-					ConfigSourceSpecifier: &v3core.ConfigSource_Ads{
-						Ads: &v3core.AggregatedConfigSource{},
+		RouteSpecifier: &apiv3_httpman.HttpConnectionManager_Rds{
+			Rds: &apiv3_httpman.Rds{
+				ConfigSource: &apiv3_core.ConfigSource{
+					ConfigSourceSpecifier: &apiv3_core.ConfigSource_Ads{
+						Ads: &apiv3_core.AggregatedConfigSource{},
 					},
 				},
 				RouteConfigName: rcName,
@@ -261,14 +261,14 @@ func compile_FooWithRouteConfigName(f *Foo) (*gateway.CompiledConfig, error) {
 		return nil, err
 	}
 
-	l := &v3listener.Listener{
+	l := &apiv3_listener.Listener{
 		Name: name,
-		FilterChains: []*v3listener.FilterChain{
+		FilterChains: []*apiv3_listener.FilterChain{
 			{
-				Filters: []*v3listener.Filter{
+				Filters: []*apiv3_listener.Filter{
 					{
 						Name:       ecp_wellknown.HTTPConnectionManager,
-						ConfigType: &v3listener.Filter_TypedConfig{TypedConfig: hcmAny},
+						ConfigType: &apiv3_listener.Filter_TypedConfig{TypedConfig: hcmAny},
 					},
 				},
 			},
@@ -306,18 +306,18 @@ func TestDispatcherAssemblyWithEmptyRouteConfigName(t *testing.T) {
 func compileFooWithEmptyRouteConfigName(f *Foo) (*gateway.CompiledConfig, error) {
 	name := f.Spec.Value
 
-	hcm := &v3httpman.HttpConnectionManager{
+	hcm := &apiv3_httpman.HttpConnectionManager{
 		StatPrefix: name,
-		HttpFilters: []*v3httpman.HttpFilter{
+		HttpFilters: []*apiv3_httpman.HttpFilter{
 			{Name: ecp_wellknown.CORS},
 			{Name: ecp_wellknown.Router},
 		},
-		RouteSpecifier: &v3httpman.HttpConnectionManager_Rds{
-			Rds: &v3httpman.Rds{
+		RouteSpecifier: &apiv3_httpman.HttpConnectionManager_Rds{
+			Rds: &apiv3_httpman.Rds{
 				// explicitly adding RDS Config with no name to trigger snapshot Consistency to fail
-				ConfigSource: &v3core.ConfigSource{
-					ConfigSourceSpecifier: &v3core.ConfigSource_Ads{
-						Ads: &v3core.AggregatedConfigSource{},
+				ConfigSource: &apiv3_core.ConfigSource{
+					ConfigSourceSpecifier: &apiv3_core.ConfigSource_Ads{
+						Ads: &apiv3_core.AggregatedConfigSource{},
 					},
 				},
 			},
@@ -328,14 +328,14 @@ func compileFooWithEmptyRouteConfigName(f *Foo) (*gateway.CompiledConfig, error)
 		return nil, err
 	}
 
-	l := &v3listener.Listener{
+	l := &apiv3_listener.Listener{
 		Name: name,
-		FilterChains: []*v3listener.FilterChain{
+		FilterChains: []*apiv3_listener.FilterChain{
 			{
-				Filters: []*v3listener.Filter{
+				Filters: []*apiv3_listener.Filter{
 					{
 						Name:       ecp_wellknown.HTTPConnectionManager,
-						ConfigType: &v3listener.Filter_TypedConfig{TypedConfig: hcmAny},
+						ConfigType: &apiv3_listener.Filter_TypedConfig{TypedConfig: hcmAny},
 					},
 				},
 			},
@@ -366,9 +366,9 @@ func TestDispatcherAssemblyWithoutRds(t *testing.T) {
 func compile_FooWithoutRds(f *Foo) (*gateway.CompiledConfig, error) {
 	name := f.Spec.Value
 
-	hcm := &v3httpman.HttpConnectionManager{
+	hcm := &apiv3_httpman.HttpConnectionManager{
 		StatPrefix: name,
-		HttpFilters: []*v3httpman.HttpFilter{
+		HttpFilters: []*apiv3_httpman.HttpFilter{
 			{Name: ecp_wellknown.CORS},
 			{Name: ecp_wellknown.Router},
 		},
@@ -378,17 +378,17 @@ func compile_FooWithoutRds(f *Foo) (*gateway.CompiledConfig, error) {
 		return nil, err
 	}
 
-	l := &v3listener.Listener{
+	l := &apiv3_listener.Listener{
 		Name: name,
-		FilterChains: []*v3listener.FilterChain{
+		FilterChains: []*apiv3_listener.FilterChain{
 			{
-				Filters: []*v3listener.Filter{
+				Filters: []*apiv3_listener.Filter{
 					{
 						Name: ecp_wellknown.RateLimit,
 					},
 					{
 						Name:       ecp_wellknown.HTTPConnectionManager,
-						ConfigType: &v3listener.Filter_TypedConfig{TypedConfig: hcmAny},
+						ConfigType: &apiv3_listener.Filter_TypedConfig{TypedConfig: hcmAny},
 					},
 				},
 			},
@@ -419,7 +419,7 @@ func TestDispatcherAssemblyEndpointDefaulting(t *testing.T) {
 
 	found := false
 	for _, r := range snapshot.Resources[ecp_cache_types.Endpoint].Items {
-		cla := r.Resource.(*v3endpoint.ClusterLoadAssignment)
+		cla := r.Resource.(*apiv3_endpoint.ClusterLoadAssignment)
 		if cla.ClusterName == "foo" && len(cla.Endpoints) == 0 {
 			found = true
 		}

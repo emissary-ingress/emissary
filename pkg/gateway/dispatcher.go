@@ -10,11 +10,11 @@ import (
 
 	// Envoy API v3
 
-	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
-	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
-	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
-	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
-	v3route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
+	apiv3_cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
+	apiv3_core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	apiv3_endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
+	apiv3_listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
+	apiv3_route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
 
 	// Envoy control plane API's
 	ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
@@ -204,8 +204,8 @@ func (d *Dispatcher) GetSnapshot(ctx context.Context) (string, *ecp_v3_cache.Sna
 	return d.version, d.snapshot
 }
 
-// GetListener returns a *v3listener.Listener with the specified name or nil if none exists.
-func (d *Dispatcher) GetListener(ctx context.Context, name string) *v3listener.Listener {
+// GetListener returns a *apiv3_listener.Listener with the specified name or nil if none exists.
+func (d *Dispatcher) GetListener(ctx context.Context, name string) *apiv3_listener.Listener {
 	_, snapshot := d.GetSnapshot(ctx)
 	// ensure that snapshot is not nil before trying to use
 	if snapshot == nil {
@@ -213,7 +213,7 @@ func (d *Dispatcher) GetListener(ctx context.Context, name string) *v3listener.L
 	}
 
 	for _, rsrc := range snapshot.Resources[ecp_cache_types.Listener].Items {
-		l := rsrc.Resource.(*v3listener.Listener)
+		l := rsrc.Resource.(*apiv3_listener.Listener)
 		if l.Name == name {
 			return l
 		}
@@ -224,7 +224,7 @@ func (d *Dispatcher) GetListener(ctx context.Context, name string) *v3listener.L
 
 // GetRouteConfiguration returns a *apiv2.RouteConfiguration with the specified name or nil if none
 // exists.
-func (d *Dispatcher) GetRouteConfiguration(ctx context.Context, name string) *v3route.RouteConfiguration {
+func (d *Dispatcher) GetRouteConfiguration(ctx context.Context, name string) *apiv3_route.RouteConfiguration {
 	_, snapshot := d.GetSnapshot(ctx)
 	// ensure snapshot is valid before attempting to access members to prevent panic
 	if snapshot == nil {
@@ -232,7 +232,7 @@ func (d *Dispatcher) GetRouteConfiguration(ctx context.Context, name string) *v3
 	}
 
 	for _, rsrc := range snapshot.Resources[ecp_cache_types.Route].Items {
-		r := rsrc.Resource.(*v3route.RouteConfiguration)
+		r := rsrc.Resource.(*apiv3_route.RouteConfiguration)
 		if r.Name == name {
 			return r
 		}
@@ -265,8 +265,8 @@ func (d *Dispatcher) buildClusterMap() (map[string]string, map[string]bool) {
 	return refs, watches
 }
 
-func (d *Dispatcher) buildEndpointMap() map[string]*v3endpoint.ClusterLoadAssignment {
-	endpoints := map[string]*v3endpoint.ClusterLoadAssignment{}
+func (d *Dispatcher) buildEndpointMap() map[string]*apiv3_endpoint.ClusterLoadAssignment {
+	endpoints := map[string]*apiv3_endpoint.ClusterLoadAssignment{}
 	for _, config := range d.configs {
 		for _, la := range config.LoadAssignments {
 			endpoints[la.LoadAssignment.ClusterName] = la.LoadAssignment
@@ -290,13 +290,13 @@ func (d *Dispatcher) buildRouteConfigurations() ([]ecp_cache_types.Resource, []e
 	return listeners, routes
 }
 
-func (d *Dispatcher) buildRouteConfiguration(lst *CompiledListener) *v3route.RouteConfiguration {
+func (d *Dispatcher) buildRouteConfiguration(lst *CompiledListener) *apiv3_route.RouteConfiguration {
 	rdsName, isRds := getRdsName(lst.Listener)
 	if !isRds {
 		return nil
 	}
 
-	var routes []*v3route.Route
+	var routes []*apiv3_route.Route
 	for _, config := range d.configs {
 		for _, route := range config.Routes {
 			if lst.Predicate(route) {
@@ -305,9 +305,9 @@ func (d *Dispatcher) buildRouteConfiguration(lst *CompiledListener) *v3route.Rou
 		}
 	}
 
-	return &v3route.RouteConfiguration{
+	return &apiv3_route.RouteConfiguration{
 		Name: rdsName,
-		VirtualHosts: []*v3route.VirtualHost{
+		VirtualHosts: []*apiv3_route.VirtualHost{
 			{
 				Name:    rdsName,
 				Domains: lst.Domains,
@@ -319,7 +319,7 @@ func (d *Dispatcher) buildRouteConfiguration(lst *CompiledListener) *v3route.Rou
 
 // getRdsName returns the RDS route configuration name configured for the listener and a flag
 // indicating whether the listener uses Rds.
-func getRdsName(l *v3listener.Listener) (string, bool) {
+func getRdsName(l *apiv3_listener.Listener) (string, bool) {
 	for _, fc := range l.FilterChains {
 		for _, f := range fc.Filters {
 			if f.Name != ecp_wellknown.HTTPConnectionManager {
@@ -357,9 +357,9 @@ func (d *Dispatcher) buildSnapshot(ctx context.Context) {
 		if ok {
 			endpoints = append(endpoints, la)
 		} else {
-			endpoints = append(endpoints, &v3endpoint.ClusterLoadAssignment{
+			endpoints = append(endpoints, &apiv3_endpoint.ClusterLoadAssignment{
 				ClusterName: key,
-				Endpoints:   []*v3endpoint.LocalityLbEndpoints{},
+				Endpoints:   []*apiv3_endpoint.LocalityLbEndpoints{},
 			})
 		}
 	}
@@ -387,13 +387,13 @@ func (d *Dispatcher) buildSnapshot(ctx context.Context) {
 	}
 }
 
-func makeCluster(name, path string) *v3cluster.Cluster {
-	return &v3cluster.Cluster{
+func makeCluster(name, path string) *apiv3_cluster.Cluster {
+	return &apiv3_cluster.Cluster{
 		Name:                 name,
 		ConnectTimeout:       &durationpb.Duration{Seconds: 10},
-		ClusterDiscoveryType: &v3cluster.Cluster_Type{Type: v3cluster.Cluster_EDS},
-		EdsClusterConfig: &v3cluster.Cluster_EdsClusterConfig{
-			EdsConfig:   &v3core.ConfigSource{ConfigSourceSpecifier: &v3core.ConfigSource_Ads{}},
+		ClusterDiscoveryType: &apiv3_cluster.Cluster_Type{Type: apiv3_cluster.Cluster_EDS},
+		EdsClusterConfig: &apiv3_cluster.Cluster_EdsClusterConfig{
+			EdsConfig:   &apiv3_core.ConfigSource{ConfigSourceSpecifier: &apiv3_core.ConfigSource_Ads{}},
 			ServiceName: path,
 		},
 	}

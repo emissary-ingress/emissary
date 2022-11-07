@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
-	bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
+	apiv3_bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
@@ -103,7 +103,7 @@ func testSemanticSet(t *testing.T, inputFile string, expectedFile string) {
 	require.NoError(t, err)
 	require.NotNil(t, snap)
 
-	envoyConfig, err := f.GetEnvoyConfig(func(config *bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(config *apiv3_bootstrap.Bootstrap) bool {
 		for _, cluster := range neededClusters {
 			if FindCluster(config, ClusterNameContains(cluster)) == nil {
 				return false

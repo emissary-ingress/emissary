@@ -14,8 +14,8 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	// first party (protobuf)
-	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
-	pb "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/ratelimit/v2"
+	apiv2_core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	apiv2_svc_ratelimit "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/ratelimit/v2"
 
 	// first party
 	"github.com/datawire/dlib/dgroup"
@@ -40,7 +40,7 @@ func (g *GRPCRLSV2) Start(ctx context.Context) <-chan bool {
 
 	grpcHandler := grpc.NewServer()
 	dlog.Printf(ctx, "registering v2 service")
-	pb.RegisterRateLimitServiceServer(grpcHandler, g)
+	apiv2_svc_ratelimit.RegisterRateLimitServiceServer(grpcHandler, g)
 
 	cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
 	if err != nil {
@@ -77,7 +77,7 @@ func (g *GRPCRLSV2) Start(ctx context.Context) <-chan bool {
 }
 
 // Check checks the request object.
-func (g *GRPCRLSV2) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest) (*pb.RateLimitResponse, error) {
+func (g *GRPCRLSV2) ShouldRateLimit(ctx context.Context, r *apiv2_svc_ratelimit.RateLimitRequest) (*apiv2_svc_ratelimit.RateLimitResponse, error) {
 	rs := &RLSResponseV2{}
 
 	dlog.Printf(ctx, "shouldRateLimit descriptors: %v\n", r.Descriptors)
@@ -92,9 +92,9 @@ func (g *GRPCRLSV2) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest)
 	// Sets overallCode. If x-ambassador-test-allow is present and has value "true", then
 	// respond with OK. In any other case, respond with OVER_LIMIT.
 	if allowValue := descEntries["kat-req-rls-allow"]; allowValue == "true" {
-		rs.SetOverallCode(pb.RateLimitResponse_OK)
+		rs.SetOverallCode(apiv2_svc_ratelimit.RateLimitResponse_OK)
 	} else {
-		rs.SetOverallCode(pb.RateLimitResponse_OVER_LIMIT)
+		rs.SetOverallCode(apiv2_svc_ratelimit.RateLimitResponse_OVER_LIMIT)
 
 		// Response headers and body only make sense when the overall code is not OK,
 		// so we append them here, if they exist.
@@ -136,16 +136,16 @@ func (g *GRPCRLSV2) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest)
 
 // RLSResponseV2 constructs an rls response object.
 type RLSResponseV2 struct {
-	headers     []*core.HeaderValueOption
+	headers     []*apiv2_core.HeaderValueOption
 	body        string
-	overallCode pb.RateLimitResponse_Code
+	overallCode apiv2_svc_ratelimit.RateLimitResponse_Code
 }
 
 // AddHeader adds a header to the response. When append param is true, Envoy will
 // append the value to an existent request header instead of overriding it.
 func (r *RLSResponseV2) AddHeader(a bool, k, v string) {
-	val := &core.HeaderValueOption{
-		Header: &core.HeaderValue{
+	val := &apiv2_core.HeaderValueOption{
+		Header: &apiv2_core.HeaderValue{
 			Key:   k,
 			Value: v,
 		},
@@ -169,24 +169,24 @@ func (r *RLSResponseV2) SetBody(s string) {
 }
 
 // SetOverallCode sets the rls response HTTP status code.
-func (r *RLSResponseV2) SetOverallCode(code pb.RateLimitResponse_Code) {
+func (r *RLSResponseV2) SetOverallCode(code apiv2_svc_ratelimit.RateLimitResponse_Code) {
 	r.overallCode = code
 }
 
 // GetOverallCode returns the rls response HTTP status code.
-func (r *RLSResponseV2) GetOverallCode() pb.RateLimitResponse_Code {
+func (r *RLSResponseV2) GetOverallCode() apiv2_svc_ratelimit.RateLimitResponse_Code {
 	return r.overallCode
 }
 
 // GetResponse returns the gRPC rls response object.
-func (r *RLSResponseV2) GetResponse() *pb.RateLimitResponse {
-	rs := &pb.RateLimitResponse{}
+func (r *RLSResponseV2) GetResponse() *apiv2_svc_ratelimit.RateLimitResponse {
+	rs := &apiv2_svc_ratelimit.RateLimitResponse{}
 	rs.OverallCode = r.overallCode
 	for _, h := range r.headers {
 		hdr := h.Header
 		if hdr != nil {
 			rs.Headers = append(rs.Headers,
-				&core.HeaderValue{
+				&apiv2_core.HeaderValue{
 					Key:   hdr.Key,
 					Value: hdr.Value,
 				},

@@ -17,9 +17,9 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	// first party (protobuf)
-	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
-	pb "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/auth/v2"
-	envoy_type "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type"
+	apiv2_core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
+	apiv2_svc_auth "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/auth/v2"
+	apiv2_type "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type"
 
 	// first party
 	"github.com/datawire/dlib/dgroup"
@@ -44,7 +44,7 @@ func (g *GRPCAuthV2) Start(ctx context.Context) <-chan bool {
 
 	grpcHandler := grpc.NewServer()
 	dlog.Printf(ctx, "registering v2 service")
-	pb.RegisterAuthorizationServer(grpcHandler, g)
+	apiv2_svc_auth.RegisterAuthorizationServer(grpcHandler, g)
 
 	cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
 	if err != nil {
@@ -81,7 +81,7 @@ func (g *GRPCAuthV2) Start(ctx context.Context) <-chan bool {
 }
 
 // Check checks the request object.
-func (g *GRPCAuthV2) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResponse, error) {
+func (g *GRPCAuthV2) Check(ctx context.Context, r *apiv2_svc_auth.CheckRequest) (*apiv2_svc_auth.CheckResponse, error) {
 	rs := &ResponseV2{}
 
 	rheader := r.GetAttributes().GetRequest().GetHttp().GetHeaders()
@@ -106,7 +106,7 @@ func (g *GRPCAuthV2) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckRe
 	rs.AddHeader(false, "kat-resp-extauth-protocol-version", g.ProtocolVersion)
 
 	// Sets requested headers.
-	// Don't bother if we'll be returning a pb.CheckResponse_OkResponse; it'd be a no-op in that case.
+	// Don't bother if we'll be returning a apiv2_svc_auth.CheckResponse_OkResponse; it'd be a no-op in that case.
 	if rs.status != http.StatusOK && rs.status != 0 {
 		for _, key := range strings.Split(strings.ToLower(rheader["kat-req-extauth-requested-header"]), ",") {
 			if val := rheader[key]; val != "" {
@@ -185,7 +185,7 @@ func (g *GRPCAuthV2) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckRe
 
 // ResponseV2 constructs an authorization response object.
 type ResponseV2 struct {
-	headers []*core.HeaderValueOption
+	headers []*apiv2_core.HeaderValueOption
 	body    string
 	status  uint32
 }
@@ -193,8 +193,8 @@ type ResponseV2 struct {
 // AddHeader adds a header to the response. When append param is true, Envoy will
 // append the value to an existent request header instead of overriding it.
 func (r *ResponseV2) AddHeader(a bool, k, v string) {
-	val := &core.HeaderValueOption{
-		Header: &core.HeaderValue{
+	val := &apiv2_core.HeaderValueOption{
+		Header: &apiv2_core.HeaderValue{
 			Key:   k,
 			Value: v,
 		},
@@ -239,14 +239,14 @@ func (r *ResponseV2) GetStatus() uint32 {
 }
 
 // GetResponse returns the gRPC authorization response object.
-func (r *ResponseV2) GetResponse() *pb.CheckResponse {
-	rs := &pb.CheckResponse{}
+func (r *ResponseV2) GetResponse() *apiv2_svc_auth.CheckResponse {
+	rs := &apiv2_svc_auth.CheckResponse{}
 	switch {
 	// Ok respose.
 	case r.status == http.StatusOK || r.status == 0:
 		rs.Status = &status.Status{Code: int32(code.Code_OK)}
-		rs.HttpResponse = &pb.CheckResponse_OkResponse{
-			OkResponse: &pb.OkHttpResponse{
+		rs.HttpResponse = &apiv2_svc_auth.CheckResponse_OkResponse{
+			OkResponse: &apiv2_svc_auth.OkHttpResponse{
 				Headers: r.headers,
 			},
 		}
@@ -254,10 +254,10 @@ func (r *ResponseV2) GetResponse() *pb.CheckResponse {
 	// Denied response.
 	default:
 		rs.Status = &status.Status{Code: int32(code.Code_UNAUTHENTICATED)}
-		rs.HttpResponse = &pb.CheckResponse_DeniedResponse{
-			DeniedResponse: &pb.DeniedHttpResponse{
-				Status: &envoy_type.HttpStatus{
-					Code: envoy_type.StatusCode(r.status),
+		rs.HttpResponse = &apiv2_svc_auth.CheckResponse_DeniedResponse{
+			DeniedResponse: &apiv2_svc_auth.DeniedHttpResponse{
+				Status: &apiv2_type.HttpStatus{
+					Code: apiv2_type.StatusCode(r.status),
 				},
 				Headers: r.headers,
 				Body:    r.body,

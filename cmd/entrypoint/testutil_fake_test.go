@@ -18,7 +18,7 @@ import (
 	"github.com/datawire/dlib/dlog"
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint/internal/testqueue"
 	"github.com/emissary-ingress/emissary/v3/pkg/ambex"
-	v3bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
+	apiv3_bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
 	amb "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	"github.com/emissary-ingress/emissary/v3/pkg/consulwatch"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
@@ -360,20 +360,20 @@ func (f *Fake) appendEnvoyConfig(ctx context.Context) {
 	if err != nil {
 		f.T.Fatalf("error decoding envoy.json after sending snapshot to python: %+v", err)
 	}
-	bs := msg.(*v3bootstrap.Bootstrap)
+	bs := msg.(*apiv3_bootstrap.Bootstrap)
 	f.envoyConfigs.Add(f.T, bs)
 }
 
 // GetEnvoyConfig will return the next envoy config that satisfies the supplied predicate.
-func (f *Fake) GetEnvoyConfig(predicate func(*v3bootstrap.Bootstrap) bool) (*v3bootstrap.Bootstrap, error) {
+func (f *Fake) GetEnvoyConfig(predicate func(*apiv3_bootstrap.Bootstrap) bool) (*apiv3_bootstrap.Bootstrap, error) {
 	f.T.Helper()
 	untyped, err := f.envoyConfigs.Get(f.T, func(obj interface{}) bool {
-		return predicate(obj.(*v3bootstrap.Bootstrap))
+		return predicate(obj.(*apiv3_bootstrap.Bootstrap))
 	})
 	if err != nil {
 		return nil, err
 	}
-	return untyped.(*v3bootstrap.Bootstrap), nil
+	return untyped.(*apiv3_bootstrap.Bootstrap), nil
 }
 
 // AutoFlush will cause a flush whenever any inputs are modified.

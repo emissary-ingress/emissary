@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
-	bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
+	apiv3_bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -61,7 +61,7 @@ spec:
 	assert.NoError(t, err)
 	assert.NotNil(t, snap)
 
-	config, err := f.GetEnvoyConfig(func(config *bootstrap.Bootstrap) bool {
+	config, err := f.GetEnvoyConfig(func(config *apiv3_bootstrap.Bootstrap) bool {
 		return FindCluster(config, ClusterNameContains("cluster_foo_default_default")) != nil
 	})
 

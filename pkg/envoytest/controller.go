@@ -11,12 +11,12 @@ import (
 	"google.golang.org/grpc"
 
 	// envoy api v3
-	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
-	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/cluster/v3"
-	v3discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
-	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/endpoint/v3"
-	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/listener/v3"
-	v3route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/route/v3"
+	apiv3_core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	apiv3_svc_cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/cluster/v3"
+	apiv3_svc_discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
+	apiv3_svc_endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/endpoint/v3"
+	apiv3_svc_listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/listener/v3"
+	apiv3_svc_route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/route/v3"
 
 	// envoy control plane
 	ecp_v3_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
@@ -186,11 +186,11 @@ func (e *EnvoyController) Run(ctx context.Context) error {
 	)
 
 	grpcMux := grpc.NewServer()
-	v3discovery.RegisterAggregatedDiscoveryServiceServer(grpcMux, srv)
-	v3endpoint.RegisterEndpointDiscoveryServiceServer(grpcMux, srv)
-	v3cluster.RegisterClusterDiscoveryServiceServer(grpcMux, srv)
-	v3route.RegisterRouteDiscoveryServiceServer(grpcMux, srv)
-	v3listener.RegisterListenerDiscoveryServiceServer(grpcMux, srv)
+	apiv3_svc_discovery.RegisterAggregatedDiscoveryServiceServer(grpcMux, srv)
+	apiv3_svc_endpoint.RegisterEndpointDiscoveryServiceServer(grpcMux, srv)
+	apiv3_svc_cluster.RegisterClusterDiscoveryServiceServer(grpcMux, srv)
+	apiv3_svc_route.RegisterRouteDiscoveryServiceServer(grpcMux, srv)
+	apiv3_svc_listener.RegisterListenerDiscoveryServiceServer(grpcMux, srv)
 
 	sc := &dhttp.ServerConfig{
 		Handler: grpcMux,
@@ -205,7 +205,7 @@ type ecNodeHash struct{}
 var _ ecp_v3_cache.NodeHash = ecNodeHash{}
 
 // ID implements ecp_v3_cache.NodeHash.
-func (ecNodeHash) ID(node *v3core.Node) string {
+func (ecNodeHash) ID(node *apiv3_core.Node) string {
 	if node == nil {
 		return "unknown"
 	}
@@ -227,12 +227,12 @@ func (ecc ecCallbacks) OnStreamOpen(_ context.Context, sid int64, stype string) 
 }
 
 // OnStreamClosed implements ecp_v3_server.Callbacks.
-func (ecc ecCallbacks) OnStreamClosed(sid int64, node *v3core.Node) {
+func (ecc ecCallbacks) OnStreamClosed(sid int64, node *apiv3_core.Node) {
 	//e.Infof("Stream closed[%v]", sid)
 }
 
 // OnStreamRequest implements ecp_v2_server.Callbacks.
-func (ecc ecCallbacks) OnStreamRequest(sid int64, req *v3discovery.DiscoveryRequest) error {
+func (ecc ecCallbacks) OnStreamRequest(sid int64, req *apiv3_svc_discovery.DiscoveryRequest) error {
 	//e.Infof("Stream request[%v]: %v", sid, req.TypeURL)
 
 	ecc.ec.cond.L.Lock()
@@ -253,7 +253,7 @@ func (ecc ecCallbacks) OnStreamRequest(sid int64, req *v3discovery.DiscoveryRequ
 }
 
 // OnStreamResponse implements ecp_v3_server.Callbacks.
-func (ecc ecCallbacks) OnStreamResponse(ctx context.Context, sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
+func (ecc ecCallbacks) OnStreamResponse(ctx context.Context, sid int64, req *apiv3_svc_discovery.DiscoveryRequest, res *apiv3_svc_discovery.DiscoveryResponse) {
 	//e.Infof("Stream response[%v]: %v -> %v", sid, req.TypeURL, res.Nonce)
 
 	ecc.ec.cond.L.Lock()
@@ -265,13 +265,13 @@ func (ecc ecCallbacks) OnStreamResponse(ctx context.Context, sid int64, req *v3d
 }
 
 // OnFetchRequest implements ecp_v3_server.Callbacks.
-func (ecc ecCallbacks) OnFetchRequest(_ context.Context, r *v3discovery.DiscoveryRequest) error {
+func (ecc ecCallbacks) OnFetchRequest(_ context.Context, r *apiv3_svc_discovery.DiscoveryRequest) error {
 	//e.Infof("Fetch request: %v", r)
 	return nil
 }
 
 // OnFetchResponse implements ecp_v3_server.Callbacks.
-func (ecc ecCallbacks) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
+func (ecc ecCallbacks) OnFetchResponse(req *apiv3_svc_discovery.DiscoveryRequest, res *apiv3_svc_discovery.DiscoveryResponse) {
 	//e.Infof("Fetch response: %v -> %v", req, res)
 }
 
@@ -281,16 +281,16 @@ func (ecc ecCallbacks) OnDeltaStreamOpen(ctx context.Context, sid int64, stype s
 }
 
 // OnDeltaStreamClosed implements ecp_v3_server.Callbacks.
-func (ecc ecCallbacks) OnDeltaStreamClosed(sid int64, node *v3core.Node) {
+func (ecc ecCallbacks) OnDeltaStreamClosed(sid int64, node *apiv3_core.Node) {
 }
 
 // OnStreamDeltaRequest implements ecp_v3_server.Callbacks.
-func (ecc ecCallbacks) OnStreamDeltaRequest(sid int64, req *v3discovery.DeltaDiscoveryRequest) error {
+func (ecc ecCallbacks) OnStreamDeltaRequest(sid int64, req *apiv3_svc_discovery.DeltaDiscoveryRequest) error {
 	return nil
 }
 
 // OnStreamDelatResponse implements ecp_v3_server.Callbacks.
-func (ecc ecCallbacks) OnStreamDeltaResponse(sid int64, req *v3discovery.DeltaDiscoveryRequest, res *v3discovery.DeltaDiscoveryResponse) {
+func (ecc ecCallbacks) OnStreamDeltaResponse(sid int64, req *apiv3_svc_discovery.DeltaDiscoveryRequest, res *apiv3_svc_discovery.DeltaDiscoveryResponse) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////

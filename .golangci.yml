@@ -2,15 +2,15 @@
 # back on.
 linters:
   disable-all: true
-  enable:
-    - gofmt
-    - govet
+  enable: # please keep this list sorted
     - depguard
-    - unused
     - errcheck
-linters-settings:
-  gofmt:
-    simplify: true
+    - gofmt
+    - goimports
+    - govet
+    - importas
+    - unused
+linters-settings: # please keep this list sorted
   depguard:
     list-type: blacklist
     include-go-root: true
@@ -22,16 +22,67 @@ linters-settings:
       - github.com/golang/protobuf:     "Use `google.golang.org/protobuf` instead of `github.com/golang/protobuf`"
       - github.com/google/shlex:        "Use `github.com/kballard/go-shellquote` instead of `github.com/google/shlex`"
       - golang.org/x/net/http2/h2c:     "Use `github.com/datawire/dlib/dhttp` instead of `golang.org/x/net/http2/h2c`"
+  errcheck:
+    exclude-functions:
+      - "(net/http.ResponseWriter).Write"
+  gofmt:
+    simplify: true
+  goimports:
+    # TODO: replace 'goimports' with 'gci', which lets us be more
+    # prescriptive.  The blocker switching to gci that is that a while
+    # back it broke support for having multiple named prefixes in the
+    # same section together.
+    local-prefixes: github.com/emissary-ingress,github.com/datawire
+  importas:
+    no-unaliased: true
+    alias:
+      ######################################################################
+      # Envoy API                                                          #
+      ######################################################################
+      # special cases
+      - pkg: github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type
+        alias: apiv2_type
+      - pkg: github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/(?P<version>.*)
+        alias: api${version}_httpman
+      # ex: apiv2_route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/route"
+      - pkg: github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/(?P<version>v[0-9][^/]*)/(?P<name>.*)
+        alias: api${version}_${name}
+      # ex: apiv3_svc_cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/cluster/v3"
+      - pkg: github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/(?P<name>[^/]+)/(?P<version>v[0-9][^/]*)
+        alias: api${version}_svc_${name}
+      # ex: apiv3_cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
+      - pkg: github.com/emissary-ingress/emissary/v3/pkg/api/envoy/([^se].*/)?(?P<name>[^/]+)/(?P<version>v[0-9][^/]*)
+        alias: api${version}_${name}
+      ######################################################################
+      # Envoy-control-plane                                                #
+      ######################################################################
+      # 1 word without version
+      # ex: ecp_wellknown "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
+      - pkg: github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/(?P<name>[^/]+)
+        alias: ecp_${name}
+      # 2 words without version
+      # ex: ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+      - pkg: github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/(?P<name1>[^/]+)/(?P<name2>[^v][^/]*)
+        alias: ecp_${name1}_${name2}
+      # 1 word with version
+      # ex: ecp_v3_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+      - pkg: github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/(?P<name>[^/]+)/(?P<version>v[0-9][^/]*)
+        alias: ecp_${version}_${name}
+      # 2 words with version
+      # ex: ecp_v3_server_stream "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/stream/v3"
+      - pkg: github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/(?P<name1>[^/]+)/(?P<name2>[^/]+)/(?P<version>v[0-9][^/]*)
+        alias: ecp_${version}_${name1}_${name2}
   unused:
     # treat code as a program (not a library) and report unused
     # exported identifiers
     check-exported: true
-  errcheck:
-    exclude-functions:
-      - "(net/http.ResponseWriter).Write"
 issues:
   exclude-rules:
-    - linters: [govet, errcheck, unused]
+    - linters:
+        - errcheck
+        - govet
+        - importas
+        - unused
       path: pkg/envoy-control-plane/
     - linters: [depguard]
       path: "pkg/envoy-control-plane/(test/|.*_test\\.go)"

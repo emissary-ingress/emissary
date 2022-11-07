@@ -1,8 +1,9 @@
 package snapshot
 
 import (
-	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 // Currently, this only removes "sensitive" information, which, for now, is just Secrets.data and

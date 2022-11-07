@@ -74,12 +74,12 @@ import (
 	// generated Envoy config, even if that package is otherwise not used by ambex.
 
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/accesslog/v3"
-	v3bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
-	v3clusterconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
-	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
-	v3endpointconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
-	v3listenerconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
-	v3routeconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
+	apiv3_bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
+	apiv3_cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
+	apiv3_core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
+	apiv3_endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
+	apiv3_listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
+	apiv3_route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/access_loggers/file/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/access_loggers/grpc/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/compression/gzip/compressor/v3"
@@ -97,12 +97,12 @@ import (
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/tcp_proxy/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/transport_sockets/quic/v3"
-	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/cluster/v3"
-	v3discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
-	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/endpoint/v3"
-	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/listener/v3"
-	v3route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/route/v3"
-	v3runtime "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/runtime/v3"
+	apiv3_svc_cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/cluster/v3"
+	apiv3_svc_discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
+	apiv3_svc_endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/endpoint/v3"
+	apiv3_svc_listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/listener/v3"
+	apiv3_svc_route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/route/v3"
+	apiv3_svc_runtime "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/runtime/v3"
 
 	// first-party libraries
 	"github.com/datawire/dlib/dgroup"
@@ -195,7 +195,7 @@ type HasherV3 struct {
 }
 
 // ID function
-func (h HasherV3) ID(node *v3core.Node) string {
+func (h HasherV3) ID(node *apiv3_core.Node) string {
 	if node == nil {
 		return "unknown"
 	}
@@ -215,11 +215,11 @@ func runManagementServer(ctx context.Context, serverv3 ecp_v3_server.Server, ads
 	}
 
 	// register services
-	v3discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, serverv3)
-	v3endpoint.RegisterEndpointDiscoveryServiceServer(grpcServer, serverv3)
-	v3cluster.RegisterClusterDiscoveryServiceServer(grpcServer, serverv3)
-	v3route.RegisterRouteDiscoveryServiceServer(grpcServer, serverv3)
-	v3listener.RegisterListenerDiscoveryServiceServer(grpcServer, serverv3)
+	apiv3_svc_discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, serverv3)
+	apiv3_svc_endpoint.RegisterEndpointDiscoveryServiceServer(grpcServer, serverv3)
+	apiv3_svc_cluster.RegisterClusterDiscoveryServiceServer(grpcServer, serverv3)
+	apiv3_svc_route.RegisterRouteDiscoveryServiceServer(grpcServer, serverv3)
+	apiv3_svc_listener.RegisterListenerDiscoveryServiceServer(grpcServer, serverv3)
 
 	dlog.Infof(ctx, "Listening on %s:%s", adsNetwork, adsAddress)
 
@@ -374,7 +374,7 @@ func update(
 	configv3 ecp_v3_cache.SnapshotCache,
 	generation *int,
 	dirs []string,
-	edsEndpointsV3 map[string]*v3endpointconfig.ClusterLoadAssignment,
+	edsEndpointsV3 map[string]*apiv3_endpoint.ClusterLoadAssignment,
 	fastpathSnapshot *FastpathSnapshot,
 	updates chan<- Update,
 ) error {
@@ -408,16 +408,16 @@ func update(
 		}
 		var dst *[]ecp_cache_types.Resource
 		switch m.(type) {
-		case *v3clusterconfig.Cluster:
+		case *apiv3_cluster.Cluster:
 			dst = &clustersv3
-		case *v3routeconfig.RouteConfiguration:
+		case *apiv3_route.RouteConfiguration:
 			dst = &routesv3
-		case *v3listenerconfig.Listener:
+		case *apiv3_listener.Listener:
 			dst = &listenersv3
-		case *v3runtime.Runtime:
+		case *apiv3_svc_runtime.Runtime:
 			dst = &runtimesv3
-		case *v3bootstrap.Bootstrap:
-			bs := m.(*v3bootstrap.Bootstrap)
+		case *apiv3_bootstrap.Bootstrap:
+			bs := m.(*apiv3_bootstrap.Bootstrap)
 			sr := bs.StaticResources
 			for _, lst := range sr.Listeners {
 				// When the RouteConfiguration is embedded in the listener, it will cause envoy to
@@ -579,19 +579,19 @@ func (l logAdapterBase) OnStreamOpen(ctx context.Context, sid int64, stype strin
 }
 
 // OnStreamClosed implements ecp_v3_server.Callbacks.
-func (l logAdapterBase) OnStreamClosed(sid int64, node *v3core.Node) {
+func (l logAdapterBase) OnStreamClosed(sid int64, node *apiv3_core.Node) {
 	dlog.Debugf(context.TODO(), "%v Stream closed[%v]", l.prefix, sid)
 }
 
 // OnStreamRequest implements ecp_v3_server.Callbacks.
-func (l logAdapterV3) OnStreamRequest(sid int64, req *v3discovery.DiscoveryRequest) error {
+func (l logAdapterV3) OnStreamRequest(sid int64, req *apiv3_svc_discovery.DiscoveryRequest) error {
 	dlog.Debugf(context.TODO(), "V3 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
 	dlog.Debugf(context.TODO(), "V3 Stream request[%v] dump: %v", sid, req)
 	return nil
 }
 
 // OnStreamResponse implements ecp_v3_server.Callbacks.
-func (l logAdapterV3) OnStreamResponse(ctx context.Context, sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
+func (l logAdapterV3) OnStreamResponse(ctx context.Context, sid int64, req *apiv3_svc_discovery.DiscoveryRequest, res *apiv3_svc_discovery.DiscoveryResponse) {
 	dlog.Debugf(ctx, "V3 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
 	dlog.Debugf(ctx, "V3 Stream dump response[%v]: %v -> %v", sid, req, res)
 }
@@ -603,31 +603,31 @@ func (l logAdapterV3) OnDeltaStreamOpen(ctx context.Context, sid int64, stype st
 }
 
 // OnDeltaStreamClosed implements ecp_v3_server.Callbacks.
-func (l logAdapterV3) OnDeltaStreamClosed(sid int64, node *v3core.Node) {
+func (l logAdapterV3) OnDeltaStreamClosed(sid int64, node *apiv3_core.Node) {
 	dlog.Debugf(context.TODO(), "%v DeltaStream closed[%v]", l.prefix, sid)
 }
 
 // OnStreamDeltaRequest implements ecp_v3_server.Callbacks.
-func (l logAdapterV3) OnStreamDeltaRequest(sid int64, req *v3discovery.DeltaDiscoveryRequest) error {
+func (l logAdapterV3) OnStreamDeltaRequest(sid int64, req *apiv3_svc_discovery.DeltaDiscoveryRequest) error {
 	dlog.Debugf(context.TODO(), "V3 Stream DeltaRequest[%v] for type %s: subscribing for %d resources", sid, req.TypeUrl, len(req.ResourceNamesSubscribe))
 	dlog.Debugf(context.TODO(), "V3 Stream DeltaRequest[%v] dump: %v", sid, req)
 	return nil
 }
 
 // OnStreamDelatResponse implements ecp_v3_server.Callbacks.
-func (l logAdapterV3) OnStreamDeltaResponse(sid int64, req *v3discovery.DeltaDiscoveryRequest, res *v3discovery.DeltaDiscoveryResponse) {
+func (l logAdapterV3) OnStreamDeltaResponse(sid int64, req *apiv3_svc_discovery.DeltaDiscoveryRequest, res *apiv3_svc_discovery.DeltaDiscoveryResponse) {
 	dlog.Debugf(context.TODO(), "V3 Stream dump DeltaResponse[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
 	dlog.Debugf(context.TODO(), "V3 Stream dump DeltaResponse[%v]: %v -> %v", sid, req, res)
 }
 
 // OnFetchRequest implements ecp_v3_server.Callbacks.
-func (l logAdapterV3) OnFetchRequest(ctx context.Context, r *v3discovery.DiscoveryRequest) error {
+func (l logAdapterV3) OnFetchRequest(ctx context.Context, r *apiv3_svc_discovery.DiscoveryRequest) error {
 	dlog.Debugf(ctx, "V3 Fetch request: %v", r)
 	return nil
 }
 
 // OnFetchResponse implements ecp_v3_server.Callbacks.
-func (l logAdapterV3) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
+func (l logAdapterV3) OnFetchResponse(req *apiv3_svc_discovery.DiscoveryRequest, res *apiv3_svc_discovery.DiscoveryResponse) {
 	dlog.Debugf(context.TODO(), "V3 Fetch response: %v -> %v", req, res)
 }
 
@@ -697,7 +697,7 @@ func Main(
 	grp.Go("main-loop", func(ctx context.Context) error {
 		generation := 0
 		var fastpathSnapshot *FastpathSnapshot
-		edsEndpointsV3 := map[string]*v3endpointconfig.ClusterLoadAssignment{}
+		edsEndpointsV3 := map[string]*apiv3_endpoint.ClusterLoadAssignment{}
 
 		// We always start by updating with a totally empty snapshot.
 		//
