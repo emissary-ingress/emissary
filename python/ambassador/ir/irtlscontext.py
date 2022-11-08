@@ -1,6 +1,5 @@
 import base64
 import logging
-import os
 from typing import TYPE_CHECKING, ClassVar, Dict, List, Optional
 
 from ..config import Config

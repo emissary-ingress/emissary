@@ -1,4 +1,3 @@
-import json
 from typing import Generator, Literal, Tuple, Union
 
 from abstract_tests import ALSGRPC, HTTP, AmbassadorTest, Node, ServiceType

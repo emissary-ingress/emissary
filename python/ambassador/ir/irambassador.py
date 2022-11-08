@@ -11,8 +11,6 @@ from .irhttpmapping import IRHTTPMapping
 from .iripallowdeny import IRIPAllowDeny
 from .irresource import IRResource
 from .irretrypolicy import IRRetryPolicy
-from .irtls import IRAmbassadorTLS
-from .irtlscontext import IRTLSContext
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover

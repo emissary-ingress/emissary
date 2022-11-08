@@ -7,8 +7,6 @@ import pexpect
 import pytest
 import requests
 
-from tests.runutils import run_and_assert
-
 DOCKER_IMAGE = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
 
 child: Optional[pexpect.spawnbase.SpawnBase] = None  # see docker_start()

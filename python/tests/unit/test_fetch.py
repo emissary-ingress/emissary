@@ -12,7 +12,6 @@ logging.basicConfig(
 logger = logging.getLogger("ambassador")
 
 from ambassador import Config
-from ambassador.fetch import ResourceFetcher
 from ambassador.fetch.ambassador import AmbassadorProcessor
 from ambassador.fetch.dependency import (
     DependencyManager,
@@ -34,7 +33,6 @@ from ambassador.fetch.k8sprocessor import (
 )
 from ambassador.fetch.location import LocationManager
 from ambassador.fetch.resource import NormalizedResource, ResourceManager
-from ambassador.fetch.service import ServiceProcessor
 from ambassador.utils import parse_yaml
 
 

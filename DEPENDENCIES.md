@@ -149,7 +149,6 @@ libraries:
     PyYAML              5.4.1      MIT license
     Werkzeug            2.2.1      3-clause BSD license
     appdirs             1.4.4      MIT license
-    attrs               21.4.0     MIT license
     cachetools          5.0.0      MIT license
     certifi             2021.10.8  Mozilla Public License 2.0
     charset-normalizer  2.0.11     MIT license
@@ -169,7 +168,6 @@ libraries:
     itsdangerous        2.0.1      3-clause BSD license
     jsonpatch           1.32       3-clause BSD license
     jsonpointer         2.2        3-clause BSD license
-    jsonschema          4.4.0      MIT license
     kubernetes          21.7.0     Apache License 2.0
     lockfile            0.12.2     MIT license
     msgpack             1.0.2      Apache License 2.0
@@ -181,11 +179,9 @@ libraries:
     pip-tools           6.3.1      3-clause BSD license
     progress            1.6        ISC license
     prometheus-client   0.13.1     Apache License 2.0
-    protobuf            3.19.4     3-clause BSD license
     pyasn1              0.4.8      2-clause BSD license
     pyasn1-modules      0.2.8      2-clause BSD license
     pyparsing           2.4.7      MIT license
-    pyrsistent          0.18.1     MIT license
     python-dateutil     2.8.2      3-clause BSD license, Apache License 2.0
     python-json-logger  2.0.2      2-clause BSD license
     requests            2.27.1     Apache License 2.0

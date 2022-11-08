@@ -1,7 +1,6 @@
 from typing import FrozenSet
 
 from ..config import Config
-from ..utils import dump_json
 from .dependency import SecretDependency
 from .k8sobject import KubernetesGVK, KubernetesObject
 from .k8sprocessor import ManagedKubernetesProcessor
