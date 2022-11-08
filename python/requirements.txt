@@ -60,7 +60,7 @@ pyasn1-modules==0.2.8
     # via google-auth
 python-dateutil==2.8.2
     # via kubernetes
-python-json-logger==2.0.2
+python-json-logger==2.0.4
     # via -r requirements.in
 pyyaml==5.4.1
     # via
