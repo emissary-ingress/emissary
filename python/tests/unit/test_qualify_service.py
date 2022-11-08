@@ -14,7 +14,6 @@ logger = logging.getLogger("ambassador")
 
 from ambassador import IR, Config
 from ambassador.fetch import ResourceFetcher
-from ambassador.ir import IRResource
 from ambassador.ir.irbasemapping import normalize_service_name
 from ambassador.utils import NullSecretHandler
 

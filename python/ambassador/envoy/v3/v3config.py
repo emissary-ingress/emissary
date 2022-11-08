@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-import json
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from ...cache import Cache, NullCache
-from ..common import EnvoyConfig, sanitize_pre_json
+from ..common import EnvoyConfig
 from .v3_static_resources import V3StaticResources
 from .v3admin import V3Admin
 from .v3bootstrap import V3Bootstrap

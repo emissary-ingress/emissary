@@ -1,7 +1,5 @@
 import sys
-import time
 
-import pexpect
 import pytest
 
 from ambassador.utils import Timer

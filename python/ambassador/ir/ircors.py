@@ -2,7 +2,6 @@ import copy
 from typing import TYPE_CHECKING, Any, Dict
 
 from ..config import Config
-from ..utils import RichStatus
 from .irresource import IRResource
 
 if TYPE_CHECKING:

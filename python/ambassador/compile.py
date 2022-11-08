@@ -13,7 +13,7 @@
 # limitations under the License
 
 import logging
-from typing import Any, Dict, Optional, Union
+from typing import Dict, Optional, Union
 
 from .cache import Cache
 from .config import Config
@@ -21,7 +21,7 @@ from .envoy import EnvoyConfig
 from .fetch import ResourceFetcher
 from .ir import IR
 from .ir.ir import IRFileChecker
-from .utils import NullSecretHandler, SecretHandler, Timer
+from .utils import NullSecretHandler, SecretHandler
 
 
 def Compile(

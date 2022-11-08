@@ -1,24 +1,16 @@
 import json
 import logging
 import os
-import socket
 import subprocess
 import tempfile
-import time
 from base64 import b64encode
 from collections import namedtuple
 
-import requests
-import yaml
 from OpenSSL import crypto
-from retry import retry
 
 from ambassador import IR, Cache
 from ambassador.compile import Compile
 from ambassador.utils import NullSecretHandler
-from tests.kubeutils import apply_kube_artifacts
-from tests.manifests import cleartext_host_manifest
-from tests.runutils import run_and_assert
 
 logger = logging.getLogger("ambassador")
 

@@ -22,7 +22,6 @@ logger = logging.getLogger("ambassador")
 from ambassador import IR, Config
 from ambassador.envoy import EnvoyConfig
 from ambassador.fetch import ResourceFetcher
-from ambassador.ir.irerrorresponse import IRErrorResponse
 from ambassador.utils import NullSecretHandler
 
 headerecho_manifests = """

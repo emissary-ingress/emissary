@@ -1,10 +1,6 @@
-from typing import TYPE_CHECKING, Optional
-from typing import cast as typecast
+from typing import TYPE_CHECKING
 
 from ..config import Config
-from ..resource import Resource
-from ..utils import RichStatus
-from .ircluster import IRCluster
 from .irfilter import IRFilter
 
 if TYPE_CHECKING:

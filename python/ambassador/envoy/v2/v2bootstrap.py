@@ -5,7 +5,6 @@ from urllib.parse import urlparse
 
 from ...ir.ircluster import IRCluster
 from ...ir.irlogservice import IRLogService
-from ...ir.irratelimit import IRRateLimit
 from ...ir.irtracing import IRTracing
 from .v2cluster import V2Cluster
 

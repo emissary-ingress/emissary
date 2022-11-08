@@ -12,15 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 import logging
-import sys
-from os import environ
 from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Union
 from typing import cast as typecast
 
 from ...ir.irhost import IRHost
 from ...ir.irlistener import IRListener
 from ...ir.irtcpmappinggroup import IRTCPMappingGroup
-from ...utils import dump_json, parse_bool
+from ...utils import parse_bool
 from .v3httpfilter import V3HTTPFilter
 from .v3route import DictifiedV3Route, V3Route, V3RouteVariants, hostglob_matches, v3prettyroute
 from .v3tls import V3TLSContext

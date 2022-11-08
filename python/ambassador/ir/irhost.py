@@ -1,6 +1,4 @@
-import copy
-import os
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from ..config import Config
 from ..utils import SavedSecret, dump_json

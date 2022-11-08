@@ -5,7 +5,7 @@ import os
 import random
 import re
 import sys
-from typing import Any, Callable, Dict, List, Optional, OrderedDict, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, OrderedDict, Tuple
 
 import pytest
 import yaml
@@ -21,8 +21,7 @@ logger.setLevel(logging.DEBUG)
 
 from ambassador import IR, Cache, Config, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
-from ambassador.ir.ir import IRFileChecker
-from ambassador.utils import NullSecretHandler, SecretHandler, Timer
+from ambassador.utils import NullSecretHandler
 
 
 class Builder:

@@ -1,5 +1,4 @@
 from typing import TYPE_CHECKING, ClassVar, Dict, List, Optional, Tuple
-from typing import cast as typecast
 
 from ..config import Config
 from ..envoy.v2.v2cidrrange import CIDRRange

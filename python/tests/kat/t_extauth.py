@@ -1,8 +1,5 @@
 import json
-import os
 from typing import Generator, Literal, Tuple, Union
-
-import pytest
 
 from abstract_tests import AGRPC, AHTTP, HTTP, AmbassadorTest, Node, ServiceType, WebsocketEcho
 from ambassador import Config

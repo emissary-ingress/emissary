@@ -1,4 +1,3 @@
-import json
 from typing import Generator, Tuple, Union
 
 from abstract_tests import EGRPC, AmbassadorTest, Node, ServiceType
