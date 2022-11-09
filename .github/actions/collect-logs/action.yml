@@ -54,7 +54,7 @@ runs:
         fi
         cp /tmp/*.yaml /tmp/test-logs || true
     - name: "Upload Logs"
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: logs-${{ inputs.jobname }}
         path: /tmp/test-logs
