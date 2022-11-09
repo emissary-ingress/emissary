@@ -1,9 +1,9 @@
 name: generate-base-python
 on:
   schedule:
-    # run 15 minutes after midnight (UTC) weekly on sundays
+    # run at noon on sundays to prepare for monday
     # used https://crontab.guru/ to generate
-    - cron: '15 0 * * SUN'
+    - cron: '0 12 * * SUN'
 jobs:
   generate: ####################################################################
       runs-on: ubuntu-latest
@@ -23,7 +23,7 @@ jobs:
               install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
             fi
         - name: "Docker Login"
-          uses: docker/login-action@v1
+          uses: docker/login-action@v2
           with:
             registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
             username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
