@@ -49,7 +49,7 @@ View changelog - https://github.com/emissary-ingress/emissary/blob/master/charts
         "--jq=.url",
         "--repo="+get_gh_repo(),
         content_gittag])
-    print(f'::set-output name=url::{url}')
+    print(f'echo "url={url}" >> $GITHUB_OUTPUT')
 
 
 if __name__ == '__main__':
