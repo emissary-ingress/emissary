@@ -34,7 +34,7 @@ jobs:
         run: |
           # Set tag_majorminor
           tag_majorminor=$(git describe --tags --match='v*'|sed 's/^v//'|cut -d. -f1,2)
-          echo "::set-output name=tag_majorminor::${tag_majorminor}"
+          echo "tag_majorminor=${tag_majorminor}" >> $GITHUB_OUTPUT
 
           # Set branch_majorminor
           case "$GITHUB_REF" in
@@ -51,13 +51,13 @@ jobs:
           else
              branch_majorminor=${branch#release/v}
           fi
-          echo "::set-output name=branch_majorminor::${branch_majorminor}"
+          echo "branch_majorminor=${branch_majorminor}" >> $GITHUB_OUTPUT
 
           # Set relnotes_majorminor
           make tools/bin/yq
           relnotes_version=$(tools/bin/yq read docs/releaseNotes.yml items[0].version)
           relnotes_majorminor=$(cut -d. -f1,2 <<<"$relnotes_version")
-          echo "::set-output name=relnotes_majorminor::${relnotes_majorminor}"
+          echo "relnotes_majorminor=${relnotes_majorminor}" >> $GITHUB_OUTPUT
 
           declare -p tag_majorminor branch_majorminor relnotes_majorminor
       - name: Check version numbers
