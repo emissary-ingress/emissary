@@ -25,7 +25,7 @@ jobs:
           make release/push-chart
       - id: check-slack-webhook
         name: Assign slack webhook variable
-        run: echo '::set-output name=slack_webhook_url::${{secrets.SLACK_WEBHOOK_URL}}'
+        run: echo "slack_webhook_url=${{secrets.SLACK_WEBHOOK_URL}}" >> $GITHUB_OUTPUT
       - name: Slack notification
         if: steps.check-slack-webhook.outputs.slack_webhook_url && always()
         uses: edge/simple-slack-notify@master
@@ -65,7 +65,7 @@ jobs:
           make release/chart-create-gh-release
       - id: check-slack-webhook
         name: Assign slack webhook variable
-        run: echo '::set-output name=slack_webhook_url::${{secrets.SLACK_WEBHOOK_URL}}'
+        run: echo "slack_webhook_url=${{secrets.SLACK_WEBHOOK_URL}}" >> $GITHUB_OUTPUT
       - name: Slack notification
         if: steps.check-slack-webhook.outputs.slack_webhook_url && always()
         uses: edge/simple-slack-notify@master
