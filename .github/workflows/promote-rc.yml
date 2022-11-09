@@ -21,7 +21,7 @@ jobs:
       - name: "Install Deps"
         uses: ./.github/actions/setup-deps
       - name: "Docker Login"
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
@@ -29,11 +29,11 @@ jobs:
       - id: step-main
         run: |
           make release/promote-oss/to-rc
-          echo "::set-output name=version::$(go run ./tools/src/goversion | sed s/^v//)"
-          echo "::set-output name=chart_version::$(go run ./tools/src/goversion --dir-prefix=chart | sed s/^v//)"
+          echo "version=$(go run ./tools/src/goversion | sed s/^v//)" >> $GITHUB_OUTPUT
+          echo "chart_version=$(go run ./tools/src/goversion --dir-prefix=chart | sed s/^v//)" >> $GITHUB_OUTPUT
       - id: check-slack-webhook
         name: Assign slack webhook variable
-        run: echo '::set-output name=slack_webhook_url::${{secrets.SLACK_WEBHOOK_URL}}'
+        run: echo "slack_webhook_url=${{secrets.SLACK_WEBHOOK_URL}}" >> $GITHUB_OUTPUT
       - name: Slack notification
         if: steps.check-slack-webhook.outputs.slack_webhook_url && always()
         uses: edge/simple-slack-notify@master
