@@ -95,7 +95,7 @@ def main(release_version: str) -> int:
         "--jq=.url",
         "--repo="+get_gh_repo(),
         "v"+release_version])
-    print(f'::set-output name=url::{url}')
+    print(f'echo "url={url}" >> $GITHUB_OUTPUT')
     if os.getenv("AMBASSADOR_RELENG_NO_GUI") == '':
         print('Release info from github:')
         run(["gh", "release", "view", "--repo="+get_gh_repo(), f"v{release_version}"])
