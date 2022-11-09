@@ -16,7 +16,6 @@ import urllib
 from typing import TYPE_CHECKING, Dict, List, Union
 
 from ...cache import Cacheable
-from ...config import Config
 from ...ir.ircluster import IRCluster
 from .v3tls import V3TLSContext
 
@@ -52,7 +51,7 @@ class V3Cluster(Cacheable):
             # For now we are only allowing Logical_dns for the cluster since it is similar enough to strict_dns that we dont need any other config changes
             # It should be easy to add the other dns_types here in the future if we decide to support them
             if ctype not in ["STRICT_DNS", "LOGICAL_DNS"]:
-                cluster.ir.logger.warning(
+                cluster.ir.logger.error(
                     "dns_type %s, is an invalid type. Options are STRICT_DNS or LOGICAL_DNS. Using default of STRICT_DNS"
                     % (ctype)
                 )
@@ -73,6 +72,18 @@ class V3Cluster(Cacheable):
 
         if cluster.respect_dns_ttl:
             fields["respect_dns_ttl"] = cluster.respect_dns_ttl
+
+        # Don't feed the raw health_checks object to envoy, grab its config where the econf has already been built
+        if cluster.health_checks is not None:
+            health_checks_config = cluster.health_checks.config()
+            if health_checks_config is not None:
+                if ctype == "EDS":
+                    self["health_checks"] = health_checks_config
+                else:
+                    cluster.ir.logger.error(
+                        "health_checks configuration is only supported when using the endpoint resolver. Ignoring health_checks config for cluster: %s..."
+                        % (cluster.name)
+                    )
 
         if ctype == "EDS":
             fields["eds_cluster_config"] = {
@@ -203,19 +214,27 @@ class V3Cluster(Cacheable):
 
         if len(targetlist) > 0:
             for target in targetlist:
-                address = {
-                    "address": target["ip"],
-                    "port_value": target["port"],
-                    "protocol": "TCP",  # Yes, really. Envoy uses the TLS context to determine whether to originate TLS.
+                endpoint = {
+                    "address": {
+                        "socket_address": {
+                            "address": target["ip"],
+                            "port_value": target["port"],
+                            "protocol": "TCP",  # Yes, really. Envoy uses the TLS context to determine whether to originate TLS.
+                        }
+                    }
                 }
-                result.append({"endpoint": {"address": {"socket_address": address}}})
+                result.append({"endpoint": endpoint})
         else:
             for u in cluster.urls:
                 p = urllib.parse.urlparse(u)
-                address = {"address": p.hostname, "port_value": int(p.port)}
+                endpoint = {
+                    "address": {
+                        "socket_address": {"address": p.hostname, "port_value": int(p.port)}
+                    }
+                }
                 if p.scheme:
-                    address["protocol"] = p.scheme.upper()
-                result.append({"endpoint": {"address": {"socket_address": address}}})
+                    endpoint["address"]["socket_address"]["protocol"] = p.scheme.upper()
+                result.append({"endpoint": endpoint})
         return result
 
     def get_circuit_breakers(self, cluster: IRCluster):

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from typing import cast as typecast
 
 from ...cache import Cacheable
@@ -238,6 +238,16 @@ class V3RouteVariants:
     def action_redirect(self, variant) -> None:
         variant.pop("route", None)
         variant["redirect"] = {"https_redirect": True}
+        for filter in self.route._group.ir.filters:
+            if filter.kind == "IRAuth":
+                # Required to ensure that the redirect occurs prior to calling ext_authz
+                # when an AuthService is applied
+                variant["typed_per_filter_config"] = {
+                    "envoy.filters.http.ext_authz": {
+                        "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute",
+                        "disabled": True,
+                    }
+                }
 
 
 # Model an Envoy route.
@@ -368,7 +378,7 @@ class V3Route(Cacheable):
                         "response_map": {"mappers": filter_config["mappers"]},
                     }
 
-        if mapping.get("bypass_auth", False):
+        if mapping.get("bypass_auth", False) or (group.get("host_redirect", None) != None):
             typed_per_filter_config["envoy.filters.http.ext_authz"] = {
                 "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute",
                 "disabled": True,

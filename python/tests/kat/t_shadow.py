@@ -1,6 +1,6 @@
 from typing import ClassVar, Generator, Tuple, Union
 
-from abstract_tests import HTTP, AmbassadorTest, MappingTest, Node, ServiceType
+from abstract_tests import HTTP, MappingTest, Node, ServiceType
 from kat.harness import Query
 
 

@@ -1,7 +1,7 @@
 from typing import Generator, Tuple, Union
 
 from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
-from kat.harness import Query, variants
+from kat.harness import Query
 
 
 class RegexRewriteForwardingTest(AmbassadorTest):

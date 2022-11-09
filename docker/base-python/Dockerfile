@@ -39,7 +39,7 @@ RUN apk --no-cache add \
   libcap-dev \
   libffi-dev \
   ncurses=6.3_p20211120-r1 \
-  openssl-dev=1.1.1q-r0 \
+  openssl-dev~=1.1.1 \
   py3-pip=~20.3.4 \
   python3=~3.9.13 \
   python3-dev \
@@ -58,7 +58,7 @@ RUN apk --no-cache add \
 # 'python3' versions above.
 RUN pip3 install pip-tools==6.3.1
 
-RUN curl --fail -L https://dl.google.com/go/go1.19.2.linux-amd64.tar.gz | tar -C /usr/local -xzf -
+RUN curl --fail -L https://dl.google.com/go/go1.19.3.linux-amd64.tar.gz | tar -C /usr/local -xzf -
 
 RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.23.3/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
   chmod a+x /usr/bin/kubectl

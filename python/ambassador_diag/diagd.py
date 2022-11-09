@@ -31,13 +31,12 @@ import threading
 import time
 import traceback
 import uuid
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union
 from typing import cast as typecast
 
 import click
 import gunicorn.app.base
 import jsonpatch
-import orjson
 import requests
 from expiringdict import ExpiringDict
 from flask import Flask, Response
@@ -54,13 +53,10 @@ from ambassador.constants import Constants
 from ambassador.diagnostics import EnvoyStats, EnvoyStatsMgr
 from ambassador.fetch import ResourceFetcher
 from ambassador.ir.irambassador import IRAmbassador
-from ambassador.ir.irbasemapping import IRBaseMapping
 from ambassador.reconfig_stats import ReconfigStats
 from ambassador.utils import (
     FSSecretHandler,
-    KubewatchSecretHandler,
     PeriodicTrigger,
-    SavedSecret,
     SecretHandler,
     SystemInfo,
     Timer,
@@ -587,7 +583,6 @@ class DiagApp(Flask):
                     os.rename(from_path, to_path)
                 except IOError as e:
                     self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
-                    pass
                 except Exception as e:
                     self.logger.debug("could not rename %s -> %s: %s" % (from_path, to_path, e))
 
@@ -1767,7 +1762,6 @@ class AmbassadorEventWatcher(threading.Thread):
                     os.rename(from_path, to_path)
                 except IOError as e:
                     self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
-                    pass
                 except Exception as e:
                     self.logger.debug("could not rename %s -> %s: %s" % (from_path, to_path, e))
 

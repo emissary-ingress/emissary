@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple
 from typing import cast as typecast
 
 from ambassador.utils import RichStatus
@@ -276,6 +276,7 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
                 resolver=mapping.resolver,
                 ctx_name=mapping.get("tls", None),
                 dns_type=mapping.get("dns_type", "strict_dns"),
+                health_checks=mapping.get("health_checks", None),
                 host_rewrite=mapping.get("host_rewrite", False),
                 enable_ipv4=mapping.get("enable_ipv4", None),
                 enable_ipv6=mapping.get("enable_ipv6", None),

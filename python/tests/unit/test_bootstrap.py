@@ -1,7 +1,5 @@
 import os
 
-import pytest
-
 from tests.utils import assert_valid_envoy_config, econf_compile, module_and_mapping_manifests
 
 
@@ -20,7 +18,7 @@ def _test_bootstrap(yaml, expectations={}):
         if expected is None:
             assert key not in bootstrap
         else:
-            import json
+            pass
 
             assert key in bootstrap
             assert bootstrap[key] == expected

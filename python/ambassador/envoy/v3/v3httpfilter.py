@@ -13,7 +13,7 @@
 # limitations under the License
 import logging
 from functools import singledispatch
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 from typing import cast as typecast
 
 from ...ir.irauth import IRAuth

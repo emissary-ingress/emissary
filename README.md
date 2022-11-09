@@ -40,28 +40,10 @@ Branches
 (If you are looking at this list on a branch other than `master`, it
 may be out of date.)
 
-- [`master`](https://github.com/emissary-ingress/emissary/tree/master) - branch for Emissary-ingress 3.2.z work (:heavy_check_mark: upcoming release)
-- [`release/v3.1`](https://github.com/emissary-ingress/emissary/tree/release/v3.1) - branch for Emissary-ingress 3.1.z work (:heavy_check_mark: current latest)
-- [`release/v3.0`](https://github.com/emissary-ingress/emissary/tree/release/v3.0) - branch for Emissary-ingress 3.0.z work (:x: EOL; upgrade to 3.1.z)
-- [`release/v2.4`](https://github.com/emissary-ingress/emissary/tree/release/v2.4) - branch for Emissary-ingress 2.4.z work (:heavy_check_mark: upcoming release)
-- [`release/v2.3`](https://github.com/emissary-ingress/emissary/tree/release/v2.3) - branch for Emissary-ingress 2.3.z work (:heavy_check_mark: maintenance, supported through December 2022)
-- [`release/v2.2`](https://github.com/emissary-ingress/emissary/tree/release/v2.2) - branch for Emissary-ingress 2.2.z work (:x: EOL; upgrade to 2.3.z)
-- [`release/v2.1`](https://github.com/emissary-ingress/emissary/tree/release/v2.1) - branch for Emissary-ingress 2.1.z work (:x: EOL; upgrade to 2.3.z)
-- [`release/v2.0`](https://github.com/emissary-ingress/emissary/tree/release/v2.0) - branch for Emissary-ingress 2.0.z work (:x: EOL; upgrade to 2.3.z)
+- [`master`](https://github.com/emissary-ingress/emissary/tree/master) - branch for Emissary-ingress 3.3.z work (:heavy_check_mark: upcoming release)
+- [`release/v3.3`](https://github.com/emissary-ingress/emissary/tree/release/v3.3) - branch for Emissary-ingress 3.3.z work
+- [`release/v2.5`](https://github.com/emissary-ingress/emissary/tree/release/v2.5) - branch for Emissary-ingress 2.5.z work (:heavy_check_mark: upcoming release)
 - [`release/v1.14`](https://github.com/emissary-ingress/emissary/tree/release/v1.14) - branch for Emissary-ingress 1.14.z work (:heavy_check_mark: maintenance, supported through September 2022)
-- [`release/v1.13`](https://github.com/emissary-ingress/emissary/tree/release/v1.13) - branch for Emissary-ingress 1.13.z work (:x: EOL; upgrade to 1.14.z)
-- [`release/v1.12`](https://github.com/emissary-ingress/emissary/tree/release/v1.12) - branch for Ambassador API Gateway 1.12.z work (:x: EOL; upgrade to 1.14.z)
-- [`release/v1.11`](https://github.com/emissary-ingress/emissary/tree/release/v1.11) - branch for Ambassador API Gateway 1.11.z work (:x: EOL; upgrade to 1.14.z)
-- [`release/v1.10`](https://github.com/emissary-ingress/emissary/tree/release/v1.10) - branch for Ambassador API Gateway 1.10.z work (:x: EOL; upgrade to 1.14.z)
-- [`release/v1.9`](https://github.com/emissary-ingress/emissary/tree/release/v1.9) - branch for Ambassador API Gateway 1.9.z work (:x: EOL; upgrade to 1.14.z)
-- [`release/v1.8`](https://github.com/emissary-ingress/emissary/tree/release/v1.8) - branch for Ambassador API Gateway 1.8.z work (:x: EOL; upgrade to 1.14.z)
-- [`release/v1.7`](https://github.com/emissary-ingress/emissary/tree/release/v1.7) - branch for Ambassador API Gateway 1.7.z work (:x: EOL; upgrade to 1.14.z)
-- [`release/v1.6`](https://github.com/emissary-ingress/emissary/tree/release/v1.6) - branch for Ambassador API Gateway 1.6.z work (:x: EOL; upgrade to 1.14.z)
-- [`release/v1.5`](https://github.com/emissary-ingress/emissary/tree/release/v1.5) - branch for Ambassador API Gateway 1.5.z work (:x: EOL; upgrade to 1.14.z)
-- [`release/v1.4`](https://github.com/emissary-ingress/emissary/tree/release/v1.4) - branch for Ambassador API Gateway 1.4.z work (:x: EOL; upgrade to 1.14.z)
-- [`release/v1.3`](https://github.com/emissary-ingress/emissary/tree/release/v1.3) - branch for Ambassador API Gateway 1.3.z work (:x: EOL; upgrade to 1.14.z)
-- [`release/v1.2`](https://github.com/emissary-ingress/emissary/tree/release/v1.2) - branch for Ambassador API Gateway 1.2.z work (:x: EOL; upgrade to 1.14.z)
-- [`release/v1.1`](https://github.com/emissary-ingress/emissary/tree/release/v1.1) - branch for Ambassador API Gateway 1.1.z work (:x: EOL; upgrade to 1.14.z)
 
 Architecture
 ============

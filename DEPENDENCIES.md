@@ -3,7 +3,7 @@ following Free and Open Source software:
 
     Name                                                                                       Version                                      License(s)
     ----                                                                                       -------                                      ----------
-    the Go language standard library ("std")                                                   v1.19.2                                      3-clause BSD license
+    the Go language standard library ("std")                                                   v1.19.3                                      3-clause BSD license
     cloud.google.com/go/compute                                                                v1.2.0                                       Apache License 2.0
     github.com/Azure/go-ansiterm                                                               v0.0.0-20210617225240-d185dfc1b5a1           MIT license
     github.com/Azure/go-autorest                                                               v14.2.0+incompatible                         Apache License 2.0
@@ -103,7 +103,7 @@ following Free and Open Source software:
     golang.org/x/xerrors                                                                       v0.0.0-20200804184101-5ec99f83aff1           3-clause BSD license
     google.golang.org/appengine                                                                v1.6.7                                       Apache License 2.0
     google.golang.org/genproto                                                                 v0.0.0-20220204002441-d6cc3cc0770e           Apache License 2.0
-    google.golang.org/grpc                                                                     v1.50.0                                      Apache License 2.0
+    google.golang.org/grpc                                                                     v1.44.0                                      Apache License 2.0
     google.golang.org/grpc/cmd/protoc-gen-go-grpc                                              v1.2.0                                       Apache License 2.0
     google.golang.org/protobuf                                                                 v1.28.1                                      3-clause BSD license
     gopkg.in/inf.v0                                                                            v0.9.1                                       3-clause BSD license
@@ -145,7 +145,6 @@ libraries:
     PyYAML              5.4.1      MIT license
     Werkzeug            2.2.1      3-clause BSD license
     appdirs             1.4.4      MIT license
-    attrs               21.4.0     MIT license
     cachetools          5.0.0      MIT license
     certifi             2021.10.8  Mozilla Public License 2.0
     charset-normalizer  2.0.11     MIT license
@@ -165,7 +164,6 @@ libraries:
     itsdangerous        2.0.1      3-clause BSD license
     jsonpatch           1.32       3-clause BSD license
     jsonpointer         2.2        3-clause BSD license
-    jsonschema          4.4.0      MIT license
     kubernetes          21.7.0     Apache License 2.0
     lockfile            0.12.2     MIT license
     msgpack             1.0.2      Apache License 2.0
@@ -177,11 +175,9 @@ libraries:
     pip-tools           6.3.1      3-clause BSD license
     progress            1.6        ISC license
     prometheus-client   0.13.1     Apache License 2.0
-    protobuf            3.19.4     3-clause BSD license
     pyasn1              0.4.8      2-clause BSD license
     pyasn1-modules      0.2.8      2-clause BSD license
     pyparsing           2.4.7      MIT license
-    pyrsistent          0.18.1     MIT license
     python-dateutil     2.8.2      3-clause BSD license, Apache License 2.0
     python-json-logger  2.0.2      2-clause BSD license
     requests            2.27.1     Apache License 2.0

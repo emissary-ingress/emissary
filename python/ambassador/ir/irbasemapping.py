@@ -1,6 +1,5 @@
-import json
 import re
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from urllib.parse import quote as urlquote
 from urllib.parse import scheme_chars
 from urllib.parse import unquote as urlunquote

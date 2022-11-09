@@ -1,11 +1,7 @@
 import json
-import os
 from typing import Generator, Literal, Tuple, Union, cast
 
-import pytest
-
 from abstract_tests import AGRPC, AHTTP, HTTP, AmbassadorTest, Node, ServiceType, WebsocketEcho
-from ambassador import Config
 from kat.harness import EDGE_STACK, Query
 from tests.selfsigned import TLSCerts
 
@@ -1348,3 +1344,132 @@ service: {self.target.path.fqdn}
         assert self.results[3].backend.request.headers["kat-resp-extauth-protocol-version"] == [
             self.expected_protocol_version
         ]
+
+
+class AuthenticationDisabledOnRedirectTest(AmbassadorTest):
+    """
+    AuthenticationDisableOnRedirectTest: ensures that when a route is configured
+    for https_redirect or host_redirect that it will perform the redirect
+    without calling the AuthService (ext_authz).
+    """
+
+    target: ServiceType
+    auth: ServiceType
+
+    def init(self):
+        if EDGE_STACK:
+            self.xfail = "custom AuthServices not supported in Edge Stack"
+        self.target = HTTP()
+        self.auth = AHTTP(name="auth")
+        self.add_default_http_listener = False
+        self.add_default_https_listener = True
+
+    def manifests(self) -> str:
+        return (
+            self.format(
+                """
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-secret
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: """
+                + TLSCerts["localhost"].k8s_crt
+                + """
+  tls.key: """
+                + TLSCerts["localhost"].k8s_key
+                + """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: {self.path.k8s}
+spec:
+  ambassador_id: [{self.ambassador_id}]
+  port: 8080
+  protocol: HTTP
+  securityModel: XFP
+  l7Depth: 1
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: AuthService
+metadata:
+  name:  {self.auth.path.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  auth_service: "{self.auth.path.fqdn}"
+  proto: http
+  protocol_version: "v3"
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: {self.path.k8s}-host
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: {self.path.k8s}-secret
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name:  {self.target.path.k8s}
+spec:
+  ambassador_id: [{self.ambassador_id}]
+  hostname: "*"
+  prefix: /target/
+  service: {self.target.path.fqdn}
+  host_redirect: true
+"""
+            )
+            + super().manifests()
+        )
+
+    def requirements(self):
+        # The client doesn't follow redirects so we must force checks to
+        # match the XFP https route. The Listener is configured with
+        # l7depth: 1 so that Envoy trusts the header XFP header forwarded
+        # by the client.
+        yield (
+            "url",
+            Query(self.url("ambassador/v0/check_ready"), headers={"X-Forwarded-Proto": "https"}),
+        )
+        yield (
+            "url",
+            Query(self.url("ambassador/v0/check_alive"), headers={"X-Forwarded-Proto": "https"}),
+        )
+
+    def queries(self):
+        # send http request
+        yield Query(
+            self.url("target/", scheme="http"), headers={"X-Forwarded-Proto": "http"}, expected=301
+        )
+
+        # send https request
+        yield Query(
+            self.url("target/", scheme="https"),
+            insecure=True,
+            headers={"X-Forwarded-Proto": "https"},
+            expected=301,
+        )
+
+    def check(self):
+        # we should NOT make a call to the backend service,
+        # rather envoy should have redirected to https
+        assert self.results[0].backend is None
+        assert self.results[0].headers["Location"] == [f"https://{self.path.fqdn}/target/"]
+
+        assert self.results[1].backend is None
+        assert self.results[1].headers["Location"] == [f"https://{self.target.path.fqdn}/target/"]

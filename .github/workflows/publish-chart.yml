@@ -16,7 +16,7 @@ jobs:
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
       RELEASE_REGISTRY: ${{ secrets.RELEASE_REGISTRY }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: "Install Deps"
@@ -25,7 +25,7 @@ jobs:
           make release/push-chart
       - id: check-slack-webhook
         name: Assign slack webhook variable
-        run: echo '::set-output name=slack_webhook_url::${{secrets.SLACK_WEBHOOK_URL}}'
+        run: echo "slack_webhook_url=${{secrets.SLACK_WEBHOOK_URL}}" >> $GITHUB_OUTPUT
       - name: Slack notification
         if: steps.check-slack-webhook.outputs.slack_webhook_url && always()
         uses: edge/simple-slack-notify@master
@@ -51,7 +51,7 @@ jobs:
     env:
       GIT_TOKEN: ${{ secrets.GH_GITHUB_API_KEY }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: "Install Deps"
@@ -65,7 +65,7 @@ jobs:
           make release/chart-create-gh-release
       - id: check-slack-webhook
         name: Assign slack webhook variable
-        run: echo '::set-output name=slack_webhook_url::${{secrets.SLACK_WEBHOOK_URL}}'
+        run: echo "slack_webhook_url=${{secrets.SLACK_WEBHOOK_URL}}" >> $GITHUB_OUTPUT
       - name: Slack notification
         if: steps.check-slack-webhook.outputs.slack_webhook_url && always()
         uses: edge/simple-slack-notify@master

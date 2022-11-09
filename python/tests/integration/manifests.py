@@ -2,7 +2,7 @@ import json
 import os
 import subprocess
 from base64 import b64encode
-from typing import Dict, Final, Optional
+from typing import Dict, Optional
 
 
 def _get_images() -> Dict[str, str]:

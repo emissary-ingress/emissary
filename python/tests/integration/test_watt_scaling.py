@@ -6,7 +6,7 @@ import pytest
 from tests.integration.utils import get_code_with_retry, install_ambassador
 from tests.kubeutils import apply_kube_artifacts, delete_kube_artifacts
 from tests.manifests import qotm_manifests
-from tests.runutils import run_and_assert, run_with_retry
+from tests.runutils import run_and_assert
 
 
 class WattTesting:

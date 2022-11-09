@@ -85,13 +85,56 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
-## [3.2.1] TBD
-[3.2.1]: https://github.com/emissary-ingress/emissary/compare/v3.2.0...v3.2.1
+## [3.4.0] TBD
+[3.4.0]: https://github.com/emissary-ingress/emissary/compare/v3.3.0...v3.4.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Security: Updated Golang to the latest z patch. We are not vulnerable to the CVE-2022-3602 that
+  was  released in 1.19.3 and you can read more about it here:
+  <https://medium.com/ambassador-api-gateway/ambassador-labs-security-impact-assessment-of-nov-1-openssl-golang-vulnerabilities-f11b5ec37a7e>.
+  Updating to the latest z patch as part of our normal dependency update process and this will help
+  reduce the noise of security scanners.
+
+- Feature: It is now possible to configure active healhchecking for upstreams within a `Mapping`. If
+  the upstream fails its configured health check then Envoy will mark the upstream as unhealthy and
+  no longer send traffic to that upstream. Single pods within a group may can be marked as
+  unhealthy. The healthy pods will continue to receive traffic normally while the unhealthy pods
+  will not receive any traffic until they recover by passing the health check.
+
+## [3.3.0] November 02, 2022
+[3.3.0]: https://github.com/emissary-ingress/emissary/compare/v3.2.0...v3.3.0
 
 ### Emissary-ingress and Ambassador Edge Stack
 
 - Security: Updated Golang to 1.19.2 to address the CVEs: CVE-2022-2879, CVE-2022-2880,
   CVE-2022-41715.
+
+- Bugfix: By default Emissary-ingress adds routes for http to https redirection. When an AuthService
+  is applied in v2.Y of Emissary-ingress, Envoy would skip the ext_authz call for non-tls http
+  request and would perform the https redirect. In Envoy 1.20+ the behavior has changed where Envoy
+  will always call the ext_authz filter and must be disabled on a per route basis.
+  This new behavior
+  change introduced a regression in v3.0 of Emissary-ingress when it was upgraded to Envoy 1.22. The
+  http to https redirection no longer works when an AuthService was applied. This fix restores the
+  previous behavior by disabling the ext_authz call on the https redirect routes. ([#4620])
+
+- Bugfix: When an AuthService is applied in v2.Y of Emissary-ingress, Envoy would skip the ext_authz
+  call for all redirect routes and would perform the redirect. In Envoy 1.20+ the behavior has
+  changed where Envoy will always call the ext_authz filter so it must be disabled on a per route
+  basis.
+  This new behavior change introduced a regression in v3.0 of Emissary-ingress when it was
+  upgraded to Envoy 1.22. The host_redirect would call an AuthService prior to redirect if applied.
+  This fix restores the previous behavior by disabling the ext_authz call on the host_redirect
+  routes. ([#4640])
+
+- Bugfix: Previous versions of Emissary-ingress required a workaround using `TLSContexts` to find
+  tls secrets referenced from `Ingress` resources. Now tls secrets referenced are properly detected
+  without requiring an additional `TLSContext` to reference them. (Thanks to <a
+  href="https://github.com/olemarkus">Ole Markus</a>!).
+
+[#4620]: https://github.com/emissary-ingress/emissary/issues/4620
+[#4640]: https://github.com/emissary-ingress/emissary/issues/4640
 
 ## [3.2.0] September 26, 2022
 [3.2.0]: https://github.com/emissary-ingress/emissary/compare/v3.1.0...v3.2.0
@@ -112,7 +155,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   to `Mappings` you want to associate with the `Host`. You can opt-out of the new behaviour by
   setting the environment variable `DISABLE_STRICT_LABEL_SELECTORS` to `"true"` (default:
   `"false"`). (Thanks to <a href="https://github.com/f-herceg">Filip Herceg</a> and <a
-  href="https://github.com/dynajoe">Joe Andaverde</a>!).      
+  href="https://github.com/dynajoe">Joe Andaverde</a>!).
 
 - Feature: Previously the `Host` resource could only use secrets that are in the namespace as the
   Host. The `tlsSecret` field in the Host has a new subfield `namespace` that will allow the use of
@@ -120,7 +163,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 - Change: Set `AMBASSADOR_EDS_BYPASS` to `true` to bypass EDS handling of endpoints and have
   endpoints be inserted to clusters manually. This can help resolve with `503 UH` caused by
-  certification rotation relating to a delay between EDS + CDS. The default is `false`.     
+  certification rotation relating to a delay between EDS + CDS. The default is `false`.
 
 - Bugfix: Distinct services with names that are the same in the first forty characters will no
   longer be incorrectly mapped to the same cluster. ([#4354])

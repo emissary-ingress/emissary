@@ -1,6 +1,4 @@
-import copy
 import logging
-import sys
 
 import pytest
 
@@ -19,6 +17,13 @@ from ambassador import IR, Config, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
 from tests.utils import default_listener_manifests
+
+
+def _assert_ext_auth_disabled(route):
+    assert route
+    per_filter_config = route.get("typed_per_filter_config")
+    assert per_filter_config.get("envoy.filters.http.ext_authz")
+    assert per_filter_config.get("envoy.filters.http.ext_authz").get("disabled") == True
 
 
 def _get_ext_auth_config(yaml):
@@ -170,3 +175,82 @@ spec:
         errors[0]["error"]
         == 'AuthService: protocol_version v2 is unsupported, protocol_version must be "v3"'
     )
+
+
+@pytest.mark.compilertest
+def test_basic_http_redirect_with_no_authservice():
+    """Test that http --> https redirect route exists when no AuthService is provided
+    and verify that the typed_per_filter_config is NOT included
+    """
+
+    yaml = """
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  hostname: "*"
+  prefix: /httpbin/
+  service: httpbin
+    """
+    econf = _get_envoy_config(yaml)
+
+    for rv in econf.route_variants:
+        if rv.route.get("match").get("prefix") == "/httpbin/":
+            xfp_http_redirect = rv.variants.get("xfp-http-redirect")
+            assert xfp_http_redirect
+            assert "redirect" in xfp_http_redirect
+            assert "typed_per_filter_config" not in xfp_http_redirect
+
+
+@pytest.mark.compilertest
+def test_redirects_disables_ext_authz():
+    """Test that the ext_authz is disabled on envoy redirect routes
+    for https_redirects and host_redirects. This is to ensure that the
+    redirect occurs before making any calls to the ext_authz service
+    """
+
+    if EDGE_STACK:
+        pytest.xfail("XFailing for now, custom AuthServices not supported in Edge Stack")
+
+    yaml = """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: AuthService
+metadata:
+  name:  mycoolauthservice
+  namespace: default
+spec:
+  auth_service: someservice
+  proto: grpc
+  protocol_version: v3
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  hostname: "*"
+  prefix: /httpbin/
+  service: httpbin
+  host_redirect: true
+    """
+    econf = _get_envoy_config(yaml)
+
+    # check https_redirect variant route
+    for rv in econf.route_variants:
+        if rv.route.get("match").get("prefix") == "/httpbin/":
+            xfp_http_redirect = rv.variants.get("xfp-http-redirect")
+            assert xfp_http_redirect
+            assert "redirect" in xfp_http_redirect
+            _assert_ext_auth_disabled(xfp_http_redirect)
+
+    # check host_redirect route
+    for route in econf.routes:
+        if route.get("match").get("prefix") == "/httpbin/":
+            redirect = route.get("redirect")
+            assert redirect
+            assert redirect.get("host_redirect") == "httpbin"
+            _assert_ext_auth_disabled(route)

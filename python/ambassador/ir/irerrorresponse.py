@@ -1,5 +1,4 @@
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional
-from typing import cast as typecast
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from ..config import Config
 from .irfilter import IRFilter
@@ -138,7 +137,7 @@ class IRErrorResponse(IRFilter):
         self._setup(ir, aconf)
         return True
 
-    def _setup(self, ir: "IR", aconf: Config):
+    def _setup(self, ir: "IR", aconf: Config) -> None:
         # Do nothing (and post no errors) if there's no config.
         if not self._ir_config:
             return

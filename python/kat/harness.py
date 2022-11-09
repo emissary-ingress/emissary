@@ -13,19 +13,7 @@ from abc import ABC
 from collections import OrderedDict
 from functools import singledispatch
 from hashlib import sha256
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    NamedTuple,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
+from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Tuple, Type, Union, cast
 
 import pytest
 import yaml as pyyaml
@@ -35,7 +23,6 @@ from yaml.scanner import ScannerError as YAMLScanError
 
 import tests.integration.manifests as integration_manifests
 from ambassador.utils import parse_bool
-from tests.kubeutils import apply_kube_artifacts
 from tests.manifests import cleartext_host_manifest, default_listener_manifest
 
 from .parser import SequenceView, Tag, dump, load
@@ -865,17 +852,29 @@ class Result:
                     ("'%s'" % self.error) if self.error else "no error",
                 )
             else:
-                if self.query.expected != self.status:
-                    self.parent.log_kube_artifacts()
+                if isinstance(self.query.expected, list):
+                    if self.status not in self.query.expected:
+                        self.parent.log_kube_artifacts()
+                    assert (
+                        self.status in self.query.expected
+                    ), "%s: expected status code %s, got %s instead with error %s" % (
+                        self.query.url,
+                        self.query.expected,
+                        self.status,
+                        self.error,
+                    )
+                else:
 
-                assert (
-                    self.query.expected == self.status
-                ), "%s: expected status code %s, got %s instead with error %s" % (
-                    self.query.url,
-                    self.query.expected,
-                    self.status,
-                    self.error,
-                )
+                    if self.query.expected != self.status:
+                        self.parent.log_kube_artifacts()
+                    assert (
+                        self.query.expected == self.status
+                    ), "%s: expected status code %s, got %s instead with error %s" % (
+                        self.query.url,
+                        self.query.expected,
+                        self.status,
+                        self.error,
+                    )
 
     def as_dict(self) -> Dict[str, Any]:
         od = {
