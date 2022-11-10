@@ -40,8 +40,10 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local
 #   forced-bumps: 0
 #
 # The exception to this is that we pin 'python3' and 'py3-pip' because
-# we have other code that will need to change if those versions
-# change.
+# the 'pip-tools' version below will also need to change if those
+# versions change.  And even then, don't get more precise with the
+# version number than we need to ensure that the pip-tools version
+# agrees.
 RUN apk --no-cache add \
   bash \
   gcc \
@@ -58,8 +60,8 @@ RUN apk --no-cache add \
   libffi-dev \
   ncurses \
   openssl-dev \
-  py3-pip=~20.3.4 \
-  python3=~3.9.13 \
+  py3-pip=~20.3 \
+  python3=~3.9 \
   python3-dev \
   rust \
   cargo \
