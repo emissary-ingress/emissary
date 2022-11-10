@@ -24,12 +24,30 @@ WORKDIR /buildroot
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
 
+# For the most-part, you should not pin specific versions in this
+# `apk` command; it will always choose the latest version being
+# shipped by pinned version of Alpine.  This will automatically pull
+# in any patches, but not breaking changes.
+#
+# Because of how we cache the base image
+# (`docker/base-python.docker.gen`), it'll keep selected versions
+# around for a week.  If there's a security patch that we want to pull
+# in without waiting a week for the cache to roll over, instead of
+# fussing with pinning a specific package version, simply make an
+# inconsequential change that changes the file's checksum (such as
+# bumping this comment):
+#
+#   forced-bumps: 0
+#
+# The exception to this is that we pin 'python3' and 'py3-pip' because
+# we have other code that will need to change if those versions
+# change.
 RUN apk --no-cache add \
   bash \
   gcc \
   make \
   musl-dev \
-  curl=~7.80 \
+  curl \
   cython \
   docker-cli \
   git \
@@ -38,8 +56,8 @@ RUN apk --no-cache add \
   libcap \
   libcap-dev \
   libffi-dev \
-  ncurses=6.3_p20211120-r1 \
-  openssl-dev=1.1.1q-r0 \
+  ncurses \
+  openssl-dev \
   py3-pip=~20.3.4 \
   python3=~3.9.13 \
   python3-dev \
