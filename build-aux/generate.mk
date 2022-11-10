@@ -206,119 +206,16 @@ $(OSS_HOME)/%/zz_generated.conversion.go: $(tools/conversion-gen) build-aux/copy
 # when generating code for v1.
 $(OSS_HOME)/pkg/api/getambassador.io/v1/zz_generated.conversion.go: $(OSS_HOME)/pkg/api/getambassador.io/v2/zz_generated.conversion.go
 
-$(OSS_HOME)/%/handwritten.conversion.scaffold.go: $(OSS_HOME)/%/zz_generated.conversion.go
-	{ \
-	  gawk ' \
-	    BEGIN { \
-	      print("//+build scaffold"); \
-	      print(""); \
-	      print("package $(notdir $*)"); \
-	      inFunc=0; \
-	      curFunc=""; \
-	    } \
-	    match($$0, /^func auto(Convert_[^(]+)(\(.*)/, m) { \
-	      if (inFunc) { \
-	        print("  return nil"); \
-	        print("}"); \
-	        print(""); \
-	        inFunc=0; \
-	      } \
-	      curFunc=\
-	        "func " m[1] m[2] \
-	        "  if err := auto" m[1] "(in, out, s); err != nil {" \
-	        "    return err" \
-	        "  }"; \
-	    } \
-	    /INFO|WARN/ { \
-	      if (!inFunc) { \
-	        print(curFunc); \
-	        inFunc=1; \
-	      } \
-	      print; \
-	    } \
-	    END { \
-	      if (inFunc) { \
-	        print("  return nil"); \
-	        print("}"); \
-	      } \
-	    }' | \
-	  gofmt; \
-	} <$< >$@
+$(OSS_HOME)/%/handwritten.conversion.scaffold.go: $(OSS_HOME)/%/zz_generated.conversion.go build-aux/conversion-scaffold.go.awk
+	gawk -v pkgname=$(notdir $*) -f build-aux/conversion-scaffold.go.awk <$< | gofmt >$@
 
-$(OSS_HOME)/%/zz_generated.conversion-hub.go: FORCE
+$(OSS_HOME)/%/zz_generated.conversion-hub.go: build-aux/conversion-hub.go.awk FORCE
 	rm -f $@
-	{ \
-	  gawk ' \
-	    BEGIN { \
-	       print("package $(notdir $*)"); \
-	       print(""); \
-	       object=0; \
-	    } \
-	    /\/\/ \+kubebuilder:object:root=true/ { \
-	       object=1; \
-	    } \
-	    /^type \S+ struct/ && object { \
-	        if (!match($$2, /List$$/)) { \
-	          print "func(*" $$2 ") Hub() {}"; \
-	        } \
-	        object=0; \
-	    }' $(sort $(wildcard $(@D)/*.go)) | \
-	  gofmt; \
-	} >$@
+	gawk -v pkgname=$(notdir $*) -f build-aux/conversion-hub.go.awk $(sort $(wildcard $(@D)/*.go)) | gofmt >$@
 
-$(OSS_HOME)/%/zz_generated.conversion-spoke.go: FORCE
+$(OSS_HOME)/%/zz_generated.conversion-spoke.go: build-aux/conversion-spoke.go.awk FORCE
 	rm -f $@
-	{ \
-	  gawk ' \
-	    BEGIN { \
-	       print("package $(notdir $*)"); \
-	       print(""); \
-	       print("import ("); \
-	       print("  k8sRuntime \"k8s.io/apimachinery/pkg/runtime\""); \
-	       print("  \"sigs.k8s.io/controller-runtime/pkg/conversion\""); \
-	       print(")"); \
-	       print(""); \
-	       print("func convertFrom(src conversion.Hub, dst conversion.Convertible) error {"); \
-	       print("  scheme := conversionScheme()"); \
-	       print("  var cur k8sRuntime.Object = src"); \
-	       print("  for i := len(conversionIntermediates) - 1; i >= 0; i-- {"); \
-	       print("    gv := conversionIntermediates[i]"); \
-	       print("    var err error"); \
-	       print("    cur, err = scheme.ConvertToVersion(cur, gv)"); \
-	       print("    if err != nil {"); \
-	       print("      return err"); \
-	       print("    }"); \
-	       print("  }"); \
-	       print("  return scheme.Convert(cur, dst, nil)"); \
-	       print("}"); \
-	       print(""); \
-	       print("func convertTo(src conversion.Convertible, dst conversion.Hub) error {"); \
-	       print("  scheme := conversionScheme()"); \
-	       print("  var cur k8sRuntime.Object = src"); \
-	       print("  for _, gv := range conversionIntermediates {"); \
-	       print("    var err error"); \
-	       print("    cur, err = scheme.ConvertToVersion(cur, gv)"); \
-	       print("    if err != nil {"); \
-	       print("      return err"); \
-	       print("    }"); \
-	       print("  }"); \
-	       print("  return scheme.Convert(cur, dst, nil)"); \
-	       print("}"); \
-	       print(""); \
-	       object=0; \
-	    } \
-	    /\/\/ \+kubebuilder:object:root=true/ { \
-	       object=1; \
-	    } \
-	    /^type \S+ struct/ && object { \
-	        if (!match($$2, /List$$/)) { \
-	          print "func(dst *" $$2 ") ConvertFrom(src conversion.Hub) error { return convertFrom(src, dst) }"; \
-	          print "func(src *" $$2 ") ConvertTo(dst conversion.Hub) error { return convertTo(src, dst) }"; \
-	        } \
-	        object=0; \
-	    }' $(sort $(wildcard $(@D)/*.go)) | \
-	  gofmt; \
-	} >$@
+	gawk -v pkgname=$(notdir $*) -f build-aux/conversion-spoke.go.awk $(sort $(wildcard $(@D)/*.go)) | gofmt >$@
 
 $(OSS_HOME)/manifests/emissary/emissary-crds.yaml.in: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) --target=apiserver-kubectl $(sort $(wildcard $</*.yaml)) >$@
