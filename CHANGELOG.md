@@ -96,6 +96,8 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   3.1 of Emissary-ingress. The fix has been backported to make sure the AuthService is handled
   correctly during upgrades.
 
+- Security: Bump Go from 1.17.12 to 1.19.2. This is to keep the Go version current.
+
 ## [2.4.0] September 19, 2022
 [2.4.0]: https://github.com/emissary-ingress/emissary/compare/v2.3.2...v2.4.0
 
