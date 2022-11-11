@@ -40,35 +40,36 @@ const _ = proto.ProtoPackageIsVersion4
 //
 // .. code::
 //
-//   clusters:
-//     - name: some_service
-//       connect_timeout: 5s
-//       upstream_http_protocol_options:
-//         auto_sni: true
-//       common_http_protocol_options:
-//         idle_timeout: 1s
-//       http2_protocol_options:
-//         max_concurrent_streams: 100
-//        .... [further cluster config]
+//	clusters:
+//	  - name: some_service
+//	    connect_timeout: 5s
+//	    upstream_http_protocol_options:
+//	      auto_sni: true
+//	    common_http_protocol_options:
+//	      idle_timeout: 1s
+//	    http2_protocol_options:
+//	      max_concurrent_streams: 100
+//	     .... [further cluster config]
 //
 // Would now look like this:
 //
 // .. code::
 //
-//   clusters:
-//     - name: some_service
-//       connect_timeout: 5s
-//       typed_extension_protocol_options:
-//         envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
-//           "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
-//           upstream_http_protocol_options:
-//             auto_sni: true
-//           common_http_protocol_options:
-//             idle_timeout: 1s
-//           explicit_http_config:
-//             http2_protocol_options:
-//               max_concurrent_streams: 100
-//        .... [further cluster config]
+//	clusters:
+//	  - name: some_service
+//	    connect_timeout: 5s
+//	    typed_extension_protocol_options:
+//	      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+//	        "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+//	        upstream_http_protocol_options:
+//	          auto_sni: true
+//	        common_http_protocol_options:
+//	          idle_timeout: 1s
+//	        explicit_http_config:
+//	          http2_protocol_options:
+//	            max_concurrent_streams: 100
+//	     .... [further cluster config]
+//
 // [#next-free-field: 6]
 type HttpProtocolOptions struct {
 	state         protoimpl.MessageState

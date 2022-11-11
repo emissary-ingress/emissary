@@ -88,40 +88,49 @@ func (RBAC_Action) EnumDescriptor() ([]byte, []int) {
 //
 // Here is an example of RBAC configuration. It has two policies:
 //
-// * Service account "cluster.local/ns/default/sa/admin" has full access to the service, and so
-//   does "cluster.local/ns/default/sa/superuser".
+//   - Service account "cluster.local/ns/default/sa/admin" has full access to the service, and so
+//     does "cluster.local/ns/default/sa/superuser".
 //
-// * Any user can read ("GET") the service at paths with prefix "/products", so long as the
-//   destination port is either 80 or 443.
+//   - Any user can read ("GET") the service at paths with prefix "/products", so long as the
+//     destination port is either 80 or 443.
 //
-//  .. code-block:: yaml
+//     .. code-block:: yaml
 //
-//   action: ALLOW
-//   policies:
+//     action: ALLOW
+//     policies:
 //     "service-admin":
-//       permissions:
-//         - any: true
-//       principals:
-//         - authenticated:
-//             principal_name:
-//               exact: "cluster.local/ns/default/sa/admin"
-//         - authenticated:
-//             principal_name:
-//               exact: "cluster.local/ns/default/sa/superuser"
-//     "product-viewer":
-//       permissions:
-//           - and_rules:
-//               rules:
-//                 - header: { name: ":method", exact_match: "GET" }
-//                 - url_path:
-//                     path: { prefix: "/products" }
-//                 - or_rules:
-//                     rules:
-//                       - destination_port: 80
-//                       - destination_port: 443
-//       principals:
-//         - any: true
+//     permissions:
 //
+//   - any: true
+//     principals:
+//
+//   - authenticated:
+//     principal_name:
+//     exact: "cluster.local/ns/default/sa/admin"
+//
+//   - authenticated:
+//     principal_name:
+//     exact: "cluster.local/ns/default/sa/superuser"
+//     "product-viewer":
+//     permissions:
+//
+//   - and_rules:
+//     rules:
+//
+//   - header: { name: ":method", exact_match: "GET" }
+//
+//   - url_path:
+//     path: { prefix: "/products" }
+//
+//   - or_rules:
+//     rules:
+//
+//   - destination_port: 80
+//
+//   - destination_port: 443
+//     principals:
+//
+//   - any: true
 type RBAC struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

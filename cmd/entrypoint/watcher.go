@@ -146,38 +146,40 @@ type FastpathProcessor func(context.Context, *ambex.FastpathSnapshot)
 // might expect. There are two really huge things you should be bearing in mind if you
 // need to work on this:
 //
-// 1. The set of things we're watching is not static, but it must converge.
+//  1. The set of things we're watching is not static, but it must converge.
 //
-//		An example: you can set up a Kubernetes watch that finds a KubernetesConsulResolver
-//		resource, which will then prompt a new Consul watch to happen. At present, nothing
-//		that that Consul watch could find is capable of prompting a new Kubernetes watch to
-//		be created. This is important: it would be fairly easy to change things such that
-//		there is a feedback loop where the set of things we watch does not converge on a
-//		stable set. If such a loop exists, fixing it will probably require grokking this
-//		watcher function, kates.Accumulator, and maybe the reconcilers in consul.go and
-//		endpoints.go as well.
+//     An example: you can set up a Kubernetes watch that finds a KubernetesConsulResolver
+//     resource, which will then prompt a new Consul watch to happen. At present, nothing
+//     that that Consul watch could find is capable of prompting a new Kubernetes watch to
+//     be created. This is important: it would be fairly easy to change things such that
+//     there is a feedback loop where the set of things we watch does not converge on a
+//     stable set. If such a loop exists, fixing it will probably require grokking this
+//     watcher function, kates.Accumulator, and maybe the reconcilers in consul.go and
+//     endpoints.go as well.
 //
-//	 2. No one source of input events can be allowed to alter the event stream for another
-//	    source.
+//  2. No one source of input events can be allowed to alter the event stream for another
+//     source.
 //
-//	    An example: at one point, a bug in the watcher function resulted in the Kubernetes
-//	    watcher being able to decide to short-circuit a watcher iteration -- which had the
-//	    effect of allowing the K8s watcher to cause _Consul_ events to be ignored. That's
-//	    not OK. To guard against this:
+//     An example: at one point, a bug in the watcher function resulted in the Kubernetes
+//     watcher being able to decide to short-circuit a watcher iteration -- which had the
+//     effect of allowing the K8s watcher to cause _Consul_ events to be ignored. That's
+//     not OK. To guard against this:
 //
-//	    A. Refrain from adding state to the watcher loop.
-//	    B. Try very very hard to keep logic that applies to a single source within that
-//	    source's specific case in the watcher's select statement.
-//	    C. Don't add any more select statements, so that B. above is unambiguous.
+//     A. Refrain from adding state to the watcher loop.
 //
-//	 3. If you add a new channel to watch, you MUST make sure it has a way to let the loop
-//	    know whether it saw real changes, so that the short-circuit logic works correctly.
-//	    That said, recognize that the way it works now, with the state for the individual
-//	    watchers in the watcher() function itself is a crock, and the path forward is to
-//	    refactor them into classes that can separate things more cleanly.
+//     B. Try very very hard to keep logic that applies to a single source within that
+//     source's specific case in the watcher's select statement.
 //
-//	 4. If you don't fully understand everything above, _do not touch this function without
-//	    guidance_.
+//     C. Don't add any more select statements, so that B. above is unambiguous.
+//
+//  3. If you add a new channel to watch, you MUST make sure it has a way to let the loop
+//     know whether it saw real changes, so that the short-circuit logic works correctly.
+//     That said, recognize that the way it works now, with the state for the individual
+//     watchers in the watcher() function itself is a crock, and the path forward is to
+//     refactor them into classes that can separate things more cleanly.
+//
+//  4. If you don't fully understand everything above, _do not touch this function without
+//     guidance_.
 func watchAllTheThingsInternal(
 	ctx context.Context,
 	encoded *atomic.Value,
