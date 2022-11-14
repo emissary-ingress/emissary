@@ -29,7 +29,7 @@ of the following (also listed in alphabetical order):
 
 ## Maintainers Emeriti
 
-* Aidan Hahn ([aidanhahn](https://github.com/aidanhahn))
+* Ava Hahn ([aidanhahn](https://github.com/aidanhahn))
 * Alix Cook  ([acookin](https://github.com/acookin))
 * John Esmet ([esmet](https://github.com/esmet))
 
