@@ -28,7 +28,8 @@
 #
 # See the gitmailmap(5) man-page for more information.
 
-# Current Ambassador Labs employees
+# Current Ambassador Labs employees/contractors
+# (i.e. @datawire.io is the proper email to use)
 Alex Gervais <alex@datawire.io>
 Alex Gervais <alex@datawire.io>                        <alex.gervais@gmail.com>
 Alex Gervais <alex@datawire.io>                        <alexandre.gervais@appdirect.com>
@@ -50,13 +51,15 @@ Rafael Schloming <rhs@datawire.io>                     <rhs@alum.mit.edu>
 Thomas Hallgren <thomas@datawire.io>                   <thomas@tada.se>
 William Hardin <williamhardin@datawire.io>             <47009048+w-h37@users.noreply.github.com>
 
-# Former Ambassador Labs employees (without a new address)
+# Former Ambassador Labs employees/contractors (without a new address)
+# (i.e. @datawire.io is the proper email to use until we hear back about their preferred email)
 Alix Cook <alixcook@datawire.io>                       <73843761+acookin@users.noreply.github.com>
 Douglas Camata <dcamata@datawire.io>                   <159076+douglascamata@users.noreply.github.com>
 Leonardo Luz Almeida <leonardoluz@datawire.io>         <leoluz@users.noreply.github.com>
 Matt McClure <mattmcclure@datawire.io>                 <73489204+mattmcclure-dw@users.noreply.github.com>
 
-# Former Ambassador Labs employees (with a new address)
+# Former Ambassador Labs employees/contractors (with a new address)
+# (i.e. @datawire.io is *not* the proper email to use)
 Abhay Saxena <ark3@email.com>                          <ark3@datawire.io>
 Alice Nodelman <alice@nodelman.net>
 Alice Nodelman <alice@nodelman.net>                    <anode@boat.local>
@@ -92,7 +95,10 @@ Stephanie Coyle <stephaniecoyle391@gmail.com>
 Stephanie Coyle <stephaniecoyle391@gmail.com>          <55929576+scoyle391@users.noreply.github.com>
 Stephanie Coyle <stephaniecoyle391@gmail.com>          <scoyle@datawire.io>
 
-# Outside contributors (inconsistent email -- did I choosed the correct email?)
+# Outside contributors (i.e. people who never had an @datawire.io email)
+# (actually, Dan Sipple was a contractor, but he never had an @datawire.io email)
+
+## inconsistent email -- did I choosed the correct email?
 Brandon Catcho <bcatcho@doubledutch.me>                <bcatcho@gmail.com>
 Christoph Grossegger <christoph.grossegger@gmail.com>  <christoph@dust-bit-games.com>
 Dan Sipple <dsipple@etsy.com>                          <sipple.dan@gmail.com>
@@ -108,12 +114,12 @@ Romario Maxwell <maxwellra@jncb.com>                   <romario.maxwell@gmail.co
 Wenhua Zhao <whzhao@gmail.com>                         <wenhuaz@splunk.com>
 n1koo <niko.kurtti@interdax.com>                       <niko@kurtti@eu>
 
-# Outside contributors (inconsistent name)
+## inconsistent name
 Kevin Dagostino <kevin@tonkworks.com>
 Kowalczyk Bartek <bkowalczyyk@gmail.com>
 Mohit Sharma <imoisharma@icloud.com>
 
-# Outside contributors (just @users.norely.github.com substitutions)
+## just @users.norely.github.com substitutions
 Jordan Neufeld <jordan.neufeld@nfl.com>                <neufeldtech@users.noreply.github.com>
 Mark Davydov <mark@monday.com>                         <markrity@users.noreply.github.com>
 Markus Jevring <markus.jevring@sesamecare.com>         <58325443+markusjevringsesame@users.noreply.github.com>
