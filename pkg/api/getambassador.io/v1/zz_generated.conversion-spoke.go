@@ -1,4 +1,4 @@
-package v2
+package v1
 
 import (
 	k8sRuntime "k8s.io/apimachinery/pkg/runtime"
@@ -36,8 +36,6 @@ func (dst *AuthService) ConvertFrom(src conversion.Hub) error      { return conv
 func (src *AuthService) ConvertTo(dst conversion.Hub) error        { return convertTo(src, dst) }
 func (dst *DevPortal) ConvertFrom(src conversion.Hub) error        { return convertFrom(src, dst) }
 func (src *DevPortal) ConvertTo(dst conversion.Hub) error          { return convertTo(src, dst) }
-func (dst *Host) ConvertFrom(src conversion.Hub) error             { return convertFrom(src, dst) }
-func (src *Host) ConvertTo(dst conversion.Hub) error               { return convertTo(src, dst) }
 func (dst *LogService) ConvertFrom(src conversion.Hub) error       { return convertFrom(src, dst) }
 func (src *LogService) ConvertTo(dst conversion.Hub) error         { return convertTo(src, dst) }
 func (dst *Mapping) ConvertFrom(src conversion.Hub) error          { return convertFrom(src, dst) }

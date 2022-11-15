@@ -1,0 +1,140 @@
+- apiVersion: "getambassador.io/v1"
+  kind: "TCPMapping"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "tcpmapping-base"
+      namespace: "default"
+  spec:
+      port: 6789
+      service: "tcpmapping-base:80"
+- apiVersion: "getambassador.io/v1"
+  kind: "TCPMapping"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "tcpmapping-breakers-defined"
+      namespace: "default"
+  spec:
+      circuit_breakers:
+          -   max_connections: 1
+              max_pending_requests: 1
+              priority: "default"
+      port: 6790
+      service: "tcpmapping-breakers-defined"
+- apiVersion: "getambassador.io/v1"
+  kind: "TCPMapping"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "tcpmapping-absent-breakers"
+      namespace: "default"
+  spec:
+      circuit_breakers: [ {} ]
+      port: 6790
+      service: "tcpmapping-absent-breakers"
+- apiVersion: "getambassador.io/v1"
+  kind: "TCPMapping"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "tcpmapping-some-breakers"
+      namespace: "default"
+  spec:
+      circuit_breakers:
+        - max_connections: 1
+      port: 6790
+      service: "tcpmapping-absent-breakers"
+- apiVersion: "getambassador.io/v1"
+  kind: "TCPMapping"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "tcpmapping-most-breakers"
+      namespace: "default"
+  spec:
+      circuit_breakers:
+        - max_pending_requests: 1
+          priority: "default"
+      port: 6790
+      service: "tcpmapping-most-breakers"
+- apiVersion: "getambassador.io/v1"
+  kind: "TCPMapping"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "tcpmapping-zero-breakers"
+      namespace: "default"
+  spec:
+      circuit_breakers:
+        - max_connections: 0
+          max_pending_requests: 0
+          priority: "default"
+      port: 6790
+      service: "tcpmapping-zero-breakers"
+- apiVersion: "getambassador.io/v1"
+  kind: "TCPMapping"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "tcpmapping-weight-present"
+      namespace: "other-namespace"
+  spec:
+      port: 6789
+      service: "tcpmapping-weight-present"
+      weight: 50
+- apiVersion: "getambassador.io/v1"
+  kind: "TCPMapping"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "tcpmapping-weight-zero"
+      namespace: "other-namespace"
+  spec:
+      port: 6789
+      service: "tcpmapping-weight-zero"
+      weight: 0
+- apiVersion: "getambassador.io/v1"
+  kind: "TCPMapping"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "tcpmapping-v4-v6"
+      namespace: "tcp-namespace"
+  spec:
+      port: 9876
+      service: "tcpmapping-v4-v6"
+      enable_ipv4: true
+      enable_ipv6: true
+- apiVersion: "getambassador.io/v1"
+  kind: "TCPMapping"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "tcpmapping-v4-v6-false"
+      namespace: "tcp-namespace"
+  spec:
+      port: 9876
+      service: "tcpmapping-v4-v6-false"
+      enable_ipv4: false
+      enable_ipv6: false
+- apiVersion: "getambassador.io/v1"
+  kind: "TCPMapping"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "tcpmapping-tls-false"
+      namespace: "tcp-namespace"
+  spec:
+      port: 9876
+      service: "tcpmapping-tls-false"
+      tls: false
+- apiVersion: "getambassador.io/v1"
+  kind: "TCPMapping"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "tcpmapping-tls-meaningless-true"
+      namespace: "tcp-namespace"
+  spec:
+      port: 9876
+      service: "tcpmapping-tls-meaningless-true"
+      tls: true
+- apiVersion: "getambassador.io/v1"
+  kind: "TCPMapping"
+  metadata:
+      creationTimestamp: "2020-07-03T02:19:06Z"
+      name: "tcpmapping-tls-set"
+      namespace: "tcp-namespace"
+  spec:
+      port: 9876
+      service: "tcpmapping-tls-set"
+      tls: "tls-secret"
