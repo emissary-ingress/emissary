@@ -7,10 +7,8 @@ import (
 	"strings"
 
 	k8sRuntime "k8s.io/apimachinery/pkg/runtime"
-	k8sRuntimeUtil "k8s.io/apimachinery/pkg/util/runtime"
 
-	v2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	crdAll "github.com/datawire/ambassador/v2/pkg/api/getambassador.io"
 	"github.com/datawire/ambassador/v2/pkg/busy"
 	"github.com/datawire/ambassador/v2/pkg/k8s"
 	"github.com/datawire/ambassador/v2/pkg/logutil"
@@ -47,9 +45,7 @@ func Main(ctx context.Context, version string, args ...string) error {
 		os.Exit(2)
 	}
 
-	scheme := k8sRuntime.NewScheme()
-	k8sRuntimeUtil.Must(v2.AddToScheme(scheme))
-	k8sRuntimeUtil.Must(v3alpha1.AddToScheme(scheme))
+	scheme := crdAll.BuildScheme()
 
 	return Run(ctx, PodNamespace(), args[0], 8080, 8443, scheme)
 }

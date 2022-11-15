@@ -69,7 +69,7 @@ func (s *KubernetesSnapshot) PopulateAnnotations(ctx context.Context) error {
 // this directly; the only reason it's public is for use by tests.
 func ValidateAndConvertObject(
 	ctx context.Context,
-	in kates.Object,
+	in *kates.Unstructured,
 ) (out kates.Object, err error) {
 	// Validate it
 	gvk := in.GetObjectKind().GroupVersionKind()
@@ -95,16 +95,41 @@ func ValidateAndConvertObject(
 }
 
 // convertAnnotationObject converts a valid kates.Object to the correct type+version.
-func convertAnnotationObject(in kates.Object) (kates.Object, error) {
-	_out, err := scheme.ConvertToVersion(in, crdCurrent.GroupVersion)
+func convertAnnotationObject(srcUnstruct *kates.Unstructured) (kates.Object, error) {
+	// Convert from an 'Unstructured' to the appropriate Go type, without actually converting
+	// versions.
+	srcGVK := srcUnstruct.GetObjectKind().GroupVersionKind()
+	_src, err := scheme.ConvertToVersion(srcUnstruct, srcGVK.GroupVersion())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("1: %w", err)
 	}
-	out, ok := _out.(kates.Object)
+	src, ok := _src.(kates.Object)
 	if !ok {
-		return nil, fmt.Errorf("type %T doesn't implement kates.Object", _out)
+		return nil, fmt.Errorf("type %T doesn't implement kates.Object", _src)
 	}
-	return out, nil
+
+	// Create the Go type of the output version.
+	dstGVK := crdCurrent.GroupVersion.WithKind(srcGVK.Kind)
+	if dstGVK == srcGVK {
+		// Optimize!  Plus, kates.ConvertObject doesn't like doing no-op conversions.
+		return src, nil
+	}
+	_dst, err := scheme.New(dstGVK)
+	if err != nil {
+		return nil, fmt.Errorf("2: %w", err)
+	}
+	dst, ok := _dst.(kates.Object)
+	if !ok {
+		return nil, fmt.Errorf("type %T doesn't implement kates.Object", _dst)
+	}
+	dst.GetObjectKind().SetGroupVersionKind(dstGVK)
+
+	// Convert versions.  This is based around Go types, which is why we need to convert from
+	// 'Unstructured' first.
+	if err := kates.ConvertObject(scheme, src, dst); err != nil {
+		return nil, fmt.Errorf("3: %w", err)
+	}
+	return dst, nil
 }
 
 // ParseAnnotationResources parses the annotations on an object, and munges them to be
