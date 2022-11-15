@@ -1,4 +1,5 @@
 /build-output/
+/vendor/
 
 *.tgz
 *.img.tar
@@ -35,8 +36,6 @@ charts/emissary-ingress/ci/tests/values
 charts/emissary-ingress/artifacts
 charts/emissary-ingress/k3dconfig
 charts/yq
-
-vendor_bootstrap_hack.go
 
 /docker/images.sh
 /docker/images.tar
