@@ -65,7 +65,7 @@ jobs:
         uses: ./.github/actions/setup-deps
       - name: "gh auth login"
         run: |
-          echo '${{ secrets.GH_GITHUB_API_KEY }}' | gh auth login --with-token
+          gh auth login --with-token <<<'${{ secrets.GH_GITHUB_API_KEY }}'
       - name: Create GitHub release
         id: step-create-gh-release
         run: |

@@ -163,7 +163,7 @@ jobs:
           sudo sysctl -w fs.file-max=1600000
           sudo sysctl -w fs.inotify.max_user_instances=4096
 
-          make ci/setup-k3d K3D_CLUSTER_NAME=amb-ci
+          make ci/setup-k3d
 
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
@@ -237,7 +237,7 @@ jobs:
         uses: ./.github/actions/setup-deps
       - name: make test-chart
         run: |
-          make ci/setup-k3d K3D_CLUSTER_NAME=amb-ci
+          make ci/setup-k3d
           export DEV_KUBECONFIG=~/.kube/config
 
           make test-chart
