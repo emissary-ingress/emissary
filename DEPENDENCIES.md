@@ -32,7 +32,7 @@ following Free and Open Source software:
     github.com/exponent-io/jsonpath                                                            v0.0.0-20210407135951-1de76d718b3f           MIT license
     github.com/fatih/camelcase                                                                 v1.0.0                                       MIT license
     github.com/fatih/color                                                                     v1.13.0                                      MIT license
-    github.com/fsnotify/fsnotify                                                               v1.5.4                                       3-clause BSD license
+    github.com/fsnotify/fsnotify                                                               v1.6.0                                       3-clause BSD license
     github.com/go-errors/errors                                                                v1.4.2                                       MIT license
     github.com/go-logr/logr                                                                    v0.4.0                                       Apache License 2.0
     github.com/go-openapi/jsonpointer                                                          v0.19.5                                      Apache License 2.0
@@ -95,7 +95,7 @@ following Free and Open Source software:
     golang.org/x/mod                                                                           v0.5.1                                       3-clause BSD license
     golang.org/x/net                                                                           v0.0.0-20220127200216-cd36cc0744dd           3-clause BSD license
     golang.org/x/oauth2                                                                        v0.0.0-20211104180415-d3ed0bb246c8           3-clause BSD license
-    golang.org/x/sys                                                                           v0.0.0-20220804214406-8e32c043e418           3-clause BSD license
+    golang.org/x/sys                                                                           v0.0.0-20220908164124-27713097b956           3-clause BSD license
     golang.org/x/term                                                                          v0.0.0-20210927222741-03fcf44c2211           3-clause BSD license
     golang.org/x/text                                                                          v0.3.7                                       3-clause BSD license
     golang.org/x/time                                                                          v0.0.0-20211116232009-f0f3c7e86c11           3-clause BSD license
