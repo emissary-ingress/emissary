@@ -12,7 +12,7 @@ import (
 	"github.com/datawire/dlib/dlog"
 	crdAll "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io"
 	"github.com/emissary-ingress/emissary/v3/pkg/busy"
-	"github.com/emissary-ingress/emissary/v3/pkg/k8s"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"github.com/emissary-ingress/emissary/v3/pkg/logutil"
 )
 
@@ -58,8 +58,8 @@ func Run(ctx context.Context, namespace, svcname string, httpPort, httpsPort int
 	}
 	dlog.Infof(ctx, "APIEXT_LOGLEVEL=%v", busy.GetLogLevel())
 
-	kubeinfo := k8s.NewKubeInfo("", "", "")
-	restConfig, err := kubeinfo.GetRestConfig()
+	kubeConfig := kates.NewConfigFlags(false)
+	restConfig, err := kubeConfig.ToRESTConfig()
 	if err != nil {
 		return err
 	}
