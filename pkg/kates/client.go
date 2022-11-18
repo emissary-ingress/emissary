@@ -50,8 +50,7 @@ import (
 // Differences from kubectl:
 //
 //   - You can also use a Client to update the status of a resource.
-//   - The Client struct cannot perform an apply operation.
-//   - The Client provides Read/write coherence (more about this below).
+//   - The Client provides read/write coherence (more about this below).
 //   - The Client provides load shedding via event coalescing for watches.
 //   - The Client provides bootstrapping of multiple watches.
 //
