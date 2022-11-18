@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/version"
@@ -46,6 +47,10 @@ import (
 type TypeMeta = metav1.TypeMeta
 type ObjectMeta = metav1.ObjectMeta
 type APIResource = metav1.APIResource
+
+type GroupVersionKind = schema.GroupVersionKind
+
+var GroupVersionKindFromAPIVersionAndKind = schema.FromAPIVersionAndKind
 
 type Namespace = corev1.Namespace
 

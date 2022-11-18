@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/emissary-ingress/emissary/v3/pkg/k8s"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"github.com/emissary-ingress/emissary/v3/pkg/kubeapply"
 )
 
@@ -119,6 +120,10 @@ func main() {
 				}
 
 				kubeinfo := k8s.NewKubeInfo("", "", "")
+				kubeclient, err := kates.NewClient(kates.ClientConfig{})
+				if err != nil {
+					return err
+				}
 
 				// Part 1: Apply the YAML
 				//
@@ -141,7 +146,7 @@ func main() {
 				}
 				err = kubeapply.Kubeapply(
 					cobraCmd.Context(), // context
-					kubeinfo,           // kubeinfo
+					kubeclient,         // kubeclient
 					time.Minute,        // perPhaseTimeout
 					false,              // debug
 					false,              // dryRun

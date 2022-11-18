@@ -7,7 +7,7 @@ import (
 
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dlog"
-	"github.com/emissary-ingress/emissary/v3/pkg/k8s"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"github.com/emissary-ingress/emissary/v3/pkg/kubeapply"
 )
 
@@ -18,8 +18,12 @@ func K8sApply(ctx context.Context, ver KubeVersion, files ...string) {
 		os.Setenv("DOCKER_REGISTRY", DockerRegistry(ctx))
 	}
 	kubeconfig := KubeVersionConfig(ctx, ver)
-	err := kubeapply.Kubeapply(ctx, k8s.NewKubeInfo(kubeconfig, "", ""), 300*time.Second, false, false, files...)
+	kubeclient, err := kates.NewClient(kates.ClientConfig{Kubeconfig: kubeconfig})
 	if err != nil {
+		dlog.Errorln(ctx, err)
+		os.Exit(1)
+	}
+	if err := kubeapply.Kubeapply(ctx, kubeclient, 300*time.Second, false, false, files...); err != nil {
 		dlog.Println(ctx)
 		dlog.Println(ctx, err)
 		dlog.Printf(ctx,
