@@ -9,7 +9,7 @@ import (
 
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dlog"
-	"github.com/emissary-ingress/emissary/v3/pkg/dtest"
+	"github.com/datawire/dtest"
 	"github.com/emissary-ingress/emissary/v3/pkg/kubeapply"
 )
 
