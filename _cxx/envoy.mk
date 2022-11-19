@@ -13,7 +13,7 @@ RSYNC_EXTRAS ?=
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,https://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= 82fe811db6c54ef801e9b94d23eb2fcf2d2153f0
+  ENVOY_COMMIT ?= dcc3afef1680c1c4f932c73e0c9bca8b0b5db484
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
@@ -235,6 +235,7 @@ check-envoy: ## Run the Envoy test suite
 check-envoy: $(ENVOY_BASH.deps)
 	@echo 'Testing envoy with Bazel label: "$(ENVOY_TEST_LABEL)"'; \
 	$(call ENVOY_BASH.cmd, \
+			 $(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
 	     $(ENVOY_DOCKER_EXEC) bazel test --config=clang --test_output=errors --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only $(ENVOY_TEST_LABEL); \
 	 )
 .PHONY: check-envoy
