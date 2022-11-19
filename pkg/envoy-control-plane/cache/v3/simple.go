@@ -184,7 +184,11 @@ func NewSnapshotCacheWithHeartbeating(ctx context.Context, ads bool, hash NodeHa
 }
 
 func (cache *snapshotCache) sendHeartbeats(ctx context.Context, node string) {
-	snapshot := cache.snapshots[node]
+	snapshot, ok := cache.snapshots[node]
+	if !ok {
+		return
+	}
+
 	if info, ok := cache.status[node]; ok {
 		info.mu.Lock()
 		for id, watch := range info.watches {
