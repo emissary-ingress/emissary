@@ -117,6 +117,8 @@ func (m *HeaderValidatorConfig) validate(all bool) error {
 
 	// no validation rules for RestrictHttpMethods
 
+	// no validation rules for HeadersWithUnderscoresAction
+
 	if len(errors) > 0 {
 		return HeaderValidatorConfigMultiError(errors)
 	}

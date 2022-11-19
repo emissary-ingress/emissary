@@ -133,6 +133,8 @@ func (m *Lua) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for StatPrefix
+
 	if len(errors) > 0 {
 		return LuaMultiError(errors)
 	}

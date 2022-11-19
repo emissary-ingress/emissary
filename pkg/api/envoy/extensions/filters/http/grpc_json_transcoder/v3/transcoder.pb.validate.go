@@ -138,6 +138,8 @@ func (m *GrpcJsonTranscoder) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for CaseInsensitiveEnumParsing
+
 	switch m.DescriptorSet.(type) {
 
 	case *GrpcJsonTranscoder_ProtoDescriptor:
@@ -267,6 +269,8 @@ func (m *GrpcJsonTranscoder_PrintOptions) validate(all bool) error {
 	// no validation rules for AlwaysPrintEnumsAsInts
 
 	// no validation rules for PreserveProtoFieldNames
+
+	// no validation rules for StreamNewlineDelimited
 
 	if len(errors) > 0 {
 		return GrpcJsonTranscoder_PrintOptionsMultiError(errors)

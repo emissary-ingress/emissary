@@ -1047,6 +1047,39 @@ func (m *AccessLogCommon) validate(all bool) error {
 
 	// no validation rules for CustomTags
 
+	if all {
+		switch v := interface{}(m.GetDuration()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AccessLogCommonValidationError{
+					field:  "Duration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AccessLogCommonValidationError{
+					field:  "Duration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDuration()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AccessLogCommonValidationError{
+				field:  "Duration",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for UpstreamRequestAttemptCount
+
+	// no validation rules for ConnectionTerminationDetails
+
 	if len(errors) > 0 {
 		return AccessLogCommonMultiError(errors)
 	}
@@ -1420,6 +1453,8 @@ func (m *TLSProperties) validate(all bool) error {
 	}
 
 	// no validation rules for TlsSessionId
+
+	// no validation rules for Ja3Fingerprint
 
 	if len(errors) > 0 {
 		return TLSPropertiesMultiError(errors)

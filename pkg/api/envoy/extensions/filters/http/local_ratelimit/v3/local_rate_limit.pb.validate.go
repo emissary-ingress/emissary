@@ -336,6 +336,17 @@ func (m *LocalRateLimit) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if _, ok := v3.VhRateLimitsOptions_name[int32(m.GetVhRateLimits())]; !ok {
+		err := LocalRateLimitValidationError{
+			field:  "VhRateLimits",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return LocalRateLimitMultiError(errors)
 	}

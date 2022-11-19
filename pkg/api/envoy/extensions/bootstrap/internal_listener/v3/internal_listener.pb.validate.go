@@ -57,6 +57,21 @@ func (m *InternalListener) validate(all bool) error {
 
 	var errors []error
 
+	if wrapper := m.GetBufferSizeKb(); wrapper != nil {
+
+		if val := wrapper.GetValue(); val < 1 || val > 8192 {
+			err := InternalListenerValidationError{
+				field:  "BufferSizeKb",
+				reason: "value must be inside range [1, 8192]",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return InternalListenerMultiError(errors)
 	}
