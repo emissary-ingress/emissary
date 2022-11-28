@@ -908,6 +908,10 @@ upgrade everything else, then
  2. Delete `python/requirements.in` (if it exists).
  3. Run `make generate`.
 
+> **Note**: If you are updating orjson you will need to also update `docker/base-python/Dockerfile` before running `make generate` for the new version. orjson uses rust bindings and the default wheels on PyPI rely on glibc. Because our base python image is Alpine based, it is built from scratch using rustc to build a musl compatable version.
+
+ > :warning: You may run into an error when running `make generate` where it can't detect the licenses for new or upgraded dependencies, which is needed so that so that we can properly generate DEPENDENCIES.md and DEPENDENCY_LICENSES.md. If that is the case, you may also have to update `build-aux/tools/src/py-mkopensource/main.go:parseLicenses` for any license changes then run `make generate` again.
+
 ## FAQ
 
 This section contains a set of Frequently Asked Questions that may answer a question you have. Also, feel free to ping us in Slack.
