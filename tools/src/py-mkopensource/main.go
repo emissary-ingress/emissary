@@ -43,14 +43,12 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"colorama", "0.4.4", "BSD"}:                   {BSD3},
 		{"decorator", "4.4.2", "new BSD License"}:      {BSD2},
 		{"gitdb", "4.0.5", "BSD License"}:              {BSD3},
-		{"idna", "2.7", "BSD-like"}:                    {BSD3, PSF, Unicode2015},
-		{"idna", "2.8", "BSD-like"}:                    {BSD3, PSF, Unicode2015},
-		{"importlib-metadata", "4.12.0", "None"}:       {Apache2},
+		{"idna", "3.4", "None"}:                        {BSD3},
+		{"importlib-metadata", "5.1.0", "None"}:        {Apache2},
 		{"importlib-resources", "5.4.0", "UNKNOWN"}:    {Apache2},
 		{"itsdangerous", "1.1.0", "BSD"}:               {BSD3},
 		{"jsonpatch", "1.32", "Modified BSD License"}:  {BSD3},
-		{"jsonpointer", "2.0", "Modified BSD License"}: {BSD3},
-		{"jsonpointer", "2.2", "Modified BSD License"}: {BSD3},
+		{"jsonpointer", "2.3", "Modified BSD License"}: {BSD3},
 		{"jsonschema", "3.2.0", "UNKNOWN"}:             {MIT},
 		{"lockfile", "0.12.2", "UNKNOWN"}:              {MIT},
 		{"oauthlib", "3.1.0", "BSD"}:                   {BSD3},
@@ -63,15 +61,15 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"pycparser", "2.20", "BSD"}:                   {BSD3},
 		{"python-dateutil", "2.8.1", "Dual License"}:   {BSD3, Apache2},
 		{"python-dateutil", "2.8.2", "Dual License"}:   {BSD3, Apache2},
-		{"python-json-logger", "2.0.2", "BSD"}:         {BSD2},
-		{"semantic-version", "2.8.5", "BSD"}:           {BSD2},
+		{"python-json-logger", "2.0.4", "BSD"}:         {BSD2},
+		{"semantic-version", "2.10.0", "BSD"}:          {BSD2},
 		{"smmap", "3.0.4", "BSD"}:                      {BSD3},
 		{"tomli", "1.2.2", "UNKNOWN"}:                  {MIT},
-		{"typing-extensions", "4.2.0", "None"}:         {PSF},
+		{"typing-extensions", "4.4.0", "None"}:         {PSF},
 		{"webencodings", "0.5.1", "BSD"}:               {BSD3},
 		{"websocket-client", "0.57.0", "BSD"}:          {BSD3},
 		{"websocket-client", "1.2.3", "Apache-2.0"}:    {Apache2},
-		{"zipp", "3.8.1", "None"}:                      {MIT},
+		{"zipp", "3.11.0", "None"}:                     {MIT},
 
 		// These are packages with non-trivial strings to parse, and
 		// it's easier to just hard-code it.
@@ -232,7 +230,6 @@ func getDependencies(distribNames []string, distribs map[string]textproto.MIMEHe
 			Name:    distribName,
 			Version: distribVersion,
 		}
-
 		licenses := parseLicenses(distribName, distribVersion, distrib.Get("License"))
 		if licenses == nil {
 			errs = append(errs, fmt.Errorf("distrib %q %q: Could not parse license-string %q", distribName, distribVersion, distrib.Get("License")))
