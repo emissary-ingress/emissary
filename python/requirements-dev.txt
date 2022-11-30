@@ -1,7 +1,7 @@
 # Dev requirements
 gitpython
 httpretty
-mypy<0.990
+mypy<0.992
 packaging
 pexpect
 pyOpenSSL
