@@ -5,7 +5,7 @@ mypy<0.990
 packaging
 pexpect
 pyOpenSSL
-pytest==6.2.5
+pytest==7.2.0
 pytest-cov
 pytest-rerunfailures
 retry
