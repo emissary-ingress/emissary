@@ -3,6 +3,10 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v8.5.0 - TBD
+
+- `.Values.security.podSecurityContext` and `.Values.security.containerSecurityContext` now applies to agent deployment as well.
+
 ## v8.4.0 - TBD
 
 - Upgrade Emissary to v3.4.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
@@ -217,7 +221,7 @@ Emissary Ingress chart v7.0.0-ea provides early access to Emissary 2.0 features.
 ## v6.7.0
 
 - Update Ambassador to version 1.13.0: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
-- Feature: Ambassador Agent now available for API Gateway (https://app.getambassador.io)
+- Feature: Ambassador Agent now available for API Gateway (<https://app.getambassador.io>)
 - Feature: Add support for [pod toplology spread constraints](https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/) via the `topologySpreadConstraints` helm value to the Ambassador deployment. (thanks, [@lawliet89](https://github.com/lawliet89)!)
 - BugFix: Add missing `ambassador_id` for resolvers.
 - Change: Ambassador ClusterRoles are now aggregated under the label `rbac.getambassador.io/role-group`. The aggregated role has the same name as the previous role name (so no need to update ClusterRoleBindings).
@@ -242,7 +246,7 @@ Emissary Ingress chart v7.0.0-ea provides early access to Emissary 2.0 features.
 ## v6.6.0
 
 - Update Ambassador to version 1.12.1: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
-- Feature: Apply Ambassador Agent deployment by default to enable Service Catalog reporting (https://app.getambassador.io)
+- Feature: Apply Ambassador Agent deployment by default to enable Service Catalog reporting (<https://app.getambassador.io>)
 
 ## v6.5.22
 
@@ -252,7 +256,7 @@ Emissary Ingress chart v7.0.0-ea provides early access to Emissary 2.0 features.
 ## v6.5.21
 
 - Update Ambassador to version 1.12.0: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
-- Feature: Add support for the ambassador-agent, reporting to Service Catalog (https://app.getambassador.io)
+- Feature: Add support for the ambassador-agent, reporting to Service Catalog (<https://app.getambassador.io>)
 - Feature: All services are automatically instrumented with discovery annotations.
 
 ## v6.5.20
