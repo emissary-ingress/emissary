@@ -13,4 +13,4 @@ The Emissary-ingress Contributors Meeting is held on the first Wednesday of ever
 
 New contributors are always welcome! Check out our [contributor's guide](https://github.com/emissary-ingress/emissary/blob/master/DEVELOPING.md) to learn how you can help make Emissary-ingress better.
 
-**Zoom Meeting Link**: https://us02web.zoom.us/j/85154302860
+**Zoom Meeting Link**: https://ambassadorlabs.zoom.us/j/89088869140
