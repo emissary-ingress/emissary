@@ -85,6 +85,17 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [3.3.1] December 08, 2022
+[3.3.1]: https://github.com/emissary-ingress/emissary/compare/v3.3.0...v3.3.1
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Security: Update Golang to release 1.19.4. Two CVE's were annouced in this z patch release.
+  CVE-2022-41720 only affects Windows environments and Emissary-ingress runs in linux. The second
+  one  CVE-2022-41717 only affects HTTP/2 server connections exposed to external clients.
+  Emissary-ingress does  not expose any Golang http servers to outside clients. The data-plane of
+  Envoy is not affected by either of these. 
+
 ## [3.3.0] November 02, 2022
 [3.3.0]: https://github.com/emissary-ingress/emissary/compare/v3.2.0...v3.3.0
 
