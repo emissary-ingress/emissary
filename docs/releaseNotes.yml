@@ -32,6 +32,18 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 3.3.1
+    prevVersion: 3.3.0
+    date: '2022-12-08'
+    notes:
+      - title: Update Golang to 1.19.4
+        type: security
+        body: >-
+          Update Golang to release 1.19.4. Two CVE's were annouced in this z patch release.
+          CVE-2022-41720 only affects Windows environments and $productName$ runs in linux. The second one 
+          CVE-2022-41717 only affects HTTP/2 server connections exposed to external clients. $productName$ does 
+          not expose any Golang http servers to outside clients. The data-plane of Envoy
+          is not affected by either of these. 
   - version: 3.3.0
     prevVersion: 3.2.0
     date: '2022-11-02'
