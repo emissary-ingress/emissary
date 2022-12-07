@@ -91,7 +91,7 @@ Here is a list of tools that are used by the build system to generate the build 
 - bash
 - rsync
 - golang - `go.mod` for current version
-- python 3.8 or 3.9
+- python (>=3.9)
 - kubectl
 - a kubernetes cluster (you need permissions to create resources, i.e. crds, deployments, services, etc...)
 - a Docker registry
