@@ -47,6 +47,15 @@ items:
           installation was migrated from 1.y or was a fresh 2.y install); fully supporting
           <code>v1</code> again should resolve these errors.
 
+      - title: Update Golang to 1.19.4
+        type: security
+        body: >-
+          Update Golang to release 1.19.4. Two CVE's were annouced in this z patch release.
+          CVE-2022-41720 only affects Windows environments and $productName$ runs in linux. The second one 
+          CVE-2022-41717 only affects HTTP/2 server connections exposed to external clients. $productName$ does 
+          not expose any Golang http servers to outside clients. The data-plane of Envoy
+          is not affected by either of these. 
+
       - title: Update Golang to 1.19.3
         type: security
         body: >-
