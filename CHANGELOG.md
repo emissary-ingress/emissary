@@ -82,7 +82,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
-## [2.5.1] TBD
+## [2.5.1] December 08, 2022
 [2.5.1]: https://github.com/emissary-ingress/emissary/compare/v2.5.0...v2.5.1
 
 ### Emissary-ingress and Ambassador Edge Stack
@@ -93,6 +93,12 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   Emissary-ingress.  That unserved `v1` could cause an excess of errors to be logged by the
   Kubernetes Nodes (regardless of whether the installation was migrated from 1.y or was a fresh 2.y
   install); fully supporting `v1` again should resolve these errors.
+
+- Security: Update Golang to release 1.19.4. Two CVE's were annouced in this z patch release.
+  CVE-2022-41720 only affects Windows environments and Emissary-ingress runs in linux. The second
+  one  CVE-2022-41717 only affects HTTP/2 server connections exposed to external clients.
+  Emissary-ingress does  not expose any Golang http servers to outside clients. The data-plane of
+  Envoy is not affected by either of these. 
 
 - Security: Updated Golang to the latest z patch. We are not vulnerable to the CVE-2022-3602 that
   was  released in 1.19.3 and you can read more about it here:
