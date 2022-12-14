@@ -75,6 +75,7 @@ class V3Ready(dict):
             },
             "filter_chains": [
                 {
+                    "filter_chain_match": {},
                     "filters": [
                         {
                             "name": "envoy.filters.network.http_connection_manager",
