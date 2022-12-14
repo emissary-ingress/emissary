@@ -252,7 +252,7 @@ type Candidate struct {
 }
 
 func RenderEnvoyConfig(t *testing.T, envoyConfig *apiv3_bootstrap.Bootstrap) ([]RenderedListener, error) {
-	renderedListeners := make([]RenderedListener, 0, 2)
+	renderedListeners := make([]RenderedListener, 0, 3)
 
 	for _, l := range envoyConfig.StaticResources.Listeners {
 		port := l.Address.GetSocketAddress().GetPortValue()
