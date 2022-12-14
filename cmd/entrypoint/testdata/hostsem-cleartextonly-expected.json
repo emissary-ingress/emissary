@@ -1,5 +1,16 @@
 [
   {
+    "name": "ambassador-listener-ready-127.0.0.1-8002",
+    "port": 8002,
+    "chains": [
+      {
+        "server_names": null,
+        "transport_protocol": "",
+        "vhosts": []
+      }
+    ]
+  },
+  {
     "name": "cleartext-listener",
     "port": 8443,
     "chains": [
