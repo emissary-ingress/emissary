@@ -65,7 +65,7 @@ spec:
         per_connection_buffer_limit_bytes = listener.get("per_connection_buffer_limit_bytes", None)
         assert (
             per_connection_buffer_limit_bytes is not None
-        ), f"per_connection_buffer_limit_bytes not found on listener: {listener.name}"
+        ), f"per_connection_buffer_limit_bytes not found on listener: {listener['name']}"
         print(f"Found per_connection_buffer_limit_bytes = {per_connection_buffer_limit_bytes}")
         key_found = True
         assert expected == int(
@@ -109,7 +109,7 @@ spec:
         per_connection_buffer_limit_bytes = listener.get("per_connection_buffer_limit_bytes", None)
         assert (
             per_connection_buffer_limit_bytes is not None
-        ), f"per_connection_buffer_limit_bytes not found on listener: {listener.name}"
+        ), f"per_connection_buffer_limit_bytes not found on listener: {listener['name']}"
         print(f"Found per_connection_buffer_limit_bytes = {per_connection_buffer_limit_bytes}")
         key_found = True
         assert expected == int(
@@ -141,7 +141,7 @@ spec:
         per_connection_buffer_limit_bytes = listener.get("per_connection_buffer_limit_bytes", None)
         assert (
             per_connection_buffer_limit_bytes is None
-        ), f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener.name}"
+        ), f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener['name']}"
 
 
 @pytest.mark.compilertest
@@ -166,7 +166,7 @@ spec:
         per_connection_buffer_limit_bytes = listener.get("per_connection_buffer_limit_bytes", None)
         assert (
             per_connection_buffer_limit_bytes is None
-        ), f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener.name}"
+        ), f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener['name']}"
 
 
 # Tests that the default value of per_connection_buffer_limit_bytes is disabled when there is not Module config for it (and that there are no issues when we dont make a listener).
@@ -192,7 +192,7 @@ spec:
         per_connection_buffer_limit_bytes = listener.get("per_connection_buffer_limit_bytes", None)
         assert (
             per_connection_buffer_limit_bytes is None
-        ), f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener.name}"
+        ), f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener['name']}"
 
 
 @pytest.mark.compilertest
@@ -217,4 +217,4 @@ spec:
         per_connection_buffer_limit_bytes = listener.get("per_connection_buffer_limit_bytes", None)
         assert (
             per_connection_buffer_limit_bytes is None
-        ), f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener.name}"
+        ), f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener['name']}"
