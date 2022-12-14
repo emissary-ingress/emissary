@@ -276,6 +276,10 @@ def econf_foreach_listener_chain(
 
 def econf_foreach_hcm(econf, fn, chain_count=2):
     for listener in econf["static_resources"]["listeners"]:
+        if listener["name"].startswith("ambassador-listener-ready"):
+            # don't want to test the ready listener since it's different from the default 8080/8443
+            # listeners and is already tested in test_ready.py
+            continue
         hcm_info = EnvoyHCMInfo
 
         econf_foreach_listener_chain(

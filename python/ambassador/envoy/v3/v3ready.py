@@ -58,6 +58,11 @@ class V3Ready(dict):
         if ambassador_ready_log:
             typed_config["access_log"] = cls.access_log(config)
 
+        # required for test_max_request_header.py
+        max_request_headers_kb = config.ir.ambassador_module.get("max_request_headers_kb", None)
+        if max_request_headers_kb:
+            typed_config["max_request_headers_kb"] = max_request_headers_kb
+
         ready_listener = {
             "name": "ambassador-listener-ready-%s-%s"
             % (ambassador_ready_ip, ambassador_ready_port),
@@ -75,10 +80,17 @@ class V3Ready(dict):
                             "name": "envoy.filters.network.http_connection_manager",
                             "typed_config": typed_config,
                         }
-                    ]
+                    ],
                 }
             ],
         }
+
+        # required for test_buffer_limit_bytes.py
+        per_connection_buffer_limit_bytes = config.ir.ambassador_module.get(
+            "buffer_limit_bytes", None
+        )
+        if per_connection_buffer_limit_bytes:
+            ready_listener["per_connection_buffer_limit_bytes"] = per_connection_buffer_limit_bytes
 
         config.static_resources["listeners"].append(ready_listener)
 
