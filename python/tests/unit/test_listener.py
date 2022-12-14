@@ -153,7 +153,7 @@ class TestListener:
 
         listeners = econf["static_resources"]["listeners"]
 
-        assert len(listeners) == 1
+        assert len(listeners) == 2
 
         # verify listener options
         listener = listeners[0]
@@ -212,7 +212,7 @@ spec:
         # the tcp/tls is more forgiving and doesn't crash envoy which is the current behavior
         # we observe pre v3. So we just verify that the only listener is the TCP listener.
         listeners = econf["static_resources"]["listeners"]
-        assert len(listeners) == 1
+        assert len(listeners) == 2
         tcp_listener = listeners[0]
         assert tcp_listener["address"]["socket_address"]["protocol"] == "TCP"
 
@@ -245,7 +245,7 @@ spec:
 
         listeners = econf["static_resources"]["listeners"]
 
-        assert len(listeners) == 2
+        assert len(listeners) == 3
 
         ## check TCP Listener
         tcp_listener = listeners[0]
@@ -297,7 +297,7 @@ spec:
 
         listeners = econf["static_resources"]["listeners"]
 
-        assert len(listeners) == 2
+        assert len(listeners) == 3
 
         ## check TCP Listener
         tcp_listener = listeners[0]
