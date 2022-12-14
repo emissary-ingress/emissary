@@ -125,23 +125,3 @@ Define the http port of the Ambassador service
 {{- end -}}
 {{- end -}}
 {{- end -}}
-
-{{/*
-Set the image that should be used for the agent.
-Use agent.repository and agent.tag if present,
-Then use fullImageOverride if present,
-Then if the image repository is explicitly set, use "repository:image"
-*/}}
-{{- define "agent.image" -}}
-
-{{- if .Values.agent.image.repository -}}
-    {{- printf "%s:%s" .Values.agent.image.repository .Values.agent.image.tag -}}
-{{- else if .Values.image.fullImageOverride -}}
-    {{- .Values.image.fullImageOverride }}
-{{- else if hasKey .Values.image "repository" -}}
-    {{- printf "%s:%s" .Values.image.repository .Values.image.tag -}}
-{{- else -}}
-    {{- printf "%s:%s" "docker.io/emissaryingress/emissary" .Values.image.tag -}}
-{{- end -}}
-
-{{- end -}}
