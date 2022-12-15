@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-FROM docker.io/frolvlad/alpine-glibc:alpine-3.15
+FROM docker.io/frolvlad/alpine-glibc:alpine-3.17
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
