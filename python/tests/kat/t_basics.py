@@ -16,6 +16,12 @@ class Empty(AmbassadorTest):
     def init(self):
         if EDGE_STACK:
             self.xfail = "XFailing for now"
+        # Specify a non-default readiness port for test coverage purposes.
+        # All other tests will use the default 8002 port.
+        self.manifest_envs += """
+    - name: AMBASSADOR_READY_PORT
+      value: "8500"
+"""
 
     @classmethod
     def variants(cls) -> Generator[Node, None, None]:
