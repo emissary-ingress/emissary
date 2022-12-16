@@ -63,6 +63,12 @@ class V3Ready(dict):
         if max_request_headers_kb:
             typed_config["max_request_headers_kb"] = max_request_headers_kb
 
+        listener_idle_timeout_ms = config.ir.ambassador_module.get("listener_idle_timeout_ms", None)
+        if listener_idle_timeout_ms:
+            typed_config["common_http_protocol_options"] = {
+                "idle_timeout": "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0)
+            }
+
         ready_listener = {
             "name": "ambassador-listener-ready-%s-%s"
             % (ambassador_ready_ip, ambassador_ready_port),
