@@ -71,8 +71,14 @@ class IRTracing(IRResource):
         self.namespace = config.get("namespace", self.namespace)
 
         grpc = False
+
         if driver == "lightstep":
-            grpc = True
+            self.post_error(
+                RichStatus.fromError(
+                    "as of v3.4+ the 'lightstep' driver is no longer supported in the TracingService, please see docs for migration options"
+                )
+            )
+            return False
 
         if driver == "datadog":
             driver = "envoy.tracers.datadog"
