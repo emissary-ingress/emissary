@@ -97,6 +97,7 @@ Here is a list of tools that are used by the build system to generate the build 
 - a Docker registry
 - bsdtar (Provided by libarchive-tools on Ubuntu 19.10 and newer)
 - gawk
+- jq
 
 ### Step 2: Clone Project
 
