@@ -86,6 +86,19 @@ items:
           This allows the healthcheck server to be configured to use IPv6-only k8s environments. 
           (Thanks to <a href="https://github.com/TimonOmsk">Dmitry Golushko</a>!).
 
+      - title: Upgrade to Envoy 1.24.1
+        type: feature
+        body: >-
+          This upgrades $productName$ to be built on Envoy v1.24.1. One notable change is that 
+          the team at LightStep and Envoy Maintainers have decided to no longer support the
+          native *LightStep* tracing driver in favor of using the Open Telemetry driver. The code 
+          for LightStep driver has been completely removed from Envoy code base so $productName$ 
+          will no longer support it either.
+
+          The recommended upgrade path is to leverage a supported Tracing driver such as `Zipkin`
+          and use the [Open Telemetry Collector](https://opentelemetry.io/docs/collector/) to
+          collect and forward Observabity data to LightStep.
+
   - version: 3.3.0
     prevVersion: 3.2.0
     date: '2022-11-02'
