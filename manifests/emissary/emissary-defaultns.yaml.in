@@ -626,9 +626,7 @@ spec:
         product: aes
     spec:
       containers:
-      - command:
-        - agent
-        env:
+      - env:
         - name: AGENT_NAMESPACE
           valueFrom:
             fieldRef:
@@ -643,7 +641,7 @@ spec:
           value: "true"
         - name: AES_DIAGNOSTICS_URL
           value: http://emissary-ingress-admin.default:8877/ambassador/v0/diag/?json=true
-        image: docker.io/emissaryingress/emissary:3.1.0
+        image: docker.io/ambassador/ambassador-agent:1.0.3
         imagePullPolicy: IfNotPresent
         name: agent
         ports:
