@@ -5,7 +5,7 @@ Home-page: https://github.com/erdnaxe/django-crans-theme
 Author: None
 Author-email: None
 License: GPLv2
-Location: /home/andres/source/production/emissary/tools/src/py-mkopensource/testdata/gpl-license/venv/lib/python3.9/site-packages
+Location: /home/andres/source/production/emissary/tools/src/py-mkopensource/testdata/gpl-license/venv/lib/python3.10/site-packages
 Requires: Django
 Required-by: 
 

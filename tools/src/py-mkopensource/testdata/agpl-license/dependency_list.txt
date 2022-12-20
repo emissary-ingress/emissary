@@ -5,7 +5,7 @@ Home-page: https://github.com/X-I-A/pyagent
 Author: Soral
 Author-email: soral@x-i-a.com
 License: AGPLv3+
-Location: /home/andres/source/production/emissary/tools/src/py-mkopensource/testdata/agpl-license/venv/lib/python3.9/site-packages
+Location: /home/andres/source/production/emissary/tools/src/py-mkopensource/testdata/agpl-license/venv/lib/python3.10/site-packages
 Requires: xialib
 Required-by: 
 
