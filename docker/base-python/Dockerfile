@@ -18,7 +18,7 @@
 # Third-party code
 ########################################
 
-FROM docker.io/frolvlad/alpine-glibc:alpine-3.15_glibc-2.34
+FROM docker.io/frolvlad/alpine-glibc:alpine-3.17_glibc-2.34
 
 WORKDIR /buildroot
 
@@ -60,8 +60,8 @@ RUN apk --no-cache add \
   libffi-dev \
   ncurses \
   openssl-dev \
-  py3-pip=~20.3 \
-  python3=~3.9 \
+  py3-pip=~22.3 \
+  python3=~3.10 \
   python3-dev \
   rust \
   cargo \
@@ -69,14 +69,13 @@ RUN apk --no-cache add \
   rsync \
   sudo \
   yaml-dev \
-  && ln -s /usr/bin/python3 /usr/bin/python \
   && chmod u+s $(which docker)
 
 # Consult
 # https://github.com/jazzband/pip-tools/#versions-and-compatibility to
 # select a pip-tools version that corresponds to the 'py3-pip' and
 # 'python3' versions above.
-RUN pip3 install pip-tools==6.3.1
+RUN pip3 install pip-tools==6.12.1
 
 RUN curl --fail -L https://dl.google.com/go/go1.19.4.linux-amd64.tar.gz | tar -C /usr/local -xzf -
 
