@@ -671,7 +671,7 @@ def test_qualify_service():
     assert not errors[6]["ok"]
     assert (
         errors[6]["error"]
-        == "Malformed service 'https://bad-service:-1': Port out of range 0-65535"
+        == "Malformed service 'https://bad-service:-1': Port could not be cast to integer value as '-1'"
     )
 
     assert not errors[7]["ok"]
@@ -727,7 +727,7 @@ def test_qualify_service():
     assert not errors[14]["ok"]
     assert (
         errors[14]["error"]
-        == "Malformed service 'https://bad-service:-1': Port out of range 0-65535"
+        == "Malformed service 'https://bad-service:-1': Port could not be cast to integer value as '-1'"
     )
 
     assert not errors[15]["ok"]
