@@ -126,9 +126,8 @@ ARG py_version="i-forgot-to-set-build-arg-py-version"
 RUN adduser ambassador -u 8888 -G root -D -H -s /bin/false
 
 # External stuff that should change infrequently
-RUN apk --no-cache add bash curl=~7.80 python3=${py_version} libcap htop
+RUN apk --no-cache add bash curl python3=${py_version} libcap htop
 RUN apk upgrade --no-cache
-RUN ln -s /usr/bin/python3 /usr/bin/python
 COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
 COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
 
@@ -137,7 +136,7 @@ COPY --from=artifacts /opt/image-build /opt/image-build
 RUN /opt/image-build/install.sh
 
 # External Python packages we use
-COPY --from=artifacts /usr/lib/python3.9/site-packages /usr/lib/python3.9/site-packages
+COPY --from=artifacts /usr/lib/python3.10/site-packages /usr/lib/python3.10/site-packages
 
 # Our envoy. The capabilities here grant the wrapper the ability to use the
 # cap_net_bind_service cap and for Envoy to inherit it.
