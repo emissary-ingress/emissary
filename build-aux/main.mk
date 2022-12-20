@@ -90,7 +90,7 @@ clean: python/requirements.in.rm
 python/.requirements.txt.stamp: python/requirements.in docker/base-python.docker.tag.local
 # The --interactive is so that stdin gets passed through; otherwise Docker closes stdin.
 	set -ex -o pipefail; { \
-	  docker run --platform="$(BUILD_ARCH)" --rm --interactive "$$(cat docker/base-python.docker)" sh -c 'tar xf - && find ~/.cache/pip -name "maturin-*.whl" -exec pip install --no-deps {} + >&2 && pip-compile --allow-unsafe --no-build-isolation -q >&2 && cat requirements.txt' \
+	  docker run --platform="$(BUILD_ARCH)" --rm --interactive "$$(cat docker/base-python.docker)" sh -c 'tar xf - && pip-compile --allow-unsafe -q >&2 && cat requirements.txt' \
 	    < <(bsdtar -cf - -C $(@D) requirements.in requirements.txt) \
 	    > $@; }
 clean: python/.requirements.txt.stamp.rm

@@ -136,47 +136,36 @@ libraries:
 
     Name                Version    License(s)
     ----                -------    ----------
-    CacheControl        0.12.10    Apache License 2.0
-    Cython              0.29.24    Apache License 2.0
+    Cython              0.29.32    Apache License 2.0
     Flask               2.2.2      3-clause BSD license
     Jinja2              3.1.2      3-clause BSD license
     MarkupSafe          2.1.1      3-clause BSD license
     PyYAML              6.0        MIT license
     Werkzeug            2.2.2      3-clause BSD license
-    appdirs             1.4.4      MIT license
+    build               0.9.0      MIT license
     cachetools          5.2.0      MIT license
     certifi             2022.9.24  Mozilla Public License 2.0
     charset-normalizer  2.1.1      MIT license
     click               8.1.3      3-clause BSD license
-    colorama            0.4.4      3-clause BSD license
-    contextlib2         21.6.0     Python Software Foundation license
-    distlib             0.3.3      Python Software Foundation license
-    distro              1.6.0      Apache License 2.0
     dpath               2.1.0      MIT license
     durationpy          0.5        MIT license
     expiringdict        1.2.2      Apache License 2.0
     google-auth         2.14.1     Apache License 2.0
     gunicorn            20.1.0     MIT license
-    html5lib            1.1        MIT license
     idna                3.4        3-clause BSD license
-    importlib-metadata  5.1.0      Apache License 2.0
     itsdangerous        2.1.2      3-clause BSD license
     jsonpatch           1.32       3-clause BSD license
     jsonpointer         2.3        3-clause BSD license
     kubernetes          21.7.0     Apache License 2.0
-    lockfile            0.12.2     MIT license
-    msgpack             1.0.2      Apache License 2.0
     oauthlib            3.2.2      3-clause BSD license
-    ordered-set         4.0.2      MIT license
     orjson              3.6.6      Apache License 2.0, MIT license
-    packaging           20.9       2-clause BSD license, Apache License 2.0
-    pep517              0.12.0     MIT license
-    pip-tools           6.3.1      3-clause BSD license
-    progress            1.6        ISC license
+    packaging           21.3       2-clause BSD license, Apache License 2.0
+    pep517              0.13.0     MIT license
+    pip-tools           6.12.1     3-clause BSD license
     prometheus-client   0.15.0     Apache License 2.0
     pyasn1              0.4.8      2-clause BSD license
     pyasn1-modules      0.2.8      2-clause BSD license
-    pyparsing           2.4.7      MIT license
+    pyparsing           3.0.9      MIT license
     python-dateutil     2.8.2      3-clause BSD license, Apache License 2.0
     python-json-logger  2.0.4      2-clause BSD license
     requests            2.28.1     Apache License 2.0
@@ -185,10 +174,7 @@ libraries:
     rsa                 4.9        Apache License 2.0
     semantic-version    2.10.0     2-clause BSD license
     six                 1.16.0     MIT license
-    toml                0.10.2     MIT license
-    tomli               1.2.2      MIT license
-    typing-extensions   4.4.0      Python Software Foundation license
+    tomli               2.0.1      MIT license
+    typing_extensions   4.4.0      Python Software Foundation license
     urllib3             1.26.13    MIT license
-    webencodings        0.5.1      3-clause BSD license
     websocket-client    1.4.2      Apache License 2.0
-    zipp                3.11.0     MIT license
