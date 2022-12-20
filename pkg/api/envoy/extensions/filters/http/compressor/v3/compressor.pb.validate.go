@@ -217,6 +217,8 @@ func (m *Compressor) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for ChooseFirst
+
 	if len(errors) > 0 {
 		return CompressorMultiError(errors)
 	}

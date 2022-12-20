@@ -86,6 +86,21 @@ func (m *Gzip) validate(all bool) error {
 
 	}
 
+	if wrapper := m.GetMaxInflateRatio(); wrapper != nil {
+
+		if val := wrapper.GetValue(); val < 1 || val > 1032 {
+			err := GzipValidationError{
+				field:  "MaxInflateRatio",
+				reason: "value must be inside range [1, 1032]",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return GzipMultiError(errors)
 	}

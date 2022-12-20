@@ -126,6 +126,15 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   This allows the healthcheck server to be configured to use IPv6-only k8s environments. 
   (Thanks to <a href="https://github.com/TimonOmsk">Dmitry Golushko</a>!).
 
+- Feature: This upgrades Emissary-ingress to be built on Envoy v1.24.1. One notable change is that 
+  the team at LightStep and Envoy Maintainers have decided to no longer support the native
+  *LightStep* tracing driver in favor of using the Open Telemetry driver. The code  for LightStep
+  driver has been completely removed from Envoy code base so Emissary-ingress  will no longer
+  support it either.
+  The recommended upgrade path is to leverage a supported Tracing driver such as
+  `Zipkin` and use the [Open Telemetry Collector](https://opentelemetry.io/docs/collector/) to
+  collect and forward Observabity data to LightStep.
+
 ## [3.3.0] November 02, 2022
 [3.3.0]: https://github.com/emissary-ingress/emissary/compare/v3.2.0...v3.3.0
 

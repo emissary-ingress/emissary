@@ -61,6 +61,8 @@ func (m *FilterConfig) validate(all bool) error {
 
 	// no validation rules for EnableUpstreamStats
 
+	// no validation rules for ReplaceDotsInGrpcServiceName
+
 	switch m.PerMethodStatSpecifier.(type) {
 
 	case *FilterConfig_IndividualMethodStatsAllowlist:

@@ -58,40 +58,39 @@ def _get_envoy_config(yaml):
     return EnvoyConfig.generate(ir)
 
 
-def lightstep_tracing_service_manifest():
-    return """
+@pytest.mark.compilertest
+def test_tracing_config_v3(tmp_path: Path):
+
+    aconf = Config()
+
+    yaml = (
+        module_and_mapping_manifests(None, [])
+        + "\n"
+        + """
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 metadata:
-  name: tracing
-  namespace: ambassador
+    name: myts
+    namespace: default
 spec:
-  service: lightstep:80
-  driver: lightstep
-  custom_tags:
-  - tag: ltag
-    literal:
-      value: avalue
-  - tag: etag
-    environment:
-      name: UNKNOWN_ENV_VAR
-      default_value: efallback
-  - tag: htag
-    request_header:
-      name: x-does-not-exist
-      default_value: hfallback
-  config:
-    access_token_file: /lightstep-credentials/access-token
-    propagation_modes: ["ENVOY", "TRACE_CONTEXT"]
+    service: zipkin-test:9411
+    driver: zipkin
+    custom_tags:
+    - tag: ltag
+      literal:
+        value: avalue
+    - tag: etag
+      environment:
+        name: UNKNOWN_ENV_VAR
+        default_value: efallback
+    - tag: htag
+      request_header:
+        name: x-does-not-exist
+        default_value: hfallback
 """
+    )
 
-
-@pytest.mark.compilertest
-def test_tracing_config_v3(tmp_path: Path):
-    aconf = Config()
-
-    yaml = module_and_mapping_manifests(None, []) + "\n" + lightstep_tracing_service_manifest()
     fetcher = ResourceFetcher(logger, aconf)
     fetcher.parse_yaml(yaml, k8s=True)
 
@@ -127,12 +126,13 @@ def test_tracing_config_v3(tmp_path: Path):
     assert "tracing" in bootstrap_config
     assert bootstrap_config["tracing"] == {
         "http": {
-            "name": "envoy.lightstep",
+            "name": "envoy.zipkin",
             "typed_config": {
-                "@type": "type.googleapis.com/envoy.config.trace.v3.LightstepConfig",
-                "access_token_file": "/lightstep-credentials/access-token",
-                "collector_cluster": "cluster_tracing_lightstep_80_ambassador",
-                "propagation_modes": ["ENVOY", "TRACE_CONTEXT"],
+                "@type": "type.googleapis.com/envoy.config.trace.v3.ZipkinConfig",
+                "collector_endpoint": "/api/v2/spans",
+                "collector_endpoint_version": "HTTP_JSON",
+                "trace_id_128bit": True,
+                "collector_cluster": "cluster_tracing_zipkin_test_9411_default",
             },
         }
     }
@@ -238,6 +238,45 @@ spec:
 """
 
     econf = _get_envoy_config(yaml)
+
+    bootstrap_config, _, _ = econf.split_config()
+    assert "tracing" not in bootstrap_config
+
+
+@pytest.mark.compilertest
+def test_lightstep_not_supported(tmp_path: Path):
+
+    yaml = """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TracingService
+metadata:
+  name: tracing
+  namespace: ambassador
+spec:
+  service: lightstep:80
+  driver: lightstep
+  custom_tags:
+  - tag: ltag
+    literal:
+      value: avalue
+  - tag: etag
+    environment:
+      name: UNKNOWN_ENV_VAR
+      default_value: efallback
+  - tag: htag
+    request_header:
+      name: x-does-not-exist
+      default_value: hfallback
+  config:
+    access_token_file: /lightstep-credentials/access-token
+    propagation_modes: ["ENVOY", "TRACE_CONTEXT"]
+"""
+    econf = _get_envoy_config(yaml)
+    assert "ir.tracing" in econf.ir.aconf.errors
+
+    tracing_error = econf.ir.aconf.errors["ir.tracing"][0]["error"]
+    assert "'lightstep' driver is no longer supported" in tracing_error
 
     bootstrap_config, _, _ = econf.split_config()
     assert "tracing" not in bootstrap_config

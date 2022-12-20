@@ -502,6 +502,17 @@ func (m *OAuth2Config) validate(all bool) error {
 
 	}
 
+	if _, ok := OAuth2Config_AuthType_name[int32(m.GetAuthType())]; !ok {
+		err := OAuth2ConfigValidationError{
+			field:  "AuthType",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return OAuth2ConfigMultiError(errors)
 	}

@@ -310,16 +310,7 @@ func (m *VmConfig) validate(all bool) error {
 
 	// no validation rules for VmId
 
-	if utf8.RuneCountInString(m.GetRuntime()) < 1 {
-		err := VmConfigValidationError{
-			field:  "Runtime",
-			reason: "value length must be at least 1 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Runtime
 
 	if all {
 		switch v := interface{}(m.GetCode()).(type) {
