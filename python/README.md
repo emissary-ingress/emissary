@@ -33,6 +33,7 @@ Ambassador uses several TCP ports while running. All but one of them are in the 
 | 8003 | `entrypoint/ambex`                    | Internal `ambex` snapshot access; not exposed outside pod                                                          |
 | 8004 | `diagd`                               | Internal `diagd` access when `AMBASSADOR_FAST_RECONFIGURE` is set; not exposed outside pod                         |
 | 8005 | `entrypoint/external_snapshot_server` | Exposes configuration snapshots for integration with other tools, such as the Ambassador Agent                     |
+| 8006 | `envoy`                               | Default ready listener port                                                                                        |
 | 8080 | `envoy`                               | Default HTTP service port                                                                                          |
 | 8443 | `envoy`                               | Default HTTPS service port                                                                                         |
 | 8877 | `diagd`                               | Direct access to diagnostics UI; provided by `busyambassador entrypoint` when `AMBASSADOR_FAST_RECONFIGURE` is set |
