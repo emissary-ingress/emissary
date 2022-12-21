@@ -87,7 +87,7 @@ type TracingCustomTag struct {
 type TracingServiceSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
-	// +kubebuilder:validation:Enum={"lightstep","zipkin","datadog"}
+	// +kubebuilder:validation:Enum={"lightstep","zipkin","datadog","opentelemetry"}
 	// +kubebuilder:validation:Required
 	Driver string `json:"driver,omitempty"`
 	// +kubebuilder:validation:Required
