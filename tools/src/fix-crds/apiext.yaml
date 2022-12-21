@@ -154,6 +154,8 @@ spec:
         {{- end }}
     spec:
       serviceAccountName: {{ .Names.ServiceAccount }}
+      securityContext:
+        runAsUser: 8888
       containers:
         - name: emissary-apiext
           image: {{ .Image }}
@@ -172,3 +174,13 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 3
             failureThreshold: 3
+          resources:
+            limits:
+              cpu: "1"
+              memory: 50Mi
+            requests:
+              cpu: 30m
+              memory: 25Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true

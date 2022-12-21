@@ -5424,6 +5424,8 @@ spec:
         app.kubernetes.io/part-of: emissary-apiext
     spec:
       serviceAccountName: emissary-apiext
+      securityContext:
+        runAsUser: 8888
       containers:
         - name: emissary-apiext
           image: $imageRepo$:$version$
@@ -5442,3 +5444,13 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 3
             failureThreshold: 3
+          resources:
+            limits:
+              cpu: "1"
+              memory: 50Mi
+            requests:
+              cpu: 30m
+              memory: 25Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
