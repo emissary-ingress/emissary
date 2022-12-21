@@ -34,7 +34,7 @@ changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.
 items:
   - version: 3.4.0
     prevVersion: 3.3.0
-    date: 'TBD'
+    date: '2023-01-03'
     notes:
       - title: Re-add support for getambassador.io/v1
         type: feature
@@ -47,23 +47,6 @@ items:
           installation was migrated from 1.y or was a fresh 2.y install); fully supporting
           <code>v1</code> again should resolve these errors.
 
-      - title: Update Golang to 1.19.4
-        type: security
-        body: >-
-          Update Golang to release 1.19.4. Two CVE's were annouced in this z patch release.
-          CVE-2022-41720 only affects Windows environments and $productName$ runs in linux. The second one 
-          CVE-2022-41717 only affects HTTP/2 server connections exposed to external clients. $productName$ does 
-          not expose any Golang http servers to outside clients. The data-plane of Envoy
-          is not affected by either of these. 
-
-      - title: Update Golang to 1.19.3
-        type: security
-        body: >-
-          Updated Golang to the latest z patch. We are not vulnerable to the CVE-2022-3602 that was 
-          released in 1.19.3 and you can read more about it here: <https://medium.com/ambassador-api-gateway/ambassador-labs-security-impact-assessment-of-nov-1-openssl-golang-vulnerabilities-f11b5ec37a7e>.
-          Updating to the latest z patch as part of our normal dependency update process
-          and this will help reduce the noise of security scanners.
-
       - title: Add support for active health checking configuration.
         type: feature
         body: >-
@@ -71,7 +54,7 @@ items:
           If the upstream fails its configured health check then Envoy will mark the upstream as unhealthy and no longer send
           traffic to that upstream. Single pods within a group may can be marked as unhealthy. The healthy pods will continue to receive
           traffic normally while the unhealthy pods will not receive any traffic until they recover by passing the health check.
-      
+
       - title: Add environment variables to the healthcheck server.
         type: feature
         body: >-

@@ -3,9 +3,11 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
-## v8.4.0 - TBD
+## v8.4.0 - 2022-01-03
 
 - Upgrade Emissary to v3.4.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
+- The Ambassador agent that was previously embedded in Emissary Ingress has been moved to a standalone container.
 
 ## v8.3.0
 
