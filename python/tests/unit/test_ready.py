@@ -65,7 +65,7 @@ def test_ready_listener_default():
     os.environ.pop("AMBASSADOR_READY_PORT", None)
     os.environ.pop("AMBASSADOR_READY_LOG", None)
     econf = _get_envoy_config()
-    _validate_ready_listener_config(econf, 8002, True)
+    _validate_ready_listener_config(econf, 8006, True)
 
 
 @pytest.mark.compilertest
@@ -77,7 +77,7 @@ def test_ready_listener_high_port():
     os.environ["AMBASSADOR_READY_PORT"] = str(32767)
     os.environ.pop("AMBASSADOR_READY_LOG", None)
     econf = _get_envoy_config()
-    _validate_ready_listener_config(econf, 8002, True)
+    _validate_ready_listener_config(econf, 8006, True)
 
 
 @pytest.mark.compilertest
@@ -88,7 +88,7 @@ def test_ready_listener_invalid_logs():
     os.environ.pop("AMBASSADOR_READY_PORT")
     os.environ["AMBASSADOR_READY_LOG"] = "0.6666666666666666"
     econf = _get_envoy_config()
-    _validate_ready_listener_config(econf, 8002, False)
+    _validate_ready_listener_config(econf, 8006, False)
 
 
 @pytest.mark.compilertest
@@ -112,4 +112,4 @@ def test_ready_listener_zero_port():
     os.environ["AMBASSADOR_READY_PORT"] = str(0)
     os.environ.pop("AMBASSADOR_READY_LOG", None)
     econf = _get_envoy_config()
-    _validate_ready_listener_config(econf, 8002, True)
+    _validate_ready_listener_config(econf, 8006, True)

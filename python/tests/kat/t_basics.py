@@ -17,7 +17,7 @@ class Empty(AmbassadorTest):
         if EDGE_STACK:
             self.xfail = "XFailing for now"
         # Specify a non-default readiness port for test coverage purposes.
-        # All other tests will use the default 8002 port.
+        # All other tests will use the default 8006 port.
         self.manifest_envs += """
     - name: AMBASSADOR_READY_PORT
       value: "8500"
