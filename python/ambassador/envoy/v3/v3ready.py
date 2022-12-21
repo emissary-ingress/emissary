@@ -22,11 +22,11 @@ if TYPE_CHECKING:
     from . import V3Config  # pragma: no cover
 
 # The defaults can be changed by using those 2 env vars:
-# AMBASSADOR_READY_PORT: Port number (default 8002)
+# AMBASSADOR_READY_PORT: Port number (default 8006)
 # AMBASSADOR_READY_LOG: true/false (default true)
-ambassador_ready_port = int(os.getenv("AMBASSADOR_READY_PORT", "8002"))
+ambassador_ready_port = int(os.getenv("AMBASSADOR_READY_PORT", "8006"))
 if ambassador_ready_port not in range(1, 32767):
-    ambassador_ready_port = 8002
+    ambassador_ready_port = 8006
 ambassador_ready_log = parse_bool(os.getenv("AMBASSADOR_READY_LOG", "true"))
 ambassador_ready_ip = "127.0.0.1"
 

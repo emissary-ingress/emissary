@@ -1,7 +1,7 @@
 [
   {
-    "name": "ambassador-listener-ready-127.0.0.1-8002",
-    "port": 8002,
+    "name": "ambassador-listener-ready-127.0.0.1-8006",
+    "port": 8006,
     "chains": [
       {
         "server_names": null,

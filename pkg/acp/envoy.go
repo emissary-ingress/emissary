@@ -163,7 +163,7 @@ func getDefaultReadyURL() string {
 		}
 	}
 	if readyPort < 1 {
-		readyPort = 8002
+		readyPort = 8006
 	}
 	return fmt.Sprintf("http://localhost:%d/ready", readyPort)
 }
