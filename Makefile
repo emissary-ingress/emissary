@@ -160,7 +160,7 @@ python-dev-setup:
 # re-generate docs
 .PHONY: clean-changelog
 clean-changelog:
-	rm CHANGELOG.md
+	rm -f CHANGELOG.md
 
 .PHONY: generate-changelog
 generate-changelog: clean-changelog $(PWD)/CHANGELOG.md
