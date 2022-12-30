@@ -89,6 +89,7 @@ import (
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/ext_authz/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/grpc_stats/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/gzip/v3"
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/health_check/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/lua/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/ratelimit/v3"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/http/rbac/v3"

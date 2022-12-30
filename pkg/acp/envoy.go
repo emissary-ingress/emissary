@@ -27,6 +27,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -43,13 +45,18 @@ type EnvoyWatcher struct {
 	// How shall we determine Envoy's readiness?
 	readyCheck envoyFetcher
 
+	// For default fetcher, the port for /ready endpoint listener
+	defaultReadyURL string
+
 	// Did the last ready check succeed?
 	LastSucceeded bool
 }
 
 // NewEnvoyWatcher creates a new EnvoyWatcher, given a fetcher.
 func NewEnvoyWatcher() *EnvoyWatcher {
-	w := &EnvoyWatcher{}
+	w := &EnvoyWatcher{
+		defaultReadyURL: getDefaultReadyURL(),
+	}
 	w.SetReadyCheck(w.defaultFetcher)
 
 	return w
@@ -65,7 +72,7 @@ func (w *EnvoyWatcher) defaultFetcher(ctx context.Context) (*EnvoyFetcherRespons
 	defer tcancel()
 
 	// Build a request...
-	req, err := http.NewRequestWithContext(tctx, http.MethodGet, "http://localhost:8001/ready", nil)
+	req, err := http.NewRequestWithContext(tctx, http.MethodGet, w.defaultReadyURL, nil)
 
 	if err != nil {
 		// ...which should never fail. WTFO?
@@ -143,4 +150,20 @@ func (w *EnvoyWatcher) IsAlive() bool {
 // considered ready whenever it's alive; this method is here for future-proofing.
 func (w *EnvoyWatcher) IsReady() bool {
 	return w.IsAlive()
+}
+
+func getDefaultReadyURL() string {
+	var readyPort uint64
+	var err error
+	strReadyPort := os.Getenv("AMBASSADOR_READY_PORT")
+	if strReadyPort != "" {
+		readyPort, err = strconv.ParseUint(strReadyPort, 10, 15)
+		if err != nil {
+			dlog.Infof(context.Background(), "Unable to parse AMBASSADOR_READY_PORT or port is out of bounds: %s", err)
+		}
+	}
+	if readyPort < 1 {
+		readyPort = 8002
+	}
+	return fmt.Sprintf("http://localhost:%d/ready", readyPort)
 }
