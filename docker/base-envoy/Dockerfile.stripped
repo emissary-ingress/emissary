@@ -16,7 +16,7 @@
 # If you have to change this file, you _must_ update BASE_ENVOY_RELVER
 # in the Makefile, then run "make update-base" to build and push the
 # new image.
-FROM frolvlad/alpine-glibc:alpine-3.17_glibc-2.32
+FROM frolvlad/alpine-glibc:alpine-3.17_glibc-2.34
 
 # We use rsync to move things in and out of the container.
 RUN apk add rsync
