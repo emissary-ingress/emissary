@@ -147,7 +147,7 @@ libraries:
     certifi             2022.9.24  Mozilla Public License 2.0
     charset-normalizer  2.1.1      MIT license
     click               8.1.3      3-clause BSD license
-    dpath               2.1.0      MIT license
+    dpath               2.1.4      MIT license
     durationpy          0.5        MIT license
     expiringdict        1.2.2      Apache License 2.0
     google-auth         2.14.1     Apache License 2.0
