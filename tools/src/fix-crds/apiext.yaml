@@ -153,8 +153,6 @@ spec:
         {{ $k }}: {{ $v }}
         {{- end }}
     spec:
-      securityContext:
-        runAsUser: 8888
       serviceAccountName: {{ .Names.ServiceAccount }}
       containers:
         - name: emissary-apiext
@@ -174,5 +172,3 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 3
             failureThreshold: 3
-          securityContext:
-            allowPrivilegeEscalation: false
