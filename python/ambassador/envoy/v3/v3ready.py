@@ -28,7 +28,9 @@ ambassador_ready_port = int(os.getenv("AMBASSADOR_READY_PORT", "8006"))
 if ambassador_ready_port not in range(1, 32767):
     ambassador_ready_port = 8006
 ambassador_ready_log = parse_bool(os.getenv("AMBASSADOR_READY_LOG", "true"))
-ambassador_ready_ip = "127.0.0.1"
+ambassador_ready_ip = (
+    "::1" if os.getenv("AMBASSADOR_HEALTHCHECK_IP_FAMILY", "ANY") == "IPV6_ONLY" else "127.0.0.1"
+)
 
 
 class V3Ready(dict):
