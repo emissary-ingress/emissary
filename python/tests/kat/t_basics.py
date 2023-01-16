@@ -36,6 +36,7 @@ class Empty(AmbassadorTest):
     def queries(self):
         yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), phase=2)
         yield Query(self.url("_internal/v0/ping", scheme="http", port=8877), expected=403)
+        yield Query(self.url("ambassador/v0/check_ready", scheme="http", port=8500))
 
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
