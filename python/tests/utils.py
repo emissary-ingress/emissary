@@ -175,7 +175,7 @@ spec:
 
 
 def _require_no_errors(ir: IR):
-    assert ir.aconf.errors == {}
+    assert ir.aconf.errors == {}, f"{repr(ir.aconf.errors)}"
 
 
 def _secret_handler():
