@@ -295,7 +295,7 @@ deploymentAnnotations: {}
 resources: # +doc-gen:break
   # Recommended resource requests and limits for Ambassador
   limits:
-    cpu: 1000m
+    # cpu: 1000m
     memory: 600Mi
   requests:
     cpu: 200m
