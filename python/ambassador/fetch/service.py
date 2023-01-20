@@ -257,7 +257,7 @@ class ServiceProcessor(ManagedKubernetesProcessor):
         # self.logger.debug("==== FINALIZE START\n%s" % dump_json(od, pretty=True))
 
         for k8s_svc in self.service_dep.discovered_services.values():
-            key = f'{k8s_svc.name}.{k8s_svc.namespace}'
+            key = f"{k8s_svc.name}.{k8s_svc.namespace}"
 
             target_ports = {}
             target_addrs = []

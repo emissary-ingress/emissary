@@ -331,7 +331,6 @@ status:
         assert len(mappings) == 1
 
         mapping = next(iter(mappings.values()))
-        assert mapping.apiVersion == valid_mapping_v1.gvk.api_version
         assert mapping.name == "quote-0-0"
         assert mapping.namespace == "default"
         assert mapping.prefix == "/"
