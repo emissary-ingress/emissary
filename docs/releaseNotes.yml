@@ -35,7 +35,17 @@ items:
   - version: 3.5.0
     prevVersion: 3.4.0
     date: 'TBD'
-    notes: []
+    notes:
+      - title: Add support for startupProbe on the emissary-ingress deployments
+        type: change
+        body: >-
+          emissary-ingress can be slow to start when there is a lot of mappings. Kubernetes
+          recommends using a startupProbe over tweaking the initialDelaySeconds of the livenessProbe
+          and readinessProbe. The Helm chart was updated to allow setting a startupProbe on the
+          emissary-ingress deployment.
+        github:
+        - title: "#4649"
+          link: https://github.com/emissary-ingress/emissary/pull/4649
 
   - version: 3.4.0
     prevVersion: 3.3.0
