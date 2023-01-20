@@ -105,11 +105,11 @@ imagePullSecrets: []
 
 security:
   # Security Context for all containers in the pod.
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#podsecuritycontext-v1-core
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#podsecuritycontext-v1-core
   podSecurityContext: # +doc-gen:break
     runAsUser: 8888
   # Security Context for the Ambassador container specifically
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#securitycontext-v1-core
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core
   containerSecurityContext: # +doc-gen:break
     allowPrivilegeEscalation: false
   # A basic PodSecurityPolicy to ensure Ambassador is running with appropriate security permissions
@@ -408,6 +408,14 @@ agent:
     tag: 1.0.3
     repository: docker.io/ambassador/ambassador-agent
     pullPolicy: IfNotPresent
+
+  podSecurityContext: {}
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#podsecuritycontext-v1-core
+  #  runAsUser: 8888
+
+  containerSecurityContext: {}
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core
+  # allowPrivilegeEscalation: false
 
 deploymentTool: ''
 
