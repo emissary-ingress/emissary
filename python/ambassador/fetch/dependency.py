@@ -1,9 +1,9 @@
-from typing import Any, Collection, Iterator, Mapping, MutableSet, Optional, Protocol, Sequence, Type, TypeVar
+from typing import Any, Collection, Dict, Iterator, Mapping, MutableSet, Optional, Protocol, Sequence, Type, TypeVar
 
 from collections import defaultdict
 import dataclasses
 
-from .k8sobject import KubernetesObject
+from .k8sobject import KubernetesObjectKey, KubernetesObject
 
 
 class Dependency (Protocol):
@@ -24,9 +24,11 @@ class ServiceDependency (Dependency):
     """
 
     ambassador_service: Optional[KubernetesObject]
+    discovered_services: Dict[KubernetesObjectKey, KubernetesObject]
 
     def __init__(self) -> None:
         self.ambassador_service = None
+        self.discovered_services = {}
 
     def watt_key(self) -> str:
         return 'service'

@@ -91,6 +91,20 @@ class IngressProcessor (ManagedKubernetesProcessor):
         else:
             self.logger.debug(f"Not reconciling Ingress {obj.name}: observed and current statuses are in sync")
 
+    def _resolve_service_port_number(self, namespace, service_name, service_port):
+        for k8s_svc in self.service_dep.discovered_services.values():
+            key = f'{k8s_svc.name}.{k8s_svc.namespace}'
+
+            if key != f'{service_name}.{namespace}':
+                continue
+
+            for port in k8s_svc.spec.get('ports', []):
+                if service_port == port.get('name', None):
+                    return port.get('port', service_port)
+            self.logger.debug(f"Could not resolve port '{service_port}' for service '{key}'")
+
+        return service_port
+
     def _process(self, obj: KubernetesObject) -> None:
         ingress_class_name = obj.spec.get('ingressClassName', '')
 
@@ -211,6 +225,11 @@ class IngressProcessor (ManagedKubernetesProcessor):
                 service_name = path_backend.get('serviceName', None)
                 service_port = path_backend.get('servicePort', None)
                 path_location = path.get('path', '/')
+
+                try:
+                    service_port = int(service_port)
+                except:
+                    service_port = self._resolve_service_port_number(obj.namespace, service_name, service_port)
 
                 if not service_name or not service_port or not path_location:
                     continue
