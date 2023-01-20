@@ -12,6 +12,7 @@ logging.basicConfig(
 logger = logging.getLogger("ambassador")
 
 from ambassador import Config
+from ambassador.fetch import ResourceFetcher
 from ambassador.fetch.ambassador import AmbassadorProcessor
 from ambassador.fetch.dependency import (
     DependencyManager,
@@ -277,6 +278,64 @@ class TestAmbassadorProcessor:
         assert mapping.namespace == valid_mapping_v1.namespace
         assert mapping.prefix == valid_mapping_v1.spec["prefix"]
         assert mapping.service == valid_mapping_v1.spec["service"]
+
+    def test_ingress_with_named_port(self):
+        yaml = '''
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quote
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: quote
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    getambassador.io/ambassador-id: default
+    kubernetes.io/ingress.class: ambassador
+  name: quote
+  namespace: default
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: quote
+          servicePort: http
+        path: /
+        pathType: ImplementationSpecific
+status:
+  loadBalancer: {}
+'''
+        aconf = Config()
+        fetcher = ResourceFetcher(logger, aconf)
+        fetcher.parse_yaml(yaml, True)
+
+        mgr = fetcher.manager
+        assert len(mgr.elements) == 2
+
+        aconf.load_all(fetcher.sorted())
+        assert len(aconf.errors) == 0
+
+        mappings = aconf.get_config('mappings')
+        assert len(mappings) == 1
+
+        mapping = next(iter(mappings.values()))
+        assert mapping.apiVersion == valid_mapping_v1.gvk.api_version
+        assert mapping.name == "quote-0-0"
+        assert mapping.namespace == "default"
+        assert mapping.prefix == "/"
+        assert mapping.service == "quote.default:3000"
 
 
 class TestAggregateKubernetesProcessor:
