@@ -54,6 +54,18 @@ items:
         - title: "fix: hostname port issue"
           link: https://github.com/emissary-ingress/emissary/pull/4816
 
+      - title: Add support for resolving port names in Ingress resource 
+        type: change
+        body: >-
+          Previously, specifying backend ports by name in Ingress was not supported and would result in defaulting
+          to port 80. This allows emissary-ingress to now resolve port names for backend services. If the port number
+          cannot be resolved by the name (e.g named port in the Service doesn't exist) then it defaults back 
+          to the original behavior.
+          (Thanks to <a href="https://github.com/antonu17">Anton Ustyuzhanin</a>!).
+        github:
+        - title: "#4809"
+          link: https://github.com/emissary-ingress/emissary/pull/4809
+
   - version: 3.4.0
     prevVersion: 3.3.0
     date: '2023-01-03'

@@ -101,7 +101,14 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   hostname, an incorrect configuration  was generated with an sni match including the port. This has
   been fixed and the correct envoy configuration is being generated. ([fix: hostname port issue])
 
+- Change: Previously, specifying backend ports by name in Ingress was not supported and would result
+  in defaulting to port 80. This allows emissary-ingress to now resolve port names for backend
+  services. If the port number cannot be resolved by the name (e.g named port in the Service doesn't
+  exist) then it defaults back  to the original behavior. (Thanks to <a
+  href="https://github.com/antonu17">Anton Ustyuzhanin</a>!). ([#4809])
+
 [fix: hostname port issue]: https://github.com/emissary-ingress/emissary/pull/4816
+[#4809]: https://github.com/emissary-ingress/emissary/pull/4809
 
 ## [3.4.0] January 03, 2023
 [3.4.0]: https://github.com/emissary-ingress/emissary/compare/v3.3.0...v3.4.0
