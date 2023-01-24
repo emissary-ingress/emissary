@@ -106,14 +106,14 @@ class IngressProcessor(ManagedKubernetesProcessor):
 
     def _resolve_service_port_number(self, namespace, service_name, service_port):
         for k8s_svc in self.service_dep.discovered_services.values():
-            key = f'{k8s_svc.name}.{k8s_svc.namespace}'
+            key = f"{k8s_svc.name}.{k8s_svc.namespace}"
 
-            if key != f'{service_name}.{namespace}':
+            if key != f"{service_name}.{namespace}":
                 continue
 
-            for port in k8s_svc.spec.get('ports', []):
-                if service_port == port.get('name', None):
-                    return port.get('port', service_port)
+            for port in k8s_svc.spec.get("ports", []):
+                if service_port == port.get("name", None):
+                    return port.get("port", service_port)
             self.logger.debug(f"Could not resolve port '{service_port}' for service '{key}'")
 
         return service_port
@@ -238,7 +238,9 @@ class IngressProcessor(ManagedKubernetesProcessor):
                 try:
                     service_port = int(service_port)
                 except:
-                    service_port = self._resolve_service_port_number(obj.namespace, service_name, service_port)
+                    service_port = self._resolve_service_port_number(
+                        obj.namespace, service_name, service_port
+                    )
 
                 if not service_name or not service_port or not path_location:
                     continue

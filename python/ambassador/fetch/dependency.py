@@ -14,7 +14,7 @@ from typing import (
     TypeVar,
 )
 
-from .k8sobject import KubernetesObjectKey, KubernetesObject
+from .k8sobject import KubernetesObject, KubernetesObjectKey
 
 
 class Dependency(Protocol):

@@ -280,7 +280,7 @@ class TestAmbassadorProcessor:
         assert mapping.service == valid_mapping_v1.spec["service"]
 
     def test_ingress_with_named_port(self):
-        yaml = '''
+        yaml = """
 ---
 apiVersion: v1
 kind: Service
@@ -316,7 +316,7 @@ spec:
         pathType: ImplementationSpecific
 status:
   loadBalancer: {}
-'''
+"""
         aconf = Config()
         fetcher = ResourceFetcher(logger, aconf)
         fetcher.parse_yaml(yaml, True)
@@ -327,7 +327,7 @@ status:
         aconf.load_all(fetcher.sorted())
         assert len(aconf.errors) == 0
 
-        mappings = aconf.get_config('mappings')
+        mappings = aconf.get_config("mappings")
         assert len(mappings) == 1
 
         mapping = next(iter(mappings.values()))
