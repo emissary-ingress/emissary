@@ -2,7 +2,7 @@ from typing import ClassVar, FrozenSet, Optional
 
 from ..config import Config
 from .dependency import IngressClassesDependency, SecretDependency, ServiceDependency
-from .k8sobject import KubernetesGVK, KubernetesObject
+from .k8sobject import KubernetesGVK, KubernetesObject, KubernetesObjectKey
 from .k8sprocessor import ManagedKubernetesProcessor
 from .resource import NormalizedResource, ResourceManager
 
@@ -105,17 +105,20 @@ class IngressProcessor(ManagedKubernetesProcessor):
             )
 
     def _resolve_service_port_number(self, namespace, service_name, service_port):
-        for k8s_svc in self.service_dep.discovered_services.values():
-            key = f"{k8s_svc.name}.{k8s_svc.namespace}"
+        self.logger.debug(f"Resolving named port '{service_port}' in service '{service_name}'")
 
-            if key != f"{service_name}.{namespace}":
-                continue
+        key = KubernetesObjectKey(KubernetesGVK("v1", "Service"), namespace, service_name)
+        k8s_svc: Optional[KubernetesObject]
+        k8s_svc = self.service_dep.discovered_services.get(key, None)
+        if not k8s_svc:
+            self.logger.debug(f"Could not find service '{service_name}'")
+            return service_port
 
-            for port in k8s_svc.spec.get("ports", []):
-                if service_port == port.get("name", None):
-                    return port.get("port", service_port)
-            self.logger.debug(f"Could not resolve port '{service_port}' for service '{key}'")
+        for port in k8s_svc.spec.get("ports", []):
+            if service_port == port.get("name", None):
+                return port.get("port", service_port)
 
+        self.logger.debug(f"Could not find port '{service_port}' in service '{service_name}'")
         return service_port
 
     def _process(self, obj: KubernetesObject) -> None:
