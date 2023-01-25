@@ -112,6 +112,11 @@ security:
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core
   containerSecurityContext: # +doc-gen:break
     allowPrivilegeEscalation: false
+  #
+  # Please note that PodSecurityPolicy has been deprecated as of Kubernetes v1.21 and will be removed in Kubernetes v1.25.
+  # Similar functionality can be obtained with the use of PodSecurityAdmissions. Please find more information on this deprecation here:
+  # https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/
+  #
   # A basic PodSecurityPolicy to ensure Ambassador is running with appropriate security permissions
   # https://kubernetes.io/docs/concepts/policy/pod-security-policy/
   #
