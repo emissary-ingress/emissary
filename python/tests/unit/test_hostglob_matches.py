@@ -53,6 +53,15 @@ def test_hostglob_matches():
         ("*.example.com", "a.b.example.*", True),
         ("*.example.baz.com", "a.b.example.*", True),
         ("*.foo.bar", "baz.zing.*", True),
+        # The Host.hostname is overloaded in that it determines the SNI for TLS and the
+        # virtual host name for :authority header matching for HTTP. These are valid
+        # scenarios that users try when using non-standard ports so we make sure they work.
+        ("*.local:8500", "quote.local", False),
+        ("*.local:8500", "quote.local:8500", True),
+        ("*", "quote.local:8500", True),
+        ("quote.*", "quote.local:8500", True),
+        ("quote.*", "*.local:8500", True),
+        ("quote.com:8500", "quote.com:8500", True),
     ]:
         assert hostglob_matches(v1, v2) == wanted_result, f"1. {v1} ~ {v2} != {wanted_result}"
         assert hostglob_matches(v2, v1) == wanted_result, f"2. {v2} ~ {v1} != {wanted_result}"

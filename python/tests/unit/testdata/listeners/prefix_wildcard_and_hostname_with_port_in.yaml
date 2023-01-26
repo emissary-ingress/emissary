@@ -1,0 +1,99 @@
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: listener-8080
+  namespace: ambassador
+spec:
+  port: 8080
+  protocol: HTTP
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: listener-8443
+  namespace: ambassador
+spec:
+  port: 8443
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: my-tls-context
+  namespace: default
+spec:
+  secret: tls-cert
+  hosts: ["*.local", "*.local:8500"]
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: minimal-host
+  namespace: default
+spec:
+  hostname: '*.local'
+  tlsSecret:
+    name: tls-cert
+  tlsContext: 
+    name: my-tls-context
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: minimal-host-2
+  namespace: default
+spec:
+  hostname: '*.local:8500'
+  tlsSecret:
+    name: tls-cert
+  tlsContext: 
+    name: my-tls-context
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: quote-backend-1
+  namespace: default
+spec:
+  hostname: "quote.local"
+  prefix: /backend/
+  service: quote
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: quote-backend-2
+  namespace: default
+spec:
+  hostname: "*.local"
+  prefix: /backend2/
+  service: quote2
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: quote-backend-3
+  namespace: default
+spec:
+  hostname: "quote.local:8500"
+  prefix: /backend3/
+  service: quote3
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: quote-backend-4
+  namespace: default
+spec:
+  hostname: "*.local:8500"
+  prefix: /backend4/
+  service: quote4

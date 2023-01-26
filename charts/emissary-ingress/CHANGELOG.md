@@ -6,7 +6,9 @@ numbering uses [semantic versioning](http://semver.org).
 ## v8.5.0 - TBD
 
 - Upgrade Emissary to v3.5.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
-- Adds opt-in settings to configure a startupProbe for the Emissary-ingress pod
+- Adds support for configuring a startupProbe on the emissary-ingress deployments. This is useful when a larger number of resources
+  are used and the initial startup needs additional time. See for details https://github.com/emissary-ingress/emissary/pull/4649.
+
 
 ## v8.4.0 - 2022-01-03
 

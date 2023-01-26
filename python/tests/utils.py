@@ -6,11 +6,12 @@ import tempfile
 from base64 import b64encode
 from collections import namedtuple
 
+import pytest
 from OpenSSL import crypto
 
 from ambassador import IR, Cache
 from ambassador.compile import Compile
-from ambassador.utils import NullSecretHandler
+from ambassador.utils import NullSecretHandler, parse_bool
 
 logger = logging.getLogger("ambassador")
 
@@ -339,3 +340,12 @@ def create_crl_pem_b64(issuerCert, issuerKey, revokedCerts):
     return b64encode(
         (crypto.dump_crl(crypto.FILETYPE_PEM, crl).decode("utf-8") + "\n").encode("utf-8")
     ).decode("utf-8")
+
+
+def skip_edgestack():
+    isEdgeStack = parse_bool(os.environ.get("EDGE_STACK", "false"))
+
+    return pytest.mark.skipif(
+        isEdgeStack,
+        reason=f"Skipping because EdgeStack behaves differently and tested separately",
+    )
