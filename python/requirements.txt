@@ -38,7 +38,7 @@ jsonpatch==1.32
     # via -r requirements.in
 jsonpointer==2.3
     # via jsonpatch
-kubernetes==21.7.0
+kubernetes==25.3.0
     # via -r requirements.in
 markupsafe==2.1.1
     # via
