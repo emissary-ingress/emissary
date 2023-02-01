@@ -104,7 +104,7 @@ class IngressProcessor(ManagedKubernetesProcessor):
                 f"Not reconciling Ingress {obj.name}: observed and current statuses are in sync"
             )
 
-    def _resolve_service_port_number(self, namespace, service_name, service_port):
+    def _try_resolve_service_port_number(self, namespace, service_name, service_port):
         self.logger.debug(f"Resolving named port '{service_port}' in service '{service_name}'")
 
         key = KubernetesObjectKey(KubernetesGVK("v1", "Service"), namespace, service_name)
@@ -241,7 +241,7 @@ class IngressProcessor(ManagedKubernetesProcessor):
                 try:
                     service_port = int(service_port)
                 except:
-                    service_port = self._resolve_service_port_number(
+                    service_port = self._try_resolve_service_port_number(
                         obj.namespace, service_name, service_port
                     )
 
