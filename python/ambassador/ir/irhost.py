@@ -25,6 +25,7 @@ class IRHost(IRResource):
     }
 
     hostname: str
+    sni: str
     secure_action: str
     insecure_action: str
     insecure_addl_port: Optional[int]
@@ -63,6 +64,8 @@ class IRHost(IRResource):
 
         if not self.get("hostname", None):
             self.hostname = "*"
+
+        self.sni = self.hostname.rsplit(":", 1)[0]
 
         tls_ss: Optional[SavedSecret] = None
         pkey_ss: Optional[SavedSecret] = None
@@ -204,7 +207,7 @@ class IRHost(IRResource):
                             name=ctx_name,
                             namespace=self.namespace,
                             location=self.location,
-                            hosts=[self.hostname or self.name],
+                            hosts=[self.hostname],
                             secret=tls_full_name,
                         )
 
@@ -256,7 +259,7 @@ class IRHost(IRResource):
                             name=ctx_name,
                             namespace=self.namespace,
                             location=self.location,
-                            hosts=[self.hostname or self.name],
+                            hosts=[self.hostname],
                             secret=tls_full_name,
                         )
 
@@ -391,17 +394,17 @@ class IRHost(IRResource):
         # TLS config is good, let's make sure the hosts line up too.
         context_hosts = ctx.get("hosts")
 
-        # XXX WTF? self.name is not OK as a hostname! Leaving this for the moment, but it's
-        # almost certainly getting shredded before 2.0 GAs.
-        host_hosts = [self.name]
-
-        if self.hostname:
-            host_hosts.append(self.hostname)
+        # Technically a user can set the TLSContext.hosts to include a Host.name thus allowing it to pass
+        # the validation and saved as the context for this Host. Although, this is not intended
+        # or documented behavior it, removing it could break users so we need to mark it as deprecated.
+        # @deprecated - validating TLSContext.hosts against Host.name will be removed, use hostname for matching instead.
+        host_hosts = [self.hostname, self.name]
 
         if context_hosts:
             is_valid_hosts = False
 
-            # XXX Should we be doing a glob check here?
+            # we exact match here, which requires users being explicit about whether a TLSContext can attach
+            # to a Host. Note: this does not do hostname glob matching.
             for host_tc in context_hosts:
                 if host_tc in host_hosts:
                     is_valid_hosts = True
@@ -413,8 +416,7 @@ class IRHost(IRResource):
                 )
                 # XXX Shouldn't we return false here?
         else:
-            # XXX WTF? self.name is not OK as a hostname!
-            ctx["hosts"] = [self.hostname or self.name]
+            ctx["hosts"] = [self.hostname]
 
         self.logger.debug(f"Host {self.name}, final ctx {ctx.name}: {ctx.as_json()}")
 
@@ -434,6 +436,17 @@ class IRHost(IRResource):
         A Mapping that specifies no host can never match a Host that specifies no
         mappingSelector.
         """
+
+        groupName = group.get("name") or "None"
+
+        # The synthetic Mappings for diagnostics, readiness, and liveness probes always match all Hosts.
+        # They can all still be disabled if desired via the Ambassador Module resource
+        if groupName in [
+            "GROUP: internal_readiness_probe_mapping",
+            "GROUP: internal_liveness_probe_mapping",
+            "GROUP: internal_diagnostics_probe_mapping",
+        ]:
+            return True
 
         has_hostname = False
         host_match = False
@@ -474,34 +487,22 @@ class IRHost(IRResource):
                 sel_match,
             )
 
-        groupName = group.get("name") or "None"
-
-        # The synthetic Mappings for diagnostics, readiness, and liveness probes always match all Hosts.
-        # They can all still be disabled if desired via the Ambassador Module resource
-        if groupName in [
-            "GROUP: internal_readiness_probe_mapping",
-            "GROUP: internal_liveness_probe_mapping",
-            "GROUP: internal_diagnostics_probe_mapping",
-        ]:
-            return True
-
         if disable_strict_selectors():
+            # User opted-in to existing deprecated behavior (not-recommmended)
             return host_match or sel_match
+        elif mapsel and has_hostname:
+            # If both mappingSelector and hostname are present, then they must both be a match
+            return host_match and sel_match
+        elif mapsel:
+            # If the Mapping does not provide a hostname, then only the mappingSelector must match
+            return sel_match
 
-        if mapsel:
-            if has_hostname:
-                # If both mappingSelector and hostname are present, then they must both be a match
-                return host_match and sel_match
-            else:
-                # If the Mapping does not provide a hostname, then only the mappingSelector must match
-                return sel_match
+        elif has_hostname:
+            # If there is no mappingSelector then it must only match the provided hostname
+            return host_match
         else:
-            if has_hostname:
-                # If there is no mappingSelector then it must only match the provided hostname
-                return host_match
-            else:
-                # If there is no mappingSelector or hostname then it cannot match anything
-                return False
+            # If there is no mappingSelector or hostname then it cannot match anything
+            return False
 
     def __str__(self) -> str:
         request_policy = self.get("requestPolicy", {})

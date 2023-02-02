@@ -90,12 +90,18 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ### Emissary-ingress and Ambassador Edge Stack
 
-- Change: emissary-ingress can be slow to start when there is a lot of mappings. Kubernetes
-  recommends using a startupProbe over tweaking the initialDelaySeconds of the livenessProbe and
-  readinessProbe. The Helm chart was updated to allow setting a startupProbe on the emissary-ingress
-  deployment. ([#4649])
+- Bugfix: When wanting to expose traffic to clients on ports other than 80/443, users will set a
+  port in the Host.hostname (eg.`Host.hostname=example.com:8500`. The config generated allowed
+  matching on the :authority header. This worked in v1.Y series due to the way emissary was
+  generating Envoy configuration under a single wild-card virtual_host and matching on
+  :authority.
 
-[#4649]: https://github.com/emissary-ingress/emissary/pull/4649
+  In v2.Y/v3.Y+, the way emissary generates Envoy configuration changed to address
+  memory pressure and improve route lookup speed in Envoy. However, when including a port in the
+  hostname, an incorrect configuration  was generated with an sni match including the port. This has
+  been fixed and the correct envoy configuration is being generated. ([fix: hostname port issue])
+
+[fix: hostname port issue]: https://github.com/emissary-ingress/emissary/pull/4816
 
 ## [3.4.0] January 03, 2023
 [3.4.0]: https://github.com/emissary-ingress/emissary/compare/v3.3.0...v3.4.0

@@ -1,7 +1,9 @@
+import os
 from dataclasses import dataclass
 from typing import List, Optional
 
 import pytest
+import yaml
 
 from ambassador import IR
 from ambassador.compile import Compile
@@ -9,7 +11,13 @@ from ambassador.config import Config
 from ambassador.envoy import EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import EmptySecretHandler
-from tests.utils import Compile, default_http3_listener_manifest, econf_compile, logger
+from tests.utils import (
+    Compile,
+    default_http3_listener_manifest,
+    econf_compile,
+    logger,
+    skip_edgestack,
+)
 
 
 def _ensure_alt_svc_header_injected(listener, expectedAltSvc):
@@ -316,3 +324,92 @@ spec:
         assert len(udp_filter_chains) == 1
 
         _verify_no_added_response_headers(udp_listener)
+
+    @skip_edgestack()
+    @pytest.mark.compilertest
+    def test_listener_filterchain_vhost_generation(self):
+        """Ensure that the Listener FilterChain and correct vhosts are generated based on the
+        provided Listener, Host and Mappings to ensure mutliple scenarios are covered such as
+        clients sending hostname:port and addressing h2/h3 connection re-use on parent domains
+        """
+
+        def _cleanse_secrets(listeners: dict):
+            """
+            For these tests the full path of the secret is not what is being tested. This will
+            mutate the listeners and remove secret paths and replace with static values so that when
+            diffing against expected results they don't cause variance in tests.
+            """
+
+            for listIndex, listener in enumerate(listeners):
+                for fcIndex, fc in enumerate(listener["filter_chains"]):
+                    certs = (
+                        fc.get("transport_socket", {})
+                        .get("typed_config", {})
+                        .get("common_tls_context", {})
+                        .get("tls_certificates", {})
+                    )
+                    for i, cert in enumerate(certs):
+                        if "filename" in cert.get("certificate_chain", {}):
+                            cert["certificate_chain"]["filename"] = "test.crt"
+                        if "filename" in cert.get("private_key", {}):
+                            cert["private_key"]["filename"] = "test.key"
+                        certs[i] = cert
+                    listeners[listIndex]["filter_chains"][fcIndex] = fc
+
+        testdata_dir = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "testdata", "listeners"
+        )
+
+        @dataclass
+        class TestCase:
+            # name should match the file name in testdata/listeners (excluding the _out.yaml and _in.yaml suffixes)
+            name: str
+            # description allows developer to provide my information on use-case without having to study the in/out files
+            description: str
+
+        testcases = [
+            TestCase(
+                name="host_missing_tls",
+                description="""
+                    When applying the quick-start of 8080 and 8443 with a Host that doesn't have tls configured it will generate basically
+                    the same FilterChain/Vhost/Routes between the two listeners. The HTTPS Listener will not generate a
+                    Filter Chain checking for matches on TLS and/or SNI. A fallback cert is not used because a Host is configured
+                    although arguable incorrectly. Ideally, the HTTPS listener (8443) should not attach anything or use the fallback
+                    cert as-if no Host was provided but since this was existing behavior it has been left that way for now.
+                """,
+            ),
+            TestCase(
+                name="no_host",
+                description="""
+                    If no Host is provided the http (8080) listener will create the normal "shared http" filter chain
+                    and the https (8443) listener will generate two filter chains; a "shared http" filter chain to catch non-tls traffic
+                    and a filter chain matching on tls and using the fall-back cert with NO sni matching.
+                """,
+            ),
+            TestCase(
+                name="prefix_wildcard_and_hostname_with_port",
+                description="""
+                    Properly handle Host with prefix wildcards (*.local) and hosts with portnames (*.local:8500). In
+                    this scenario both host will be coalesced into the same FilterChain due to matching SNI but
+                    will get their own virtual hosts due to needing to match on a :authority header. Mappings will
+                    associate to the most specific vhost based on the Host.hostname and Mapping.hostname fields
+                """,
+            ),
+        ]
+        for case in testcases:
+
+            applied_yaml = open(os.path.join(testdata_dir, f"{case.name}_in.yaml"), "r").read()
+            expected = yaml.safe_load(
+                open(os.path.join(testdata_dir, f"{case.name}_out.yaml"), "r")
+            )
+
+            econf = econf_compile(applied_yaml)
+            assert econf
+
+            expListeners = expected.get("listeners", {})
+            assert expListeners != {}
+
+            listeners = econf.get("static_resources", {}).get("listeners", [])
+            _cleanse_secrets(listeners)
+
+            assert expListeners == listeners

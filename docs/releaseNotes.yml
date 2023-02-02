@@ -36,16 +36,23 @@ items:
     prevVersion: 3.4.0
     date: 'TBD'
     notes:
-      - title: Add support for startupProbe on the emissary-ingress deployments
-        type: change
+      - title: Fix envoy config generation when including port in Host.hostname
+        type: bugfix
         body: >-
-          emissary-ingress can be slow to start when there is a lot of mappings. Kubernetes
-          recommends using a startupProbe over tweaking the initialDelaySeconds of the livenessProbe
-          and readinessProbe. The Helm chart was updated to allow setting a startupProbe on the
-          emissary-ingress deployment.
+          When wanting to expose traffic to clients on ports other than 80/443, users will set
+          a port in the Host.hostname (eg.<code>Host.hostname=example.com:8500</code>. The config
+          generated allowed matching on the :authority header. This worked in v1.Y series due to the
+          way emissary was generating Envoy configuration under a single wild-card virtual_host and matching
+          on :authority.
+
+          
+          In v2.Y/v3.Y+, the way emissary generates Envoy configuration changed to address memory pressure and improve
+          route lookup speed in Envoy. However, when including a port in the hostname, an incorrect configuration  was
+          generated with an sni match including the port. This has been fixed and the correct envoy configuration is
+          being generated.
         github:
-        - title: "#4649"
-          link: https://github.com/emissary-ingress/emissary/pull/4649
+        - title: "fix: hostname port issue"
+          link: https://github.com/emissary-ingress/emissary/pull/4816
 
   - version: 3.4.0
     prevVersion: 3.3.0

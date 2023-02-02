@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Set, Tuple, Union
 from typing import cast as typecast
 
 from ...ir.irhost import IRHost
@@ -50,10 +50,12 @@ class V3Chain:
     _logger: logging.Logger
     _log_debug: bool
 
-    # We can have multiple hosts here, primarily so that cleartext HTTP chains can DTRT.
     context: Optional["IRTLSContext"]
     hosts: Dict[str, Union[IRHost, IRTCPMappingGroup]]
-    routes: List[DictifiedV3Route]
+    # unique set of sni names to match on chain if terminating TLS
+    server_names: Set[str]
+    # routes is keyed on a per virtual_host.domain and with routes only matching a vhost
+    routes: Dict[str, List[DictifiedV3Route]]
 
     def __init__(self, config: "V3Config", context: Optional["IRTLSContext"]) -> None:
         self._config = config
@@ -62,7 +64,8 @@ class V3Chain:
 
         self.context = context
         self.hosts = {}
-        self.routes = []
+        self.server_names = set([])
+        self.routes = {}
 
     def add_tcphost(self, tcpmapping: IRTCPMappingGroup) -> None:
         if self._log_debug:
@@ -71,41 +74,69 @@ class V3Chain:
             )
 
         if len(self.hosts) > 0:
-            # If we have SNI, then each host gets its own chain, so we should never have more than 1
-            # self.hosts; if we don't have SNI then a single TLSContext takes over the entire chain
-            # and so we shouldn't have more than 1 self.hosts then either.
+            # If we have SNI, then each tcp host gets its own Filter Chain, so we should never have more than 1
+            # entry in self.hosts; if we don't have SNI then a single FilterChain with no filter_chain_match
+            # takes over the entire chain and so we still should not have more than 1 self.hosts then either.
+            # We process TCPMappings first so in theory there never should be a `Host` here and if there was
+            # another TCPMapping for this FilterChain then it would be a duplicate and the first one wins.
             other = next(iter(self.hosts.values()))
             other_type = "TCPMapping" if isinstance(other, IRTCPMappingGroup) else "Host"
             tcpmapping.post_error(
-                "TCPMapping {tcpmapping.name}: discarding because it conflicts with {other_type} {other.name}"
+                f"TCPMapping {tcpmapping.name}: discarding because it conflicts with {other_type} {other.name}"
             )
             return
 
-        self.hosts[tcpmapping.get("host") or "*"] = tcpmapping
+        hostname = tcpmapping.get("host", "*")
+
+        if self.context:
+            self.server_names.add(hostname)
+
+        self.hosts[hostname] = tcpmapping
 
     def add_httphost(self, host: IRHost) -> None:
         if self._log_debug:
-            self._logger.debug(f"      CHAIN UPDATE: add HTTP host: hostname={repr(host.hostname)}")
+            self._logger.debug(
+                f"      CHAIN UPDATE: add HTTP virtual host: hostname={repr(host.hostname)}"
+            )
 
-        if self.context:
-            # If we have SNI, then each host gets its own chain, so we should never have more than 1
-            # self.hosts
-            if len(self.hosts) > 0:
-                other = next(iter(self.hosts.values()))
-                other_type = "TCPMapping" if isinstance(other, IRTCPMappingGroup) else "Host"
+        error_prefix = "TLS Host" if self.context else "Cleartext Host"
+
+        # we need to make sure this chain isn't already owned by TCPMapping
+        for other in self.hosts.values():
+            # if a TCPMapping is already claiming this filter_chain then we give it precedence and will drop this http host
+            # This can happen if a user configures it incorrectly or if a user is using a Host to grab the TLSContext for a TCPMapping.
+            # In the latter scenario, we recommend having a TCPMapping fetch its TLS settings directly from a TLSContext
+            # rather than indirectly through a Host (legacy). In the former we give TCPMapping precedence on the conflicts.
+            if isinstance(other, IRTCPMappingGroup):
                 host.post_error(
-                    "TLS Host {host.name}: discarding because it conflicts with {other_type} {other.name}"
+                    f"{error_prefix} {host.name}: discarding because it conflicts with TCPMapping {other.name}"
                 )
                 return
-        else:
-            # If we don't have SNI then a single TLSContext takes over the entire chain.
-            for other in self.hosts.values():
-                if isinstance(other, IRTCPMappingGroup):
-                    host.post_error(
-                        "Cleartext Host {host.name}: discarding because it conflicts with TCPMapping {other.name}"
-                    )
-                    return
 
+        if self.context:
+            if not host.context:
+                host.post_error(
+                    f"{error_prefix} {host.name}: discarding because host is missing TLSContext"
+                )
+                return
+
+            # In most TLS scenarios a single Host will translate into a single Filter Chain and virtual host. However,
+            # when a user wants to allow clients to access the same dns hostname (example.com) on multiple ports like the
+            # standard https port of 443 and a non standard port like 8500. Then Hosts can be merged together on a single
+            # Filter Chain with multiple virtual hosts. However, we can only group them if they are using the same TLS Contexts
+            # because if they were not we wouldn't know which settings to take from which hosts.
+            if (
+                self.context.name != host.context.name
+                or self.context.namespace != host.context.namespace
+            ):
+                host.post_error(
+                    f"{error_prefix} {host.name}: discarding because mismatching TLSContext between Hosts matching on dns hostname={host.sni}"
+                )
+                return
+
+            self.server_names.add(host.sni)
+
+        self.routes[host.hostname] = []
         self.hosts[host.hostname] = host
 
     def hostglobs(self) -> List[str]:
@@ -120,8 +151,16 @@ class V3Chain:
                 rv.append(host)
         return rv
 
-    def add_route(self, route: DictifiedV3Route) -> None:
-        self.routes.append(route)
+    def add_route(self, virtual_host: str, route: DictifiedV3Route) -> None:
+        """
+        add_route will add the route to the matching virtual host. If the
+        virtual_host doesn't already exist in routes then we initialize an
+        empty list and append the route
+        """
+        if virtual_host not in self.routes:
+            self.routes[virtual_host] = []
+
+        self.routes[virtual_host].append(route)
 
     def __str__(self) -> str:
         ctxstr = f" ctx {self.context.name}" if self.context else ""
@@ -270,6 +309,7 @@ class V3Listener:
         chain_type: Literal["tcp", "http", "https"],
         context: Optional["IRTLSContext"],
         hostname: str,
+        sni: str,
     ) -> V3Chain:
         # Add a chain for a specific Host to this listener, while dealing with the fundamental
         # asymmetry that filter_chain_match can - and should - use SNI whenever the chain has
@@ -290,15 +330,9 @@ class V3Listener:
 
         hostname = hostname or "*"
 
-        chain_key = "tls" if context else "cleartext"
-        # I (LukeShu) can't really give an explanation of why `or chain_type == 'http'` belongs in
-        # this expression (it's what the above comment "we can - and do - separate HTTP chains into
-        # specific domains" is referring to), other than that it needs to be here in order for
-        # compute_routes() to work correctly.  Maybe that's bad and we should go fix
-        # compute_routes() and remove `or chain_type = 'http'`... I'd have to study compute_routes()
-        # a lot more in order to be able to answer that; but in the mean time, including it in the
-        # expression keeps things working.
-        if context or chain_type == "http":
+        chain_key = f"tls-{sni}" if context else "cleartext"
+
+        if chain_type == "http":
             chain_key += f"-{hostname}"
 
         chain = self._chains.get(chain_key)
@@ -306,9 +340,10 @@ class V3Listener:
         if chain is None:
             chain = V3Chain(self.config, context)
             self._chains[chain_key] = chain
+
         if self._log_debug:
             self.config.ir.logger.debug(
-                f"      CHAIN {verb}: tls={bool(context)} host={repr(hostname)} => chains[{repr(chain_key)}]={chain}"
+                f"      CHAIN {verb}: tls={bool(context)} host={repr(hostname)} sni={repr(sni)} => chains[{repr(chain_key)}]={repr(chain)}"
             )
 
         return chain
@@ -620,7 +655,7 @@ class V3Listener:
 
         if self._base_http_config:
             self.compute_httpchains()
-            self.compute_routes()
+            self.compute_http_routes()
             self.finalize_http()
 
     def finalize_tcp(self) -> None:
@@ -659,14 +694,9 @@ class V3Listener:
                     "filters": [tcp_filter],
                 }
 
-                # The chain as a whole has a single matcher.
                 filter_chain_match: Dict[str, Any] = {}
 
-                chain_hosts = chain.hostglobs()
-
-                # If we have a context...
                 if chain.context:
-                    # ...then we can ask for TLS.
                     filter_chain_match["transport_protocol"] = "tls"
 
                     # Note that we're modifying the filter_chain itself here, not
@@ -684,29 +714,25 @@ class V3Listener:
                 # We do server-name matching whether or not we have TLS, just to help
                 # make sure that we don't have two chains with an empty filter_match
                 # criterion (since Envoy will reject such a configuration).
+                server_names = list(chain.server_names)
 
-                if len(chain_hosts) > 0 and ("*" not in chain_hosts):
-                    filter_chain_match["server_names"] = chain_hosts
+                if len(server_names) > 0 and ("*" not in server_names):
+                    filter_chain_match["server_names"] = server_names
 
-                # Once all of that is done, hook in the match...
                 filter_chain["filter_chain_match"] = filter_chain_match
 
-                # ...and stick this chain into our filter.
                 self._filter_chains.append(filter_chain)
 
     def compute_tcpchains(self) -> None:
         self.config.ir.logger.debug("  compute_tcpchains")
 
         for irgroup in self.config.ir.ordered_groups():
-            # Only look at TCPMappingGroups here...
             if not isinstance(irgroup, IRTCPMappingGroup):
                 continue
 
             if self._log_debug:
                 self.config.ir.logger.debug(f"    consider {irgroup}")
 
-            # ...and make sure the group in question wants the same bind
-            # address that we do.
             if irgroup.bind_to() != self.bind_to:
                 self.config.ir.logger.debug("      reject")
                 continue
@@ -719,15 +745,19 @@ class V3Listener:
 
             group_host = irgroup.get("host", None)
             if not group_host:  # cleartext
-                # Special case. No Host in a TCPMapping means an unconditional forward,
+                # Special case. No host (aka hostname) in a TCPMapping means an unconditional forward,
                 # so just add this immediately as a "*" chain.
-                self.add_chain("tcp", None, "*").add_tcphost(irgroup)
+                self.add_chain("tcp", None, "*", "*").add_tcphost(irgroup)
             else:  # TLS/SNI
                 context = tlscontext_for_tcpmapping(irgroup, self.config)
                 if not context:
                     irgroup.post_error("No matching TLSContext found, disabling!")
                     continue
-                self.add_chain("tcp", context, group_host).add_tcphost(irgroup)
+
+                # group_host comes from `TCPMapping.host` which is expected to be a valid dns hostname
+                # without a port so no need to parse out a port
+                sni = group_host
+                self.add_chain("tcp", context, group_host, sni).add_tcphost(irgroup)
 
     def compute_httpchains(self) -> None:
         # Compute the set of chains we need, HTTP version. The core here is matching
@@ -772,15 +802,15 @@ class V3Listener:
                 and (not ((self._security_model == "SECURE") and host_will_reject_secure))
             ):
                 self.config.ir.logger.debug("      accept SECURE")
-                self.add_chain("https", host.context, host.hostname).add_httphost(host)
+                self.add_chain("https", host.context, host.hostname, host.sni).add_httphost(host)
 
             # Same idea on the insecure side: only skip the Host if the Listener's securityModel
             # is INSECURE but the Host's insecure_action is Reject.
             if not ((self._security_model == "INSECURE") and (host.insecure_action == "Reject")):
                 self.config.ir.logger.debug("      accept INSECURE")
-                self.add_chain("http", None, host.hostname).add_httphost(host)
+                self.add_chain("http", None, host.hostname, host.sni).add_httphost(host)
 
-    def compute_routes(self) -> None:
+    def compute_http_routes(self) -> None:
         # Compute the set of valid HTTP routes for _each chain_ in this Listener.
         #
         # Note that a route using XFP can match _any_ chain, whether HTTP or HTTPS.
@@ -827,7 +857,7 @@ class V3Listener:
                     # as the insecure world, depending on what the action is exactly (and note
                     # that, yes, we can have an action of None for an insecure_only listener).
                     #
-                    # "candidates" is host, matcher, action, V3RouteVariants
+                    # "candidates" is a list of tuples (host, matcher, action, V3RouteVariants)
                     candidates: List[Tuple[IRHost, str, str, V3RouteVariants]] = []
                     hostname = host.hostname
 
@@ -881,7 +911,8 @@ class V3Listener:
 
                             variant = dict(rv.get_variant(matcher, action.lower()))
                             variant["_host_constraints"] = set([hostname])
-                            chain.add_route(variant)
+                            # virtual_host domains are key by the hostname for :authority header matching
+                            chain.add_route(hostname, variant)
                         else:
                             if self._log_debug:
                                 self.config.ir.logger.debug(
@@ -898,20 +929,29 @@ class V3Listener:
 
                 self.config.ir.logger.debug("      punching a hole for ACME")
 
-                # Make sure to include _host_constraints in here for now so it can be
-                # applied to the correct vhost during future proccessing
-                chain.routes.insert(
-                    0,
-                    {
-                        "_host_constraints": set(),
-                        "match": {"case_sensitive": True, "prefix": "/.well-known/acme-challenge/"},
-                        "direct_response": {"status": 404},
-                    },
-                )
+                # we need to make sure the acme route is added to every virtual host domain
+                # so we must insert the route into each unique domains list of routes
+                for hostname in chain.hosts:
+                    # Make sure to include _host_constraints in here for now so it can be
+                    # applied to the correct vhost during future proccessing
+                    chain.routes[hostname].insert(
+                        0,
+                        {
+                            "_host_constraints": set(),
+                            "match": {
+                                "case_sensitive": True,
+                                "prefix": "/.well-known/acme-challenge/",
+                            },
+                            "direct_response": {"status": 404},
+                        },
+                    )
 
             if self._log_debug:
-                for route in chain.routes:
-                    self.config.ir.logger.debug("  CHAIN ROUTE: %s" % v3prettyroute(route))
+                for hostname in chain.hosts:
+                    for route in chain.routes[hostname]:
+                        self.config.ir.logger.debug(
+                            f"  CHAIN ROUTE: vhost={hostname} {v3prettyroute(route)}"
+                        )
 
     def finalize_http(self) -> None:
         # Finalize everything HTTP. Like the TCP side of the world, this is about walking
@@ -980,10 +1020,13 @@ class V3Listener:
                 }
                 filter_chain_match: Dict[str, Any] = {}
 
-                chain_hosts = chain.hostglobs()
+                server_names = list(chain.server_names)
 
                 if self._log_debug:
-                    self._irlistener.logger.debug(f"      tls for hostglobs={chain_hosts}")
+                    chain_hosts = chain.hostglobs()
+                    self._irlistener.logger.debug(
+                        f"      tls for hostglobs={chain_hosts} matched with server_names={server_names}"
+                    )
 
                 # Set up the server_names part of the match, if we have any names.
                 #
@@ -996,11 +1039,11 @@ class V3Listener:
                 #
                 # server_names: [ "foo.example.com" ]
                 #
-                # So, if "*" is present at all in our chain_hosts, we can't match server_names
+                # So, if "*" is present at all in our server_names, we can't match server_names
                 # at all.
 
-                if (len(chain_hosts) > 0) and ("*" not in chain_hosts):
-                    filter_chain_match["server_names"] = chain_hosts
+                if (len(server_names) > 0) and ("*" not in server_names):
+                    filter_chain_match["server_names"] = server_names
 
                 # Likewise, an HTTPS chain will ask for TLS or QUIC (when udp)
                 filter_chain_match["transport_protocol"] = (
@@ -1047,7 +1090,7 @@ class V3Listener:
                 # configuration.
                 routes = []
 
-                for r in chain.routes:
+                for r in chain.routes[host.hostname]:
                     routes.append({k: v for k, v in r.items() if k[0] != "_"})
 
                 # Do we - somehow - already have a vhost for this hostname? (This should
@@ -1185,8 +1228,11 @@ class V3Listener:
                     for k in sorted(v3listener._chains.keys()):
                         chain = v3listener._chains[k]
                         config.ir.logger.debug(f"  chain {chain}")
-                        for r in chain.routes:
-                            config.ir.logger.debug(f"    route {v3prettyroute(r)}")
+                        for hostname in chain.hosts:
+                            config.ir.logger.debug(f"    host {hostname}")
+                            routes = chain.routes.get(hostname, [])
+                            for r in routes:
+                                config.ir.logger.debug(f"      route {v3prettyroute(r)}")
 
             # Does this listener have any filter chains?
             if v3listener._filter_chains:
