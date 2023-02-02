@@ -89,7 +89,7 @@ class V3Chain:
         hostname = tcpmapping.get("host", "*")
 
         if self.context:
-            self.server_names.add(server_name)
+            self.server_names.add(hostname)
 
         self.hosts[hostname] = tcpmapping
 
