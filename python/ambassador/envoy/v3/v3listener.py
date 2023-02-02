@@ -77,6 +77,8 @@ class V3Chain:
             # If we have SNI, then each tcp host gets its own Filter Chain, so we should never have more than 1
             # entry in self.hosts; if we don't have SNI then a single FilterChain with no filter_chain_match
             # takes over the entire chain and so we still should not have more than 1 self.hosts then either.
+            # We process TCPMappings first so in theory there never should be a `Host` here and if there was
+            # another TCPMapping for this FilterChain then it would be a duplicate and the first one wins.
             other = next(iter(self.hosts.values()))
             other_type = "TCPMapping" if isinstance(other, IRTCPMappingGroup) else "Host"
             tcpmapping.post_error(
@@ -87,7 +89,6 @@ class V3Chain:
         hostname = tcpmapping.get("host", "*")
 
         if self.context:
-            server_name = hostname.rsplit(":", 1)[0]
             self.server_names.add(server_name)
 
         self.hosts[hostname] = tcpmapping
@@ -103,6 +104,9 @@ class V3Chain:
         # we need to make sure this chain isn't already owned by TCPMapping
         for other in self.hosts.values():
             # if a TCPMapping is already claiming this filter_chain then we give it precedence and will drop this http host
+            # This can happen if a user configures it incorrectly or if a user is using a Host to grab the TLSContext for a TCPMapping.
+            # In the latter scenario, we recommend having a TCPMapping fetch its TLS settings directly from a TLSContext
+            # rather than indirectly through a Host (legacy). In the former we give TCPMapping precedence on the conflicts.
             if isinstance(other, IRTCPMappingGroup):
                 host.post_error(
                     f"{error_prefix} {host.name}: discarding because it conflicts with TCPMapping {other.name}"
@@ -741,7 +745,7 @@ class V3Listener:
 
             group_host = irgroup.get("host", None)
             if not group_host:  # cleartext
-                # Special case. No Host in a TCPMapping means an unconditional forward,
+                # Special case. No host (aka hostname) in a TCPMapping means an unconditional forward,
                 # so just add this immediately as a "*" chain.
                 self.add_chain("tcp", None, "*", "*").add_tcphost(irgroup)
             else:  # TLS/SNI
@@ -750,8 +754,10 @@ class V3Listener:
                     irgroup.post_error("No matching TLSContext found, disabling!")
                     continue
 
-                sni = group_host.rsplit(":", 1)[0] if group_host else "*"
-                self.add_chain("tcp", context, group_host, group_host).add_tcphost(irgroup)
+                # group_host comes from `TCPMapping.host` which is expected to be a valid dns hostname
+                # without a port so no need to parse out a port
+                sni = group_host
+                self.add_chain("tcp", context, group_host, sni).add_tcphost(irgroup)
 
     def compute_httpchains(self) -> None:
         # Compute the set of chains we need, HTTP version. The core here is matching

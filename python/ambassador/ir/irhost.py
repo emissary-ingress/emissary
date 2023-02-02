@@ -207,7 +207,7 @@ class IRHost(IRResource):
                             name=ctx_name,
                             namespace=self.namespace,
                             location=self.location,
-                            hosts=[self.hostname or self.name],
+                            hosts=[self.hostname],
                             secret=tls_full_name,
                         )
 
@@ -259,7 +259,7 @@ class IRHost(IRResource):
                             name=ctx_name,
                             namespace=self.namespace,
                             location=self.location,
-                            hosts=[self.hostname or self.name],
+                            hosts=[self.hostname],
                             secret=tls_full_name,
                         )
 
@@ -394,17 +394,17 @@ class IRHost(IRResource):
         # TLS config is good, let's make sure the hosts line up too.
         context_hosts = ctx.get("hosts")
 
-        host_hosts = []
-
-        if self.hostname:
-            host_hosts.append(self.hostname)
+        # Technically a user can set the TLSContext.hosts to include a Host.name thus allowing it to pass
+        # the validation and saved as the context for this Host. Although, this is not intended
+        # or documented behavior it, removing it could break users so we need to mark it as deprecated.
+        # @deprecated - validating TLSContext.hosts against Host.name will be removed, use hostname for matching instead.
+        host_hosts = [self.hostname, self.name]
 
         if context_hosts:
             is_valid_hosts = False
 
             # we exact match here, which requires users being explicit about whether a TLSContext can attach
-            # to a Host. Potentially, a nicer UX would be to do glob matching but this would be a breaking change.
-            # The closest we have is to exclude `host` on the TLSContext so that it can attach to all Host.
+            # to a Host. Note: this does not do hostname glob matching.
             for host_tc in context_hosts:
                 if host_tc in host_hosts:
                     is_valid_hosts = True
