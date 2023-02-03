@@ -21,6 +21,10 @@ SERVICE_NAME = "cool-log-svcname"
 
 def _get_log_config(yaml, driver: Literal["http", "tcp"]):
     for listener in yaml["static_resources"]["listeners"]:
+        if listener["name"].startswith("ambassador-listener-ready"):
+            # don't want to test the ready listener since it's different from the default 8080/8443
+            # listeners and is already tested in test_ready.py
+            continue
         for filter_chain in listener["filter_chains"]:
             for f in filter_chain["filters"]:
                 for log_filter in f["typed_config"]["access_log"]:
