@@ -32,6 +32,22 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 2.5.2
+    date: '2023-02-07'
+    notes:
+      - title: Update ncurses to 2022.12.7
+        type: security
+        body: >-
+          Updated certifi to 2022.12.7 to address CVE-2022-23491
+      - title: Update oauthlib to 3.2.2
+        type: security
+        body: >-
+          Updated oauthlib to 3.2.2 to address CVE-2022-36087
+      - title: Update setuptools to 67.1.0
+        type: security
+        body: >-
+          Updated setuptools to 67.1.0 to address CVE-2022-40897
+
   - version: 2.5.1
     date: '2022-12-08'
     notes:
