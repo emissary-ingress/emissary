@@ -40,14 +40,12 @@ class InternalServiceProcessor(ManagedKubernetesProcessor):
 
     service_dep: ServiceDependency
     helm_chart: Optional[str]
-    discovered_services: Dict[KubernetesObjectKey, KubernetesObject]
 
     def __init__(self, manager: ResourceManager) -> None:
         super().__init__(manager)
 
         self.service_dep = self.deps.provide(ServiceDependency)
         self.helm_chart = None
-        self.discovered_services = {}
 
     def kinds(self) -> FrozenSet[KubernetesGVK]:
         return frozenset([KubernetesGVK("v1", "Service")])
@@ -93,7 +91,7 @@ class InternalServiceProcessor(ManagedKubernetesProcessor):
                 f"not saving Kubernetes Service {obj.name}.{obj.namespace} with no ports"
             )
         else:
-            self.discovered_services[obj.key] = obj
+            self.service_dep.discovered_services[obj.key] = obj
 
             if self._is_ambassador_service(obj):
                 self.logger.debug(f"Found Ambassador service: {obj.name}")
@@ -204,6 +202,7 @@ class ServiceProcessor(ManagedKubernetesProcessor):
     Ambassador service resources.
     """
 
+    service_dep: ServiceDependency
     services: InternalServiceProcessor
     endpoints: InternalEndpointsProcessor
     delegate: AggregateKubernetesProcessor
@@ -212,6 +211,7 @@ class ServiceProcessor(ManagedKubernetesProcessor):
     def __init__(self, manager: ResourceManager, watch_only: bool = False):
         super().__init__(manager)
 
+        self.service_dep = self.deps.want(ServiceDependency)
         self.services = InternalServiceProcessor(manager)
         self.endpoints = InternalEndpointsProcessor(manager)
         self.delegate = AggregateKubernetesProcessor([self.services, self.endpoints])
@@ -226,7 +226,7 @@ class ServiceProcessor(ManagedKubernetesProcessor):
     def finalize(self) -> None:
         self.delegate.finalize()
 
-        # The point here is to sort out self.services.discovered_services and
+        # The point here is to sort out self.service_dep.discovered_services and
         # self.endpoints.discovered_endpoints and turn them into proper
         # Ambassador Service resources. This is a bit annoying, because of the
         # annoyances of Kubernetes, but we'll give it a go.
@@ -251,12 +251,12 @@ class ServiceProcessor(ManagedKubernetesProcessor):
         # od = {
         #     'elements': [ x.as_dict() for x in self.elements ],
         #     'k8s_endpoints': self.endpoints.discovered_endpoints,
-        #     'k8s_services': self.services.discovered_services,
+        #     'k8s_services': self.service_dep.discovered_services,
         # }
         #
         # self.logger.debug("==== FINALIZE START\n%s" % dump_json(od, pretty=True))
 
-        for k8s_svc in self.services.discovered_services.values():
+        for k8s_svc in self.service_dep.discovered_services.values():
             key = f"{k8s_svc.name}.{k8s_svc.namespace}"
 
             target_ports = {}

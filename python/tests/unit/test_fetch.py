@@ -12,6 +12,7 @@ logging.basicConfig(
 logger = logging.getLogger("ambassador")
 
 from ambassador import Config
+from ambassador.fetch import ResourceFetcher
 from ambassador.fetch.ambassador import AmbassadorProcessor
 from ambassador.fetch.dependency import (
     DependencyManager,
@@ -277,6 +278,105 @@ class TestAmbassadorProcessor:
         assert mapping.namespace == valid_mapping_v1.namespace
         assert mapping.prefix == valid_mapping_v1.spec["prefix"]
         assert mapping.service == valid_mapping_v1.spec["service"]
+
+    def test_ingress_with_named_port(self):
+        yaml = """
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quote
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: quote
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    getambassador.io/ambassador-id: default
+    kubernetes.io/ingress.class: ambassador
+  name: quote
+  namespace: default
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: ImplementationSpecific
+        backend:
+          serviceName: quote
+          servicePort: http
+      - path: /metrics
+        pathType: ImplementationSpecific
+        backend:
+          serviceName: quote
+          servicePort: metrics
+      - path: /health
+        pathType: ImplementationSpecific
+        backend:
+          serviceName: quote
+          servicePort: 9000
+      - path: /missed-name
+        pathType: ImplementationSpecific
+        backend:
+          serviceName: missed
+          servicePort: missed
+      - path: /missed-number
+        pathType: ImplementationSpecific
+        backend:
+          serviceName: missed
+          servicePort: 8080
+status:
+  loadBalancer: {}
+"""
+        aconf = Config()
+        logger.setLevel(logging.DEBUG)
+
+        fetcher = ResourceFetcher(logger, aconf)
+        fetcher.parse_yaml(yaml, True)
+
+        mgr = fetcher.manager
+        assert len(mgr.elements) == 6
+
+        aconf.load_all(fetcher.sorted())
+        assert len(aconf.errors) == 0
+
+        mappings = aconf.get_config("mappings")
+        assert mappings
+        assert len(mappings) == 5
+
+        mapping_root = mappings.get("quote-0-0")
+        assert mapping_root
+        assert mapping_root.prefix == "/"
+        assert mapping_root.service == "quote.default:3000"
+
+        mapping_metrics = mappings.get("quote-0-1")
+        assert mapping_metrics
+        assert mapping_metrics.prefix == "/metrics"
+        assert mapping_metrics.service == "quote.default:metrics"
+
+        mapping_health = mappings.get("quote-0-2")
+        assert mapping_health
+        assert mapping_health.prefix == "/health"
+        assert mapping_health.service == "quote.default:9000"
+
+        mapping_missed_name = mappings.get("quote-0-3")
+        assert mapping_missed_name
+        assert mapping_missed_name.prefix == "/missed-name"
+        assert mapping_missed_name.service == "missed.default:missed"
+
+        mapping_missed_number = mappings.get("quote-0-4")
+        assert mapping_missed_number
+        assert mapping_missed_number.prefix == "/missed-number"
+        assert mapping_missed_number.service == "missed.default:8080"
 
 
 class TestAggregateKubernetesProcessor:
