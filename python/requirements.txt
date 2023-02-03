@@ -6,7 +6,7 @@
 #
 cachetools==5.0.0
     # via google-auth
-certifi==2021.10.8
+certifi==2022.12.7
     # via
     #   kubernetes
     #   requests
@@ -46,7 +46,7 @@ markupsafe==2.1.1
     # via
     #   jinja2
     #   werkzeug
-oauthlib==3.2.0
+oauthlib==3.2.2
     # via requests-oauthlib
 orjson==3.6.6
     # via -r requirements.in
@@ -94,7 +94,7 @@ zipp==3.8.1
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==63.4.2
+setuptools==67.1.0
     # via
     #   -r requirements.in
     #   gunicorn

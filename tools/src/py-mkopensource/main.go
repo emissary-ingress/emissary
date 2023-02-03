@@ -54,6 +54,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"lockfile", "0.12.2", "UNKNOWN"}:              {MIT},
 		{"oauthlib", "3.1.0", "BSD"}:                   {BSD3},
 		{"oauthlib", "3.2.0", "BSD"}:                   {BSD3},
+		{"oauthlib", "3.2.2", "BSD"}:                   {BSD3},
 		{"pep517", "0.12.0", "UNKNOWN"}:                {MIT},
 		{"pep517", "0.8.2", "UNKNOWN"}:                 {MIT},
 		{"pip-tools", "5.3.1", "BSD"}:                  {BSD3},

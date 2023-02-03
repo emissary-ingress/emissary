@@ -150,7 +150,7 @@ libraries:
     Werkzeug            2.2.1      3-clause BSD license
     appdirs             1.4.4      MIT license
     cachetools          5.0.0      MIT license
-    certifi             2021.10.8  Mozilla Public License 2.0
+    certifi             2022.12.7  Mozilla Public License 2.0
     charset-normalizer  2.0.11     MIT license
     click               8.0.3      3-clause BSD license
     colorama            0.4.4      3-clause BSD license
@@ -171,7 +171,7 @@ libraries:
     kubernetes          21.7.0     Apache License 2.0
     lockfile            0.12.2     MIT license
     msgpack             1.0.2      Apache License 2.0
-    oauthlib            3.2.0      3-clause BSD license
+    oauthlib            3.2.2      3-clause BSD license
     ordered-set         4.0.2      MIT license
     orjson              3.6.6      Apache License 2.0, MIT license
     packaging           20.9       2-clause BSD license, Apache License 2.0
