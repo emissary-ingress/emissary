@@ -977,3 +977,37 @@ listeners:
       - name: envoy.filters.listener.tls_inspector
     name: listener-8443
     traffic_direction: UNSPECIFIED
+  - address:
+      socket_address:
+        address: '127.0.0.1'
+        port_value: 8006
+        protocol: TCP
+    filter_chains:
+      - filter_chain_match: {}
+        filters:
+          - name: envoy.filters.network.http_connection_manager
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+              access_log:
+                - name: envoy.access_loggers.file
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog
+                    log_format:
+                      text_format_source:
+                        inline_string: |
+                          ACCESS [%START_TIME%] "%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% "%REQ(X-FORWARDED-FOR)%" "%REQ(USER-AGENT)%" "%REQ(X-REQUEST-ID)%" "%REQ(:AUTHORITY)%" "%UPSTREAM_HOST%"
+
+                    path: "/dev/fd/1"
+              http_filters:
+                - name: envoy.filters.http.health_check
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.http.health_check.v3.HealthCheck
+                    headers:
+                      - exact_match: /ready
+                        name: ":path"
+                    pass_through_mode: False
+                - name: envoy.filters.http.router
+              route_config: 
+                name: local_route
+              stat_prefix: ready_http
+    name: ambassador-listener-ready-127.0.0.1-8006
