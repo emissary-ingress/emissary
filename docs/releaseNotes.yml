@@ -75,6 +75,11 @@ items:
           have introduced a startupProbe to ensure that emissary-apiext server has enough time to
           configure the webhooks before running liveness and readiness probes. This is to ensure 
           slow startup doesn't cause K8s to needlessly restart the pod.
+      
+      - title: Update to golang 1.20
+        type: change
+        body: >-
+          Upgrading to the latest release of Golang as part of our general dependency upgrade process.
 
   - version: 3.4.0
     prevVersion: 3.3.0

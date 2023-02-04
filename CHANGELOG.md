@@ -114,6 +114,9 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   before running liveness and readiness probes. This is to ensure  slow startup doesn't cause K8s to
   needlessly restart the pod.
 
+- Change: Upgrading to the latest release of Golang as part of our general dependency upgrade
+  process.
+
 [fix: hostname port issue]: https://github.com/emissary-ingress/emissary/pull/4816
 [#4809]: https://github.com/emissary-ingress/emissary/pull/4809
 
