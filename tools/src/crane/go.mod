@@ -1,6 +1,6 @@
 module local
 
-go 1.19
+go 1.20
 
 require github.com/google/go-containerregistry v0.12.1
 
