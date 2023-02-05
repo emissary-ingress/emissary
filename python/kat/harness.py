@@ -1616,6 +1616,15 @@ class Runner:
             ):
                 raise RuntimeError("Failed applying CRDs")
 
+            print("waiting for emissary-apiext server to become available")
+            if os.system(
+                "kubectl wait --timeout=90s --for=condition=available deployment emissary-apiext -n emissary-system > /dev/null 2>&1"
+            ):
+                raise RuntimeError(
+                    "emissary-apiext server did not become available within 90 seconds"
+                )
+            print("emissary-apiext server is available")
+
             tries_left = 10
 
             while (
