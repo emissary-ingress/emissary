@@ -119,7 +119,7 @@ $(tools.bindir)/telepresence: $(tools.mk)
 # k3d is in theory `go get`-able, but... the tests fail when I do
 # that.  IDK.  --lukeshu
 tools/k3d   = $(tools.bindir)/k3d
-K3D_VERSION = 4.4.8
+K3D_VERSION = 5.4.7
 $(tools.bindir)/k3d: $(tools.mk)
 	mkdir -p $(@D)
 	curl -s --fail -L https://github.com/rancher/k3d/releases/download/v$(K3D_VERSION)/k3d-$(GOHOSTOS)-$(GOHOSTARCH) -o $@

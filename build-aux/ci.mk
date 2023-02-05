@@ -1,8 +1,8 @@
 include $(dir $(lastword $(MAKEFILE_LIST)))tools.mk
 
-K3S_VERSION      = 1.22.2+k3s1
+K3S_VERSION      = 1.22.17-k3s1
 K3D_CLUSTER_NAME =
-K3D_ARGS         = --k3s-server-arg=--no-deploy=traefik --k3s-server-arg=--kubelet-arg=max-pods=255
+K3D_ARGS         = --k3s-arg=--no-deploy=traefik@server:* --k3s-arg=--kubelet-arg=max-pods=255@server:*
 # This is modeled after
 # https://github.com/nolar/setup-k3d-k3s/blob/v1.0.7/action.sh#L70-L77 and
 # https://github.com/nolar/setup-k3d-k3s/blob/v1.0.7/action.yaml#L34-L46
