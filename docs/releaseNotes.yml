@@ -66,6 +66,16 @@ items:
         - title: "#4809"
           link: https://github.com/emissary-ingress/emissary/pull/4809
 
+      - title: Add starupProbe to emissary-apiext server
+        type: change
+        body: >-
+          The <code>emissary-apiext</code> server is a Kubernetes Conversion Webhook that converts between the 
+          Emissary-ingress CRD versions. On startup, it ensures that a self-signed cert is available
+          so that K8s API Server can talk to the conversion webhook (*TLS is required by K8s*). We 
+          have introduced a startupProbe to ensure that emissary-apiext server has enough time to
+          configure the webhooks before running liveness and readiness probes. This is to ensure 
+          slow startup doesn't cause K8s to needlessly restart the pod.
+
   - version: 3.4.0
     prevVersion: 3.3.0
     date: '2023-01-03'
