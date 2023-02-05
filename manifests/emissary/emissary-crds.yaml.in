@@ -5434,11 +5434,23 @@ spec:
               containerPort: 8080
             - name: https
               containerPort: 8443
+          startupProbe:
+            httpGet:
+              path: /probes/live
+              port: 8080
+            failureThreshold: 10
+            periodSeconds: 3
           livenessProbe:
             httpGet:
               scheme: HTTP
               path: /probes/live
               port: 8080
-            initialDelaySeconds: 5
+            periodSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /probes/ready
+              port: 8080
             periodSeconds: 3
             failureThreshold: 3

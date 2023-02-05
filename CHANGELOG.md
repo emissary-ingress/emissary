@@ -107,6 +107,13 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   exist) then it defaults back  to the original behavior. (Thanks to <a
   href="https://github.com/antonu17">Anton Ustyuzhanin</a>!). ([#4809])
 
+- Change: The `emissary-apiext` server is a Kubernetes Conversion Webhook that converts between the 
+  Emissary-ingress CRD versions. On startup, it ensures that a self-signed cert is available so that
+  K8s API Server can talk to the conversion webhook (*TLS is required by K8s*). We  have introduced
+  a startupProbe to ensure that emissary-apiext server has enough time to configure the webhooks
+  before running liveness and readiness probes. This is to ensure  slow startup doesn't cause K8s to
+  needlessly restart the pod.
+
 [fix: hostname port issue]: https://github.com/emissary-ingress/emissary/pull/4816
 [#4809]: https://github.com/emissary-ingress/emissary/pull/4809
 
