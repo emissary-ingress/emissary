@@ -13,12 +13,12 @@ RSYNC_EXTRAS ?=
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,https://github.com/datawire/envoy.git)
-  # rebase/release/v1.24.1
-	ENVOY_COMMIT ?= dcc3afef1680c1c4f932c73e0c9bca8b0b5db484
+  # rebase/release/v1.24.2 - with boringSSL cve patch and c-ares dep update
+	ENVOY_COMMIT ?= 5a4aed880cb9b76df21448e75d42fe95a77c3893
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
-  BASE_ENVOY_RELVER ?= 0
+  BASE_ENVOY_RELVER ?= 1
 
   # Set to non-empty to enable compiling Envoy in FIPS mode.
   FIPS_MODE ?=
@@ -210,6 +210,7 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	            exit 1; \
 	        fi; \
 	        $(call ENVOY_BASH.cmd, \
+							$(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
 	            $(ENVOY_DOCKER_EXEC) bazel build $(if $(FIPS_MODE), --define boringssl=fips) --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //source/exe:envoy-static; \
 	            rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/root/envoy/bazel-bin/source/exe/envoy-static $@; \
 	        ); \
