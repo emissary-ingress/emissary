@@ -853,14 +853,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	dlog.Printf(ctx, "processing queries for input file name: %s , saving to: %s", args.input, args.output)
 
 	var data []byte
 
 	// Read input file
 	if args.input == "" {
+		dlog.Printf(ctx, "processing queries from stdin")
 		data, err = io.ReadAll(os.Stdin)
 	} else {
+
 		data, err = os.ReadFile(args.input)
 	}
 	if err != nil {
@@ -893,7 +894,7 @@ func main() {
 				sem.Release()
 			}()
 			if err := ExecuteQuery(ctx, specs[idx]); err != nil {
-				dlog.Errorf(ctx, "an error occurred executing query %d, kat-client is panicing: %s", idx, err.Error())
+				dlog.Errorf(ctx, "an error occurred executing query %d, kat-client will panic: %s", idx, err.Error())
 				panic(err) // TODO: do something better
 			}
 		}(i)
@@ -909,8 +910,10 @@ func main() {
 	if err != nil {
 		dlog.Print(ctx, err)
 	} else if args.output == "" {
+		dlog.Printf(ctx, "writing results to stdout")
 		fmt.Print(string(bytes))
 	} else {
+		dlog.Printf(ctx, "writing results to output file: %s", args.output)
 		err = os.WriteFile(args.output, bytes, 0644)
 		if err != nil {
 			dlog.Print(ctx, err)
