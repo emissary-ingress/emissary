@@ -11,7 +11,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -22,6 +21,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
@@ -486,7 +486,7 @@ func (q Query) AddResponse(ctx context.Context, resp *http.Response) {
 		result["tls"] = resp.TLS.PeerCertificates
 		result["cipher_suite"] = resp.TLS.CipherSuite
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if !q.CheckErr(ctx, err) {
 		dlog.Printf(ctx, "%v: %v", q.URL(), resp.Status)
 		result["body"] = body
@@ -655,7 +655,7 @@ func CallRealGRPC(ctx context.Context, query Query) {
 	// This makes useful error messages visible in most cases.
 	var dialOptions []grpc.DialOption
 	if qURL.Scheme != "https" {
-		dialOptions = append(dialOptions, grpc.WithInsecure())
+		dialOptions = append(dialOptions, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 	conn, err := grpc.DialContext(ctx, dialHost, dialOptions...)
 	if query.CheckErr(ctx, err) {
@@ -853,14 +853,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	dlog.Printf(ctx, "processing queries for input file name: %s , saving to: %s", args.input, args.output)
 
 	var data []byte
 
 	// Read input file
 	if args.input == "" {
-		data, err = ioutil.ReadAll(os.Stdin)
+		data, err = io.ReadAll(os.Stdin)
 	} else {
-		data, err = ioutil.ReadFile(args.input)
+		data, err = os.ReadFile(args.input)
 	}
 	if err != nil {
 		panic(err)
@@ -892,6 +893,7 @@ func main() {
 				sem.Release()
 			}()
 			if err := ExecuteQuery(ctx, specs[idx]); err != nil {
+				dlog.Errorf(ctx, "an error occurred executing query %d, kat-client is panicing: %s", idx, err.Error())
 				panic(err) // TODO: do something better
 			}
 		}(i)
@@ -909,7 +911,7 @@ func main() {
 	} else if args.output == "" {
 		fmt.Print(string(bytes))
 	} else {
-		err = ioutil.WriteFile(args.output, bytes, 0644)
+		err = os.WriteFile(args.output, bytes, 0644)
 		if err != nil {
 			dlog.Print(ctx, err)
 		}
