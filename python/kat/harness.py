@@ -1078,7 +1078,7 @@ def run_queries(name: str, queries: Sequence[Query]) -> Sequence[Result]:
     # run(f"{CLIENT_GO} -input {path_urls} -output {path_results} 2> {path_log}")
     res = ShellCommand.run(
         "Running queries",
-        f"tools/bin/kubectl exec -n default -i kat /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'",
+        f"tools/bin/kubectl exec -n default -i kat -- /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'",
         shell=True,
     )
 
