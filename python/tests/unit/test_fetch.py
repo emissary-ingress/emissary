@@ -1,7 +1,10 @@
 import logging
+import os
 import sys
 
 import pytest
+
+from ambassador.utils import NullSecretHandler, parse_bool
 
 logging.basicConfig(
     level=logging.INFO,
@@ -280,6 +283,8 @@ class TestAmbassadorProcessor:
         assert mapping.service == valid_mapping_v1.spec["service"]
 
     def test_ingress_with_named_port(self):
+        isEdgeStack = parse_bool(os.environ.get("EDGE_STACK", "false"))
+
         yaml = """
 ---
 apiVersion: v1
@@ -344,14 +349,18 @@ status:
         fetcher.parse_yaml(yaml, True)
 
         mgr = fetcher.manager
-        assert len(mgr.elements) == 6
+
+        expectedElements = 7 if isEdgeStack else 6
+        assert len(mgr.elements) == expectedElements
 
         aconf.load_all(fetcher.sorted())
         assert len(aconf.errors) == 0
 
         mappings = aconf.get_config("mappings")
         assert mappings
-        assert len(mappings) == 5
+
+        expectedMappings = 6 if isEdgeStack else 5
+        assert len(mappings) == expectedMappings
 
         mapping_root = mappings.get("quote-0-0")
         assert mapping_root
