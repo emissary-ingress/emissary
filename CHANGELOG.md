@@ -85,6 +85,15 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [3.4.1] February 07, 2023
+[3.4.1]: https://github.com/emissary-ingress/emissary/compare/v3.4.0...v3.4.1
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Security: This upgrades emissary-ingress to be built on Envoy v1.24.2. This captures a  patch to
+  boringssl to address CVE-2023-0286. It also includes an update to c-ares dependency to address
+  issue with cname wildcard dns resolution for upstream clusters.
+
 ## [3.4.0] January 03, 2023
 [3.4.0]: https://github.com/emissary-ingress/emissary/compare/v3.3.0...v3.4.0
 

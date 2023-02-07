@@ -32,6 +32,17 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 3.4.1
+    date: '2023-02-07'
+    notes:
+      - title: Upgrade to Envoy 1.24.2
+        type: security
+        body: >-
+          This upgrades emissary-ingress to be built on Envoy v1.24.2. This captures a 
+          patch to boringssl to address CVE-2023-0286. It also includes an update to c-ares
+          dependency to address issue with cname wildcard dns resolution for upstream clusters.
+        docs: https://www.envoyproxy.io/docs/envoy/v1.24.2/version_history/v1.24/v1.24.2
+
   - version: 3.4.0
     prevVersion: 3.3.0
     date: '2023-01-03'
