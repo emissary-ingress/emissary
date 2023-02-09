@@ -764,10 +764,22 @@ custom_tags:
                 phase=1,
             )
 
-        # ...then ask Jaeger for services and traces.
+        # query-20: ask Jaeger for services and traces.
         yield Query(f"http://{self.jaeger.path.fqdn}:16686/api/services", phase=check_phase)
+
+        # query-21: ask for envoy routing traces
+        router_operation_name = (
+            "router%20tracingtestopentelemetry_http_default_svc_cluster_local%20egress"
+        )
         yield Query(
-            f"http://{self.jaeger.path.fqdn}:16686/api/traces?service=ambassador&limit=20",
+            f"http://{self.jaeger.path.fqdn}:16686/api/traces?service=ambassador&operation={router_operation_name}",
+            phase=check_phase,
+        )
+
+        # query-22: ask for upstream cluster traces
+        cluster_operation_name = "egress%20tracingtestopentelemetry.default.svc.cluster.local"
+        yield Query(
+            f"http://{self.jaeger.path.fqdn}:16686/api/traces?service=ambassador&operation={cluster_operation_name}",
             phase=check_phase,
         )
 
@@ -777,29 +789,23 @@ custom_tags:
             assert result.backend
             assert result.backend.name == self.target.path.k8s
 
+        # verify "ambassador" is the list of services from jaeger
         print(f"self.results[20] = {self.results[20]}")
         assert (
             self.results[20].json is not None and "ambassador" in self.results[20].json["data"]
         ), f"unexpected self.results[20] = {self.results[20]}"
 
-        tracelist = self.results[21].json["data"]
-        assert len(tracelist) == 20, f"tracelist lenght = {len(tracelist)}"
-        # The order of spans in the json response is not deterministic.
-        # One span contains `egress tracingtestopentelemetry.default.svc.cluster.local`
-        # and the other one `router tracingtestopentelemetry_http_default_svc_cluster_local egress`
-        assert any(
-            s
-            for s in tracelist[0]["spans"]
-            if s["operationName"]
-            == "router tracingtestopentelemetry_http_default_svc_cluster_local egress"
-        ), tracelist[0]["spans"]
-        assert any(
-            s
-            for s in tracelist[0]["spans"]
-            if s["operationName"] == "egress tracingtestopentelemetry.default.svc.cluster.local"
-        ), tracelist[0]["spans"]
+        # verify trace spans for "router tracingtestopentelemetry_http_default_svc_cluster_local egress"
+        route_tracelist = self.results[21].json["data"]
+        print(f"route_tracelist = {route_tracelist}")
+        assert len(route_tracelist) == 20, f"route tracelist length = {len(route_tracelist)}"
 
-        for trace in self.results[21].json["data"]:
+        # verify trace spans for "egress tracingtestopentelemetry.default.svc.cluster.local"
+        cluster_tracelist = self.results[22].json["data"]
+        print(f"cluster_tracelist = {cluster_tracelist}")
+        assert len(cluster_tracelist) == 20, f"cluster tracelist length = {len(cluster_tracelist)}"
+
+        for trace in cluster_tracelist:
             for span in trace.get("spans", []):
                 # Check if the egress span contains expected tags.
                 # For some reason the router span isn't resolving the htag request_header,

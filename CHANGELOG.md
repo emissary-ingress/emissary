@@ -90,6 +90,14 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Feature: In Envoy 1.24, experimental support for a native OpenTelemetry tracing driver  was
+  introduced that allows exporting spans in the otlp format. Many  Observability platforms accept
+  that format and is the recommend replacement for the LightStep driver. Emissary-ingress now
+  supports setting the  `TracingService.spec.driver=opentelemetry` to export spans in  otlp
+  format.<br/><br/>
+  Thanks to <a href="https://github.com/psalaberria002">Paul</a> for helping us
+  get this tested and implemented!
+
 - Bugfix: When wanting to expose traffic to clients on ports other than 80/443, users will set a
   port in the Host.hostname (eg.`Host.hostname=example.com:8500`. The config generated allowed
   matching on the :authority header. This worked in v1.Y series due to the way emissary was

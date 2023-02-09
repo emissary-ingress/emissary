@@ -36,6 +36,19 @@ items:
     prevVersion: 3.4.0
     date: 'TBD'
     notes:
+      - title: TracingService support for native OpenTelemetry driver
+        type: feature
+        body: >-
+          In Envoy 1.24, experimental support for a native OpenTelemetry tracing driver 
+          was introduced that allows exporting spans in the otlp format. Many 
+          Observability platforms accept that format and is the recommend
+          replacement for the LightStep driver. $productName$ now supports setting the 
+          <code>TracingService.spec.driver=opentelemetry</code> to export spans in 
+          otlp format.<br/><br/>
+
+          Thanks to <a href="https://github.com/psalaberria002">Paul</a> for helping us
+          get this tested and implemented!
+
       - title: Fix envoy config generation when including port in Host.hostname
         type: bugfix
         body: >-
