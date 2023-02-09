@@ -79,6 +79,9 @@ class IRTracing(IRResource):
                 )
             )
             return False
+        if driver == "opentelemetry":
+            ir.logger.warning("The OpenTelemetry tracing driver is work-in-progress. Functionality is incomplete and it is not intended for production use. This extension has an unknown security posture and should only be used in deployments where both the downstream and upstream are trusted.") 
+            grpc = True
 
         if driver == "datadog":
             driver = "envoy.tracers.datadog"
@@ -149,4 +152,12 @@ class IRTracing(IRResource):
     def finalize(self):
         assert self.cluster
         self.ir.logger.debug("tracing cluster envoy name: %s" % self.cluster.envoy_name)
-        self.driver_config["collector_cluster"] = self.cluster.envoy_name
+        # Opentelemetry is the only one that does not use collector_cluster
+        if self.driver == "opentelemetry":
+            self.driver_config["grpc_service"] = {
+                "envoy_grpc": {
+                    "cluster_name": self.cluster.envoy_name
+                }
+            }
+        else:
+            self.driver_config["collector_cluster"] = self.cluster.envoy_name
