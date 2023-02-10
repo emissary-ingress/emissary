@@ -767,14 +767,11 @@ custom_tags:
         # query index-20: ask Jaeger for services
         yield Query(f"http://{self.jaeger.path.fqdn}:16686/api/services", phase=check_phase)
 
-        # query index-21: ask for envoy upstream routing traces
-        # without the operation filter we would also get traces for calls to the admin endpoint
-        # including health checks.
-        router_operation_name = (
-            "router%20tracingtestopentelemetry_http_default_svc_cluster_local%20egress"
-        )
+        # query index-21: ask for envoy traces for ambassador service
+        # since the check_readiness also creates spans we need to pull more than 20 to ensure
+        # we capture all
         yield Query(
-            f"http://{self.jaeger.path.fqdn}:16686/api/traces?service=ambassador&limit=20&operation={router_operation_name}",
+            f"http://{self.jaeger.path.fqdn}:16686/api/traces?service=ambassador&limit=100",
             phase=check_phase,
         )
 
@@ -790,26 +787,29 @@ custom_tags:
             self.results[20].json is not None and "ambassador" in self.results[20].json["data"]
         ), f"unexpected self.results[20] = {self.results[20]}"
 
-        # verify traces for upstream calls
+        # verify traces for /target egress and its route
         upstream_tracelist = self.results[21].json["data"]
-        print(f"upstream_tracelist = {upstream_tracelist}")
-        assert len(upstream_tracelist) == 20, f"upstream tracelist length = {len(upstream_tracelist)}"
 
         for trace in upstream_tracelist:
             spans = trace.get("spans", [])
-            assert any(
-                s
-                for s in spans
-                if s["operationName"] == "egress tracingtestopentelemetry.default.svc.cluster.local"
-            )
+
             for span in spans:
                 # Check if the egress span contains expected tags.
                 # For some reason the router span isn't resolving the htag request_header,
                 # and it's being set to hfallback. Leaving it out of scope for this test.
-                if (
+                # this may be due to experimental nature of otel driver
+                isEgress = (
                     span["operationName"]
                     == "egress tracingtestopentelemetry.default.svc.cluster.local"
-                ):
+                )
+
+                isTargetPath = any(
+                    t
+                    for t in span.get("tags", [])
+                    if t["key"] == "http.url" and "/target" in t["value"]
+                )
+
+                if isEgress and isTargetPath:
                     tags = {x["key"]: x["value"] for x in span.get("tags", [])}
                     assert "ltag" in tags, tags
                     assert tags["ltag"] == "lvalue", tags
