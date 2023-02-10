@@ -71,6 +71,70 @@ spec:
         yield ("url", Query(f"http://{self.path.fqdn}:9411/api/v2/services"))
 
 
+class Jaeger(ServiceType):
+    skip_variant: ClassVar[bool] = True
+
+    def __init__(self, *args, **kwargs) -> None:
+        # We want to reset Jaeger between test runs.  StatsD has a handy "reset" call that can do
+        # this... but the only way to reset Jaeger is to roll over the Pod.  So, 'nonce' is a
+        # horrible hack to get the Pod to roll over each invocation.
+        self.nonce = random()
+        kwargs[
+            "service_manifests"
+        ] = """
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {self.path.k8s}
+spec:
+  selector:
+    backend: {self.path.k8s}
+  ports:
+  - port: 16686
+    name: http-json
+    targetPort: http-json
+  - port: 4317
+    name: otlp-grpc
+    targetPort: otlp-grpc
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {self.path.k8s}
+spec:
+  selector:
+    matchLabels:
+      backend: {self.path.k8s}
+  replicas: 1
+  strategy:
+    type: Recreate # rolling would be bad with the nonce hack
+  template:
+    metadata:
+      labels:
+        backend: {self.path.k8s}
+    spec:
+      containers:
+      - name: jaeger
+        image: jaegertracing/all-in-one:1.42.0
+        ports:
+        - name: http-json
+          containerPort: 16686
+        - name: otlp-grpc
+          containerPort: 4317
+        env:
+        - name: _nonce
+          value: '{self.nonce}'
+        - name: COLLECTOR_OTLP_ENABLED
+          value: "true"
+"""
+        super().__init__(*args, **kwargs)
+
+    def requirements(self):
+        yield ("url", Query(f"http://{self.path.fqdn}:16686/api/services"))
+
+
 class TracingTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
@@ -647,3 +711,107 @@ config:
         # verify no traces were captured
         traces = self.results[102].json
         assert len(traces) == 0
+
+
+class TracingTestOpentelemetry(AmbassadorTest):
+    def init(self):
+        self.target = HTTP()
+        self.jaeger = Jaeger()
+
+    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
+        # Use self.target here, because we want this mapping to be annotated
+        # on the service, not the Ambassador.
+
+        yield self.target, self.format(
+            """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+name:  tracing_target_mapping
+hostname: "*"
+prefix: /target/
+service: {self.target.path.fqdn}
+"""
+        )
+
+        # Configure the TracingService.
+        yield self, self.format(
+            """
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TracingService
+name: tracing
+service: {self.jaeger.path.fqdn}:4317
+driver: opentelemetry
+custom_tags:
+  - tag: ltag
+    literal:
+      value: lvalue
+  - tag: htag
+    request_header:
+      name: x-something
+      default_value: hfallback
+"""
+        )
+
+    def queries(self):
+        # Speak through each Ambassador to the traced service...
+
+        for i in range(20):
+            yield Query(
+                self.url("target/"),
+                headers={"x-watsup": "nothin", "x-something": "something"},
+                phase=1,
+            )
+
+        # query index-20: ask Jaeger for services
+        yield Query(f"http://{self.jaeger.path.fqdn}:16686/api/services", phase=check_phase)
+
+        # query index-21: ask for envoy traces for ambassador service
+        # since the check_readiness also creates spans we need to pull more than 20 to ensure
+        # we capture all
+        yield Query(
+            f"http://{self.jaeger.path.fqdn}:16686/api/traces?service=ambassador&limit=100",
+            phase=check_phase,
+        )
+
+    def check(self):
+        for i in range(20):
+            result = self.results[i]
+            assert result.backend
+            assert result.backend.name == self.target.path.k8s
+
+        # verify "ambassador" is the list of services from jaeger
+        print(f"self.results[20] = {self.results[20]}")
+        assert (
+            self.results[20].json is not None and "ambassador" in self.results[20].json["data"]
+        ), f"unexpected self.results[20] = {self.results[20]}"
+
+        # verify traces for /target egress and its route
+        upstream_tracelist = self.results[21].json["data"]
+
+        for trace in upstream_tracelist:
+            spans = trace.get("spans", [])
+
+            for span in spans:
+                # Check if the egress span contains expected tags.
+                # For some reason the router span isn't resolving the htag request_header,
+                # and it's being set to hfallback. Leaving it out of scope for this test.
+                # this may be due to experimental nature of otel driver
+                isEgress = (
+                    span["operationName"]
+                    == "egress tracingtestopentelemetry.default.svc.cluster.local"
+                )
+
+                isTargetPath = any(
+                    t
+                    for t in span.get("tags", [])
+                    if t["key"] == "http.url" and "/target" in t["value"]
+                )
+
+                if isEgress and isTargetPath:
+                    tags = {x["key"]: x["value"] for x in span.get("tags", [])}
+                    assert "ltag" in tags, tags
+                    assert tags["ltag"] == "lvalue", tags
+                    assert "htag" in tags, tags
+                    assert tags["htag"] == "something", tags

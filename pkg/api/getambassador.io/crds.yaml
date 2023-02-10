@@ -5257,6 +5257,7 @@ spec:
                 - lightstep
                 - zipkin
                 - datadog
+                - opentelemetry
                 type: string
               sampling:
                 properties:
@@ -5394,6 +5395,7 @@ spec:
                 - lightstep
                 - zipkin
                 - datadog
+                - opentelemetry
                 type: string
               sampling:
                 properties:
@@ -5575,6 +5577,7 @@ spec:
                 - lightstep
                 - zipkin
                 - datadog
+                - opentelemetry
                 type: string
               sampling:
                 properties:

@@ -52,6 +52,10 @@ class V3Tracing(dict):
             driver_config["@type"] = "type.googleapis.com/envoy.config.trace.v3.DatadogConfig"
             if not driver_config.get("service_name"):
                 driver_config["service_name"] = "ambassador"
+        elif name.lower() == "envoy.opentelemetry":
+            driver_config["@type"] = "type.googleapis.com/envoy.config.trace.v3.OpenTelemetryConfig"
+            if not driver_config.get("service_name"):
+                driver_config["service_name"] = "ambassador"
         else:
             # This should be impossible, because we ought to have validated the input driver
             # in ambassador/pkg/api/getambassador.io/v2/tracingservice_types.go:47
