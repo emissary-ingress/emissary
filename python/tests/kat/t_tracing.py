@@ -764,17 +764,17 @@ custom_tags:
                 phase=1,
             )
 
-        # query-20: ask Jaeger for services
+        # query index-20: ask Jaeger for services
         yield Query(f"http://{self.jaeger.path.fqdn}:16686/api/services", phase=check_phase)
 
-        # query-21: ask for envoy upstream routing traces
+        # query index-21: ask for envoy upstream routing traces
         # without the operation filter we would also get traces for calls to the admin endpoint
         # including health checks.
         router_operation_name = (
             "router%20tracingtestopentelemetry_http_default_svc_cluster_local%20egress"
         )
         yield Query(
-            f"http://{self.jaeger.path.fqdn}:16686/api/traces?service=ambassador&operation={router_operation_name}",
+            f"http://{self.jaeger.path.fqdn}:16686/api/traces?service=ambassador&limit=20&operation={router_operation_name}",
             phase=check_phase,
         )
 
@@ -792,8 +792,8 @@ custom_tags:
 
         # verify traces for upstream calls
         upstream_tracelist = self.results[21].json["data"]
-        print(f"route_tracelist = {upstream_tracelist}")
-        assert len(upstream_tracelist) == 20, f"route tracelist length = {len(upstream_tracelist)}"
+        print(f"upstream_tracelist = {upstream_tracelist}")
+        assert len(upstream_tracelist) == 20, f"upstream tracelist length = {len(upstream_tracelist)}"
 
         for trace in upstream_tracelist:
             spans = trace.get("spans", [])
