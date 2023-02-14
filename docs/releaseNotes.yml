@@ -34,8 +34,14 @@ changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.
 items:
   - version: 3.5.0
     prevVersion: 3.4.0
-    date: 'TBD'
+    date: '2023-02-15'
     notes:
+      - title: Update to golang 1.20.1
+        type: security
+        body: >-
+          Upgrading to the latest release of Golang as part of our general dependency upgrade process. This includes
+          security fixes for CVE-2022-41725, CVE-2022-41723.
+
       - title: TracingService support for native OpenTelemetry driver
         type: feature
         body: >-
@@ -89,10 +95,6 @@ items:
           configure the webhooks before running liveness and readiness probes. This is to ensure 
           slow startup doesn't cause K8s to needlessly restart the pod.
       
-      - title: Update to golang 1.20
-        type: change
-        body: >-
-          Upgrading to the latest release of Golang as part of our general dependency upgrade process.
 
   - version: 3.4.0
     prevVersion: 3.3.0
