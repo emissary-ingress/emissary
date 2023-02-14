@@ -8,7 +8,7 @@ numbering uses [semantic versioning](http://semver.org).
 - Upgrade Emissary to v3.5.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 - Adds support for configuring a startupProbe on the emissary-ingress deployments. This is useful when a larger number of resources
   are used and the initial startup needs additional time. See for details https://github.com/emissary-ingress/emissary/pull/4649.
-
+- Update default module resource to use `getambassador.io/v3alpha1`. Thanks to [Luke Swithenbank](https://github.com/lswith)
 
 ## v8.4.0 - 2022-01-03
 

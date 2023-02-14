@@ -353,7 +353,7 @@ spec:
             path: labels
         name: ambassador-pod-info
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   labels:
