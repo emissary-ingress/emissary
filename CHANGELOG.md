@@ -85,10 +85,13 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
-## [3.5.0] TBD
+## [3.5.0] February 15, 2023
 [3.5.0]: https://github.com/emissary-ingress/emissary/compare/v3.4.0...v3.5.0
 
 ### Emissary-ingress and Ambassador Edge Stack
+
+- Security: Upgrading to the latest release of Golang as part of our general dependency upgrade
+  process. This includes security fixes for CVE-2022-41725, CVE-2022-41723.
 
 - Feature: In Envoy 1.24, experimental support for a native OpenTelemetry tracing driver  was
   introduced that allows exporting spans in the otlp format. Many  Observability platforms accept
@@ -121,9 +124,6 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   a startupProbe to ensure that emissary-apiext server has enough time to configure the webhooks
   before running liveness and readiness probes. This is to ensure  slow startup doesn't cause K8s to
   needlessly restart the pod.
-
-- Change: Upgrading to the latest release of Golang as part of our general dependency upgrade
-  process.
 
 [fix: hostname port issue]: https://github.com/emissary-ingress/emissary/pull/4816
 [#4809]: https://github.com/emissary-ingress/emissary/pull/4809
