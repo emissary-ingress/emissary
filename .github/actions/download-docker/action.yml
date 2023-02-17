@@ -1,6 +1,8 @@
 name: setup-deps
 description: "Load Docker image"
 
+# Empty comment, please ignore this
+
 runs:
   using: "composite"
   steps:
