@@ -6,6 +6,7 @@ name: job-promote-to-passed
       - master
       - release/v*
   pull_request: {}
+  workflow_dispatch:
 
 jobs:
   lint: ########################################################################
@@ -55,6 +56,16 @@ jobs:
         shell: bash
         run: |
           make generate
+      - name: "Update dependency information after dependabot change"
+        uses: datawire/go-mkopensource/actions/save-dependabot-changes@v0.0.7
+        id: changed-by-dependabot
+        with:
+          branches_to_skip: master
+      - name: "Abort if dependencies changed"
+        if: steps.changed-by-dependabot.outputs.is_dirty == 'true'
+        run: |
+          echo "Dependabot triggered a dependency update. Aborting workflow."
+          exit 1
       - uses: ./.github/actions/git-dirty-check
         name: "Check Git not dirty from 'make generate'"
       - name: "'make generate' (again!)"
