@@ -14,7 +14,7 @@ RSYNC_EXTRAS ?=
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,https://github.com/datawire/envoy.git)
   # rebase/release/v1.24.2 - with boringSSL cve patch and c-ares dep update
-	ENVOY_COMMIT ?= 5a4aed880cb9b76df21448e75d42fe95a77c3893
+  ENVOY_COMMIT ?= 5a4aed880cb9b76df21448e75d42fe95a77c3893
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
@@ -210,7 +210,7 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	            exit 1; \
 	        fi; \
 	        $(call ENVOY_BASH.cmd, \
-							$(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
+	            $(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
 	            $(ENVOY_DOCKER_EXEC) bazel build $(if $(FIPS_MODE), --define boringssl=fips) --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //source/exe:envoy-static; \
 	            rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/root/envoy/bazel-bin/source/exe/envoy-static $@; \
 	        ); \
@@ -237,7 +237,7 @@ check-envoy: ## Run the Envoy test suite
 check-envoy: $(ENVOY_BASH.deps)
 	@echo 'Testing envoy with Bazel label: "$(ENVOY_TEST_LABEL)"'; \
 	$(call ENVOY_BASH.cmd, \
-			 $(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
+	     $(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
 	     $(ENVOY_DOCKER_EXEC) bazel test --config=clang --test_output=errors --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only $(ENVOY_TEST_LABEL); \
 	 )
 .PHONY: check-envoy
@@ -261,7 +261,7 @@ $(OSS_HOME)/api/envoy: $(OSS_HOME)/api/%: $(OSS_HOME)/_cxx/envoy
 # Go generated from the protobufs
 $(OSS_HOME)/_cxx/envoy/build_go: $(ENVOY_BASH.deps) FORCE
 	$(call ENVOY_BASH.cmd, \
-      $(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
+	    $(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
 	    $(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generate_protobufs; generate_protobufs("@envoy_api//...", "/root/envoy/build_go", "envoy_api")'; \
 	)
 	test -d $@ && touch $@
