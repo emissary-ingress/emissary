@@ -17,7 +17,7 @@ MODULES :=
 module = $(eval MODULES += $(1))$(eval SOURCE_$(1)=$(abspath $(2)))
 
 BUILDER = BUILDER_NAME=$(BUILDER_NAME) $(abspath $(BUILDER_HOME)/builder.sh)
-COPY_GOLD = $(abspath $(BUILDER_HOME)/copy-gold.sh)
+COPY_GOLD = $(abspath build-aux/copy-gold.sh)
 
 AWS_S3_BUCKET ?= datawire-static-files
 
