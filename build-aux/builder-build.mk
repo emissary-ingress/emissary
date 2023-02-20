@@ -57,7 +57,16 @@ docker/.base-envoy.docker.stamp: FORCE
 	}
 clobber: docker/base-envoy.docker.clean
 
-docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.local %/base-envoy.docker.tag.local %/base-pip.docker.tag.local python/ambassador.version build-aux/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) vendor FORCE
+docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: \
+  %/base.docker.tag.local \
+  %/base-envoy.docker.tag.local \
+  %/base-pip.docker.tag.local \
+  python/ambassador.version \
+  build-aux/Dockerfile \
+  $(OSS_HOME)/build-aux/py-version.txt \
+  $(tools/dsum) \
+  vendor \
+  FORCE
 	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
 	@printf "    ${BLU}base=$$(sed -n 2p $*/base.docker.tag.local)${END}\n"
 	@printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"
