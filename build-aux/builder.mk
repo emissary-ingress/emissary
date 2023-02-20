@@ -17,7 +17,6 @@ MODULES :=
 module = $(eval MODULES += $(1))$(eval SOURCE_$(1)=$(abspath $(2)))
 
 BUILDER = BUILDER_NAME=$(BUILDER_NAME) $(abspath $(BUILDER_HOME)/builder.sh)
-COPY_GOLD = $(abspath build-aux/copy-gold.sh)
 
 AWS_S3_BUCKET ?= datawire-static-files
 
@@ -184,8 +183,6 @@ test-ready: push preflight-cluster
 PYTEST_ARGS ?=
 export PYTEST_ARGS
 
-PYTEST_GOLD_DIR ?= $(abspath python/tests/gold)
-
 pytest: push-pytest-images
 pytest: $(tools/kubestatus)
 pytest: $(tools/kubectl)
@@ -195,7 +192,6 @@ pytest: proxy
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
 	@echo "DEV_KUBECONFIG=$$DEV_KUBECONFIG"
-	@echo "KAT_RUN_MODE=$$KAT_RUN_MODE"
 	@echo "PYTEST_ARGS=$$PYTEST_ARGS"
 	set -e; { \
 	  . $(OSS_HOME)/venv/bin/activate; \
@@ -222,10 +218,8 @@ pytest-integration: push-pytest-images
 	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/integration"
 .PHONY: pytest-integration
 
-pytest-kat-local: push-pytest-images
-	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
 pytest-kat-envoy3: push-pytest-images # doing this all at once is too much for CI...
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
+	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
 # ... so we have a separate rule to run things split up
 build-aux/.pytest-kat.txt.stamp: $(OSS_HOME)/venv push-pytest-images $(tools/kubectl) FORCE
 	. venv/bin/activate && set -o pipefail && pytest --collect-only python/tests/kat 2>&1 | sed -En 's/.*<Function (.*)>/\1/p' | cut -d. -f1 | sort -u > $@
@@ -233,10 +227,7 @@ build-aux/pytest-kat.txt: build-aux/%: build-aux/.%.stamp $(tools/copy-ifchanged
 	$(tools/copy-ifchanged) $< $@
 clean: build-aux/.pytest-kat.txt.stamp.rm build-aux/pytest-kat.txt.rm
 pytest-kat-envoy3-%: build-aux/pytest-kat.txt $(tools/py-split-tests)
-	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $(subst -of-, ,$*) <build-aux/pytest-kat.txt)' python/tests/kat"
-
-pytest-gold:
-	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
+	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $(subst -of-, ,$*) <build-aux/pytest-kat.txt)' python/tests/kat"
 
 $(OSS_HOME)/venv: python/requirements.txt python/requirements-dev.txt
 	rm -rf $@
@@ -529,23 +520,9 @@ define _help.targets
 
   $(BLD)$(MAKE) $(BLU)pytest$(END)       -- runs just the Python tests inside the build container.
 
-    Use $(BLD)$$KAT_RUN_MODE=envoy$(END) to force the Python tests to ignore local caches, and run everything
-    in the cluster.
-
-    Use $(BLD)$$KAT_RUN_MODE=local$(END) to force the Python tests to ignore the cluster, and only run tests
-    with a local cache.
-
     Use $(BLD)$$PYTEST_ARGS$(END) to pass args to $(BLD)pytest$(END). ($(PYTEST_ARGS))
 
-    Example: $(BLD)$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="-k Lua"$(END)  # run only the Lua test, with a real Envoy
-
-  $(BLD)$(MAKE) $(BLU)pytest-gold$(END)  -- update the gold files for the pytest cache
-
-    $(BLD)$(MAKE) $(BLU)pytest$(END) uses a local cache to speed up tests. $(BLD)ONCE YOU HAVE SUCCESSFULLY
-    RUN TESTS WITH $(BLU)KAT_RUN_MODE=envoy$(END), you can use $(BLD)$(MAKE) $(BLU)pytest-gold$(END) to update the
-    caches for the passing tests.
-
-    $(BLD)DO NOT$(END) run $(BLD)$(MAKE) $(BLU)pytest-gold$(END) if you have failing tests.
+    Example: $(BLD)$(MAKE) pytest PYTEST_ARGS="-k Lua"$(END)  # run only the Lua test, with a real Envoy
 
   $(BLD)$(MAKE) $(BLU)release/promote-oss/to-ga$(END) -- promote a release candidate to general availability
 

@@ -805,9 +805,7 @@ Modify the sources in `./_cxx/envoy/`.
   traffic through Envoy, and instead just check that the Envoy
   configuration that Emissary-ingress generates hasn't changed since the
   previous version (since we generally trust that Envoy works, and
-  doesn't change as often).  Since you *are* changing Envoy, you'll
-  need to run the tests with `KAT_RUN_MODE=envoy` set in the
-  environment in order to actually test against Envoy.
+  doesn't change as often).
 
 #### 5. Finalizing your changes
 
@@ -1052,14 +1050,6 @@ to run at all).  For example, `PYTEST_ARGS="-k WebSocket"` would match
 the `main[Plain.WebSocketMapping-GRPC]` test, and that test would fail
 to run; one should instead say `PYTEST_ARGS="-k Plain or WebSocket"`
 to avoid breaking the sub-tests of "Plain".
-
-### How do I update the python test cache?
-
-- First, run `make KAT_RUN_MODE=envoy pytest` to do a test run *without*
-  using the local cache.
-
-- Once that succeeds, use `make pytest-gold` to update the cache from
-  the passing tests.
 
 ### How do I type check my python code?
 
