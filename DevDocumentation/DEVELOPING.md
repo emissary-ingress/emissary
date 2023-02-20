@@ -578,25 +578,13 @@ fastest way to hack on and debug the compiler.
 
 The `mockery` tool runs inside the Docker container used to build
 Ambassador, using `make shell`, so it's important to realize that it
-won't have access to your entire filesystem. There are two easy ways
-to arrange to get data in and out of the container:
+won't have access to your entire filesystem. There is an easy way to
+arrange to get data in and out of the container:
 
-1. If you `make sync`, everything in the Ambassador source tree gets rsync'd
+ - If you `make sync`, everything in the Ambassador source tree gets rsync'd
    into the container's `/buildroot/ambassador`. The first time you start the
    shell, this can take a bit, but after that it's pretty fast. You'll
    probably need to use `docker cp` to get data out of the container, though.
-
-2. You may be able to use Docker volume mounts by exporting `BUILDER_MOUNTS`
-   with the appropriate `-v` switches before running `make shell` -- e.g.
-
-    ```bash
-    export BUILDER_MOUNTS=$(pwd)/xfer:/xfer
-    make shell
-    ```
-
-   will cause the dev shell to mount `xfer` in your current directory as `/xfer`.
-   This is known to work well on MacOS (though volume mounts are slow on Mac,
-   so moving gigabytes of data around this way isn't ideal).
 
 Once you've sorted out how to move data around:
 

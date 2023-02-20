@@ -57,6 +57,8 @@ endif
 # Everything else...
 
 NAME ?= emissary
+LCNAME := $(shell echo $(NAME) | tr '[:upper:]' '[:lower:]')
+
 _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
 IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
@@ -67,9 +69,6 @@ include $(OSS_HOME)/build-aux/check.mk
 include $(OSS_HOME)/build-aux/builder.mk
 include $(OSS_HOME)/_cxx/envoy.mk
 include $(OSS_HOME)/releng/release.mk
-
-$(call module,ambassador,$(OSS_HOME))
-
 include $(OSS_HOME)/build-aux/generate.mk
 include $(OSS_HOME)/build-aux/lint.mk
 

@@ -1,6 +1,3 @@
-BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-
-LCNAME := $(shell echo $(NAME) | tr '[:upper:]' '[:lower:]')
 BUILDER_NAME ?= $(LCNAME)
 
 include $(OSS_HOME)/build-aux/prelude.mk
@@ -11,12 +8,6 @@ docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTR
 include $(OSS_HOME)/build-aux/docker.mk
 
 include $(OSS_HOME)/build-aux/teleproxy.mk
-
-MODULES :=
-
-module = $(eval MODULES += $(1))$(eval SOURCE_$(1)=$(abspath $(2)))
-
-BUILDER = BUILDER_NAME=$(BUILDER_NAME) $(abspath $(BUILDER_HOME)/builder.sh)
 
 AWS_S3_BUCKET ?= datawire-static-files
 
@@ -47,7 +38,7 @@ INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
 
 # directory with the manifests for loading Ambassador for running the Ingress Conformance tests
 # NOTE: these manifests can be slightly different to the regular ones asd they include
-INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../manifests/emissary/
+INGRESS_TEST_MANIF_DIR = manifests/emissary/
 INGRESS_TEST_MANIFS = emissary-crds.yaml emissary-emissaryns.yaml
 
 # DOCKER_BUILDKIT is _required_ by our Dockerfile, since we use Dockerfile extensions for the
@@ -58,10 +49,6 @@ all: help
 .PHONY: all
 
 .NOTPARALLEL:
-
-# the name of the Docker network
-# note: use your local k3d/microk8s/kind network for running tests
-DOCKER_NETWORK ?= $(BUILDER_NAME)
 
 # local host IP address (and not 127.0.0.1)
 ifneq ($(shell which ipconfig 2>/dev/null),)
@@ -133,13 +120,13 @@ docker/.base-envoy.docker.stamp: FORCE
 	}
 clobber: docker/base-envoy.docker.clean
 
-docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.local %/base-envoy.docker.tag.local %/base-pip.docker.tag.local python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) vendor FORCE
+docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.local %/base-envoy.docker.tag.local %/base-pip.docker.tag.local python/ambassador.version build-aux/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) vendor FORCE
 	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
 	@printf "    ${BLU}base=$$(sed -n 2p $*/base.docker.tag.local)${END}\n"
 	@printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"
 	@printf "    ${BLU}builderbase=$$(sed -n 2p $*/base-pip.docker.tag.local)${END}\n"
 	{ $(tools/dsum) '$(LCNAME) build' 3s \
-	  docker build -f ${BUILDER_HOME}/Dockerfile . \
+	  docker build -f build-aux/Dockerfile . \
 			--platform="$(BUILD_ARCH)" \
 	    --build-arg=base="$$(sed -n 2p $*/base.docker.tag.local)" \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
@@ -332,9 +319,6 @@ ingresstest: $(tools/kubectl) | docker/$(LCNAME).docker.push.remote
 test: ingresstest gotest pytest
 .PHONY: test
 
-AMB_IMAGE_RC=$(RELEASE_REGISTRY)/$(REPO):$(patsubst v%,%,$(VERSION))
-AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(patsubst v%,%,$(VERSION))
-
 export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
 
 release/promote-oss/.main: $(tools/docker-promote)
@@ -437,9 +421,6 @@ define HELP_TARGETS
 $(BLD)Targets:$(END)
 
 $(_help.targets)
-
-$(BLD)Codebases:$(END)
-  $(foreach MODULE,$(MODULES),$(NL)  $(BLD)$(SOURCE_$(MODULE)) ==> $(BLU)$(MODULE)$(END))
 
 endef
 
