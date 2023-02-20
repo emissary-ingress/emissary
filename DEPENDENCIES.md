@@ -150,7 +150,7 @@ libraries:
     dpath               2.1.0      MIT license
     durationpy          0.5        MIT license
     expiringdict        1.2.2      Apache License 2.0
-    google-auth         2.14.1     Apache License 2.0
+    google-auth         2.16.1     Apache License 2.0
     gunicorn            20.1.0     MIT license
     idna                3.4        3-clause BSD license
     itsdangerous        2.1.2      3-clause BSD license

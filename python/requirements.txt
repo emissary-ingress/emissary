@@ -24,7 +24,7 @@ expiringdict==1.2.2
     # via -r requirements.in
 flask==2.2.2
     # via -r requirements.in
-google-auth==2.14.1
+google-auth==2.16.1
     # via kubernetes
 gunicorn==20.1.0
     # via -r requirements.in
