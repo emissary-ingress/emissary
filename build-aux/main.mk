@@ -51,8 +51,8 @@ clean: $(foreach img,$(_ocibuild-images),docker/$(img).img.tar.clean)
 # Note that there are a few images used by the test suite that are
 # defined in check.mk, rather than here.
 
-# base: Base OS; none of our specific stuff.  Used for auxiliar test images
-# that don't need Emissary-specific stuff.
+# base: Base OS; none of our specific stuff.  Used for auxiliary test
+# images that don't need Emissary-specific stuff.
 docker/.base.img.tar.stamp: FORCE $(tools/crane) docker/base-python/Dockerfile
 	$(tools/crane) pull $(shell gawk '$$1 == "FROM" { print $$2; quit; }' < docker/base-python/Dockerfile) $@ || test -e $@
 clobber: docker/base.img.tar.clean
