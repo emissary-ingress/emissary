@@ -51,15 +51,22 @@ clean: $(foreach img,$(_ocibuild-images),docker/$(img).img.tar.clean)
 # Note that there are a few images used by the test suite that are
 # defined in check.mk, rather than here.
 
-# base: Base OS; none of our specific stuff.  Used for auxiliary test
-# images that don't need Emissary-specific stuff.
+################################################################################
+# base: Base OS; none of our specific stuff                                    #
+################################################################################
+#
+# Used for auxiliary test images that don't need Emissary-specific stuff.
 docker/.base.img.tar.stamp: FORCE $(tools/crane) docker/base-python/Dockerfile
 	$(tools/crane) pull $(shell gawk '$$1 == "FROM" { print $$2; quit; }' < docker/base-python/Dockerfile) $@ || test -e $@
 clobber: docker/base.img.tar.clean
 
-# base-python: Base OS, plus some Emissary-specific setup of
-# low-level/expensive pieces of the Python environment.  This does NOT
-# include the packages installed by `requirements.txt`.
+################################################################################
+# base-python: Base OS, plus some Emissary-specific stuff                      #
+################################################################################
+#
+# This is for setup of low-level/expensive pieces of the Python
+# environment.  This does NOT include the packages installed by
+# `requirements.txt`.
 #
 # At the moment, it also includes some other stuff too (kubectl...),
 # but including those things at such an early stage should be
@@ -73,7 +80,9 @@ docker/.base-python.docker.stamp: FORCE docker/base-python/Dockerfile docker/bas
 	docker/base-python.docker.gen >$@
 clobber: docker/base-python.docker.clean
 
-# base-pip: base-python, but with requirements.txt installed.
+################################################################################
+# base-pip: base-python, but with requirements.txt installed                   #
+################################################################################
 #
 # Mixed feelings about this one; it kinda wants to not be a separate
 # image and just be part of the main emissary Dockerfile.  But that
@@ -104,7 +113,10 @@ docker/.base-pip.docker.stamp: docker/.%.docker.stamp: docker/%/Dockerfile docke
 	docker build --platform="$(BUILD_ARCH)" --build-arg=from="$$(sed -n 2p docker/base-python.docker.tag.local)" --iidfile=$@ $(<D)
 clobber: docker/base-pip.docker.clean
 
-# The Helm chart
+################################################################################
+# The Helm chart                                                               #
+################################################################################
+
 build-output/chart-%.d: \
   $(shell find charts/emissary-ingress) \
   $(var.)DEV_REGISTRY $(var.)RELEASE_REGISTRY \
@@ -151,7 +163,10 @@ _chart_major_version = $(firstword $(subst ., ,$(patsubst v%,%,$(CHART_VERSION))
 boguschart_dir = build-output/chart-$(_major_version).0.0-bogus_$(_chart_major_version).0.0-bogus.d
 boguschart_tgz = $(patsubst %.d,%.tgz,$(boguschart_dir))
 
-# YAML manifests
+################################################################################
+# YAML manifests                                                               #
+################################################################################
+
 build-output/yaml-%: $(shell find $(CURDIR)/manifests/emissary -type d -o -name '*.yaml.in') $(var.)DEV_REGISTRY $(var.)RELEASE_REGISTRY
 ifeq ($(CI),)
 	rm -rf $@
