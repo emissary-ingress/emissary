@@ -58,8 +58,8 @@ best protect our users.
 ### Released versions and the `master` branch
 
 If the vulnerability affects a supported version (typically the _most recent_ minor release, e.g.
-1.13), then the full security release process described in this document will be activated. A 
-patch release will be created (e.g. 1.13.10) with the fix, and the fix will also be made on 
+1.13), then the full security release process described in this document will be activated. A
+patch release will be created (e.g. 1.13.10) with the fix, and the fix will also be made on
 `master`.
 
 If a vulnerability affects only `master`, the fix will be incorporated into the next release.
@@ -89,7 +89,7 @@ example:
 Note that while we generally consider the installation mechanisms provided by the Emissary-ingress
 project (our published Helm charts and manifests) "safe", there is no way to guarantee that the
 published installation mechanisms will always work in any specific setting. Ultimately, Emissary
-operators need to understand the impact of their own configurations, especially in larger 
+operators need to understand the impact of their own configurations, especially in larger
 installations.
 
 ### Fix Team Organization
@@ -113,7 +113,7 @@ These steps should be completed within the 1-7 days of Disclosure.
   calculated CVSS; it is better to move quickly than to spend time making the CVSS perfect.
 - The Fix Team will work per the usual [Emissary Development Process](DEVELOPING.md), including
   fix branches, PRs, reviews, etc.
-- The Fix Team will notify the Fix Lead that work on the fix branch is complete once the fix is 
+- The Fix Team will notify the Fix Lead that work on the fix branch is complete once the fix is
   present in the relevant release branch(es) in the private security repo.
 
 If the CVSS score is under 4.0 ([a low severity score](https://www.first.org/cvss/specification-document#i5))
@@ -144,7 +144,7 @@ patches, understand exact mitigation steps, etc.
   potentially conflicts as the fix is cherry-picked around branches.
 - The Fix Lead will request a CVE from [DWF](https://github.com/distributedweaknessfiling/DWF-Documentation)
   and include the CVSS and release details.
-- The Fix Lead will announce in `#emissary` and `#general` on the [Emissary Slack](https://a8r.io/slack) 
+- The Fix Lead will announce in `#emissary` and `#general` on the [Emissary Slack](https://a8r.io/slack)
   stating the new releases, the CVE number, and the relevant merged PRs to get wide distribution and
   user action. As much as possible this message should be actionable and include links on how to apply
   the fix to user's environments; this can include links to external distributor documentation.
@@ -161,5 +161,5 @@ These steps should be completed 1-3 days after the Release Date. The retrospecti
   and any critiques of the response and release process.
 - Maintainers and Fix Team are also encouraged to send their own feedback on the process to
   [secalert@datawire.io](mailto:secalert@datawire.io), or to discuss it in `#emissary-dev`
-  on the [Emissary Slack](https://a8r.io/slack). Honest critique is the only way we will 
+  on the [Emissary Slack](https://a8r.io/slack). Honest critique is the only way we will
   improve as a community.

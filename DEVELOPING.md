@@ -261,7 +261,7 @@ When submitting a Pull Request (PR) here are a set of guidelines to follow:
    - Code changes must have associated documentation updates.
       - Make changes in <https://github.com/datawire/ambassador-docs> as necessary, and include a reference to those changes the pull request for your code changes.
       - See [Contributing to Docs](#contributing-to-the-docs) for more details.
-  
+
    > Smaller pull requests are easier to review and can get merged faster thus reducing potential for merge conflicts so it is recommend to keep them small and focused.
 
 6. Commit your changes using descriptive commit messages.
@@ -446,7 +446,7 @@ git pull -ff upstream/master
 # checkout patch branch and rebase interactive
 # you may have merge conflicts you need to resolve
 git checkout my-patch-branch
-git rebase -i master 
+git rebase -i master
 ```
 
 > Note: this does rewrite your commit shas so be aware when sharing branches with co-workers.
@@ -798,7 +798,7 @@ Modify the sources in `./_cxx/envoy/`.
 - **Build or test Emissary-ingress** with the usual `make` commands, with
   the exception that you MUST run `make update-base` first whenever
   Envoy needs to be recompiled; it won't happen automatically.  So
-  `make test` to build-and-test Emissary-ingress would become 
+  `make test` to build-and-test Emissary-ingress would become
   `make update-base && make test`, and `make images` to just build
   Emissary-ingress would become `make update-base && make images`.  By
   default (to keep the tests fast), the tests avoid running much
@@ -878,7 +878,7 @@ I'd put this in the pull request template, but so few PRs change Envoy...
 - [ ] The image has been pushed to...
   - [ ] `docker.io/emissaryingress/base-envoy`
   - [ ] `gcr.io/datawire/ambassador-base`
-- [ ] The envoy.git commit has been tagged as `datawire-$(gitdescribe --tags --match='v*')` 
+- [ ] The envoy.git commit has been tagged as `datawire-$(gitdescribe --tags --match='v*')`
       (the `--match` is to prevent `datawire-*` tags from stacking on each other).
 - [ ] It's been tested with...
   - [ ] `make check-envoy`
