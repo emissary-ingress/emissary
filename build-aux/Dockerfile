@@ -57,14 +57,12 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 FROM ${builderbase} as artifacts
 
-WORKDIR /buildroot/ambassador
-
 # Copy in the golang binaries
 COPY --from=golang /go/bin/* /buildroot/bin/
 
 # Setup the python code
-ADD python python
-RUN time pip install --no-deps -e python
+ADD python /buildroot/ambassador/python
+RUN time pip install --no-deps -e /buildroot/ambassador/python
 
 # Set up /buildroot/bin/ (for the build environment)
 RUN ln -sf busyambassador /buildroot/bin/agent && \
@@ -87,8 +85,8 @@ RUN mkdir -p /ambassador/sidecars && \
     ln -s /buildroot/ambassador/python/kubewatch.py /ambassador/kubewatch.py
 
 # These will be extracted into the optimized image later
-ADD demo demo
-ADD manifests/emissary/emissary-crds.yaml.in manifests/emissary/emissary-crds.yaml
+ADD demo /buildroot/ambassador/demo
+ADD manifests/emissary/emissary-crds.yaml.in /buildroot/ambassador/manifests/emissary/emissary-crds.yaml
 
 ########################################
 # The optimized images
