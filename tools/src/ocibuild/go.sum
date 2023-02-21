@@ -229,8 +229,8 @@ github.com/d2g/dhcp4server v0.0.0-20181031114812-7d4a0a7f59a5/go.mod h1:Eo87+Kg/
 github.com/d2g/hardwareaddr v0.0.0-20190221164911-e7d9fbe030e4/go.mod h1:bMl4RjIciD2oAxI7DmWRx6gbeqrkoLqv3MV0vzNad+I=
 github.com/datawire/dlib v1.2.5-0.20211118180738-bf0d3d767da0 h1:WsfogarRc4D2zI7KJCaQmFLx3s3g99U1OQhHQ90TNbU=
 github.com/datawire/dlib v1.2.5-0.20211118180738-bf0d3d767da0/go.mod h1:NiGDmetmbkBvtznpWSx6C0vA0s0LK9aHna3LJDqjruk=
-github.com/datawire/ocibuild v0.0.3-0.20220131233601-25ee488931d1 h1:s0vxyaZEQvimzE/qQ+47UxbULKgjHlyHp/qQL69NeLY=
-github.com/datawire/ocibuild v0.0.3-0.20220131233601-25ee488931d1/go.mod h1:d10QlP0Pm/xTS9V9UP2AOJ99IlFvmQ4CLP/9bIggczo=
+github.com/datawire/ocibuild v0.0.3-0.20220423003204-fc6a4e9f90dc h1:KxDUPTmAaElhEBYke7Vlw9I/EM/a5zl8LT1yCHkm44I=
+github.com/datawire/ocibuild v0.0.3-0.20220423003204-fc6a4e9f90dc/go.mod h1:d10QlP0Pm/xTS9V9UP2AOJ99IlFvmQ4CLP/9bIggczo=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
