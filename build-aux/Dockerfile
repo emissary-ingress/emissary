@@ -29,33 +29,7 @@ ARG builderbase="i-forgot-to-set-build-arg-builderbase"
 # This controls where we copy envoy from.
 ARG envoy="i-forgot-to-set-build-arg-envoy"
 
-########################################
-# The builder image
-########################################
-
 FROM ${envoy} as envoy
-
-FROM ${builderbase} as builder
-
-WORKDIR /buildroot
-
-COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
-
-ENV KUBECONFIG=/buildroot/kubeconfig.yaml
-
-# XXX: this will go away
-RUN mkdir -p /ambassador/sidecars && \
-    ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py && \
-    ln -s /buildroot/ambassador/python/watch_hook.py /ambassador/watch_hook.py && \
-    ln -s /buildroot/ambassador/python/kubewatch.py /ambassador/kubewatch.py
-
-RUN adduser dw --disabled-password
-# SUDO_USERS HOSTS=(AS_USER) TAGS COMMANDS
-RUN echo "dw ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/datawire
-RUN chown dw /buildroot
-USER dw
-
-ENTRYPOINT [ "/bin/bash" ]
 
 ########################################
 # The golang build stage
