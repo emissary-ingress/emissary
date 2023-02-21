@@ -92,10 +92,19 @@ COPY --from=golang /go/bin/* /buildroot/bin/
 ADD python python
 RUN time pip install --no-deps -e python
 
-# Run post-compile.sh
-ADD build-aux build-aux
-ADD post-compile.sh post-compile.sh
-RUN bash post-compile.sh
+# Set up /buildroot/bin/ (for the build environment)
+RUN ln -sf busyambassador /buildroot/bin/agent && \
+    ln -sf busyambassador /buildroot/bin/apiext && \
+    ln -sf busyambassador /buildroot/bin/kubestatus && \
+    ln -sf busyambassador /buildroot/bin/watt
+
+# Set up /opt/ambassador/bin/ (for the production image)
+RUN sudo install -D -t /opt/ambassador/bin/ /buildroot/bin/busyambassador && \
+    sudo ln -sf busyambassador /opt/ambassador/bin/agent && \
+    sudo ln -sf busyambassador /opt/ambassador/bin/apiext && \
+    sudo ln -sf busyambassador /opt/ambassador/bin/kubestatus && \
+    sudo ln -sf busyambassador /opt/ambassador/bin/watt && \
+    sudo install /buildroot/bin/capabilities_wrapper /opt/ambassador/bin/wrapper
 
 # XXX: this will go away
 RUN mkdir -p /ambassador/sidecars && \
@@ -124,10 +133,6 @@ RUN apk --no-cache add bash curl python3=${py_version} libcap htop
 RUN apk upgrade --no-cache
 COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
 COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
-
-# Other installers
-COPY --from=artifacts /opt/image-build /opt/image-build
-RUN /opt/image-build/install.sh
 
 # External Python packages we use
 COPY --from=artifacts /usr/lib/python3.10/site-packages /usr/lib/python3.10/site-packages
