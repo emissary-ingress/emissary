@@ -66,7 +66,21 @@ include $(OSS_HOME)/build-aux/ci.mk
 include $(OSS_HOME)/build-aux/deps.mk
 include $(OSS_HOME)/build-aux/main.mk
 include $(OSS_HOME)/build-aux/check.mk
-include $(OSS_HOME)/build-aux/builder.mk
+include $(OSS_HOME)/build-aux/colors.mk
+
+REGISTRY_ERR  = $(RED)
+REGISTRY_ERR += $(NL)ERROR: please set the DEV_REGISTRY make/env variable to the docker registry
+REGISTRY_ERR += $(NL)       you would like to use for development
+REGISTRY_ERR += $(END)
+docker.tag.local = $(BUILDER_NAME).local/$(*F)
+docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTRY)/$(*F):$(patsubst v%,%,$(VERSION))
+include $(OSS_HOME)/build-aux/docker.mk
+
+include $(OSS_HOME)/build-aux/teleproxy.mk
+include $(OSS_HOME)/build-aux/builder-build.mk
+include $(OSS_HOME)/build-aux/builder-check.mk
+include $(OSS_HOME)/build-aux/builder-release.mk
+include $(OSS_HOME)/build-aux/builder-help.mk
 include $(OSS_HOME)/_cxx/envoy.mk
 include $(OSS_HOME)/releng/release.mk
 include $(OSS_HOME)/build-aux/generate.mk
