@@ -4,7 +4,7 @@ This document defines the project governance for Emissary Ingress.
 
 ## Overview
 
-**Emissary Ingress** is an open source project that is committed to building a thriving community. This document outlines how the community governs itself. All community members must adhere to the [Code of Conduct](https://github.com/emissary-ingress/community/blob/main/CODE_OF_CONDUCT.md)
+**Emissary Ingress** is an open source project that is committed to building a thriving community. This document outlines how the community governs itself. All community members must adhere to the [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Community Roles
 

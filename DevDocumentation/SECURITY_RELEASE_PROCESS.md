@@ -15,7 +15,7 @@ The Emissary Security Team (EMST) is responsible for organizing the entire respo
 communication and external disclosure but will need help from relevant developers to successfully
 run this process.
 
-The initial Emissary Security Team will consist of all [maintainers](MAINTAINERS.md), with communications
+The initial Emissary Security Team will consist of all [maintainers](../Community/MAINTAINERS.md), with communications
 initially handled via email to [secalert@datawire.io](mailto:secalert@datawire.io). In the future,
 we may change the membership of the EMST, or the communication mechanism.
 

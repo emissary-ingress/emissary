@@ -10,9 +10,9 @@ This document is intended for developers looking to contribute to the Emissary-i
 
 After reading this document if you have questions we encourage you to join us on our [Slack channel](https://d6e.co/slack) in the [#emissary-dev](https://datawire-oss.slack.com/archives/CB46TNG83) channel.
 
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-- [Governance](GOVERNANCE.md)
-- [Maintainers](MAINTAINERS.md)
+- [Code of Conduct](../Community/CODE_OF_CONDUCT.md)
+- [Governance](../Community/GOVERNANCE.md)
+- [Maintainers](../Community/MAINTAINERS.md)
 
 **Table of Contents**
 
@@ -229,7 +229,7 @@ Now that you have your dev system up and running here are some additional conten
 
 This section goes over how to contribute code to the project and how to get started contributing. More information on how we manage our branches can be found below in [Development Workflow](#development-workflow).
 
-Before contributing be sure to read our [Code of Conduct](CODE_OF_CONDUCT.md) and [Governance](GOVERNANCE.md) to get an understanding of how our project is structured.
+Before contributing be sure to read our [Code of Conduct](../Community/CODE_OF_CONDUCT.md) and [Governance](../Community/GOVERNANCE.md) to get an understanding of how our project is structured.
 
 ### Submitting a Pull Request (PR)
 
@@ -279,7 +279,7 @@ When submitting a Pull Request (PR) here are a set of guidelines to follow:
 
 8. Submit a Pull Request from your fork targeting upstream `emissary/master`.
 
-Thanks for your contribution! One of the [Maintainers](MAINTAINERS.md) will review your PR and discuss any changes that need to be made.
+Thanks for your contribution! One of the [Maintainers](../Community/MAINTAINERS.md) will review your PR and discuss any changes that need to be made.
 
 ### Pull Request Review Process
 
