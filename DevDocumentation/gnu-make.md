@@ -35,7 +35,7 @@ C-s for in `M-: (info "Make")`).
       directory-part and file-part of each value, respectively.
 
       I think those are easy enough to remember mnemonically:
-        - $@ is where you shoul direct the output at.
+        - $@ is where you should direct the output at.
         - $^ points up at the dependency list
         - $< points at the left-most member of the dependency list
         - $* is the % glob; "*" is well-known as the glob char in other languages
@@ -60,7 +60,7 @@ C-s for in `M-: (info "Make")`).
       target2: deps
       	command to run
 
-  Because of this, if you have a command that generates multiple,
+  Because of this, if you have a command that generates multiple
   outputs, it _must_ be a pattern rule:
 
       %.c %.h: %.y
@@ -72,21 +72,21 @@ C-s for in `M-: (info "Make")`).
 
       target: normal-deps | order-only-deps
 
-  Dependencies after the "|" are created if they don't exist, but if
+  Dependencies after the `|` are created if they don't exist, but if
   they already exist, then don't bother updating them.
 
 Tips:
 -----
 
  - Use absolute filenames.  It's dumb, but it really does result in
-   fewer headaches.  Use $(OSS_HOME) and $(AES_HOME) to spell the
+   fewer headaches.  Use `$(OSS_HOME)` and `$(AES_HOME)` to spell the
    absolute filenames.
 
  - If you have a multiple-output command where the output files have
-   dissimilar names, have % be just the directory (the above tip makes
-   this easier).
+   dissimilar names, have `%` be just the directory (the above tip
+   makes this easier).
 
  - It can be useful to use the 2-colon form of a pattern rule when
-   writing a rule for just one file; it lets you use % and $* to avoid
-   repeating yourself, which can be especially useful with long
+   writing a rule for just one file; it lets you use `%` and `$*` to
+   avoid repeating yourself, which can be especially useful with long
    filenames.
