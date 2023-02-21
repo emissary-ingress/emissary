@@ -37,26 +37,17 @@ FROM ${envoy} as envoy
 
 FROM ${builderbase} as artifacts
 
-# Copy in the golang binaries
-RUN install -D -t /buildroot/bin/ /usr/local/bin/busyambassador /usr/local/bin/capabilities_wrapper 
-
 # Setup the python code
 ADD python /buildroot/ambassador/python
 RUN time pip install --no-deps -e /buildroot/ambassador/python
 
-# Set up /buildroot/bin/ (for the build environment)
-RUN ln -sf busyambassador /buildroot/bin/agent && \
-    ln -sf busyambassador /buildroot/bin/apiext && \
-    ln -sf busyambassador /buildroot/bin/kubestatus && \
-    ln -sf busyambassador /buildroot/bin/watt
-
 # Set up /opt/ambassador/bin/ (for the production image)
-RUN sudo install -D -t /opt/ambassador/bin/ /buildroot/bin/busyambassador && \
+RUN sudo install -D -t /opt/ambassador/bin/ /usr/local/bin/busyambassador && \
     sudo ln -sf busyambassador /opt/ambassador/bin/agent && \
     sudo ln -sf busyambassador /opt/ambassador/bin/apiext && \
     sudo ln -sf busyambassador /opt/ambassador/bin/kubestatus && \
     sudo ln -sf busyambassador /opt/ambassador/bin/watt && \
-    sudo install /buildroot/bin/capabilities_wrapper /opt/ambassador/bin/wrapper
+    sudo install /usr/local/bin/capabilities_wrapper /opt/ambassador/bin/wrapper
 
 # XXX: this will go away
 RUN mkdir -p /ambassador/sidecars && \
