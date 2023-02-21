@@ -44,12 +44,11 @@ clobber: docker/base-envoy.docker.clean
 docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: \
   %/base.docker.tag.local \
   %/base-envoy.docker.tag.local \
-  %/base-pip.docker.tag.local \
+  %/emissary-base.docker.tag.local \
   python/ambassador.version \
   build-aux/Dockerfile \
   $(OSS_HOME)/build-aux/py-version.txt \
   $(tools/dsum) \
-  vendor \
   FORCE
 	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
 	@printf "    ${BLU}base=$$(sed -n 2p $*/base.docker.tag.local)${END}\n"
@@ -60,7 +59,7 @@ docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: \
 	    --platform="$(BUILD_ARCH)" \
 	    --build-arg=base="$$(sed -n 2p $*/base.docker.tag.local)" \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	    --build-arg=builderbase="$$(sed -n 2p $*/base-pip.docker.tag.local)" \
+	    --build-arg=builderbase="$$(sed -n 2p $*/emissary-base.docker.tag.local)" \
 	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
 	    --iidfile=$@; }
 clean: docker/$(LCNAME).docker.clean

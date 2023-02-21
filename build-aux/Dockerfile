@@ -32,33 +32,13 @@ ARG envoy="i-forgot-to-set-build-arg-envoy"
 FROM ${envoy} as envoy
 
 ########################################
-# The golang build stage
-########################################
-
-FROM ${builderbase} as golang
-
-WORKDIR /go
-
-# Build the golang binaries
-ADD api api
-ADD cmd cmd
-ADD pkg pkg
-ADD vendor vendor
-ADD go.mod go.mod
-ADD go.sum go.sum
-
-RUN --mount=type=cache,target=/root/.cache/go-build \
-    mkdir -p /go/bin && \
-    time go build -mod=vendor -o /go/bin/ ./cmd/...
-
-########################################
 # The artifact build stage
 ########################################
 
 FROM ${builderbase} as artifacts
 
 # Copy in the golang binaries
-COPY --from=golang /go/bin/* /buildroot/bin/
+RUN install -D -t /buildroot/bin/ /usr/local/bin/busyambassador /usr/local/bin/capabilities_wrapper 
 
 # Setup the python code
 ADD python /buildroot/ambassador/python

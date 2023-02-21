@@ -33,6 +33,7 @@ docker/%: docker/.%.stamp $(tools/copy-ifchanged)
 _ocibuild-images  = base
 _ocibuild-images += kat-client
 _ocibuild-images += kat-server
+_ocibuild-images += emissary-base
 $(foreach img,$(_ocibuild-images),docker/.$(img).docker.stamp): docker/.%.docker.stamp: docker/%.img.tar
 	docker load < $<
 	docker inspect $$(bsdtar xfO $< manifest.json|jq -r '.[0].RepoTags[0]') --format='{{.Id}}' > $@
@@ -40,6 +41,11 @@ clean: $(foreach img,$(_ocibuild-images),docker/$(img).img.tar.clean)
 
 %.img.tar.clean: %.docker.clean
 	rm -f $*.img.tar $(*D)/.$(*F).img.tar.stamp $(*D)/$(*F).*.layer.tar
+
+# Dump images from dockerd to ocibuild files.
+_docker-images  = base-pip
+$(foreach img,$(_docker-images),docker/.$(img).img.tar.stamp): docker/.%.img.tar.stamp: docker/base-pip.docker.tag.local
+	docker save $$(sed -n 2p $<) >$@
 
 #
 # Specific rules
@@ -111,7 +117,23 @@ docker/base-pip/requirements.txt: python/requirements.txt $(tools/copy-ifchanged
 clean: docker/base-pip/requirements.txt.rm
 docker/.base-pip.docker.stamp: docker/.%.docker.stamp: docker/%/Dockerfile docker/%/requirements.txt docker/base-python.docker.tag.local
 	docker build --platform="$(BUILD_ARCH)" --build-arg=from="$$(sed -n 2p docker/base-python.docker.tag.local)" --iidfile=$@ $(<D)
-clobber: docker/base-pip.docker.clean
+clobber: docker/base-pip.img.tar.clean
+
+################################################################################
+# emissary: The main image                                                     #
+################################################################################
+#
+# This isn't complete; most of the build is still happening over in
+# builder-build.mk.
+docker/emissary.go.layer.tar: $(tools/ocibuild) FORCE
+	$(tools/ocibuild) layer gobuild --output=$@ ./cmd/busyambassador ./cmd/capabilities_wrapper
+clobber: docker/emissary.go.layer.tar.rm
+docker/.emissary-base.img.tar.stamp: docker/base-pip.img.tar docker/emissary.go.layer.tar $(tools/ocibuild)
+	{ $(tools/ocibuild) image build \
+	  --base=$< \
+	  --tag=emissary.local/emissary-base:latest \
+	  $(filter %.layer.tar,$^); } > $@
+clobber: docker/emissary-base.img.tar.clean
 
 ################################################################################
 # The Helm chart                                                               #
