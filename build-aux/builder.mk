@@ -218,7 +218,7 @@ pytest-integration: push-pytest-images
 	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/integration"
 .PHONY: pytest-integration
 
-pytest-kat-envoy3: push-pytest-images # doing this all at once is too much for CI...
+pytest-kat: push-pytest-images # doing this all at once is too much for CI...
 	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
 # ... so we have a separate rule to run things split up
 build-aux/.pytest-kat.txt.stamp: $(OSS_HOME)/venv push-pytest-images $(tools/kubectl) FORCE
@@ -226,7 +226,7 @@ build-aux/.pytest-kat.txt.stamp: $(OSS_HOME)/venv push-pytest-images $(tools/kub
 build-aux/pytest-kat.txt: build-aux/%: build-aux/.%.stamp $(tools/copy-ifchanged)
 	$(tools/copy-ifchanged) $< $@
 clean: build-aux/.pytest-kat.txt.stamp.rm build-aux/pytest-kat.txt.rm
-pytest-kat-envoy3-%: build-aux/pytest-kat.txt $(tools/py-split-tests)
+pytest-kat-%: build-aux/pytest-kat.txt $(tools/py-split-tests)
 	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $(subst -of-, ,$*) <build-aux/pytest-kat.txt)' python/tests/kat"
 
 $(OSS_HOME)/venv: python/requirements.txt python/requirements-dev.txt

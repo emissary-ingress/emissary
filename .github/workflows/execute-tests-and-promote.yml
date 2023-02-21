@@ -145,11 +145,11 @@ jobs:
       matrix:
         test:
           - integration
-          - kat-envoy3-1-of-5
-          - kat-envoy3-2-of-5
-          - kat-envoy3-3-of-5
-          - kat-envoy3-4-of-5
-          - kat-envoy3-5-of-5
+          - kat-1-of-5
+          - kat-2-of-5
+          - kat-3-of-5
+          - kat-4-of-5
+          - kat-5-of-5
     name: pytest-${{ matrix.test }}
     steps:
       - uses: actions/checkout@v3
