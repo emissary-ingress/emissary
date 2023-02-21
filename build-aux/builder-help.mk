@@ -86,8 +86,6 @@ define _help.targets
 
   $(BLD)$(MAKE) $(BLU)export$(END)       -- display important env vars in shell syntax, for use with $(BLD)eval$(END).
 
-  $(BLD)$(MAKE) $(BLU)preflight$(END)    -- checks dependencies of this makefile.
-
   $(BLD)$(MAKE) $(BLU)version$(END)      -- display source code version.
 
   $(BLD)$(MAKE) $(BLU)images$(END)       -- creates images from the build container.

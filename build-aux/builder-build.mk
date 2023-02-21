@@ -14,22 +14,6 @@ all: help
 
 .NOTPARALLEL:
 
-GO_ERR     = $(RED)ERROR: please update to go 1.13 or newer$(END)
-DOCKER_ERR = $(RED)ERROR: please update to a version of docker built with Go 1.13 or newer$(END)
-
-preflight:
-	@printf "$(CYN)==> $(GRN)Preflight checks$(END)\n"
-
-	@echo "Checking that 'go' is installed and is 1.13 or later"
-	@$(if $(call _prelude.go.VERSION.HAVE,1.13),,printf '%s\n' $(call quote.shell,$(GO_ERR)))
-
-	@echo "Checking that 'docker' is installed and supports the 'slice' function for '--format'"
-	@$(if $(and $(shell which docker 2>/dev/null),\
-	            $(call _prelude.go.VERSION.ge,$(patsubst go%,%,$(lastword $(shell go version $$(which docker)))),1.13)),\
-	      ,\
-	      printf '%s\n' $(call quote.shell,$(DOCKER_ERR)))
-.PHONY: preflight
-
 python/ambassador.version: $(tools/write-ifchanged) FORCE
 	set -e -o pipefail; { \
 	  echo $(patsubst v%,%,$(VERSION)); \
