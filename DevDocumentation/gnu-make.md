@@ -78,13 +78,21 @@ C-s for in `M-: (info "Make")`).
 Tips:
 -----
 
- - Use absolute filenames.  It's dumb, but it really does result in
-   fewer headaches.  Use `$(OSS_HOME)` and `$(AES_HOME)` to spell the
-   absolute filenames.
+ - Use absolute filenames; it's silly, but can often reduce headaches.
+   Use `$(OSS_HOME)` to spell the absolute filenames.
+
+   Though, this isn't so helpful in Emissary anymore.  The main case
+   where this helps is when the same directory-specific Makefile might
+   be `include`d from several different top-level directories; as the
+   Helm chart Makefile used to be from the main Emissary Makefile, or
+   the Emissary Makefile used to be from Edge Stack.  But Emissary no
+   longer does this.
 
  - If you have a multiple-output command where the output files have
    dissimilar names, have `%` be just the directory (the above tip
-   makes this easier).
+   about using absolute filenames makes this easier--this is a real
+   pain if you have such a target in the top-level directory and
+   aren't using absolute filenames).
 
  - It can be useful to use the 2-colon form of a pattern rule when
    writing a rule for just one file; it lets you use `%` and `$*` to
