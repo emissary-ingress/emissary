@@ -20,10 +20,6 @@
 
 FROM docker.io/frolvlad/alpine-glibc:alpine-3.17_glibc-2.34
 
-WORKDIR /buildroot
-
-ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
-
 # For the most-part, you should not pin specific versions in this
 # `apk` command; it will always choose the latest version being
 # shipped by pinned version of Alpine.  This will automatically pull

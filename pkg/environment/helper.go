@@ -30,7 +30,7 @@ func EnvironmentSetupEntrypoint(ctx context.Context) {
 	}
 
 	// build kubewatch.py command
-	cmd := exec.Command("python3", ambassadorRoot+"/kubewatch.py", "--debug")
+	cmd := exec.Command("kubewatch.py", "--debug")
 
 	// inherit all existing environment variables & inject python's own
 	cmd.Env = os.Environ()
