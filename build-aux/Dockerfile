@@ -72,7 +72,7 @@ ARG py_version="i-forgot-to-set-build-arg-py-version"
 RUN adduser ambassador -u 8888 -G root -D -H -s /bin/false
 
 # External stuff that should change infrequently
-RUN apk --no-cache add bash curl python3=${py_version} libcap htop
+RUN apk --no-cache add bash curl python3=${py_version} htop
 RUN apk upgrade --no-cache
 RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.23.3/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
   chmod a+x /usr/bin/kubectl
@@ -81,15 +81,20 @@ COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
 # External Python packages we use
 COPY --from=artifacts /usr/lib/python3.10/site-packages /usr/lib/python3.10/site-packages
 
-# Our envoy. The capabilities here grant the wrapper the ability to use the
-# cap_net_bind_service cap and for Envoy to inherit it.
+# Our envoy.
 COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
-RUN setcap cap_net_bind_service=ei /usr/local/bin/envoy
 
-# Our Go binaries. See envoy section for setcap info.
+# Our Go binaries.
 COPY --from=artifacts /opt/ambassador /opt/ambassador
+
+# The capabilities here grant the wrapper the ability to use the
+# cap_net_bind_service cap and for Envoy to inherit it.
+RUN apk --no-cache add libcap-utils && \
+    setcap cap_net_bind_service=ei /usr/local/bin/envoy && \
+    setcap cap_net_bind_service=p /opt/ambassador/bin/wrapper && \
+    apk del libcap-utils
+
 RUN ln -s /opt/ambassador/bin/* /usr/local/bin/
-RUN setcap cap_net_bind_service=p /opt/ambassador/bin/wrapper
 
 # Our Python code
 COPY --from=artifacts /buildroot/ambassador/python /buildroot/ambassador/python
