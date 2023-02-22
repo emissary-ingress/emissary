@@ -11,11 +11,9 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/datawire/go-mkopensource/pkg/scanningerrors"
-
-	"github.com/datawire/dlib/derror"
 	"github.com/datawire/go-mkopensource/pkg/dependencies"
 	. "github.com/datawire/go-mkopensource/pkg/detectlicense"
+	"github.com/datawire/go-mkopensource/pkg/scanningerrors"
 	"github.com/datawire/go-mkopensource/pkg/util"
 )
 
@@ -26,7 +24,7 @@ type tuple struct {
 }
 
 func parseLicenses(name, version, license string) util.Set[License] {
-	override, ok := map[tuple][]License{
+	if override, ok := map[tuple][]License{
 		// These are packages that don't have sufficient metadata to get
 		// the license normally.  Either the license isn't specified in
 		// the metadata, or the license string that is specified is
@@ -77,8 +75,7 @@ func parseLicenses(name, version, license string) util.Set[License] {
 		{"orjson", "3.3.1", "Apache-2.0 OR MIT"}:            {Apache2, MIT},
 		{"orjson", "3.6.6", "Apache-2.0 OR MIT"}:            {Apache2, MIT},
 		{"packaging", "21.3", "BSD-2-Clause or Apache-2.0"}: {BSD2, Apache2},
-	}[tuple{name, version, license}]
-	if ok {
+	}[tuple{name, version, license}]; ok {
 		ret := make(util.Set[License], len(override))
 		for _, l := range override {
 			ret.Insert(l)
@@ -86,7 +83,7 @@ func parseLicenses(name, version, license string) util.Set[License] {
 		return ret
 	}
 
-	static, ok := map[string][]License{
+	if static, ok := map[string][]License{
 		"AGPLv3+": {AGPL3OrLater},
 
 		"ASL 2":                       {Apache2},
@@ -124,8 +121,7 @@ func parseLicenses(name, version, license string) util.Set[License] {
 		"PSF License":    {PSF},
 		"PSF":            {PSF},
 		"Python license": {PSF},
-	}[license]
-	if ok {
+	}[license]; ok {
 		ret := make(util.Set[License], len(static))
 		for _, l := range static {
 			ret.Insert(l)
@@ -136,9 +132,25 @@ func parseLicenses(name, version, license string) util.Set[License] {
 	return nil
 }
 
-func Main(outputType OutputType, r io.Reader, w io.Writer) error {
-	distribs := make(map[string]textproto.MIMEHeader)
+func processDistrib(distrib textproto.MIMEHeader) (dependencies.Dependency, error) {
+	name := distrib.Get("Name")
+	ver := distrib.Get("Version")
 
+	ret := dependencies.Dependency{
+		Name:     name,
+		Version:  ver,
+		Licenses: parseLicenses(name, ver, distrib.Get("License")),
+	}
+
+	if ret.Licenses == nil {
+		return dependencies.Dependency{}, fmt.Errorf("distrib %q %q: Could not parse license-string %q", name, ver, distrib.Get("License"))
+	}
+	return ret, nil
+}
+
+func Main(outputType OutputType, r io.Reader, w io.Writer) error {
+	var dependencyInfo dependencies.DependencyInfo
+	var licErrs []error
 	input := textproto.NewReader(bufio.NewReader(r))
 	for {
 		distrib, err := input.ReadMIMEHeader()
@@ -148,19 +160,20 @@ func Main(outputType OutputType, r io.Reader, w io.Writer) error {
 			}
 			return err
 		}
-		distribs[distrib.Get("Name")] = distrib
+		if dep, err := processDistrib(distrib); err != nil {
+			licErrs = append(licErrs, err)
+		} else {
+			licErrs = append(licErrs, dep.CheckLicenseRestrictions(Unrestricted)...)
+			dependencyInfo.Dependencies = append(dependencyInfo.Dependencies, dep)
+		}
+	}
+	if len(licErrs) > 0 {
+		return scanningerrors.ExplainErrors(licErrs)
 	}
 
-	distribNames := make([]string, 0, len(distribs))
-	for distribName := range distribs {
-		distribNames = append(distribNames, distribName)
-	}
-	sort.Strings(distribNames)
-
-	dependencyInfo, err := getDependencies(distribNames, distribs)
-	if err != nil {
-		return err
-	}
+	sort.Slice(dependencyInfo.Dependencies, func(i, j int) bool {
+		return dependencyInfo.Dependencies[i].Name < dependencyInfo.Dependencies[j].Name
+	})
 
 	switch outputType {
 	case jsonOutputType:
@@ -221,33 +234,6 @@ func markdownOutput(w io.Writer, dependencyInfo dependencies.DependencyInfo) err
 	}
 
 	return nil
-}
-
-func getDependencies(distribNames []string, distribs map[string]textproto.MIMEHeader) (dependencies.DependencyInfo, error) {
-	var dependencyInfo dependencies.DependencyInfo
-
-	var errs derror.MultiError
-	for _, distribName := range distribNames {
-		distrib := distribs[distribName]
-		distribVersion := distrib.Get("Version")
-
-		dependencyDetails := dependencies.Dependency{
-			Name:     distribName,
-			Version:  distribVersion,
-			Licenses: parseLicenses(distribName, distribVersion, distrib.Get("License")),
-		}
-		if dependencyDetails.Licenses == nil {
-			errs = append(errs, fmt.Errorf("distrib %q %q: Could not parse license-string %q", distribName, distribVersion, distrib.Get("License")))
-			continue
-		}
-		errs = append(errs, dependencyDetails.CheckLicenseRestrictions(Unrestricted)...)
-		dependencyInfo.Dependencies = append(dependencyInfo.Dependencies, dependencyDetails)
-	}
-
-	if len(errs) > 0 {
-		return dependencyInfo, scanningerrors.ExplainErrors(errs)
-	}
-	return dependencyInfo, nil
 }
 
 func main() {
