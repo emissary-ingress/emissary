@@ -16,6 +16,7 @@ import (
 	"github.com/datawire/dlib/derror"
 	"github.com/datawire/go-mkopensource/pkg/dependencies"
 	. "github.com/datawire/go-mkopensource/pkg/detectlicense"
+	"github.com/datawire/go-mkopensource/pkg/util"
 )
 
 type tuple struct {
@@ -24,7 +25,7 @@ type tuple struct {
 	License string
 }
 
-func parseLicenses(name, version, license string) map[License]struct{} {
+func parseLicenses(name, version, license string) util.Set[License] {
 	override, ok := map[tuple][]License{
 		// These are packages that don't have sufficient metadata to get
 		// the license normally.  Either the license isn't specified in
@@ -78,9 +79,9 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"packaging", "21.3", "BSD-2-Clause or Apache-2.0"}: {BSD2, Apache2},
 	}[tuple{name, version, license}]
 	if ok {
-		ret := make(map[License]struct{}, len(override))
+		ret := make(util.Set[License], len(override))
 		for _, l := range override {
-			ret[l] = struct{}{}
+			ret.Insert(l)
 		}
 		return ret
 	}
@@ -125,9 +126,9 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		"Python license": {PSF},
 	}[license]
 	if ok {
-		ret := make(map[License]struct{}, len(static))
+		ret := make(util.Set[License], len(static))
 		for _, l := range static {
-			ret[l] = struct{}{}
+			ret.Insert(l)
 		}
 		return ret
 	}
@@ -197,8 +198,13 @@ func markdownOutput(w io.Writer, dependencyInfo dependencies.DependencyInfo) err
 	_, _ = io.WriteString(table, "  \tName\tVersion\tLicense(s)\n")
 	_, _ = io.WriteString(table, "  \t----\t-------\t----------\n")
 	for _, dependency := range dependencyInfo.Dependencies {
+		licNames := make([]string, 0, len(dependency.Licenses))
+		for lic := range dependency.Licenses {
+			licNames = append(licNames, lic.Name)
+		}
+		sort.Strings(licNames)
 		if _, err := fmt.Fprintf(table, "\t%s\t%s\t%s\n", dependency.Name, dependency.Version,
-			strings.Join(dependency.Licenses, ", ")); err != nil {
+			strings.Join(licNames, ", ")); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Could not write Markdown output: %v\n", err)
 			os.Exit(int(WriteError))
 		}
@@ -218,7 +224,7 @@ func markdownOutput(w io.Writer, dependencyInfo dependencies.DependencyInfo) err
 }
 
 func getDependencies(distribNames []string, distribs map[string]textproto.MIMEHeader) (dependencies.DependencyInfo, error) {
-	dependencyInfo := dependencies.NewDependencyInfo()
+	var dependencyInfo dependencies.DependencyInfo
 
 	var errs derror.MultiError
 	for _, distribName := range distribNames {
@@ -226,36 +232,21 @@ func getDependencies(distribNames []string, distribs map[string]textproto.MIMEHe
 		distribVersion := distrib.Get("Version")
 
 		dependencyDetails := dependencies.Dependency{
-			Name:    distribName,
-			Version: distribVersion,
+			Name:     distribName,
+			Version:  distribVersion,
+			Licenses: parseLicenses(distribName, distribVersion, distrib.Get("License")),
 		}
-		licenses := parseLicenses(distribName, distribVersion, distrib.Get("License"))
-		if licenses == nil {
+		if dependencyDetails.Licenses == nil {
 			errs = append(errs, fmt.Errorf("distrib %q %q: Could not parse license-string %q", distribName, distribVersion, distrib.Get("License")))
 			continue
 		}
-
-		licenseList := make([]string, 0, len(licenses))
-		for license := range licenses {
-			licenseList = append(licenseList, license.Name)
-			if err := dependencies.CheckLicenseRestrictions(dependencyDetails, license.Name, Unrestricted); err != nil {
-				errs = append(errs, err)
-			}
-		}
-		sort.Strings(licenseList)
-
-		dependencyDetails.Licenses = licenseList
+		errs = append(errs, dependencyDetails.CheckLicenseRestrictions(Unrestricted)...)
 		dependencyInfo.Dependencies = append(dependencyInfo.Dependencies, dependencyDetails)
 	}
 
 	if len(errs) > 0 {
 		return dependencyInfo, scanningerrors.ExplainErrors(errs)
 	}
-
-	if err := dependencyInfo.UpdateLicenseList(); err != nil {
-		return dependencyInfo, fmt.Errorf("Could not generate list of license URLs: %v\n", err)
-	}
-
 	return dependencyInfo, nil
 }
 
