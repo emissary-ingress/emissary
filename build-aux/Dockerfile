@@ -42,12 +42,12 @@ ADD python /build/python
 RUN time pip install --no-deps -e /build/python
 
 # Set up /opt/ambassador/bin/ (for the production image)
-RUN sudo install -D -t /opt/ambassador/bin/ /usr/local/bin/busyambassador && \
-    sudo ln -sf busyambassador /opt/ambassador/bin/agent && \
-    sudo ln -sf busyambassador /opt/ambassador/bin/apiext && \
-    sudo ln -sf busyambassador /opt/ambassador/bin/kubestatus && \
-    sudo ln -sf busyambassador /opt/ambassador/bin/watt && \
-    sudo install /usr/local/bin/capabilities_wrapper /opt/ambassador/bin/wrapper
+RUN install -D -t /opt/ambassador/bin/ /usr/local/bin/busyambassador && \
+    ln -sf busyambassador /opt/ambassador/bin/agent && \
+    ln -sf busyambassador /opt/ambassador/bin/apiext && \
+    ln -sf busyambassador /opt/ambassador/bin/kubestatus && \
+    ln -sf busyambassador /opt/ambassador/bin/watt && \
+    install /usr/local/bin/capabilities_wrapper /opt/ambassador/bin/wrapper
 
 ########################################
 # The optimized images
@@ -62,8 +62,12 @@ ARG py_version="i-forgot-to-set-build-arg-py-version"
 RUN adduser ambassador -u 8888 -G root -D -H -s /bin/false
 
 # External stuff that should change infrequently
-RUN apk --no-cache add bash curl python3=${py_version} htop
-RUN apk upgrade --no-cache
+RUN apk --no-cache upgrade && \
+    apk --no-cache add \
+    bash \
+    curl \
+    python3=${py_version} \
+    htop
 RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.23.3/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
   chmod a+x /usr/bin/kubectl
 COPY --from=artifacts /usr/lib/libyaml* /usr/lib/

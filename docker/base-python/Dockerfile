@@ -47,25 +47,14 @@ RUN apk --no-cache add \
   musl-dev \
   curl \
   cython \
-  docker-cli \
-  git \
-  iptables \
-  jq \
-  libcap \
-  libcap-dev \
   libffi-dev \
-  ncurses \
-  openssl-dev \
   py3-pip=~22.3 \
   python3=~3.10 \
   python3-dev \
   rust \
   cargo \
   patchelf \
-  rsync \
-  sudo \
-  yaml-dev \
-  && chmod u+s $(which docker)
+  yaml-dev
 
 # Consult
 # https://github.com/jazzband/pip-tools/#versions-and-compatibility to
