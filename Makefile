@@ -11,14 +11,13 @@ BUILD_ARCH ?= linux/amd64
 
 # Bootstrapping the build env
 #
-# _go-version/deps and _go-version/cmd should mostly only be used via
-# go-version.txt (in deps.mk), but we have declared them early here
-# for bootstrapping the build env.  Don't use them directly (not via
-# go-version.txt) except for bootstrapping.
-_go-version/deps = docker/base-python/Dockerfile
-_go-version/cmd = sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $(_go-version/deps)
+# _go-version should mostly only be used via go-version.txt (in
+# deps.mk), but we have declared it early here for bootstrapping the
+# build env.  Don't use it directly (not via go-version.txt) except
+# for bootstrapping.
+_go-version = 1.20.1 # This is the ultimate source of truth for the Go version
 ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
-  $(call _prelude.go.ensure,$(shell $(_go-version/cmd)))
+  $(call _prelude.go.ensure,$(_go-version))
   ifneq ($(filter $(shell go env GOROOT),$(subst :, ,$(shell go env GOPATH))),)
     $(error Your $$GOPATH (where *your* Go stuff goes) and $$GOROOT (where Go *itself* is installed) are both set to the same directory ($(shell go env GOROOT)); it is remarkable that it has not blown up catastrophically before now)
   endif

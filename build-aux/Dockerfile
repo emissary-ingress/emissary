@@ -74,7 +74,8 @@ RUN adduser ambassador -u 8888 -G root -D -H -s /bin/false
 # External stuff that should change infrequently
 RUN apk --no-cache add bash curl python3=${py_version} libcap htop
 RUN apk upgrade --no-cache
-COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
+RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.23.3/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
+  chmod a+x /usr/bin/kubectl
 COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
 
 # External Python packages we use
