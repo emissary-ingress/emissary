@@ -39,15 +39,12 @@ FROM ${builderbase} as artifacts
 
 # Setup the python code
 ADD python /build/python
-RUN time pip install --no-deps -e /build/python
+RUN cd /build/python && python setup.py install --install-scripts=/usr/local/bin && cd / && rm -rf /build
 
-# Set up /opt/ambassador/bin/ (for the production image)
-RUN install -D -t /opt/ambassador/bin/ /usr/local/bin/busyambassador && \
-    ln -sf busyambassador /opt/ambassador/bin/agent && \
-    ln -sf busyambassador /opt/ambassador/bin/apiext && \
-    ln -sf busyambassador /opt/ambassador/bin/kubestatus && \
-    ln -sf busyambassador /opt/ambassador/bin/watt && \
-    install /usr/local/bin/capabilities_wrapper /opt/ambassador/bin/wrapper
+RUN ln -sf busyambassador /usr/local/bin/agent && \
+    ln -sf busyambassador /usr/local/bin/apiext && \
+    ln -sf busyambassador /usr/local/bin/kubestatus && \
+    ln -sf busyambassador /usr/local/bin/watt
 
 ########################################
 # The optimized images
@@ -68,11 +65,13 @@ RUN apk --no-cache upgrade && \
     curl \
     python3=${py_version} \
     htop
-RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.23.3/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
-  chmod a+x /usr/bin/kubectl
+RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.23.3/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl && \
+  chmod a+x /usr/local/bin/kubectl
 COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
 
-# External Python packages we use
+# Python.
+#
+# Both our code and 3rd-party packages get installed to site-packages.
 COPY --from=artifacts /usr/lib/python3.10/site-packages /usr/lib/python3.10/site-packages
 
 # Scripts.
@@ -80,13 +79,13 @@ ADD python/entrypoint.sh \
     python/kubewatch.py \
     python/post_update.py \
     python/watch_hook.py \
-    /opt/ambassador/bin/
+    /usr/local/bin/
 
 # Our envoy.
 COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
 
-# Our Go binaries.
-COPY --from=artifacts /opt/ambassador /opt/ambassador
+# Our execuables (Go, Python).
+COPY --from=artifacts /usr/local/bin/* /usr/local/bin/
 
 # setcap.
 #
@@ -94,15 +93,8 @@ COPY --from=artifacts /opt/ambassador /opt/ambassador
 # cap_net_bind_service cap and for Envoy to inherit it.
 RUN apk --no-cache add libcap-utils && \
     setcap cap_net_bind_service=ei /usr/local/bin/envoy && \
-    setcap cap_net_bind_service=p /opt/ambassador/bin/wrapper && \
+    setcap cap_net_bind_service=p /usr/local/bin/capabilities_wrapper && \
     apk del libcap-utils
-
-# General.
-RUN ln -s /opt/ambassador/bin/* /usr/local/bin/
-
-# Our Python code
-COPY --from=artifacts /build/python /build/python
-RUN cd /build/python && python setup.py install && cd / && rm -rf /build
 
 # Delete some things that cause problems for security scanners.
 RUN python -m pip uninstall -y pip
@@ -132,4 +124,4 @@ WORKDIR /ambassador
 # the like.
 ENV HOME=/tmp/ambassador
 
-ENTRYPOINT [ "bash", "/opt/ambassador/bin/entrypoint.sh" ]
+ENTRYPOINT [ "bash", "entrypoint.sh" ]
