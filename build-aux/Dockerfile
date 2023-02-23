@@ -39,8 +39,6 @@ FROM ${builderbase} as builder
 
 WORKDIR /buildroot
 
-ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
-
 COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
 
 ENV KUBECONFIG=/buildroot/kubeconfig.yaml
@@ -67,8 +65,6 @@ FROM ${builderbase} as golang
 
 WORKDIR /go
 
-ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
-
 # Build the golang binaries
 ADD api api
 ADD cmd cmd
@@ -88,8 +84,6 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 FROM ${builderbase} as artifacts
 
 WORKDIR /buildroot/ambassador
-
-ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
 
 # Copy in the golang binaries
 COPY --from=golang /go/bin/* /buildroot/bin/
