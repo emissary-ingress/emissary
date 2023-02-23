@@ -64,7 +64,7 @@ include $(OSS_HOME)/build-aux/ci.mk
 include $(OSS_HOME)/build-aux/deps.mk
 include $(OSS_HOME)/build-aux/main.mk
 include $(OSS_HOME)/build-aux/check.mk
-include $(OSS_HOME)/builder/builder.mk
+include $(OSS_HOME)/build-aux/builder.mk
 include $(OSS_HOME)/_cxx/envoy.mk
 include $(OSS_HOME)/releng/release.mk
 

@@ -284,7 +284,7 @@ jobs:
         id: build-image
         shell: bash
         run: |
-          echo "image-tag=$(tools/build/version.sh)" >> $GITHUB_OUTPUT
+          echo "image-tag=$(build-aux/version.sh)" >> $GITHUB_OUTPUT
       - name: "make push-dev"
         shell: bash
         run: |

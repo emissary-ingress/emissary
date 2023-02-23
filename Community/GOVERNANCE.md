@@ -4,12 +4,12 @@ This document defines the project governance for Emissary Ingress.
 
 ## Overview
 
-**Emissary Ingress** is an open source project that is committed to building a thriving community. This document outlines how the community governs itself. All community members must adhere to the [Code of Conduct](https://github.com/emissary-ingress/community/blob/main/CODE_OF_CONDUCT.md)
+**Emissary Ingress** is an open source project that is committed to building a thriving community. This document outlines how the community governs itself. All community members must adhere to the [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Community Roles
 
 * **Users:** Members that engage with the Emissary Ingress community via any medium (Slack, GitHub, mailing lists, etc.).
-* **Contributors:** Regular contributions to projects (documentation, code reviews, responding to issues, participation in proposal discussions, contributing code, etc.). 
+* **Contributors:** Regular contributions to projects (documentation, code reviews, responding to issues, participation in proposal discussions, contributing code, etc.).
 * **Maintainers**: The Emissary Ingress project leaders. They are responsible for the overall health and direction of the project; final reviewers of PRs and responsible for releases. Maintainers are expected to triage issues, proactively fix bugs, review PRs to ensure code quality, and contribute documentation.
 
 ### Maintainers
@@ -26,18 +26,18 @@ Ideally, all project decisions are resolved by consensus. If impossible, any mai
 
 A supermajority is defined as two-thirds of members in the group.
 
-A supermajority of [Maintainers](#maintainers) is required for adding or removing maintainers. 
+A supermajority of [Maintainers](#maintainers) is required for adding or removing maintainers.
 
 ### Voting Process
 
-Voting on decisions will be conducted using GitHub: 
+Voting on decisions will be conducted using GitHub:
 
 - Open an issue, if an appropriate issue is not already present.
 - Write a description of the issue at hand in a comment on the issue. The description must include:
    - A summary of the vote to be taken;
    - Whether the vote requires a majority or a supermajority; and
    - The meaning of a yay vote and a nay vote, if not obvious.
-    
+
    For example, when voting to add a maintainer, the meanings of yay and nay are straightforward. On the other hand, for a choice between two alternatives, the comment should spell out which alternative is supported by a yay vote, and which by a nay vote.
 - Maintainers vote by placing emoji on the comment: :thumbsup: for yay, :thumbsdown: for nay.
 

@@ -63,17 +63,34 @@ For other common questions, view this [FAQ page](https://www.getambassador.io/do
 
 You can also use Helm to install Emissary. For more information, see the instructions in the [Helm installation documentation](https://www.getambassador.io/docs/emissary/latest/topics/install/helm/)
 
+Check out full the [Emissary
+documentation](https://www.getambassador.io/docs/emissary/) at
+www.getambassador.io.
+
 Community
 =========
 
-Emissary-ingress is a CNCF Incubating project and welcomes any and all contributors. To get started:
+Emissary-ingress is a CNCF Incubating project and welcomes any and all
+contributors.
 
-* Join our [Slack channel](https://a8r.io/slack)
-* Check out the [Emissary documentation](https://www.getambassador.io/docs/emissary/)
-* Read the [Contributor's Guide](https://github.com/emissary-ingress/emissary/blob/master/DEVELOPING.md).
+Check out the [`Community/`](Community/) directory for information on
+the way the community is run, including:
+
+ - the [`CODE_OF_CONDUCT.md`](Community/CODE_OF_CONDUCT.md)
+ - the [`GOVERNANCE.md`](Community/GOVERNANCE.md) structure
+ - the list of [`MAINTAINERS.md`](Community/MAINTAINERS.md)
+ - the [`MEETING_SCHEDULE.md`](Community/MEETING_SCHEDULE.md) of
+   regular trouble-shooting meetings and contributor meetings
+ - how to get [`SUPPORT.md`](Community/SUPPORT.md).
+
+The best way to join the community is to join our [Slack
+channel](https://a8r.io/slack).
+
+Check out the [`DevDocumentation/`](DevDocumentation/) directory for
+information on the technicals of Emissary, most notably the
+[`DEVELOPING.md`](DevDocumentation/DEVELOPING.md) contributor's guide.
 
 If you're interested in contributing, here are some ways:
-
 * Write a blog post for [our blog](https://blog.getambassador.io)
 * Investigate an [open issue](https://github.com/emissary-ingress/emissary/issues)
 * Add [more tests](https://github.com/emissary-ingress/emissary/tree/master/ambassador/tests)
