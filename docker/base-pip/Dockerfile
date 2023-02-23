@@ -21,4 +21,11 @@ ARG from="i-forgot-to-set-build-arg-from"
 FROM ${from}
 
 COPY requirements.txt .
-RUN --mount=type=cache,target=/root/.cache/pip pip3 install -r requirements.txt && rm requirements.txt
+# This `--root=destdir`-`mv`-`cp`-`rm` dance is to have scripts to to
+# /usr/local/bin/ instead of /usr/bin/.
+# https://github.com/pypa/pip/issues/3934
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip3 install --root=/destdir -r requirements.txt && \
+    rm requirements.txt && \
+    mkdir /destdir/usr/local && mv /destdir/usr/bin /destdir/usr/local && \
+    cp -a /destdir/* / && rm -rf /destdir

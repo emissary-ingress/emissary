@@ -1,22 +1,23 @@
 # syntax = docker/dockerfile:1.3
 
 ###
-# This dockerfile builds all the source code and docker images for the
-# edge stack.
+# This Dockerfile assembles the final Emissary Docker image.
 ##
 
 ###
 # How it works.
 ##
-# All our source code is built in a single monolithic build
-# container. (The "builder" stage below.) We then produce optimized
-# release images by copying the specific binaries and entrypoints out
-# of the build container. The build container must always contain all
-# the binaries and entrypoints for any container we produce, and
-# therefore (with the appropriate entrypoint) can function in place of
-# any release container. The release containers are trivial stages
-# that simply copy the relevant artifacts out of the builder
-# container.
+# Most of the work is done externally to `docker build` by the
+# Makefile and a tool called `ocibuild`; which has produced a "base"
+# image with the bare OS+Python install, and a
+# "builderbase"/"emissary-base" image which contains most of Emissary.
+# All this Dockefile needs to do is a few final steps moving things in
+# to place and cleaning up.
+#
+# Actually, this Dockerfile don't *need* do those things; most if not
+# everything here should eventually be moved to happen in `ocibuild`,
+# but we're not there yet.
+###
 
 # This argument controls the base image that is used for the release
 # containers.
@@ -30,38 +31,9 @@ ARG builderbase="i-forgot-to-set-build-arg-builderbase"
 ARG envoy="i-forgot-to-set-build-arg-envoy"
 
 FROM ${envoy} as envoy
+FROM ${builderbase} as emissary-base
 
-########################################
-# The artifact build stage
-########################################
-
-FROM ${builderbase} as artifacts
-
-# Setup the python code
-ADD python /buildroot/ambassador/python
-RUN time pip install --no-deps -e /buildroot/ambassador/python
-
-# Set up /opt/ambassador/bin/ (for the production image)
-RUN sudo install -D -t /opt/ambassador/bin/ /usr/local/bin/busyambassador && \
-    sudo ln -sf busyambassador /opt/ambassador/bin/agent && \
-    sudo ln -sf busyambassador /opt/ambassador/bin/apiext && \
-    sudo ln -sf busyambassador /opt/ambassador/bin/kubestatus && \
-    sudo ln -sf busyambassador /opt/ambassador/bin/watt && \
-    sudo install /usr/local/bin/capabilities_wrapper /opt/ambassador/bin/wrapper
-
-# XXX: this will go away
-RUN mkdir -p /ambassador/sidecars && \
-    ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py && \
-    ln -s /buildroot/ambassador/python/watch_hook.py /ambassador/watch_hook.py && \
-    ln -s /buildroot/ambassador/python/kubewatch.py /ambassador/kubewatch.py
-
-# These will be extracted into the optimized image later
-ADD demo /buildroot/ambassador/demo
-ADD manifests/emissary/emissary-crds.yaml.in /buildroot/ambassador/manifests/emissary/emissary-crds.yaml
-
-########################################
-# The optimized images
-########################################
+################################################################################
 
 FROM ${base} as ambassador
 
@@ -72,27 +44,46 @@ ARG py_version="i-forgot-to-set-build-arg-py-version"
 RUN adduser ambassador -u 8888 -G root -D -H -s /bin/false
 
 # External stuff that should change infrequently
-RUN apk --no-cache add bash curl python3=${py_version} libcap htop
-RUN apk upgrade --no-cache
-COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
-COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
+RUN apk --no-cache upgrade && \
+    apk --no-cache add \
+    bash \
+    curl \
+    python3=${py_version} \
+    htop
+RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.23.3/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl && \
+  chmod a+x /usr/local/bin/kubectl
 
-# External Python packages we use
-COPY --from=artifacts /usr/lib/python3.10/site-packages /usr/lib/python3.10/site-packages
+# Stuff already done by the Makefile/ocibuild.
+COPY --from=emissary-base /usr/lib/libyaml* /usr/lib/
+COPY --from=emissary-base /usr/lib/python3.10/site-packages /usr/lib/python3.10/site-packages
+COPY --from=emissary-base /usr/local/bin/* /usr/local/bin/
 
-# Our envoy. The capabilities here grant the wrapper the ability to use the
-# cap_net_bind_service cap and for Envoy to inherit it.
+# Our Envoy.
 COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
-RUN setcap cap_net_bind_service=ei /usr/local/bin/envoy
 
-# Our Go binaries. See envoy section for setcap info.
-COPY --from=artifacts /opt/ambassador /opt/ambassador
-RUN ln -s /opt/ambassador/bin/* /usr/local/bin/
-RUN setcap cap_net_bind_service=p /opt/ambassador/bin/wrapper
+# Our Python.
+ADD python /build/python
+RUN cd /build/python && python setup.py install --install-scripts=/usr/local/bin && cd / && rm -rf /build
+ADD python/entrypoint.sh \
+    python/kubewatch.py \
+    python/post_update.py \
+    python/watch_hook.py \
+    /usr/local/bin/
 
-# Our Python code
-COPY --from=artifacts /buildroot/ambassador/python /buildroot/ambassador/python
-RUN cd /buildroot/ambassador/python && python setup.py install
+# Aliases for our Go executable.
+RUN ln -sf busyambassador /usr/local/bin/agent && \
+    ln -sf busyambassador /usr/local/bin/apiext && \
+    ln -sf busyambassador /usr/local/bin/kubestatus && \
+    ln -sf busyambassador /usr/local/bin/watt
+
+# setcap.
+#
+# The capabilities here grant the wrapper the ability to use the
+# cap_net_bind_service cap and for Envoy to inherit it.
+RUN apk --no-cache add libcap-utils && \
+    setcap cap_net_bind_service=ei /usr/local/bin/envoy && \
+    setcap cap_net_bind_service=p /usr/local/bin/capabilities_wrapper && \
+    apk del libcap-utils
 
 # Delete some things that cause problems for security scanners.
 RUN python -m pip uninstall -y pip
@@ -101,15 +92,15 @@ RUN find / \( -iname '*sqlite*' -o -iname '*gdbm*' -o -iname '*smtplib*' -o -ina
 # Configuration, Docker demo stuff, the AES WebUI. The /ambassador bit changes
 # in post-install so it's always stale. But it's pretty small, so it's not too
 # bad to re-push every time.
-COPY --from=artifacts /ambassador /ambassador
-COPY --from=artifacts /buildroot/ambassador/demo/config /ambassador/ambassador-demo-config
-COPY --from=artifacts /buildroot/ambassador/demo/services /ambassador/demo-services
+COPY demo/config /ambassador/ambassador-demo-config
+COPY demo/services /ambassador/demo-services
 
 # Fix permissions to allow correctly running as a non root user
 # XXX: We could combine everything into one tree in the builder, fix permissions
 # there, and then a use single COPY to get everything and avoid duplicating the
 # (small amount of) data in a new layer for this RUN.
-RUN chgrp -R 0 /ambassador && \
+RUN mkdir -p /ambassador/sidecars && \
+    chgrp -R 0 /ambassador && \
     chmod -R u+x /ambassador && \
     chmod -R g=u /ambassador /etc/passwd
 
@@ -122,4 +113,4 @@ WORKDIR /ambassador
 # the like.
 ENV HOME=/tmp/ambassador
 
-ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]
+ENTRYPOINT [ "bash", "entrypoint.sh" ]

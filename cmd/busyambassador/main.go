@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	// 1st-party libs
@@ -44,12 +45,15 @@ func main() {
 	// logging setup hasn't happened yet.  Also because any errors will be evident when the
 	// version number gets logged and it's this static string.
 	version := "MISSING(FILE)"
-	if verBytes, err := os.ReadFile("/buildroot/ambassador/python/ambassador.version"); err == nil {
-		verLines := strings.Split(string(verBytes), "\n")
-		for len(verLines) < 2 {
-			verLines = append(verLines, "MISSING(VAL)")
+	// Use globs to avoid hard-coding any version numbers.
+	if matches, _ := filepath.Glob("/usr/lib/python*/site-packages/ambassador-*.egg/ambassador.version"); len(matches) > 0 {
+		if verBytes, err := os.ReadFile(matches[0]); err == nil {
+			verLines := strings.Split(string(verBytes), "\n")
+			for len(verLines) < 2 {
+				verLines = append(verLines, "MISSING(VAL)")
+			}
+			version = verLines[0]
 		}
-		version = verLines[0]
 	}
 
 	busy.Main("busyambassador", "Ambassador", version, map[string]busy.Command{

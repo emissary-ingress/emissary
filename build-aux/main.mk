@@ -74,11 +74,6 @@ clobber: docker/base.img.tar.clean
 # environment.  This does NOT include the packages installed by
 # `requirements.txt`.
 #
-# At the moment, it also includes some other stuff too (kubectl...),
-# but including those things at such an early stage should be
-# understood to be debt from a previous build system, and not
-# something we're actually happy with.
-#
 # In the long-run, this will likely always be a `docker build` rather
 # than an `ocibuild`, in order to do truly base-OS-specific setup
 # (`apk add`, libc-specific compilation...).

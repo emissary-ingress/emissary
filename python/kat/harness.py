@@ -41,30 +41,7 @@ except AttributeError:
 SOURCE_ROOT = os.environ.get("SOURCE_ROOT", "")
 
 # Figure out if we're running in Edge Stack or what.
-if os.path.exists("/buildroot/apro.version"):
-    # We let /buildroot/apro.version remain a source of truth to minimize the
-    # chances that we break anything that currently uses the builder shell.
-    EDGE_STACK = True
-else:
-    # If we do not see concrete evidence of running in an apro builder shell,
-    # then try to decide if the user wants us to assume we're running Edge Stack
-    # from an environment variable. And if that isn't set, just assume OSS.
-    EDGE_STACK = parse_bool(os.environ.get("EDGE_STACK", "false"))
-
-if EDGE_STACK:
-    # Hey look, we're running inside Edge Stack!
-    print("RUNNING IN EDGE STACK")
-    # SOURCE_ROOT is optional, and we assume that if it isn't set, the user is
-    # running in a build shell and we should look for sources in the usual location.
-    if not SOURCE_ROOT:
-        SOURCE_ROOT = "/buildroot/apro"
-else:
-    # We're either not running in Edge Stack or we're not sure, so just assume OSS.
-    print("RUNNING IN OSS")
-    # SOURCE_ROOT is optional, and we assume that if it isn't set, the user is
-    # running in a build shell and we should look for sources in the usual location.
-    if not SOURCE_ROOT:
-        SOURCE_ROOT = "/buildroot/ambassador"
+EDGE_STACK = parse_bool(os.environ.get("EDGE_STACK", "false"))
 
 
 def run(cmd):
