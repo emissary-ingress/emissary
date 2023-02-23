@@ -3,6 +3,11 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v8.5.1 - 2023-02-24
+
+- Upgrade Emissary to v3.5.1 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+- Fix regression where the Module resource fails validation when setting the ambassador_id after upgrading to `getambassador.io/v3alpha1`. Thanks to [pie-r](https://github.com/pie-r)
+
 ## v8.5.0 - 2023-02-15
 
 - Upgrade Emissary to v3.5.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
