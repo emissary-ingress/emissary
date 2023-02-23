@@ -1,22 +1,23 @@
 # syntax = docker/dockerfile:1.3
 
 ###
-# This dockerfile builds all the source code and docker images for the
-# edge stack.
+# This Dockerfile assembles the final Emissary Docker image.
 ##
 
 ###
 # How it works.
 ##
-# All our source code is built in a single monolithic build
-# container. (The "builder" stage below.) We then produce optimized
-# release images by copying the specific binaries and entrypoints out
-# of the build container. The build container must always contain all
-# the binaries and entrypoints for any container we produce, and
-# therefore (with the appropriate entrypoint) can function in place of
-# any release container. The release containers are trivial stages
-# that simply copy the relevant artifacts out of the builder
-# container.
+# Most of the work is done externally to `docker build` by the
+# Makefile and a tool called `ocibuild`; which has produced a "base"
+# image with the bare OS+Python install, and a
+# "builderbase"/"emissary-base" image which contains most of Emissary.
+# All this Dockefile needs to do is a few final steps moving things in
+# to place and cleaning up.
+#
+# Actually, this Dockerfile don't *need* do those things; most if not
+# everything here should eventually be moved to happen in `ocibuild`,
+# but we're not there yet.
+###
 
 # This argument controls the base image that is used for the release
 # containers.
@@ -30,25 +31,9 @@ ARG builderbase="i-forgot-to-set-build-arg-builderbase"
 ARG envoy="i-forgot-to-set-build-arg-envoy"
 
 FROM ${envoy} as envoy
+FROM ${builderbase} as emissary-base
 
-########################################
-# The artifact build stage
-########################################
-
-FROM ${builderbase} as artifacts
-
-# Setup the python code
-ADD python /build/python
-RUN cd /build/python && python setup.py install --install-scripts=/usr/local/bin && cd / && rm -rf /build
-
-RUN ln -sf busyambassador /usr/local/bin/agent && \
-    ln -sf busyambassador /usr/local/bin/apiext && \
-    ln -sf busyambassador /usr/local/bin/kubestatus && \
-    ln -sf busyambassador /usr/local/bin/watt
-
-########################################
-# The optimized images
-########################################
+################################################################################
 
 FROM ${base} as ambassador
 
@@ -67,25 +52,29 @@ RUN apk --no-cache upgrade && \
     htop
 RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.23.3/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl && \
   chmod a+x /usr/local/bin/kubectl
-COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
 
-# Python.
-#
-# Both our code and 3rd-party packages get installed to site-packages.
-COPY --from=artifacts /usr/lib/python3.10/site-packages /usr/lib/python3.10/site-packages
+# Stuff already done by the Makefile/ocibuild.
+COPY --from=emissary-base /usr/lib/libyaml* /usr/lib/
+COPY --from=emissary-base /usr/lib/python3.10/site-packages /usr/lib/python3.10/site-packages
+COPY --from=emissary-base /usr/local/bin/* /usr/local/bin/
 
-# Scripts.
+# Our Envoy.
+COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
+
+# Our Python.
+ADD python /build/python
+RUN cd /build/python && python setup.py install --install-scripts=/usr/local/bin && cd / && rm -rf /build
 ADD python/entrypoint.sh \
     python/kubewatch.py \
     python/post_update.py \
     python/watch_hook.py \
     /usr/local/bin/
 
-# Our envoy.
-COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
-
-# Our execuables (Go, Python).
-COPY --from=artifacts /usr/local/bin/* /usr/local/bin/
+# Aliases for our Go executable.
+RUN ln -sf busyambassador /usr/local/bin/agent && \
+    ln -sf busyambassador /usr/local/bin/apiext && \
+    ln -sf busyambassador /usr/local/bin/kubestatus && \
+    ln -sf busyambassador /usr/local/bin/watt
 
 # setcap.
 #
