@@ -143,7 +143,7 @@ libraries:
     MarkupSafe          2.1.1      3-clause BSD license
     PyYAML              6.0        MIT license
     Werkzeug            2.2.2      3-clause BSD license
-    build               0.9.0      MIT license
+    build               0.10.0     MIT license
     cachetools          5.2.0      MIT license
     certifi             2022.9.24  Mozilla Public License 2.0
     charset-normalizer  2.1.1      MIT license
@@ -161,12 +161,12 @@ libraries:
     oauthlib            3.2.2      3-clause BSD license
     orjson              3.6.6      Apache License 2.0, MIT license
     packaging           21.3       2-clause BSD license, Apache License 2.0
-    pep517              0.13.0     MIT license
     pip-tools           6.12.1     3-clause BSD license
     prometheus-client   0.15.0     Apache License 2.0
     pyasn1              0.4.8      2-clause BSD license
     pyasn1-modules      0.2.8      2-clause BSD license
     pyparsing           3.0.9      MIT license
+    pyproject_hooks     1.0.0      MIT license
     python-dateutil     2.8.2      3-clause BSD license, Apache License 2.0
     python-json-logger  2.0.4      2-clause BSD license
     requests            2.28.1     Apache License 2.0
