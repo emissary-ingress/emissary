@@ -7,6 +7,11 @@ numbering uses [semantic versioning](http://semver.org).
 - Upgrade Emissary to v3.6.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 - Use autoscaling/v2 HorizontalPodAutoscaler if the cluster version is >v1.26 as autoscaling/v2beta2 is deprecated starting v1.23 and removed in v1.26. Thanks to [Elvind Valderhaug](https://github.com/eevdev)
 
+## v8.5.1 - 2023-02-23
+
+- Upgrade Emissary to v3.5.1 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+- Fix regression where the Module resource fails validation when setting the ambassador_id after upgrading to `getambassador.io/v3alpha1`. Thanks to [pie-r](https://github.com/pie-r)
+
 ## v8.5.0 - 2023-02-15
 
 - Upgrade Emissary to v3.5.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
