@@ -1,5 +1,5 @@
 1 license-detection error:
- 1. distrib "CacheControl" "1.99.6": Could not parse license-string "UNKNOWN"
+ 1. distrib "CacheControl" "1.99.6": could not determine any licenses
     This probably means that you added or upgraded a dependency, and the
     automated opensource-license-checker can't confidently detect what
     the license is.  (This is a good thing, because it is reminding you

@@ -15,7 +15,7 @@ vendor: FORCE
 clean: vendor.rm-r
 
 $(OSS_HOME)/build-aux/pip-show.txt: docker/base-pip.docker.tag.local
-	docker run --rm "$$(cat docker/base-pip.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
+	docker run --rm "$$(cat docker/base-pip.docker)" sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show --verbose' > $@
 clean: build-aux/pip-show.txt.rm
 
 $(OSS_HOME)/build-aux/go-version.txt: $(_go-version/deps)
