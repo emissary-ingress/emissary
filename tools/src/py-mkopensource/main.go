@@ -5,17 +5,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/textproto"
 	"os"
 	"sort"
 	"strings"
 	"text/tabwriter"
 
-	"github.com/datawire/go-mkopensource/pkg/scanningerrors"
-
 	"github.com/datawire/dlib/derror"
 	"github.com/datawire/go-mkopensource/pkg/dependencies"
 	. "github.com/datawire/go-mkopensource/pkg/detectlicense"
+	"github.com/datawire/go-mkopensource/pkg/scanningerrors"
+	"github.com/datawire/go-mkopensource/pkg/util"
+
+	"github.com/emissary-ingress/emissary/v3/tools/src/py-mkopensource/pytextproto"
 )
 
 type tuple struct {
@@ -24,8 +25,8 @@ type tuple struct {
 	License string
 }
 
-func parseLicenses(name, version, license string) map[License]struct{} {
-	override, ok := map[tuple][]License{
+func parseLicenseString(name, version, license string) (util.Set[License], error) {
+	if override, ok := map[tuple][]License{
 		// These are packages that don't have sufficient metadata to get
 		// the license normally.  Either the license isn't specified in
 		// the metadata, or the license string that is specified is
@@ -33,59 +34,44 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		// of the BSD license is it?).  We pin the exact versions so
 		// that a human has to go make sure that the license didn't
 		// change when upgrading.
-		{"CacheControl", "0.12.6", "UNKNOWN"}:          {Apache2},
-		{"CacheControl", "0.12.10", "UNKNOWN"}:         {Apache2},
 		{"Click", "7.0", "BSD"}:                        {BSD3},
 		{"Flask", "1.0.2", "BSD"}:                      {BSD3},
-		{"GitPython", "3.1.11", "UNKNOWN"}:             {BSD3},
 		{"Jinja2", "2.10.1", "BSD"}:                    {BSD3},
 		{"colorama", "0.4.3", "BSD"}:                   {BSD3},
 		{"colorama", "0.4.4", "BSD"}:                   {BSD3},
 		{"decorator", "4.4.2", "new BSD License"}:      {BSD2},
 		{"gitdb", "4.0.5", "BSD License"}:              {BSD3},
 		{"idna", "3.4", ""}:                            {BSD3},
-		{"importlib-metadata", "5.1.0", "None"}:        {Apache2},
-		{"importlib-resources", "5.4.0", "UNKNOWN"}:    {Apache2},
 		{"itsdangerous", "1.1.0", "BSD"}:               {BSD3},
 		{"jsonpatch", "1.32", "Modified BSD License"}:  {BSD3},
 		{"jsonpointer", "2.3", "Modified BSD License"}: {BSD3},
-		{"jsonschema", "3.2.0", "UNKNOWN"}:             {MIT},
-		{"lockfile", "0.12.2", "UNKNOWN"}:              {MIT},
 		{"oauthlib", "3.1.0", "BSD"}:                   {BSD3},
 		{"oauthlib", "3.2.2", "BSD"}:                   {BSD3},
-		{"pep517", "0.13.0", ""}:                       {MIT},
 		{"pip-tools", "6.12.1", "BSD"}:                 {BSD3},
-		{"ptyprocess", "0.6.0", "UNKNOWN"}:             {ISC},
 		{"pyasn1", "0.4.8", "BSD"}:                     {BSD2},
 		{"pycparser", "2.20", "BSD"}:                   {BSD3},
-		{"pyparsing", "3.0.9", ""}:                     {MIT},
 		{"python-dateutil", "2.8.1", "Dual License"}:   {BSD3, Apache2},
 		{"python-dateutil", "2.8.2", "Dual License"}:   {BSD3, Apache2},
 		{"python-json-logger", "2.0.4", "BSD"}:         {BSD2},
 		{"semantic-version", "2.10.0", "BSD"}:          {BSD2},
 		{"smmap", "3.0.4", "BSD"}:                      {BSD3},
-		{"tomli", "2.0.1", ""}:                         {MIT},
-		{"typing_extensions", "4.4.0", ""}:             {PSF},
 		{"webencodings", "0.5.1", "BSD"}:               {BSD3},
 		{"websocket-client", "0.57.0", "BSD"}:          {BSD3},
-		{"websocket-client", "1.2.3", "Apache-2.0"}:    {Apache2},
-		{"zipp", "3.11.0", "None"}:                     {MIT},
 
 		// These are packages with non-trivial strings to parse, and
 		// it's easier to just hard-code it.
 		{"orjson", "3.3.1", "Apache-2.0 OR MIT"}:            {Apache2, MIT},
 		{"orjson", "3.6.6", "Apache-2.0 OR MIT"}:            {Apache2, MIT},
 		{"packaging", "21.3", "BSD-2-Clause or Apache-2.0"}: {BSD2, Apache2},
-	}[tuple{name, version, license}]
-	if ok {
-		ret := make(map[License]struct{}, len(override))
+	}[tuple{name, version, license}]; ok {
+		ret := make(util.Set[License], len(override))
 		for _, l := range override {
-			ret[l] = struct{}{}
+			ret.Insert(l)
 		}
-		return ret
+		return ret, nil
 	}
 
-	static, ok := map[string][]License{
+	if static, ok := map[string][]License{
 		"AGPLv3+": {AGPL3OrLater},
 
 		"ASL 2":                       {Apache2},
@@ -123,22 +109,117 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		"PSF License":    {PSF},
 		"PSF":            {PSF},
 		"Python license": {PSF},
-	}[license]
-	if ok {
-		ret := make(map[License]struct{}, len(static))
+	}[license]; ok {
+		ret := make(util.Set[License], len(static))
 		for _, l := range static {
-			ret[l] = struct{}{}
+			ret.Insert(l)
 		}
-		return ret
+		return ret, nil
 	}
 
+	if _, ok := util.NewSet(
+		"",
+		"UNKNOWN",
+		"None",
+	)[license]; ok {
+		return nil, nil
+	}
+
+	return nil, fmt.Errorf("distrib %q %q: could not parse license-string %q", name, version, license)
+}
+
+func hasAny[T comparable](haystack util.Set[T], needles ...T) bool {
+	for _, needle := range needles {
+		if _, ok := haystack[needle]; ok {
+			return true
+		}
+	}
+	return true
+}
+
+func parseLicenseClassifiers(name, version, classifiers string, licenses util.Set[License]) error {
+	var errs derror.MultiError
+next_classifier:
+	for _, classifier := range strings.Split(classifiers, "\n") {
+		if !strings.HasPrefix(classifier, "License :: ") {
+			continue
+		}
+
+		// Rely on the "License" string to disambiguate "BSD License".
+		if classifier == "License :: OSI Approved :: BSD License" && hasAny(licenses, BSD1, BSD2, BSD3) {
+			continue next_classifier
+		}
+
+		override, ok := map[tuple][]License{
+			// This is for classifiers that are ambiguous (for example: "BSD" is too
+			// ambiguous, which variant of the BSD license is it?).  We pin the exact
+			// versions so that a human has to go make sure that the license didn't
+			// change when upgrading.
+		}[tuple{name, version, classifier}]
+		if ok {
+			for _, lic := range override {
+				licenses.Insert(lic)
+			}
+			continue next_classifier
+		}
+
+		static, ok := map[string][]License{
+			"License :: OSI Approved :: Apache Software License":              {Apache2},
+			"License :: OSI Approved :: MIT License":                          {MIT},
+			"License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)": {MPL2},
+			"License :: OSI Approved :: Python Software Foundation License":   {PSF},
+			// This is ambiguous, but assume that if it's here that there are also other
+			// classifiers and don't error.
+			"License :: OSI Approved": nil,
+		}[classifier]
+		if ok {
+			for _, lic := range static {
+				licenses.Insert(lic)
+			}
+			continue next_classifier
+		}
+
+		errs = append(errs, fmt.Errorf("distrib %q %q: unrecognized license classifier: %q", name, version, classifier))
+	}
+	if len(errs) > 0 {
+		return errs
+	}
 	return nil
 }
 
-func Main(outputType OutputType, r io.Reader, w io.Writer) error {
-	distribs := make(map[string]textproto.MIMEHeader)
+func processDistrib(distrib pytextproto.MIMEHeader) (dependencies.Dependency, error) {
+	name := distrib.Get("Name")
+	ver := distrib.Get("Version")
 
-	input := textproto.NewReader(bufio.NewReader(r))
+	ret := dependencies.Dependency{
+		Name:    name,
+		Version: ver,
+	}
+
+	lics, err := parseLicenseString(name, ver, distrib.Get("License"))
+	if err != nil {
+		return dependencies.Dependency{}, err
+	}
+	ret.Licenses = lics
+
+	if ret.Licenses == nil {
+		ret.Licenses = make(util.Set[License])
+	}
+
+	if err = parseLicenseClassifiers(name, ver, distrib.Get("Classifiers"), ret.Licenses); err != nil {
+		return dependencies.Dependency{}, err
+	}
+
+	if len(ret.Licenses) == 0 {
+		return dependencies.Dependency{}, fmt.Errorf("distrib %q %q: could not determine any licenses", name, ver)
+	}
+	return ret, nil
+}
+
+func Main(outputType OutputType, r io.Reader, w io.Writer) error {
+	var dependencyInfo dependencies.DependencyInfo
+	var licErrs []error
+	input := pytextproto.NewReader(bufio.NewReader(r))
 	for {
 		distrib, err := input.ReadMIMEHeader()
 		if err != nil {
@@ -147,19 +228,20 @@ func Main(outputType OutputType, r io.Reader, w io.Writer) error {
 			}
 			return err
 		}
-		distribs[distrib.Get("Name")] = distrib
+		if dep, err := processDistrib(distrib); err != nil {
+			licErrs = append(licErrs, err)
+		} else {
+			licErrs = append(licErrs, dep.CheckLicenseRestrictions(Unrestricted)...)
+			dependencyInfo.Dependencies = append(dependencyInfo.Dependencies, dep)
+		}
+	}
+	if len(licErrs) > 0 {
+		return scanningerrors.ExplainErrors(licErrs)
 	}
 
-	distribNames := make([]string, 0, len(distribs))
-	for distribName := range distribs {
-		distribNames = append(distribNames, distribName)
-	}
-	sort.Strings(distribNames)
-
-	dependencyInfo, err := getDependencies(distribNames, distribs)
-	if err != nil {
-		return err
-	}
+	sort.Slice(dependencyInfo.Dependencies, func(i, j int) bool {
+		return dependencyInfo.Dependencies[i].Name < dependencyInfo.Dependencies[j].Name
+	})
 
 	switch outputType {
 	case jsonOutputType:
@@ -197,8 +279,13 @@ func markdownOutput(w io.Writer, dependencyInfo dependencies.DependencyInfo) err
 	_, _ = io.WriteString(table, "  \tName\tVersion\tLicense(s)\n")
 	_, _ = io.WriteString(table, "  \t----\t-------\t----------\n")
 	for _, dependency := range dependencyInfo.Dependencies {
+		licNames := make([]string, 0, len(dependency.Licenses))
+		for lic := range dependency.Licenses {
+			licNames = append(licNames, lic.Name)
+		}
+		sort.Strings(licNames)
 		if _, err := fmt.Fprintf(table, "\t%s\t%s\t%s\n", dependency.Name, dependency.Version,
-			strings.Join(dependency.Licenses, ", ")); err != nil {
+			strings.Join(licNames, ", ")); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Could not write Markdown output: %v\n", err)
 			os.Exit(int(WriteError))
 		}
@@ -215,48 +302,6 @@ func markdownOutput(w io.Writer, dependencyInfo dependencies.DependencyInfo) err
 	}
 
 	return nil
-}
-
-func getDependencies(distribNames []string, distribs map[string]textproto.MIMEHeader) (dependencies.DependencyInfo, error) {
-	dependencyInfo := dependencies.NewDependencyInfo()
-
-	var errs derror.MultiError
-	for _, distribName := range distribNames {
-		distrib := distribs[distribName]
-		distribVersion := distrib.Get("Version")
-
-		dependencyDetails := dependencies.Dependency{
-			Name:    distribName,
-			Version: distribVersion,
-		}
-		licenses := parseLicenses(distribName, distribVersion, distrib.Get("License"))
-		if licenses == nil {
-			errs = append(errs, fmt.Errorf("distrib %q %q: Could not parse license-string %q", distribName, distribVersion, distrib.Get("License")))
-			continue
-		}
-
-		licenseList := make([]string, 0, len(licenses))
-		for license := range licenses {
-			licenseList = append(licenseList, license.Name)
-			if err := dependencies.CheckLicenseRestrictions(dependencyDetails, license.Name, Unrestricted); err != nil {
-				errs = append(errs, err)
-			}
-		}
-		sort.Strings(licenseList)
-
-		dependencyDetails.Licenses = licenseList
-		dependencyInfo.Dependencies = append(dependencyInfo.Dependencies, dependencyDetails)
-	}
-
-	if len(errs) > 0 {
-		return dependencyInfo, scanningerrors.ExplainErrors(errs)
-	}
-
-	if err := dependencyInfo.UpdateLicenseList(); err != nil {
-		return dependencyInfo, fmt.Errorf("Could not generate list of license URLs: %v\n", err)
-	}
-
-	return dependencyInfo, nil
 }
 
 func main() {

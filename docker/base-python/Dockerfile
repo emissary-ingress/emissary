@@ -75,8 +75,7 @@ RUN apk --no-cache add \
 # https://github.com/jazzband/pip-tools/#versions-and-compatibility to
 # select a pip-tools version that corresponds to the 'py3-pip' and
 # 'python3' versions above.
-# Pinning build version due to missing license info from pip show in newer versions
-RUN pip3 install pip-tools==6.12.1 build==0.9.0
+RUN pip3 install pip-tools==6.12.1
 
 RUN curl --fail -L https://dl.google.com/go/go1.20.1.linux-amd64.tar.gz | tar -C /usr/local -xzf -
 
