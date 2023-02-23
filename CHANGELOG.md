@@ -85,6 +85,15 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [3.5.1] February 14, 2023
+[3.5.1]: https://github.com/emissary-ingress/emissary/compare/v3.5.0...v3.5.1
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: No changes made to Emissary-ingress but this patch release addresses a regression where
+  the  Module resource fails validation when setting the ambassador_id after upgrading to
+  `getambassador.io/v3alpha1`.  <br/><br/> Thanks to [pie-r](https://github.com/pie-r)
+
 ## [3.5.0] February 15, 2023
 [3.5.0]: https://github.com/emissary-ingress/emissary/compare/v3.4.0...v3.5.0
 

@@ -32,6 +32,18 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 3.5.1
+    prevVersion: 3.5.0
+    date: '2023-02-14'
+    notes:
+      - title: Fix helm chart regression when setting Ambassador_ID
+        type: bugfix
+        body: >-
+          No changes made to Emissary-ingress but this patch release addresses a regression where the 
+          Module resource fails validation when setting the ambassador_id after upgrading to `getambassador.io/v3alpha1`. 
+          <br/><br/>
+          Thanks to [pie-r](https://github.com/pie-r)
+
   - version: 3.5.0
     prevVersion: 3.4.0
     date: '2023-02-15'
