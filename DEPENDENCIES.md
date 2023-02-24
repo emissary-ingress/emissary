@@ -27,7 +27,7 @@ following Free and Open Source software:
     github.com/datawire/go-mkopensource                                                        v0.0.7                                       Apache License 2.0
     github.com/davecgh/go-spew                                                                 v1.1.1                                       ISC license
     github.com/docker/distribution                                                             v2.8.1+incompatible                          Apache License 2.0
-    github.com/envoyproxy/protoc-gen-validate                                                  v0.6.7                                       Apache License 2.0
+    github.com/envoyproxy/protoc-gen-validate                                                  v0.9.1                                       Apache License 2.0
     github.com/evanphx/json-patch                                                              v5.6.0+incompatible                          3-clause BSD license
     github.com/exponent-io/jsonpath                                                            v0.0.0-20210407135951-1de76d718b3f           MIT license
     github.com/fatih/camelcase                                                                 v1.0.0                                       MIT license
@@ -92,14 +92,14 @@ following Free and Open Source software:
     go.opentelemetry.io/proto/otlp                                                             v0.18.0                                      Apache License 2.0
     go.starlark.net                                                                            v0.0.0-20220203230714-bb14e151c28f           3-clause BSD license
     golang.org/x/crypto                                                                        v0.0.0-20220722155217-630584e8d5aa           3-clause BSD license
-    golang.org/x/mod                                                                           v0.6.0-dev.0.20220419223038-86c51ed26bb4     3-clause BSD license
+    golang.org/x/mod                                                                           v0.7.0                                       3-clause BSD license
     golang.org/x/net                                                                           v0.7.0                                       3-clause BSD license
     golang.org/x/oauth2                                                                        v0.0.0-20211104180415-d3ed0bb246c8           3-clause BSD license
     golang.org/x/sys                                                                           v0.5.0                                       3-clause BSD license
     golang.org/x/term                                                                          v0.5.0                                       3-clause BSD license
     golang.org/x/text                                                                          v0.7.0                                       3-clause BSD license
     golang.org/x/time                                                                          v0.0.0-20211116232009-f0f3c7e86c11           3-clause BSD license
-    golang.org/x/tools                                                                         v0.1.12                                      3-clause BSD license
+    golang.org/x/tools                                                                         v0.3.0                                       3-clause BSD license
     google.golang.org/appengine                                                                v1.6.7                                       Apache License 2.0
     google.golang.org/genproto                                                                 v0.0.0-20220204002441-d6cc3cc0770e           Apache License 2.0
     google.golang.org/grpc                                                                     v1.44.0                                      Apache License 2.0
