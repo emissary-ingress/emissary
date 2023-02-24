@@ -141,7 +141,7 @@ libraries:
     Jinja2              3.1.2      3-clause BSD license
     MarkupSafe          2.1.1      3-clause BSD license
     PyYAML              6.0        MIT license
-    Werkzeug            2.2.2      3-clause BSD license
+    Werkzeug            2.2.3      3-clause BSD license
     build               0.9.0      MIT license
     cachetools          5.2.0      MIT license
     certifi             2022.9.24  Mozilla Public License 2.0
