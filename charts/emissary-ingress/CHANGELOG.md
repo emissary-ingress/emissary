@@ -6,6 +6,8 @@ numbering uses [semantic versioning](http://semver.org).
 ## v8.6.0 - TBD
 - Upgrade Emissary to v3.6.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 - Use autoscaling/v2 HorizontalPodAutoscaler if the cluster version is >v1.26 as autoscaling/v2beta2 is deprecated starting v1.23 and removed in v1.26. Thanks to [Elvind Valderhaug](https://github.com/eevdev)
+- Updates the ambassador agent to v1.0.8
+- Updated RBAC settings for Ambassador Agent
 
 ## v8.5.1 - 2023-02-23
 
@@ -18,6 +20,8 @@ numbering uses [semantic versioning](http://semver.org).
 - Adds support for configuring a startupProbe on the emissary-ingress deployments. This is useful when a larger number of resources
   are used and the initial startup needs additional time. See for details https://github.com/emissary-ingress/emissary/pull/4649.
 - Update default module resource to use `getambassador.io/v3alpha1`. Thanks to [Luke Swithenbank](https://github.com/lswith)
+- Adds opt-in settings to configure a startupProbe for the Emissary-ingress pod
+
 
 ## v8.4.0 - 2022-01-03
 
