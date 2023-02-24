@@ -454,10 +454,19 @@ def V3HTTPFilter_ipallowdeny(irfilter: IRIPAllowDeny, v3config: "V3Config"):
 
 
 def V3HTTPFilter_cors(cors: IRFilter, v3config: "V3Config"):
-    del cors  # silence unused-variable warning
     del v3config  # silence unused-variable warning
 
-    return {"name": "envoy.filters.http.cors"}
+    config_dict = cors.config_dict()
+    config: Dict[str, Any]
+    config = {"name": "envoy.filters.http.cors"}
+
+    if config_dict:
+        config["typed_config"] = config_dict
+        config["typed_config"][
+            "@type"
+        ] = "type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors"
+
+    return config
 
 
 def V3HTTPFilter_router(router: IRFilter, v3config: "V3Config"):
