@@ -20,7 +20,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/net v0.0.0-20210224082022-3d97a244fca7 // indirect
-	golang.org/x/text v0.3.4 // indirect
+	golang.org/x/text v0.3.8 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 	k8s.io/apimachinery v0.21.0 // indirect
