@@ -234,6 +234,20 @@ spec:
           value: {{ .Values.agent.reportDiagnostics | quote }}
         - name: AES_DIAGNOSTICS_URL
           value: "http://{{ include "ambassador.fullname" . }}-admin.{{ include "ambassador.namespace" . }}:{{ .Values.adminService.port }}/ambassador/v0/diag/?json=true"
+
+      {{- with .Values.agent.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.agent.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.agent.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
   {{ if .Values.progressDeadlines }}
   {{ if hasKey .Values.progressDeadlines "agent" }}
   progressDeadlineSeconds: {{ .Values.progressDeadlines.agent }}
