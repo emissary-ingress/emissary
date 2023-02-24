@@ -153,10 +153,19 @@ def V3HTTPFilter_grpc_http1_bridge(irfilter: IRFilter, v3config: "V3Config"):
 
 
 def V3HTTPFilter_grpc_web(irfilter: IRFilter, v3config: "V3Config"):
-    del irfilter  # silence unused-variable warning
     del v3config  # silence unused-variable warning
 
-    return {"name": "envoy.filters.http.grpc_web"}
+    config_dict = irfilter.config_dict()
+    config: Dict[str, Any]
+    config = {"name": "envoy.filters.http.grpc_web"}
+
+    if config_dict:
+        config["typed_config"] = config_dict
+        config["typed_config"][
+            "@type"
+        ] = "type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb"
+
+    return config
 
 
 def V3HTTPFilter_grpc_stats(irfilter: IRFilter, v3config: "V3Config"):
