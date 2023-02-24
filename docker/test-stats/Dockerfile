@@ -17,7 +17,6 @@
 
 FROM docker.io/frolvlad/alpine-glibc:alpine-3.17
 
-MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
       PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/ambassador" \
       DESCRIPTION              = "Ambassador REST Service" \
