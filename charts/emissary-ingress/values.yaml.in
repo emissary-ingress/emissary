@@ -422,6 +422,11 @@ agent:
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core
   # allowPrivilegeEscalation: false
 
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+
 deploymentTool: ''
 
 # configure docker to pull from private registry
