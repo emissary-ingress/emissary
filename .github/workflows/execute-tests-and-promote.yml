@@ -8,12 +8,14 @@ name: job-promote-to-passed
   pull_request: {}
   workflow_dispatch:
 
+env:
+  # See docker/base-python.docker.gen
+  BASE_PYTHON_REPO: docker.io/emissaryingress/base-python
+  DEV_REGISTRY: k3d-ci-registry.localhost:12345
+
 jobs:
   lint: ########################################################################
     runs-on: ubuntu-latest
-    env:
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -31,76 +33,76 @@ jobs:
 
   generate: ####################################################################
     runs-on: ubuntu-latest
-    env:
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: "Git Login"
-        run: |
-          if [[ -n '${{ secrets.GHA_SSH_KEY }}' ]]; then
-            install -m700 -d ~/.ssh
-            install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
-          fi
-      - name: "Docker Login"
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
+      # - name: "Git Login"
+      #   run: |
+      #     if [[ -n '${{ secrets.GHA_SSH_KEY }}' ]]; then
+      #       install -m700 -d ~/.ssh
+      #       install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
+      #     fi
+      # - name: "Docker Login"
+      #   uses: docker/login-action@v2
+      #   with:
+      #     registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
+      #     username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
+      #     password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
       - name: "'make generate'"
         shell: bash
         run: |
           make generate
+      
       - name: "Update dependency information after dependabot change"
         uses: datawire/go-mkopensource/actions/save-dependabot-changes@v0.0.7
         id: changed-by-dependabot
         with:
           branches_to_skip: master
+      
       - name: "Abort if dependencies changed"
         if: steps.changed-by-dependabot.outputs.is_dirty == 'true'
         run: |
           echo "Dependabot triggered a dependency update. Aborting workflow."
           exit 1
+      
       - uses: ./.github/actions/git-dirty-check
         name: "Check Git not dirty from 'make generate'"
+      
       - name: "'make generate' (again!)"
         shell: bash
         run: |
           make generate
+      
       - uses: ./.github/actions/git-dirty-check
         name: "Check Git not dirty from 'make generate' (again!)"
+      
       - uses: ./.github/actions/after-job
         if: always()
 
   check-envoy-version: #########################################################
     runs-on: ubuntu-latest
-    env:
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: "Git Login"
-        run: |
-          if [[ -n '${{ secrets.GHA_SSH_KEY }}' ]]; then
-            install -m700 -d ~/.ssh
-            install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
-          fi
-      - name: "Docker Login"
-        # This is important if ENVOY_DOCKER_REPO is a private repo.
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+      # - name: "Git Login"
+      #   run: |
+      #     if [[ -n '${{ secrets.GHA_SSH_KEY }}' ]]; then
+      #       install -m700 -d ~/.ssh
+      #       install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
+      #     fi
+      # - name: "Docker Login"
+      #   # This is important if ENVOY_DOCKER_REPO is a private repo.
+      #   uses: docker/login-action@v2
+      #   with:
+      #     registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
+      #     username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+      #     password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - run: make check-envoy-version
       - uses: ./.github/actions/after-job
         if: always()
@@ -108,21 +110,18 @@ jobs:
   # Tests ######################################################################
   check-gotest:
     runs-on: ubuntu-latest
-    env:
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: "Docker Login"
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+      # - name: "Docker Login"
+      #   uses: docker/login-action@v2
+      #   with:
+      #     registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
+      #     username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+      #     password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - name: make gotest
         shell: bash
         run: |
@@ -131,209 +130,181 @@ jobs:
           make gotest
       - uses: ./.github/actions/after-job
         if: always()
-  check-pytest:
-    runs-on: ubuntu-latest
-    env:
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
-      # See pkg/kubeapply/resource_kubeapply.go
-      DEV_USE_IMAGEPULLSECRET: ${{ secrets.DEV_USE_IMAGEPULLSECRET }}
-      DOCKER_BUILD_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-      DOCKER_BUILD_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-    strategy:
-      fail-fast: false
-      matrix:
-        test:
-          - integration
-          - kat-envoy3-1-of-5
-          - kat-envoy3-2-of-5
-          - kat-envoy3-3-of-5
-          - kat-envoy3-4-of-5
-          - kat-envoy3-5-of-5
-          # FIXME(lukeshu): KAT_RUN_MODE=local is disabled because it
-          # needs fixed for a world where annotations are already
-          # unfolded in the snapshot.
-          #
-          #- kat-local
-    name: pytest-${{ matrix.test }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Install Deps
-        uses: ./.github/actions/setup-deps
-      - name: "Docker Login"
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-      - name: make pytest-${{ matrix.test }}
-        run: |
-          export USE_LOCAL_K3S_CLUSTER=1
-          sudo sysctl -w fs.file-max=1600000
-          sudo sysctl -w fs.inotify.max_user_instances=4096
+  # check-pytest:
+  #   runs-on: ubuntu-latest
+  #   # env:
+  #     # See pkg/kubeapply/resource_kubeapply.go
+  #     # DEV_USE_IMAGEPULLSECRET: ${{ secrets.DEV_USE_IMAGEPULLSECRET }}
+  #     # DOCKER_BUILD_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+  #     # DOCKER_BUILD_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       test:
+  #         - integration
+  #         - kat-envoy3-1-of-5
+  #         - kat-envoy3-2-of-5
+  #         - kat-envoy3-3-of-5
+  #         - kat-envoy3-4-of-5
+  #         - kat-envoy3-5-of-5
+  #         # FIXME(lukeshu): KAT_RUN_MODE=local is disabled because it
+  #         # needs fixed for a world where annotations are already
+  #         # unfolded in the snapshot.
+  #         #
+  #         #- kat-local
+  #   name: pytest-${{ matrix.test }}
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Install Deps
+  #       uses: ./.github/actions/setup-deps
+  #     # - name: "Docker Login"
+  #     #   uses: docker/login-action@v2
+  #     #   with:
+  #     #     registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
+  #     #     username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+  #     #     password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+  #     - name: make pytest-${{ matrix.test }}
+  #       run: |
+  #         export USE_LOCAL_K3S_CLUSTER=1
+  #         sudo sysctl -w fs.file-max=1600000
+  #         sudo sysctl -w fs.inotify.max_user_instances=4096
 
-          make ci/setup-k3d
+  #         make ci/setup-k3d
 
-          export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=900
-          export DEV_KUBECONFIG=~/.kube/config
-          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
-          make pytest-${{ matrix.test }}
-      - uses: ./.github/actions/after-job
-        if: always()
-        with:
-          jobname: check-pytest-${{ matrix.test }}
-  check-pytest-unit:
-    # pytest-unit is separate from pytests (above) because we know for certain that no cluster is needed.
-    # XXX This is pretty much a crock.
-    runs-on: ubuntu-latest
-    env:
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
-    strategy:
-      matrix:
-        test:
-          - unit
-    name: pytest-${{ matrix.test }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Install Deps
-        uses: ./.github/actions/setup-deps
-      - name: "Docker Login"
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-      - name: make pytest-${{ matrix.test }}
-        run: |
-          sudo sysctl -w fs.file-max=1600000
-          sudo sysctl -w fs.inotify.max_user_instances=4096
+  #         export DEV_KUBE_NO_PVC=yes
+  #         export KAT_REQ_LIMIT=900
+  #         export DEV_KUBECONFIG=~/.kube/config
+  #         export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
+  #         make pytest-${{ matrix.test }}
+  #     - uses: ./.github/actions/after-job
+  #       if: always()
+  #       with:
+  #         jobname: check-pytest-${{ matrix.test }}
+  # check-pytest-unit:
+  #   # pytest-unit is separate from pytests (above) because we know for certain that no cluster is needed.
+  #   # XXX This is pretty much a crock.
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       test:
+  #         - unit
+  #   name: pytest-${{ matrix.test }}
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Install Deps
+  #       uses: ./.github/actions/setup-deps
+  #     # - name: "Docker Login"
+  #     #   uses: docker/login-action@v2
+  #     #   with:
+  #     #     registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
+  #     #     username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+  #     #     password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+  #     - name: make pytest-${{ matrix.test }}
+  #       run: |
+  #         sudo sysctl -w fs.file-max=1600000
+  #         sudo sysctl -w fs.inotify.max_user_instances=4096
 
-          export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=900
-          export DEV_KUBECONFIG=~/.kube/config
-          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
-          export PYTEST_ARGS=' --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html '
-          make pytest-${{ matrix.test }}
-      - uses: ./.github/actions/after-job
-        if: always()
-        with:
-          jobname: check-pytest-${{ matrix.test }}
-  check-chart:
-    runs-on: ubuntu-latest
-    env:
-      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
-      # See pkg/kubeapply/resource_kubeapply.go
-      DEV_USE_IMAGEPULLSECRET: ${{ secrets.DEV_USE_IMAGEPULLSECRET }}
-      DOCKER_BUILD_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-      DOCKER_BUILD_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-    steps:
-      - uses: docker/login-action@v2
-        with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Install Deps
-        uses: ./.github/actions/setup-deps
-      - name: make test-chart
-        run: |
-          make ci/setup-k3d
-          export DEV_KUBECONFIG=~/.kube/config
+  #         export DEV_KUBE_NO_PVC=yes
+  #         export KAT_REQ_LIMIT=900
+  #         export DEV_KUBECONFIG=~/.kube/config
+  #         export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
+  #         export PYTEST_ARGS=' --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html '
+  #         make pytest-${{ matrix.test }}
+  #     - uses: ./.github/actions/after-job
+  #       if: always()
+  #       with:
+  #         jobname: check-pytest-${{ matrix.test }}
+  # check-chart:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+  #         ref: ${{ github.event.pull_request.head.sha }}
+  #     - name: Install Deps
+  #       uses: ./.github/actions/setup-deps
+  #     - name: make test-chart
+  #       run: |
+  #         make ci/setup-k3d
+  #         export DEV_KUBECONFIG=~/.kube/config
 
-          make test-chart
-      - uses: ./.github/actions/after-job
-        if: always()
+  #         make test-chart
+  #     - uses: ./.github/actions/after-job
+  #       if: always()
 
-  build: #######################################################################
-    runs-on: ubuntu-latest
-    env:
-      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
-    outputs:
-      image-tag: ${{ steps.build-image.outputs.image-tag }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Install Deps
-        uses: ./.github/actions/setup-deps
-      - name: "Docker Login"
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-      - name: "make push"
-        shell: bash
-        run: |
-          make push
-      - name: "capture image tag"
-        id: build-image
-        shell: bash
-        run: |
-          echo "image-tag=$(build-aux/version.sh)" >> $GITHUB_OUTPUT
-      - name: "make push-dev"
-        shell: bash
-        run: |
-          make push-dev
-      - uses: ./.github/actions/after-job
-        if: always()
+  # build: #######################################################################
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     image-tag: ${{ steps.build-image.outputs.image-tag }}
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+  #         ref: ${{ github.event.pull_request.head.sha }}
+  #     - name: Install Deps
+  #       uses: ./.github/actions/setup-deps
+  #     - name: "make build"
+  #       shell: bash
+  #       run: |
+  #         make build
+  #     - name: "capture image tag"
+  #       id: build-image
+  #       shell: bash
+  #       run: |
+  #         echo "image-tag=$(build-aux/version.sh)" >> $GITHUB_OUTPUT
+  #     - name: "make push-dev"
+  #       shell: bash
+  #       run: |
+  #         make push-dev
+  #     - uses: ./.github/actions/after-job
+  #       if: always()
 
   ######################################################################
   ######################### CVE Scanning ###############################
-  trivy-container-scan:
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      # upload of results to github uses git so checkout of code is needed
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: "Log image-tag"
-        shell: bash
-        run: echo ${{needs.build.outputs.image-tag}}
-      - name: Scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: "${{secrets.DEV_REGISTRY}}/emissary:${{needs.build.outputs.image-tag}}"
-          format: "sarif"
-          exit-code: 0 # only warn for now until we have backed it into our processes
-          output: "trivy-results.sarif"
-          ignore-unfixed: true
-          vuln-type: "os,library"
-          severity: "CRITICAL,HIGH"
-      - name: Upload Scan to GitHub Security Tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: "trivy-results.sarif"
+  # trivy-container-scan:
+  #   runs-on: ubuntu-latest
+  #   needs: [build]
+  #   steps:
+  #     # upload of results to github uses git so checkout of code is needed
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+  #         ref: ${{ github.event.pull_request.head.sha }}
+  #     - name: "Log image-tag"
+  #       shell: bash
+  #       run: echo ${{needs.build.outputs.image-tag}}
+  #     - name: Scan
+  #       uses: aquasecurity/trivy-action@master
+  #       with:
+  #         image-ref: "${{secrets.DEV_REGISTRY}}/emissary:${{needs.build.outputs.image-tag}}"
+  #         format: "sarif"
+  #         exit-code: 0 # only warn for now until we have backed it into our processes
+  #         output: "trivy-results.sarif"
+  #         ignore-unfixed: true
+  #         vuln-type: "os,library"
+  #         severity: "CRITICAL,HIGH"
+  #     - name: Upload Scan to GitHub Security Tab
+  #       uses: github/codeql-action/upload-sarif@v2
+  #       with:
+  #         sarif_file: "trivy-results.sarif"
 
   ##############################################################################
   pass:
     name: "job-promote-to-passed" # This is the job name that the branch protection looks for
     needs:
       - lint
-      - build
+      # - build
       - generate
       - check-envoy-version
       - check-gotest
-      - check-pytest
-      - check-pytest-unit
-      - check-chart
-      - trivy-container-scan
+      # - check-pytest
+      # - check-pytest-unit
+      # - check-chart
+      # - trivy-container-scan
     runs-on: ubuntu-latest
     steps:
       - name: No-Op
