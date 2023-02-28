@@ -305,7 +305,14 @@ class V3Listener:
                 ## When UDP we assume it is http/3 listener and configured for quic which has TLS built into the protocol
                 ## therefore, we only need to add this when socket_protocol is TCP
                 if self.isProtocolTCP():
-                    self.listener_filters.append({"name": "envoy.filters.listener.tls_inspector"})
+                    self.listener_filters.append(
+                        {
+                            "name": "envoy.filters.listener.tls_inspector",
+                            "typed_config": {
+                                "@type": "type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector",
+                            },
+                        }
+                    )
 
             if proto == "TCP":
                 # Nothing to do.
