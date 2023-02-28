@@ -287,7 +287,14 @@ class V3Listener:
 
             if proto == "PROXY":
                 # The PROXY protocol needs a listener filter.
-                self.listener_filters.append({"name": "envoy.filters.listener.proxy_protocol"})
+                self.listener_filters.append(
+                    {
+                        "name": "envoy.filters.listener.proxy_protocol",
+                        "typed_config": {
+                            "@type": "type.googleapis.com/envoy.extensions.filters.listener.proxy_protocol.v3.ProxyProtocol",
+                        },
+                    }
+                )
 
             if proto == "TLS":
                 # TLS needs a listener filter _and_ we need to remember that this
