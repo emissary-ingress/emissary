@@ -800,12 +800,7 @@ Modify the sources in `./_cxx/envoy/`.
   Envoy needs to be recompiled; it won't happen automatically.  So
   `make test` to build-and-test Emissary-ingress would become
   `make update-base && make test`, and `make images` to just build
-  Emissary-ingress would become `make update-base && make images`.  By
-  default (to keep the tests fast), the tests avoid running much
-  traffic through Envoy, and instead just check that the Envoy
-  configuration that Emissary-ingress generates hasn't changed since the
-  previous version (since we generally trust that Envoy works, and
-  doesn't change as often).
+  Emissary-ingress would become `make update-base && make images`.
 
 #### 5. Finalizing your changes
 
