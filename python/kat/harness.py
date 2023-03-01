@@ -37,10 +37,6 @@ try:
 except AttributeError:
     pass
 
-# Run mode can be local (don't do any Envoy stuff), envoy (only do Envoy stuff),
-# or all (allow both). Default is all.
-RUN_MODE = os.environ.get("KAT_RUN_MODE", "all").lower()
-
 # We may have a SOURCE_ROOT override from the environment
 SOURCE_ROOT = os.environ.get("SOURCE_ROOT", "")
 
@@ -62,7 +58,6 @@ if EDGE_STACK:
     # running in a build shell and we should look for sources in the usual location.
     if not SOURCE_ROOT:
         SOURCE_ROOT = "/buildroot/apro"
-    GOLD_ROOT = os.path.join(SOURCE_ROOT, "tests/pytest/gold")
 else:
     # We're either not running in Edge Stack or we're not sure, so just assume OSS.
     print("RUNNING IN OSS")
@@ -70,7 +65,6 @@ else:
     # running in a build shell and we should look for sources in the usual location.
     if not SOURCE_ROOT:
         SOURCE_ROOT = "/buildroot/ambassador"
-    GOLD_ROOT = os.path.join(SOURCE_ROOT, "python/tests/gold")
 
 
 def run(cmd):
@@ -172,10 +166,6 @@ def is_ingress_class_compatible() -> bool:
 
 
 def is_knative_compatible() -> bool:
-    # Skip KNative immediately for run_mode local.
-    if RUN_MODE == "local":
-        return False
-
     return is_kube_server_client_compatible("Knative", "1.14", "1.14")
 
 
@@ -329,7 +319,6 @@ class Node(ABC):
     ambassador_id: str
     namespace: str
     is_ambassador = False
-    local_result: Optional[Dict[str, str]] = None
     xfail: Optional[str]
 
     def __init__(
@@ -405,150 +394,6 @@ class Node(ABC):
 
     def clone(self, name=None):
         return self.__class__(_clone=self, name=name)
-
-    def find_local_result(self, stop_at_first_ambassador: bool = False) -> Optional[Dict[str, str]]:
-        test_name = self.format("{self.path.k8s}")
-
-        # print(f"{test_name} {type(self)} FIND_LOCAL_RESULT")
-
-        end_result: Optional[Dict[str, str]] = None
-
-        n: Optional[Node] = self
-
-        while n:
-            node_name = n.format("{self.path.k8s}")
-            parent = n.parent
-            parent_name = parent.format("{self.path.k8s}") if parent else "-none-"
-
-            end_result = getattr(n, "local_result", None)
-            result_str = end_result["result"] if end_result else "-none-"
-            # print(f"{test_name}: {'ambassador' if n.is_ambassador else 'node'} {node_name}, parent {parent_name}, local_result = {result_str}")
-
-            if end_result is not None:
-                break
-
-            if n.is_ambassador and stop_at_first_ambassador:
-                # This is an Ambassador: don't continue past it.
-                break
-
-            n = n.parent
-
-        return end_result
-
-    def check_local(self, gold_root: str, k8s_yaml_path: str) -> Tuple[bool, bool]:
-        testname = self.format("{self.path.k8s}")
-
-        if self.xfail:
-            # XFail early -- but still return True, True so that we don't try to run Envoy on it.
-            self.local_result = {"result": "xfail", "reason": self.xfail}
-            # print(f"==== XFAIL: {testname} local: {self.xfail}")
-            return (True, True)
-
-        if not self.is_ambassador:
-            # print(f"{testname} ({type(self)}) is not an Ambassador")
-            return (False, False)
-
-        if not self.ambassador_id:
-            print(f"{testname} ({type(self)}) is an Ambassador but has no ambassador_id?")
-            return (False, False)
-
-        ambassador_namespace = getattr(self, "namespace", "default")
-        ambassador_single_namespace = getattr(self, "single_namespace", False)
-
-        no_local_mode: bool = getattr(self, "no_local_mode", False)
-        skip_local_reason: Optional[str] = getattr(self, "skip_local_instead_of_xfail", None)
-
-        # print(f"{testname}: ns {ambassador_namespace} ({'single' if ambassador_single_namespace else 'multi'})")
-
-        gold_path = os.path.join(gold_root, testname)
-
-        if os.path.isdir(gold_path) and not no_local_mode:
-            # print(f"==== {testname} running locally from {gold_path}")
-
-            # Yeah, I know, brutal hack.
-            #
-            # XXX (Flynn) This code isn't used and we don't know if it works. If you try
-            # it, bring it up-to-date with the environment created in abstract_tests.py
-            envstuff = ["env", f"AMBASSADOR_NAMESPACE={ambassador_namespace}"]
-
-            cmd = [
-                "mockery",
-                "--debug",
-                k8s_yaml_path,
-                "-w",
-                "python /ambassador/watch_hook.py",
-                "--kat",
-                self.ambassador_id,
-                "--diff",
-                gold_path,
-            ]
-
-            if ambassador_single_namespace:
-                envstuff.append("AMBASSADOR_SINGLE_NAMESPACE=yes")
-                cmd += ["-n", ambassador_namespace]
-
-            if not getattr(self, "allow_edge_stack_redirect", False):
-                envstuff.append("AMBASSADOR_NO_TLS_REDIRECT=yes")
-
-            cmd = envstuff + cmd
-
-            w = ShellCommand(*cmd)
-
-            if w.status():
-                print(f"==== GOOD: {testname} local against {gold_path}")
-                self.local_result = {"result": "pass"}
-            else:
-                print(f"==== FAIL: {testname} local against {gold_path}")
-
-                self.local_result = {"result": "fail", "stdout": w.stdout, "stderr": w.stderr}
-
-            return (True, True)
-        else:
-            # If we have a local reason, has a parent already subsumed us?
-            #
-            # XXX The way KAT works, our parent will have always run earlier than us, so
-            # it's not clear if we can ever not have been subsumed.
-
-            if skip_local_reason:
-                local_result = self.find_local_result()
-
-                if local_result:
-                    self.local_result = {
-                        "result": "skip",
-                        "reason": f"subsumed by {skip_local_reason} -- {local_result['result']}",
-                    }
-                    # print(f"==== {self.local_result['result'].upper()} {testname} {self.local_result['reason']}")
-                    return (True, True)
-
-            # OK, we weren't already subsumed. If we're in local mode, we'll skip or xfail
-            # depending on skip_local_reason.
-
-            if RUN_MODE == "local":
-                if skip_local_reason:
-                    self.local_result = {
-                        "result": "skip",
-                        # 'reason': f"subsumed by {skip_local_reason} without result in local mode"
-                    }
-                    print(
-                        f"==== {self.local_result['result'].upper()} {testname} {self.local_result['reason']}"
-                    )
-                    return (True, True)
-                else:
-                    # XFail -- but still return True, True so that we don't try to run Envoy on it.
-                    self.local_result = {
-                        "result": "xfail",
-                        "reason": f"missing local cache {gold_path}",
-                    }
-                    # print(f"==== {self.local_result['result'].upper()} {testname} {self.local_result['reason']}")
-                    return (True, True)
-
-            # If here, we're not in local mode. Allow Envoy to run.
-            self.local_result = None
-            # print(f"==== IGNORE {testname} no local cache")
-            return (True, False)
-
-    def has_local_result(self) -> bool:
-        return bool(self.local_result)
 
     @classmethod
     def variants(cls):
@@ -646,34 +491,6 @@ class Test(Node):
 
     def check(self):
         pass
-
-    def handle_local_result(self) -> bool:
-        test_name = self.format("{self.path.k8s}")
-
-        # print(f"{test_name} {type(self)} HANDLE_LOCAL_RESULT")
-
-        end_result = self.find_local_result()
-
-        if end_result is not None:
-            result_type = end_result["result"]
-
-            if result_type == "pass":
-                pass
-            elif result_type == "skip":
-                pytest.skip(end_result["reason"])
-            elif result_type == "fail":
-                sys.stdout.write(end_result["stdout"])
-
-                if os.environ.get("KAT_VERBOSE", None):
-                    sys.stderr.write(end_result["stderr"])
-
-                pytest.fail("local check failed")
-            elif result_type == "xfail":
-                pytest.xfail(end_result["reason"])
-
-            return True
-
-        return False
 
     @property
     def ambassador_id(self):
@@ -1176,7 +993,6 @@ class Runner:
         self.tests = [n for n in self.nodes if isinstance(n, Test)]
         self.ids = [t.path.name for t in self.tests]
         self.done = False
-        self.skip_nonlocal_tests = False
         self.ids_to_strip: Dict[str, bool] = {}
         self.names_to_ignore: Dict[str, bool] = {}
 
@@ -1194,19 +1010,18 @@ class Runner:
                 with capsys.disabled():
                     self.setup(selected)
 
-                if not t.handle_local_result():
-                    # XXX: should aggregate the result of url checks
-                    i = 0
-                    for r in t.results:
-                        try:
-                            r.check()
-                        except AssertionError as e:
-                            # Add some context so that you can tell which query is failing.
-                            e.args = (f"query[{i}]: {e.args[0]}", *e.args[1:])
-                            raise
-                        i += 1
+                # XXX: should aggregate the result of url checks
+                i = 0
+                for r in t.results:
+                    try:
+                        r.check()
+                    except AssertionError as e:
+                        # Add some context so that you can tell which query is failing.
+                        e.args = (f"query[{i}]: {e.args[0]}", *e.args[1:])
+                        raise
+                    i += 1
 
-                    t.check()
+                t.check()
 
         self.__func__ = test
         self.__test__ = True
@@ -1235,16 +1050,6 @@ class Runner:
 
             try:
                 self._setup_k8s(expanded)
-
-                if self.skip_nonlocal_tests:
-                    self.done = True
-                    return
-
-                for t in self.tests:
-                    if t.has_local_result():
-                        # print(f"{t.name}: SKIP due to local result")
-                        continue
-
                 self._query(expanded_up)
             except:
                 traceback.print_exc()
@@ -1389,27 +1194,6 @@ class Runner:
 
         return manifests, namespaces
 
-    def do_local_checks(self, selected, fname) -> bool:
-        if RUN_MODE == "envoy":
-            print("Local mode not allowed, continuing to Envoy mode")
-            return False
-
-        all_valid = True
-        self.ids_to_strip = {}
-        # This feels a bit wrong?
-        self.names_to_ignore = {}
-
-        for n in (n for n in self.nodes if n in selected):
-            local_possible, local_checked = n.check_local(GOLD_ROOT, fname)
-
-            if local_possible:
-                if local_checked:
-                    self.ids_to_strip[n.ambassador_id] = True
-                else:
-                    all_valid = False
-
-        return all_valid
-
     def _setup_k8s(self, selected):
         # First up, get the full manifest and save it to disk.
         manifests, namespaces = self.get_manifests_and_namespaces(selected)
@@ -1477,16 +1261,6 @@ class Runner:
 
         # Always apply at this point, since we're doing the multi-run thing.
         manifest_changed, manifest_reason = has_changed(yaml, fname)
-
-        # OK. Try running local stuff.
-        if self.do_local_checks(selected, fname):
-            # Everything that could run locally did. Good enough.
-            self.skip_nonlocal_tests = True
-            return True
-
-        # Something didn't work out quite right.
-        print(f"Continuing with Kube tests...")
-        # print(f"ids_to_strip {self.ids_to_strip}")
 
         # XXX It is _so stupid_ that we're reparsing the whole manifest here.
         xxx_crap = pyyaml.load_all(open(fname, "r").read(), Loader=pyyaml_loader)
@@ -1819,10 +1593,6 @@ class Runner:
 
             # print(f"{node_name} {ambassador_id}")
 
-            if node.has_local_result():
-                # print(f"{node_name} has local result, skipping")
-                continue
-
             if ambassador_id and ambassador_id in self.ids_to_strip:
                 # print(f"{node_name} has id {ambassador_id}, stripping")
                 continue
@@ -1830,9 +1600,6 @@ class Runner:
             if node_name in self.names_to_ignore:
                 # print(f"{node_name} marked to ignore, stripping")
                 continue
-
-            # if RUN_MODE != "envoy":
-            #     print(f"{node_name}: including in nonlocal tests")
 
             for kind, req in node.requirements():
                 # print(f"{node_name} add req ({node_name}, {kind}, {self._req_str(kind, req)})")
@@ -2003,10 +1770,6 @@ class Runner:
                 t.queried = []
                 t.results = []
             else:
-                continue
-
-            if t.has_local_result():
-                # print(f"{t_name}: SKIP QUERY due to local result")
                 continue
 
             ambassador_id = getattr(t, "ambassador_id", None)
