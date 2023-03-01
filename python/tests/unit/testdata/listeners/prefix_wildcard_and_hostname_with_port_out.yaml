@@ -975,6 +975,8 @@ listeners:
         name: httphost-shared
     listener_filters:
       - name: envoy.filters.listener.tls_inspector
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector
     name: listener-8443
     traffic_direction: UNSPECIFIED
   - address:
@@ -997,7 +999,7 @@ listeners:
                         name: ":path"
                     pass_through_mode: False
                 - name: envoy.filters.http.router
-              route_config: 
+              route_config:
                 name: local_route
               stat_prefix: ready_http
     name: ambassador-listener-ready-127.0.0.1-8006
