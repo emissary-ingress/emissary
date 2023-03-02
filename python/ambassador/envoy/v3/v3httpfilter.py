@@ -369,7 +369,10 @@ def V3HTTPFilter_error_response(error_response: IRErrorResponse, v3config: "V3Co
 
     filter_config: Dict[str, Any] = {
         # The IRErrorResponse filter builds on the 'envoy.filters.http.response_map' filter.
-        "name": "envoy.filters.http.response_map"
+        "name": "envoy.filters.http.response_map",
+        "typed_config": {
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMap",
+        },
     }
 
     module_config = error_response.config()
