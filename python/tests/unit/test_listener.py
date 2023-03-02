@@ -65,92 +65,95 @@ spec:
 
 
 class TestListener:
+    @dataclass
+    class SocketProtocolTestCase:
+        name: str
+        protocol: Optional[str]
+        protocolStack: Optional[List[str]]
+        expectedSocketProtocol: Optional[str]
+
     @pytest.mark.compilertest
-    def test_socket_protocol(self):
-        """ensure that we can identify the listener socket protocol based on the provided protocol and protocolStack"""
-
-        @dataclass
-        class TestCase:
-            name: str
-            protocol: Optional[str]
-            protocolStack: Optional[List[str]]
-            expectedSocketProtocol: Optional[str]
-
-        testcases = [
+    @pytest.mark.parametrize(
+        "case",
+        ids=lambda case: case.name,
+        argvalues=[
             # test with emissary defined protcolStacks via pre-definied protocol enum
-            TestCase(
+            SocketProtocolTestCase(
                 name="http_protocol",
                 protocol="HTTP",
                 protocolStack=None,
                 expectedSocketProtocol="TCP",
             ),
-            TestCase(
+            SocketProtocolTestCase(
                 name="https_protocol",
                 protocol="HTTPS",
                 protocolStack=None,
                 expectedSocketProtocol="TCP",
             ),
-            TestCase(
+            SocketProtocolTestCase(
                 name="httpproxy_protocol",
                 protocol="HTTPPROXY",
                 protocolStack=None,
                 expectedSocketProtocol="TCP",
             ),
-            TestCase(
+            SocketProtocolTestCase(
                 name="httpsproxy_protocol",
                 protocol="HTTPSPROXY",
                 protocolStack=None,
                 expectedSocketProtocol="TCP",
             ),
-            TestCase(
+            SocketProtocolTestCase(
                 name="tcp_protocol",
                 protocol="TCP",
                 protocolStack=None,
                 expectedSocketProtocol="TCP",
             ),
-            TestCase(
+            SocketProtocolTestCase(
                 name="tls_protocol",
                 protocol="TLS",
                 protocolStack=None,
                 expectedSocketProtocol="TCP",
             ),
             # test with custom stacks
-            TestCase(
+            SocketProtocolTestCase(
                 name="tcp_stack",
                 protocol=None,
                 protocolStack=["TLS", "HTTP", "TCP"],
                 expectedSocketProtocol="TCP",
             ),
-            TestCase(
+            SocketProtocolTestCase(
                 name="udp_stack",
                 protocol=None,
                 protocolStack=["TLS", "HTTP", "UDP"],
                 expectedSocketProtocol="UDP",
             ),
-            TestCase(
+            SocketProtocolTestCase(
                 name="invalid_stack",
                 protocol=None,
                 protocolStack=["TLS", "HTTP"],
                 expectedSocketProtocol=None,
             ),
-            TestCase(
+            SocketProtocolTestCase(
                 name="empty_stack", protocol=None, protocolStack=[], expectedSocketProtocol=None
             ),
-        ]
-        for case in testcases:
-            yaml = _generateListener(case.name, case.protocol, case.protocolStack)
+        ],
+    )
+    def test_socket_protocol(self, case: SocketProtocolTestCase):
+        """ensure that we can identify the listener socket protocol based on the provided protocol and protocolStack"""
 
-            compiled_ir = Compile(logger, yaml, k8s=True)
-            result_ir = compiled_ir["ir"]
-            listeners = list(result_ir.listeners.values())
-            errors = result_ir.aconf.errors
+        yaml = _generateListener(case.name, case.protocol, case.protocolStack)
 
-            if case.expectedSocketProtocol == None:
-                assert len(errors) == 1
-                assert len(listeners) == 0
-            else:
-                assert len(listeners) == 1
-                assert listeners[0].socket_protocol == case.expectedSocketProtocol
+        compiled_ir = Compile(logger, yaml, k8s=True)
+        result_ir = compiled_ir["ir"]
+        listeners = list(result_ir.listeners.values())
+        errors = result_ir.aconf.errors
+
+        if case.expectedSocketProtocol == None:
+            assert len(errors) == 1
+            assert len(listeners) == 0
+        else:
+            assert len(listeners) == 1
+            assert listeners[0].socket_protocol == case.expectedSocketProtocol
 
     @pytest.mark.compilertest
     def test_http3_valid_quic_listener(self):
@@ -325,9 +328,44 @@ spec:
 
         _verify_no_added_response_headers(udp_listener)
 
+    @dataclass
+    class FilterChainGenTestCase:
+        # name should match the file name in testdata/listeners (excluding the _out.yaml and _in.yaml suffixes)
+        name: str
+        # description allows developer to provide any information on use-case without having to study the in/out files
+        # as well as displaying it in the pytest output for easier debugging.
+        description: str
+
     @skip_edgestack()
     @pytest.mark.compilertest
-    def test_listener_filterchain_vhost_generation(self):
+    @pytest.mark.parametrize(
+        "case",
+        ids=lambda case: case.name,
+        argvalues=[
+            FilterChainGenTestCase(
+                name="host_missing_tls",
+                description="When applying the quick-start of 8080 and 8443 with a Host that doesn't have tls configured it will generate basically "
+                "the same FilterChain/Vhost/Routes between the two listeners. The HTTPS Listener will not generate a "
+                "Filter Chain checking for matches on TLS and/or SNI. A fallback cert is not used because a Host is configured "
+                "although arguable incorrectly. Ideally, the HTTPS listener (8443) should not attach anything or use the fallback "
+                "cert as-if no Host was provided but since this was existing behavior it has been left that way for now.",
+            ),
+            FilterChainGenTestCase(
+                name="no_host",
+                description="If no Host is provided the http (8080) listener will create the normal 'shared http' filter chain "
+                "and the https (8443) listener will generate two filter chains; a 'shared http' filter chain to catch non-tls traffic "
+                "and a filter chain matching on tls and using the fall-back cert with NO sni matching.",
+            ),
+            FilterChainGenTestCase(
+                name="prefix_wildcard_and_hostname_with_port",
+                description="Properly handle Host with prefix wildcards (*.local) and hosts with portnames (*.local:8500). "
+                "In this scenario both host will be coalesced into the same FilterChain due to matching SNI but "
+                "will get their own virtual hosts due to needing to match on a :authority header. Mappings will "
+                "associate to the most specific vhost based on the Host.hostname and Mapping.hostname fields",
+            ),
+        ],
+    )
+    def test_listener_filterchain_generation(self, case: FilterChainGenTestCase):
         """Ensure that the Listener FilterChain and correct vhosts are generated based on the
         provided Listener, Host and Mappings to ensure mutliple scenarios are covered such as
         clients sending hostname:port and addressing h2/h3 connection re-use on parent domains
@@ -360,56 +398,16 @@ spec:
             os.path.dirname(os.path.abspath(__file__)), "testdata", "listeners"
         )
 
-        @dataclass
-        class TestCase:
-            # name should match the file name in testdata/listeners (excluding the _out.yaml and _in.yaml suffixes)
-            name: str
-            # description allows developer to provide my information on use-case without having to study the in/out files
-            description: str
+        applied_yaml = open(os.path.join(testdata_dir, f"{case.name}_in.yaml"), "r").read()
+        expected = yaml.safe_load(open(os.path.join(testdata_dir, f"{case.name}_out.yaml"), "r"))
 
-        testcases = [
-            TestCase(
-                name="host_missing_tls",
-                description="""
-                    When applying the quick-start of 8080 and 8443 with a Host that doesn't have tls configured it will generate basically
-                    the same FilterChain/Vhost/Routes between the two listeners. The HTTPS Listener will not generate a
-                    Filter Chain checking for matches on TLS and/or SNI. A fallback cert is not used because a Host is configured
-                    although arguable incorrectly. Ideally, the HTTPS listener (8443) should not attach anything or use the fallback
-                    cert as-if no Host was provided but since this was existing behavior it has been left that way for now.
-                """,
-            ),
-            TestCase(
-                name="no_host",
-                description="""
-                    If no Host is provided the http (8080) listener will create the normal "shared http" filter chain
-                    and the https (8443) listener will generate two filter chains; a "shared http" filter chain to catch non-tls traffic
-                    and a filter chain matching on tls and using the fall-back cert with NO sni matching.
-                """,
-            ),
-            TestCase(
-                name="prefix_wildcard_and_hostname_with_port",
-                description="""
-                    Properly handle Host with prefix wildcards (*.local) and hosts with portnames (*.local:8500). In
-                    this scenario both host will be coalesced into the same FilterChain due to matching SNI but
-                    will get their own virtual hosts due to needing to match on a :authority header. Mappings will
-                    associate to the most specific vhost based on the Host.hostname and Mapping.hostname fields
-                """,
-            ),
-        ]
-        for case in testcases:
+        econf = econf_compile(applied_yaml)
+        assert econf
 
-            applied_yaml = open(os.path.join(testdata_dir, f"{case.name}_in.yaml"), "r").read()
-            expected = yaml.safe_load(
-                open(os.path.join(testdata_dir, f"{case.name}_out.yaml"), "r")
-            )
+        expListeners = expected.get("listeners", {})
+        assert expListeners != {}
 
-            econf = econf_compile(applied_yaml)
-            assert econf
+        listeners = econf.get("static_resources", {}).get("listeners", [])
+        _cleanse_secrets(listeners)
 
-            expListeners = expected.get("listeners", {})
-            assert expListeners != {}
-
-            listeners = econf.get("static_resources", {}).get("listeners", [])
-            _cleanse_secrets(listeners)
-
-            assert expListeners == listeners
+        assert expListeners == listeners
