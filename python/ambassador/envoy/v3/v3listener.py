@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
+import hashlib
 import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Set, Tuple, Union
 from typing import cast as typecast
@@ -309,7 +310,6 @@ class V3Listener:
         chain_type: Literal["tcp", "http", "https"],
         context: Optional["IRTLSContext"],
         hostname: str,
-        sni: str,
     ) -> V3Chain:
         # Add a chain for a specific Host to this listener, while dealing with the fundamental
         # asymmetry that filter_chain_match can - and should - use SNI whenever the chain has
@@ -330,7 +330,25 @@ class V3Listener:
 
         hostname = hostname or "*"
 
-        chain_key = f"tls-{sni}" if context else "cleartext"
+        # Chain key format is {chain_type}-{secure_protocol_type}-{hosts}
+        # e.g https-tls-1a2b3c4d or http-cleartext-foo.com
+        # Note that if chain_type==http, then hosts is the cleartext hostname since we
+        # combine all the http filter chains into one filter chain in the end anyway
+        # (see finalize_http method).
+        # For https and tcp chain_types, hosts is the hash of the list of hosts found
+        # in the TLSContext (explict, implicit, or inline).
+        chain_key: str
+
+        if context:
+            # If the attached TLSContext doesn't specify the host, context.hosts is the hostname or
+            # host specified in the Host or TCPMapping. For contexts created from inline tls or
+            # implicit tls, context.hosts is set to the hostname of the Host.
+            # Either way, context.hosts should be non-empty by the time we get here.
+            assert context.hosts  # to satisfy mypy
+            hosts_digest = hashlib.sha256(f",".join(context.hosts).encode()).hexdigest()
+            chain_key = f"{chain_type}-tls-{hosts_digest}"
+        else:
+            chain_key = f"{chain_type}-cleartext"
 
         if chain_type == "http":
             chain_key += f"-{hostname}"
@@ -343,7 +361,7 @@ class V3Listener:
 
         if self._log_debug:
             self.config.ir.logger.debug(
-                f"      CHAIN {verb}: tls={bool(context)} host={repr(hostname)} sni={repr(sni)} => chains[{repr(chain_key)}]={repr(chain)}"
+                f"      CHAIN {verb}: tls={bool(context)} host={repr(hostname)} => chains[{repr(chain_key)}]={repr(chain)}"
             )
 
         return chain
@@ -714,7 +732,9 @@ class V3Listener:
                 # We do server-name matching whether or not we have TLS, just to help
                 # make sure that we don't have two chains with an empty filter_match
                 # criterion (since Envoy will reject such a configuration).
+                # We sort the list to ensure consistency across unit test runs
                 server_names = list(chain.server_names)
+                server_names.sort()
 
                 if len(server_names) > 0 and ("*" not in server_names):
                     filter_chain_match["server_names"] = server_names
@@ -747,17 +767,14 @@ class V3Listener:
             if not group_host:  # cleartext
                 # Special case. No host (aka hostname) in a TCPMapping means an unconditional forward,
                 # so just add this immediately as a "*" chain.
-                self.add_chain("tcp", None, "*", "*").add_tcphost(irgroup)
+                self.add_chain("tcp", None, "*").add_tcphost(irgroup)
             else:  # TLS/SNI
                 context = tlscontext_for_tcpmapping(irgroup, self.config)
                 if not context:
                     irgroup.post_error("No matching TLSContext found, disabling!")
                     continue
 
-                # group_host comes from `TCPMapping.host` which is expected to be a valid dns hostname
-                # without a port so no need to parse out a port
-                sni = group_host
-                self.add_chain("tcp", context, group_host, sni).add_tcphost(irgroup)
+                self.add_chain("tcp", context, group_host).add_tcphost(irgroup)
 
     def compute_httpchains(self) -> None:
         # Compute the set of chains we need, HTTP version. The core here is matching
@@ -802,13 +819,13 @@ class V3Listener:
                 and (not ((self._security_model == "SECURE") and host_will_reject_secure))
             ):
                 self.config.ir.logger.debug("      accept SECURE")
-                self.add_chain("https", host.context, host.hostname, host.sni).add_httphost(host)
+                self.add_chain("https", host.context, host.hostname).add_httphost(host)
 
             # Same idea on the insecure side: only skip the Host if the Listener's securityModel
             # is INSECURE but the Host's insecure_action is Reject.
             if not ((self._security_model == "INSECURE") and (host.insecure_action == "Reject")):
                 self.config.ir.logger.debug("      accept INSECURE")
-                self.add_chain("http", None, host.hostname, host.sni).add_httphost(host)
+                self.add_chain("http", None, host.hostname).add_httphost(host)
 
     def compute_http_routes(self) -> None:
         # Compute the set of valid HTTP routes for _each chain_ in this Listener.
@@ -1013,9 +1030,13 @@ class V3Listener:
             else:  # TLS/SNI
                 # Since chain_key is a dictionary key in its own right, we can't already
                 # have a matching chain for this.
+                #
+                # Just take the first 7 digits of the hosts hash since not sure if Envoy enforces a
+                # limit on filter chain name length.
+                hosts_hash = chain_key.split("-")[-1][:7]
 
                 filter_chain = {
-                    "name": f"httpshost-{next(iter(chain.hosts.values())).name}",
+                    "name": f"httpshost-{hosts_hash}",
                     "_vhosts": {},
                 }
                 filter_chain_match: Dict[str, Any] = {}
@@ -1043,6 +1064,7 @@ class V3Listener:
                 # at all.
 
                 if (len(server_names) > 0) and ("*" not in server_names):
+                    server_names.sort()  # Sort first to ensure consistency across unit test runs
                     filter_chain_match["server_names"] = server_names
 
                 # Likewise, an HTTPS chain will ask for TLS or QUIC (when udp)
@@ -1070,11 +1092,8 @@ class V3Listener:
                     }
 
                 filter_chain["transport_socket"] = envoy_tls_config
-
-                # Finally, stash the match in the chain...
                 filter_chain["filter_chain_match"] = filter_chain_match
 
-                # ...and save it.
                 filter_chains[chain_key] = filter_chain
 
             # OK, we have the filter_chain variable set -- build the Envoy virtual_hosts for it.
@@ -1127,17 +1146,13 @@ class V3Listener:
                 vhost["routes"] += routes
 
         # Once that's all done, walk the filter_chains dict...
-        for fc_key, filter_chain in filter_chains.items():
-            # ...set up our HTTP config...
+        for _, filter_chain in filter_chains.items():
             http_config = dict(typecast(dict, self._base_http_config))
-
-            # ...and unfold our vhosts dict into a list for Envoy.
             http_config["route_config"] = {"virtual_hosts": list(filter_chain["_vhosts"].values())}
 
             # Now that we've saved our vhosts as a list, drop the dict version.
             del filter_chain["_vhosts"]
 
-            # Finish up config for this filter chain...
             if parse_bool(
                 self.config.ir.ambassador_module.get("strip_matching_host_port", "false")
             ):
@@ -1163,7 +1178,6 @@ class V3Listener:
                 }
             ]
 
-            # ...and save it.
             self._filter_chains.append(filter_chain)
 
     def as_dict(self) -> dict:

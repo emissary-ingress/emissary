@@ -335,6 +335,8 @@ spec:
         # description allows developer to provide any information on use-case without having to study the in/out files
         # as well as displaying it in the pytest output for easier debugging.
         description: str
+        # should_error marks whether this test case should raise an error
+        should_error: bool = False
 
     @skip_edgestack()
     @pytest.mark.compilertest
@@ -362,6 +364,42 @@ spec:
                 "In this scenario both host will be coalesced into the same FilterChain due to matching SNI but "
                 "will get their own virtual hosts due to needing to match on a :authority header. Mappings will "
                 "associate to the most specific vhost based on the Host.hostname and Mapping.hostname fields",
+            ),
+            FilterChainGenTestCase(
+                name="two_hosts_using_different_tls_contexts",
+                description="If two different Hosts where one Host is a parent domain (e.g. foo.com) and another is a "
+                "subdomain (e.g. bar.foo.com) but are using different TLSContexts with non-overlapping hosts "
+                "(even if both are using the same certificate with the same CN and SANs), then that should produce "
+                "two different filter chains matching on the hostnames via SNI.",
+            ),
+            FilterChainGenTestCase(
+                name="host_and_tcp_mapping_using_different_tls_contexts",
+                description="If a Host and TCPMapping where the host is a parent domain (e.g. foo.com) and the TCPMapping is a "
+                "subdomain (e.g. db.foo.com) but are using different TLSContexts with non-overlapping hosts "
+                "(even if both are using the same certificate with the same CN and SANs), then that should produce "
+                "two different filter chains matching on the hostnames via SNI. ",
+            ),
+            FilterChainGenTestCase(
+                name="two_hosts_sharing_tls_context",
+                description="If two different Hosts where one Host is a parent domain (e.g. foo.com) and another is a "
+                "subdomain (e.g. bar.foo.com) but are using the same TLSContext containing both hosts, "
+                "then we want to combine them in a single filter chain where both hosts are added as server_names "
+                "in the filter chain match so that we can account browser HTTP/2 connection coaelcing "
+                "(see https://daniel.haxx.se/blog/2016/08/18/http2-connection-coalescing/ for more information about that)",
+            ),
+            FilterChainGenTestCase(
+                name="host_and_tcp_mapping_sharing_tls_context",
+                description="For TCPMappings that use TLS, we allow that they can be attached to Listeners that also "
+                "contain Hosts since we can perform hostname matching via SNI. If both a Host using a parent domain "
+                "(e.g. foo.com) and a TCPMapping listening on a subdomain (e.g. db.foo.com) are using the same "
+                "TLSContext with both hostnames added as hosts, then we should consider that valid and a "
+                "filter chain should be created for each.",
+            ),
+            FilterChainGenTestCase(
+                name="two_hosts_sharing_tls_context_missing_host",
+                description="If two hosts reference the same TLSContext but doesn't contain both hosts, "
+                "then that should result in an error due to host mismatching.",
+                should_error=True,
             ),
         ],
     )
@@ -399,11 +437,16 @@ spec:
         )
 
         applied_yaml = open(os.path.join(testdata_dir, f"{case.name}_in.yaml"), "r").read()
-        expected = yaml.safe_load(open(os.path.join(testdata_dir, f"{case.name}_out.yaml"), "r"))
+
+        if case.should_error:
+            with pytest.raises(Exception):
+                econf_compile(applied_yaml)
+            return
 
         econf = econf_compile(applied_yaml)
         assert econf
 
+        expected = yaml.safe_load(open(os.path.join(testdata_dir, f"{case.name}_out.yaml"), "r"))
         expListeners = expected.get("listeners", {})
         assert expListeners != {}
 
