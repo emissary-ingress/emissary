@@ -142,7 +142,7 @@ const bootstrap = `
       {
         "name": "static_layer",
         "static_layer": {
-          "envoy.reloadable_features.no_extension_lookup_by_name": true,
+          "envoy.reloadable_features.no_extension_lookup_by_name": false,
           "re2.max_program_size.error_level": 200
         }
       }
