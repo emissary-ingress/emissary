@@ -139,33 +139,52 @@ def V3HTTPFilter_gzip(gzip: IRGzip, v3config: "V3Config"):
 def V3HTTPFilter_grpc_http1_bridge(irfilter: IRFilter, v3config: "V3Config"):
     del v3config  # silence unused-variable warning
 
-    config_dict = irfilter.config_dict()
-    config: Dict[str, Any]
-    config = {"name": "envoy.filters.http.grpc_http1_bridge"}
+    # config_dict = irfilter.config_dict()
+    # config: Dict[str, Any]
+    # config = {"name": "envoy.filters.http.grpc_http1_bridge"}
 
-    if config_dict:
-        config["typed_config"] = config_dict
-        config["typed_config"][
-            "@type"
-        ] = "type.googleapis.com/envoy.extensions.filters.http.grpc_http1_bridge.v3.Config"
+    # if config_dict:
+    #     config["typed_config"] = config_dict
+    #     config["typed_config"][
+    #         "@type"
+    #     ] = "type.googleapis.com/envoy.extensions.filters.http.grpc_http1_bridge.v3.Config"
 
-    return config
+    # return config
+
+    config = typecast(Dict[str, Any], irfilter.config_dict())
+    return {
+        "name": "envoy.filters.http.grpc_web",
+        "typed_config": {
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb",
+            **config,
+        },
+    }
 
 
 def V3HTTPFilter_grpc_web(irfilter: IRFilter, v3config: "V3Config"):
     del v3config  # silence unused-variable warning
 
-    config_dict = irfilter.config_dict()
-    config: Dict[str, Any]
-    config = {"name": "envoy.filters.http.grpc_web"}
+    # config_dict = irfilter.config_dict()
+    # config: Dict[str, Any]
+    # config = {"name": "envoy.filters.http.grpc_web"}
 
-    if config_dict:
-        config["typed_config"] = config_dict
-        config["typed_config"][
-            "@type"
-        ] = "type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb"
+    # if config_dict:
+    #     config["typed_config"] = config_dict
+    #     config["typed_config"][
+    #         "@type"
+    #     ] = "type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb"
 
-    return config
+
+    # return config
+
+    config = typecast(Dict[str, Any], irfilter.config_dict())
+    return {
+        "name": "envoy.filters.http.grpc_web",
+        "typed_config": {
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb",
+            **config,
+        },
+    }
 
 
 def V3HTTPFilter_grpc_stats(irfilter: IRFilter, v3config: "V3Config"):
