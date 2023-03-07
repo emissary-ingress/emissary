@@ -49,6 +49,7 @@ autoscaling: # +doc-gen:break
   enabled: false
   minReplicas: 2
   maxReplicas: 5
+  behavior: {}
   metrics:
   - type: Resource
     resource:
