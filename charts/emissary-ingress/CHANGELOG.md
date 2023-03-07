@@ -7,6 +7,7 @@ numbering uses [semantic versioning](http://semver.org).
 - Upgrade Emissary to v3.6.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 - Use autoscaling/v2 HorizontalPodAutoscaler if the cluster version is >v1.26 as autoscaling/v2beta2 is deprecated starting v1.23 and removed in v1.26. Thanks to [Elvind Valderhaug](https://github.com/eevdev)
 - Upgrade KubernetesEndpointResolver & ConsulResolver apiVersions to `getambassador.io/v3alpha1`
+- Added support for Horizontal Pod Autoscaler (HPA) behavior configuration.
 
 ## v8.5.1 - 2023-02-23
 
