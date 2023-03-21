@@ -34,17 +34,21 @@ LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -q install -y \
     curl \
     python3-pip \
+    python3-venv \
     dnsutils
 
 # Set WORKDIR to /application which is the root of all our apps.
 WORKDIR /application
+
+# Create the Python virtual environment
+RUN python3 -m venv /opt/venv
 
 # COPY only requirements.txt to avoid screwing up Docker caching and
 # causing a full reinstall of all dependencies when dependencies are
 # not changed.
 COPY requirements.txt .
 # Install application dependencies
-RUN pip3 install -r requirements.txt
+RUN /opt/venv/bin/pip3 install -r requirements.txt
 
 # COPY the app code and configuration into place.
 COPY shadow.py shadowsvc.crt shadowsvc.key entrypoint.sh ./

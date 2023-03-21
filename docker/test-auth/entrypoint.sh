@@ -51,7 +51,7 @@ trap "handle_chld" CHLD
 ROOT=$$
 
 echo "AUTH: starting auth service"
-/usr/bin/python3 "$APPDIR/auth.py" "$@" &
+/opt/venv/bin/python3 "$APPDIR/auth.py" "$@" &
 pids+=("$!;auth")
 
 echo "AUTH: waiting"

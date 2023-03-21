@@ -51,7 +51,7 @@ trap "handle_chld" CHLD
 ROOT=$$
 
 echo "SHADOW: starting shadow service"
-/usr/bin/python3 "$APPDIR/shadow.py" "$@" &
+/opt/venv/bin/python3 "$APPDIR/shadow.py" "$@" &
 pids+=("$!;shadow")
 
 echo "SHADOW: waiting"
