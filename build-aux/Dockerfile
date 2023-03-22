@@ -128,7 +128,6 @@ RUN adduser ambassador -u 8888 -G root -D -H -s /bin/false
 # External stuff that should change infrequently
 RUN apk --no-cache add bash curl python3=${py_version} libcap htop
 RUN apk upgrade --no-cache
-COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
 COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
 
 # Other installers
