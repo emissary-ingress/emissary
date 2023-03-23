@@ -4,9 +4,11 @@ This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
 ## v8.6.0 - TBD
+
 - Upgrade Emissary to v3.6.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 - Use autoscaling/v2 HorizontalPodAutoscaler if the cluster version is >v1.26 as autoscaling/v2beta2 is deprecated starting v1.23 and removed in v1.26. Thanks to [Elvind Valderhaug](https://github.com/eevdev)
 - Upgrade KubernetesEndpointResolver & ConsulResolver apiVersions to `getambassador.io/v3alpha1`
+- Add support for setting `nodeSelector`, `tolerations` and `affinity` on the Ambassador Agent. Thanks to [Philip Panyukov](https://github.com/ppanyukov).
 
 ## v8.5.1 - 2023-02-23
 
