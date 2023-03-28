@@ -169,7 +169,7 @@ $(OSS_HOME)/_cxx/envoy-build-container.txt: $(OSS_HOME)/_cxx/envoy-build-image.t
 	    if [ -e $@ ]; then \
 	        docker kill $$(cat $@) || true; \
 	    fi; \
-	    docker run --detach --rm --privileged --volume=envoy-build:/root:rw $$(cat $<) tail -f /dev/null > $@; \
+	    docker run --network=host --detach --rm --privileged --volume=envoy-build:/root:rw $$(cat $<) tail -f /dev/null > $@; \
 	}
 $(OSS_HOME)/_cxx/envoy-build-container.txt.clean: %.clean:
 	if [ -e $* ]; then docker kill $$(cat $*) || true; fi
