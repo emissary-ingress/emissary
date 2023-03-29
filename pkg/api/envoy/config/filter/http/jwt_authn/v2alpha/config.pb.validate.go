@@ -108,9 +108,20 @@ func (m *JwtProvider) validate(all bool) error {
 
 	// no validation rules for PayloadInMetadata
 
-	switch m.JwksSourceSpecifier.(type) {
-
+	oneofJwksSourceSpecifierPresent := false
+	switch v := m.JwksSourceSpecifier.(type) {
 	case *JwtProvider_RemoteJwks:
+		if v == nil {
+			err := JwtProviderValidationError{
+				field:  "JwksSourceSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofJwksSourceSpecifierPresent = true
 
 		if all {
 			switch v := interface{}(m.GetRemoteJwks()).(type) {
@@ -142,6 +153,17 @@ func (m *JwtProvider) validate(all bool) error {
 		}
 
 	case *JwtProvider_LocalJwks:
+		if v == nil {
+			err := JwtProviderValidationError{
+				field:  "JwksSourceSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofJwksSourceSpecifierPresent = true
 
 		if all {
 			switch v := interface{}(m.GetLocalJwks()).(type) {
@@ -173,6 +195,9 @@ func (m *JwtProvider) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofJwksSourceSpecifierPresent {
 		err := JwtProviderValidationError{
 			field:  "JwksSourceSpecifier",
 			reason: "value is required",
@@ -181,7 +206,6 @@ func (m *JwtProvider) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {
@@ -656,12 +680,30 @@ func (m *JwtRequirement) validate(all bool) error {
 
 	var errors []error
 
-	switch m.RequiresType.(type) {
-
+	switch v := m.RequiresType.(type) {
 	case *JwtRequirement_ProviderName:
+		if v == nil {
+			err := JwtRequirementValidationError{
+				field:  "RequiresType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 		// no validation rules for ProviderName
-
 	case *JwtRequirement_ProviderAndAudiences:
+		if v == nil {
+			err := JwtRequirementValidationError{
+				field:  "RequiresType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetProviderAndAudiences()).(type) {
@@ -693,6 +735,16 @@ func (m *JwtRequirement) validate(all bool) error {
 		}
 
 	case *JwtRequirement_RequiresAny:
+		if v == nil {
+			err := JwtRequirementValidationError{
+				field:  "RequiresType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetRequiresAny()).(type) {
@@ -724,6 +776,16 @@ func (m *JwtRequirement) validate(all bool) error {
 		}
 
 	case *JwtRequirement_RequiresAll:
+		if v == nil {
+			err := JwtRequirementValidationError{
+				field:  "RequiresType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetRequiresAll()).(type) {
@@ -755,6 +817,16 @@ func (m *JwtRequirement) validate(all bool) error {
 		}
 
 	case *JwtRequirement_AllowMissingOrFailed:
+		if v == nil {
+			err := JwtRequirementValidationError{
+				field:  "RequiresType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetAllowMissingOrFailed()).(type) {
@@ -786,6 +858,16 @@ func (m *JwtRequirement) validate(all bool) error {
 		}
 
 	case *JwtRequirement_AllowMissing:
+		if v == nil {
+			err := JwtRequirementValidationError{
+				field:  "RequiresType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetAllowMissing()).(type) {
@@ -816,6 +898,8 @@ func (m *JwtRequirement) validate(all bool) error {
 			}
 		}
 
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {

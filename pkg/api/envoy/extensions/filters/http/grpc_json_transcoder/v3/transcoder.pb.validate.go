@@ -140,15 +140,68 @@ func (m *GrpcJsonTranscoder) validate(all bool) error {
 
 	// no validation rules for CaseInsensitiveEnumParsing
 
-	switch m.DescriptorSet.(type) {
+	if wrapper := m.GetMaxRequestBodySize(); wrapper != nil {
 
+		if wrapper.GetValue() <= 0 {
+			err := GrpcJsonTranscoderValidationError{
+				field:  "MaxRequestBodySize",
+				reason: "value must be greater than 0",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if wrapper := m.GetMaxResponseBodySize(); wrapper != nil {
+
+		if wrapper.GetValue() <= 0 {
+			err := GrpcJsonTranscoderValidationError{
+				field:  "MaxResponseBodySize",
+				reason: "value must be greater than 0",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	oneofDescriptorSetPresent := false
+	switch v := m.DescriptorSet.(type) {
 	case *GrpcJsonTranscoder_ProtoDescriptor:
+		if v == nil {
+			err := GrpcJsonTranscoderValidationError{
+				field:  "DescriptorSet",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofDescriptorSetPresent = true
 		// no validation rules for ProtoDescriptor
-
 	case *GrpcJsonTranscoder_ProtoDescriptorBin:
+		if v == nil {
+			err := GrpcJsonTranscoderValidationError{
+				field:  "DescriptorSet",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofDescriptorSetPresent = true
 		// no validation rules for ProtoDescriptorBin
-
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofDescriptorSetPresent {
 		err := GrpcJsonTranscoderValidationError{
 			field:  "DescriptorSet",
 			reason: "value is required",
@@ -157,7 +210,6 @@ func (m *GrpcJsonTranscoder) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

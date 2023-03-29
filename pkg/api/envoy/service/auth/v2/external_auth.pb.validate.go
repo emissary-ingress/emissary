@@ -526,9 +526,18 @@ func (m *CheckResponse) validate(all bool) error {
 		}
 	}
 
-	switch m.HttpResponse.(type) {
-
+	switch v := m.HttpResponse.(type) {
 	case *CheckResponse_DeniedResponse:
+		if v == nil {
+			err := CheckResponseValidationError{
+				field:  "HttpResponse",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetDeniedResponse()).(type) {
@@ -560,6 +569,16 @@ func (m *CheckResponse) validate(all bool) error {
 		}
 
 	case *CheckResponse_OkResponse:
+		if v == nil {
+			err := CheckResponseValidationError{
+				field:  "HttpResponse",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetOkResponse()).(type) {
@@ -590,6 +609,8 @@ func (m *CheckResponse) validate(all bool) error {
 			}
 		}
 
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {

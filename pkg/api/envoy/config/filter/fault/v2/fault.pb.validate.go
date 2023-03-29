@@ -88,9 +88,20 @@ func (m *FaultDelay) validate(all bool) error {
 		}
 	}
 
-	switch m.FaultDelaySecifier.(type) {
-
+	oneofFaultDelaySecifierPresent := false
+	switch v := m.FaultDelaySecifier.(type) {
 	case *FaultDelay_FixedDelay:
+		if v == nil {
+			err := FaultDelayValidationError{
+				field:  "FaultDelaySecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofFaultDelaySecifierPresent = true
 
 		if d := m.GetFixedDelay(); d != nil {
 			dur, err := d.AsDuration(), d.CheckValid()
@@ -123,6 +134,17 @@ func (m *FaultDelay) validate(all bool) error {
 		}
 
 	case *FaultDelay_HeaderDelay_:
+		if v == nil {
+			err := FaultDelayValidationError{
+				field:  "FaultDelaySecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofFaultDelaySecifierPresent = true
 
 		if all {
 			switch v := interface{}(m.GetHeaderDelay()).(type) {
@@ -154,6 +176,9 @@ func (m *FaultDelay) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofFaultDelaySecifierPresent {
 		err := FaultDelayValidationError{
 			field:  "FaultDelaySecifier",
 			reason: "value is required",
@@ -162,7 +187,6 @@ func (m *FaultDelay) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {
@@ -293,9 +317,20 @@ func (m *FaultRateLimit) validate(all bool) error {
 		}
 	}
 
-	switch m.LimitType.(type) {
-
+	oneofLimitTypePresent := false
+	switch v := m.LimitType.(type) {
 	case *FaultRateLimit_FixedLimit_:
+		if v == nil {
+			err := FaultRateLimitValidationError{
+				field:  "LimitType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofLimitTypePresent = true
 
 		if all {
 			switch v := interface{}(m.GetFixedLimit()).(type) {
@@ -327,6 +362,17 @@ func (m *FaultRateLimit) validate(all bool) error {
 		}
 
 	case *FaultRateLimit_HeaderLimit_:
+		if v == nil {
+			err := FaultRateLimitValidationError{
+				field:  "LimitType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofLimitTypePresent = true
 
 		if all {
 			switch v := interface{}(m.GetHeaderLimit()).(type) {
@@ -358,6 +404,9 @@ func (m *FaultRateLimit) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofLimitTypePresent {
 		err := FaultRateLimitValidationError{
 			field:  "LimitType",
 			reason: "value is required",
@@ -366,7 +415,6 @@ func (m *FaultRateLimit) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

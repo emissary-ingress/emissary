@@ -68,9 +68,18 @@ func (m *ResourceMonitor) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	switch m.ConfigType.(type) {
-
+	switch v := m.ConfigType.(type) {
 	case *ResourceMonitor_Config:
+		if v == nil {
+			err := ResourceMonitorValidationError{
+				field:  "ConfigType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetConfig()).(type) {
@@ -102,6 +111,16 @@ func (m *ResourceMonitor) validate(all bool) error {
 		}
 
 	case *ResourceMonitor_TypedConfig:
+		if v == nil {
+			err := ResourceMonitorValidationError{
+				field:  "ConfigType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetTypedConfig()).(type) {
@@ -132,6 +151,8 @@ func (m *ResourceMonitor) validate(all bool) error {
 			}
 		}
 
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {
@@ -355,9 +376,20 @@ func (m *Trigger) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	switch m.TriggerOneof.(type) {
-
+	oneofTriggerOneofPresent := false
+	switch v := m.TriggerOneof.(type) {
 	case *Trigger_Threshold:
+		if v == nil {
+			err := TriggerValidationError{
+				field:  "TriggerOneof",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTriggerOneofPresent = true
 
 		if all {
 			switch v := interface{}(m.GetThreshold()).(type) {
@@ -389,6 +421,9 @@ func (m *Trigger) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofTriggerOneofPresent {
 		err := TriggerValidationError{
 			field:  "TriggerOneof",
 			reason: "value is required",
@@ -397,7 +432,6 @@ func (m *Trigger) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

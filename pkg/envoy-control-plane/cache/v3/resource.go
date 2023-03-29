@@ -30,7 +30,6 @@ import (
 	runtime "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/runtime/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
-	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
 )
 
 // GetResponseType returns the enumeration for a valid xDS type URL.
@@ -105,9 +104,20 @@ func GetResourceName(res types.Resource) string {
 		return v.GetName()
 	case *core.TypedExtensionConfig:
 		return v.GetName()
+	case types.ResourceWithName:
+		return v.GetName()
 	default:
 		return ""
 	}
+}
+
+// GetResourceName returns the resource names for a list of valid xDS response types.
+func GetResourceNames(resources []types.Resource) []string {
+	out := make([]string, len(resources))
+	for i, r := range resources {
+		out[i] = GetResourceName(r)
+	}
+	return out
 }
 
 // MarshalResource converts the Resource to MarshaledResource.
@@ -207,10 +217,6 @@ func getListenerReferences(src *listener.Listener, out map[resource.Type]map[str
 	// Extract route configuration names from HTTP connection manager.
 	for _, chain := range src.FilterChains {
 		for _, filter := range chain.Filters {
-			if filter.Name != wellknown.HTTPConnectionManager {
-				continue
-			}
-
 			config := resource.GetHTTPConnectionManager(filter)
 			if config == nil {
 				continue

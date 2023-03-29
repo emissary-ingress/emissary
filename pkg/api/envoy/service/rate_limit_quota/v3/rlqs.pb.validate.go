@@ -741,9 +741,20 @@ func (m *RateLimitQuotaResponse_BucketAction) validate(all bool) error {
 		}
 	}
 
-	switch m.BucketAction.(type) {
-
+	oneofBucketActionPresent := false
+	switch v := m.BucketAction.(type) {
 	case *RateLimitQuotaResponse_BucketAction_QuotaAssignmentAction_:
+		if v == nil {
+			err := RateLimitQuotaResponse_BucketActionValidationError{
+				field:  "BucketAction",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofBucketActionPresent = true
 
 		if all {
 			switch v := interface{}(m.GetQuotaAssignmentAction()).(type) {
@@ -775,6 +786,17 @@ func (m *RateLimitQuotaResponse_BucketAction) validate(all bool) error {
 		}
 
 	case *RateLimitQuotaResponse_BucketAction_AbandonAction_:
+		if v == nil {
+			err := RateLimitQuotaResponse_BucketActionValidationError{
+				field:  "BucketAction",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofBucketActionPresent = true
 
 		if all {
 			switch v := interface{}(m.GetAbandonAction()).(type) {
@@ -806,6 +828,9 @@ func (m *RateLimitQuotaResponse_BucketAction) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofBucketActionPresent {
 		err := RateLimitQuotaResponse_BucketActionValidationError{
 			field:  "BucketAction",
 			reason: "value is required",
@@ -814,7 +839,6 @@ func (m *RateLimitQuotaResponse_BucketAction) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

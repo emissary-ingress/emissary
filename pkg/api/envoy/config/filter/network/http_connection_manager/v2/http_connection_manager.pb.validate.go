@@ -698,9 +698,20 @@ func (m *HttpConnectionManager) validate(all bool) error {
 		}
 	}
 
-	switch m.RouteSpecifier.(type) {
-
+	oneofRouteSpecifierPresent := false
+	switch v := m.RouteSpecifier.(type) {
 	case *HttpConnectionManager_Rds:
+		if v == nil {
+			err := HttpConnectionManagerValidationError{
+				field:  "RouteSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofRouteSpecifierPresent = true
 
 		if all {
 			switch v := interface{}(m.GetRds()).(type) {
@@ -732,6 +743,17 @@ func (m *HttpConnectionManager) validate(all bool) error {
 		}
 
 	case *HttpConnectionManager_RouteConfig:
+		if v == nil {
+			err := HttpConnectionManagerValidationError{
+				field:  "RouteSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofRouteSpecifierPresent = true
 
 		if all {
 			switch v := interface{}(m.GetRouteConfig()).(type) {
@@ -763,6 +785,17 @@ func (m *HttpConnectionManager) validate(all bool) error {
 		}
 
 	case *HttpConnectionManager_ScopedRoutes:
+		if v == nil {
+			err := HttpConnectionManagerValidationError{
+				field:  "RouteSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofRouteSpecifierPresent = true
 
 		if all {
 			switch v := interface{}(m.GetScopedRoutes()).(type) {
@@ -794,6 +827,9 @@ func (m *HttpConnectionManager) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofRouteSpecifierPresent {
 		err := HttpConnectionManagerValidationError{
 			field:  "RouteSpecifier",
 			reason: "value is required",
@@ -802,7 +838,6 @@ func (m *HttpConnectionManager) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {
@@ -1295,9 +1330,20 @@ func (m *ScopedRoutes) validate(all bool) error {
 		}
 	}
 
-	switch m.ConfigSpecifier.(type) {
-
+	oneofConfigSpecifierPresent := false
+	switch v := m.ConfigSpecifier.(type) {
 	case *ScopedRoutes_ScopedRouteConfigurationsList:
+		if v == nil {
+			err := ScopedRoutesValidationError{
+				field:  "ConfigSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofConfigSpecifierPresent = true
 
 		if all {
 			switch v := interface{}(m.GetScopedRouteConfigurationsList()).(type) {
@@ -1329,6 +1375,17 @@ func (m *ScopedRoutes) validate(all bool) error {
 		}
 
 	case *ScopedRoutes_ScopedRds:
+		if v == nil {
+			err := ScopedRoutesValidationError{
+				field:  "ConfigSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofConfigSpecifierPresent = true
 
 		if all {
 			switch v := interface{}(m.GetScopedRds()).(type) {
@@ -1360,6 +1417,9 @@ func (m *ScopedRoutes) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofConfigSpecifierPresent {
 		err := ScopedRoutesValidationError{
 			field:  "ConfigSpecifier",
 			reason: "value is required",
@@ -1368,7 +1428,6 @@ func (m *ScopedRoutes) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {
@@ -1620,9 +1679,18 @@ func (m *HttpFilter) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	switch m.ConfigType.(type) {
-
+	switch v := m.ConfigType.(type) {
 	case *HttpFilter_Config:
+		if v == nil {
+			err := HttpFilterValidationError{
+				field:  "ConfigType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetConfig()).(type) {
@@ -1654,6 +1722,16 @@ func (m *HttpFilter) validate(all bool) error {
 		}
 
 	case *HttpFilter_TypedConfig:
+		if v == nil {
+			err := HttpFilterValidationError{
+				field:  "ConfigType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetTypedConfig()).(type) {
@@ -1684,6 +1762,8 @@ func (m *HttpFilter) validate(all bool) error {
 			}
 		}
 
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {
@@ -2789,9 +2869,20 @@ func (m *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder) validate(all bool) error 
 
 	var errors []error
 
-	switch m.Type.(type) {
-
+	oneofTypePresent := false
+	switch v := m.Type.(type) {
 	case *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_:
+		if v == nil {
+			err := ScopedRoutes_ScopeKeyBuilder_FragmentBuilderValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
 
 		if all {
 			switch v := interface{}(m.GetHeaderValueExtractor()).(type) {
@@ -2823,6 +2914,9 @@ func (m *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder) validate(all bool) error 
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofTypePresent {
 		err := ScopedRoutes_ScopeKeyBuilder_FragmentBuilderValidationError{
 			field:  "Type",
 			reason: "value is required",
@@ -2831,7 +2925,6 @@ func (m *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder) validate(all bool) error 
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {
@@ -2955,12 +3048,30 @@ func (m *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor) vali
 
 	// no validation rules for ElementSeparator
 
-	switch m.ExtractType.(type) {
-
+	switch v := m.ExtractType.(type) {
 	case *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_Index:
+		if v == nil {
+			err := ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractorValidationError{
+				field:  "ExtractType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 		// no validation rules for Index
-
 	case *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_Element:
+		if v == nil {
+			err := ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractorValidationError{
+				field:  "ExtractType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetElement()).(type) {
@@ -2991,6 +3102,8 @@ func (m *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor) vali
 			}
 		}
 
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {

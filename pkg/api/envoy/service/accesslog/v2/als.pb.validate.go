@@ -188,9 +188,20 @@ func (m *StreamAccessLogsMessage) validate(all bool) error {
 		}
 	}
 
-	switch m.LogEntries.(type) {
-
+	oneofLogEntriesPresent := false
+	switch v := m.LogEntries.(type) {
 	case *StreamAccessLogsMessage_HttpLogs:
+		if v == nil {
+			err := StreamAccessLogsMessageValidationError{
+				field:  "LogEntries",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofLogEntriesPresent = true
 
 		if all {
 			switch v := interface{}(m.GetHttpLogs()).(type) {
@@ -222,6 +233,17 @@ func (m *StreamAccessLogsMessage) validate(all bool) error {
 		}
 
 	case *StreamAccessLogsMessage_TcpLogs:
+		if v == nil {
+			err := StreamAccessLogsMessageValidationError{
+				field:  "LogEntries",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofLogEntriesPresent = true
 
 		if all {
 			switch v := interface{}(m.GetTcpLogs()).(type) {
@@ -253,6 +275,9 @@ func (m *StreamAccessLogsMessage) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofLogEntriesPresent {
 		err := StreamAccessLogsMessageValidationError{
 			field:  "LogEntries",
 			reason: "value is required",
@@ -261,7 +286,6 @@ func (m *StreamAccessLogsMessage) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

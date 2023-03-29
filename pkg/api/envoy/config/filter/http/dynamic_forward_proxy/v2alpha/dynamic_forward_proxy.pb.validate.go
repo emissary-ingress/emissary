@@ -196,14 +196,33 @@ func (m *PerRouteConfig) validate(all bool) error {
 
 	var errors []error
 
-	switch m.HostRewriteSpecifier.(type) {
-
+	switch v := m.HostRewriteSpecifier.(type) {
 	case *PerRouteConfig_HostRewrite:
+		if v == nil {
+			err := PerRouteConfigValidationError{
+				field:  "HostRewriteSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 		// no validation rules for HostRewrite
-
 	case *PerRouteConfig_AutoHostRewriteHeader:
+		if v == nil {
+			err := PerRouteConfigValidationError{
+				field:  "HostRewriteSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 		// no validation rules for AutoHostRewriteHeader
-
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {

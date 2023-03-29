@@ -186,9 +186,20 @@ func (m *StatefulSessionPerRoute) validate(all bool) error {
 
 	var errors []error
 
-	switch m.Override.(type) {
-
+	oneofOverridePresent := false
+	switch v := m.Override.(type) {
 	case *StatefulSessionPerRoute_Disabled:
+		if v == nil {
+			err := StatefulSessionPerRouteValidationError{
+				field:  "Override",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofOverridePresent = true
 
 		if m.GetDisabled() != true {
 			err := StatefulSessionPerRouteValidationError{
@@ -202,6 +213,17 @@ func (m *StatefulSessionPerRoute) validate(all bool) error {
 		}
 
 	case *StatefulSessionPerRoute_StatefulSession:
+		if v == nil {
+			err := StatefulSessionPerRouteValidationError{
+				field:  "Override",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofOverridePresent = true
 
 		if all {
 			switch v := interface{}(m.GetStatefulSession()).(type) {
@@ -233,6 +255,9 @@ func (m *StatefulSessionPerRoute) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofOverridePresent {
 		err := StatefulSessionPerRouteValidationError{
 			field:  "Override",
 			reason: "value is required",
@@ -241,7 +266,6 @@ func (m *StatefulSessionPerRoute) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

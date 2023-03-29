@@ -119,8 +119,26 @@ func (s *server) processDelta(str stream.DeltaStream, reqCh <-chan *discovery.De
 
 			watch := watches.deltaWatches[typ]
 			watch.nonce = nonce
+			// As per XDS protocol, for the non wildcard resources, management server should only respond to the resources
+			// requested by the client. Since we were replacing (instead of updating) the complete state resource version
+			// map after responding to the client, it was overriding/removing the resources subscribed by the client intermittently.
+			// As a result, the update of the such resources was never sent to the client.
+			// In order to address the issue, started updating the resources hash in the existing map instead of replacing
+			// the completed map.
+			// In case of wildcard resources, client never subscribes for the resources, replacing the state resource version based
+			// on the response by the management server is not an issue. Hence, the fix is only applicable for the non wildcard resources.
+			if !watch.state.IsWildcard() {
+				for k, hash := range resp.GetNextVersionMap() {
+					if currHash, found := watch.state.GetResourceVersions()[k]; found {
+						if currHash != hash {
+							watch.state.GetResourceVersions()[k] = hash
+						}
+					}
+				}
+			} else {
+				watch.state.SetResourceVersions(resp.GetNextVersionMap())
+			}
 
-			watch.state.SetResourceVersions(resp.GetNextVersionMap())
 			watches.deltaWatches[typ] = watch
 		case req, more := <-reqCh:
 			// input stream ended or errored out

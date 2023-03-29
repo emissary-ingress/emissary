@@ -137,9 +137,20 @@ func (m *HealthCheckEvent) validate(all bool) error {
 		}
 	}
 
-	switch m.Event.(type) {
-
+	oneofEventPresent := false
+	switch v := m.Event.(type) {
 	case *HealthCheckEvent_EjectUnhealthyEvent:
+		if v == nil {
+			err := HealthCheckEventValidationError{
+				field:  "Event",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofEventPresent = true
 
 		if all {
 			switch v := interface{}(m.GetEjectUnhealthyEvent()).(type) {
@@ -171,6 +182,17 @@ func (m *HealthCheckEvent) validate(all bool) error {
 		}
 
 	case *HealthCheckEvent_AddHealthyEvent:
+		if v == nil {
+			err := HealthCheckEventValidationError{
+				field:  "Event",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofEventPresent = true
 
 		if all {
 			switch v := interface{}(m.GetAddHealthyEvent()).(type) {
@@ -202,6 +224,17 @@ func (m *HealthCheckEvent) validate(all bool) error {
 		}
 
 	case *HealthCheckEvent_HealthCheckFailureEvent:
+		if v == nil {
+			err := HealthCheckEventValidationError{
+				field:  "Event",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofEventPresent = true
 
 		if all {
 			switch v := interface{}(m.GetHealthCheckFailureEvent()).(type) {
@@ -233,6 +266,17 @@ func (m *HealthCheckEvent) validate(all bool) error {
 		}
 
 	case *HealthCheckEvent_DegradedHealthyHost:
+		if v == nil {
+			err := HealthCheckEventValidationError{
+				field:  "Event",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofEventPresent = true
 
 		if all {
 			switch v := interface{}(m.GetDegradedHealthyHost()).(type) {
@@ -264,6 +308,17 @@ func (m *HealthCheckEvent) validate(all bool) error {
 		}
 
 	case *HealthCheckEvent_NoLongerDegradedHost:
+		if v == nil {
+			err := HealthCheckEventValidationError{
+				field:  "Event",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofEventPresent = true
 
 		if all {
 			switch v := interface{}(m.GetNoLongerDegradedHost()).(type) {
@@ -295,6 +350,9 @@ func (m *HealthCheckEvent) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofEventPresent {
 		err := HealthCheckEventValidationError{
 			field:  "Event",
 			reason: "value is required",
@@ -303,7 +361,6 @@ func (m *HealthCheckEvent) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

@@ -24,6 +24,7 @@ const (
 	SecretType          = APITypePrefix + "envoy.extensions.transport_sockets.tls.v3.Secret"
 	ExtensionConfigType = APITypePrefix + "envoy.config.core.v3.TypedExtensionConfig"
 	RuntimeType         = APITypePrefix + "envoy.service.runtime.v3.Runtime"
+	ThriftRouteType     = APITypePrefix + "envoy.extensions.filters.network.thrift_proxy.v3.RouteConfiguration"
 
 	// AnyType is used only by ADS
 	AnyType = ""

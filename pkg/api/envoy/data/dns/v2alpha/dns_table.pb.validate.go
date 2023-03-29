@@ -366,9 +366,20 @@ func (m *DnsTable_DnsEndpoint) validate(all bool) error {
 
 	var errors []error
 
-	switch m.EndpointConfig.(type) {
-
+	oneofEndpointConfigPresent := false
+	switch v := m.EndpointConfig.(type) {
 	case *DnsTable_DnsEndpoint_AddressList:
+		if v == nil {
+			err := DnsTable_DnsEndpointValidationError{
+				field:  "EndpointConfig",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofEndpointConfigPresent = true
 
 		if all {
 			switch v := interface{}(m.GetAddressList()).(type) {
@@ -400,6 +411,9 @@ func (m *DnsTable_DnsEndpoint) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofEndpointConfigPresent {
 		err := DnsTable_DnsEndpointValidationError{
 			field:  "EndpointConfig",
 			reason: "value is required",
@@ -408,7 +422,6 @@ func (m *DnsTable_DnsEndpoint) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

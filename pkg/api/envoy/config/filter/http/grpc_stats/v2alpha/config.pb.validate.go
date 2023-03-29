@@ -59,9 +59,18 @@ func (m *FilterConfig) validate(all bool) error {
 
 	// no validation rules for EmitFilterState
 
-	switch m.PerMethodStatSpecifier.(type) {
-
+	switch v := m.PerMethodStatSpecifier.(type) {
 	case *FilterConfig_IndividualMethodStatsAllowlist:
+		if v == nil {
+			err := FilterConfigValidationError{
+				field:  "PerMethodStatSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetIndividualMethodStatsAllowlist()).(type) {
@@ -93,6 +102,16 @@ func (m *FilterConfig) validate(all bool) error {
 		}
 
 	case *FilterConfig_StatsForAllMethods:
+		if v == nil {
+			err := FilterConfigValidationError{
+				field:  "PerMethodStatSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetStatsForAllMethods()).(type) {
@@ -123,6 +142,8 @@ func (m *FilterConfig) validate(all bool) error {
 			}
 		}
 
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {

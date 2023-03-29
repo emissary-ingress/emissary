@@ -57,9 +57,20 @@ func (m *RateLimitStrategy) validate(all bool) error {
 
 	var errors []error
 
-	switch m.Strategy.(type) {
-
+	oneofStrategyPresent := false
+	switch v := m.Strategy.(type) {
 	case *RateLimitStrategy_BlanketRule_:
+		if v == nil {
+			err := RateLimitStrategyValidationError{
+				field:  "Strategy",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofStrategyPresent = true
 
 		if _, ok := RateLimitStrategy_BlanketRule_name[int32(m.GetBlanketRule())]; !ok {
 			err := RateLimitStrategyValidationError{
@@ -73,6 +84,17 @@ func (m *RateLimitStrategy) validate(all bool) error {
 		}
 
 	case *RateLimitStrategy_RequestsPerTimeUnit_:
+		if v == nil {
+			err := RateLimitStrategyValidationError{
+				field:  "Strategy",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofStrategyPresent = true
 
 		if all {
 			switch v := interface{}(m.GetRequestsPerTimeUnit()).(type) {
@@ -104,6 +126,17 @@ func (m *RateLimitStrategy) validate(all bool) error {
 		}
 
 	case *RateLimitStrategy_TokenBucket:
+		if v == nil {
+			err := RateLimitStrategyValidationError{
+				field:  "Strategy",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofStrategyPresent = true
 
 		if all {
 			switch v := interface{}(m.GetTokenBucket()).(type) {
@@ -135,6 +168,9 @@ func (m *RateLimitStrategy) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofStrategyPresent {
 		err := RateLimitStrategyValidationError{
 			field:  "Strategy",
 			reason: "value is required",
@@ -143,7 +179,6 @@ func (m *RateLimitStrategy) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

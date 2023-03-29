@@ -1036,9 +1036,18 @@ func (m *Listener) validate(all bool) error {
 
 	// no validation rules for IgnoreGlobalConnLimit
 
-	switch m.ListenerSpecifier.(type) {
-
+	switch v := m.ListenerSpecifier.(type) {
 	case *Listener_InternalListener:
+		if v == nil {
+			err := ListenerValidationError{
+				field:  "ListenerSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetInternalListener()).(type) {
@@ -1069,6 +1078,8 @@ func (m *Listener) validate(all bool) error {
 			}
 		}
 
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {
@@ -1302,9 +1313,20 @@ func (m *Listener_ConnectionBalanceConfig) validate(all bool) error {
 
 	var errors []error
 
-	switch m.BalanceType.(type) {
-
+	oneofBalanceTypePresent := false
+	switch v := m.BalanceType.(type) {
 	case *Listener_ConnectionBalanceConfig_ExactBalance_:
+		if v == nil {
+			err := Listener_ConnectionBalanceConfigValidationError{
+				field:  "BalanceType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofBalanceTypePresent = true
 
 		if all {
 			switch v := interface{}(m.GetExactBalance()).(type) {
@@ -1336,6 +1358,17 @@ func (m *Listener_ConnectionBalanceConfig) validate(all bool) error {
 		}
 
 	case *Listener_ConnectionBalanceConfig_ExtendBalance:
+		if v == nil {
+			err := Listener_ConnectionBalanceConfigValidationError{
+				field:  "BalanceType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofBalanceTypePresent = true
 
 		if all {
 			switch v := interface{}(m.GetExtendBalance()).(type) {
@@ -1367,6 +1400,9 @@ func (m *Listener_ConnectionBalanceConfig) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofBalanceTypePresent {
 		err := Listener_ConnectionBalanceConfigValidationError{
 			field:  "BalanceType",
 			reason: "value is required",
@@ -1375,7 +1411,6 @@ func (m *Listener_ConnectionBalanceConfig) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {
