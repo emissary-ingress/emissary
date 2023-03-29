@@ -46,7 +46,7 @@ markupsafe==2.1.1
     #   werkzeug
 oauthlib==3.2.2
     # via requests-oauthlib
-orjson==3.6.6
+orjson==3.8.9
     # via -r requirements.in
 prometheus-client==0.15.0
     # via -r requirements.in
