@@ -24,10 +24,6 @@ __pycache__
 .mypy_cache
 .envrc
 
-# local files
-*.local
-*.local.sh
-
 # binaries
 /charts/docgen
 

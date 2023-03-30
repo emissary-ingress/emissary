@@ -92,12 +92,8 @@ $(tools.bindir)/.%.stamp: $(tools.srcdir)/%/main.go FORCE
 # If we build with `-mod=vendor` (which is the default if
 # `vendor/modules.txt` exists), *and* our deps don't exist in $(go env
 # GOMODCACHE), then the binary ends up with empty hashes for those
-# packages.  In CI, (as long as `vendor/` is checked in to git) this
-# means that they would be empty for the first `make generate` and
-# non-empty for the second `make generate`, which would (rightfully)
-# trip copy-ifchanged's "this should not happen in CI" checks.  I
-# don't have the time to kill off `vendor/` yet, so for now this is
-# addressed by explicitly setting `-mod=mod`.
+# packages; this can (rightfully) trip copy-ifchanged's "this should
+# not happen in CI" checks.
 	cd $(<D) && GOOS= GOARCH= go build -mod=mod -o $(abspath $@) .
 $(tools.bindir)/%: $(tools.bindir)/.%.stamp $(tools/copy-ifchanged)
 	$(tools/copy-ifchanged) $< $@

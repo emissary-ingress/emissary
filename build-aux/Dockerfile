@@ -29,57 +29,7 @@ ARG builderbase="i-forgot-to-set-build-arg-builderbase"
 # This controls where we copy envoy from.
 ARG envoy="i-forgot-to-set-build-arg-envoy"
 
-########################################
-# The builder image
-########################################
-
 FROM ${envoy} as envoy
-
-FROM ${builderbase} as builder
-
-WORKDIR /buildroot
-
-ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
-
-COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
-
-ENV KUBECONFIG=/buildroot/kubeconfig.yaml
-
-# XXX: this will go away
-RUN mkdir -p /ambassador/sidecars && \
-    ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py && \
-    ln -s /buildroot/ambassador/python/watch_hook.py /ambassador/watch_hook.py && \
-    ln -s /buildroot/ambassador/python/kubewatch.py /ambassador/kubewatch.py
-
-RUN adduser dw --disabled-password
-# SUDO_USERS HOSTS=(AS_USER) TAGS COMMANDS
-RUN echo "dw ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/datawire
-RUN chown dw /buildroot
-USER dw
-
-ENTRYPOINT [ "/bin/bash" ]
-
-########################################
-# The golang build stage
-########################################
-
-FROM ${builderbase} as golang
-
-WORKDIR /go
-
-ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
-
-# Build the golang binaries
-ADD api api
-ADD cmd cmd
-ADD pkg pkg
-ADD vendor vendor
-ADD go.mod go.mod
-ADD go.sum go.sum
-
-RUN --mount=type=cache,target=/root/.cache/go-build \
-    mkdir -p /go/bin && \
-    time go build -mod=vendor -o /go/bin/ ./cmd/...
 
 ########################################
 # The artifact build stage
@@ -87,21 +37,17 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 FROM ${builderbase} as artifacts
 
-WORKDIR /buildroot/ambassador
-
-ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
-
-# Copy in the golang binaries
-COPY --from=golang /go/bin/* /buildroot/bin/
-
 # Setup the python code
-ADD python python
-RUN time pip install --no-deps -e python
+ADD python /buildroot/ambassador/python
+RUN time pip install --no-deps -e /buildroot/ambassador/python
 
-# Run post-compile.sh
-ADD build-aux build-aux
-ADD post-compile.sh post-compile.sh
-RUN bash post-compile.sh
+# Set up /opt/ambassador/bin/ (for the production image)
+RUN sudo install -D -t /opt/ambassador/bin/ /usr/local/bin/busyambassador && \
+    sudo ln -sf busyambassador /opt/ambassador/bin/agent && \
+    sudo ln -sf busyambassador /opt/ambassador/bin/apiext && \
+    sudo ln -sf busyambassador /opt/ambassador/bin/kubestatus && \
+    sudo ln -sf busyambassador /opt/ambassador/bin/watt && \
+    sudo install /usr/local/bin/capabilities_wrapper /opt/ambassador/bin/wrapper
 
 # XXX: this will go away
 RUN mkdir -p /ambassador/sidecars && \
@@ -110,8 +56,8 @@ RUN mkdir -p /ambassador/sidecars && \
     ln -s /buildroot/ambassador/python/kubewatch.py /ambassador/kubewatch.py
 
 # These will be extracted into the optimized image later
-ADD demo demo
-ADD manifests/emissary/emissary-crds.yaml.in manifests/emissary/emissary-crds.yaml
+ADD demo /buildroot/ambassador/demo
+ADD manifests/emissary/emissary-crds.yaml.in /buildroot/ambassador/manifests/emissary/emissary-crds.yaml
 
 ########################################
 # The optimized images
@@ -129,10 +75,6 @@ RUN adduser ambassador -u 8888 -G root -D -H -s /bin/false
 RUN apk --no-cache add bash curl python3=${py_version} libcap htop
 RUN apk upgrade --no-cache
 COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
-
-# Other installers
-COPY --from=artifacts /opt/image-build /opt/image-build
-RUN /opt/image-build/install.sh
 
 # External Python packages we use
 COPY --from=artifacts /usr/lib/python3.10/site-packages /usr/lib/python3.10/site-packages
