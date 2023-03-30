@@ -90,6 +90,10 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Feature: This upgrades Emissary-ingress to be built on Envoy v1.25.3. This provides
+  Emissary-ingress with the latest security patches, performances enhancments, and features offered
+  by the envoy proxy.
+
 ## [3.5.0] February 15, 2023
 [3.5.0]: https://github.com/emissary-ingress/emissary/compare/v3.4.0...v3.5.0
 

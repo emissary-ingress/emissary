@@ -432,9 +432,20 @@ func (m *ResponseMapPerRoute) validate(all bool) error {
 
 	var errors []error
 
-	switch m.Override.(type) {
-
+	oneofOverridePresent := false
+	switch v := m.Override.(type) {
 	case *ResponseMapPerRoute_Disabled:
+		if v == nil {
+			err := ResponseMapPerRouteValidationError{
+				field:  "Override",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofOverridePresent = true
 
 		if m.GetDisabled() != true {
 			err := ResponseMapPerRouteValidationError{
@@ -448,6 +459,17 @@ func (m *ResponseMapPerRoute) validate(all bool) error {
 		}
 
 	case *ResponseMapPerRoute_ResponseMap:
+		if v == nil {
+			err := ResponseMapPerRouteValidationError{
+				field:  "Override",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofOverridePresent = true
 
 		if m.GetResponseMap() == nil {
 			err := ResponseMapPerRouteValidationError{
@@ -490,6 +512,9 @@ func (m *ResponseMapPerRoute) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofOverridePresent {
 		err := ResponseMapPerRouteValidationError{
 			field:  "Override",
 			reason: "value is required",
@@ -498,7 +523,6 @@ func (m *ResponseMapPerRoute) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

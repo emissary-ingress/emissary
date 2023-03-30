@@ -926,9 +926,18 @@ func (m *HealthCheckRequestOrEndpointHealthResponse) validate(all bool) error {
 
 	var errors []error
 
-	switch m.RequestType.(type) {
-
+	switch v := m.RequestType.(type) {
 	case *HealthCheckRequestOrEndpointHealthResponse_HealthCheckRequest:
+		if v == nil {
+			err := HealthCheckRequestOrEndpointHealthResponseValidationError{
+				field:  "RequestType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetHealthCheckRequest()).(type) {
@@ -960,6 +969,16 @@ func (m *HealthCheckRequestOrEndpointHealthResponse) validate(all bool) error {
 		}
 
 	case *HealthCheckRequestOrEndpointHealthResponse_EndpointHealthResponse:
+		if v == nil {
+			err := HealthCheckRequestOrEndpointHealthResponseValidationError{
+				field:  "RequestType",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetEndpointHealthResponse()).(type) {
@@ -990,6 +1009,8 @@ func (m *HealthCheckRequestOrEndpointHealthResponse) validate(all bool) error {
 			}
 		}
 
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {
@@ -1363,6 +1384,35 @@ func (m *ClusterHealthCheck) validate(all bool) error {
 			}
 		}
 
+	}
+
+	if all {
+		switch v := interface{}(m.GetUpstreamBindConfig()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ClusterHealthCheckValidationError{
+					field:  "UpstreamBindConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ClusterHealthCheckValidationError{
+					field:  "UpstreamBindConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUpstreamBindConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterHealthCheckValidationError{
+				field:  "UpstreamBindConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {

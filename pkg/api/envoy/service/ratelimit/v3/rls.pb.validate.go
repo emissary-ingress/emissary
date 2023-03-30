@@ -583,9 +583,18 @@ func (m *RateLimitResponse_Quota) validate(all bool) error {
 
 	// no validation rules for Id
 
-	switch m.ExpirationSpecifier.(type) {
-
+	switch v := m.ExpirationSpecifier.(type) {
 	case *RateLimitResponse_Quota_ValidUntil:
+		if v == nil {
+			err := RateLimitResponse_QuotaValidationError{
+				field:  "ExpirationSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetValidUntil()).(type) {
@@ -616,6 +625,8 @@ func (m *RateLimitResponse_Quota) validate(all bool) error {
 			}
 		}
 
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {

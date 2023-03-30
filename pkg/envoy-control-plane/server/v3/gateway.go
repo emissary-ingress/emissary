@@ -17,7 +17,7 @@ package server
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"path"
 
@@ -64,7 +64,7 @@ func (h *HTTPGateway) ServeHTTP(req *http.Request) ([]byte, int, error) {
 		return nil, http.StatusBadRequest, fmt.Errorf("empty body")
 	}
 
-	body, err := ioutil.ReadAll(req.Body)
+	body, err := io.ReadAll(req.Body)
 	if err != nil {
 		return nil, http.StatusBadRequest, fmt.Errorf("cannot read body")
 	}

@@ -17,6 +17,12 @@ type ResourceWithTTL struct {
 	TTL      *time.Duration
 }
 
+// ResourceWithName provides a name for out-of-tree resources.
+type ResourceWithName interface {
+	proto.Message
+	GetName() string
+}
+
 // MarshaledResource is an alias for the serialized binary array.
 type MarshaledResource = []byte
 

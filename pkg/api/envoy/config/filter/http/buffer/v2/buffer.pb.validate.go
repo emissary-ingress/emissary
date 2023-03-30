@@ -179,9 +179,20 @@ func (m *BufferPerRoute) validate(all bool) error {
 
 	var errors []error
 
-	switch m.Override.(type) {
-
+	oneofOverridePresent := false
+	switch v := m.Override.(type) {
 	case *BufferPerRoute_Disabled:
+		if v == nil {
+			err := BufferPerRouteValidationError{
+				field:  "Override",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofOverridePresent = true
 
 		if m.GetDisabled() != true {
 			err := BufferPerRouteValidationError{
@@ -195,6 +206,17 @@ func (m *BufferPerRoute) validate(all bool) error {
 		}
 
 	case *BufferPerRoute_Buffer:
+		if v == nil {
+			err := BufferPerRouteValidationError{
+				field:  "Override",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofOverridePresent = true
 
 		if m.GetBuffer() == nil {
 			err := BufferPerRouteValidationError{
@@ -237,6 +259,9 @@ func (m *BufferPerRoute) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofOverridePresent {
 		err := BufferPerRouteValidationError{
 			field:  "Override",
 			reason: "value is required",
@@ -245,7 +270,6 @@ func (m *BufferPerRoute) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

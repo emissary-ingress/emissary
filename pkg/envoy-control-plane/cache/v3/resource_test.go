@@ -83,6 +83,16 @@ func TestValidate(t *testing.T) {
 	}
 }
 
+type customResource struct {
+	cluster.Filter // Any proto would work here.
+}
+
+const customName = "test-name"
+
+func (cs *customResource) GetName() string { return customName }
+
+var _ types.ResourceWithName = &customResource{}
+
 func TestGetResourceName(t *testing.T) {
 	if name := cache.GetResourceName(testEndpoint); name != clusterName {
 		t.Errorf("GetResourceName(%v) => got %q, want %q", testEndpoint, name, clusterName)
@@ -105,8 +115,37 @@ func TestGetResourceName(t *testing.T) {
 	if name := cache.GetResourceName(testRuntime); name != runtimeName {
 		t.Errorf("GetResourceName(%v) => got %q, want %q", testRuntime, name, runtimeName)
 	}
+	if name := cache.GetResourceName(&customResource{}); name != customName {
+		t.Errorf("GetResourceName(nil) => got %q, want %q", name, customName)
+	}
 	if name := cache.GetResourceName(nil); name != "" {
 		t.Errorf("GetResourceName(nil) => got %q, want none", name)
+	}
+}
+
+func TestGetResourceNames(t *testing.T) {
+	tests := []struct {
+		name  string
+		input []types.Resource
+		want  []string
+	}{
+		{
+			name:  "empty",
+			input: []types.Resource{},
+			want:  []string{},
+		},
+		{
+			name:  "many",
+			input: []types.Resource{testRuntime, testListener, testVirtualHost},
+			want:  []string{runtimeName, listenerName, virtualHostName},
+		},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			got := cache.GetResourceNames(test.input)
+			assert.ElementsMatch(t, test.want, got)
+		})
 	}
 }
 

@@ -96,6 +96,8 @@ func RunManagementServer(ctx context.Context, srv server.Server, port uint) {
 // RunManagementGateway starts an HTTP gateway to an xDS server.
 func RunManagementGateway(ctx context.Context, srv server.Server, port uint) {
 	log.Printf("gateway listening HTTP/1.1 on %d\n", port)
+	// Ignore: G114: Use of net/http serve function that has no support for setting timeouts
+	// nolint:gosec
 	server := &http.Server{
 		Addr: fmt.Sprintf(":%d", port),
 		Handler: &HTTPGateway{

@@ -243,9 +243,18 @@ func (m *SocketEvent) validate(all bool) error {
 		}
 	}
 
-	switch m.EventSelector.(type) {
-
+	switch v := m.EventSelector.(type) {
 	case *SocketEvent_Read_:
+		if v == nil {
+			err := SocketEventValidationError{
+				field:  "EventSelector",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetRead()).(type) {
@@ -277,6 +286,16 @@ func (m *SocketEvent) validate(all bool) error {
 		}
 
 	case *SocketEvent_Write_:
+		if v == nil {
+			err := SocketEventValidationError{
+				field:  "EventSelector",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetWrite()).(type) {
@@ -308,6 +327,16 @@ func (m *SocketEvent) validate(all bool) error {
 		}
 
 	case *SocketEvent_Closed_:
+		if v == nil {
+			err := SocketEventValidationError{
+				field:  "EventSelector",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetClosed()).(type) {
@@ -338,6 +367,8 @@ func (m *SocketEvent) validate(all bool) error {
 			}
 		}
 
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {
@@ -612,9 +643,18 @@ func (m *SocketStreamedTraceSegment) validate(all bool) error {
 
 	// no validation rules for TraceId
 
-	switch m.MessagePiece.(type) {
-
+	switch v := m.MessagePiece.(type) {
 	case *SocketStreamedTraceSegment_Connection:
+		if v == nil {
+			err := SocketStreamedTraceSegmentValidationError{
+				field:  "MessagePiece",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetConnection()).(type) {
@@ -646,6 +686,16 @@ func (m *SocketStreamedTraceSegment) validate(all bool) error {
 		}
 
 	case *SocketStreamedTraceSegment_Event:
+		if v == nil {
+			err := SocketStreamedTraceSegmentValidationError{
+				field:  "MessagePiece",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetEvent()).(type) {
@@ -676,6 +726,8 @@ func (m *SocketStreamedTraceSegment) validate(all bool) error {
 			}
 		}
 
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {

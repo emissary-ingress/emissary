@@ -1080,6 +1080,10 @@ func (m *AccessLogCommon) validate(all bool) error {
 
 	// no validation rules for ConnectionTerminationDetails
 
+	// no validation rules for StreamId
+
+	// no validation rules for IntermediateLogEntry
+
 	if len(errors) > 0 {
 		return AccessLogCommonMultiError(errors)
 	}
@@ -2109,14 +2113,33 @@ func (m *TLSProperties_CertificateProperties_SubjectAltName) validate(all bool) 
 
 	var errors []error
 
-	switch m.San.(type) {
-
+	switch v := m.San.(type) {
 	case *TLSProperties_CertificateProperties_SubjectAltName_Uri:
+		if v == nil {
+			err := TLSProperties_CertificateProperties_SubjectAltNameValidationError{
+				field:  "San",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 		// no validation rules for Uri
-
 	case *TLSProperties_CertificateProperties_SubjectAltName_Dns:
+		if v == nil {
+			err := TLSProperties_CertificateProperties_SubjectAltNameValidationError{
+				field:  "San",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 		// no validation rules for Dns
-
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {

@@ -20,7 +20,7 @@ import (
 	cryptotls "crypto/tls"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -343,7 +343,7 @@ func callEcho() (int, int) {
 				ch <- err
 				return
 			}
-			body, err := ioutil.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
 			if err != nil {
 				resp.Body.Close()
 				ch <- err

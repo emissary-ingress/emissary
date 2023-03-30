@@ -266,9 +266,18 @@ func (m *LbEndpoint) validate(all bool) error {
 
 	}
 
-	switch m.HostIdentifier.(type) {
-
+	switch v := m.HostIdentifier.(type) {
 	case *LbEndpoint_Endpoint:
+		if v == nil {
+			err := LbEndpointValidationError{
+				field:  "HostIdentifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetEndpoint()).(type) {
@@ -300,8 +309,19 @@ func (m *LbEndpoint) validate(all bool) error {
 		}
 
 	case *LbEndpoint_EndpointName:
+		if v == nil {
+			err := LbEndpointValidationError{
+				field:  "HostIdentifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 		// no validation rules for EndpointName
-
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {
@@ -654,9 +674,18 @@ func (m *LocalityLbEndpoints) validate(all bool) error {
 		}
 	}
 
-	switch m.LbConfig.(type) {
-
+	switch v := m.LbConfig.(type) {
 	case *LocalityLbEndpoints_LoadBalancerEndpoints:
+		if v == nil {
+			err := LocalityLbEndpointsValidationError{
+				field:  "LbConfig",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetLoadBalancerEndpoints()).(type) {
@@ -688,6 +717,16 @@ func (m *LocalityLbEndpoints) validate(all bool) error {
 		}
 
 	case *LocalityLbEndpoints_LedsClusterLocalityConfig:
+		if v == nil {
+			err := LocalityLbEndpointsValidationError{
+				field:  "LbConfig",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
 
 		if all {
 			switch v := interface{}(m.GetLedsClusterLocalityConfig()).(type) {
@@ -718,6 +757,8 @@ func (m *LocalityLbEndpoints) validate(all bool) error {
 			}
 		}
 
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {
@@ -863,6 +904,8 @@ func (m *Endpoint_HealthCheckConfig) validate(all bool) error {
 			}
 		}
 	}
+
+	// no validation rules for DisableActiveHealthCheck
 
 	if len(errors) > 0 {
 		return Endpoint_HealthCheckConfigMultiError(errors)

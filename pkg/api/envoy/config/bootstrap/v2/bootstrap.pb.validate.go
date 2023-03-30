@@ -1319,9 +1319,20 @@ func (m *RuntimeLayer) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	switch m.LayerSpecifier.(type) {
-
+	oneofLayerSpecifierPresent := false
+	switch v := m.LayerSpecifier.(type) {
 	case *RuntimeLayer_StaticLayer:
+		if v == nil {
+			err := RuntimeLayerValidationError{
+				field:  "LayerSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofLayerSpecifierPresent = true
 
 		if all {
 			switch v := interface{}(m.GetStaticLayer()).(type) {
@@ -1353,6 +1364,17 @@ func (m *RuntimeLayer) validate(all bool) error {
 		}
 
 	case *RuntimeLayer_DiskLayer_:
+		if v == nil {
+			err := RuntimeLayerValidationError{
+				field:  "LayerSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofLayerSpecifierPresent = true
 
 		if all {
 			switch v := interface{}(m.GetDiskLayer()).(type) {
@@ -1384,6 +1406,17 @@ func (m *RuntimeLayer) validate(all bool) error {
 		}
 
 	case *RuntimeLayer_AdminLayer_:
+		if v == nil {
+			err := RuntimeLayerValidationError{
+				field:  "LayerSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofLayerSpecifierPresent = true
 
 		if all {
 			switch v := interface{}(m.GetAdminLayer()).(type) {
@@ -1415,6 +1448,17 @@ func (m *RuntimeLayer) validate(all bool) error {
 		}
 
 	case *RuntimeLayer_RtdsLayer_:
+		if v == nil {
+			err := RuntimeLayerValidationError{
+				field:  "LayerSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofLayerSpecifierPresent = true
 
 		if all {
 			switch v := interface{}(m.GetRtdsLayer()).(type) {
@@ -1446,6 +1490,9 @@ func (m *RuntimeLayer) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofLayerSpecifierPresent {
 		err := RuntimeLayerValidationError{
 			field:  "LayerSpecifier",
 			reason: "value is required",
@@ -1454,7 +1501,6 @@ func (m *RuntimeLayer) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

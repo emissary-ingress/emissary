@@ -35,7 +35,12 @@ items:
   - version: 3.6.0
     prevVersion: 3.5.0
     date: 'TBD'
-    notes: []
+    notes:
+      - title: Upgrade to Envoy 1.25.3
+        type: feature
+        body: >-
+          This upgrades $productName$ to be built on Envoy v1.25.3. This provides $productName$ with the latest
+          security patches, performances enhancments, and features offered by the envoy proxy.
 
   - version: 3.5.0
     prevVersion: 3.4.0

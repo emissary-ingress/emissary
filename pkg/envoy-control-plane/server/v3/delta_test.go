@@ -531,7 +531,7 @@ func TestDeltaWildcardSubscriptions(t *testing.T) {
 
 	})
 
-	t.Run("* subscribtion/unsubscription support", func(t *testing.T) {
+	t.Run("* subscription/unsubscription support", func(t *testing.T) {
 		resp := makeMockDeltaStream(t)
 		defer close(resp.recv)
 		s := server.NewServer(context.Background(), config, server.CallbackFuncs{})
@@ -576,7 +576,7 @@ func TestDeltaWildcardSubscriptions(t *testing.T) {
 		validateResponse(t, resp.sent, []string{"endpoints1", "endpoints2"}, nil)
 	})
 
-	t.Run("resource specific subscribtions while using wildcard", func(t *testing.T) {
+	t.Run("resource specific subscriptions while using wildcard", func(t *testing.T) {
 		resp := makeMockDeltaStream(t)
 		defer close(resp.recv)
 		s := server.NewServer(context.Background(), config, server.CallbackFuncs{})

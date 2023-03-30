@@ -10,7 +10,7 @@ import (
 )
 
 func TestDeltaWatches(t *testing.T) {
-	t.Run("watches response channels are properly closed when the watches are cancelled", func(t *testing.T) {
+	t.Run("watches response channels are properly closed when the watches are canceled", func(t *testing.T) {
 		watches := newWatches()
 
 		cancelCount := 0

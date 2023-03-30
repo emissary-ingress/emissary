@@ -321,7 +321,7 @@ func MakeRouteHTTPListener(mode string, listenerName string, port uint32, route 
 		{
 			Filters: []*listener.Filter{
 				{
-					Name: wellknown.HTTPConnectionManager,
+					Name: "http_connection_manager", // should work for any name.
 					ConfigType: &listener.Filter_TypedConfig{
 						TypedConfig: pbst,
 					},

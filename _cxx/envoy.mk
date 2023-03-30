@@ -13,12 +13,12 @@ RSYNC_EXTRAS ?=
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,https://github.com/datawire/envoy.git)
-  # rebase/release/v1.24.2 - with boringSSL cve patch and c-ares dep update
-	ENVOY_COMMIT ?= 5a4aed880cb9b76df21448e75d42fe95a77c3893
+  # rebase/release/v1.25.3
+  ENVOY_COMMIT ?= b8eb98c4a04bd1e0d21230e7a7c99f37a04f255b
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
-  BASE_ENVOY_RELVER ?= 1
+  BASE_ENVOY_RELVER ?= 0
 
   # Set to non-empty to enable compiling Envoy in FIPS mode.
   FIPS_MODE ?=
@@ -37,7 +37,7 @@ RSYNC_EXTRAS ?=
 # which commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an
 # automated way!  Still look at the commit yourself to make sure it seems sane; blindly trusting
 # machines is bad, mmkay?
-ENVOY_GO_CONTROL_PLANE_COMMIT = 799a7af9e5b9b3c492642319bf6a71cdfffc9cac
+ENVOY_GO_CONTROL_PLANE_COMMIT = 335df8c6b7f10ee07fa8322126911b9da27ff94b
 
 # Set ENVOY_DOCKER_REPO to the list of mirrors that we should
 # sanity-check that things get pushed to.
@@ -169,7 +169,7 @@ $(OSS_HOME)/_cxx/envoy-build-container.txt: $(OSS_HOME)/_cxx/envoy-build-image.t
 	    if [ -e $@ ]; then \
 	        docker kill $$(cat $@) || true; \
 	    fi; \
-	    docker run --detach --rm --privileged --volume=envoy-build:/root:rw $$(cat $<) tail -f /dev/null > $@; \
+	    docker run --network=host --detach --rm --privileged --volume=envoy-build:/root:rw $$(cat $<) tail -f /dev/null > $@; \
 	}
 $(OSS_HOME)/_cxx/envoy-build-container.txt.clean: %.clean:
 	if [ -e $* ]; then docker kill $$(cat $*) || true; fi

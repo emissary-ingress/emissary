@@ -97,9 +97,20 @@ func (m *UdpProxyConfig) validate(all bool) error {
 		}
 	}
 
-	switch m.RouteSpecifier.(type) {
-
+	oneofRouteSpecifierPresent := false
+	switch v := m.RouteSpecifier.(type) {
 	case *UdpProxyConfig_Cluster:
+		if v == nil {
+			err := UdpProxyConfigValidationError{
+				field:  "RouteSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofRouteSpecifierPresent = true
 
 		if len(m.GetCluster()) < 1 {
 			err := UdpProxyConfigValidationError{
@@ -113,6 +124,9 @@ func (m *UdpProxyConfig) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofRouteSpecifierPresent {
 		err := UdpProxyConfigValidationError{
 			field:  "RouteSpecifier",
 			reason: "value is required",
@@ -121,7 +135,6 @@ func (m *UdpProxyConfig) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

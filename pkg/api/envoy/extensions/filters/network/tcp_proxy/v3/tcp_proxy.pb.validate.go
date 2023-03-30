@@ -366,12 +366,63 @@ func (m *TcpProxy) validate(all bool) error {
 		}
 	}
 
-	switch m.ClusterSpecifier.(type) {
+	if d := m.GetAccessLogFlushInterval(); d != nil {
+		dur, err := d.AsDuration(), d.CheckValid()
+		if err != nil {
+			err = TcpProxyValidationError{
+				field:  "AccessLogFlushInterval",
+				reason: "value is not a valid duration",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
 
+			gte := time.Duration(0*time.Second + 1000000*time.Nanosecond)
+
+			if dur < gte {
+				err := TcpProxyValidationError{
+					field:  "AccessLogFlushInterval",
+					reason: "value must be greater than or equal to 1ms",
+				}
+				if !all {
+					return err
+				}
+				errors = append(errors, err)
+			}
+
+		}
+	}
+
+	oneofClusterSpecifierPresent := false
+	switch v := m.ClusterSpecifier.(type) {
 	case *TcpProxy_Cluster:
+		if v == nil {
+			err := TcpProxyValidationError{
+				field:  "ClusterSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofClusterSpecifierPresent = true
 		// no validation rules for Cluster
-
 	case *TcpProxy_WeightedClusters:
+		if v == nil {
+			err := TcpProxyValidationError{
+				field:  "ClusterSpecifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofClusterSpecifierPresent = true
 
 		if all {
 			switch v := interface{}(m.GetWeightedClusters()).(type) {
@@ -403,6 +454,9 @@ func (m *TcpProxy) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofClusterSpecifierPresent {
 		err := TcpProxyValidationError{
 			field:  "ClusterSpecifier",
 			reason: "value is required",
@@ -411,7 +465,6 @@ func (m *TcpProxy) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {
@@ -719,6 +772,8 @@ func (m *TcpProxy_TunnelingConfig) validate(all bool) error {
 	}
 
 	// no validation rules for PropagateResponseHeaders
+
+	// no validation rules for PostPath
 
 	if len(errors) > 0 {
 		return TcpProxy_TunnelingConfigMultiError(errors)

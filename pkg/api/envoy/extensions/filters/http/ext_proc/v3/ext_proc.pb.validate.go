@@ -281,9 +281,20 @@ func (m *ExtProcPerRoute) validate(all bool) error {
 
 	var errors []error
 
-	switch m.Override.(type) {
-
+	oneofOverridePresent := false
+	switch v := m.Override.(type) {
 	case *ExtProcPerRoute_Disabled:
+		if v == nil {
+			err := ExtProcPerRouteValidationError{
+				field:  "Override",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofOverridePresent = true
 
 		if m.GetDisabled() != true {
 			err := ExtProcPerRouteValidationError{
@@ -297,6 +308,17 @@ func (m *ExtProcPerRoute) validate(all bool) error {
 		}
 
 	case *ExtProcPerRoute_Overrides:
+		if v == nil {
+			err := ExtProcPerRouteValidationError{
+				field:  "Override",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofOverridePresent = true
 
 		if all {
 			switch v := interface{}(m.GetOverrides()).(type) {
@@ -328,6 +350,9 @@ func (m *ExtProcPerRoute) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofOverridePresent {
 		err := ExtProcPerRouteValidationError{
 			field:  "Override",
 			reason: "value is required",
@@ -336,7 +361,6 @@ func (m *ExtProcPerRoute) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

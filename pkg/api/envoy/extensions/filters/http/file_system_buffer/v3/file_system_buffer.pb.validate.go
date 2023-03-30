@@ -57,9 +57,20 @@ func (m *BufferBehavior) validate(all bool) error {
 
 	var errors []error
 
-	switch m.Behavior.(type) {
-
+	oneofBehaviorPresent := false
+	switch v := m.Behavior.(type) {
 	case *BufferBehavior_StreamWhenPossible_:
+		if v == nil {
+			err := BufferBehaviorValidationError{
+				field:  "Behavior",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofBehaviorPresent = true
 
 		if all {
 			switch v := interface{}(m.GetStreamWhenPossible()).(type) {
@@ -91,6 +102,17 @@ func (m *BufferBehavior) validate(all bool) error {
 		}
 
 	case *BufferBehavior_Bypass_:
+		if v == nil {
+			err := BufferBehaviorValidationError{
+				field:  "Behavior",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofBehaviorPresent = true
 
 		if all {
 			switch v := interface{}(m.GetBypass()).(type) {
@@ -122,6 +144,17 @@ func (m *BufferBehavior) validate(all bool) error {
 		}
 
 	case *BufferBehavior_InjectContentLengthIfNecessary_:
+		if v == nil {
+			err := BufferBehaviorValidationError{
+				field:  "Behavior",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofBehaviorPresent = true
 
 		if all {
 			switch v := interface{}(m.GetInjectContentLengthIfNecessary()).(type) {
@@ -153,6 +186,17 @@ func (m *BufferBehavior) validate(all bool) error {
 		}
 
 	case *BufferBehavior_FullyBufferAndAlwaysInjectContentLength_:
+		if v == nil {
+			err := BufferBehaviorValidationError{
+				field:  "Behavior",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofBehaviorPresent = true
 
 		if all {
 			switch v := interface{}(m.GetFullyBufferAndAlwaysInjectContentLength()).(type) {
@@ -184,6 +228,17 @@ func (m *BufferBehavior) validate(all bool) error {
 		}
 
 	case *BufferBehavior_FullyBuffer_:
+		if v == nil {
+			err := BufferBehaviorValidationError{
+				field:  "Behavior",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofBehaviorPresent = true
 
 		if all {
 			switch v := interface{}(m.GetFullyBuffer()).(type) {
@@ -215,6 +270,9 @@ func (m *BufferBehavior) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofBehaviorPresent {
 		err := BufferBehaviorValidationError{
 			field:  "Behavior",
 			reason: "value is required",
@@ -223,7 +281,6 @@ func (m *BufferBehavior) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {
