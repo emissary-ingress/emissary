@@ -79,7 +79,8 @@ tvars_cache = ExpiringDict(max_len=10, max_age_seconds=60)
 logHandler = None
 if parse_bool(os.environ.get("AMBASSADOR_JSON_LOGGING", "false")):
     jsonFormatter = jsonlogger.JsonFormatter(
-        "%%(asctime)s %%(filename)s %%(lineno)d %%(process)d (threadName)s %%(levelname)s %%(message)s"
+        "%%(asctime)s %%(filename)s %%(lineno)d %%(process)d (threadName)s %%(levelname)s %%(message)s",
+        rename_fields={"levelname": "severity"}
     )
     logHandler = logging.StreamHandler()
     logHandler.setFormatter(jsonFormatter)
