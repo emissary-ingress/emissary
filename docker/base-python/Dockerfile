@@ -78,7 +78,7 @@ RUN apk --no-cache add \
 # Pinning build version due to missing license info from pip show in newer versions
 RUN pip3 install pip-tools==6.12.1 build==0.9.0
 
-RUN curl --fail -L https://dl.google.com/go/go1.20.1.linux-amd64.tar.gz | tar -C /usr/local -xzf -
+RUN curl --fail -L https://dl.google.com/go/go1.20.3.linux-amd64.tar.gz | tar -C /usr/local -xzf -
 
 RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.23.3/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
   chmod a+x /usr/bin/kubectl
