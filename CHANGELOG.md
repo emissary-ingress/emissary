@@ -85,7 +85,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
-## [3.5.2] TBD
+## [3.5.2] April 05, 2023
 [3.5.2]: https://github.com/emissary-ingress/emissary/compare/v3.5.1...v3.5.2
 
 ### Emissary-ingress and Ambassador Edge Stack
@@ -93,6 +93,10 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 - Security: Upgrading to the latest release of Golang as part of our general dependency upgrade
   process. This includes security fixes for CVE-2023-24537, CVE-2023-24538, CVE-2023-24534,
   CVE-2023-24536.
+
+- Security: This upgrades Emissary-ingress to be built on Envoy v1.24.5 which contains security
+  patches for CVE-2023-27487, CVE-2023-27491, CVE-2023-27492, CVE-2023-27493, CVE-2023-27488, and
+  CVE-2023-27496.
 
 ## [3.5.1] February 14, 2023
 [3.5.1]: https://github.com/emissary-ingress/emissary/compare/v3.5.0...v3.5.1

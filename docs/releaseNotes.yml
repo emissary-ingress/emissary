@@ -34,13 +34,19 @@ changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.
 items:
   - version: 3.5.2
     prevVersion: 3.5.1
-    date: TBD
+    date: '2023-04-05'
     notes:
       - title: Update to golang 1.20.3
         type: security
         body: >-
           Upgrading to the latest release of Golang as part of our general dependency upgrade process. This includes
           security fixes for CVE-2023-24537, CVE-2023-24538, CVE-2023-24534, CVE-2023-24536.
+
+      - title: Upgrade to Envoy 1.24.5
+        type: security
+        body: >-
+          This upgrades $productName$ to be built on Envoy v1.24.5 which contains security patches for
+          CVE-2023-27487, CVE-2023-27491, CVE-2023-27492, CVE-2023-27493, CVE-2023-27488, and CVE-2023-27496.
 
   - version: 3.5.1
     prevVersion: 3.5.0
