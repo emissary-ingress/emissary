@@ -197,6 +197,9 @@ service:
 
   annotations: {}
 
+  # Passed to cloud provider load balancer if created (e.g: AWS ELB)
+  loadBalancerSourceRanges:
+
   # Manually set the name of the generated Service
   nameOverride:
 
