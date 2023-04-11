@@ -85,12 +85,12 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
-## [3.6.0] TBD
+## [3.6.0] April 17, 2023
 [3.6.0]: https://github.com/emissary-ingress/emissary/compare/v3.5.0...v3.6.0
 
 ### Emissary-ingress and Ambassador Edge Stack
 
-- Feature: This upgrades Emissary-ingress to be built on Envoy v1.25.3. This provides
+- Feature: This upgrades Emissary-ingress to be built on Envoy v1.25.4. This provides
   Emissary-ingress with the latest security patches, performances enhancments, and features offered
   by the envoy proxy.
 
