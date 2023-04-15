@@ -110,6 +110,12 @@ print("%sx%s-%s" % (age_start.strftime("%Y%m%d"), build_every_n_days, dockerfile
 }
 
 main() {
+	if [[ $# != 1 ]]; then
+		printf >&2 'Usage: %s BUILD_ARCH\n' "$0"
+		return 2
+	fi
+	local BUILD_ARCH="$1"
+
 	local tag
 	tag=$(print-tag)
 
@@ -181,7 +187,7 @@ main() {
 		statnl_busy 'Building %q locally' "base-python:$tag"
 		iidfile=$(mktemp)
 		trap 'rm -f "$iidfile"' RETURN
-		docker build --iidfile="$iidfile" docker/base-python >&2
+		docker build --platform="$BUILD_ARCH" --iidfile="$iidfile" docker/base-python >&2
 		id=$(cat "$iidfile")
 		statnl_done 'done building'
 
