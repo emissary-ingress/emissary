@@ -12,9 +12,8 @@ import (
 	"time"
 
 	"github.com/datawire/dlib/derror"
-	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dlog"
-	"github.com/emissary-ingress/emissary/v3/pkg/k8s"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )
 
 // errorDeadlineExceeded is returned from YAMLCollection.applyAndWait
@@ -26,13 +25,13 @@ var errorDeadlineExceeded = errors.New("timeout exceeded")
 // look in the standard default places for cluster configuration.  If
 // any phase takes longer than perPhaseTimeout to become ready, then
 // it returns early with an error.
-func Kubeapply(ctx context.Context, kubeinfo *k8s.KubeInfo, perPhaseTimeout time.Duration, debug, dryRun bool, files ...string) error {
+func Kubeapply(ctx context.Context, kubeclient *kates.Client, perPhaseTimeout time.Duration, debug, dryRun bool, files ...string) error {
 	collection, err := CollectYAML(files...)
 	if err != nil {
 		return fmt.Errorf("CollectYAML: %w", err)
 	}
 
-	if err = collection.ApplyAndWait(ctx, kubeinfo, perPhaseTimeout, debug, dryRun); err != nil {
+	if err = collection.ApplyAndWait(ctx, kubeclient, perPhaseTimeout, debug, dryRun); err != nil {
 		return fmt.Errorf("ApplyAndWait: %w", err)
 	}
 
@@ -92,14 +91,10 @@ func (collection YAMLCollection) addFile(path string) {
 // error.
 func (collection YAMLCollection) ApplyAndWait(
 	ctx context.Context,
-	kubeinfo *k8s.KubeInfo,
+	kubeclient *kates.Client,
 	perPhaseTimeout time.Duration,
 	debug, dryRun bool,
 ) error {
-	if kubeinfo == nil {
-		kubeinfo = k8s.NewKubeInfo("", "", "")
-	}
-
 	phaseNames := make([]string, 0, len(collection))
 	for phaseName := range collection {
 		phaseNames = append(phaseNames, phaseName)
@@ -107,9 +102,12 @@ func (collection YAMLCollection) ApplyAndWait(
 	sort.Strings(phaseNames)
 
 	for _, phaseName := range phaseNames {
+		// Note: applyAndWait takes a separate 'deadline' argument, rather than the
+		// implicitly using `context.WithDeadline`, so that we can detect whether it's our
+		// per-phase timeout that triggered, or a broader "everything" timeout on the
+		// Context.
 		deadline := time.Now().Add(perPhaseTimeout)
-		err := applyAndWait(ctx, kubeinfo, deadline, debug, dryRun, collection[phaseName])
-		if err != nil {
+		if err := applyAndWait(ctx, kubeclient, deadline, debug, dryRun, collection[phaseName]); err != nil {
 			if errors.Is(err, errorDeadlineExceeded) {
 				err = fmt.Errorf("phase %q not ready after %v: %w", phaseName, perPhaseTimeout, err)
 			}
@@ -119,17 +117,13 @@ func (collection YAMLCollection) ApplyAndWait(
 	return nil
 }
 
-func applyAndWait(ctx context.Context, kubeinfo *k8s.KubeInfo, deadline time.Time, debug, dryRun bool, sourceFilenames []string) error {
+func applyAndWait(ctx context.Context, kubeclient *kates.Client, deadline time.Time, debug, dryRun bool, sourceFilenames []string) error {
 	expandedFilenames, err := expand(ctx, sourceFilenames)
 	if err != nil {
 		return fmt.Errorf("expanding YAML: %w", err)
 	}
 
-	cli, err := k8s.NewClient(kubeinfo)
-	if err != nil {
-		return fmt.Errorf("connecting to cluster %v: %w", kubeinfo, err)
-	}
-	waiter, err := NewWaiter(cli.Watcher())
+	waiter, err := NewWaiter(kubeclient)
 	if err != nil {
 		return err
 	}
@@ -163,7 +157,7 @@ func applyAndWait(ctx context.Context, kubeinfo *k8s.KubeInfo, deadline time.Tim
 		return fmt.Errorf("waiter: %w", scanErrs)
 	}
 
-	if err := kubectlApply(ctx, kubeinfo, dryRun, expandedFilenames); err != nil {
+	if err := kubectlApply(ctx, kubeclient, dryRun, expandedFilenames); err != nil {
 		return err
 	}
 
@@ -196,13 +190,20 @@ func expand(ctx context.Context, names []string) ([]string, error) {
 	return result, nil
 }
 
-func kubectlApply(ctx context.Context, info *k8s.KubeInfo, dryRun bool, filenames []string) error {
-	args := []string{"apply"}
+func kubectlApply(ctx context.Context, kubeclient *kates.Client, dryRun bool, filenames []string) error {
+	stdio := kates.IOStreams{
+		In:     nil,
+		Out:    dlog.StdLogger(ctx, dlog.LogLevelInfo).Writer(),
+		ErrOut: dlog.StdLogger(ctx, dlog.LogLevelWarn).Writer(),
+	}
+
+	var args []string
 	if dryRun {
 		args = append(args, "--dry-run")
 	}
 	for _, filename := range filenames {
-		// https://github.com/datawire/ambassador/issues/77
+		// flock(2) each file that we're passing to `kubectl apply`.
+		// https://github.com/datawire/teleproxy/issues/77
 		filehandle, err := os.Open(filename)
 		if err != nil {
 			return err
@@ -211,17 +212,13 @@ func kubectlApply(ctx context.Context, info *k8s.KubeInfo, dryRun bool, filename
 		if err := syscall.Flock(int(filehandle.Fd()), syscall.LOCK_EX); err != nil {
 			return err
 		}
+
+		// pass the file to `kubectl apply`
 		args = append(args, "-f", filename)
 	}
-	kargs, err := info.GetKubectlArray(args...)
-	if err != nil {
-		return err
-	}
-	dlog.Printf(ctx, "kubectl %s\n", strings.Join(kargs, " "))
-	/* #nosec */
-	if err := dexec.CommandContext(ctx, "kubectl", kargs...).Run(); err != nil {
-		return err
-	}
 
+	if err := kubeclient.IncoherentApply(ctx, stdio, args...); err != nil {
+		return err
+	}
 	return nil
 }

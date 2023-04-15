@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/emissary-ingress/emissary/v3/pkg/k8s"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"github.com/emissary-ingress/emissary/v3/pkg/kubeapply"
 )
 
@@ -118,7 +118,10 @@ func main() {
 					return errors.Errorf("invalid --storage=%q: must be one of 'pvc' or 'hostPath'", argStorage)
 				}
 
-				kubeinfo := k8s.NewKubeInfo("", "", "")
+				kubeclient, err := kates.NewClient(kates.ClientConfig{})
+				if err != nil {
+					return err
+				}
 
 				// Part 1: Apply the YAML
 				//
@@ -141,7 +144,7 @@ func main() {
 				}
 				err = kubeapply.Kubeapply(
 					cobraCmd.Context(), // context
-					kubeinfo,           // kubeinfo
+					kubeclient,         // kubeclient
 					time.Minute,        // perPhaseTimeout
 					false,              // debug
 					false,              // dryRun
@@ -152,14 +155,12 @@ func main() {
 				}
 
 				// Part 2: Set up the port-forward
-				args, err := kubeinfo.GetKubectlArray("port-forward",
+				cmd := exec.Command(
+					"kubectl",
+					"port-forward",
 					"--namespace=docker-registry",
 					kpfTarget,
 					"31000:5000")
-				if err != nil {
-					return err
-				}
-				cmd := exec.Command("kubectl", args...)
 				cmd.Stdout, err = os.OpenFile(filepath.Join(os.TempDir(), filepath.Base(os.Args[0])+".log"), os.O_CREATE|os.O_WRONLY, 0666)
 				if err != nil {
 					return err
