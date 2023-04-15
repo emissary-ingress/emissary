@@ -19,8 +19,8 @@ $(foreach svc,$(test_svcs),docker/.test-$(svc).docker.stamp): docker/.%.docker.s
 clean: $(foreach svc,$(test_svcs),docker/test-$(svc).docker.clean)
 
 # kat-client.docker
-docker/kat-client.go.layer.tar: $(tools/ocibuild) $(tools/write-ifchanged) FORCE
-	GOFLAGS=-mod=mod $(tools/ocibuild) layer gobuild ./cmd/kat-client | $(tools/write-ifchanged) $@
+docker/kat-client.go.layer.tar: $(tools/ocibuild) FORCE
+	GOFLAGS=-mod=mod $(tools/ocibuild) layer gobuild --output=$@ ./cmd/kat-client
 docker/kat-client.fs.layer.tar: $(tools/ocibuild) $(tools/write-ifchanged) FORCE
 	{ $(tools/ocibuild) layer dir \
 	  --prefix=work \
@@ -35,8 +35,8 @@ docker/.kat-client.img.tar.stamp: $(tools/ocibuild) docker/base.img.tar docker/k
 	  <($(tools/ocibuild) layer squash $(filter %.layer.tar,$^)); } > $@
 
 # kat-server.docker
-docker/kat-server.go.layer.tar: $(tools/ocibuild) $(tools/write-ifchanged) FORCE
-	GOFLAGS=-mod=mod $(tools/ocibuild) layer gobuild ./cmd/kat-server | $(tools/write-ifchanged) $@
+docker/kat-server.go.layer.tar: $(tools/ocibuild) FORCE
+	GOFLAGS=-mod=mod $(tools/ocibuild) layer gobuild --output=$@ ./cmd/kat-server
 docker/kat-server.certs.layer.tar: $(tools/ocibuild) $(tools/write-ifchanged) docker/kat-server/server.crt docker/kat-server/server.key
 	$(tools/ocibuild) layer dir --prefix=work docker/kat-server | $(tools/write-ifchanged) $@
 docker/kat-server/server.crt: $(tools/testcert-gen)
