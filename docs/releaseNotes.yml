@@ -42,6 +42,8 @@ items:
           This upgrades $productName$ to be built on Envoy v1.25.3. This provides $productName$ with the latest
           security patches, performances enhancments, and features offered by the envoy proxy.
 
+          Fixed longstanding issue with HTTPSPROXY not working.
+
   - version: 3.5.0
     prevVersion: 3.4.0
     date: '2023-02-15'
