@@ -1955,11 +1955,6 @@ class AmbassadorEventWatcher(threading.Thread):
             env_status.OK(
                 "TLS", f'{tls_count} TLSContext{" is" if (tls_count == 1) else "s are"} active'
             )
-        else:
-            chime_failures["no TLS contexts"] = True
-            env_status.failure("TLS", "No TLSContexts are active")
-
-            env_good = False
 
         if mapping_count:
             env_status.OK(
