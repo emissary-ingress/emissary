@@ -93,7 +93,7 @@ information on the technicals of Emissary, most notably the
 If you're interested in contributing, here are some ways:
 * Write a blog post for [our blog](https://blog.getambassador.io)
 * Investigate an [open issue](https://github.com/emissary-ingress/emissary/issues)
-* Add [more tests](https://github.com/emissary-ingress/emissary/tree/master/ambassador/tests)
+* Add [more tests](https://github.com/emissary-ingress/emissary/tree/master/python/tests)
 
 The Ambassador Edge Stack is a superset of Emissary-ingress that provides additional functionality including OAuth/OpenID Connect, advanced rate limiting, Swagger/OpenAPI support, integrated ACME support for automatic TLS certificate management, and a cloud-based UI. For more information, visit https://www.getambassador.io/editions/.
 
