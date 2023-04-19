@@ -116,14 +116,6 @@ spec:
             - key: exporterConfiguration
               path: mapping-config.yaml
         {{- end }}
-        {{- if .Values.ambassadorConfig }}
-        - name: ambassador-config
-          configMap:
-            name: {{ include "ambassador.fullname" . }}-file-config
-            items:
-            - key: ambassadorConfig
-              path: ambassador-config.yaml
-        {{- end }}
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -236,11 +228,6 @@ spec:
             - name: ambassador-pod-info
               mountPath: /tmp/ambassador-pod-info
               readOnly: true
-          {{- if .Values.ambassadorConfig }}
-            - name: ambassador-config
-              mountPath: /ambassador/ambassador-config/ambassador-config.yaml
-              subPath: ambassador-config.yaml
-          {{- end }}
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}

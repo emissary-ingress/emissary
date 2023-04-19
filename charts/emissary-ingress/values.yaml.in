@@ -320,9 +320,6 @@ affinity: {}
 # Topology Spread Constraints for Ambassador pods. Stable since 1.19.
 topologySpreadConstraints: []
 
-# Config thats mounted to `/ambassador/ambassador-config`
-ambassadorConfig: ''
-
 # Prometheus Operator ServiceMonitor configuration
 # See documentation: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitor
 metrics:
