@@ -183,10 +183,13 @@ test-ready: push preflight-cluster
 PYTEST_ARGS ?=
 export PYTEST_ARGS
 
+python-virtual-environment: $(OSS_HOME)/venv
+.PHONY: python-virtual-environment
+
 pytest: push-pytest-images
 pytest: $(tools/kubestatus)
 pytest: $(tools/kubectl)
-pytest: $(OSS_HOME)/venv
+pytest: python-virtual-environment
 pytest: docker/base-envoy.docker.tag.local
 pytest: proxy
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
@@ -202,15 +205,16 @@ pytest: proxy
 	}
 .PHONY: pytest
 
-pytest-unit: $(OSS_HOME)/venv
-pytest-unit: docker/base-envoy.docker.tag.local
+pytest-unit-tests:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
 	set -e; { \
-	  . $(OSS_HOME)/venv/bin/activate; \
-	  export SOURCE_ROOT=$(CURDIR); \
-	  export ENVOY_DOCKER_TAG=$$(cat docker/base-envoy.docker); \
-	  pytest --tb=short -rP $(PYTEST_ARGS) python/tests/unit; \
+		. $(OSS_HOME)/venv/bin/activate; \
+		export SOURCE_ROOT=$(CURDIR); \
+		pytest --tb=short -rP $(PYTEST_ARGS) python/tests/unit; \
 	}
+.PHONY: pytest-unit-tests
+
+pytest-unit: python-virtual-environment pytest-unit-tests
 .PHONY: pytest-unit
 
 pytest-integration: push-pytest-images
