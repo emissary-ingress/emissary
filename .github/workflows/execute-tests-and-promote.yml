@@ -161,14 +161,14 @@ jobs:
           registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-      - name: make pytest-${{ matrix.test }}
+      - name: Setup integration test environment
         run: |
-          export USE_LOCAL_K3S_CLUSTER=1
           sudo sysctl -w fs.file-max=1600000
           sudo sysctl -w fs.inotify.max_user_instances=4096
 
           make ci/setup-k3d
-
+      - name: Run ${{ matrix.test }} integration tests
+        run: |
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
           export DEV_KUBECONFIG=~/.kube/config
