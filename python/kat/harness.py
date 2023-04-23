@@ -1029,11 +1029,13 @@ class Runner:
     def __call__(self):
         assert False, "this is here for py.test discovery purposes only"
 
-    def setup(self, selected):
+    def setup_method(self, selected):
+        print(f"setup_method-done: {self.done}")
         if not self.done:
             if not DOCTEST:
                 print()
 
+            print(f"setup_method-selected: {selected}")
             expanded_up = set(selected)
 
             for s in selected:
