@@ -158,7 +158,7 @@ libraries:
     jsonpointer         2.3        3-clause BSD license
     kubernetes          21.7.0     Apache License 2.0
     oauthlib            3.2.2      3-clause BSD license
-    orjson              3.6.6      Apache License 2.0, MIT license
+    orjson              3.8.10     Apache License 2.0, MIT license
     packaging           21.3       2-clause BSD license, Apache License 2.0
     pep517              0.13.0     MIT license
     pip-tools           6.12.1     3-clause BSD license

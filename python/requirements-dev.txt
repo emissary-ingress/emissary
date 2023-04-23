@@ -7,6 +7,7 @@ pyOpenSSL
 pytest
 pytest-cov
 pytest-rerunfailures
+pyyaml
 retry
 black==22.10.0
 isort
