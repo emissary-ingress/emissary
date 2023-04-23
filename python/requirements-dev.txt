@@ -1,5 +1,4 @@
 # Dev requirements
-gitpython
 httpretty
 mypy<0.990
 packaging
