@@ -75,7 +75,7 @@ rsa==4.9
     # via google-auth
 semantic-version==2.10.0
     # via -r requirements.in
-setuptools==65.6.3
+setuptools==67.7.1
     # via
     #   -r requirements.in
     #   gunicorn
