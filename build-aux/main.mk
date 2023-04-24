@@ -55,6 +55,7 @@ clean: $(foreach img,$(_ocibuild-images),docker/$(img).img.tar.clean)
 # that don't need Emissary-specific stuff.
 docker/.base.img.tar.stamp: FORCE $(tools/crane) docker/base-python/Dockerfile
 	$(tools/crane) pull $(shell gawk '$$1 == "FROM" { print $$2; quit; }' < docker/base-python/Dockerfile) $@ || test -e $@
+clean: docker/base.img.tar.clean
 clobber: docker/base.img.tar.clean
 
 # base-python: Base OS, plus some Emissary-specific setup of
@@ -71,6 +72,7 @@ clobber: docker/base.img.tar.clean
 # (`apk add`, libc-specific compilation...).
 docker/.base-python.docker.stamp: FORCE docker/base-python/Dockerfile docker/base-python.docker.gen
 	docker/base-python.docker.gen >$@
+clean: docker/base-python.docker.clean
 clobber: docker/base-python.docker.clean
 
 # base-pip: base-python, but with requirements.txt installed.
@@ -102,6 +104,7 @@ docker/base-pip/requirements.txt: python/requirements.txt $(tools/copy-ifchanged
 clean: docker/base-pip/requirements.txt.rm
 docker/.base-pip.docker.stamp: docker/.%.docker.stamp: docker/%/Dockerfile docker/%/requirements.txt docker/base-python.docker.tag.local
 	docker build --platform="$(BUILD_ARCH)" --build-arg=from="$$(sed -n 2p docker/base-python.docker.tag.local)" --iidfile=$@ $(<D)
+clean: docker/base-pip.docker.clean
 clobber: docker/base-pip.docker.clean
 
 # The Helm chart
