@@ -126,8 +126,6 @@ jobs:
       - name: make gotest
         shell: bash
         run: |
-          export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=900
           make gotest
       - uses: ./.github/actions/after-job
         if: always()
@@ -163,14 +161,14 @@ jobs:
           registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-      - name: make pytest-${{ matrix.test }}
+      - name: Setup integration test environment
         run: |
-          export USE_LOCAL_K3S_CLUSTER=1
           sudo sysctl -w fs.file-max=1600000
           sudo sysctl -w fs.inotify.max_user_instances=4096
 
           make ci/setup-k3d
-
+      - name: Run ${{ matrix.test }} integration tests
+        run: |
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
           export DEV_KUBECONFIG=~/.kube/config
@@ -181,17 +179,11 @@ jobs:
         with:
           jobname: check-pytest-${{ matrix.test }}
   check-pytest-unit:
-    # pytest-unit is separate from pytests (above) because we know for certain that no cluster is needed.
-    # XXX This is pretty much a crock.
     runs-on: ubuntu-latest
     env:
       # See docker/base-python.docker.gen
       BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
-    strategy:
-      matrix:
-        test:
-          - unit
-    name: pytest-${{ matrix.test }}
+    name: pytest-unit
     steps:
       - uses: actions/checkout@v3
         with:
@@ -204,21 +196,16 @@ jobs:
           registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-      - name: make pytest-${{ matrix.test }}
+      - name: Create Python virtual environment
         run: |
-          sudo sysctl -w fs.file-max=1600000
-          sudo sysctl -w fs.inotify.max_user_instances=4096
-
-          export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=900
-          export DEV_KUBECONFIG=~/.kube/config
           export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
+          make python-virtual-environment
+      - name: Run Python unit tests
+        run: |
           export PYTEST_ARGS=' --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html '
-          make pytest-${{ matrix.test }}
+          make pytest-unit-tests
       - uses: ./.github/actions/after-job
         if: always()
-        with:
-          jobname: check-pytest-${{ matrix.test }}
   check-chart:
     runs-on: ubuntu-latest
     env:
