@@ -144,7 +144,7 @@ libraries:
     Werkzeug            2.2.3      3-clause BSD license
     build               0.9.0      MIT license
     cachetools          5.3.0      MIT license
-    certifi             2022.9.24  Mozilla Public License 2.0
+    certifi             2022.12.7  Mozilla Public License 2.0
     charset-normalizer  2.1.1      MIT license
     click               8.1.3      3-clause BSD license
     dpath               2.1.4      MIT license
