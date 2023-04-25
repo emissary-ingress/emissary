@@ -223,6 +223,16 @@ docker.LOCALHOST = $(if $(filter darwin,$(GOHOSTOS)),host.docker.internal,localh
 	rm -f $*.docker $(*D)/.$(*F).docker.stamp
 .PHONY: %.docker.clean
 
+%.docker.inspect: $(addprefix %.docker.inspect.,$(_docker.tag.groups))
+	@set -e; { \
+		if [ -e $*.docker ]; then \
+			if ! docker image inspect "$$(cat $*.docker)" --format='{{ .Id }}' &>/dev/null; then \
+				rm -f $*.docker $(*D)/.$(*F).docker.stamp; \
+			fi; \
+		fi; \
+	}
+.PHONY: %.docker.inspect
+
 # Evaluate _docker.tag.rule with _docker.tag.group=TAG_GROUPNAME for
 # each docker.tag.TAG_GROUPNAME variable.
 #
@@ -258,6 +268,16 @@ define _docker.tag.rule
 	if [ -e $$*.docker.tag.$(_docker.tag.group) ]; then docker image rm -- $$$$(sed 1d $$*.docker.tag.$(_docker.tag.group)) || true; fi
 	rm -f $$*.docker.tag.$(_docker.tag.group) $$*.docker.push.$(_docker.tag.group)
   .PHONY: %.docker.clean.$(_docker.tag.group)
+
+  %.docker.inspect.$(_docker.tag.group):
+	@set -e; { \
+		if [ -e $$*.docker.tag.$(_docker.tag.group) ]; then \
+			if ! docker image inspect $$$$(sed 1d $$*.docker.tag.$(_docker.tag.group)) --format='{{ .Id }}' &>/dev/null; then \
+				rm -f $$*.docker.tag.$(_docker.tag.group); \
+			fi; \
+		fi; \
+	}
+  .PHONY: %.docker.inspect.$(_docker.tag.group)
 endef
 $(foreach _docker.tag.group,$(_docker.tag.groups),$(eval $(_docker.tag.rule)))
 
