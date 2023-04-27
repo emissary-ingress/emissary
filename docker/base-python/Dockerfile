@@ -86,11 +86,11 @@ RUN curl --fail -L https://dl.google.com/go/go1.20.3.linux-amd64.tar.gz | tar -C
 # Download, build, and install PyYAML.
 RUN mkdir /tmp/pyyaml && \
   cd /tmp/pyyaml && \
-  curl -o pyyaml-5.4.1.1.tar.gz -L https://github.com/yaml/pyyaml/archive/refs/tags/5.4.1.1.tar.gz && \
-  tar xzf pyyaml-5.4.1.1.tar.gz && \
-  cd pyyaml-5.4.1.1 && \
+  curl -o pyyaml-6.0.tar.gz -L https://github.com/yaml/pyyaml/archive/refs/tags/6.0.tar.gz && \
+  tar xzf pyyaml-6.0.tar.gz && \
+  cd pyyaml-6.0 && \
   python3 setup.py --with-libyaml install
 
 # orjson is also special.  The wheels on PyPI rely on glibc, so we
 # need to use cargo/rustc/patchelf to build a musl-compatible version.
-RUN pip3 install orjson==3.6.6
+RUN pip3 install orjson==3.8.10
