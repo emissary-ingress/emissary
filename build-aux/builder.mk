@@ -151,16 +151,16 @@ clean: docker/$(LCNAME).docker.clean
 
 REPO=$(BUILDER_NAME)
 
-_inspect-images = base base-envoy base-pip base-python
-images-inspect: $(foreach i,$(_inspect-images), docker/$i.docker.inspect)
-.PHONY: images-inspect
+_inspect-images = base base-envoy base-pip base-python $(LCNAME) kat-client kat-server test-auth test-shadow test-stats
+inspect-image-cache: $(foreach i,$(_inspect-images), docker/$i.docker.inspect.image.cache)
+.PHONY: inspect-image-cache
 
 images-build: docker/$(LCNAME).docker.tag.local
 images-build: docker/kat-client.docker.tag.local
 images-build: docker/kat-server.docker.tag.local
 .PHONY: images-build
 
-images: FORCE images-inspect images-build
+images: FORCE inspect-image-cache images-build
 .PHONY: images
 
 REGISTRY_ERR  = $(RED)
@@ -173,7 +173,7 @@ images-push: docker/kat-client.docker.push.remote
 images-push: docker/kat-server.docker.push.remote
 .PHONY: images-push
 
-push: FORCE images-inspect images-push
+push: FORCE inspect-image-cache images-push
 .PHONY: push
 
 # `make push-dev` is meant to be run by CI.
