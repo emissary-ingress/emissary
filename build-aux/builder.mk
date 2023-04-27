@@ -151,9 +151,16 @@ clean: docker/$(LCNAME).docker.clean
 
 REPO=$(BUILDER_NAME)
 
-images: docker/$(LCNAME).docker.tag.local
-images: docker/kat-client.docker.tag.local
-images: docker/kat-server.docker.tag.local
+_inspect-images = base base-envoy base-pip base-python $(LCNAME) kat-client kat-server test-auth test-shadow test-stats
+inspect-image-cache: $(foreach i,$(_inspect-images), docker/$i.docker.inspect.image.cache)
+.PHONY: inspect-image-cache
+
+images-build: docker/$(LCNAME).docker.tag.local
+images-build: docker/kat-client.docker.tag.local
+images-build: docker/kat-server.docker.tag.local
+.PHONY: images-build
+
+images: FORCE inspect-image-cache images-build
 .PHONY: images
 
 REGISTRY_ERR  = $(RED)
@@ -161,9 +168,12 @@ REGISTRY_ERR += $(NL)ERROR: please set the DEV_REGISTRY make/env variable to the
 REGISTRY_ERR += $(NL)       you would like to use for development
 REGISTRY_ERR += $(END)
 
-push: docker/$(LCNAME).docker.push.remote
-push: docker/kat-client.docker.push.remote
-push: docker/kat-server.docker.push.remote
+images-push: docker/$(LCNAME).docker.push.remote
+images-push: docker/kat-client.docker.push.remote
+images-push: docker/kat-server.docker.push.remote
+.PHONY: images-push
+
+push: FORCE inspect-image-cache images-push
 .PHONY: push
 
 # `make push-dev` is meant to be run by CI.
