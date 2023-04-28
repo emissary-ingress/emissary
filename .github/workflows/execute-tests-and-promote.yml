@@ -142,12 +142,12 @@ jobs:
       fail-fast: false
       matrix:
         test:
-          - integration
-          - kat-envoy3-1-of-5
-          - kat-envoy3-2-of-5
-          - kat-envoy3-3-of-5
-          - kat-envoy3-4-of-5
-          - kat-envoy3-5-of-5
+          - integration-tests
+          - kat-envoy3-tests-1-of-5
+          - kat-envoy3-tests-2-of-5
+          - kat-envoy3-tests-3-of-5
+          - kat-envoy3-tests-4-of-5
+          - kat-envoy3-tests-5-of-5
     name: pytest-${{ matrix.test }}
     steps:
       - uses: actions/checkout@v3
@@ -161,13 +161,20 @@ jobs:
           registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-      - name: Setup integration test environment
+      - name: Create integration test cluster
         run: |
           sudo sysctl -w fs.file-max=1600000
           sudo sysctl -w fs.inotify.max_user_instances=4096
 
           make ci/setup-k3d
-      - name: Run ${{ matrix.test }} integration tests
+      - name: Setup integration test environment
+        run: |
+          export DEV_KUBE_NO_PVC=yes
+          export KAT_REQ_LIMIT=900
+          export DEV_KUBECONFIG=~/.kube/config
+          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
+          make python-integration-test-environment
+      - name: Run ${{ matrix.test }}
         run: |
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
