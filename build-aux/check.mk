@@ -4,7 +4,7 @@ include build-aux/tools.mk
 # Auxiliary Docker images needed for the tests
 
 # Keep this list in-sync with python/tests/integration/manifests.py
-push-pytest-images: docker/emissary.docker.push.remote
+push-pytest-images: docker/$(LCNAME).docker.push.remote
 push-pytest-images: docker/test-auth.docker.push.remote
 push-pytest-images: docker/test-shadow.docker.push.remote
 push-pytest-images: docker/test-stats.docker.push.remote
@@ -31,7 +31,7 @@ docker/.kat-client.img.tar.stamp: $(tools/ocibuild) docker/base.img.tar docker/k
 	{ $(tools/ocibuild) image build \
 	  --base=docker/base.img.tar \
 	  --config.Cmd='sleep' --config.Cmd='3600' \
-	  --tag=emissary.local/kat-client:latest \
+	  --tag=$(LCNAME).local/kat-client:latest \
 	  <($(tools/ocibuild) layer squash $(filter %.layer.tar,$^)); } > $@
 
 # kat-server.docker
@@ -52,14 +52,14 @@ docker/.kat-server.img.tar.stamp: $(tools/ocibuild) docker/base.img.tar docker/k
 	  --config.Env.append=GRPC_TRACE=tcp,http,api \
 	  --config.WorkingDir='/work' \
 	  --config.Cmd='kat-server' \
-	  --tag=emissary.local/kat-server:latest \
+	  --tag=$(LCNAME).local/kat-server:latest \
 	  <($(tools/ocibuild) layer squash $(filter %.layer.tar,$^)); } > $@
 docker/kat-server.img.tar.clean: docker/kat-server.rm-r
 
 #
 # Helm tests
 
-test-chart-values.yaml: docker/emissary.docker.push.remote build-aux/check.mk
+test-chart-values.yaml: docker/$(LCNAME).docker.push.remote build-aux/check.mk
 	{ \
 	  echo 'test:'; \
 	  echo '  enabled: true'; \
