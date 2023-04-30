@@ -122,7 +122,7 @@ following Free and Open Source software:
     k8s.io/kubernetes                                                                 v1.22.17                                    Apache License 2.0
     k8s.io/metrics                                                                    v0.22.17                                    Apache License 2.0
     k8s.io/utils                                                                      v0.0.0-20211116205334-6203023598ed          3-clause BSD license, Apache License 2.0
-    sigs.k8s.io/controller-runtime                                                    v0.9.7                                      Apache License 2.0
+    sigs.k8s.io/controller-runtime                                                    v0.10.2                                     Apache License 2.0
     sigs.k8s.io/controller-tools                                                      v0.7.0                                      Apache License 2.0
     sigs.k8s.io/gateway-api                                                           v0.2.0                                      Apache License 2.0
     sigs.k8s.io/kustomize/api                                                         v0.8.11                                     Apache License 2.0

@@ -117,7 +117,7 @@ func FixCRD(args Args, crd *CRD) error {
 				// we use sigs.k8s.io/controller-runtime/pkg/webhook/conversion to
 				// implement the webhook this list should be kept in-sync with what
 				// that package supports.
-				ConversionReviewVersions: []string{"v1beta1"},
+				ConversionReviewVersions: []string{"v1"},
 			},
 		}
 	}
