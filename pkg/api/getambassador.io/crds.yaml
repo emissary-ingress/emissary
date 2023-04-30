@@ -15,7 +15,7 @@ spec:
           name: emissary-apiext
           namespace: emissary-system
       conversionReviewVersions:
-      - v1beta1
+      - v1
   group: getambassador.io
   names:
     categories:
@@ -425,7 +425,7 @@ spec:
           name: emissary-apiext
           namespace: emissary-system
       conversionReviewVersions:
-      - v1beta1
+      - v1
   group: getambassador.io
   names:
     categories:
@@ -572,7 +572,7 @@ spec:
           name: emissary-apiext
           namespace: emissary-system
       conversionReviewVersions:
-      - v1beta1
+      - v1
   group: getambassador.io
   names:
     categories:
@@ -965,7 +965,7 @@ spec:
           name: emissary-apiext
           namespace: emissary-system
       conversionReviewVersions:
-      - v1beta1
+      - v1
   group: getambassador.io
   names:
     categories:
@@ -1601,7 +1601,7 @@ spec:
           name: emissary-apiext
           namespace: emissary-system
       conversionReviewVersions:
-      - v1beta1
+      - v1
   group: getambassador.io
   names:
     categories:
@@ -1739,7 +1739,7 @@ spec:
           name: emissary-apiext
           namespace: emissary-system
       conversionReviewVersions:
-      - v1beta1
+      - v1
   group: getambassador.io
   names:
     categories:
@@ -2069,7 +2069,7 @@ spec:
           name: emissary-apiext
           namespace: emissary-system
       conversionReviewVersions:
-      - v1beta1
+      - v1
   group: getambassador.io
   names:
     categories:
@@ -2311,7 +2311,7 @@ spec:
           name: emissary-apiext
           namespace: emissary-system
       conversionReviewVersions:
-      - v1beta1
+      - v1
   group: getambassador.io
   names:
     categories:
@@ -4132,7 +4132,7 @@ spec:
           name: emissary-apiext
           namespace: emissary-system
       conversionReviewVersions:
-      - v1beta1
+      - v1
   group: getambassador.io
   names:
     categories:
@@ -4284,7 +4284,7 @@ spec:
           name: emissary-apiext
           namespace: emissary-system
       conversionReviewVersions:
-      - v1beta1
+      - v1
   group: getambassador.io
   names:
     categories:
@@ -4515,7 +4515,7 @@ spec:
           name: emissary-apiext
           namespace: emissary-system
       conversionReviewVersions:
-      - v1beta1
+      - v1
   group: getambassador.io
   names:
     categories:
@@ -4833,7 +4833,7 @@ spec:
           name: emissary-apiext
           namespace: emissary-system
       conversionReviewVersions:
-      - v1beta1
+      - v1
   group: getambassador.io
   names:
     categories:
@@ -5106,7 +5106,7 @@ spec:
           name: emissary-apiext
           namespace: emissary-system
       conversionReviewVersions:
-      - v1beta1
+      - v1
   group: getambassador.io
   names:
     categories:

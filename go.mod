@@ -118,7 +118,7 @@ require (
 	k8s.io/kubectl v0.22.17
 	k8s.io/kubernetes v1.22.17
 	k8s.io/metrics v0.22.17
-	sigs.k8s.io/controller-runtime v0.9.7
+	sigs.k8s.io/controller-runtime v0.10.2
 	sigs.k8s.io/controller-tools v0.7.0
 	sigs.k8s.io/gateway-api v0.2.0
 	sigs.k8s.io/yaml v1.3.0
