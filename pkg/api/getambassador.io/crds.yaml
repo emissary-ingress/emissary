@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   name: authservices.getambassador.io
 spec:
   conversion:
@@ -109,7 +109,6 @@ spec:
               timeout_ms:
                 type: integer
               tls:
-                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -221,7 +220,6 @@ spec:
               timeout_ms:
                 type: integer
               tls:
-                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -358,8 +356,6 @@ spec:
                     type: integer
                 type: object
               timeout_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
-                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               tls:
                 type: string
@@ -418,7 +414,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   name: consulresolvers.getambassador.io
 spec:
   conversion:
@@ -565,7 +561,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   name: devportals.getambassador.io
 spec:
   conversion:
@@ -958,7 +954,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   name: hosts.getambassador.io
 spec:
   conversion:
@@ -1249,12 +1245,6 @@ spec:
                 - ACMECertificateChallenge
                 type: string
               state:
-                description: The first value listed in the Enum marker becomes the
-                  "zero" value, and it would be great if "Pending" could be the default
-                  value; but it's Important that the "zero" value be able to be shown
-                  as empty/omitted from display, and we really do want `kubectl get
-                  hosts` to say "Pending" in the "STATE" column, and not leave the
-                  column empty.
                 enum:
                 - Initial
                 - Pending
@@ -1576,12 +1566,6 @@ spec:
                 - ACMECertificateChallenge
                 type: string
               state:
-                description: The first value listed in the Enum marker becomes the
-                  "zero" value, and it would be great if "Pending" could be the default
-                  value; but it's Important that the "zero" value be able to be shown
-                  as empty/omitted from display, and we really do want `kubectl get
-                  hosts` to say "Pending" in the "STATE" column, and not leave the
-                  column empty.
                 enum:
                 - Initial
                 - Pending
@@ -1606,7 +1590,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   name: kubernetesendpointresolvers.getambassador.io
 spec:
   conversion:
@@ -1744,7 +1728,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   name: kubernetesserviceresolvers.getambassador.io
 spec:
   conversion:
@@ -1882,7 +1866,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   name: listeners.getambassador.io
 spec:
   group: getambassador.io
@@ -2074,7 +2058,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   name: logservices.getambassador.io
 spec:
   conversion:
@@ -2290,8 +2274,6 @@ spec:
               flush_interval_byte_size:
                 type: integer
               flush_interval_time:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}s`/`SecondDuration`
-                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               grpc:
                 description: 'TODO(lukeshu): In v3alpha2, drop this LogService.spec.grpc.  Due
@@ -2318,7 +2300,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   name: mappings.getambassador.io
 spec:
   conversion:
@@ -2489,8 +2471,6 @@ spec:
                     - type: string
                     - type: array
                   origins:
-                    description: OriginList is a list of origin strings, either as
-                      a `[]string` or as a comma-separated `string`.
                     oneOf:
                     - type: string
                     - type: array
@@ -2517,8 +2497,6 @@ spec:
               enable_ipv6:
                 type: boolean
               envoy_override:
-                description: UntypedDict is relatively opaque as a Go type, but it
-                  preserves its contents in a roundtrippable way.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               error_response_overrides:
@@ -2574,8 +2552,6 @@ spec:
                 type: boolean
               headers:
                 additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a
-                    string.
                   oneOf:
                   - type: string
                   - type: boolean
@@ -2608,10 +2584,6 @@ spec:
                       description: 'A MappingLabelsArray is the value in the MappingLabelGroup:
                         an array of label specifiers.'
                       items:
-                        description: A MappingLabelSpecifier (finally!) defines a
-                          single label. There are multiple kinds of label, so this
-                          is more complex than we'd like it to be. See the remarks
-                          about schema on custom types in `./common.go`.
                         oneOf:
                         - type: string
                         - type: object
@@ -2660,8 +2632,6 @@ spec:
                 type: boolean
               modules:
                 items:
-                  description: UntypedDict is relatively opaque as a Go type, but
-                    it preserves its contents in a roundtrippable way.
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                 type: array
@@ -2687,8 +2657,6 @@ spec:
                 type: string
               query_parameters:
                 additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a
-                    string.
                   oneOf:
                   - type: string
                   - type: boolean
@@ -2775,7 +2743,6 @@ spec:
                   exists.
                 type: integer
               tls:
-                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -3058,8 +3025,6 @@ spec:
                     - type: string
                     - type: array
                   origins:
-                    description: OriginList is a list of origin strings, either as
-                      a `[]string` or as a comma-separated `string`.
                     oneOf:
                     - type: string
                     - type: array
@@ -3086,8 +3051,6 @@ spec:
               enable_ipv6:
                 type: boolean
               envoy_override:
-                description: UntypedDict is relatively opaque as a Go type, but it
-                  preserves its contents in a roundtrippable way.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               error_response_overrides:
@@ -3143,8 +3106,6 @@ spec:
                 type: boolean
               headers:
                 additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a
-                    string.
                   oneOf:
                   - type: string
                   - type: boolean
@@ -3177,10 +3138,6 @@ spec:
                       description: 'A MappingLabelsArray is the value in the MappingLabelGroup:
                         an array of label specifiers.'
                       items:
-                        description: A MappingLabelSpecifier (finally!) defines a
-                          single label. There are multiple kinds of label, so this
-                          is more complex than we'd like it to be. See the remarks
-                          about schema on custom types in `./common.go`.
                         oneOf:
                         - type: string
                         - type: object
@@ -3229,8 +3186,6 @@ spec:
                 type: boolean
               modules:
                 items:
-                  description: UntypedDict is relatively opaque as a Go type, but
-                    it preserves its contents in a roundtrippable way.
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                 type: array
@@ -3256,8 +3211,6 @@ spec:
                 type: string
               query_parameters:
                 additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a
-                    string.
                   oneOf:
                   - type: string
                   - type: boolean
@@ -3344,7 +3297,6 @@ spec:
                   exists.
                 type: integer
               tls:
-                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -3603,18 +3555,12 @@ spec:
                   type: object
                 type: array
               cluster_idle_timeout_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
-                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               cluster_max_connection_lifetime_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
-                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               cluster_tag:
                 type: string
               connect_timeout_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
-                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               cors:
                 properties:
@@ -3654,8 +3600,6 @@ spec:
                   path:
                     type: string
                   timeout_ms:
-                    description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
-                      fields to `{foo}`/`metav1.Duration`.'
                     type: integer
                   url:
                     type: string
@@ -3665,8 +3609,6 @@ spec:
               enable_ipv6:
                 type: boolean
               envoy_override:
-                description: UntypedDict is relatively opaque as a Go type, but it
-                  preserves its contents in a roundtrippable way.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               error_response_overrides:
@@ -3858,8 +3800,6 @@ spec:
                   is used."
                 type: string
               idle_timeout_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
-                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               keepalive:
                 properties:
@@ -3992,8 +3932,6 @@ spec:
                 type: boolean
               modules:
                 items:
-                  description: UntypedDict is relatively opaque as a Go type, but
-                    it preserves its contents in a roundtrippable way.
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                 type: array
@@ -4183,7 +4121,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   name: modules.getambassador.io
 spec:
   conversion:
@@ -4239,8 +4177,6 @@ spec:
                 - type: string
                 - type: array
               config:
-                description: UntypedDict is relatively opaque as a Go type, but it
-                  preserves its contents in a roundtrippable way.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
             type: object
@@ -4280,8 +4216,6 @@ spec:
                 - type: string
                 - type: array
               config:
-                description: UntypedDict is relatively opaque as a Go type, but it
-                  preserves its contents in a roundtrippable way.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
             type: object
@@ -4339,7 +4273,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   name: ratelimitservices.getambassador.io
 spec:
   conversion:
@@ -4405,7 +4339,6 @@ spec:
               timeout_ms:
                 type: integer
               tls:
-                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -4460,7 +4393,6 @@ spec:
               timeout_ms:
                 type: integer
               tls:
-                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -4514,8 +4446,6 @@ spec:
               stats_name:
                 type: string
               timeout_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
-                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               tls:
                 type: string
@@ -4574,7 +4504,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   name: tcpmappings.getambassador.io
 spec:
   conversion:
@@ -4666,7 +4596,6 @@ spec:
               service:
                 type: string
               tls:
-                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -4750,7 +4679,6 @@ spec:
               service:
                 type: string
               tls:
-                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -4894,7 +4822,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   name: tlscontexts.getambassador.io
 spec:
   conversion:
@@ -5167,7 +5095,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   name: tracingservices.getambassador.io
 spec:
   conversion:

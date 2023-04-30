@@ -153,22 +153,17 @@ _generate_clean:
 #   generator is `dir=config/GENERATOR_NAME`.
 # - It is invalid to set `controller-gen/output/GENERATOR_NAME` for a
 #   generator that is not enabled.
-#
-#controller-gen/options/webhook     +=
-#controller-gen/options/schemapatch += manifests=foo
-#controller-gen/options/rbac        += roleName=ambassador
-controller-gen/options/object      += headerFile=build-aux/copyright-boilerplate.go.txt
-controller-gen/options/crd         += trivialVersions=false # Requires Kubernetes 1.13+
-controller-gen/options/crd         += crdVersions=v1        # Requires Kubernetes 1.16+
-controller-gen/output/crd           = dir=$@
 $(OSS_HOME)/_generate.tmp/crds: $(tools/controller-gen) build-aux/copyright-boilerplate.go.txt FORCE
 	@printf '  $(CYN)Running controller-gen$(END)\n'
 	rm -rf $@
 	mkdir -p $@
 	cd $(OSS_HOME) && $(tools/controller-gen) \
-	  $(foreach varname,$(sort $(filter controller-gen/options/%,$(.VARIABLES))), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
-	  $(foreach varname,$(sort $(filter controller-gen/output/%,$(.VARIABLES))), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
-	  $(foreach p,$(wildcard ./pkg/api/getambassador.io/v*/),paths=$p...)
+		object:headerFile="build-aux/copyright-boilerplate.go.txt" \
+		crd \
+		paths=./pkg/api/getambassador.io/v1/... \
+  	paths=./pkg/api/getambassador.io/v2/... \
+  	paths=./pkg/api/getambassador.io/v3alpha1/...\
+		output:crd:dir=./_generate.tmp/crds
 
 $(OSS_HOME)/%/zz_generated.conversion.go: $(tools/conversion-gen) build-aux/copyright-boilerplate.go.txt FORCE
 	rm -f $@ $(@D)/*.scaffold.go

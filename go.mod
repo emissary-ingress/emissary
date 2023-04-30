@@ -67,6 +67,7 @@ exclude (
 	k8s.io/legacy-cloud-providers v0.0.0
 	k8s.io/metrics v0.0.0
 	k8s.io/mount-utils v0.0.0
+	k8s.io/pod-security-admission v0.0.0
 	k8s.io/sample-apiserver v0.0.0
 )
 
@@ -75,10 +76,7 @@ exclude github.com/go-check/check v1.0.0-20180628173108-788fd7840127
 
 // We've got some bug-fixes that we need for conversion-gen and
 // controller-gen.
-replace (
-	k8s.io/code-generator v0.22.17 => github.com/emissary-ingress/code-generator v0.22.7-rc.0.0.20230430150723-2ac6336cdaee
-	sigs.k8s.io/controller-tools v0.6.2 => github.com/emissary-ingress/controller-tools v0.6.3-0.20220204053320-db507acbb466
-)
+replace k8s.io/code-generator v0.22.17 => github.com/emissary-ingress/code-generator v0.22.7-rc.0.0.20230430150723-2ac6336cdaee
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
@@ -110,18 +108,18 @@ require (
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.21.9
-	k8s.io/apiextensions-apiserver v0.21.9
-	k8s.io/apimachinery v0.21.9
-	k8s.io/cli-runtime v0.21.9
-	k8s.io/client-go v0.21.9
+	k8s.io/api v0.22.17
+	k8s.io/apiextensions-apiserver v0.22.17
+	k8s.io/apimachinery v0.22.17
+	k8s.io/cli-runtime v0.22.17
+	k8s.io/client-go v0.22.17
 	k8s.io/code-generator v0.22.17
-	k8s.io/kube-openapi v0.0.0-20211110012726-3cc51fd1e909
-	k8s.io/kubectl v0.21.9
-	k8s.io/kubernetes v1.21.9
-	k8s.io/metrics v0.21.9
+	k8s.io/kube-openapi v0.0.0-20220310132336-3f90b8c54bbb
+	k8s.io/kubectl v0.22.17
+	k8s.io/kubernetes v1.22.17
+	k8s.io/metrics v0.22.17
 	sigs.k8s.io/controller-runtime v0.9.7
-	sigs.k8s.io/controller-tools v0.6.2
+	sigs.k8s.io/controller-tools v0.7.0
 	sigs.k8s.io/gateway-api v0.2.0
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -152,7 +150,6 @@ require (
 	github.com/go-logr/logr v0.4.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
-	github.com/go-openapi/spec v0.20.4 // indirect
 	github.com/go-openapi/swag v0.21.1 // indirect
 	github.com/gobuffalo/flect v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -202,12 +199,12 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apiserver v0.21.9 // indirect
-	k8s.io/component-base v0.21.9 // indirect
-	k8s.io/gengo v0.0.0-20201214224949-b6c5ce23f027 // indirect
+	k8s.io/apiserver v0.22.17 // indirect
+	k8s.io/component-base v0.22.17 // indirect
+	k8s.io/gengo v0.0.0-20210813121822-485abfe95c7c // indirect
 	k8s.io/klog/v2 v2.10.0 // indirect
-	k8s.io/utils v0.0.0-20210802155522-efc7438f0176 // indirect
-	sigs.k8s.io/kustomize/api v0.8.8 // indirect
-	sigs.k8s.io/kustomize/kyaml v0.10.17 // indirect
+	k8s.io/utils v0.0.0-20211116205334-6203023598ed // indirect
+	sigs.k8s.io/kustomize/api v0.8.11 // indirect
+	sigs.k8s.io/kustomize/kyaml v0.11.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 )
