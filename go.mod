@@ -76,7 +76,7 @@ exclude github.com/go-check/check v1.0.0-20180628173108-788fd7840127
 // We've got some bug-fixes that we need for conversion-gen and
 // controller-gen.
 replace (
-	k8s.io/code-generator v0.21.9 => github.com/emissary-ingress/code-generator v0.21.10-rc.0.0.20220204004229-4708b255a33a
+	k8s.io/code-generator v0.22.17 => github.com/emissary-ingress/code-generator v0.22.7-rc.0.0.20230430150723-2ac6336cdaee
 	sigs.k8s.io/controller-tools v0.6.2 => github.com/emissary-ingress/controller-tools v0.6.3-0.20220204053320-db507acbb466
 )
 
@@ -115,7 +115,7 @@ require (
 	k8s.io/apimachinery v0.21.9
 	k8s.io/cli-runtime v0.21.9
 	k8s.io/client-go v0.21.9
-	k8s.io/code-generator v0.21.9
+	k8s.io/code-generator v0.22.17
 	k8s.io/kube-openapi v0.0.0-20211110012726-3cc51fd1e909
 	k8s.io/kubectl v0.21.9
 	k8s.io/kubernetes v1.21.9
