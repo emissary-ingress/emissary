@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -335,8 +335,6 @@ spec:
                     type: integer
                 type: object
               timeout_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
-                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               tls:
                 type: string
@@ -395,7 +393,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -529,7 +527,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -909,7 +907,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -1188,12 +1186,6 @@ spec:
                 - ACMECertificateChallenge
                 type: string
               state:
-                description: The first value listed in the Enum marker becomes the
-                  "zero" value, and it would be great if "Pending" could be the default
-                  value; but it's Important that the "zero" value be able to be shown
-                  as empty/omitted from display, and we really do want `kubectl get
-                  hosts` to say "Pending" in the "STATE" column, and not leave the
-                  column empty.
                 enum:
                 - Initial
                 - Pending
@@ -1515,12 +1507,6 @@ spec:
                 - ACMECertificateChallenge
                 type: string
               state:
-                description: The first value listed in the Enum marker becomes the
-                  "zero" value, and it would be great if "Pending" could be the default
-                  value; but it's Important that the "zero" value be able to be shown
-                  as empty/omitted from display, and we really do want `kubectl get
-                  hosts` to say "Pending" in the "STATE" column, and not leave the
-                  column empty.
                 enum:
                 - Initial
                 - Pending
@@ -1545,7 +1531,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -1668,7 +1654,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -1791,7 +1777,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -1988,7 +1974,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -2191,8 +2177,6 @@ spec:
               flush_interval_byte_size:
                 type: integer
               flush_interval_time:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}s`/`SecondDuration`
-                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               grpc:
                 description: 'TODO(lukeshu): In v3alpha2, drop this LogService.spec.grpc.  Due
@@ -2219,7 +2203,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -2375,8 +2359,6 @@ spec:
               enable_ipv6:
                 type: boolean
               envoy_override:
-                description: UntypedDict is relatively opaque as a Go type, but it
-                  preserves its contents in a roundtrippable way.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               error_response_overrides:
@@ -2502,8 +2484,6 @@ spec:
                 type: boolean
               modules:
                 items:
-                  description: UntypedDict is relatively opaque as a Go type, but
-                    it preserves its contents in a roundtrippable way.
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                 type: array
@@ -2855,8 +2835,6 @@ spec:
               enable_ipv6:
                 type: boolean
               envoy_override:
-                description: UntypedDict is relatively opaque as a Go type, but it
-                  preserves its contents in a roundtrippable way.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               error_response_overrides:
@@ -2982,8 +2960,6 @@ spec:
                 type: boolean
               modules:
                 items:
-                  description: UntypedDict is relatively opaque as a Go type, but
-                    it preserves its contents in a roundtrippable way.
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                 type: array
@@ -3331,18 +3307,12 @@ spec:
                   type: object
                 type: array
               cluster_idle_timeout_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
-                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               cluster_max_connection_lifetime_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
-                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               cluster_tag:
                 type: string
               connect_timeout_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
-                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               cors:
                 properties:
@@ -3382,8 +3352,6 @@ spec:
                   path:
                     type: string
                   timeout_ms:
-                    description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
-                      fields to `{foo}`/`metav1.Duration`.'
                     type: integer
                   url:
                     type: string
@@ -3393,8 +3361,6 @@ spec:
               enable_ipv6:
                 type: boolean
               envoy_override:
-                description: UntypedDict is relatively opaque as a Go type, but it
-                  preserves its contents in a roundtrippable way.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               error_response_overrides:
@@ -3586,8 +3552,6 @@ spec:
                   is used."
                 type: string
               idle_timeout_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
-                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               keepalive:
                 properties:
@@ -3720,8 +3684,6 @@ spec:
                 type: boolean
               modules:
                 items:
-                  description: UntypedDict is relatively opaque as a Go type, but
-                    it preserves its contents in a roundtrippable way.
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                 type: array
@@ -3911,7 +3873,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -3962,8 +3924,6 @@ spec:
           spec:
             properties:
               config:
-                description: UntypedDict is relatively opaque as a Go type, but it
-                  preserves its contents in a roundtrippable way.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
             type: object
@@ -3994,8 +3954,6 @@ spec:
           spec:
             properties:
               config:
-                description: UntypedDict is relatively opaque as a Go type, but it
-                  preserves its contents in a roundtrippable way.
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
             type: object
@@ -4054,7 +4012,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -4212,8 +4170,6 @@ spec:
               stats_name:
                 type: string
               timeout_ms:
-                description: 'TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration`
-                  fields to `{foo}`/`metav1.Duration`.'
                 type: integer
               tls:
                 type: string
@@ -4272,7 +4228,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -4569,7 +4525,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -4829,7 +4785,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.7.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
