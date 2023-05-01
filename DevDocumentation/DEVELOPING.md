@@ -924,14 +924,9 @@ using the `BUILD_ARCH` environment variable (e.g. `BUILD_ARCH=linux/arm64 make i
 
 ### How do I develop on Windows using WSL?
 
-As the Emissary-ingress build system requires docker communication via a UNIX socket, using WSL 1 is not possible.
-Not even with a `DOCKER_HOST` environment variable set. As a result, you have to use WSL 2, including using the
-WSL 2 version of docker-for-windows.
-
-Additionally, if your hostname contains an upper-case character, the build script will break. This is based on the
-`NAME` environment variable, which should contain your hostname. You can solve this issue by doing `export NAME=my-lowercase-host-name`.
-If you do this *after* you've already run `make images` once, you will manually have to clean up the docker images
-that have been created using your upper-case host name.
+- [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/)
+- [Docker Desktop for Windows](https://docs.docker.com/desktop/windows/wsl/)
+- [VS Code](https://code.visualstudio.com/)
 
 ### How do I test using a private Docker repository?
 

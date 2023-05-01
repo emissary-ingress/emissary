@@ -1,6 +1,6 @@
 BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-LCNAME := $(shell echo $(NAME) | tr '[:upper:]' '[:lower:]')
+LCNAME := $(shell echo $(EMISSARY_NAME) | tr '[:upper:]' '[:lower:]')
 BUILDER_NAME ?= $(LCNAME)
 
 include $(OSS_HOME)/build-aux/prelude.mk
