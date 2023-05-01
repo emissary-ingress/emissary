@@ -1,6 +1,6 @@
 include build-aux/tools.mk
 
-#
+#
 # Auxiliary Docker images needed for the tests
 
 # Keep this list in-sync with python/tests/integration/manifests.py
@@ -56,7 +56,7 @@ docker/.kat-server.img.tar.stamp: $(tools/ocibuild) docker/base.img.tar docker/k
 	  <($(tools/ocibuild) layer squash $(filter %.layer.tar,$^)); } > $@
 docker/kat-server.img.tar.clean: docker/kat-server.rm-r
 
-#
+#
 # Helm tests
 
 test-chart-values.yaml: docker/$(LCNAME).docker.push.remote build-aux/check.mk
@@ -83,7 +83,7 @@ endif
 	cd $(chart_dir) && KUBECONFIG=$(DEV_KUBECONFIG) $(abspath $(tools/ct)) install --config=./ct.yaml
 .PHONY: test-chart
 
-#
+#
 # Other
 
 clean: .pytest_cache.rm-r .coverage.rm
