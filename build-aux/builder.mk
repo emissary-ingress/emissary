@@ -197,12 +197,15 @@ export PYTEST_ARGS
 python-virtual-environment: $(OSS_HOME)/venv
 .PHONY: python-virtual-environment
 
-pytest: push-pytest-images
-pytest: $(tools/kubestatus)
-pytest: $(tools/kubectl)
-pytest: python-virtual-environment
-pytest: docker/base-envoy.docker.tag.local
-pytest: proxy
+python-integration-test-environment: push-pytest-images
+python-integration-test-environment: $(tools/kubestatus)
+python-integration-test-environment: $(tools/kubectl)
+python-integration-test-environment: python-virtual-environment
+python-integration-test-environment: docker/base-envoy.docker.tag.local
+python-integration-test-environment: proxy
+.PHONY: python-integration-test-environment
+
+pytest-run-tests:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
 	@echo "DEV_KUBECONFIG=$$DEV_KUBECONFIG"
@@ -214,6 +217,10 @@ pytest: proxy
 	  export KUBESTATUS_PATH=$(CURDIR)/tools/bin/kubestatus; \
 	  pytest --tb=short -rP $(PYTEST_ARGS); \
 	}
+.PHONY: pytest-run-tests
+
+pytest: python-integration-test-environment
+	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS python/tests"
 .PHONY: pytest
 
 pytest-unit-tests:
@@ -228,21 +235,25 @@ pytest-unit-tests:
 pytest-unit: python-virtual-environment pytest-unit-tests
 .PHONY: pytest-unit
 
-pytest-integration: push-pytest-images
-	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) integration tests$(END)\n"
-	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/integration"
+pytest-integration-tests:
+	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS python/tests/integration"
+.PHONY: pytest-integration-tests
+
+pytest-integration: python-integration-test-environment pytest-integration-tests
 .PHONY: pytest-integration
 
-pytest-kat-envoy3: push-pytest-images # doing this all at once is too much for CI...
-	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
+pytest-kat-envoy3-tests: # doing this all at once is too much for CI...
+	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
+pytest-kat-envoy3: python-integration-test-environment pytest-kat-envoy3-tests
 # ... so we have a separate rule to run things split up
 build-aux/.pytest-kat.txt.stamp: $(OSS_HOME)/venv push-pytest-images $(tools/kubectl) FORCE
 	. venv/bin/activate && set -o pipefail && pytest --collect-only python/tests/kat 2>&1 | sed -En 's/.*<Function (.*)>/\1/p' | cut -d. -f1 | sort -u > $@
 build-aux/pytest-kat.txt: build-aux/%: build-aux/.%.stamp $(tools/copy-ifchanged)
 	$(tools/copy-ifchanged) $< $@
 clean: build-aux/.pytest-kat.txt.stamp.rm build-aux/pytest-kat.txt.rm
-pytest-kat-envoy3-%: build-aux/pytest-kat.txt $(tools/py-split-tests)
-	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $(subst -of-, ,$*) <build-aux/pytest-kat.txt)' python/tests/kat"
+pytest-kat-envoy3-tests-%: build-aux/pytest-kat.txt $(tools/py-split-tests)
+	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS -k '$$($(tools/py-split-tests) $(subst -of-, ,$*) <build-aux/pytest-kat.txt)' python/tests/kat"
+pytest-kat-envoy3-%: python-integration-test-environment pytest-kat-envoy3-tests-%
 
 $(OSS_HOME)/venv: python/requirements.txt python/requirements-dev.txt
 	rm -rf $@
