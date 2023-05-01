@@ -74,25 +74,31 @@ def test_generate_headers_to_add():
     }
 
     expected = [
-        {"header": {"key": "x-test-proto", "value": "%PROTOCOL%"}, "append": True},
+        {
+            "header": {"key": "x-test-proto", "value": "%PROTOCOL%"},
+            "append_action": "APPEND_IF_EXISTS_OR_ADD",
+        },
         {
             "header": {"key": "x-test-ip", "value": "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"},
-            "append": True,
+            "append_action": "APPEND_IF_EXISTS_OR_ADD",
         },
-        {"header": {"key": "x-test-static", "value": "This is a test header"}, "append": True},
+        {
+            "header": {"key": "x-test-static", "value": "This is a test header"},
+            "append_action": "APPEND_IF_EXISTS_OR_ADD",
+        },
         {
             "header": {
                 "key": "x-test-append",
                 "value": "this will not append header if already exist",
             },
-            "append": False,
+            "append_action": "OVERWRITE_IF_EXISTS_OR_ADD",
         },
         {
             "header": {
                 "key": "x-test-no-append",
                 "value": "this will allow appending if header exist",
             },
-            "append": True,
+            "append_action": "APPEND_IF_EXISTS_OR_ADD",
         },
     ]
 

@@ -767,16 +767,22 @@ class V3Route(Cacheable):
     def generate_headers_to_add(header_dict: dict) -> List[dict]:
         headers = []
         for k, v in header_dict.items():
-            append = True
+            # Default as-if append == True, this ensures it matches previous usage of the deprecated
+            # `append` field.
+            append_action = "APPEND_IF_EXISTS_OR_ADD"
             if isinstance(v, dict):
                 if "append" in v:
                     append = bool(v["append"])
-                headers.append({"header": {"key": k, "value": v["value"]}, "append": append})
+                if append == False:
+                    append_action = "OVERWRITE_IF_EXISTS_OR_ADD"
+                headers.append(
+                    {"header": {"key": k, "value": v["value"]}, "append_action": append_action}
+                )
             else:
                 headers.append(
                     {
                         "header": {"key": k, "value": v},
-                        "append": append,  # Default append True, for backward compatability
+                        "append_action": append_action,
                     }
                 )
         return headers
