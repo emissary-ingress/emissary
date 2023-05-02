@@ -1,0 +1,73 @@
+name: k8s-e2e
+
+"on":
+  pull_request: {}
+  schedule:
+    - cron: "0 7 * * *" # at 7am UTC everyday
+  workflow_dispatch:
+
+jobs:
+  acceptance_tests:
+    runs-on: ubuntu-latest
+    env:
+      # See docker/base-python.docker.gen
+      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
+      # See pkg/kubeapply/resource_kubeapply.go
+      DEV_USE_IMAGEPULLSECRET: ${{ secrets.DEV_USE_IMAGEPULLSECRET }}
+      DOCKER_BUILD_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+      DOCKER_BUILD_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+    strategy:
+      fail-fast: false
+      matrix:
+        k8s:
+          [
+            { k3s: 1.25.9+k3s1, kubectl: 1.25.9 },
+            { k3s: 1.26.4+k3s1, kubectl: 1.26.4 },
+          ]
+        test:
+          - integration-tests
+          - kat-envoy3-tests-1-of-5
+          - kat-envoy3-tests-2-of-5
+          - kat-envoy3-tests-3-of-5
+          - kat-envoy3-tests-4-of-5
+          - kat-envoy3-tests-5-of-5
+    name: ${{matrix.k8s.kubectl}}-${{ matrix.test }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+      - name: "Docker Login"
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
+          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+      - name: Create integration test cluster
+        env:
+          K3S_VERSION: ${{matrix.k8s.k3s}}
+          KUBECTL_VERSION: ${{matrix.k8s.kubectl}}
+        run: |
+          sudo sysctl -w fs.file-max=1600000
+          sudo sysctl -w fs.inotify.max_user_instances=4096
+
+          make ci/setup-k3d
+      - name: Setup integration test environment
+        run: |
+          export DEV_KUBE_NO_PVC=yes
+          export KAT_REQ_LIMIT=900
+          export DEV_KUBECONFIG=~/.kube/config
+          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
+          make python-integration-test-environment
+      - name: Run ${{ matrix.test }}
+        run: |
+          export DEV_KUBE_NO_PVC=yes
+          export KAT_REQ_LIMIT=900
+          export DEV_KUBECONFIG=~/.kube/config
+          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
+          make pytest-${{ matrix.test }}
+      - uses: ./.github/actions/after-job
+        if: always()
+        with:
+          jobname: check-pytest-${{ matrix.test }}

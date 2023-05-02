@@ -1,7 +1,7 @@
 include build-aux/tools.mk
 include build-aux/var.mk
 
-#
+#
 # Utility rules
 
 # Assume that any rule ending with '.clean' is phony.
@@ -41,7 +41,7 @@ clean: $(foreach img,$(_ocibuild-images),docker/$(img).img.tar.clean)
 %.img.tar.clean: %.docker.clean
 	rm -f $*.img.tar $(*D)/.$(*F).img.tar.stamp $(*D)/$(*F).*.layer.tar
 
-#
+#
 # Specific rules
 
 # For images we can either write rules for
@@ -180,7 +180,7 @@ endif
 	  mkdir -p $(dir $(dst))$(NL)\
 	  sed -e 's/\$$version\$$/$*/g' -e 's/\$$quoteVersion$$/0.4.1/g' <$(src) >$(dst)$(NL)))
 
-#
+#
 # Destructive rules
 
 clobber: clean
