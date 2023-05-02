@@ -93,6 +93,10 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 - Security: Upgrading to the latest release of Golang as part of our general dependency upgrade
   process. This includes security fixes for CVE-2023-24539, CVE-2023-24540, CVE-2023-29400.
 
+- Feature: This upgrades Emissary-ingress to be built on Envoy v1.26.1. This provides
+  Emissary-ingress with the latest security patches, performances enhancments, and features offered
+  by the envoy proxy.
+
 ## [3.6.0] April 17, 2023
 [3.6.0]: https://github.com/emissary-ingress/emissary/compare/v3.5.0...v3.6.0
 
