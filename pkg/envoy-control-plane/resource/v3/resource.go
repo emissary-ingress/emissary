@@ -26,6 +26,9 @@ const (
 	RuntimeType         = APITypePrefix + "envoy.service.runtime.v3.Runtime"
 	ThriftRouteType     = APITypePrefix + "envoy.extensions.filters.network.thrift_proxy.v3.RouteConfiguration"
 
+	// Rate Limit service
+	RateLimitConfigType = APITypePrefix + "ratelimit.config.ratelimit.v3.RateLimitConfig"
+
 	// AnyType is used only by ADS
 	AnyType = ""
 )

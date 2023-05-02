@@ -37,6 +37,7 @@ import (
 	runtimeservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/runtime/v3"
 	secretservice "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/secret/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+	rlsconfigservice "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/ratelimit/service/ratelimit/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
 )
 
@@ -52,6 +53,7 @@ type Server interface {
 	secretservice.SecretDiscoveryServiceServer
 	runtimeservice.RuntimeDiscoveryServiceServer
 	extensionconfigservice.ExtensionConfigDiscoveryServiceServer
+	rlsconfigservice.RateLimitConfigDiscoveryServiceServer
 
 	rest.Server
 	sotw.Server
@@ -220,6 +222,10 @@ func (s *server) StreamExtensionConfigs(stream extensionconfigservice.ExtensionC
 	return s.StreamHandler(stream, resource.ExtensionConfigType)
 }
 
+func (s *server) StreamRlsConfigs(stream rlsconfigservice.RateLimitConfigDiscoveryService_StreamRlsConfigsServer) error {
+	return s.StreamHandler(stream, resource.RateLimitConfigType)
+}
+
 // VHDS doesn't support SOTW requests, so no handler for it exists.
 
 // Fetch is the universal fetch method.
@@ -288,6 +294,14 @@ func (s *server) FetchExtensionConfigs(ctx context.Context, req *discovery.Disco
 		return nil, status.Errorf(codes.Unavailable, "empty request")
 	}
 	req.TypeUrl = resource.ExtensionConfigType
+	return s.Fetch(ctx, req)
+}
+
+func (s *server) FetchRlsConfigs(ctx context.Context, req *discovery.DiscoveryRequest) (*discovery.DiscoveryResponse, error) {
+	if req == nil {
+		return nil, status.Errorf(codes.Unavailable, "empty request")
+	}
+	req.TypeUrl = resource.RateLimitConfigType
 	return s.Fetch(ctx, req)
 }
 

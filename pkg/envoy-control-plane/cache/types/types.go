@@ -48,5 +48,6 @@ const (
 	Secret
 	Runtime
 	ExtensionConfig
+	RateLimitConfig
 	UnknownType // token to count the total number of supported types
 )

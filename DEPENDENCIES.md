@@ -13,17 +13,17 @@ following Free and Open Source software:
     github.com/asaskevich/govalidator                                                 v0.0.0-20210307081110-f21760c49a8d     MIT license
     github.com/beorn7/perks                                                           v1.0.1                                 MIT license
     github.com/blang/semver/v4                                                        v4.0.0                                 MIT license
-    github.com/census-instrumentation/opencensus-proto                                v0.3.0                                 Apache License 2.0
+    github.com/census-instrumentation/opencensus-proto                                v0.4.1                                 Apache License 2.0
     github.com/cespare/xxhash/v2                                                      v2.2.0                                 MIT license
     github.com/chai2010/gettext-go                                                    v1.0.2                                 3-clause BSD license
-    github.com/cncf/xds/go                                                            v0.0.0-20220121163655-4a2b9fdd466b     Apache License 2.0
+    github.com/cncf/xds/go                                                            v0.0.0-20220314180256-7f1daf1720fc     Apache License 2.0
     github.com/datawire/dlib                                                          v1.3.0                                 Apache License 2.0
     github.com/datawire/dtest                                                         v0.0.0-20210928162311-722b199c4c2f     Apache License 2.0
     github.com/datawire/go-mkopensource                                               v0.0.7                                 Apache License 2.0
     github.com/davecgh/go-spew                                                        v1.1.1                                 ISC license
     github.com/docker/distribution                                                    v2.8.1+incompatible                    Apache License 2.0
     github.com/emicklei/go-restful/v3                                                 v3.10.2                                MIT license
-    github.com/envoyproxy/protoc-gen-validate                                         v0.6.7                                 Apache License 2.0
+    github.com/envoyproxy/protoc-gen-validate                                         v0.9.1                                 Apache License 2.0
     github.com/evanphx/json-patch                                                     v5.6.0+incompatible                    3-clause BSD license
     github.com/exponent-io/jsonpath                                                   v0.0.0-20210407135951-1de76d718b3f     MIT license
     github.com/fatih/camelcase                                                        v1.0.0                                 MIT license
@@ -100,8 +100,8 @@ following Free and Open Source software:
     golang.org/x/time                                                                 v0.3.0                                 3-clause BSD license
     golang.org/x/tools                                                                v0.8.0                                 3-clause BSD license
     google.golang.org/appengine                                                       v1.6.7                                 Apache License 2.0
-    google.golang.org/genproto                                                        v0.0.0-20220502173005-c8bf987b8c21     Apache License 2.0
-    google.golang.org/grpc                                                            v1.51.0                                Apache License 2.0
+    google.golang.org/genproto                                                        v0.0.0-20221118155620-16455021b5e6     Apache License 2.0
+    google.golang.org/grpc                                                            v1.52.0                                Apache License 2.0
     google.golang.org/grpc/cmd/protoc-gen-go-grpc                                     v1.2.0                                 Apache License 2.0
     google.golang.org/protobuf                                                        v1.30.0                                3-clause BSD license
     gopkg.in/inf.v0                                                                   v0.9.1                                 3-clause BSD license
