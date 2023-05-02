@@ -41,6 +41,11 @@ items:
         body: >-
           Upgrading to the latest release of Golang as part of our general dependency upgrade process. This includes
           security fixes for CVE-2023-24539, CVE-2023-24540, CVE-2023-29400.
+      - title: Upgrade to Envoy 1.26.1
+        type: feature
+        body: >-
+          This upgrades $productName$ to be built on Envoy v1.26.1. This provides $productName$ with the latest
+          security patches, performances enhancments, and features offered by the envoy proxy.
 
   - version: 3.6.0
     prevVersion: 3.5.0

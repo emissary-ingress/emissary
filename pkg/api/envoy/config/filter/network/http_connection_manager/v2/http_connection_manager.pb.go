@@ -1270,7 +1270,7 @@ type HttpConnectionManager_Tracing struct {
 	// Target percentage of requests managed by this HTTP connection manager that will be force
 	// traced if the :ref:`x-client-trace-id <config_http_conn_man_headers_x-client-trace-id>`
 	// header is set. This field is a direct analog for the runtime variable
-	// 'tracing.client_sampling' in the :ref:`HTTP Connection Manager
+	// 'tracing.client_enabled' in the :ref:`HTTP Connection Manager
 	// <config_http_conn_man_runtime>`.
 	// Default: 100%
 	ClientSampling *_type.Percent `protobuf:"bytes,3,opt,name=client_sampling,json=clientSampling,proto3" json:"client_sampling,omitempty"`
