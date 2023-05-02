@@ -37,7 +37,7 @@ RSYNC_EXTRAS ?=
 # which commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an
 # automated way!  Still look at the commit yourself to make sure it seems sane; blindly trusting
 # machines is bad, mmkay?
-ENVOY_GO_CONTROL_PLANE_COMMIT = 335df8c6b7f10ee07fa8322126911b9da27ff94b
+ENVOY_GO_CONTROL_PLANE_COMMIT = 7f2a3030ef40e773a8413fa0f2f03dfe26226593
 
 # Set ENVOY_DOCKER_REPO to the list of mirrors that we should
 # sanity-check that things get pushed to.
@@ -312,10 +312,11 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	  trap 'rm -rf "$$tmpdir"' EXIT; \
 	  cd "$$tmpdir"; \
 	  cd $(OSS_HOME)/_cxx/go-control-plane; \
-	  cp -r $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg/* "$$tmpdir"; \
+	  cp -r $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg/* ratelimit "$$tmpdir"; \
 	  find "$$tmpdir" -name '*.go' -exec sed -E -i.bak \
 	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane,g' \
 	    -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/emissary-ingress/emissary/v3/pkg/api/envoy,g' \
+			-e 's,github\.com/envoyproxy/go-control-plane/ratelimit,github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/ratelimit,g' \
 	    -- {} +; \
 	  sed -i.bak -e 's/^package/\n&/' "$$tmpdir/log/log_test.go"; \
 	  find "$$tmpdir" -name '*.bak' -delete; \

@@ -1,5 +1,29 @@
 # Changelog
 
+## Release v0.11.0
+
+### Added
+
+- Added Node object to stream closed callbacks (#572)
+- Added support for the RateLimit xDS Service (#598)
+- Added support for thrift route config type on server resources (#600)
+- Programmatic ADS client that supports communication with an xDS management server (#604)
+- Added cache support for custom resource names with delta xDS (#609)
+
+### Changed
+
+- Envoy Protos Commit SHA: `a8a39af371cceaca4c08ce8637d5980fe14de151`
+- Updated prometheus/client_model library to v0.3.0 (#602)
+- Bump sigs.k8s.io/aws-iam-authenticator from 0.5.9 to 0.6.1 in /examples/dyplomat (#617)
+- Bump google.golang.org/grpc from 1.51.0 to 1.52.0 (#622)
+
+### Fixed
+
+- Delta xDS properly closes watches when a stream is closed to release memory (#570)
+- Fixed panic when sending certain resource heartbeats (#579)
+- Fixed debug logs printing sensitive resource information (#601)
+- Fixed watch state incorrectly tracking state updates over SDS (#615)
+
 ## Release v0.10.3
 
 ### Changed

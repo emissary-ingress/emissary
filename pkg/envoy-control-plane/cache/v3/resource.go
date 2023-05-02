@@ -29,6 +29,7 @@ import (
 	auth "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/transport_sockets/tls/v3"
 	runtime "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/runtime/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	ratelimit "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/ratelimit/config/ratelimit/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
 )
 
@@ -53,6 +54,8 @@ func GetResponseType(typeURL resource.Type) types.ResponseType {
 		return types.Runtime
 	case resource.ExtensionConfigType:
 		return types.ExtensionConfig
+	case resource.RateLimitConfigType:
+		return types.RateLimitConfig
 	}
 	return types.UnknownType
 }
@@ -78,6 +81,8 @@ func GetResponseTypeURL(responseType types.ResponseType) (string, error) {
 		return resource.RuntimeType, nil
 	case types.ExtensionConfig:
 		return resource.ExtensionConfigType, nil
+	case types.RateLimitConfig:
+		return resource.RateLimitConfigType, nil
 	default:
 		return "", fmt.Errorf("couldn't map response type %v to known resource type", responseType)
 	}
@@ -103,6 +108,8 @@ func GetResourceName(res types.Resource) string {
 	case *runtime.Runtime:
 		return v.GetName()
 	case *core.TypedExtensionConfig:
+		return v.GetName()
+	case *ratelimit.RateLimitConfig:
 		return v.GetName()
 	case types.ResourceWithName:
 		return v.GetName()
