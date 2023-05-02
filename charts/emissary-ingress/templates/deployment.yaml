@@ -172,12 +172,14 @@ spec:
             - name: admin
               containerPort: {{ .Values.adminService.port }}
           env:
+            {{- if .Values.agent.enabled }}
             - name: AMBASSADOR_GRPC_METRICS_SINK
               value: {{ include "ambassador.fullname" . }}-agent:80
             - name: HOST_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            {{- end }}
             {{- if .Values.prometheusExporter.enabled }}
             - name: STATSD_ENABLED
               value: "true"
