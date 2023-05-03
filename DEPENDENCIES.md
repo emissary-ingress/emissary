@@ -137,11 +137,12 @@ libraries:
     Name                Version    License(s)
     ----                -------    ----------
     Cython              0.29.32    Apache License 2.0
-    Flask               2.2.2      3-clause BSD license
+    Flask               2.3.2      3-clause BSD license
     Jinja2              3.1.2      3-clause BSD license
     MarkupSafe          2.1.1      3-clause BSD license
     PyYAML              6.0        MIT license
-    Werkzeug            2.2.3      3-clause BSD license
+    Werkzeug            2.3.3      3-clause BSD license
+    blinker             1.6.2      MIT license
     build               0.9.0      MIT license
     cachetools          5.3.0      MIT license
     certifi             2022.12.7  Mozilla Public License 2.0
