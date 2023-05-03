@@ -415,7 +415,7 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 			}
 		})
 	*/
-	informer.AddEventHandler(
+	_, err := informer.AddEventHandler(
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				// This is for testing. It allows us to deliberately increase the probability of
@@ -462,6 +462,9 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 			},
 		},
 	)
+	if err != nil {
+		dlog.Errorf(ctx, "error adding event handlers, %s", err)
+	}
 
 	go informer.Run(ctx.Done())
 }
