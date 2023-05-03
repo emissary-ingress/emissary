@@ -6,7 +6,7 @@
 # that is good and proper.  As an exception, some of the Envoy-related stuff is allowed to live in
 # envoy.mk, because that's a whole other bag of gross.
 
-#
+#
 # The main `make generate` entrypoints and listings
 
 # - Let $(generate/files) be a listing of all files or directories that `make generate` will create.
@@ -22,7 +22,7 @@
 # Initialize
 generate-fast/files  =
 generate/files       = $(generate-fast/files)
-generate/precious    =
+generate/precious    = $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml
 # Whole directories with rules for each individual file in it
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) $(OSS_HOME)/pkg/api/kat/
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%_grpc.pb.go                    , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
@@ -85,7 +85,7 @@ generate-fast-clean: ## Delete the subset of generated-sources-that-get-committe
 	find $(OSS_HOME)/pkg/api/getambassador.io -name 'zz_generated.*.go' -print -delete # generated as a side-effect of other files
 .PHONY: generate-fast-clean
 
-#
+#
 # Helper Make functions and variables
 
 # Usage: $(call joinlist,SEPARATOR,LIST)
@@ -96,7 +96,7 @@ comma=,
 
 gomoddir = $(shell cd $(OSS_HOME); go list -mod=readonly $1/... >/dev/null 2>/dev/null; go list -mod=readonly -m -f='{{.Dir}}' $1)
 
-#
+#
 # `make generate` certificate generation
 
 $(OSS_HOME)/docker/test-auth/authsvc.crt: $(tools/testcert-gen)
@@ -112,7 +112,7 @@ $(OSS_HOME)/docker/test-shadow/shadowsvc.key: $(tools/testcert-gen)
 $(OSS_HOME)/python/tests/selfsigned.py: %: %.gen $(tools/testcert-gen)
 	$@.gen $(tools/testcert-gen) >$@
 
-#
+#
 # `make generate` protobuf rules
 
 # proto_path is a list of where to look for .proto files.
@@ -140,7 +140,7 @@ _generate_clean:
 	rm -rf $(OSS_HOME)/_generate.tmp
 .PHONY: _generate_clean
 
-#
+#
 # `make generate` rules to update generated YAML files (and `zz_generated.*.go` Go files)
 
 # Use `controller-gen` to generate Go & YAML
@@ -160,11 +160,9 @@ $(OSS_HOME)/_generate.tmp/crds: $(tools/controller-gen) build-aux/copyright-boil
 	cd $(OSS_HOME) && $(tools/controller-gen) \
 		object:headerFile="build-aux/copyright-boilerplate.go.txt" \
 		crd \
-		paths=./pkg/api/getambassador.io/v1/... \
-  	paths=./pkg/api/getambassador.io/v2/... \
-  	paths=./pkg/api/getambassador.io/v3alpha1/...\
+		paths=./pkg/api/getambassador.io/... \
 		output:crd:dir=./_generate.tmp/crds
-
+	
 $(OSS_HOME)/%/zz_generated.conversion.go: $(tools/conversion-gen) build-aux/copyright-boilerplate.go.txt FORCE
 	rm -f $@ $(@D)/*.scaffold.go
 	GOPATH= GOFLAGS=-mod=mod $(tools/conversion-gen) \
@@ -237,7 +235,7 @@ $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml: $(OSS_HO
 $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml: $(OSS_HOME)/k8s-config/kat-rbac-singlenamespace/output.yaml
 	sed -e 's/«/{/g' -e 's/»/}/g' -e 's/♯.*//g' -e 's/- ←//g' <$< >$@
 
-#
+#
 # Generate report on dependencies
 
 $(OSS_HOME)/DEPENDENCIES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux/go-version.txt $(OSS_HOME)/build-aux/pip-show.txt
@@ -258,7 +256,7 @@ $(OSS_HOME)/DEPENDENCY_LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopenso
 		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource) --output-type=json | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"'; \
 	} | sort | uniq | sed -e 's/\[\([^]]*\)]()/\1/' >> $@
 
-#
+#
 # Misc. other `make generate` rules
 
 $(OSS_HOME)/CHANGELOG.md: $(OSS_HOME)/docs/CHANGELOG.tpl $(OSS_HOME)/docs/releaseNotes.yml

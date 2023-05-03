@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.12.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -270,7 +270,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n ambassador_id: - \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -361,19 +361,19 @@ spec:
                       \ In v2, there were a lot of different ways to spell an \"empty\"
                       value, and this field specifies which way to spell it (and will
                       therefore only be used if the value will indeed be empty). \n
-                      \ | Value        | Representation                        | Meaning
-                      of representation          |  |--------------+---------------------------------------+------------------------------------|
-                      \ | \"\"           | omit the field                        |
-                      defer to service (no TLSContext)   |  | \"null\"       | store
-                      an explicit \"null\" in the field | defer to service (no TLSContext)
-                      \  |  | \"string\"     | store an empty string in the field
-                      \   | defer to service (no TLSContext)   |  | \"bool:false\"
-                      | store a Boolean \"false\" in the field  | defer to service
-                      (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\"
-                      in the field   | originate TLS (no TLSContext)      | \n If
-                      the meaning of the representation contradicts anything else
-                      (if a TLSContext is to be used, or in the case of \"bool:true\"
-                      if TLS is not to be originated), then this field is ignored."
+                      | Value        | Representation                        | Meaning
+                      of representation          | |--------------+---------------------------------------+------------------------------------|
+                      | \"\"           | omit the field                        | defer
+                      to service (no TLSContext)   | | \"null\"       | store an explicit
+                      \"null\" in the field | defer to service (no TLSContext)   |
+                      | \"string\"     | store an empty string in the field    | defer
+                      to service (no TLSContext)   | | \"bool:false\" | store a Boolean
+                      \"false\" in the field  | defer to service (no TLSContext)   |
+                      | \"bool:true\"  | store a Boolean \"true\" in the field   |
+                      originate TLS (no TLSContext)      | \n If the meaning of the
+                      representation contradicts anything else (if a TLSContext is
+                      to be used, or in the case of \"bool:true\" if TLS is not to
+                      be originated), then this field is ignored."
                     enum:
                     - ""
                     - "null"
@@ -393,7 +393,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.12.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -510,7 +510,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n ambassador_id: - \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -527,7 +527,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.12.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -559,12 +559,12 @@ spec:
     schema:
       openAPIV3Schema:
         description: "DevPortal is the Schema for the DevPortals API \n DevPortal
-          resources specify the `what` and `how` is shown in a DevPortal: \n  1. `what`
-          is in a DevPortal can be controlled with \n     - a `selector`, that can
-          be used for filtering `Mappings`. \n     - a `docs` listing of (services,
-          url) \n  2. `how` is a pointer to some `contents` (a checkout of a Git repository
-          \    with go-templates/markdown/css). \n Multiple `DevPortal`s can exist
-          in the cluster, and the Dev Portal server will show them at different endpoints.
+          resources specify the `what` and `how` is shown in a DevPortal: \n 1. `what`
+          is in a DevPortal can be controlled with \n - a `selector`, that can be
+          used for filtering `Mappings`. \n - a `docs` listing of (services, url)
+          \n 2. `how` is a pointer to some `contents` (a checkout of a Git repository
+          with go-templates/markdown/css). \n Multiple `DevPortal`s can exist in the
+          cluster, and the Dev Portal server will show them at different endpoints.
           A `DevPortal` resource with a special name, `ambassador`, will be used for
           configuring the default Dev Portal (served at `/docs/` by default)."
         properties:
@@ -672,12 +672,12 @@ spec:
     schema:
       openAPIV3Schema:
         description: "DevPortal is the Schema for the DevPortals API \n DevPortal
-          resources specify the `what` and `how` is shown in a DevPortal: \n  1. `what`
-          is in a DevPortal can be controlled with \n     - a `selector`, that can
-          be used for filtering `Mappings`. \n     - a `docs` listing of (services,
-          url) \n  2. `how` is a pointer to some `contents` (a checkout of a Git repository
-          \    with go-templates/markdown/css). \n Multiple `DevPortal`s can exist
-          in the cluster, and the Dev Portal server will show them at different endpoints.
+          resources specify the `what` and `how` is shown in a DevPortal: \n 1. `what`
+          is in a DevPortal can be controlled with \n - a `selector`, that can be
+          used for filtering `Mappings`. \n - a `docs` listing of (services, url)
+          \n 2. `how` is a pointer to some `contents` (a checkout of a Git repository
+          with go-templates/markdown/css). \n Multiple `DevPortal`s can exist in the
+          cluster, and the Dev Portal server will show them at different endpoints.
           A `DevPortal` resource with a special name, `ambassador`, will be used for
           configuring the default Dev Portal (served at `/docs/` by default)."
         properties:
@@ -785,12 +785,12 @@ spec:
     schema:
       openAPIV3Schema:
         description: "DevPortal is the Schema for the DevPortals API \n DevPortal
-          resources specify the `what` and `how` is shown in a DevPortal: \n  1. `what`
-          is in a DevPortal can be controlled with \n     - a `selector`, that can
-          be used for filtering `Mappings`. \n     - a `docs` listing of (services,
-          url) \n  2. `how` is a pointer to some `contents` (a checkout of a Git repository
-          \    with go-templates/markdown/css). \n Multiple `DevPortal`s can exist
-          in the cluster, and the Dev Portal server will show them at different endpoints.
+          resources specify the `what` and `how` is shown in a DevPortal: \n 1. `what`
+          is in a DevPortal can be controlled with \n - a `selector`, that can be
+          used for filtering `Mappings`. \n - a `docs` listing of (services, url)
+          \n 2. `how` is a pointer to some `contents` (a checkout of a Git repository
+          with go-templates/markdown/css). \n Multiple `DevPortal`s can exist in the
+          cluster, and the Dev Portal server will show them at different endpoints.
           A `DevPortal` resource with a special name, `ambassador`, will be used for
           configuring the default Dev Portal (served at `/docs/` by default)."
         properties:
@@ -812,7 +812,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n ambassador_id: - \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -907,7 +907,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.12.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -1004,6 +1004,7 @@ spec:
                           TODO: Add other useful fields. apiVersion, kind, uid?'
                         type: string
                     type: object
+                    x-kubernetes-map-type: atomic
                   registration:
                     description: This is normally set automatically
                     type: string
@@ -1084,6 +1085,7 @@ spec:
                       are ANDed.
                     type: object
                 type: object
+                x-kubernetes-map-type: atomic
               tls:
                 description: TLS configuration.  It is not valid to specify both `tlsContext`
                   and `tls`.
@@ -1136,6 +1138,7 @@ spec:
                       TODO: Add other useful fields. apiVersion, kind, uid?'
                     type: string
                 type: object
+                x-kubernetes-map-type: atomic
               tlsSecret:
                 description: Name of the Kubernetes secret into which to save generated
                   certificates.  If ACME is enabled (see $acmeProvider), then the
@@ -1151,6 +1154,7 @@ spec:
                       name must be unique.
                     type: string
                 type: object
+                x-kubernetes-map-type: atomic
             type: object
             x-kubernetes-preserve-unknown-fields: true
           status:
@@ -1274,6 +1278,7 @@ spec:
                           TODO: Add other useful fields. apiVersion, kind, uid?'
                         type: string
                     type: object
+                    x-kubernetes-map-type: atomic
                   registration:
                     description: This is normally set automatically
                     type: string
@@ -1332,6 +1337,7 @@ spec:
                       are ANDed.
                     type: object
                 type: object
+                x-kubernetes-map-type: atomic
               previewUrl:
                 description: Configuration for the Preview URL feature of Service
                   Preview. Defaults to preview URLs not enabled.
@@ -1406,6 +1412,7 @@ spec:
                       are ANDed.
                     type: object
                 type: object
+                x-kubernetes-map-type: atomic
               tls:
                 description: TLS configuration.  It is not valid to specify both `tlsContext`
                   and `tls`.
@@ -1458,6 +1465,7 @@ spec:
                       TODO: Add other useful fields. apiVersion, kind, uid?'
                     type: string
                 type: object
+                x-kubernetes-map-type: atomic
               tlsSecret:
                 description: Name of the Kubernetes secret into which to save generated
                   certificates.  If ACME is enabled (see $acmeProvider), then the
@@ -1473,6 +1481,7 @@ spec:
                       name must be unique.
                     type: string
                 type: object
+                x-kubernetes-map-type: atomic
             type: object
           status:
             description: HostStatus defines the observed state of Host
@@ -1531,7 +1540,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.12.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -1639,7 +1648,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n ambassador_id: - \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1654,7 +1663,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.12.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -1762,7 +1771,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n ambassador_id: - \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1777,7 +1786,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.12.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -1838,7 +1847,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n ambassador_id: - \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -1907,6 +1916,7 @@ spec:
                           "value". The requirements are ANDed.
                         type: object
                     type: object
+                    x-kubernetes-map-type: atomic
                 type: object
               l7Depth:
                 description: L7Depth specifies how many layer 7 load balancers are
@@ -1974,7 +1984,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.12.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -2147,7 +2157,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n ambassador_id: - \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -2203,7 +2213,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.12.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -2282,10 +2292,10 @@ spec:
                   the traffic, and behaves similarly to how it does for TCPMappings.
                   \n [1]: https://tools.ietf.org/html/rfc7230#section-6.7 \n For example,
                   if your upstream service supports WebSockets, you would write \n
-                  \   allow_upgrade:    - websocket \n Or if your upstream service
-                  supports upgrading from HTTP to SPDY (as the Kubernetes apiserver
-                  does for `kubectl exec` functionality), you would write \n    allow_upgrade:
-                  \   - spdy/3.1"
+                  allow_upgrade: - websocket \n Or if your upstream service supports
+                  upgrading from HTTP to SPDY (as the Kubernetes apiserver does for
+                  `kubectl exec` functionality), you would write \n allow_upgrade:
+                  - spdy/3.1"
                 items:
                   type: string
                 type: array
@@ -2758,10 +2768,10 @@ spec:
                   the traffic, and behaves similarly to how it does for TCPMappings.
                   \n [1]: https://tools.ietf.org/html/rfc7230#section-6.7 \n For example,
                   if your upstream service supports WebSockets, you would write \n
-                  \   allow_upgrade:    - websocket \n Or if your upstream service
-                  supports upgrading from HTTP to SPDY (as the Kubernetes apiserver
-                  does for `kubectl exec` functionality), you would write \n    allow_upgrade:
-                  \   - spdy/3.1"
+                  allow_upgrade: - websocket \n Or if your upstream service supports
+                  upgrading from HTTP to SPDY (as the Kubernetes apiserver does for
+                  `kubectl exec` functionality), you would write \n allow_upgrade:
+                  - spdy/3.1"
                 items:
                   type: string
                 type: array
@@ -3258,17 +3268,17 @@ spec:
                   the traffic, and behaves similarly to how it does for TCPMappings.
                   \n [1]: https://tools.ietf.org/html/rfc7230#section-6.7 \n For example,
                   if your upstream service supports WebSockets, you would write \n
-                  \   allow_upgrade:    - websocket \n Or if your upstream service
-                  supports upgrading from HTTP to SPDY (as the Kubernetes apiserver
-                  does for `kubectl exec` functionality), you would write \n    allow_upgrade:
-                  \   - spdy/3.1"
+                  allow_upgrade: - websocket \n Or if your upstream service supports
+                  upgrading from HTTP to SPDY (as the Kubernetes apiserver does for
+                  `kubectl exec` functionality), you would write \n allow_upgrade:
+                  - spdy/3.1"
                 items:
                   type: string
                 type: array
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n ambassador_id: - \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -3824,19 +3834,19 @@ spec:
                       \ In v2, there were a lot of different ways to spell an \"empty\"
                       value, and this field specifies which way to spell it (and will
                       therefore only be used if the value will indeed be empty). \n
-                      \ | Value        | Representation                        | Meaning
-                      of representation          |  |--------------+---------------------------------------+------------------------------------|
-                      \ | \"\"           | omit the field                        |
-                      defer to service (no TLSContext)   |  | \"null\"       | store
-                      an explicit \"null\" in the field | defer to service (no TLSContext)
-                      \  |  | \"string\"     | store an empty string in the field
-                      \   | defer to service (no TLSContext)   |  | \"bool:false\"
-                      | store a Boolean \"false\" in the field  | defer to service
-                      (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\"
-                      in the field   | originate TLS (no TLSContext)      | \n If
-                      the meaning of the representation contradicts anything else
-                      (if a TLSContext is to be used, or in the case of \"bool:true\"
-                      if TLS is not to be originated), then this field is ignored."
+                      | Value        | Representation                        | Meaning
+                      of representation          | |--------------+---------------------------------------+------------------------------------|
+                      | \"\"           | omit the field                        | defer
+                      to service (no TLSContext)   | | \"null\"       | store an explicit
+                      \"null\" in the field | defer to service (no TLSContext)   |
+                      | \"string\"     | store an empty string in the field    | defer
+                      to service (no TLSContext)   | | \"bool:false\" | store a Boolean
+                      \"false\" in the field  | defer to service (no TLSContext)   |
+                      | \"bool:true\"  | store a Boolean \"true\" in the field   |
+                      originate TLS (no TLSContext)      | \n If the meaning of the
+                      representation contradicts anything else (if a TLSContext is
+                      to be used, or in the case of \"bool:true\" if TLS is not to
+                      be originated), then this field is ignored."
                     enum:
                     - ""
                     - "null"
@@ -3873,7 +3883,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.12.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -3988,7 +3998,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n ambassador_id: - \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -4012,7 +4022,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.12.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -4196,19 +4206,19 @@ spec:
                       \ In v2, there were a lot of different ways to spell an \"empty\"
                       value, and this field specifies which way to spell it (and will
                       therefore only be used if the value will indeed be empty). \n
-                      \ | Value        | Representation                        | Meaning
-                      of representation          |  |--------------+---------------------------------------+------------------------------------|
-                      \ | \"\"           | omit the field                        |
-                      defer to service (no TLSContext)   |  | \"null\"       | store
-                      an explicit \"null\" in the field | defer to service (no TLSContext)
-                      \  |  | \"string\"     | store an empty string in the field
-                      \   | defer to service (no TLSContext)   |  | \"bool:false\"
-                      | store a Boolean \"false\" in the field  | defer to service
-                      (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\"
-                      in the field   | originate TLS (no TLSContext)      | \n If
-                      the meaning of the representation contradicts anything else
-                      (if a TLSContext is to be used, or in the case of \"bool:true\"
-                      if TLS is not to be originated), then this field is ignored."
+                      | Value        | Representation                        | Meaning
+                      of representation          | |--------------+---------------------------------------+------------------------------------|
+                      | \"\"           | omit the field                        | defer
+                      to service (no TLSContext)   | | \"null\"       | store an explicit
+                      \"null\" in the field | defer to service (no TLSContext)   |
+                      | \"string\"     | store an empty string in the field    | defer
+                      to service (no TLSContext)   | | \"bool:false\" | store a Boolean
+                      \"false\" in the field  | defer to service (no TLSContext)   |
+                      | \"bool:true\"  | store a Boolean \"true\" in the field   |
+                      originate TLS (no TLSContext)      | \n If the meaning of the
+                      representation contradicts anything else (if a TLSContext is
+                      to be used, or in the case of \"bool:true\" if TLS is not to
+                      be originated), then this field is ignored."
                     enum:
                     - ""
                     - "null"
@@ -4228,7 +4238,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.12.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -4421,7 +4431,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n ambassador_id: - \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -4490,19 +4500,19 @@ spec:
                       \ In v2, there were a lot of different ways to spell an \"empty\"
                       value, and this field specifies which way to spell it (and will
                       therefore only be used if the value will indeed be empty). \n
-                      \ | Value        | Representation                        | Meaning
-                      of representation          |  |--------------+---------------------------------------+------------------------------------|
-                      \ | \"\"           | omit the field                        |
-                      defer to service (no TLSContext)   |  | \"null\"       | store
-                      an explicit \"null\" in the field | defer to service (no TLSContext)
-                      \  |  | \"string\"     | store an empty string in the field
-                      \   | defer to service (no TLSContext)   |  | \"bool:false\"
-                      | store a Boolean \"false\" in the field  | defer to service
-                      (no TLSContext)   |  | \"bool:true\"  | store a Boolean \"true\"
-                      in the field   | originate TLS (no TLSContext)      | \n If
-                      the meaning of the representation contradicts anything else
-                      (if a TLSContext is to be used, or in the case of \"bool:true\"
-                      if TLS is not to be originated), then this field is ignored."
+                      | Value        | Representation                        | Meaning
+                      of representation          | |--------------+---------------------------------------+------------------------------------|
+                      | \"\"           | omit the field                        | defer
+                      to service (no TLSContext)   | | \"null\"       | store an explicit
+                      \"null\" in the field | defer to service (no TLSContext)   |
+                      | \"string\"     | store an empty string in the field    | defer
+                      to service (no TLSContext)   | | \"bool:false\" | store a Boolean
+                      \"false\" in the field  | defer to service (no TLSContext)   |
+                      | \"bool:true\"  | store a Boolean \"true\" in the field   |
+                      originate TLS (no TLSContext)      | \n If the meaning of the
+                      representation contradicts anything else (if a TLSContext is
+                      to be used, or in the case of \"bool:true\" if TLS is not to
+                      be originated), then this field is ignored."
                     enum:
                     - ""
                     - "null"
@@ -4525,7 +4535,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.12.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -4724,7 +4734,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n ambassador_id: - \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
@@ -4785,7 +4795,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.12.0
   labels:
     app.kubernetes.io/instance: emissary-apiext
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
@@ -5094,7 +5104,7 @@ spec:
               ambassador_id:
                 description: "AmbassadorID declares which Ambassador instances should
                   pay attention to this resource. If no value is provided, the default
-                  is: \n \tambassador_id: \t- \"default\" \n TODO(lukeshu): In v3alpha2,
+                  is: \n ambassador_id: - \"default\" \n TODO(lukeshu): In v3alpha2,
                   consider renaming all of the `ambassador_id` (singular) fields to
                   `ambassador_ids` (plural)."
                 items:
