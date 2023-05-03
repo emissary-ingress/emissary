@@ -8,7 +8,7 @@ This document is intended for developers looking to contribute to the Emissary-i
 
 > Looking for end user guides for Emissary-ingress? You can check out the end user guides at <https://www.getambassador.io/docs/emissary/>.
 
-After reading this document if you have questions we encourage you to join us on our [Slack channel](https://d6e.co/slack) in the [#emissary-dev](https://datawire-oss.slack.com/archives/CB46TNG83) channel.
+After reading this document if you have questions we encourage you to join us on our [Slack channel](https://a8r.io/slack) in the [#emissary-dev] channel.
 
 - [Code of Conduct](../Community/CODE_OF_CONDUCT.md)
 - [Governance](../Community/GOVERNANCE.md)
