@@ -156,7 +156,7 @@ libraries:
     itsdangerous        2.1.2      3-clause BSD license
     jsonpatch           1.32       3-clause BSD license
     jsonpointer         2.3        3-clause BSD license
-    kubernetes          21.7.0     Apache License 2.0
+    kubernetes          26.1.0     Apache License 2.0
     oauthlib            3.2.2      3-clause BSD license
     orjson              3.8.10     Apache License 2.0, MIT license
     packaging           21.3       2-clause BSD license, Apache License 2.0
@@ -168,7 +168,7 @@ libraries:
     pyparsing           3.0.9      MIT license
     python-dateutil     2.8.2      3-clause BSD license, Apache License 2.0
     python-json-logger  2.0.4      2-clause BSD license
-    requests            2.28.1     Apache License 2.0
+    requests            2.29.0     Apache License 2.0
     requests-oauthlib   1.3.1      ISC license
     retrying            1.3.3      Apache License 2.0
     rsa                 4.9        Apache License 2.0
