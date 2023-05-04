@@ -9,7 +9,7 @@ Welcome to Ambassador! We use GitHub for tracking bugs and feature requests. If 
 
 ### Real-time Chat
 
-* [Slack](https://d6e.co/slack): The `#ambassador` channel is a good place to start.
+* [Slack](https://a8r.io/slack): The `#emissary` channel is a good place to start.
 
 ### Commercial Support
 
