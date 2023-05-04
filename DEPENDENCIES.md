@@ -3,7 +3,7 @@ following Free and Open Source software:
 
     Name                                                                              Version                                License(s)
     ----                                                                              -------                                ----------
-    the Go language standard library ("std")                                          v1.20.3                                3-clause BSD license
+    the Go language standard library ("std")                                          v1.20.4                                3-clause BSD license
     github.com/Azure/go-ansiterm                                                      v0.0.0-20210617225240-d185dfc1b5a1     MIT license
     github.com/MakeNowJust/heredoc                                                    v1.0.0                                 MIT license
     github.com/Masterminds/goutils                                                    v1.1.1                                 Apache License 2.0
@@ -137,11 +137,12 @@ libraries:
     Name                Version    License(s)
     ----                -------    ----------
     Cython              0.29.32    Apache License 2.0
-    Flask               2.2.2      3-clause BSD license
+    Flask               2.3.2      3-clause BSD license
     Jinja2              3.1.2      3-clause BSD license
     MarkupSafe          2.1.1      3-clause BSD license
     PyYAML              6.0        MIT license
-    Werkzeug            2.2.3      3-clause BSD license
+    Werkzeug            2.3.3      3-clause BSD license
+    blinker             1.6.2      MIT license
     build               0.9.0      MIT license
     cachetools          5.3.0      MIT license
     certifi             2022.12.7  Mozilla Public License 2.0

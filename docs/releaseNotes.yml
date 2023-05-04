@@ -36,6 +36,11 @@ items:
     prevVersion: 3.6.0
     date: 'TBD'
     notes:
+      - title: Upgrade to Golang 1.20.4
+        type: security
+        body: >-
+          Upgrading to the latest release of Golang as part of our general dependency upgrade process. This includes
+          security fixes for CVE-2023-24539, CVE-2023-24540, CVE-2023-29400.
 
   - version: 3.6.0
     prevVersion: 3.5.0
