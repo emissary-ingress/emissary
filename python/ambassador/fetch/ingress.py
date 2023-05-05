@@ -196,6 +196,7 @@ class IngressProcessor(ManagedKubernetesProcessor):
         default_backend = obj.spec.get("defaultBackend", obj.spec.get("backend", {}))
         db_service_name = default_backend.get("serviceName", None)
         db_service_port = default_backend.get("servicePort", None)
+
         if db_service_name is not None and db_service_port is not None:
             db_mapping_identifier = f"{obj.name}-default-backend"
 
@@ -254,6 +255,7 @@ class IngressProcessor(ManagedKubernetesProcessor):
                 # For cases where `pathType: Exact`,
                 # otherwise `Prefix` and `ImplementationSpecific` are handled as regular Mapping prefixes
                 is_exact_prefix = True if path_type == "Exact" else False
+                do_bypass_auth = True if obj.annotations.get("getambassador.io/bypass-auth", "false") == "true" else False
 
                 spec = {
                     "ambassador_id": obj.ambassador_id,
@@ -263,6 +265,7 @@ class IngressProcessor(ManagedKubernetesProcessor):
                     if is_exact_prefix
                     else 0,  # Make sure exact paths are evaluated before prefix
                     "service": f"{service_name}.{obj.namespace}:{service_port}",
+                    "bypass_auth": do_bypass_auth,
                 }
 
                 if rule_host is not None:
