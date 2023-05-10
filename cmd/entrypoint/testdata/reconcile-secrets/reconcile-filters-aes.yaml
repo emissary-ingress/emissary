@@ -1,0 +1,84 @@
+description: Filter reconcile secrets for aes
+ambassadorId: "default"
+isEdgeStack: true
+input:
+  filters:
+    - apiVersion: getambassador.io/v3alpha1
+      kind: Filter
+      metadata:
+        name: "oauth2-filter-1"
+        namespace: "default"
+      spec:
+        OAuth2:
+          secretName: client-id-secret
+    - apiVersion: getambassador.io/v3alpha1
+      kind: Filter
+      metadata:
+        name: "oauth2-filter-1"
+        namespace: "default"
+      spec:
+        ambassador_id: "private-cluster"
+        OAuth2:
+          secretName: private-client-id-secret
+    - apiVersion: getambassador.io/v3alpha1
+      kind: Filter
+      metadata:
+        name: "apikey-filter"
+        namespace: "default"
+      spec:
+        APIKey:
+          keys:
+            - secretName: "my-secret-api-keys"
+  k8sSecrets:
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: client-id-secret
+        namespace: default
+      type: Opaque
+      data:
+        oauth2-client-secret: c29tZS1zZWNyZXQ=
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: private-client-id-secret
+        namespace: default
+      type: Opaque
+      data:
+        oauth2-client-secret: c29tZS1vdGhlci1wcml2YXRlLXNlY3JldA==
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: my-secret-api-keys
+        namespace: default
+      type: Opaque
+      data:
+        key-one: bXktZmlyc3QtYXBpLWtleQ==
+        key-two: bXktc2Vjb25kLWFwaS1rZXk=
+expected:
+  secrets:
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: client-id-secret
+        namespace: default
+      type: Opaque
+      data:
+        oauth2-client-secret: c29tZS1zZWNyZXQ=
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: private-client-id-secret
+        namespace: default
+      type: Opaque
+      data:
+        oauth2-client-secret: c29tZS1vdGhlci1wcml2YXRlLXNlY3JldA==
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: my-secret-api-keys
+        namespace: default
+      type: Opaque
+      data:
+        key-one: bXktZmlyc3QtYXBpLWtleQ==
+        key-two: bXktc2Vjb25kLWFwaS1rZXk=

@@ -1,11 +1,17 @@
 package entrypoint
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
+	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
+	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	snapshotTypes "github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
 )
 
@@ -180,5 +186,75 @@ func TestFindFilterSecrets(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestReconcileSecrets(t *testing.T) {
+
+	type testCase struct {
+		Description  string `json:"description"`
+		AmbassadorID string `json:"ambassadorId"`
+		IsEdgeStack  bool   `json:"isEdgeStack"`
+		Input        struct {
+			Services    []*kates.Service             `json:"services"`
+			Ingresses   []*snapshotTypes.Ingress     `json:"ingresses"`
+			K8Secrets   []*corev1.Secret             `json:"k8sSecrets"`
+			Hosts       []*v3alpha1.Host             `json:"hosts"`
+			TLSContexts []*v3alpha1.TLSContext       `json:"tlsContexts"`
+			Modules     []*v3alpha1.Module           `json:"modules"`
+			Filters     []*unstructured.Unstructured `json:"filters"`
+		} `json:"input"`
+		Expected struct {
+			Secrets []*corev1.Secret `json:"secrets"`
+		} `json:"expected"`
+	}
+
+	testdataBaseDir := "./testdata/reconcile-secrets"
+	testcases := loadTestCases[testCase](t, testdataBaseDir, "*")
+
+	for _, tc := range testcases {
+		t.Run(tc.Description, func(t *testing.T) {
+			ctx := context.Background()
+
+			ambMetaInfo := &snapshotTypes.AmbassadorMetaInfo{
+				AmbassadorID: tc.AmbassadorID,
+			}
+
+			if tc.AmbassadorID == "" {
+				ambMetaInfo.AmbassadorID = "default"
+			}
+
+			if tc.IsEdgeStack {
+				t.Setenv("EDGE_STACK", "true")
+			}
+
+			sh, err := NewSnapshotHolder(ambMetaInfo)
+			require.NoError(t, err)
+
+			sh.k8sSnapshot = NewKubernetesSnapshot()
+
+			sh.k8sSnapshot.Services = tc.Input.Services
+			sh.k8sSnapshot.Ingresses = tc.Input.Ingresses
+			sh.k8sSnapshot.K8sSecrets = tc.Input.K8Secrets
+			sh.k8sSnapshot.Hosts = tc.Input.Hosts
+			sh.k8sSnapshot.TLSContexts = tc.Input.TLSContexts
+			sh.k8sSnapshot.Modules = tc.Input.Modules
+			sh.k8sSnapshot.Filters = tc.Input.Filters
+
+			err = sh.k8sSnapshot.PopulateAnnotations(ctx)
+			require.NoError(t, err)
+
+			err = ReconcileSecrets(ctx, sh)
+			require.NoError(t, err)
+
+			// validate secrets match
+			expectedReconciledSecretCount := len(tc.Expected.Secrets)
+			actualReconciledSecretCount := len(sh.k8sSnapshot.Secrets)
+			require.Equal(t, expectedReconciledSecretCount, actualReconciledSecretCount,
+				fmt.Sprintf("expected sh.k8sSnapshot.Secrets to have %d but reconciled %d secrets", expectedReconciledSecretCount, actualReconciledSecretCount),
+			)
+
+			assert.ElementsMatch(t, tc.Expected.Secrets, sh.k8sSnapshot.Secrets)
+		})
 	}
 }
