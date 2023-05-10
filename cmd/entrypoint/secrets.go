@@ -350,6 +350,7 @@ func findFilterSecret(filter *unstructured.Unstructured, action func(snapshotTyp
 
 		findOAuthFilterSecret(mapFilters, filter.GetNamespace(), action)
 		findAPIKeyFilterSecret(mapFilters, filter.GetNamespace(), action)
+		findExternalFilterSecret(mapFilters, filter.GetNamespace(), action)
 	}
 	return nil
 }
@@ -432,6 +433,59 @@ func findAPIKeyFilterSecret(
 
 			secretRef(filterNamespace, secretName, false, action)
 		}
+	}
+}
+
+// findExternalFilterSecret will find and capture secret references found in an ExternalFilter.
+func findExternalFilterSecret(
+	mapFilters map[string]interface{},
+	filterNamespace string,
+	action func(snapshotTypes.SecretRef),
+) {
+
+	type externalConfig struct {
+		TLS       bool `json:"tls"`
+		TLSConfig *struct {
+			Certificate *struct {
+				FromSecret struct {
+					Name string `json:"name"`
+				} `json:"fromSecret"`
+			} `json:"certificate"`
+			CACertificate *struct {
+				FromSecret struct {
+					Name string `json:"name"`
+				} `json:"fromSecret"`
+			} `json:"caCertificate"`
+		} `json:"tlsConfig"`
+	}
+
+	extConfig := mapFilters["External"]
+	if extConfig == nil {
+		return
+	}
+
+	jsonStr, err := json.Marshal(extConfig)
+	if err != nil {
+		return
+	}
+
+	var config externalConfig
+	if err := json.Unmarshal([]byte(jsonStr), &config); err != nil {
+		return
+	}
+
+	if config.TLSConfig == nil {
+		return
+	}
+
+	if config.TLSConfig.Certificate != nil {
+		secretName := config.TLSConfig.Certificate.FromSecret.Name
+		secretRef(filterNamespace, secretName, false, action)
+	}
+
+	if config.TLSConfig.CACertificate != nil {
+		secretName := config.TLSConfig.CACertificate.FromSecret.Name
+		secretRef(filterNamespace, secretName, false, action)
 	}
 }
 
