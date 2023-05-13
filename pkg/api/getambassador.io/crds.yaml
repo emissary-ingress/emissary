@@ -4410,6 +4410,11 @@ spec:
                 - v2
                 - v3
                 type: string
+              rate_limited_as_resource_exhausted:
+                description: RateLimitedAsResourceExhausted, when set to true, will
+                  cause envoy to return a `RESOURCE_EXHAUSTED` gRPC code instead of
+                  the default `UNAVAILABLE` gRPC code.
+                type: boolean
               service:
                 type: string
               stats_name:

@@ -52,6 +52,7 @@ def _get_ratelimit_default_conf():
         "request_type": "both",
         "timeout": "0.020s",
         "failure_mode_deny": False,
+        "rate_limited_as_resource_exhausted": False,
         "rate_limit_service": {
             "transport_api_version": "V3",
             "grpc_service": {
@@ -220,6 +221,7 @@ spec:
   tls: rl-tls-context
   protocol_version: v3
   failure_mode_deny: True
+  rate_limited_as_resource_exhausted: True
 """.format(
         SERVICE_NAME
     )
@@ -231,6 +233,7 @@ spec:
     config["timeout"] = "0.500s"
     config["domain"] = "otherdomain"
     config["failure_mode_deny"] = True
+    config["rate_limited_as_resource_exhausted"] = True
 
     econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())

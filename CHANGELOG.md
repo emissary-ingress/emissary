@@ -146,6 +146,12 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   Emissary-ingress with the latest security patches, performances enhancments, and features offered
   by the envoy proxy.
 
+- Feature: By default, Envoy will return a envoy `UNAVAILABLE` gRPC code when a request is rate
+  limited. The `RateLimitService` resource now exposes the <a
+  href="https://www.envoyproxy.io/docs/envoy/v1.26.0/configuration/http/http_filters/rate_limit_filter">rate_limited_as_resource_exhausted</a>
+  option. Set `rate_limited_as_resource_exhausted: true` so Envoy will return a `RESOURCE_EXHAUSTED`
+  gRPC code instead.
+
 ## [3.6.0] April 17, 2023
 [3.6.0]: https://github.com/emissary-ingress/emissary/compare/v3.5.0...v3.6.0
 

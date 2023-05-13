@@ -4788,6 +4788,7 @@ func autoConvert_v3alpha1_RateLimitServiceSpec_To_v2_RateLimitServiceSpec(in *v3
 		in, out := &in.FailureModeDeny, &out.V3FailureModeDeny
 		*out = *in
 	}
+	// WARNING: in.RateLimitedAsResourceExhausted requires manual conversion: does not exist in peer-type
 	// WARNING: in.V2ExplicitTLS requires manual conversion: does not exist in peer-type
 	return nil
 }

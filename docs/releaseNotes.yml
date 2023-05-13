@@ -104,6 +104,15 @@ items:
         body: >-
           This upgrades $productName$ to be built on Envoy v1.26.1. This provides $productName$ with the latest
           security patches, performances enhancments, and features offered by the envoy proxy.
+      - title: Add rate_limited_as_resource_exhausted option to the RateLimitService
+        type: feature
+        body: >-
+          By default, Envoy will return a envoy `UNAVAILABLE` gRPC code when a request is rate limited. The
+          <code>RateLimitService</code> resource now exposes the
+          <a href="https://www.envoyproxy.io/docs/envoy/v1.26.0/configuration/http/http_filters/rate_limit_filter">rate_limited_as_resource_exhausted</a>
+          option. Set <code>rate_limited_as_resource_exhausted: true</code> so Envoy will return a `RESOURCE_EXHAUSTED`
+          gRPC code instead.
+        docs: https://www.getambassador.io/docs/emissary/latest/topics/running/services/rate-limit-service/
 
   - version: 3.6.0
     prevVersion: 3.5.0
