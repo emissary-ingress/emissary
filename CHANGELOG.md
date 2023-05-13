@@ -97,6 +97,12 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   Emissary-ingress with the latest security patches, performances enhancments, and features offered
   by the envoy proxy.
 
+- Feature: By default, Envoy will return a envoy `UNAVAILABLE` gRPC code when a request is rate
+  limited. The `RateLimitService` resource now exposes the <a
+  href="https://www.envoyproxy.io/docs/envoy/v1.26.0/configuration/http/http_filters/rate_limit_filter">rate_limited_as_resource_exhausted</a>
+  option. Set `rate_limited_as_resource_exhausted: true` so Envoy will return a `RESOURCE_EXHAUSTED`
+  gRPC code instead.
+
 ## [3.6.0] April 17, 2023
 [3.6.0]: https://github.com/emissary-ingress/emissary/compare/v3.5.0...v3.6.0
 
@@ -114,10 +120,10 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 - Security: Upgrading to the latest release of Golang as part of our general dependency upgrade
   process. This includes security fixes for CVE-2022-41725, CVE-2022-41723.
 
-- Feature: In Envoy 1.24, experimental support for a native OpenTelemetry tracing driver  was
-  introduced that allows exporting spans in the otlp format. Many  Observability platforms accept
+- Feature: In Envoy 1.24, experimental support for a native OpenTelemetry tracing driver was
+  introduced that allows exporting spans in the otlp format. Many Observability platforms accept
   that format and is the recommend replacement for the LightStep driver. Emissary-ingress now
-  supports setting the  `TracingService.spec.driver=opentelemetry` to export spans in  otlp
+  supports setting the `TracingService.spec.driver=opentelemetry` to export spans in otlp
   format.<br/><br/>
   Thanks to <a href="https://github.com/psalaberria002">Paul</a> for helping us
   get this tested and implemented!
@@ -136,14 +142,14 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 - Change: Previously, specifying backend ports by name in Ingress was not supported and would result
   in defaulting to port 80. This allows emissary-ingress to now resolve port names for backend
   services. If the port number cannot be resolved by the name (e.g named port in the Service doesn't
-  exist) then it defaults back  to the original behavior. (Thanks to <a
+  exist) then it defaults back to the original behavior. (Thanks to <a
   href="https://github.com/antonu17">Anton Ustyuzhanin</a>!). ([#4809])
 
-- Change: The `emissary-apiext` server is a Kubernetes Conversion Webhook that converts between the 
+- Change: The `emissary-apiext` server is a Kubernetes Conversion Webhook that converts between the
   Emissary-ingress CRD versions. On startup, it ensures that a self-signed cert is available so that
-  K8s API Server can talk to the conversion webhook (*TLS is required by K8s*). We  have introduced
-  a startupProbe to ensure that emissary-apiext server has enough time to configure the webhooks
-  before running liveness and readiness probes. This is to ensure  slow startup doesn't cause K8s to
+  K8s API Server can talk to the conversion webhook (*TLS is required by K8s*). We have introduced a
+  startupProbe to ensure that emissary-apiext server has enough time to configure the webhooks
+  before running liveness and readiness probes. This is to ensure slow startup doesn't cause K8s to
   needlessly restart the pod.
 
 [fix: hostname port issue]: https://github.com/emissary-ingress/emissary/pull/4816
@@ -175,17 +181,17 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   server to.
   - `AMBASSADOR_HEALTHCHECK_IP_FAMILY`: The IP family to use for the healthcheck
   server.
-  This allows the healthcheck server to be configured to use IPv6-only k8s environments. 
+  This allows the healthcheck server to be configured to use IPv6-only k8s environments.
   (Thanks to <a href="https://github.com/TimonOmsk">Dmitry Golushko</a>!).
 
-- Feature: This upgrades Emissary-ingress to be built on Envoy v1.24.1. One notable change is that 
+- Feature: This upgrades Emissary-ingress to be built on Envoy v1.24.1. One notable change is that
   the team at LightStep and Envoy Maintainers have decided to no longer support the native
-  *LightStep* tracing driver in favor of using the Open Telemetry driver. The code  for LightStep
-  driver has been completely removed from Envoy code base so Emissary-ingress  will no longer
-  support it either.
-  The recommended upgrade path is to leverage a supported Tracing driver such as
-  `Zipkin` and use the [Open Telemetry Collector](https://opentelemetry.io/docs/collector/) to
-  collect and forward Observabity data to LightStep.
+  *LightStep* tracing driver in favor of using the Open Telemetry driver. The code for LightStep
+  driver has been completely removed from Envoy code base so Emissary-ingress will no longer support
+  it either.
+  The recommended upgrade path is to leverage a supported Tracing driver such as `Zipkin`
+  and use the [Open Telemetry Collector](https://opentelemetry.io/docs/collector/) to collect and
+  forward Observabity data to LightStep.
 
 - Feature: /ready endpoint used by emissary is using the admin port (8001 by default). This
   generates a problem during config reloads with large configs as the admin thread is blocking so
