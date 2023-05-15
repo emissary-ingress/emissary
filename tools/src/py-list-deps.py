@@ -49,10 +49,12 @@ import argparse
 import ast
 import importlib
 import os
+import re
 import sys
 import sysconfig
 from typing import List, NamedTuple, Optional, Set
 
+DEV_PY_FILES = r'|'.join(['setup.py', 'conftest.py', '/tests/', '/kat/', 'test_.*.py',])
 
 def parse_members(filepath: str) -> Set[str]:
     """parse_members parses a .py file and returns a set of all of the
@@ -276,14 +278,11 @@ def main(inputdirs: List[str], include_dev: bool = False) -> Set[str]:
                 dirnames.remove('dist')
             if '__pycache__' in dirnames:
                 dirnames.remove('__pycache__')
-            build_rules: List[str] = []
             for filename in sorted(filenames):
                 filepath = os.path.join(dirpath, filename)
                 if filename.endswith('.py'):
                     if not include_dev:
-                        if ('/tests/' in filepath) or ('/kat/' in filepath) or filename.startswith('test_'):
-                            continue
-                        if filename == 'setup.py':
+                        if re.search(DEV_PY_FILES, filepath):
                             continue
                     deps = deps.union(deps_for_pyfile(inputdir, filepath))
     return deps
