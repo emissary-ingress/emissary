@@ -31,6 +31,7 @@ from .irbasemappinggroup import IRBaseMappingGroup
 from .ircluster import IRCluster
 from .irerrorresponse import IRErrorResponse
 from .irfilter import IRFilter
+from .irgofilter import IRGOFilter
 from .irhost import HostFactory, IRHost
 from .irhttpmapping import IRHTTPMapping
 from .irlistener import IRListener, ListenerFactory
@@ -408,11 +409,14 @@ class IR:
 
         # After the Ambassador and TLS modules are done, we need to set up the
         # filter chains. Note that order of the filters matters. Start with CORS,
-        # so that preflights will work even for things behind auth.
+        # so that preflights will work for all filters.
 
         self.save_filter(
             IRFilter(ir=self, aconf=aconf, rkey="ir.cors", kind="ir.cors", name="cors", config={})
         )
+
+        # We always add the Go filter calling to our filter plugin service if applicable before auth
+        self.save_filter(IRGOFilter(ir=self, aconf=aconf))
 
         # Next is auth...
         self.save_filter(IRAuth(self, aconf))
