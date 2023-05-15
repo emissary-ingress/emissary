@@ -9,8 +9,9 @@ from collections import namedtuple
 import pytest
 from OpenSSL import crypto
 
-from ambassador import IR, Cache
+from ambassador import IR, Cache, Config, EnvoyConfig
 from ambassador.compile import Compile
+from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler, parse_bool
 
 logger = logging.getLogger("ambassador")
@@ -185,6 +186,21 @@ def _secret_handler():
     return NullSecretHandler(logger, source_root.name, cache_dir.name, "fake")
 
 
+def get_envoy_config(yaml):
+    aconf = Config()
+    fetcher = ResourceFetcher(logger, aconf)
+    fetcher.parse_yaml(default_listener_manifests() + yaml, k8s=True)
+
+    aconf.load_all(fetcher.sorted())
+
+    secret_handler = NullSecretHandler(logger, None, None, "0")
+
+    ir = IR(aconf, file_checker=lambda path: True, secret_handler=secret_handler)
+
+    assert ir
+    return EnvoyConfig.generate(ir)
+
+
 def compile_with_cachecheck(yaml, errors_ok=False):
     # Compile with and without a cache. Neither should produce errors.
     cache = Cache(logger)
@@ -352,4 +368,12 @@ def skip_edgestack():
     return pytest.mark.skipif(
         isEdgeStack,
         reason=f"Skipping because EdgeStack behaves differently and tested separately",
+    )
+
+
+def edgestack():
+    isEdgeStack = parse_bool(os.environ.get("EDGE_STACK", "false"))
+    return pytest.mark.skipif(
+        not isEdgeStack,
+        reason=f"Skipping because this is an EdgeStack specific case and is tested separately",
     )
