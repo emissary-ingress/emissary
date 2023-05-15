@@ -21,6 +21,7 @@ from ...ir.irbuffer import IRBuffer
 from ...ir.ircluster import IRCluster
 from ...ir.irerrorresponse import IRErrorResponse
 from ...ir.irfilter import IRFilter
+from ...ir.irgofilter import IRGOFilter
 from ...ir.irgzip import IRGzip
 from ...ir.iripallowdeny import IRIPAllowDeny
 from ...ir.irratelimit import IRRateLimit
@@ -451,6 +452,27 @@ def V3HTTPFilter_ipallowdeny(irfilter: IRIPAllowDeny, v3config: "V3Config"):
             },
         },
     }
+
+
+@V3HTTPFilter.register
+def V3HTTPFilter_golang(irfilter: IRGOFilter, _: "V3Config") -> Optional[Dict[str, Any]]:
+    go_library = irfilter.config.library_path
+    if go_library:
+        return {
+            "name": "envoy.filters.http.golang",
+            "typed_config": {
+                "@type": "type.googleapis.com/envoy.extensions.filters.http.golang.v3alpha.Config",
+                "library_id": "amb",
+                "library_path": go_library,
+                "plugin_name": "ambassador_plugin",
+            },
+        }
+
+    # There is no go library object file found to implement the filter, so we omit it.
+    # This should be a pretty rare case and probably the result of a programming error.
+    # By returning None, the caller will omit this filter from the filter chain entirely,
+    # which is not the usual way of handling filter config, but it's valid.
+    return None
 
 
 def V3HTTPFilter_cors(cors: IRFilter, v3config: "V3Config"):
