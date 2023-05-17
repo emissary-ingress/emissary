@@ -58,6 +58,10 @@ include $(OSS_HOME)/build-aux/prelude.mk
 # for builder.mk...
 export ENVOY_DOCKER_TAG
 
+# Extra contrib api proto types to build
+envoy-api-contrib =
+envoy-api-contrib += contrib/envoy/extensions/filters/http/golang
+
 old_envoy_commits = $(shell { \
 	  { \
 	    git log --patch --format='' -G'^ *ENVOY_COMMIT' -- _cxx/envoy.mk; \
@@ -254,36 +258,39 @@ envoy-shell: $(ENVOY_BASH.deps)
 #
 # These targets are depended on by `make generate` in `build-aux/generate.mk`.
 
-# Raw protobufs
-$(OSS_HOME)/api/envoy: $(OSS_HOME)/api/%: $(OSS_HOME)/_cxx/envoy
-	rsync --recursive --delete --delete-excluded --prune-empty-dirs --include='*/' --include='*.proto' --exclude='*' $</api/$*/ $@
+# Raw Envoy protobufs
+$(OSS_HOME)/api/envoy $(addprefix $(OSS_HOME)/api/,$(envoy-api-contrib)): $(OSS_HOME)/api/%: $(OSS_HOME)/_cxx/envoy
+	rsync --recursive --delete --delete-excluded --prune-empty-dirs --mkpath --include='*/' --include='*.proto' --exclude='*' $</api/$*/ $@
 
 # Go generated from the protobufs
 $(OSS_HOME)/_cxx/envoy/build_go: $(ENVOY_BASH.deps) FORCE
 	$(call ENVOY_BASH.cmd, \
-      $(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
-	    $(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generate_protobufs; generate_protobufs("@envoy_api//...", "/root/envoy/build_go", "envoy_api")'; \
+		$(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
+		$(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generate_protobufs; generate_protobufs("@envoy_api//envoy/...", "/root/envoy/build_go", "envoy_api")'; \
+		$(foreach contrib-api,$(envoy-api-contrib),$(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generate_protobufs; generate_protobufs("@envoy_api//$(contrib-api)/...", "/root/envoy/build_go", "envoy_api")';) \
 	)
 	test -d $@ && touch $@
-$(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(OSS_HOME)/_cxx/envoy/build_go
+$(OSS_HOME)/pkg/api/envoy $(addprefix $(OSS_HOME)/pkg/api/,$(envoy-api-contrib)): $(OSS_HOME)/pkg/api/%: $(OSS_HOME)/_cxx/envoy/build_go
 	rm -rf $@
 	@PS4=; set -ex; { \
 	  unset GIT_DIR GIT_WORK_TREE; \
 	  tmpdir=$$(mktemp -d); \
 	  trap 'rm -rf "$$tmpdir"' EXIT; \
-	  cp -r $</$* "$$tmpdir"; \
+	  build_go_dir=$<; \
+	  root_proto_go_dir=$$(echo $* | awk -F '/' '{print $$1}'); \
+	  cp -r $$build_go_dir/$$root_proto_go_dir "$$tmpdir"; \
 	  find "$$tmpdir" -type f \
 	    -exec chmod 644 {} + \
 	    -exec sed -E -i.bak \
 	      -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/emissary-ingress/emissary/v3/pkg/api/envoy,g' \
 	      -- {} +; \
 	  find "$$tmpdir" -name '*.bak' -delete; \
-	  mv "$$tmpdir/$*" $@; \
+	  mkdir -p $(dir $@); mv "$$tmpdir/$*" $@; \
 	}
 # Envoy's build system still uses an old `protoc-gen-go` that emits
 # code that Go 1.19's `gofmt` isn't happy with.  Even generated code
 # should be gofmt-clean, so gofmt it as a post-processing step.
-	gofmt -w -s ./pkg/api/envoy
+	gofmt -w -s $@
 
 # The unmodified go-control-plane
 $(OSS_HOME)/_cxx/go-control-plane: FORCE
