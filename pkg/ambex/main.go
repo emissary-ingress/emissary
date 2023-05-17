@@ -73,6 +73,7 @@ import (
 	// Be sure to import the package of any types that're referenced with "@type" in our
 	// generated Envoy config, even if that package is otherwise not used by ambex.
 
+	_ "github.com/emissary-ingress/emissary/v3/pkg/api/contrib/envoy/extensions/filters/http/golang/v3alpha"
 	_ "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/accesslog/v3"
 	v3bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
 	v3clusterconfig "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
