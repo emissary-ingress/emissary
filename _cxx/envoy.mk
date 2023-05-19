@@ -18,7 +18,7 @@ RSYNC_EXTRAS ?=
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
-  BASE_ENVOY_RELVER ?= 0
+  BASE_ENVOY_RELVER ?= 2
 
   # Set to non-empty to enable compiling Envoy in FIPS mode.
   FIPS_MODE ?=
@@ -214,9 +214,9 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	            exit 1; \
 	        fi; \
 	        $(call ENVOY_BASH.cmd, \
-							$(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
-	            $(ENVOY_DOCKER_EXEC) bazel build $(if $(FIPS_MODE), --define boringssl=fips) --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //source/exe:envoy-static; \
-	            rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/root/envoy/bazel-bin/source/exe/envoy-static $@; \
+				$(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
+				$(ENVOY_DOCKER_EXEC) bazel build $(if $(FIPS_MODE), --define boringssl=fips) --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //contrib/exe:envoy-static; \
+				rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/root/envoy/bazel-bin/contrib/exe/envoy-static $@; \
 	        ); \
 	    fi; \
 	}
