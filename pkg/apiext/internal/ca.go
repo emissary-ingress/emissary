@@ -201,11 +201,14 @@ func genCASecret(namespace string) (*k8sTypesCoreV1.Secret, error) {
 
 func (ca *CA) GenServerCert(ctx context.Context, hostname string) (*tls.Certificate, error) {
 	dlog.Debugf(ctx, "GenServerCert(ctx, %q)", hostname)
+
 	ca.cacheMu.Lock()
 	defer ca.cacheMu.Unlock()
+
 	if ca.cache == nil {
 		ca.cache = make(map[string]*tls.Certificate)
 	}
+
 	now := time.Now()
 	if cached, ok := ca.cache[hostname]; ok && cached != nil && cached.Leaf != nil {
 		if age, lifespan := now.Sub(cached.Leaf.NotBefore), cached.Leaf.NotAfter.Sub(cached.Leaf.NotBefore); age < 2*lifespan/3 {
