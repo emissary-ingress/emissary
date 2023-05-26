@@ -66,10 +66,10 @@ conversion:
           name: emissary-apiext
           namespace: emissary-system
       conversionReviewVersions:
-      - v1beta1
+      - v1
 ```
 
-This is telling the Kubernetes API Server to call a WebHook using a `Service` within the cluster that is called `emissary-apiext` that can be found in the `emissary-system` namespace. It also states that our server implementation as of writing this guide only supports `v1beta1` of the WebHook so the K8s API Server will send the request and expect the response in the format for `v1beta1`.
+This is telling the Kubernetes API Server to call a WebHook using a `Service` within the cluster that is called `emissary-apiext` that can be found in the `emissary-system` namespace. It also states that our server implementation supports the `v1` version of the WebHook protocol so the K8s API Server will send the request and expect the response in the format for `v1`.
 
 The implementation of the `apiext` server can be found in `cmd/apiext` and it leverages the [controller-runtime](https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.2starts) library which is vendored in `vendor/sigs.k8s.io/controller-runtime`. When this process starts up it will do the following:
 
