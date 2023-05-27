@@ -52,6 +52,12 @@ format/isort: $(OSS_HOME)/venv
 	. $(OSS_HOME)/venv/bin/activate && isort ./python/
 .PHONY: format/isort
 
+format/python: format/black format/isort
+.PHONY: format/python
+
+lint/python: lint/black lint/isort lint/mypy
+.PHONY: lint/python
+
 #
 # Helm
 

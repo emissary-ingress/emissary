@@ -1,0 +1,64 @@
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: listener-8443
+  namespace: ambassador
+spec:
+  port: 8443
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: tls-context-0
+  namespace: default
+spec:
+  secret: tls-cert
+  hosts: ["foo.com"]
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TLSContext
+metadata:
+  name: tls-context-1
+  namespace: default
+spec:
+  secret: tls-cert
+  hosts: ["db.foo.com"]
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: host
+  namespace: default
+spec:
+  hostname: 'foo.com'
+  tlsSecret:
+    name: tls-cert
+  tlsContext: 
+    name: tls-context-0
+---
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
+metadata:
+  name: tcp
+  namespace: default
+spec:
+  host: 'db.foo.com'
+  port: 8443
+  tls: tls-context-1
+  service: db
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: quote-backend
+  namespace: default
+spec:
+  hostname: "foo.com"
+  prefix: /backend/
+  service: quote
