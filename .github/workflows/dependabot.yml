@@ -1,0 +1,40 @@
+# Dependabot files PRs by pushing branches named
+# "dependabot/{ecosystem}/{depname}".  What it pushes to those
+# branches is pretty naive; it doesn't support us telling it that it
+# needs to run "make generate" after making an edit.
+#
+# But we can work around that by creating a workflow run "make
+# generate" on those branches!
+name: dependabot
+"on":
+  push:
+    branches:
+      - 'dependabot/**'
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+      - name: Log in to GitHub
+        shell: bash
+        run: |
+          git config --global user.name '${{ secrets.GH_AUTO_USER }}'
+          git config --global user.email '${{ secrets.GH_AUTO_EMAIL }}'
+          git config --global 'url.https://${{ secrets.GH_GITHUB_API_KEY }}@github.com.insteadof' https://github.com
+      - run: |
+          make go-mod-tidy
+          make generate
+
+          git add .
+          if test -z "$(git status -s)"; then
+            # already up-to-date
+            exit 0
+          fi
+
+          git commit --signoff --message='make go-mod-tidy && make generate'
+          git push origin HEAD:${{ github.ref }}
