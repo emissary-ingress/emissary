@@ -20,7 +20,14 @@ func Main(ctx context.Context, version string, args ...string) error {
 		os.Exit(2)
 	}
 
+	serviceName := args[0]
 	scheme := crdAll.BuildScheme()
 
-	return apiext.Run(ctx, apiext.PodNamespace(), args[0], 8080, 8443, scheme)
+	webhookServer := apiext.NewWebhookServer(apiext.WebhookServerConfig{
+		ServiceName: serviceName,
+		HTTPPort:    8080,
+		HTTPSPort:   8443,
+	})
+
+	return webhookServer.Run(ctx, scheme)
 }
