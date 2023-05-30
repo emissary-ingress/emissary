@@ -76,7 +76,7 @@ exclude github.com/go-check/check v1.0.0-20180628173108-788fd7840127
 
 // We've got some bug-fixes that we need for conversion-gen and
 // controller-gen.
-replace k8s.io/code-generator v0.27.1 => github.com/emissary-ingress/code-generator v0.27.2-0.20230503153040-f70eb21dcda6
+replace k8s.io/code-generator v0.27.2 => github.com/emissary-ingress/code-generator v0.27.2-0.20230503153040-f70eb21dcda6
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
