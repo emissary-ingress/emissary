@@ -27,7 +27,7 @@ const (
 // conversionWithLogging is a wrapper around our real conversion method that logs the JSON
 // input and output for the conversion request. It's used only when we have debug logging
 // enabled.
-func conversionWithLogging(wh *conversion.Webhook, w http.ResponseWriter, r *http.Request) {
+func conversionWithLogging(handler http.Handler, w http.ResponseWriter, r *http.Request) {
 	// This is a little more obnoxious than you'd think because r.Body is a ReadCloser,
 	// not an io.Reader, and because the handler expects to be handed an io.Writer for
 	// response. So we need to buffer both directions (obviously, this works partly
@@ -60,7 +60,7 @@ func conversionWithLogging(wh *conversion.Webhook, w http.ResponseWriter, r *htt
 	// ...then use an httptest.ResponseRecorder to capture the output of the real
 	// conversion method.
 	rec := httptest.NewRecorder()
-	wh.ServeHTTP(rec, r)
+	handler.ServeHTTP(rec, r)
 
 	// Log the output...
 	dlog.Debugf(r.Context(), "OUTPUT: %s", rec.Body)
@@ -79,14 +79,11 @@ func conversionWithLogging(wh *conversion.Webhook, w http.ResponseWriter, r *htt
 }
 
 func ServeHTTPS(ctx context.Context, port int, ca *CA, scheme *k8sRuntime.Scheme) error {
-	webhook := &conversion.Webhook{}
-	if err := webhook.InjectScheme(scheme); err != nil {
-		return err
-	}
+	webhookHandler := conversion.NewWebhookHandler(scheme)
 
 	mux := http.NewServeMux()
 
-	mux.Handle(pathWebhooksCrdConvert, webhook)
+	mux.Handle(pathWebhooksCrdConvert, webhookHandler)
 
 	dlog.Infof(ctx, "Serving HTTPS on port %d", port)
 
@@ -105,7 +102,7 @@ func ServeHTTPS(ctx context.Context, port int, ca *CA, scheme *k8sRuntime.Scheme
 	// instead.
 	if LogLevelIsAtLeastDebug() {
 		sc.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			conversionWithLogging(webhook, w, r)
+			conversionWithLogging(webhookHandler, w, r)
 		})
 	}
 

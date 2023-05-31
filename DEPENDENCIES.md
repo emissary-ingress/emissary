@@ -92,13 +92,13 @@ following Free and Open Source software:
     go.starlark.net                                                                   v0.0.0-20220203230714-bb14e151c28f     3-clause BSD license
     golang.org/x/crypto                                                               v0.1.0                                 3-clause BSD license
     golang.org/x/mod                                                                  v0.10.0                                3-clause BSD license
-    golang.org/x/net                                                                  v0.9.0                                 3-clause BSD license
+    golang.org/x/net                                                                  v0.10.0                                3-clause BSD license
     golang.org/x/oauth2                                                               v0.7.0                                 3-clause BSD license
-    golang.org/x/sys                                                                  v0.7.0                                 3-clause BSD license
-    golang.org/x/term                                                                 v0.7.0                                 3-clause BSD license
+    golang.org/x/sys                                                                  v0.8.0                                 3-clause BSD license
+    golang.org/x/term                                                                 v0.8.0                                 3-clause BSD license
     golang.org/x/text                                                                 v0.9.0                                 3-clause BSD license
     golang.org/x/time                                                                 v0.3.0                                 3-clause BSD license
-    golang.org/x/tools                                                                v0.8.0                                 3-clause BSD license
+    golang.org/x/tools                                                                v0.9.1                                 3-clause BSD license
     google.golang.org/appengine                                                       v1.6.7                                 Apache License 2.0
     google.golang.org/genproto                                                        v0.0.0-20221118155620-16455021b5e6     Apache License 2.0
     google.golang.org/grpc                                                            v1.52.0                                Apache License 2.0
@@ -107,22 +107,22 @@ following Free and Open Source software:
     gopkg.in/inf.v0                                                                   v0.9.1                                 3-clause BSD license
     gopkg.in/yaml.v2                                                                  v2.4.0                                 Apache License 2.0, MIT license
     gopkg.in/yaml.v3                                                                  v3.0.1                                 Apache License 2.0, MIT license
-    k8s.io/api                                                                        v0.27.1                                Apache License 2.0
-    k8s.io/apiextensions-apiserver                                                    v0.27.1                                Apache License 2.0
-    k8s.io/apimachinery                                                               v0.27.1                                3-clause BSD license, Apache License 2.0
-    k8s.io/apiserver                                                                  v0.27.1                                Apache License 2.0
-    k8s.io/cli-runtime                                                                v0.27.1                                Apache License 2.0
-    k8s.io/client-go                                                                  v0.27.1                                3-clause BSD license, Apache License 2.0
+    k8s.io/api                                                                        v0.27.2                                Apache License 2.0
+    k8s.io/apiextensions-apiserver                                                    v0.27.2                                Apache License 2.0
+    k8s.io/apimachinery                                                               v0.27.2                                3-clause BSD license, Apache License 2.0
+    k8s.io/apiserver                                                                  v0.27.2                                Apache License 2.0
+    k8s.io/cli-runtime                                                                v0.27.2                                Apache License 2.0
+    k8s.io/client-go                                                                  v0.27.2                                3-clause BSD license, Apache License 2.0
     github.com/emissary-ingress/code-generator (modified from k8s.io/code-generator)  v0.27.2-0.20230503153040-f70eb21dcda6  Apache License 2.0
-    k8s.io/component-base                                                             v0.27.1                                Apache License 2.0
+    k8s.io/component-base                                                             v0.27.2                                Apache License 2.0
     k8s.io/gengo                                                                      v0.0.0-20220902162205-c0856e24416d     Apache License 2.0
     k8s.io/klog/v2                                                                    v2.100.1                               Apache License 2.0
     k8s.io/kube-openapi                                                               v0.0.0-20230501164219-8b0f38b5fd1f     3-clause BSD license, Apache License 2.0
-    k8s.io/kubectl                                                                    v0.27.1                                Apache License 2.0
-    k8s.io/kubernetes                                                                 v1.27.1                                Apache License 2.0
-    k8s.io/metrics                                                                    v0.27.1                                Apache License 2.0
+    k8s.io/kubectl                                                                    v0.27.2                                Apache License 2.0
+    k8s.io/kubernetes                                                                 v1.27.2                                Apache License 2.0
+    k8s.io/metrics                                                                    v0.27.2                                Apache License 2.0
     k8s.io/utils                                                                      v0.0.0-20230406110748-d93618cff8a2     3-clause BSD license, Apache License 2.0
-    sigs.k8s.io/controller-runtime                                                    v0.14.6                                Apache License 2.0
+    sigs.k8s.io/controller-runtime                                                    v0.15.0                                Apache License 2.0
     sigs.k8s.io/controller-tools                                                      v0.12.0                                Apache License 2.0
     sigs.k8s.io/gateway-api                                                           v0.2.0                                 Apache License 2.0
     sigs.k8s.io/json                                                                  v0.0.0-20221116044647-bc3834ca7abd     3-clause BSD license, Apache License 2.0
