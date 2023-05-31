@@ -99,7 +99,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	go.opentelemetry.io/proto/otlp v0.19.0
 	golang.org/x/mod v0.10.0
 	golang.org/x/sys v0.8.0
@@ -120,7 +120,6 @@ require (
 	k8s.io/metrics v0.27.2
 	sigs.k8s.io/controller-runtime v0.15.0
 	sigs.k8s.io/controller-tools v0.12.0
-	sigs.k8s.io/gateway-api v0.2.0
 	sigs.k8s.io/yaml v1.3.0
 )
 
