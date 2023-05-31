@@ -110,7 +110,7 @@ def test_go_filter_injected_before_auth_service():
 
 @pytest.mark.compilertest
 @edgestack()
-def test_gofilter_missing_object_file(go_library):
+def test_gofilter_missing_object_file(go_library, caplog):
     go_library.return_value = False
 
     econf = get_envoy_config(MAPPING)
@@ -118,12 +118,7 @@ def test_gofilter_missing_object_file(go_library):
 
     assert len(filters) == 0
 
-    errors = econf.ir.aconf.errors
-    assert "ir.go_filter" in errors
-    assert (
-        errors["ir.go_filter"][0]["error"]
-        == "/ambassador/go_filter.so not found, disabling Go filter..."
-    )
+    assert "/ambassador/go_filter.so not found" in caplog.text
 
 
 @pytest.mark.compilertest
@@ -135,4 +130,4 @@ def test_gofilter_not_injected():
     assert len(filters) == 0
 
     errors = econf.ir.aconf.errors
-    assert "ir.go_filter" not in errors
+    assert len(errors) == 0

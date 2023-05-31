@@ -62,7 +62,7 @@ class IRGOFilter(IRFilter):
     def setup(self, ir: "IR", _: Config) -> bool:
         if ir.edge_stack_allowed:
             if not go_library_exists(GO_FILTER_OBJECT_FILE):
-                self.post_error(f"{GO_FILTER_OBJECT_FILE} not found, disabling Go filter...")
+                self.logger.error("%s not found, disabling Go filter...", GO_FILTER_OBJECT_FILE)
                 return False
             self.config = GOFilterConfig(library_path=GO_FILTER_OBJECT_FILE)
             return True
