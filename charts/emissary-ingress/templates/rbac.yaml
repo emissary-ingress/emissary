@@ -89,7 +89,7 @@ rules:
     - endpoints
     verbs: ["get", "list", "watch"]
 
-  - apiGroups: [ "getambassador.io" ]
+  - apiGroups: [ "getambassador.io", "gateway.getambassador.io" ]
     resources: [ "*" ]
     verbs: ["get", "list", "watch", "update", "patch", "create", "delete" ]
 

@@ -96,6 +96,7 @@ rules:
   - watch
 - apiGroups:
   - getambassador.io
+  - gateway.getambassador.io
   resources:
   - '*'
   verbs:
