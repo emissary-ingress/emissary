@@ -465,6 +465,10 @@ def V3HTTPFilter_golang(irfilter: IRGOFilter, _: "V3Config") -> Optional[Dict[st
                 "library_id": "amb",
                 "library_path": go_library,
                 "plugin_name": "ambassador_plugin",
+                "plugin_config": {
+                    "@type": "type.googleapis.com/xds.type.v3.TypedStruct",
+                    "value": {},
+                },
             },
         }
 
