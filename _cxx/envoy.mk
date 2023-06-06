@@ -260,7 +260,8 @@ envoy-shell: $(ENVOY_BASH.deps)
 
 # Raw Envoy protobufs
 $(OSS_HOME)/api/envoy $(addprefix $(OSS_HOME)/api/,$(envoy-api-contrib)): $(OSS_HOME)/api/%: $(OSS_HOME)/_cxx/envoy
-	rsync --recursive --delete --delete-excluded --prune-empty-dirs --mkpath --include='*/' --include='*.proto' --exclude='*' $</api/$*/ $@
+	mkdir -p $@
+	rsync --recursive --delete --delete-excluded --prune-empty-dirs --include='*/' --include='*.proto' --exclude='*' $</api/$*/ $@
 
 # Go generated from the protobufs
 $(OSS_HOME)/_cxx/envoy/build_go: $(ENVOY_BASH.deps) FORCE
