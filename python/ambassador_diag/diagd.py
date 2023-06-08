@@ -1771,8 +1771,19 @@ class AmbassadorEventWatcher(threading.Thread):
         with open(app.bootstrap_path, "w") as output:
             output.write(dump_json(bootstrap_config, pretty=True))
 
-        with open(app.ads_path, "w") as output:
-            output.write(dump_json(ads_config, pretty=True))
+        # Write the ADS config to a temporary file first and then rename to
+        # ensure atomic update. Otherwise, ambex could be reading the config
+        # while we are still writing it.
+        #
+        # Rename are only atomic if in the same FS. To ensure that this work
+        # with any setup, we store the temporary file at the same path but with
+        # an extension that is ignored by ambex.
+        ads_tmp_path = app.ads_path + ".tmp"
+        with open(ads_tmp_path, "w") as output:
+            # Don't use pretty here, to reduce the config size, and improve the
+            # dump and load speed of the config.
+            output.write(dump_json(ads_config, pretty=False))
+        os.rename(ads_tmp_path, app.ads_path)
 
         with open(app.clustermap_path, "w") as output:
             output.write(dump_json(clustermap, pretty=True))
