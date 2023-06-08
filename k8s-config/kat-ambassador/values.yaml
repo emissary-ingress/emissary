@@ -18,6 +18,7 @@ env:
   AMBASSADOR_ID: «self.path.k8s»
   AMBASSADOR_SNAPSHOT_COUNT: "0"
   AMBASSADOR_CONFIG_BASE_DIR: "/tmp/ambassador"
+  AMBASSADOR_DISABLE_GO_FILTER: true
 envRaw: "- ←«envs»"
 security:
   containerSecurityContext:
