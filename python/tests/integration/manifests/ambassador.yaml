@@ -106,7 +106,7 @@ spec:
     - name: AMBASSADOR_CONFIG_BASE_DIR
       value: /tmp/ambassador
     - name: AMBASSADOR_DISABLE_GO_FILTER
-      value: "true"
+      value: "false"
     - name: AMBASSADOR_ID
       value: {self.path.k8s}
     - name: AMBASSADOR_SNAPSHOT_COUNT
