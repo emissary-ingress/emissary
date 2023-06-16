@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover
 
 GO_FILTER_LIBRARY_PATH = "/ambassador/filter.so"
-AMBASSADOR_DISABLE_GO_FILTER = os.getenv("AMBASSADOR_DISABLE_GO_FILTER", False)
+AMBASSADOR_DISABLE_GO_FILTER = os.getenv("AMBASSADOR_DISABLE_GO_FILTER", "false")
 
 
 def go_library_exists(go_library_path: str) -> bool:
@@ -62,7 +62,7 @@ class IRGOFilter(IRFilter):
     # We want to enable this filter only in Edge Stack
     def setup(self, ir: "IR", _: Config) -> bool:
         if ir.edge_stack_allowed:
-            if AMBASSADOR_DISABLE_GO_FILTER:
+            if AMBASSADOR_DISABLE_GO_FILTER.lower() in ("true", "yes", "1"):
                 self.logger.info(
                     "AMBASSADOR_DISABLE_GO_FILTER=%s, disabling Go filter...",
                     AMBASSADOR_DISABLE_GO_FILTER,
