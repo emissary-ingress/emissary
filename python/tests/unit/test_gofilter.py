@@ -123,11 +123,24 @@ def test_gofilter_missing_object_file(go_library, caplog):
 
 @pytest.mark.compilertest
 @edgestack()
-def test_gofilter_disable(disable_go_filter, caplog):
+def test_gofilter_disable(disable_go_filter):
     econf = get_envoy_config(MAPPING)
     filters = _get_go_filters(econf.as_dict())
 
     assert len(filters) == 0
+
+
+@pytest.mark.compilertest
+@edgestack()
+def test_gofilter_enable(enable_go_filter):
+    econf = get_envoy_config(MAPPING)
+    filters = _get_go_filters(econf.as_dict())
+
+    # Two listeners - ports 8080 and 8443 - each with an HTTP and HTTPS filterchain
+    assert len(filters) == 4
+
+    errors = econf.ir.aconf.errors
+    assert "ir.go_filter" not in errors
 
 
 @pytest.mark.compilertest
