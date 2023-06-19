@@ -34,7 +34,7 @@ changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.
 items:
   - version: 3.7.0
     prevVersion: 3.6.0
-    date: 'TBD'
+    date: '2023-06-20'
     notes:
       - title: Upgrade to Golang 1.20.4
         type: security
