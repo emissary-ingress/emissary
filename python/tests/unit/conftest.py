@@ -11,8 +11,15 @@ def go_library():
         yield go_library_exists
 
 
-@pytest.fixture()
-def disable_go_filter():
-    with patch("ambassador.ir.irgofilter.AMBASSADOR_DISABLE_GO_FILTER") as disable_go_filter:
-        disable_go_filter.return_value = True
-        yield disable_go_filter
+@pytest.fixture(params=["true", "yes", "1", "True", "YES"])
+def disable_go_filter(request):
+    with patch("ambassador.ir.irgofilter.go_filter_disabled") as go_filter_disabled:
+        go_filter_disabled.return_value = request.param
+        yield go_filter_disabled
+
+
+@pytest.fixture(params=["false", "no", "0"])
+def enable_go_filter(request):
+    with patch("ambassador.ir.irgofilter.go_filter_disabled") as go_filter_disabled:
+        go_filter_disabled.return_value = request.param
+        yield go_filter_disabled
