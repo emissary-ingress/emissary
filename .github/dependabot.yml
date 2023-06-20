@@ -5,6 +5,9 @@ updates:
     schedule:
       interval: daily
     open-pull-requests-limit: 10
+    ignore:
+      - dependency-name: "sigs.k8s.io/gateway-api"
+      - dependency-name: "go.opentelemetry.io/proto/otlp"
 
   - package-ecosystem: gomod
     directory: "/tools/src/yq"
@@ -65,6 +68,9 @@ updates:
     schedule:
       interval: daily
     open-pull-requests-limit: 10
+    ignore:
+      - dependency-name: pytest
+
   - package-ecosystem: docker
     directory: "/docker/base-python"
     schedule:
