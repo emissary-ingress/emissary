@@ -146,7 +146,7 @@ libraries:
     build               0.9.0      MIT license
     cachetools          5.3.0      MIT license
     certifi             2022.12.7  Mozilla Public License 2.0
-    charset-normalizer  2.1.1      MIT license
+    charset-normalizer  3.1.0      MIT license
     click               8.1.3      3-clause BSD license
     dpath               2.1.4      MIT license
     durationpy          0.5        MIT license
@@ -169,7 +169,7 @@ libraries:
     pyparsing           3.0.9      MIT license
     python-dateutil     2.8.2      3-clause BSD license, Apache License 2.0
     python-json-logger  2.0.4      2-clause BSD license
-    requests            2.29.0     Apache License 2.0
+    requests            2.31.0     Apache License 2.0
     requests-oauthlib   1.3.1      ISC license
     retrying            1.3.3      Apache License 2.0
     rsa                 4.9        Apache License 2.0
