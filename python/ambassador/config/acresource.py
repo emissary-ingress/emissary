@@ -62,7 +62,6 @@ class ACResource(Resource):
         serialization: Optional[str] = None,
         **kwargs
     ) -> None:
-
         if not rkey:
             raise Exception("ACResource requires rkey")
 

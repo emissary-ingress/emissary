@@ -8,7 +8,6 @@ from .resource import NormalizedResource, ResourceManager
 
 
 class IngressClassProcessor(ManagedKubernetesProcessor):
-
     CONTROLLER: ClassVar[str] = "getambassador.io/ingress-controller"
 
     ingress_classes_dep: IngressClassesDependency
@@ -64,7 +63,6 @@ class IngressClassProcessor(ManagedKubernetesProcessor):
 
 
 class IngressProcessor(ManagedKubernetesProcessor):
-
     service_dep: ServiceDependency
     ingress_classes_dep: IngressClassesDependency
 
@@ -167,7 +165,6 @@ class IngressProcessor(ManagedKubernetesProcessor):
 
             tls_secret = tls.get("secretName", None)
             if tls_secret is not None:
-
                 for host_count, host in enumerate(tls.get("hosts", ["*"])):
                     tls_unique_identifier = f"{obj.name}-{tls_count}-{host_count}"
 

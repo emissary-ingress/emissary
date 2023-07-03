@@ -113,7 +113,6 @@ service: {self.target.path.fqdn}
 
 
 class RedirectTestsWithProxyProto(AmbassadorTest):
-
     target: ServiceType
 
     def init(self):

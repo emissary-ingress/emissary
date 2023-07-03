@@ -231,7 +231,6 @@ class TestLocationManager:
 
 
 class FinalizingKubernetesProcessor(KubernetesProcessor):
-
     finalized: bool = False
 
     def finalize(self):

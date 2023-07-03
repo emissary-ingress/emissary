@@ -110,7 +110,6 @@ def _load_url_contents(
     try:
         with requests.get(url) as r:
             if r.status_code == 200:
-
                 # All's well, pull the config down.
                 encoded = b""
 

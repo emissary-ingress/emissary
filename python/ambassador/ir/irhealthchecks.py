@@ -9,7 +9,6 @@ if TYPE_CHECKING:
 
 
 class IRHealthChecks(IRResource):
-
     # The list of mappers that will make up the final health checking config
     _mappers: Optional[List[Dict[str, Union[str, int, Dict]]]]
 
@@ -63,7 +62,6 @@ class IRHealthChecks(IRResource):
 
         # Make sure each health check in the list has config for either a grpc health check or an http health check
         for hc in self._ir_config:
-
             health_check_config = hc["health_check"]
 
             # This should never happen but is necessary for the linting type checks

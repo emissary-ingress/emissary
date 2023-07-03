@@ -7,7 +7,6 @@ from tests.selfsigned import TLSCerts
 
 
 class AuthenticationGRPCTest(AmbassadorTest):
-
     target: ServiceType
     auth: ServiceType
 
@@ -227,7 +226,6 @@ auth_context_extensions:
 
 
 class AuthenticationHTTPPartialBufferTest(AmbassadorTest):
-
     target: ServiceType
     auth: ServiceType
 
@@ -353,7 +351,6 @@ service: {self.target.path.fqdn}
 
 
 class AuthenticationHTTPBufferedTest(AmbassadorTest):
-
     target: ServiceType
     auth: ServiceType
 
@@ -640,7 +637,6 @@ service: {self.target.path.fqdn}
 
 
 class AuthenticationTestV1(AmbassadorTest):
-
     target: ServiceType
     auth: ServiceType
 
@@ -805,7 +801,6 @@ bypass_auth: true
         return (backend_name == self.auth1.path.k8s) or (backend_name == self.auth2.path.k8s)
 
     def check(self):
-
         # [0] Verifies all request headers sent to the authorization server.
         assert self.check_backend_name(self.results[0])
         assert self.results[0].backend
@@ -1114,7 +1109,6 @@ service: {self.target.path.fqdn}
 
 
 class AuthenticationWebsocketTest(AmbassadorTest):
-
     auth: ServiceType
     backend: ServiceType
 
@@ -1158,7 +1152,6 @@ use_websocket: true
 
 
 class AuthenticationGRPCVerTest(AmbassadorTest):
-
     target: ServiceType
     specified_protocol_version: Literal["v2", "v3", "default"]
     expected_protocol_version: Literal["v3", "invalid"]

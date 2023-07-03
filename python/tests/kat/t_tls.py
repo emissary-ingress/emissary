@@ -525,7 +525,6 @@ tls: upstream-files
 
 
 class TLS(AmbassadorTest):
-
     target: ServiceType
 
     def init(self):
@@ -617,7 +616,6 @@ service: {self.target.path.fqdn}
 
 
 class TLSInvalidSecret(AmbassadorTest):
-
     target: ServiceType
 
     def init(self):

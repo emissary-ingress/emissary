@@ -26,7 +26,6 @@ class IRAuth(IRFilter):
         type: Optional[str] = "decoder",
         **kwargs,
     ) -> None:
-
         super().__init__(
             ir=ir,
             aconf=aconf,

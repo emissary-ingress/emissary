@@ -10,7 +10,6 @@ from kat.harness import Query, Test
 
 
 class AddRequestHeaders(OptionTest):
-
     parent: Test
 
     VALUES: ClassVar[Sequence[Dict[str, Dict[str, Union[str, bool]]]]] = [
@@ -37,7 +36,6 @@ class AddRequestHeaders(OptionTest):
 
 
 class AddResponseHeaders(OptionTest):
-
     parent: Test
 
     VALUES: ClassVar[Sequence[Dict[str, Dict[str, Union[str, bool]]]]] = [
@@ -107,7 +105,6 @@ class CORS(OptionTest):
 
 
 class CaseSensitive(OptionTest):
-
     parent: MappingTest
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -122,7 +119,6 @@ class CaseSensitive(OptionTest):
 
 
 class AutoHostRewrite(OptionTest):
-
     parent: MappingTest
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
@@ -140,7 +136,6 @@ class AutoHostRewrite(OptionTest):
 
 
 class Rewrite(OptionTest):
-
     parent: MappingTest
 
     VALUES = ("/foo", "foo")
@@ -166,7 +161,6 @@ class Rewrite(OptionTest):
 
 
 class RemoveResponseHeaders(OptionTest):
-
     parent: Test
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:

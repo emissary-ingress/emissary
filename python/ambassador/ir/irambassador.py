@@ -17,7 +17,6 @@ if TYPE_CHECKING:
 
 
 class IRAmbassador(IRResource):
-
     # All the AModTransparentKeys are copied from the incoming Ambassador resource
     # into the IRAmbassador object partway through IRAmbassador.finalize().
     #

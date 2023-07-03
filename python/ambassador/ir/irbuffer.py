@@ -18,11 +18,9 @@ class IRBuffer(IRFilter):
         kind: str = "IRBuffer",
         **kwargs
     ) -> None:
-
         super().__init__(ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, **kwargs)
 
     def setup(self, ir: "IR", aconf: Config) -> bool:
-
         max_request_bytes = self.pop("max_request_bytes", None)
         if max_request_bytes is not None:
             self["max_request_bytes"] = max_request_bytes
