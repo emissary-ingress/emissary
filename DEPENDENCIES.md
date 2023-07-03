@@ -168,7 +168,7 @@ libraries:
     pyasn1-modules      0.2.8      2-clause BSD license
     pyparsing           3.0.9      MIT license
     python-dateutil     2.8.2      3-clause BSD license, Apache License 2.0
-    python-json-logger  2.0.4      2-clause BSD license
+    python-json-logger  2.0.7      2-clause BSD license
     requests            2.31.0     Apache License 2.0
     requests-oauthlib   1.3.1      ISC license
     retrying            1.3.3      Apache License 2.0

@@ -61,7 +61,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"pyparsing", "3.0.9", ""}:                     {MIT},
 		{"python-dateutil", "2.8.1", "Dual License"}:   {BSD3, Apache2},
 		{"python-dateutil", "2.8.2", "Dual License"}:   {BSD3, Apache2},
-		{"python-json-logger", "2.0.4", "BSD"}:         {BSD2},
+		{"python-json-logger", "2.0.7", "BSD"}:         {BSD2},
 		{"semantic-version", "2.10.0", "BSD"}:          {BSD2},
 		{"smmap", "3.0.4", "BSD"}:                      {BSD3},
 		{"tomli", "2.0.1", ""}:                         {MIT},
