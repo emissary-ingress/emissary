@@ -1182,7 +1182,9 @@ class KubewatchSecretHandler(SecretHandler):
 
 # TODO(gsagula): This duplicates code from ircluster.py.
 class ParsedService:
-    def __init__(self, logger, service: str, allow_scheme=True, ctx_name: str = None) -> None:
+    def __init__(
+        self, logger, service: str, allow_scheme=True, ctx_name: str | None = None
+    ) -> None:
         original_service = service
 
         originate_tls = False
