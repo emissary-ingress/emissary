@@ -42,7 +42,7 @@ jsonpointer==2.3
     # via jsonpatch
 kubernetes==26.1.0
     # via -r requirements.in
-markupsafe==2.1.1
+markupsafe==2.1.3
     # via
     #   jinja2
     #   werkzeug
