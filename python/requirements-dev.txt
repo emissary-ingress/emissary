@@ -1,7 +1,7 @@
 # Dev requirements
 gitpython
 httpretty
-mypy<0.990
+mypy
 packaging
 pexpect
 pyOpenSSL
@@ -17,6 +17,6 @@ types-orjson
 types-protobuf
 types-pyOpenSSL
 types-pyyaml
-types-requests==2.28.11.12 # Something about the upgrade to 2.28.11.13 breaks `make lint/mypy`
+types-requests
 types-retry
 types-setuptools
