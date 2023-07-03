@@ -47,7 +47,6 @@ def _get_envoy_config(yaml):
 
 @pytest.mark.compilertest
 def test_healthcheck():
-
     baseYaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -359,7 +358,6 @@ spec:
     ]
 
     for case in testcases:
-
         caseYaml = case["input"]
         testName = case["name"]
         econf = _get_envoy_config(caseYaml)

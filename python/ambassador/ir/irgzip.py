@@ -17,7 +17,6 @@ class IRGzip(IRFilter):
         kind: str = "IRGzip",
         **kwargs
     ) -> None:
-
         super().__init__(ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, **kwargs)
 
     def setup(self, ir: "IR", aconf: Config) -> bool:

@@ -184,7 +184,6 @@ def _test_errorresponse_onemapper_onstatuscode_textformat_contenttype(
 def _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
     status_code, text_format, source, content_type
 ):
-
     # in order for tests to pass the files (all located in /tmp) need to exist
     try:
         open(source, "x").close()

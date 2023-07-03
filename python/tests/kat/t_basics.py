@@ -55,7 +55,6 @@ class Empty(AmbassadorTest):
 
 
 class AmbassadorIDTest(AmbassadorTest):
-
     target: ServiceType
 
     def init(self):
@@ -287,7 +286,6 @@ spec:
 
 
 class ServerNameTest(AmbassadorTest):
-
     target: ServiceType
 
     def init(self):
@@ -320,7 +318,6 @@ service: {self.target.path.fqdn}
 
 
 class SafeRegexMapping(AmbassadorTest):
-
     target: ServiceType
 
     def init(self):

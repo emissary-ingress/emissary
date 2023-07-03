@@ -125,7 +125,6 @@ class IRBaseMappingGroup(IRResource):
 
             # Now, let's add weight to every weightless mapping and push to normalized_mappings
             for i, weightless_mapping in enumerate(weightless_mappings):
-
                 # We need last mapping's weight to be 100
                 if i == num_weightless_mappings - 1:
                     current_weight = 100

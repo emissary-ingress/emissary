@@ -42,7 +42,6 @@ class IRHost(IRResource):
         apiVersion: str = "getambassador.io/v3alpha1",  # Not a typo! See below.
         **kwargs,
     ) -> None:
-
         new_args = {x: kwargs[x] for x in kwargs.keys() if x in IRHost.AllowedKeys}
 
         self.context: Optional[IRTLSContext] = None

@@ -49,7 +49,6 @@ class IRTestResource(IRBuffer):
         kind: str = "IRTestResource",
         **kwargs
     ) -> None:
-
         super().__init__(ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, **kwargs)
 
         self.default_class = "test_resource"

@@ -63,7 +63,6 @@ def _get_ratelimit_default_conf():
 
 @pytest.mark.compilertest
 def test_irratelimit_defaults():
-
     # Test all defaults
     yaml = """
 apiVersion: getambassador.io/v3alpha1
@@ -92,7 +91,6 @@ spec:
 
 @pytest.mark.compilertest
 def test_irratelimit_grpcsvc_version_v3():
-
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -118,7 +116,6 @@ spec:
 
 @pytest.mark.compilertest
 def test_irratelimit_cluster_fields():
-
     stats_name = "ratelimitservice"
 
     yaml = """
@@ -154,7 +151,6 @@ spec:
 
 @pytest.mark.compilertest
 def test_irratelimit_grpcsvc_version_v2():
-
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
