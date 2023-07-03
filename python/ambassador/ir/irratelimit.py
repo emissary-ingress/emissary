@@ -22,7 +22,6 @@ class IRRateLimit(IRFilter):
         namespace: Optional[str] = None,
         **kwargs,
     ) -> None:
-
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, namespace=namespace, type="decoder"
         )

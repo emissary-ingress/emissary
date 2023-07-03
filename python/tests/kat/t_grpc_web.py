@@ -5,7 +5,6 @@ from kat.harness import Query
 
 
 class AcceptanceGrpcWebTest(AmbassadorTest):
-
     target: ServiceType
 
     def init(self):

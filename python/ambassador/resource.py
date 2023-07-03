@@ -50,7 +50,6 @@ class Resource(Cacheable):
     def __init__(
         self, rkey: str, location: str, *, kind: str, serialization: Optional[str] = None, **kwargs
     ) -> None:
-
         if not rkey:
             raise Exception("Resource requires rkey")
 

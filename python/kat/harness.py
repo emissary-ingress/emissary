@@ -312,7 +312,6 @@ def _argprocess(o):
 
 
 class Node(ABC):
-
     parent: Optional["Node"]
     children: List["Node"]
     name: str
@@ -473,7 +472,6 @@ class Node(ABC):
 
 
 class Test(Node):
-
     results: List["Result"] = []
     pending: List["Query"] = []
     queried: List["Query"] = []
@@ -681,7 +679,6 @@ class Result:
                         self.error,
                     )
                 else:
-
                     if self.query.expected != self.status:
                         self.parent.log_kube_artifacts()
                     assert (

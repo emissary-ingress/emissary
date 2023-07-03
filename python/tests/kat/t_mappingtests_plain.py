@@ -27,7 +27,6 @@ def unique(options):
 
 
 class SimpleMapping(MappingTest):
-
     parent: AmbassadorTest
     target: ServiceType
 
@@ -74,7 +73,6 @@ service: http://{self.target.path.fqdn}
 
 
 class SimpleMappingIngress(MappingTest):
-
     parent: AmbassadorTest
     target: ServiceType
 
@@ -162,7 +160,6 @@ spec:
 
 
 class SimpleIngressWithAnnotations(MappingTest):
-
     parent: AmbassadorTest
     target: ServiceType
 
@@ -227,7 +224,6 @@ spec:
 
 
 class HostHeaderMappingIngress(MappingTest):
-
     parent: AmbassadorTest
 
     @classmethod
@@ -267,7 +263,6 @@ spec:
 
 
 class HostHeaderMapping(MappingTest):
-
     parent: AmbassadorTest
 
     @classmethod
@@ -305,7 +300,6 @@ host: inspector.external
 
 
 class InvalidPortMapping(MappingTest):
-
     parent: AmbassadorTest
 
     @classmethod
@@ -340,7 +334,6 @@ service: http://{self.target.path.fqdn}:80.invalid
 
 
 class WebSocketMapping(MappingTest):
-
     parent: AmbassadorTest
     target: ServiceType
 
@@ -373,7 +366,6 @@ use_websocket: true
 
 
 class TLSOrigination(MappingTest):
-
     parent: AmbassadorTest
     definition: str
 
@@ -551,7 +543,6 @@ redirect_response_code: 308
 
 
 class CanaryMapping(MappingTest):
-
     parent: AmbassadorTest
     target: ServiceType
     canary: ServiceType
@@ -627,7 +618,6 @@ weight: {self.weight}
 
 
 class CanaryDiffMapping(MappingTest):
-
     parent: AmbassadorTest
     target: ServiceType
     canary: ServiceType

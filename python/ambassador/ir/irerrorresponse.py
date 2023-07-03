@@ -80,6 +80,7 @@ ENVOY_FMT_TOKEN_REGEX = (
     "\%([A-Za-z0-9_]+?)(\([A-Za-z0-9_.]+?((:|\?)[A-Za-z0-9_.]+?)+\))?(:[A-Za-z0-9_]+?)?\%"
 )
 
+
 # IRErrorResponse implements custom error response bodies using Envoy's HTTP response_map filter.
 #
 # Error responses are configured as an array of rules on the Ambassador module. Rules can be
@@ -90,7 +91,6 @@ ENVOY_FMT_TOKEN_REGEX = (
 # The Ambassador module config isn't subject to strict typing at higher layers, so this IR has
 # to pay special attention to the types and format of the incoming config.
 class IRErrorResponse(IRFilter):
-
     # The list of mappers that will make up the final error response config
     _mappers: Optional[List[Dict[str, Any]]]
 
