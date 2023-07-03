@@ -36,7 +36,7 @@ itsdangerous==2.1.2
     # via flask
 jinja2==3.1.2
     # via flask
-jsonpatch==1.32
+jsonpatch==1.33
     # via -r requirements.in
 jsonpointer==2.3
     # via jsonpatch

@@ -155,7 +155,7 @@ libraries:
     gunicorn            20.1.0     MIT license
     idna                3.4        3-clause BSD license
     itsdangerous        2.1.2      3-clause BSD license
-    jsonpatch           1.32       3-clause BSD license
+    jsonpatch           1.33       3-clause BSD license
     jsonpointer         2.3        3-clause BSD license
     kubernetes          26.1.0     Apache License 2.0
     oauthlib            3.2.2      3-clause BSD license
