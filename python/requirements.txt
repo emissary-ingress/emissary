@@ -56,7 +56,7 @@ pyasn1==0.4.8
     # via
     #   pyasn1-modules
     #   rsa
-pyasn1-modules==0.2.8
+pyasn1-modules==0.3.0
     # via google-auth
 python-dateutil==2.8.2
     # via kubernetes
