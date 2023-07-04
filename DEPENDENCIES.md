@@ -109,7 +109,7 @@ following Free and Open Source software:
     gopkg.in/yaml.v3                                                                  v3.0.1                                 Apache License 2.0, MIT license
     k8s.io/api                                                                        v0.27.2                                Apache License 2.0
     k8s.io/apiextensions-apiserver                                                    v0.27.2                                Apache License 2.0
-    k8s.io/apimachinery                                                               v0.27.2                                3-clause BSD license, Apache License 2.0
+    k8s.io/apimachinery                                                               v0.27.3                                3-clause BSD license, Apache License 2.0
     k8s.io/apiserver                                                                  v0.27.2                                Apache License 2.0
     k8s.io/cli-runtime                                                                v0.27.2                                Apache License 2.0
     k8s.io/client-go                                                                  v0.27.2                                3-clause BSD license, Apache License 2.0
