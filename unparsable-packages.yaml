@@ -2,3 +2,27 @@ sigs.k8s.io/json:
   - Apache-2.0
 sigs.k8s.io/json/internal/golang/encoding/json:
   - BSD-3-Clause
+github.com/cloudflare/circl/dh/x25519:
+  - BSD-3-Clause
+github.com/cloudflare/circl/dh/x448:
+  - BSD-3-Clause
+github.com/cloudflare/circl/ecc/goldilocks:
+  - BSD-3-Clause
+github.com/cloudflare/circl/internal/conv:
+  - BSD-3-Clause
+github.com/cloudflare/circl/internal/sha3:
+  - BSD-3-Clause
+github.com/cloudflare/circl/math:
+  - BSD-3-Clause
+github.com/cloudflare/circl/math/fp25519:
+  - BSD-3-Clause
+github.com/cloudflare/circl/math/fp448:
+  - BSD-3-Clause
+github.com/cloudflare/circl/math/mlsbset:
+  - BSD-3-Clause
+github.com/cloudflare/circl/sign:
+  - BSD-3-Clause
+github.com/cloudflare/circl/sign/ed25519:
+  - BSD-3-Clause
+github.com/cloudflare/circl/sign/ed448:
+  - BSD-3-Clause
