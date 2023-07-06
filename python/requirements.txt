@@ -52,7 +52,7 @@ orjson==3.9.1
     # via -r requirements.in
 prometheus-client==0.15.0
     # via -r requirements.in
-pyasn1==0.4.8
+pyasn1==0.5.0
     # via
     #   pyasn1-modules
     #   rsa
