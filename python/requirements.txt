@@ -89,7 +89,7 @@ six==1.16.0
     #   python-dateutil
 typing-extensions==4.7.1
     # via -r requirements.in
-urllib3==1.26.13
+urllib3==2.0.3
     # via
     #   kubernetes
     #   requests
