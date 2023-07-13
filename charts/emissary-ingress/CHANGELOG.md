@@ -7,6 +7,10 @@ numbering uses [semantic versioning](http://semver.org).
 
 - Upgrade Emissary to v3.8.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 
+## v8.7.1 - 2023-07-13
+
+- Upgrade Emissary to v3.7.1 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
 ## v8.7.0 - 2023-06-20
 
 - Upgrade Emissary to v3.7.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
