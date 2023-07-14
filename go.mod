@@ -101,7 +101,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/proto/otlp v0.19.0
-	golang.org/x/mod v0.10.0
+	golang.org/x/mod v0.12.0
 	golang.org/x/sys v0.10.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20230629202037-9506855d4529
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230711160842-782d3b101e98
