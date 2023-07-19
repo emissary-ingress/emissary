@@ -387,13 +387,12 @@ class AmbassadorTest(Test):
 
 @abstract_test
 class ServiceType(Node):
-
     path: Name
     _manifests: Optional[str]
     use_superpod: bool = True
 
     def __init__(
-        self, service_manifests: str = None, namespace: str = None, *args, **kwargs
+        self, service_manifests: str | None = None, namespace: str | None = None, *args, **kwargs
     ) -> None:
         super().__init__(namespace=namespace, *args, **kwargs)
 
@@ -421,10 +420,9 @@ class ServiceType(Node):
 
 @abstract_test
 class ServiceTypeGrpc(Node):
-
     path: Name
 
-    def __init__(self, service_manifests: str = None, *args, **kwargs) -> None:
+    def __init__(self, service_manifests: str | None = None, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._manifests = service_manifests or integration_manifests.load("backend")
 
@@ -575,7 +573,6 @@ class StatsDSink(ServiceType):
 
 @abstract_test
 class MappingTest(Test):
-
     target: ServiceType
     options: Sequence["OptionTest"]
     parent: AmbassadorTest
@@ -591,7 +588,6 @@ class MappingTest(Test):
 
 @abstract_test
 class OptionTest(Test):
-
     VALUES: ClassVar[Any] = None
     value: Any
     parent: Test

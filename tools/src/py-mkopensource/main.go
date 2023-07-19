@@ -47,7 +47,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"importlib-metadata", "5.1.0", "None"}:        {Apache2},
 		{"importlib-resources", "5.4.0", "UNKNOWN"}:    {Apache2},
 		{"itsdangerous", "1.1.0", "BSD"}:               {BSD3},
-		{"jsonpatch", "1.32", "Modified BSD License"}:  {BSD3},
+		{"jsonpatch", "1.33", "Modified BSD License"}:  {BSD3},
 		{"jsonpointer", "2.3", "Modified BSD License"}: {BSD3},
 		{"jsonschema", "3.2.0", "UNKNOWN"}:             {MIT},
 		{"lockfile", "0.12.2", "UNKNOWN"}:              {MIT},
@@ -61,11 +61,11 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"pyparsing", "3.0.9", ""}:                     {MIT},
 		{"python-dateutil", "2.8.1", "Dual License"}:   {BSD3, Apache2},
 		{"python-dateutil", "2.8.2", "Dual License"}:   {BSD3, Apache2},
-		{"python-json-logger", "2.0.4", "BSD"}:         {BSD2},
+		{"python-json-logger", "2.0.7", "BSD"}:         {BSD2},
 		{"semantic-version", "2.10.0", "BSD"}:          {BSD2},
 		{"smmap", "3.0.4", "BSD"}:                      {BSD3},
 		{"tomli", "2.0.1", ""}:                         {MIT},
-		{"typing_extensions", "4.4.0", ""}:             {PSF},
+		{"typing_extensions", "4.7.1", ""}:             {PSF},
 		{"webencodings", "0.5.1", "BSD"}:               {BSD3},
 		{"websocket-client", "0.57.0", "BSD"}:          {BSD3},
 		{"websocket-client", "1.2.3", "Apache-2.0"}:    {Apache2},
@@ -73,7 +73,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 
 		// These are packages with non-trivial strings to parse, and
 		// it's easier to just hard-code it.
-		{"orjson", "3.8.10", "Apache-2.0 OR MIT"}:           {Apache2, MIT},
+		{"orjson", "3.9.1", "Apache-2.0 OR MIT"}:            {Apache2, MIT},
 		{"packaging", "21.3", "BSD-2-Clause or Apache-2.0"}: {BSD2, Apache2},
 	}[tuple{name, version, license}]
 	if ok {

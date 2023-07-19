@@ -397,7 +397,6 @@ spec:
             ),
         ]
         for case in testcases:
-
             applied_yaml = open(os.path.join(testdata_dir, f"{case.name}_in.yaml"), "r").read()
             expected = yaml.safe_load(
                 open(os.path.join(testdata_dir, f"{case.name}_out.yaml"), "r")

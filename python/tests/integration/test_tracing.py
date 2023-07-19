@@ -43,7 +43,6 @@ class MockSecretHandler(SecretHandler):
 
 
 def _get_envoy_config(yaml):
-
     aconf = Config()
     fetcher = ResourceFetcher(logger, aconf)
     fetcher.parse_yaml(default_listener_manifests() + yaml, k8s=True)
@@ -60,7 +59,6 @@ def _get_envoy_config(yaml):
 
 @pytest.mark.compilertest
 def test_tracing_config_v3(tmp_path: Path):
-
     aconf = Config()
 
     yaml = (
@@ -146,7 +144,6 @@ spec:
 
 @pytest.mark.compilertest
 def test_tracing_zipkin_defaults():
-
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -180,7 +177,6 @@ spec:
 
 @pytest.mark.compilertest
 def test_tracing_cluster_fields():
-
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -245,7 +241,6 @@ spec:
 
 @pytest.mark.compilertest
 def test_lightstep_not_supported(tmp_path: Path):
-
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1

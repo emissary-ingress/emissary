@@ -28,8 +28,8 @@ class IRIPAllowDeny(IRFilter):
         rkey: str = "ir.ipallowdeny",
         name: str = "ir.ipallowdeny",
         kind: str = "IRIPAllowDeny",
-        parent: IRResource = None,
-        action: str = None,
+        parent: IRResource | None = None,
+        action: str | None = None,
         **kwargs,
     ) -> None:
         """

@@ -110,7 +110,6 @@ def _load_url_contents(
     try:
         with requests.get(url) as r:
             if r.status_code == 200:
-
                 # All's well, pull the config down.
                 encoded = b""
 
@@ -1182,7 +1181,9 @@ class KubewatchSecretHandler(SecretHandler):
 
 # TODO(gsagula): This duplicates code from ircluster.py.
 class ParsedService:
-    def __init__(self, logger, service: str, allow_scheme=True, ctx_name: str = None) -> None:
+    def __init__(
+        self, logger, service: str, allow_scheme=True, ctx_name: str | None = None
+    ) -> None:
         original_service = service
 
         originate_tls = False

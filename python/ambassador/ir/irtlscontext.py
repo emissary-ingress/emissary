@@ -71,7 +71,6 @@ class IRTLSContext(IRResource):
         is_fallback: Optional[bool] = False,
         **kwargs,
     ) -> None:
-
         new_args = {
             x: kwargs[x]
             for x in kwargs.keys()

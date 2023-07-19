@@ -32,7 +32,7 @@ class NormalizedResource:
         version: str = "v3alpha1",
         api_group="getambassador.io",
         labels: Optional[Dict[str, Any]] = None,
-        spec: Dict[str, Any] = None,
+        spec: Dict[str, Any] | None = None,
         errors: Optional[str] = None,
         rkey: Optional[str] = None,
     ) -> NormalizedResource:
