@@ -117,7 +117,7 @@ require (
 	k8s.io/code-generator v0.27.2
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f
 	k8s.io/kubectl v0.27.2
-	k8s.io/kubernetes v1.27.2
+	k8s.io/kubernetes v1.27.4
 	k8s.io/metrics v0.27.2
 	sigs.k8s.io/controller-runtime v0.15.0
 	sigs.k8s.io/controller-tools v0.12.0
