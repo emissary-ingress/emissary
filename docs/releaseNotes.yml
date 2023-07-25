@@ -33,9 +33,19 @@
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
   - version: 3.8.0
-    prevVersion: 3.7.1
+    prevVersion: 3.7.2
     date: TBD
     notes: []
+
+  - version: 3.7.2
+    prevVersion: 3.7.1
+    date: '2023-07-25'
+    notes:
+      - title: Upgrade to Envoy 1.26.4
+        type: security
+        body: >-
+          This upgrades $productName$ to be built on Envoy v1.26.4 which includes a security fixes for 
+          CVE-2023-35942, CVE-2023-35943,  VE-2023-35944.
 
   - version: 3.7.1
     prevVersion: 3.7.0
