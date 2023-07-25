@@ -86,9 +86,17 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 ## RELEASE NOTES
 
 ## [3.8.0] TBD
-[3.8.0]: https://github.com/emissary-ingress/emissary/compare/v3.7.1...v3.8.0
+[3.8.0]: https://github.com/emissary-ingress/emissary/compare/v3.7.2...v3.8.0
 
 ### Emissary-ingress and Ambassador Edge Stack
+
+## [3.7.2] July 25, 2023
+[3.7.2]: https://github.com/emissary-ingress/emissary/compare/v3.7.1...v3.7.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Security: This upgrades Emissary-ingress to be built on Envoy v1.26.4 which includes a security
+  fixes for  CVE-2023-35942, CVE-2023-35943,  VE-2023-35944.
 
 ## [3.7.1] July 13, 2023
 [3.7.1]: https://github.com/emissary-ingress/emissary/compare/v3.7.0...v3.7.1
