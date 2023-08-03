@@ -36,7 +36,7 @@ var (
 	_ = anypb.Any{}
 	_ = sort.Sort
 
-	_ = v3.VhRateLimitsOptions(0)
+	_ = v3.XRateLimitHeadersRFCVersion(0)
 )
 
 // Validate checks the field values on LocalRateLimit with the rules defined in

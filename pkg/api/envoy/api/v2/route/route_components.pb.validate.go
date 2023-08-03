@@ -36,7 +36,7 @@ var (
 	_ = anypb.Any{}
 	_ = sort.Sort
 
-	_ = core.RequestMethod(0)
+	_ = core.RoutingPriority(0)
 )
 
 // Validate checks the field values on VirtualHost with the rules defined in

@@ -13,8 +13,8 @@ RSYNC_EXTRAS ?=
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,https://github.com/datawire/envoy.git)
-  # https://github.com/datawire/envoy/tree/rebase/release/v1.26.4
-  ENVOY_COMMIT ?= bbda92fc3e3d430bd2114aa3458d3191205c9c0e
+  # rebase/release/v1.27.0
+  ENVOY_COMMIT ?= b2891a118f31f0f582797273e9948cfae4212c5b
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
@@ -267,8 +267,7 @@ $(OSS_HOME)/api/envoy $(addprefix $(OSS_HOME)/api/,$(envoy-api-contrib)): $(OSS_
 $(OSS_HOME)/_cxx/envoy/build_go: $(ENVOY_BASH.deps) FORCE
 	$(call ENVOY_BASH.cmd, \
 		$(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
-		$(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generate_protobufs; generate_protobufs("@envoy_api//envoy/...", "/root/envoy/build_go", "envoy_api")'; \
-		$(foreach contrib-api,$(envoy-api-contrib),$(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generate_protobufs; generate_protobufs("@envoy_api//$(contrib-api)/...", "/root/envoy/build_go", "envoy_api")';) \
+		$(ENVOY_DOCKER_EXEC) ci/do_ci.sh api.go; \
 	)
 	test -d $@ && touch $@
 $(OSS_HOME)/pkg/api/envoy $(addprefix $(OSS_HOME)/pkg/api/,$(envoy-api-contrib)): $(OSS_HOME)/pkg/api/%: $(OSS_HOME)/_cxx/envoy/build_go
