@@ -70,7 +70,10 @@ updates:
     open-pull-requests-limit: 10
     ignore:
       - dependency-name: pytest
-
+      - dependency-name: urllib3
+        versions: 
+          - "<2.0"
+        version-update: semver-minor
   - package-ecosystem: docker
     directory: "/docker/base-python"
     schedule:

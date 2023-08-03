@@ -194,5 +194,5 @@ libraries:
     six                 1.16.0     MIT license
     tomli               2.0.1      MIT license
     typing_extensions   4.7.1      Python Software Foundation license
-    urllib3             1.26.13    MIT license
+    urllib3             1.26.16    MIT license
     websocket-client    1.6.1      Apache License 2.0
