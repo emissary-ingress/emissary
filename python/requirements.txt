@@ -28,7 +28,7 @@ flask==2.3.2
     # via -r requirements.in
 google-auth==2.22.0
     # via kubernetes
-gunicorn==20.1.0
+gunicorn==21.2.0
     # via -r requirements.in
 idna==3.4
     # via requests
