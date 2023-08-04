@@ -8,6 +8,11 @@ This repository contains a Go-based implementation of an API server that
 implements the discovery service APIs defined in
 [data-plane-api](https://github.com/envoyproxy/data-plane-api).
 
+## Proto files
+
+The Go proto files are synced from the upstream Envoy repository (https://github.com/envoyproxy/envoy) on every upstream commit.
+
+Synchronization is triggered using the `envoy-sync.yaml` workflow.
 
 ## Scope
 
@@ -61,8 +66,8 @@ The Envoy xDS APIs follow a well defined [versioning scheme](https://www.envoypr
 
 ### Deprecated
 
-`V2` control-plane code has been removed and will no longer be supported. For previous conversations on support for various xDS versions, see here: 
-- [here](https://docs.google.com/document/d/1ZkHpz6DwEUmAlG0kb2Mgu4iaeQC2Bbb0egMbECoNNKY/edit?ts=5e602993#heading=h.15nsmgmjaaml) 
+`V2` control-plane code has been removed and will no longer be supported. For previous conversations on support for various xDS versions, see here:
+- [here](https://docs.google.com/document/d/1ZkHpz6DwEUmAlG0kb2Mgu4iaeQC2Bbb0egMbECoNNKY/edit?ts=5e602993#heading=h.15nsmgmjaaml)
 - [here](https://envoyproxy.slack.com/archives/C7LDJTM6Z/p1582925082005300)
 
 *Note*: It is recommended to use a previous SHA if there is still a need for `V2`.

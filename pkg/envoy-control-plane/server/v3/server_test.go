@@ -32,6 +32,7 @@ import (
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
 	rsrc "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/sotw/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/stream/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/resource/v3"
@@ -48,7 +49,7 @@ type mockConfigWatcher struct {
 	mu *sync.RWMutex
 }
 
-func (config *mockConfigWatcher) CreateWatch(req *discovery.DiscoveryRequest, state stream.StreamState, out chan cache.Response) func() {
+func (config *mockConfigWatcher) CreateWatch(req *discovery.DiscoveryRequest, _ stream.StreamState, out chan cache.Response) func() {
 	config.counts[req.TypeUrl] = config.counts[req.TypeUrl] + 1
 	if len(config.responses[req.TypeUrl]) > 0 {
 		out <- config.responses[req.TypeUrl][0]
@@ -62,7 +63,7 @@ func (config *mockConfigWatcher) CreateWatch(req *discovery.DiscoveryRequest, st
 	return nil
 }
 
-func (config *mockConfigWatcher) Fetch(ctx context.Context, req *discovery.DiscoveryRequest) (cache.Response, error) {
+func (config *mockConfigWatcher) Fetch(_ context.Context, req *discovery.DiscoveryRequest) (cache.Response, error) {
 	if len(config.responses[req.TypeUrl]) > 0 {
 		out := config.responses[req.TypeUrl][0]
 		config.responses[req.TypeUrl] = config.responses[req.TypeUrl][1:]
@@ -579,7 +580,9 @@ func TestAggregatedHandlers(t *testing.T) {
 		ResourceNames: []string{virtualHostName},
 	}
 
-	s := server.NewServer(context.Background(), config, server.CallbackFuncs{})
+	// We create the server with the optional ordered ADS flag so we guarantee resource
+	// ordering over the stream.
+	s := server.NewServer(context.Background(), config, server.CallbackFuncs{}, sotw.WithOrderedADS())
 	go func() {
 		err := s.StreamAggregatedResources(resp)
 		assert.NoError(t, err)
