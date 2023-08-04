@@ -176,7 +176,7 @@ $(OSS_HOME)/_cxx/envoy-build-container.txt: $(OSS_HOME)/_cxx/envoy-build-image.t
 	    docker run --network=host --detach --rm --privileged --volume=envoy-build:/root:rw $$(cat $<) tail -f /dev/null > $@; \
 	}
 $(OSS_HOME)/_cxx/envoy-build-container.txt.clean: %.clean:
-	if [ -e $* ]; then docker kill $$(cat $*) || true; fi
+	if [ -e $* ]; then docker rm -fv $$(cat $*) || true; fi
 	rm -f $*
 	if docker volume inspect envoy-build &>/dev/null; then docker volume rm envoy-build >/dev/null; fi
 clean: $(OSS_HOME)/_cxx/envoy-build-container.txt.clean
