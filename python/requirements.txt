@@ -50,7 +50,7 @@ oauthlib==3.2.2
     # via
     #   kubernetes
     #   requests-oauthlib
-orjson==3.9.1
+orjson==3.9.3
     # via -r requirements.in
 prometheus-client==0.17.1
     # via -r requirements.in
