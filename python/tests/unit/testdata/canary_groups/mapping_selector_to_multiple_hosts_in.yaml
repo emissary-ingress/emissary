@@ -1,0 +1,32 @@
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: foo-host
+  namespace: default
+spec:
+  hostname: foo.example.com
+  mappingSelector:
+    matchLabels:
+      service: star
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: bar-host
+  namespace: default
+spec:
+  hostname: bar.example.com
+  mappingSelector:
+    matchLabels:
+      service: star
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: star-backend
+  namespace: default
+  labels:
+    service: star
+spec:
+  prefix: /test/
+  service: star

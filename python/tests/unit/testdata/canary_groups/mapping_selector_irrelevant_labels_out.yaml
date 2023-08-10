@@ -1,0 +1,7 @@
+mapping_groups:
+- group_id: '3d04d59d417131b3e4b017d21216c109eda6ab65'
+  host: null
+  prefix: /test/
+  mappings:
+  - star-test-backend-foo
+  - star-backend-foo
