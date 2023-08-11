@@ -20,7 +20,6 @@ charts:
 chart-dirs:
   - ./
 
-helm-extra-args: --timeout 600s
 
 # namespace: ambassador
 # release-label: release
