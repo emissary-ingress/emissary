@@ -90,6 +90,15 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Bugfix: As of v2.2.2, if two mappings were associated with different Hosts through host
+  mappingSelector labels but share the same prefix, the labels were not taken into account which
+  would cause one Mapping to be correctly routed but the other not.
+  This change fixes this issue so
+  that Mappings sharing the same prefix but associated with different Hosts will be correctly
+  routed. ([Canary grouping must take labels into account])
+
+[Canary grouping must take labels into account]: https://github.com/emissary-ingress/emissary/issues/4170
+
 ## [3.7.2] July 25, 2023
 [3.7.2]: https://github.com/emissary-ingress/emissary/compare/v3.7.1...v3.7.2
 
