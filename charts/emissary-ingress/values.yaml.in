@@ -353,7 +353,10 @@ resolvers: # +doc-gen:break
 # for more info on the available options.
 #
 # Note: The Module can only be named ambassador. There can only be one Module
-# installed per-namespace.
+# object installed per-namespace. To create multiple ambassador Modules in the
+# same Kubernetes namespace, you will need to apply them as annotations with
+# separate ambassador_ids, and set `module: {}` in your Helm values to prevent
+# creation of a Module object.
 module:
   diagnostics:
     enabled: false
