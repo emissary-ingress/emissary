@@ -437,9 +437,43 @@ deploymentTool: ''
 docker: {}
 createNamespace: false
 
+# Create listeners. See: https://www.getambassador.io/docs/emissary/latest/topics/running/listener
+listeners:
+  https:
+    create: false
+    spec:
+      port: 8443
+      protocol: HTTPS
+      securityModel: XFP
+      hostBinding:
+        namespace:
+          from: ALL
+  http:
+    create: false
+    spec:
+      port: 8080
+      protocol: HTTP
+      securityModel: XFP
+      hostBinding:
+        namespace:
+          from: ALL
+  # example:
+  #   create: true
+  #   spec:
+  #     port: 8080                     # int32, port number on which to listen
+  #     protocol: HTTPS                # HTTP, HTTPS, HTTPPROXY, HTTPSPROXY, TCP
+  #     securityModel: XFP             # XFP (for X-Forwarded-Proto), SECURE, INSECURE
+  #     statsPrefix: example-listener  # default depends on protocol; see docs
+  #     l7Depth: 0                     # int32
+  #     hostBinding:
+  #       namespace:
+  #         from: SELF                 # SELF, ALL
+  #       selector: ...                # Kubernetes label selector
+
 # Whether Emissary should be created with default listeners:
 # - HTTP on port 8080
 # - HTTPS on port 8443
+# Note: enabling this is the same as enabling listeners.https.create and listeners.http.create
 createDefaultListeners: false
 
 # Configure a 'lifecycle' section for the main pod
