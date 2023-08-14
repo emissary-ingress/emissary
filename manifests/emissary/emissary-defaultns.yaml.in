@@ -358,7 +358,7 @@ apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   labels:
-    app.kubernetes.io/component: emissary-ingress-ratelimit
+    app.kubernetes.io/component: emissary-ingress
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: getambassador.io
     app.kubernetes.io/name: emissary-ingress
