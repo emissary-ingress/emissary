@@ -5,6 +5,7 @@ numbering uses [semantic versioning](http://semver.org).
 ## v8.9.0
 
 - Upgrade Emissary to v3.9.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+- Fix: wrong autoscaling apiVersion on EKS due to EKS not following semver (see https://github.com/aws/containers-roadmap/issues/1404, https://github.com/helm/helm/issues/10375, https://github.com/helm/helm/issues/12053)
 
 ## v8.8.0
 
@@ -23,7 +24,7 @@ numbering uses [semantic versioning](http://semver.org).
 ## v8.6.0 - 2023-04-17
 
 - Upgrade Emissary to v3.6.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
-- Use autoscaling/v2 HorizontalPodAutoscaler if the cluster version is >v1.26 as autoscaling/v2beta2 is deprecated starting v1.23 and removed in v1.26. Thanks to [Elvind Valderhaug](https://github.com/eevdev)
+- Use autoscaling/v2 HorizontalPodAutoscaler if the cluster version is >=v1.23 as autoscaling/v2beta2 is deprecated starting v1.23 and removed in v1.26. Thanks to [Eivind Valderhaug](https://github.com/eevdev)
 - Upgrade KubernetesEndpointResolver & ConsulResolver apiVersions to `getambassador.io/v3alpha1`
 - Add support for setting `nodeSelector`, `tolerations` and `affinity` on the Ambassador Agent. Thanks to [Philip Panyukov](https://github.com/ppanyukov).
 
