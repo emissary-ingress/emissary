@@ -366,8 +366,6 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
             add_request_headers.update(mapping.get("add_request_headers", {}))
             add_response_headers.update(mapping.get("add_response_headers", {}))
 
-            # Should we have higher weights win over lower if there are conflicts?
-            # Should we disallow conflicts?
             metadata_labels.update(mapping.get("metadata_labels") or {})
 
         if add_request_headers:

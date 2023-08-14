@@ -11,6 +11,7 @@ from .ircors import IRCORS
 from .irerrorresponse import IRErrorResponse
 from .irhttpmappinggroup import IRHTTPMappingGroup
 from .irretrypolicy import IRRetryPolicy
+from .irutils import selector_matches
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover
@@ -203,31 +204,31 @@ class IRHTTPMapping(IRBaseMapping):
 
         # OK. Start by looking for a :authority header match.
         if "headers" in kwargs:
-            for name, value in kwargs.get("headers", {}).items():
-                if value is True:
-                    hdrs.append(KeyValueDecorator(name))
+            for hdr_name, hdr_value in kwargs.get("headers", {}).items():
+                if hdr_value is True:
+                    hdrs.append(KeyValueDecorator(hdr_name))
                 else:
                     # An exact match on the :authority header is special -- treat it like
                     # they set the "host" element (but note that we'll allow the actual
                     # "host" element to override it later).
-                    if name.lower() == ":authority":
+                    if hdr_name.lower() == ":authority":
                         # This is an _exact_ match, so it mustn't contain a "*" -- that's illegal in the DNS.
-                        if "*" in value:
+                        if "*" in hdr_value:
                             # We can't call self.post_error() yet, because we're not initialized yet. So we cheat a bit
                             # and defer the error for later.
                             new_args[
                                 "_deferred_error"
-                            ] = f":authority exact-match '{value}' contains *, which cannot match anything."
+                            ] = f":authority exact-match '{hdr_value}' contains *, which cannot match anything."
                             ir.logger.debug(
                                 "IRHTTPMapping %s: self.host contains * (%s, :authority)",
                                 name,
-                                value,
+                                hdr_value,
                             )
                         else:
                             # No globs, just save it. (We'll end up using it as a glob later, in the Envoy
                             # config part of the world, but that's OK -- a glob with no "*" in it will always
                             # match only itself.)
-                            host = value
+                            host = hdr_value
                             ir.logger.debug(
                                 "IRHTTPMapping %s: self.host == %s (:authority)", name, self.host
                             )
@@ -235,7 +236,7 @@ class IRHTTPMapping(IRBaseMapping):
                             # for hostname, too.
                     else:
                         # It's not an :authority match, so we're good.
-                        hdrs.append(KeyValueDecorator(name, value))
+                        hdrs.append(KeyValueDecorator(hdr_name, hdr_value))
 
         if "regex_headers" in kwargs:
             # DON'T do anything special with a regex :authority match: we can't
@@ -503,36 +504,63 @@ class IRHTTPMapping(IRBaseMapping):
 
         return is_valid
 
+    # Mappings are grouped by:
+    #  - HTTP Method
+    #  - Prefix
+    #  - Headers
+    #  - Query Parameters
+    #  - Mapping Label Selectors
+    #  - Precedence
     def _group_id(self) -> str:
-        # Yes, we're using a cryptographic hash here. Cope. [ :) ]
-
-        h = hashlib.new("sha1")
-
         # This is an HTTP mapping.
-        h.update("HTTP-".encode("utf-8"))
+        group_id = "HTTP-".encode("utf-8")
 
-        # method first, but of course method might be None. For calculating the
-        # group_id, 'method' defaults to 'GET' (for historical reasons).
-
+        # Method
         method = self.get("method") or "GET"
-        h.update(method.encode("utf-8"))
-        h.update(self.prefix.encode("utf-8"))
+        group_id = group_id + method.encode("utf-8")
 
+        # Prefix
+        group_id = group_id + self.prefix.encode("utf-8")
+
+        # Headers
         for hdr in self.headers:
-            h.update(hdr.name.encode("utf-8"))
+            group_id = group_id + hdr.name.encode("utf-8")
 
             if hdr.value is not None:
-                h.update(hdr.value.encode("utf-8"))
+                group_id = group_id + hdr.value.encode("utf-8")
 
+        # Query Parameters
         for query_parameter in self.query_parameters:
-            h.update(query_parameter.name.encode("utf-8"))
+            group_id = group_id + query_parameter.name.encode("utf-8")
 
             if query_parameter.value is not None:
-                h.update(query_parameter.value.encode("utf-8"))
+                group_id = group_id + query_parameter.value.encode("utf-8")
 
+        # Host Mapping Selector Labels
+        if not self.host and self.metadata_labels is not None:
+            for host in self.ir.hosts.values():
+                mapsel = host.get("mappingSelector")
+                if not mapsel:
+                    continue
+
+                if selector_matches(self.ir.logger, mapsel, self.metadata_labels):
+                    # We care only about the labels that are part of the Host mappingSelector.
+                    # For example, let's say there are two Mappings with labels
+                    # host=foo;irrelevant-label=1 for one Mapping and host=foo;irrelevant-label=2
+                    # for the other Mapping. There exists a Host that contains a mappingSelector
+                    # for host=foo. We would only want to group based on the host label and not
+                    # the irrelevant label. In this case the two Mappings are part of the same group
+                    # assumming method, prefix, headers, etc. all match.
+                    for key, val in mapsel.get("matchLabels", {}).items():
+                        group_id = group_id + key.encode("utf-8")
+                        group_id = group_id + val.encode("utf-8")
+
+        # Precedence
         if self.precedence != 0:
-            h.update(str(self.precedence).encode("utf-8"))
+            group_id = group_id + str(self.precedence).encode("utf-8")
 
+        h = hashlib.new("sha1")
+        h.update(group_id)
         return h.hexdigest()
 
     def _route_weight(self) -> List[Union[str, int]]:
