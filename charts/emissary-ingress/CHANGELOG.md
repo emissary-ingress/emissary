@@ -5,6 +5,7 @@ numbering uses [semantic versioning](http://semver.org).
 ## v8.9.0
 
 - Upgrade Emissary to v3.9.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+- Feature: configure autoscaling behaviors for HorizontalPodAutoscaler in `.Values.autoscaling.behavior`
 - Fix: wrong autoscaling apiVersion on EKS due to EKS not following semver (see https://github.com/aws/containers-roadmap/issues/1404, https://github.com/helm/helm/issues/10375, https://github.com/helm/helm/issues/12053)
 
 ## v8.8.0

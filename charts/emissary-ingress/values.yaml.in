@@ -62,6 +62,7 @@ autoscaling: # +doc-gen:break
       target:
         type: Utilization
         averageUtilization: 300
+  behavior: {}
 
 
 podDisruptionBudget: {}
