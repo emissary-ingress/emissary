@@ -4326,29 +4326,7 @@ func autoConvert_v3alpha1_MappingSpec_To_v2_MappingSpec(in *v3alpha1.MappingSpec
 		in, out := &in.Hostname, &out.Host
 		*out = *in
 	}
-	if true {
-		in, out := &in.Headers, &out.Headers
-		if *in == nil {
-			*out = nil
-		} else {
-			*out = make(map[string]BoolOrString, len(*in))
-			for inKey, inVal := range *in {
-				outKey := new(string)
-				if true {
-					in, out := &inKey, outKey
-					*out = *in
-				}
-				outVal := new(BoolOrString)
-				if true {
-					in, out := &inVal, outVal
-					if err := Convert_string_To_v2_BoolOrString(in, out, s); err != nil {
-						return err
-					}
-				}
-				(*out)[*outKey] = *outVal
-			}
-		}
-	}
+	// INFO: in.Headers opted out of conversion generation via +k8s:conversion-gen=false
 	if true {
 		in, out := &in.RegexHeaders, &out.RegexHeaders
 		*out = *in
@@ -4383,29 +4361,7 @@ func autoConvert_v3alpha1_MappingSpec_To_v2_MappingSpec(in *v3alpha1.MappingSpec
 			}
 		}
 	}
-	if true {
-		in, out := &in.QueryParameters, &out.QueryParameters
-		if *in == nil {
-			*out = nil
-		} else {
-			*out = make(map[string]BoolOrString, len(*in))
-			for inKey, inVal := range *in {
-				outKey := new(string)
-				if true {
-					in, out := &inKey, outKey
-					*out = *in
-				}
-				outVal := new(BoolOrString)
-				if true {
-					in, out := &inVal, outVal
-					if err := Convert_string_To_v2_BoolOrString(in, out, s); err != nil {
-						return err
-					}
-				}
-				(*out)[*outKey] = *outVal
-			}
-		}
-	}
+	// INFO: in.QueryParameters opted out of conversion generation via +k8s:conversion-gen=false
 	if true {
 		in, out := &in.RegexQueryParameters, &out.RegexQueryParameters
 		*out = *in

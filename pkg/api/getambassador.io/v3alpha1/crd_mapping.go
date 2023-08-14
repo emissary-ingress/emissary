@@ -151,11 +151,13 @@ type MappingSpec struct {
 	// used.
 	Hostname string `json:"hostname,omitempty"`
 
-	Headers              map[string]string `json:"headers,omitempty"`
-	RegexHeaders         map[string]string `json:"regex_headers,omitempty"`
-	Labels               DomainMap         `json:"labels,omitempty"`
-	EnvoyOverride        *UntypedDict      `json:"envoy_override,omitempty"`
-	LoadBalancer         *LoadBalancer     `json:"load_balancer,omitempty"`
+	// +k8s:conversion-gen=false
+	Headers       map[string]string `json:"headers,omitempty"`
+	RegexHeaders  map[string]string `json:"regex_headers,omitempty"`
+	Labels        DomainMap         `json:"labels,omitempty"`
+	EnvoyOverride *UntypedDict      `json:"envoy_override,omitempty"`
+	LoadBalancer  *LoadBalancer     `json:"load_balancer,omitempty"`
+	// +k8s:conversion-gen=false
 	QueryParameters      map[string]string `json:"query_parameters,omitempty"`
 	RegexQueryParameters map[string]string `json:"regex_query_parameters,omitempty"`
 	StatsName            string            `json:"stats_name,omitempty"`
