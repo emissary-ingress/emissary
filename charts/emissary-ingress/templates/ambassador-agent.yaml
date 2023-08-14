@@ -190,6 +190,9 @@ metadata:
     app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-agent
     {{- include "ambassador.labels" . | nindent 4 }}
     product: aes
+    {{- if .Values.deploymentLabels }}
+      {{- toYaml .Values.deploymentLabels | nindent 4 }}
+    {{- end }}
 spec:
   replicas: 1
   selector:
@@ -202,6 +205,9 @@ spec:
         app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-agent
         {{- include "ambassador.labels" . | nindent 8 }}
         product: aes
+        {{- if .Values.podLabels }}
+          {{- toYaml .Values.podLabels | nindent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.agent.podSecurityContext }}
       securityContext:
