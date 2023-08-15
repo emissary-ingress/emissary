@@ -1,0 +1,12 @@
+mapping_groups:
+- group_id: '1a5a176cc92a69ab669ac332644324fe7813e889'
+  host: foo.example.com
+  prefix: /test/
+  mappings:
+  - star-backend-foo
+
+- group_id: '71cf9a8de7cec920d057da6ae1a1d304dc599a05'
+  host: bar.example.com
+  prefix: /test/
+  mappings:
+  - star-backend-bar

@@ -35,7 +35,19 @@ items:
   - version: 3.8.0
     prevVersion: 3.7.2
     date: TBD
-    notes: []
+    notes:
+      - title: Account for matchLabels when associating mappings with the same prefix to different Hosts
+        type: bugfix
+        body: >-
+          As of v2.2.2, if two mappings were associated with different Hosts through host
+          mappingSelector labels but share the same prefix, the labels were not taken into
+          account which would cause one Mapping to be correctly routed but the other not.
+
+          This change fixes this issue so that Mappings sharing the same prefix but associated
+          with different Hosts will be correctly routed.
+        github:
+          - title: "Canary grouping must take labels into account"
+            link: https://github.com/emissary-ingress/emissary/issues/4170
 
   - version: 3.7.2
     prevVersion: 3.7.1
