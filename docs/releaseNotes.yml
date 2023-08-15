@@ -48,6 +48,16 @@ items:
         github:
           - title: "Canary grouping must take labels into account"
             link: https://github.com/emissary-ingress/emissary/issues/4170
+      - title: Duplication of values when using multiple Headers/QueryParameters in Mappings
+        type: bugfix
+        body: >-
+          In previous versions, if multiple Headers/QueryParameters where used in a v3alpha1 mapping,
+          these values would duplicate and cause all the Headers/QueryParameters to have the same value.
+          This is no longer the case and the expected values for unique Headers/QueryParameters will apply.
+
+          This issue was only present in v3alpha1 Mappings. For users who may have this issue, please
+          be sure to re-apply any v3alpha1 Mappings in order to update the stored v2 Mapping and resolve the
+          issue.
 
   - version: 3.7.2
     prevVersion: 3.7.1
