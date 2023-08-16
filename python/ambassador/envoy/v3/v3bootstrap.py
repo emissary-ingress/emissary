@@ -97,60 +97,6 @@ class V3Bootstrap(dict):
                 clusters.append(V3Cluster(config, typecast(IRCluster, log_service.cluster)))
 
         stats_sinks = []
-
-        grpcSink = os.environ.get("AMBASSADOR_GRPC_METRICS_SINK")
-        if grpcSink:
-            try:
-                host, port = split_host_port(grpcSink)
-                valid = True
-            except ValueError as ex:
-                config.ir.logger.error(
-                    "AMBASSADOR_GRPC_METRICS_SINK value %s is invalid: %s" % (grpcSink, ex)
-                )
-                valid = False
-
-            if valid:
-                stats_sinks.append(
-                    {
-                        "name": "envoy.metrics_service",
-                        "typed_config": {
-                            "@type": "type.googleapis.com/envoy.config.metrics.v3.MetricsServiceConfig",
-                            "transport_api_version": "V3",
-                            "grpc_service": {
-                                "envoy_grpc": {"cluster_name": "envoy_metrics_service"}
-                            },
-                        },
-                    }
-                )
-                clusters.append(
-                    {
-                        "name": "envoy_metrics_service",
-                        "type": "strict_dns",
-                        "connect_timeout": "1s",
-                        "http2_protocol_options": {},
-                        "load_assignment": {
-                            "cluster_name": "envoy_metrics_service",
-                            "endpoints": [
-                                {
-                                    "lb_endpoints": [
-                                        {
-                                            "endpoint": {
-                                                "address": {
-                                                    "socket_address": {
-                                                        "address": host,
-                                                        "port_value": port,
-                                                        "protocol": "TCP",
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            ],
-                        },
-                    }
-                )
-
         if config.ir.statsd["enabled"]:
             if config.ir.statsd["dogstatsd"]:
                 name = "envoy.stat_sinks.dog_statsd"
