@@ -609,3 +609,20 @@
     - on_status_code: 503
       body:
         json_format: {}
+- apiVersion: getambassador.io/v3alpha1
+  kind: Mapping
+  metadata:
+    creationTimestamp: null
+    name:  multiple-headers-shouldnt-duplicate-values
+  spec:
+    hostname: "*"
+    prefix: /backend/
+    service: quote
+    query_parameters:
+      this-is-a: test1
+      this-is-a2: test2
+      this-is-a3: test3
+    headers:
+      this-is-a: test1
+      this-is-a2: test2
+      this-is-a3: test3

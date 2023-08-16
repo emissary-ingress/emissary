@@ -543,6 +543,28 @@ func Convert_v3alpha1_MappingSpec_To_v2_MappingSpec(in *v3alpha1.MappingSpec, ou
 		in.Hostname = "_skip_mapping_with_empty_host_"
 	}
 
+	// INFO: in.Headers opted out of conversion generation via +k8s:conversion-gen=false
+	if in.Headers != nil {
+		if out.Headers == nil {
+			out.Headers = make(map[string]BoolOrString)
+		}
+		for inKey, inVal := range in.Headers {
+			inVal := inVal
+			out.Headers[inKey] = BoolOrString{String: &inVal}
+		}
+	}
+
+	// INFO: in.QueryParameters opted out of conversion generation via +k8s:conversion-gen=false
+	if in.QueryParameters != nil {
+		if out.QueryParameters == nil {
+			out.QueryParameters = make(map[string]BoolOrString)
+		}
+		for inKey, inVal := range in.QueryParameters {
+			inVal := inVal
+			out.QueryParameters[inKey] = BoolOrString{String: &inVal}
+		}
+	}
+
 	if err := autoConvert_v3alpha1_MappingSpec_To_v2_MappingSpec(in, out, s); err != nil {
 		return err
 	}

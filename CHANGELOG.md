@@ -97,6 +97,14 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   that Mappings sharing the same prefix but associated with different Hosts will be correctly
   routed. ([Canary grouping must take labels into account])
 
+- Bugfix: In previous versions, if multiple Headers/QueryParameters where used in a v3alpha1
+  mapping, these values would duplicate and cause all the Headers/QueryParameters to have the same
+  value. This is no longer the case and the expected values for unique Headers/QueryParameters will
+  apply.
+  This issue was only present in v3alpha1 Mappings. For users who may have this issue, please
+  be sure to re-apply any v3alpha1 Mappings in order to update the stored v2 Mapping and resolve the
+  issue.
+
 [Canary grouping must take labels into account]: https://github.com/emissary-ingress/emissary/issues/4170
 
 ## [3.7.2] July 25, 2023
