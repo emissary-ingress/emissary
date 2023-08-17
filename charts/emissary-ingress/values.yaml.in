@@ -254,6 +254,11 @@ restartPolicy:
 
 terminationGracePeriodSeconds:
 
+waitForApiext:
+  enabled: true
+  deploymentName: emissary-apiext
+  deploymentNamespace: emissary-system
+
 initContainers: []
 
 sidecarContainers: []

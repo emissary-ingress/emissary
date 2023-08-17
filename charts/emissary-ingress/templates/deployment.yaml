@@ -130,9 +130,50 @@ spec:
       {{- if .Values.volumesRaw }}
         {{- tpl .Values.volumesRaw . | nindent 8 }}
       {{- end }}
-      {{- with .Values.initContainers }}
+      {{- if or .Values.initContainers (and .Values.waitForApiext (eq .Values.waitForApiext.enabled true)) }}
       initContainers:
-        {{- toYaml . | nindent 8 }}
+      {{- if and .Values.waitForApiext (eq .Values.waitForApiext.enabled true) }}
+      - name: wait-for-apiext
+        image: istio/kubectl:1.5.10
+        securityContext:
+          runAsUser: 0  # Run this init container as root
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            deployment_name={{ .Values.waitForApiext.deploymentName | default "emissary-apiext" | quote }}
+            deployment_namespace={{ .Values.waitForApiext.deploymentNamespace | default "emissary-system" | quote }}
+            while true; do
+              echo "checking if deployment/$deployment_name in namespace: $deployment_namespace exists."
+              if kubectl get deployment "$deployment_name" -n $deployment_namespace > /dev/null 2>&1; then
+                echo "$deployment_name.$deployment_namespace exists."
+                echo "checking if $deployment_name.$deployment_namespace is fully available..."
+                kubectl wait --for=condition=available deployment/"$deployment_name" -n $deployment_namespace --timeout=5m
+                if [ $? -eq 0 ]; then
+                  echo "$deployment_name.$deployment_namespace is available"
+                  while true; do
+                  desired_replicas=$(kubectl get deployment $deployment_name -n $deployment_namespace -o jsonpath='{.spec.replicas}')
+                  current_replicas=$(kubectl get deployment $deployment_name -n $deployment_namespace -o jsonpath='{.status.replicas}')
+                  if [[ $current_replicas != $desired_replicas ]]; then
+                    echo "$deployment_name.$deployment_namespace is in the process of restarting. Have: $current_replicas, want $desired_replicas"
+                    sleep 3
+                  else
+                    echo "$deployment_name.$deployment_namespace is fully ready and not currently restarting.  Have: $current_replicas, want $desired_replicas"
+                    break
+                  fi
+                  done
+                  break
+                else
+                  echo "$deployment_name.$deployment_namespace did not become available within the timeout"
+                fi
+              else
+                echo "$deployment_name.$deployment_namespace does not exist yet. Waiting..."
+                sleep 3
+              fi
+            done
+      {{- end }}
+      {{- if .Values.initContainers }}
+      {{- toYaml .Values.initContainers | nindent 10 }}
+      {{- end }}
       {{- end }}
       containers:
         {{- if .Values.prometheusExporter.enabled }}
