@@ -6,6 +6,8 @@ numbering uses [semantic versioning](http://semver.org).
 ## v8.8.0 - TBD
 
 - Upgrade Emissary to v3.8.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+- Fix: Ambassador Agent RBAC so that it can properly find cloud connect tokens in a secret
+- Upgrade Ambassador Agent to the latest z-path of 1.0.14.
 
 ## v8.7.1 - 2023-07-13
 
