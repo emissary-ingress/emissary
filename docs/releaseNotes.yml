@@ -58,6 +58,13 @@ items:
           This issue was only present in v3alpha1 Mappings. For users who may have this issue, please
           be sure to re-apply any v3alpha1 Mappings in order to update the stored v2 Mapping and resolve the
           issue.
+      - title: Ambassador Agent no longer collects Envoy metrics
+        type: change
+        body: >-
+          When the Ambassador agent is being used, it will no longer attempt to collect and report Envoy metrics.
+          In previous versions, $productName$ would always create an Envoy stats sink for the agent as long as the AMBASSADOR_GRPC_METRICS_SINK
+          environmet variable was provided. This environment variable was hardcoded on the release manifests and has now been removed
+          and an Envoy stats sink for the agent is no longer created.
 
   - version: 3.7.2
     prevVersion: 3.7.1
@@ -66,7 +73,7 @@ items:
       - title: Upgrade to Envoy 1.26.4
         type: security
         body: >-
-          This upgrades $productName$ to be built on Envoy v1.26.4 which includes a security fixes for 
+          This upgrades $productName$ to be built on Envoy v1.26.4 which includes a security fixes for
           CVE-2023-35942, CVE-2023-35943,  VE-2023-35944.
 
   - version: 3.7.1
@@ -116,11 +123,11 @@ items:
       - title: TracingService support for native OpenTelemetry driver
         type: feature
         body: >-
-          In Envoy 1.24, experimental support for a native OpenTelemetry tracing driver 
-          was introduced that allows exporting spans in the otlp format. Many 
+          In Envoy 1.24, experimental support for a native OpenTelemetry tracing driver
+          was introduced that allows exporting spans in the otlp format. Many
           Observability platforms accept that format and is the recommend
-          replacement for the LightStep driver. $productName$ now supports setting the 
-          <code>TracingService.spec.driver=opentelemetry</code> to export spans in 
+          replacement for the LightStep driver. $productName$ now supports setting the
+          <code>TracingService.spec.driver=opentelemetry</code> to export spans in
           otlp format.<br/><br/>
 
           Thanks to <a href="https://github.com/psalaberria002">Paul</a> for helping us
@@ -135,7 +142,7 @@ items:
           way emissary was generating Envoy configuration under a single wild-card virtual_host and matching
           on :authority.
 
-          
+
           In v2.Y/v3.Y+, the way emissary generates Envoy configuration changed to address memory pressure and improve
           route lookup speed in Envoy. However, when including a port in the hostname, an incorrect configuration  was
           generated with an sni match including the port. This has been fixed and the correct envoy configuration is
@@ -144,12 +151,12 @@ items:
         - title: "fix: hostname port issue"
           link: https://github.com/emissary-ingress/emissary/pull/4816
 
-      - title: Add support for resolving port names in Ingress resource 
+      - title: Add support for resolving port names in Ingress resource
         type: change
         body: >-
           Previously, specifying backend ports by name in Ingress was not supported and would result in defaulting
           to port 80. This allows emissary-ingress to now resolve port names for backend services. If the port number
-          cannot be resolved by the name (e.g named port in the Service doesn't exist) then it defaults back 
+          cannot be resolved by the name (e.g named port in the Service doesn't exist) then it defaults back
           to the original behavior.
           (Thanks to <a href="https://github.com/antonu17">Anton Ustyuzhanin</a>!).
         github:
@@ -159,13 +166,13 @@ items:
       - title: Add starupProbe to emissary-apiext server
         type: change
         body: >-
-          The <code>emissary-apiext</code> server is a Kubernetes Conversion Webhook that converts between the 
+          The <code>emissary-apiext</code> server is a Kubernetes Conversion Webhook that converts between the
           Emissary-ingress CRD versions. On startup, it ensures that a self-signed cert is available
-          so that K8s API Server can talk to the conversion webhook (*TLS is required by K8s*). We 
+          so that K8s API Server can talk to the conversion webhook (*TLS is required by K8s*). We
           have introduced a startupProbe to ensure that emissary-apiext server has enough time to
-          configure the webhooks before running liveness and readiness probes. This is to ensure 
+          configure the webhooks before running liveness and readiness probes. This is to ensure
           slow startup doesn't cause K8s to needlessly restart the pod.
-      
+
 
   - version: 3.4.0
     prevVersion: 3.3.0
@@ -198,19 +205,19 @@ items:
           - `AMBASSADOR_HEALTHCHECK_BIND_ADDRESS`: The address to bind the healthcheck server to.
 
           - `AMBASSADOR_HEALTHCHECK_BIND_PORT`: The port to bind the healthcheck server to.
-          
+
           - `AMBASSADOR_HEALTHCHECK_IP_FAMILY`: The IP family to use for the healthcheck server.
-          
-          This allows the healthcheck server to be configured to use IPv6-only k8s environments. 
+
+          This allows the healthcheck server to be configured to use IPv6-only k8s environments.
           (Thanks to <a href="https://github.com/TimonOmsk">Dmitry Golushko</a>!).
 
       - title: Upgrade to Envoy 1.24.1
         type: feature
         body: >-
-          This upgrades $productName$ to be built on Envoy v1.24.1. One notable change is that 
+          This upgrades $productName$ to be built on Envoy v1.24.1. One notable change is that
           the team at LightStep and Envoy Maintainers have decided to no longer support the
-          native *LightStep* tracing driver in favor of using the Open Telemetry driver. The code 
-          for LightStep driver has been completely removed from Envoy code base so $productName$ 
+          native *LightStep* tracing driver in favor of using the Open Telemetry driver. The code
+          for LightStep driver has been completely removed from Envoy code base so $productName$
           will no longer support it either.
 
           The recommended upgrade path is to leverage a supported Tracing driver such as `Zipkin`

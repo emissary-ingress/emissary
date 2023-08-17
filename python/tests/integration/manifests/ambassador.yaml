@@ -91,12 +91,6 @@ metadata:
 spec:
   containers:
   - env:
-    - name: AMBASSADOR_GRPC_METRICS_SINK
-      value: {self.path.k8s}-agent:80
-    - name: HOST_IP
-      valueFrom:
-        fieldRef:
-          fieldPath: status.hostIP
     - name: AMBASSADOR_NAMESPACE
       valueFrom:
         fieldRef:
