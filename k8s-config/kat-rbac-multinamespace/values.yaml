@@ -7,3 +7,6 @@ serviceAccount:
 module: null
 agent:
   enabled: false
+
+waitForApiext:
+  enabled: false
