@@ -32,8 +32,6 @@ type AuthServiceIncludeBody struct {
 	AllowPartial bool `json:"allow_partial,omitempty"`
 }
 
-// TODO(lukeshu): In v3alpha2, consider getting rid of this struct type in favor of just using an
-// int (i.e. `statusOnError: 500` instead of the current `statusOnError: { code: 500 }`).
 type AuthServiceStatusOnError struct {
 	Code int `json:"code,omitempty"`
 }
@@ -42,9 +40,6 @@ type AuthServiceStatusOnError struct {
 type AuthServiceSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
-	// TODO(lukeshu): In v3alpha2, consider renameing `auth_service` to just `service`, for
-	// consistency with the other resource types.
-	//
 	// +kubebuilder:validation:Required
 	AuthService string `json:"auth_service,omitempty"`
 	PathPrefix  string `json:"path_prefix,omitempty"`
@@ -55,8 +50,7 @@ type AuthServiceSpec struct {
 	AllowedRequestHeaders       []string             `json:"allowed_request_headers,omitempty"`
 	AllowedAuthorizationHeaders []string             `json:"allowed_authorization_headers,omitempty"`
 	AddAuthHeaders              map[string]string    `json:"add_auth_headers,omitempty"`
-	// TODO(lukeshu): In v3alpha2, drop allow_request_body in favor of
-	// include_body. allow_request_body has been deprecated for a long time.
+
 	AllowRequestBody  *bool                     `json:"allow_request_body,omitempty"`
 	AddLinkerdHeaders *bool                     `json:"add_linkerd_headers,omitempty"`
 	FailureModeAllow  *bool                     `json:"failure_mode_allow,omitempty"`

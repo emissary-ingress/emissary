@@ -38,7 +38,6 @@ type TCPMappingSpec struct {
 	EnableIPv6      *bool            `json:"enable_ipv6,omitempty"`
 	CircuitBreakers []CircuitBreaker `json:"circuit_breakers,omitempty"`
 
-	// FIXME(lukeshu): Surely this should be an 'int'?
 	IdleTimeoutMs string `json:"idle_timeout_ms,omitempty"`
 
 	Resolver string `json:"resolver,omitempty"`

@@ -84,8 +84,6 @@ type MappingSpec struct {
 
 	// use_websocket is deprecated, and is equivlaent to setting
 	// `allow_upgrade: ["websocket"]`
-	//
-	// TODO(lukeshu): In v3alpha2, get rid of MappingSpec.DeprecatedUseWebsocket.
 	DeprecatedUseWebsocket *bool `json:"use_websocket,omitempty"`
 
 	// A case-insensitive list of the non-HTTP protocols to allow
@@ -132,14 +130,8 @@ type MappingSpec struct {
 	// used.
 	//
 	// DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.
-	//
-	// TODO(lukeshu): In v3alpha2, get rid of MappingSpec.host and MappingSpec.host_regex in
-	// favor of a MappingSpec.deprecated_hostname_regex.
 	DeprecatedHost string `json:"host,omitempty"`
 	// DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.
-	//
-	// TODO(lukeshu): In v3alpha2, get rid of MappingSpec.host and MappingSpec.host_regex in
-	// favor of a MappingSpec.deprecated_hostname_regex.
 	DeprecatedHostRegex *bool `json:"host_regex,omitempty"`
 	// Hostname is a DNS glob specifying the hosts to which this Mapping applies.
 	//

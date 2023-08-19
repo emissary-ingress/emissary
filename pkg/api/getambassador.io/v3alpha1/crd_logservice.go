@@ -51,9 +51,6 @@ type LogServiceSpec struct {
 	FlushIntervalTime     *SecondDuration `json:"flush_interval_time,omitempty"`
 	FlushIntervalByteSize *int            `json:"flush_interval_byte_size,omitempty"`
 
-	// TODO(lukeshu): In v3alpha2, drop this LogService.spec.grpc.  Due to sloppy implementation
-	// it is required to be present, and required to be 'true'.  It is silly to have a required
-	// field with only one valid value, we should just remove the thing.
 	GRPC *bool `json:"grpc,omitempty"`
 
 	StatsName string `json:"stats_name,omitempty"`
