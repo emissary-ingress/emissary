@@ -175,9 +175,6 @@ type GRPCHealthCheck struct {
 //
 //	ambassador_id:
 //	- "default"
-//
-// TODO(lukeshu): In v3alpha2, consider renaming all of the `ambassador_id` (singular) fields to
-// `ambassador_ids` (plural).
 type AmbassadorID []string
 
 func (aid AmbassadorID) Matches(envVar string) bool {
@@ -197,9 +194,6 @@ func (aid AmbassadorID) Matches(envVar string) bool {
 	return false
 }
 
-// TODO(lukeshu): In v3alpha2, change all of the `{foo}_ms`/`MillisecondDuration` fields to
-// `{foo}`/`metav1.Duration`.
-//
 // +kubebuilder:validation:Type="integer"
 type MillisecondDuration struct {
 	time.Duration `json:"-"`
@@ -223,9 +217,6 @@ func (d MillisecondDuration) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.Milliseconds())
 }
 
-// TODO(lukeshu): In v3alpha2, change all of the `{foo}s`/`SecondDuration` fields to
-// `{foo}`/`metav1.Duration`.
-//
 // +kubebuilder:validation:Type="integer"
 type SecondDuration struct {
 	time.Duration `json:"-"`

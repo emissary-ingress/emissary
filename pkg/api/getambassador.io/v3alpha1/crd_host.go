@@ -88,8 +88,6 @@ type HostSpec struct {
 	Hostname string `json:"hostname,omitempty"`
 
 	// DEPRECATED: Selector by which we can find further configuration. Use MappingSelector instead.
-	//
-	// TODO(lukeshu): In v3alpha2, figure out how to get rid of HostSpec.DeprecatedSelector.
 	DeprecatedSelector *metav1.LabelSelector `json:"selector,omitempty"`
 
 	// Selector for Mappings we'll associate with this Host. At the moment, Selector and

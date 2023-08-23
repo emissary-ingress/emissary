@@ -43,8 +43,7 @@ import (
 //      type: "string"
 //
 // but if we're going to use just vanilla controller-gen, we're forced to
-// be dumb and say `+kubebuilder:validation:Type=""`, to define its schema
-// as
+// say `+kubebuilder:validation:Type=""`, to define its schema as
 //
 //    # no `type:` setting because of the +kubebuilder marker
 //    items:
@@ -58,31 +57,29 @@ import (
 //
 //  > Aside: Some recent work in controller-gen[2] *strongly* suggests that
 //  > setting `+kubebuilder:validation:Type=Any` instead of `:Type=""` is
-//  > the proper thing to do.  But, um, it doesn't work... kubectl would
+//  > the proper thing to do.  But, it doesn't work... kubectl would
 //  > say things like:
 //  >
 //  >    Invalid value: "array": spec.ambassador_id in body must be of type Any: "array"
 //
-// But honestly that's dumb, and we can do better than that.
-//
 // So, option one choice would be to send the controller-tools folks a PR
 // to support the openapi-gen methods to allow that customization.  That's
 // probably the Right Thing, but that seemed like more work than option
-// two.  FIXME(lukeshu): Send the controller-tools folks a PR.
+// two.
 //
 // Option two: Say something nonsensical like
 // `+kubebuilder:validation:Type="d6e-union"`, and teach the `fix-crds`
 // script to notice that and delete that nonsensical `type`, replacing it
 // with the appropriate `oneOf: [type: A, type: B]` (note that the version
 // of JSONSchema that OpenAPI/Kubernetes uses doesn't support type being an
-// array).  And so that's what I did.
+// array).
 //
-// FIXME(lukeshu): But all of that is still terrible.  Because the very
-// structure of our data inherently means that we must have a
+// Because the very structure of our data inherently means that we must have a
 // non-structural[3] schema.  With "apiextensions.k8s.io/v1beta1" CRDs,
 // non-structural schemas disable several features; and in v1 CRDs,
-// non-structural schemas are entirely forbidden.  I mean it doesn't
-// _really_ matter right now, because we give out v1beta1 CRDs anyway
+// non-structural schemas are entirely forbidden.
+//
+// It doesn't really matter right now, because we give out v1beta1 CRDs anyway
 // because v1 only became available in Kubernetes 1.16 and we still support
 // down to Kubernetes 1.11; but I don't think that we want to lock
 // ourselves out from v1 forever.  So I guess that means when it comes time
