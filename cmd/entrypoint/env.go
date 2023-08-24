@@ -75,24 +75,6 @@ func GetAppDir() string {
 	return env("APPDIR", GetAmbassadorRoot())
 }
 
-// GetConfigDir returns the path to the directory we should check for
-// filesystem config.
-func GetConfigDir(demoMode bool) string {
-	// XXX There was no way to override the config dir via the environment in
-	// entrypoint.sh.
-	configDir := env("AMBASSADOR_CONFIG_DIR", path.Join(GetAmbassadorConfigBaseDir(), "ambassador-config"))
-
-	if demoMode {
-		// There is _intentionally_ no way to override the demo-mode config directory,
-		// and it is _intentionally_ based on the root directory rather than on
-		// AMBASSADOR_CONFIG_BASE_DIR: it's baked into a specific location during
-		// the build process.
-		configDir = path.Join(GetAmbassadorRoot(), "ambassador-demo-config")
-	}
-
-	return configDir
-}
-
 // ConfigIsPresent checks to see if any configuration is actually present
 // in the given configdir.
 func ConfigIsPresent(ctx context.Context, configDir string) bool {
@@ -191,7 +173,7 @@ func IsEnvoyAvailable() bool {
 	return err == nil
 }
 
-func GetDiagdFlags(ctx context.Context, demoMode bool) []string {
+func GetDiagdFlags(ctx context.Context) []string {
 	result := []string{"--notices", path.Join(GetAmbassadorConfigBaseDir(), "notices.json")}
 
 	if isDebug("diagd") {
@@ -206,7 +188,7 @@ func GetDiagdFlags(ctx context.Context, demoMode bool) []string {
 	// XXX: this was not in entrypoint.sh
 	result = append(result, "--port", GetDiagdBindPort())
 
-	cdir := GetConfigDir(demoMode)
+	cdir := env("AMBASSADOR_CONFIG_DIR", path.Join(GetAmbassadorConfigBaseDir(), "ambassador-config"))
 
 	if (cdir != "") && ConfigIsPresent(ctx, cdir) {
 		result = append(result, "--config-path", cdir)
@@ -225,14 +207,14 @@ func GetDiagdFlags(ctx context.Context, demoMode bool) []string {
 	return result
 }
 
-func GetDiagdArgs(ctx context.Context, demoMode bool) []string {
+func GetDiagdArgs(ctx context.Context) []string {
 	return append(
 		[]string{
 			GetSnapshotDir(),
 			GetEnvoyBootstrapFile(),
 			GetEnvoyConfigFile(),
 		},
-		GetDiagdFlags(ctx, demoMode)...,
+		GetDiagdFlags(ctx)...,
 	)
 }
 

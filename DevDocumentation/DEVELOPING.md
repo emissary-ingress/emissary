@@ -538,7 +538,7 @@ If you do not have envoy in your path already, the entrypoint will use
 docker to run it. At the moment this is untested for macs which probably
 means it is broken since localhost communication does not work by
 default on macs. This can be made to work as soon an intrepid volunteer
-with a mac reaches out to me (rhs@datawire.io).
+with a mac reaches out to me (<rhs@datawire.io>).
 
 #### Shutting up the pod labels error
 
@@ -648,7 +648,7 @@ that Ambassador works with as JSON.  It works from an input which can
 be either a single file or a directory full of files in the following
 formats:
 
-- raw Ambassador resources like you'll find in the `demo/config` directory; or
+- raw Ambassador resources; or
 - an annotated Kubernetes resources like you'll find in `/tmp/k8s-AmbassadorTest.yaml` after running `make test`; or
 - a `watt` snapshot like you'll find in the `$AMBASSADOR_CONFIG_BASE_DIR/snapshots/snapshot.yaml` (which is a JSON file, I know, it's misnamed).
 

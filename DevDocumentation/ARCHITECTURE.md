@@ -31,7 +31,7 @@ Check [this blog post](https://blog.getambassador.io/building-ambassador-an-open
 At the core of Emissary-ingress is Envoy Proxy which has very extensive configuration and extensions points. Getting this right can be challenging so Emissary-ingress provides Kubernetes Administrators and Developers a cloud-native way to configure Envoy using declarative yaml files. Here are the core components of Emissary-Ingress:
 
 - CRDs - extend K8s to enable Emissary-ingress's abstractions (*generated yaml*)
-- Apiext - A server that implements the Webhook Conversion interface for CRD's (**own container**)  
+- Apiext - A server that implements the Webhook Conversion interface for CRD's (**own container**)
 - Diagd - provides diagnostic ui, translates snapshots/ir into envoy configuration (*in-process*)
 - Ambex - gRPC server implementation of envoy xDS for dynamic envoy configration (*in-process*)
 - Envoy Proxy - Proxy that handles routing all user traffic (*in-process*)
@@ -51,7 +51,7 @@ The build system (`make`) uses [controller-gen](https://book.kubebuilder.io/refe
 
 ### Apiext
 
-Kubernetes provides the ability to have multiple versions of Custom Resources similiar to the core K8s resources but it is only capable of having a single `storage` version that is persisted in `etcd`. Custom Resource Definitions can define a `ConversionWebHook` that Kubernetes will call whenever it receives a version that is not the storage version. 
+Kubernetes provides the ability to have multiple versions of Custom Resources similiar to the core K8s resources but it is only capable of having a single `storage` version that is persisted in `etcd`. Custom Resource Definitions can define a `ConversionWebHook` that Kubernetes will call whenever it receives a version that is not the storage version.
 
 You can check the current storage version by looking at `pkg/getambassador.io/crds.yaml` and searching for the `storage: true` field and seeing which version is the storage version of the custom resource (*at the time of writing this it is `v2`*).
 
@@ -119,7 +119,6 @@ Here is a list of everything managed by the `entrypoint` binary. Each one is ind
 
 | Description                                                               |     Goroutine      |      OS.Exec       |
 | ------------------------------------------------------------------------- | :----------------: | :----------------: |
-| `demomode` (*if enabled*)                                                 | :white_check_mark: |                    |
 | `diagd` - admin ui & config processor                                     |                    | :white_check_mark: |
 | `ambex` - the Envoy ADS Server                                            | :white_check_mark: |                    |
 | `envoy` - proxy routing data                                              |                    | :white_check_mark: |
@@ -164,34 +163,34 @@ Provides two main functions:
 2. Processing Cluster changes into Envoy ready configuration
    1. This process has all the steps i'm outlining below
 
-  - receives "CONFIG" event and pushes on queue
-  - event queue loop listens for commands and pops them off
-  - on CONFIG event it calls back to emissary Snapshot Server to grab current snapshot stored in-memory
-  - It is serialized and stored in `/ambassador/snapshots/snapshot-tmp.yaml`.
-  - A SecretHandler and Config is initialized
-  - A ResourceFetcher (aka, parse the snapshot into an in-memory representation)
-  - Generate IR and envoy configs (load_ir function)
-    - Take each Resource generated in ResourceFetcher and add it to the Config object as strongly typed objects
-    - Store Config Object in `/ambassador/snapshots/aconf-tmp.json`
-    - Check Deltas for Mappings cach and determine if we needs to be reset
-    - Create IR with a Config, Cache, and invalidated items
-      - IR is generated which basically just converts our stuff to strongly typed generic "envoy" items (handling filters, clusters, listeners, removing duplicates, etc...)
-    - IR is updated in-memory for diagd process
-    - IR is persisted to temp storage in `/ambassador/snapshots/ir-tmp.json`
-    - generate envoy config from IR and cache
-    - Split envoy config into bootstrap config, ads_config and clustermap config
-    - Validate econfig
-    - Rotate Snapshots for each of the files `aconf`, `econf`, `ir`, `snapshot` that get persisted in the snapshot path `/ambassador/snapshots`.
-      - Rotating them allows for seeing the history of snapshots up to a limit and then they are dropped
-      - this also renames the `-tmp` files written above into 
-    - Persist bootstrap, envoy ads config and clustermap config to base directory:
-      - `/ambassador/bootstrap-ads.json` # this is used by envoy during startup to initial config itself and let it know about the static ADS Service
-      - `/ambassador/enovy/envoy.json` # this is used in `ambex` to generate the ADS snapshots along with the fastPath items
-      - `/ambassador/clustermap.json` # this might not be used either...
-    - Notify `envoy` and `ambex` that a new snapshot has been persisted using signal SIGHUP
-      - the Goroutine within `entrypoint` that starts up `envoy` is blocking waiting for this signal to start envoy
-      - the `ambex` process continuously listens for this signal and it triggers a configuration update for ambex.
-    - Update the appropriate status fields with metatdata by making calls to the `kubestatus` binary found in `cmd/kubestatus` which handles the communication to the cluster
+- receives "CONFIG" event and pushes on queue
+- event queue loop listens for commands and pops them off
+- on CONFIG event it calls back to emissary Snapshot Server to grab current snapshot stored in-memory
+- It is serialized and stored in `/ambassador/snapshots/snapshot-tmp.yaml`.
+- A SecretHandler and Config is initialized
+- A ResourceFetcher (aka, parse the snapshot into an in-memory representation)
+- Generate IR and envoy configs (load_ir function)
+  - Take each Resource generated in ResourceFetcher and add it to the Config object as strongly typed objects
+  - Store Config Object in `/ambassador/snapshots/aconf-tmp.json`
+  - Check Deltas for Mappings cach and determine if we needs to be reset
+  - Create IR with a Config, Cache, and invalidated items
+    - IR is generated which basically just converts our stuff to strongly typed generic "envoy" items (handling filters, clusters, listeners, removing duplicates, etc...)
+  - IR is updated in-memory for diagd process
+  - IR is persisted to temp storage in `/ambassador/snapshots/ir-tmp.json`
+  - generate envoy config from IR and cache
+  - Split envoy config into bootstrap config, ads_config and clustermap config
+  - Validate econfig
+  - Rotate Snapshots for each of the files `aconf`, `econf`, `ir`, `snapshot` that get persisted in the snapshot path `/ambassador/snapshots`.
+    - Rotating them allows for seeing the history of snapshots up to a limit and then they are dropped
+    - this also renames the `-tmp` files written above into
+  - Persist bootstrap, envoy ads config and clustermap config to base directory:
+    - `/ambassador/bootstrap-ads.json` # this is used by envoy during startup to initial config itself and let it know about the static ADS Service
+    - `/ambassador/enovy/envoy.json` # this is used in `ambex` to generate the ADS snapshots along with the fastPath items
+    - `/ambassador/clustermap.json` # this might not be used either...
+  - Notify `envoy` and `ambex` that a new snapshot has been persisted using signal SIGHUP
+    - the Goroutine within `entrypoint` that starts up `envoy` is blocking waiting for this signal to start envoy
+    - the `ambex` process continuously listens for this signal and it triggers a configuration update for ambex.
+  - Update the appropriate status fields with metatdata by making calls to the `kubestatus` binary found in `cmd/kubestatus` which handles the communication to the cluster
 
 ## Ambex
 
@@ -206,6 +205,7 @@ This is the gRPC server implementation of the envoy xDS v2 and v3 api's based on
 We maintain our own [fork](https://github.com/datawire/envoy) of Envoy that includes some additional commits for implementing some features in Emissary-Ingress.
 
 Envoy does all the heavy-lifting
+
 - does all routing, filtering, TLS termination, metrics collection, tracing, etc...
 - It is bootstraps from the output of diagd
 - It is dynamically updated using the xDS services and specifically the ADS service
