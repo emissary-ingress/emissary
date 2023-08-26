@@ -202,19 +202,33 @@ func (m *ClientSideWeightedRoundRobin) validate(all bool) error {
 		}
 	}
 
-	if wrapper := m.GetErrorUtilizationPenalty(); wrapper != nil {
-
-		if wrapper.GetValue() < 0 {
-			err := ClientSideWeightedRoundRobinValidationError{
-				field:  "ErrorUtilizationPenalty",
-				reason: "value must be greater than or equal to 0",
+	if all {
+		switch v := interface{}(m.GetErrorUtilizationPenalty()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ClientSideWeightedRoundRobinValidationError{
+					field:  "ErrorUtilizationPenalty",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
 			}
-			if !all {
-				return err
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ClientSideWeightedRoundRobinValidationError{
+					field:  "ErrorUtilizationPenalty",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
 			}
-			errors = append(errors, err)
 		}
-
+	} else if v, ok := interface{}(m.GetErrorUtilizationPenalty()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClientSideWeightedRoundRobinValidationError{
+				field:  "ErrorUtilizationPenalty",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {

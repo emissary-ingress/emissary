@@ -119,8 +119,6 @@ func (m *HeaderValidatorConfig) validate(all bool) error {
 
 	// no validation rules for HeadersWithUnderscoresAction
 
-	// no validation rules for StripFragmentFromPath
-
 	if len(errors) > 0 {
 		return HeaderValidatorConfigMultiError(errors)
 	}
