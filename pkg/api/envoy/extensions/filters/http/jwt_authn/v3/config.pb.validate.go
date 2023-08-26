@@ -511,34 +511,32 @@ func (m *RemoteJwks) validate(all bool) error {
 		}
 	}
 
-	if d := m.GetCacheDuration(); d != nil {
-		dur, err := d.AsDuration(), d.CheckValid()
-		if err != nil {
-			err = RemoteJwksValidationError{
+	if all {
+		switch v := interface{}(m.GetCacheDuration()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RemoteJwksValidationError{
+					field:  "CacheDuration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RemoteJwksValidationError{
+					field:  "CacheDuration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCacheDuration()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RemoteJwksValidationError{
 				field:  "CacheDuration",
-				reason: "value is not a valid duration",
+				reason: "embedded message failed validation",
 				cause:  err,
 			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		} else {
-
-			lt := time.Duration(9000000000*time.Second + 0*time.Nanosecond)
-			gte := time.Duration(0*time.Second + 1000000*time.Nanosecond)
-
-			if dur < gte || dur >= lt {
-				err := RemoteJwksValidationError{
-					field:  "CacheDuration",
-					reason: "value must be inside range [1ms, 2500000h0m0s)",
-				}
-				if !all {
-					return err
-				}
-				errors = append(errors, err)
-			}
-
 		}
 	}
 
