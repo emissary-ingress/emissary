@@ -22,11 +22,13 @@ import (
 )
 
 func ExampleLoggerFuncs() {
+	logger := log.Logger{}
+
 	xdsLogger := LoggerFuncs{
-		DebugFunc: log.Printf,
-		InfoFunc:  log.Printf,
-		WarnFunc:  log.Printf,
-		ErrorFunc: log.Printf,
+		DebugFunc: logger.Printf,
+		InfoFunc:  logger.Printf,
+		WarnFunc:  logger.Printf,
+		ErrorFunc: logger.Printf,
 	}
 
 	xdsLogger.Debugf("debug")
@@ -39,27 +41,27 @@ func TestLoggerFuncs(t *testing.T) {
 	debug := 0
 	info := 0
 	warn := 0
-	err := 0
+	error := 0
 
 	xdsLogger := LoggerFuncs{
 		DebugFunc: func(string, ...interface{}) { debug++ },
 		InfoFunc:  func(string, ...interface{}) { info++ },
 		WarnFunc:  func(string, ...interface{}) { warn++ },
-		ErrorFunc: func(string, ...interface{}) { err++ },
+		ErrorFunc: func(string, ...interface{}) { error++ },
 	}
 
 	xdsLogger.Debugf("debug")
 	xdsLogger.Infof("info")
 	xdsLogger.Warnf("warn")
-	xdsLogger.Errorf("err")
+	xdsLogger.Errorf("error")
 
 	assert.Equal(t, debug, 1)
 	assert.Equal(t, info, 1)
 	assert.Equal(t, warn, 1)
-	assert.Equal(t, err, 1)
+	assert.Equal(t, error, 1)
 }
 
-func TestNilLoggerFuncs(_ *testing.T) {
+func TestNilLoggerFuncs(t *testing.T) {
 	xdsLogger := LoggerFuncs{}
 
 	// Just verifying that nothing panics.
