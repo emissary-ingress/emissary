@@ -34,7 +34,7 @@ changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.
 items:
   - version: 3.8.0
     prevVersion: 3.7.2
-    date: TBD
+    date: '2023-08-29'
     notes:
       - title: Account for matchLabels when associating mappings with the same prefix to different Hosts
         type: bugfix

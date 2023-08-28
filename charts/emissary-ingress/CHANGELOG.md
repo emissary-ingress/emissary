@@ -3,7 +3,7 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
-## v8.8.0 - TBD
+## v8.8.0 - 2023-08-29
 
 - Upgrade Emissary to v3.8.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 - Fix: Ambassador Agent RBAC so that it can properly find cloud connect tokens in a secret
