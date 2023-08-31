@@ -44,6 +44,14 @@ class IRHost(IRResource):
     ) -> None:
         new_args = {x: kwargs[x] for x in kwargs.keys() if x in IRHost.AllowedKeys}
 
+        if "previewUrl" in kwargs:
+            ir.logger.warn(
+                f"previewURL found set in {name}, "
+                "this is no longer supported and will be ignored. "
+                "see https://www.getambassador.io/docs/telepresence for more information "
+                "on previewUrls."
+            )
+
         self.context: Optional[IRTLSContext] = None
 
         super().__init__(
