@@ -110,7 +110,6 @@ RUN mkdir -p /ambassador/sidecars && \
     ln -s /buildroot/ambassador/python/kubewatch.py /ambassador/kubewatch.py
 
 # These will be extracted into the optimized image later
-ADD demo demo
 ADD manifests/emissary/emissary-crds.yaml.in manifests/emissary/emissary-crds.yaml
 
 ########################################
@@ -155,12 +154,8 @@ RUN cd /buildroot/ambassador/python && python setup.py install
 RUN python -m pip uninstall -y pip
 RUN find / \( -iname '*sqlite*' -o -iname '*gdbm*' -o -iname '*smtplib*' -o -iname '*piptools*' -o -iname '*pip_tools*' -o -iname '*ensurepip*' \) -exec rm -rf -- '{}' \+
 
-# Configuration, Docker demo stuff, the AES WebUI. The /ambassador bit changes
-# in post-install so it's always stale. But it's pretty small, so it's not too
-# bad to re-push every time.
+# Configuration
 COPY --from=artifacts /ambassador /ambassador
-COPY --from=artifacts /buildroot/ambassador/demo/config /ambassador/ambassador-demo-config
-COPY --from=artifacts /buildroot/ambassador/demo/services /ambassador/demo-services
 
 # Fix permissions to allow correctly running as a non root user
 # XXX: We could combine everything into one tree in the builder, fix permissions
