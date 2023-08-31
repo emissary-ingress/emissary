@@ -106,16 +106,6 @@ $(tools.bindir)/%: $(tools.bindir)/.%.stamp $(tools/copy-ifchanged)
 # ==========
 #
 
-# Telepresence would be `go get`-able, but it requires a few
-# `replace`s that keeping in-sync would be more trouble than it's
-# worth.
-tools/telepresence   = $(tools.bindir)/telepresence
-TELEPRESENCE_VERSION = 2.6.6
-$(tools.bindir)/telepresence: $(tools.mk)
-	mkdir -p $(@D)
-	curl -s --fail -L https://app.getambassador.io/download/tel2/$(GOHOSTOS)/$(GOHOSTARCH)/$(TELEPRESENCE_VERSION)/telepresence -o $@
-	chmod a+x $@
-
 tools/k3d   = $(tools.bindir)/k3d
 K3D_VERSION = 5.4.7
 $(tools.bindir)/k3d: $(tools.mk)

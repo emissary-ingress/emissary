@@ -117,5 +117,3 @@ gold.no_yaml.json
 /docker/container.txt
 /docker/container.txt.stamp
 
-# telepresence
-emissary-agent.env

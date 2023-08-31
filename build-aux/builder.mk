@@ -10,8 +10,6 @@ docker.tag.local = $(BUILDER_NAME).local/$(*F)
 docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTRY)/$(*F):$(patsubst v%,%,$(VERSION))
 include $(OSS_HOME)/build-aux/docker.mk
 
-include $(OSS_HOME)/build-aux/teleproxy.mk
-
 MODULES :=
 
 module = $(eval MODULES += $(1))$(eval SOURCE_$(1)=$(abspath $(2)))
@@ -202,7 +200,6 @@ python-integration-test-environment: $(tools/kubestatus)
 python-integration-test-environment: $(tools/kubectl)
 python-integration-test-environment: python-virtual-environment
 python-integration-test-environment: docker/base-envoy.docker.tag.local
-python-integration-test-environment: proxy
 .PHONY: python-integration-test-environment
 
 pytest-run-tests:

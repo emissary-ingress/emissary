@@ -25,12 +25,6 @@ runs:
             /tmp/cov_html \
             /tmp/test-logs/cov_html
         fi
-        if test -d ~/.cache/telepresence/logs; then
-          rsync \
-            --archive \
-            ~/.cache/telepresence/logs \
-            /tmp/test-logs/telepresence
-        fi
         if test -f ~/.kube/config; then
           make tools/bin/kubectl
           mkdir /tmp/test-logs/cluster

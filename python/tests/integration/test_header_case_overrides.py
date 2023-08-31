@@ -402,7 +402,6 @@ spec:
             ]
         )
 
-        # Assume we can reach Ambassador through telepresence
         ambassador_host = "ambassador." + namespace
 
         # Assert 200 OK at httpbin/status/200 endpoint

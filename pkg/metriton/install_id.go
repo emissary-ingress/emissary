@@ -19,18 +19,7 @@ func StaticInstallID(id string) func(*Reporter) (string, error) {
 
 // This is the same as os.UserConfigDir() on GOOS=linux.  We Use this
 // instead of os.UserConfigDir() because on we want the GOOS=linux
-// behavior on macOS, because:
-//
-//   - For consistency with Telepresence; as that's what scout.py does,
-//     and Telepresence uses scout.py
-//   - This is what existing versions of edgectl do (for consistency
-//     with Telepresence)
-//   - It's what many macOS users expect any way; they expect XDG file
-//     paths to work, because other cross-platform unix-y applications
-//     (like gcloud & pgcli) use them.
-//
-// That said, neither Telepresence nor existing versions of edgectl
-// obey XDG_CONFIG_HOME.
+// behavior on macOS
 func userConfigDir() (string, error) {
 	var dir string
 	dir = os.Getenv("XDG_CONFIG_HOME")
@@ -45,7 +34,7 @@ func userConfigDir() (string, error) {
 }
 
 // InstallIDFromFilesystem is an install-ID-getter that tracks the
-// install ID in the filesystem (à la `telepresence` or `edgectl`).
+// install ID in the filesystem.
 func InstallIDFromFilesystem(reporter *Reporter) (string, error) {
 	dir, err := userConfigDir()
 	if err != nil {

@@ -24,11 +24,8 @@ For the most part, you don't need to worry about dependencies between
 `.mk` files; each file will automatically `include` the others it
 depends on.  However, if you would like to use an output from one
 snippet as an eager input to another, then you do need to worry about
-include order; if you would like to use `kubernaut-ui.mk` to set
-`KUBECONFIG` for `teleproxy.mk`, then you will need to make sure you
-include `kubernaut-ui.mk` *before* you include `teleproxy.mk`.  You
-don't need to worry about including a file twice; this is safe, as
-they all have C-header-style include guards.
+include order; You don't need to worry about including a file twice;
+this is safe, as they all have C-header-style include guards.
 
 ## `common.mk`
 

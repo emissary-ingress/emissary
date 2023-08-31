@@ -127,7 +127,6 @@ spec:
             ]
         )
 
-        # Assume we can reach Ambassador through telepresence
         qotm_host = "ambassador." + namespace
         qotm_url = f"http://{qotm_host}/qotm/"
 

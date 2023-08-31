@@ -183,7 +183,6 @@ class KnativeTesting:
         # Create kservice
         apply_kube_artifacts(namespace=namespace, artifacts=knative_service_example)
 
-        # Assume we can reach Ambassador through telepresence
         qotm_host = "ambassador." + namespace
 
         # Assert 200 OK at /qotm/ endpoint

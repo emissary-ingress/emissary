@@ -4,13 +4,6 @@
 # prelude.mk
 /bin/
 
-# teleproxy.mk
-/teleproxy.log
-
-# kubernaut.mk
-*.knaut
-*.knaut.claim
-
 # docker-cluster.mk
 /docker-port-forward.lock
 /docker-port-forward.log
@@ -38,7 +31,6 @@
 /pytest-kat-envoy3.txt
 
 # 2019-07-01
-/teleproxy
 /kubeapply
 /golangci-lint
 
