@@ -599,8 +599,6 @@ func (m *RateLimitPerRoute) validate(all bool) error {
 
 	}
 
-	// no validation rules for Domain
-
 	if len(errors) > 0 {
 		return RateLimitPerRouteMultiError(errors)
 	}

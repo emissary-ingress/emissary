@@ -1094,8 +1094,6 @@ func (m *AccessLogCommon) validate(all bool) error {
 
 	// no validation rules for UpstreamWireBytesReceived
 
-	// no validation rules for AccessLogType
-
 	if len(errors) > 0 {
 		return AccessLogCommonMultiError(errors)
 	}

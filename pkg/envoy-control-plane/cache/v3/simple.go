@@ -220,7 +220,7 @@ func (cache *snapshotCache) sendHeartbeats(ctx context.Context, node string) {
 	}
 }
 
-// SetSnapshotCache updates a snapshot for a node.
+// SetSnapshotCacheContext updates a snapshot for a node.
 func (cache *snapshotCache) SetSnapshot(ctx context.Context, node string, snapshot ResourceSnapshot) error {
 	cache.mu.Lock()
 	defer cache.mu.Unlock()
@@ -232,40 +232,19 @@ func (cache *snapshotCache) SetSnapshot(ctx context.Context, node string, snapsh
 	if info, ok := cache.status[node]; ok {
 		info.mu.Lock()
 		defer info.mu.Unlock()
-
-		// responder callback for SOTW watches
-		respond := func(watch ResponseWatch, id int64) error {
+		for id, watch := range info.watches {
 			version := snapshot.GetVersion(watch.Request.TypeUrl)
 			if version != watch.Request.VersionInfo {
 				cache.log.Debugf("respond open watch %d %s%v with new version %q", id, watch.Request.TypeUrl, watch.Request.ResourceNames, version)
+
 				resources := snapshot.GetResourcesAndTTL(watch.Request.TypeUrl)
 				err := cache.respond(ctx, watch.Request, watch.Response, resources, version, false)
 				if err != nil {
 					return err
 				}
+
 				// discard the watch
 				delete(info.watches, id)
-			}
-			return nil
-		}
-
-		// If ADS is enabled we need to order response watches so we guarantee
-		// sending them in the correct order. Go's default implementation
-		// of maps are randomized order when ranged over.
-		if cache.ads {
-			info.orderResponseWatches()
-			for _, key := range info.orderedWatches {
-				err := respond(info.watches[key.ID], key.ID)
-				if err != nil {
-					return err
-				}
-			}
-		} else {
-			for id, watch := range info.watches {
-				err := respond(watch, id)
-				if err != nil {
-					return err
-				}
 			}
 		}
 
@@ -279,8 +258,7 @@ func (cache *snapshotCache) SetSnapshot(ctx context.Context, node string, snapsh
 			}
 		}
 
-		// this won't run if there are no delta watches
-		// to process.
+		// process our delta watches
 		for id, watch := range info.deltaWatches {
 			res, err := cache.respondDelta(
 				ctx,
@@ -303,7 +281,7 @@ func (cache *snapshotCache) SetSnapshot(ctx context.Context, node string, snapsh
 	return nil
 }
 
-// GetSnapshot gets the snapshot for a node, and returns an error if not found.
+// GetSnapshots gets the snapshot for a node, and returns an error if not found.
 func (cache *snapshotCache) GetSnapshot(node string) (ResourceSnapshot, error) {
 	cache.mu.RLock()
 	defer cache.mu.RUnlock()
@@ -343,8 +321,7 @@ func superset(names map[string]bool, resources map[string]types.ResourceWithTTL)
 	return nil
 }
 
-// CreateWatch returns a watch for an xDS request.  A nil function may be
-// returned if an error occurs.
+// CreateWatch returns a watch for an xDS request.
 func (cache *snapshotCache) CreateWatch(request *Request, streamState stream.StreamState, value chan Response) func() {
 	nodeID := cache.hash.ID(request.Node)
 
@@ -363,6 +340,7 @@ func (cache *snapshotCache) CreateWatch(request *Request, streamState stream.Str
 	info.mu.Unlock()
 
 	var version string
+
 	snapshot, exists := cache.snapshots[nodeID]
 	if exists {
 		version = snapshot.GetVersion(request.TypeUrl)
@@ -387,9 +365,8 @@ func (cache *snapshotCache) CreateWatch(request *Request, streamState stream.Str
 					if err := cache.respond(context.Background(), request, value, resources, version, false); err != nil {
 						cache.log.Errorf("failed to send a response for %s%v to nodeID %q: %s", request.TypeUrl,
 							request.ResourceNames, nodeID, err)
-						return nil
 					}
-					return func() {}
+					return nil
 				}
 			}
 		}
@@ -410,10 +387,9 @@ func (cache *snapshotCache) CreateWatch(request *Request, streamState stream.Str
 	if err := cache.respond(context.Background(), request, value, resources, version, false); err != nil {
 		cache.log.Errorf("failed to send a response for %s%v to nodeID %q: %s", request.TypeUrl,
 			request.ResourceNames, nodeID, err)
-		return nil
 	}
 
-	return func() {}
+	return nil
 }
 
 func (cache *snapshotCache) nextWatchID() int64 {
@@ -441,7 +417,7 @@ func (cache *snapshotCache) respond(ctx context.Context, request *Request, value
 	// if they do not, then the watch is never responded, and it is expected that envoy makes another request
 	if len(request.ResourceNames) != 0 && cache.ads {
 		if err := superset(nameSet(request.ResourceNames), resources); err != nil {
-			cache.log.Warnf("ADS mode: not responding to request %s%v: %v", request.TypeUrl, request.ResourceNames, err)
+			cache.log.Warnf("ADS mode: not responding to request: %v", err)
 			return nil
 		}
 	}
