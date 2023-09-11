@@ -95,7 +95,7 @@ urllib3==1.26.16
     #   google-auth
     #   kubernetes
     #   requests
-websocket-client==1.6.1
+websocket-client==1.6.3
     # via kubernetes
 werkzeug==2.3.6
     # via flask
