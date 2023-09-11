@@ -3,7 +3,6 @@ _anchors:
 resources:
   - { kind: Service,            name: emissary-ingress-admin,              namespace: *namespace }
   - { kind: Service,            name: emissary-ingress,                    namespace: *namespace }
-  - { kind: Service,            name: emissary-ingress-agent,              namespace: *namespace }
   - { kind: ClusterRole,        name: emissary-ingress                                           }
   - { kind: ServiceAccount,     name: emissary-ingress,                    namespace: *namespace }
   - { kind: ClusterRoleBinding, name: emissary-ingress                                           }
@@ -11,17 +10,35 @@ resources:
   - { kind: ClusterRole,        name: emissary-ingress-watch                                     }
   - { kind: Deployment,         name: emissary-ingress,                    namespace: *namespace }
   - { kind: Module,             name: ambassador,                          namespace: *namespace }
-  - { kind: ServiceAccount,     name: emissary-ingress-agent,              namespace: *namespace }
-  - { kind: ClusterRoleBinding, name: emissary-ingress-agent                                     }
-  - { kind: ClusterRole,        name: emissary-ingress-agent                                     }
-  - { kind: ClusterRole,        name: emissary-ingress-agent-pods                                }
-  - { kind: ClusterRole,        name: emissary-ingress-agent-rollouts                            }
-  - { kind: ClusterRole,        name: emissary-ingress-agent-applications                        }
-  - { kind: ClusterRole,        name: emissary-ingress-agent-deployments                         }
-  - { kind: ClusterRole,        name: emissary-ingress-agent-endpoints                           }
-  - { kind: ClusterRole,        name: emissary-ingress-agent-configmaps                          }
-  - { kind: Role,               name: emissary-ingress-agent-config,       namespace: *namespace }
-  - { kind: RoleBinding,        name: emissary-ingress-agent-config,       namespace: *namespace }
-  - { kind: Role,               name: emissary-ingress-apiext,             namespace: emissary-system}
-  - { kind: RoleBinding,        name: emissary-ingress-apiext,             namespace: emissary-system}
-  - { kind: Deployment,         name: emissary-ingress-agent,              namespace: *namespace }
+  - { kind: Role,               name: emissary-ingress-apiext,             namespace: emissary-system }
+  - { kind: RoleBinding,        name: emissary-ingress-apiext,             namespace: emissary-system }
+  # - { kind: Service,            name: emissary-ingress-agent,              namespace: *namespace }
+  # - { kind: ServiceAccount,     name: emissary-ingress-agent,              namespace: *namespace }
+  # - { kind: ClusterRoleBinding, name: emissary-ingress-agent                                     }
+  # - { kind: ClusterRole,        name: emissary-ingress-agent                                     }
+  # - { kind: ClusterRole,        name: emissary-ingress-agent-pods                                }
+  # - { kind: ClusterRole,        name: emissary-ingress-agent-rollouts                            }
+  # - { kind: ClusterRole,        name: emissary-ingress-agent-applications                        }
+  # - { kind: ClusterRole,        name: emissary-ingress-agent-deployments                         }
+  # - { kind: ClusterRole,        name: emissary-ingress-agent-endpoints                           }
+  # - { kind: ClusterRole,        name: emissary-ingress-agent-configmaps                          }
+  # - { kind: Role,               name: emissary-ingress-agent-config,       namespace: *namespace }
+  # - { kind: RoleBinding,        name: emissary-ingress-agent-config,       namespace: *namespace }
+  # - { kind: Deployment,         name: emissary-ingress-agent,              namespace: *namespace }
+  - { kind: ClusterRole,        name: emissary-ingress-ambassador-agent-applications                            }
+  - { kind: ClusterRole,        name: emissary-ingress-ambassador-agent-default-ns                              }
+  - { kind: ClusterRole,        name: emissary-ingress-ambassador-agent-deployments                             }
+  - { kind: ClusterRole,        name: emissary-ingress-ambassador-agent-endpoints                               }
+  - { kind: ClusterRole,        name: emissary-ingress-ambassador-agent-ingresses                               }
+  - { kind: ClusterRole,        name: emissary-ingress-ambassador-agent-pods                                    }
+  - { kind: ClusterRole,        name: emissary-ingress-ambassador-agent-rollouts                                }
+  - { kind: ClusterRole,        name: emissary-ingress-ambassador-agent                                         }
+  - { kind: ClusterRoleBinding, name: emissary-ingress-ambassador-agent                                         }
+  - { kind: Deployment,         name: emissary-ingress-ambassador-agent,                  namespace: *namespace }
+  - { kind: Pod,                name: emissary-ingress-ambassador-agent-test-connection                         }
+  - { kind: Role,               name: emissary-ingress-ambassador-agent-config,           namespace: *namespace }
+  - { kind: Role,               name: emissary-ingress-ambassador-agent-leaderelection,   namespace: *namespace }
+  - { kind: RoleBinding,        name: emissary-ingress-ambassador-agent-config,           namespace: *namespace }
+  - { kind: RoleBinding,        name: emissary-ingress-ambassador-agent-leaderelection,   namespace: *namespace }
+  - { kind: Service,            name: emissary-ingress-ambassador-agent,                  namespace: *namespace }
+  - { kind: ServiceAccount,     name: emissary-ingress-ambassador-agent,                  namespace: *namespace }

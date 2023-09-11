@@ -74,6 +74,17 @@ $(call module,ambassador,$(OSS_HOME))
 include $(OSS_HOME)/build-aux/generate.mk
 include $(OSS_HOME)/build-aux/lint.mk
 
+FORCE:
+.PHONY: FORCE
+.SECONDARY:
+
+$(OSS_HOME)/charts/emissary-ingress/charts: FORCE
+	if test -f ../go.mod && test "$$(cd .. && go list -m)" == github.com/emissary-ingress/emissary/v3; then \
+	  $(MAKE) -C .. $@; \
+	else \
+	  cd $(@D) && helm dependency build && helm dependency update; \
+	fi
+
 .git/hooks/prepare-commit-msg:
 	ln -s $(OSS_HOME)/tools/hooks/prepare-commit-msg $(OSS_HOME)/.git/hooks/prepare-commit-msg
 
@@ -93,6 +104,7 @@ deploy: push preflight-cluster
 deploy-only: preflight-dev-kubeconfig $(tools/kubectl) build-output/yaml-$(patsubst v%,%,$(VERSION)) $(boguschart_dir)
 	mkdir -p $(OSS_HOME)/build/helm/ && \
 	($(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) create ns ambassador || true) && \
+	helm dependency build && \
 	helm template ambassador --output-dir $(OSS_HOME)/build/helm -n ambassador $(boguschart_dir) \
 		--set createNamespace=true \
 		--set service.selector.service=ambassador \

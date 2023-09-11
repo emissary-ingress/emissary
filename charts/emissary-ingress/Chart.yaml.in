@@ -16,12 +16,19 @@ keywords:
 - emissary
 - emissary ingress
 maintainers:
-- name: flydiverny
-  email: markus@maga.se
-- name: kflynn
-  email: flynn@datawire.io
-- name: nbkrause
-  email: nkrause@datawire.io
-- name: lukeshu
-  email: lukeshu@datawire.io
+  - name: Alice Wasko
+    email: alicewasko@datawire.io
+  - name: Hamzah Qudsi
+    email: hqudsi@datawire.io
+  - name: Lance Austin
+    email: laustin@datawire.io
+  - name: Rick Lane
+    email: rlane@datawire.io
+  - name: Tenshin Higashi
+    email: thigashi@datawire.io
 engine: gotpl
+dependencies:
+  - name: ambassador-agent
+    version: 1.0.15
+    repository: https://s3.amazonaws.com/datawire-static-files/charts
+    condition: agent.enabled

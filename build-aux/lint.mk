@@ -54,11 +54,15 @@ format/isort: $(OSS_HOME)/venv
 
 #
 # Helm
+HELM_TEST_IMAGE = quay.io/helmpack/chart-testing:v3.0.0-rc.1
+CHART_DIR := $(OSS_HOME)/build-output/chart-$(patsubst v%,%,$(VERSION))_$(patsubst v%,%,$(CHART_VERSION)).d
+CT_EXEC = docker run --rm -v $(KIND_KUBECONFIG):/root/.kube/config -v $(CHART_DIR):/charts --network host $(HELM_TEST_IMAGE) /charts/emissary-ingress/ci.in/ct.sh
 
 lint-deps += $(tools/ct) $(chart_dir)
 lint-goals += lint/chart
 lint/chart: $(tools/ct) $(chart_dir)
-	cd $(chart_dir) && $(abspath $(tools/ct)) lint --config=./ct.yaml
+	$(CT_EXEC) install --config /charts/ct.yaml
+# cd $(chart_dir) && $(abspath $(tools/ct)) lint --config=./ct.yaml
 .PHONY: lint/chart
 
 #
