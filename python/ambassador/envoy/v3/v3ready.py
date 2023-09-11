@@ -141,7 +141,6 @@ class V3Ready(dict):
                 if tracing_config and tracing_config.driver == "envoy.tracers.datadog":
                     log_format["dd.trace_id"] = "%REQ(X-DATADOG-TRACE-ID)%"
                     log_format["dd.span_id"] = "%REQ(X-DATADOG-PARENT-ID)%"
-
             access_log.append(
                 {
                     "name": "envoy.access_loggers.file",
@@ -152,6 +151,7 @@ class V3Ready(dict):
                     },
                 }
             )
+        # Use sane access log spec in Typed JSON
         elif config.ir.ambassador_module.envoy_log_type.lower() == "typed_json":
             log_format = config.ir.ambassador_module.get("envoy_log_format", None)
             if log_format is None:
