@@ -111,11 +111,11 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.27.2
 	k8s.io/apiextensions-apiserver v0.27.2
-	k8s.io/apimachinery v0.27.3
+	k8s.io/apimachinery v0.28.2
 	k8s.io/cli-runtime v0.27.2
 	k8s.io/client-go v0.27.2
 	k8s.io/code-generator v0.27.2
-	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f
+	k8s.io/kube-openapi v0.0.0-20230717233707-2695361300d9
 	k8s.io/kubectl v0.27.2
 	k8s.io/kubernetes v1.27.2
 	k8s.io/metrics v0.27.2
@@ -160,6 +160,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
+	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
