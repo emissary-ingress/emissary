@@ -30,4 +30,4 @@ image:
   repository: "$imageRepo$"
   tag: "$version$"
 waitForApiext:
-  enabled: false
+  enabled: true

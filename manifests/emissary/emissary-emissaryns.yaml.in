@@ -335,6 +335,47 @@ spec:
       dnsPolicy: ClusterFirst
       hostNetwork: false
       imagePullSecrets: []
+      initContainers:
+      - args:
+        - |
+          deployment_name="emissary-apiext"
+          deployment_namespace="emissary-system"
+          while true; do
+            echo "checking if deployment/$deployment_name in namespace: $deployment_namespace exists."
+            if kubectl get deployment "$deployment_name" -n $deployment_namespace > /dev/null 2>&1; then
+              echo "$deployment_name.$deployment_namespace exists."
+              echo "checking if $deployment_name.$deployment_namespace is fully available..."
+              kubectl wait --for=condition=available deployment/"$deployment_name" -n $deployment_namespace --timeout=5m
+              if [ $? -eq 0 ]; then
+                echo "$deployment_name.$deployment_namespace is available"
+                while true; do
+                desired_replicas=$(kubectl get deployment $deployment_name -n $deployment_namespace -o jsonpath='{.spec.replicas}')
+                current_replicas=$(kubectl get deployment $deployment_name -n $deployment_namespace -o jsonpath='{.status.replicas}')
+                if [[ $current_replicas != $desired_replicas ]]; then
+                  echo "$deployment_name.$deployment_namespace is in the process of restarting. Have: $current_replicas, want $desired_replicas"
+                  sleep 3
+                else
+                  echo "$deployment_name.$deployment_namespace is fully ready and not currently restarting.  Have: $current_replicas, want $desired_replicas"
+                  break
+                fi
+                done
+                break
+              else
+                echo "$deployment_name.$deployment_namespace did not become available within the timeout"
+              fi
+            else
+              echo "$deployment_name.$deployment_namespace does not exist yet. Waiting..."
+              sleep 3
+            fi
+          done
+        command:
+        - /bin/sh
+        - -c
+        image: istio/kubectl:1.5.10
+        imagePullPolicy: IfNotPresent
+        name: wait-for-apiext
+        securityContext:
+          runAsUser: 8888
       restartPolicy: Always
       securityContext:
         runAsUser: 8888
@@ -592,6 +633,48 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: emissary-ingress-agent
+  namespace: emissary
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
+    app.kubernetes.io/name: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    product: aes
+    rbac.getambassador.io/role-group: emissary-ingress
+  name: emissary-ingress-apiext
+  namespace: emissary-system
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: emissary-ingress
+    app.kubernetes.io/managed-by: getambassador.io
+    app.kubernetes.io/name: emissary-ingress
+    app.kubernetes.io/part-of: emissary-ingress
+    product: aes
+  name: emissary-ingress-apiext
+  namespace: emissary-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: emissary-ingress-apiext
+subjects:
+- kind: ServiceAccount
+  name: emissary-ingress
   namespace: emissary
 ---
 apiVersion: apps/v1

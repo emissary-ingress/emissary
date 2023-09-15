@@ -31,4 +31,4 @@ image:
   tag: "$version$"
 
 waitForApiext:
-  enabled: false
+  enabled: true
