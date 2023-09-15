@@ -135,8 +135,11 @@ spec:
       {{- if and .Values.waitForApiext (eq .Values.waitForApiext.enabled true) }}
       - name: wait-for-apiext
         image: istio/kubectl:1.5.10
+        imagePullPolicy: IfNotPresent
+        {{- with .Values.waitForApiext.securityContext }}
         securityContext:
-          runAsUser: 0  # Run this init container as root
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         command: ["/bin/sh", "-c"]
         args:
           - |

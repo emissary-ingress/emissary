@@ -255,9 +255,11 @@ restartPolicy:
 terminationGracePeriodSeconds:
 
 waitForApiext:
-  enabled: true
+  enabled: false
   deploymentName: emissary-apiext
   deploymentNamespace: emissary-system
+  securityContext:
+    runAsUser: 8888
 
 initContainers: []
 
