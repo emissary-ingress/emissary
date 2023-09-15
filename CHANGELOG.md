@@ -85,6 +85,14 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [3.8.1] September 18, 2023
+[3.8.1]: https://github.com/emissary-ingress/emissary/compare/v3.8.0...v3.8.1
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Security: Upgrading to the latest release of Golang as part of our general dependency upgrade
+  process. This includes security fixes for CVE-2023-39318, CVE-2023-39319.
+
 ## [3.8.0] August 29, 2023
 [3.8.0]: https://github.com/emissary-ingress/emissary/compare/v3.7.2...v3.8.0
 
