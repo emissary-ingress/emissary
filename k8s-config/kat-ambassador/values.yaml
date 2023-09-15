@@ -41,3 +41,5 @@ agent:
 
 waitForApiext:
   enabled: false
+  deploymentName: «self.path.k8s»-apiext
+  deploymentNamespace: «self.namespace»
