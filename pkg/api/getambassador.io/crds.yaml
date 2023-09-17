@@ -4352,6 +4352,14 @@ spec:
                 oneOf:
                 - type: string
                 - type: boolean
+              v3GRPC:
+                properties:
+                  use_resource_exhausted_code:
+                    description: UseResourceExhaustedCode, when set to true, will
+                      cause envoy to return a `RESOURCE_EXHAUSTED` gRPC code instead
+                      of the default `UNAVAILABLE` gRPC code.
+                    type: boolean
+                type: object
               v3StatsName:
                 type: string
             required:
@@ -4406,6 +4414,14 @@ spec:
                 oneOf:
                 - type: string
                 - type: boolean
+              v3GRPC:
+                properties:
+                  use_resource_exhausted_code:
+                    description: UseResourceExhaustedCode, when set to true, will
+                      cause envoy to return a `RESOURCE_EXHAUSTED` gRPC code instead
+                      of the default `UNAVAILABLE` gRPC code.
+                    type: boolean
+                type: object
               v3StatsName:
                 type: string
             required:
@@ -4445,17 +4461,20 @@ spec:
                 description: FailureModeDeny when set to true, envoy will deny traffic
                   if it is unable to communicate with the rate limit service.
                 type: boolean
+              grpc:
+                properties:
+                  use_resource_exhausted_code:
+                    description: UseResourceExhaustedCode, when set to true, will
+                      cause envoy to return a `RESOURCE_EXHAUSTED` gRPC code instead
+                      of the default `UNAVAILABLE` gRPC code.
+                    type: boolean
+                type: object
               protocol_version:
                 description: ProtocolVersion is the envoy api transport protocol version
                 enum:
                 - v2
                 - v3
                 type: string
-              rate_limited_as_resource_exhausted:
-                description: RateLimitedAsResourceExhausted, when set to true, will
-                  cause envoy to return a `RESOURCE_EXHAUSTED` gRPC code instead of
-                  the default `UNAVAILABLE` gRPC code.
-                type: boolean
               service:
                 type: string
               stats_name:

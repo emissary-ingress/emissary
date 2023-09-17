@@ -225,7 +225,8 @@ spec:
   tls: rl-tls-context
   protocol_version: v3
   failure_mode_deny: True
-  rate_limited_as_resource_exhausted: True
+  grpc:
+    rate_limited_as_resource_exhausted: True
 """.format(
         SERVICE_NAME
     )
