@@ -44,12 +44,16 @@ type RateLimitServiceSpec struct {
 	// is unable to communicate with the rate limit service.
 	FailureModeDeny bool `json:"failure_mode_deny,omitempty"`
 
-	// RateLimitedAsResourceExhausted, when set to true, will cause envoy
-	// to return a `RESOURCE_EXHAUSTED` gRPC code instead of the default
-	// `UNAVAILABLE` gRPC code.
-	RateLimitedAsResourceExhausted bool `json:"rate_limited_as_resource_exhausted,omitempty"`
+	GRPC *RateLimitGRPCConfig `json:"grpc,omitempty"`
 
 	V2ExplicitTLS *V2ExplicitTLS `json:"v2ExplicitTLS,omitempty"`
+}
+
+type RateLimitGRPCConfig struct {
+	// UseResourceExhaustedCode, when set to true, will cause envoy
+	// to return a `RESOURCE_EXHAUSTED` gRPC code instead of the default
+	// `UNAVAILABLE` gRPC code.
+	UseResourceExhaustedCode bool `json:"use_resource_exhausted_code,omitempty"`
 }
 
 // RateLimitService is the Schema for the ratelimitservices API
