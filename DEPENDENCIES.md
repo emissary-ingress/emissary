@@ -4,13 +4,14 @@ following Free and Open Source software:
     Name                                                                              Version                                License(s)
     ----                                                                              -------                                ----------
     the Go language standard library ("std")                                          v1.20.8                                3-clause BSD license
+    dario.cat/mergo                                                                   v1.0.0                                 3-clause BSD license
     github.com/Azure/go-ansiterm                                                      v0.0.0-20210617225240-d185dfc1b5a1     MIT license
     github.com/MakeNowJust/heredoc                                                    v1.0.0                                 MIT license
     github.com/Masterminds/goutils                                                    v1.1.1                                 Apache License 2.0
     github.com/Masterminds/semver                                                     v1.5.0                                 MIT license
     github.com/Masterminds/sprig                                                      v2.22.0+incompatible                   MIT license
-    github.com/Microsoft/go-winio                                                     v0.5.2                                 MIT license
-    github.com/ProtonMail/go-crypto                                                   v0.0.0-20230217124315-7d5c6f04bbb8     3-clause BSD license
+    github.com/Microsoft/go-winio                                                     v0.6.1                                 MIT license
+    github.com/ProtonMail/go-crypto                                                   v0.0.0-20230717121422-5aa5874ade95     3-clause BSD license
     github.com/acomagu/bufpipe                                                        v1.0.4                                 MIT license
     github.com/armon/go-metrics                                                       v0.3.10                                MIT license
     github.com/asaskevich/govalidator                                                 v0.0.0-20210307081110-f21760c49a8d     MIT license
@@ -21,9 +22,9 @@ following Free and Open Source software:
     github.com/chai2010/gettext-go                                                    v1.0.2                                 3-clause BSD license
     github.com/cloudflare/circl                                                       v1.3.3                                 3-clause BSD license
     github.com/cncf/xds/go                                                            v0.0.0-20230607035331-e9ce68804cb4     Apache License 2.0
-    github.com/datawire/dlib                                                          v1.3.0                                 Apache License 2.0
+    github.com/datawire/dlib                                                          v1.3.1                                 Apache License 2.0
     github.com/datawire/dtest                                                         v0.0.0-20210928162311-722b199c4c2f     Apache License 2.0
-    github.com/datawire/go-mkopensource                                               v0.0.10-0.20230523185412-ce8a269623cd  Apache License 2.0
+    github.com/datawire/go-mkopensource                                               v0.0.12-0.20230821212923-d1d8451579a1  Apache License 2.0
     github.com/davecgh/go-spew                                                        v1.1.1                                 ISC license
     github.com/docker/distribution                                                    v2.8.2+incompatible                    Apache License 2.0
     github.com/emicklei/go-restful/v3                                                 v3.10.2                                MIT license
@@ -35,15 +36,16 @@ following Free and Open Source software:
     github.com/fatih/color                                                            v1.15.0                                MIT license
     github.com/fsnotify/fsnotify                                                      v1.6.0                                 3-clause BSD license
     github.com/go-errors/errors                                                       v1.4.2                                 MIT license
-    github.com/go-git/gcfg                                                            v1.5.0                                 3-clause BSD license
+    github.com/go-git/gcfg                                                            v1.5.1-0.20230307220236-3a3c6141e376   3-clause BSD license
     github.com/go-git/go-billy/v5                                                     v5.4.1                                 Apache License 2.0
-    github.com/go-git/go-git/v5                                                       v5.6.1                                 Apache License 2.0
+    github.com/go-git/go-git/v5                                                       v5.8.1                                 Apache License 2.0
     github.com/go-logr/logr                                                           v1.2.4                                 Apache License 2.0
     github.com/go-openapi/jsonpointer                                                 v0.19.6                                Apache License 2.0
     github.com/go-openapi/jsonreference                                               v0.20.2                                Apache License 2.0
     github.com/go-openapi/swag                                                        v0.22.3                                Apache License 2.0
     github.com/gobuffalo/flect                                                        v1.0.2                                 MIT license
     github.com/gogo/protobuf                                                          v1.3.2                                 3-clause BSD license
+    github.com/golang/groupcache                                                      v0.0.0-20210331224755-41bb18bfe9da     Apache License 2.0
     github.com/golang/protobuf                                                        v1.5.3                                 3-clause BSD license
     github.com/google/btree                                                           v1.0.1                                 Apache License 2.0
     github.com/google/gnostic                                                         v0.6.9                                 Apache License 2.0
@@ -94,9 +96,9 @@ following Free and Open Source software:
     github.com/prometheus/common                                                      v0.42.0                                Apache License 2.0
     github.com/prometheus/procfs                                                      v0.9.0                                 Apache License 2.0
     github.com/russross/blackfriday/v2                                                v2.1.0                                 2-clause BSD license
-    github.com/sergi/go-diff                                                          v1.1.0                                 MIT license
+    github.com/sergi/go-diff                                                          v1.3.1                                 MIT license
     github.com/sirupsen/logrus                                                        v1.9.3                                 MIT license
-    github.com/skeema/knownhosts                                                      v1.1.0                                 Apache License 2.0
+    github.com/skeema/knownhosts                                                      v1.2.0                                 Apache License 2.0
     github.com/spf13/cobra                                                            v1.7.0                                 Apache License 2.0
     github.com/spf13/pflag                                                            v1.0.5                                 3-clause BSD license
     github.com/stretchr/testify                                                       v1.8.4                                 MIT license
@@ -104,15 +106,15 @@ following Free and Open Source software:
     github.com/xlab/treeprint                                                         v1.1.0                                 MIT license
     go.opentelemetry.io/proto/otlp                                                    v0.19.0                                Apache License 2.0
     go.starlark.net                                                                   v0.0.0-20220203230714-bb14e151c28f     3-clause BSD license
-    golang.org/x/crypto                                                               v0.11.0                                3-clause BSD license
+    golang.org/x/crypto                                                               v0.12.0                                3-clause BSD license
     golang.org/x/mod                                                                  v0.12.0                                3-clause BSD license
-    golang.org/x/net                                                                  v0.13.0                                3-clause BSD license
+    golang.org/x/net                                                                  v0.14.0                                3-clause BSD license
     golang.org/x/oauth2                                                               v0.7.0                                 3-clause BSD license
-    golang.org/x/sys                                                                  v0.10.0                                3-clause BSD license
-    golang.org/x/term                                                                 v0.10.0                                3-clause BSD license
-    golang.org/x/text                                                                 v0.11.0                                3-clause BSD license
+    golang.org/x/sys                                                                  v0.11.0                                3-clause BSD license
+    golang.org/x/term                                                                 v0.11.0                                3-clause BSD license
+    golang.org/x/text                                                                 v0.12.0                                3-clause BSD license
     golang.org/x/time                                                                 v0.3.0                                 3-clause BSD license
-    golang.org/x/tools                                                                v0.11.1                                3-clause BSD license
+    golang.org/x/tools                                                                v0.12.0                                3-clause BSD license
     google.golang.org/appengine                                                       v1.6.7                                 Apache License 2.0
     google.golang.org/genproto                                                        v0.0.0-20230706204954-ccb25ca9f130     Apache License 2.0
     google.golang.org/genproto/googleapis/api                                         v0.0.0-20230629202037-9506855d4529     Apache License 2.0
