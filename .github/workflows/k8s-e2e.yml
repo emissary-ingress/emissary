@@ -21,8 +21,9 @@ jobs:
       matrix:
         k8s:
           [
-            { k3s: 1.25.9+k3s1, kubectl: 1.25.9 },
-            { k3s: 1.26.4+k3s1, kubectl: 1.26.4 },
+            { k3s: 1.26.8+k3s1, kubectl: 1.26.8 },
+            { k3s: 1.27.5+k3s1, kubectl: 1.27.5 },
+            { k3s: 1.28.1+k3s1, kubectl: 1.28.1 },
           ]
         test:
           - integration-tests
