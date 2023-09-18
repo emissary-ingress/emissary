@@ -245,7 +245,8 @@ $(OSS_HOME)/DEPENDENCIES.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz
 	set -e; { \
 		cd $(OSS_HOME); \
-		$(tools/go-mkopensource) --unparsable-packages unparsable-packages.yaml --output-format=txt --package=mod --application-type=external --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz; \
+		$(tools/go-mkopensource) --ignore-dirty --unparsable-packages unparsable-packages.yaml \
+			--output-format=txt --package=mod --application-type=external --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz; \
 		echo; \
 		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource); \
 	} > $@
@@ -255,7 +256,9 @@ $(OSS_HOME)/DEPENDENCY_LICENSES.md: $(tools/go-mkopensource) $(tools/py-mkopenso
 	echo -e "Emissary-ingress incorporates Free and Open Source software under the following licenses:\n" > $@
 	set -e; { \
 		cd $(OSS_HOME); \
-		$(tools/go-mkopensource) --unparsable-packages unparsable-packages.yaml --output-format=txt --package=mod --output-type=json --application-type=external --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' ; \
+		$(tools/go-mkopensource) --ignore-dirty --unparsable-packages unparsable-packages.yaml \
+			--output-format=txt --package=mod --output-type=json --application-type=external \
+			--gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux/go-version.txt).src.tar.gz | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"' ; \
 		{ sed 's/^---$$//' $(OSS_HOME)/build-aux/pip-show.txt; echo; } | $(tools/py-mkopensource) --output-type=json | jq -r '.licenseInfo | to_entries | .[] | "* [" + .key + "](" + .value + ")"'; \
 	} | sort | uniq | sed -e 's/\[\([^]]*\)]()/\1/' >> $@
 
