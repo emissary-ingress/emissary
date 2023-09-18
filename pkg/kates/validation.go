@@ -11,7 +11,6 @@ import (
 	apiextV1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextV1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apiextensions-apiserver/pkg/apiserver/validation"
-	"k8s.io/kube-openapi/pkg/validation/validate"
 
 	"github.com/datawire/dlib/derror"
 )
@@ -23,7 +22,7 @@ type Validator struct {
 	static map[TypeMeta]*apiextVInternal.CustomResourceDefinition
 
 	mutex      sync.Mutex
-	validators map[TypeMeta]*validate.SchemaValidator
+	validators map[TypeMeta]validation.SchemaValidator
 }
 
 // The NewValidator constructor returns a *Validator that uses the
@@ -73,7 +72,7 @@ func NewValidator(client *Client, staticCRDs []Object) (*Validator, error) {
 		client: client,
 		static: static,
 
-		validators: make(map[TypeMeta]*validate.SchemaValidator),
+		validators: make(map[TypeMeta]validation.SchemaValidator),
 	}, nil
 }
 
@@ -115,7 +114,7 @@ func (v *Validator) getCRD(ctx context.Context, tm TypeMeta) (*apiextVInternal.C
 	return nil, nil
 }
 
-func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (*validate.SchemaValidator, error) {
+func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (validation.SchemaValidator, error) {
 	v.mutex.Lock()
 	defer v.mutex.Unlock()
 
@@ -128,7 +127,7 @@ func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (*validate.Sc
 
 		if crd != nil {
 			if crd.Spec.Validation != nil {
-				validator, _, err = validation.NewSchemaValidator(crd.Spec.Validation)
+				validator, _, err = validation.NewSchemaValidator(crd.Spec.Validation.OpenAPIV3Schema)
 				if err != nil {
 					return nil, err
 				}
@@ -136,7 +135,7 @@ func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (*validate.Sc
 				tmVersion := path.Base(tm.APIVersion)
 				for _, version := range crd.Spec.Versions {
 					if version.Name == tmVersion {
-						validator, _, err = validation.NewSchemaValidator(version.Schema)
+						validator, _, err = validation.NewSchemaValidator(version.Schema.OpenAPIV3Schema)
 						if err != nil {
 							return nil, err
 						}
@@ -176,6 +175,10 @@ func (v *Validator) Validate(ctx context.Context, resource interface{}) error {
 	validator, err := v.getValidator(ctx, tm)
 	if err != nil {
 		return err
+	}
+
+	if validator == nil {
+		return nil
 	}
 
 	result := validator.Validate(resource)

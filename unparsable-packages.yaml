@@ -26,3 +26,43 @@ github.com/cloudflare/circl/sign/ed25519:
   - BSD-3-Clause
 github.com/cloudflare/circl/sign/ed448:
   - BSD-3-Clause
+github.com/google/cel-go/cel:
+  - Apache-2.0
+github.com/google/cel-go/checker/decls:
+  - Apache-2.0
+github.com/google/cel-go/common:
+  - Apache-2.0
+github.com/google/cel-go/common/ast:
+  - Apache-2.0
+github.com/google/cel-go/common/containers:
+  - Apache-2.0
+github.com/google/cel-go/common/debug:
+  - Apache-2.0
+github.com/google/cel-go/common/decls:
+  - Apache-2.0
+github.com/google/cel-go/common/functions:
+  - Apache-2.0
+github.com/google/cel-go/common/operators:
+  - Apache-2.0
+github.com/google/cel-go/common/overloads:
+  - Apache-2.0
+github.com/google/cel-go/common/runes:
+  - Apache-2.0
+github.com/google/cel-go/common/stdlib:
+  - Apache-2.0
+github.com/google/cel-go/common/types:
+  - Apache-2.0
+github.com/google/cel-go/common/types/pb:
+  - Apache-2.0
+github.com/google/cel-go/common/types/ref:
+  - Apache-2.0
+github.com/google/cel-go/common/types/traits:
+  - Apache-2.0
+github.com/google/cel-go/checker:
+  - Apache-2.0
+github.com/google/cel-go/interpreter:
+  - Apache-2.0
+github.com/google/cel-go/parser:
+  - Apache-2.0
+github.com/google/cel-go/parser/gen:
+  - Apache-2.0
