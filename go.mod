@@ -118,7 +118,7 @@ require (
 	k8s.io/kubectl v0.28.2
 	k8s.io/kubernetes v1.28.2
 	k8s.io/metrics v0.28.2
-	sigs.k8s.io/controller-runtime v0.15.0
+	sigs.k8s.io/controller-runtime v0.16.2
 	sigs.k8s.io/controller-tools v0.12.0
 	sigs.k8s.io/gateway-api v0.2.0
 	sigs.k8s.io/yaml v1.3.0
@@ -227,7 +227,7 @@ require (
 	k8s.io/component-base v0.28.2 // indirect
 	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20230905202853-d090da108d2f // indirect
+	k8s.io/kube-openapi v0.0.0-20230918164632-68afd615200d // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/kustomize/api v0.13.5-0.20230601165947-6ce0bf390ce3 // indirect
