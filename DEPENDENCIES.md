@@ -147,7 +147,7 @@ following Free and Open Source software:
     k8s.io/metrics                                                                    v0.28.2                                        Apache License 2.0
     k8s.io/utils                                                                      v0.0.0-20230726121419-3b25d923346b             3-clause BSD license, Apache License 2.0
     sigs.k8s.io/controller-runtime                                                    v0.16.2                                        Apache License 2.0
-    sigs.k8s.io/controller-tools                                                      v0.12.0                                        Apache License 2.0
+    sigs.k8s.io/controller-tools                                                      v0.13.0                                        Apache License 2.0
     sigs.k8s.io/gateway-api                                                           v0.2.0                                         Apache License 2.0
     sigs.k8s.io/json                                                                  v0.0.0-20221116044647-bc3834ca7abd             3-clause BSD license, Apache License 2.0
     sigs.k8s.io/kustomize/api                                                         v0.13.5-0.20230601165947-6ce0bf390ce3          Apache License 2.0
