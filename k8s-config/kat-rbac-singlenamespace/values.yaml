@@ -12,5 +12,4 @@ agent:
 
 waitForApiext:
   enabled: true
-  deploymentName: «self.path.k8s»-apiext
-  deploymentNamespace: «self.namespace»
+  createRoles: true

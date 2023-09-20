@@ -187,7 +187,7 @@ metadata:
     product: aes
     rbac.getambassador.io/role-group: {self.path.k8s}
   name: {self.path.k8s}-apiext
-  namespace: {self.namespace}
+  namespace: emissary-system
 rules:
 - apiGroups:
   - apps
@@ -208,7 +208,7 @@ metadata:
     app.kubernetes.io/part-of: kat-rbac-singlenamespace
     product: aes
   name: {self.path.k8s}-apiext
-  namespace: {self.namespace}
+  namespace: emissary-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

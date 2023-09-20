@@ -260,6 +260,7 @@ waitForApiext:
   deploymentNamespace: emissary-system
   securityContext:
     runAsUser: 8888
+  createRoles: true
 
 initContainers: []
 

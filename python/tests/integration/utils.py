@@ -69,8 +69,6 @@ def install_ambassador(namespace, single_namespace=True, envs=None, debug=None):
     )
 
     # Proceed to install Ambassador now
-    final_yaml = []
-
     rbac_manifest_name = "rbac_namespace_scope" if single_namespace else "rbac_cluster_scope"
 
     # Hackish fakes of actual KAT structures -- it's _far_ too much work to synthesize
@@ -98,10 +96,13 @@ def install_ambassador(namespace, single_namespace=True, envs=None, debug=None):
         )
     )
 
-    for manifest in ambassador_yaml:
+    apiext_yaml = []
+    final_yaml = []
+    for i, manifest in enumerate(ambassador_yaml):
         kind = manifest.get("kind", None)
         metadata = manifest.get("metadata", {})
         name = metadata.get("name", None)
+        manifest_namespace = metadata.get("namespace", None)
 
         if (kind == "Pod") and (name == "ambassador"):
             # Force AMBASSADOR_ID to match ours.
@@ -114,10 +115,14 @@ def install_ambassador(namespace, single_namespace=True, envs=None, debug=None):
             # add new envs, if any
             manifest["spec"]["containers"][0]["env"].extend(envs)
 
-    # print("INSTALLING AMBASSADOR: manifests:")
-    # print(yaml.safe_dump_all(ambassador_yaml))
+        # Purpose of this is to separate any resources in the emissary-system namespace. This is required for the Role and RoleBindings of the apiext
+        if manifest_namespace == "emissary-system":
+            apiext_yaml.append(ambassador_yaml[i])
+        else:
+            final_yaml.append(ambassador_yaml[i])
 
-    apply_kube_artifacts(namespace=namespace, artifacts=yaml.safe_dump_all(ambassador_yaml))
+    apply_kube_artifacts(namespace=namespace, artifacts=yaml.safe_dump_all(final_yaml))
+    apply_kube_artifacts(namespace="emissary-system", artifacts=yaml.safe_dump_all(apiext_yaml))
 
 
 def update_envs(envs, name, value):

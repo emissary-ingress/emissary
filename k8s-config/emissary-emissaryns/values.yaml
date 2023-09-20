@@ -32,3 +32,4 @@ image:
 
 waitForApiext:
   enabled: true
+  createRoles: true
