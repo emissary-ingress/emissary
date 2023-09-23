@@ -98,7 +98,7 @@ def install_ambassador(namespace, single_namespace=True, envs=None, debug=None):
 
     apiext_yaml = []
     final_yaml = []
-    for i, manifest in enumerate(ambassador_yaml):
+    for manifest in ambassador_yaml:
         kind = manifest.get("kind", None)
         metadata = manifest.get("metadata", {})
         name = metadata.get("name", None)
@@ -117,9 +117,9 @@ def install_ambassador(namespace, single_namespace=True, envs=None, debug=None):
 
         # Purpose of this is to separate any resources in the emissary-system namespace. This is required for the Role and RoleBindings of the apiext
         if manifest_namespace == "emissary-system":
-            apiext_yaml.append(ambassador_yaml[i])
+            apiext_yaml.append(manifest)
         else:
-            final_yaml.append(ambassador_yaml[i])
+            final_yaml.append(manifest)
 
     apply_kube_artifacts(namespace=namespace, artifacts=yaml.safe_dump_all(final_yaml))
     apply_kube_artifacts(namespace="emissary-system", artifacts=yaml.safe_dump_all(apiext_yaml))

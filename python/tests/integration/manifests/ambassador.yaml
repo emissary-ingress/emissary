@@ -200,8 +200,8 @@ spec:
           if [ $? -eq 0 ]; then
             echo "$deployment_name.$deployment_namespace is available"
             while true; do
-            desired_replicas=$(kubectl get deployment $deployment_name -n $deployment_namespace -o json | jq -r '.spec.replicas')
-            current_replicas=$(kubectl get deployment $deployment_name -n $deployment_namespace -o json | jq -r '.status.replicas')
+            desired_replicas=$(kubectl get deployment $deployment_name -n $deployment_namespace -o jsonpath='{.spec.replicas}')
+            current_replicas=$(kubectl get deployment $deployment_name -n $deployment_namespace -o jsonpath='{.status.replicas}')
             if [[ $current_replicas != $desired_replicas ]]; then
               echo "$deployment_name.$deployment_namespace is in the process of restarting. Have: $current_replicas, want $desired_replicas"
               sleep 3
