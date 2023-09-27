@@ -255,7 +255,7 @@ restartPolicy:
 terminationGracePeriodSeconds:
 
 waitForApiext:
-  enabled: false
+  enabled: true
   deploymentName: emissary-apiext
   deploymentNamespace: emissary-system
   securityContext:
