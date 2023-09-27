@@ -153,5 +153,40 @@ subjects:
     namespace: {{ include "ambassador.namespace" . }}
     kind: ServiceAccount
 {{- end }}
-
+{{- if and .Values.waitForApiext (eq .Values.waitForApiext.enabled true) (eq .Values.waitForApiext.createRoles true) }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "ambassador.rbacName" . }}-apiext
+  namespace: {{ .Values.waitForApiext.deploymentNamespace | default "emissary-system" }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    {{- include "ambassador.labels" . | nindent 4 }}
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "ambassador.rbacName" . }}-apiext
+subjects:
+  - name: {{ include "ambassador.serviceAccountName" . }}
+    namespace: {{ include "ambassador.namespace" . }}
+    kind: ServiceAccount
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "ambassador.rbacName" . }}-apiext
+  namespace: {{ .Values.waitForApiext.deploymentNamespace | default "emissary-system" }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    {{- include "ambassador.labels" . | nindent 4 }}
+    product: aes
+    rbac.getambassador.io/role-group: {{ include "ambassador.rbacName" . }}
+rules:
+  - apiGroups: ["apps"]
+    resources:
+    - deployments
+    verbs: ["get", "list", "watch"]
+{{- end }}
 {{- end -}}

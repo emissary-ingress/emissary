@@ -29,3 +29,7 @@ adminService:
 image:
   repository: "$imageRepo$"
   tag: "$version$"
+
+waitForApiext:
+  enabled: true
+  createRoles: true

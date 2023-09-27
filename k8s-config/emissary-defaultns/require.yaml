@@ -22,4 +22,6 @@ resources:
   - { kind: ClusterRole,        name: emissary-ingress-agent-configmaps                          }
   - { kind: Role,               name: emissary-ingress-agent-config,       namespace: *namespace }
   - { kind: RoleBinding,        name: emissary-ingress-agent-config,       namespace: *namespace }
+  - { kind: Role,               name: emissary-ingress-apiext,             namespace: emissary-system}
+  - { kind: RoleBinding,        name: emissary-ingress-apiext,             namespace: emissary-system}
   - { kind: Deployment,         name: emissary-ingress-agent,              namespace: *namespace }

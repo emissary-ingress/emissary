@@ -9,3 +9,7 @@ scope:
 module: null
 agent:
   enabled: false
+
+waitForApiext:
+  enabled: true
+  createRoles: true

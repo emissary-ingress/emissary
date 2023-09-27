@@ -154,3 +154,45 @@ rules:
   - ingresses/status
   verbs:
   - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/instance: kat-rbac-multinamespace
+    app.kubernetes.io/managed-by: kat
+    app.kubernetes.io/name: emissary-ingress
+    app.kubernetes.io/part-of: kat-rbac-multinamespace
+    product: aes
+    rbac.getambassador.io/role-group: {self.path.k8s}
+  name: {self.path.k8s}-apiext
+  namespace: emissary-system
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: kat-rbac-multinamespace
+    app.kubernetes.io/managed-by: kat
+    app.kubernetes.io/name: emissary-ingress
+    app.kubernetes.io/part-of: kat-rbac-multinamespace
+    product: aes
+  name: {self.path.k8s}-apiext
+  namespace: emissary-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {self.path.k8s}-apiext
+subjects:
+- kind: ServiceAccount
+  name: {self.path.k8s}
+  namespace: {self.namespace}
