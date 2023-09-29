@@ -18,7 +18,7 @@ RSYNC_EXTRAS ?=
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
-  BASE_ENVOY_RELVER ?= 0
+  BASE_ENVOY_RELVER ?= 1
 
   # Set to non-empty to enable compiling Envoy in FIPS mode.
   FIPS_MODE ?=
