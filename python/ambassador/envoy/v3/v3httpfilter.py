@@ -138,17 +138,54 @@ def V3HTTPFilter_gzip(gzip: IRGzip, v3config: "V3Config"):
 
 
 def V3HTTPFilter_grpc_http1_bridge(irfilter: IRFilter, v3config: "V3Config"):
-    del irfilter  # silence unused-variable warning
     del v3config  # silence unused-variable warning
 
-    return {"name": "envoy.filters.http.grpc_http1_bridge"}
+    # config_dict = irfilter.config_dict()
+    # config: Dict[str, Any]
+    # config = {"name": "envoy.filters.http.grpc_http1_bridge"}
+
+    # if config_dict:
+    #     config["typed_config"] = config_dict
+    #     config["typed_config"][
+    #         "@type"
+    #     ] = "type.googleapis.com/envoy.extensions.filters.http.grpc_http1_bridge.v3.Config"
+
+    # return config
+
+    config = typecast(Dict[str, Any], irfilter.config_dict())
+    return {
+        "name": "envoy.filters.http.grpc_web",
+        "typed_config": {
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb",
+            **config,
+        },
+    }
 
 
 def V3HTTPFilter_grpc_web(irfilter: IRFilter, v3config: "V3Config"):
-    del irfilter  # silence unused-variable warning
     del v3config  # silence unused-variable warning
 
-    return {"name": "envoy.filters.http.grpc_web"}
+    # config_dict = irfilter.config_dict()
+    # config: Dict[str, Any]
+    # config = {"name": "envoy.filters.http.grpc_web"}
+
+    # if config_dict:
+    #     config["typed_config"] = config_dict
+    #     config["typed_config"][
+    #         "@type"
+    #     ] = "type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb"
+
+
+    # return config
+
+    config = typecast(Dict[str, Any], irfilter.config_dict())
+    return {
+        "name": "envoy.filters.http.grpc_web",
+        "typed_config": {
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb",
+            **config,
+        },
+    }
 
 
 def V3HTTPFilter_grpc_stats(irfilter: IRFilter, v3config: "V3Config"):
@@ -352,7 +389,10 @@ def V3HTTPFilter_error_response(error_response: IRErrorResponse, v3config: "V3Co
 
     filter_config: Dict[str, Any] = {
         # The IRErrorResponse filter builds on the 'envoy.filters.http.response_map' filter.
-        "name": "envoy.filters.http.response_map"
+        "name": "envoy.filters.http.response_map",
+        "typed_config": {
+            "@type": "type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMap",
+        },
     }
 
     module_config = error_response.config()
@@ -480,10 +520,19 @@ def V3HTTPFilter_golang(irfilter: IRGOFilter, _: "V3Config") -> Optional[Dict[st
 
 
 def V3HTTPFilter_cors(cors: IRFilter, v3config: "V3Config"):
-    del cors  # silence unused-variable warning
     del v3config  # silence unused-variable warning
 
-    return {"name": "envoy.filters.http.cors"}
+    config_dict = cors.config_dict()
+    config: Dict[str, Any]
+    config = {"name": "envoy.filters.http.cors"}
+
+    if config_dict:
+        config["typed_config"] = config_dict
+        config["typed_config"][
+            "@type"
+        ] = "type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors"
+
+    return config
 
 
 def V3HTTPFilter_router(router: IRFilter, v3config: "V3Config"):

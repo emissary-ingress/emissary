@@ -43,7 +43,7 @@ class V3Bootstrap(dict):
                                 # our filters. This will ensure we do not break current config. We can migrate over
                                 # in a minor release. see here: https://www.envoyproxy.io/docs/envoy/v1.22.0/version_history/current#minor-behavior-changes
                                 # The biggest impact of this is ensuring that ambex imports all the types because we will need to import many more
-                                "envoy.reloadable_features.no_extension_lookup_by_name": False,
+                                "envoy.reloadable_features.no_extension_lookup_by_name": True,
                             },
                         }
                     ]
