@@ -1503,7 +1503,7 @@ class AmbassadorEventWatcher(threading.Thread):
         rqueue.put((status, info))
 
     # load_config_fs reconfigures from the filesystem. It's _mostly_ legacy
-    # code, but not entirely, since Docker demo mode still uses it.
+    # code.
     #
     # BE CAREFUL ABOUT STOPPING THE RECONFIGURATION TIMER ONCE IT IS STARTED.
     def load_config_fs(self, rqueue: queue.Queue, path: str) -> None:

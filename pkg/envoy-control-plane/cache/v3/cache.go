@@ -44,10 +44,6 @@ type DeltaRequest = discovery.DeltaDiscoveryRequest
 // ConfigWatcher implementation must be thread-safe.
 type ConfigWatcher interface {
 	// CreateWatch returns a new open watch from a non-empty request.
-	// This is the entrypoint to propagate configuration changes the
-	// provided Response channel. State from the gRPC server is utilized
-	// to make sure consuming cache implementations can see what the server has sent to clients.
-	//
 	// An individual consumer normally issues a single open watch by each type URL.
 	//
 	// The provided channel produces requested resources as responses, once they are available.
@@ -57,9 +53,6 @@ type ConfigWatcher interface {
 	CreateWatch(*Request, stream.StreamState, chan Response) (cancel func())
 
 	// CreateDeltaWatch returns a new open incremental xDS watch.
-	// This is the entrypoint to propagate configuration changes the
-	// provided DeltaResponse channel. State from the gRPC server is utilized
-	// to make sure consuming cache implementations can see what the server has sent to clients.
 	//
 	// The provided channel produces requested resources as responses, or spontaneous updates in accordance
 	// with the incremental xDS specification.
@@ -318,12 +311,12 @@ func (r *RawResponse) maybeCreateTTLResource(resource types.ResourceWithTTL) (ty
 		}
 
 		if !r.Heartbeat {
-			rsrc, err := anypb.New(resource.Resource)
+			any, err := anypb.New(resource.Resource)
 			if err != nil {
 				return nil, "", err
 			}
-			rsrc.TypeUrl = r.Request.TypeUrl
-			wrappedResource.Resource = rsrc
+			any.TypeUrl = r.Request.TypeUrl
+			wrappedResource.Resource = any
 		}
 
 		return wrappedResource, deltaResourceTypeURL, nil

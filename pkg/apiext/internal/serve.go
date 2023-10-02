@@ -92,6 +92,7 @@ func ServeHTTPS(ctx context.Context, port int, ca *CA, scheme *k8sRuntime.Scheme
 	sc := &dhttp.ServerConfig{
 		Handler: mux,
 		TLSConfig: &tls.Config{
+			MinVersion: tls.VersionTLS13,
 			GetCertificate: func(clientHello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 				return ca.GenServerCert(ctx, clientHello.ServerName)
 			},

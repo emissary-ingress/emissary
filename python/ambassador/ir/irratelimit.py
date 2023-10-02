@@ -76,12 +76,15 @@ class IRRateLimit(IRFilter):
         # XXX Needs to be configurable.
         self.data_plane_proto = False
 
+        grpc = config.get("grpc", {})
+
         # Filter config.
         self.config = {
             "domain": self.domain,
             "timeout_ms": config.get("timeout_ms", 20),
             "request_type": "both",  # XXX configurability!
             "failure_mode_deny": config.get("failure_mode_deny", False),
+            "rate_limited_as_resource_exhausted": grpc.get("rate_limited_as_resource_exhausted", False),
         }
 
         self.sourced_by(config)

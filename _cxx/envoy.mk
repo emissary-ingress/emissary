@@ -13,8 +13,8 @@ RSYNC_EXTRAS ?=
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,https://github.com/datawire/envoy.git)
-  # rebase/release/v1.27.0
-  ENVOY_COMMIT ?= b2891a118f31f0f582797273e9948cfae4212c5b
+ 	# https://github.com/datawire/envoy/tree/rebase/release/v1.26.4
+  ENVOY_COMMIT ?= bbda92fc3e3d430bd2114aa3458d3191205c9c0e
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
@@ -37,7 +37,7 @@ RSYNC_EXTRAS ?=
 # which commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an
 # automated way!  Still look at the commit yourself to make sure it seems sane; blindly trusting
 # machines is bad, mmkay?
-ENVOY_GO_CONTROL_PLANE_COMMIT = b501c94cb61e3235b9156629377fba229d9571d8
+ENVOY_GO_CONTROL_PLANE_COMMIT = 7f2a3030ef40e773a8413fa0f2f03dfe26226593
 
 # Set ENVOY_DOCKER_REPO to the list of mirrors that we should
 # sanity-check that things get pushed to.
@@ -267,7 +267,8 @@ $(OSS_HOME)/api/envoy $(addprefix $(OSS_HOME)/api/,$(envoy-api-contrib)): $(OSS_
 $(OSS_HOME)/_cxx/envoy/build_go: $(ENVOY_BASH.deps) FORCE
 	$(call ENVOY_BASH.cmd, \
 		$(ENVOY_DOCKER_EXEC) git config --global --add safe.directory /root/envoy; \
-		$(ENVOY_DOCKER_EXEC) ci/do_ci.sh api.go; \
+		$(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generate_protobufs; generate_protobufs("@envoy_api//envoy/...", "/root/envoy/build_go", "envoy_api")'; \
+		$(foreach contrib-api,$(envoy-api-contrib),$(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generate_protobufs; generate_protobufs("@envoy_api//$(contrib-api)/...", "/root/envoy/build_go", "envoy_api")';) \
 	)
 	test -d $@ && touch $@
 $(OSS_HOME)/pkg/api/envoy $(addprefix $(OSS_HOME)/pkg/api/,$(envoy-api-contrib)): $(OSS_HOME)/pkg/api/%: $(OSS_HOME)/_cxx/envoy/build_go

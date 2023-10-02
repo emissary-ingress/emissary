@@ -77,7 +77,7 @@ RUN apk --no-cache add \
 # Pinning build version due to missing license info from pip show in newer versions
 RUN pip3 install "Cython<3.0" pip-tools==6.12.1 build==0.9.0
 
-RUN curl --fail -L https://dl.google.com/go/go1.20.7.linux-amd64.tar.gz | tar -C /usr/local -xzf -
+RUN curl --fail -L https://dl.google.com/go/go1.20.8.linux-amd64.tar.gz | tar -C /usr/local -xzf -
 
 # The YAML parser is... special. To get the C version, we need to install Cython and libyaml, then
 # build it locally -- just using pip won't work.
@@ -92,4 +92,4 @@ RUN mkdir /tmp/pyyaml && \
 
 # orjson is also special.  The wheels on PyPI rely on glibc, so we
 # need to use cargo/rustc/patchelf to build a musl-compatible version.
-RUN pip3 install orjson==3.9.1
+RUN pip3 install orjson==3.9.7

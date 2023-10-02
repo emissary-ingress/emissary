@@ -39,7 +39,7 @@ items:
 
   - version: 3.8.0
     prevVersion: 3.7.2
-    date: TBD
+    date: '2023-08-29'
     notes:
       - title: Account for matchLabels when associating mappings with the same prefix to different Hosts
         type: bugfix
@@ -104,6 +104,15 @@ items:
         body: >-
           This upgrades $productName$ to be built on Envoy v1.26.1. This provides $productName$ with the latest
           security patches, performances enhancments, and features offered by the envoy proxy.
+      - title: Add grpc.use_resource_exhausted_code option to the RateLimitService
+        type: feature
+        body: >-
+          By default, Envoy will return an `UNAVAILABLE` gRPC code when a request is rate limited. The
+          <code>RateLimitService</code> resource now exposes the
+          <a href="https://www.envoyproxy.io/docs/envoy/v1.26.0/configuration/http/http_filters/rate_limit_filter">use_resource_exhausted_code</a>
+          option. Set <code>grpc.use_resource_exhausted_code: true</code> so Envoy will return a `RESOURCE_EXHAUSTED`
+          gRPC code instead.
+        docs: https://www.getambassador.io/docs/emissary/latest/topics/running/services/rate-limit-service/
 
   - version: 3.6.0
     prevVersion: 3.5.0

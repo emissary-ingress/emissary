@@ -32,11 +32,14 @@ func (log logger) Warnf(format string, args ...interface{})  { log.t.Logf(format
 func (log logger) Errorf(format string, args ...interface{}) { log.t.Logf(format, args...) }
 
 func TestTTLResponse(t *testing.T) {
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	snapshotCache := cache.NewSnapshotCacheWithHeartbeating(ctx, false, cache.IDHash{}, logger{t: t}, time.Second)
+
 	server := server.NewServer(ctx, snapshotCache, nil)
+
 	grpcServer := grpc.NewServer()
 	endpointservice.RegisterEndpointDiscoveryServiceServer(grpcServer, server)
 
@@ -50,8 +53,8 @@ func TestTTLResponse(t *testing.T) {
 
 	conn, err := grpc.Dial(":9999", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	assert.NoError(t, err)
-
 	client := endpointservice.NewEndpointDiscoveryServiceClient(conn)
+
 	sclient, err := client.StreamEndpoints(ctx)
 	assert.NoError(t, err)
 
@@ -72,16 +75,16 @@ func TestTTLResponse(t *testing.T) {
 			TTL:      &oneSecond,
 		}},
 	})
-
 	err = snapshotCache.SetSnapshot(context.Background(), "test", snap)
 	assert.NoError(t, err)
 
 	timeout := time.NewTimer(5 * time.Second)
+
 	awaitResponse := func() *envoy_service_discovery_v3.DiscoveryResponse {
 		t.Helper()
 		doneCh := make(chan *envoy_service_discovery_v3.DiscoveryResponse)
-
 		go func() {
+
 			r, err := sclient.Recv()
 			assert.NoError(t, err)
 

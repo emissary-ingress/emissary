@@ -70,6 +70,9 @@ def load(manifest_name: str) -> str:
 
 
 def format(st: str, /, **kwargs):
+    # These replace statments ensure that these fields can be formatted properly
+    st = st.replace("'{.status.replicas}'", "'{{.status.replicas}}'")
+    st = st.replace("'{.spec.replicas}'", "'{{.spec.replicas}}'")
     serviceAccountExtra = ""
     if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
         serviceAccountExtra = """

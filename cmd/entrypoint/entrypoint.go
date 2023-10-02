@@ -95,16 +95,6 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	os.Unsetenv("AGENT_SERVICE")
 	dlog.Infof(ctx, "Started Ambassador (Version %s)", Version)
 
-	demoMode := false
-
-	// XXX Yes, this is a disgusting hack. We can switch to a legit argument
-	// parser later, when we have a second argument.
-	if (len(args) == 1) && (args[0] == "--demo") {
-		// Demo mode!
-		dlog.Infof(ctx, "DEMO MODE")
-		demoMode = true
-	}
-
 	clusterID := GetClusterID(ctx)
 	os.Setenv("AMBASSADOR_CLUSTER_ID", clusterID)
 	dlog.Infof(ctx, "AMBASSADOR_CLUSTER_ID=%s", clusterID)
@@ -142,15 +132,8 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		HardShutdownTimeout:  10 * time.Second,
 	})
 
-	// Demo mode: start the demo services. Starting the demo stuff first is
-	// kind of important: it's nice to give them a chance to start running before
-	// Ambassador really gets running.
-	if demoMode {
-		bootDemoMode(ctx, group, ambwatch)
-	}
-
 	group.Go("diagd", func(ctx context.Context) error {
-		cmd := subcommand(ctx, "diagd", GetDiagdArgs(ctx, demoMode)...)
+		cmd := subcommand(ctx, "diagd", GetDiagdArgs(ctx)...)
 		if envbool("DEV_SHUTUP_DIAGD") {
 			cmd.Stdout = nil
 			cmd.Stderr = nil
@@ -186,13 +169,11 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		})
 	}
 
-	if !demoMode {
-		group.Go("watcher", func(ctx context.Context) error {
-			// We need to pass the AmbassadorWatcher to this (Kubernetes/Consul) watcher, so
-			// that it can tell the AmbassadorWatcher when snapshots are posted.
-			return WatchAllTheThings(ctx, ambwatch, snapshot, fastpathCh, clusterID, Version)
-		})
-	}
+	group.Go("watcher", func(ctx context.Context) error {
+		// We need to pass the AmbassadorWatcher to this (Kubernetes/Consul) watcher, so
+		// that it can tell the AmbassadorWatcher when snapshots are posted.
+		return WatchAllTheThings(ctx, ambwatch, snapshot, fastpathCh, clusterID, Version)
+	})
 
 	// Finally, fire up the health check handler.
 	group.Go("healthchecks", func(ctx context.Context) error {

@@ -45,6 +45,16 @@ type RateLimitServiceSpec struct {
 	// FailureModeDeny when set to true, envoy will deny traffic if it
 	// is unable to communicate with the rate limit service.
 	V3FailureModeDeny bool `json:"failure_mode_deny,omitempty"`
+
+	// +k8s:conversion-gen:rename=GRPC
+	V3GRPC *RateLimitGRPCConfig `json:"v3GRPC,omitempty"`
+}
+
+type RateLimitGRPCConfig struct {
+	// UseResourceExhaustedCode, when set to true, will cause envoy
+	// to return a `RESOURCE_EXHAUSTED` gRPC code instead of the default
+	// `UNAVAILABLE` gRPC code.
+	UseResourceExhaustedCode bool `json:"use_resource_exhausted_code,omitempty"`
 }
 
 // RateLimitService is the Schema for the ratelimitservices API

@@ -1,4 +1,3 @@
-//nolint:all
 package log
 
 // DefaultLogger is enabled when no consuming clients provide
@@ -12,17 +11,17 @@ func NewDefaultLogger() *DefaultLogger {
 }
 
 // Debugf logs a message at level debug on the standard logger.
-func (l *DefaultLogger) Debugf(string, ...interface{}) {
+func (l *DefaultLogger) Debugf(format string, args ...interface{}) {
 }
 
 // Infof logs a message at level info on the standard logger.
-func (l *DefaultLogger) Infof(string, ...interface{}) {
+func (l *DefaultLogger) Infof(format string, args ...interface{}) {
 }
 
 // Warnf logs a message at level warn on the standard logger.
-func (l *DefaultLogger) Warnf(string, ...interface{}) {
+func (l *DefaultLogger) Warnf(format string, args ...interface{}) {
 }
 
 // Errorf logs a message at level error on the standard logger.
-func (l *DefaultLogger) Errorf(string, ...interface{}) {
+func (l *DefaultLogger) Errorf(format string, args ...interface{}) {
 }
