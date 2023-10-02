@@ -14,6 +14,7 @@ affinity:
     - podAffinityTerm:
         labelSelector:
           matchLabels:
+            app.kubernetes.io/instance: emissary-ingress
             app.kubernetes.io/name: emissary-ingress
         topologyKey: kubernetes.io/hostname
       weight: 100
