@@ -97,5 +97,5 @@ urllib3==1.26.16
     #   requests
 websocket-client==1.6.1
     # via kubernetes
-werkzeug==2.3.6
+werkzeug==3.0.0
     # via flask
