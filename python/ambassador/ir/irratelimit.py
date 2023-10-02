@@ -84,7 +84,9 @@ class IRRateLimit(IRFilter):
             "timeout_ms": config.get("timeout_ms", 20),
             "request_type": "both",  # XXX configurability!
             "failure_mode_deny": config.get("failure_mode_deny", False),
-            "rate_limited_as_resource_exhausted": grpc.get("rate_limited_as_resource_exhausted", False),
+            "rate_limited_as_resource_exhausted": grpc.get(
+                "rate_limited_as_resource_exhausted", False
+            ),
         }
 
         self.sourced_by(config)
