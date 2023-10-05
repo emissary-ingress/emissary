@@ -29,10 +29,6 @@ generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(O
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto')) $(OSS_HOME)/pkg/api/agent/
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%_grpc.pb.go                    , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto'))
 # Whole directories with one rule for the whole directory
-generate/files      += $(OSS_HOME)/api/envoy/                                  # recipe in _cxx/envoy.mk
-generate/files      += $(addprefix $(OSS_HOME)/api/,$(envoy-api-contrib))      # recipe in _cxx/envoy.mk
-generate/files      += $(OSS_HOME)/pkg/api/envoy/                              # recipe in _cxx/envoy.mk
-generate/files      += $(addprefix $(OSS_HOME)/pkg/api/,$(envoy-api-contrib))  # recipe in _cxx/envoy.mk
 generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/                    # recipe in _cxx/envoy.mk
 # Individual files: Misc
 generate/files      += $(OSS_HOME)/DEPENDENCIES.md
@@ -65,8 +61,6 @@ generate:
 # This (generating specific targets early, then having a separate `_generate`) is a hack.  Because the
 # full value of $(generate/files) is based on the listing of files in $(OSS_HOME)/api/, we need to
 # make sure that those directories are fully populated before we evaluate the full $(generate/files).
-	$(MAKE) $(OSS_HOME)/api/envoy
-	$(MAKE) $(addprefix $(OSS_HOME)/api/,$(envoy-api-contrib))
 	$(MAKE) _generate
 _generate:
 	@echo '$(MAKE) $$(generate/files)'; $(MAKE) $(patsubst %/,%,$(generate/files))

@@ -76,6 +76,38 @@ jobs:
         name: "Check Git not dirty from 'make generate' (again!)"
       - uses: ./.github/actions/after-job
         if: always()
+  
+  check-envoy-protos: ####################################################################
+    runs-on: ubuntu-latest
+    env:
+      # See docker/base-python.docker.gen
+      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+      - name: "Git Login"
+        run: |
+          if [[ -n '${{ secrets.GHA_SSH_KEY }}' ]]; then
+            install -m700 -d ~/.ssh
+            install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
+          fi
+      - name: "Docker Login"
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
+          username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
+      - name: "'make compile-envoy-protos'"
+        shell: bash
+        run: |
+          make compile-envoy-protos
+      - name: "Check Git not dirty from 'make compile-envoy-protos'"
+        uses: ./.github/actions/git-dirty-check
+      - uses: ./.github/actions/after-job
+        if: always()
 
   check-envoy-version: #########################################################
     runs-on: ubuntu-latest
@@ -317,6 +349,7 @@ jobs:
       - lint
       - build
       - generate
+      - check-envoy-protos
       - check-envoy-version
       - check-gotest
       - check-pytest
