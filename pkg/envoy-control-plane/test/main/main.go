@@ -29,6 +29,8 @@ import (
 	"time"
 
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
+	conf "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/config"
+	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/sotw/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/resource/v3"
@@ -195,10 +197,17 @@ func main() {
 			},
 		}
 	}
-	srv := server.NewServer(context.Background(), configCache, cb)
+
+	opts := []conf.XDSOption{}
+	if mode == resource.Ads {
+		log.Println("enabling ordered ADS mode...")
+		// Enable resource ordering if we enter ADS mode.
+		opts = append(opts, sotw.WithOrderedADS())
+	}
+	srv := server.NewServer(context.Background(), configCache, cb, opts...)
 	als := &testv3.AccessLogService{}
 
-	if mode != "delta" {
+	if mode != resource.Delta {
 		vhdsHTTPListeners = 0
 	}
 
