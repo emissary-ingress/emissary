@@ -137,6 +137,64 @@ func (m *HealthCheckEvent) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, HealthCheckEventValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, HealthCheckEventValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HealthCheckEventValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetLocality()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, HealthCheckEventValidationError{
+					field:  "Locality",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, HealthCheckEventValidationError{
+					field:  "Locality",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetLocality()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HealthCheckEventValidationError{
+				field:  "Locality",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	oneofEventPresent := false
 	switch v := m.Event.(type) {
 	case *HealthCheckEvent_EjectUnhealthyEvent:
