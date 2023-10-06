@@ -36,7 +36,7 @@ var (
 	_ = anypb.Any{}
 	_ = sort.Sort
 
-	_ = v3.ProtocolType(0)
+	_ = v3.TransportType(0)
 )
 
 // Validate checks the field values on Thrift with the rules defined in the

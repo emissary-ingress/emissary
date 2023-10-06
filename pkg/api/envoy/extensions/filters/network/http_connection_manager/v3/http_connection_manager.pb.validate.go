@@ -4035,6 +4035,8 @@ func (m *HttpConnectionManager_HcmAccessLogOptions) validate(all bool) error {
 
 	// no validation rules for FlushAccessLogOnNewRequest
 
+	// no validation rules for FlushLogOnTunnelSuccessfullyEstablished
+
 	if len(errors) > 0 {
 		return HttpConnectionManager_HcmAccessLogOptionsMultiError(errors)
 	}

@@ -97,6 +97,8 @@ func (m *OpenTelemetryAccessLogConfig) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for DisableBuiltinLabels
+
 	if all {
 		switch v := interface{}(m.GetResourceAttributes()).(type) {
 		case interface{ ValidateAll() error }:
