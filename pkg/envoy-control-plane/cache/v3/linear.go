@@ -298,7 +298,7 @@ func (cache *LinearCache) GetResources() map[string]types.Resource {
 	return resources
 }
 
-func (cache *LinearCache) CreateWatch(request *Request, streamState stream.StreamState, value chan Response) func() {
+func (cache *LinearCache) CreateWatch(request *Request, _ stream.StreamState, value chan Response) func() {
 	if request.TypeUrl != cache.typeURL {
 		value <- nil
 		return nil
@@ -450,7 +450,7 @@ func (cache *LinearCache) nextDeltaWatchID() int64 {
 	return atomic.AddInt64(&cache.deltaWatchCount, 1)
 }
 
-func (cache *LinearCache) Fetch(ctx context.Context, request *Request) (Response, error) {
+func (cache *LinearCache) Fetch(context.Context, *Request) (Response, error) {
 	return nil, errors.New("not implemented")
 }
 

@@ -185,7 +185,7 @@ func (s *Snapshot) ConstructVersionMap() error {
 			return err
 		}
 		if _, ok := s.VersionMap[typeURL]; !ok {
-			s.VersionMap[typeURL] = make(map[string]string)
+			s.VersionMap[typeURL] = make(map[string]string, len(resources.Items))
 		}
 
 		for _, r := range resources.Items {
