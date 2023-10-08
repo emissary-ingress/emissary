@@ -167,7 +167,7 @@ libraries:
     PyYAML              6.0.1      MIT license
     Werkzeug            2.3.6      3-clause BSD license
     blinker             1.6.2      MIT license
-    build               0.9.0      MIT license
+    build               1.0.3      MIT license
     cachetools          5.3.1      MIT license
     certifi             2023.7.22  Mozilla Public License 2.0
     charset-normalizer  3.1.0      MIT license
@@ -185,12 +185,12 @@ libraries:
     oauthlib            3.2.2      3-clause BSD license
     orjson              3.9.7      Apache License 2.0, MIT license
     packaging           21.3       2-clause BSD license, Apache License 2.0
-    pep517              0.13.0     MIT license
-    pip-tools           6.12.1     3-clause BSD license
+    pip-tools           7.3.0      3-clause BSD license
     prometheus-client   0.17.1     Apache License 2.0
     pyasn1              0.5.0      2-clause BSD license
     pyasn1-modules      0.3.0      2-clause BSD license
     pyparsing           3.0.9      MIT license
+    pyproject_hooks     1.0.0      MIT license
     python-dateutil     2.8.2      3-clause BSD license, Apache License 2.0
     python-json-logger  2.0.7      2-clause BSD license
     requests            2.31.0     Apache License 2.0

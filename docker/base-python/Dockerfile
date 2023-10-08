@@ -59,7 +59,7 @@ RUN apk --no-cache add \
   libffi-dev \
   ncurses \
   openssl-dev \
-  py3-pip=~22.3 \
+  py3-pip=~22 \
   python3=~3.10 \
   python3-dev \
   rust \
@@ -75,7 +75,7 @@ RUN apk --no-cache add \
 # select a pip-tools version that corresponds to the 'py3-pip' and
 # 'python3' versions above.
 # Pinning build version due to missing license info from pip show in newer versions
-RUN pip3 install "Cython<3.0" pip-tools==6.12.1 build==0.9.0
+RUN pip3 install "Cython<3.0" pip-tools==7.3
 
 RUN curl --fail -L https://dl.google.com/go/go1.20.9.linux-amd64.tar.gz | tar -C /usr/local -xzf -
 
