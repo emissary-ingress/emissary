@@ -109,17 +109,17 @@ following Free and Open Source software:
     github.com/xlab/treeprint                                                         v1.2.0                                         MIT license
     go.opentelemetry.io/proto/otlp                                                    v1.0.0                                         Apache License 2.0
     go.starlark.net                                                                   v0.0.0-20230525235612-a134d8f9ddca             3-clause BSD license
-    golang.org/x/crypto                                                               v0.13.0                                        3-clause BSD license
+    golang.org/x/crypto                                                               v0.14.0                                        3-clause BSD license
     golang.org/x/exp                                                                  v0.0.0-20230905200255-921286631fa9             3-clause BSD license
-    golang.org/x/mod                                                                  v0.12.0                                        3-clause BSD license
-    golang.org/x/net                                                                  v0.15.0                                        3-clause BSD license
+    golang.org/x/mod                                                                  v0.13.0                                        3-clause BSD license
+    golang.org/x/net                                                                  v0.16.0                                        3-clause BSD license
     golang.org/x/oauth2                                                               v0.12.0                                        3-clause BSD license
-    golang.org/x/sync                                                                 v0.3.0                                         3-clause BSD license
-    golang.org/x/sys                                                                  v0.12.0                                        3-clause BSD license
-    golang.org/x/term                                                                 v0.12.0                                        3-clause BSD license
+    golang.org/x/sync                                                                 v0.4.0                                         3-clause BSD license
+    golang.org/x/sys                                                                  v0.13.0                                        3-clause BSD license
+    golang.org/x/term                                                                 v0.13.0                                        3-clause BSD license
     golang.org/x/text                                                                 v0.13.0                                        3-clause BSD license
     golang.org/x/time                                                                 v0.3.0                                         3-clause BSD license
-    golang.org/x/tools                                                                v0.13.0                                        3-clause BSD license
+    golang.org/x/tools                                                                v0.14.0                                        3-clause BSD license
     google.golang.org/appengine                                                       v1.6.8                                         Apache License 2.0
     google.golang.org/genproto                                                        v0.0.0-20230913181813-007df8e322eb             Apache License 2.0
     google.golang.org/genproto/googleapis/api                                         v0.0.0-20230913181813-007df8e322eb             Apache License 2.0
