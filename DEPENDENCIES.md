@@ -121,10 +121,10 @@ following Free and Open Source software:
     golang.org/x/time                                                                 v0.3.0                                         3-clause BSD license
     golang.org/x/tools                                                                v0.14.0                                        3-clause BSD license
     google.golang.org/appengine                                                       v1.6.8                                         Apache License 2.0
-    google.golang.org/genproto                                                        v0.0.0-20230913181813-007df8e322eb             Apache License 2.0
+    google.golang.org/genproto                                                        v0.0.0-20230920204549-e6e6cdab5c13             Apache License 2.0
     google.golang.org/genproto/googleapis/api                                         v0.0.0-20230913181813-007df8e322eb             Apache License 2.0
-    google.golang.org/genproto/googleapis/rpc                                         v0.0.0-20230913181813-007df8e322eb             Apache License 2.0
-    google.golang.org/grpc                                                            v1.58.1                                        Apache License 2.0
+    google.golang.org/genproto/googleapis/rpc                                         v0.0.0-20231002182017-d307bd883b97             Apache License 2.0
+    google.golang.org/grpc                                                            v1.58.2                                        Apache License 2.0
     google.golang.org/grpc/cmd/protoc-gen-go-grpc                                     v1.3.0                                         Apache License 2.0
     google.golang.org/protobuf                                                        v1.31.0                                        3-clause BSD license
     gopkg.in/inf.v0                                                                   v0.9.1                                         3-clause BSD license
