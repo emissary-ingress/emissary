@@ -36,7 +36,7 @@ following Free and Open Source software:
     github.com/fatih/camelcase                                                        v1.0.0                                         MIT license
     github.com/fatih/color                                                            v1.15.0                                        MIT license
     github.com/fsnotify/fsnotify                                                      v1.6.0                                         3-clause BSD license
-    github.com/go-errors/errors                                                       v1.4.2                                         MIT license
+    github.com/go-errors/errors                                                       v1.5.1                                         MIT license
     github.com/go-git/gcfg                                                            v1.5.1-0.20230307220236-3a3c6141e376           3-clause BSD license
     github.com/go-git/go-billy/v5                                                     v5.4.1                                         Apache License 2.0
     github.com/go-git/go-git/v5                                                       v5.8.1                                         Apache License 2.0
@@ -151,7 +151,7 @@ following Free and Open Source software:
     sigs.k8s.io/gateway-api                                                           v0.2.0                                         Apache License 2.0
     sigs.k8s.io/json                                                                  v0.0.0-20221116044647-bc3834ca7abd             3-clause BSD license, Apache License 2.0
     sigs.k8s.io/kustomize/api                                                         v0.13.5-0.20230601165947-6ce0bf390ce3          Apache License 2.0
-    sigs.k8s.io/kustomize/kyaml                                                       v0.14.3-0.20230601165947-6ce0bf390ce3          Apache License 2.0, MIT license
+    sigs.k8s.io/kustomize/kyaml                                                       v0.14.3                                        Apache License 2.0, MIT license
     sigs.k8s.io/structured-merge-diff/v4                                              v4.3.0                                         Apache License 2.0
     sigs.k8s.io/yaml                                                                  v1.3.0                                         3-clause BSD license, MIT license
 

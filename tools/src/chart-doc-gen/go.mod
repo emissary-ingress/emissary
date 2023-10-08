@@ -22,7 +22,7 @@ require (
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apimachinery v0.21.0 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.10.15 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
