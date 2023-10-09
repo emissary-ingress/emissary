@@ -1,3 +1,9 @@
+github.com/hashicorp/consul/api:
+  - MPL-2.0
+github.com/hashicorp/consul/api/watch:
+  - MPL-2.0
+github.com/hashicorp/golang-lru/simplelru:
+  - MPL-2.0
 sigs.k8s.io/json:
   - Apache-2.0
 sigs.k8s.io/json/internal/golang/encoding/json:
