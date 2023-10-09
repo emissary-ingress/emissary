@@ -25,7 +25,6 @@ import tempfile
 import threading
 import time
 from builtins import bytes
-from distutils.util import strtobool
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, TextIO, Union
 from urllib.parse import urlparse
 
@@ -155,6 +154,14 @@ def load_url_contents(
         return stream.getvalue()
     else:
         return None
+
+
+# dsutils is deprecated so this adds a simple helper funcf inlined.
+def strtobool(value: str) -> bool:
+    value = value.lower()
+    if value in ("y", "yes", "on", "1", "true", "t"):
+        return True
+    return False
 
 
 def parse_bool(s: Optional[Union[str, bool]]) -> bool:

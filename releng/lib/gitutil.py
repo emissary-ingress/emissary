@@ -3,11 +3,16 @@ from typing import Optional, Union
 import http.client
 import json
 
-from distutils.util import strtobool
 
 from .uiutil import run, check_command
 from .uiutil import run_txtcapture as run_capture
 
+# dsutils is deprecated so this adds a simple helper funcf inlined.
+def strtobool(value: str) -> bool:
+  value = value.lower()
+  if value in ("y", "yes", "on", "1", "true", "t"):
+    return True
+  return False
 
 # parse_bool is lifted from python/ambassador/utils.py -- it's just too useful.
 def parse_bool(s: Optional[Union[str, bool]]) -> bool:
