@@ -1,0 +1,8 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "test_shadow"
+version = "0.0.0"
+dependencies = ["flask", "typing-extensions"]

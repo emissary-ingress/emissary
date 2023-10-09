@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-FROM ubuntu:23.04
+FROM ubuntu:23.10
 
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
     PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/ambassador" \
