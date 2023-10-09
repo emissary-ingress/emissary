@@ -21,4 +21,6 @@ ARG from="i-forgot-to-set-build-arg-from"
 FROM ${from}
 
 COPY requirements.txt .
-RUN --mount=type=cache,target=/root/.cache/pip pip3 install -r requirements.txt && rm requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip  \
+  pip3 install -r requirements.txt --ignore-installed packaging \
+  && rm requirements.txt

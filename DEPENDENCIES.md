@@ -161,22 +161,22 @@ libraries:
     Name                Version    License(s)
     ----                -------    ----------
     Cython              0.29.36    Apache License 2.0
-    Flask               2.3.2      3-clause BSD license
+    Flask               3.0.0      3-clause BSD license
     Jinja2              3.1.2      3-clause BSD license
     MarkupSafe          2.1.3      3-clause BSD license
     PyYAML              6.0.1      MIT license
-    Werkzeug            2.3.6      3-clause BSD license
-    blinker             1.6.2      MIT license
+    Werkzeug            3.0.0      3-clause BSD license
+    blinker             1.6.3      MIT license
     build               1.0.3      MIT license
     cachetools          5.3.1      MIT license
     certifi             2023.7.22  Mozilla Public License 2.0
-    charset-normalizer  3.1.0      MIT license
-    click               8.1.3      3-clause BSD license
+    charset-normalizer  3.3.0      MIT license
+    click               8.1.7      3-clause BSD license
     dpath               2.1.6      MIT license
     durationpy          0.5        MIT license
     expiringdict        1.2.2      Apache License 2.0
-    google-auth         2.22.0     Apache License 2.0
-    gunicorn            20.1.0     MIT license
+    google-auth         2.23.2     Apache License 2.0
+    gunicorn            21.2.0     MIT license
     idna                3.4        3-clause BSD license
     itsdangerous        2.1.2      3-clause BSD license
     jsonpatch           1.33       3-clause BSD license
@@ -184,7 +184,7 @@ libraries:
     kubernetes          28.1.0     Apache License 2.0
     oauthlib            3.2.2      3-clause BSD license
     orjson              3.9.7      Apache License 2.0, MIT license
-    packaging           21.3       2-clause BSD license, Apache License 2.0
+    packaging           23.2       2-clause BSD license, Apache License 2.0
     pip-tools           7.3.0      3-clause BSD license
     prometheus-client   0.17.1     Apache License 2.0
     pyasn1              0.5.0      2-clause BSD license
@@ -200,6 +200,6 @@ libraries:
     semantic-version    2.10.0     2-clause BSD license
     six                 1.16.0     MIT license
     tomli               2.0.1      MIT license
-    typing_extensions   4.7.1      Python Software Foundation license
-    urllib3             1.26.16    MIT license
-    websocket-client    1.6.1      Apache License 2.0
+    typing_extensions   4.8.0      Python Software Foundation license
+    urllib3             1.26.17    MIT license
+    websocket-client    1.6.4      Apache License 2.0

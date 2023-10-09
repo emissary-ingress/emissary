@@ -33,11 +33,12 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		// of the BSD license is it?).  We pin the exact versions so
 		// that a human has to go make sure that the license didn't
 		// change when upgrading.
+		{"blinker", "1.6.3", ""}:                       {MIT},
 		{"build", "1.0.3", ""}:                         {MIT},
 		{"CacheControl", "0.12.6", "UNKNOWN"}:          {Apache2},
 		{"CacheControl", "0.12.10", "UNKNOWN"}:         {Apache2},
 		{"Click", "7.0", "BSD"}:                        {BSD3},
-		{"Flask", "1.0.2", "BSD"}:                      {BSD3},
+		{"Flask", "3.0.0", ""}:                         {BSD3},
 		{"GitPython", "3.1.11", "UNKNOWN"}:             {BSD3},
 		{"Jinja2", "2.10.1", "BSD"}:                    {BSD3},
 		{"colorama", "0.4.3", "BSD"}:                   {BSD3},
@@ -68,16 +69,17 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"semantic-version", "2.10.0", "BSD"}:          {BSD2},
 		{"smmap", "3.0.4", "BSD"}:                      {BSD3},
 		{"tomli", "2.0.1", ""}:                         {MIT},
-		{"typing_extensions", "4.7.1", ""}:             {PSF},
+		{"typing_extensions", "4.8.0", ""}:             {PSF},
 		{"webencodings", "0.5.1", "BSD"}:               {BSD3},
 		{"websocket-client", "0.57.0", "BSD"}:          {BSD3},
 		{"websocket-client", "1.2.3", "Apache-2.0"}:    {Apache2},
+		{"Werkzeug", "3.0.0", ""}:                      {BSD3},
 		{"zipp", "3.11.0", "None"}:                     {MIT},
 
 		// These are packages with non-trivial strings to parse, and
 		// it's easier to just hard-code it.
-		{"orjson", "3.9.7", "Apache-2.0 OR MIT"}:            {Apache2, MIT},
-		{"packaging", "21.3", "BSD-2-Clause or Apache-2.0"}: {BSD2, Apache2},
+		{"orjson", "3.9.7", "Apache-2.0 OR MIT"}: {Apache2, MIT},
+		{"packaging", "23.2", ""}:                {BSD2, Apache2},
 	}[tuple{name, version, license}]
 	if ok {
 		ret := make(map[License]struct{}, len(override))
