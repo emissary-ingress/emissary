@@ -77,7 +77,7 @@ RUN apk --no-cache add \
 # Pinning build version due to missing license info from pip show in newer versions
 RUN pip3 install "Cython<3.0" pip-tools==6.12.1 build==0.9.0
 
-RUN curl --fail -L https://dl.google.com/go/go1.20.9.linux-amd64.tar.gz | tar -C /usr/local -xzf -
+RUN curl --fail -L https://dl.google.com/go/go1.20.10.linux-amd64.tar.gz | tar -C /usr/local -xzf -
 
 # The YAML parser is... special. To get the C version, we need to install Cython and libyaml, then
 # build it locally -- just using pip won't work.
