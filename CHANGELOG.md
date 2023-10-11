@@ -85,6 +85,20 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [3.8.2] October 11, 2023
+[3.8.2]: https://github.com/emissary-ingress/emissary/compare/v3.8.1...v3.8.2
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Security: This release includes security patches to the current Envoy proxy version to address CVE
+  2023-44487 and includes a fix to determine if a client is making too many requests with premature
+  resets. The connection is disconnected if more than 50% of resets are considered premature.
+  Another fix is also included which exposes a runtime setting to control the limit on the number of
+  HTTP requests processed from a single connection in a single I/O cycle to mitigate CPU starvation.
+
+- Security: Upgrading to the latest release of Golang as part of our general dependency upgrade
+  process. This update resolves CVE-2023-39323 and CVE-2023-39325.
+
 ## [3.8.1] September 18, 2023
 [3.8.1]: https://github.com/emissary-ingress/emissary/compare/v3.8.0...v3.8.1
 
