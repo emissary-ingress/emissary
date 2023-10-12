@@ -441,6 +441,7 @@ ambassador-agent:
 
   service:
     type: ClusterIP
+    port: 8080
 
   resources:
     {}

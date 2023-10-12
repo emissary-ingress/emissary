@@ -207,7 +207,11 @@ helm.namespace.emissary-defaultns-migration = default
 
 # IF YOU'RE LOOKING FOR *.yaml: recipes, look in main.mk.
 
-$(OSS_HOME)/k8s-config/%/helm-expanded.yaml: \
+helm-dependency: $(boguschart_dir)
+	cd $(boguschart_dir) && helm dependency build
+.PHONY: helm-dependency
+
+$(OSS_HOME)/k8s-config/%/helm-expanded.yaml: helm-dependency \
   $(OSS_HOME)/k8s-config/%/values.yaml \
   $(boguschart_dir)
 	helm template --namespace=$(helm.namespace.$*) --values=$(@D)/values.yaml $(or $(helm.name.$*),$*) $(boguschart_dir) >$@

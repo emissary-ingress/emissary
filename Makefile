@@ -78,19 +78,8 @@ HELM_TEST_IMAGE = quay.io/helmpack/chart-testing:v3.0.0-rc.1
 CHART_DIR := $(OSS_HOME)/build-output/chart-$(patsubst v%,%,$(VERSION))_$(patsubst v%,%,$(CHART_VERSION)).d
 CT_EXEC = docker run --rm -v $(KIND_KUBECONFIG):/root/.kube/config -v $(CHART_DIR) --network host $(HELM_TEST_IMAGE) $(CHART_DIR)/ci.in/ct.sh
 
-# FORCE:
-# .PHONY: FORCE
-# .SECONDARY:
-
-# $(OSS_HOME)/charts/emissary-ingress/charts: FORCE
-# 	if test -f ../go.mod && test "$$(cd .. && go list -m)" == github.com/emissary-ingress/emissary/v3; then \
-# 	  $(MAKE) -C .. $@; \
-# 	else \
-# 	  cd $(@D) && helm dependency build && helm dependency update; \
-# 	fi
-
 chart/lint: preflight-dev-kubeconfig
-	$(CT_EXEC) install --config /ct.yaml
+	$(CT_EXEC) lint --config /ct.yaml
 .PHONY: chart/lint
 
 chart/k3d-test: preflight-dev-kubeconfig

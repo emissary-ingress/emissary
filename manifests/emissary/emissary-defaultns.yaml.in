@@ -680,7 +680,7 @@ metadata:
 spec:
   containers:
   - args:
-    - 'emissary-ingress-ambassador-agent:'
+    - emissary-ingress-ambassador-agent:8080
     command:
     - wget
     image: busybox

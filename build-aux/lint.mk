@@ -54,6 +54,7 @@ format/isort: $(OSS_HOME)/venv
 
 #
 # Helm
+
 lint-deps += $(tools/ct) $(chart_dir)
 lint-goals += lint/chart
 lint/chart: $(tools/ct) $(chart_dir)
