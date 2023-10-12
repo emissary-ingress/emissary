@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: v2
 appVersion: @version@
 description: A Helm chart for Emissary Ingress
 name: emissary-ingress
@@ -26,7 +26,6 @@ maintainers:
     email: rlane@datawire.io
   - name: Tenshin Higashi
     email: thigashi@datawire.io
-engine: gotpl
 dependencies:
   - name: ambassador-agent
     version: 1.0.15
