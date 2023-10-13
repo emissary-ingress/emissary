@@ -50,7 +50,7 @@ oauthlib==3.2.2
     # via
     #   kubernetes
     #   requests-oauthlib
-orjson==3.9.7
+orjson==3.9.9
     # via -r requirements.in
 packaging==23.2
     # via gunicorn
