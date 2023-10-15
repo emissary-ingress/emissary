@@ -105,7 +105,7 @@ class V3TLSContext(Dict):
 
         params[key] = value
 
-    def update_validation(self, key: str, value: str, match_subject_alt_names: Optional[List[Dict[str, str]]] = None) -> None:
+    def update_validation(self, key: str, value: str, match_typed_subject_alt_names: Optional[List[Dict[str, str]]] = None) -> None:
         empty_context: EnvoyValidationContext = {}
 
         # This looks weirder than you might expect, because self.get_common().setdefault() is a truly
@@ -119,7 +119,7 @@ class V3TLSContext(Dict):
         src: EnvoyCoreSource = {"filename": value}
         validation[key] = src
         if match_subject_alt_names is not None:
-            validation['match_subject_alt_names'] = match_subject_alt_names
+            validation['match_typed_subject_alt_names'] = match_subject_alt_names
 
     def add_context(self, ctx: IRTLSContext) -> None:
         if TYPE_CHECKING:
