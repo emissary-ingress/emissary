@@ -51,7 +51,7 @@ following Free and Open Source software:
     github.com/google/btree                                                           v1.0.1                                         Apache License 2.0
     github.com/google/cel-go                                                          v0.18.0                                        Apache License 2.0
     github.com/google/gnostic-models                                                  v0.6.8                                         Apache License 2.0
-    github.com/google/go-cmp                                                          v0.5.9                                         3-clause BSD license
+    github.com/google/go-cmp                                                          v0.6.0                                         3-clause BSD license
     github.com/google/gofuzz                                                          v1.2.0                                         Apache License 2.0
     github.com/google/shlex                                                           v0.0.0-20191202100458-e7afc7fbc510             Apache License 2.0
     github.com/google/uuid                                                            v1.3.1                                         3-clause BSD license
