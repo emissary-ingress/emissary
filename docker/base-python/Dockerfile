@@ -91,4 +91,4 @@ RUN mkdir /tmp/pyyaml && \
 
 # orjson is also special.  The wheels on PyPI rely on glibc, so we
 # need to use cargo/rustc/patchelf to build a musl-compatible version.
-RUN pip3 install orjson==3.9.7
+RUN pip3 install orjson==3.9.9
