@@ -175,7 +175,7 @@ libraries:
     dpath               2.1.6      MIT license
     durationpy          0.5        MIT license
     expiringdict        1.2.2      Apache License 2.0
-    google-auth         2.23.2     Apache License 2.0
+    google-auth         2.23.3     Apache License 2.0
     gunicorn            21.2.0     MIT license
     idna                3.4        3-clause BSD license
     itsdangerous        2.1.2      3-clause BSD license
