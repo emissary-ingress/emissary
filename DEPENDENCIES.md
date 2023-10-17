@@ -183,7 +183,7 @@ libraries:
     jsonpointer         2.4        3-clause BSD license
     kubernetes          28.1.0     Apache License 2.0
     oauthlib            3.2.2      3-clause BSD license
-    orjson              3.9.7      Apache License 2.0, MIT license
+    orjson              3.9.9      Apache License 2.0, MIT license
     packaging           23.2       2-clause BSD license, Apache License 2.0
     pip-tools           7.3.0      3-clause BSD license
     prometheus-client   0.17.1     Apache License 2.0
