@@ -184,7 +184,7 @@ libraries:
     kubernetes          28.1.0     Apache License 2.0
     oauthlib            3.2.2      3-clause BSD license
     orjson              3.9.9      Apache License 2.0, MIT license
-    packaging           23.2       2-clause BSD license, Apache License 2.0
+    packaging           23.1       2-clause BSD license, Apache License 2.0
     pip-tools           7.3.0      3-clause BSD license
     prometheus-client   0.17.1     Apache License 2.0
     pyasn1              0.5.0      2-clause BSD license
@@ -195,11 +195,9 @@ libraries:
     python-json-logger  2.0.7      2-clause BSD license
     requests            2.31.0     Apache License 2.0
     requests-oauthlib   1.3.1      ISC license
-    retrying            1.3.3      Apache License 2.0
     rsa                 4.9        Apache License 2.0
     semantic-version    2.10.0     2-clause BSD license
     six                 1.16.0     MIT license
-    tomli               2.0.1      MIT license
     typing_extensions   4.8.0      Python Software Foundation license
     urllib3             1.26.17    MIT license
     websocket-client    1.6.4      Apache License 2.0

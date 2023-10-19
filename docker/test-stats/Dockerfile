@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-FROM docker.io/frolvlad/alpine-glibc:alpine-3.17
+FROM docker.io/frolvlad/alpine-glibc:alpine-3.18_glibc-2.34
 
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
       PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/ambassador" \
