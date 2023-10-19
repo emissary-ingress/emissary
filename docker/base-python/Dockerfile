@@ -18,7 +18,7 @@
 # Third-party code
 ########################################
 
-FROM docker.io/frolvlad/alpine-glibc:alpine-3.17_glibc-2.34
+FROM docker.io/frolvlad/alpine-glibc:alpine-3.18_glibc-2.34
 
 WORKDIR /buildroot
 
@@ -59,8 +59,8 @@ RUN apk --no-cache add \
   libffi-dev \
   ncurses \
   openssl-dev \
-  py3-pip=~22 \
-  python3=~3.10 \
+  py3-pip \
+  python3=~3.11 \
   python3-dev \
   rust \
   cargo \

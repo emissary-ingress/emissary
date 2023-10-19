@@ -134,7 +134,7 @@ COPY --from=artifacts /opt/image-build /opt/image-build
 RUN /opt/image-build/install.sh
 
 # External Python packages we use
-COPY --from=artifacts /usr/lib/python3.10/site-packages /usr/lib/python3.10/site-packages
+COPY --from=artifacts /usr/lib/python3.11/site-packages /usr/lib/python3.11/site-packages
 
 # Our envoy. The capabilities here grant the wrapper the ability to use the
 # cap_net_bind_service cap and for Envoy to inherit it.
