@@ -116,7 +116,7 @@ require (
 	k8s.io/client-go v0.28.2
 	k8s.io/code-generator v0.28.2
 	k8s.io/kubectl v0.28.2
-	k8s.io/kubernetes v1.28.2
+	k8s.io/kubernetes v1.28.3
 	k8s.io/metrics v0.28.2
 	sigs.k8s.io/controller-runtime v0.16.2
 	sigs.k8s.io/controller-tools v0.13.0
