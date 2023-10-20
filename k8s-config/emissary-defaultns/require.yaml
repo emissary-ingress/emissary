@@ -22,7 +22,6 @@ resources:
   - { kind: ClusterRole,        name: emissary-ingress-agent                                         }
   - { kind: ClusterRoleBinding, name: emissary-ingress-agent                                         }
   - { kind: Deployment,         name: emissary-ingress-agent,                  namespace: *namespace }
-  - { kind: Pod,                name: emissary-ingress-agent-test-connection                         }
   - { kind: Role,               name: emissary-ingress-agent-config,           namespace: *namespace }
   - { kind: Role,               name: emissary-ingress-agent-leaderelection,   namespace: *namespace }
   - { kind: RoleBinding,        name: emissary-ingress-agent-config,           namespace: *namespace }
