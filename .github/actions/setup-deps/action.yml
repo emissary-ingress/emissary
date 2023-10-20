@@ -38,5 +38,5 @@ runs:
     - name: "Install Helm Dependencies"
       shell: bash
       run: |
-        helm repo add ambassador-agent https://s3.amazonaws.com/datawire-static-files/charts
+        helm repo add agent https://s3.amazonaws.com/datawire-static-files/charts
         helm repo update

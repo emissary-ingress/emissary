@@ -85,7 +85,7 @@ chart/lint: preflight-dev-kubeconfig
 chart/k3d-test: preflight-dev-kubeconfig
 	# check if k3d is installed
 	@if ! command -v k3d 2> /dev/null ; then \
-		printf 'k3d not installed, plz do that'; \
+		printf 'k3d not installed, please do that'; \
 	    false; \
 	fi
 .PHONY: chart/k3d-test

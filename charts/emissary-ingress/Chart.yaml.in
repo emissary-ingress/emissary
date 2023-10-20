@@ -30,4 +30,5 @@ dependencies:
   - name: ambassador-agent
     version: 1.0.15
     repository: https://s3.amazonaws.com/datawire-static-files/charts
-    condition: agent.enabled
+    condition: ambassador-agent.enabled
+    alias: agent
