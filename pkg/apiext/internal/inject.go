@@ -136,9 +136,13 @@ func updateCRD(
 	}
 	dlog.Infof(ctx, "Configuring conversion for %q", crd.ObjectMeta.Name)
 	crd.Spec.Conversion = conversionConfig
-	_, err := crdsClient.Update(ctx, &crd, k8sTypesMetaV1.UpdateOptions{})
-	if err != nil && !k8sErrors.IsConflict(err) {
+	if _, err := crdsClient.Update(ctx, &crd, k8sTypesMetaV1.UpdateOptions{}); err != nil && !k8sErrors.IsConflict(err) {
 		return err
 	}
+
+	if _, err := crdsClient.UpdateStatus(ctx, &crd, k8sTypesMetaV1.UpdateOptions{}); err != nil && !k8sErrors.IsConflict(err) {
+		return err
+	}
+
 	return nil
 }
