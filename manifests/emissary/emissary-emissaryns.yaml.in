@@ -653,7 +653,7 @@ spec:
         - name: AGENT_CONFIG_RESOURCE_NAME
           value: emissary-ingress-agent-cloud-token
         - name: RPC_CONNECTION_ADDRESS
-          value: null
+          value: https://app.getambassador.io/
         image: docker.io/ambassador/ambassador-agent:1.0.16
         imagePullPolicy: IfNotPresent
         name: agent

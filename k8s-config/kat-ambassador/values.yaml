@@ -36,7 +36,7 @@ volumeMounts:
 resources: null
 
 module: null
-ambassador-agent:
+agent:
   enabled: false
 
 waitForApiext:

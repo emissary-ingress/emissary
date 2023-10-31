@@ -34,5 +34,5 @@ waitForApiext:
   enabled: true
   createRoles: true
 
-ambassador-agent:
+agent:
   enabled: true

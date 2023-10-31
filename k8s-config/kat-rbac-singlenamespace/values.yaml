@@ -7,7 +7,7 @@ scope:
   singleNamespace: true
 
 module: null
-ambassador-agent:
+agent:
   enabled: false
 
 waitForApiext:

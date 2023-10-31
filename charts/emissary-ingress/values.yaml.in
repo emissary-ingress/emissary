@@ -405,14 +405,13 @@ prometheusExporter: # +doc-gen:break
 # securityContext:
 #   runAsUser: 8888
 
-
-ambassador-agent:
+# ambassador-agent Values.
+# all values under agent key are passed to [the ambassador-agent chart](https://github.com/datawire/ambassador-agent/tree/master/helm/ambassador-agent)
+agent:
   # If `true`, installs the ambassador-agent Deployment enabling the Ambassador Cloud connectivity.
   enabled: true
 
-# ambassador-agent Values.
-# all values under agent key are passed to [the ambassador-agent chart](https://github.com/datawire/ambassador-agent/tree/master/helm/ambassador-agent)
-agent: {}
+  rpcAddress: "https://app.getambassador.io/"
 
 deploymentTool: ''
 
