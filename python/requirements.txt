@@ -54,7 +54,7 @@ orjson==3.9.9
     # via -r requirements.in
 packaging==23.2
     # via gunicorn
-prometheus-client==0.17.1
+prometheus-client==0.18.0
     # via -r requirements.in
 pyasn1==0.5.0
     # via
