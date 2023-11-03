@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"github.com/datawire/dlib/derror"
 	"github.com/datawire/dlib/dlog"
@@ -286,14 +285,6 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 		// ...and for Edge Stack, we _always_ have an implicit reference to the
 		// license secret.
 		secretRef(GetLicenseSecretNamespace(), GetLicenseSecretName(), false, action)
-		// We also want to grab any secrets referenced by Edge-Stack filters for use in Edge-Stack
-		// the Filters are unstructured because Emissary does not have their type definition
-		for _, f := range sh.k8sSnapshot.Filters {
-			err := findFilterSecret(f, action)
-			if err != nil {
-				dlog.Errorf(ctx, "Error gathering secret reference from Filter: %v", err)
-			}
-		}
 	}
 
 	// OK! After all that, go copy all the matching secrets from FSSecrets and
@@ -324,169 +315,6 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 		}
 	}
 	return nil
-}
-
-// Returns secretName, secretNamespace from a provided (unstructured) filter if it contains a secret
-// Returns empty strings when the secret name and/or namespace could not be found
-func findFilterSecret(filter *unstructured.Unstructured, action func(snapshotTypes.SecretRef)) error {
-	// Just making extra sure this is actually a Filter
-	if filter.GetKind() != "Filter" {
-		return fmt.Errorf("non-Filter object in Snapshot.Filters: %s", filter.GetKind())
-	}
-	// Only OAuth2 Filters have secrets, although they don't need to have them.
-	// This is overly contrived because Filters are unstructured to Emissary since we don't have the type definitions
-	// Yes this is disgusting. It is what it is...
-	filterContents := filter.UnstructuredContent()
-	filterSpec := filterContents["spec"]
-	if filterSpec != nil {
-		mapFilters, ok := filterSpec.(map[string]interface{})
-		// We need to check if all these type assertions fail since we shouldnt rely on CRD validation to protect us from a panic state
-		// I cant imagine a scenario where this would realisticly happen, but we generate a unique log message for tracability and skip processing it
-		if !ok {
-			// We bail early any time we detect bogus contents for any of these fields
-			// and let the APIServer, apiext, and amb-sidecar handle the error reporting
-			return nil
-		}
-
-		findOAuthFilterSecret(mapFilters, filter.GetNamespace(), action)
-		findAPIKeyFilterSecret(mapFilters, filter.GetNamespace(), action)
-		findExternalFilterSecret(mapFilters, filter.GetNamespace(), action)
-	}
-	return nil
-}
-
-func findOAuthFilterSecret(
-	mapFilters map[string]interface{},
-	filterNamespace string,
-	action func(snapshotTypes.SecretRef),
-) {
-	oAuthFilter := mapFilters["OAuth2"]
-	if oAuthFilter == nil {
-		return
-	}
-
-	secretName, secretNamespace := "", ""
-	// Check if we have a secretName
-	mapOAuth, ok := oAuthFilter.(map[string]interface{})
-	if !ok {
-		return
-	}
-	sName := mapOAuth["secretName"]
-	if sName == nil {
-		return
-	}
-	secretName, ok = sName.(string)
-	// This is a weird check, but we have to handle the case where secretName is not provided, and when its explicitly set to ""
-	if !ok || secretName == "" {
-		// Bail out early since there is no secret
-		return
-	}
-	sNamespace := mapOAuth["secretNamespace"]
-	if sNamespace == nil {
-		secretNamespace = filterNamespace
-	} else {
-		secretNamespace, ok = sNamespace.(string)
-		if !ok {
-			return
-		} else if secretNamespace == "" {
-			secretNamespace = filterNamespace
-		}
-	}
-	secretRef(secretNamespace, secretName, false, action)
-
-}
-
-func findAPIKeyFilterSecret(
-	mapFilters map[string]interface{},
-	filterNamespace string,
-	action func(snapshotTypes.SecretRef),
-) {
-	apiKeyFilter := mapFilters["APIKey"]
-	if apiKeyFilter != nil {
-		mapKeyFilter, ok := apiKeyFilter.(map[string]interface{})
-
-		if !ok {
-			return
-		}
-
-		apiKeys := mapKeyFilter["keys"].([]interface{})
-
-		for i := range apiKeys {
-			secretName := ""
-			mapKey, ok := apiKeys[i].(map[string]interface{})
-
-			if !ok {
-				continue
-			}
-
-			sName := mapKey["secretName"]
-			if sName == nil {
-				continue
-			}
-
-			secretName, ok = sName.(string)
-			// This is a weird check, but we have to handle the case where secretName is not provided, and when its explicitly set to ""
-			if !ok || secretName == "" {
-				// Continue with the next key since there is no secret
-				continue
-			}
-
-			secretRef(filterNamespace, secretName, false, action)
-		}
-	}
-}
-
-// findExternalFilterSecret will find and capture secret references found in an ExternalFilter.
-func findExternalFilterSecret(
-	mapFilters map[string]interface{},
-	filterNamespace string,
-	action func(snapshotTypes.SecretRef),
-) {
-
-	type externalConfig struct {
-		TLS       bool `json:"tls"`
-		TLSConfig *struct {
-			Certificate *struct {
-				FromSecret struct {
-					Name string `json:"name"`
-				} `json:"fromSecret"`
-			} `json:"certificate"`
-			CACertificate *struct {
-				FromSecret struct {
-					Name string `json:"name"`
-				} `json:"fromSecret"`
-			} `json:"caCertificate"`
-		} `json:"tlsConfig"`
-	}
-
-	extConfig := mapFilters["External"]
-	if extConfig == nil {
-		return
-	}
-
-	jsonStr, err := json.Marshal(extConfig)
-	if err != nil {
-		return
-	}
-
-	var config externalConfig
-	if err := json.Unmarshal([]byte(jsonStr), &config); err != nil {
-		return
-	}
-
-	if config.TLSConfig == nil {
-		return
-	}
-
-	if config.TLSConfig.Certificate != nil {
-		secretName := config.TLSConfig.Certificate.FromSecret.Name
-		secretRef(filterNamespace, secretName, false, action)
-	}
-
-	if config.TLSConfig.CACertificate != nil {
-		secretName := config.TLSConfig.CACertificate.FromSecret.Name
-		secretRef(filterNamespace, secretName, false, action)
-	}
 }
 
 // Find all the secrets a given Ambassador resource references.
