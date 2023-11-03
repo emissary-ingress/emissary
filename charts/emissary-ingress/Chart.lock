@@ -1,6 +1,6 @@
 dependencies:
 - name: ambassador-agent
   repository: https://s3.amazonaws.com/datawire-static-files/charts
-  version: 1.0.16
-digest: sha256:7b123f62267cfea698be6025f4a29518df8396f189701e4b9cc836ca254173ff
-generated: "2023-10-31T15:03:28.875453-04:00"
+  version: 1.0.18
+digest: sha256:e3e849f13219638d9f10874165c6026bea1598cb487b77cc309cb60d82fed00b
+generated: "2023-11-03T12:55:18.614119-04:00"
