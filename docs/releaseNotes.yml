@@ -37,6 +37,14 @@ items:
     date: 'TBD'
     notes:
 
+    - title: Added support for setting specific Envoy runtime flags in the Module
+      type: feature
+      body: >-
+        Envoy runtime fields that were provided to mitigate the recent HTTP/2 rapid reset
+        vulnerability can now be configured via the Module resource so the configuration will
+        persist between restarts. This configuration is added to the Envoy bootstrap config, so
+        restarting Emissary is necessary after changing these fields for the configuration to take effect.
+
   - version: 3.8.0
     prevVersion: 3.7.2
     date: '2023-08-29'

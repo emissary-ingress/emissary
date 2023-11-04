@@ -90,6 +90,11 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Feature: Envoy runtime fields that were provided to mitigate the recent HTTP/2 rapid reset
+  vulnerability can now be configured via the Module resource so the configuration will persist
+  between restarts. This configuration is added to the Envoy bootstrap config, so restarting
+  Emissary is necessary after changing these fields for the configuration to take effect.
+
 ## [3.8.0] August 29, 2023
 [3.8.0]: https://github.com/emissary-ingress/emissary/compare/v3.7.2...v3.8.0
 
