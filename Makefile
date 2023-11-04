@@ -74,6 +74,27 @@ $(call module,ambassador,$(OSS_HOME))
 include $(OSS_HOME)/build-aux/generate.mk
 include $(OSS_HOME)/build-aux/lint.mk
 
+HELM_TEST_IMAGE = quay.io/helmpack/chart-testing:v3.0.0-rc.1
+CHART_DIR := $(OSS_HOME)/build-output/chart-$(patsubst v%,%,$(VERSION))_$(patsubst v%,%,$(CHART_VERSION)).d
+CT_EXEC = docker run --rm -v $(KIND_KUBECONFIG):/root/.kube/config -v $(CHART_DIR) --network host $(HELM_TEST_IMAGE) $(CHART_DIR)/ci.in/ct.sh
+
+chart/lint: preflight-dev-kubeconfig
+	$(CT_EXEC) lint --config /ct.yaml
+.PHONY: chart/lint
+
+chart/k3d-test: preflight-dev-kubeconfig
+	# check if k3d is installed
+	@if ! command -v k3d 2> /dev/null ; then \
+		printf 'k3d not installed, please do that'; \
+	    false; \
+	fi
+.PHONY: chart/k3d-test
+
+chart/test: chart/lint chart/k3d-test ci/setup-k3d
+	$(CT_EXEC) install --config /ct.yaml && \
+		$(MAKE) chart/delete-cluster
+.PHONY: chart/test
+
 .git/hooks/prepare-commit-msg:
 	ln -s $(OSS_HOME)/tools/hooks/prepare-commit-msg $(OSS_HOME)/.git/hooks/prepare-commit-msg
 
@@ -90,9 +111,10 @@ deploy: push preflight-cluster
 	$(MAKE) deploy-only
 .PHONY: deploy
 
-deploy-only: preflight-dev-kubeconfig $(tools/kubectl) build-output/yaml-$(patsubst v%,%,$(VERSION)) $(boguschart_dir)
+deploy-only: preflight-dev-kubeconfig chart/test $(tools/kubectl) build-output/yaml-$(patsubst v%,%,$(VERSION)) $(boguschart_dir)
 	mkdir -p $(OSS_HOME)/build/helm/ && \
 	($(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) create ns ambassador || true) && \
+	helm dependency build && \
 	helm template ambassador --output-dir $(OSS_HOME)/build/helm -n ambassador $(boguschart_dir) \
 		--set createNamespace=true \
 		--set service.selector.service=ambassador \
