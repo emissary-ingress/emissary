@@ -24,6 +24,7 @@ from .v3listener import V3Listener
 from .v3ratelimit import V3RateLimit
 from .v3ready import V3Ready
 from .v3route import V3Route, V3RouteVariants
+from .v3runtime import V3Runtime
 from .v3tracing import V3Tracing
 
 if TYPE_CHECKING:
@@ -42,6 +43,7 @@ class V3Config(EnvoyConfig):
     bootstrap: V3Bootstrap
     routes: List[V3Route]
     route_variants: List[V3RouteVariants]
+    layered_runtime: V3Runtime
     listeners: List[V3Listener]
     clusters: List[V3Cluster]
     static_resources: V3StaticResources
@@ -57,6 +59,7 @@ class V3Config(EnvoyConfig):
         self.cache = cache or NullCache(self.ir.logger)
 
         V3Admin.generate(self)
+        V3Runtime.generate(self)
         V3Tracing.generate(self)
 
         V3RateLimit.generate(self)
@@ -81,21 +84,7 @@ class V3Config(EnvoyConfig):
         ads_config = {
             "@type": "/envoy.config.bootstrap.v3.Bootstrap",
             "static_resources": self.static_resources,
-            "layered_runtime": {
-                "layers": [
-                    {
-                        "name": "static_layer",
-                        "static_layer": {
-                            "re2.max_program_size.error_level": 200,
-                            # the new default is that all filters are looked up using the @type which currently we exclude on a lot of
-                            # our filters. This will ensure we do not break current config. We can migrate over
-                            # in a minor release. see here: https://www.envoyproxy.io/docs/envoy/v1.22.0/version_history/current#minor-behavior-changes
-                            # The biggest impact of this is ensuring that ambex imports all the types because we will need to import many more
-                            "envoy.reloadable_features.no_extension_lookup_by_name": False,
-                        },
-                    }
-                ]
-            },
+            "layered_runtime": self.layered_runtime,
         }
 
         bootstrap_config = dict(self.bootstrap)
