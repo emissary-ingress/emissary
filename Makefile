@@ -74,7 +74,7 @@ $(call module,ambassador,$(OSS_HOME))
 include $(OSS_HOME)/build-aux/generate.mk
 include $(OSS_HOME)/build-aux/lint.mk
 
-HELM_TEST_IMAGE = quay.io/helmpack/chart-testing:v3.0.0-rc.1
+HELM_TEST_IMAGE = quay.io/helmpack/chart-testing:v3.10.1
 CHART_DIR := $(OSS_HOME)/build-output/chart-$(patsubst v%,%,$(VERSION))_$(patsubst v%,%,$(CHART_VERSION)).d
 CT_EXEC = docker run --rm -v $(KIND_KUBECONFIG):/root/.kube/config -v $(CHART_DIR) --network host $(HELM_TEST_IMAGE) $(CHART_DIR)/ci.in/ct.sh
 
