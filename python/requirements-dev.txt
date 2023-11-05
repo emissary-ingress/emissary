@@ -9,7 +9,7 @@ pytest==6.2.5
 pytest-cov
 pytest-rerunfailures
 retry
-black==23.9
+black==23.10.1
 isort
 
 # Type stubs
