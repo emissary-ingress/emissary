@@ -186,7 +186,7 @@ libraries:
     orjson              3.9.9      Apache License 2.0, MIT license
     packaging           23.1       2-clause BSD license, Apache License 2.0
     pip-tools           7.3.0      3-clause BSD license
-    prometheus-client   0.17.1     Apache License 2.0
+    prometheus-client   0.18.0     Apache License 2.0
     pyasn1              0.5.0      2-clause BSD license
     pyasn1-modules      0.3.0      2-clause BSD license
     pyparsing           3.0.9      MIT license
