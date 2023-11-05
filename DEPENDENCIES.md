@@ -115,16 +115,16 @@ following Free and Open Source software:
     golang.org/x/net                                                                  v0.17.0                                        3-clause BSD license
     golang.org/x/oauth2                                                               v0.12.0                                        3-clause BSD license
     golang.org/x/sync                                                                 v0.4.0                                         3-clause BSD license
-    golang.org/x/sys                                                                  v0.13.0                                        3-clause BSD license
+    golang.org/x/sys                                                                  v0.14.0                                        3-clause BSD license
     golang.org/x/term                                                                 v0.13.0                                        3-clause BSD license
-    golang.org/x/text                                                                 v0.13.0                                        3-clause BSD license
+    golang.org/x/text                                                                 v0.14.0                                        3-clause BSD license
     golang.org/x/time                                                                 v0.3.0                                         3-clause BSD license
     golang.org/x/tools                                                                v0.14.0                                        3-clause BSD license
     google.golang.org/appengine                                                       v1.6.8                                         Apache License 2.0
-    google.golang.org/genproto                                                        v0.0.0-20231012201019-e917dd12ba7a             Apache License 2.0
-    google.golang.org/genproto/googleapis/api                                         v0.0.0-20231002182017-d307bd883b97             Apache License 2.0
-    google.golang.org/genproto/googleapis/rpc                                         v0.0.0-20231016165738-49dd2c1f3d0b             Apache License 2.0
-    google.golang.org/grpc                                                            v1.58.3                                        Apache License 2.0
+    google.golang.org/genproto                                                        v0.0.0-20231016165738-49dd2c1f3d0b             Apache License 2.0
+    google.golang.org/genproto/googleapis/api                                         v0.0.0-20231012201019-e917dd12ba7a             Apache License 2.0
+    google.golang.org/genproto/googleapis/rpc                                         v0.0.0-20231030173426-d783a09b4405             Apache License 2.0
+    google.golang.org/grpc                                                            v1.59.0                                        Apache License 2.0
     google.golang.org/grpc/cmd/protoc-gen-go-grpc                                     v1.3.0                                         Apache License 2.0
     google.golang.org/protobuf                                                        v1.31.0                                        3-clause BSD license
     gopkg.in/inf.v0                                                                   v0.9.1                                         3-clause BSD license
