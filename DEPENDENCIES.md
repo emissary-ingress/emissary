@@ -199,5 +199,5 @@ libraries:
     semantic-version    2.10.0     2-clause BSD license
     six                 1.16.0     MIT license
     typing_extensions   4.8.0      Python Software Foundation license
-    urllib3             1.26.17    MIT license
+    urllib3             1.26.18    MIT license
     websocket-client    1.6.4      Apache License 2.0
