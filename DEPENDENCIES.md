@@ -166,7 +166,7 @@ libraries:
     MarkupSafe          2.1.3      3-clause BSD license
     PyYAML              6.0.1      MIT license
     Werkzeug            3.0.0      3-clause BSD license
-    blinker             1.6.3      MIT license
+    blinker             1.7.0      MIT license
     build               1.0.3      MIT license
     cachetools          5.3.1      MIT license
     certifi             2023.7.22  Mozilla Public License 2.0

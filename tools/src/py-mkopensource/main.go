@@ -33,7 +33,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		// of the BSD license is it?).  We pin the exact versions so
 		// that a human has to go make sure that the license didn't
 		// change when upgrading.
-		{"blinker", "1.6.3", ""}:                       {MIT},
+		{"blinker", "1.7.0", ""}:                       {MIT},
 		{"build", "1.0.3", ""}:                         {MIT},
 		{"CacheControl", "0.12.6", "UNKNOWN"}:          {Apache2},
 		{"CacheControl", "0.12.10", "UNKNOWN"}:         {Apache2},
