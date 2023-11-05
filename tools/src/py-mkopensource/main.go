@@ -78,9 +78,9 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 
 		// These are packages with non-trivial strings to parse, and
 		// it's easier to just hard-code it.
-		{"orjson", "3.9.9", "Apache-2.0 OR MIT"}: {Apache2, MIT},
-		{"packaging", "23.1", ""}:                {BSD2, Apache2},
-		{"packaging", "23.2", ""}:                {BSD2, Apache2},
+		{"orjson", "3.9.10", "Apache-2.0 OR MIT"}: {Apache2, MIT},
+		{"packaging", "23.1", ""}:                 {BSD2, Apache2},
+		{"packaging", "23.2", ""}:                 {BSD2, Apache2},
 	}[tuple{name, version, license}]
 	if ok {
 		ret := make(map[License]struct{}, len(override))
