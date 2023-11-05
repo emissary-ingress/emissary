@@ -7,7 +7,7 @@ require github.com/datawire/ocibuild v0.0.3-0.20220131233601-25ee488931d1
 require (
 	github.com/containerd/stargz-snapshotter/estargz v0.7.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
-	github.com/datawire/dlib v1.2.5-0.20211118180738-bf0d3d767da0 // indirect
+	github.com/datawire/dlib v1.3.1 // indirect
 	github.com/docker/docker v23.0.4+incompatible // indirect
 	github.com/go-logr/logr v0.2.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -20,7 +20,7 @@ require (
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
+	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/cobra v1.2.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/net v0.17.0 // indirect
