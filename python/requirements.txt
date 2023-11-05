@@ -93,7 +93,7 @@ urllib3==1.26.17
     #   requests
 websocket-client==1.6.4
     # via kubernetes
-werkzeug==3.0.0
+werkzeug==3.0.1
     # via flask
 
 # The following packages are considered to be unsafe in a requirements file:
