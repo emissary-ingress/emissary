@@ -28,7 +28,7 @@ maintainers:
     email: thigashi@datawire.io
 dependencies:
   - name: ambassador-agent
-    version: 1.0.18
+    version: 1.0.20
     repository: https://s3.amazonaws.com/datawire-static-files/charts
     condition: agent.enabled
     alias: agent
