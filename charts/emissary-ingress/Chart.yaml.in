@@ -1,4 +1,4 @@
-apiVersion: v2
+apiVersion: v1
 appVersion: @version@
 description: A Helm chart for Emissary Ingress
 name: emissary-ingress
@@ -16,19 +16,12 @@ keywords:
 - emissary
 - emissary ingress
 maintainers:
-  - name: Alice Wasko
-    email: alicewasko@datawire.io
-  - name: Hamzah Qudsi
-    email: hqudsi@datawire.io
-  - name: Lance Austin
-    email: laustin@datawire.io
-  - name: Rick Lane
-    email: rlane@datawire.io
-  - name: Tenshin Higashi
-    email: thigashi@datawire.io
-dependencies:
-  - name: ambassador-agent
-    version: 1.0.18
-    repository: https://s3.amazonaws.com/datawire-static-files/charts
-    condition: agent.enabled
-    alias: agent
+- name: flydiverny
+  email: markus@maga.se
+- name: kflynn
+  email: flynn@datawire.io
+- name: nbkrause
+  email: nkrause@datawire.io
+- name: lukeshu
+  email: lukeshu@datawire.io
+engine: gotpl
