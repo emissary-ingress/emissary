@@ -439,8 +439,8 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
     rbac.getambassador.io/role-group: emissary-ingress-agent
   name: emissary-ingress-agent-applications
 rules:
@@ -460,8 +460,8 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
     rbac.getambassador.io/role-group: emissary-ingress-agent
   name: emissary-ingress-agent-default-ns
 rules:
@@ -481,8 +481,8 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
     rbac.getambassador.io/role-group: emissary-ingress-agent
   name: emissary-ingress-agent-deployments
 rules:
@@ -503,8 +503,8 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
     rbac.getambassador.io/role-group: emissary-ingress-agent
   name: emissary-ingress-agent-endpoints
 rules:
@@ -525,8 +525,8 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
     rbac.getambassador.io/role-group: emissary-ingress-agent
   name: emissary-ingress-agent-ingresses
 rules:
@@ -547,8 +547,8 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
     rbac.getambassador.io/role-group: emissary-ingress-agent
   name: emissary-ingress-agent-pods
 rules:
@@ -568,8 +568,8 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
     rbac.getambassador.io/role-group: emissary-ingress-agent
   name: emissary-ingress-agent-rollouts
 rules:
@@ -595,8 +595,8 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
   name: emissary-ingress-agent
 rules: []
 ---
@@ -607,8 +607,8 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
   name: emissary-ingress-agent
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -626,12 +626,12 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
   name: emissary-ingress-agent
   namespace: emissary
 spec:
-  replicas: 1
+  replicas: null
   selector:
     matchLabels:
       app.kubernetes.io/instance: emissary-ingress
@@ -654,7 +654,7 @@ spec:
           value: emissary-ingress-agent-cloud-token
         - name: RPC_CONNECTION_ADDRESS
           value: https://app.getambassador.io/
-        image: docker.io/ambassador/ambassador-agent:1.0.20
+        image: docker.io/ambassador/ambassador-agent:1.0.18
         imagePullPolicy: IfNotPresent
         name: agent
         ports:
@@ -672,8 +672,8 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
   name: emissary-ingress-agent-config
   namespace: emissary
 rules:
@@ -704,8 +704,8 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
   name: emissary-ingress-agent-leaderelection
   namespace: emissary
 rules:
@@ -723,8 +723,8 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
   name: emissary-ingress-agent-config
   namespace: emissary
 roleRef:
@@ -743,8 +743,8 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
   name: emissary-ingress-agent-leaderelection
   namespace: emissary
 roleRef:
@@ -763,8 +763,8 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
   name: emissary-ingress-agent
   namespace: emissary
 spec:
@@ -784,7 +784,7 @@ metadata:
     app.kubernetes.io/instance: emissary-ingress
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: agent
-    app.kubernetes.io/version: 1.0.20
-    helm.sh/chart: agent-1.0.20
+    app.kubernetes.io/version: 1.0.18
+    helm.sh/chart: agent-1.0.18
   name: emissary-ingress-agent
   namespace: emissary
