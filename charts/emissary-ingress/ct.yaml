@@ -19,9 +19,6 @@ charts:
   - ./
 chart-dirs:
   - ./
-chart-repos:
-  - datawire=https://s3.amazonaws.com/datawire-static-files/charts/
-  - datawiredev=https://s3.amazonaws.com/datawire-static-files/charts-dev/
 
 
 # namespace: ambassador

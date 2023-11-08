@@ -130,7 +130,6 @@ endif
 	}
 	$(tools/chart-doc-gen) -d $</doc.yaml -t $</readme.tpl -v $@/values.yaml >$@/README.md
 build-output/chart-%.tgz: build-output/chart-%.d
-	cd $< && helm dependency build
 	helm package --destination=$< $<
 	mv $</emissary-ingress-$(word 2,$(subst _, ,$*)).tgz $@
 
