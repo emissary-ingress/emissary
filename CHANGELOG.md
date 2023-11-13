@@ -85,15 +85,37 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
-## [3.9.0] TBD
+## [3.9.0] November 13, 2023
 [3.9.0]: https://github.com/emissary-ingress/emissary/compare/v3.8.0...v3.9.0
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Feature: This upgrades Emissary-ingress to be built on Envoy v1.27.2 which provides security,
+  performance  and feature enhancements. You can read more about them here:  <a
+  href="https://www.envoyproxy.io/docs/envoy/v1.27.2/version_history/version_history">Envoy Proxy
+  1.27.2 Release Notes</a>
+
+- Feature: By default, Emissary-ingress will return an `UNAVAILABLE` code when a request using gRPC 
+  is rate limited. The `RateLimitService` resource now exposes a new
+  `grpc.use_resource_exhausted_code`  field that when set to `true`, Emissary-ingress will return a
+  `RESOURCE_EXHAUSTED` gRPC code instead.  Thanks to <a href="https://github.com/jeromefroe">Jerome
+  Froelich</a> for contributing this feature!
+
 - Feature: Envoy runtime fields that were provided to mitigate the recent HTTP/2 rapid reset
-  vulnerability can now be configured via the Module resource so the configuration will persist
-  between restarts. This configuration is added to the Envoy bootstrap config, so restarting
-  Emissary is necessary after changing these fields for the configuration to take effect.
+  vulnerability  can now be configured via the Module resource so the configuration will persist
+  between restarts.  This configuration is added to the Envoy bootstrap config, so restarting
+  Emissary is necessary after  changing these fields for the configuration to take effect.
+
+- Change: APIExt would previously allow for TLS 1.0 connections. We have updated it to now only use
+  a minimum  TLS version of 1.3 to resolve security concerns.
+
+- Change: - Update default image to Emissary-ingress v3.9.0. <br/>
+
+- Bugfix: The APIExt server provides CRD conversion between the stored version v2 and the version
+  watched for  by Emissary-ingress v3alpha1. Since this component is required to operate
+  Emissary-ingress, we have  introduced an init container that will ensure it is available before
+  starting. This will help address  some of the intermittent issues seen during install and
+  upgrades.
 
 ## [3.8.0] August 29, 2023
 [3.8.0]: https://github.com/emissary-ingress/emissary/compare/v3.7.2...v3.8.0
