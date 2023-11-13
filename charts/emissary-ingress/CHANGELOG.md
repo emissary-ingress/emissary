@@ -2,6 +2,11 @@
 
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
+
+## v8.10.0 - TBD
+
+- Upgrade Emissary to v3.10.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
 ## v8.9.0
 
 - Upgrade Emissary to v3.9.0 [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
