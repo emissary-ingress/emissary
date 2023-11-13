@@ -32,6 +32,11 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 3.10.0
+    prevVersion: 3.9.0
+    date: 'TBD'
+    notes: []
+
   - version: 3.9.0
     prevVersion: 3.8.0
     date: '2023-11-13'
