@@ -1,4 +1,4 @@
-Ambex: Ambassador Experimental^H^H^H^H^H^H^H^H^H^H^H^H ADS service
+Ambex: Ambassador Experimental ADS service
 =============================
 
 Ambassador prior to v0.50.0 worked by writing out Envoy v1 JSON
