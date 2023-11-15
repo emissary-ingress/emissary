@@ -3,11 +3,16 @@ import logging
 import os
 import subprocess
 import tempfile
+import pytz
 from base64 import b64encode
 from collections import namedtuple
+from datetime import datetime
 
 import pytest
-from OpenSSL import crypto
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 
 from ambassador import IR, Cache, Config, EnvoyConfig
 from ambassador.compile import Compile
@@ -80,7 +85,7 @@ spec:
   securityModel: XFP
   hostBinding:
     namespace:
-      from: ALL  
+      from: ALL
   """
 
 
@@ -100,7 +105,7 @@ spec:
   securityModel: XFP
   hostBinding:
     namespace:
-      from: ALL  
+      from: ALL
   """
 
 
@@ -120,7 +125,7 @@ spec:
   securityModel: XFP
   hostBinding:
     namespace:
-      from: ALL  
+      from: ALL
   """
 
 
@@ -342,24 +347,40 @@ def assert_valid_envoy_config(config_dict, extra_dirs=[]):
 
 
 def create_crl_pem_b64(issuerCert, issuerKey, revokedCerts):
-    when = b"20220516010101Z"
-    crl = crypto.CRL()
-    crl.set_lastUpdate(when)
+    revoke_date = datetime(2022, 5, 16, 1, 1, 1)
+    issuer_cert = x509.load_pem_x509_certificate(bytes(issuerCert, "utf-8"), default_backend())
+    issuer_key = serialization.load_pem_private_key(
+        bytes(issuerKey, "utf-8"), password=None, backend=default_backend()
+    )
+
+    # revoked_cert_objects = []
+    # for revokedCert in revokedCerts:
+    #     revoked_cert = x509.load_pem_x509_certificate(
+    #         bytes(revokedCert, "utf-8"), default_backend()
+    #     )
+    #     revoked_cert_objects.append(revoked_cert)
+
+    builder = x509.CertificateRevocationListBuilder()
+    builder = builder.issuer_name(issuer_cert.issuer)
+    builder = builder.last_update(datetime.datetime.now(tz=pytz.UTC))
+    next_update = datetime.datetime.now(tz=pytz.UTC) + datetime.timedelta(1, 0, 0)
+    builder = builder.next_update(next_update)
 
     for revokedCert in revokedCerts:
-        clientCert = crypto.load_certificate(crypto.FILETYPE_PEM, bytes(revokedCert, "utf-8"))
-        r = crypto.Revoked()
-        r.set_serial(bytes("{:x}".format(clientCert.get_serial_number()), "ascii"))
-        r.set_rev_date(when)
-        r.set_reason(None)
-        crl.add_revoked(r)
+        revoked_cert = x509.load_pem_x509_certificate(
+            bytes(revokedCert, "utf-8"), backend=default_backend()
+        )
+        builder = builder.add_revoked_certificate(
+            x509.RevokedCertificateBuilder()
+            .serial_number(revoked_cert.serial_number)
+            .revocation_date(revoke_date)
+            .build()
+        )
 
-    cert = crypto.load_certificate(crypto.FILETYPE_PEM, bytes(issuerCert, "utf-8"))
-    key = crypto.load_privatekey(crypto.FILETYPE_PEM, bytes(issuerKey, "utf-8"))
-    crl.sign(cert, key, b"sha256")
-    return b64encode(
-        (crypto.dump_crl(crypto.FILETYPE_PEM, crl).decode("utf-8") + "\n").encode("utf-8")
-    ).decode("utf-8")
+    crl = builder.sign(private_key=issuer_key, algorithm=hashes.SHA256(), backend=default_backend())
+
+    crl_pem = crl.public_bytes(serialization.Encoding.PEM)
+    return b64encode((crl_pem.decode("utf-8") + "\n").encode("utf-8")).decode("utf-8")
 
 
 def skip_edgestack():
