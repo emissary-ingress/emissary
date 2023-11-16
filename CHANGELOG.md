@@ -90,6 +90,11 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Change: Emissary-ingress will no longer publish YAML manifest with the Ambassador Agent being
+  installed by default. This is an optional component that provides additional features on top of
+  Emissary-ingress and we recommend installing it using the instructions found in the <a
+  href="https://github.com/datawire/ambassador-agenty">Ambassador Agent Repo</a>.
+
 ## [3.9.0] November 13, 2023
 [3.9.0]: https://github.com/emissary-ingress/emissary/compare/v3.8.0...v3.9.0
 

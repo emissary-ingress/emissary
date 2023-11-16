@@ -35,7 +35,15 @@ items:
   - version: 3.10.0
     prevVersion: 3.9.0
     date: 'TBD'
-    notes: []
+    notes: 
+      - title: Remove Ambassador Agent from published YAML Manifest
+        type: change
+        body: >-
+          $productName$ will no longer publish YAML manifest with the Ambassador Agent being installed by default.
+          This is an optional component that provides additional features on top of $productName$ and we recommend
+          installing it using the instructions found in the <a href="https://github.com/datawire/ambassador-agenty">Ambassador Agent Repo</a>.
+        docs: https://github.com/datawire/ambassador-agent
+
 
   - version: 3.9.0
     prevVersion: 3.8.0

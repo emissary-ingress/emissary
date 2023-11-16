@@ -33,3 +33,5 @@ image:
 waitForApiext:
   enabled: true
   createRoles: true
+agent:
+  enabled: false
