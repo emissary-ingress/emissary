@@ -38,7 +38,6 @@ import (
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
-	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
 )
 
 const (
@@ -268,11 +267,11 @@ func buildHTTPConnectionManager() *hcm.HttpConnectionManager {
 		CodecType:  hcm.HttpConnectionManager_AUTO,
 		StatPrefix: "http",
 		HttpFilters: []*hcm.HttpFilter{{
-			Name:       wellknown.Router,
+			Name:       "http-router",
 			ConfigType: &hcm.HttpFilter_TypedConfig{TypedConfig: routerConfig},
 		}},
 		AccessLog: []*alf.AccessLog{{
-			Name: wellknown.HTTPGRPCAccessLog,
+			Name: "access-logger",
 			ConfigType: &alf.AccessLog_TypedConfig{
 				TypedConfig: alsConfigPbst,
 			},
@@ -374,7 +373,7 @@ func MakeScopedRouteHTTPListener(mode string, listenerName string, port uint32) 
 		{
 			Filters: []*listener.Filter{
 				{
-					Name: wellknown.HTTPConnectionManager,
+					Name: "http-connection-manager",
 					ConfigType: &listener.Filter_TypedConfig{
 						TypedConfig: pbst,
 					},
@@ -431,7 +430,7 @@ func MakeScopedRouteHTTPListenerForRoute(mode string, listenerName string, port 
 		{
 			Filters: []*listener.Filter{
 				{
-					Name: wellknown.HTTPConnectionManager,
+					Name: "http-connection-manager",
 					ConfigType: &listener.Filter_TypedConfig{
 						TypedConfig: pbst,
 					},
@@ -461,7 +460,7 @@ func MakeTCPListener(listenerName string, port uint32, clusterName string) *list
 		{
 			Filters: []*listener.Filter{
 				{
-					Name: wellknown.TCPProxy,
+					Name: "tcp-proxy",
 					ConfigType: &listener.Filter_TypedConfig{
 						TypedConfig: pbst,
 					},
@@ -506,7 +505,7 @@ func MakeExtensionConfig(mode string, extensionConfigName string, route string) 
 			},
 		},
 		HttpFilters: []*hcm.HttpFilter{{
-			Name:       wellknown.Router,
+			Name:       "http-router",
 			ConfigType: &hcm.HttpFilter_TypedConfig{TypedConfig: routerConfig},
 		}},
 	}
