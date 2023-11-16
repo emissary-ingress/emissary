@@ -1165,27 +1165,6 @@ class FSSecretHandler(SecretHandler):
         return self.secret_info_from_k8s(resource, secret_name, namespace, source, serialization)
 
 
-class KubewatchSecretHandler(SecretHandler):
-    # XXX NO LONGER USED
-    def load_secret(
-        self, resource: "IRResource", secret_name: str, namespace: str
-    ) -> Optional[SecretInfo]:
-        self.logger.debug(
-            "FSSecretHandler (%s %s): load secret %s in namespace %s"
-            % (resource.kind, resource.name, secret_name, namespace)
-        )
-
-        source = "%s/secrets/%s/%s" % (self.source_root, namespace, secret_name)
-        serialization = load_url_contents(self.logger, source)
-
-        if not serialization:
-            self.logger.error(
-                "%s %s: SCC.url_reader could not load %s" % (resource.kind, resource.name, source)
-            )
-
-        return self.secret_info_from_k8s(resource, secret_name, namespace, source, serialization)
-
-
 # TODO(gsagula): This duplicates code from ircluster.py.
 class ParsedService:
     def __init__(

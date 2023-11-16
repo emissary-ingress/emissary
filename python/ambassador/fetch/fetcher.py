@@ -30,31 +30,6 @@ from .service import ServiceProcessor
 
 AnyDict = Dict[str, Any]
 
-# XXX ALL OF THE BELOW COMMENT IS PROBABLY OUT OF DATE. (Flynn, 2019-10-29)
-#
-# Some thoughts:
-# - loading a bunch of Ambassador resources is different from loading a bunch of K8s
-#   services, because we should assume that if we're being a fed a bunch of Ambassador
-#   resources, we'll get a full set. The whole 'secret loader' thing needs to have the
-#   concept of a TLSSecret resource that can be force-fed to us, or that can be fetched
-#   through the loader if needed.
-# - If you're running a debug-loop Ambassador, you should just have a flat (or
-#   recursive, I don't care) directory full of Ambassador YAML, including TLSSecrets
-#   and Endpoints and whatnot, as needed. All of it will get read by
-#   load_from_filesystem and end up in the elements array.
-# - If you're running expecting to be fed by kubewatch, at present kubewatch will
-#   send over K8s Service records, and anything annotated in there will end up in
-#   elements. This may include TLSSecrets or Endpoints. Any TLSSecret mentioned that
-#   isn't already in elements will need to be fetched.
-# - Ambassador resources do not have namespaces. They have the ambassador_id. That's
-#   it. The ambassador_id is completely orthogonal to the namespace. No element with
-#   the wrong ambassador_id will end up in elements. It would be nice if they were
-#   never sent by kubewatch, but, well, y'know.
-# - TLSSecret resources are not TLSContexts. TLSSecrets only have a name, a private
-#   half, and a public half. They do _not_ have other TLSContext information.
-# - Endpoint resources probably have just a name, a service name, and an endpoint
-#   address.
-
 k8sLabelMatcher = re.compile(r"([\w\-_./]+)=\"(.+)\"")
 
 
