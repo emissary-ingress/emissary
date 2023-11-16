@@ -20,7 +20,6 @@ import (
 	"github.com/emissary-ingress/emissary/v3/cmd/apiext"
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
 	"github.com/emissary-ingress/emissary/v3/cmd/kubestatus"
-	"github.com/emissary-ingress/emissary/v3/cmd/reproducer"
 )
 
 func noop(_ context.Context) {}
@@ -55,7 +54,6 @@ func main() {
 	busy.Main("busyambassador", "Ambassador", version, map[string]busy.Command{
 		"kubestatus": {Setup: environment.EnvironmentSetupEntrypoint, Run: kubestatus.Main},
 		"entrypoint": {Setup: noop, Run: entrypoint.Main},
-		"reproducer": {Setup: noop, Run: reproducer.Main},
 		"version":    {Setup: noop, Run: showVersion},
 		"apiext":     {Setup: noop, Run: apiext.Main},
 	})
