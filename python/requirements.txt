@@ -6,12 +6,8 @@
 #
 blinker==1.7.0
     # via flask
-cachetools==5.3.2
-    # via google-auth
 certifi==2023.7.22
-    # via
-    #   kubernetes
-    #   requests
+    # via requests
 charset-normalizer==3.3.2
     # via requests
 click==8.1.7
@@ -26,8 +22,6 @@ expiringdict==1.2.2
     # via -r requirements.in
 flask==3.0.0
     # via -r requirements.in
-google-auth==2.23.4
-    # via kubernetes
 gunicorn==21.2.0
     # via -r requirements.in
 idna==3.4
@@ -40,59 +34,28 @@ jsonpatch==1.33
     # via -r requirements.in
 jsonpointer==2.4
     # via jsonpatch
-kubernetes==28.1.0
-    # via -r requirements.in
 markupsafe==2.1.3
     # via
     #   jinja2
     #   werkzeug
-oauthlib==3.2.2
-    # via
-    #   kubernetes
-    #   requests-oauthlib
 orjson==3.9.10
     # via -r requirements.in
 packaging==23.2
     # via gunicorn
 prometheus-client==0.18.0
     # via -r requirements.in
-pyasn1==0.5.0
-    # via
-    #   pyasn1-modules
-    #   rsa
-pyasn1-modules==0.3.0
-    # via google-auth
-python-dateutil==2.8.2
-    # via kubernetes
 python-json-logger==2.0.7
     # via -r requirements.in
 pyyaml==6.0.1
-    # via
-    #   -r requirements.in
-    #   kubernetes
+    # via -r requirements.in
 requests==2.31.0
-    # via
-    #   -r requirements.in
-    #   kubernetes
-    #   requests-oauthlib
-requests-oauthlib==1.3.1
-    # via kubernetes
-rsa==4.9
-    # via google-auth
+    # via -r requirements.in
 semantic-version==2.10.0
     # via -r requirements.in
-six==1.16.0
-    # via
-    #   kubernetes
-    #   python-dateutil
 typing-extensions==4.8.0
     # via -r requirements.in
 urllib3==1.26.18
-    # via
-    #   kubernetes
-    #   requests
-websocket-client==1.6.4
-    # via kubernetes
+    # via requests
 werkzeug==3.0.1
     # via flask
 

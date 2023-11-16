@@ -14,20 +14,19 @@ Ambassador config => IR => Envoy config
 
 Ambassador comprises several different components:
 
-| Component                 | Type   | Function.                                                                                                 |
-| :------------------------ | :----  | :------------------------                                                                                 |
-| `diagd`                   | Python | Increasingly-misnamed core of the system; manages changing configurations and provides the diagnostics UI |
-| `entrypoint/ambex`        | Go     | Envoy `go-control-plane` implementation; supplies Envoy with current configuration                        |
-| `entrypoint/watcher`      | Go     | Service/secret discovery; interface to Kubernetes and Consul                                              |
-| `envoy`                   | C++    | The actual proxy process                                                                                  |
-| `kubewatch.py`            | Python | Used only to determine the cluster's installation ID; needs to be subsumed by `watt`                      |
+| Component            | Type   | Function.                                                                                                 |
+| :------------------- | :----- | :-------------------------------------------------------------------------------------------------------- |
+| `diagd`              | Python | Increasingly-misnamed core of the system; manages changing configurations and provides the diagnostics UI |
+| `entrypoint/ambex`   | Go     | Envoy `go-control-plane` implementation; supplies Envoy with current configuration                        |
+| `entrypoint/watcher` | Go     | Service/secret discovery; interface to Kubernetes and Consul                                              |
+| `envoy`              | C++    | The actual proxy process                                                                                  |
 
 `entrypoint`, `diagd`, and `envoy` are all long-running daemons.  If any of them exit, the pod as a whole will exit.
 
 Ambassador uses several TCP ports while running. All but one of them are in the range 8000-8499, and any future assignments for Ambassador ports should come from this range.
 
 | Port | Process                               | Function                                                                                                           |
-| :--- |:--------------------------------------|:-------------------------------------------------------------------------------------------------------------------|
+| :--- | :------------------------------------ | :----------------------------------------------------------------------------------------------------------------- |
 | 8001 | `envoy`                               | Internal stats, logging, etc.; not exposed outside pod                                                             |
 | 8002 | `entrypoint/watcher`                  | Internal `watt` snapshot access; not exposed outside pod                                                           |
 | 8003 | `entrypoint/ambex`                    | Internal `ambex` snapshot access; not exposed outside pod                                                          |
