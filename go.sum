@@ -1279,8 +1279,8 @@ k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00 h1:aVUu9fTY98ivBPKR9Y5w/A
 k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00/go.mod h1:AsvuZPBlUDVuCdzJ87iajxtXuR9oktsTctW/R9wwouA=
 k8s.io/kubectl v0.28.3 h1:H1Peu1O3EbN9zHkJCcvhiJ4NUj6lb88sGPO5wrWIM6k=
 k8s.io/kubectl v0.28.3/go.mod h1:RDAudrth/2wQ3Sg46fbKKl4/g+XImzvbsSRZdP2RiyE=
-k8s.io/kubernetes v1.28.3 h1:XTci6gzk+JR51UZuZQCFJ4CsyUkfivSjLI4O1P9z6LY=
-k8s.io/kubernetes v1.28.3/go.mod h1:NhAysZWvHtNcJFFHic87ofxQN7loylCQwg3ZvXVDbag=
+k8s.io/kubernetes v1.28.4 h1:aRNxs5jb8FVTtlnxeA4FSDBVKuFwA8Gw40/U2zReBYA=
+k8s.io/kubernetes v1.28.4/go.mod h1:BTzDCKYAlu6LL9ITbfjwgwIrJ30hlTgbv0eXDoA/WoA=
 k8s.io/metrics v0.28.3 h1:w2s3kVi7HulXqCVDFkF4hN/OsL1tXTTb4Biif995h/g=
 k8s.io/metrics v0.28.3/go.mod h1:OZZ23AHFojPzU6r3xoHGRUcV3I9pauLua+07sAUbwLc=
 k8s.io/utils v0.0.0-20200324210504-a9aa75ae1b89/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
