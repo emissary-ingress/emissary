@@ -46,8 +46,7 @@ COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
 ENV KUBECONFIG=/buildroot/kubeconfig.yaml
 
 # XXX: this will go away
-RUN mkdir -p /ambassador/sidecars && \
-    ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py
+RUN mkdir -p /ambassador/sidecars
 
 RUN adduser dw --disabled-password
 # SUDO_USERS HOSTS=(AS_USER) TAGS COMMANDS
@@ -102,8 +101,7 @@ ADD post-compile.sh post-compile.sh
 RUN bash post-compile.sh
 
 # XXX: this will go away
-RUN mkdir -p /ambassador/sidecars && \
-    ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py
+RUN mkdir -p /ambassador/sidecars
 
 # These will be extracted into the optimized image later
 ADD manifests/emissary/emissary-crds.yaml.in manifests/emissary/emissary-crds.yaml
@@ -124,10 +122,6 @@ RUN adduser ambassador -u 8888 -G root -D -H -s /bin/false
 RUN apk --no-cache add bash curl python3=${py_version} libcap htop
 RUN apk upgrade --no-cache
 COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
-
-# Other installers
-COPY --from=artifacts /opt/image-build /opt/image-build
-RUN /opt/image-build/install.sh
 
 # External Python packages we use
 COPY --from=artifacts /usr/lib/python3.11/site-packages /usr/lib/python3.11/site-packages
