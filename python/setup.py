@@ -54,7 +54,6 @@ setup(
         "console_scripts": [
             "ambassador=ambassador_cli.ambassador:main",
             "diagd=ambassador_diag.diagd:main",
-            "grab-snapshots=ambassador_cli.grab_snapshots:main",
         ]
     },
     author="datawire.io",
