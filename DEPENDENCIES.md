@@ -111,7 +111,7 @@ following Free and Open Source software:
     go.starlark.net                                                                   v0.0.0-20230525235612-a134d8f9ddca             3-clause BSD license
     golang.org/x/crypto                                                               v0.15.0                                        3-clause BSD license
     golang.org/x/exp                                                                  v0.0.0-20231006140011-7918f672742d             3-clause BSD license
-    golang.org/x/mod                                                                  v0.13.0                                        3-clause BSD license
+    golang.org/x/mod                                                                  v0.14.0                                        3-clause BSD license
     golang.org/x/net                                                                  v0.18.0                                        3-clause BSD license
     golang.org/x/oauth2                                                               v0.13.0                                        3-clause BSD license
     golang.org/x/sync                                                                 v0.5.0                                         3-clause BSD license
