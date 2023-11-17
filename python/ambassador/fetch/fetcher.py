@@ -430,7 +430,6 @@ spec:
         # services and endpoints together (as it should!!).
         #
         # Note that we currently trust the association ID to contain the datacenter name.
-        # That's a function of the watch_hook putting it there.
 
         normalized_endpoints: Dict[str, List[Dict[str, Any]]] = {}
 

@@ -47,8 +47,7 @@ ENV KUBECONFIG=/buildroot/kubeconfig.yaml
 
 # XXX: this will go away
 RUN mkdir -p /ambassador/sidecars && \
-    ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py && \
-    ln -s /buildroot/ambassador/python/watch_hook.py /ambassador/watch_hook.py
+    ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py
 
 RUN adduser dw --disabled-password
 # SUDO_USERS HOSTS=(AS_USER) TAGS COMMANDS
@@ -104,8 +103,7 @@ RUN bash post-compile.sh
 
 # XXX: this will go away
 RUN mkdir -p /ambassador/sidecars && \
-    ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py && \
-    ln -s /buildroot/ambassador/python/watch_hook.py /ambassador/watch_hook.py
+    ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py
 
 # These will be extracted into the optimized image later
 ADD manifests/emissary/emissary-crds.yaml.in manifests/emissary/emissary-crds.yaml
