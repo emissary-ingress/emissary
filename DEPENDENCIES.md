@@ -171,7 +171,6 @@ libraries:
     certifi             2023.7.22  Mozilla Public License 2.0
     charset-normalizer  3.3.2      MIT license
     click               8.1.7      3-clause BSD license
-    dpath               2.1.6      MIT license
     durationpy          0.5        MIT license
     expiringdict        1.2.2      Apache License 2.0
     gunicorn            21.2.0     MIT license
