@@ -14,8 +14,9 @@ After reading this document if you have questions we encourage you to join us on
 - [Governance](../Community/GOVERNANCE.md)
 - [Maintainers](../Community/MAINTAINERS.md)
 
-**Table of Contents**
+## Table of Contents
 
+- [Table of Contents](#table-of-contents)
 - [Development Setup](#development-setup)
   - [Step 1: Install Build Dependencies](#step-1-install-build-dependencies)
   - [Step 2: Clone Project](#step-2-clone-project)
@@ -54,9 +55,11 @@ After reading this document if you have questions we encourage you to join us on
     - [2. Setting up your workspace to hack on Envoy](#2-setting-up-your-workspace-to-hack-on-envoy)
     - [3. Hacking on Envoy](#3-hacking-on-envoy)
     - [4. Building and testing your hacked-up Envoy](#4-building-and-testing-your-hacked-up-envoy)
-    - [5. Finalizing your changes](#5-finalizing-your-changes)
-    - [6. Checklist for landing the changes](#6-checklist-for-landing-the-changes)
-  - [Developing Emissary-ingress (Ambassador Labs -only advice)](#developing-emissary-ingress-ambassador-labs--only-advice)
+    - [5. Test Devloop](#5-test-devloop)
+    - [6. Protobuf changes](#6-protobuf-changes)
+    - [7. Finalizing your changes](#7-finalizing-your-changes)
+    - [8. Final Checklist](#8-final-checklist)
+  - [Developing Emissary-ingress (Maintainers-only advice)](#developing-emissary-ingress-maintainers-only-advice)
     - [Updating license documentation](#updating-license-documentation)
     - [Upgrading Python dependencies](#upgrading-python-dependencies)
 - [FAQ](#faq)
@@ -70,7 +73,6 @@ After reading this document if you have questions we encourage you to join us on
   - [My editor is changing `go.mod` or `go.sum`, should I commit that?](#my-editor-is-changing-gomod-or-gosum-should-i-commit-that)
   - [How do I debug "This should not happen in CI" errors?](#how-do-i-debug-this-should-not-happen-in-ci-errors)
   - [How do I run Emissary-ingress tests?](#how-do-i-run-emissary-ingress-tests)
-  - [How do I update the python test cache?](#how-do-i-update-the-python-test-cache)
   - [How do I type check my python code?](#how-do-i-type-check-my-python-code)
   - [How do I get the source code for a release?](#how-do-i-get-the-source-code-for-a-release)
 
