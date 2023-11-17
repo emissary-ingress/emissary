@@ -56,7 +56,6 @@ setup(
             "diagd=ambassador_diag.diagd:main",
             "mockery=ambassador_cli.mockery:main",
             "grab-snapshots=ambassador_cli.grab_snapshots:main",
-            "ert=ambassador_cli.ert:main",
         ]
     },
     author="datawire.io",
