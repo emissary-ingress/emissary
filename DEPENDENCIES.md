@@ -34,7 +34,7 @@ following Free and Open Source software:
     github.com/evanphx/json-patch                                                     v5.7.0+incompatible                            3-clause BSD license
     github.com/exponent-io/jsonpath                                                   v0.0.0-20210407135951-1de76d718b3f             MIT license
     github.com/fatih/camelcase                                                        v1.0.0                                         MIT license
-    github.com/fatih/color                                                            v1.15.0                                        MIT license
+    github.com/fatih/color                                                            v1.16.0                                        MIT license
     github.com/fsnotify/fsnotify                                                      v1.7.0                                         3-clause BSD license
     github.com/go-errors/errors                                                       v1.5.1                                         MIT license
     github.com/go-git/gcfg                                                            v1.5.1-0.20230307220236-3a3c6141e376           3-clause BSD license
@@ -57,10 +57,12 @@ following Free and Open Source software:
     github.com/google/uuid                                                            v1.4.0                                         3-clause BSD license
     github.com/gorilla/websocket                                                      v1.5.1                                         3-clause BSD license
     github.com/gregjones/httpcache                                                    v0.0.0-20190611155906-901d90724c79             MIT license
-    github.com/hashicorp/consul/api                                                   v1.25.1                                        Mozilla Public License 2.0
+    github.com/hashicorp/consul/api                                                   v1.26.1                                        Mozilla Public License 2.0
+    github.com/hashicorp/errwrap                                                      v1.1.0                                         Mozilla Public License 2.0
     github.com/hashicorp/go-cleanhttp                                                 v0.5.2                                         Mozilla Public License 2.0
     github.com/hashicorp/go-hclog                                                     v1.5.0                                         MIT license
     github.com/hashicorp/go-immutable-radix                                           v1.3.1                                         Mozilla Public License 2.0
+    github.com/hashicorp/go-multierror                                                v1.1.1                                         Mozilla Public License 2.0
     github.com/hashicorp/go-rootcerts                                                 v1.0.2                                         Mozilla Public License 2.0
     github.com/hashicorp/golang-lru                                                   v1.0.2                                         Mozilla Public License 2.0
     github.com/hashicorp/serf                                                         v0.10.1                                        Mozilla Public License 2.0
@@ -75,7 +77,7 @@ following Free and Open Source software:
     github.com/liggitt/tabwriter                                                      v0.0.0-20181228230101-89fcab3d43de             3-clause BSD license
     github.com/mailru/easyjson                                                        v0.7.7                                         MIT license
     github.com/mattn/go-colorable                                                     v0.1.13                                        MIT license
-    github.com/mattn/go-isatty                                                        v0.0.19                                        MIT license
+    github.com/mattn/go-isatty                                                        v0.0.20                                        MIT license
     github.com/matttproud/golang_protobuf_extensions/v2                               v2.0.0                                         Apache License 2.0
     github.com/mitchellh/copystructure                                                v1.2.0                                         MIT license
     github.com/mitchellh/go-homedir                                                   v1.1.0                                         MIT license
@@ -110,7 +112,7 @@ following Free and Open Source software:
     go.opentelemetry.io/proto/otlp                                                    v1.0.0                                         Apache License 2.0
     go.starlark.net                                                                   v0.0.0-20230525235612-a134d8f9ddca             3-clause BSD license
     golang.org/x/crypto                                                               v0.15.0                                        3-clause BSD license
-    golang.org/x/exp                                                                  v0.0.0-20231006140011-7918f672742d             3-clause BSD license
+    golang.org/x/exp                                                                  v0.0.0-20231110203233-9a3e6036ecaa             3-clause BSD license
     golang.org/x/mod                                                                  v0.14.0                                        3-clause BSD license
     golang.org/x/net                                                                  v0.18.0                                        3-clause BSD license
     golang.org/x/oauth2                                                               v0.13.0                                        3-clause BSD license
@@ -119,7 +121,7 @@ following Free and Open Source software:
     golang.org/x/term                                                                 v0.14.0                                        3-clause BSD license
     golang.org/x/text                                                                 v0.14.0                                        3-clause BSD license
     golang.org/x/time                                                                 v0.4.0                                         3-clause BSD license
-    golang.org/x/tools                                                                v0.14.0                                        3-clause BSD license
+    golang.org/x/tools                                                                v0.15.0                                        3-clause BSD license
     google.golang.org/appengine                                                       v1.6.8                                         Apache License 2.0
     google.golang.org/genproto                                                        v0.0.0-20231030173426-d783a09b4405             Apache License 2.0
     google.golang.org/genproto/googleapis/api                                         v0.0.0-20231030173426-d783a09b4405             Apache License 2.0
