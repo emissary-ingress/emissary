@@ -859,10 +859,6 @@ class SecretHandler:
         still_needed: remember that a given secret is still needed, so that we can tell watt to
         keep paying attention to it.
 
-        The default implementation doesn't do much of anything, because it assumes that we're
-        not running in the watch_hook, so watt has already been told everything it needs to be
-        told. This should be OK for everything that's not the watch_hook.
-
         :param resource: referencing resource
         :param secret_name: name of the secret
         :param namespace: namespace of the secret
@@ -878,8 +874,6 @@ class SecretHandler:
         """
         cache_secret: stash the SecretInfo from load_secret into Ambassador’s internal cache,
         so that we don’t have to call load_secret again if we need it again.
-
-        The default implementation should be usable by everything that's not the watch_hook.
 
         :param resource: referencing resource
         :param secret_info: SecretInfo returned from load_secret
