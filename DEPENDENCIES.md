@@ -131,20 +131,20 @@ following Free and Open Source software:
     gopkg.in/warnings.v0                                                              v0.1.2                                         2-clause BSD license
     gopkg.in/yaml.v2                                                                  v2.4.0                                         Apache License 2.0, MIT license
     gopkg.in/yaml.v3                                                                  v3.0.1                                         Apache License 2.0, MIT license
-    k8s.io/api                                                                        v0.28.3                                        Apache License 2.0
+    k8s.io/api                                                                        v0.28.4                                        Apache License 2.0
     k8s.io/apiextensions-apiserver                                                    v0.28.3                                        Apache License 2.0
-    k8s.io/apimachinery                                                               v0.28.3                                        3-clause BSD license, Apache License 2.0
+    k8s.io/apimachinery                                                               v0.28.4                                        3-clause BSD license, Apache License 2.0
     k8s.io/apiserver                                                                  v0.28.3                                        Apache License 2.0
-    k8s.io/cli-runtime                                                                v0.28.3                                        Apache License 2.0
-    k8s.io/client-go                                                                  v0.28.3                                        3-clause BSD license, Apache License 2.0
+    k8s.io/cli-runtime                                                                v0.28.4                                        Apache License 2.0
+    k8s.io/client-go                                                                  v0.28.4                                        3-clause BSD license, Apache License 2.0
     github.com/emissary-ingress/code-generator (modified from k8s.io/code-generator)  v0.28.0-alpha.0.0.20231105041308-a20b0cd90dea  Apache License 2.0
-    k8s.io/component-base                                                             v0.28.3                                        Apache License 2.0
+    k8s.io/component-base                                                             v0.28.4                                        Apache License 2.0
     k8s.io/gengo                                                                      v0.0.0-20230829151522-9cce18d56c01             Apache License 2.0
     k8s.io/klog/v2                                                                    v2.110.1                                       Apache License 2.0
     k8s.io/kube-openapi                                                               v0.0.0-20231010175941-2dd684a91f00             3-clause BSD license, Apache License 2.0
-    k8s.io/kubectl                                                                    v0.28.3                                        Apache License 2.0
-    k8s.io/kubernetes                                                                 v1.28.3                                        Apache License 2.0
-    k8s.io/metrics                                                                    v0.28.3                                        Apache License 2.0
+    k8s.io/kubectl                                                                    v0.28.4                                        Apache License 2.0
+    k8s.io/kubernetes                                                                 v1.28.4                                        Apache License 2.0
+    k8s.io/metrics                                                                    v0.28.4                                        Apache License 2.0
     k8s.io/utils                                                                      v0.0.0-20230726121419-3b25d923346b             3-clause BSD license, Apache License 2.0
     sigs.k8s.io/controller-runtime                                                    v0.16.3                                        Apache License 2.0
     sigs.k8s.io/controller-tools                                                      v0.13.0                                        Apache License 2.0
