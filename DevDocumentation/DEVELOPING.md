@@ -48,7 +48,6 @@ After reading this document if you have questions we encourage you to join us on
     - [Shutting up the pod labels error](#shutting-up-the-pod-labels-error)
     - [Extra credit](#extra-credit)
   - [Debugging and Developing Envoy Configuration](#debugging-and-developing-envoy-configuration)
-    - [Ambassador Dump](#ambassador-dump)
   - [Making changes to Envoy](#making-changes-to-envoy)
     - [1. Preparing your machine](#1-preparing-your-machine)
     - [2. Setting up your workspace to hack on Envoy](#2-setting-up-your-workspace-to-hack-on-envoy)
@@ -73,7 +72,6 @@ After reading this document if you have questions we encourage you to join us on
   - [How do I debug "This should not happen in CI" errors?](#how-do-i-debug-this-should-not-happen-in-ci-errors)
   - [How do I run Emissary-ingress tests?](#how-do-i-run-emissary-ingress-tests)
   - [How do I type check my python code?](#how-do-i-type-check-my-python-code)
-  - [How do I get the source code for a release?](#how-do-i-get-the-source-code-for-a-release)
 
 ## Development Setup
 
@@ -536,10 +534,7 @@ You should now be able to launch ambassador if you set the
 #### Getting envoy
 
 If you do not have envoy in your path already, the entrypoint will use
-docker to run it. At the moment this is untested for macs which probably
-means it is broken since localhost communication does not work by
-default on macs. This can be made to work as soon an intrepid volunteer
-with a mac reaches out to me (<rhs@datawire.io>).
+docker to run it.
 
 #### Shutting up the pod labels error
 
@@ -569,38 +564,6 @@ the ambassador compiler by running it in kubernetes is very slow since
 we need to push both the code and any relevant kubernetes resources
 into the cluster. The following sections will provide tips for improving
 this development experience.
-
-#### Ambassador Dump
-
-The `ambassador dump` tool is also useful for debugging and hacking on
-the compiler. After running `make shell`, you'll also be able to use
-the `ambassador` CLI, which can export the most import data structures
-that Ambassador works with as JSON.  It works from an input which can
-be either a single file or a directory full of files in the following
-formats:
-
-- raw Ambassador resources; or
-- an annotated Kubernetes resources like you'll find in `/tmp/k8s-AmbassadorTest.yaml` after running `make test`; or
-- a `watt` snapshot like you'll find in the `$AMBASSADOR_CONFIG_BASE_DIR/snapshots/snapshot.yaml` (which is a JSON file, I know, it's misnamed).
-
-Given an input source, running
-
-```bash
-ambassador dump --ir --xds [$input_flags] $input > test.json
-```
-
-will dump the Ambassador IR and v2 Envoy configuration into `test.json`. Here
-`$input_flags` will be
-
-- nothing for raw Ambassador resources;
-- `--k8s` for Kubernetes resources; or
-- `--watt` for a `watt` snapshot.
-
-You can get more information with
-
-```bash
-ambassador dump --help
-```
 
 ### Making changes to Envoy
 
@@ -724,10 +687,9 @@ The Envoy changes with Emissary-ingress:
 
 - Either run `make update-base` to build, and push a new base container and then you can run `make test` for the Emissary-ingress test suite.
 - If you do not want to push the container you can instead:
-   - Build Envoy - `make build-envoy`
-   - Build container - `make build-base-envoy-image` 
-   - Test Emissary - `make test`
-
+  - Build Envoy - `make build-envoy`
+  - Build container - `make build-base-envoy-image`
+  - Test Emissary - `make test`
 
 #### 6. Protobuf changes
 
@@ -965,10 +927,3 @@ Ambassador code should produce *no* warnings and *no* errors.
 If you're concerned that the mypy cache is somehow wrong, delete the
 `.mypy_cache/` directory to clear the cache.
 
-### How do I get the source code for a release?
-
-The current shipping release of Ambassador lives on the `master`
-branch. It is tagged with its version (e.g. `v0.78.0`).
-
-Changes on `master` after the last tag have not been released yet, but
-will be included in the next release of Ambassador.
