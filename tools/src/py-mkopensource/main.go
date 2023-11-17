@@ -70,6 +70,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"smmap", "3.0.4", "BSD"}:                      {BSD3},
 		{"tomli", "2.0.1", ""}:                         {MIT},
 		{"typing_extensions", "4.8.0", ""}:             {PSF},
+		{"urllib3", "2.1.0", ""}:                       {MIT},
 		{"webencodings", "0.5.1", "BSD"}:               {BSD3},
 		{"websocket-client", "0.57.0", "BSD"}:          {BSD3},
 		{"websocket-client", "1.2.3", "Apache-2.0"}:    {Apache2},

@@ -52,7 +52,7 @@ semantic-version==2.10.0
     # via -r requirements.in
 typing-extensions==4.8.0
     # via -r requirements.in
-urllib3==1.26.18
+urllib3==2.1.0
     # via requests
 werkzeug==3.0.1
     # via flask
