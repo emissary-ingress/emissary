@@ -814,8 +814,7 @@ class SecretHandler:
 
     Finally, note that SecretHandler itself is deliberately written to work correctly with
     secrets as they're handed over from watt, which means that it can be instantiated directly
-    and handed to the IR when we're running "for real" in Kubernetes with watt. Other things
-    (like mockery and the watch_hook) use subclasses to manage specific needs that they have.
+    and handed to the IR when we're running "for real" in Kubernetes with watt.
     """
 
     logger: logging.Logger

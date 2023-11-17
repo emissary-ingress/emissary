@@ -14,8 +14,9 @@ After reading this document if you have questions we encourage you to join us on
 - [Governance](../Community/GOVERNANCE.md)
 - [Maintainers](../Community/MAINTAINERS.md)
 
-**Table of Contents**
+## Table of Contents
 
+- [Table of Contents](#table-of-contents)
 - [Development Setup](#development-setup)
   - [Step 1: Install Build Dependencies](#step-1-install-build-dependencies)
   - [Step 2: Clone Project](#step-2-clone-project)
@@ -47,16 +48,17 @@ After reading this document if you have questions we encourage you to join us on
     - [Shutting up the pod labels error](#shutting-up-the-pod-labels-error)
     - [Extra credit](#extra-credit)
   - [Debugging and Developing Envoy Configuration](#debugging-and-developing-envoy-configuration)
-    - [Mockery](#mockery)
     - [Ambassador Dump](#ambassador-dump)
   - [Making changes to Envoy](#making-changes-to-envoy)
     - [1. Preparing your machine](#1-preparing-your-machine)
     - [2. Setting up your workspace to hack on Envoy](#2-setting-up-your-workspace-to-hack-on-envoy)
     - [3. Hacking on Envoy](#3-hacking-on-envoy)
     - [4. Building and testing your hacked-up Envoy](#4-building-and-testing-your-hacked-up-envoy)
-    - [5. Finalizing your changes](#5-finalizing-your-changes)
-    - [6. Checklist for landing the changes](#6-checklist-for-landing-the-changes)
-  - [Developing Emissary-ingress (Ambassador Labs -only advice)](#developing-emissary-ingress-ambassador-labs--only-advice)
+    - [5. Test Devloop](#5-test-devloop)
+    - [6. Protobuf changes](#6-protobuf-changes)
+    - [7. Finalizing your changes](#7-finalizing-your-changes)
+    - [8. Final Checklist](#8-final-checklist)
+  - [Developing Emissary-ingress (Maintainers-only advice)](#developing-emissary-ingress-maintainers-only-advice)
     - [Updating license documentation](#updating-license-documentation)
     - [Upgrading Python dependencies](#upgrading-python-dependencies)
 - [FAQ](#faq)
@@ -70,7 +72,6 @@ After reading this document if you have questions we encourage you to join us on
   - [My editor is changing `go.mod` or `go.sum`, should I commit that?](#my-editor-is-changing-gomod-or-gosum-should-i-commit-that)
   - [How do I debug "This should not happen in CI" errors?](#how-do-i-debug-this-should-not-happen-in-ci-errors)
   - [How do I run Emissary-ingress tests?](#how-do-i-run-emissary-ingress-tests)
-  - [How do I update the python test cache?](#how-do-i-update-the-python-test-cache)
   - [How do I type check my python code?](#how-do-i-type-check-my-python-code)
   - [How do I get the source code for a release?](#how-do-i-get-the-source-code-for-a-release)
 
@@ -568,76 +569,6 @@ the ambassador compiler by running it in kubernetes is very slow since
 we need to push both the code and any relevant kubernetes resources
 into the cluster. The following sections will provide tips for improving
 this development experience.
-
-#### Mockery
-
-Fortunately we have the `mockery` tool which lets us run the compiler
-code directly on kubernetes resources without having to push that code
-or the relevant kubernetes resources into the cluster. This is the
-fastest way to hack on and debug the compiler.
-
-The `mockery` tool runs inside the Docker container used to build
-Ambassador, using `make shell`, so it's important to realize that it
-won't have access to your entire filesystem. There are two easy ways
-to arrange to get data in and out of the container:
-
-1. If you `make sync`, everything in the Ambassador source tree gets rsync'd
-   into the container's `/buildroot/ambassador`. The first time you start the
-   shell, this can take a bit, but after that it's pretty fast. You'll
-   probably need to use `docker cp` to get data out of the container, though.
-
-2. You may be able to use Docker volume mounts by exporting `BUILDER_MOUNTS`
-   with the appropriate `-v` switches before running `make shell` -- e.g.
-
-    ```bash
-    export BUILDER_MOUNTS=$(pwd)/xfer:/xfer
-    make shell
-    ```
-
-   will cause the dev shell to mount `xfer` in your current directory as `/xfer`.
-   This is known to work well on MacOS (though volume mounts are slow on Mac,
-   so moving gigabytes of data around this way isn't ideal).
-
-Once you've sorted out how to move data around:
-
-1. Put together a set of Ambassador configuration CRDs in a file that's somewhere
-   that you'll be able to get them into the builder container. The easy way to do
-   this is to use the files you'd feed to `kubectl apply`; they should be actual
-   Kubernetes objects with `metadata` and `spec` sections, etc. (If you want to
-   use annotations, that's OK too, just put the whole `Service` object in there.)
-
-2. Run `make compile shell` to build everything and start the dev shell.
-
-3. From inside the build shell, run
-
-   ```bash
-   mockery $path_to_your_file
-   ```
-
-   If you're using a non-default `ambassador_id` you need to provide it in the
-   environment:
-
-   ```bash
-   AMBASSADOR_ID=whatever mockery $path_to_your_file
-   ```
-
-   Finally, if you're trying to mimic `KAT`, copy the `/tmp/k8s-AmbassadorTest.yaml`
-   file from a KAT run to use as input, then
-
-   ```bash
-   mockery --kat $kat_test_name $path_to_k8s_AmbassadorTest.yaml
-   ```
-
-   where `$kat_test_name` is the class name of a `KAT` test class, like `LuaTest` or
-   `TLSContextTest`.
-
-4. Once it's done, `/tmp/ambassador/snapshots` will have all the output from the
-   compiler phase of Ambassador.
-
-The point of `mockery` is that it mimics the configuration cycle of real Ambassador,
-without relying at all on a Kubernetes cluster. This means that you can easily and
-quickly take a Kubernetes input and look at the generated Envoy configuration without
-any other infrastructure.
 
 #### Ambassador Dump
 
