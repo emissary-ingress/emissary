@@ -85,7 +85,7 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
-## [3.9.1] November 17, 2023
+## [3.9.1] November 20, 2023
 [3.9.1]: https://github.com/emissary-ingress/emissary/compare/v3.9.0...v3.9.1
 
 ### Emissary-ingress and Ambassador Edge Stack

@@ -34,7 +34,7 @@ changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.
 items:
   - version: 3.9.1
     prevVersion: 3.9.0
-    date: '2023-11-17'
+    date: '2023-11-20'
     notes:
       - title: Fix Route Shifting Bug
         type: bugfix
