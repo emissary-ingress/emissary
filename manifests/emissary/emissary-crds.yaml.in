@@ -5238,7 +5238,7 @@ rules:
     resources: [ "customresourcedefinitions" ]
     verbs: [ "list", "watch" ]
   - apiGroups: [ "apiextensions.k8s.io" ]
-    resources: [ "customresourcedefinitions" ]
+    resources: [ "customresourcedefinitions", "customresourcedefinitions/status" ]
     resourceNames:
       - authservices.getambassador.io
       - consulresolvers.getambassador.io
