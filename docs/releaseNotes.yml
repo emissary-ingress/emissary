@@ -36,6 +36,14 @@ items:
     prevVersion: 3.9.0
     date: 'TBD'
     notes: 
+      - title: Upgrade to Envoy 1.28.0
+        type: feature
+        body: >-
+          This upgrades $productName$ to be built on Envoy v1.28.0 which provides security, performance 
+          and feature enhancements. You can read more about them here: 
+          <a href="https://www.envoyproxy.io/docs/envoy/v1.28.0/version_history/version_history">Envoy Proxy 1.28.0 Release Notes</a>
+        docs: https://www.envoyproxy.io/docs/envoy/v1.28.0/version_history/version_history
+        
       - title: Remove Ambassador Agent from published YAML Manifest
         type: change
         body: >-
@@ -43,6 +51,12 @@ items:
           This is an optional component that provides additional features on top of $productName$ and we recommend
           installing it using the instructions found in the <a href="https://github.com/datawire/ambassador-agenty">Ambassador Agent Repo</a>.
         docs: https://github.com/datawire/ambassador-agent
+      
+      - title: Update to golang 1.21.5
+        type: change
+        body: >-
+          Upgraded $productName$ to the latest release of Golang as part of our general dependency upgrade process.
+      
 
 
   - version: 3.9.0

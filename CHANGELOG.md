@@ -90,10 +90,18 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Feature: This upgrades Emissary-ingress to be built on Envoy v1.28.0 which provides security,
+  performance  and feature enhancements. You can read more about them here:  <a
+  href="https://www.envoyproxy.io/docs/envoy/v1.28.0/version_history/version_history">Envoy Proxy
+  1.28.0 Release Notes</a>
+
 - Change: Emissary-ingress will no longer publish YAML manifest with the Ambassador Agent being
   installed by default. This is an optional component that provides additional features on top of
   Emissary-ingress and we recommend installing it using the instructions found in the <a
   href="https://github.com/datawire/ambassador-agenty">Ambassador Agent Repo</a>.
+
+- Change: Upgraded Emissary-ingress to the latest release of Golang as part of our general
+  dependency upgrade process.
 
 ## [3.9.0] November 13, 2023
 [3.9.0]: https://github.com/emissary-ingress/emissary/compare/v3.8.0...v3.9.0
