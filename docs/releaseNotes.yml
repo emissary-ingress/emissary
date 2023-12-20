@@ -57,6 +57,10 @@ items:
         body: >-
           Upgraded $productName$ to the latest release of Golang as part of our general dependency upgrade process.
       
+      - title: APIExt renews expired webhook certificates
+        type: change
+        body: >-
+          APIExt would previously use expired TLS certficates.  Now it automatically renews expired certificates.
 
 
   - version: 3.9.0

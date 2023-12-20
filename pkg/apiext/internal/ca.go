@@ -53,6 +53,7 @@ func EnsureCA(ctx context.Context, restConfig *rest.Config, namespace string) (*
 	}
 	secretsClient := coreClient.Secrets(namespace)
 
+	certExistsAndNeedsRenew := false
 	for ctx.Err() == nil {
 		// Does It already exist?
 		caSecret, err := secretsClient.Get(ctx, caSecretName, k8sTypesMetaV1.GetOptions{})
@@ -61,9 +62,13 @@ func EnsureCA(ctx context.Context, restConfig *rest.Config, namespace string) (*
 			if err != nil {
 				return nil, nil, err
 			}
-			return ca, caSecret, nil
-		}
-		if !k8sErrors.IsNotFound(err) {
+
+			if time.Now().After(ca.Cert.NotBefore) && time.Now().Before(ca.Cert.NotAfter) {
+				return ca, caSecret, nil
+			}
+			dlog.Warnf(ctx, "Will try to replace cert not valid before %s and after %s", ca.Cert.NotBefore, ca.Cert.NotAfter)
+			certExistsAndNeedsRenew = true
+		} else if !k8sErrors.IsNotFound(err) {
 			return nil, nil, err
 		}
 
@@ -72,7 +77,13 @@ func EnsureCA(ctx context.Context, restConfig *rest.Config, namespace string) (*
 		if err != nil {
 			return nil, nil, err
 		}
-		caSecret, err = secretsClient.Create(ctx, caSecret, k8sTypesMetaV1.CreateOptions{})
+
+		// Generate a new cert.
+		if certExistsAndNeedsRenew {
+			caSecret, err = secretsClient.Update(ctx, caSecret, k8sTypesMetaV1.UpdateOptions{})
+		} else {
+			caSecret, err = secretsClient.Create(ctx, caSecret, k8sTypesMetaV1.CreateOptions{})
+		}
 		if err == nil {
 			ca, err := parseCA(caSecret)
 			if err != nil {
