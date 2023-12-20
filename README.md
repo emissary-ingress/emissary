@@ -12,13 +12,13 @@ Emissary-ingress
 [badge-docker-img]: https://img.shields.io/docker/pulls/emissaryingress/emissary
 [badge-docker-link]: https://hub.docker.com/r/emissaryingress/emissary
 [badge-slack-img]: https://img.shields.io/badge/slack-join-orange.svg
-[badge-slack-link]: https://a8r.io/slack
+[badge-slack-link]: https://communityinviter.com/apps/cloud-native/cncf
 [badge-cii-img]: https://bestpractices.coreinfrastructure.org/projects/1852/badge
 [badge-cii-link]: https://bestpractices.coreinfrastructure.org/projects/1852
 
 <!-- Links are (mostly) at the end of this document, for legibility. -->
 
-[Emissary-Ingress](https://www.getambassador.io) is an open-source Kubernetes-native API Gateway +
+[Emissary-Ingress](https://www.getambassador.io/docs/open-source) is an open-source Kubernetes-native API Gateway +
 Layer 7 load balancer + Kubernetes Ingress built on [Envoy Proxy](https://www.envoyproxy.io).
 Emissary-ingress is a CNCF incubation project (and was formerly known as Ambassador API Gateway).
 
@@ -32,7 +32,7 @@ Emissary-ingress enables its users to:
 * Connect service meshes including [Consul], [Linkerd], and [Istio]
 * [Knative serverless integration]
 
-See the full list of [features](https://www.getambassador.io/features/) here.
+See the full list of [features](https://www.getambassador.io/docs/emissary) here.
 
 Branches
 ========
@@ -64,7 +64,7 @@ You can also use Helm to install Emissary. For more information, see the instruc
 
 Check out full the [Emissary
 documentation](https://www.getambassador.io/docs/emissary/) at
-www.getambassador.io.
+www.getambassador.io/docs/open-source.
 
 Community
 =========
@@ -82,8 +82,8 @@ the way the community is run, including:
    regular trouble-shooting meetings and contributor meetings
  - how to get [`SUPPORT.md`](Community/SUPPORT.md).
 
-The best way to join the community is to join our [Slack
-channel](https://a8r.io/slack).
+The best way to join the community is to join the [CNCF Slack](https://communityinviter.com/apps/cloud-native/cncf)
+#emissary-ingress channel.
 
 Check out the [`DevDocumentation/`](DevDocumentation/) directory for
 information on the technicals of Emissary, most notably the

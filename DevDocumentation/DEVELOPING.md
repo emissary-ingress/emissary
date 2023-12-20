@@ -8,7 +8,7 @@ This document is intended for developers looking to contribute to the Emissary-i
 
 > Looking for end user guides for Emissary-ingress? You can check out the end user guides at <https://www.getambassador.io/docs/emissary/>.
 
-After reading this document if you have questions we encourage you to join us on our [Slack channel](https://d6e.co/slack) in the [#emissary-dev](https://datawire-oss.slack.com/archives/CB46TNG83) channel.
+After reading this document if you have questions we encourage you to join us on our [Slack channel](https://communityinviter.com/apps/cloud-native/cncf) in the #emissary-ingress channel.
 
 - [Code of Conduct](../Community/CODE_OF_CONDUCT.md)
 - [Governance](../Community/GOVERNANCE.md)
@@ -617,7 +617,7 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
    Emissary does not claim to be FIPS compliant or certified.
    See [here](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/security/ssl#fips-140-2) for more information on FIPS and Envoy.
 
-> _NOTE:_ FIPS_MODE is NOT supported by the emissary-ingress maintainers but we provide this for developers as convience 
+> _NOTE:_ FIPS_MODE is NOT supported by the emissary-ingress maintainers but we provide this for developers as convience
 
 #### 3. Hacking on Envoy
 
@@ -643,12 +643,12 @@ Multiple Phony targets are provided so that developers can run the steps they ar
 
 #### 5. Test Devloop
 
-Running the Envoy test suite will compile all the test targets. This is a slow process and can use lots of disk space. 
+Running the Envoy test suite will compile all the test targets. This is a slow process and can use lots of disk space.
 
 The Envoy Inner Devloop for build and testing:
 
 - You can make a change to Envoy code and run the whole test by just calling `make check-envoy`
-- You can run a specific test instead of the whole test suite by setting the `ENVOY_TEST_LABEL` environment variable. 
+- You can run a specific test instead of the whole test suite by setting the `ENVOY_TEST_LABEL` environment variable.
   - For example, to run just the unit tests in `test/common/network/listener_impl_test.cc`, you should run:
 
    ```shell
@@ -693,7 +693,7 @@ The Envoy changes with Emissary-ingress:
 
 #### 6. Protobuf changes
 
-If you made any changes to the Protocol Buffer files or if you bumped versions of Envoy then you 
+If you made any changes to the Protocol Buffer files or if you bumped versions of Envoy then you
 should make sure that you are re-compiling the Protobufs so that they are available and checked-in
 to the emissary.git repository.
 
