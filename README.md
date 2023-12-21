@@ -62,7 +62,7 @@ For other common questions, view this [FAQ page](https://www.getambassador.io/do
 
 You can also use Helm to install Emissary. For more information, see the instructions in the [Helm installation documentation](https://www.getambassador.io/docs/emissary/latest/topics/install/helm/)
 
-Check out full the [Emissary
+Check out the full [Emissary
 documentation](https://www.getambassador.io/docs/emissary/) at
 www.getambassador.io/docs/open-source.
 
