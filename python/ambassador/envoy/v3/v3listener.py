@@ -380,8 +380,7 @@ class V3Listener:
             if tracing_config and tracing_config.driver == "envoy.tracers.datadog":
                 log_format["dd.trace_id"] = "%REQ(X-DATADOG-TRACE-ID)%"
                 log_format["dd.span_id"] = "%REQ(X-DATADOG-PARENT-ID)%"
-
-            return log_format
+        return log_format
 
     # access_log constructs the access_log configuration for this V3Listener
     def access_log(self) -> List[dict]:
@@ -434,6 +433,7 @@ class V3Listener:
                     },
                 }
             )
+
         # Use sane access log spec in Typed JSON
         elif self.config.ir.ambassador_module.envoy_log_type.lower() == "typed_json":
             log_format = V3Listener.json_helper(self)
