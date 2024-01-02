@@ -141,7 +141,6 @@ class V3Ready(dict):
                 if tracing_config and tracing_config.driver == "envoy.tracers.datadog":
                     log_format["dd.trace_id"] = "%REQ(X-DATADOG-TRACE-ID)%"
                     log_format["dd.span_id"] = "%REQ(X-DATADOG-PARENT-ID)%"
-
             access_log.append(
                 {
                     "name": "envoy.access_loggers.file",
@@ -149,6 +148,50 @@ class V3Ready(dict):
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
                         "path": config.ir.ambassador_module.envoy_log_path,
                         "json_format": log_format,
+                    },
+                }
+            )
+        # Use sane access log spec in Typed JSON
+        elif config.ir.ambassador_module.envoy_log_type.lower() == "typed_json":
+            log_format = config.ir.ambassador_module.get("envoy_log_format", None)
+            if log_format is None:
+                log_format = {
+                    "start_time": "%START_TIME%",
+                    "method": "%REQ(:METHOD)%",
+                    "path": "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%",
+                    "protocol": "%PROTOCOL%",
+                    "response_code": "%RESPONSE_CODE%",
+                    "response_flags": "%RESPONSE_FLAGS%",
+                    "bytes_received": "%BYTES_RECEIVED%",
+                    "bytes_sent": "%BYTES_SENT%",
+                    "duration": "%DURATION%",
+                    "upstream_service_time": "%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%",
+                    "x_forwarded_for": "%REQ(X-FORWARDED-FOR)%",
+                    "user_agent": "%REQ(USER-AGENT)%",
+                    "request_id": "%REQ(X-REQUEST-ID)%",
+                    "authority": "%REQ(:AUTHORITY)%",
+                    "upstream_host": "%UPSTREAM_HOST%",
+                    "upstream_cluster": "%UPSTREAM_CLUSTER%",
+                    "upstream_local_address": "%UPSTREAM_LOCAL_ADDRESS%",
+                    "downstream_local_address": "%DOWNSTREAM_LOCAL_ADDRESS%",
+                    "downstream_remote_address": "%DOWNSTREAM_REMOTE_ADDRESS%",
+                    "requested_server_name": "%REQUESTED_SERVER_NAME%",
+                    "istio_policy_status": "%DYNAMIC_METADATA(istio.mixer:status)%",
+                    "upstream_transport_failure_reason": "%UPSTREAM_TRANSPORT_FAILURE_REASON%",
+                }
+
+                tracing_config = config.ir.tracing
+                if tracing_config and tracing_config.driver == "envoy.tracers.datadog":
+                    log_format["dd.trace_id"] = "%REQ(X-DATADOG-TRACE-ID)%"
+                    log_format["dd.span_id"] = "%REQ(X-DATADOG-PARENT-ID)%"
+
+            access_log.append(
+                {
+                    "name": "envoy.access_loggers.file",
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
+                        "path": config.ir.ambassador_module.envoy_log_path,
+                        "typed_json_format": log_format,
                     },
                 }
             )

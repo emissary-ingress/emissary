@@ -141,7 +141,7 @@ type AmbassadorConfigSpec struct {
 	// run a custom lua script on every request. see below for more details.
 	LuaScripts string `json:"lua_scripts,omitempty"`
 
-	// +kubebuilder:validation:Enum={"text", "json"}
+	// +kubebuilder:validation:Enum={"text", "json", "typed_json"}
 	EnvoyLogType string `json:"envoy_log_type,omitempty"`
 
 	// envoy_log_path defines the path of log envoy will use. By default this is standard output

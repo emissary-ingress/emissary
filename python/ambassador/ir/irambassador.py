@@ -382,9 +382,20 @@ class IRAmbassador(IRResource):
                 )
                 self["envoy_log_format"] = {}
                 return False
+        elif self.get("envoy_log_type") == "typed_json":
+            if self.get("envoy_log_format", None) is not None and not isinstance(
+                self.get("envoy_log_format"), dict
+            ):
+                self.post_error(
+                    "envoy_log_type 'typed_json' requires a dictionary in envoy_log_format: {}, invalidating...".format(
+                        self.get("envoy_log_format")
+                    )
+                )
+                self["envoy_log_format"] = {}
+                return False
         else:
             self.post_error(
-                "Invalid log_type specified: {}. Supported: json, text".format(
+                "Invalid log_type specified: {}. Supported: json, text, typed_json".format(
                     self.get("envoy_log_type")
                 )
             )
