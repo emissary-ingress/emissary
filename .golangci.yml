@@ -15,10 +15,6 @@ linters-settings:
     rules:
       main:
         deny:
-          - pkg: "log"
-            desc: "Use `github.com/datawire/dlib/dlog` instead of `log`"
-          - pkg: "github.com/sirupsen/logrus"
-            desc: "Use `github.com/datawire/dlib/dlog` instead of `github.com/sirupsen/logrus`"
           - pkg: "github.com/datawire/dlib/dutil"
             desc: "Use either `github.com/datawire/dlib/derror` or `github.com/datawire/dlib/dhttp` instead of `github.com/datawire/dlib/dutil`"
           - pkg: "github.com/gogo/protobuf"
