@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	apiextdefaults "github.com/emissary-ingress/emissary/v3/pkg/apiext/defaults"
+	apiextpath "github.com/emissary-ingress/emissary/v3/pkg/apiext/path"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
@@ -11,12 +13,18 @@ const (
 	TargetAPIServerKubectl  = "apiserver-kubectl"
 	TargetAPIServerKAT      = "apiserver-kat"
 	TargetInternalValidator = "internal-validator"
+	TargetAPIExtDeployment  = "apiext-deployment"
+	TargetAPIExtCRDs        = "apiext-crds"
+	TargetAPIExtRBAC        = "apiext-rbac"
 )
 
 var Targets = []string{
 	TargetAPIServerKubectl,
 	TargetAPIServerKAT,
 	TargetInternalValidator,
+	TargetAPIExtDeployment,
+	TargetAPIExtCRDs,
+	TargetAPIExtRBAC,
 }
 
 // Like apiext.CustomResourceDefinition, but we have a little more
@@ -102,25 +110,59 @@ func FixCRD(args Args, crd *CRD) error {
 
 	// fix conversion
 	if len(crd.Spec.Versions) > 1 {
+		port := int32(443)
+		path := apiextpath.WebhooksCrdConvert
 		crd.Spec.Conversion = &apiext.CustomResourceConversion{
 			Strategy: apiext.WebhookConverter,
 			Webhook: &apiext.WebhookConversion{
-				// 'ClientConfig' will get overwritten by Emissary's 'apiext'
-				// controller.
 				ClientConfig: &apiext.WebhookClientConfig{
 					Service: &apiext.ServiceReference{
 						Name:      apiextSvcName,
-						Namespace: namespace,
+						Namespace: apiextdefaults.WebhookCASecretNamespace,
+						Port:      &port,
+						Path:      &path,
 					},
 				},
-				// Which versions of the conversion API our webhook supports.  Since
-				// we use sigs.k8s.io/controller-runtime/pkg/webhook/conversion to
-				// implement the webhook this list should be kept in-sync with what
-				// that package supports.
 				ConversionReviewVersions: []string{"v1"},
 			},
 		}
 	}
 
 	return nil
+}
+
+func canWriteCRDs(target string) bool {
+	switch target {
+	case TargetAPIExtRBAC, TargetAPIExtDeployment:
+		return false
+	default:
+		return true
+	}
+}
+
+func canWriteNamespace(target string) bool {
+	switch target {
+	case TargetAPIServerKubectl, TargetAPIServerKAT:
+		return true
+	default:
+		return false
+	}
+}
+
+func canWriteRBAC(target string) bool {
+	switch target {
+	case TargetAPIServerKubectl, TargetAPIServerKAT, TargetAPIExtRBAC:
+		return true
+	default:
+		return false
+	}
+}
+
+func canWriteDeployment(target string) bool {
+	switch target {
+	case TargetAPIServerKubectl, TargetAPIServerKAT, TargetAPIExtDeployment:
+		return true
+	default:
+		return false
+	}
 }

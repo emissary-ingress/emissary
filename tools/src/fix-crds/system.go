@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 
 	"github.com/spf13/pflag"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -26,6 +27,7 @@ func inArray(needle string, haystack []string) bool {
 
 type Args struct {
 	Target     string
+	Image      string
 	InputFiles []*os.File
 }
 
@@ -35,6 +37,7 @@ func ParseArgs(strs ...string) (Args, error) {
 	flagset := pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
 	var help bool
 	flagset.StringVar(&args.Target, "target", "", fmt.Sprintf("What will be consuming the YAML; one of %q", Targets))
+	flagset.StringVar(&args.Image, "image", "", fmt.Sprintf("Explicitly set the image when target: %q", TargetAPIExtDeployment))
 	flagset.BoolVarP(&help, "help", "h", false, "Display this help text")
 	err := flagset.Parse(strs)
 	if help {
@@ -52,6 +55,10 @@ func ParseArgs(strs ...string) (Args, error) {
 
 	if !inArray(args.Target, Targets) {
 		return Args{}, fmt.Errorf("invalid --target=%q, valid values are %q", args.Target, Targets)
+	}
+
+	if args.Target == TargetAPIExtDeployment && args.Image == "" {
+		return Args{}, fmt.Errorf("--target=%q, requires setting --image flag", args.Target)
 	}
 
 	for _, path := range flagset.Args() {
@@ -139,13 +146,47 @@ func Main(args Args, output io.Writer) error {
 		crdNames = append(crdNames, crds[i].Metadata.Name)
 	}
 
+	sort.Strings(crdNames)
+	templateData := buildTemplateData(args, crdNames)
+
+	if canWriteCRDs(args.Target) {
+		if err := writeCRDs(output, crds); err != nil {
+			return err
+		}
+	}
+
+	if canWriteNamespace(args.Target) {
+		if err := writeAPIExtNamespace(output, templateData); err != nil {
+			return err
+		}
+	}
+
+	if canWriteRBAC(args.Target) {
+		if err := writeAPIExtRBAC(output, templateData); err != nil {
+			return err
+		}
+	}
+
+	if canWriteDeployment(args.Target) {
+		if err := writeAPIExtDeployment(output, templateData); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func writeCRDs(output io.Writer, crds []CRD) error {
 	if _, err := io.WriteString(output, "# GENERATED FILE: edits made by hand will not be preserved.\n"); err != nil {
 		return err
 	}
-	for _, crd := range crds {
-		if _, err := io.WriteString(output, "---\n"); err != nil {
-			return err
+	for i, crd := range crds {
+		if i != 0 {
+			if _, err := io.WriteString(output, "---\n"); err != nil {
+				return err
+			}
 		}
+
 		yamlbytes, err := yaml.Marshal(crd)
 		if err != nil {
 			return err
@@ -154,10 +195,6 @@ func Main(args Args, output io.Writer) error {
 			return err
 		}
 	}
-	if err := writeAPIExt(output, args, crdNames); err != nil {
-		return err
-	}
-
 	return nil
 }
 

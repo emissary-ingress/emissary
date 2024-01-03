@@ -1,5 +1,4 @@
 # GENERATED FILE: edits made by hand will not be preserved.
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -14,6 +13,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -414,6 +415,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -559,6 +562,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -950,6 +955,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -1594,6 +1601,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -1730,6 +1739,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -2057,6 +2068,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -2293,6 +2306,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -4108,6 +4123,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -4252,6 +4269,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -4507,6 +4526,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -4820,6 +4841,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -5091,6 +5114,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
