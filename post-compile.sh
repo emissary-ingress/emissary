@@ -3,7 +3,6 @@ set -e
 
 busyprograms=(
     kubestatus
-    apiext
 )
 sudo install -D -t /opt/ambassador/bin/ /buildroot/bin/busyambassador
 for busyprogram in "${busyprograms[@]}"; do
@@ -16,3 +15,4 @@ for busyprogram in "${busyprograms[@]}"; do
 done
 
 sudo install /buildroot/bin/capabilities_wrapper /opt/ambassador/bin/wrapper
+sudo install /buildroot/bin/apiext /opt/ambassador/bin/apiext

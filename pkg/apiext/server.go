@@ -2,80 +2,85 @@ package apiext
 
 import (
 	"context"
-	"os"
-	"strings"
+	"crypto/tls"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"time"
 
-	"github.com/datawire/dlib/dgroup"
-	"github.com/datawire/dlib/dlog"
-	apiext "github.com/emissary-ingress/emissary/v3/pkg/apiext/internal"
-	"github.com/emissary-ingress/emissary/v3/pkg/busy"
-	"github.com/emissary-ingress/emissary/v3/pkg/k8s"
-	"github.com/emissary-ingress/emissary/v3/pkg/logutil"
+	"github.com/go-logr/zapr"
+	"golang.org/x/sync/errgroup"
+
+	"github.com/emissary-ingress/emissary/v3/pkg/apiext/defaults"
+	"github.com/emissary-ingress/emissary/v3/pkg/apiext/internal/ca"
+	cacertcontroller "github.com/emissary-ingress/emissary/v3/pkg/apiext/internal/controller/cacert"
+	crdcontroller "github.com/emissary-ingress/emissary/v3/pkg/apiext/internal/controller/crd"
+	cacertrunnable "github.com/emissary-ingress/emissary/v3/pkg/apiext/internal/runnable/cacert"
+	"github.com/emissary-ingress/emissary/v3/pkg/apiext/path"
+	corev1 "k8s.io/api/core/v1"
+	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/klog/v2"
+	ctrl "sigs.k8s.io/controller-runtime"
+
+	"go.uber.org/zap"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/conversion"
 )
 
-// podNamespace determines the current Pods namespace
-//
-// Logic is borrowed from "k8s.io/client-go/tools/clientcmd".inClusterConfig.Namespace()
-func podNamespace() string {
-	// This way assumes you've set the POD_NAMESPACE environment variable using the downward API.
-	// This check has to be done first for backwards compatibility with the way InClusterConfig was originally set up
-	if ns := os.Getenv("POD_NAMESPACE"); ns != "" {
-		return ns
-	}
-
-	// Fall back to the namespace associated with the service account token, if available
-	if data, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace"); err == nil {
-		if ns := strings.TrimSpace(string(data)); len(ns) > 0 {
-			return ns
-		}
-	}
-
-	return "default"
-}
+const (
+	leaderElectionID = "emissary-ca-mgr-leader"
+)
 
 // Webhook provides a simple abstraction for apiext webhook server
 type WebhookRunner interface {
 	Run(ctx context.Context, resourceScheme *runtime.Scheme) error
 }
 
-// WebhookServerConfig provides settings to configure the WebhookServer at runtime.
-type WebhookServerConfig struct {
-	Namespace   string
-	ServiceName string
-	HTTPPort    int
-	HTTPSPort   int
-}
-
 type WebhookServer struct {
-	namespace   string
-	serviceName string
-	httpPort    int
-	httpsPort   int
+	logger               *zap.Logger
+	certificateAuthority ca.CertificateAuthority
+	namespace            string
+	serviceSettings      types.NamespacedName
+	caSecretSettings     types.NamespacedName
+	httpPort             int
+	httpsPort            int
+
+	caMgmtEnabled       bool
+	crdPatchMgmtEnabled bool
 }
 
-func NewWebhookServer(config WebhookServerConfig) *WebhookServer {
+func NewWebhookServer(logger *zap.Logger, serviceName string, options ...WebhookOption) *WebhookServer {
 	server := &WebhookServer{
-		namespace:   config.Namespace,
-		serviceName: config.ServiceName,
-		httpPort:    config.HTTPPort,
-		httpsPort:   config.HTTPSPort,
+		logger:               logger,
+		certificateAuthority: ca.NewAPIExtCertificateAuthority(logger),
+		namespace:            podNamespace(),
+		httpPort:             8080,
+		httpsPort:            8443,
+		caMgmtEnabled:        true,
+		crdPatchMgmtEnabled:  true,
 	}
 
-	if server.namespace == "" {
-		server.namespace = podNamespace()
+	for _, optFn := range options {
+		optFn(server)
 	}
 
-	if server.httpPort == 0 {
-		server.httpPort = 8080
+	server.caSecretSettings = types.NamespacedName{
+		Namespace: server.namespace,
+		Name:      defaults.WebhookCASecretName,
 	}
 
-	if server.httpsPort == 0 {
-		server.httpsPort = 8443
-	}
-
-	if server.serviceName == "" {
-		server.serviceName = "emissary-apiext"
+	server.serviceSettings = types.NamespacedName{
+		Namespace: server.namespace,
+		Name:      serviceName,
 	}
 
 	return server
@@ -83,42 +88,187 @@ func NewWebhookServer(config WebhookServerConfig) *WebhookServer {
 
 // Run the Emissary-ingress apiext conversion webhook using the provided configuration
 func (s *WebhookServer) Run(ctx context.Context, scheme *runtime.Scheme) error {
-	if lvl, err := logutil.ParseLogLevel(os.Getenv("APIEXT_LOGLEVEL")); err == nil {
-		busy.SetLogLevel(lvl)
+	if err := corev1.AddToScheme(scheme); err != nil {
+		return err
 	}
-	dlog.Infof(ctx, "APIEXT_LOGLEVEL=%v", busy.GetLogLevel())
 
-	kubeinfo := k8s.NewKubeInfo("", "", "")
-	restConfig, err := kubeinfo.GetRestConfig()
+	if err := apiextv1.AddToScheme(scheme); err != nil {
+		return err
+	}
+
+	zaprLogger := zapr.NewLoggerWithOptions(s.logger)
+	ctrl.SetLogger(zaprLogger)
+	klog.SetLogger(zaprLogger)
+
+	k8sConfig, err := config.GetConfig()
 	if err != nil {
 		return err
 	}
 
-	ca, caSecret, err := apiext.EnsureCA(ctx, restConfig, s.namespace)
+	leaderElectionEnabled := s.isLeaderElectionEnabled()
+	s.logger.Info("leader election support", zap.Bool("enabled", leaderElectionEnabled))
+
+	mgr, err := manager.New(k8sConfig, manager.Options{
+		Scheme:                        scheme,
+		LeaderElection:                leaderElectionEnabled,
+		LeaderElectionID:              leaderElectionID,
+		LeaderElectionNamespace:       s.namespace,
+		LeaderElectionReleaseOnCancel: true,
+		Metrics:                       server.Options{BindAddress: "0"},
+		Cache:                         createCacheOptions(s.namespace),
+	})
 	if err != nil {
 		return err
 	}
 
-	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{
-		EnableSignalHandling: true,
+	caCertController := cacertcontroller.NewCACertController(
+		mgr.GetClient(),
+		s.logger,
+		s.certificateAuthority,
+		cacertcontroller.WithCASecretSettings(s.caSecretSettings),
+	)
+	if err := caCertController.SetupWithManager(mgr); err != nil {
+		return err
+	}
+
+	if s.caMgmtEnabled {
+		crdCAController := crdcontroller.NewCRDPatchController(mgr.GetClient(), s.logger,
+			s.certificateAuthority,
+			s.serviceSettings,
+			s.caSecretSettings,
+		)
+		if err := crdCAController.SetupWithManager(mgr); err != nil {
+			return err
+		}
+	}
+
+	if s.crdPatchMgmtEnabled {
+		caCertMgr := cacertrunnable.NewCACertManager(s.logger, mgr.GetClient())
+		if err := mgr.Add(caCertMgr); err != nil {
+			return err
+		}
+	}
+
+	grp, gctx := errgroup.WithContext(ctx)
+
+	grp.Go(func() error {
+		return mgr.Start(gctx)
 	})
 
-	grp.Go("configure-crds", func(ctx context.Context) error {
-		return apiext.ConfigureCRDs(ctx,
-			restConfig,
-			s.serviceName,
-			s.namespace,
-			caSecret,
-			scheme)
+	// we will wait until we have successfully obtained a CA root certificate
+	// before we start the web servers, to ensure we don't become ready too early
+	runImmediately := true
+	pollInterval := 1 * time.Second
+	if err := wait.PollUntilContextCancel(gctx, pollInterval, runImmediately, s.ready); err != nil {
+		return fmt.Errorf("apiext server unable to obtain a root ca during startup")
+	}
+
+	grp.Go(func() error {
+		return s.serveHTTPS(gctx, scheme)
 	})
 
-	grp.Go("serve-http", func(ctx context.Context) error {
-		return apiext.ServeHTTP(ctx, s.httpPort)
-	})
-
-	grp.Go("serve-https", func(ctx context.Context) error {
-		return apiext.ServeHTTPS(ctx, s.httpsPort, ca, scheme)
+	grp.Go(func() error {
+		return s.serveHealthz(gctx)
 	})
 
 	return grp.Wait()
+}
+
+func (s *WebhookServer) ready(_ context.Context) (done bool, err error) {
+	return s.certificateAuthority.Ready(), nil
+}
+
+// serveHTTPS starts listening for incoming https request and handles ConversionWebhookRequuests.
+func (s *WebhookServer) serveHTTPS(ctx context.Context, scheme *runtime.Scheme) error {
+	errChan := make(chan error)
+
+	mux := http.NewServeMux()
+	mux.Handle(path.WebhooksCrdConvert, conversion.NewWebhookHandler(scheme))
+
+	server := http.Server{
+		Addr:    fmt.Sprintf(":%d", s.httpsPort),
+		Handler: mux,
+		TLSConfig: &tls.Config{
+			MinVersion:     tls.VersionTLS13,
+			GetCertificate: s.certificateAuthority.GetCertificate,
+		},
+	}
+
+	go func() {
+		s.logger.Info("starting conversion webhook server", zap.Int("port", s.httpsPort))
+		if err := server.ListenAndServeTLS("", ""); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			errChan <- err
+		}
+	}()
+
+	defer server.Close()
+
+	// block waiting for graceful shutdown or server error
+	select {
+	case <-ctx.Done():
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		return server.Shutdown(ctx)
+	case err := <-errChan:
+		return err
+	}
+}
+
+// serveHealthz starts http server listening for http healthz (ready,liviness)
+func (s *WebhookServer) serveHealthz(ctx context.Context) error {
+	errChan := make(chan error)
+	mux := http.NewServeMux()
+
+	mux.Handle(path.ProbesReady, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		if s.certificateAuthority.Ready() {
+			_, _ = io.WriteString(w, "Ready!\n")
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+
+	mux.Handle(path.ProbesLive, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = io.WriteString(w, "Living!\n")
+	}))
+
+	server := http.Server{
+		Addr:    fmt.Sprintf(":%d", s.httpPort),
+		Handler: mux,
+	}
+
+	go func() {
+		s.logger.Info("starting healthz server", zap.Int("port", s.httpPort))
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			errChan <- err
+		}
+	}()
+
+	// block waiting for graceful shutdown or server error
+	select {
+	case <-ctx.Done():
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		return server.Shutdown(ctx)
+	case err := <-errChan:
+		return err
+	}
+}
+
+func (s *WebhookServer) isLeaderElectionEnabled() bool {
+	return s.caMgmtEnabled || s.crdPatchMgmtEnabled
+}
+
+func createCacheOptions(secretNamespace string) cache.Options {
+	return cache.Options{
+		ByObject: map[client.Object]cache.ByObject{
+			&apiextv1.CustomResourceDefinition{}: {
+				Label: labels.SelectorFromSet(labels.Set{"app.kubernetes.io/part-of": "emissary-apiext"}),
+			},
+			&corev1.Secret{}: {
+				Namespaces: map[string]cache.Config{
+					secretNamespace: {},
+				},
+			},
+		},
+	}
 }

@@ -81,6 +81,7 @@ replace k8s.io/code-generator => github.com/emissary-ingress/code-generator v0.2
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
+	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/census-instrumentation/opencensus-proto v0.4.1
 	github.com/cncf/xds/go v0.0.0-20230607035331-e9ce68804cb4
 	github.com/datawire/dlib v1.3.1
@@ -88,6 +89,7 @@ require (
 	github.com/datawire/go-mkopensource v0.0.12-0.20230821212923-d1d8451579a1
 	github.com/envoyproxy/protoc-gen-validate v1.0.2
 	github.com/fsnotify/fsnotify v1.7.0
+	github.com/go-logr/zapr v1.2.4
 	github.com/golang/protobuf v1.5.3
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.4.0
@@ -102,7 +104,9 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/proto/otlp v1.0.0
+	go.uber.org/zap v1.26.0
 	golang.org/x/mod v0.14.0
+	golang.org/x/sync v0.5.0
 	golang.org/x/sys v0.14.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20231030173426-d783a09b4405
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231030173426-d783a09b4405
@@ -116,11 +120,13 @@ require (
 	k8s.io/cli-runtime v0.28.4
 	k8s.io/client-go v0.28.4
 	k8s.io/code-generator v0.28.4
+	k8s.io/klog/v2 v2.110.1
 	k8s.io/kubectl v0.28.4
 	k8s.io/kubernetes v1.28.4
 	k8s.io/metrics v0.28.4
 	sigs.k8s.io/controller-runtime v0.16.3
 	sigs.k8s.io/controller-tools v0.13.0
+	sigs.k8s.io/e2e-framework v0.3.0
 	sigs.k8s.io/gateway-api v0.2.0
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -147,6 +153,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/evanphx/json-patch v5.7.0+incompatible // indirect
+	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
@@ -208,19 +215,20 @@ require (
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/skeema/knownhosts v1.2.0 // indirect
 	github.com/stoewer/go-strcase v1.3.0 // indirect
+	github.com/vladimirvivien/gexe v0.2.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xlab/treeprint v1.2.0 // indirect
 	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
-	go.uber.org/zap v1.26.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.15.0 // indirect
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
 	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/oauth2 v0.13.0 // indirect
-	golang.org/x/sync v0.5.0 // indirect
 	golang.org/x/term v0.14.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.4.0 // indirect
 	golang.org/x/tools v0.15.0 // indirect
+	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20231030173426-d783a09b4405 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
@@ -229,7 +237,6 @@ require (
 	k8s.io/apiserver v0.28.3 // indirect
 	k8s.io/component-base v0.28.4 // indirect
 	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
-	k8s.io/klog/v2 v2.110.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
