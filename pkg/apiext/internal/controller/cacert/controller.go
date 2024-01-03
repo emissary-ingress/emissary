@@ -19,7 +19,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-var neadLeaderElection = false
+var needLeaderElection = false
 
 // caCertController watches for changes to the Secret that contains the RootCA and ensures the CertificateAuthority
 // has the latest CA Cert
@@ -54,7 +54,7 @@ func NewCACertController(client client.Client, logger *zap.Logger, certificateAu
 func (c *caCertController) SetupWithManager(mgr manager.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		WithOptions(controller.Options{
-			NeedLeaderElection: &neadLeaderElection,
+			NeedLeaderElection: &needLeaderElection,
 		}).
 		For(&v1.Secret{},
 			builder.WithPredicates(
