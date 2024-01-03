@@ -1,5 +1,4 @@
 # GENERATED FILE: edits made by hand will not be preserved.
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -19,6 +18,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -398,6 +399,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -530,6 +533,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -908,6 +913,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -1540,6 +1547,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -1661,6 +1670,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -1978,6 +1989,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -2201,6 +2214,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -3865,6 +3880,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -3996,6 +4013,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -4236,6 +4255,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -4528,6 +4549,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -4786,6 +4809,8 @@ spec:
         service:
           name: emissary-apiext
           namespace: emissary-system
+          path: /webhooks/crd-convert
+          port: 443
       conversionReviewVersions:
       - v1
   group: getambassador.io
@@ -5196,18 +5221,10 @@ spec:
     served: true
     storage: false
 ---
-################################################################################
-# Namespace                                                                    #
-################################################################################
----
 apiVersion: v1
 kind: Namespace
 metadata:
   name: emissary-system
----
-################################################################################
-# ServiceAccount                                                               #
-################################################################################
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -5219,10 +5236,6 @@ metadata:
     app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
     app.kubernetes.io/name: emissary-apiext
     app.kubernetes.io/part-of: emissary-apiext
----
-################################################################################
-# Cluster permissions                                                          #
-################################################################################
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -5274,10 +5287,6 @@ subjects:
     namespace: emissary-system
     name: emissary-apiext
 ---
-################################################################################
-# Namespaced permissions                                                       #
-################################################################################
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -5291,11 +5300,21 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
-    verbs: ["create"]
+    verbs: ["create", "list", "watch"]
   - apiGroups: [""]
     resources: ["secrets"]
     resourceNames: ["emissary-ingress-webhook-ca"]
     verbs: ["get", "update"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["create"]
+  - apiGroups: ["coordination.k8s.io"]
+    resourceNames: ["emissary-ca-mgr-leader"]
+    resources: ["leases"]
+    verbs: ["get", "update"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -5315,10 +5334,6 @@ subjects:
 - kind: ServiceAccount
   namespace: emissary-system
   name: emissary-apiext
----
-################################################################################
-# Main                                                                         #
-################################################################################
 ---
 apiVersion: v1
 kind: Service

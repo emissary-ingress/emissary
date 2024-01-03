@@ -1,0 +1,75 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Names.Service }}
+  namespace: {{ .Names.Namespace }}
+  labels:
+    {{- range $k, $v := .Labels }}
+    {{ $k }}: {{ $v }}
+    {{- end }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: https
+      port: 443
+      targetPort: https
+  selector:
+    {{- range $k, $v := .LabelSelectors }}
+    {{ $k }}: {{ $v }}
+    {{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emissary-apiext
+  namespace: {{ .Names.Namespace }}
+  labels:
+    {{- range $k, $v := .Labels }}
+    {{ $k }}: {{ $v }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- range $k, $v := .LabelSelectors }}
+      {{ $k }}: {{ $v }}
+      {{- end }}
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        {{- range $k, $v := .Labels }}
+        {{ $k }}: {{ $v }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ .Names.ServiceAccount }}
+      containers:
+        - name: emissary-apiext
+          image: {{ .Image }}
+          imagePullPolicy: IfNotPresent
+          command: [ "apiext", "{{ .Names.Service }}" ]
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: https
+              containerPort: 8443
+          startupProbe:
+            httpGet:
+              path: /probes/live
+              port: 8080
+            failureThreshold: 10
+            periodSeconds: 3
+          livenessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /probes/live
+              port: 8080
+            periodSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /probes/ready
+              port: 8080
+            periodSeconds: 3
+            failureThreshold: 3

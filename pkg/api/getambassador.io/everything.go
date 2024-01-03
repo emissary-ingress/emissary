@@ -6,8 +6,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 
-	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v1"
-	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v2"
+	v1 "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v1"
+	v2 "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v2"
 	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 )

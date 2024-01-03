@@ -2,17 +2,22 @@ package main
 
 import (
 	_ "embed"
-	"fmt"
 	"io"
-	"sort"
 	"text/template"
+
+	apiextdefaults "github.com/emissary-ingress/emissary/v3/pkg/apiext/defaults"
 )
 
-//go:embed apiext.yaml
-var apiextTmplStr string
+//go:embed apiext-deployment.yaml
+var apiextDeploymentTmplStr string
+
+//go:embed apiext-rbac.yaml
+var apiextRBACTmplStr string
+
+//go:embed apiext-namespace.yaml
+var apiextNSTmplStr string
 
 const (
-	namespace     = "emissary-system"
 	apiextSvcName = "emissary-apiext"
 )
 
@@ -24,12 +29,7 @@ var globalLabels = map[string]string{
 	"app.kubernetes.io/managed-by": "kubectl_apply_-f_emissary-apiext.yaml",
 }
 
-func writeAPIExt(output io.Writer, args Args, crdNames []string) error {
-	if args.Target == TargetInternalValidator {
-		return nil
-	}
-
-	sort.Strings(crdNames)
+func buildTemplateData(args Args, crdNames []string) map[string]interface{} {
 	labelSelectors := map[string]string{
 		"app.kubernetes.io/name":     "emissary-apiext",
 		"app.kubernetes.io/instance": "emissary-apiext",
@@ -42,11 +42,11 @@ func writeAPIExt(output io.Writer, args Args, crdNames []string) error {
 		image = "{images[emissary]}"
 	case TargetAPIServerKubectl:
 		image = "$imageRepo$:$version$"
-	default:
-		return fmt.Errorf("unsure which image to use for args.Target=%q", args.Target)
+	case TargetAPIExtDeployment:
+		image = args.Image
 	}
 
-	data := map[string]interface{}{
+	return map[string]interface{}{
 		// Constants that are easier to edit here than in YAML.
 		"Labels":         globalLabels,
 		"LabelSelectors": labelSelectors,
@@ -54,7 +54,7 @@ func writeAPIExt(output io.Writer, args Args, crdNames []string) error {
 			// These are *just* the names that appear in multiple places, and therefore
 			// need to be consistent.  Names that are on-offs can just go straight in
 			// the YAML.
-			"Namespace":      namespace,
+			"Namespace":      apiextdefaults.WebhookCASecretNamespace,
 			"Service":        apiextSvcName,
 			"ServiceAccount": "emissary-apiext",
 			"ClusterRole":    "emissary-apiext",
@@ -66,10 +66,28 @@ func writeAPIExt(output io.Writer, args Args, crdNames []string) error {
 		// Input files
 		"CRDNames": crdNames,
 	}
+}
 
-	apiextTmpl := template.Must(template.New("apiext.yaml").
+func writeAPIExtNamespace(output io.Writer, data map[string]interface{}) error {
+	tmpl := template.Must(template.New("apiext-namespace.yaml").
 		Option("missingkey=error").
-		Parse(apiextTmplStr))
+		Parse(apiextNSTmplStr))
 
-	return apiextTmpl.Execute(output, data)
+	return tmpl.Execute(output, data)
+}
+
+func writeAPIExtRBAC(output io.Writer, data map[string]interface{}) error {
+	apiextRBACTmpl := template.Must(template.New("apiext-rbac.yaml").
+		Option("missingkey=error").
+		Parse(apiextRBACTmplStr))
+
+	return apiextRBACTmpl.Execute(output, data)
+}
+
+func writeAPIExtDeployment(output io.Writer, data map[string]interface{}) error {
+	apiextDeploymentTmpl := template.Must(template.New("apiext-deployment.yaml").
+		Option("missingkey=error").
+		Parse(apiextDeploymentTmplStr))
+
+	return apiextDeploymentTmpl.Execute(output, data)
 }
