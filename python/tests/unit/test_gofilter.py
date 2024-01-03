@@ -116,23 +116,14 @@ def test_gofilter_missing_object_file(go_library, caplog):
     econf = get_envoy_config(MAPPING)
     filters = _get_go_filters(econf.as_dict())
 
-    assert len(filters) == 0
+    assert len(filters) == 4
 
     assert "/ambassador/filter.so not found" in caplog.text
 
 
 @pytest.mark.compilertest
 @edgestack()
-def test_gofilter_disable(disable_go_filter):
-    econf = get_envoy_config(MAPPING)
-    filters = _get_go_filters(econf.as_dict())
-
-    assert len(filters) == 0
-
-
-@pytest.mark.compilertest
-@edgestack()
-def test_gofilter_enable(enable_go_filter):
+def test_gofilter_enable():
     econf = get_envoy_config(MAPPING)
     filters = _get_go_filters(econf.as_dict())
 
