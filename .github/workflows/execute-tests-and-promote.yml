@@ -76,7 +76,7 @@ jobs:
         name: "Check Git not dirty from 'make generate' (again!)"
       - uses: ./.github/actions/after-job
         if: always()
-  
+
   check-envoy-protos: ####################################################################
     runs-on: ubuntu-latest
     env:
@@ -138,6 +138,37 @@ jobs:
         if: always()
 
   # Tests ######################################################################
+  apiext-e2e:
+    runs-on: ubuntu-latest
+    env:
+      # See docker/base-python.docker.gen
+      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
+      APIEXT_E2E: ""
+      APIEXT_BUILD_ARCH: linux/amd64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            network=host
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+      - name: Install k3d
+        shell: bash
+        run: |
+          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.6.0 bash
+          k3d --version
+      - name: go mod vendor
+        shell: bash
+        run: |
+          make vendor
+      - name: run apiext-e2e tests
+        shell: bash
+        run: |
+          go test -p 1 -parallel 1 -v -tags=apiext ./test/apiext/... -timeout 15m
   check-gotest:
     runs-on: ubuntu-latest
     env:
@@ -346,6 +377,7 @@ jobs:
   pass:
     name: "job-promote-to-passed" # This is the job name that the branch protection looks for
     needs:
+      - apiext-e2e
       - lint
       - build
       - generate

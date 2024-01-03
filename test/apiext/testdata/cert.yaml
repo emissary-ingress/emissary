@@ -1,0 +1,27 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: emissary-ingress-webhook-ca
+  namespace: emissary-system
+spec:
+  secretName: emissary-ingress-webhook-ca
+  subject:
+    organizations:
+      - "Ambassador Labs"
+  dnsNames:
+  - "*"
+  isCA: true
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS8
+    size: 4096
+  issuerRef:
+    name: selfsigned
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned
+  namespace: emissary-system
+spec:
+  selfSigned: {}

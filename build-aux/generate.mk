@@ -48,6 +48,9 @@ generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/ambassador
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/crds.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_cluster_scope.yaml
 generate-fast/files += $(OSS_HOME)/python/tests/integration/manifests/rbac_namespace_scope.yaml
+generate-fast/files += $(OSS_HOME)/test/apiext/testdata/deployment.yaml
+generate-fast/files += $(OSS_HOME)/test/apiext/testdata/crds.yaml
+generate-fast/files += $(OSS_HOME)/test/apiext/testdata/rbac.yaml
 # Individual files: Test TLS Certificates
 generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.crt
 generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.key
@@ -190,6 +193,30 @@ $(OSS_HOME)/python/tests/integration/manifests/crds.yaml: $(OSS_HOME)/_generate.
 
 $(OSS_HOME)/pkg/api/getambassador.io/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	$(tools/fix-crds) --target=internal-validator $(sort $(wildcard $</*.yaml)) >$@
+
+$(OSS_HOME)/test/apiext/testdata/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
+	$(tools/fix-crds) --target=apiext-crds $(sort $(wildcard $</*.yaml)) >$@
+
+$(OSS_HOME)/test/apiext/testdata/rbac.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
+	$(tools/fix-crds) --target=apiext-rbac $(sort $(wildcard $</*.yaml)) >$@
+
+$(OSS_HOME)/test/apiext/testdata/deployment.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
+	$(tools/fix-crds) --target=apiext-deployment --image="e2e-registry:10000/apiext:latest" $(sort $(wildcard $</*.yaml)) >$@
+
+
+# Sets build arch of APIEXT e2e container for testing
+APIEXT_BUILD_ARCH ?= linux/amd64,linux/arm64
+
+## apiext-e2e-setup ensures crds are generated properly in the testdata directory then
+## builds a standalone test image of the apiext binary for e2e testing
+.PHONY: apiext-e2e-setup
+apiext-e2e-setup: vendor $(OSS_HOME)/test/apiext/testdata/crds.yaml $(OSS_HOME)/test/apiext/testdata/rbac.yaml $(OSS_HOME)/test/apiext/testdata/deployment.yaml
+	docker buildx build \
+			-t localhost:10000/apiext:latest \
+			-f $(OSS_HOME)/docker/apiext/Dockerfile \
+			--platform="$(APIEXT_BUILD_ARCH)" \
+			--push \
+			$(OSS_HOME);
 
 # Names for all the helm-expanded.yaml files (and thence output.yaml and *.yaml.in files)
 helm.name.emissary-emissaryns = emissary-ingress
