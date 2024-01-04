@@ -63,6 +63,7 @@ class IRGOFilter(IRFilter):
                 self.logger.error(
                     "%s not found, envoy configuration will fail to apply", GO_FILTER_LIBRARY_PATH
                 )
+                return False
             self.config = GOFilterConfig(library_path=GO_FILTER_LIBRARY_PATH)
             return True
         return False

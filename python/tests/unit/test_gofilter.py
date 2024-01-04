@@ -116,7 +116,7 @@ def test_gofilter_missing_object_file(go_library, caplog):
     econf = get_envoy_config(MAPPING)
     filters = _get_go_filters(econf.as_dict())
 
-    assert len(filters) == 4
+    assert len(filters) == 0
 
     assert "/ambassador/filter.so not found" in caplog.text
 
