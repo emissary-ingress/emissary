@@ -1,6 +1,7 @@
 package apiext
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"errors"
@@ -48,6 +49,7 @@ type WebhookRunner interface {
 type WebhookServer struct {
 	logger               *zap.Logger
 	certificateAuthority ca.CertificateAuthority
+	k8sClient            client.Reader
 	namespace            string
 	serviceSettings      types.NamespacedName
 	caSecretSettings     types.NamespacedName
@@ -120,6 +122,8 @@ func (s *WebhookServer) Run(ctx context.Context, scheme *runtime.Scheme) error {
 	if err != nil {
 		return err
 	}
+
+	s.k8sClient = mgr.GetClient()
 
 	caCertController := cacertcontroller.NewCACertController(
 		mgr.GetClient(),
@@ -219,8 +223,8 @@ func (s *WebhookServer) serveHealthz(ctx context.Context) error {
 	errChan := make(chan error)
 	mux := http.NewServeMux()
 
-	mux.Handle(path.ProbesReady, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		if s.certificateAuthority.Ready() {
+	mux.Handle(path.ProbesReady, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if s.certificateAuthority.Ready() && s.areCRDsReady(r.Context()) {
 			_, _ = io.WriteString(w, "Ready!\n")
 			return
 		}
@@ -256,6 +260,40 @@ func (s *WebhookServer) serveHealthz(ctx context.Context) error {
 
 func (s *WebhookServer) isLeaderElectionEnabled() bool {
 	return s.caMgmtEnabled || s.crdPatchMgmtEnabled
+}
+
+func (s *WebhookServer) areCRDsReady(ctx context.Context) bool {
+	caCert := s.certificateAuthority.GetCACert()
+	if caCert == nil {
+		return false
+	}
+
+	crdList := &apiextv1.CustomResourceDefinitionList{}
+	options := []client.ListOption{
+		client.MatchingLabels{"app.kubernetes.io/part-of": "emissary-apiext"},
+	}
+
+	err := s.k8sClient.List(ctx, crdList, options...)
+	if err != nil {
+		s.logger.Error("ready check unable to list getambassadorio crds", zap.Error(err))
+		return false
+	}
+
+	for _, item := range crdList.Items {
+		if len(item.Spec.Versions) < 2 {
+			continue
+		}
+
+		if item.Spec.Conversion == nil || item.Spec.Conversion.Webhook == nil || item.Spec.Conversion.Webhook.ClientConfig == nil {
+			return false
+		}
+
+		if !bytes.Equal(item.Spec.Conversion.Webhook.ClientConfig.CABundle, caCert.CertificatePEM) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func createCacheOptions(secretNamespace string) cache.Options {
