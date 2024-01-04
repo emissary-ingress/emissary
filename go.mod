@@ -122,7 +122,7 @@ require (
 	k8s.io/code-generator v0.28.5
 	k8s.io/klog/v2 v2.110.1
 	k8s.io/kubectl v0.28.5
-	k8s.io/kubernetes v1.28.5
+	k8s.io/kubernetes v1.29.0
 	k8s.io/metrics v0.28.5
 	sigs.k8s.io/controller-runtime v0.16.3
 	sigs.k8s.io/controller-tools v0.13.0
@@ -149,7 +149,7 @@ require (
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/docker/distribution v2.8.2+incompatible // indirect
+	github.com/distribution/reference v0.5.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/evanphx/json-patch v5.7.0+incompatible // indirect
