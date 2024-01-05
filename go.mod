@@ -107,7 +107,7 @@ require (
 	go.uber.org/zap v1.26.0
 	golang.org/x/mod v0.14.0
 	golang.org/x/sync v0.5.0
-	golang.org/x/sys v0.15.0
+	golang.org/x/sys v0.16.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20231211222908-989df2bf70f3
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240102182953-50ed04b92917
 	google.golang.org/grpc v1.60.1
