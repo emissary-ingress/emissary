@@ -74,13 +74,13 @@ func (a *apiextCertificateAuthority) SetCACert(caCert *CACert) {
 
 // GetCertificate implements CertificateAuthority.
 func (a *apiextCertificateAuthority) GetCertificate(clientHello *tls.ClientHelloInfo) (*tls.Certificate, error) {
-	a.logger.Info("receivedGetCertificate call", zap.Any("clientHello", clientHello))
+	a.logger.Debug("receivedGetCertificate call", zap.Any("clientHello", clientHello))
 	if clientHello == nil {
 		return nil, InvalidClientHelloErr
 	}
 	cachedCert := a.getCachedCert(clientHello.ServerName)
 	if cachedCert != nil {
-		a.logger.Info("reusing cached server cert", zap.String("serverName", clientHello.ServerName))
+		a.logger.Debug("reusing cached server cert", zap.String("serverName", clientHello.ServerName))
 		return cachedCert, nil
 	}
 
