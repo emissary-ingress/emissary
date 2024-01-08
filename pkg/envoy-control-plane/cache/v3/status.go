@@ -70,8 +70,7 @@ type statusInfo struct {
 	orderedWatches keys
 
 	// deltaWatches are indexed channels for the delta response watches and the original requests
-	deltaWatches        map[int64]DeltaResponseWatch
-	orderedDeltaWatches keys
+	deltaWatches map[int64]DeltaResponseWatch
 
 	// the timestamp of the last watch request
 	lastWatchRequestTime time.Time
@@ -177,23 +176,4 @@ func (info *statusInfo) orderResponseWatches() {
 	// Sort our list which we can use in the SetSnapshot functions.
 	// This is only run when we enable ADS on the cache.
 	sort.Sort(info.orderedWatches)
-}
-
-// orderResponseDeltaWatches will track a list of delta watch keys and order them if
-// true is passed.
-func (info *statusInfo) orderResponseDeltaWatches() {
-	info.orderedDeltaWatches = make(keys, len(info.deltaWatches))
-
-	var index int
-	for id, deltaWatch := range info.deltaWatches {
-		info.orderedDeltaWatches[index] = key{
-			ID:      id,
-			TypeURL: deltaWatch.Request.TypeUrl,
-		}
-		index++
-	}
-
-	// Sort our list which we can use in the SetSnapshot functions.
-	// This is only run when we enable ADS on the cache.
-	sort.Sort(info.orderedDeltaWatches)
 }

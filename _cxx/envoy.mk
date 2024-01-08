@@ -35,7 +35,7 @@ ENVOY_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-$(ENVOY_DOCKER_VERSION)
 # which commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an
 # automated way!  Still look at the commit yourself to make sure it seems sane; blindly trusting
 # machines is bad, mmkay?
-ENVOY_GO_CONTROL_PLANE_COMMIT = 6e4589f570e19a3d17087cf80d40bacdc6356de6
+ENVOY_GO_CONTROL_PLANE_COMMIT = b501c94cb61e3235b9156629377fba229d9571d8
 
 # Set ENVOY_DOCKER_REPO to the list of mirrors to check
 ENVOY_DOCKER_REPOS  = docker.io/emissaryingress/base-envoy
