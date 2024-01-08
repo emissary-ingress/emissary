@@ -74,8 +74,6 @@ func (m *ExtAuthz) validate(all bool) error {
 
 	// no validation rules for FailureModeAllow
 
-	// no validation rules for FailureModeAllowHeaderAdd
-
 	if all {
 		switch v := interface{}(m.GetWithRequestBody()).(type) {
 		case interface{ ValidateAll() error }:

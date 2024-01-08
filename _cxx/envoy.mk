@@ -11,12 +11,12 @@ export ENVOY_TEST_LABEL
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
 ENVOY_REPO ?= https://github.com/datawire/envoy.git
-# https://github.com/datawire/envoy/tree/rebase/release/v1.28.0
-ENVOY_COMMIT ?= 77cf6d1e128efa7886b8d1bcc8fc74a4ee162ac7
+# https://github.com/datawire/envoy/tree/rebase/release/v1.27.2
+ENVOY_COMMIT ?= 6637fd1bab315774420f3c3d97488fedb7fc710f
 ENVOY_COMPILATION_MODE ?= opt
 # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
 # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
-BASE_ENVOY_RELVER ?= 0
+BASE_ENVOY_RELVER ?= 1
 
 # Set to non-empty to enable compiling Envoy in FIPS mode.
 FIPS_MODE ?=

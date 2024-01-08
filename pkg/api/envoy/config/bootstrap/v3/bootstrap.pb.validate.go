@@ -1371,8 +1371,6 @@ func (m *ClusterManager) validate(all bool) error {
 		}
 	}
 
-	// no validation rules for EnableDeferredClusterCreation
-
 	if len(errors) > 0 {
 		return ClusterManagerMultiError(errors)
 	}

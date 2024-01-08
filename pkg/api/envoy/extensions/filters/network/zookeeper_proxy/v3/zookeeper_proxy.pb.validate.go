@@ -165,10 +165,6 @@ func (m *ZooKeeperProxy) validate(all bool) error {
 
 	}
 
-	// no validation rules for EnablePerOpcodeRequestBytesMetrics
-
-	// no validation rules for EnablePerOpcodeResponseBytesMetrics
-
 	if len(errors) > 0 {
 		return ZooKeeperProxyMultiError(errors)
 	}
