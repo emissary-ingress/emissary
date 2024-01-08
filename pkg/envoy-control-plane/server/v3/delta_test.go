@@ -345,8 +345,6 @@ func TestDeltaAggregatedHandlers(t *testing.T) {
 		resp.recv <- r
 	}
 
-	// We create the server with the optional ordered ADS flag so we guarantee resource
-	// ordering over the stream.
 	s := server.NewServer(context.Background(), config, server.CallbackFuncs{})
 	go func() {
 		err := s.DeltaAggregatedResources(resp)

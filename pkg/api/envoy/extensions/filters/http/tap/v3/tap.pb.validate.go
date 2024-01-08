@@ -96,10 +96,6 @@ func (m *Tap) validate(all bool) error {
 		}
 	}
 
-	// no validation rules for RecordHeadersReceivedTime
-
-	// no validation rules for RecordDownstreamConnection
-
 	if len(errors) > 0 {
 		return TapMultiError(errors)
 	}

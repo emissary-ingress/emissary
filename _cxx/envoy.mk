@@ -11,12 +11,12 @@ export ENVOY_TEST_LABEL
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
 ENVOY_REPO ?= https://github.com/datawire/envoy.git
-# https://github.com/datawire/envoy/tree/rebase/release/v1.28.0
-ENVOY_COMMIT ?= 77cf6d1e128efa7886b8d1bcc8fc74a4ee162ac7
+# https://github.com/datawire/envoy/tree/rebase/release/v1.27.2
+ENVOY_COMMIT ?= 6637fd1bab315774420f3c3d97488fedb7fc710f
 ENVOY_COMPILATION_MODE ?= opt
 # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
 # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
-BASE_ENVOY_RELVER ?= 0
+BASE_ENVOY_RELVER ?= 1
 
 # Set to non-empty to enable compiling Envoy in FIPS mode.
 FIPS_MODE ?=
@@ -35,7 +35,7 @@ ENVOY_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-$(ENVOY_DOCKER_VERSION)
 # which commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an
 # automated way!  Still look at the commit yourself to make sure it seems sane; blindly trusting
 # machines is bad, mmkay?
-ENVOY_GO_CONTROL_PLANE_COMMIT = 6e4589f570e19a3d17087cf80d40bacdc6356de6
+ENVOY_GO_CONTROL_PLANE_COMMIT = b501c94cb61e3235b9156629377fba229d9571d8
 
 # Set ENVOY_DOCKER_REPO to the list of mirrors to check
 ENVOY_DOCKER_REPOS  = docker.io/emissaryingress/base-envoy

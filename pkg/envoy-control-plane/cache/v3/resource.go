@@ -22,11 +22,14 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
+	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
 	endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
 	listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
 	route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
+	auth "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/transport_sockets/tls/v3"
 	runtime "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/runtime/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
+	ratelimit "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/ratelimit/config/ratelimit/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
 )
 
@@ -90,6 +93,24 @@ func GetResourceName(res types.Resource) string {
 	switch v := res.(type) {
 	case *endpoint.ClusterLoadAssignment:
 		return v.GetClusterName()
+	case *cluster.Cluster:
+		return v.GetName()
+	case *route.RouteConfiguration:
+		return v.GetName()
+	case *route.ScopedRouteConfiguration:
+		return v.GetName()
+	case *route.VirtualHost:
+		return v.GetName()
+	case *listener.Listener:
+		return v.GetName()
+	case *auth.Secret:
+		return v.GetName()
+	case *runtime.Runtime:
+		return v.GetName()
+	case *core.TypedExtensionConfig:
+		return v.GetName()
+	case *ratelimit.RateLimitConfig:
+		return v.GetName()
 	case types.ResourceWithName:
 		return v.GetName()
 	default:
