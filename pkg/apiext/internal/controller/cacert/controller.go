@@ -66,7 +66,7 @@ func (c *caCertController) SetupWithManager(mgr manager.Manager) error {
 
 // Reconcile implements reconcile.Reconciler to watch for CA Cert Secret changes and to update the CertificateAuthority
 func (c *caCertController) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
-	c.logger.Info("Secret reconcile triggered by object",
+	c.logger.Info("ca cert reconcile triggered",
 		zap.String("namespace", request.Namespace),
 		zap.String("name", request.Name),
 	)
@@ -94,8 +94,6 @@ func (c *caCertController) Reconcile(ctx context.Context, request reconcile.Requ
 		c.certificateAuthority.SetCACert(nil)
 		return reconcile.Result{}, nil
 	}
-
-	c.logger.Info("CA cert being set", zap.Any("caCert", caCert))
 
 	c.certificateAuthority.SetCACert(&caCert)
 	return reconcile.Result{}, nil

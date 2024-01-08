@@ -72,7 +72,7 @@ func (c *crdPatchController) SetupWithManager(mgr manager.Manager) error {
 
 // Reconcile implements reconcile.Reconciler.
 func (c *crdPatchController) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
-	c.logger.Info("CustomResourceDefinition reconcile triggered by object", zap.String("namespace", request.Namespace), zap.String("name", request.Name))
+	c.logger.Info("CustomResourceDefinition reconcile triggered", zap.String("namespace", request.Namespace), zap.String("name", request.Name))
 
 	crDefKey := types.NamespacedName{
 		Name:      request.Name,
@@ -203,7 +203,9 @@ func enqueueCRDForCASecretChanges(k8sclient client.Reader, logger *zap.Logger) h
 			})
 		}
 
-		logger.Info("enqueued multipie request items", zap.Int("items", len(requests)))
+		if len(requests) > 0 {
+			logger.Info("ca cert secret changed trigger CustomResourceDefinition reconcile requests", zap.Int("items", len(requests)))
+		}
 
 		return requests
 	}
