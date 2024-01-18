@@ -15,7 +15,6 @@ Maintainers are listed in alphabetical order.
 | Flynn            | [kflynn](https://github.com/kflynn)           | [Buoyant](https://www.buoyant.io)                   |
 | Hamzah Qudsi     | [haq204](https://github.com/haq204)           | [Ambassador Labs](https://www.github.com/datawire/) |
 | Lance Austin     | [lanceea](https://github.com/lanceea)         | [Ambassador Labs](https://www.github.com/datawire/) |
-| Luke Shumaker    | [lukeshu](https://github.com/lukeshu)         | [Ambassador Labs](https://www.github.com/datawire/) |
 | Rafael Schloming | [rhs](https://github.com/rhs)                 | [Ambassador Labs](https://www.github.com/datawire/) |
 
 
@@ -32,6 +31,7 @@ of the following (also listed in alphabetical order):
 * Ava Hahn ([aidanhahn](https://github.com/aidanhahn))
 * Alix Cook  ([acookin](https://github.com/acookin))
 * John Esmet ([esmet](https://github.com/esmet))
+* Luke T. Shumaker ([lukeshu](https://github.com/lukeshu))
 
 ## Releasers Emeriti
 
