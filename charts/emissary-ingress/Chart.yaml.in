@@ -22,6 +22,4 @@ maintainers:
   email: flynn@datawire.io
 - name: nbkrause
   email: nkrause@datawire.io
-- name: lukeshu
-  email: lukeshu@datawire.io
 engine: gotpl
