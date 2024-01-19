@@ -8,7 +8,7 @@ blinker==1.7.0
     # via flask
 click==8.1.7
     # via flask
-flask==3.0.0
+flask==3.0.1
     # via test-shadow (pyproject.toml)
 itsdangerous==2.1.2
     # via flask
