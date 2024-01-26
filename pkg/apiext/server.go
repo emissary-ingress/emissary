@@ -147,7 +147,10 @@ func (s *WebhookServer) Run(ctx context.Context, scheme *runtime.Scheme) error {
 	}
 
 	if s.crdPatchMgmtEnabled {
-		caCertMgr := cacertrunnable.NewCACertManager(s.logger, mgr.GetClient())
+		caCertMgr := cacertrunnable.NewCACertManager(s.logger, mgr.GetClient(),
+			cacertrunnable.WithCASecretNamespace(s.caSecretSettings.Namespace),
+			cacertrunnable.WithCASecretName(s.caSecretSettings.Name),
+		)
 		if err := mgr.Add(caCertMgr); err != nil {
 			return err
 		}
