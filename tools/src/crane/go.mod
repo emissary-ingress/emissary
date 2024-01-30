@@ -2,7 +2,7 @@ module local
 
 go 1.21
 
-require github.com/google/go-containerregistry v0.17.0
+require github.com/google/go-containerregistry v0.19.0
 
 require (
 	github.com/containerd/stargz-snapshotter/estargz v0.14.3 // indirect
