@@ -1,4 +1,4 @@
-{{- if .Values.module }}
+{{- if .Values.module.enabled -}}
 apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
@@ -12,7 +12,7 @@ metadata:
 spec:
   {{- if .Values.env }}
   {{- if hasKey .Values.env "AMBASSADOR_ID" }}
-  ambassador_id: 
+  ambassador_id:
   - {{ .Values.env.AMBASSADOR_ID | quote }}
   {{- end }}
   {{- end }}
