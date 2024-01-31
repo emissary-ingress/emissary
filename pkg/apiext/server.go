@@ -21,7 +21,6 @@ import (
 	"github.com/emissary-ingress/emissary/v3/pkg/apiext/path"
 	corev1 "k8s.io/api/core/v1"
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -272,18 +271,14 @@ func (s *WebhookServer) areCRDsReady(ctx context.Context) bool {
 	}
 
 	crdList := &apiextv1.CustomResourceDefinitionList{}
-	options := []client.ListOption{
-		client.MatchingLabels{"app.kubernetes.io/part-of": "emissary-apiext"},
-	}
-
-	err := s.k8sClient.List(ctx, crdList, options...)
+	err := s.k8sClient.List(ctx, crdList)
 	if err != nil {
 		s.logger.Error("ready check unable to list getambassadorio crds", zap.Error(err))
 		return false
 	}
 
 	for _, item := range crdList.Items {
-		if len(item.Spec.Versions) < 2 {
+		if item.Spec.Group != "getambassador.io" || len(item.Spec.Versions) < 2 {
 			continue
 		}
 
@@ -302,9 +297,6 @@ func (s *WebhookServer) areCRDsReady(ctx context.Context) bool {
 func createCacheOptions(secretNamespace string) cache.Options {
 	return cache.Options{
 		ByObject: map[client.Object]cache.ByObject{
-			&apiextv1.CustomResourceDefinition{}: {
-				Label: labels.SelectorFromSet(labels.Set{"app.kubernetes.io/part-of": "emissary-apiext"}),
-			},
 			&corev1.Secret{}: {
 				Namespaces: map[string]cache.Config{
 					secretNamespace: {},
