@@ -94,6 +94,14 @@ func (c *crdPatchController) Reconcile(ctx context.Context, request reconcile.Re
 		return reconcile.Result{}, nil
 	}
 
+	if crDef.Spec.Conversion != nil && crDef.Spec.Conversion.Strategy == apiextv1.NoneConverter {
+		c.logger.Info("skipping reconciliation, CustomResourceDefinition has conversion strategy set to None",
+			zap.String("name", crDef.Name),
+		)
+
+		return reconcile.Result{}, nil
+	}
+
 	if len(crDef.Spec.Versions) <= 1 {
 		c.logger.Info("skipping reconciliation, CustomResourceDefinition only has one version",
 			zap.String("name", crDef.Name),

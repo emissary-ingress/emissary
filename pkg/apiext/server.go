@@ -282,7 +282,15 @@ func (s *WebhookServer) areCRDsReady(ctx context.Context) bool {
 			continue
 		}
 
-		if item.Spec.Conversion == nil || item.Spec.Conversion.Webhook == nil || item.Spec.Conversion.Webhook.ClientConfig == nil {
+		if item.Spec.Conversion == nil {
+			return false
+		}
+
+		if item.Spec.Conversion.Strategy == apiextv1.NoneConverter {
+			continue
+		}
+
+		if item.Spec.Conversion.Webhook == nil || item.Spec.Conversion.Webhook.ClientConfig == nil {
 			return false
 		}
 
