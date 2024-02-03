@@ -47,14 +47,16 @@ var (
 )
 
 func TestAPIExtWatchesCACertChanges(t *testing.T) {
+	crdLabelSelector := "app.kubernetes.io/part-of=emissary-apiext"
+
 	feature := features.New("apiext self managed ca cert with renewal").
 		Setup(func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
 			log.Println("installing CRDs into cluster")
-			if _, err := installCRDs(crdDirPath, crdPattern)(ctx, cfg); err != nil {
+			if _, err := installCRDs(crdDirPath, crdPattern, crdLabelSelector)(ctx, cfg); err != nil {
 				t.Fatal(err)
 			}
 
-			if err := installAPIExtRBAC(ctx, cfg.Client().Resources()); err != nil {
+			if err := installAPIExtRBAC(ctx, cfg.Client().Resources(), rbacPattern); err != nil {
 				t.Fatal(err)
 			}
 			return ctx
@@ -65,7 +67,7 @@ func TestAPIExtWatchesCACertChanges(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if err := installAPIExtDeployment(ctx, cfg, apiextDeploymentPattern); err != nil {
+			if err := installAPIExtDeployment(ctx, cfg, apiextDeploymentPattern, apiextdefaults.APIExtNamespace); err != nil {
 				t.Fatal(err)
 			}
 
@@ -74,7 +76,7 @@ func TestAPIExtWatchesCACertChanges(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if err := deleteRootCACert(ctx, r); err != nil {
+			if err := deleteRootCACert(ctx, r, apiextdefaults.APIExtNamespace); err != nil {
 				t.Fatal(err)
 			}
 
@@ -85,7 +87,7 @@ func TestAPIExtWatchesCACertChanges(t *testing.T) {
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
-			if err := cleanupCRDs(ctx, cfg, crdDirPath, crdPattern); err != nil {
+			if err := cleanupCRDs(ctx, cfg, crdDirPath, crdPattern, crdLabelSelector); err != nil {
 				t.Fatal(err)
 			}
 
@@ -97,13 +99,15 @@ func TestAPIExtWatchesCACertChanges(t *testing.T) {
 }
 
 func TestAPIExtRecreatesExpiredCACert(t *testing.T) {
+	crdLabelSelector := "app.kubernetes.io/part-of=emissary-apiext"
+
 	feature := features.New("apiext self-managed with expired-cert renewal").
 		Setup(func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
-			if _, err := installCRDs(crdDirPath, crdPattern)(ctx, cfg); err != nil {
+			if _, err := installCRDs(crdDirPath, crdPattern, crdLabelSelector)(ctx, cfg); err != nil {
 				t.Fatal(err)
 			}
 
-			if err := installAPIExtRBAC(ctx, cfg.Client().Resources()); err != nil {
+			if err := installAPIExtRBAC(ctx, cfg.Client().Resources(), rbacPattern); err != nil {
 				t.Fatal(err)
 			}
 			return ctx
@@ -123,7 +127,7 @@ func TestAPIExtRecreatesExpiredCACert(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if err := installAPIExtDeployment(ctx, cfg, apiextDeploymentPattern); err != nil {
+			if err := installAPIExtDeployment(ctx, cfg, apiextDeploymentPattern, apiextdefaults.APIExtNamespace); err != nil {
 				t.Fatal(err)
 			}
 			namespace := ctx.Value(e2e.GetNamespaceKey(t)).(string)
@@ -138,7 +142,7 @@ func TestAPIExtRecreatesExpiredCACert(t *testing.T) {
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
-			if err := cleanupCRDs(ctx, cfg, crdDirPath, crdPattern); err != nil {
+			if err := cleanupCRDs(ctx, cfg, crdDirPath, crdPattern, crdLabelSelector); err != nil {
 				t.Fatal(err)
 			}
 
@@ -150,6 +154,8 @@ func TestAPIExtRecreatesExpiredCACert(t *testing.T) {
 }
 
 func TestAPIExtExternallyManageCACert(t *testing.T) {
+	crdLabelSelector := "app.kubernetes.io/part-of=emissary-apiext"
+
 	feature := features.New("apiext externally managed ca cert").
 		Setup(func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
 			if err := installCertManager(ctx, cfg); err != nil {
@@ -164,11 +170,11 @@ func TestAPIExtExternallyManageCACert(t *testing.T) {
 				"cert-manager.io/inject-ca-from": fmt.Sprintf("%s/%s", apiextdefaults.APIExtNamespace, apiextdefaults.WebhookCASecretName),
 			})
 
-			if _, err := installCRDs(crdDirPath, crdPattern, injectCABundleAnnotation)(ctx, cfg); err != nil {
+			if _, err := installCRDs(crdDirPath, crdPattern, crdLabelSelector, injectCABundleAnnotation)(ctx, cfg); err != nil {
 				t.Fatal(err)
 			}
 
-			if err := installAPIExtRBAC(ctx, cfg.Client().Resources()); err != nil {
+			if err := installAPIExtRBAC(ctx, cfg.Client().Resources(), rbacPattern); err != nil {
 				t.Fatal(err)
 			}
 			return ctx
@@ -179,7 +185,7 @@ func TestAPIExtExternallyManageCACert(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if err := installAPIExtDeployment(ctx, cfg, apiextDeploymentExtManagedPattern); err != nil {
+			if err := installAPIExtDeployment(ctx, cfg, apiextDeploymentExtManagedPattern, apiextdefaults.APIExtNamespace); err != nil {
 				t.Fatal(err)
 			}
 
@@ -195,7 +201,7 @@ func TestAPIExtExternallyManageCACert(t *testing.T) {
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
-			if err := cleanupCRDs(ctx, cfg, crdDirPath, crdPattern); err != nil {
+			if err := cleanupCRDs(ctx, cfg, crdDirPath, crdPattern, crdLabelSelector); err != nil {
 				t.Fatal(err)
 			}
 
@@ -206,7 +212,117 @@ func TestAPIExtExternallyManageCACert(t *testing.T) {
 	_ = testEnv.Environment.Test(t, feature)
 }
 
-func installCRDs(crdPath, pattern string, options ...decoder.DecodeOption) env.Func {
+func TestAPIExtModifiedInstallNamespace(t *testing.T) {
+	// "emissary-system" is the standard namespace of the default crds/install manifest
+	// provided. Simulate installing these components in a different namespace
+	modifiedInstalNamespace := "default"
+	modifiedCRDPattern := "crds-defaultns.yaml"
+	crdLabelSelector := "app.kubernetes.io/part-of=emissary-apiext"
+
+	feature := features.New("apiext running in non-default namesapce").
+		Setup(func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
+			log.Println("installing CRDs into cluster")
+			if _, err := installCRDs(crdDirPath, modifiedCRDPattern, crdLabelSelector)(ctx, cfg); err != nil {
+				t.Fatal(err)
+			}
+
+			if err := installAPIExtRBAC(ctx, cfg.Client().Resources(), "rbac-defaultns.yaml"); err != nil {
+				t.Fatal(err)
+			}
+			return ctx
+		}).
+		Assess("APIExt manages CA Cert and CRD patching", func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
+			r, err := resources.New(cfg.Client().RESTConfig())
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if err := installAPIExtDeployment(ctx, cfg, "deployment-defaultns.yaml", modifiedInstalNamespace); err != nil {
+				t.Fatal(err)
+			}
+
+			testNamespace := ctx.Value(e2e.GetNamespaceKey(t)).(string)
+			if err := createGetAmbassadorioResources(ctx, r, testNamespace); err != nil {
+				t.Fatal(err)
+			}
+
+			if err := deleteRootCACert(ctx, r, modifiedInstalNamespace); err != nil {
+				t.Fatal(err)
+			}
+
+			if err := assertGetAmbassadorioResources(ctx, r, testNamespace); err != nil {
+				t.Fatal(err)
+			}
+
+			return ctx
+		}).
+		Teardown(func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
+			if err := cleanupCRDs(ctx, cfg, crdDirPath, modifiedCRDPattern, crdLabelSelector); err != nil {
+				t.Fatal(err)
+			}
+
+			return ctx
+		}).
+		Feature()
+
+	_ = testEnv.Environment.Test(t, feature)
+}
+
+func TestAPIExtModifiedCRDLabels(t *testing.T) {
+	modifiedCRDPattern := "crds-modified-labels.yaml"
+	modifiedDeploymentPattern := "deployment-modified-labels.yaml"
+	crdLabelSelector := "emissaryingress/test=e2e"
+
+	feature := features.New("apiext watch modified crd selector labels").
+		Setup(func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
+			log.Println("installing CRDs into cluster")
+			if _, err := installCRDs(crdDirPath, modifiedCRDPattern, crdLabelSelector)(ctx, cfg); err != nil {
+				t.Fatal(err)
+			}
+
+			if err := installAPIExtRBAC(ctx, cfg.Client().Resources(), rbacPattern); err != nil {
+				t.Fatal(err)
+			}
+			return ctx
+		}).
+		Assess("APIExt manages CA Cert and CRD patching", func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
+			r, err := resources.New(cfg.Client().RESTConfig())
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if err := installAPIExtDeployment(ctx, cfg, modifiedDeploymentPattern, apiextdefaults.APIExtNamespace); err != nil {
+				t.Fatal(err)
+			}
+
+			testNamespace := ctx.Value(e2e.GetNamespaceKey(t)).(string)
+			if err := createGetAmbassadorioResources(ctx, r, testNamespace); err != nil {
+				t.Fatal(err)
+			}
+
+			if err := deleteRootCACert(ctx, r, apiextdefaults.APIExtNamespace); err != nil {
+				t.Fatal(err)
+			}
+
+			if err := assertGetAmbassadorioResources(ctx, r, testNamespace); err != nil {
+				t.Fatal(err)
+			}
+
+			return ctx
+		}).
+		Teardown(func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
+			if err := cleanupCRDs(ctx, cfg, crdDirPath, modifiedCRDPattern, crdLabelSelector); err != nil {
+				t.Fatal(err)
+			}
+
+			return ctx
+		}).
+		Feature()
+
+	_ = testEnv.Environment.Test(t, feature)
+}
+
+func installCRDs(crdPath, pattern string, crdLabelSelector string, options ...decoder.DecodeOption) env.Func {
 	return func(ctx context.Context, cfg *envconf.Config) (context.Context, error) {
 		log.Println("installing CRDs into cluster")
 		r, err := getResourcesWithAPIExtScheme(cfg)
@@ -218,7 +334,7 @@ func installCRDs(crdPath, pattern string, options ...decoder.DecodeOption) env.F
 			return ctx, err
 		}
 
-		crds, err := getGetAmbassadorioCRDList(ctx, cfg)
+		crds, err := getGetAmbassadorioCRDList(ctx, cfg, crdLabelSelector)
 		if err != nil {
 			return ctx, err
 		}
@@ -236,12 +352,12 @@ func installCRDs(crdPath, pattern string, options ...decoder.DecodeOption) env.F
 	}
 }
 
-func cleanupCRDs(ctx context.Context, cfg *envconf.Config, crdPath, pattern string) error {
+func cleanupCRDs(ctx context.Context, cfg *envconf.Config, crdPath, pattern string, crdLabelselector string) error {
 	r, err := getResourcesWithAPIExtScheme(cfg)
 	if err != nil {
 		return err
 	}
-	crds, err := getGetAmbassadorioCRDList(ctx, cfg)
+	crds, err := getGetAmbassadorioCRDList(ctx, cfg, crdLabelselector)
 	if err != nil {
 		return err
 	}
@@ -257,7 +373,7 @@ func cleanupCRDs(ctx context.Context, cfg *envconf.Config, crdPath, pattern stri
 	)
 }
 
-func getGetAmbassadorioCRDList(ctx context.Context, cfg *envconf.Config) (*apiextv1.CustomResourceDefinitionList, error) {
+func getGetAmbassadorioCRDList(ctx context.Context, cfg *envconf.Config, crdLabelSelector string) (*apiextv1.CustomResourceDefinitionList, error) {
 	r, err := getResourcesWithAPIExtScheme(cfg)
 	if err != nil {
 		return nil, err
@@ -265,7 +381,7 @@ func getGetAmbassadorioCRDList(ctx context.Context, cfg *envconf.Config) (*apiex
 
 	crdList := &apiextv1.CustomResourceDefinitionList{}
 	options := []resources.ListOption{
-		resources.WithLabelSelector("app.kubernetes.io/part-of=emissary-apiext"),
+		resources.WithLabelSelector(crdLabelSelector),
 	}
 
 	err = r.List(ctx, crdList, options...)
@@ -289,16 +405,16 @@ func getResourcesWithAPIExtScheme(cfg *envconf.Config) (*resources.Resources, er
 	return r, nil
 }
 
-func installAPIExtRBAC(ctx context.Context, r *resources.Resources) error {
+func installAPIExtRBAC(ctx context.Context, r *resources.Resources, pattern string) error {
 	log.Println("installing APIEX RBAC into cluster...")
 	return decoder.DecodeEachFile(ctx,
 		os.DirFS(rbacDirPath),
-		rbacPattern,
+		pattern,
 		decoder.CreateHandler(r),
 	)
 }
 
-func installAPIExtDeployment(ctx context.Context, cfg *envconf.Config, name string) error {
+func installAPIExtDeployment(ctx context.Context, cfg *envconf.Config, pattern string, namespace string) error {
 	r, err := resources.New(cfg.Client().RESTConfig())
 	if err != nil {
 		return err
@@ -307,7 +423,7 @@ func installAPIExtDeployment(ctx context.Context, cfg *envconf.Config, name stri
 	log.Println("Deploying Emissary-ingress Apiext deployment...")
 
 	if err := decoder.DecodeEachFile(ctx, os.DirFS(apiextDirPath),
-		name,
+		pattern,
 		decoder.CreateHandler(r)); err != nil {
 		return fmt.Errorf("failed to create deployment: %w", err)
 	}
@@ -317,7 +433,7 @@ func installAPIExtDeployment(ctx context.Context, cfg *envconf.Config, name stri
 	apiextDeployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      apiextdefaults.APIEXTDeploymentName,
-			Namespace: apiextdefaults.APIExtNamespace,
+			Namespace: namespace,
 		},
 	}
 
@@ -357,12 +473,12 @@ func generateExpiredRootCACertSecret() (*corev1.Secret, error) {
 	}, nil
 }
 
-func deleteRootCACert(ctx context.Context, r *resources.Resources) error {
+func deleteRootCACert(ctx context.Context, r *resources.Resources, namespace string) error {
 	log.Println("deleting root CA secret from cluster...")
 	return r.Delete(ctx, &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      apiextdefaults.WebhookCASecretName,
-			Namespace: apiextdefaults.APIExtNamespace,
+			Namespace: namespace,
 		},
 	},
 	)

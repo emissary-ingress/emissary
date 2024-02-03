@@ -5388,6 +5388,7 @@ spec:
           image: {images[emissary]}
           imagePullPolicy: IfNotPresent
           command: [ "apiext", "emissary-apiext" ]
+          args: ["--crd-label-selector", "app.kubernetes.io/part-of=emissary-apiext"]
           ports:
             - name: http
               containerPort: 8080

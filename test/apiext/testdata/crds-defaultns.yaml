@@ -17,7 +17,7 @@ spec:
       clientConfig:
         service:
           name: emissary-apiext
-          namespace: emissary-system
+          namespace: default
           path: /webhooks/crd-convert
           port: 443
       conversionReviewVersions:
@@ -398,7 +398,7 @@ spec:
       clientConfig:
         service:
           name: emissary-apiext
-          namespace: emissary-system
+          namespace: default
           path: /webhooks/crd-convert
           port: 443
       conversionReviewVersions:
@@ -532,7 +532,7 @@ spec:
       clientConfig:
         service:
           name: emissary-apiext
-          namespace: emissary-system
+          namespace: default
           path: /webhooks/crd-convert
           port: 443
       conversionReviewVersions:
@@ -912,7 +912,7 @@ spec:
       clientConfig:
         service:
           name: emissary-apiext
-          namespace: emissary-system
+          namespace: default
           path: /webhooks/crd-convert
           port: 443
       conversionReviewVersions:
@@ -1546,7 +1546,7 @@ spec:
       clientConfig:
         service:
           name: emissary-apiext
-          namespace: emissary-system
+          namespace: default
           path: /webhooks/crd-convert
           port: 443
       conversionReviewVersions:
@@ -1669,7 +1669,7 @@ spec:
       clientConfig:
         service:
           name: emissary-apiext
-          namespace: emissary-system
+          namespace: default
           path: /webhooks/crd-convert
           port: 443
       conversionReviewVersions:
@@ -1988,7 +1988,7 @@ spec:
       clientConfig:
         service:
           name: emissary-apiext
-          namespace: emissary-system
+          namespace: default
           path: /webhooks/crd-convert
           port: 443
       conversionReviewVersions:
@@ -2213,7 +2213,7 @@ spec:
       clientConfig:
         service:
           name: emissary-apiext
-          namespace: emissary-system
+          namespace: default
           path: /webhooks/crd-convert
           port: 443
       conversionReviewVersions:
@@ -3879,7 +3879,7 @@ spec:
       clientConfig:
         service:
           name: emissary-apiext
-          namespace: emissary-system
+          namespace: default
           path: /webhooks/crd-convert
           port: 443
       conversionReviewVersions:
@@ -4012,7 +4012,7 @@ spec:
       clientConfig:
         service:
           name: emissary-apiext
-          namespace: emissary-system
+          namespace: default
           path: /webhooks/crd-convert
           port: 443
       conversionReviewVersions:
@@ -4254,7 +4254,7 @@ spec:
       clientConfig:
         service:
           name: emissary-apiext
-          namespace: emissary-system
+          namespace: default
           path: /webhooks/crd-convert
           port: 443
       conversionReviewVersions:
@@ -4548,7 +4548,7 @@ spec:
       clientConfig:
         service:
           name: emissary-apiext
-          namespace: emissary-system
+          namespace: default
           path: /webhooks/crd-convert
           port: 443
       conversionReviewVersions:
@@ -4808,7 +4808,7 @@ spec:
       clientConfig:
         service:
           name: emissary-apiext
-          namespace: emissary-system
+          namespace: default
           path: /webhooks/crd-convert
           port: 443
       conversionReviewVersions:
@@ -5220,196 +5220,3 @@ spec:
         type: object
     served: true
     storage: false
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: emissary-system
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: emissary-apiext
-  namespace: emissary-system
-  labels:
-    app.kubernetes.io/instance: emissary-apiext
-    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
-    app.kubernetes.io/name: emissary-apiext
-    app.kubernetes.io/part-of: emissary-apiext
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: emissary-apiext
-  labels:
-    app.kubernetes.io/instance: emissary-apiext
-    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
-    app.kubernetes.io/name: emissary-apiext
-    app.kubernetes.io/part-of: emissary-apiext
-rules:
-  - apiGroups: [ "apiextensions.k8s.io" ]
-    resources: [ "customresourcedefinitions" ]
-    verbs: [ "list", "watch" ]
-  - apiGroups: [ "apiextensions.k8s.io" ]
-    resources: [ "customresourcedefinitions", "customresourcedefinitions/status" ]
-    resourceNames:
-      - authservices.getambassador.io
-      - consulresolvers.getambassador.io
-      - devportals.getambassador.io
-      - hosts.getambassador.io
-      - kubernetesendpointresolvers.getambassador.io
-      - kubernetesserviceresolvers.getambassador.io
-      - listeners.getambassador.io
-      - logservices.getambassador.io
-      - mappings.getambassador.io
-      - modules.getambassador.io
-      - ratelimitservices.getambassador.io
-      - tcpmappings.getambassador.io
-      - tlscontexts.getambassador.io
-      - tracingservices.getambassador.io
-    verbs: [ "update" ]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: emissary-apiext
-  labels:
-    app.kubernetes.io/instance: emissary-apiext
-    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
-    app.kubernetes.io/name: emissary-apiext
-    app.kubernetes.io/part-of: emissary-apiext
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: emissary-apiext
-subjects:
-  - kind: ServiceAccount
-    namespace: emissary-system
-    name: emissary-apiext
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: emissary-apiext
-  namespace: emissary-system
-  labels:
-    app.kubernetes.io/instance: emissary-apiext
-    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
-    app.kubernetes.io/name: emissary-apiext
-    app.kubernetes.io/part-of: emissary-apiext
-rules:
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["create", "list", "watch"]
-  - apiGroups: [""]
-    resources: ["secrets"]
-    resourceNames: ["emissary-ingress-webhook-ca"]
-    verbs: ["get", "update"]
-  - apiGroups: ["coordination.k8s.io"]
-    resources: ["leases"]
-    verbs: ["create"]
-  - apiGroups: ["coordination.k8s.io"]
-    resourceNames: ["emissary-ca-mgr-leader"]
-    resources: ["leases"]
-    verbs: ["get", "update"]
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["create"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: emissary-apiext
-  namespace: emissary-system
-  labels:
-    app.kubernetes.io/instance: emissary-apiext
-    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
-    app.kubernetes.io/name: emissary-apiext
-    app.kubernetes.io/part-of: emissary-apiext
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: emissary-apiext
-subjects:
-- kind: ServiceAccount
-  namespace: emissary-system
-  name: emissary-apiext
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: emissary-apiext
-  namespace: emissary-system
-  labels:
-    app.kubernetes.io/instance: emissary-apiext
-    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
-    app.kubernetes.io/name: emissary-apiext
-    app.kubernetes.io/part-of: emissary-apiext
-spec:
-  type: ClusterIP
-  ports:
-    - name: https
-      port: 443
-      targetPort: https
-  selector:
-    app.kubernetes.io/instance: emissary-apiext
-    app.kubernetes.io/name: emissary-apiext
-    app.kubernetes.io/part-of: emissary-apiext
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: emissary-apiext
-  namespace: emissary-system
-  labels:
-    app.kubernetes.io/instance: emissary-apiext
-    app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
-    app.kubernetes.io/name: emissary-apiext
-    app.kubernetes.io/part-of: emissary-apiext
-spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/instance: emissary-apiext
-      app.kubernetes.io/name: emissary-apiext
-      app.kubernetes.io/part-of: emissary-apiext
-  replicas: 3
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/instance: emissary-apiext
-        app.kubernetes.io/managed-by: kubectl_apply_-f_emissary-apiext.yaml
-        app.kubernetes.io/name: emissary-apiext
-        app.kubernetes.io/part-of: emissary-apiext
-    spec:
-      serviceAccountName: emissary-apiext
-      containers:
-        - name: emissary-apiext
-          image: $imageRepo$:$version$
-          imagePullPolicy: IfNotPresent
-          command: [ "apiext", "emissary-apiext" ]
-          args: ["--crd-label-selector", "app.kubernetes.io/part-of=emissary-apiext"]
-          ports:
-            - name: http
-              containerPort: 8080
-            - name: https
-              containerPort: 8443
-          startupProbe:
-            httpGet:
-              path: /probes/live
-              port: 8080
-            failureThreshold: 10
-            periodSeconds: 3
-          livenessProbe:
-            httpGet:
-              scheme: HTTP
-              path: /probes/live
-              port: 8080
-            periodSeconds: 3
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              scheme: HTTP
-              path: /probes/ready
-              port: 8080
-            periodSeconds: 3
-            failureThreshold: 3
