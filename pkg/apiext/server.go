@@ -21,6 +21,7 @@ import (
 	"github.com/emissary-ingress/emissary/v3/pkg/apiext/path"
 	corev1 "k8s.io/api/core/v1"
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -57,6 +58,7 @@ type WebhookServer struct {
 
 	caMgmtEnabled       bool
 	crdPatchMgmtEnabled bool
+	crdLabelSelectors   map[string]string
 }
 
 func NewWebhookServer(logger *zap.Logger, serviceName string, options ...WebhookOption) *WebhookServer {
@@ -68,6 +70,7 @@ func NewWebhookServer(logger *zap.Logger, serviceName string, options ...Webhook
 		httpsPort:            8443,
 		caMgmtEnabled:        true,
 		crdPatchMgmtEnabled:  true,
+		crdLabelSelectors:    map[string]string{},
 	}
 
 	for _, optFn := range options {
@@ -116,7 +119,7 @@ func (s *WebhookServer) Run(ctx context.Context, scheme *runtime.Scheme) error {
 		LeaderElectionNamespace:       s.namespace,
 		LeaderElectionReleaseOnCancel: true,
 		Metrics:                       server.Options{BindAddress: "0"},
-		Cache:                         createCacheOptions(s.namespace),
+		Cache:                         s.buildCacheOptions(),
 	})
 	if err != nil {
 		return err
@@ -278,11 +281,20 @@ func (s *WebhookServer) areCRDsReady(ctx context.Context) bool {
 	}
 
 	for _, item := range crdList.Items {
+		fmt.Printf("ready check crd: %s\n", item.Name)
 		if item.Spec.Group != "getambassador.io" || len(item.Spec.Versions) < 2 {
 			continue
 		}
 
-		if item.Spec.Conversion == nil || item.Spec.Conversion.Webhook == nil || item.Spec.Conversion.Webhook.ClientConfig == nil {
+		if item.Spec.Conversion == nil {
+			return false
+		}
+
+		if item.Spec.Conversion.Strategy == apiextv1.NoneConverter {
+			continue
+		}
+
+		if item.Spec.Conversion.Webhook == nil || item.Spec.Conversion.Webhook.ClientConfig == nil {
 			return false
 		}
 
@@ -294,12 +306,17 @@ func (s *WebhookServer) areCRDsReady(ctx context.Context) bool {
 	return true
 }
 
-func createCacheOptions(secretNamespace string) cache.Options {
+func (s *WebhookServer) buildCacheOptions() cache.Options {
+	crdLabelSectors := labels.SelectorFromSet(s.crdLabelSelectors)
+
 	return cache.Options{
 		ByObject: map[client.Object]cache.ByObject{
+			&apiextv1.CustomResourceDefinition{}: {
+				Label: crdLabelSectors,
+			},
 			&corev1.Secret{}: {
 				Namespaces: map[string]cache.Config{
-					secretNamespace: {},
+					s.namespace: {},
 				},
 			},
 		},

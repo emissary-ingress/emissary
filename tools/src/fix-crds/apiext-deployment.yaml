@@ -48,6 +48,7 @@ spec:
           image: {{ .Image }}
           imagePullPolicy: IfNotPresent
           command: [ "apiext", "{{ .Names.Service }}" ]
+          args: ["--crd-label-selector", "app.kubernetes.io/part-of=emissary-apiext"]
           ports:
             - name: http
               containerPort: 8080

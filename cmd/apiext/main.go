@@ -1,12 +1,15 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
 	crdAll "github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io"
 	"github.com/emissary-ingress/emissary/v3/pkg/apiext"
 	"github.com/emissary-ingress/emissary/v3/pkg/utils"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -14,10 +17,12 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
+const crdLabelSelectorFlag = "crd-label-selector"
+
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Fprintf(os.Stderr, "error: expected exactly one argument, got %d\n", len(os.Args))
-		fmt.Fprintf(os.Stderr, "Usage: apiext {service-name}\n")
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "error: expected at least one argument, got %d\n", len(os.Args))
+		fmt.Fprintf(os.Stderr, "Usage: apiext {service-name} [--%s]\n", crdLabelSelectorFlag)
 		os.Exit(2)
 	}
 
@@ -31,7 +36,18 @@ func main() {
 		zap.String("svcName", serviceName),
 	)
 
-	options := []apiext.WebhookOption{}
+	crdLabelSelectors := map[string]string{}
+	pflag.StringToStringVar(&crdLabelSelectors, crdLabelSelectorFlag, nil,
+		"label selector to limit CRDs being watched and patched")
+	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
+	pflag.Parse()
+	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
+		logger.Fatal("unable to parse crd-label-selector flag", zap.Error(err))
+	}
+
+	options := []apiext.WebhookOption{
+		apiext.WithCRDLabelSelectors(crdLabelSelectors),
+	}
 
 	if os.Getenv("DISABLE_CRD_MANAGEMENT") != "" {
 		logger.Info("disabling webhook CRD Management, CustomResourceDefinition's will not be patched with the CA Cert")
