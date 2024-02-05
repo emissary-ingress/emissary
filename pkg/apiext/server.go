@@ -281,7 +281,6 @@ func (s *WebhookServer) areCRDsReady(ctx context.Context) bool {
 	}
 
 	for _, item := range crdList.Items {
-		fmt.Printf("ready check crd: %s\n", item.Name)
 		if item.Spec.Group != "getambassador.io" || len(item.Spec.Versions) < 2 {
 			continue
 		}
