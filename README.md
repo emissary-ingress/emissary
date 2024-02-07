@@ -40,9 +40,9 @@ Branches
 (If you are looking at this list on a branch other than `master`, it
 may be out of date.)
 
-- [`master`](https://github.com/emissary-ingress/emissary/tree/master) - branch for Emissary-ingress dev work (:heavy_check_mark: upcoming release)
+- [`master`](https://github.com/emissary-ingress/emissary/tree/master) - branch for Emissary-ingress dev work ( :heavy_check_mark: upcoming release)
 - [`release/v3.9`](https://github.com/emissary-ingress/emissary/tree/release/v3.9) - branch for Emissary-ingress 3.9.z work
-- [`release/v2.5`](https://github.com/emissary-ingress/emissary/tree/release/v2.5) - branch for Emissary-ingress 2.5.z work (:heavy_check_mark: maintenance)
+- [`release/v2.5`](https://github.com/emissary-ingress/emissary/tree/release/v2.5) - branch for Emissary-ingress 2.5.z work ( :heavy_check_mark: maintenance)
 
 Architecture
 ============
