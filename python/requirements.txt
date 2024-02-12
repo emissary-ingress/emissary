@@ -58,5 +58,5 @@ werkzeug==3.0.1
     # via flask
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==68.2.2
+setuptools==69.1.0
     # via -r requirements.in
