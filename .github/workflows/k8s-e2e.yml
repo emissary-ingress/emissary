@@ -34,7 +34,7 @@ jobs:
           - kat-envoy3-tests-5-of-5
     name: ${{matrix.k8s.kubectl}}-${{ matrix.test }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install Deps
