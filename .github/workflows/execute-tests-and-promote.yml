@@ -47,7 +47,7 @@ jobs:
             install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
           fi
       - name: "Docker Login"
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
@@ -95,7 +95,7 @@ jobs:
             install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
           fi
       - name: "Docker Login"
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
@@ -128,7 +128,7 @@ jobs:
           fi
       - name: "Docker Login"
         # This is important if ENVOY_DOCKER_REPO is a private repo.
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
@@ -181,7 +181,7 @@ jobs:
       - name: Install Deps
         uses: ./.github/actions/setup-deps
       - name: "Docker Login"
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
@@ -219,7 +219,7 @@ jobs:
       - name: Install Deps
         uses: ./.github/actions/setup-deps
       - name: "Docker Login"
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
@@ -261,7 +261,7 @@ jobs:
       - name: Install Deps
         uses: ./.github/actions/setup-deps
       - name: "Docker Login"
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
@@ -287,7 +287,7 @@ jobs:
       DOCKER_BUILD_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
       DOCKER_BUILD_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
     steps:
-      - uses: docker/login-action@v2
+      - uses: docker/login-action@v3
         with:
           registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
@@ -323,7 +323,7 @@ jobs:
       - name: Install Deps
         uses: ./.github/actions/setup-deps
       - name: "Docker Login"
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
