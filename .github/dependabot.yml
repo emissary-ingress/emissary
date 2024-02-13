@@ -71,7 +71,7 @@ updates:
     ignore:
       - dependency-name: pytest
       - dependency-name: urllib3
-        versions: 
+        versions:
           - "<2.0"
   - package-ecosystem: docker
     directory: "/docker/base-python"
@@ -101,4 +101,10 @@ updates:
     directory: "/docker/test-stats"
     schedule:
       interval: daily
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
     open-pull-requests-limit: 10
