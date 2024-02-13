@@ -89,7 +89,7 @@ require (
 	github.com/datawire/go-mkopensource v0.0.12-0.20230821212923-d1d8451579a1
 	github.com/envoyproxy/protoc-gen-validate v1.0.2
 	github.com/fsnotify/fsnotify v1.7.0
-	github.com/go-logr/zapr v1.2.4
+	github.com/go-logr/zapr v1.3.0
 	github.com/golang/protobuf v1.5.3
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.5.0
