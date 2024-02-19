@@ -340,6 +340,7 @@ metrics:
     # interval: 30s
     # scrapeTimeout: 30s
     # selector: {}
+    relabelings: []
 
 # Resolvers are used to configure the discovery service strategy for Ambasador
 # See: https://www.getambassador.io/docs/edge-stack/latest/topics/running/resolvers/
