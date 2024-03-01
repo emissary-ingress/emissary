@@ -9,7 +9,6 @@ Maintainers are listed in alphabetical order.
 
 | Maintainer       | GitHub ID                                     | Affiliation                                         |
 | ---------------- | --------------------------------------------- | --------------------------------------------------- |
-| Alex Gervais     | [alexgervais](https://github.com/alexgervais) | [Ambassador Labs](https://www.github.com/datawire/) |
 | Alice Wasko      | [aliceproxy](https://github.com/aliceproxy)   | [Ambassador Labs](https://www.github.com/datawire/) |
 | David Dymko      | [ddymko](https://github.com/ddymko)           | [CoreWeave](https://www.coreweave.com) |
 | Flynn            | [kflynn](https://github.com/kflynn)           | [Buoyant](https://www.buoyant.io)                   |
@@ -32,6 +31,7 @@ of the following (also listed in alphabetical order):
 * Alix Cook  ([acookin](https://github.com/acookin))
 * John Esmet ([esmet](https://github.com/esmet))
 * Luke T. Shumaker ([lukeshu](https://github.com/lukeshu))
+* Alex Gervais ([alexgervais](https://github.com/alexgervais))
 
 ## Releasers Emeriti
 
