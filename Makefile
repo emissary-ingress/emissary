@@ -27,8 +27,8 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
   endif
 
   VERSION := $(or $(VERSION),$(shell go run ./tools/src/goversion))
-  $(if $(filter v3.%,$(VERSION)),\
-    ,$(error VERSION variable is invalid: It must be a v3.* string, but is '$(VERSION)'))
+  $(if $(or $(filter v3.%,$(VERSION)),$(filter v0.0.0-%,$(VERSION))),\
+    ,$(error VERSION variable is invalid: It must be v3.* or v0.0.0-$$tag, but is '$(VERSION)'))
   $(if $(findstring +,$(VERSION)),\
     $(error VERSION variable is invalid: It must not contain + characters, but is '$(VERSION)'),)
   export VERSION

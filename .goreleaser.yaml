@@ -1,0 +1,113 @@
+# SPDX-FileCopyrightText:
+# SPDX-License-Identifier: Apache-2.0
+
+version: 1
+
+# Allow overriding the registry and image name with environment variables.
+env:
+  - REGISTRY={{ if index .Env "REGISTRY"  }}{{ .Env.REGISTRY }}{{ else }}ghcr.io/emissary-ingress{{ end }}
+  - IMAGE_NAME={{ if index .Env "IMAGE_NAME"  }}{{ .Env.IMAGE_NAME }}{{ else }}emissary{{ end }}
+
+before:
+  hooks:
+    - go mod tidy
+    - rm -rf python/ambassador.version
+    - make VERSION=v{{ .Version }} python/ambassador.version
+    # # Make the chart as part of the build process.
+    # - make VERSION={{ .Version }} chart
+
+builds:
+  - id: busyambassador
+    main: ./cmd/busyambassador
+    binary: busyambassador
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - arm64
+      - amd64
+
+  # - id: wrapper
+  #   main: ./cmd/capabilities_wrapper
+  #   binary: wrapper
+  #   env:
+  #     - CGO_ENABLED=0
+  #   goos:
+  #     - linux
+  #   goarch:
+  #     - arm64
+
+# We build GUI and workload images for both arm64 and amd64, then build a
+# multiarch manifest from them.
+dockers:
+  - use: buildx
+    goos: linux
+    goarch: arm64
+    dockerfile: Dockerfile.goreleaser
+    ids:
+      - busyambassador
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:latest-arm64"
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--build-arg=LIBARCH=aarch64"
+    extra_files:
+      - python
+  - use: buildx
+    goos: linux
+    goarch: amd64
+    dockerfile: Dockerfile.goreleaser
+    ids:
+      - busyambassador
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:latest-amd64"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--build-arg=LIBARCH=x86_64"
+    extra_files:
+      - python
+
+docker_manifests:
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:{{ .Version }}"
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:{{ .Version }}-amd64"
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:latest"
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:latest-amd64"
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+
+# archives:
+#   - id: generic
+#     name_template: '{{ .ProjectName }}_generic_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ with .Arm }}v{{ . }}{{ end }}{{ with .Mips }}_{{ . }}{{ end }}{{ if not (eq .Amd64 "v1") }}{{ .Amd64 }}{{ end }}'
+#     builds:
+#       - generic
+#   - id: pi
+#     name_template: '{{ .ProjectName }}_pi_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ with .Arm }}v{{ . }}{{ end }}{{ with .Mips }}_{{ . }}{{ end }}{{ if not (eq .Amd64 "v1") }}{{ .Amd64 }}{{ end }}'
+#     builds:
+#       - pi
+
+# changelog:
+#   sort: asc
+#   filters:
+#     exclude:
+#       - "^docs:"
+#       - "^test:"
+
+release:
+  draft: true
+  replace_existing_draft: true
+  prerelease: true
+  make_latest: false
