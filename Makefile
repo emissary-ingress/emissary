@@ -34,8 +34,8 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
   export VERSION
 
   CHART_VERSION := $(or $(CHART_VERSION),$(shell go run ./tools/src/goversion --dir-prefix=chart))
-  $(if $(filter v8.%,$(CHART_VERSION)),\
-    ,$(error CHART_VERSION variable is invalid: It must be a v8.* string, but is '$(CHART_VERSION)'))
+  $(if $(or $(filter v8.%,$(CHART_VERSION)),$(filter v0.0.0-%,$(CHART_VERSION))),\
+    ,$(error CHART_VERSION variable is invalid: It must be v8.* or v0.0.0-$$tag, but is '$(CHART_VERSION)'))
   export CHART_VERSION
 
   $(info [make] VERSION=$(VERSION))

@@ -131,7 +131,7 @@ endif
 	$(tools/chart-doc-gen) -d $</doc.yaml -t $</readme.tpl -v $@/values.yaml >$@/README.md
 build-output/chart-%.tgz: build-output/chart-%.d
 	helm package --destination=$< $<
-	mv $</emissary-ingress-$(word 2,$(subst _, ,$*)).tgz $@
+	mv $</emissary-chart-$(word 2,$(subst _, ,$*)).tgz $@
 
 # Convenience aliases for the Helm chart
 chart_dir = build-output/chart-$(patsubst v%,%,$(VERSION))_$(patsubst v%,%,$(CHART_VERSION)).d

@@ -13,8 +13,8 @@ before:
     - go mod tidy
     - rm -rf python/ambassador.version
     - make VERSION=v{{ .Version }} python/ambassador.version
-    # # Make the chart as part of the build process.
-    # - make VERSION={{ .Version }} chart
+    # Make the chart as part of the build process.
+    - make VERSION={{ .Version }} CHART_VERSION={{ .Version }} chart
 
 builds:
   - id: busyambassador
