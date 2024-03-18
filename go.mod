@@ -90,7 +90,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v1.0.2
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-logr/zapr v1.2.4
-	github.com/golang/protobuf v1.5.3
+	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.5.0
 	github.com/gorilla/websocket v1.5.1
@@ -113,7 +113,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240102182953-50ed04b92917
 	google.golang.org/grpc v1.60.1
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
-	google.golang.org/protobuf v1.32.0
+	google.golang.org/protobuf v1.33.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.28.5
 	k8s.io/apiextensions-apiserver v0.28.5
@@ -123,7 +123,7 @@ require (
 	k8s.io/code-generator v0.28.5
 	k8s.io/klog/v2 v2.110.1
 	k8s.io/kubectl v0.28.5
-	k8s.io/kubernetes v1.28.5
+	k8s.io/kubernetes v1.29.3
 	k8s.io/metrics v0.28.5
 	sigs.k8s.io/controller-runtime v0.16.3
 	sigs.k8s.io/controller-tools v0.13.0
@@ -150,7 +150,7 @@ require (
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/docker/distribution v2.8.2+incompatible // indirect
+	github.com/distribution/reference v0.5.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/evanphx/json-patch v5.7.0+incompatible // indirect
