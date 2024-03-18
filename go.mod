@@ -90,7 +90,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v1.0.2
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-logr/zapr v1.2.4
-	github.com/golang/protobuf v1.5.3
+	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.5.0
 	github.com/gorilla/websocket v1.5.1
@@ -113,11 +113,11 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240102182953-50ed04b92917
 	google.golang.org/grpc v1.60.1
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
-	google.golang.org/protobuf v1.32.0
+	google.golang.org/protobuf v1.33.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.28.5
+	k8s.io/api v0.29.3
 	k8s.io/apiextensions-apiserver v0.28.5
-	k8s.io/apimachinery v0.28.5
+	k8s.io/apimachinery v0.29.3
 	k8s.io/cli-runtime v0.28.5
 	k8s.io/client-go v0.28.5
 	k8s.io/code-generator v0.28.5
@@ -208,6 +208,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pelletier/go-toml v1.2.0 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
