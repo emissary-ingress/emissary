@@ -50,7 +50,7 @@ requests==2.31.0
     # via -r requirements.in
 semantic-version==2.10.0
     # via -r requirements.in
-typing-extensions==4.8.0
+typing-extensions==4.11.0
     # via -r requirements.in
 urllib3==2.1.0
     # via requests
