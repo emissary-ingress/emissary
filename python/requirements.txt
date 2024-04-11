@@ -22,7 +22,7 @@ flask==3.0.0
     # via -r requirements.in
 gunicorn==21.2.0
     # via -r requirements.in
-idna==3.4
+idna==3.7
     # via requests
 itsdangerous==2.1.2
     # via flask
