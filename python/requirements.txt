@@ -20,7 +20,7 @@ expiringdict==1.2.2
     # via -r requirements.in
 flask==3.0.0
     # via -r requirements.in
-gunicorn==21.2.0
+gunicorn==22.0.0
     # via -r requirements.in
 idna==3.4
     # via requests
