@@ -10,7 +10,7 @@ click==8.1.7
     # via flask
 flask==3.0.0
     # via test-shadow (pyproject.toml)
-itsdangerous==2.1.2
+itsdangerous==2.2.0
     # via flask
 jinja2==3.1.2
     # via flask
