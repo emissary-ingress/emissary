@@ -4,9 +4,9 @@
 #
 #    pip-compile --allow-unsafe
 #
-blinker==1.7.0
+blinker==1.8.1
     # via flask
-certifi==2023.7.22
+certifi==2024.2.2
     # via requests
 charset-normalizer==3.3.2
     # via requests
@@ -14,33 +14,33 @@ click==8.1.7
     # via
     #   -r requirements.in
     #   flask
-durationpy==0.5
+durationpy==0.6
     # via -r requirements.in
 expiringdict==1.2.2
     # via -r requirements.in
-flask==3.0.0
+flask==3.0.3
     # via -r requirements.in
-gunicorn==21.2.0
+gunicorn==22.0.0
     # via -r requirements.in
-idna==3.4
+idna==3.7
     # via requests
-itsdangerous==2.1.2
+itsdangerous==2.2.0
     # via flask
-jinja2==3.1.2
+jinja2==3.1.3
     # via flask
 jsonpatch==1.33
     # via -r requirements.in
 jsonpointer==2.4
     # via jsonpatch
-markupsafe==2.1.3
+markupsafe==2.1.5
     # via
     #   jinja2
     #   werkzeug
-orjson==3.9.10
+orjson==3.10.1
     # via -r requirements.in
-packaging==23.2
+packaging==24.0
     # via gunicorn
-prometheus-client==0.18.0
+prometheus-client==0.20.0
     # via -r requirements.in
 python-json-logger==2.0.7
     # via -r requirements.in
@@ -50,13 +50,13 @@ requests==2.31.0
     # via -r requirements.in
 semantic-version==2.10.0
     # via -r requirements.in
-typing-extensions==4.8.0
+typing-extensions==4.11.0
     # via -r requirements.in
-urllib3==2.1.0
+urllib3==2.2.1
     # via requests
-werkzeug==3.0.1
+werkzeug==3.0.2
     # via flask
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==68.2.2
+setuptools==69.5.1
     # via -r requirements.in
