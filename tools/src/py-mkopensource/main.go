@@ -33,22 +33,22 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		// of the BSD license is it?).  We pin the exact versions so
 		// that a human has to go make sure that the license didn't
 		// change when upgrading.
-		{"blinker", "1.7.0", ""}:                       {MIT},
-		{"build", "1.0.3", ""}:                         {MIT},
+		{"blinker", "1.8.1", ""}:                       {MIT},
+		{"build", "1.2.1", ""}:                         {MIT},
 		{"CacheControl", "0.12.6", "UNKNOWN"}:          {Apache2},
 		{"CacheControl", "0.12.10", "UNKNOWN"}:         {Apache2},
 		{"Click", "7.0", "BSD"}:                        {BSD3},
-		{"Flask", "3.0.0", ""}:                         {BSD3},
+		{"Flask", "3.0.3", ""}:                         {BSD3},
 		{"GitPython", "3.1.11", "UNKNOWN"}:             {BSD3},
-		{"Jinja2", "2.10.1", "BSD"}:                    {BSD3},
+		{"Jinja2", "3.1.3", "BSD"}:                     {BSD3},
 		{"colorama", "0.4.3", "BSD"}:                   {BSD3},
 		{"colorama", "0.4.4", "BSD"}:                   {BSD3},
 		{"decorator", "4.4.2", "new BSD License"}:      {BSD2},
 		{"gitdb", "4.0.5", "BSD License"}:              {BSD3},
-		{"idna", "3.4", ""}:                            {BSD3},
+		{"idna", "3.7", ""}:                            {BSD3},
 		{"importlib-metadata", "5.1.0", "None"}:        {Apache2},
 		{"importlib-resources", "5.4.0", "UNKNOWN"}:    {Apache2},
-		{"itsdangerous", "1.1.0", "BSD"}:               {BSD3},
+		{"itsdangerous", "2.2.0", ""}:                  {BSD3},
 		{"jsonpatch", "1.33", "Modified BSD License"}:  {BSD3},
 		{"jsonpointer", "2.4", "Modified BSD License"}: {BSD3},
 		{"jsonschema", "3.2.0", "UNKNOWN"}:             {MIT},
@@ -69,19 +69,20 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"semantic-version", "2.10.0", "BSD"}:          {BSD2},
 		{"smmap", "3.0.4", "BSD"}:                      {BSD3},
 		{"tomli", "2.0.1", ""}:                         {MIT},
-		{"typing_extensions", "4.8.0", ""}:             {PSF},
-		{"urllib3", "2.1.0", ""}:                       {MIT},
+		{"typing_extensions", "4.11.0", ""}:            {PSF},
+		{"urllib3", "2.2.1", ""}:                       {MIT},
 		{"webencodings", "0.5.1", "BSD"}:               {BSD3},
 		{"websocket-client", "0.57.0", "BSD"}:          {BSD3},
 		{"websocket-client", "1.2.3", "Apache-2.0"}:    {Apache2},
-		{"Werkzeug", "3.0.1", ""}:                      {BSD3},
+		{"Werkzeug", "3.0.2", ""}:                      {BSD3},
 		{"zipp", "3.11.0", "None"}:                     {MIT},
+		{"gunicorn", "22.0.0", "None"}:                 {MIT},
 
 		// These are packages with non-trivial strings to parse, and
 		// it's easier to just hard-code it.
-		{"orjson", "3.9.10", "Apache-2.0 OR MIT"}: {Apache2, MIT},
+		{"orjson", "3.10.1", "Apache-2.0 OR MIT"}: {Apache2, MIT},
 		{"packaging", "23.1", ""}:                 {BSD2, Apache2},
-		{"packaging", "23.2", ""}:                 {BSD2, Apache2},
+		{"packaging", "24.0", ""}:                 {BSD2, Apache2},
 	}[tuple{name, version, license}]
 	if ok {
 		ret := make(map[License]struct{}, len(override))
