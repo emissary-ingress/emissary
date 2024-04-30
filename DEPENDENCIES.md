@@ -125,14 +125,14 @@ following Free and Open Source software:
     go.starlark.net                                                                   v0.0.0-20230525235612-a134d8f9ddca             3-clause BSD license
     go.uber.org/multierr                                                              v1.11.0                                        MIT license
     go.uber.org/zap                                                                   v1.26.0                                        MIT license
-    golang.org/x/crypto                                                               v0.17.0                                        3-clause BSD license
+    golang.org/x/crypto                                                               v0.21.0                                        3-clause BSD license
     golang.org/x/exp                                                                  v0.0.0-20231110203233-9a3e6036ecaa             3-clause BSD license
     golang.org/x/mod                                                                  v0.14.0                                        3-clause BSD license
-    golang.org/x/net                                                                  v0.19.0                                        3-clause BSD license
+    golang.org/x/net                                                                  v0.23.0                                        3-clause BSD license
     golang.org/x/oauth2                                                               v0.15.0                                        3-clause BSD license
     golang.org/x/sync                                                                 v0.5.0                                         3-clause BSD license
-    golang.org/x/sys                                                                  v0.15.0                                        3-clause BSD license
-    golang.org/x/term                                                                 v0.15.0                                        3-clause BSD license
+    golang.org/x/sys                                                                  v0.18.0                                        3-clause BSD license
+    golang.org/x/term                                                                 v0.18.0                                        3-clause BSD license
     golang.org/x/text                                                                 v0.14.0                                        3-clause BSD license
     golang.org/x/time                                                                 v0.5.0                                         3-clause BSD license
     golang.org/x/tools                                                                v0.16.1                                        3-clause BSD license
