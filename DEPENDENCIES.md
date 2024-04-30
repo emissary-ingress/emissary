@@ -143,7 +143,7 @@ following Free and Open Source software:
     google.golang.org/genproto/googleapis/rpc                                         v0.0.0-20240102182953-50ed04b92917             Apache License 2.0
     google.golang.org/grpc                                                            v1.60.1                                        Apache License 2.0
     google.golang.org/grpc/cmd/protoc-gen-go-grpc                                     v1.3.0                                         Apache License 2.0
-    google.golang.org/protobuf                                                        v1.32.0                                        3-clause BSD license
+    google.golang.org/protobuf                                                        v1.33.0                                        3-clause BSD license
     gopkg.in/inf.v0                                                                   v0.9.1                                         3-clause BSD license
     gopkg.in/ini.v1                                                                   v1.51.0                                        Apache License 2.0
     gopkg.in/warnings.v0                                                              v0.1.2                                         2-clause BSD license
