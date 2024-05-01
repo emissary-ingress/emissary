@@ -36,7 +36,7 @@ markupsafe==2.1.5
     # via
     #   jinja2
     #   werkzeug
-orjson==3.10.1
+orjson==3.10.2
     # via -r requirements.in
 packaging==24.0
     # via gunicorn
