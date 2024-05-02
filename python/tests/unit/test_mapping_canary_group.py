@@ -47,7 +47,7 @@ def test_mapping_canary_group_selectors(test_case):
     )
 
     mapping_groups = []
-    for g in ir.groups.values():
+    for g in ir.http_mapping_groups.values():
         if g.prefix.startswith("/ambassador") or g.prefix.startswith("/.ambassador"):
             continue
 

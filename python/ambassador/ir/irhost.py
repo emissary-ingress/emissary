@@ -449,9 +449,9 @@ class IRHost(IRResource):
         # The synthetic Mappings for diagnostics, readiness, and liveness probes always match all Hosts.
         # They can all still be disabled if desired via the Ambassador Module resource
         if groupName in [
-            "GROUP: internal_readiness_probe_mapping",
-            "GROUP: internal_liveness_probe_mapping",
-            "GROUP: internal_diagnostics_probe_mapping",
+            "HTTP_MAPPING_GROUP: internal_readiness_probe_mapping",
+            "HTTP_MAPPING_GROUP: internal_liveness_probe_mapping",
+            "HTTP_MAPPING_GROUP: internal_diagnostics_probe_mapping",
         ]:
             return True
 

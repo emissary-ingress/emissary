@@ -1,4 +1,6 @@
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple
+import re
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import cast
 from typing import cast as typecast
 
 from ambassador.utils import RichStatus
@@ -7,23 +9,45 @@ from ..config import Config
 from .irbasemapping import IRBaseMapping
 from .irbasemappinggroup import IRBaseMappingGroup
 from .ircluster import IRCluster
+from .irhttpmapping import IRHTTPMapping
 from .irresource import IRResource
+from .irutils import are_mapping_group_fixes_disabled
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover
 
 
 ########
-## IRHTTPMappingGroup is a collection of Mappings. We'll use it to build Envoy routes later,
-## so the group itself ends up with some of the group-wide attributes of its Mappings.
+## IRHTTPMappingGroup is a collection of Mappings. We'll use it to build Envoy routes later.
+## The group itself shares a common group of settings for matching traffic. All mappings added to the group
+## should have the same traffic matching settings. Settings for traffic modifications and where traffic is routed
+## are set on a per-mapping basis.
 
 
 class IRHTTPMappingGroup(IRBaseMappingGroup):
-    host_redirect: Optional[IRBaseMapping]
-    shadow: List[IRBaseMapping]
-    rewrite: str
-    add_request_headers: Dict[str, str]
-    add_response_headers: Dict[str, str]
+    shadow_mappings: List[IRHTTPMapping]
+
+    # This is the initial mapping used to create the group. We keep it in right now to support the case when
+    # ENABLE_MAPPING_GROUP_FIXES is not true and we want to have a single set of settings (adding headers, etc.)
+    # be shared across all mappings in a group. This will be removed in a future release.
+    seed_mapping: IRHTTPMapping
+
+    # List of the fields within Mappings that control what requests to match on.
+    # we are not adding these as class fields since we do not want these keys to be set at all unless
+    # the mappings that are added to this group use those settings
+    TrafficMatchSettings: ClassVar[Dict[str, bool]] = {
+        "host": True,
+        "host_regex": True,
+        "prefix": True,
+        "prefix_exact": True,
+        "prefix_regex": True,
+        "case_sensitive": True,
+        "headers": True,
+        "method": True,
+        "method_regex": True,
+        "query_parameters": True,
+        "precedence": True,
+    }
 
     CoreMappingKeys: ClassVar[Dict[str, bool]] = {
         "bypass_auth": True,
@@ -82,101 +106,67 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
             reversed(sorted([x.as_dict() for x in res.mappings], key=lambda x: x["route_weight"]))
         )
 
-    @staticmethod
-    def helper_shadows(res: IRResource, k: str) -> Tuple[str, List[dict]]:
-        return k, list([x.as_dict() for x in res[k]])
-
     def __init__(
         self,
         ir: "IR",
         aconf: Config,
         location: str,
-        mapping: IRBaseMapping,
+        mapping: IRHTTPMapping,
         rkey: str = "ir.mappinggroup",
         kind: str = "IRHTTPMappingGroup",
         name: str = "ir.mappinggroup",
         **kwargs,
     ) -> None:
-        # print("IRHTTPMappingGroup __init__ (%s %s %s)" % (kind, name, kwargs))
         del rkey  # silence unused-variable warning
 
-        if "host_redirect" in kwargs:
-            raise Exception(
-                "IRHTTPMappingGroup cannot accept a host_redirect as a keyword argument"
-            )
-
-        if "path_redirect" in kwargs:
-            raise Exception(
-                "IRHTTPMappingGroup cannot accept a path_redirect as a keyword argument"
-            )
-
-        if "prefix_redirect" in kwargs:
-            raise Exception(
-                "IRHTTPMappingGroup cannot accept a prefix_redirect as a keyword argument"
-            )
-
-        if "regex_redirect" in kwargs:
-            raise Exception(
-                "IRHTTPMappingGroup cannot accept a regex_redirect as a keyword argument"
-            )
-
-        if ("shadow" in kwargs) or ("shadows" in kwargs):
-            raise Exception(
-                "IRHTTPMappingGroup cannot accept shadow or shadows as a keyword argument"
-            )
+        self.shadow_mappings: List[IRHTTPMapping] = []
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=mapping.rkey, location=location, kind=kind, name=name, **kwargs
         )
-
-        self.host_redirect = None
-        self.shadows: List[IRBaseMapping] = []  # XXX This should really be IRHTTPMapping, no?
-
         self.add_dict_helper("mappings", IRHTTPMappingGroup.helper_mappings)
-        self.add_dict_helper("shadows", IRHTTPMappingGroup.helper_shadows)
-
-        # Time to lift a bunch of core stuff from the first mapping up into the
-        # group.
 
         if ("group_weight" not in self) and ("route_weight" in mapping):
             self.group_weight = mapping.route_weight
 
-        for k in IRHTTPMappingGroup.CoreMappingKeys:
-            if (k not in self) and (k in mapping):
+        # Time to lift the traffic matching settings from the first mapping up into the group
+        for k in IRHTTPMappingGroup.TrafficMatchSettings:
+            if k in mapping:
                 self[k] = mapping[k]
+        if "group_id" in mapping:
+            self["group_id"] = mapping["group_id"]
 
+        self.seed_mapping = mapping
         self.add_mapping(aconf, mapping)
 
-        # self.add_request_headers = {}
-        # self.add_response_headers = {}
-        # self.labels = {}
-
-    def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> None:
+    def add_mapping(self, aconf: Config, mapping: IRHTTPMapping) -> None:
         mismatches = []
 
-        for k in IRHTTPMappingGroup.CoreMappingKeys:
-            if (k in mapping) and ((k not in self) or (mapping[k] != self[k])):
-                mismatches.append((k, mapping[k], self.get(k, "-unset-")))
-
-        if mismatches:
-            self.post_error(
-                "cannot accept new mapping %s with mismatched %s."
-                "Please verify field is set with the same value in all related mappings."
-                "Example: When canary is configured, related mappings should have same fields and values"
-                % (mapping.name, ", ".join(["%s: %s != %s" % (x, y, z) for x, y, z in mismatches]))
-            )
-            return
-
-        # self.ir.logger.debug("%s: add mapping %s" % (self, mapping.as_json()))
-
-        # Per the schema, host_redirect and shadow are Booleans. They won't be _saved_ as
-        # Booleans, though: instead we just save the Mapping that they're a part of.
-        host_redirect = mapping.get("host_redirect", False)
-        shadow = mapping.get("shadow", False)
+        if are_mapping_group_fixes_disabled():
+            for k in IRHTTPMappingGroup.CoreMappingKeys:
+                if (k in mapping) and (
+                    (k not in self.seed_mapping) or (mapping[k] != self.seed_mapping[k])
+                ):
+                    mismatches.append((k, mapping[k], self.get(k, "-unset-")))
+                else:
+                    for k in mapping.keys():
+                        if (
+                            k.startswith("_")
+                            or mapping.skip_key(k)
+                            or (k in IRHTTPMappingGroup.DoNotFlattenKeys)
+                        ):
+                            continue
+                        self.seed_mapping[k] = mapping[k]
+        else:
+            for k in IRHTTPMappingGroup.TrafficMatchSettings:
+                if (k in mapping) and ((k not in self) or (mapping[k] != self[k])):
+                    mismatches.append((k, mapping[k], self.get(k, "-unset-")))
 
         # First things first: if both shadow and host_redirect are set in this Mapping,
         # we're going to let shadow win. Kill the host_redirect part.
 
+        host_redirect = mapping.get("host_redirect", False)
+        shadow = mapping.get("shadow", False)
         if shadow and host_redirect:
             errstr = "At most one of host_redirect and shadow may be set; ignoring host_redirect"
             aconf.post_error(RichStatus.fromError(errstr), resource=mapping)
@@ -186,61 +176,27 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
             mapping.pop("prefix_redirect", None)
             mapping.pop("regex_redirect", None)
 
-        # OK. Is this a shadow Mapping?
-        if shadow:
-            # Yup. Make sure that we don't have multiple shadows.
-            if self.shadows:
-                errstr = "cannot accept %s as second shadow after %s" % (
-                    mapping.name,
-                    self.shadows[0].name,
-                )
-                aconf.post_error(RichStatus.fromError(errstr), resource=self)
-            else:
-                # All good. Save it.
-                self.shadows.append(mapping)
-        elif host_redirect:
-            # Not a shadow, but a host_redirect. Make sure we don't have multiples of
-            # those either.
-
-            if self.host_redirect:
-                errstr = "cannot accept %s as second host_redirect after %s" % (
-                    mapping.name,
-                    typecast(IRBaseMapping, self.host_redirect).name,
-                )
-                aconf.post_error(RichStatus.fromError(errstr), resource=self)
-            elif len(self.mappings) > 0:
-                errstr = (
-                    "cannot accept %s with host_redirect after mappings without host_redirect (eg %s)"
-                    % (mapping.name, self.mappings[0].name)
-                )
-                aconf.post_error(RichStatus.fromError(errstr), resource=self)
-            else:
-                # All good. Save it.
-                self.host_redirect = mapping
+        if mismatches:
+            self.post_error(
+                "http mapping group cannot accept new mapping %s with mismatched %s."
+                "Please verify field is set with the same value in all related mappings."
+                "Example: When canary is configured, related mappings should have same request matching fields and values (ex: prefix/hostname)"
+                % (mapping.name, ", ".join(["%s: %s != %s" % (x, y, z) for x, y, z in mismatches]))
+            )
+            return
         else:
-            # Neither shadow nor host_redirect are set in the Mapping.
-            #
-            # XXX At the moment, we do not do the right thing with the case where some Mappings
-            # in a group have host_redirect and some do not, so make sure that that can't happen.
-
-            if self.host_redirect:
-                aconf.post_error(
-                    "cannot accept %s without host_redirect after %s with host_redirect"
-                    % (mapping.name, typecast(IRBaseMapping, self.host_redirect).name)
-                )
+            # All good. Save this mapping.
+            if shadow:
+                self.shadow_mappings.append(mapping)
             else:
-                # All good. Save this mapping.
                 self.mappings.append(mapping)
-
                 if mapping.route_weight > self.group_weight:
-                    self.group_weight = mapping.route_weight
+                    self.group_weight = mapping.group_weight
 
         self.referenced_by(mapping)
 
-        # self.ir.logger.debug("%s: group now %s" % (self, self.as_json()))
-
     def add_cluster_for_mapping(
-        self, mapping: IRBaseMapping, marker: Optional[str] = None
+        self, mapping: IRHTTPMapping, marker: Optional[str] = None
     ) -> IRCluster:
         # Find or create the cluster for this Mapping...
 
@@ -330,145 +286,98 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
 
     def finalize(self, ir: "IR", aconf: Config) -> List[IRCluster]:
         """
-        Finalize a MappingGroup based on the attributes of its Mappings. Core elements get lifted into
-        the Group so we can more easily build Envoy routes; host-redirect and shadow get handled, etc.
-
+        Finalize a MappingGroup based on the attributes of its Mappings.
         :param ir: the IR we're working from
         :param aconf: the Config we're working from
         :return: a list of the IRClusters this Group uses
         """
-
-        add_request_headers: Dict[str, Any] = {}
-        add_response_headers: Dict[str, Any] = {}
         metadata_labels: Dict[str, str] = {}
 
         self.ir.logger.debug(f"IRHTTPMappingGroup: finalize %s", self.group_id)
-
         for mapping in sorted(self.mappings, key=lambda m: m.route_weight):
-            # if verbose:
-            #     self.ir.logger.debug("%s mapping %s" % (self, mapping.as_json()))
+            assert isinstance(mapping, IRHTTPMapping)
+            # If no rewrite was given at all, default the rewrite to "/", so /, so e.g., if we map
+            # /prefix1/ to the service service1, then http://ambassador.example.com/prefix1/foo/bar
+            # would effectively be written to http://service1/foo/bar
+            #
+            # If they did give a rewrite, leave it alone so that the Envoy config can correctly
+            # handle an empty rewrite as no rewriting at all.
+            if "rewrite" not in mapping:
+                mapping.rewrite = "/"
 
-            for k in mapping.keys():
-                if (
-                    k.startswith("_")
-                    or mapping.skip_key(k)
-                    or (k in IRHTTPMappingGroup.DoNotFlattenKeys)
-                ):
-                    # if verbose:
-                    #     self.ir.logger.debug("%s: don't flatten %s" % (self, k))
-                    continue
+            if mapping.get("load_balancer", None) is None:
+                mapping["load_balancer"] = ir.ambassador_module.load_balancer
 
-                # if verbose:
-                #     self.ir.logger.debug("%s: flatten %s" % (self, k))
+            if mapping.get("keepalive", None) is None:
+                keepalive_default = ir.ambassador_module.get("keepalive", None)
+                if keepalive_default:
+                    mapping["keepalive"] = keepalive_default
 
-                self[k] = mapping[k]
+            labels: Dict[str, Any] = mapping.get("labels", None)
 
-            add_request_headers.update(mapping.get("add_request_headers", {}))
-            add_response_headers.update(mapping.get("add_response_headers", {}))
-
+            if not labels:
+                # No labels. Use the default label domain to see if we have some valid defaults.
+                defaults = ir.ambassador_module.get_default_labels()
+                if defaults:
+                    domain = ir.ambassador_module.get_default_label_domain()
+                    mapping.labels = {domain: [{"defaults": defaults}]}
+            else:
+                # Walk all the domains in our labels, and prepend the defaults, if any.
+                for domain in labels.keys():
+                    defaults = ir.ambassador_module.get_default_labels(domain)
+                    ir.logger.debug("%s: defaults %s" % (domain, defaults))
+                    if defaults:
+                        ir.logger.debug("%s: labels %s" % (domain, labels[domain]))
+                        for label in labels[domain]:
+                            ir.logger.debug("%s: label %s" % (domain, label))
+                            lkeys = label.keys()
+                            if len(lkeys) > 1:
+                                err = RichStatus.fromError(
+                                    "label has multiple entries (%s) instead of just one" % lkeys
+                                )
+                                aconf.post_error(err, self)
+                            lkey = list(lkeys)[0]
+                            if lkey.startswith("v0_ratelimit_"):
+                                # Don't prepend defaults, as this was imported from a V0 rate_limit.
+                                continue
+                            label[lkey] = defaults + label[lkey]
             metadata_labels.update(mapping.get("metadata_labels") or {})
-
-        if add_request_headers:
-            self.add_request_headers = add_request_headers
-        if add_response_headers:
-            self.add_response_headers = add_response_headers
 
         if metadata_labels:
             self.metadata_labels = metadata_labels
 
-        if self.get("load_balancer", None) is None:
-            self["load_balancer"] = ir.ambassador_module.load_balancer
-
-        # if verbose:
-        #     self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))
-
-        total_weight = 0.0
-        unspecified_mappings = 0
-
-        # If no rewrite was given at all, default the rewrite to "/", so /, so e.g., if we map
-        # /prefix1/ to the service service1, then http://ambassador.example.com/prefix1/foo/bar
-        # would effectively be written to http://service1/foo/bar
-        #
-        # If they did give a rewrite, leave it alone so that the Envoy config can correctly
-        # handle an empty rewrite as no rewriting at all.
-
-        if "rewrite" not in self:
-            self.rewrite = "/"
-
-        # OK. Save some typing with local variables for default labels and our labels...
-        labels: Dict[str, Any] = self.get("labels", None)
-
-        if self.get("keepalive", None) is None:
-            keepalive_default = ir.ambassador_module.get("keepalive", None)
-            if keepalive_default:
-                self["keepalive"] = keepalive_default
-
-        if not labels:
-            # No labels. Use the default label domain to see if we have some valid defaults.
-            defaults = ir.ambassador_module.get_default_labels()
-
-            if defaults:
-                domain = ir.ambassador_module.get_default_label_domain()
-
-                self.labels = {domain: [{"defaults": defaults}]}
-        else:
-            # Walk all the domains in our labels, and prepend the defaults, if any.
-            # ir.logger.info("%s: labels %s" % (self.as_json(), labels))
-
-            for domain in labels.keys():
-                defaults = ir.ambassador_module.get_default_labels(domain)
-                ir.logger.debug("%s: defaults %s" % (domain, defaults))
-
-                if defaults:
-                    ir.logger.debug("%s: labels %s" % (domain, labels[domain]))
-
-                    for label in labels[domain]:
-                        ir.logger.debug("%s: label %s" % (domain, label))
-
-                        lkeys = label.keys()
-                        if len(lkeys) > 1:
-                            err = RichStatus.fromError(
-                                "label has multiple entries (%s) instead of just one" % lkeys
-                            )
-                            aconf.post_error(err, self)
-
-                        lkey = list(lkeys)[0]
-
-                        if lkey.startswith("v0_ratelimit_"):
-                            # Don't prepend defaults, as this was imported from a V0 rate_limit.
-                            continue
-
-                        label[lkey] = defaults + label[lkey]
-
-        if self.shadows:
-            # Only one shadow is supported right now.
-            shadow = self.shadows[0]
-
-            # The shadow is an IRMapping. Save the cluster for it.
-            shadow.cluster = self.add_cluster_for_mapping(shadow, marker="shadow")
-
-        # We don't need a cluster for host_redirect: it's just a name to redirect to.
-
-        redir = self.get("host_redirect", None)
-
-        if not redir:
-            self.ir.logger.debug(
-                f"IRHTTPMappingGroup: checking mapping clusters for %s", self.group_id
-            )
-
-            for mapping in self.mappings:
+        for mapping in self.mappings:
+            assert isinstance(mapping, IRHTTPMapping)
+            # Mappings that do hostname redirects don't need a cluster
+            redir = mapping.get("host_redirect", None)
+            if not redir:
                 mapping.cluster = self.add_cluster_for_mapping(mapping, mapping.cluster_tag)
 
-            self.ir.logger.debug(f"IRHTTPMappingGroup: normalizing weights for %s", self.group_id)
+        for shadow_mapping in self.shadow_mappings:
+            # Add a special marker for mappings that do traffic mirroring/shadowing
+            shadow_mapping.cluster = self.add_cluster_for_mapping(shadow_mapping, marker="shadow")
 
-            if not self.normalize_weights_in_mappings():
-                self.post_error(f"Could not normalize mapping weights, ignoring...")
+        self.ir.logger.debug(f"IRHTTPMappingGroup: normalizing weights for %s", self.group_id)
+
+        normalized_mappings, ok = self.normalize_weights_in_mappings(self.mappings)
+        if not ok:
+            self.post_error(f"Could not normalize mapping weights, ignoring...")
+            return []
+        self.mappings = normalized_mappings
+
+        if len(self.shadow_mappings) > 0:
+            self.ir.logger.debug(
+                f"IRHTTPMappingGroup: normalizing shadow weights for %s", self.group_id
+            )
+
+            normalized_mappings, ok = self.normalize_weights_in_mappings(
+                cast(List[IRBaseMapping], self.shadow_mappings)
+            )
+            if not ok:
+                self.post_error(f"Could not normalize shadow weights, ignoring...")
                 return []
 
-            return list([mapping.cluster for mapping in self.mappings])
-        else:
-            # Flatten the case_sensitive field for host_redirect if it exists
-            if "case_sensitive" in redir:
-                self["case_sensitive"] = redir["case_sensitive"]
+            self.shadow_mappings = cast(List[IRHTTPMapping], normalized_mappings)
 
-            return []
+        # return all the clusters from our mappings (note that redirect mappings won't have a cluster)
+        return [mapping.cluster for mapping in self.mappings if "cluster" in mapping]

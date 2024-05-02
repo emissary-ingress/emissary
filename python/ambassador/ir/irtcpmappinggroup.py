@@ -1,10 +1,11 @@
-from typing import TYPE_CHECKING, ClassVar, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 from ..config import Config
 from .irbasemapping import IRBaseMapping
 from .irbasemappinggroup import IRBaseMappingGroup
 from .ircluster import IRCluster
 from .irresource import IRResource
+from .irtcpmapping import IRTCPMapping
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover
@@ -57,13 +58,12 @@ class IRTCPMappingGroup(IRBaseMappingGroup):
         ir: "IR",
         aconf: Config,
         location: str,
-        mapping: IRBaseMapping,
+        mapping: IRTCPMapping,
         rkey: str = "ir.mappinggroup",
         kind: str = "IRTCPMappingGroup",
         name: str = "ir.mappinggroup",
         **kwargs,
     ) -> None:
-        # print("IRTCPMappingGroup __init__ (%s %s %s)" % (kind, name, kwargs))
         del rkey  # silence unused-variable warning
 
         super().__init__(
@@ -84,7 +84,7 @@ class IRTCPMappingGroup(IRBaseMappingGroup):
 
         self.add_mapping(aconf, mapping)
 
-    def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> None:
+    def add_mapping(self, aconf: Config, mapping: IRTCPMapping) -> None:
         mismatches = []
 
         for k in IRTCPMappingGroup.CoreMappingKeys:
@@ -196,10 +196,7 @@ class IRTCPMappingGroup(IRBaseMappingGroup):
                     or mapping.skip_key(k)
                     or (k in IRTCPMappingGroup.DoNotFlattenKeys)
                 ):
-                    # self.ir.logger.debug("%s: don't flatten %s" % (self, k))
                     continue
-
-                # self.ir.logger.debug("%s: flatten %s" % (self, k))
 
                 self[k] = mapping[k]
 
@@ -210,62 +207,17 @@ class IRTCPMappingGroup(IRBaseMappingGroup):
         if metadata_labels:
             self.metadata_labels = metadata_labels
 
-        # self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))
-
         total_weight = 0.0
         unspecified_mappings = 0
-
-        # # OK. Save some typing with local variables for default labels and our labels...
-        # labels: Dict[str, Any] = self.get('labels', None)
-        #
-        # if not labels:
-        #     # No labels. Use the default label domain to see if we have some valid defaults.
-        #     defaults = ir.ambassador_module.get_default_labels()
-        #
-        #     if defaults:
-        #         domain = ir.ambassador_module.get_default_label_domain()
-        #
-        #         self.labels = {
-        #             domain: [
-        #                 {
-        #                     'defaults': defaults
-        #                 }
-        #             ]
-        #         }
-        # else:
-        #     # Walk all the domains in our labels, and prepend the defaults, if any.
-        #     # ir.logger.info("%s: labels %s" % (self.as_json(), labels))
-        #
-        #     for domain in labels.keys():
-        #         defaults = ir.ambassador_module.get_default_labels(domain)
-        #         ir.logger.debug("%s: defaults %s" % (domain, defaults))
-        #
-        #         if defaults:
-        #             ir.logger.debug("%s: labels %s" % (domain, labels[domain]))
-        #
-        #             for label in labels[domain]:
-        #                 ir.logger.debug("%s: label %s" % (domain, label))
-        #
-        #                 lkeys = label.keys()
-        #                 if len(lkeys) > 1:
-        #                     err = RichStatus.fromError("label has multiple entries (%s) instead of just one" %
-        #                                                lkeys)
-        #                     aconf.post_error(err, self)
-        #
-        #                 lkey = list(lkeys)[0]
-        #
-        #                 if lkey.startswith('v0_ratelimit_'):
-        #                     # Don't prepend defaults, as this was imported from a V0 rate_limit.
-        #                     continue
-        #
-        #                 label[lkey] = defaults + label[lkey]
 
         for mapping in self.mappings:
             mapping.cluster = self.add_cluster_for_mapping(mapping, mapping.cluster_tag)
 
         self.logger.debug(f"Normalizing weights in mappings now...")
-        if not self.normalize_weights_in_mappings():
+        normalized_mappings, ok = self.normalize_weights_in_mappings(self.mappings)
+        if not ok:
             self.post_error(f"Could not normalize mapping weights, ignoring...")
             return []
+        self.mappings = normalized_mappings
 
         return list([mapping.cluster for mapping in self.mappings])

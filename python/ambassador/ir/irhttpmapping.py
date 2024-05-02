@@ -6,15 +6,14 @@ from ambassador.utils import RichStatus
 
 from ..config import Config
 from .irbasemapping import IRBaseMapping, normalize_service_name
-from .irbasemappinggroup import IRBaseMappingGroup
 from .ircors import IRCORS
 from .irerrorresponse import IRErrorResponse
-from .irhttpmappinggroup import IRHTTPMappingGroup
 from .irretrypolicy import IRRetryPolicy
 from .irutils import selector_matches
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover
+    from .irhttpmappinggroup import IRHTTPMappingGroup
 
 
 # Kind of cheating here so that it's easy to json-serialize key-value pairs (including with regex)
@@ -403,7 +402,9 @@ class IRHTTPMapping(IRBaseMapping):
             self.post_error(RichStatus.fromError("outlier_detection is not supported"))
 
     @staticmethod
-    def group_class() -> Type[IRBaseMappingGroup]:
+    def group_class() -> Type["IRHTTPMappingGroup"]:
+        from .irhttpmappinggroup import IRHTTPMappingGroup
+
         return IRHTTPMappingGroup
 
     def _enforce_mutual_exclusion(self, preferred, other):

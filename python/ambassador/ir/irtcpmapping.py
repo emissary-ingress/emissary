@@ -3,11 +3,10 @@ from typing import TYPE_CHECKING, ClassVar, Dict, List, Optional, Type, Union
 
 from ..config import Config
 from .irbasemapping import IRBaseMapping, normalize_service_name
-from .irbasemappinggroup import IRBaseMappingGroup
-from .irtcpmappinggroup import IRTCPMappingGroup
 
 if TYPE_CHECKING:
     from .ir import IR  # pragma: no cover
+    from .irtcpmappinggroup import IRTCPMappingGroup
 
 
 class IRTCPMapping(IRBaseMapping):
@@ -95,7 +94,9 @@ class IRTCPMapping(IRBaseMapping):
         ir.logger.debug("IRTCPMapping %s: self.host = %s", name, self.get("host") or "i'*'")
 
     @staticmethod
-    def group_class() -> Type[IRBaseMappingGroup]:
+    def group_class() -> Type["IRTCPMappingGroup"]:
+        from .irtcpmappinggroup import IRTCPMappingGroup
+
         return IRTCPMappingGroup
 
     def bind_to(self) -> str:
