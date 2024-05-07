@@ -181,11 +181,11 @@ libraries:
     ----                -------   ----------
     Cython              0.29.37   Apache License 2.0
     Flask               3.0.3     3-clause BSD license
-    Jinja2              3.1.3     3-clause BSD license
+    Jinja2              3.1.4     3-clause BSD license
     MarkupSafe          2.1.5     3-clause BSD license
     PyYAML              6.0.1     MIT license
-    Werkzeug            3.0.2     3-clause BSD license
-    blinker             1.8.1     MIT license
+    Werkzeug            3.0.3     3-clause BSD license
+    blinker             1.8.2     MIT license
     build               1.2.1     MIT license
     certifi             2024.2.2  Mozilla Public License 2.0
     charset-normalizer  3.3.2     MIT license
@@ -197,12 +197,12 @@ libraries:
     itsdangerous        2.2.0     3-clause BSD license
     jsonpatch           1.33      3-clause BSD license
     jsonpointer         2.4       3-clause BSD license
-    orjson              3.10.1    Apache License 2.0, MIT license
+    orjson              3.10.3    Apache License 2.0, MIT license
     packaging           23.1      2-clause BSD license, Apache License 2.0
     pip-tools           7.3.0     3-clause BSD license
     prometheus_client   0.20.0    Apache License 2.0
     pyparsing           3.0.9     MIT license
-    pyproject_hooks     1.0.0     MIT license
+    pyproject_hooks     1.1.0     MIT license
     python-json-logger  2.0.7     2-clause BSD license
     requests            2.31.0    Apache License 2.0
     semantic-version    2.10.0    2-clause BSD license

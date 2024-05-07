@@ -33,14 +33,14 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		// of the BSD license is it?).  We pin the exact versions so
 		// that a human has to go make sure that the license didn't
 		// change when upgrading.
-		{"blinker", "1.8.1", ""}:                       {MIT},
+		{"blinker", "1.8.2", ""}:                       {MIT},
 		{"build", "1.2.1", ""}:                         {MIT},
 		{"CacheControl", "0.12.6", "UNKNOWN"}:          {Apache2},
 		{"CacheControl", "0.12.10", "UNKNOWN"}:         {Apache2},
 		{"Click", "7.0", "BSD"}:                        {BSD3},
 		{"Flask", "3.0.3", ""}:                         {BSD3},
 		{"GitPython", "3.1.11", "UNKNOWN"}:             {BSD3},
-		{"Jinja2", "3.1.3", "BSD"}:                     {BSD3},
+		{"Jinja2", "3.1.4", ""}:                        {BSD3},
 		{"colorama", "0.4.3", "BSD"}:                   {BSD3},
 		{"colorama", "0.4.4", "BSD"}:                   {BSD3},
 		{"decorator", "4.4.2", "new BSD License"}:      {BSD2},
@@ -62,7 +62,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"pyasn1-modules", "0.3.0", "BSD"}:             {BSD2},
 		{"pycparser", "2.20", "BSD"}:                   {BSD3},
 		{"pyparsing", "3.0.9", ""}:                     {MIT},
-		{"pyproject_hooks", "1.0.0", ""}:               {MIT},
+		{"pyproject_hooks", "1.1.0", ""}:               {MIT},
 		{"python-dateutil", "2.8.1", "Dual License"}:   {BSD3, Apache2},
 		{"python-dateutil", "2.8.2", "Dual License"}:   {BSD3, Apache2},
 		{"python-json-logger", "2.0.7", "BSD"}:         {BSD2},
@@ -74,13 +74,13 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"webencodings", "0.5.1", "BSD"}:               {BSD3},
 		{"websocket-client", "0.57.0", "BSD"}:          {BSD3},
 		{"websocket-client", "1.2.3", "Apache-2.0"}:    {Apache2},
-		{"Werkzeug", "3.0.2", ""}:                      {BSD3},
+		{"Werkzeug", "3.0.3", ""}:                      {BSD3},
 		{"zipp", "3.11.0", "None"}:                     {MIT},
 		{"gunicorn", "22.0.0", "None"}:                 {MIT},
 
 		// These are packages with non-trivial strings to parse, and
 		// it's easier to just hard-code it.
-		{"orjson", "3.10.1", "Apache-2.0 OR MIT"}: {Apache2, MIT},
+		{"orjson", "3.10.3", "Apache-2.0 OR MIT"}: {Apache2, MIT},
 		{"packaging", "23.1", ""}:                 {BSD2, Apache2},
 		{"packaging", "24.0", ""}:                 {BSD2, Apache2},
 	}[tuple{name, version, license}]
