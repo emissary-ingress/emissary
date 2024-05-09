@@ -134,7 +134,7 @@ spec:
       initContainers:
       {{- if and .Values.waitForApiext (eq .Values.waitForApiext.enabled true) }}
       - name: wait-for-apiext
-        image: istio/kubectl:1.5.10
+        image: public.ecr.aws/bitnami/kubectl:1.30.0
         imagePullPolicy: IfNotPresent
         {{- with .Values.waitForApiext.securityContext }}
         securityContext:
@@ -143,6 +143,7 @@ spec:
         command: ["/bin/sh", "-c"]
         args:
           - |
+            set -eu
             deployment_name={{ .Values.waitForApiext.deploymentName | default "emissary-apiext" | quote }}
             deployment_namespace={{ .Values.waitForApiext.deploymentNamespace | default "emissary-system" | quote }}
             while true; do
@@ -156,7 +157,7 @@ spec:
                   while true; do
                   desired_replicas=$(kubectl get deployment $deployment_name -n $deployment_namespace -o jsonpath='{.spec.replicas}')
                   current_replicas=$(kubectl get deployment $deployment_name -n $deployment_namespace -o jsonpath='{.status.replicas}')
-                  if [[ $current_replicas != $desired_replicas ]]; then
+                  if [ $current_replicas != $desired_replicas ]; then
                     echo "$deployment_name.$deployment_namespace is in the process of restarting. Have: $current_replicas, want $desired_replicas"
                     sleep 3
                   else
