@@ -11,8 +11,8 @@ export ENVOY_TEST_LABEL
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
 ENVOY_REPO ?= https://github.com/datawire/envoy.git
-# https://github.com/datawire/envoy/tree/rebase/release/v1.27.2
-ENVOY_COMMIT ?= 6637fd1bab315774420f3c3d97488fedb7fc710f
+# https://github.com/datawire/envoy/tree/rebase/release/v1.30.1
+ENVOY_COMMIT ?= ba54725ed4b876ffebe72c3030196a3ab751018c
 ENVOY_COMPILATION_MODE ?= opt
 # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
 # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
@@ -140,11 +140,11 @@ verify-base-envoy:
 
 # builds envoy using release settings, see https://github.com/envoyproxy/envoy/blob/main/ci/README.md for additional
 # details on configuring builds
-.PHONY: build-envoy 
+.PHONY: build-envoy
 build-envoy: $(OSS_HOME)/_cxx/envoy-build-image.txt
 	$(OSS_HOME)/_cxx/tools/build-envoy.sh
 
-# build the base-envoy containers and tags them locally, this requires running `build-envoy` first. 
+# build the base-envoy containers and tags them locally, this requires running `build-envoy` first.
 .PHONY: build-base-envoy-image
 build-base-envoy-image: $(OSS_HOME)/_cxx/envoy-build-image.txt
 	docker build --platform="$(BUILD_ARCH)" -f $(OSS_HOME)/docker/base-envoy/Dockerfile.stripped -t $(ENVOY_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy
@@ -152,13 +152,13 @@ build-base-envoy-image: $(OSS_HOME)/_cxx/envoy-build-image.txt
 # Allows pushing the docker image independent of building envoy and docker containers
 # Note, bump the BASE_ENVOY_RELVER and re-build before pushing when making non-commit changes to have a unique image tag.
 .PHONY: push-base-envoy-image
-push-base-envoy-image: 
+push-base-envoy-image:
 	docker push $(ENVOY_DOCKER_TAG)
 
 
 # `make update-base`: Recompile Envoy and do all of the related things.
 .PHONY: update-base
-update-base: $(OSS_HOME)/_cxx/envoy-build-image.txt 
+update-base: $(OSS_HOME)/_cxx/envoy-build-image.txt
 	$(MAKE) verify-base-envoy
 	$(MAKE) build-envoy
 	$(MAKE) build-base-envoy-image
