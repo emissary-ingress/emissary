@@ -167,8 +167,10 @@ type RawDeltaResponse struct {
 	marshaledResponse atomic.Value
 }
 
-var _ Response = &RawResponse{}
-var _ DeltaResponse = &RawDeltaResponse{}
+var (
+	_ Response      = &RawResponse{}
+	_ DeltaResponse = &RawDeltaResponse{}
+)
 
 // PassthroughResponse is a pre constructed xDS response that need not go through marshaling transformations.
 type PassthroughResponse struct {
@@ -195,8 +197,10 @@ type DeltaPassthroughResponse struct {
 	ctx context.Context
 }
 
-var _ Response = &PassthroughResponse{}
-var _ DeltaResponse = &DeltaPassthroughResponse{}
+var (
+	_ Response      = &PassthroughResponse{}
+	_ DeltaResponse = &DeltaPassthroughResponse{}
+)
 
 // GetDiscoveryResponse performs the marshaling the first time its called and uses the cached response subsequently.
 // This is necessary because the marshaled response does not change across the calls.
@@ -225,7 +229,7 @@ func (r *RawResponse) GetDiscoveryResponse() (*discovery.DiscoveryResponse, erro
 		marshaledResponse = &discovery.DiscoveryResponse{
 			VersionInfo: r.Version,
 			Resources:   marshaledResources,
-			TypeUrl:     r.Request.TypeUrl,
+			TypeUrl:     r.GetRequest().GetTypeUrl(),
 		}
 
 		r.marshaledResponse.Store(marshaledResponse)
@@ -256,7 +260,7 @@ func (r *RawDeltaResponse) GetDeltaDiscoveryResponse() (*discovery.DeltaDiscover
 			marshaledResources[i] = &discovery.Resource{
 				Name: name,
 				Resource: &anypb.Any{
-					TypeUrl: r.DeltaRequest.TypeUrl,
+					TypeUrl: r.GetDeltaRequest().GetTypeUrl(),
 					Value:   marshaledResource,
 				},
 				Version: version,
@@ -266,7 +270,7 @@ func (r *RawDeltaResponse) GetDeltaDiscoveryResponse() (*discovery.DeltaDiscover
 		marshaledResponse = &discovery.DeltaDiscoveryResponse{
 			Resources:         marshaledResources,
 			RemovedResources:  r.RemovedResources,
-			TypeUrl:           r.DeltaRequest.TypeUrl,
+			TypeUrl:           r.GetDeltaRequest().GetTypeUrl(),
 			SystemVersionInfo: r.SystemVersionInfo,
 		}
 		r.marshaledResponse.Store(marshaledResponse)
@@ -322,14 +326,14 @@ func (r *RawResponse) maybeCreateTTLResource(resource types.ResourceWithTTL) (ty
 			if err != nil {
 				return nil, "", err
 			}
-			rsrc.TypeUrl = r.Request.TypeUrl
+			rsrc.TypeUrl = r.GetRequest().GetTypeUrl()
 			wrappedResource.Resource = rsrc
 		}
 
 		return wrappedResource, deltaResourceTypeURL, nil
 	}
 
-	return resource.Resource, r.Request.TypeUrl, nil
+	return resource.Resource, r.GetRequest().GetTypeUrl(), nil
 }
 
 // GetDiscoveryResponse returns the final passthrough Discovery Response.
@@ -354,19 +358,22 @@ func (r *DeltaPassthroughResponse) GetDeltaRequest() *discovery.DeltaDiscoveryRe
 
 // GetVersion returns the response version.
 func (r *PassthroughResponse) GetVersion() (string, error) {
-	if r.DiscoveryResponse != nil {
-		return r.DiscoveryResponse.VersionInfo, nil
+	discoveryResponse, _ := r.GetDiscoveryResponse()
+	if discoveryResponse != nil {
+		return discoveryResponse.GetVersionInfo(), nil
 	}
 	return "", fmt.Errorf("DiscoveryResponse is nil")
 }
+
 func (r *PassthroughResponse) GetContext() context.Context {
 	return r.ctx
 }
 
 // GetSystemVersion returns the response version.
 func (r *DeltaPassthroughResponse) GetSystemVersion() (string, error) {
-	if r.DeltaDiscoveryResponse != nil {
-		return r.DeltaDiscoveryResponse.SystemVersionInfo, nil
+	deltaDiscoveryResponse, _ := r.GetDeltaDiscoveryResponse()
+	if deltaDiscoveryResponse != nil {
+		return deltaDiscoveryResponse.GetSystemVersionInfo(), nil
 	}
 	return "", fmt.Errorf("DeltaDiscoveryResponse is nil")
 }

@@ -100,6 +100,7 @@ following Free and Open Source software:
     github.com/peterbourgon/diskv                                                     v2.0.1+incompatible                            MIT license
     github.com/pjbgf/sha1cd                                                           v0.3.0                                         Apache License 2.0
     github.com/pkg/errors                                                             v0.9.1                                         2-clause BSD license
+    github.com/planetscale/vtprotobuf                                                 v0.6.0                                         3-clause BSD license
     github.com/pmezard/go-difflib                                                     v1.0.1-0.20181226105442-5d4384ee4fb2           3-clause BSD license
     github.com/prometheus/client_golang                                               v1.17.0                                        Apache License 2.0
     github.com/prometheus/client_model                                                v0.5.0                                         Apache License 2.0
@@ -123,6 +124,7 @@ following Free and Open Source software:
     github.com/xlab/treeprint                                                         v1.2.0                                         MIT license
     go.opentelemetry.io/proto/otlp                                                    v1.0.0                                         Apache License 2.0
     go.starlark.net                                                                   v0.0.0-20230525235612-a134d8f9ddca             3-clause BSD license
+    go.uber.org/goleak                                                                v1.2.1                                         MIT license
     go.uber.org/multierr                                                              v1.11.0                                        MIT license
     go.uber.org/zap                                                                   v1.26.0                                        MIT license
     golang.org/x/crypto                                                               v0.21.0                                        3-clause BSD license

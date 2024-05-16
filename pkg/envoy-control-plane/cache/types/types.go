@@ -43,12 +43,12 @@ type ResponseType int
 // ADS expects things to be returned in a specific order.
 // See the following issue for details: https://github.com/envoyproxy/go-control-plane/issues/526
 const (
-	Endpoint ResponseType = iota
-	Cluster
-	ScopedRoute
-	Route
-	VirtualHost
+	Cluster ResponseType = iota
+	Endpoint
 	Listener
+	Route
+	ScopedRoute
+	VirtualHost
 	Secret
 	Runtime
 	ExtensionConfig

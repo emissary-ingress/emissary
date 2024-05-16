@@ -31,7 +31,6 @@ func (f *fixtureGenerator) snapshot() *cache.Snapshot {
 			rsrc.ExtensionConfigType: {testExtensionConfig},
 		},
 	)
-
 	if err != nil {
 		panic(err.Error())
 	}

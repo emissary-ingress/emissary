@@ -111,20 +111,20 @@ func (s *streamWrapper) send(resp cache.Response) (string, error) {
 	out.Nonce = strconv.FormatInt(atomic.AddInt64(&s.nonce, 1), 10)
 
 	lastResponse := lastDiscoveryResponse{
-		nonce:     out.Nonce,
+		nonce:     out.GetNonce(),
 		resources: make(map[string]struct{}),
 	}
-	for _, r := range resp.GetRequest().ResourceNames {
+	for _, r := range resp.GetRequest().GetResourceNames() {
 		lastResponse.resources[r] = struct{}{}
 	}
-	s.lastDiscoveryResponses[resp.GetRequest().TypeUrl] = lastResponse
+	s.lastDiscoveryResponses[resp.GetRequest().GetTypeUrl()] = lastResponse
 
 	// Register with the callbacks provided that we are sending the response.
 	if s.callbacks != nil {
 		s.callbacks.OnStreamResponse(resp.GetContext(), s.ID, resp.GetRequest(), out)
 	}
 
-	return out.Nonce, s.stream.Send(out)
+	return out.GetNonce(), s.stream.Send(out)
 }
 
 // Shutdown closes all open watches, and notifies API consumers the stream has closed.

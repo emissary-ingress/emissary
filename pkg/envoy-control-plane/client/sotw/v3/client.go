@@ -21,11 +21,11 @@ import (
 	"io"
 	"sync"
 
-	"github.com/golang/protobuf/ptypes/any"
 	status "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
 	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
@@ -54,7 +54,7 @@ type ADSClient interface {
 // For the time being it only contains the Resources from server. This can be extended with
 // other response details. For example some metadata from DiscoveryResponse.
 type Response struct {
-	Resources []*any.Any
+	Resources []*anypb.Any
 }
 
 type adsClient struct {

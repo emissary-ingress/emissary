@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
 	route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
@@ -57,15 +58,15 @@ var (
 )
 
 func TestValidate(t *testing.T) {
-	assert.NoError(t, testEndpoint.Validate())
-	assert.NoError(t, testCluster.Validate())
-	assert.NoError(t, testRoute.Validate())
-	assert.NoError(t, testScopedRoute.Validate())
-	assert.NoError(t, testVirtualHost.Validate())
-	assert.NoError(t, testListener.Validate())
-	assert.NoError(t, testScopedListener.Validate())
-	assert.NoError(t, testRuntime.Validate())
-	assert.NoError(t, testExtensionConfig.Validate())
+	require.NoError(t, testEndpoint.Validate())
+	require.NoError(t, testCluster.Validate())
+	require.NoError(t, testRoute.Validate())
+	require.NoError(t, testScopedRoute.Validate())
+	require.NoError(t, testVirtualHost.Validate())
+	require.NoError(t, testListener.Validate())
+	require.NoError(t, testScopedListener.Validate())
+	require.NoError(t, testRuntime.Validate())
+	require.NoError(t, testExtensionConfig.Validate())
 
 	invalidRoute := &route.RouteConfiguration{
 		Name: "test",
@@ -78,7 +79,7 @@ func TestValidate(t *testing.T) {
 	if err := invalidRoute.Validate(); err == nil {
 		t.Error("expected an error")
 	}
-	if err := invalidRoute.VirtualHosts[0].Validate(); err == nil {
+	if err := invalidRoute.GetVirtualHosts()[0].Validate(); err == nil {
 		t.Error("expected an error")
 	}
 }
@@ -163,8 +164,10 @@ func TestGetResourceReferences(t *testing.T) {
 			out: map[rsrc.Type]map[string]bool{rsrc.EndpointType: {clusterName: true}},
 		},
 		{
-			in: &cluster.Cluster{Name: clusterName, ClusterDiscoveryType: &cluster.Cluster_Type{Type: cluster.Cluster_EDS},
-				EdsClusterConfig: &cluster.Cluster_EdsClusterConfig{ServiceName: "test"}},
+			in: &cluster.Cluster{
+				Name: clusterName, ClusterDiscoveryType: &cluster.Cluster_Type{Type: cluster.Cluster_EDS},
+				EdsClusterConfig: &cluster.Cluster_EdsClusterConfig{ServiceName: "test"},
+			},
 			out: map[rsrc.Type]map[string]bool{rsrc.EndpointType: {"test": true}},
 		},
 		{
@@ -215,6 +218,7 @@ func TestGetResourceReferences(t *testing.T) {
 		}
 	}
 }
+
 func TestGetAllResourceReferencesReturnsExpectedRefs(t *testing.T) {
 	expected := map[rsrc.Type]map[string]bool{
 		rsrc.RouteType:    {routeName: true, embeddedRouteName: true},

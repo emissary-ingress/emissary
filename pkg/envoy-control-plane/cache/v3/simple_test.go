@@ -47,7 +47,7 @@ const (
 
 func (group) ID(node *core.Node) string {
 	if node != nil {
-		return node.Id
+		return node.GetId()
 	}
 	return key
 }
@@ -172,7 +172,7 @@ func TestSnapshotCacheWithTTL(t *testing.T) {
 
 					updatesByType[typ]++
 
-					streamState.SetKnownResourceNamesAsList(typ, out.GetRequest().ResourceNames)
+					streamState.SetKnownResourceNamesAsList(typ, out.GetRequest().GetResourceNames())
 				case <-end:
 					cancel()
 					return
@@ -403,7 +403,7 @@ func TestSnapshotCacheWatchTimeout(t *testing.T) {
 	defer cancel()
 
 	err := c.SetSnapshot(ctx, key, fixture.snapshot())
-	assert.EqualError(t, err, context.Canceled.Error())
+	require.EqualError(t, err, context.Canceled.Error())
 
 	// Now reset the snapshot with a consuming channel. This verifies that if setting the snapshot fails,
 	// we can retry by setting the same snapshot. In other words, we keep the watch open even if we failed
@@ -416,13 +416,13 @@ func TestSnapshotCacheWatchTimeout(t *testing.T) {
 	}()
 
 	err = c.SetSnapshot(context.WithValue(context.Background(), testKey{}, "bar"), key, fixture.snapshot())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// The channel should get closed due to the watch trigger.
 	select {
 	case response := <-watchTriggeredCh:
 		// Verify that we pass the context through.
-		assert.Equal(t, response.GetContext().Value(testKey{}), "bar")
+		assert.Equal(t, "bar", response.GetContext().Value(testKey{}))
 	case <-time.After(time.Second):
 		t.Fatalf("timed out")
 	}
@@ -471,8 +471,10 @@ func TestSnapshotCreateWatchWithResourcePreviouslyNotRequested(t *testing.T) {
 	go func() {
 		state := stream.NewStreamState(false, map[string]string{})
 		state.SetKnownResourceNames(rsrc.EndpointType, map[string]struct{}{clusterName: {}})
-		c.CreateWatch(&discovery.DiscoveryRequest{TypeUrl: rsrc.EndpointType, VersionInfo: fixture.version,
-			ResourceNames: []string{clusterName, clusterName2}}, state, watch)
+		c.CreateWatch(&discovery.DiscoveryRequest{
+			TypeUrl: rsrc.EndpointType, VersionInfo: fixture.version,
+			ResourceNames: []string{clusterName, clusterName2},
+		}, state, watch)
 	}()
 
 	select {
@@ -490,8 +492,10 @@ func TestSnapshotCreateWatchWithResourcePreviouslyNotRequested(t *testing.T) {
 	// Repeat request for with same version and make sure a watch is created
 	state := stream.NewStreamState(false, map[string]string{})
 	state.SetKnownResourceNames(rsrc.EndpointType, map[string]struct{}{clusterName: {}, clusterName2: {}})
-	if cancel := c.CreateWatch(&discovery.DiscoveryRequest{TypeUrl: rsrc.EndpointType, VersionInfo: fixture.version,
-		ResourceNames: []string{clusterName, clusterName2}}, state, watch); cancel == nil {
+	if cancel := c.CreateWatch(&discovery.DiscoveryRequest{
+		TypeUrl: rsrc.EndpointType, VersionInfo: fixture.version,
+		ResourceNames: []string{clusterName, clusterName2},
+	}, state, watch); cancel == nil {
 		t.Fatal("Should create a watch")
 	} else {
 		cancel()
@@ -591,8 +595,8 @@ func TestSnapshotSingleResourceFetch(t *testing.T) {
 
 	resp, err := c.Fetch(context.Background(), &discovery.DiscoveryRequest{
 		TypeUrl:       durationTypeURL,
-		ResourceNames: []string{"one-second"}},
-	)
+		ResourceNames: []string{"one-second"},
+	})
 	require.NoError(t, err)
 
 	vers, err := resp.GetVersion()
@@ -602,7 +606,7 @@ func TestSnapshotSingleResourceFetch(t *testing.T) {
 	discoveryResponse, err := resp.GetDiscoveryResponse()
 	require.NoError(t, err)
 	assert.Equal(t, durationTypeURL, discoveryResponse.GetTypeUrl())
-	require.Equal(t, 1, len(discoveryResponse.GetResources()))
+	require.Len(t, discoveryResponse.GetResources(), 1)
 	assert.Equal(t, "", cmp.Diff(
 		unwrapResource(discoveryResponse.GetResources()[0]).GetResource(),
 		anyDuration(time.Second),

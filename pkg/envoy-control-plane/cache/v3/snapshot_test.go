@@ -54,8 +54,8 @@ func TestClusterWithMissingEndpointIsInconsistent(t *testing.T) {
 
 func TestListenerWithMissingRoutesIsInconsistent(t *testing.T) {
 	if snap, _ := cache.NewSnapshot(fixture.version, map[rsrc.Type][]types.Resource{
-		rsrc.ListenerType: {testListener}},
-	); snap.Consistent() == nil {
+		rsrc.ListenerType: {testListener},
+	}); snap.Consistent() == nil {
 		t.Errorf("got consistent snapshot %#v", snap)
 	}
 }
@@ -110,7 +110,7 @@ func TestScopedRouteListenerWithScopedRouteAndRouteIsConsistent(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, snap.Consistent(), "got inconsistent snapshot %#v", snap)
+	require.NoError(t, snap.Consistent(), "got inconsistent snapshot %#v", snap)
 }
 
 func TestScopedRouteListenerWithInlineScopedRouteAndRouteIsConsistent(t *testing.T) {
@@ -124,7 +124,7 @@ func TestScopedRouteListenerWithInlineScopedRouteAndRouteIsConsistent(t *testing
 	})
 
 	require.NoError(t, err)
-	assert.NoError(t, snap.Consistent())
+	require.NoError(t, snap.Consistent())
 }
 
 func TestScopedRouteListenerWithInlineScopedRouteAndNoRouteIsInconsistent(t *testing.T) {
@@ -138,7 +138,7 @@ func TestScopedRouteListenerWithInlineScopedRouteAndNoRouteIsInconsistent(t *tes
 	})
 
 	require.NoError(t, err)
-	assert.Error(t, snap.Consistent())
+	require.Error(t, snap.Consistent())
 }
 
 func TestMultipleListenersWithScopedRouteAndRouteIsConsistent(t *testing.T) {
@@ -188,6 +188,6 @@ func TestNewSnapshotBadType(t *testing.T) {
 	})
 
 	// Should receive an error from an unknown type
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Nil(t, snap)
 }

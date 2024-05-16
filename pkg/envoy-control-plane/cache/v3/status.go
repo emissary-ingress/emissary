@@ -37,7 +37,7 @@ func (IDHash) ID(node *core.Node) string {
 	if node == nil {
 		return ""
 	}
-	return node.Id
+	return node.GetId()
 }
 
 var _ NodeHash = IDHash{}
@@ -169,7 +169,7 @@ func (info *statusInfo) orderResponseWatches() {
 	for id, watch := range info.watches {
 		info.orderedWatches[index] = key{
 			ID:      id,
-			TypeURL: watch.Request.TypeUrl,
+			TypeURL: watch.Request.GetTypeUrl(),
 		}
 		index++
 	}
@@ -188,7 +188,7 @@ func (info *statusInfo) orderResponseDeltaWatches() {
 	for id, deltaWatch := range info.deltaWatches {
 		info.orderedDeltaWatches[index] = key{
 			ID:      id,
-			TypeURL: deltaWatch.Request.TypeUrl,
+			TypeURL: deltaWatch.Request.GetTypeUrl(),
 		}
 		index++
 	}

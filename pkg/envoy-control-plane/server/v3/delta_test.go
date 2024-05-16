@@ -10,6 +10,9 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"go.uber.org/goleak"
 
 	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
@@ -21,10 +24,10 @@ import (
 )
 
 func (config *mockConfigWatcher) CreateDeltaWatch(req *discovery.DeltaDiscoveryRequest, state stream.StreamState, out chan cache.DeltaResponse) func() {
-	config.deltaCounts[req.TypeUrl] = config.deltaCounts[req.TypeUrl] + 1
+	config.deltaCounts[req.GetTypeUrl()] = config.deltaCounts[req.GetTypeUrl()] + 1
 
 	// This is duplicated from pkg/cache/v3/delta.go as private there
-	resourceMap := config.deltaResources[req.TypeUrl]
+	resourceMap := config.deltaResources[req.GetTypeUrl()]
 	versionMap := map[string]string{}
 	for name, resource := range resourceMap {
 		marshaledResource, _ := cache.MarshalResource(resource)
@@ -102,6 +105,7 @@ type mockDeltaStream struct {
 	nonce     int
 	sendError bool
 	grpc.ServerStream
+	cancel func()
 }
 
 func (stream *mockDeltaStream) Context() context.Context {
@@ -110,22 +114,22 @@ func (stream *mockDeltaStream) Context() context.Context {
 
 func (stream *mockDeltaStream) Send(resp *discovery.DeltaDiscoveryResponse) error {
 	// Check that nonce is incremented by one
-	stream.nonce = stream.nonce + 1
-	if resp.Nonce != fmt.Sprintf("%d", stream.nonce) {
-		stream.t.Errorf("Nonce => got %q, want %d", resp.Nonce, stream.nonce)
+	stream.nonce++
+	if resp.GetNonce() != fmt.Sprintf("%d", stream.nonce) {
+		stream.t.Errorf("Nonce => got %q, want %d", resp.GetNonce(), stream.nonce)
 	}
 	// Check that resources are non-empty
-	if len(resp.Resources) == 0 {
+	if len(resp.GetResources()) == 0 {
 		stream.t.Error("Resources => got none, want non-empty")
 	}
-	if resp.TypeUrl == "" {
+	if resp.GetTypeUrl() == "" {
 		stream.t.Error("TypeUrl => got none, want non-empty")
 	}
 
 	// Check that the per resource TypeURL is correctly set.
-	for _, res := range resp.Resources {
-		if res.Resource.TypeUrl != resp.TypeUrl {
-			stream.t.Errorf("TypeUrl => got %q, want %q", res.Resource.TypeUrl, resp.TypeUrl)
+	for _, res := range resp.GetResources() {
+		if res.GetResource().GetTypeUrl() != resp.GetTypeUrl() {
+			stream.t.Errorf("TypeUrl => got %q, want %q", res.GetResource().GetTypeUrl(), resp.GetTypeUrl())
 		}
 	}
 
@@ -145,11 +149,13 @@ func (stream *mockDeltaStream) Recv() (*discovery.DeltaDiscoveryRequest, error) 
 }
 
 func makeMockDeltaStream(t *testing.T) *mockDeltaStream {
+	ctx, cancel := context.WithCancel(context.Background())
 	return &mockDeltaStream{
-		t:    t,
-		ctx:  context.Background(),
-		sent: make(chan *discovery.DeltaDiscoveryResponse, 10),
-		recv: make(chan *discovery.DeltaDiscoveryRequest, 10),
+		t:      t,
+		ctx:    ctx,
+		sent:   make(chan *discovery.DeltaDiscoveryResponse, 10),
+		recv:   make(chan *discovery.DeltaDiscoveryRequest, 10),
+		cancel: cancel,
 	}
 }
 
@@ -159,29 +165,29 @@ func makeDeltaResources() map[string]map[string]types.Resource {
 			endpoint.GetClusterName(): endpoint,
 		},
 		rsrc.ClusterType: {
-			cluster.Name: cluster,
+			cluster.GetName(): cluster,
 		},
 		rsrc.RouteType: {
-			route.Name: route,
+			route.GetName(): route,
 		},
 		rsrc.ScopedRouteType: {
-			scopedRoute.Name: scopedRoute,
+			scopedRoute.GetName(): scopedRoute,
 		},
 		rsrc.VirtualHostType: {
-			virtualHost.Name: virtualHost,
+			virtualHost.GetName(): virtualHost,
 		},
 		rsrc.ListenerType: {
-			httpListener.Name:       httpListener,
-			httpScopedListener.Name: httpScopedListener,
+			httpListener.GetName():       httpListener,
+			httpScopedListener.GetName(): httpScopedListener,
 		},
 		rsrc.SecretType: {
-			secret.Name: secret,
+			secret.GetName(): secret,
 		},
 		rsrc.RuntimeType: {
-			runtime.Name: runtime,
+			runtime.GetName(): runtime,
 		},
 		rsrc.ExtensionConfigType: {
-			extensionConfig.Name: extensionConfig,
+			extensionConfig.GetName(): extensionConfig,
 		},
 		// Pass-through type (types without explicit handling)
 		opaqueType: {
@@ -226,12 +232,13 @@ func TestDeltaResponseHandlersWildcard(t *testing.T) {
 			s := server.NewServer(context.Background(), config, server.CallbackFuncs{})
 
 			resp := makeMockDeltaStream(t)
+			defer resp.cancel()
 			// This is a wildcard request since we don't specify a list of resource subscriptions
 			resp.recv <- &discovery.DeltaDiscoveryRequest{Node: node, TypeUrl: typ}
 
 			go func() {
 				err := process(typ, resp, s)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}()
 
 			select {
@@ -255,6 +262,7 @@ func TestDeltaResponseHandlers(t *testing.T) {
 			s := server.NewServer(context.Background(), config, server.CallbackFuncs{})
 
 			resp := makeMockDeltaStream(t)
+			defer resp.cancel()
 			resourceNames := []string{}
 			for resourceName := range config.deltaResources[typ] {
 				resourceNames = append(resourceNames, resourceName)
@@ -264,7 +272,7 @@ func TestDeltaResponseHandlers(t *testing.T) {
 
 			go func() {
 				err := process(typ, resp, s)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}()
 
 			select {
@@ -289,6 +297,7 @@ func TestSendDeltaError(t *testing.T) {
 
 			// make a request with an error
 			resp := makeMockDeltaStream(t)
+			defer resp.cancel()
 			resp.sendError = true
 			resp.recv <- &discovery.DeltaDiscoveryRequest{
 				Node:    node,
@@ -297,7 +306,7 @@ func TestSendDeltaError(t *testing.T) {
 
 			// check that response fails since we expect an error to come through
 			err := s.DeltaAggregatedResources(resp)
-			assert.Error(t, err)
+			require.Error(t, err)
 
 			close(resp.recv)
 		})
@@ -308,6 +317,7 @@ func TestDeltaAggregatedHandlers(t *testing.T) {
 	config := makeMockConfigWatcher()
 	config.deltaResources = makeDeltaResources()
 	resp := makeMockDeltaStream(t)
+	defer resp.cancel()
 
 	reqs := []*discovery.DeltaDiscoveryRequest{
 		{
@@ -350,7 +360,7 @@ func TestDeltaAggregatedHandlers(t *testing.T) {
 	s := server.NewServer(context.Background(), config, server.CallbackFuncs{})
 	go func() {
 		err := s.DeltaAggregatedResources(resp)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}()
 
 	count := 0
@@ -369,7 +379,8 @@ func TestDeltaAggregatedHandlers(t *testing.T) {
 						rsrc.ScopedRouteType: 1,
 						rsrc.VirtualHostType: 1,
 						rsrc.ListenerType:    1,
-						rsrc.SecretType:      1},
+						rsrc.SecretType:      1,
+					},
 					config.deltaCounts,
 				)
 				return
@@ -381,9 +392,11 @@ func TestDeltaAggregatedHandlers(t *testing.T) {
 }
 
 func TestDeltaAggregateRequestType(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	config := makeMockConfigWatcher()
 	s := server.NewServer(context.Background(), config, server.CallbackFuncs{})
 	resp := makeMockDeltaStream(t)
+	defer resp.cancel()
 	resp.recv <- &discovery.DeltaDiscoveryRequest{Node: node}
 	if err := s.DeltaAggregatedResources(resp); err == nil {
 		t.Error("DeltaAggregatedResources() => got nil, want an error")
@@ -392,8 +405,10 @@ func TestDeltaAggregateRequestType(t *testing.T) {
 }
 
 func TestDeltaCancellations(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	config := makeMockConfigWatcher()
 	resp := makeMockDeltaStream(t)
+	defer resp.cancel()
 	for _, typ := range testTypes {
 		resp.recv <- &discovery.DeltaDiscoveryRequest{
 			Node:    node,
@@ -411,8 +426,10 @@ func TestDeltaCancellations(t *testing.T) {
 }
 
 func TestDeltaOpaqueRequestsChannelMuxing(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	config := makeMockConfigWatcher()
 	resp := makeMockDeltaStream(t)
+	defer resp.cancel()
 	for i := 0; i < 10; i++ {
 		resp.recv <- &discovery.DeltaDiscoveryRequest{
 			Node:                   node,
@@ -433,17 +450,19 @@ func TestDeltaOpaqueRequestsChannelMuxing(t *testing.T) {
 func TestDeltaCallbackError(t *testing.T) {
 	for _, typ := range testTypes {
 		t.Run(typ, func(t *testing.T) {
+			defer goleak.VerifyNone(t)
 			config := makeMockConfigWatcher()
 			config.deltaResources = makeDeltaResources()
 
 			s := server.NewServer(context.Background(), config, server.CallbackFuncs{
-				DeltaStreamOpenFunc: func(ctx context.Context, i int64, s string) error {
+				DeltaStreamOpenFunc: func(context.Context, int64, string) error {
 					return errors.New("stream open error")
 				},
 			})
 
 			// make a request
 			resp := makeMockDeltaStream(t)
+			defer resp.cancel()
 			resp.recv <- &discovery.DeltaDiscoveryRequest{
 				Node:    node,
 				TypeUrl: typ,
@@ -470,18 +489,18 @@ func TestDeltaWildcardSubscriptions(t *testing.T) {
 		},
 	}
 
-	validateResponse := func(t *testing.T, replies <-chan *discovery.DeltaDiscoveryResponse, expectedResources []string, expectedRemovedResources []string) {
+	validateResponse := func(t *testing.T, replies <-chan *discovery.DeltaDiscoveryResponse, expectedResources, expectedRemovedResources []string) {
 		t.Helper()
 		select {
 		case response := <-replies:
-			assert.Equal(t, rsrc.EndpointType, response.TypeUrl)
-			if assert.Equal(t, len(expectedResources), len(response.Resources)) {
+			assert.Equal(t, rsrc.EndpointType, response.GetTypeUrl())
+			if assert.Equal(t, len(expectedResources), len(response.GetResources())) {
 				var names []string
-				for _, resource := range response.Resources {
-					names = append(names, resource.Name)
+				for _, resource := range response.GetResources() {
+					names = append(names, resource.GetName())
 				}
 				assert.ElementsMatch(t, names, expectedResources)
-				assert.ElementsMatch(t, response.RemovedResources, expectedRemovedResources)
+				assert.ElementsMatch(t, response.GetRemovedResources(), expectedRemovedResources)
 			}
 		case <-time.After(1 * time.Second):
 			t.Fatalf("got no response")
@@ -496,12 +515,14 @@ func TestDeltaWildcardSubscriptions(t *testing.T) {
 	}
 
 	t.Run("legacy still working", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
 		resp := makeMockDeltaStream(t)
+		defer resp.cancel()
 		defer close(resp.recv)
 		s := server.NewServer(context.Background(), config, server.CallbackFuncs{})
 		go func() {
 			err := s.DeltaAggregatedResources(resp)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 		}()
 
 		resp.recv <- &discovery.DeltaDiscoveryRequest{
@@ -530,16 +551,16 @@ func TestDeltaWildcardSubscriptions(t *testing.T) {
 			ResourceNamesUnsubscribe: []string{"*"},
 		}
 		validateResponse(t, resp.sent, []string{"endpoints0"}, nil)
-
 	})
 
 	t.Run("* subscription/unsubscription support", func(t *testing.T) {
 		resp := makeMockDeltaStream(t)
+		defer resp.cancel()
 		defer close(resp.recv)
 		s := server.NewServer(context.Background(), config, server.CallbackFuncs{})
 		go func() {
 			err := s.DeltaAggregatedResources(resp)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 		}()
 		updateResources(1234)
 
@@ -580,11 +601,12 @@ func TestDeltaWildcardSubscriptions(t *testing.T) {
 
 	t.Run("resource specific subscriptions while using wildcard", func(t *testing.T) {
 		resp := makeMockDeltaStream(t)
+		defer resp.cancel()
 		defer close(resp.recv)
 		s := server.NewServer(context.Background(), config, server.CallbackFuncs{})
 		go func() {
 			err := s.DeltaAggregatedResources(resp)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 		}()
 
 		updateResources(1234)
@@ -614,5 +636,35 @@ func TestDeltaWildcardSubscriptions(t *testing.T) {
 		}
 		validateResponse(t, resp.sent, []string{"endpoints2"}, []string{"endpoints4"})
 	})
+}
 
+func TestDeltaMultipleStreams(t *testing.T) {
+	// Unit test for issue identified in https://github.com/envoyproxy/go-control-plane/issues/913
+	t.Run("return error to delta stream request; multiple streams.", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
+		config := makeMockConfigWatcher()
+		resp := makeMockDeltaStream(t)
+		defer close(resp.recv)
+		defer resp.cancel()
+		s := server.NewServer(
+			context.Background(),
+			config,
+			server.CallbackFuncs{
+				StreamDeltaRequestFunc: func(int64, *discovery.DeltaDiscoveryRequest) error {
+					return fmt.Errorf("error")
+				},
+			},
+		)
+
+		for i := 0; i < 2; i++ {
+			resp.recv <- &discovery.DeltaDiscoveryRequest{
+				Node:                   node,
+				TypeUrl:                rsrc.EndpointType,
+				ResourceNamesSubscribe: []string{"*"},
+			}
+		}
+
+		err := s.DeltaAggregatedResources(resp)
+		require.Error(t, err)
+	})
 }

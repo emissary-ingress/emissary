@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/testing/protocmp"
 
 	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
@@ -20,7 +21,7 @@ import (
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/test/resource/v3"
 )
 
-func assertResourceMapEqual(t *testing.T, want map[string]types.Resource, got map[string]types.Resource) {
+func assertResourceMapEqual(t *testing.T, want, got map[string]types.Resource) {
 	t.Helper()
 
 	if !cmp.Equal(want, got, protocmp.Transform()) {
@@ -240,7 +241,7 @@ func TestSnapshotDeltaCacheWatchTimeout(t *testing.T) {
 	defer cancel()
 
 	err := c.SetSnapshot(ctx, key, fixture.snapshot())
-	assert.EqualError(t, err, context.Canceled.Error())
+	require.EqualError(t, err, context.Canceled.Error())
 
 	// Now reset the snapshot with a consuming channel. This verifies that if setting the snapshot fails,
 	// we can retry by setting the same snapshot. In other words, we keep the watch open even if we failed
@@ -253,13 +254,13 @@ func TestSnapshotDeltaCacheWatchTimeout(t *testing.T) {
 	}()
 
 	err = c.SetSnapshot(context.WithValue(context.Background(), testKey{}, "bar"), key, fixture.snapshot())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// The channel should get closed due to the watch trigger.
 	select {
 	case response := <-watchTriggeredCh:
 		// Verify that we pass the context through.
-		assert.Equal(t, response.GetContext().Value(testKey{}), "bar")
+		assert.Equal(t, "bar", response.GetContext().Value(testKey{}))
 	case <-time.After(time.Second):
 		t.Fatalf("timed out")
 	}

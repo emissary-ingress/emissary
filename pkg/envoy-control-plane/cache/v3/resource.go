@@ -166,7 +166,7 @@ func getResourceReferences(resources map[string]types.ResourceWithTTL, out map[r
 	}
 }
 
-func mapMerge(dst map[string]bool, src map[string]bool) {
+func mapMerge(dst, src map[string]bool) {
 	for k, v := range src {
 		dst[k] = v
 	}
@@ -176,13 +176,13 @@ func mapMerge(dst map[string]bool, src map[string]bool) {
 func getClusterReferences(src *cluster.Cluster, out map[resource.Type]map[string]bool) {
 	endpoints := map[string]bool{}
 
-	switch typ := src.ClusterDiscoveryType.(type) {
+	switch typ := src.GetClusterDiscoveryType().(type) {
 	case *cluster.Cluster_Type:
 		if typ.Type == cluster.Cluster_EDS {
-			if src.EdsClusterConfig != nil && src.EdsClusterConfig.ServiceName != "" {
-				endpoints[src.EdsClusterConfig.ServiceName] = true
+			if src.GetEdsClusterConfig() != nil && src.GetEdsClusterConfig().GetServiceName() != "" {
+				endpoints[src.GetEdsClusterConfig().GetServiceName()] = true
 			} else {
-				endpoints[src.Name] = true
+				endpoints[src.GetName()] = true
 			}
 		}
 	}
@@ -201,8 +201,8 @@ func getListenerReferences(src *listener.Listener, out map[resource.Type]map[str
 	routes := map[string]bool{}
 
 	// Extract route configuration names from HTTP connection manager.
-	for _, chain := range src.FilterChains {
-		for _, filter := range chain.Filters {
+	for _, chain := range src.GetFilterChains() {
+		for _, filter := range chain.GetFilters() {
 			config := resource.GetHTTPConnectionManager(filter)
 			if config == nil {
 				continue
@@ -215,7 +215,7 @@ func getListenerReferences(src *listener.Listener, out map[resource.Type]map[str
 
 			// If the scoped route mapping is embedded, add the referenced route resource names.
 			for _, s := range config.GetScopedRoutes().GetScopedRouteConfigurationsList().GetScopedRouteConfigurations() {
-				routes[s.RouteConfigurationName] = true
+				routes[s.GetRouteConfigurationName()] = true
 			}
 		}
 	}
@@ -233,7 +233,7 @@ func getScopedRouteReferences(src *route.ScopedRouteConfiguration, out map[resou
 	routes := map[string]bool{}
 
 	// For a scoped route configuration, the dependent resource is the RouteConfigurationName.
-	routes[src.RouteConfigurationName] = true
+	routes[src.GetRouteConfigurationName()] = true
 
 	if len(routes) > 0 {
 		if _, ok := out[resource.RouteType]; !ok {

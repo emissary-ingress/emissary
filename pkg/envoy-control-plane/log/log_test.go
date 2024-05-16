@@ -53,10 +53,10 @@ func TestLoggerFuncs(t *testing.T) {
 	xdsLogger.Warnf("warn")
 	xdsLogger.Errorf("err")
 
-	assert.Equal(t, debug, 1)
-	assert.Equal(t, info, 1)
-	assert.Equal(t, warn, 1)
-	assert.Equal(t, err, 1)
+	assert.Equal(t, 1, debug)
+	assert.Equal(t, 1, info)
+	assert.Equal(t, 1, warn)
+	assert.Equal(t, 1, err)
 }
 
 func TestNilLoggerFuncs(_ *testing.T) {
