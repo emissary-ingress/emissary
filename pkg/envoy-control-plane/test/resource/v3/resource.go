@@ -65,10 +65,8 @@ const (
 	DeltaAds = "delta-ads"
 )
 
-var (
-	// RefreshDelay for the polling config source.
-	RefreshDelay = 500 * time.Millisecond
-)
+// RefreshDelay for the polling config source.
+var RefreshDelay = 500 * time.Millisecond
 
 // MakeEndpoint creates a localhost endpoint on a given port.
 func MakeEndpoint(clusterName string, port uint32) *endpoint.ClusterLoadAssignment {
@@ -97,7 +95,7 @@ func MakeEndpoint(clusterName string, port uint32) *endpoint.ClusterLoadAssignme
 }
 
 // MakeCluster creates a cluster using either ADS or EDS.
-func MakeCluster(mode string, clusterName string) *cluster.Cluster {
+func MakeCluster(mode, clusterName string) *cluster.Cluster {
 	edsSource := configSource(mode)
 
 	connectTimeout := 5 * time.Second
@@ -111,7 +109,7 @@ func MakeCluster(mode string, clusterName string) *cluster.Cluster {
 	}
 }
 
-func MakeVHDSRouteConfig(mode string, routeName string) *route.RouteConfiguration {
+func MakeVHDSRouteConfig(mode, routeName string) *route.RouteConfiguration {
 	return &route.RouteConfiguration{
 		Name: routeName,
 		Vhds: &route.Vhds{
@@ -121,7 +119,7 @@ func MakeVHDSRouteConfig(mode string, routeName string) *route.RouteConfiguratio
 }
 
 // MakeRouteConfig creates an HTTP route config that routes to a given cluster.
-func MakeRouteConfig(routeName string, clusterName string) *route.RouteConfiguration {
+func MakeRouteConfig(routeName, clusterName string) *route.RouteConfiguration {
 	return &route.RouteConfiguration{
 		Name: routeName,
 		VirtualHosts: []*route.VirtualHost{{
@@ -146,7 +144,7 @@ func MakeRouteConfig(routeName string, clusterName string) *route.RouteConfigura
 }
 
 // MakeScopedRouteConfig creates an HTTP scoped route that routes to a given cluster.
-func MakeScopedRouteConfig(scopedRouteName string, routeConfigurationName string, keyFragments []string) *route.ScopedRouteConfiguration {
+func MakeScopedRouteConfig(scopedRouteName, routeConfigurationName string, keyFragments []string) *route.ScopedRouteConfiguration {
 	k := &route.ScopedRouteConfiguration_Key{}
 
 	for _, key := range keyFragments {
@@ -155,7 +153,7 @@ func MakeScopedRouteConfig(scopedRouteName string, routeConfigurationName string
 				StringKey: key,
 			},
 		}
-		k.Fragments = append(k.Fragments, fragment)
+		k.Fragments = append(k.GetFragments(), fragment)
 	}
 
 	return &route.ScopedRouteConfiguration{
@@ -166,7 +164,7 @@ func MakeScopedRouteConfig(scopedRouteName string, routeConfigurationName string
 	}
 }
 
-func MakeVirtualHost(virtualHostName string, clusterName string) *route.VirtualHost {
+func MakeVirtualHost(virtualHostName, clusterName string) *route.VirtualHost {
 	ret := &route.VirtualHost{
 		Name:    virtualHostName,
 		Domains: []string{"*"},
@@ -299,7 +297,7 @@ func makeListener(listenerName string, port uint32, filterChains []*listener.Fil
 	}
 }
 
-func MakeRouteHTTPListener(mode string, listenerName string, port uint32, route string) *listener.Listener {
+func MakeRouteHTTPListener(mode, listenerName string, port uint32, route string) *listener.Listener {
 	rdsSource := configSource(mode)
 	routeSpecifier := &hcm.HttpConnectionManager_Rds{
 		Rds: &hcm.Rds{
@@ -333,7 +331,7 @@ func MakeRouteHTTPListener(mode string, listenerName string, port uint32, route 
 }
 
 // Creates a HTTP listener using Scoped Routes, which extracts the "Host" header field as the key.
-func MakeScopedRouteHTTPListener(mode string, listenerName string, port uint32) *listener.Listener {
+func MakeScopedRouteHTTPListener(mode, listenerName string, port uint32) *listener.Listener {
 	source := configSource(mode)
 	routeSpecifier := &hcm.HttpConnectionManager_ScopedRoutes{
 		ScopedRoutes: &hcm.ScopedRoutes{
@@ -388,7 +386,7 @@ func MakeScopedRouteHTTPListener(mode string, listenerName string, port uint32) 
 // MakeScopedRouteHTTPListenerForRoute is the same as
 // MakeScopedRouteHTTPListener, except it inlines a reference to the
 // routeConfigName, and so doesn't require a ScopedRouteConfiguration resource.
-func MakeScopedRouteHTTPListenerForRoute(mode string, listenerName string, port uint32, routeConfigName string) *listener.Listener {
+func MakeScopedRouteHTTPListenerForRoute(mode, listenerName string, port uint32, routeConfigName string) *listener.Listener {
 	source := configSource(mode)
 	routeSpecifier := &hcm.HttpConnectionManager_ScopedRoutes{
 		ScopedRoutes: &hcm.ScopedRoutes{
@@ -490,7 +488,7 @@ func MakeRuntime(runtimeName string) *runtime.Runtime {
 }
 
 // MakeExtensionConfig creates a extension config for a cluster.
-func MakeExtensionConfig(mode string, extensionConfigName string, route string) *core.TypedExtensionConfig {
+func MakeExtensionConfig(mode, extensionConfigName, route string) *core.TypedExtensionConfig {
 	rdsSource := configSource(mode)
 
 	// HTTP filter configuration
@@ -555,7 +553,7 @@ func (ts *TestSnapshot) generateHTTPListeners(numListeners int, clusters []types
 	listeners := []types.Resource{}
 	routeConfigs := []types.Resource{}
 
-	if len(clusters) <= 0 {
+	if len(clusters) == 0 {
 		return nil, nil
 	}
 
@@ -580,7 +578,7 @@ func (ts *TestSnapshot) generateScopedHTTPListeners(numListeners int, clusters [
 	scopedRouteConfigs := []types.Resource{}
 	routeConfigs := []types.Resource{}
 
-	if len(clusters) <= 0 {
+	if len(clusters) == 0 {
 		return nil, nil, nil
 	}
 
@@ -607,7 +605,7 @@ func (ts *TestSnapshot) generateVHDSHTTPListeners(numListeners int, clusters []t
 	routeConfigs := []types.Resource{}
 	virtualHosts := []types.Resource{}
 
-	if len(clusters) <= 0 {
+	if len(clusters) == 0 {
 		return nil, nil, nil
 	}
 
@@ -632,7 +630,7 @@ func (ts *TestSnapshot) generateVHDSHTTPListeners(numListeners int, clusters []t
 func (ts *TestSnapshot) generateTCPListeners(numListeners int, clusters []types.Resource) []types.Resource {
 	listeners := []types.Resource{}
 
-	if len(clusters) <= 0 {
+	if len(clusters) == 0 {
 		return nil
 	}
 
@@ -652,7 +650,7 @@ func (ts *TestSnapshot) generateTCPListeners(numListeners int, clusters []types.
 
 func (ts *TestSnapshot) addTLS(l *listener.Listener) {
 	if ts.TLS {
-		for i, chain := range l.FilterChains {
+		for i, chain := range l.GetFilterChains() {
 			tlsc := &auth.DownstreamTlsContext{
 				CommonTlsContext: &auth.CommonTlsContext{
 					TlsCertificateSdsSecretConfigs: []*auth.SdsSecretConfig{{

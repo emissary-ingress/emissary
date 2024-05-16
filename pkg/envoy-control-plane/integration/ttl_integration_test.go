@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
@@ -41,19 +42,19 @@ func TestTTLResponse(t *testing.T) {
 	endpointservice.RegisterEndpointDiscoveryServiceServer(grpcServer, server)
 
 	l, err := net.Listen("tcp", ":9999") // nolint:gosec
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	go func() {
-		assert.NoError(t, grpcServer.Serve(l))
+		require.NoError(t, grpcServer.Serve(l))
 	}()
 	defer grpcServer.Stop()
 
 	conn, err := grpc.Dial(":9999", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	client := endpointservice.NewEndpointDiscoveryServiceClient(conn)
 	sclient, err := client.StreamEndpoints(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = sclient.Send(&envoy_service_discovery_v3.DiscoveryRequest{
 		Node: &envoy_config_core_v3.Node{
@@ -62,7 +63,7 @@ func TestTTLResponse(t *testing.T) {
 		ResourceNames: []string{"resource"},
 		TypeUrl:       resource.EndpointType,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	oneSecond := time.Second
 	cla := &envoy_config_endpoint_v3.ClusterLoadAssignment{ClusterName: "resource"}
@@ -74,7 +75,7 @@ func TestTTLResponse(t *testing.T) {
 	})
 
 	err = snapshotCache.SetSnapshot(context.Background(), "test", snap)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	timeout := time.NewTimer(5 * time.Second)
 	awaitResponse := func() *envoy_service_discovery_v3.DiscoveryResponse {
@@ -83,7 +84,7 @@ func TestTTLResponse(t *testing.T) {
 
 		go func() {
 			r, err := sclient.Recv()
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			doneCh <- r
 		}()
@@ -107,9 +108,9 @@ func TestTTLResponse(t *testing.T) {
 		ResourceNames: []string{"resource"},
 		TypeUrl:       resource.EndpointType,
 		VersionInfo:   "1",
-		ResponseNonce: response.Nonce,
+		ResponseNonce: response.GetNonce(),
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	response = awaitResponse()
 	isHeartbeatResponseWithTTL(t, response)
@@ -118,25 +119,25 @@ func TestTTLResponse(t *testing.T) {
 func isFullResponseWithTTL(t *testing.T, response *envoy_service_discovery_v3.DiscoveryResponse) {
 	t.Helper()
 
-	assert.Len(t, response.Resources, 1)
-	r := response.Resources[0]
+	require.Len(t, response.GetResources(), 1)
+	r := response.GetResources()[0]
 	resource := &envoy_service_discovery_v3.Resource{}
 	err := anypb.UnmarshalTo(r, resource, proto.UnmarshalOptions{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.NotNil(t, resource.Ttl)
-	assert.NotNil(t, resource.Resource)
+	assert.NotNil(t, resource.GetTtl())
+	assert.NotNil(t, resource.GetResource())
 }
 
 func isHeartbeatResponseWithTTL(t *testing.T, response *envoy_service_discovery_v3.DiscoveryResponse) {
 	t.Helper()
 
-	assert.Len(t, response.Resources, 1)
-	r := response.Resources[0]
+	require.Len(t, response.GetResources(), 1)
+	r := response.GetResources()[0]
 	resource := &envoy_service_discovery_v3.Resource{}
 	err := anypb.UnmarshalTo(r, resource, proto.UnmarshalOptions{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.NotNil(t, resource.Ttl)
-	assert.Nil(t, resource.Resource)
+	assert.NotNil(t, resource.GetTtl())
+	assert.Nil(t, resource.GetResource())
 }

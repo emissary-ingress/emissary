@@ -44,16 +44,16 @@ func (svc *AccessLogService) StreamAccessLogs(stream accessloggrpc.AccessLogServ
 		if err != nil {
 			return err
 		}
-		if msg.Identifier != nil {
-			logName = msg.Identifier.LogName
+		if msg.GetIdentifier() != nil {
+			logName = msg.GetIdentifier().GetLogName()
 		}
-		switch entries := msg.LogEntries.(type) {
+		switch entries := msg.GetLogEntries().(type) {
 		case *accessloggrpc.StreamAccessLogsMessage_HttpLogs:
-			for _, entry := range entries.HttpLogs.LogEntry {
+			for _, entry := range entries.HttpLogs.GetLogEntry() {
 				if entry != nil {
-					common := entry.CommonProperties
-					req := entry.Request
-					resp := entry.Response
+					common := entry.GetCommonProperties()
+					req := entry.GetRequest()
+					resp := entry.GetResponse()
 					if common == nil {
 						common = &alf.AccessLogCommon{}
 					}
@@ -64,19 +64,19 @@ func (svc *AccessLogService) StreamAccessLogs(stream accessloggrpc.AccessLogServ
 						resp = &alf.HTTPResponseProperties{}
 					}
 					svc.log(fmt.Sprintf("[%s%s] %s %s %s %d %s %s",
-						logName, time.Now().Format(time.RFC3339), req.Authority, req.Path, req.Scheme,
-						resp.ResponseCode.GetValue(), req.RequestId, common.UpstreamCluster))
+						logName, time.Now().Format(time.RFC3339), req.GetAuthority(), req.GetPath(), req.GetScheme(),
+						resp.GetResponseCode().GetValue(), req.GetRequestId(), common.GetUpstreamCluster()))
 				}
 			}
 		case *accessloggrpc.StreamAccessLogsMessage_TcpLogs:
-			for _, entry := range entries.TcpLogs.LogEntry {
+			for _, entry := range entries.TcpLogs.GetLogEntry() {
 				if entry != nil {
-					common := entry.CommonProperties
+					common := entry.GetCommonProperties()
 					if common == nil {
 						common = &alf.AccessLogCommon{}
 					}
 					svc.log(fmt.Sprintf("[%s%s] tcp %s %s",
-						logName, time.Now().Format(time.RFC3339), common.UpstreamLocalAddress, common.UpstreamCluster))
+						logName, time.Now().Format(time.RFC3339), common.GetUpstreamLocalAddress(), common.GetUpstreamCluster()))
 				}
 			}
 		}

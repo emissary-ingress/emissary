@@ -43,8 +43,8 @@ func TestConversion(t *testing.T) {
 			},
 		}}},
 	}
-	if !cmp.Equal(st.Fields, pbst, cmp.Comparer(proto.Equal)) {
-		t.Errorf("MessageToStruct(%v) => got %v, want %v", pb, st.Fields, pbst)
+	if !cmp.Equal(st.GetFields(), pbst, cmp.Comparer(proto.Equal)) {
+		t.Errorf("MessageToStruct(%v) => got %v, want %v", pb, st.GetFields(), pbst)
 	}
 
 	out := &discovery.DiscoveryRequest{}

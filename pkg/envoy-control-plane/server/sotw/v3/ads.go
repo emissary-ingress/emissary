@@ -27,7 +27,7 @@ func (s *server) processADS(sw *streamWrapper, reqCh chan *discovery.DiscoveryRe
 			return err
 		}
 
-		sw.watches.responders[resp.GetRequest().TypeUrl].nonce = nonce
+		sw.watches.responders[resp.GetRequest().GetTypeUrl()].nonce = nonce
 		return nil
 	}
 
@@ -43,7 +43,7 @@ func (s *server) processADS(sw *streamWrapper, reqCh chan *discovery.DiscoveryRe
 			select {
 			// We watch the multiplexed ADS channel for incoming responses.
 			case res := <-sw.watches.responders[resource.AnyType].response:
-				if res.GetRequest().TypeUrl != typeURL {
+				if res.GetRequest().GetTypeUrl() != typeURL {
 					if err := process(res); err != nil {
 						return err
 					}
@@ -79,8 +79,8 @@ func (s *server) processADS(sw *streamWrapper, reqCh chan *discovery.DiscoveryRe
 			}
 
 			// Only first request is guaranteed to hold node info so if it's missing, reassign.
-			if req.Node != nil {
-				sw.node = req.Node
+			if req.GetNode() != nil {
+				sw.node = req.GetNode()
 			} else {
 				req.Node = sw.node
 			}
@@ -90,7 +90,7 @@ func (s *server) processADS(sw *streamWrapper, reqCh chan *discovery.DiscoveryRe
 
 			// type URL is required for ADS but is implicit for xDS
 			if defaultTypeURL == resource.AnyType {
-				if req.TypeUrl == "" {
+				if req.GetTypeUrl() == "" {
 					return status.Errorf(codes.InvalidArgument, "type URL is required for ADS")
 				}
 			}
@@ -101,10 +101,10 @@ func (s *server) processADS(sw *streamWrapper, reqCh chan *discovery.DiscoveryRe
 				}
 			}
 
-			if lastResponse, ok := sw.lastDiscoveryResponses[req.TypeUrl]; ok {
+			if lastResponse, ok := sw.lastDiscoveryResponses[req.GetTypeUrl()]; ok {
 				if lastResponse.nonce == "" || lastResponse.nonce == nonce {
 					// Let's record Resource names that a client has received.
-					sw.streamState.SetKnownResourceNames(req.TypeUrl, lastResponse.resources)
+					sw.streamState.SetKnownResourceNames(req.GetTypeUrl(), lastResponse.resources)
 				}
 			}
 

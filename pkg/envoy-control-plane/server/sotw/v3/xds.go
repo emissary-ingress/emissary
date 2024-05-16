@@ -70,8 +70,8 @@ func (s *server) process(str stream.Stream, reqCh chan *discovery.DiscoveryReque
 			}
 
 			// Only first request is guaranteed to hold node info so if it's missing, reassign.
-			if req.Node != nil {
-				sw.node = req.Node
+			if req.GetNode() != nil {
+				sw.node = req.GetNode()
 			} else {
 				req.Node = sw.node
 			}
@@ -81,7 +81,7 @@ func (s *server) process(str stream.Stream, reqCh chan *discovery.DiscoveryReque
 
 			// type URL is required for ADS but is implicit for xDS
 			if defaultTypeURL == resource.AnyType {
-				if req.TypeUrl == "" {
+				if req.GetTypeUrl() == "" {
 					return status.Errorf(codes.InvalidArgument, "type URL is required for ADS")
 				}
 
@@ -106,7 +106,7 @@ func (s *server) process(str stream.Stream, reqCh chan *discovery.DiscoveryReque
 					// on successful completion.
 					return s.processADS(&sw, reqCh, defaultTypeURL)
 				}
-			} else if req.TypeUrl == "" {
+			} else if req.GetTypeUrl() == "" {
 				req.TypeUrl = defaultTypeURL
 			}
 
@@ -116,10 +116,10 @@ func (s *server) process(str stream.Stream, reqCh chan *discovery.DiscoveryReque
 				}
 			}
 
-			if lastResponse, ok := sw.lastDiscoveryResponses[req.TypeUrl]; ok {
+			if lastResponse, ok := sw.lastDiscoveryResponses[req.GetTypeUrl()]; ok {
 				if lastResponse.nonce == "" || lastResponse.nonce == nonce {
 					// Let's record Resource names that a client has received.
-					sw.streamState.SetKnownResourceNames(req.TypeUrl, lastResponse.resources)
+					sw.streamState.SetKnownResourceNames(req.GetTypeUrl(), lastResponse.resources)
 				}
 			}
 
@@ -160,7 +160,7 @@ func (s *server) process(str stream.Stream, reqCh chan *discovery.DiscoveryReque
 				return err
 			}
 
-			sw.watches.responders[res.GetRequest().TypeUrl].nonce = nonce
+			sw.watches.responders[res.GetRequest().GetTypeUrl()].nonce = nonce
 		}
 	}
 }

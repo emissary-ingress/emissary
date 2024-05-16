@@ -24,7 +24,7 @@ import (
 func TestIDHash(t *testing.T) {
 	node := &core.Node{Id: "test"}
 	if got := (IDHash{}).ID(node); got != "test" {
-		t.Errorf("IDHash.ID(%v) => got %s, want %s", node, got, node.Id)
+		t.Errorf("IDHash.ID(%v) => got %s, want %s", node, got, node.GetId())
 	}
 	if got := (IDHash{}).ID(nil); got != "" {
 		t.Errorf("IDHash.ID(nil) => got %s, want empty", got)

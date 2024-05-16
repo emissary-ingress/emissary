@@ -16,7 +16,7 @@ func (k keys) Len() int {
 
 // Less compares the typeURL and determines what order things should be sent.
 func (k keys) Less(i, j int) bool {
-	return GetResponseType(k[i].TypeURL) > GetResponseType(k[j].TypeURL)
+	return GetResponseType(k[i].TypeURL) < GetResponseType(k[j].TypeURL)
 }
 
 func (k keys) Swap(i, j int) {

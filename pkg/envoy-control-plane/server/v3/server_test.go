@@ -26,6 +26,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
 	discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
@@ -50,10 +51,10 @@ type mockConfigWatcher struct {
 }
 
 func (config *mockConfigWatcher) CreateWatch(req *discovery.DiscoveryRequest, _ stream.StreamState, out chan cache.Response) func() {
-	config.counts[req.TypeUrl] = config.counts[req.TypeUrl] + 1
-	if len(config.responses[req.TypeUrl]) > 0 {
-		out <- config.responses[req.TypeUrl][0]
-		config.responses[req.TypeUrl] = config.responses[req.TypeUrl][1:]
+	config.counts[req.GetTypeUrl()] = config.counts[req.GetTypeUrl()] + 1
+	if len(config.responses[req.GetTypeUrl()]) > 0 {
+		out <- config.responses[req.GetTypeUrl()][0]
+		config.responses[req.GetTypeUrl()] = config.responses[req.GetTypeUrl()][1:]
 	} else {
 		config.watches++
 		return func() {
@@ -64,9 +65,9 @@ func (config *mockConfigWatcher) CreateWatch(req *discovery.DiscoveryRequest, _ 
 }
 
 func (config *mockConfigWatcher) Fetch(_ context.Context, req *discovery.DiscoveryRequest) (cache.Response, error) {
-	if len(config.responses[req.TypeUrl]) > 0 {
-		out := config.responses[req.TypeUrl][0]
-		config.responses[req.TypeUrl] = config.responses[req.TypeUrl][1:]
+	if len(config.responses[req.GetTypeUrl()]) > 0 {
+		out := config.responses[req.GetTypeUrl()][0]
+		config.responses[req.GetTypeUrl()] = config.responses[req.GetTypeUrl()][1:]
 		return out, nil
 	}
 	return nil, errors.New("missing")
@@ -96,17 +97,17 @@ func (stream *mockStream) Context() context.Context {
 
 func (stream *mockStream) Send(resp *discovery.DiscoveryResponse) error {
 	// check that nonce is monotonically incrementing
-	stream.nonce = stream.nonce + 1
-	assert.Equal(stream.t, resp.Nonce, fmt.Sprintf("%d", stream.nonce))
+	stream.nonce++
+	assert.Equal(stream.t, resp.GetNonce(), fmt.Sprintf("%d", stream.nonce))
 	// check that version is set
-	assert.NotEmpty(stream.t, resp.VersionInfo)
+	assert.NotEmpty(stream.t, resp.GetVersionInfo())
 	// check resources are non-empty
-	assert.NotEmpty(stream.t, resp.Resources)
+	assert.NotEmpty(stream.t, resp.GetResources())
 	// check that type URL matches in resources
-	assert.NotEmpty(stream.t, resp.TypeUrl)
+	assert.NotEmpty(stream.t, resp.GetTypeUrl())
 
-	for _, res := range resp.Resources {
-		assert.Equal(stream.t, res.TypeUrl, resp.TypeUrl)
+	for _, res := range resp.GetResources() {
+		assert.Equal(stream.t, res.GetTypeUrl(), resp.GetTypeUrl())
 	}
 
 	stream.sent <- resp
@@ -340,7 +341,7 @@ func TestResponseHandlers(t *testing.T) {
 				case opaqueType:
 					err = s.StreamAggregatedResources(resp)
 				}
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				close(done)
 			}(typ)
 
@@ -370,20 +371,20 @@ func TestFetch(t *testing.T) {
 	callbackError := false
 
 	cb := server.CallbackFuncs{
-		StreamOpenFunc: func(ctx context.Context, i int64, s string) error {
+		StreamOpenFunc: func(context.Context, int64, string) error {
 			if callbackError {
 				return errors.New("stream open error")
 			}
 			return nil
 		},
-		FetchRequestFunc: func(ctx context.Context, request *discovery.DiscoveryRequest) error {
+		FetchRequestFunc: func(context.Context, *discovery.DiscoveryRequest) error {
 			if callbackError {
 				return errors.New("fetch request error")
 			}
 			requestCount++
 			return nil
 		},
-		FetchResponseFunc: func(request *discovery.DiscoveryRequest, response *discovery.DiscoveryResponse) {
+		FetchResponseFunc: func(*discovery.DiscoveryRequest, *discovery.DiscoveryResponse) {
 			responseCount++
 		},
 	}
@@ -391,91 +392,91 @@ func TestFetch(t *testing.T) {
 	s := server.NewServer(context.Background(), config, cb)
 	out, err := s.FetchEndpoints(context.Background(), &discovery.DiscoveryRequest{Node: node})
 	assert.NotNil(t, out)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	out, err = s.FetchClusters(context.Background(), &discovery.DiscoveryRequest{Node: node})
 	assert.NotNil(t, out)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	out, err = s.FetchRoutes(context.Background(), &discovery.DiscoveryRequest{Node: node})
 	assert.NotNil(t, out)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	out, err = s.FetchListeners(context.Background(), &discovery.DiscoveryRequest{Node: node})
 	assert.NotNil(t, out)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	out, err = s.FetchSecrets(context.Background(), &discovery.DiscoveryRequest{Node: node})
 	assert.NotNil(t, out)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	out, err = s.FetchRuntime(context.Background(), &discovery.DiscoveryRequest{Node: node})
 	assert.NotNil(t, out)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// try again and expect empty results
 	out, err = s.FetchEndpoints(context.Background(), &discovery.DiscoveryRequest{Node: node})
 	assert.Nil(t, out)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	out, err = s.FetchClusters(context.Background(), &discovery.DiscoveryRequest{Node: node})
 	assert.Nil(t, out)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	out, err = s.FetchRoutes(context.Background(), &discovery.DiscoveryRequest{Node: node})
 	assert.Nil(t, out)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	out, err = s.FetchListeners(context.Background(), &discovery.DiscoveryRequest{Node: node})
 	assert.Nil(t, out)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// try empty requests: not valid in a real gRPC server
 	out, err = s.FetchEndpoints(context.Background(), nil)
 	assert.Nil(t, out)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	out, err = s.FetchClusters(context.Background(), nil)
 	assert.Nil(t, out)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	out, err = s.FetchRoutes(context.Background(), nil)
 	assert.Nil(t, out)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	out, err = s.FetchListeners(context.Background(), nil)
 	assert.Nil(t, out)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	out, err = s.FetchSecrets(context.Background(), nil)
 	assert.Nil(t, out)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	out, err = s.FetchRuntime(context.Background(), nil)
 	assert.Nil(t, out)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// send error from callback
 	callbackError = true
 	out, err = s.FetchEndpoints(context.Background(), nil)
 	assert.Nil(t, out)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	out, err = s.FetchClusters(context.Background(), nil)
 	assert.Nil(t, out)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	out, err = s.FetchRoutes(context.Background(), nil)
 	assert.Nil(t, out)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	out, err = s.FetchListeners(context.Background(), nil)
 	assert.Nil(t, out)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// verify fetch callbacks
-	assert.Equal(t, requestCount, 10)
-	assert.Equal(t, responseCount, 6)
+	assert.Equal(t, 10, requestCount)
+	assert.Equal(t, 6, responseCount)
 }
 
 func TestSendError(t *testing.T) {
@@ -495,7 +496,7 @@ func TestSendError(t *testing.T) {
 
 			// check that response fails since send returns error
 			err := s.StreamAggregatedResources(resp)
-			assert.Error(t, err)
+			require.Error(t, err)
 
 			close(resp.recv)
 		})
@@ -517,9 +518,9 @@ func TestStaleNonce(t *testing.T) {
 			stop := make(chan struct{})
 			go func() {
 				err := s.StreamAggregatedResources(resp)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				// should be two watches called
-				assert.False(t, !reflect.DeepEqual(map[string]int{typ: 2}, config.counts))
+				assert.True(t, reflect.DeepEqual(map[string]int{typ: 2}, config.counts))
 				close(stop)
 			}()
 			select {
@@ -585,7 +586,7 @@ func TestAggregatedHandlers(t *testing.T) {
 	s := server.NewServer(context.Background(), config, server.CallbackFuncs{}, sotw.WithOrderedADS())
 	go func() {
 		err := s.StreamAggregatedResources(resp)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}()
 
 	count := 0
@@ -596,7 +597,7 @@ func TestAggregatedHandlers(t *testing.T) {
 			count++
 			if count >= expectedCount {
 				close(resp.recv)
-				assert.False(t, !reflect.DeepEqual(map[string]int{
+				assert.True(t, reflect.DeepEqual(map[string]int{
 					rsrc.EndpointType:        1,
 					rsrc.ClusterType:         1,
 					rsrc.RouteType:           1,
@@ -621,7 +622,7 @@ func TestAggregateRequestType(t *testing.T) {
 	resp := makeMockStream(t)
 	resp.recv <- &discovery.DiscoveryRequest{Node: node}
 	err := s.StreamAggregatedResources(resp)
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestCancellations(t *testing.T) {
@@ -636,8 +637,8 @@ func TestCancellations(t *testing.T) {
 	close(resp.recv)
 	s := server.NewServer(context.Background(), config, server.CallbackFuncs{})
 	err := s.StreamAggregatedResources(resp)
-	assert.NoError(t, err)
-	assert.Equal(t, config.watches, 0)
+	require.NoError(t, err)
+	assert.Equal(t, 0, config.watches)
 }
 
 func TestOpaqueRequestsChannelMuxing(t *testing.T) {
@@ -654,8 +655,8 @@ func TestOpaqueRequestsChannelMuxing(t *testing.T) {
 	close(resp.recv)
 	s := server.NewServer(context.Background(), config, server.CallbackFuncs{})
 	err := s.StreamAggregatedResources(resp)
-	assert.NoError(t, err)
-	assert.Equal(t, config.watches, 0)
+	require.NoError(t, err)
+	assert.Equal(t, 0, config.watches)
 }
 
 func TestCallbackError(t *testing.T) {
@@ -665,7 +666,7 @@ func TestCallbackError(t *testing.T) {
 			config.responses = makeResponses()
 
 			s := server.NewServer(context.Background(), config, server.CallbackFuncs{
-				StreamOpenFunc: func(ctx context.Context, i int64, s string) error {
+				StreamOpenFunc: func(context.Context, int64, string) error {
 					return errors.New("stream open error")
 				},
 			})
@@ -679,7 +680,7 @@ func TestCallbackError(t *testing.T) {
 
 			// check that response fails since stream open returns error
 			err := s.StreamAggregatedResources(resp)
-			assert.Error(t, err)
+			require.Error(t, err)
 
 			close(resp.recv)
 		})

@@ -22,6 +22,7 @@ import (
 	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFetch(t *testing.T) {
@@ -31,16 +32,16 @@ func TestFetch(t *testing.T) {
 	snapCache := cache.NewSnapshotCache(true, cache.IDHash{}, nil)
 	go func() {
 		err := startAdsServer(ctx, snapCache)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}()
 
 	conn, err := grpc.Dial(":18001", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer conn.Close()
 
 	c := client.NewADSClient(ctx, &core.Node{Id: "node_1"}, resource.ClusterType)
 	err = c.InitConnect(conn)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	t.Run("Test initial fetch", testInitialFetch(ctx, snapCache, c))
 	t.Run("Test next fetch", testNextFetch(ctx, snapCache, c))
@@ -54,17 +55,17 @@ func testInitialFetch(ctx context.Context, snapCache cache.SnapshotCache, c clie
 		go func() {
 			// watch for configs
 			resp, err := c.Fetch()
-			assert.NoError(t, err)
-			assert.Equal(t, 3, len(resp.Resources))
+			require.NoError(t, err)
+			assert.Len(t, resp.Resources, 3)
 			for _, r := range resp.Resources {
 				cluster := &clusterv3.Cluster{}
 				err := anypb.UnmarshalTo(r, cluster, proto.UnmarshalOptions{})
-				assert.NoError(t, err)
-				assert.Contains(t, []string{"cluster_1", "cluster_2", "cluster_3"}, cluster.Name)
+				require.NoError(t, err)
+				assert.Contains(t, []string{"cluster_1", "cluster_2", "cluster_3"}, cluster.GetName())
 			}
 
 			err = c.Ack()
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			wg.Done()
 		}()
 
@@ -75,13 +76,13 @@ func testInitialFetch(ctx context.Context, snapCache cache.SnapshotCache, c clie
 				&clusterv3.Cluster{Name: "cluster_3"},
 			},
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		err = snapshot.Consistent()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		err = snapCache.SetSnapshot(ctx, "node_1", snapshot)
 		wg.Wait()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	}
 }
 
@@ -93,17 +94,17 @@ func testNextFetch(ctx context.Context, snapCache cache.SnapshotCache, c client.
 		go func() {
 			// watch for configs
 			resp, err := c.Fetch()
-			assert.NoError(t, err)
-			assert.Equal(t, 2, len(resp.Resources))
+			require.NoError(t, err)
+			assert.Len(t, resp.Resources, 2)
 			for _, r := range resp.Resources {
 				cluster := &clusterv3.Cluster{}
 				err = anypb.UnmarshalTo(r, cluster, proto.UnmarshalOptions{})
-				assert.NoError(t, err)
-				assert.Contains(t, []string{"cluster_2", "cluster_4"}, cluster.Name)
+				require.NoError(t, err)
+				assert.Contains(t, []string{"cluster_2", "cluster_4"}, cluster.GetName())
 			}
 
 			err = c.Ack()
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			wg.Done()
 		}()
 
@@ -113,12 +114,12 @@ func testNextFetch(ctx context.Context, snapCache cache.SnapshotCache, c client.
 				&clusterv3.Cluster{Name: "cluster_4"},
 			},
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		err = snapshot.Consistent()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		err = snapCache.SetSnapshot(ctx, "node_1", snapshot)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		wg.Wait()
 	}
 }

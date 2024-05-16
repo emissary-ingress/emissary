@@ -119,7 +119,6 @@ func RunManagementGateway(ctx context.Context, srv server.Server, port uint) {
 
 func (h *HTTPGateway) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	bytes, code, err := h.Gateway.ServeHTTP(req)
-
 	if err != nil {
 		http.Error(resp, err.Error(), code)
 		return

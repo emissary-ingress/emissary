@@ -94,7 +94,6 @@ func (s *Snapshot) Consistent() error {
 	}
 
 	for idx, items := range s.Resources {
-
 		// We only want to check resource types that are expected to be referenced by another resource type.
 		// Basically, if the consistency relationship is modeled as a DAG, we only want
 		// to check nodes that are expected to have edges pointing to it.
