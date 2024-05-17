@@ -196,7 +196,7 @@ func NewRESTMapper(config *ConfigFlags) (meta.RESTMapper, discovery.CachedDiscov
 	}
 
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(cachedDiscoveryClient)
-	expander := restmapper.NewShortcutExpander(mapper, cachedDiscoveryClient)
+	expander := restmapper.NewShortcutExpander(mapper, cachedDiscoveryClient, func(string) {})
 
 	return expander, cachedDiscoveryClient, nil
 }
