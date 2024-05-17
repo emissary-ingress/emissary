@@ -1,6 +1,6 @@
 module local
 
-go 1.21
+go 1.22
 
 require github.com/mikefarah/yq/v3 v3.0.0-20201202084205-8846255d1c37
 
