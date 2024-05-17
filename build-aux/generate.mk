@@ -162,7 +162,7 @@ $(OSS_HOME)/_generate.tmp/crds: $(tools/controller-gen) build-aux/copyright-boil
 		crd \
 		paths=./pkg/api/getambassador.io/... \
 		output:crd:dir=./_generate.tmp/crds
-	
+
 $(OSS_HOME)/%/zz_generated.conversion.go: $(tools/conversion-gen) build-aux/copyright-boilerplate.go.txt FORCE
 	rm -f $@ $(@D)/*.scaffold.go
 	GOPATH= GOFLAGS=-mod=mod $(tools/conversion-gen) \

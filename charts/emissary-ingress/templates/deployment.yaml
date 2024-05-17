@@ -199,7 +199,7 @@ spec:
           resources:
             {{- toYaml .Values.prometheusExporter.resources | nindent 12 }}
         {{- end }}
-        - name: {{ if .Values.containerNameOverride }}{{ .Values.containerNameOverride }}{{ else }}{{ .Chart.Name }}{{ end }}
+        - name: {{ if .Values.containerNameOverride }}{{ .Values.containerNameOverride }}{{ else }}emissary-ingress{{ end }}
           image: {{ include "ambassador.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
