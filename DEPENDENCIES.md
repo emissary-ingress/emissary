@@ -3,7 +3,7 @@ following Free and Open Source software:
 
     Name                                                                              Version                                        License(s)
     ----                                                                              -------                                        ----------
-    the Go language standard library ("std")                                          v1.21.5                                        3-clause BSD license
+    the Go language standard library ("std")                                          v1.21.10                                       3-clause BSD license
     dario.cat/mergo                                                                   v1.0.0                                         3-clause BSD license
     github.com/Azure/go-ansiterm                                                      v0.0.0-20210617225240-d185dfc1b5a1             MIT license
     github.com/MakeNowJust/heredoc                                                    v1.0.0                                         MIT license
@@ -125,14 +125,14 @@ following Free and Open Source software:
     go.starlark.net                                                                   v0.0.0-20230525235612-a134d8f9ddca             3-clause BSD license
     go.uber.org/multierr                                                              v1.11.0                                        MIT license
     go.uber.org/zap                                                                   v1.26.0                                        MIT license
-    golang.org/x/crypto                                                               v0.17.0                                        3-clause BSD license
+    golang.org/x/crypto                                                               v0.21.0                                        3-clause BSD license
     golang.org/x/exp                                                                  v0.0.0-20231110203233-9a3e6036ecaa             3-clause BSD license
     golang.org/x/mod                                                                  v0.14.0                                        3-clause BSD license
-    golang.org/x/net                                                                  v0.19.0                                        3-clause BSD license
+    golang.org/x/net                                                                  v0.23.0                                        3-clause BSD license
     golang.org/x/oauth2                                                               v0.15.0                                        3-clause BSD license
     golang.org/x/sync                                                                 v0.5.0                                         3-clause BSD license
-    golang.org/x/sys                                                                  v0.15.0                                        3-clause BSD license
-    golang.org/x/term                                                                 v0.15.0                                        3-clause BSD license
+    golang.org/x/sys                                                                  v0.18.0                                        3-clause BSD license
+    golang.org/x/term                                                                 v0.18.0                                        3-clause BSD license
     golang.org/x/text                                                                 v0.14.0                                        3-clause BSD license
     golang.org/x/time                                                                 v0.5.0                                         3-clause BSD license
     golang.org/x/tools                                                                v0.16.1                                        3-clause BSD license
@@ -143,7 +143,7 @@ following Free and Open Source software:
     google.golang.org/genproto/googleapis/rpc                                         v0.0.0-20240102182953-50ed04b92917             Apache License 2.0
     google.golang.org/grpc                                                            v1.60.1                                        Apache License 2.0
     google.golang.org/grpc/cmd/protoc-gen-go-grpc                                     v1.3.0                                         Apache License 2.0
-    google.golang.org/protobuf                                                        v1.32.0                                        3-clause BSD license
+    google.golang.org/protobuf                                                        v1.33.0                                        3-clause BSD license
     gopkg.in/inf.v0                                                                   v0.9.1                                         3-clause BSD license
     gopkg.in/ini.v1                                                                   v1.51.0                                        Apache License 2.0
     gopkg.in/warnings.v0                                                              v0.1.2                                         2-clause BSD license
@@ -177,34 +177,34 @@ following Free and Open Source software:
 The Emissary-ingress Python code makes use of the following Free and Open Source
 libraries:
 
-    Name                Version    License(s)
-    ----                -------    ----------
-    Cython              0.29.37    Apache License 2.0
-    Flask               3.0.0      3-clause BSD license
-    Jinja2              3.1.2      3-clause BSD license
-    MarkupSafe          2.1.3      3-clause BSD license
-    PyYAML              6.0.1      MIT license
-    Werkzeug            3.0.1      3-clause BSD license
-    blinker             1.7.0      MIT license
-    build               1.0.3      MIT license
-    certifi             2023.7.22  Mozilla Public License 2.0
-    charset-normalizer  3.3.2      MIT license
-    click               8.1.7      3-clause BSD license
-    durationpy          0.5        MIT license
-    expiringdict        1.2.2      Apache License 2.0
-    gunicorn            21.2.0     MIT license
-    idna                3.4        3-clause BSD license
-    itsdangerous        2.1.2      3-clause BSD license
-    jsonpatch           1.33       3-clause BSD license
-    jsonpointer         2.4        3-clause BSD license
-    orjson              3.9.10     Apache License 2.0, MIT license
-    packaging           23.1       2-clause BSD license, Apache License 2.0
-    pip-tools           7.3.0      3-clause BSD license
-    prometheus-client   0.18.0     Apache License 2.0
-    pyparsing           3.0.9      MIT license
-    pyproject_hooks     1.0.0      MIT license
-    python-json-logger  2.0.7      2-clause BSD license
-    requests            2.31.0     Apache License 2.0
-    semantic-version    2.10.0     2-clause BSD license
-    typing_extensions   4.8.0      Python Software Foundation license
-    urllib3             2.1.0      MIT license
+    Name                Version   License(s)
+    ----                -------   ----------
+    Cython              0.29.37   Apache License 2.0
+    Flask               3.0.3     3-clause BSD license
+    Jinja2              3.1.4     3-clause BSD license
+    MarkupSafe          2.1.5     3-clause BSD license
+    PyYAML              6.0.1     MIT license
+    Werkzeug            3.0.3     3-clause BSD license
+    blinker             1.8.2     MIT license
+    build               1.2.1     MIT license
+    certifi             2024.2.2  Mozilla Public License 2.0
+    charset-normalizer  3.3.2     MIT license
+    click               8.1.7     3-clause BSD license
+    durationpy          0.6       MIT license
+    expiringdict        1.2.2     Apache License 2.0
+    gunicorn            22.0.0    MIT license
+    idna                3.7       3-clause BSD license
+    itsdangerous        2.2.0     3-clause BSD license
+    jsonpatch           1.33      3-clause BSD license
+    jsonpointer         2.4       3-clause BSD license
+    orjson              3.10.3    Apache License 2.0, MIT license
+    packaging           23.1      2-clause BSD license, Apache License 2.0
+    pip-tools           7.3.0     3-clause BSD license
+    prometheus_client   0.20.0    Apache License 2.0
+    pyparsing           3.0.9     MIT license
+    pyproject_hooks     1.1.0     MIT license
+    python-json-logger  2.0.7     2-clause BSD license
+    requests            2.31.0    Apache License 2.0
+    semantic-version    2.10.0    2-clause BSD license
+    typing_extensions   4.11.0    Python Software Foundation license
+    urllib3             2.2.1     MIT license
