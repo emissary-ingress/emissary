@@ -1,6 +1,6 @@
 module local
 
-go 1.21
+go 1.22.4
 
 require github.com/helm/chart-testing/v3 v3.10.1
 
