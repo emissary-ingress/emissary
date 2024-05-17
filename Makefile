@@ -27,16 +27,21 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
   endif
 
   VERSION := $(or $(VERSION),$(shell go run ./tools/src/goversion))
-  $(if $(or $(filter v3.%,$(VERSION)),$(filter v0.0.0-%,$(VERSION))),\
-    ,$(error VERSION variable is invalid: It must be v3.* or v0.0.0-$$tag, but is '$(VERSION)'))
+  $(if $(or $(filter v4.%,$(VERSION)),$(filter v0.0.0-%,$(VERSION))),\
+    ,$(error VERSION variable is invalid: It must be v4.* or v0.0.0-$$tag, but is '$(VERSION)'))
   $(if $(findstring +,$(VERSION)),\
     $(error VERSION variable is invalid: It must not contain + characters, but is '$(VERSION)'),)
   export VERSION
 
-  CHART_VERSION := $(or $(CHART_VERSION),$(shell go run ./tools/src/goversion --dir-prefix=chart))
-  $(if $(or $(filter v8.%,$(CHART_VERSION)),$(filter v0.0.0-%,$(CHART_VERSION))),\
-    ,$(error CHART_VERSION variable is invalid: It must be v8.* or v0.0.0-$$tag, but is '$(CHART_VERSION)'))
+  # This is a bit hackish, at the moment, but let's run with it for now
+  # and see how far we get.
+  CHART_VERSION := $(VERSION)
   export CHART_VERSION
+
+#   CHART_VERSION := $(or $(CHART_VERSION),$(shell go run ./tools/src/goversion --dir-prefix=chart))
+#   $(if $(or $(filter v4.%,$(CHART_VERSION)),$(filter v0.0.0-%,$(CHART_VERSION))),\
+#     ,$(error CHART_VERSION variable is invalid: It must be v4.* or v0.0.0-$$tag, but is '$(CHART_VERSION)'))
+#   export CHART_VERSION
 
   $(info [make] VERSION=$(VERSION))
   $(info [make] CHART_VERSION=$(CHART_VERSION))
