@@ -435,6 +435,14 @@ release/ga-check:
 	  --source-registry=$(RELEASE_REGISTRY) \
 	  --image-name=$(LCNAME); }
 
+_save-dev-images = $(LCNAME) kat-client kat-server
+save-dev: FORCE inspect-image-cache images-build
+	@for image in $(_save-dev-images); do \
+		printf '$(CYN)==> $(GRN)saving image %s as tarball: $(BLU)%s.tar$(GRN)...$(END)\n' $$image $$image; \
+		docker image save --output $$image.tar $$(cat docker/$$image.docker); \
+	done
+.PHONY: save-dev
+
 AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.push.remote 2>/dev/null)
 export AMBASSADOR_DOCKER_IMAGE
 
