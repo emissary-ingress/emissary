@@ -2,6 +2,9 @@ name: Build images
 
 on: [workflow_call, push]
 
+env:
+  VERSION: v0.0.0-build-images
+
 jobs:
   build-images:
     runs-on: ubuntu-latest
