@@ -1,0 +1,39 @@
+name: Build images
+
+on: [workflow_call, push]
+
+jobs:
+  build-images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+
+      - name: Build Docker Images and save tarballs
+        shell: bash
+        run: |
+          set -eou pipefail
+          make save-dev
+
+      - name: Upload emissary docker image tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: emissary.tar
+          path: emissary.tar
+
+      - name: Upload kat-client docker image tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: kat-client.tar
+          path: kat-client.tar
+
+      - name: Upload kat-server docker image tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: kat-server.tar
+          path: kat-server.tar
+
