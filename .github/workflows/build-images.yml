@@ -19,6 +19,8 @@ jobs:
 
       - name: Build Docker Images and save tarballs
         shell: bash
+        env:
+          SKIP_PUSH: "true"
         run: |
           set -eou pipefail
           make save-dev

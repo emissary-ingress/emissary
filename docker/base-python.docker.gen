@@ -42,6 +42,8 @@ if tput setaf 0 &>/dev/null; then
 	BLU="$(tput setaf 4)"
 fi
 
+SKIP_PUSH=${SKIP_PUSH:-"false"}
+
 msg() {
 	# shellcheck disable=SC2059
 	printf "${BLU} => [${0##*/}]${OFF} $1${OFF}\n" "${@:2}" >&2
@@ -190,7 +192,11 @@ main() {
 		for repo in "${repos[@]}"; do
 			statnl_busy 'Attempting to push %q' "$repo:$tag"
 			docker tag "$id" "$repo:$tag" >&2
-			if docker push "$repo:$tag" >&2; then
+			if [[ "$SKIP_PUSH" == "true" ]]; then
+				statnl_done "${GRN}skipping push"
+				pushed=1
+				continue
+			elif docker push "$repo:$tag" >&2; then
 				statnl_done "${GRN}pushed"
 				pushed=1
 				continue
