@@ -1,0 +1,22 @@
+name: load-docker-images-from-artifacts
+description: Load Docker Images from artifacts into k3d
+
+runs:
+  using: "composite"
+  steps:
+  # should download emissary.tar, kat-client.tar, kat-server.tar
+  - name: Download artifacts
+    id: artifact_download
+    uses: actions/download-artifact@v4
+
+
+  - name: Import tarballs into k3d
+    shell: bash
+    run: |
+      images=("emissary" "kat-client" "kat-server")
+      for image in "${images[@]}"
+      do
+        echo "Importing ${image}.tar into k3d cluster"
+        ls -alh "${{steps.artifact_download.outputs.download-path}}/${image}.tar/"
+        ./tools/bin/k3d image import "${{steps.artifact_download.outputs.download-path}}/${image}.tar/${image}.tar"
+      done
