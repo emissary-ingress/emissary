@@ -1,0 +1,22 @@
+name: Run tests
+
+on:
+  # pull request: {}
+  workflow_dispatch:
+  schedule:
+    - cron: "0 7 * * *" # at 7am UTC everyday
+
+jobs:
+  build-images:
+    uses: ./.github/workflows/build-images.yml
+    secrets: inherit
+
+  execute-tests-and-promote:
+    needs: [build-images]
+    uses: ./.github/workflows/execute-tests-and-promote.yml
+    secrets: inherit
+
+  k8s-e2e:
+    needs: [build-images]
+    uses: ./.github/workflows/k8s-e2e.yml
+    secrets: inherit

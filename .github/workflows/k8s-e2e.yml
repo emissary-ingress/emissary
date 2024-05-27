@@ -1,10 +1,8 @@
 name: k8s-e2e
 
 "on":
-  pull_request: {}
-  schedule:
-    - cron: "0 7 * * *" # at 7am UTC everyday
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   acceptance_tests:
@@ -39,12 +37,6 @@ jobs:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: "Docker Login"
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - name: Create integration test cluster
         env:
           K3S_VERSION: ${{matrix.k8s.k3s}}
@@ -54,6 +46,8 @@ jobs:
           sudo sysctl -w fs.inotify.max_user_instances=4096
 
           make ci/setup-k3d
+      - name: Load Docker Images into k3d cluster # has to be done after k3d is installed
+        uses: ./.github/actions/load-docker-images-from-artifacts
       - name: Setup integration test environment
         run: |
           export DEV_KUBE_NO_PVC=yes

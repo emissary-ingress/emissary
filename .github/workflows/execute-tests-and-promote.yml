@@ -1,12 +1,7 @@
 name: job-promote-to-passed
 
 "on":
-  push:
-    branches:
-      - master
-      - release/v*
-  pull_request: {}
-  workflow_dispatch:
+  workflow_call:
 
 jobs:
   lint: ########################################################################
@@ -230,6 +225,8 @@ jobs:
           sudo sysctl -w fs.inotify.max_user_instances=4096
 
           make ci/setup-k3d
+      - name: Load Docker Images into k3d cluster # has to be done after k3d is installed
+        uses: ./.github/actions/load-docker-images-from-artifacts
       - name: Setup integration test environment
         run: |
           export DEV_KUBE_NO_PVC=yes
