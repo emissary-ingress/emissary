@@ -443,6 +443,14 @@ save-dev: FORCE inspect-image-cache images-build
 	done
 .PHONY: save-dev
 
+_save-pytest-images = test-auth test-shadow test-stats
+save-pytest-images: FORCE inspect-image-cache build-pytest-images
+	@for image in $(_save-pytest-images); do \
+		printf '$(CYN)==> $(GRN)saving image %s as tarball: $(BLU)%s.tar$(GRN)...$(END)\n' $$image $$image; \
+		docker image save --output $$image.tar $$(cat docker/$$image.docker); \
+	done
+.PHONY: save-pytest-images
+
 AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.push.remote 2>/dev/null)
 export AMBASSADOR_DOCKER_IMAGE
 

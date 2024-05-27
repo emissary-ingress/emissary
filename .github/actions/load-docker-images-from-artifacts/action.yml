@@ -13,7 +13,7 @@ runs:
   - name: Import tarballs into k3d
     shell: bash
     run: |
-      images=("emissary" "kat-client" "kat-server")
+      images=("emissary" "kat-client" "kat-server" "test-auth" "test-shadow" "test-stats")
       for image in "${images[@]}"
       do
         echo "Importing ${image}.tar into k3d cluster"

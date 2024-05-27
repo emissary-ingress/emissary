@@ -24,6 +24,7 @@ jobs:
         run: |
           set -eou pipefail
           make save-dev
+          make save-pytest-images
 
       - name: Upload emissary docker image tarball
         uses: actions/upload-artifact@v4
@@ -43,3 +44,20 @@ jobs:
           name: kat-server.tar
           path: kat-server.tar
 
+      - name: Upload test-auth docker image tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-auth.tar
+          path: test-auth.tar
+
+      - name: Upload test-shadow docker image tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-shadow.tar
+          path: test-shadow.tar
+
+      - name: Upload test-stats docker image tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-stats.tar
+          path: test-stats.tar

@@ -3,6 +3,11 @@ include build-aux/tools.mk
 #
 # Auxiliary Docker images needed for the tests
 
+build-pytest-images: docker/test-auth.docker.tag.local
+build-pytest-images: docker/test-shadow.docker.tag.local
+build-pytest-images: docker/test-stats.docker.tag.local
+.PHONY: build-pytest-images
+
 # Keep this list in-sync with python/tests/integration/manifests.py
 push-pytest-images: docker/$(LCNAME).docker.push.remote
 push-pytest-images: docker/test-auth.docker.push.remote
