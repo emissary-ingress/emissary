@@ -197,7 +197,6 @@ export PYTEST_ARGS
 python-virtual-environment: $(OSS_HOME)/venv
 .PHONY: python-virtual-environment
 
-python-integration-test-environment: push-pytest-images
 python-integration-test-environment: $(tools/kubestatus)
 python-integration-test-environment: $(tools/kubectl)
 python-integration-test-environment: python-virtual-environment
