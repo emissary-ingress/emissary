@@ -1,7 +1,7 @@
 name: Run tests
 
 on:
-  # pull request: {}
+  pull_request:
   workflow_dispatch:
   schedule:
     - cron: "0 7 * * *" # at 7am UTC everyday
