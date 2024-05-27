@@ -14,6 +14,8 @@ jobs:
       DEV_USE_IMAGEPULLSECRET: ${{ secrets.DEV_USE_IMAGEPULLSECRET }}
       DOCKER_BUILD_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
       DOCKER_BUILD_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+      VERSION: v0.0.0-build-images
+      CHART_VERSION: v0.0.0-build-images
     strategy:
       fail-fast: false
       matrix:
