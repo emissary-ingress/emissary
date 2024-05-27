@@ -245,7 +245,7 @@ pytest-kat-envoy3-tests: # doing this all at once is too much for CI...
 	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
 pytest-kat-envoy3: python-integration-test-environment pytest-kat-envoy3-tests
 # ... so we have a separate rule to run things split up
-build-aux/.pytest-kat.txt.stamp: $(OSS_HOME)/venv build-pytest-images $(tools/kubectl) FORCE
+build-aux/.pytest-kat.txt.stamp: $(OSS_HOME)/venv $(tools/kubectl) FORCE
 	. venv/bin/activate && set -o pipefail && pytest --collect-only python/tests/kat 2>&1 | sed -En 's/.*<Function (.*)>/\1/p' | cut -d. -f1 | sort -u > $@
 build-aux/pytest-kat.txt: build-aux/%: build-aux/.%.stamp $(tools/copy-ifchanged)
 	$(tools/copy-ifchanged) $< $@
