@@ -17,6 +17,6 @@ runs:
       for image in "${images[@]}"
       do
         echo "Importing ${image}.tar into k3d cluster"
-        ls -alh "${{steps.artifact_download.outputs.download-path}}/${image}.tar/"
         ./tools/bin/k3d image import "${{steps.artifact_download.outputs.download-path}}/${image}.tar/${image}.tar"
+        rm -rf "${{steps.artifact_download.outputs.download-path}}/${image}.tar"
       done
