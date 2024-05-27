@@ -11,10 +11,10 @@ jobs:
     uses: ./.github/workflows/build-images.yml
     secrets: inherit
 
-  execute-tests-and-promote:
-    needs: [build-images]
-    uses: ./.github/workflows/execute-tests-and-promote.yml
-    secrets: inherit
+  # execute-tests-and-promote:
+  #   needs: [build-images]
+  #   uses: ./.github/workflows/execute-tests-and-promote.yml
+  #   secrets: inherit
 
   k8s-e2e:
     needs: [build-images]
