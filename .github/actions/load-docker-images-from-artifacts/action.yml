@@ -26,12 +26,14 @@ runs:
       unzip ${{ steps.artifact_temp_dir.outputs.path }}/build-images-checksums-and-tags.zip/build-images-checksums-and-tags.zip -d ${{ github.workspace }}/docker
       ls -alh ${{ github.workspace }}/docker
 
-  - name: Import tarballs into k3d
+  - name: Import tarballs into k3d and docker
     shell: bash
     run: |
       images=("emissary" "kat-client" "kat-server" "test-auth" "test-shadow" "test-stats")
       for image in "${images[@]}"
       do
+        echo "Importing ${image}.tar into docker"
+        docker image load --input "${{ steps.artifact_temp_dir.outputs.path }}/${image}.tar/${image}.tar"
         echo "Importing ${image}.tar into k3d cluster"
         ./tools/bin/k3d image import "${{ steps.artifact_temp_dir.outputs.path }}/${image}.tar/${image}.tar"
       done
