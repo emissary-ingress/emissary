@@ -4,11 +4,20 @@ description: Load Docker Images from artifacts into k3d
 runs:
   using: "composite"
   steps:
+  - name: Make temp dir
+    id: artifact_temp_dir
+    shell: bash
+    run: |
+      path="/tmp/load-docker-images-from-artifacts"
+      mkdir -p "$path"
+      echo "path=${path}" >> $GITHUB_OUTPUT
+
   # should download emissary.tar, kat-client.tar, kat-server.tar
   - name: Download artifacts
     id: artifact_download
     uses: actions/download-artifact@v4
-
+    with:
+      path: ${{ steps.artifact_temp_dir.outputs.path }}
 
   - name: Import tarballs into k3d
     shell: bash
@@ -17,6 +26,5 @@ runs:
       for image in "${images[@]}"
       do
         echo "Importing ${image}.tar into k3d cluster"
-        ./tools/bin/k3d image import "${{steps.artifact_download.outputs.download-path}}/${image}.tar/${image}.tar"
-        rm -rf "${{steps.artifact_download.outputs.download-path}}/${image}.tar"
+        ./tools/bin/k3d image import "${{ steps.artifact_temp_dir.outputs.path }}/${image}.tar/${image}.tar"
       done
