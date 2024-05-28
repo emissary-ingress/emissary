@@ -19,6 +19,13 @@ runs:
     with:
       path: ${{ steps.artifact_temp_dir.outputs.path }}
 
+  - name: Extract checksum archive
+    shell: bash
+    run: |
+      set -eou pipefail
+      unzip ${{ steps.artifact_temp_dir.outputs.path }}/build-images-checksums-and-tags.zip/build-images-checksums-and-tags.zip -d ${{ github.workspace }}/docker
+      ls -alh ${{ github.workspace }}/docker
+
   - name: Import tarballs into k3d
     shell: bash
     run: |
