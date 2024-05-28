@@ -24,7 +24,7 @@ def _get_images() -> Dict[str, str]:
 
     try:
         subprocess.run(
-            ["make"] + [f"docker/{name}.docker.push.remote" for name in image_names],
+            ["make"] + [f"docker/{name}.docker.tag.local" for name in image_names],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -34,7 +34,7 @@ def _get_images() -> Dict[str, str]:
         raise Exception(f"{err.stdout}{err}") from err
 
     for name in image_names:
-        with open(f"docker/{name}.docker.push.remote", "r") as fh:
+        with open(f"docker/{name}.docker.tag.local", "r") as fh:
             # file contents:
             #   line 1: image ID
             #   line 2: tag 1
