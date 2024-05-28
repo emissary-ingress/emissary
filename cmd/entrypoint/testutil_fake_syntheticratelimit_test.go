@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
-	v3bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
-	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
+	v3bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
+	v3cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 )
 
 // This predicate is used to check k8s snapshots for an RateLimitService matching the provided name and

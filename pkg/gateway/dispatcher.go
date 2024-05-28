@@ -10,17 +10,17 @@ import (
 
 	// Envoy API v3
 
-	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
-	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
-	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
-	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
-	v3route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
+	v3cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+	v3core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	v3endpoint "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
+	v3listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	v3route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 
 	// Envoy control plane API's
-	ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
-	ecp_v3_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
-	ecp_v3_resource "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
-	ecp_wellknown "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
+	ecp_cache_types "github.com/envoyproxy/go-control-plane/pkg/cache/types"
+	ecp_v3_cache "github.com/envoyproxy/go-control-plane/pkg/cache/v3"
+	ecp_v3_resource "github.com/envoyproxy/go-control-plane/pkg/resource/v3"
+	ecp_wellknown "github.com/envoyproxy/go-control-plane/pkg/wellknown"
 
 	"github.com/datawire/dlib/dlog"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"

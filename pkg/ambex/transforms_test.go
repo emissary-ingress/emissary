@@ -11,10 +11,10 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
-	v3Listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
-	v3Route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
-	v3Httpman "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
-	v3Wellknown "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
+	v3Listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	v3Route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	v3Httpman "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	v3Wellknown "github.com/envoyproxy/go-control-plane/pkg/wellknown"
 )
 
 func TestV3ListenerToRdsListener(t *testing.T) {

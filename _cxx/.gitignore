@@ -1,9 +1,0 @@
-/envoy/
-/envoy-static
-/envoy-build-image.txt
-/envoy-build-container.txt
-
-/go-control-plane/
-
-# folder is mounted to envoy build container and build outputs are copied here
-/envoy-docker-build

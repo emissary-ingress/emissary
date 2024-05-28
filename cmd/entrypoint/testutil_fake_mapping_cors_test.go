@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
-	bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
+	bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
 
 	"github.com/stretchr/testify/assert"
 )

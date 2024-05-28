@@ -11,10 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
-	bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
+	bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
 )
 
 func getExpected(expectedFile string, inputObjects []kates.Object) ([]RenderedListener, []v3alpha1.Mapping, []string, error) {

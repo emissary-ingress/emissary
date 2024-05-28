@@ -31,6 +31,7 @@ following Free and Open Source software:
     github.com/docker/distribution                                                    v2.8.2+incompatible                            Apache License 2.0
     github.com/emicklei/go-restful/v3                                                 v3.11.0                                        MIT license
     github.com/emirpasic/gods                                                         v1.18.1                                        2-clause BSD license, ISC license
+    github.com/envoyproxy/go-control-plane                                            v0.11.1                                        Apache License 2.0
     github.com/envoyproxy/protoc-gen-validate                                         v1.0.2                                         Apache License 2.0
     github.com/evanphx/json-patch                                                     v5.7.0+incompatible                            3-clause BSD license
     github.com/evanphx/json-patch/v5                                                  v5.6.0                                         3-clause BSD license
@@ -121,7 +122,6 @@ following Free and Open Source software:
     github.com/vladimirvivien/gexe                                                    v0.2.0                                         MIT license
     github.com/xanzy/ssh-agent                                                        v0.3.3                                         Apache License 2.0
     github.com/xlab/treeprint                                                         v1.2.0                                         MIT license
-    go.opentelemetry.io/proto/otlp                                                    v1.0.0                                         Apache License 2.0
     go.starlark.net                                                                   v0.0.0-20230525235612-a134d8f9ddca             3-clause BSD license
     go.uber.org/multierr                                                              v1.11.0                                        MIT license
     go.uber.org/zap                                                                   v1.26.0                                        MIT license

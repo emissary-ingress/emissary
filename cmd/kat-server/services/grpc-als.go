@@ -13,10 +13,10 @@ import (
 	"google.golang.org/grpc"
 
 	// first party
-	logdatav2 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/data/accesslog/v2"
-	logdatav3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/data/accesslog/v3"
-	alsv2 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/accesslog/v2"
-	alsv3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/accesslog/v3"
+	logdatav2 "github.com/envoyproxy/go-control-plane/envoy/data/accesslog/v2"
+	logdatav3 "github.com/envoyproxy/go-control-plane/envoy/data/accesslog/v3"
+	alsv2 "github.com/envoyproxy/go-control-plane/envoy/service/accesslog/v2"
+	alsv3 "github.com/envoyproxy/go-control-plane/envoy/service/accesslog/v3"
 )
 
 type GRPCALS struct {
