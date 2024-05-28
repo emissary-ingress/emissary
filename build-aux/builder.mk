@@ -450,7 +450,7 @@ save-pytest-images: FORCE inspect-image-cache build-pytest-images
 	done
 .PHONY: save-pytest-images
 
-AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.push.remote 2>/dev/null)
+AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.tag.local 2>/dev/null)
 export AMBASSADOR_DOCKER_IMAGE
 
 _user-vars  = BUILDER_NAME
