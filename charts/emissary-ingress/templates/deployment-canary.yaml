@@ -178,7 +178,7 @@ spec:
           resources:
             {{- toYaml .Values.prometheusExporter.resources | nindent 12 }}
         {{- end }}
-        - name: {{ if .Values.containerNameOverride }}{{ .Values.containerNameOverride }}{{ else }}{{ .Chart.Name }}{{ end }}
+        - name: {{ if .Values.containerNameOverride }}{{ .Values.containerNameOverride }}{{ else }}emissary-ingress{{ end }}
           {{- if ne (include "ambassador.canaryImage" .)  "" }}
           image: {{ include "ambassador.canaryImage" . }}
           {{- else }}

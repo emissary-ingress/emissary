@@ -5,15 +5,6 @@ metadata:
   name: ambassador
   labels:
     app.kubernetes.io/component: ambassador-service
-  annotations:
-    a8r.io/owner: "Ambassador Labs"
-    a8r.io/repository: github.com/datawire/ambassador
-    a8r.io/description: "The Ambassador Edge Stack goes beyond traditional API Gateways and Ingress Controllers with the advanced edge features needed to support developer self-service and full-cycle development."
-    a8r.io/documentation: https://www.getambassador.io/docs/edge-stack/latest/
-    a8r.io/chat: http://a8r.io/Slack
-    a8r.io/bugs: https://github.com/datawire/ambassador/issues
-    a8r.io/support: https://www.getambassador.io/about-us/support/
-    a8r.io/dependencies: "ambassador-redis"
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Local
