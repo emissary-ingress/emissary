@@ -10,8 +10,6 @@ jobs:
   acceptance_tests:
     runs-on: ubuntu-latest
     env:
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
       # See pkg/kubeapply/resource_kubeapply.go
       DEV_USE_IMAGEPULLSECRET: ${{ secrets.DEV_USE_IMAGEPULLSECRET }}
       DOCKER_BUILD_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}

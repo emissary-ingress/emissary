@@ -73,11 +73,6 @@ updates:
       - dependency-name: urllib3
         versions:
           - "<2.0"
-  - package-ecosystem: docker
-    directory: "/docker/base-python"
-    schedule:
-      interval: daily
-    open-pull-requests-limit: 10
 
   - package-ecosystem: docker
     directory: "/docker/test-auth"
