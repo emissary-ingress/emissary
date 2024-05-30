@@ -11,14 +11,14 @@ import (
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 
 	// envoy api v3
-	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
-	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
-	v3route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
-	v3httpman "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
-	v3matcher "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/matcher/v3"
+	v3core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	v3listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	v3route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	v3httpman "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	v3matcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 
 	// envoy control plane
-	ecp_wellknown "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
+	ecp_wellknown "github.com/envoyproxy/go-control-plane/pkg/wellknown"
 
 	// first-party libraries
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"

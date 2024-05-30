@@ -11,9 +11,6 @@ name: job-promote-to-passed
 jobs:
   lint: ########################################################################
     runs-on: ubuntu-latest
-    env:
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -31,9 +28,6 @@ jobs:
 
   generate: ####################################################################
     runs-on: ubuntu-latest
-    env:
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -79,9 +73,6 @@ jobs:
 
   check-envoy-protos: ####################################################################
     runs-on: ubuntu-latest
-    env:
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -111,9 +102,6 @@ jobs:
 
   check-envoy-version: #########################################################
     runs-on: ubuntu-latest
-    env:
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -140,9 +128,6 @@ jobs:
   # Tests ######################################################################
   apiext-e2e:
     runs-on: ubuntu-latest
-    env:
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
       APIEXT_E2E: ""
       APIEXT_BUILD_ARCH: linux/amd64
     steps:
@@ -171,9 +156,6 @@ jobs:
           go test -p 1 -parallel 1 -v -tags=apiext ./test/apiext/... -timeout 15m
   check-gotest:
     runs-on: ubuntu-latest
-    env:
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -194,9 +176,6 @@ jobs:
         if: always()
   check-pytest:
     runs-on: ubuntu-latest
-    env:
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
       # See pkg/kubeapply/resource_kubeapply.go
       DEV_USE_IMAGEPULLSECRET: ${{ secrets.DEV_USE_IMAGEPULLSECRET }}
       DOCKER_BUILD_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
@@ -250,9 +229,6 @@ jobs:
           jobname: check-pytest-${{ matrix.test }}
   check-pytest-unit:
     runs-on: ubuntu-latest
-    env:
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     name: pytest-unit
     steps:
       - uses: actions/checkout@v3
@@ -280,8 +256,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
       # See pkg/kubeapply/resource_kubeapply.go
       DEV_USE_IMAGEPULLSECRET: ${{ secrets.DEV_USE_IMAGEPULLSECRET }}
       DOCKER_BUILD_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
@@ -311,8 +285,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
-      # See docker/base-python.docker.gen
-      BASE_PYTHON_REPO: ${{ secrets.BASE_PYTHON_REPO }}
     outputs:
       image-tag: ${{ steps.build-image.outputs.image-tag }}
     steps:

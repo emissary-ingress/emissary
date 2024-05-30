@@ -6,7 +6,11 @@ version: 1
 # Allow overriding the registry and image name with environment variables.
 env:
   - REGISTRY={{ if index .Env "REGISTRY"  }}{{ .Env.REGISTRY }}{{ else }}ghcr.io/emissary-ingress{{ end }}
-  - IMAGE_NAME={{ if index .Env "IMAGE_NAME"  }}{{ .Env.IMAGE_NAME }}{{ else }}emissary{{ end }}
+  - EMISSARY_IMAGE={{ if index .Env "EMISSARY_IMAGE"  }}{{ .Env.EMISSARY_IMAGE }}{{ else }}emissary{{ end }}
+  - APIEXT_IMAGE={{ if index .Env "APIEXT_IMAGE"  }}{{ .Env.APIEXT_IMAGE }}{{ else }}apiext{{ end }}
+  - TEST_AUTH_IMAGE={{ if index .Env "TEST_AUTH_IMAGE"  }}{{ .Env.TEST_AUTH_IMAGE }}{{ else }}test-auth{{ end }}
+  - TEST_SHADOW_IMAGE={{ if index .Env "TEST_SHADOW_IMAGE"  }}{{ .Env.TEST_SHADOW_IMAGE }}{{ else }}test-shadow{{ end }}
+  - TEST_STATS_IMAGE={{ if index .Env "TEST_STATS_IMAGE"  }}{{ .Env.TEST_STATS_IMAGE }}{{ else }}test-stats{{ end }}
 
 before:
   hooks:
@@ -28,28 +32,54 @@ builds:
       - arm64
       - amd64
 
-  # - id: wrapper
-  #   main: ./cmd/capabilities_wrapper
-  #   binary: wrapper
-  #   env:
-  #     - CGO_ENABLED=0
-  #   goos:
-  #     - linux
-  #   goarch:
-  #     - arm64
+  - id: kat-client
+    main: ./cmd/kat-client
+    binary: kat-client
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - arm64
+      - amd64
+
+  - id: kat-server
+    main: ./cmd/kat-server
+    binary: kat-server
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - arm64
+      - amd64
+
+  - id: apiext
+    main: ./cmd/apiext
+    binary: apiext
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - arm64
+      - amd64
 
 # We build GUI and workload images for both arm64 and amd64, then build a
 # multiarch manifest from them.
 dockers:
+  ## Emissary
   - use: buildx
     goos: linux
     goarch: arm64
-    dockerfile: Dockerfile.goreleaser
+    dockerfile: docker/emissary/Dockerfile
     ids:
       - busyambassador
     image_templates:
-      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-arm64"
     build_flag_templates:
       - "--platform=linux/arm64"
       - "--build-arg=LIBARCH=aarch64"
@@ -58,32 +88,246 @@ dockers:
   - use: buildx
     goos: linux
     goarch: amd64
-    dockerfile: Dockerfile.goreleaser
+    dockerfile: docker/emissary/Dockerfile
     ids:
       - busyambassador
     image_templates:
-      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:{{ .Version }}-amd64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-amd64"
     build_flag_templates:
       - "--platform=linux/amd64"
       - "--build-arg=LIBARCH=x86_64"
     extra_files:
       - python
 
-docker_manifests:
-  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:{{ .Version }}"
+  ## apiext
+  - use: buildx
+    goos: linux
+    goarch: arm64
+    dockerfile: docker/apiext/Dockerfile
+    ids:
+      - apiext
     image_templates:
-      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:{{ .Version }}-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-arm64"
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--build-arg=LIBARCH=aarch64"
+  - use: buildx
+    goos: linux
+    goarch: amd64
+    dockerfile: docker/apiext/Dockerfile
+    ids:
+      - apiext
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-amd64"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--build-arg=LIBARCH=x86_64"
+
+  ## test-auth
+  - use: buildx
+    goos: linux
+    goarch: arm64
+    dockerfile: docker/test-auth/Dockerfile
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-arm64"
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--build-arg=LIBARCH=aarch64"
+    extra_files:
+      - docker/test-auth
+  - use: buildx
+    goos: linux
+    goarch: amd64
+    dockerfile: docker/test-auth/Dockerfile
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-amd64"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--build-arg=LIBARCH=x86_64"
+    extra_files:
+      - docker/test-auth
+
+  ## test-shadow
+  - use: buildx
+    goos: linux
+    goarch: arm64
+    dockerfile: docker/test-shadow/Dockerfile
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-arm64"
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--build-arg=LIBARCH=aarch64"
+    extra_files:
+      - docker/test-shadow
+  - use: buildx
+    goos: linux
+    goarch: amd64
+    dockerfile: docker/test-shadow/Dockerfile
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-amd64"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--build-arg=LIBARCH=x86_64"
+    extra_files:
+      - docker/test-shadow
+
+  ## test-stats
+  - use: buildx
+    goos: linux
+    goarch: arm64
+    dockerfile: docker/test-stats/Dockerfile
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-arm64"
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--build-arg=LIBARCH=aarch64"
+    extra_files:
+      - docker/test-stats
+  - use: buildx
+    goos: linux
+    goarch: amd64
+    dockerfile: docker/test-stats/Dockerfile
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-amd64"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--build-arg=LIBARCH=x86_64"
+    extra_files:
+      - docker/test-stats
+
+docker_manifests:
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}"
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}-amd64"
     create_flags:
       - --insecure
     push_flags:
       - --insecure
 
-  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:latest"
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest"
     image_templates:
-      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:latest-arm64"
-      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE_NAME }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:latest-amd64"
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}"
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:{{ .Version }}-amd64"
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest"
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.APIEXT_IMAGE }}:latest-amd64"
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}"
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:{{ .Version }}-amd64"
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest"
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_AUTH_IMAGE }}:latest-amd64"
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}"
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:{{ .Version }}-amd64"
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest"
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_SHADOW_IMAGE }}:latest-amd64"
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}"
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:{{ .Version }}-amd64"
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest"
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-amd64"
     create_flags:
       - --insecure
     push_flags:

@@ -28,8 +28,6 @@ generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(O
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%_grpc.pb.go                    , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto')) $(OSS_HOME)/pkg/api/agent/
 generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%_grpc.pb.go                    , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto'))
-# Whole directories with one rule for the whole directory
-generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/                    # recipe in _cxx/envoy.mk
 # Individual files: Misc
 generate/files      += $(OSS_HOME)/DEPENDENCIES.md
 generate/files      += $(OSS_HOME)/DEPENDENCY_LICENSES.md

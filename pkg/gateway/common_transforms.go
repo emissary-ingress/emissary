@@ -3,9 +3,9 @@ package gateway
 import (
 	"fmt"
 
-	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
-	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
+	v3core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	v3endpoint "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 )
 
 // Compile_Endpoints transforms a kubernetes endpoints resource into a v3endpoint.ClusterLoadAssignment

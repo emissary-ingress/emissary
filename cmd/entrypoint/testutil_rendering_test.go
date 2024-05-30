@@ -10,12 +10,12 @@ import (
 	"testing"
 
 	// envoy api v3
-	apiv3_bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
-	apiv3_httpman "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	apiv3_bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
+	apiv3_httpman "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 
 	// envoy control plane
-	ecp_v3_resource "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
-	ecp_wellknown "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
+	ecp_v3_resource "github.com/envoyproxy/go-control-plane/pkg/resource/v3"
+	ecp_wellknown "github.com/envoyproxy/go-control-plane/pkg/wellknown"
 
 	// first-party libraries
 	"github.com/emissary-ingress/emissary/v3/pkg/api/getambassador.io/v3alpha1"

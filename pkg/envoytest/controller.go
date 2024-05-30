@@ -11,18 +11,18 @@ import (
 	"google.golang.org/grpc"
 
 	// envoy api v3
-	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
-	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/cluster/v3"
-	v3discovery "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/discovery/v3"
-	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/endpoint/v3"
-	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/listener/v3"
-	v3route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/route/v3"
+	v3core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	v3cluster "github.com/envoyproxy/go-control-plane/envoy/service/cluster/v3"
+	v3discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
+	v3endpoint "github.com/envoyproxy/go-control-plane/envoy/service/endpoint/v3"
+	v3listener "github.com/envoyproxy/go-control-plane/envoy/service/listener/v3"
+	v3route "github.com/envoyproxy/go-control-plane/envoy/service/route/v3"
 
 	// envoy control plane
-	ecp_v3_cache "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/v3"
-	ecp_log "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/log"
-	ecp_v3_resource "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
-	ecp_v3_server "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/server/v3"
+	ecp_v3_cache "github.com/envoyproxy/go-control-plane/pkg/cache/v3"
+	ecp_log "github.com/envoyproxy/go-control-plane/pkg/log"
+	ecp_v3_resource "github.com/envoyproxy/go-control-plane/pkg/resource/v3"
+	ecp_v3_server "github.com/envoyproxy/go-control-plane/pkg/server/v3"
 
 	// first-party-libraries
 	"github.com/datawire/dlib/dhttp"

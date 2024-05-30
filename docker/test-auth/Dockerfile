@@ -46,12 +46,12 @@ RUN python3 -m venv /opt/venv
 # COPY only requirements.txt to avoid screwing up Docker caching and
 # causing a full reinstall of all dependencies when dependencies are
 # not changed.
-COPY requirements.txt .
+COPY docker/test-auth/requirements.txt .
 # Install application dependencies
 RUN /opt/venv/bin/pip3 install -r requirements.txt
 
 # COPY the app code and configuration into place.
-COPY auth.py authsvc.crt authsvc.key entrypoint.sh ./
+COPY docker/test-auth/auth.py docker/test-auth/authsvc.crt docker/test-auth/authsvc.key docker/test-auth/entrypoint.sh ./
 
 # perform any final configuration steps.
 ARG TLS=""

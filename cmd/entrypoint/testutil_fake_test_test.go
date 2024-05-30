@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/emissary-ingress/emissary/v3/cmd/entrypoint"
-	v3bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
-	v3 "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/type/v3"
 	"github.com/emissary-ingress/emissary/v3/pkg/kates"
 	"github.com/emissary-ingress/emissary/v3/pkg/snapshot/v1"
+	v3bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
+	v3 "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 )
 
 func AnySnapshot(_ *snapshot.Snapshot) bool {
@@ -227,7 +227,7 @@ metadata:
 spec:
  prefix: /foo/
  service: bar.default
- weight: 20 
+ weight: 20
 `))
 
 	f.Flush()

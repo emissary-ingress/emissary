@@ -3,12 +3,12 @@ package entrypoint_test
 import (
 	"testing"
 
-	bootstrap "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/bootstrap/v3"
-	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
-	route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
-	http "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
-	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/resource/v3"
-	"github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
+	bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
+	v3listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	http "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	"github.com/envoyproxy/go-control-plane/pkg/resource/v3"
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/stretchr/testify/assert"
 )
 

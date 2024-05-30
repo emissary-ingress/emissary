@@ -46,12 +46,12 @@ RUN python3 -m venv /opt/venv
 # COPY only requirements.txt to avoid screwing up Docker caching and
 # causing a full reinstall of all dependencies when dependencies are
 # not changed.
-COPY requirements.txt .
+COPY docker/test-shadow/requirements.txt .
 # Install application dependencies
 RUN /opt/venv/bin/pip3 install -r requirements.txt
 
 # COPY the app code and configuration into place.
-COPY shadow.py shadowsvc.crt shadowsvc.key entrypoint.sh ./
+COPY docker/test-shadow/shadow.py docker/test-shadow/shadowsvc.crt docker/test-shadow/shadowsvc.key docker/test-shadow/entrypoint.sh ./
 
 # perform any final configuration steps.
 ARG VERSION="0.0.2"

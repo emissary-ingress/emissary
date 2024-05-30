@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
-	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
+	v3core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	v3endpoint "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 )
 
 // The Endpoints struct is how Endpoint data gets communicated to ambex. This is a bit simpler than

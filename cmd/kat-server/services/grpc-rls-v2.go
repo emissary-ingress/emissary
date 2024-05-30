@@ -14,8 +14,8 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	// first party (protobuf)
-	core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/api/v2/core"
-	pb "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/service/ratelimit/v2"
+	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
+	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2"
 
 	// first party
 	"github.com/datawire/dlib/dgroup"

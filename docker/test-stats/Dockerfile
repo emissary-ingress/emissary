@@ -38,12 +38,12 @@ WORKDIR /application
 # COPY only requirements.txt to avoid screwing up Docker caching and
 # causing a full reinstall of all dependencies when dependencies are
 # not changed.
-COPY requirements.txt .
+COPY docker/test-stats/requirements.txt .
 # Install application dependencies
 RUN pip3 install -r requirements.txt
 
 # COPY the app code and configuration into place
-COPY stats-test.py stats-web.py entrypoint.sh ./
+COPY docker/test-stats/stats-test.py docker/test-stats/stats-web.py docker/test-stats/entrypoint.sh ./
 
 # perform any final configuration steps.
 ENTRYPOINT /application/entrypoint.sh

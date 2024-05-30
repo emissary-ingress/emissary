@@ -1,10 +1,10 @@
 package gateway
 
 import (
-	v3cluster "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/cluster/v3"
-	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
-	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
-	v3route "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/route/v3"
+	v3cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+	v3endpoint "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
+	v3listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	v3route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
 

@@ -12,14 +12,14 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	// envoy api v3
-	v3core "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/core/v3"
-	v3endpoint "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/endpoint/v3"
-	v3listener "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/config/listener/v3"
-	v3httpman "github.com/emissary-ingress/emissary/v3/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	v3core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	v3endpoint "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
+	v3listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	v3httpman "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 
 	// envoy control plane
-	ecp_cache_types "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/cache/types"
-	ecp_wellknown "github.com/emissary-ingress/emissary/v3/pkg/envoy-control-plane/wellknown"
+	ecp_cache_types "github.com/envoyproxy/go-control-plane/pkg/cache/types"
+	ecp_wellknown "github.com/envoyproxy/go-control-plane/pkg/wellknown"
 
 	// first-party libraries
 	"github.com/datawire/dlib/dlog"
