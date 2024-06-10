@@ -4,6 +4,7 @@ Emissary-ingress
 <!-- [![Alt Text][image-url]][link-url] -->
 [![Version][badge-version-img]][badge-version-link]
 [![Docker Repository][badge-docker-img]][badge-docker-link]
+[![GHCR Repository][badge-ghcr-img]][badge-ghcr-link]
 [![Join Slack][badge-slack-img]][badge-slack-link]
 [![Core Infrastructure Initiative: Best Practices][badge-cii-img]][badge-cii-link]
 
@@ -11,6 +12,8 @@ Emissary-ingress
 [badge-version-link]: https://github.com/emissary-ingress/emissary/releases
 [badge-docker-img]: https://img.shields.io/docker/pulls/emissaryingress/emissary
 [badge-docker-link]: https://hub.docker.com/r/emissaryingress/emissary
+[badge-ghcr-img]: https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fipitio%2Fghcr-pulls%2Fmaster%2Findex.json&query=%24%5B%3F(%40.owner%3D%3D%22emissary-ingress%22%20%26%26%20%40.repo%3D%3D%22emissary%22%20%26%26%20%40.image%3D%3D%22emissary%22)%5D.pulls&logo=github&label=pulls
+[badge-ghcr-link]: https://github.com/emissary-ingress/emissary/pkgs/container/emissary
 [badge-slack-img]: https://img.shields.io/badge/slack-join-orange.svg
 [badge-slack-link]: https://communityinviter.com/apps/cloud-native/cncf
 [badge-cii-img]: https://bestpractices.coreinfrastructure.org/projects/1852/badge
