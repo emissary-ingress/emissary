@@ -32,28 +32,11 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
-  - version: 3.11.0
-    prevVersion: 3.10.0
-    date: 'TBD'
-    notes:
-      - title: Upgrade to Envoy 1.30.2
-        type: feature
-        body: >-
-          This upgrades $productName$ to be built on Envoy v1.30.2 which provides security, performance
-          and feature enhancements. You can read more about them here:
-          <a href="https://www.envoyproxy.io/docs/envoy/v1.30.2/version_history/version_history">Envoy Proxy 1.28.0 Release Notes</a>
-        docs: https://www.envoyproxy.io/docs/envoy/v1.30.2/version_history/version_history
-
-      - title: Update to golang 1.22.4
-        type: change
-        body: >-
-          Upgraded $productName$ to the latest release of Golang as part of our general dependency upgrade process.
-
-  - version: 3.10.0
+  - version: 3.10.0-dev
     prevVersion: 3.9.0
     date: 'TBD'
     notes: 
-      - title: Upgrade to Envoy 1.28.0
+      - title: Upgrade to Envoy 1.30.2
         type: feature
         body: >-
           This upgrades $productName$ to be built on Envoy v1.28.0 which provides security, performance 
@@ -69,7 +52,7 @@ items:
           installing it using the instructions found in the <a href="https://github.com/datawire/ambassador-agenty">Ambassador Agent Repo</a>.
         docs: https://github.com/datawire/ambassador-agent
       
-      - title: Update to golang 1.21.5
+      - title: Update to golang 1.22.4
         type: change
         body: >-
           Upgraded $productName$ to the latest release of Golang as part of our general dependency upgrade process.
