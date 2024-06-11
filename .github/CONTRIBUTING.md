@@ -811,7 +811,7 @@ curl localhost:8877/ambassador/v0/diag/?loglevel=debug
 ```
 
 Note: This affects diagd and Envoy, but NOT the AES `amb-sidecar`.
-See the AES `DEVELOPING.md` for how to do that.
+See the AES `CONTRIBUTING.md` for how to do that.
 
 ### Can I build from a docker container instead of on my local computer?
 

@@ -87,7 +87,7 @@ The best way to join the community is to join the [CNCF Slack](https://community
 
 Check out the [`DevDocumentation/`](DevDocumentation/) directory for
 information on the technicals of Emissary, most notably the
-[`DEVELOPING.md`](DevDocumentation/DEVELOPING.md) contributor's guide.
+[`CONTRIBUTING.md`](DevDocumentation/CONTRIBUTING.md) contributor's guide.
 
 If you're interested in contributing, here are some ways:
 * Write a blog post for [our blog](https://blog.getambassador.io)

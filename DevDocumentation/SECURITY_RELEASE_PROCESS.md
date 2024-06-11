@@ -111,7 +111,7 @@ These steps should be completed within the 1-7 days of Disclosure.
   [CVSS](https://www.first.org/cvss/specification-document) using the [CVSS
   Calculator](https://www.first.org/cvss/calculator/3.0). The Fix Lead makes the final call on the
   calculated CVSS; it is better to move quickly than to spend time making the CVSS perfect.
-- The Fix Team will work per the usual [Emissary Development Process](DEVELOPING.md), including
+- The Fix Team will work per the usual [Emissary Development Process](CONTRIBUTING.md), including
   fix branches, PRs, reviews, etc.
 - The Fix Team will notify the Fix Lead that work on the fix branch is complete once the fix is
   present in the relevant release branch(es) in the private security repo.
