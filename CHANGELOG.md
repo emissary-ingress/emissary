@@ -85,6 +85,19 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 
 ## RELEASE NOTES
 
+## [3.11.0] TBD
+[3.11.0]: https://github.com/emissary-ingress/emissary/compare/v3.10.0...v3.11.0
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Feature: This upgrades Emissary-ingress to be built on Envoy v1.30.2 which provides security,
+  performance and feature enhancements. You can read more about them here: <a
+  href="https://www.envoyproxy.io/docs/envoy/v1.30.2/version_history/version_history">Envoy Proxy
+  1.28.0 Release Notes</a>
+
+- Change: Upgraded Emissary-ingress to the latest release of Golang as part of our general
+  dependency upgrade process.
+
 ## [3.10.0] TBD
 [3.10.0]: https://github.com/emissary-ingress/emissary/compare/v3.9.0...v3.10.0
 
