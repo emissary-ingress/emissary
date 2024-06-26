@@ -11,8 +11,10 @@ export ENVOY_TEST_LABEL
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
 ENVOY_REPO ?= https://github.com/datawire/envoy.git
-# https://github.com/datawire/envoy/tree/rebase/release/v1.30.2
-ENVOY_COMMIT ?= d63d736572a67e69cd81713f79888b85901166f0
+
+# https://github.com/datawire/envoy/tree/rebase/release/v1.30.3
+ENVOY_COMMIT ?= 99c27c6cf5753adb0390d05992d6e5f248f85ab2
+
 ENVOY_COMPILATION_MODE ?= opt
 # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
 # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
