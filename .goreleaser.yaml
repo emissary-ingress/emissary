@@ -11,6 +11,8 @@ env:
   - TEST_AUTH_IMAGE={{ if index .Env "TEST_AUTH_IMAGE"  }}{{ .Env.TEST_AUTH_IMAGE }}{{ else }}test-auth{{ end }}
   - TEST_SHADOW_IMAGE={{ if index .Env "TEST_SHADOW_IMAGE"  }}{{ .Env.TEST_SHADOW_IMAGE }}{{ else }}test-shadow{{ end }}
   - TEST_STATS_IMAGE={{ if index .Env "TEST_STATS_IMAGE"  }}{{ .Env.TEST_STATS_IMAGE }}{{ else }}test-stats{{ end }}
+  - KAT_CLIENT_IMAGE={{ if index .Env "KAT_CLIENT_IMAGE"  }}{{ .Env.KAT_CLIENT_IMAGE }}{{ else }}kat-client{{ end }}
+  - KAT_SERVER_IMAGE={{ if index .Env "KAT_SERVER_IMAGE"  }}{{ .Env.KAT_SERVER_IMAGE }}{{ else }}kat-server{{ end }}
 
 before:
   hooks:
@@ -65,8 +67,8 @@ builds:
       - arm64
       - amd64
 
-# We build GUI and workload images for both arm64 and amd64, then build a
-# multiarch manifest from them.
+# We build a lot of images for both arm64 and amd64, then build a multiarch
+# manifest from them.
 dockers:
   ## Emissary
   - use: buildx
@@ -222,6 +224,66 @@ dockers:
     extra_files:
       - docker/test-stats
 
+  ## kat-client
+  - use: buildx
+    goos: linux
+    goarch: arm64
+    dockerfile: docker/kat-client/Dockerfile
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-arm64"
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--build-arg=LIBARCH=aarch64"
+    extra_files:
+      - docker/kat-client
+  - use: buildx
+    goos: linux
+    goarch: amd64
+    dockerfile: docker/kat-client/Dockerfile
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-amd64"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--build-arg=LIBARCH=x86_64"
+    extra_files:
+      - docker/kat-client
+
+  ## kat-server
+  - use: buildx
+    goos: linux
+    goarch: arm64
+    dockerfile: docker/kat-server/Dockerfile
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-arm64"
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--build-arg=LIBARCH=aarch64"
+    extra_files:
+      - docker/kat-server
+  - use: buildx
+    goos: linux
+    goarch: amd64
+    dockerfile: docker/kat-server/Dockerfile
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-amd64"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--build-arg=LIBARCH=x86_64"
+    extra_files:
+      - docker/kat-server
+
 docker_manifests:
   - name_template: "{{ .Env.REGISTRY }}/{{ .Env.EMISSARY_IMAGE }}:{{ .Version }}"
     image_templates:
@@ -328,6 +390,50 @@ docker_manifests:
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-arm64"
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-amd64"
       - "{{ .Env.REGISTRY }}/{{ .Env.TEST_STATS_IMAGE }}:latest-amd64"
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}"
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:{{ .Version }}-amd64"
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest"
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_CLIENT_IMAGE }}:latest-amd64"
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}"
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:{{ .Version }}-amd64"
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+
+  - name_template: "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest"
+    image_templates:
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-arm64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-amd64"
+      - "{{ .Env.REGISTRY }}/{{ .Env.KAT_SERVER_IMAGE }}:latest-amd64"
     create_flags:
       - --insecure
     push_flags:

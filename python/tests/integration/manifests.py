@@ -3,47 +3,27 @@ import os
 import subprocess
 from base64 import b64encode
 from typing import Dict, Optional
+import platform
 
+# from ambassador.VERSION import Version, Commit
 
 def _get_images() -> Dict[str, str]:
     ret: Dict[str, str] = {}
 
-    # Keep this list in-sync with the 'push-pytest-images' Makefile target.
-    image_names = [
-        "test-auth",
-        "test-shadow",
-        "test-stats",
-        "kat-client",
-        "kat-server",
-    ]
+    arch = platform.machine()
 
-    if image := os.environ.get("AMBASSADOR_DOCKER_IMAGE"):
-        ret["emissary"] = image
-    else:
-        image_names.append("emissary")
+    if arch == "x86_64":
+        arch = "amd64"
 
-    try:
-        subprocess.run(
-            ["make"] + [f"docker/{name}.docker.push.remote" for name in image_names],
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-        )
-    except subprocess.CalledProcessError as err:
-        raise Exception(f"{err.stdout}{err}") from err
-
-    for name in image_names:
-        with open(f"docker/{name}.docker.push.remote", "r") as fh:
-            # file contents:
-            #   line 1: image ID
-            #   line 2: tag 1
-            #   line 3: tag 2
-            #   ...
-            tag = fh.readlines()[1].strip()
-            ret[name] = tag
-
-    return ret
+    # These should really be overridable by environment variables or a file
+    # or something.
+    return {
+        "test-auth": f"ghcr.io/emissary-ingress/test-auth:latest-{arch}",
+        "test-shadow": f"ghcr.io/emissary-ingress/test-shadow:latest-{arch}",
+        "test-stats": f"ghcr.io/emissary-ingress/test-stats:latest-{arch}",
+        "kat-client": f"ghcr.io/emissary-ingress/kat-client:latest-{arch}",
+        "kat-server": f"ghcr.io/emissary-ingress/kat-server:latest-{arch}",
+    }
 
 
 _image_cache: Optional[Dict[str, str]] = None

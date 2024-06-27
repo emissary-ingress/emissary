@@ -5,6 +5,10 @@ include build-aux/init-configure-make-itself.mk
 include build-aux/prelude.mk # In Haskell, "Prelude" is what they call the stdlib builtins that get get imported by default before anything else
 include build-aux/tools.mk
 
+# TEST_CLUSTER overrides the name of the k3d test cluster. It defaults
+# to "emissary-test".
+TEST_CLUSTER ?= emissary-test
+
 # To support contributors building project on M1 Macs we will default container builds to run as linux/amd64 rather than
 # the host architecture. Setting the corresponding environment variable allows overriding it if want to work with other architectures.
 BUILD_ARCH ?= linux/amd64
@@ -26,6 +30,15 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
     $(error VERSION variable is invalid: It must not contain + characters, but is '$(VERSION)'),)
   export VERSION
 
+  ARCH := $(or $(ARCH),$(shell uname -m))
+  ifeq ($(ARCH),x86_64)
+	ARCH := amd64
+  endif
+  ifeq ($(ARCH),aarch64)
+	ARCH := arm64
+  endif
+  export ARCH
+
   # This is a bit hackish, at the moment, but let's run with it for now
   # and see how far we get.
   CHART_VERSION := $(VERSION)
@@ -38,6 +51,7 @@ ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
 
   $(info [make] VERSION=$(VERSION))
   $(info [make] CHART_VERSION=$(CHART_VERSION))
+  $(info [make] ARCH=$(ARCH))
 endif
 
 # If SOURCE_DATE_EPOCH isn't set, AND the tree isn't dirty, then set
