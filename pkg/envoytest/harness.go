@@ -15,6 +15,8 @@ import (
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dhttp"
+
+	"gopkg.in/yaml.v2"
 )
 
 func GetLoopbackAddr(ctx context.Context, port int) (string, error) {
@@ -43,25 +45,38 @@ func getOSSHome(ctx context.Context) (string, error) {
 }
 
 func getLocalEnvoyImage(ctx context.Context) (string, error) {
-	// TODO(lukeshu): Consider unifying GetLocalEnvoyImage() with
-	// agent_test.go:needsDockerBuilds().
 	if env := os.Getenv("ENVOY_DOCKER_TAG"); env != "" { // Same env-var as tests/utils.py:assert_valid_envoy_config()
 		return env, nil
 	}
 
+	// Use the Envoy image listed in .goreleaser.yaml
 	ossHome, err := getOSSHome(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	if err := dexec.CommandContext(ctx, "make", "-C", ossHome, "docker/base-envoy.docker.tag.local").Run(); err != nil {
-		return "", err
-	}
-	dat, err := os.ReadFile(filepath.Join(ossHome, "docker/base-envoy.docker"))
+	goreleaserConfigPath := filepath.Join(ossHome, ".goreleaser.yaml")
+	data, err := os.ReadFile(goreleaserConfigPath)
 	if err != nil {
 		return "", err
 	}
-	return strings.TrimSpace(string(dat)), nil
+
+	var config struct {
+		Env []string `yaml:"env"`
+	}
+
+	err = yaml.Unmarshal(data, &config)
+	if err != nil {
+		return "", err
+	}
+
+	for _, env := range config.Env {
+		if strings.HasPrefix(env, "ENVOY_IMAGE=") {
+			return strings.TrimPrefix(env, "ENVOY_IMAGE="), nil
+		}
+	}
+
+	return "", errors.New("no ENVOY_IMAGE found in .goreleaser.yaml")
 }
 
 var (
@@ -88,7 +103,7 @@ func LocalEnvoyCmd(ctx context.Context, dockerFlags, envoyFlags []string) (*dexe
 
 	cmdline := []string{"docker", "run", "--rm"}
 	cmdline = append(cmdline, dockerFlags...)
-	cmdline = append(cmdline, image, "/usr/local/bin/envoy-static-stripped")
+	cmdline = append(cmdline, image)
 	cmdline = append(cmdline, envoyFlags...)
 
 	cmd := dexec.CommandContext(ctx, cmdline[0], cmdline[1:]...)
