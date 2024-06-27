@@ -5,6 +5,7 @@ version: 1
 
 # Allow overriding the registry and image name with environment variables.
 env:
+  - ENVOY_IMAGE=envoyproxy/envoy:distroless-v1.30.1
   - REGISTRY={{ if index .Env "REGISTRY"  }}{{ .Env.REGISTRY }}{{ else }}ghcr.io/emissary-ingress{{ end }}
   - EMISSARY_IMAGE={{ if index .Env "EMISSARY_IMAGE"  }}{{ .Env.EMISSARY_IMAGE }}{{ else }}emissary{{ end }}
   - APIEXT_IMAGE={{ if index .Env "APIEXT_IMAGE"  }}{{ .Env.APIEXT_IMAGE }}{{ else }}apiext{{ end }}
@@ -85,6 +86,7 @@ dockers:
     build_flag_templates:
       - "--platform=linux/arm64"
       - "--build-arg=LIBARCH=aarch64"
+      - "--build-arg=ENVOY_IMAGE={{ .Env.ENVOY_IMAGE }}"
     extra_files:
       - python
   - use: buildx
@@ -101,6 +103,7 @@ dockers:
     build_flag_templates:
       - "--platform=linux/amd64"
       - "--build-arg=LIBARCH=x86_64"
+      - "--build-arg=ENVOY_IMAGE={{ .Env.ENVOY_IMAGE }}"
     extra_files:
       - python
 
