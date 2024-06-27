@@ -155,7 +155,7 @@ pytest: python-integration-test-environment
 	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS python/tests"
 .PHONY: pytest
 
-pytest-unit-tests:
+pytest-unit-tests: python-virtual-environment
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
 	set -e; { \
 		. $(OSS_HOME)/venv/bin/activate; \
