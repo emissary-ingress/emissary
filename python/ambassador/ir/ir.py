@@ -29,7 +29,7 @@ from .irauth import IRAuth
 from .irbasemapping import IRBaseMapping
 from .irbasemappinggroup import IRBaseMappingGroup
 from .ircluster import IRCluster
-# from .irerrorresponse import IRErrorResponse
+from .irerrorresponse import IRErrorResponse
 from .irfilter import IRFilter
 from .irgofilter import IRGOFilter
 from .irhost import HostFactory, IRHost

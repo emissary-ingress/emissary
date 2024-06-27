@@ -19,7 +19,7 @@ from typing import cast as typecast
 from ...ir.irauth import IRAuth
 from ...ir.irbuffer import IRBuffer
 from ...ir.ircluster import IRCluster
-# from ...ir.irerrorresponse import IRErrorResponse
+from ...ir.irerrorresponse import IRErrorResponse
 from ...ir.irfilter import IRFilter
 from ...ir.irgofilter import IRGOFilter
 from ...ir.irgzip import IRGzip

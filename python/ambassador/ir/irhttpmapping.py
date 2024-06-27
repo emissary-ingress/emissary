@@ -8,7 +8,7 @@ from ..config import Config
 from .irbasemapping import IRBaseMapping, normalize_service_name
 from .irbasemappinggroup import IRBaseMappingGroup
 from .ircors import IRCORS
-# from .irerrorresponse import IRErrorResponse
+from .irerrorresponse import IRErrorResponse
 from .irhttpmappinggroup import IRHTTPMappingGroup
 from .irretrypolicy import IRRetryPolicy
 from .irutils import selector_matches
