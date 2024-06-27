@@ -73,5 +73,9 @@ spec:
   externalIPs:
     {{- toYaml .Values.service.externalIPs | nindent 4 }}
   {{- end }}
+  {{- if .Values.service.ipFamilies }}
+  ipFamilies:
+    {{- toYaml .Values.service.ipFamilies | nindent 4 }}
+  {{- end }}
   {{- end }}
   {{- end }}

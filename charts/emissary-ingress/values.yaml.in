@@ -367,6 +367,7 @@ resolvers: # +doc-gen:break
 # separate ambassador_ids, and set `module: {}` in your Helm values to prevent
 # creation of a Module object.
 module:
+  enabled: true
   diagnostics:
     enabled: false
     allow_non_local: true
