@@ -46,6 +46,6 @@ A few sentences describing what testing you've done, e.g., manual tests, automat
   - We should lean on the bulk of code being covered by unit tests, but...
   - ... an end-to-end test should cover the integration points
 
-- [ ] **I updated `DEVELOPING.md` with any any special dev tricks I had to use to work on this code efficiently.**
+- [ ] **I updated `CONTRIBUTING.md` with any special dev tricks I had to use to work on this code efficiently.**
 
 - [ ] **The changes in this PR have been reviewed for security concerns and adherence to security best practices.**
