@@ -340,10 +340,6 @@ class IRCluster(IRResource):
         self._hostname = hostname
         self._namespace = namespace
         self._port = port
-        self._is_sidecar = False
-
-        if self._hostname == "127.0.0.1" and self._port == 8500:
-            self._is_sidecar = True
 
         super().__init__(
             ir=ir,
@@ -383,9 +379,6 @@ class IRCluster(IRResource):
         if "health_checks" in self:
             self.health_checks = IRHealthChecks(ir, aconf, self.get("health_checks", None))
         return True
-
-    def is_edge_stack_sidecar(self) -> bool:
-        return self.is_active() and self._is_sidecar
 
     def endpoints_required(self, load_balancer) -> bool:
         required = False

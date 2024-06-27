@@ -1042,7 +1042,7 @@ def show_overview(reqid=None):
     ddict = collect_errors_and_notices(request, reqid, "overview", diag)
 
     banner_content = None
-    if app.banner_endpoint and app.ir and app.ir.edge_stack_allowed:
+    if app.banner_endpoint and app.ir:
         try:
             response = requests.get(app.banner_endpoint)
             if response.status_code == 200:
@@ -1250,7 +1250,7 @@ def get_prometheus_metrics(*args, **kwargs):
 
     # Extra metrics endpoint
     extra_metrics_content = ""
-    if app.metrics_endpoint and app.ir and app.ir.edge_stack_allowed:
+    if app.metrics_endpoint and app.ir:
         try:
             response = requests.get(app.metrics_endpoint)
             if response.status_code == 200:
@@ -2356,8 +2356,8 @@ def main(
     config_path=None,
     ambex_pid=0,
     kick=None,
-    banner_endpoint="http://127.0.0.1:8500/banner",
-    metrics_endpoint="http://127.0.0.1:8500/metrics",
+    banner_endpoint=None, # "http://127.0.0.1:8500/banner" was an Edge Stack thing
+    metrics_endpoint=None, # "http://127.0.0.1:8500/metrics" was an Edge Stack thing
     k8s=False,
     no_checks=False,
     no_envoy=False,

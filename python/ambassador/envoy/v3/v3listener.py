@@ -906,15 +906,15 @@ class V3Listener:
                             extra_info = " (force Route for ACME challenge)"
                             action = "Route"
                             found_acme = True
-                        elif (
-                            self.config.ir.edge_stack_allowed
-                            and (route_precedence == -1000000)
-                            and (
-                                rv.route["match"].get("safe_regex", {}).get("regex", None) == "^/$"
-                            )
-                        ):
-                            extra_info = " (force Route for fallback Mapping)"
-                            action = "Route"
+                        # elif (
+                        #     self.config.ir.edge_stack_allowed
+                        #     and (route_precedence == -1000000)
+                        #     and (
+                        #         rv.route["match"].get("safe_regex", {}).get("regex", None) == "^/$"
+                        #     )
+                        # ):
+                        #     extra_info = " (force Route for fallback Mapping)"
+                        #     action = "Route"
 
                         if action != "Reject":
                             # Worth noting here that "Route" really means "do what the V3Route really
@@ -936,32 +936,32 @@ class V3Listener:
                                     f"          route: reject matcher={matcher} action={action} {extra_info}"
                                 )
 
-            # If we're on Edge Stack and we don't already have an ACME route, add one.
-            if self.config.ir.edge_stack_allowed and not found_acme:
-                # This route is needed to trigger an ExtAuthz request for the AuthService.
-                # The auth service grabs the challenge and does the right thing.
-                # Rather than try to route to some existing cluster we can just return a
-                # direct response. What we return doesn't really matter but
-                # to match existing Edge Stack behavior we return a 404 response.
+            # # If we're on Edge Stack and we don't already have an ACME route, add one.
+            # if self.config.ir.edge_stack_allowed and not found_acme:
+            #     # This route is needed to trigger an ExtAuthz request for the AuthService.
+            #     # The auth service grabs the challenge and does the right thing.
+            #     # Rather than try to route to some existing cluster we can just return a
+            #     # direct response. What we return doesn't really matter but
+            #     # to match existing Edge Stack behavior we return a 404 response.
 
-                self.config.ir.logger.debug("      punching a hole for ACME")
+            #     self.config.ir.logger.debug("      punching a hole for ACME")
 
-                # we need to make sure the acme route is added to every virtual host domain
-                # so we must insert the route into each unique domains list of routes
-                for hostname in chain.hosts:
-                    # Make sure to include _host_constraints in here for now so it can be
-                    # applied to the correct vhost during future proccessing
-                    chain.routes[hostname].insert(
-                        0,
-                        {
-                            "_host_constraints": set(),
-                            "match": {
-                                "case_sensitive": True,
-                                "prefix": "/.well-known/acme-challenge/",
-                            },
-                            "direct_response": {"status": 404},
-                        },
-                    )
+            #     # we need to make sure the acme route is added to every virtual host domain
+            #     # so we must insert the route into each unique domains list of routes
+            #     for hostname in chain.hosts:
+            #         # Make sure to include _host_constraints in here for now so it can be
+            #         # applied to the correct vhost during future proccessing
+            #         chain.routes[hostname].insert(
+            #             0,
+            #             {
+            #                 "_host_constraints": set(),
+            #                 "match": {
+            #                     "case_sensitive": True,
+            #                     "prefix": "/.well-known/acme-challenge/",
+            #                 },
+            #                 "direct_response": {"status": 404},
+            #             },
+            #         )
 
             if self._log_debug:
                 for hostname in chain.hosts:

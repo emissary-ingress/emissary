@@ -1,7 +1,7 @@
 from typing import Generator, Tuple, Union
 
 from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
-from kat.harness import EDGE_STACK, Query
+from kat.harness import Query
 from tests.integration.manifests import namespace_manifest
 from tests.selfsigned import TLSCerts
 
@@ -17,12 +17,8 @@ from tests.selfsigned import TLSCerts
 
 class RedirectTests(AmbassadorTest):
     target: ServiceType
-    edge_stack_cleartext_host = False
 
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
-
         self.xfail = "FIXME: IHA"
 
         self.target = HTTP()
@@ -181,9 +177,6 @@ class RedirectTestsInvalidSecret(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
-
         self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
@@ -242,12 +235,8 @@ service: {self.target.path.fqdn}
 class XFPRedirect(AmbassadorTest):
     parent: AmbassadorTest
     target: ServiceType
-    edge_stack_cleartext_host = False
 
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
-
         self.target = HTTP()
         self.add_default_http_listener = False
         self.add_default_https_listener = False

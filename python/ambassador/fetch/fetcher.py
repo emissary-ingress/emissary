@@ -101,44 +101,12 @@ class ResourceFetcher:
             # doesn't move around if you change the configuration base.
             init_dir = "/ambassador/init-config"
 
-            automatic_manifests = []
-            edge_stack_mappings_path = os.path.join(init_dir, "edge-stack-mappings.yaml")
-            if parse_bool(os.environ.get("EDGE_STACK", "false")) and not os.path.exists(
-                edge_stack_mappings_path
-            ):
-                # HACK
-                # If we're running in Edge Stack via environment variable and the magic "edge-stack-mappings.yaml" file doesn't
-                # exist in its well known location, then go ahead and add it. This should _not_ be necessary under
-                # normal circumstances where Edge Stack is running in its container. We do this so that tests can
-                # run outside of a container with this environment variable set.
-                automatic_manifests.append(
-                    """
----
-apiVersion: getambassador.io/v3alpha1
-kind: Mapping
-metadata:
-  name: ambassador-edge-stack
-  namespace: _automatic_
-  labels:
-    product: aes
-    ambassador_diag_class: private
-spec:
-  hostname: "*"
-  ambassador_id: [ "_automatic_" ]
-  prefix: /.ambassador/
-  rewrite: ""
-  service: "127.0.0.1:8500"
-  precedence: 1000000
-"""
-                )
-
-            if os.path.isdir(init_dir) or len(automatic_manifests) > 0:
+            if os.path.isdir(init_dir):
                 self.load_from_filesystem(
                     init_dir,
                     k8s=True,
                     recurse=True,
-                    finalize=False,
-                    automatic_manifests=automatic_manifests,
+                    finalize=False
                 )
 
     @property

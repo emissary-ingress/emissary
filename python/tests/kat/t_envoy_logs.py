@@ -4,7 +4,6 @@ from typing import Generator, Tuple, Union
 import pytest
 
 from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
-from kat.harness import EDGE_STACK
 from kat.utils import ShellCommand
 
 
@@ -13,9 +12,6 @@ class EnvoyLogTest(AmbassadorTest):
     log_path: str
 
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
-
         self.target = HTTP()
         self.log_path = "/tmp/ambassador/ambassador.log"
         self.log_format = 'MY_REQUEST %RESPONSE_CODE% "%REQ(:AUTHORITY)%" "%REQ(USER-AGENT)%" "%REQ(X-REQUEST-ID)%" "%UPSTREAM_HOST%"'

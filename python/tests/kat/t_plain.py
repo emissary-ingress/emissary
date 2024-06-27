@@ -1,7 +1,7 @@
 from typing import Generator, Tuple, Union
 
 from abstract_tests import AmbassadorTest, MappingTest, Node
-from kat.harness import EDGE_STACK, Query, variants
+from kat.harness import Query, variants
 from tests.integration.manifests import namespace_manifest
 
 # Plain is the place that all the MappingTests get pulled in.
@@ -67,49 +67,6 @@ spec:
     targetPort: 8443
 """
         )
-
-        if EDGE_STACK:
-            m += """
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: cleartext-host-{self.path.k8s}
-  namespace: plain-namespace
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: getambassador.io/v3alpha1
-      kind: Host
-      name: cleartext-host-{self.path.k8s}
-      ambassador_id: [ "plain" ]
-      hostname: "*"
-      mappingSelector:
-        matchLabels:
-          hostname: {self.path.k8s}
-      acmeProvider:
-        authority: none
-      requestPolicy:
-        insecure:
-          action: Route
-          # Since this is cleartext already, additionalPort: 8080 is technically
-          # an error. Leave it in to make sure it's a harmless no-op error.
-          additionalPort: 8080
-  labels:
-    scope: AmbassadorTest
-spec:
-  selector:
-    backend: plain-simplemapping-http-all-http
-  ports:
-  - name: http
-    protocol: TCP
-    port: 80
-    targetPort: 8080
-  - name: https
-    protocol: TCP
-    port: 443
-    targetPort: 8443
-"""
 
         return m + super().manifests()
 

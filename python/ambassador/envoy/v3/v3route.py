@@ -315,21 +315,22 @@ class V3Route(Cacheable):
         elif envoy_route == "path":
             match["path"] = route_prefix
         else:
-            # Cheat.
-            if config.ir.edge_stack_allowed and (self.get("_precedence", 0) == -1000000):
-                # Force the safe_regex engine.
-                match.update(
-                    {
-                        "safe_regex": {
-                            "google_re2": {
-                                "max_program_size": 200,
-                            },
-                            "regex": route_prefix,
-                        }
-                    }
-                )
-            else:
-                match.update(regex_matcher(config, route_prefix))
+            # # Cheat.
+            # if config.ir.edge_stack_allowed and (self.get("_precedence", 0) == -1000000):
+            #     # Force the safe_regex engine.
+            #     match.update(
+            #         {
+            #             "safe_regex": {
+            #                 "google_re2": {
+            #                     "max_program_size": 200,
+            #                 },
+            #                 "regex": route_prefix,
+            #             }
+            #         }
+            #     )
+            # else:
+            #     match.update(regex_matcher(config, route_prefix))
+            match.update(regex_matcher(config, route_prefix))
 
         headers = self.generate_headers(config, group)
         if len(headers) > 0:

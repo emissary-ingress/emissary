@@ -25,7 +25,7 @@ type FakeFeatures struct {
 	Invalid map[string]int `json:"invalid_counts"`
 }
 
-// The Fake struct is a test harness for edgestack. It spins up the key portions of the edgestack
+// The Fake struct is a test harness for Emissary. It spins up the key portions of the Emissary
 // control plane that contain the bulk of its business logic, but instead of requiring tests to feed
 // the business logic inputs via a real kubernetes or real consul deployment, inputs can be fed
 // directly into the business logic via the harness APIs. This is not only several orders of
@@ -363,8 +363,8 @@ func TestFakeHelloConsul(t *testing.T) {
 	// snapshots considered as opposed to just the skipping straight to the ones that are ready to
 	// be processed.
 	//
-	// In this case the snapshot is considered incomplete until we supply enough consul endpoint
-	// data for edgestack to construct an envoy config that won't send requests to our hello mapping
+	// In this case the snapshot is considered incomplete until we supply enough Consul endpoint
+	// data for Emissary to construct an Envoy config that won't send requests to our hello mapping
 	// into a black hole.
 	entry, err := f.GetSnapshotEntry(func(entry entrypoint.SnapshotEntry) bool {
 		return entry.Disposition == entrypoint.SnapshotIncomplete && len(entry.Snapshot.Kubernetes.Mappings) > 0

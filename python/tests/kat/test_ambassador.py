@@ -46,7 +46,7 @@ import t_tcpmapping
 import t_tls
 import t_tracing
 from abstract_tests import AmbassadorTest
-from kat.harness import EDGE_STACK, Runner
+from kat.harness import Runner
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.

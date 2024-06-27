@@ -80,7 +80,7 @@ spec:
   securityModel: XFP
   hostBinding:
     namespace:
-      from: ALL  
+      from: ALL
   """
 
 
@@ -100,7 +100,7 @@ spec:
   securityModel: XFP
   hostBinding:
     namespace:
-      from: ALL  
+      from: ALL
   """
 
 
@@ -120,7 +120,7 @@ spec:
   securityModel: XFP
   hostBinding:
     namespace:
-      from: ALL  
+      from: ALL
   """
 
 
@@ -360,20 +360,3 @@ def create_crl_pem_b64(issuerCert, issuerKey, revokedCerts):
     return b64encode(
         (crypto.dump_crl(crypto.FILETYPE_PEM, crl).decode("utf-8") + "\n").encode("utf-8")
     ).decode("utf-8")
-
-
-def skip_edgestack():
-    isEdgeStack = parse_bool(os.environ.get("EDGE_STACK", "false"))
-
-    return pytest.mark.skipif(
-        isEdgeStack,
-        reason=f"Skipping because EdgeStack behaves differently and tested separately",
-    )
-
-
-def edgestack():
-    isEdgeStack = parse_bool(os.environ.get("EDGE_STACK", "false"))
-    return pytest.mark.skipif(
-        not isEdgeStack,
-        reason=f"Skipping because this is an EdgeStack specific case and is tested separately",
-    )

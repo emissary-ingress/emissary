@@ -222,20 +222,6 @@ func IsAmbassadorSingleNamespace() bool {
 	return envbool("AMBASSADOR_SINGLE_NAMESPACE")
 }
 
-func IsEdgeStack() (bool, error) {
-	if envbool("EDGE_STACK") {
-		return true, nil
-	}
-	_, err := os.Stat("/ambassador/.edge_stack")
-	if err == nil {
-		return true, nil
-	} else if os.IsNotExist(err) {
-		return false, nil
-	} else {
-		return false, err
-	}
-}
-
 func GetLicenseSecretName() string {
 	return env("AMBASSADOR_AES_SECRET_NAME", "ambassador-edge-stack")
 }

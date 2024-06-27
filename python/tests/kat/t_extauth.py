@@ -2,7 +2,7 @@ import json
 from typing import Generator, Literal, Tuple, Union, cast
 
 from abstract_tests import AGRPC, AHTTP, HTTP, AmbassadorTest, Node, ServiceType, WebsocketEcho
-from kat.harness import EDGE_STACK, Query
+from kat.harness import Query
 from tests.selfsigned import TLSCerts
 
 
@@ -11,8 +11,6 @@ class AuthenticationGRPCTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = AGRPC(name="auth")
 
@@ -230,8 +228,6 @@ class AuthenticationHTTPPartialBufferTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = HTTP(name="auth")
 
@@ -355,8 +351,6 @@ class AuthenticationHTTPBufferedTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = HTTP(name="auth")
 
@@ -550,8 +544,6 @@ class AuthenticationHTTPFailureModeAllowTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = HTTP(name="auth")
 
@@ -641,8 +633,6 @@ class AuthenticationTestV1(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth1 = AHTTP(name="auth1")
         self.auth2 = AHTTP(name="auth2")
@@ -926,8 +916,6 @@ class AuthenticationTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
 
@@ -1113,8 +1101,6 @@ class AuthenticationWebsocketTest(AmbassadorTest):
     backend: ServiceType
 
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.auth = HTTP(name="auth")
         self.backend = WebsocketEcho()
 
@@ -1350,8 +1336,6 @@ class AuthenticationDisabledOnRedirectTest(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
         self.add_default_http_listener = False

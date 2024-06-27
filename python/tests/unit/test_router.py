@@ -8,20 +8,16 @@ from tests.utils import (
 )
 
 
-def _test_router(yaml, expectations={}, edgestack=False):
+def _test_router(yaml, expectations={}):
     econf = econf_compile(yaml)
 
     def check(typed_config):
         http_filters = typed_config["http_filters"]
 
-        if edgestack:
-            expected_filter_names = [
-                "envoy.filters.http.cors",
-                "envoy.filters.http.golang",
-                "envoy.filters.http.router",
-            ]
-        else:
-            expected_filter_names = ["envoy.filters.http.cors", "envoy.filters.http.router"]
+        expected_filter_names = [
+            "envoy.filters.http.cors",
+            "envoy.filters.http.router"
+        ]
 
         assert [f["name"] for f in http_filters] == expected_filter_names
 
@@ -47,29 +43,29 @@ def _test_router(yaml, expectations={}, edgestack=False):
 
 
 @pytest.mark.compilertest
-def test_suppress_envoy_headers(edgestack):
+def test_suppress_envoy_headers():
     # If we do not set the config, it should not appear.
     yaml = module_and_mapping_manifests(None, [])
-    _test_router(yaml, expectations={}, edgestack=edgestack)
+    _test_router(yaml, expectations={})
 
     # If we set the config to false, it should not appear.
     yaml = module_and_mapping_manifests(["suppress_envoy_headers: false"], [])
-    _test_router(yaml, expectations={}, edgestack=edgestack)
+    _test_router(yaml, expectations={})
 
     # If we set the config to true, it should appear.
     yaml = module_and_mapping_manifests(["suppress_envoy_headers: true"], [])
-    _test_router(yaml, expectations={"suppress_envoy_headers": True}, edgestack=edgestack)
+    _test_router(yaml, expectations={"suppress_envoy_headers": True})
 
 
 @pytest.mark.compilertest
-def test_tracing_service(edgestack):
+def test_tracing_service():
     # If we have a tracing service, we should see start_child_span
     yaml = module_and_mapping_manifests(None, []) + "\n" + zipkin_tracing_service_manifest()
-    _test_router(yaml, expectations={"start_child_span": True}, edgestack=edgestack)
+    _test_router(yaml, expectations={"start_child_span": True})
 
 
 @pytest.mark.compilertest
-def test_tracing_service_and_suppress_envoy_headers(edgestack):
+def test_tracing_service_and_suppress_envoy_headers():
     # If we set both suppress_envoy_headers and include a TracingService,
     # we should see both suppress_envoy_headers and the default start_child_span
     # value (True).
@@ -81,5 +77,4 @@ def test_tracing_service_and_suppress_envoy_headers(edgestack):
     _test_router(
         yaml,
         expectations={"start_child_span": True, "suppress_envoy_headers": True},
-        edgestack=edgestack,
     )

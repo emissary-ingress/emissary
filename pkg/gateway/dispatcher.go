@@ -39,7 +39,7 @@ import (
 // only passed a single resource and can therefore only use information from that one
 // resource. Changes to any other resource cannot impact the result of that transform.
 //
-// Not all the edgestack resources are defined as conveniently, so the Dispatcher design is expected
+// Not all the Emissary resources are defined as conveniently, so the Dispatcher design is expected
 // to be extended in two ways to handle resources with more complex interdependencies:
 //
 //  1. Grouping -- This feature would cover resources that need to be processed as a group,

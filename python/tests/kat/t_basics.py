@@ -4,7 +4,7 @@ from typing import Generator, Tuple, Union
 import yaml
 
 from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
-from kat.harness import EDGE_STACK, Query
+from kat.harness import Query
 from tests.integration.manifests import namespace_manifest
 
 
@@ -14,8 +14,6 @@ class Empty(AmbassadorTest):
     extra_ports = [8877]
 
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "XFailing for now"
         # Specify a non-default readiness port for test coverage purposes.
         # All other tests will use the default 8006 port.
         self.manifest_envs += """
