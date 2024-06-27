@@ -321,6 +321,7 @@ spec:
       initContainers:
       - args:
         - |
+          set -eu
           deployment_name="emissary-apiext"
           deployment_namespace="emissary-system"
           while true; do
@@ -334,7 +335,7 @@ spec:
                 while true; do
                 desired_replicas=$(kubectl get deployment $deployment_name -n $deployment_namespace -o jsonpath='{.spec.replicas}')
                 current_replicas=$(kubectl get deployment $deployment_name -n $deployment_namespace -o jsonpath='{.status.replicas}')
-                if [[ $current_replicas != $desired_replicas ]]; then
+                if [ $current_replicas != $desired_replicas ]; then
                   echo "$deployment_name.$deployment_namespace is in the process of restarting. Have: $current_replicas, want $desired_replicas"
                   sleep 3
                 else
@@ -354,7 +355,7 @@ spec:
         command:
         - /bin/sh
         - -c
-        image: istio/kubectl:1.5.10
+        image: public.ecr.aws/bitnami/kubectl:1.30.0
         imagePullPolicy: IfNotPresent
         name: wait-for-apiext
         securityContext:
