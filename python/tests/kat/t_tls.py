@@ -3,7 +3,7 @@ from base64 import b64decode
 from typing import Generator, List, Tuple, Union
 
 from abstract_tests import HTTP, AmbassadorTest, Node, ServiceType
-from kat.harness import EDGE_STACK, Query
+from kat.harness import Query
 from tests.integration.manifests import namespace_manifest
 from tests.selfsigned import TLSCerts
 from tests.utils import create_crl_pem_b64
@@ -21,9 +21,6 @@ class TLSContextsTest(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
-
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
 
         self.xfail = "FIXME: IHA"
 
@@ -693,9 +690,6 @@ class TLSContextTest(AmbassadorTest):
         self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
-        if EDGE_STACK:
-            self.xfail = "XFailing for now"
-
     def manifests(self) -> str:
         return (
             namespace_manifest("secret-namespace")
@@ -1344,9 +1338,6 @@ class TLSContextProtocolMaxVersion(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
-
         self.xfail = "FIXME: IHA"
 
     def manifests(self) -> str:
@@ -1764,9 +1755,6 @@ class TLSContextIstioSecretTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-        if EDGE_STACK:
-            self.xfail = "XFailing for now"
-
     def manifests(self) -> str:
         return (
             namespace_manifest("secret-namespace")
@@ -1824,9 +1812,6 @@ secret_namespacing: False
 class TLSCoalescing(AmbassadorTest):
     def init(self):
         self.target = HTTP()
-
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
 
         self.xfail = "FIXME: IHA"
 
@@ -1897,7 +1882,6 @@ class TLSInheritFromModule(AmbassadorTest):
 
     def init(self):
         self.xfail = "FIXME: IHA"
-        self.edge_stack_cleartext_host = False
         self.target = HTTP()
 
     def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:

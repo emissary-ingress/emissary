@@ -3,8 +3,9 @@
 ########################################
 
 ######## Envoy
+ARG ENVOY_IMAGE=you-must-set-build-var-ENVOY-IMAGE
 
-FROM envoyproxy/envoy:distroless-v1.30.1 as envoy-factory
+FROM ${ENVOY_IMAGE} as envoy-factory
 # Repeat after every FROM line, sigh.
 ARG TARGETARCH
 ARG LIBARCH

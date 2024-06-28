@@ -54,7 +54,7 @@ import sys
 import sysconfig
 from typing import List, NamedTuple, Optional, Set
 
-DEV_PY_FILES = r'|'.join(['setup.py', 'conftest.py', '/tests/', '/kat/', 'test_.*.py',])
+DEV_PY_FILES = r'|'.join(['setup.py', '/tests/', '/kat/', 'test_.*.py',])
 
 def parse_members(filepath: str) -> Set[str]:
     """parse_members parses a .py file and returns a set of all of the

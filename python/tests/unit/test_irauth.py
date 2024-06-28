@@ -2,7 +2,6 @@ import logging
 
 import pytest
 
-from kat.harness import EDGE_STACK
 from tests.utils import econf_foreach_cluster
 
 logging.basicConfig(
@@ -148,9 +147,6 @@ spec:
 
 @pytest.mark.compilertest
 def test_irauth_grpcservice_version_default():
-    if EDGE_STACK:
-        pytest.xfail("XFailing for now, custom AuthServices not supported in Edge Stack")
-
     yaml = """
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -210,9 +206,6 @@ def test_redirects_disables_ext_authz():
     for https_redirects and host_redirects. This is to ensure that the
     redirect occurs before making any calls to the ext_authz service
     """
-
-    if EDGE_STACK:
-        pytest.xfail("XFailing for now, custom AuthServices not supported in Edge Stack")
 
     yaml = """
 ---

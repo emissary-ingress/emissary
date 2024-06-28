@@ -6,10 +6,6 @@ BUILDER_NAME ?= $(LCNAME)
 include $(OSS_HOME)/build-aux/prelude.mk
 include $(OSS_HOME)/build-aux/colors.mk
 
-docker.tag.local = $(BUILDER_NAME).local/$(*F)
-docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTRY)/$(*F):$(patsubst v%,%,$(VERSION))
-include $(OSS_HOME)/build-aux/docker.mk
-
 include $(OSS_HOME)/build-aux/teleproxy.mk
 
 MODULES :=
@@ -113,77 +109,14 @@ python/ambassador.version: $(tools/write-ifchanged) FORCE
 	} | $(tools/write-ifchanged) $@
 clean: python/ambassador.version.rm
 
-# Give Make a hint about which pattern rules to apply.  Honestly, I'm
-# not sure why Make isn't figuring it out on its own, but it isn't.
-_images = base-envoy $(LCNAME) kat-client kat-server
-$(foreach i,$(_images), docker/$i.docker.tag.local  ): docker/%.docker.tag.local : docker/%.docker
-$(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remote: docker/%.docker
-
-docker/.base-envoy.docker.stamp: FORCE
-	@set -e; { \
-	  if docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@ 2>/dev/null; then \
-	    printf "${CYN}==> ${GRN}Base Envoy image is already pulled${END}\n"; \
-	  else \
-	    printf "${CYN}==> ${GRN}Pulling base Envoy image${END}\n"; \
-	    TIMEFORMAT="     (docker pull took %1R seconds)"; \
-	    time docker pull $(ENVOY_DOCKER_TAG); \
-	    unset TIMEFORMAT; \
-	  fi; \
-	  echo $(ENVOY_DOCKER_TAG) >$@; \
-	}
-clean: docker/base-envoy.docker.clean
-clobber: docker/base-envoy.docker.clean
-
-docker/.$(LCNAME).docker.stamp: %/.$(LCNAME).docker.stamp: %/base.docker.tag.local %/base-envoy.docker.tag.local %/base-pip.docker.tag.local python/ambassador.version $(BUILDER_HOME)/Dockerfile $(OSS_HOME)/build-aux/py-version.txt $(tools/dsum) vendor FORCE
-	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
-	@printf "    ${BLU}base=$$(sed -n 2p $*/base.docker.tag.local)${END}\n"
-	@printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"
-	@printf "    ${BLU}builderbase=$$(sed -n 2p $*/base-pip.docker.tag.local)${END}\n"
-	{ $(tools/dsum) '$(LCNAME) build' 3s \
-	  docker build -f ${BUILDER_HOME}/Dockerfile . \
-			--platform="$(BUILD_ARCH)" \
-	    --build-arg=base="$$(sed -n 2p $*/base.docker.tag.local)" \
-	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	    --build-arg=builderbase="$$(sed -n 2p $*/base-pip.docker.tag.local)" \
-	    --build-arg=py_version="$$(cat build-aux/py-version.txt)" \
-	    --iidfile=$@; }
-clean: docker/$(LCNAME).docker.clean
-
-REPO=$(BUILDER_NAME)
-
-_inspect-images = base base-envoy base-pip base-python $(LCNAME) kat-client kat-server test-auth test-shadow test-stats
-inspect-image-cache: $(foreach i,$(_inspect-images), docker/$i.docker.inspect.image.cache)
-.PHONY: inspect-image-cache
-
-images-build: docker/$(LCNAME).docker.tag.local
-images-build: docker/kat-client.docker.tag.local
-images-build: docker/kat-server.docker.tag.local
-.PHONY: images-build
-
-images: FORCE inspect-image-cache images-build
-.PHONY: images
-
 REGISTRY_ERR  = $(RED)
 REGISTRY_ERR += $(NL)ERROR: please set the DEV_REGISTRY make/env variable to the docker registry
 REGISTRY_ERR += $(NL)       you would like to use for development
 REGISTRY_ERR += $(END)
 
-images-push: docker/$(LCNAME).docker.push.remote
-images-push: docker/kat-client.docker.push.remote
-images-push: docker/kat-server.docker.push.remote
-.PHONY: images-push
-
-push: FORCE inspect-image-cache images-push
-.PHONY: push
-
-# `make push-dev` is meant to be run by CI.
-push-dev: docker/$(LCNAME).docker.tag.local
-	@[[ '$(VERSION)' == *-* ]] || (echo "$(RED)$@: VERSION=$(VERSION) is not a pre-release version$(END)" >&2; exit 1)
-
-	@printf '$(CYN)==> $(GRN)pushing $(BLU)%s$(GRN) as $(BLU)$(GRN)...$(END)\n' '$(LCNAME)' '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
-	docker tag $$(cat docker/$(LCNAME).docker) '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
-	docker push '$(DEV_REGISTRY)/$(LCNAME):$(patsubst v%,%,$(VERSION))'
-.PHONY: push-dev
+images:
+	goreleaser release --snapshot --clean
+.PHONY: images
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
 export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)
@@ -201,7 +134,6 @@ python-integration-test-environment: push-pytest-images
 python-integration-test-environment: $(tools/kubestatus)
 python-integration-test-environment: $(tools/kubectl)
 python-integration-test-environment: python-virtual-environment
-python-integration-test-environment: docker/base-envoy.docker.tag.local
 python-integration-test-environment: proxy
 .PHONY: python-integration-test-environment
 
@@ -213,7 +145,7 @@ pytest-run-tests:
 	set -e; { \
 	  . $(OSS_HOME)/venv/bin/activate; \
 	  export SOURCE_ROOT=$(CURDIR); \
-	  export ENVOY_DOCKER_TAG=$$(cat docker/base-envoy.docker); \
+	  export ENVOY_DOCKER_TAG=ghcr.io/emissary-ingress/emissary:latest-$(ARCH)
 	  export KUBESTATUS_PATH=$(CURDIR)/tools/bin/kubestatus; \
 	  pytest --tb=short -rP $(PYTEST_ARGS); \
 	}
@@ -223,12 +155,12 @@ pytest: python-integration-test-environment
 	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS python/tests"
 .PHONY: pytest
 
-pytest-unit-tests:
+pytest-unit-tests: python-virtual-environment
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
 	set -e; { \
 		. $(OSS_HOME)/venv/bin/activate; \
 		export SOURCE_ROOT=$(CURDIR); \
-		pytest --tb=short -rP $(PYTEST_ARGS) python/tests/unit; \
+		pytest --tb=short $(PYTEST_ARGS) python/tests/unit; \
 	}
 .PHONY: pytest-unit-tests
 
@@ -270,7 +202,6 @@ gotest: $(OSS_HOME)/venv $(tools/kubectl)
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
 	{ . $(OSS_HOME)/venv/bin/activate && \
 	  export PATH=$(tools.bindir):$${PATH} && \
-	  export EDGE_STACK=$(GOTEST_AES_ENABLED) && \
 	  go test $(GOTEST_ARGS) $(GOTEST_PKGS); }
 .PHONY: gotest
 

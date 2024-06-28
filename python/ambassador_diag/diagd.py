@@ -34,6 +34,8 @@ import uuid
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union
 from typing import cast as typecast
 
+from importlib import resources as importlib_resources
+
 import click
 import gunicorn.app.base
 import jsonpatch
@@ -42,7 +44,6 @@ from expiringdict import ExpiringDict
 from flask import Flask, Response
 from flask import json as flask_json
 from flask import jsonify, render_template, request, send_from_directory
-from pkg_resources import Requirement, resource_filename
 from prometheus_client import CollectorRegistry, Gauge, Info, ProcessCollector, generate_latest
 from pythonjsonlogger import jsonlogger
 from typing_extensions import NotRequired, TypedDict
@@ -595,8 +596,10 @@ class DiagApp(Flask):
 def get_templates_dir():
     res_dir = None
     try:
-        # this will fail when not in a distribution
-        res_dir = resource_filename(Requirement.parse("ambassador"), "templates")
+        # Note that this "importlib_resources" has to do with imported packages, not
+        # with our ACResource class.
+
+        res_dir = importlib_resources.path("ambassador", "templates")
     except:
         pass
 
@@ -975,7 +978,7 @@ def handle_events():
 
 @app.route("/ambassador/v0/favicon.ico", methods=["GET"])
 def favicon():
-    template_path = resource_filename(Requirement.parse("ambassador"), "templates")
+    template_path = get_templates_dir()
 
     return send_from_directory(template_path, "favicon.ico")
 
@@ -1042,7 +1045,7 @@ def show_overview(reqid=None):
     ddict = collect_errors_and_notices(request, reqid, "overview", diag)
 
     banner_content = None
-    if app.banner_endpoint and app.ir and app.ir.edge_stack_allowed:
+    if app.banner_endpoint and app.ir:
         try:
             response = requests.get(app.banner_endpoint)
             if response.status_code == 200:
@@ -1250,7 +1253,7 @@ def get_prometheus_metrics(*args, **kwargs):
 
     # Extra metrics endpoint
     extra_metrics_content = ""
-    if app.metrics_endpoint and app.ir and app.ir.edge_stack_allowed:
+    if app.metrics_endpoint and app.ir:
         try:
             response = requests.get(app.metrics_endpoint)
             if response.status_code == 200:
@@ -2356,8 +2359,8 @@ def main(
     config_path=None,
     ambex_pid=0,
     kick=None,
-    banner_endpoint="http://127.0.0.1:8500/banner",
-    metrics_endpoint="http://127.0.0.1:8500/metrics",
+    banner_endpoint=None, # "http://127.0.0.1:8500/banner" was an Edge Stack thing
+    metrics_endpoint=None, # "http://127.0.0.1:8500/metrics" was an Edge Stack thing
     k8s=False,
     no_checks=False,
     no_envoy=False,

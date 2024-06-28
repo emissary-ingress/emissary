@@ -277,16 +277,6 @@ func ReconcileSecrets(ctx context.Context, sh *SnapshotHolder) error {
 	// We _always_ have an implicit references to the fallback cert secret...
 	secretRef(GetAmbassadorNamespace(), "fallback-self-signed-cert", false, action)
 
-	isEdgeStack, err := IsEdgeStack()
-	if err != nil {
-		return err
-	}
-	if isEdgeStack {
-		// ...and for Edge Stack, we _always_ have an implicit reference to the
-		// license secret.
-		secretRef(GetLicenseSecretNamespace(), GetLicenseSecretName(), false, action)
-	}
-
 	// OK! After all that, go copy all the matching secrets from FSSecrets and
 	// K8sSecrets to Secrets.
 	//

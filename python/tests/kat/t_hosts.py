@@ -1,5 +1,5 @@
 from abstract_tests import HTTP, AmbassadorTest, ServiceType
-from kat.harness import EDGE_STACK, Query
+from kat.harness import Query
 from tests.integration.manifests import namespace_manifest
 from tests.selfsigned import TLSCerts
 from tests.utils import create_crl_pem_b64
@@ -22,13 +22,12 @@ bug_clientcert_reset = True  # Do we sometimes just close the connection instead
 class HostCRDSingle(AmbassadorTest):
     """
     HostCRDSingle: a single Host with a manually-configured TLS. Since the Host is handling the
-    TLSContext, we expect both OSS and Edge Stack to redirect cleartext from 8080 to 8443 here.
+    TLSContext, we expect to redirect cleartext from 8080 to 8443 here.
     """
 
     target: ServiceType
 
     def init(self):
-        self.edge_stack_cleartext_host = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -100,7 +99,6 @@ class HostCRDNo8080(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.edge_stack_cleartext_host = False
         self.add_default_http_listener = False
         self.add_default_https_listener = False
         self.target = HTTP()
@@ -192,8 +190,6 @@ class HostCRDManualContext(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.edge_stack_cleartext_host = False
-
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -437,7 +433,6 @@ class HostCRDSeparateTLSContext(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.edge_stack_cleartext_host = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -529,7 +524,6 @@ class HostCRDTLSConfig(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.edge_stack_cleartext_host = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -615,8 +609,6 @@ class HostCRDClearText(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.edge_stack_cleartext_host = False
-
         # Only add the default HTTP listener (we're mimicking the no-TLS case here.)
         self.add_default_http_listener = True
         self.add_default_https_listener = False
@@ -689,7 +681,6 @@ class HostCRDDouble(AmbassadorTest):
     targetshared: ServiceType
 
     def init(self):
-        self.edge_stack_cleartext_host = False
         self.target1 = HTTP(name="target1")
         self.target2 = HTTP(name="target2")
         self.target3 = HTTP(name="target3")
@@ -1155,7 +1146,6 @@ class HostCRDLooseLabelSelector(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.edge_stack_cleartext_host = False
         self.target = HTTP(name="target")
         self.manifest_envs += """
     - name: DISABLE_STRICT_LABEL_SELECTORS
@@ -1466,7 +1456,6 @@ class HostCRDStrictLabelSelector(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.edge_stack_cleartext_host = False
         self.target = HTTP(name="target")
 
     def manifests(self) -> str:
@@ -2520,7 +2509,7 @@ data:
         yield Query(
             self.url("", scheme="http"),
             headers={"Host": "tls-context-host-1"},
-            expected=(404 if (EDGE_STACK or bug_404_routes) else 301),
+            expected=(404 if bug_404_routes else 301),
         )
         yield Query(
             self.url("other", scheme="http"),
@@ -2771,17 +2760,12 @@ class HostCRDForcedStar(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        # We turn off edge_stack_cleartext_host, and manually
-        # duplicate the edge_stack_cleartext_host YAML in manifests(),
-        # since we want that even when testing a non-edge-stack build.
-        #
-        # The reason for that is that we're testing that it doesn't
-        # accidentally consider a cleartext hostname="*" to be a TLS
-        # hostname="*".
-        self.edge_stack_cleartext_host = False
         self.target = HTTP()
 
     def manifests(self) -> str:
+        # These manifests are set up to test that we don't accidentally
+        # accidentally consider a cleartext hostname="*" to be a TLS
+        # hostname="*".
         return (
             self.format(
                 """
@@ -2936,7 +2920,6 @@ class HostCRDCrossNamespaceNoNamespacing(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.edge_stack_cleartext_host = False
         self.target1 = HTTP(name="target")
 
     def manifests(self) -> str:
@@ -3075,7 +3058,6 @@ class HostCRDDoubleCrossNamespace(AmbassadorTest):
     target2: ServiceType
 
     def init(self):
-        self.edge_stack_cleartext_host = False
         self.target1 = HTTP(name="target1")
         self.target2 = HTTP(name="target2")
 

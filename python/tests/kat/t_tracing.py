@@ -3,7 +3,7 @@ from random import random
 from typing import ClassVar, Generator, Tuple, Union
 
 from abstract_tests import AHTTP, HTTP, AmbassadorTest, Node, ServiceType
-from kat.harness import EDGE_STACK, Query
+from kat.harness import Query
 
 # The phase that we should wait until before performing test checks. Normally
 # this would be phase 2, which is 10 seconds after the first wave of queries,
@@ -401,8 +401,6 @@ config:
 # headers when Ambassador is configured with an HTTP AuthService.
 class TracingExternalAuthTest(AmbassadorTest):
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "XFailing for now, custom AuthServices not supported in Edge Stack"
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
         self.zipkin = Zipkin()

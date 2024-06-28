@@ -11,7 +11,7 @@ from abstract_tests import (
     WebsocketEcho,
 )
 from ambassador.constants import Constants
-from kat.harness import EDGE_STACK, Query, variants
+from kat.harness import Query, variants
 
 # This is the place to add new MappingTests.
 
@@ -742,40 +742,6 @@ add_response_headers:
                 assert r.headers["Zoo"] == ["Zoo", "ZooZ"]
                 assert r.headers["Test"] == ["Test", "boo"]
                 assert r.headers["Foo"] == ["Foo"]
-
-
-# To make sure queries to Edge stack related paths adds X-Content-Type-Options = nosniff in the response header
-# and not to any other mappings/routes
-class EdgeStackMapping(MappingTest):
-    parent: AmbassadorTest
-    target: ServiceType
-
-    def init(self):
-        MappingTest.init(self, HTTP())
-
-        if not EDGE_STACK:
-            self.skip_node = True
-
-    def config(self) -> Generator[Union[str, Tuple[Node, str]], None, None]:
-        yield self.target, self.format(
-            """
----
-apiVersion: getambassador.io/v3alpha1
-kind: Mapping
-name:  {self.name}
-hostname: "*"
-prefix: /{self.name}/
-service: http://{self.target.path.fqdn}
-"""
-        )
-
-    def queries(self):
-        yield Query(self.parent.url("edge_stack/admin/"), expected=404)
-        yield Query(self.parent.url(self.name + "/"), expected=200)
-
-    def check(self):
-        # assert self.results[0].headers['X-Content-Type-Options'] == ['nosniff']
-        assert "X-Content-Type-Options" not in self.results[1].headers
 
 
 class RemoveReqHeadersMapping(MappingTest):

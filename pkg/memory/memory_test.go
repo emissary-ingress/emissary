@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -14,17 +15,21 @@ import (
 // right times.
 func TestMemoryUsage(t *testing.T) {
 	start := time.Now()
-	usage := &MemoryUsage{}
+	usage := &MemoryUsage{
+		limit: unlimited,
+	}
+
+	fmt.Printf("usage: %v\n", usage)
 
 	// nothing interesting has happened yet
 	usage.maybeDo(start, func() {
-		assert.Fail(t, "no action")
+		assert.Fail(t, "nothing has happened")
 	})
 
 	// memory jumped, but not enough to qualify as interesting
 	usage.usage = 1024 * 1024
 	usage.maybeDo(start, func() {
-		assert.Fail(t, "no action")
+		assert.Fail(t, "1MB isn't interesting")
 	})
 
 	// memory jumped enough to qualify as interesting
@@ -37,12 +42,12 @@ func TestMemoryUsage(t *testing.T) {
 
 	// nothing else interesting has happened
 	usage.maybeDo(start, func() {
-		assert.Fail(t, "no action")
+		assert.Fail(t, "nothing new has happened")
 	})
 
 	// one minute passed, but we are don't have a limit, so we don't care
 	usage.maybeDo(start.Add(60*time.Second), func() {
-		assert.Fail(t, "no action")
+		assert.Fail(t, "nothing has happened after 60s")
 	})
 
 	// we are now over 50% capacity and one minute has passed, so this qualifies as interesting
@@ -55,7 +60,7 @@ func TestMemoryUsage(t *testing.T) {
 
 	// we are still over 50% capacity, but we just triggered an action, so this doesn't count as interesting
 	usage.maybeDo(start.Add(61*time.Second), func() {
-		assert.Fail(t, "no action")
+		assert.Fail(t, "nothing new has happened after 61s")
 	})
 
 	// but in another 59 seconds, it counts as interesting

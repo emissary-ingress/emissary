@@ -282,8 +282,6 @@ class TestAmbassadorProcessor:
         assert mapping.service == valid_mapping_v1.spec["service"]
 
     def test_ingress_with_named_port(self):
-        isEdgeStack = parse_bool(os.environ.get("EDGE_STACK", "false"))
-
         yaml = """
 ---
 apiVersion: v1
@@ -349,7 +347,7 @@ status:
 
         mgr = fetcher.manager
 
-        expectedElements = 7 if isEdgeStack else 6
+        expectedElements = 6
         assert len(mgr.elements) == expectedElements
 
         aconf.load_all(fetcher.sorted())
@@ -358,7 +356,7 @@ status:
         mappings = aconf.get_config("mappings")
         assert mappings
 
-        expectedMappings = 6 if isEdgeStack else 5
+        expectedMappings = 5
         assert len(mappings) == expectedMappings
 
         mapping_root = mappings.get("quote-0-0")

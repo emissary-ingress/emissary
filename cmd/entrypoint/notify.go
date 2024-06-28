@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"syscall"
@@ -27,19 +27,10 @@ func (_ *noopNotable) NoteSnapshotSent()      {}
 func (_ *noopNotable) NoteSnapshotProcessed() {}
 
 func notifyReconfigWebhooks(ctx context.Context, ambwatch notable) error {
-	isEdgeStack, err := IsEdgeStack()
-	if err != nil {
-		return err
-	}
-	return notifyReconfigWebhooksFunc(ctx, ambwatch, isEdgeStack)
-}
-
-func notifyReconfigWebhooksFunc(ctx context.Context, ambwatch notable, edgestack bool) error {
 	// XXX: last N snapshots?
 	snapshotUrl := url.QueryEscape("http://localhost:9696/snapshot")
 
 	needDiagdNotify := true
-	needSidecarNotify := true
 
 	// We're about to send a new snapshot to diagd. The webhook we're using for this
 	// won't return, by design, until the snapshot has been processed, so first note
@@ -60,25 +51,12 @@ func notifyReconfigWebhooksFunc(ctx context.Context, ambwatch notable, edgestack
 			ambwatch.NoteSnapshotProcessed()
 		}
 
-		// Then go deal with the Edge Stack sidecar.
-		if edgestack {
-			finished, err := notifyWebhookUrl(ctx, "edgestack sidecar", fmt.Sprintf("%s?url=%s", GetSidecarUrl(), snapshotUrl))
-			if err != nil {
-				return err
-			}
-			if finished {
-				needSidecarNotify = false
-			}
-		} else {
-			needSidecarNotify = false
-		}
-
 		select {
 		case <-ctx.Done():
 			return nil
 		default:
 			// XXX: find a better way to wait for diagd and/or the sidecar to spin up
-			if needDiagdNotify || needSidecarNotify {
+			if needDiagdNotify {
 				time.Sleep(1 * time.Second)
 			} else {
 				return nil
@@ -134,7 +112,7 @@ func notifyWebhookUrl(ctx context.Context, name, xurl string) (bool, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			dlog.Printf(ctx, "error reading body from %s: %v", name, err)
 		} else {

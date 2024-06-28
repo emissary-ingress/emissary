@@ -25,7 +25,7 @@ import (
 	v3bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
 )
 
-// The Fake struct is a test harness for edgestack. Its goals are to help us fill out our test
+// The Fake struct is a test harness for Emissary. Its goals are to help us fill out our test
 // pyramid by making it super easy to create unit-like tests directly from the snapshots, bug
 // reports, and other inputs provided by users who find regressions and/or encounter other problems
 // in the field. Since we have no shortage of these reports, if we make it easy to create tests from
@@ -140,9 +140,10 @@ func RunFake(t *testing.T, config FakeConfig, ambMeta *snapshot.AmbassadorMetaIn
 	return fake
 }
 
-// Setup will start up all the goroutines needed for this fake edgestack instance. Depending on the
-// FakeConfig supplied wen constructing the Fake, this may also involve launching external
-// processes, you should therefore ensure that you call Teardown whenever you call Setup.
+// Setup will start up all the goroutines needed for this fake Emissary
+// instance. Depending on the FakeConfig supplied wen constructing the Fake,
+// this may also involve launching external processes, you should therefore
+// ensure that you call Teardown whenever you call Setup.
 func (f *Fake) Setup() {
 	if f.config.EnvoyConfig {
 		_, err := dexec.LookPath("diagd")
@@ -255,7 +256,7 @@ func (f *Fake) Teardown() {
 		f.cancel()
 		err := f.group.Wait()
 		if err != nil && err != context.Canceled {
-			f.T.Fatalf("fake edgestack errored out: %+v", err)
+			f.T.Fatalf("fake Emissary errored out: %+v", err)
 		}
 	})
 }
@@ -314,7 +315,7 @@ func (entry SnapshotEntry) String() string {
 // We pass this into the watcher loop to get notified when a snapshot is produced.
 func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, snapJSON []byte) error {
 	if disp == SnapshotReady && f.config.EnvoyConfig {
-		if err := notifyReconfigWebhooksFunc(ctx, &noopNotable{}, false); err != nil {
+		if err := notifyReconfigWebhooks(ctx, &noopNotable{}); err != nil {
 			return err
 		}
 		f.appendEnvoyConfig(ctx)

@@ -100,8 +100,6 @@ class AmbassadorTest(Test):
     debug_envoy: bool = False
     manifest_envs = ""
     is_ambassador = True
-    allow_edge_stack_redirect = False
-    edge_stack_cleartext_host = True
 
     env: List[str] = []
 
@@ -152,11 +150,6 @@ class AmbassadorTest(Test):
         if self.disable_endpoints:
             self.manifest_envs += """
     - name: AMBASSADOR_DISABLE_ENDPOINTS
-      value: "yes"
-"""
-        if not self.allow_edge_stack_redirect:
-            self.manifest_envs += """
-    - name: AMBASSADOR_NO_TLS_REDIRECT
       value: "yes"
 """
 

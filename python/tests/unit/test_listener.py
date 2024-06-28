@@ -16,7 +16,6 @@ from tests.utils import (
     default_http3_listener_manifest,
     econf_compile,
     logger,
-    skip_edgestack,
 )
 
 
@@ -325,7 +324,6 @@ spec:
 
         _verify_no_added_response_headers(udp_listener)
 
-    @skip_edgestack()
     @pytest.mark.compilertest
     def test_listener_filterchain_vhost_generation(self):
         """Ensure that the Listener FilterChain and correct vhosts are generated based on the

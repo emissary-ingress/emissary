@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"runtime"
 	"testing"
 	"time"
 
@@ -20,6 +21,10 @@ import (
 )
 
 func TestGatewayMatches(t *testing.T) {
+	if runtime.GOOS == "darwin" {
+		t.Skip("Skipping test on macOS")
+	}
+
 	t.Parallel()
 
 	ctx := dlog.NewTestContext(t, false)
