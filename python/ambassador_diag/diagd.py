@@ -31,10 +31,9 @@ import threading
 import time
 import traceback
 import uuid
+from importlib import resources as importlib_resources
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union
 from typing import cast as typecast
-
-from importlib import resources as importlib_resources
 
 import click
 import gunicorn.app.base
@@ -594,12 +593,13 @@ class DiagApp(Flask):
 
 # get the "templates" directory, or raise "FileNotFoundError" if not found
 def get_templates_dir():
-    res_dir = None
+    res_dir: Optional[str] = None
     try:
         # Note that this "importlib_resources" has to do with imported packages, not
         # with our ACResource class.
 
-        res_dir = importlib_resources.path("ambassador", "templates")
+        with importlib_resources.path("ambassador", "templates") as tdp:
+            res_dir = str(tdp)
     except:
         pass
 
@@ -2359,8 +2359,8 @@ def main(
     config_path=None,
     ambex_pid=0,
     kick=None,
-    banner_endpoint=None, # "http://127.0.0.1:8500/banner" was an Edge Stack thing
-    metrics_endpoint=None, # "http://127.0.0.1:8500/metrics" was an Edge Stack thing
+    banner_endpoint=None,  # "http://127.0.0.1:8500/banner" was an Edge Stack thing
+    metrics_endpoint=None,  # "http://127.0.0.1:8500/metrics" was an Edge Stack thing
     k8s=False,
     no_checks=False,
     no_envoy=False,

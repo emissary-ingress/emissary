@@ -14,10 +14,7 @@ def _test_router(yaml, expectations={}):
     def check(typed_config):
         http_filters = typed_config["http_filters"]
 
-        expected_filter_names = [
-            "envoy.filters.http.cors",
-            "envoy.filters.http.router"
-        ]
+        expected_filter_names = ["envoy.filters.http.cors", "envoy.filters.http.router"]
 
         assert [f["name"] for f in http_filters] == expected_filter_names
 

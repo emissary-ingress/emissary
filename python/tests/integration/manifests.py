@@ -1,11 +1,12 @@
 import json
 import os
+import platform
 import subprocess
 from base64 import b64encode
 from typing import Dict, Optional
-import platform
 
 # from ambassador.VERSION import Version, Commit
+
 
 def _get_images() -> Dict[str, str]:
     ret: Dict[str, str] = {}

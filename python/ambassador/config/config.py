@@ -16,10 +16,9 @@ import logging
 import os
 import socket
 from functools import singledispatchmethod
+from importlib import resources as importlib_resources
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
 from typing import cast as typecast
-
-from importlib import resources as importlib_resources
 
 from ..resource import Resource
 from ..utils import RichStatus, dump_json, parse_bool
@@ -107,7 +106,8 @@ class Config:
             # Note that this "importlib_resources" has to do with imported packages, not
             # with our ACResource class.
 
-            schema_dir_path = importlib_resources.path("ambassador", "schemas")
+            with importlib_resources.path("ambassador", "schemas") as sdp:
+                schema_dir_path = str(sdp)
 
         # Once here, we know that schema_dir_path cannot be None. assert that, for mypy's
         # benefit.
