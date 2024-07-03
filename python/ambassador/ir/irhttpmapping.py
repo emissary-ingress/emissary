@@ -241,8 +241,8 @@ class IRHTTPMapping(IRBaseMapping):
         if "regex_headers" in kwargs:
             # DON'T do anything special with a regex :authority match: we can't
             # do host-based filtering within the IR for it anyway.
-            for name, value in kwargs.get("regex_headers", {}).items():
-                hdrs.append(KeyValueDecorator(name, value, regex=True))
+            for hdr_name, hdr_value in kwargs.get("regex_headers", {}).items():
+                hdrs.append(KeyValueDecorator(hdr_name, hdr_value, regex=True))
 
         if "host" in kwargs:
             # It's deliberate that we'll allow kwargs['host'] to silently override an exact :authority

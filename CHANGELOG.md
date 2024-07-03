@@ -135,6 +135,12 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   starting. This will help address  some of the intermittent issues seen during install and
   upgrades.
 
+- Bugfix: _cache_key is getting generated incorrectly for mappings in ir.json, when using header
+  with regex in mapping. Always, It should be in the format of {kind}-{version}-{name}-{namespace}. 
+  But header name is getting updated in the place of mapping name, if we created mapping with regex 
+  header.
+
+
 ## [3.8.0] August 29, 2023
 [3.8.0]: https://github.com/emissary-ingress/emissary/compare/v3.7.2...v3.8.0
 
