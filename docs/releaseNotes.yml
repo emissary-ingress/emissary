@@ -58,6 +58,16 @@ items:
           Upgraded $productName$ to the latest release of Golang as part of our general dependency upgrade process.
       
 
+      - title: Fix internal keying for regex Mappings
+        type: bugfix
+        body: >-
+          $productName$ was incorrectly caching Mappings with regex headers
+          using the header name instead of the Mapping name, which could
+          reduce the cache's effectiveness. This has been fixed so that the
+          correct key is used.
+        github:
+          - title: "Incorrect Cache Key for Mapping"
+            link: https://github.com/emissary-ingress/emissary/issues/5714
 
   - version: 3.9.0
     prevVersion: 3.8.0

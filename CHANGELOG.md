@@ -103,6 +103,12 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 - Change: Upgraded Emissary-ingress to the latest release of Golang as part of our general
   dependency upgrade process.
 
+- Bugfix: Emissary-ingress was incorrectly caching Mappings with regex headers using the header name
+  instead of the Mapping name, which could reduce the cache's effectiveness. This has been fixed so
+  that the correct key is used. ([Incorrect Cache Key for Mapping])
+
+[Incorrect Cache Key for Mapping]: https://github.com/emissary-ingress/emissary/issues/5714
+
 ## [3.9.0] November 13, 2023
 [3.9.0]: https://github.com/emissary-ingress/emissary/compare/v3.8.0...v3.9.0
 
