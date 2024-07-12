@@ -103,6 +103,13 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
 - Change: Upgraded Emissary-ingress to the latest release of Golang as part of our general
   dependency upgrade process.
 
+- Bugfix: Emissary creating duplicate mapping in ir.json and econf.json while adding weight for canary 
+  release. This leads to getting IR MISMATCH & ENVOY CONFIG MISMATCH error frequently in the logs and 
+  also consumes more cpu. We have introduced a condition that, it will add the mapping only if the mapping
+  is not already present in the group.
+
+[#5702]: https://github.com/emissary-ingress/emissary/issues/5702
+
 ## [3.9.0] November 13, 2023
 [3.9.0]: https://github.com/emissary-ingress/emissary/compare/v3.8.0...v3.9.0
 
