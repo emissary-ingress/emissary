@@ -172,7 +172,7 @@ Provides two main functions:
 - Generate IR and envoy configs (load_ir function)
   - Take each Resource generated in ResourceFetcher and add it to the Config object as strongly typed objects
   - Store Config Object in `/ambassador/snapshots/aconf-tmp.json`
-  - Check Deltas for Mappings cach and determine if we needs to be reset
+  - Check Deltas for Mappings cache and determine if we needs to be reset
   - Create IR with a Config, Cache, and invalidated items
     - IR is generated which basically just converts our stuff to strongly typed generic "envoy" items (handling filters, clusters, listeners, removing duplicates, etc...)
   - IR is updated in-memory for diagd process
