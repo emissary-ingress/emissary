@@ -25,6 +25,37 @@ func predicate(ir *entrypoint.IR) bool {
 	return ok
 }
 
+func checkIR(ir *entrypoint.IR, t *testing.T) {
+	// In the IR, we should find a group called "workload1-mapping".
+	group, ok := getWorkload1MappingGroup(ir)
+	require.True(t, ok)
+
+	// That group should have two mappings.
+	require.Len(t, group.Mappings, 2)
+
+	// One mapping should have a "name" of "workload1-mapping" and a
+	// cumulative weight of 100; the other should have a "name" of
+	// "workload2-mapping" and a cumulative weight of 10.
+	found1 := false
+	found2 := false
+
+	for _, mapping := range group.Mappings {
+		switch mapping.Name {
+		case "workload1-mapping":
+			assert.Equal(t, 100, mapping.CumulativeWeight)
+			found1 = true
+		case "workload2-mapping":
+			assert.Equal(t, 10, mapping.CumulativeWeight)
+			found2 = true
+		default:
+			t.Fatalf("unexpected mapping: %#v", mapping)
+		}
+	}
+
+	assert.True(t, found1)
+	assert.True(t, found2)
+}
+
 // The Fake struct is a test harness for Emissary. See testutil_fake_test.go
 // for details. Note that this test depends on diagd being in your path. If
 // diagd is not available, the test will be skipped.
@@ -59,35 +90,4 @@ func TestUnrelatedMappings(t *testing.T) {
 	ir, err = f.GetIR(predicate)
 	require.NoError(t, err)
 	checkIR(ir, t)
-}
-
-func checkIR(ir *entrypoint.IR, t *testing.T) {
-	// In the IR, we should find a group called "workload1-mapping".
-	group, ok := getWorkload1MappingGroup(ir)
-	require.True(t, ok)
-
-	// That group should have two mappings.
-	require.Len(t, group.Mappings, 2)
-
-	// One mapping should have a "name" of "workload1-mapping" and a
-	// cumulative weight of 100; the other should have a "name" of
-	// "workload2-mapping" and a cumulative weight of 10.
-	found1 := false
-	found2 := false
-
-	for _, mapping := range group.Mappings {
-		switch mapping.Name {
-		case "workload1-mapping":
-			assert.Equal(t, 100, mapping.CumulativeWeight)
-			found1 = true
-		case "workload2-mapping":
-			assert.Equal(t, 10, mapping.CumulativeWeight)
-			found2 = true
-		default:
-			t.Fatalf("unexpected mapping: %#v", mapping)
-		}
-	}
-
-	assert.True(t, found1)
-	assert.True(t, found2)
 }
