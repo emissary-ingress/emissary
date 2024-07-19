@@ -157,4 +157,36 @@ func TestUnrelatedMappings(t *testing.T) {
 		"workload1-mapping": NewWeightCheck(-1, 100),
 		"workload2-mapping": NewWeightCheck(10, 10),
 	})
+
+	// Next, try updating the weight of workload2-mapping.
+	assert.NoError(t, f.UpsertFile("testdata/unrelated-mappings/mapping2.yaml"))
+
+	checkIR(f, "update workload2-mapping weight", map[string]WeightCheck{
+		"workload1-mapping": NewWeightCheck(-1, 100),
+		"workload2-mapping": NewWeightCheck(50, 50),
+	})
+
+	// Next up, delete our completely unrelated mapping. This mustn't affect
+	// our existing group.
+	assert.NoError(t, f.Delete("Mapping", "infrastructure", "unrelated"))
+
+	checkIR(f, "delete unrelated", map[string]WeightCheck{
+		"workload1-mapping": NewWeightCheck(-1, 100),
+		"workload2-mapping": NewWeightCheck(50, 50),
+	})
+
+	// Repeat that upsert-and-repeat cycle.
+	assert.NoError(t, f.UpsertFile("testdata/unrelated-mappings/unrelated.yaml"))
+
+	checkIR(f, "re-upsert unrelated", map[string]WeightCheck{
+		"workload1-mapping": NewWeightCheck(-1, 100),
+		"workload2-mapping": NewWeightCheck(50, 50),
+	})
+
+	assert.NoError(t, f.Delete("Mapping", "infrastructure", "unrelated"))
+
+	checkIR(f, "re-delete unrelated", map[string]WeightCheck{
+		"workload1-mapping": NewWeightCheck(-1, 100),
+		"workload2-mapping": NewWeightCheck(50, 50),
+	})
 }
