@@ -141,7 +141,7 @@ func TestUnrelatedMappings(t *testing.T) {
 	// Next up, upsert our test data.
 	assert.NoError(t, f.UpsertFile("testdata/unrelated-mappings/service.yaml"))
 	assert.NoError(t, f.UpsertFile("testdata/unrelated-mappings/host.yaml"))
-	assert.NoError(t, f.UpsertFile("testdata/unrelated-mappings/mapping.yaml"))
+	assert.NoError(t, f.UpsertFile("testdata/unrelated-mappings/mapping1.yaml"))
 
 	// Now we can check the IR.
 	checkIR(f, "initial", map[string]WeightCheck{
