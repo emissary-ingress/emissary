@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"reflect"
 	"sync"
 	"sync/atomic"
@@ -74,6 +75,7 @@ type Fake struct {
 
 	fastpath     *testqueue.Queue // All fastpath snapshots that have been produced.
 	snapshots    *testqueue.Queue // All snapshots that have been produced.
+	irs          *testqueue.Queue // All IRs that have been produced
 	envoyConfigs *testqueue.Queue // All envoyConfigs that have been produced.
 
 	// This is used to make Teardown idempotent.
@@ -89,11 +91,16 @@ type FakeConfig struct {
 	EnvoyConfig bool          // If true then the Fake will produce envoy configs in addition to Snapshots.
 	DiagdDebug  bool          // If true then diagd will have debugging enabled
 	Timeout     time.Duration // How long to wait for snapshots and/or envoy configs to become available.
+	OutputDir   string        // Directory for Emissary's output files
 }
 
 func (fc *FakeConfig) fillDefaults() {
 	if fc.Timeout == 0 {
 		fc.Timeout = 10 * time.Second
+	}
+
+	if fc.OutputDir == "" {
+		fc.OutputDir = "/tmp/mock"
 	}
 }
 
@@ -120,6 +127,7 @@ func NewFake(t *testing.T, config FakeConfig) *Fake {
 
 		fastpath:     testqueue.NewQueue(t, config.Timeout),
 		snapshots:    testqueue.NewQueue(t, config.Timeout),
+		irs:          testqueue.NewQueue(t, config.Timeout),
 		envoyConfigs: testqueue.NewQueue(t, config.Timeout),
 	}
 
@@ -157,12 +165,18 @@ func (f *Fake) Setup() {
 
 		f.DiagdBindPort = GetDiagdBindPort()
 
+		err = os.MkdirAll(f.config.OutputDir, os.ModePerm)
+
+		if err != nil {
+			f.T.Fatalf("failed to create directory: %v", err)
+		}
+
 		f.group.Go("diagd", func(ctx context.Context) error {
 			args := []string{
 				"diagd",
-				"/tmp",
-				"/tmp/bootstrap-ads.json",
-				"/tmp/envoy.json",
+				f.config.OutputDir,
+				filepath.Join(f.config.OutputDir, "bootstrap-ads.json"),
+				filepath.Join(f.config.OutputDir, "envoy.json"),
 				"--no-envoy",
 				"--host", "127.0.0.1",
 				"--port", f.DiagdBindPort,
@@ -230,7 +244,7 @@ func (f *Fake) GetFeatures(ctx context.Context, features interface{}) error {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 
 	if err != nil {
 		return err
@@ -299,9 +313,18 @@ func (f *Fake) AssertEndpointsEmpty(timeout time.Duration) {
 	f.fastpath.AssertEmpty(f.T, timeout, "endpoints queue not empty")
 }
 
+// SnapshotEntry contains a snapshot (the result of discovery), its
+// corresponding IR and Envoy configs (if available, see below), and the
+// disposition of the snapshot.
+//
+// The IR and Envoy configs will be available _only_ if the Fake harness was
+// configured with EnvoyConfig set to true, and they are likely to be
+// meaningful only if the disposition is SnapshotReady.
 type SnapshotEntry struct {
-	Disposition SnapshotDisposition
-	Snapshot    *snapshot.Snapshot
+	Disposition     SnapshotDisposition
+	Snapshot        *snapshot.Snapshot
+	IRText          []byte
+	EnvoyConfigText []byte
 }
 
 func (entry SnapshotEntry) String() string {
@@ -314,20 +337,28 @@ func (entry SnapshotEntry) String() string {
 
 // We pass this into the watcher loop to get notified when a snapshot is produced.
 func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, snapJSON []byte) error {
+	var envoyConfigText []byte
+	var irText []byte
+
 	if disp == SnapshotReady && f.config.EnvoyConfig {
 		if err := notifyReconfigWebhooks(ctx, &noopNotable{}); err != nil {
 			return err
 		}
-		f.appendEnvoyConfig(ctx)
+
+		irText = f.appendIR()
+		envoyConfigText = f.appendEnvoyConfig(ctx)
 	}
 
 	var snap *snapshot.Snapshot
 	err := json.Unmarshal(snapJSON, &snap)
 	if err != nil {
-		f.T.Fatalf("error decoding snapshot: %+v", err)
+		f.T.Errorf("error decoding snapshot: %+v", err)
+		return err
 	}
 
-	f.snapshots.Add(f.T, SnapshotEntry{disp, snap})
+	entry := SnapshotEntry{disp, snap, irText, envoyConfigText}
+	f.snapshots.Add(f.T, entry)
+
 	return nil
 }
 
@@ -356,13 +387,54 @@ func (f *Fake) GetSnapshot(predicate func(*snapshot.Snapshot) bool) (*snapshot.S
 	return entry.Snapshot, nil
 }
 
-func (f *Fake) appendEnvoyConfig(ctx context.Context) {
-	msg, err := ambex.Decode(ctx, "/tmp/envoy.json")
+func (f *Fake) appendIR() []byte {
+	irJSON, err := os.ReadFile(filepath.Join(f.config.OutputDir, "ir.json"))
+	if err != nil {
+		f.T.Fatalf("error reading ir.json: %+v", err)
+	}
+
+	var ir IR
+	err = json.Unmarshal(irJSON, &ir)
+	if err != nil {
+		f.T.Fatalf("error unmarshaling ir.json: %+v", err)
+	}
+
+	f.irs.Add(f.T, &ir)
+
+	// Save the text of the IR, too, in with the snapshot.
+	return irJSON
+}
+
+// GetIR will return the next IR that satisfies the supplied predicate.
+func (f *Fake) GetIR(predicate func(*IR) bool) (*IR, error) {
+	f.T.Helper()
+	untyped, err := f.irs.Get(f.T, func(obj interface{}) bool {
+		ir := obj.(*IR)
+		return predicate(ir)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return untyped.(*IR), nil
+}
+
+func (f *Fake) appendEnvoyConfig(ctx context.Context) []byte {
+	msg, err := ambex.Decode(ctx, filepath.Join(f.config.OutputDir, "envoy.json"))
 	if err != nil {
 		f.T.Fatalf("error decoding envoy.json after sending snapshot to python: %+v", err)
 	}
+
 	bs := msg.(*v3bootstrap.Bootstrap)
 	f.envoyConfigs.Add(f.T, bs)
+
+	// Save the text of the Envoy config, too, in with the snapshot.
+	envoyConfig, err := os.ReadFile(filepath.Join(f.config.OutputDir, "envoy.json"))
+
+	if err != nil {
+		f.T.Fatalf("error reading envoy.json: %+v", err)
+	}
+
+	return envoyConfig
 }
 
 // GetEnvoyConfig will return the next envoy config that satisfies the supplied predicate.
