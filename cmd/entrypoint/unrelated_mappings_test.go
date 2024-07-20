@@ -25,13 +25,20 @@ func predicate(ir *entrypoint.IR) bool {
 	return ok
 }
 
-func checkIR(ir *entrypoint.IR, t *testing.T) {
+func checkIR(f *entrypoint.Fake) {
+	// Flush the Fake harness so that we get a configuration.
+	f.Flush()
+
+	// We need the IR from that configuration.
+	ir, err := f.GetIR(predicate)
+	require.NoError(f.T, err)
+
 	// In the IR, we should find a group called "workload1-mapping".
 	group, ok := getWorkload1MappingGroup(ir)
-	require.True(t, ok)
+	require.True(f.T, ok)
 
 	// That group should have two mappings.
-	require.Len(t, group.Mappings, 2)
+	require.Len(f.T, group.Mappings, 2)
 
 	// One mapping should have a "name" of "workload1-mapping" and a
 	// cumulative weight of 100; the other should have a "name" of
@@ -42,18 +49,18 @@ func checkIR(ir *entrypoint.IR, t *testing.T) {
 	for _, mapping := range group.Mappings {
 		switch mapping.Name {
 		case "workload1-mapping":
-			assert.Equal(t, 100, mapping.CumulativeWeight)
+			assert.Equal(f.T, 100, mapping.CumulativeWeight)
 			found1 = true
 		case "workload2-mapping":
-			assert.Equal(t, 10, mapping.CumulativeWeight)
+			assert.Equal(f.T, 10, mapping.CumulativeWeight)
 			found2 = true
 		default:
-			t.Fatalf("unexpected mapping: %#v", mapping)
+			f.T.Fatalf("unexpected mapping: %#v", mapping)
 		}
 	}
 
-	assert.True(t, found1)
-	assert.True(t, found2)
+	assert.True(f.T, found1)
+	assert.True(f.T, found2)
 }
 
 // The Fake struct is a test harness for Emissary. See testutil_fake_test.go
@@ -71,23 +78,13 @@ func TestUnrelatedMappings(t *testing.T) {
 	assert.NoError(t, f.UpsertFile("testdata/unrelated-mappings/host.yaml"))
 	assert.NoError(t, f.UpsertFile("testdata/unrelated-mappings/mapping.yaml"))
 
-	// Flush the Fake harness so that we get a configuration.
-	f.Flush()
-
-	// We need the IR from that configuration.
-	ir, err := f.GetIR(predicate)
-	require.NoError(t, err)
-
 	// Now we can check the IR.
-	checkIR(ir, t)
+	checkIR(f)
 
 	// Next up, upsert a completely unrelated mapping. This mustn't affect
 	// our existing group.
 	assert.NoError(t, f.UpsertFile("testdata/unrelated-mappings/unrelated.yaml"))
 
 	// Flush the Fake harness and repeat our IR check.
-	f.Flush()
-	ir, err = f.GetIR(predicate)
-	require.NoError(t, err)
-	checkIR(ir, t)
+	checkIR(f)
 }
