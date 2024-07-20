@@ -1,6 +1,7 @@
 package entrypoint_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,7 +26,26 @@ func predicate(ir *entrypoint.IR) bool {
 	return ok
 }
 
-func checkIR(f *entrypoint.Fake) {
+type WeightCheck struct {
+	weight     *int
+	cumulative int
+}
+
+func NewWeightCheck(weight int, cumulative int) WeightCheck {
+	weightPtr := &weight
+
+	if weight < 0 {
+		weightPtr = nil
+	}
+
+	return WeightCheck{weight: weightPtr, cumulative: cumulative}
+}
+
+// checkIR is a helper function that flushes the world, gets an IR, then
+// checks the IR for the expected state. It'll find the "workload1-mapping"
+// group and check that it has mappings for each entry in the weights map,
+// with the correct weights.
+func checkIR(f *entrypoint.Fake, what string, weights map[string]WeightCheck) {
 	// Flush the Fake harness so that we get a configuration.
 	f.Flush()
 
@@ -37,30 +57,75 @@ func checkIR(f *entrypoint.Fake) {
 	group, ok := getWorkload1MappingGroup(ir)
 	require.True(f.T, ok)
 
-	// That group should have two mappings.
-	require.Len(f.T, group.Mappings, 2)
+	// That group should have the same number of mappings as we have entries
+	// in the weights map.
+	require.Len(f.T, group.Mappings, len(weights))
 
-	// One mapping should have a "name" of "workload1-mapping" and a
-	// cumulative weight of 100; the other should have a "name" of
-	// "workload2-mapping" and a cumulative weight of 10.
-	found1 := false
-	found2 := false
+	// Now we can check each mapping. Since we need all of them to be present
+	// in the group, we'll start with a set of all the mappings defined in the
+	// weights map, and remove them as we find them in the mapping. Any left
+	// over at the end were missing from the group.
+	missingMappings := make(map[string]struct{})
+	for name := range weights {
+		missingMappings[name] = struct{}{}
+	}
 
+	// Next, walk over the group's mappings and check against the weights map.
 	for _, mapping := range group.Mappings {
-		switch mapping.Name {
-		case "workload1-mapping":
-			assert.Equal(f.T, 100, mapping.CumulativeWeight)
-			found1 = true
-		case "workload2-mapping":
-			assert.Equal(f.T, 10, mapping.CumulativeWeight)
-			found2 = true
-		default:
-			f.T.Fatalf("unexpected mapping: %#v", mapping)
+		check, ok := weights[mapping.Name]
+
+		if ok {
+			// It's present; remove it from the leftovers.
+			delete(missingMappings, mapping.Name)
+
+			// Next, make sure the weights match.
+			var msg string
+
+			if check.weight == nil {
+				if mapping.Weight != nil {
+					msg = fmt.Sprintf("%s: weight for %s should not be present but is %d", what, mapping.Name, *mapping.Weight)
+				}
+			} else if mapping.Weight == nil {
+				msg = fmt.Sprintf("%s: weight for %s should be %d but is not present", what, mapping.Name, *check.weight)
+			} else if *check.weight != *mapping.Weight {
+				msg = fmt.Sprintf("%s: unexpected weight for mapping %s: wanted %d, got %d", what, mapping.Name, *check.weight, mapping.Weight)
+			}
+
+			if msg != "" {
+				for _, m := range group.Mappings {
+					msg += "\n"
+
+					if m.Weight == nil {
+						msg += fmt.Sprintf("  - %s: weight unset", m.Name)
+					} else {
+						msg += fmt.Sprintf("  - %s: weight %d", m.Name, *m.Weight)
+					}
+				}
+
+				f.T.Fatal(msg)
+			}
+
+			// Finally, check the cumulative weight.
+			if check.cumulative != mapping.CumulativeWeight {
+				f.T.Fatalf("%s: unexpected cumulative weight for mapping %s: wanted %d, got %d", what, mapping.Name, check.cumulative, mapping.CumulativeWeight)
+			}
+		} else {
+			// It's not present; this is a problem.
+			f.T.Fatalf("%s: unexpected mapping: %#v", what, mapping.Name)
 		}
 	}
 
-	assert.True(f.T, found1)
-	assert.True(f.T, found2)
+	// Finally, we should have no leftovers.
+	if len(missingMappings) > 0 {
+		msg := fmt.Sprintf("%s: missing mappings:", what)
+
+		for name := range missingMappings {
+			msg += "\n"
+			msg += fmt.Sprintf("  - %s", name)
+		}
+
+		f.T.Fatal(msg)
+	}
 }
 
 // The Fake struct is a test harness for Emissary. See testutil_fake_test.go
@@ -79,12 +144,17 @@ func TestUnrelatedMappings(t *testing.T) {
 	assert.NoError(t, f.UpsertFile("testdata/unrelated-mappings/mapping.yaml"))
 
 	// Now we can check the IR.
-	checkIR(f)
+	checkIR(f, "initial", map[string]WeightCheck{
+		"workload1-mapping": NewWeightCheck(-1, 100),
+		"workload2-mapping": NewWeightCheck(10, 10),
+	})
 
 	// Next up, upsert a completely unrelated mapping. This mustn't affect
 	// our existing group.
 	assert.NoError(t, f.UpsertFile("testdata/unrelated-mappings/unrelated.yaml"))
 
-	// Flush the Fake harness and repeat our IR check.
-	checkIR(f)
+	checkIR(f, "upsert unrelated", map[string]WeightCheck{
+		"workload1-mapping": NewWeightCheck(-1, 100),
+		"workload2-mapping": NewWeightCheck(10, 10),
+	})
 }
