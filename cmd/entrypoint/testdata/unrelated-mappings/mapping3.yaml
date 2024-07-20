@@ -1,0 +1,31 @@
+
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  labels:
+    app: workload1
+  name: workload1-mapping
+  namespace: infrastructure
+spec:
+  bypass_auth: true
+  host: test.example.com
+  prefix: /
+  rewrite: ""
+  service: workload1
+  timeout_ms: 3000
+  weight: 20
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  labels:
+    app: workload3
+  name: workload3-mapping
+  namespace: infrastructure
+spec:
+  bypass_auth: true
+  host: test.example.com
+  prefix: /
+  rewrite: ""
+  service: workload3
+  timeout_ms: 3000

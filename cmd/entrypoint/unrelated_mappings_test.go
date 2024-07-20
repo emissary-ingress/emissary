@@ -189,4 +189,15 @@ func TestUnrelatedMappings(t *testing.T) {
 		"workload1-mapping": NewWeightCheck(-1, 100),
 		"workload2-mapping": NewWeightCheck(50, 50),
 	})
+
+	// Finally, do something complex: update the weight of workload1-mapping,
+	// add a workload3-mapping, and reintroduce the unrelated mapping.
+	assert.NoError(t, f.UpsertFile("testdata/unrelated-mappings/mapping3.yaml"))
+	assert.NoError(t, f.UpsertFile("testdata/unrelated-mappings/unrelated.yaml"))
+
+	checkIR(f, "complex 1", map[string]WeightCheck{
+		"workload1-mapping": NewWeightCheck(20, 20),
+		"workload2-mapping": NewWeightCheck(50, 70),
+		"workload3-mapping": NewWeightCheck(-1, 100),
+	})
 }
