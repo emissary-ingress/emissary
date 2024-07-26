@@ -1,0 +1,16 @@
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  labels:
+    app: unrelated
+  name: unrelated
+  namespace: infrastructure
+spec:
+  bypass_auth: true
+  host: unrelated.spike-pp.test-labs.com
+  prefix: /
+  resolver: endpoint
+  rewrite: ""
+  service: unrelated
+  timeout_ms: 3000

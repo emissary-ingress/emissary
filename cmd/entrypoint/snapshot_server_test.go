@@ -1,7 +1,6 @@
 package entrypoint
 
 import (
-	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -40,17 +39,5 @@ func TestSanitizeExternalSnapshot(t *testing.T) {
 			assert.Nil(innerT, err)
 			assert.Equal(innerT, sanitizeExternalSnapshotTest.expectedSanitizedJSON, string(snapshot))
 		})
-	}
-}
-
-type roundTripFunc func(req *http.Request) *http.Response
-
-func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
-	return f(req), nil
-}
-
-func newHTTPTestClient(mockHandler roundTripFunc) *http.Client {
-	return &http.Client{
-		Transport: mockHandler,
 	}
 }

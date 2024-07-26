@@ -1,0 +1,12 @@
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: origin-test-app-emissariy.spike-pp.test-labs.com
+  namespace: infrastructure
+spec:
+  ambassador_id:
+  - --apiVersion-v3alpha1-only--default
+  hostname: origin-test-app-emissariy.spike-pp.test-labs.com
+  requestPolicy:
+    insecure:
+      action: Route

@@ -47,6 +47,7 @@ if not SOURCE_ROOT:
 
 print("SOURCE_ROOT %s" % SOURCE_ROOT)
 
+
 def run(cmd):
     status = os.system(cmd)
     if status != 0:

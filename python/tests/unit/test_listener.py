@@ -11,12 +11,7 @@ from ambassador.config import Config
 from ambassador.envoy import EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import EmptySecretHandler
-from tests.utils import (
-    Compile,
-    default_http3_listener_manifest,
-    econf_compile,
-    logger,
-)
+from tests.utils import Compile, default_http3_listener_manifest, econf_compile, logger
 
 
 def _ensure_alt_svc_header_injected(listener, expectedAltSvc):

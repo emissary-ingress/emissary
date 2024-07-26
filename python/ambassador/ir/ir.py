@@ -817,7 +817,19 @@ class IR:
             else:
                 self.logger.debug(f"IR: already have group for {mapping.name}")
                 group = self.groups[mapping.group_id]
-                group.add_mapping(aconf, mapping)
+
+                # Add mapping into the group only if the _cache_key doesn't exist in a group.
+                existing_mapping_cache_keys = [
+                    group_mapping["_cache_key"]
+                    for group_mapping in group["mappings"]
+                    if "_cache_key" in group_mapping
+                ]
+                if mapping["_cache_key"] in existing_mapping_cache_keys:
+                    self.logger.debug(
+                        f"IR: _cache_key for {mapping.name} is {mapping['_cache_key']} already exists in a group."
+                    )
+                else:
+                    group.add_mapping(aconf, mapping)
 
             self.cache_add(mapping)
             self.cache_add(group)

@@ -269,7 +269,7 @@ class V3Route(Cacheable):
 
         # Save the logger and the group.
         self.logger = group.logger
-        self._group = group
+        self._group: IRHTTPMappingGroup = group
 
         # Passing a list to set is _very important_ here, lest you get a set of
         # the individual characters in group.host!
