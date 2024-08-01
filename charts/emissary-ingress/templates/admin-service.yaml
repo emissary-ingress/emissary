@@ -32,6 +32,12 @@ spec:
       {{- if (and (eq .Values.adminService.type "NodePort") (not (empty .Values.adminService.nodePort))) }}
       nodePort: {{ int .Values.adminService.nodePort }}
       {{- end }}
+      {{- if .Values.adminService.goPluginMetricsPort}}
+    - port: {{ .Values.adminService.goPluginMetricsPort }}
+      targetPort: 8878
+      protocol: TCP
+      name: go-plugin-filter-metrics
+      {{- end }}
     - port: {{ .Values.adminService.snapshotPort }}
       targetPort: 8005
       protocol: TCP

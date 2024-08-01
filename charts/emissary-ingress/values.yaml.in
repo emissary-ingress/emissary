@@ -208,6 +208,7 @@ adminService:
   type: ClusterIP
   port: 8877
   snapshotPort: 8005
+  goPluginMetricsPort: 
   # If explicit NodePort for admin service is required
   nodePort:
   # Annotations to apply to Ambassador admin service
