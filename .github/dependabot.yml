@@ -1,70 +1,61 @@
+---
 version: 2
 updates:
   - package-ecosystem: gomod
-    directory: "/"
+    directory: /
     schedule:
       interval: daily
     open-pull-requests-limit: 10
     ignore:
-      - dependency-name: "sigs.k8s.io/gateway-api"
-      - dependency-name: "go.opentelemetry.io/proto/otlp"
-
+      - dependency-name: sigs.k8s.io/gateway-api
+      - dependency-name: go.opentelemetry.io/proto/otlp
   - package-ecosystem: gomod
-    directory: "/tools/src/yq"
+    directory: /tools/src/yq
     schedule:
       interval: daily
     open-pull-requests-limit: 10
-
   - package-ecosystem: gomod
-    directory: "/tools/src/chart-doc-gen"
+    directory: /tools/src/chart-doc-gen
     schedule:
       interval: daily
     open-pull-requests-limit: 10
-
   - package-ecosystem: gomod
-    directory: "/tools/src/crane"
+    directory: /tools/src/crane
     schedule:
       interval: daily
     open-pull-requests-limit: 10
-
   - package-ecosystem: gomod
-    directory: "/tools/src/ct"
+    directory: /tools/src/ct
     schedule:
       interval: daily
     open-pull-requests-limit: 10
-
   - package-ecosystem: gomod
-    directory: "/tools/src/golangci-lint"
+    directory: /tools/src/golangci-lint
     schedule:
       interval: daily
     open-pull-requests-limit: 10
-
   - package-ecosystem: gomod
-    directory: "/tools/src/ocibuild"
+    directory: /tools/src/ocibuild
     schedule:
       interval: daily
     open-pull-requests-limit: 10
-
   - package-ecosystem: pip
-    directory: "/docker/test-auth"
+    directory: /docker/test-auth
     schedule:
       interval: daily
     open-pull-requests-limit: 10
-
   - package-ecosystem: pip
-    directory: "/docker/test-shadow"
+    directory: /docker/test-shadow
     schedule:
       interval: daily
     open-pull-requests-limit: 10
-
   - package-ecosystem: pip
-    directory: "/docker/test-stats"
+    directory: /docker/test-stats
     schedule:
       interval: daily
     open-pull-requests-limit: 10
-
   - package-ecosystem: pip
-    directory: "/python"
+    directory: /python
     schedule:
       interval: daily
     open-pull-requests-limit: 10
@@ -72,34 +63,29 @@ updates:
       - dependency-name: pytest
       - dependency-name: urllib3
         versions:
-          - "<2.0"
-
+          - <2.0
   - package-ecosystem: docker
-    directory: "/docker/test-auth"
+    directory: /docker/test-auth
     schedule:
       interval: daily
     open-pull-requests-limit: 10
-
   - package-ecosystem: docker
-    directory: "/docker/test-http"
+    directory: /docker/test-http
     schedule:
       interval: daily
     open-pull-requests-limit: 10
-
   - package-ecosystem: docker
-    directory: "/docker/test-shadow"
+    directory: /docker/test-shadow
     schedule:
       interval: daily
     open-pull-requests-limit: 10
-
   - package-ecosystem: docker
-    directory: "/docker/test-stats"
+    directory: /docker/test-stats
     schedule:
       interval: daily
     open-pull-requests-limit: 10
-
   - package-ecosystem: github-actions
-    directory: "/"
+    directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
