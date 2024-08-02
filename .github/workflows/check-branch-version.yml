@@ -1,3 +1,4 @@
+---
 name: Check branch version
 
 # This is a separate workflow from the main build-and-test workflow
@@ -15,16 +16,16 @@ name: Check branch version
       - master
       - release/v*
     types:
-      - opened   # default
-      - reopened # default
-      - edited   # default
-      - synchronize # also run if the target branch changes
+      - opened       # default
+      - edited       # default
+      - reopened     # default
+      - synchronize  # also run if the target branch changes
 
 jobs:
   check-branch-version:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install Deps
