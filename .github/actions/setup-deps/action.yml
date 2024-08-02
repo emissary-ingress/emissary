@@ -1,37 +1,61 @@
+---
 name: setup-deps
-description: "Install Go and Python"
+description: Install Go and Python
 
 runs:
-  using: "composite"
+  using: composite
   steps:
-    - name: "Install bsdtar (libarchive-tools)"
+    - name: Install bsdtar (libarchive-tools)
+      id: step-install-bsdtar
       shell: bash
+      env:
+        DEBIAN_FRONTEND: noninteractive
       run: |
         sudo apt-get update -y
         sudo apt-get install -y libarchive-tools
-    # Go: Do this first because `Makefile` checks that the `go` version is correct.
-    - name: "Get Go version from builder container"
-      id: step-detect-go
+    # note: the "standard" ubuntu image used by nektos/act
+    #       doesn't include the `ip` or `rsync` binaries
+    - name: Install Missing Utils (nektos/act)
       shell: bash
+      if: ${{ env.ACT }}
+      env:
+        DEBIAN_FRONTEND: noninteractive
       run: |
-        make "$PWD/build-aux/go-version.txt"
-        echo "go_version=$(cat "$PWD/build-aux/go-version.txt")" >> $GITHUB_OUTPUT
-    - name: "Install Go (${{ steps.step-detect-go.outputs.go_version }})"
-      uses: actions/setup-go@v3
-      with:
-        go-version: "${{ steps.step-detect-go.outputs.go_version }}"
-    # Python
-    - name: "Get Python version from builder container"
-      id: step-detect-py
+        sudo apt-get install -y rsync iproute2 net-tools
+    - name: Install Helm
       shell: bash
+      env:
+        DEBIAN_FRONTEND: noninteractive
       run: |
-        make "$PWD/build-aux/py-version.txt"
-        echo "py_version=$(cat "$PWD/build-aux/py-version.txt")" >> $GITHUB_OUTPUT
-    - name: "Install Py (${{ steps.step-detect-py.outputs.py_version }})"
-      uses: actions/setup-python@v4
+        if ! command -v helm > /dev/null 2>&1; then
+            curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+            helm plugin install https://github.com/chartmuseum/helm-push
+        fi
+    - name: Install Go
+      uses: actions/setup-go@v5
+      env:
+        DEBIAN_FRONTEND: noninteractive
       with:
-        python-version: "${{ steps.step-detect-py.outputs.py_version }}"
-    - name: "Install Python requirements with pip"
+        go-version-file: go.mod
+    - name: Get Required Python Version
+      id: get-python-version
+      uses: mikefarah/yq@master
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      with:
+        cmd: >-
+          yq
+          '.project.requires-python | capture("(?<version>3.[0-9]+(\.[0-9]+)?)").version'
+          pyproject.toml
+    - name: Install Py (${{ steps.get-python-version.outputs.result }})
+      uses: actions/setup-python@v5
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      with:
+        python-version: ${{ steps.get-python-version.outputs.result }}
+    - name: Install Python Requirements
       shell: bash
-      run: python -m pip install awscli packaging
-
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        python -m pip install -U awscli packaging
