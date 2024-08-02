@@ -1,13 +1,15 @@
-name: 'Collect Logs'
+---
+name: Collect Logs
 description: >-
   Store any log files as artifacts.
 inputs:
   jobname:
     default: ${{ github.job }}
+    description: ""
 runs:
-  using: "composite"
+  using: composite
   steps:
-    - name: "Gather Logs"
+    - name: Gather Logs
       shell: bash
       run: |
         mkdir -p /tmp/test-logs
@@ -48,8 +50,8 @@ runs:
         fi
         cp /tmp/*.yaml /tmp/test-logs || true
         cp /tmp/kat-client-*.log /tmp/test-logs || true
-    - name: "Upload Logs"
-      uses: actions/upload-artifact@v3
+    - name: Upload Logs
+      uses: actions/upload-artifact@v4
       with:
         name: logs-${{ inputs.jobname }}
         path: /tmp/test-logs
