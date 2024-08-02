@@ -20,3 +20,4 @@
 python/tests/
 **/__pycache__/
 python/ambassador.egg-info
+**/venv
