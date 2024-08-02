@@ -19,11 +19,11 @@ $(OSS_HOME)/build-aux/pip-show.txt: docker/base-pip.docker.tag.local
 clean: build-aux/pip-show.txt.rm
 
 $(OSS_HOME)/build-aux/go-version.txt: $(_go-version/deps)
-	$(_go-version/cmd) > $@
+	{ sed -nr 's/^go ([0-9]+([.][0-9]+)*)/\1/p' go.mod; } > $@
 clean: build-aux/go-version.txt.rm
 
-$(OSS_HOME)/build-aux/py-version.txt: docker/base-python/Dockerfile
-	{ grep -o 'python3=\S*' | cut -d= -f2; } < $< > $@
+$(OSS_HOME)/build-aux/py-version.txt: pyproject.toml
+	{ yq '.project.requires-python | capture("(?<version>3.[0-9]+(\.[0-9]+)?)").version' $(OSS_HOME)/pyproject.toml; } < $< > $@
 clean: build-aux/py-version.txt.rm
 
 $(OSS_HOME)/build-aux/go1%.src.tar.gz:
