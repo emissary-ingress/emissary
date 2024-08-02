@@ -1,9 +1,10 @@
+---
 name: k8s-e2e
 
 "on":
-  pull_request: {}
+  pull_request: { }
   schedule:
-    - cron: "0 7 * * *" # at 7am UTC everyday
+    - cron: 0 7 * * *  # at 7am UTC everyday
   workflow_dispatch:
 
 jobs:
@@ -18,11 +19,12 @@ jobs:
       fail-fast: false
       matrix:
         k8s:
-          [
-            { k3s: 1.26.9+k3s1, kubectl: 1.26.9 },
-            { k3s: 1.27.6+k3s1, kubectl: 1.27.6 },
-            { k3s: 1.28.2+k3s1, kubectl: 1.28.2 },
-          ]
+          - k3s: 1.26.9+k3s1
+            kubectl: 1.26.9
+          - k3s: 1.27.6+k3s1
+            kubectl: 1.27.6
+          - k3s: 1.28.2+k3s1
+            kubectl: 1.28.2
         test:
           - integration-tests
           - kat-envoy3-tests-1-of-5
@@ -32,17 +34,20 @@ jobs:
           - kat-envoy3-tests-5-of-5
     name: ${{matrix.k8s.kubectl}}-${{ matrix.test }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: "Docker Login"
-        uses: docker/login-action@v2
+      - name: Docker Login
+        uses: docker/login-action@v3
+        if: ${{ env.should_run }}
+        env:
+          should_run: ${{ (secrets.GH_DOCKER_RELEASE_USERNAME != '') && (secrets.GH_DOCKER_RELEASE_TOKEN != '') }}
         with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+          registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
+          username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
       - name: Create integration test cluster
         env:
           K3S_VERSION: ${{matrix.k8s.k3s}}
@@ -53,18 +58,20 @@ jobs:
 
           make ci/setup-k3d
       - name: Setup integration test environment
+        env:
+          KAT_REQ_LIMIT: 900
+          DEV_KUBE_NO_PVC: "yes"
+          DEV_KUBECONFIG: ~/.kube/config
+          DEV_REGISTRY: ${{ secrets.DEV_REGISTRY || vars.DEV_REGISTRY }}
         run: |
-          export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=900
-          export DEV_KUBECONFIG=~/.kube/config
-          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
           make python-integration-test-environment
       - name: Run ${{ matrix.test }}
+        env:
+          KAT_REQ_LIMIT: 900
+          DEV_KUBE_NO_PVC: "yes"
+          DEV_KUBECONFIG: ~/.kube/config
+          DEV_REGISTRY: ${{ secrets.DEV_REGISTRY || vars.DEV_REGISTRY }}
         run: |
-          export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=900
-          export DEV_KUBECONFIG=~/.kube/config
-          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
           make pytest-${{ matrix.test }}
       - uses: ./.github/actions/after-job
         if: always()
