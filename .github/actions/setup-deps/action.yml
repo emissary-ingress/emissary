@@ -31,14 +31,14 @@ runs:
                 | test("^GitHub CLI ([0-9.]+)+ " + $os + " " + $arch + "$"; "i")
             ).browser_download_url )
           | first
-      run: >-
-        sudo apt-get install -y rsync iproute2 net-tools
+      run: |
+        sudo apt-get install -y rsync iproute2 net-tools \
         && if ! command gh > /dev/null 2>&1; then
-            ARCH="$(uname -m | sed 's#x86_64#amd64#g; s#aarch64#arm64#g')"
+            ARCH="$(uname -m | sed 's#x86_64#amd64#g; s#aarch64#arm64#g')" \
             OS="$(uname -s | tr '[[:upper:]]' '[[:lower:]]' | sed 's#darwin#macOS#g')";
-            curl -fsSL -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/cli/cli/releases
-            | jq -r --arg os "${OS}" --arg arch "${ARCH}" "${JQ_FILTER}"
-            | xargs curl -fsSL
+            curl -fsSL -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/cli/cli/releases \
+            | jq -r --arg os "${OS}" --arg arch "${ARCH}" "${JQ_FILTER}" \
+            | xargs curl -fsSL \
             | tar  --strip-components=1 -C / -xz ;
         fi
     - name: Install Helm
