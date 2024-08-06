@@ -2,11 +2,11 @@
 name: job-promote-to-passed
 
 "on":
-  push:
-    branches:
-      - master
-      - release/v*
-  pull_request: { }
+  # push:
+  #   branches:
+  #     - master
+  #     - release/v*
+  # pull_request: { }
   workflow_dispatch:
 
 jobs:

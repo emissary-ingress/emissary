@@ -1,9 +1,13 @@
 ---
 name: promote-to-ga
+
 "on":
-  push:
-    tags:
-      - v[0-9]+.[0-9]+.[0-9]+
+  # push:
+  #   tags:
+  #     - v[0-9]+.[0-9]+.[0-9]+
+  workflow_dispatch:
+
+
 jobs:
   promote-to-ga:
     runs-on: ubuntu-latest

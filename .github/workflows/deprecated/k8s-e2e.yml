@@ -2,9 +2,9 @@
 name: k8s-e2e
 
 "on":
-  pull_request: { }
-  schedule:
-    - cron: 0 7 * * *  # at 7am UTC everyday
+  # pull_request: { }
+  # schedule:
+  #   - cron: 0 7 * * *  # at 7am UTC everyday
   workflow_dispatch:
 
 jobs:

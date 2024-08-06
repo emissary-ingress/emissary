@@ -1,9 +1,12 @@
 ---
 name: chart-publish
+
 "on":
-  push:
-    tags:
-      - chart/v*
+  # push:
+  #   tags:
+  #     - chart/v*
+  workflow_dispatch:
+
 jobs:
   chart-publish:
     runs-on: ubuntu-latest
