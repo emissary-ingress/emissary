@@ -13,6 +13,7 @@ from typing import (
     Type,
     TypeVar,
 )
+from typing import cast as typecast
 
 from .k8sobject import KubernetesObject, KubernetesObjectKey
 
@@ -181,7 +182,12 @@ class DependencyManager:
     injectors: Mapping[Any, DependencyInjector]
 
     def __init__(self, deps: Collection[D]) -> None:
-        self.deps = {dep.__class__: dep for dep in deps}
+        # DependencyMapping requires __contains__ and __getitem__ to be
+        # defined, which dicts do -- however, DependencyMapping also
+        # requires that the argument to those two methods be a Type[D],
+        # which dicts do not. MyPy doesn't like this, so we have to cast
+        # the dict to the correct type.
+        self.deps = typecast(DependencyMapping, {dep.__class__: dep for dep in deps})
         self.injectors = defaultdict(lambda: DependencyInjector(self.deps))
 
     def for_instance(self, obj: Any) -> DependencyInjector:
