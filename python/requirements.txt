@@ -38,7 +38,7 @@ markupsafe==2.1.5
     #   werkzeug
 orjson==3.10.3
     # via -r requirements.in
-packaging==24.0
+packaging==24.1
     # via gunicorn
 prometheus-client==0.20.0
     # via -r requirements.in
