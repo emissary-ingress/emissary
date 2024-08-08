@@ -30,7 +30,7 @@ jinja2==3.1.4
     # via flask
 jsonpatch==1.33
     # via -r requirements.in
-jsonpointer==2.4
+jsonpointer==3.0.0
     # via jsonpatch
 markupsafe==2.1.5
     # via
