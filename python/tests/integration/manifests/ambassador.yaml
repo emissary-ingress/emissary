@@ -112,6 +112,10 @@ metadata:
 spec:
   containers:
   - env:
+    - name: HOST_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.hostIP
     - name: AMBASSADOR_NAMESPACE
       valueFrom:
         fieldRef:
