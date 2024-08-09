@@ -220,6 +220,10 @@ spec:
               containerPort: {{ .Values.adminService.goPluginMetricsPort}}
             {{- end}}
           env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
             {{- if .Values.adminService.goPluginMetricsPort}}
             - name: ENABLE_PLUGIN_FILTER_METRICS
               value: "true"
