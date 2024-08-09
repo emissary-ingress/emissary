@@ -68,7 +68,7 @@ jobs:
       - name: Create Python Virtual Env
         shell: bash
         run: >-
-          make python-dev-setup
+          make python-virtual-environment
       - name: Run Python Unit Tests
         env:
           PYTEST_ARGS: --cov-branch --cov=ambassador --cov-report=html:/tmp/cov_html
