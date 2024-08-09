@@ -4,8 +4,9 @@ name: lint-test-build-release
 "on":
   push:
     branches:
-      - master
-      - release/v*
+      # - master
+      # - release/v*
+      - dev/v*
   pull_request: { }
   workflow_dispatch:
 
@@ -121,13 +122,15 @@ jobs:
       - build
     runs-on: ubuntu-latest
     steps:
-      - name: Install Deps
-        uses: ./.github/actions/setup-deps
-      - name: GoReleaser Build
-        shell: bash
-        run: |
-          echo 'insert gh cli magic here'
-          exit 412
-      - name: Collect Job Logs
-        uses: ./.github/actions/after-job
-        if: always()
+      - name: Would Release
+        run: echo "Would release here..."
+      # - name: Install Deps
+      #   uses: ./.github/actions/setup-deps
+      # - name: GoReleaser Build
+      #   shell: bash
+      #   run: |
+      #     echo 'insert gh cli magic here'
+      #     exit 412
+      # - name: Collect Job Logs
+      #   uses: ./.github/actions/after-job
+      #   if: always()
