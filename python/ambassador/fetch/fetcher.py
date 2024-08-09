@@ -102,12 +102,7 @@ class ResourceFetcher:
             init_dir = "/ambassador/init-config"
 
             if os.path.isdir(init_dir):
-                self.load_from_filesystem(
-                    init_dir,
-                    k8s=True,
-                    recurse=True,
-                    finalize=False
-                )
+                self.load_from_filesystem(init_dir, k8s=True, recurse=True, finalize=False)
 
     @property
     def elements(self) -> List[ACResource]:

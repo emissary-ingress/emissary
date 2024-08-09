@@ -47,7 +47,7 @@ class IRTestResource(IRBuffer):
         rkey: str = "ir.testresource",
         name: str = "ir.testresource",
         kind: str = "IRTestResource",
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, **kwargs)
 

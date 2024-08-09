@@ -60,7 +60,7 @@ class ACResource(Resource):
         metadata_labels: Optional[str] = None,
         apiVersion: Optional[str] = "getambassador.io/v0",
         serialization: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         if not rkey:
             raise Exception("ACResource requires rkey")
@@ -91,7 +91,7 @@ class ACResource(Resource):
             namespace=namespace,
             apiVersion=typecast(str, apiVersion),
             serialization=serialization,
-            **kwargs
+            **kwargs,
         )
 
     # XXX It kind of offends me that we need this, exactly. Meta-ize this maybe?
@@ -107,7 +107,7 @@ class ACResource(Resource):
         namespace: Optional[str] = None,
         metadata_labels: Optional[str] = None,
         apiVersion: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> R:
         new_name = name or other.name
         new_apiVersion = apiVersion or other.apiVersion
@@ -135,7 +135,7 @@ class ACResource(Resource):
             namespace=new_namespace,
             metadata_labels=new_metadata_labels,
             serialization=serialization,
-            **kwargs
+            **kwargs,
         )
 
     # ACResource.INTERNAL is the magic ACResource we use to represent something created by

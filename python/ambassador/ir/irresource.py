@@ -44,7 +44,7 @@ class IRResource(Resource):
         metadata_labels: Optional[Dict[str, str]] = None,
         location: str = "--internal--",
         apiVersion: str = "ambassador/ir",
-        **kwargs
+        **kwargs,
     ) -> None:
         # print("IRResource __init__ (%s %s)" % (kind, name))
 
@@ -60,7 +60,7 @@ class IRResource(Resource):
             namespace=namespace,
             metadata_labels=metadata_labels,
             apiVersion=apiVersion,
-            **kwargs
+            **kwargs,
         )
         self.ir = ir
         self.logger = ir.logger
@@ -144,7 +144,7 @@ class IRResource(Resource):
         key: str,
         *args,
         default_class: Optional[str] = None,
-        default_key: Optional[str] = None
+        default_key: Optional[str] = None,
     ) -> Any:
         """
         Look up a key in this IRResource, with a fallback to the Ambassador module's "defaults"

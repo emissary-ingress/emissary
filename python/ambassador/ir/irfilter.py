@@ -18,7 +18,7 @@ class IRFilter(IRResource):
         location: str = "--internal--",
         type: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(
             ir=ir,
@@ -29,7 +29,7 @@ class IRFilter(IRResource):
             location=location,
             type=type,
             config=config,
-            **kwargs
+            **kwargs,
         )
 
     def config_dict(self) -> Optional[Dict[str, Any]]:

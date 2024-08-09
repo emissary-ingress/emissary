@@ -422,7 +422,7 @@ spec:
             **base,
             client_crt=TLSCerts["presto.example.com"].pubcert,
             client_key=TLSCerts["presto.example.com"].privkey,
-            error="tls: revoked certificate"
+            error="tls: revoked certificate",
         )
 
     def requirements(self):
@@ -1980,7 +1980,7 @@ spec:
         yield Query(
             **base,
             client_crt=TLSCerts["presto.example.com"].pubcert,
-            client_key=TLSCerts["presto.example.com"].privkey
+            client_key=TLSCerts["presto.example.com"].privkey,
         )
 
         # Check that it requires the client cert.
@@ -1999,7 +1999,7 @@ spec:
                     if bug_clientcert_reset
                     else []
                 )
-            )
+            ),
         )
 
         # Check that it's validating the client cert against the CA cert.
@@ -2008,7 +2008,7 @@ spec:
             client_crt=TLSCerts["localhost"].pubcert,
             client_key=TLSCerts["localhost"].privkey,
             maxTLSv="v1.2",
-            error="tls: handshake failure"
+            error="tls: handshake failure",
         )
 
     def requirements(self):
@@ -2138,7 +2138,7 @@ spec:
         yield Query(
             **base,
             client_crt=TLSCerts["presto.example.com"].pubcert,
-            client_key=TLSCerts["presto.example.com"].privkey
+            client_key=TLSCerts["presto.example.com"].privkey,
         )
 
         # Check that it requires the client cert.
@@ -2157,7 +2157,7 @@ spec:
                     if bug_clientcert_reset
                     else []
                 )
-            )
+            ),
         )
 
         # Check that it's validating the client cert against the CA cert.
@@ -2166,7 +2166,7 @@ spec:
             client_crt=TLSCerts["localhost"].pubcert,
             client_key=TLSCerts["localhost"].privkey,
             maxTLSv="v1.2",
-            error="tls: handshake failure"
+            error="tls: handshake failure",
         )
 
     def requirements(self):
@@ -2312,7 +2312,7 @@ spec:
         yield Query(
             **base,
             client_crt=TLSCerts["presto.example.com"].pubcert,
-            client_key=TLSCerts["presto.example.com"].privkey
+            client_key=TLSCerts["presto.example.com"].privkey,
         )
 
     def requirements(self):
@@ -2450,7 +2450,7 @@ spec:
             **base,
             client_crt=TLSCerts["presto.example.com"].pubcert,
             client_key=TLSCerts["presto.example.com"].privkey,
-            error="tls: revoked certificate"
+            error="tls: revoked certificate",
         )
 
     def requirements(self):

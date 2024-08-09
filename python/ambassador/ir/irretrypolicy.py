@@ -15,7 +15,7 @@ class IRRetryPolicy(IRResource):
         rkey: str = "ir.retrypolicy",
         kind: str = "IRRetryPolicy",
         name: str = "ir.retrypolicy",
-        **kwargs
+        **kwargs,
     ) -> None:
         # print("IRRetryPolicy __init__ (%s %s %s)" % (kind, name, kwargs))
 

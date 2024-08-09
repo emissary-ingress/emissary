@@ -45,7 +45,7 @@ class IRAmbassadorTLS(IRResource):
         kind: str = "IRTLSModule",
         name: str = "ir.tlsmodule",
         enabled: bool = True,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Initialize an IRAmbassadorTLS from the raw fields of its Resource.
@@ -83,7 +83,7 @@ class TLSModuleFactory:
                 kind=new_kind,
                 name=new_name,
                 location=new_location,
-                **new_args
+                **new_args,
             )
 
             ir.logger.debug("TLSModuleFactory saved TLS module: %s" % ir.tls_module.as_json())
