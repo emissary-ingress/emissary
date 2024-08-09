@@ -1,12 +1,14 @@
-name: 'After-job actions'
+---
+name: After-job actions
 description: >-
   Perform generic actions that should be performed at the end of every
   job.
 inputs:
   jobname:
     default: ${{ github.job }}
+    description: ""
 runs:
-  using: "composite"
+  using: composite
   steps:
     # collect logs
     - uses: ./.github/actions/collect-logs
@@ -15,7 +17,7 @@ runs:
         jobname: ${{ inputs.jobname }}
 
     # dirty check
-    - name: "Check that the job didn't change any files"
+    - name: Check that the job didn't change any files
       uses: ./.github/actions/git-dirty-check
       if: ${{ ! failure() }}
 
@@ -28,10 +30,10 @@ runs:
     - run: make clobber
       shell: bash
       if: ${{ ! failure() }}
-    - name: "Check that `make clobber` didn't change any files"
+    - name: Check that `make clobber` didn't change any files
       uses: ./.github/actions/git-dirty-check
       if: ${{ ! failure() }}
-    - name: "Check that `make clobber` did everything it's supposed to"
+    - name: Check that `make clobber` did everything it's supposed to
       shell: bash
       run: $GITHUB_ACTION_PATH/check-clobber.sh
       if: ${{ ! failure() }}

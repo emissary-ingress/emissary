@@ -1,0 +1,133 @@
+---
+name: lint-test-build-release
+
+"on":
+  push:
+    branches:
+      - master
+      - release/v*
+  pull_request: { }
+  workflow_dispatch:
+
+jobs:
+  lint:  ########################################################################
+    runs-on: ubuntu-latest
+    name: Lint
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+      - name: Lint Dependencies
+        shell: bash
+        run: |
+          make lint-deps
+      - name: Lint Source Files
+        shell: bash
+        run: |
+          make lint
+      - name: Collect Job Logs
+        uses: ./.github/actions/after-job
+        if: always()
+
+  gotest:  ######################################################################
+    runs-on: ubuntu-latest
+    name: Run Golang Tests
+    needs:
+      - lint
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+      - name: Run Golang Unit Tests
+        shell: bash
+        run: |
+          make gotest
+      - name: Collect Job Logs
+        uses: ./.github/actions/after-job
+        if: always()
+
+  pytest:  ######################################################################
+    runs-on: ubuntu-latest
+    name: Run Python Tests
+    needs:
+      - lint
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+      - name: Create Python Virtual Env
+        shell: bash
+        run: >-
+          make python-dev-setup
+      - name: Run Python Unit Tests
+        env:
+          PYTEST_ARGS: >
+            --cov-branch
+            --cov=ambassador
+            --cov-report=html:/tmp/cov_html
+        run: |
+          source venv/bin/activate
+          make pytest-unit-tests
+      - name: Collect Job Logs
+        uses: ./.github/actions/after-job
+        if: always()
+
+  build:  #######################################################################
+    name: Build w/ GoReleaser
+    needs:
+      - gotest
+      - pytest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: ~> v2
+          install-only: true
+          distribution: goreleaser
+      - name: GoReleaser Check(s)
+        shell: bash
+        run: |
+          goreleaser check
+          goreleaser healthcheck
+      - name: GoReleaser Build
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          goreleaser build --clean
+      - name: Collect Job Logs
+        uses: ./.github/actions/after-job
+        if: always()
+
+  release:  #####################################################################
+    name: Create GitHub Release
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Deps
+        uses: ./.github/actions/setup-deps
+      - name: GoReleaser Build
+        shell: bash
+        run: |
+          echo 'insert gh cli magic here'
+          exit 412
+      - name: Collect Job Logs
+        uses: ./.github/actions/after-job
+        if: always()

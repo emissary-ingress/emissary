@@ -1,18 +1,19 @@
+---
 name: job-promote-to-passed
 
 "on":
-  push:
-    branches:
-      - master
-      - release/v*
-  pull_request: {}
+  # push:
+  #   branches:
+  #     - master
+  #     - release/v*
+  # pull_request: { }
   workflow_dispatch:
 
 jobs:
   lint: ########################################################################
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install Deps
@@ -29,19 +30,23 @@ jobs:
   generate: ####################################################################
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: "Git Login"
+      - name: Git Login
+        if: ${{ env.should_run }}
+        env:
+          should_run: ${{ secrets.GHA_SSH_KEY != '' }}
         run: |
-          if [[ -n '${{ secrets.GHA_SSH_KEY }}' ]]; then
-            install -m700 -d ~/.ssh
-            install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
-          fi
-      - name: "Docker Login"
-        uses: docker/login-action@v2
+          install -m700 -d ~/.ssh
+          install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
+      - name: Docker Login
+        uses: docker/login-action@v3
+        if: ${{ env.should_run }}
+        env:
+          should_run: ${{ (secrets.GH_DOCKER_RELEASE_USERNAME != '') && (secrets.GH_DOCKER_RELEASE_TOKEN != '') }}
         with:
           registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
@@ -50,43 +55,47 @@ jobs:
         shell: bash
         run: |
           make generate
-      - name: "Update dependency information after dependabot change"
+      - name: Update dependency information after dependabot change
         uses: datawire/go-mkopensource/actions/save-dependabot-changes@v0.0.7
         id: changed-by-dependabot
         with:
           branches_to_skip: master
-      - name: "Abort if dependencies changed"
+      - name: Abort if dependencies changed
         if: steps.changed-by-dependabot.outputs.is_dirty == 'true'
         run: |
           echo "Dependabot triggered a dependency update. Aborting workflow."
           exit 1
       - uses: ./.github/actions/git-dirty-check
-        name: "Check Git not dirty from 'make generate'"
+        name: Check Git not dirty from 'make generate'
       - name: "'make generate' (again!)"
         shell: bash
         run: |
           make generate
       - uses: ./.github/actions/git-dirty-check
-        name: "Check Git not dirty from 'make generate' (again!)"
+        name: Check Git not dirty from 'make generate' (again!)
       - uses: ./.github/actions/after-job
         if: always()
 
   check-envoy-protos: ####################################################################
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: "Git Login"
+      - name: Git Login
+        if: ${{ env.should_run }}
+        env:
+          should_run: ${{ secrets.GHA_SSH_KEY != '' }}
         run: |
-          if [[ -n '${{ secrets.GHA_SSH_KEY }}' ]]; then
-            install -m700 -d ~/.ssh
-            install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
-          fi
-      - name: "Docker Login"
-        uses: docker/login-action@v2
+          install -m700 -d ~/.ssh
+          install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
+      - name: Docker Login
+        uses: docker/login-action@v3
+        if: ${{ env.should_run }}
+        env:
+          should_run: ${{ (secrets.GH_DOCKER_RELEASE_USERNAME != '') && (secrets.GH_DOCKER_RELEASE_TOKEN != '') }}
         with:
           registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
           username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
@@ -95,7 +104,7 @@ jobs:
         shell: bash
         run: |
           make compile-envoy-protos
-      - name: "Check Git not dirty from 'make compile-envoy-protos'"
+      - name: Check Git not dirty from 'make compile-envoy-protos'
         uses: ./.github/actions/git-dirty-check
       - uses: ./.github/actions/after-job
         if: always()
@@ -103,38 +112,44 @@ jobs:
   check-envoy-version: #########################################################
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: "Git Login"
+      - name: Git Login
+        if: ${{ env.should_run }}
+        env:
+          should_run: ${{ secrets.GHA_SSH_KEY != '' }}
         run: |
-          if [[ -n '${{ secrets.GHA_SSH_KEY }}' ]]; then
-            install -m700 -d ~/.ssh
-            install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
-          fi
-      - name: "Docker Login"
-        # This is important if ENVOY_DOCKER_REPO is a private repo.
-        uses: docker/login-action@v2
+          install -m700 -d ~/.ssh
+          install -m600 /dev/stdin ~/.ssh/id_rsa <<<'${{ secrets.GHA_SSH_KEY }}'
+      - name: Docker Login
+        uses: docker/login-action@v3
+        if: ${{ env.should_run }}
+        env:
+          should_run: ${{ (secrets.GH_DOCKER_RELEASE_USERNAME != '') && (secrets.GH_DOCKER_RELEASE_TOKEN != '') }}
         with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-      - run: make check-envoy-version
+          registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
+          username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
+      - name: "'make check-envoy-version'"
+        run: |
+          make check-envoy-version
       - uses: ./.github/actions/after-job
         if: always()
 
   # Tests ######################################################################
   apiext-e2e:
     runs-on: ubuntu-latest
+    env:
       APIEXT_E2E: ""
       APIEXT_BUILD_ARCH: linux/amd64
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Set up Docker Buildx
+      - name: Set up Docker BuildX
         uses: docker/setup-buildx-action@v3
         with:
           driver-opts: |
@@ -143,8 +158,10 @@ jobs:
         uses: ./.github/actions/setup-deps
       - name: Install k3d
         shell: bash
+        env:
+          TAG: ${{ vars.K3D_VERSION || 'v5.6.0' }}
         run: |
-          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.6.0 bash
+          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
           k3d --version
       - name: go mod vendor
         shell: bash
@@ -153,29 +170,35 @@ jobs:
       - name: run apiext-e2e tests
         shell: bash
         run: |
-          go test -p 1 -parallel 1 -v -tags=apiext ./test/apiext/... -timeout 15m
+          go test -p 1 -parallel 1 -v -tags=apiext ./test/apiext/... -timeout=15m -ldflags=-linkmode=internal
+
   check-gotest:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: "Docker Login"
-        uses: docker/login-action@v2
+      - name: Docker Login
+        uses: docker/login-action@v3
+        if: ${{ env.should_run }}
+        env:
+          should_run: ${{ (secrets.GH_DOCKER_RELEASE_USERNAME != '') && (secrets.GH_DOCKER_RELEASE_TOKEN != '') }}
         with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+          registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
+          username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
       - name: make gotest
         shell: bash
         run: |
           make gotest
       - uses: ./.github/actions/after-job
         if: always()
+
   check-pytest:
     runs-on: ubuntu-latest
+    env:
       # See pkg/kubeapply/resource_kubeapply.go
       DEV_USE_IMAGEPULLSECRET: ${{ secrets.DEV_USE_IMAGEPULLSECRET }}
       DOCKER_BUILD_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
@@ -192,17 +215,20 @@ jobs:
           - kat-envoy3-tests-5-of-5
     name: pytest-${{ matrix.test }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: "Docker Login"
-        uses: docker/login-action@v2
+      - name: Docker Login
+        uses: docker/login-action@v3
+        if: ${{ env.should_run }}
+        env:
+          should_run: ${{ (secrets.GH_DOCKER_RELEASE_USERNAME != '') && (secrets.GH_DOCKER_RELEASE_TOKEN != '') }}
         with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+          registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
+          username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
       - name: Create integration test cluster
         run: |
           sudo sysctl -w fs.file-max=1600000
@@ -210,48 +236,57 @@ jobs:
 
           make ci/setup-k3d
       - name: Setup integration test environment
+        env:
+          KAT_REQ_LIMIT: 900
+          DEV_KUBE_NO_PVC: "yes"
+          DEV_KUBECONFIG: ~/.kube/config
+          DEV_REGISTRY: ${{ secrets.DEV_REGISTRY || vars.DEV_REGISTRY }}
         run: |
-          export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=900
-          export DEV_KUBECONFIG=~/.kube/config
-          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
           make python-integration-test-environment
       - name: Run ${{ matrix.test }}
+        env:
+          KAT_REQ_LIMIT: 900
+          DEV_KUBE_NO_PVC: "yes"
+          DEV_KUBECONFIG: ~/.kube/config
+          DEV_REGISTRY: ${{ secrets.DEV_REGISTRY || vars.DEV_REGISTRY }}
         run: |
-          export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=900
-          export DEV_KUBECONFIG=~/.kube/config
-          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
           make pytest-${{ matrix.test }}
       - uses: ./.github/actions/after-job
         if: always()
         with:
           jobname: check-pytest-${{ matrix.test }}
+
   check-pytest-unit:
     runs-on: ubuntu-latest
     name: pytest-unit
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: "Docker Login"
-        uses: docker/login-action@v2
+      - name: Docker Login
+        uses: docker/login-action@v3
+        if: ${{ env.should_run }}
+        env:
+          should_run: ${{ (secrets.GH_DOCKER_RELEASE_USERNAME != '') && (secrets.GH_DOCKER_RELEASE_TOKEN != '') }}
         with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+          registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
+          username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
       - name: Create Python virtual environment
+        env:
+          DEV_REGISTRY: ${{ secrets.DEV_REGISTRY || vars.DEV_REGISTRY }}
         run: |
-          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
           make python-virtual-environment
       - name: Run Python unit tests
+        env:
+          PYTEST_ARGS: " --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html "
         run: |
-          export PYTEST_ARGS=' --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html '
           make pytest-unit-tests
       - uses: ./.github/actions/after-job
         if: always()
+
   check-chart:
     runs-on: ubuntu-latest
     env:
@@ -261,12 +296,16 @@ jobs:
       DOCKER_BUILD_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
       DOCKER_BUILD_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
     steps:
-      - uses: docker/login-action@v2
+      - name: Docker Login
+        uses: docker/login-action@v3
+        if: ${{ env.should_run }}
+        env:
+          should_run: ${{ (secrets.GH_DOCKER_RELEASE_USERNAME != '') && (secrets.GH_DOCKER_RELEASE_TOKEN != '') }}
         with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-      - uses: actions/checkout@v3
+          registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
+          username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
@@ -288,28 +327,31 @@ jobs:
     outputs:
       image-tag: ${{ steps.build-image.outputs.image-tag }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Install Deps
         uses: ./.github/actions/setup-deps
-      - name: "Docker Login"
-        uses: docker/login-action@v2
+      - name: Docker Login
+        uses: docker/login-action@v3
+        if: ${{ env.should_run }}
+        env:
+          should_run: ${{ (secrets.GH_DOCKER_RELEASE_USERNAME != '') && (secrets.GH_DOCKER_RELEASE_TOKEN != '') }}
         with:
-          registry: ${{ (!startsWith(secrets.DEV_REGISTRY, 'docker.io/')) && secrets.DEV_REGISTRY || null }}
-          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-      - name: "make push"
+          registry: ${{ (!startsWith(secrets.RELEASE_REGISTRY, 'docker.io/')) && secrets.RELEASE_REGISTRY || null }}
+          username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
+      - name: "'make push'"
         shell: bash
         run: |
           make push
-      - name: "capture image tag"
+      - name: Capture Image Tag
         id: build-image
         shell: bash
         run: |
           echo "image-tag=$(build-aux/version.sh)" >> $GITHUB_OUTPUT
-      - name: "make push-dev"
+      - name: "'make push-dev'"
         shell: bash
         run: |
           make push-dev
@@ -322,32 +364,33 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     steps:
-      # upload of results to github uses git so checkout of code is needed
-      - uses: actions/checkout@v3
+      # upload of results to GitHub uses git so checkout of code is needed
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: "Log image-tag"
+      - name: Log image-tag
         shell: bash
-        run: echo ${{needs.build.outputs.image-tag}}
+        run: |
+            echo ${{needs.build.outputs.image-tag}}
       - name: Scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.23
         with:
-          image-ref: "${{secrets.DEV_REGISTRY}}/emissary:${{needs.build.outputs.image-tag}}"
-          format: "sarif"
-          exit-code: 0 # only warn for now until we have backed it into our processes
-          output: "trivy-results.sarif"
+          image-ref: ${{secrets.DEV_REGISTRY}}/emissary:${{needs.build.outputs.image-tag}}
+          format: sarif
+          exit-code: 0  # only warn for now until we have backed it into our processes
+          output: trivy-results.sarif
           ignore-unfixed: true
-          vuln-type: "os,library"
-          severity: "CRITICAL,HIGH"
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
       - name: Upload Scan to GitHub Security Tab
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: "trivy-results.sarif"
+          sarif_file: trivy-results.sarif
 
   ##############################################################################
   pass:
-    name: "job-promote-to-passed" # This is the job name that the branch protection looks for
+    name: job-promote-to-passed  # This is the job name that the branch protection looks for
     needs:
       - apiext-e2e
       - lint
@@ -364,4 +407,4 @@ jobs:
     steps:
       - name: No-Op
         if: ${{ false }}
-        run: "echo Pass"
+        run: echo Pass

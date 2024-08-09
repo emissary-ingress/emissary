@@ -1,5 +1,5 @@
 # Real early setup
-OSS_HOME := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))# Do this *before* 'include'ing anything else
+OSS_HOME := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))# Do this *before* 'include'-ing anything else
 include build-aux/init-sanitize-env.mk
 include build-aux/init-configure-make-itself.mk
 include build-aux/prelude.mk # In Haskell, "Prelude" is what they call the stdlib builtins that get get imported by default before anything else
@@ -71,7 +71,7 @@ endif
 EMISSARY_NAME ?= emissary
 
 _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
-IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
+IS_PRIVATE ?= $(findstring 'private',$(_git_remote_urls))
 
 include $(OSS_HOME)/build-aux/ci.mk
 include $(OSS_HOME)/build-aux/deps.mk
@@ -153,7 +153,7 @@ irun-emissary-agent: bin/run-emissary-agent.sh ## Run emissary-agent using the e
 	bin/run-emissary-agent.sh
 
 ## Helper target for setting up local dev environment when working with python components
-## such as pytests, diagd, etc...
+## such as pytest, diagd, etc...
 .PHONY: python-dev-setup
 python-dev-setup:
 # recreate venv and upgrade pip
@@ -176,3 +176,8 @@ clean-changelog:
 
 .PHONY: generate-changelog
 generate-changelog: clean-changelog $(PWD)/CHANGELOG.md
+
+
+.PHONY: list-target-names
+list-target-names:
+	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$'

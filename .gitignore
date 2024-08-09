@@ -1,3 +1,5 @@
+**/venv
+tools/bin
 /build-output/
 /vendor/
 
