@@ -215,11 +215,19 @@ spec:
             {{- end}}
             - name: admin
               containerPort: {{ .Values.adminService.port }}
+            {{- if .Values.adminService.goPluginMetricsPort}}
+            - name: go-plugin-metrics-port
+              containerPort: {{ .Values.adminService.goPluginMetricsPort}}
+            {{- end}}
           env:
             - name: HOST_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            {{- if .Values.adminService.goPluginMetricsPort}}
+            - name: ENABLE_PLUGIN_FILTER_METRICS
+              value: "true"
+            {{- end }}
             {{- if .Values.prometheusExporter.enabled }}
             - name: STATSD_ENABLED
               value: "true"
