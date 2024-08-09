@@ -155,12 +155,15 @@ pytest: python-integration-test-environment
 	$(MAKE) pytest-run-tests PYTEST_ARGS="$$PYTEST_ARGS python/tests"
 .PHONY: pytest
 
+# XXX We use python -m pytest to force the current directory to be included in
+# sys.path when running the tests. This is horrible and needs to be properly
+# fixed.
 pytest-unit-tests: python-virtual-environment
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
 	set -e; { \
 		. $(OSS_HOME)/venv/bin/activate; \
 		export SOURCE_ROOT=$(CURDIR); \
-		pytest --tb=short $(PYTEST_ARGS) python/tests/unit; \
+		cd python && python -m pytest --tb=short $(PYTEST_ARGS) tests/unit; \
 	}
 .PHONY: pytest-unit-tests
 
