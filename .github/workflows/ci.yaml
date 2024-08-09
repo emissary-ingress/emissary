@@ -71,10 +71,7 @@ jobs:
           make python-dev-setup
       - name: Run Python Unit Tests
         env:
-          PYTEST_ARGS: >
-            --cov-branch
-            --cov=ambassador
-            --cov-report=html:/tmp/cov_html
+          PYTEST_ARGS: --cov-branch --cov=ambassador --cov-report=html:/tmp/cov_html
         run: |
           source venv/bin/activate
           make pytest-unit-tests
