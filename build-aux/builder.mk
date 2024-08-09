@@ -166,6 +166,8 @@ pytest-unit-tests: python-virtual-environment
 		cd python && python -m pytest --tb=short $(PYTEST_ARGS) tests/unit; \
 	}
 .PHONY: pytest-unit-tests
+# Make sure to clobber python/.coverage.
+clobber: python/.coverage.rm-r
 
 pytest-unit: python-virtual-environment pytest-unit-tests
 .PHONY: pytest-unit
