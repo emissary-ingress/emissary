@@ -37,7 +37,7 @@ class V3Ready(dict):
     def generate(cls, config: "V3Config") -> None:
         # Inject the ready listener to the list of listeners
         config.ir.logger.info(
-            f"V3Ready: ==== listen on %s:%s" % (ambassador_ready_ip, ambassador_ready_port)
+            "V3Ready: ==== listen on %s:%s" % (ambassador_ready_ip, ambassador_ready_port)
         )
 
         typed_config = {

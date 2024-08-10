@@ -263,9 +263,9 @@ class IRTCPMappingGroup(IRBaseMappingGroup):
         for mapping in self.mappings:
             mapping.cluster = self.add_cluster_for_mapping(mapping, mapping.cluster_tag)
 
-        self.logger.debug(f"Normalizing weights in mappings now...")
+        self.logger.debug("Normalizing weights in mappings now...")
         if not self.normalize_weights_in_mappings():
-            self.post_error(f"Could not normalize mapping weights, ignoring...")
+            self.post_error("Could not normalize mapping weights, ignoring...")
             return []
 
         return list([mapping.cluster for mapping in self.mappings])

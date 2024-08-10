@@ -82,7 +82,7 @@ def v3prettyroute(route: DictifiedV3Route) -> str:
     if route.get("route"):
         target_str = f"ROUTE {route['route']['cluster']}"
     elif route.get("redirect"):
-        target_str = f"REDIRECT"
+        target_str = "REDIRECT"
 
     hcstr = route.get("_host_constraints") or "{i'*'}"
 
@@ -578,18 +578,18 @@ class V3Route(Cacheable):
         self.logger.debug(f"    - matches_domains: domains {', '.join(sorted(domains))}")
 
         if (not route_hosts) or ("*" in route_hosts):
-            self.logger.debug(f"    - matches_domains: nonspecific route_hosts")
+            self.logger.debug("    - matches_domains: nonspecific route_hosts")
             return True
 
         if "*" in domains:
-            self.logger.debug(f"    - matches_domains: nonspecific domains")
+            self.logger.debug("    - matches_domains: nonspecific domains")
             return True
 
         if any([self.matches_domain(domain) for domain in domains]):
-            self.logger.debug(f"    - matches_domains: domain match")
+            self.logger.debug("    - matches_domains: domain match")
             return True
 
-        self.logger.debug(f"    - matches_domains: nothing matches")
+        self.logger.debug("    - matches_domains: nothing matches")
         return False
 
     @classmethod

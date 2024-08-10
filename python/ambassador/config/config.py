@@ -281,7 +281,7 @@ class Config:
         the set of ACResources to be sorted in some way that makes sense.
         """
 
-        self.logger.debug(f"Loading config")
+        self.logger.debug("Loading config")
 
         rcount = 0
 

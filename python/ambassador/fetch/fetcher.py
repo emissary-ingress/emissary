@@ -331,7 +331,7 @@ class ResourceFetcher:
         if not os.path.isfile(pod_labels_path):
             if not self.alerted_about_labels:
                 self.aconf.post_error(
-                    f"Pod labels are not mounted in the Ambassador container; Kubernetes Ingress support is likely to be limited"
+                    "Pod labels are not mounted in the Ambassador container; Kubernetes Ingress support is likely to be limited"
                 )
                 self.alerted_about_labels = True
 

@@ -96,7 +96,7 @@ class IRBaseMappingGroup(IRResource):
         # Did we go over 100%?
         if current_weight > 100:
             self.post_error(
-                f"Total weight of mappings exceeds 100, please reconfigure for correct behavior..."
+                "Total weight of mappings exceeds 100, please reconfigure for correct behavior..."
             )
             return False
 

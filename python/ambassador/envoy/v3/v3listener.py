@@ -1132,7 +1132,7 @@ class V3Listener:
                         # The default sets the max-age in seconds to be 1 day and supports clients that speak h3 & h3-29 specifications
                         alt_svc_hdr = {
                             "key": "alt-svc",
-                            "value": f'h3=":443"; ma=86400, h3-29=":443"; ma=86400',
+                            "value": 'h3=":443"; ma=86400, h3-29=":443"; ma=86400',
                         }
 
                         vhost["response_headers_to_add"].append({"header": alt_svc_hdr})

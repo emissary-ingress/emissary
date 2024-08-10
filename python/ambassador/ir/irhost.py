@@ -582,7 +582,7 @@ class HostFactory:
                 break
 
         ir.logger.debug(
-            f"HostFactory: Host count %d, %s TLS termination contexts"
+            "HostFactory: Host count %d, %s TLS termination contexts"
             % (host_count, "with" if found_termination_context else "no")
         )
 
@@ -620,7 +620,7 @@ class HostFactory:
                     requestPolicy={"insecure": {"action": "Route"}},
                 )
             else:
-                ir.logger.debug(f"HostFactory: creating TLS-enabled default Host")
+                ir.logger.debug("HostFactory: creating TLS-enabled default Host")
 
                 host = IRHost(
                     ir,

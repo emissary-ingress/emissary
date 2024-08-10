@@ -321,7 +321,7 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
 
         # Finally, return the stored cluster. Done.
         self.ir.logger.debug(
-            f"IRHTTPMappingGroup: %s returning cluster %s for Mapping %s",
+            "IRHTTPMappingGroup: %s returning cluster %s for Mapping %s",
             self.group_id,
             stored,
             mapping.name,
@@ -342,7 +342,7 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
         add_response_headers: Dict[str, Any] = {}
         metadata_labels: Dict[str, str] = {}
 
-        self.ir.logger.debug(f"IRHTTPMappingGroup: finalize %s", self.group_id)
+        self.ir.logger.debug("IRHTTPMappingGroup: finalize %s", self.group_id)
 
         for mapping in sorted(self.mappings, key=lambda m: m.route_weight):
             # if verbose:
@@ -450,16 +450,16 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
 
         if not redir:
             self.ir.logger.debug(
-                f"IRHTTPMappingGroup: checking mapping clusters for %s", self.group_id
+                "IRHTTPMappingGroup: checking mapping clusters for %s", self.group_id
             )
 
             for mapping in self.mappings:
                 mapping.cluster = self.add_cluster_for_mapping(mapping, mapping.cluster_tag)
 
-            self.ir.logger.debug(f"IRHTTPMappingGroup: normalizing weights for %s", self.group_id)
+            self.ir.logger.debug("IRHTTPMappingGroup: normalizing weights for %s", self.group_id)
 
             if not self.normalize_weights_in_mappings():
-                self.post_error(f"Could not normalize mapping weights, ignoring...")
+                self.post_error("Could not normalize mapping weights, ignoring...")
                 return []
 
             return list([mapping.cluster for mapping in self.mappings])
