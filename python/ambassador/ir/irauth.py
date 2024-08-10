@@ -188,10 +188,10 @@ class IRAuth(IRFilter):
             self["failure_mode_allow"] = failure_mode_allow
 
         # Required fields check.
-        if self["api_version"] == None:
+        if self["api_version"] is None:
             self.post_error(RichStatus.fromError("AuthService config requires apiVersion field"))
 
-        if self["proto"] == None:
+        if self["proto"] is None:
             self.post_error(RichStatus.fromError("AuthService requires proto field."))
 
         if self.get("include_body") and self.get("allow_request_body"):

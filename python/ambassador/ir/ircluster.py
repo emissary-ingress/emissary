@@ -436,7 +436,7 @@ class IRCluster(IRResource):
 
         if other.targets:
             self.referenced_by(other)
-            if self.targets == None:
+            if self.targets is None:
                 self.targets = other.targets
             else:
                 self.targets = (

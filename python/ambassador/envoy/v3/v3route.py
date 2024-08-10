@@ -295,7 +295,7 @@ class V3Route(Cacheable):
         }
 
         if len(mapping) > 0:
-            if not "cluster" in mapping:
+            if "cluster" not in mapping:
                 config.ir.logger.error(
                     "%s: Mapping %s has no cluster? %s",
                     mapping.rkey,
@@ -379,7 +379,7 @@ class V3Route(Cacheable):
                         "response_map": {"mappers": filter_config["mappers"]},
                     }
 
-        if mapping.get("bypass_auth", False) or (group.get("host_redirect", None) != None):
+        if mapping.get("bypass_auth", False) or (group.get("host_redirect", None) is not None):
             typed_per_filter_config["envoy.filters.http.ext_authz"] = {
                 "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute",
                 "disabled": True,
@@ -406,13 +406,13 @@ class V3Route(Cacheable):
 
         request_headers_to_remove = group.get("remove_request_headers", None)
         if request_headers_to_remove:
-            if type(request_headers_to_remove) != list:
+            if type(request_headers_to_remove) is not list:
                 request_headers_to_remove = [request_headers_to_remove]
             self["request_headers_to_remove"] = request_headers_to_remove
 
         response_headers_to_remove = group.get("remove_response_headers", None)
         if response_headers_to_remove:
-            if type(response_headers_to_remove) != list:
+            if type(response_headers_to_remove) is not list:
                 response_headers_to_remove = [response_headers_to_remove]
             self["response_headers_to_remove"] = response_headers_to_remove
 

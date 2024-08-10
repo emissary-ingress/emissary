@@ -227,7 +227,7 @@ class IRListener(IRResource):
 
         # OK, after all that, look at the host selector itself.
         if hb_selector:
-            if not "matchLabels" in hb_selector:
+            if "matchLabels" not in hb_selector:
                 self.post_error("hostBinding.selector currently supports only matchLabels")
                 return False
 

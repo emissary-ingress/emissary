@@ -99,7 +99,7 @@ class IRTracing(IRResource):
                 driver_config["collector_endpoint"] = "/api/v2/spans"
             if not driver_config.get("collector_endpoint_version"):
                 driver_config["collector_endpoint_version"] = "HTTP_JSON"
-            if not "trace_id_128bit" in driver_config:
+            if "trace_id_128bit" not in driver_config:
                 # Make 128-bit traceid the default
                 driver_config["trace_id_128bit"] = True
             # validate

@@ -121,7 +121,7 @@ class EnvoyStats:
 
         pct = cstat.get("healthy_percent", None)
 
-        if pct != None:
+        if pct is not None:
             color = "green"
 
             if pct < 70:

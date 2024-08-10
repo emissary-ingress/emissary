@@ -337,7 +337,7 @@ class IRErrorResponse(IRFilter):
             bad_token = False
             for i in matches:
                 # i[0] is first group in regex match which will contain the command operator name
-                if not i[0] in ALLOWED_ENVOY_FMT_TOKENS:
+                if i[0] not in ALLOWED_ENVOY_FMT_TOKENS:
                     self.post_error(f"IRErrorResponse: Invalid Envoy command token: {i[0]}")
                     bad_token = True
 

@@ -241,7 +241,7 @@ class Config:
             # Make sure it's a list. Yes, this is Draconian,
             # but the jsonschema will allow only a string or a list,
             # and guess what? Strings are Iterables.
-            if type(allowed_ids) != list:
+            if type(allowed_ids) is not list:
                 allowed_ids = typecast(StringOrList, [allowed_ids])
 
             if Config.ambassador_id in allowed_ids:

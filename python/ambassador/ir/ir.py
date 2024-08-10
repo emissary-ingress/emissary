@@ -285,7 +285,7 @@ class IR:
         self.k8s_status_updates = aconf.k8s_status_updates
 
         # Check on the intercept agent.
-        self.agent_active = os.environ.get("AGENT_SERVICE", None) != None
+        self.agent_active = os.environ.get("AGENT_SERVICE", None) is not None
         self.agent_origination_ctx = None
 
         # OK, time to get this show on the road. First things first: set up the

@@ -68,7 +68,7 @@ class IRCORS(IRResource):
         are returned unaltered.
         """
 
-        if type(value) == list:
+        if type(value) is list:
             return ", ".join([str(x) for x in value])
         else:
             return value
