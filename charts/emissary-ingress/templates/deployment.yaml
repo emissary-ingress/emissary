@@ -216,6 +216,10 @@ spec:
             - name: admin
               containerPort: {{ .Values.adminService.port }}
           env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
             {{- if .Values.prometheusExporter.enabled }}
             - name: STATSD_ENABLED
               value: "true"
