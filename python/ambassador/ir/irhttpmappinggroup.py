@@ -171,8 +171,8 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
 
         # Per the schema, host_redirect and shadow are Booleans. They won't be _saved_ as
         # Booleans, though: instead we just save the Mapping that they're a part of.
-        host_redirect = mapping.get("host_redirect", False)
-        shadow = mapping.get("shadow", False)
+        host_redirect = bool(mapping.get("host_redirect", False))
+        shadow = bool(mapping.get("shadow", False))
 
         # First things first: if both shadow and host_redirect are set in this Mapping,
         # we're going to let shadow win. Kill the host_redirect part.

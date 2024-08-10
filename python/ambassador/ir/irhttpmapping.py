@@ -185,9 +185,9 @@ class IRHTTPMapping(IRBaseMapping):
 
         if "add_linkerd_headers" not in new_args:
             # They didn't set it explicitly, so check for the older way.
-            add_linkerd_headers = self.ir.ambassador_module.get("add_linkerd_headers", None)
+            add_linkerd_headers = bool(self.ir.ambassador_module.get("add_linkerd_headers", None))
 
-            if add_linkerd_headers != None:
+            if add_linkerd_headers:
                 new_args["add_linkerd_headers"] = add_linkerd_headers
 
         # OK. On to set up the headers (since we need them to compute our group ID).
@@ -317,7 +317,7 @@ class IRHTTPMapping(IRBaseMapping):
             add_response_hdrs = self.lookup_default("add_response_headers", {})
 
         # Remember that we may need to add the Linkerd headers, too.
-        add_linkerd_headers = new_args.get("add_linkerd_headers", False)
+        add_linkerd_headers = bool(new_args.get("add_linkerd_headers", False))
 
         # XXX The resolver lookup code is duplicated from IRBaseMapping.setup --
         # needs to be fixed after 1.6.1.
