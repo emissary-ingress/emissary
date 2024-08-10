@@ -16,7 +16,7 @@ class IRBuffer(IRFilter):
         rkey: str = "ir.buffer",
         name: str = "ir.buffer",
         kind: str = "IRBuffer",
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, **kwargs)
 

@@ -114,6 +114,7 @@ endif
 # Destructive rules
 
 clobber: clean
+clobber: dist.rm-r
 
 clean: build-output.rm-r
 

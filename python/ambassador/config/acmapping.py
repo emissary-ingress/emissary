@@ -63,7 +63,7 @@ class ACMapping(ACResource):
         # not present, we want them to be _not present_. Having them be always
         # present with an optional method is too annoying for schema validation
         # at this point.
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Initialize an ACMapping from the raw fields of its ACResource.
@@ -88,5 +88,5 @@ class ACMapping(ACResource):
             grpc=grpc,
             bypass_auth=bypass_auth,
             bypass_error_response_overrides=bypass_error_response_overrides,
-            **kwargs
+            **kwargs,
         )

@@ -65,7 +65,7 @@ class Resource(Cacheable):
             serialization=serialization,
             # _errors=[],
             _referenced_by={},
-            **kwargs
+            **kwargs,
         )
 
     def sourced_by(self, other: "Resource"):
@@ -113,7 +113,7 @@ class Resource(Cacheable):
         location: Optional[str] = None,
         kind: Optional[str] = None,
         serialization: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> R:
         """
         Create a Resource by copying another Resource, possibly overriding elements

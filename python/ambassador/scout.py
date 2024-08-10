@@ -19,7 +19,7 @@ class Scout:
         id_plugin=None,
         id_plugin_args={},
         scout_host="metriton.datawire.io",
-        **kwargs
+        **kwargs,
     ):
         """
         Create a new Scout instance for later reports.

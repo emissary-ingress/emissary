@@ -36,7 +36,7 @@ class ACPragma(ACResource):
         kind: str = "Pragma",
         apiVersion: Optional[str] = None,
         serialization: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Initialize an ACPragma from the raw fields of its ACResource.
@@ -53,5 +53,5 @@ class ACPragma(ACResource):
             name=name,
             apiVersion=apiVersion,
             serialization=serialization,
-            **kwargs
+            **kwargs,
         )

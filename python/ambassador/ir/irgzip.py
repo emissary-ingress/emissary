@@ -15,7 +15,7 @@ class IRGzip(IRFilter):
         rkey: str = "ir.gzip",
         name: str = "ir.gzip",
         kind: str = "IRGzip",
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, **kwargs)
 

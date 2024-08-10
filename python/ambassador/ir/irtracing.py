@@ -28,7 +28,7 @@ class IRTracing(IRResource):
         kind: str = "ir.tracing",
         name: str = "tracing",
         namespace: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         del kwargs  # silence unused-variable warning
 
