@@ -14,7 +14,6 @@
 import hashlib
 import logging
 import os
-from ipaddress import ip_address
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, ValuesView
 from typing import cast as typecast
 
@@ -22,7 +21,7 @@ from ..cache import Cache, NullCache
 from ..config import Config
 from ..constants import Constants
 from ..fetch import ResourceFetcher
-from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo, dump_json, parse_bool
+from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo, dump_json, is_ip_address
 from ..VERSION import Commit, Version
 from .irambassador import IRAmbassador
 from .irauth import IRAuth
@@ -731,16 +730,7 @@ class IR:
         namespace: str,
         port: int,
     ) -> Optional[SvcEndpointSet]:
-        # Is the host already an IP address?
-        is_ip_address = False
-
-        try:
-            x = ip_address(hostname)
-            is_ip_address = True
-        except ValueError:
-            pass
-
-        if is_ip_address:
+        if is_ip_address(hostname):
             # Already an IP address, great.
             self.logger.debug(f"cluster {cluster.name}: {hostname} is already an IP address")
 

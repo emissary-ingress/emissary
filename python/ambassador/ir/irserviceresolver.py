@@ -1,7 +1,7 @@
-from ipaddress import ip_address
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 from ..config import Config
+from ..utils import is_ip_address
 from .irresource import IRResource
 
 if TYPE_CHECKING:
@@ -379,11 +379,3 @@ class IRServiceResolverFactory:
             config["name"] = name
 
             ir.add_resolver(IRServiceResolver(ir, aconf, **config))
-
-
-def is_ip_address(addr: str) -> bool:
-    try:
-        x = ip_address(addr)
-        return True
-    except ValueError:
-        return False

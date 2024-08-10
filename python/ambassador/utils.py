@@ -25,6 +25,7 @@ import tempfile
 import threading
 import time
 from builtins import bytes
+from ipaddress import ip_address
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, TextIO, Union
 from urllib.parse import urlparse
 
@@ -153,6 +154,15 @@ def load_url_contents(
         return stream.getvalue()
     else:
         return None
+
+
+# Is a given string an IP address or not?
+def is_ip_address(addr: str) -> bool:
+    try:
+        _ = ip_address(addr)
+        return True
+    except ValueError:
+        return False
 
 
 # dsutils is deprecated so this adds a simple helper funcf inlined.
