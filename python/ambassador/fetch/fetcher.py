@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import yaml
 
 from ..config import ACResource, Config
-from ..utils import parse_bool, parse_json, parse_yaml
+from ..utils import parse_json, parse_yaml
 from .ambassador import AmbassadorProcessor
 from .dependency import (
     DependencyManager,

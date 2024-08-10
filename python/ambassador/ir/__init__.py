@@ -14,3 +14,5 @@
 
 from .ir import IR
 from .irresource import IRResource
+
+__all__ = ["IR", "IRResource"]

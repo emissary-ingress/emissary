@@ -32,7 +32,6 @@ from .ircluster import IRCluster
 from .irerrorresponse import IRErrorResponse
 from .irfilter import IRFilter
 from .irhost import HostFactory, IRHost
-from .irhttpmapping import IRHTTPMapping
 from .irlistener import IRListener, ListenerFactory
 from .irlogservice import IRLogService, IRLogServiceFactory
 from .irmappingfactory import MappingFactory

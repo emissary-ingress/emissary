@@ -16,7 +16,6 @@ import os
 from typing import TYPE_CHECKING, List
 
 from ...utils import parse_bool
-from .v3listener import V3Listener
 
 if TYPE_CHECKING:
     from . import V3Config  # pragma: no cover

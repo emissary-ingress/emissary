@@ -38,7 +38,6 @@ from .VERSION import Version
 if TYPE_CHECKING:
     from .config.acresource import ACResource  # pragma: no cover
     from .ir import IRResource  # pragma: no cover
-    from .ir.irtlscontext import IRTLSContext  # pragma: no cover
 
 logger = logging.getLogger("utils")
 logger.setLevel(logging.INFO)

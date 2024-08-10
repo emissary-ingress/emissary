@@ -8,7 +8,7 @@ from typing import cast as typecast
 import semantic_version
 
 from .scout import Scout
-from .utils import dump_json, parse_bool, parse_json
+from .utils import dump_json, parse_json
 from .VERSION import Commit, Version
 
 ScoutNotice = Dict[str, str]
