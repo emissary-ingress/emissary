@@ -207,13 +207,14 @@ def V3HTTPFilter_authv1(auth: IRAuth, v3config: "V3Config"):
 
     auth_info: Dict[str, Any] = {}
 
-    if errors := auth.ir.aconf.errors.get(auth.rkey):
+    if auth.ir.aconf.errors.get(auth.rkey):
         # FWIW, this mimics Ambassador Edge Stack's default error response format; see
         # apro.git/cmd/amb-sidecar/filters/handler/middleware.NewErrorResponse().
         #
         # TODO(lukeshu): Set a better error message; it should probably include a stringification of
-        # 'errors'.  But that's kinda tricky because while we have "json_escape()" in the Python
-        # stdlib, we don't have a "lua_escape()"; and I'm on a tight deadline.
+        # auth.ir.aconf.errors.get(auth.rkey).  But that's kinda tricky because while we have
+        # "json_escape()" in the Python stdlib, we don't have a "lua_escape()"; and I'm on a tight
+        # deadline.
         auth_info = {
             "name": "envoy.filters.http.lua",
             "typed_config": {

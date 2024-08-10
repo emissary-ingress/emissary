@@ -382,9 +382,6 @@ class IRHTTPMappingGroup(IRBaseMappingGroup):
         # if verbose:
         #     self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))
 
-        total_weight = 0.0
-        unspecified_mappings = 0
-
         # If no rewrite was given at all, default the rewrite to "/", so /, so e.g., if we map
         # /prefix1/ to the service service1, then http://ambassador.example.com/prefix1/foo/bar
         # would effectively be written to http://service1/foo/bar

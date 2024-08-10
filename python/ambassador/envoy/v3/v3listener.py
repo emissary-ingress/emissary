@@ -163,7 +163,7 @@ class V3Chain:
         self.routes[virtual_host].append(route)
 
     def __str__(self) -> str:
-        ctxstr = f" ctx {self.context.name}" if self.context else ""
+        # ctxstr = f" ctx {self.context.name}" if self.context else ""
 
         return f"CHAIN: tls={bool(self.context)} hostglobs={repr(sorted(self.hostglobs()))}"
 
@@ -843,8 +843,8 @@ class V3Listener:
                 self.config.ir.logger.debug("      reject: is non-HTTP")
                 continue
 
-            # Remember whether we found an ACME route.
-            found_acme = False
+            # # Remember whether we found an ACME route.
+            # found_acme = False
 
             # The data structure we're walking here is config.route_variants rather than
             # config.routes. There's a one-to-one correspondence between the two, but we use the
@@ -897,7 +897,7 @@ class V3Listener:
                         candidates.append((host, matcher, action, rv))
 
                     for host, matcher, action, rv in candidates:
-                        route_precedence = rv.route.get("_precedence", None)
+                        # route_precedence = rv.route.get("_precedence", None)
                         extra_info = ""
 
                         if rv.route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
@@ -905,7 +905,7 @@ class V3Listener:
                             # on (this is the infamous ACME hole-puncher mentioned everywhere).
                             extra_info = " (force Route for ACME challenge)"
                             action = "Route"
-                            found_acme = True
+                            # found_acme = True
                         # elif (
                         #     self.config.ir.edge_stack_allowed
                         #     and (route_precedence == -1000000)

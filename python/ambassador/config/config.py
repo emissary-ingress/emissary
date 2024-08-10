@@ -459,9 +459,6 @@ class Config:
         else:
             return RichStatus.fromError("apiVersion %s unsupported" % apiVersion)
 
-        ns = resource.get("namespace") or self.ambassador_namespace
-        name = f"{resource.name} ns {ns}"
-
         # Did entrypoint.go flag errors here that we should show to the user?
         #
         # (It's still called watt_errors because our other docs talk about "watt

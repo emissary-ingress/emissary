@@ -479,39 +479,6 @@ class Timer:
         )
 
 
-class DelayTrigger(threading.Thread):
-    def __init__(self, onfired, timeout=5, name=None):
-        super().__init__()
-
-        if name:
-            self.name = name
-
-        self.trigger_source, self.trigger_dest = socket.socketpair()
-
-        self.onfired = onfired
-        self.timeout = timeout
-
-        self.setDaemon(True)
-        self.start()
-
-    def trigger(self):
-        self.trigger_source.sendall(b"X")
-
-    def run(self):
-        while True:
-            self.trigger_dest.settimeout(None)
-            x = self.trigger_dest.recv(128)
-
-            self.trigger_dest.settimeout(self.timeout)
-
-            while True:
-                try:
-                    x = self.trigger_dest.recv(128)
-                except socket.timeout:
-                    self.onfired()
-                    break
-
-
 class PeriodicTrigger(threading.Thread):
     def __init__(self, onfired, period=5, name=None):
         super().__init__()
@@ -740,8 +707,6 @@ class SecretInfo:
                     f"{resource.kind} {resource.name}: found data but no user.key in {source}?"
                 )
                 return None
-
-            cert = None
         elif secret_type == "istio.io/key-and-cert":
             resource.ir.logger.error(
                 f"{resource.kind} {resource.name}: found data but handler for istio key not finished yet"

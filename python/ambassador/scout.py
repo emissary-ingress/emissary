@@ -294,12 +294,10 @@ class Scout:
 
             scout.logger.debug("Scout: saving new install_id %s" % install_id)
 
-            saved = False
             try:
                 r = requests.post(cm_url, headers=auth_headers, verify=False, json=cm)
 
                 if r.status_code == 201:
-                    saved = True
                     scout.logger.debug("Scout: saved install_id %s" % install_id)
 
                     plugin_response = {"install_id": install_id, "new_install": True}

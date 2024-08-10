@@ -293,8 +293,6 @@ class IRListener(IRResource):
 class ListenerFactory:
     @classmethod
     def load_all(cls, ir: "IR", aconf: Config) -> None:
-        amod = ir.ambassador_module
-
         listeners = aconf.get_config("listeners")
 
         if listeners:

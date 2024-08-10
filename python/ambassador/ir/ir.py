@@ -94,7 +94,6 @@ class IR:
     saved_resources: Dict[str, IRResource]
     saved_secrets: Dict[str, SavedSecret]
     secret_handler: SecretHandler
-    secret_root: str
     tls_contexts: Dict[str, IRTLSContext]
     tls_module: Optional[IRAmbassadorTLS]
     tracing: Optional[IRTracing]
@@ -222,9 +221,6 @@ class IR:
         self.invalid = aconf.invalid
 
         self.cache.dump("Fetcher")
-
-        # We're using setattr since since mypy complains about assigning directly to a method.
-        secret_root = os.environ.get("AMBASSADOR_CONFIG_BASE_DIR", "/ambassador")
 
         # This setattr business is because mypy seems to think that, since self.file_checker is
         # callable, any mention of self.file_checker must be a function call. Sigh.

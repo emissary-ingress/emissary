@@ -212,8 +212,8 @@ class IRTCPMappingGroup(IRBaseMappingGroup):
 
         # self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))
 
-        total_weight = 0.0
-        unspecified_mappings = 0
+        # total_weight = 0.0
+        # unspecified_mappings = 0
 
         # # OK. Save some typing with local variables for default labels and our labels...
         # labels: Dict[str, Any] = self.get('labels', None)
