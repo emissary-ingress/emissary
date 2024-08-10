@@ -333,7 +333,7 @@ class IR:
         # we wait until all the listeners are loaded so that we can check for the existance of a
         # "companion" TCP Listener. If a UDP listener was the first to be parsed then
         # we wouldn't know at that time. Thus we need to wait until after all of them have been loaded.
-        udp_listeners = (l for l in self.listeners.values() if l.socket_protocol == "UDP")
+        udp_listeners = (x for x in self.listeners.values() if x.socket_protocol == "UDP")
         for udp_listener in udp_listeners:
             ## this matches the `listener.bind_to` for the tcp listener
             tcp_listener_key = f"tcp-{udp_listener.bind_address}-{udp_listener.port}"

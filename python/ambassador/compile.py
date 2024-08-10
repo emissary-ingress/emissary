@@ -31,6 +31,10 @@ class _CompileResult(TypedDict):
     xds: NotRequired[EnvoyConfig]
 
 
+def null_file_checker(path: str) -> bool:
+    return True
+
+
 def Compile(
     logger: logging.Logger,
     input_text: str,
@@ -56,7 +60,7 @@ def Compile(
     """
 
     if not file_checker:
-        file_checker = lambda path: True
+        file_checker = null_file_checker
 
     if not secret_handler:
         secret_handler = NullSecretHandler(logger, None, None, "fake")
