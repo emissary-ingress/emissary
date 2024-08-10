@@ -31,9 +31,8 @@ import threading
 import time
 import traceback
 import uuid
-from importlib import resources as importlib_resources
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union
-from typing import cast as typecast
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union, cast as typecast
 
 import click
 import gunicorn.app.base
@@ -591,27 +590,8 @@ class DiagApp(Flask):
         return result
 
 
-# get the "templates" directory, or raise "FileNotFoundError" if not found
-def get_templates_dir():
-    res_dir: Optional[str] = None
-    try:
-        # Note that this "importlib_resources" has to do with imported packages, not
-        # with our ACResource class.
-
-        with importlib_resources.path("ambassador", "templates") as tdp:
-            res_dir = str(tdp)
-    except:
-        pass
-
-    maybe_dirs = [res_dir, os.path.join(os.path.dirname(__file__), "..", "templates")]
-    for d in maybe_dirs:
-        if d and os.path.isdir(d):
-            return d
-    raise FileNotFoundError
-
-
 # Get the Flask app defined early. Setup happens later.
-app = DiagApp(__name__, template_folder=get_templates_dir())
+app = DiagApp(__name__, template_folder=(Path(__file__).parent / "templates").resolve())
 
 
 ######## DECORATORS

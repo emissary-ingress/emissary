@@ -1,7 +1,6 @@
 import json
 import os
 import platform
-import subprocess
 from base64 import b64encode
 from typing import Dict, Optional
 

@@ -22,7 +22,6 @@ from yaml.parser import ParserError as YAMLParseError
 from yaml.scanner import ScannerError as YAMLScanError
 
 import tests.integration.manifests as integration_manifests
-from ambassador.utils import parse_bool
 from tests.manifests import cleartext_host_manifest, default_listener_manifest
 
 from .parser import SequenceView, Tag, dump, load

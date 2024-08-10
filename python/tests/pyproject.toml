@@ -1,0 +1,18 @@
+[project]
+name = "tests"
+version = "4.0.0-dev"
+dependencies = [
+    "requests==2.*",
+    "python-json-logger==2.*",
+]
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[tool.ruff.lint.isort]
+known-local-folder = ["tests"]
+
+
