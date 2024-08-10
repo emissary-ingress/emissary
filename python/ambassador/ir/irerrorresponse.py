@@ -77,7 +77,7 @@ ALLOWED_ENVOY_FMT_TOKENS = [
     "FILTER_CHAIN_NAME",
 ]
 ENVOY_FMT_TOKEN_REGEX = (
-    "\%([A-Za-z0-9_]+?)(\([A-Za-z0-9_.]+?((:|\?)[A-Za-z0-9_.]+?)+\))?(:[A-Za-z0-9_]+?)?\%"
+    r"\%([A-Za-z0-9_]+?)(\([A-Za-z0-9_.]+?((:|\?)[A-Za-z0-9_.]+?)+\))?(:[A-Za-z0-9_]+?)?\%"
 )
 
 
