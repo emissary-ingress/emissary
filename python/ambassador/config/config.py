@@ -430,7 +430,7 @@ class Config:
 
             try:
                 handler(resource)
-            except Exception as e:
+            except Exception:
                 # Bzzzt.
                 raise
                 # return RichStatus.fromError("%s: could not process %s object: %s" % (resource, resource.kind, e))

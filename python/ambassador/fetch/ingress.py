@@ -237,7 +237,7 @@ class IngressProcessor(ManagedKubernetesProcessor):
 
                 try:
                     service_port = int(service_port)
-                except:
+                except Exception:
                     service_port = self._try_resolve_service_port_number(
                         obj.namespace, service_name, service_port
                     )

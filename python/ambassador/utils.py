@@ -205,7 +205,7 @@ class SystemInfo:
 
         try:
             MyHostName = socket.gethostname()
-        except:
+        except Exception:
             pass
 
 
@@ -1086,7 +1086,7 @@ class FSSecretHandler(SecretHandler):
 
         try:
             serialization = open(source, "r").read()
-        except IOError as e:
+        except IOError:
             self.logger.error(
                 "%s %s: FSSecretHandler could not open %s" % (resource.kind, resource.name, source)
             )
