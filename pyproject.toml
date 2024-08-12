@@ -32,16 +32,16 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: Apache Software License",
 ]
+dependencies = [
+    "ambassador==4.*",
+    "ambassador-diag==4.*",
+]
 
 
 [project.urls]
 homepage = "https://www.getambassador.io"
 repository = "https://github.com/emissary-ingress/emissary"
 documentation = "https://www.getambassador.io/docs/emissary"
-
-
-#[project.entry-points]
-#console_scripts = { diagd = "ambassador_diag.diagd:main" }
 
 
 [build-system]
@@ -61,8 +61,6 @@ dev-dependencies = [
     # Project-Specific
     "kat==4.*",
     "tests==4.*",
-    "ambassador==4.*",
-    "ambassador-diag==4.*",
     # Dev Requirements
     "mypy>=1",
     "retry2>=0.9",
@@ -83,6 +81,7 @@ dev-dependencies = [
     "types-pyopenssl>=24",
     "types-setuptools>=71",
 ]
+
 
 [tool.uv.sources]
 kat = { workspace = true, editable = true }
@@ -105,6 +104,88 @@ packages = [
     "python/ambassador",
     "python/ambassador-diag",
 ]
+
+
+[tool.pytest.ini_options]
+minversion = "8.3"
+addopts = [
+    "--tb=short",
+    "--disable-pytest-warnings",
+    "--strict-markers",
+    "--cov",
+    "--cov-append",
+    "--cov-config=pyproject.toml",
+    "--cov-report=xml:coverage.xml",
+    "--no-cov-on-fail",
+    "-r",
+    "fEsxp",
+]
+cache_dir = ".cache"
+norecursedirs = [
+    "docs",
+]
+testpaths = [
+    "python/tests/src/tests",
+]
+markers = [
+    "descriptor",
+    "description",
+    "compilertest",
+    "describe_nested",
+]
+python_classes = [
+    "Test*",
+    "Describe*",
+]
+python_functions = [
+    "test_*",
+    "when_*",
+    "describe_*",
+]
+filterwarnings = [
+    'ignore:.*The metaschema specified by \$schema was not found.*:DeprecationWarning',
+    "ignore:.*Call to deprecated create function Descriptor.*:DeprecationWarning",
+    "ignore:.*Call to deprecated create function FileDescriptor.*:DeprecationWarning",
+    "ignore:.*Call to deprecated create function FieldDescriptor.*:DeprecationWarning",
+]
+
+
+[tool.coverage.report]
+fail_under = 0  # TODO: raise this to an acceptable number
+show_missing = true
+
+
+[tool.coverage.run]
+branch = true
+concurrency = []
+omit = [
+    "scratch*.py",
+    "python/tests/**/*",
+]
+include = [
+    "python/ambassador/src/ambassador/*",
+    "python/ambassador-diag/src/ambassador_diag/*",
+]
+relative_files = true
+
+
+[tool.mypy]
+cache_dir = ".cache/mypy/"
+check_untyped_defs = true
+error_summary = true
+exclude = "/tests/"
+ignore_errors = true
+ignore_missing_imports = true
+install_types = false
+follow_imports = "silent"
+strict = false
+pretty = true
+python_version = 3.11
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+show_none_errors = false
+strict_optional = false
 
 
 [tool.ruff]
