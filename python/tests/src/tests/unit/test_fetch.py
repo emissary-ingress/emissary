@@ -439,43 +439,43 @@ class TestCountingKubernetesProcessor:
         assert aconf.get_count("test") == 2, "Processor did not increment counter"
 
 
-class TestDependencyManager:
-    def setup(self):
-        self.deps = DependencyManager(
-            [
-                SecretDependency(),
-                ServiceDependency(),
-                IngressClassesDependency(),
-            ]
-        )
+@pytest.fixture(scope="function")
+def deps() -> DependencyManager:
+    return DependencyManager(
+        [
+            SecretDependency(),
+            ServiceDependency(),
+            IngressClassesDependency(),
+        ]
+    )
 
-    def test_cyclic(self):
-        a = self.deps.for_instance(object())
-        b = self.deps.for_instance(object())
-        c = self.deps.for_instance(object())
+def test_cyclic(deps: DependencyManager) -> None:
+    a = deps.for_instance(object())
+    b = deps.for_instance(object())
+    c = deps.for_instance(object())
 
-        a.provide(SecretDependency)
-        a.want(ServiceDependency)
-        b.provide(ServiceDependency)
-        b.want(IngressClassesDependency)
-        c.provide(IngressClassesDependency)
-        c.want(SecretDependency)
+    a.provide(SecretDependency)
+    a.want(ServiceDependency)
+    b.provide(ServiceDependency)
+    b.want(IngressClassesDependency)
+    c.provide(IngressClassesDependency)
+    c.want(SecretDependency)
 
-        with pytest.raises(ValueError):
-            self.deps.sorted_watt_keys()
+    with pytest.raises(ValueError):
+        deps.sorted_watt_keys()
 
-    def test_sort(self):
-        a = self.deps.for_instance(object())
-        b = self.deps.for_instance(object())
-        c = self.deps.for_instance(object())
+def test_sort(deps: DependencyManager) -> None:
+    a = deps.for_instance(object())
+    b = deps.for_instance(object())
+    c = deps.for_instance(object())
 
-        a.want(SecretDependency)
-        a.want(ServiceDependency)
-        a.provide(IngressClassesDependency)
-        b.provide(SecretDependency)
-        c.provide(ServiceDependency)
+    a.want(SecretDependency)
+    a.want(ServiceDependency)
+    a.provide(IngressClassesDependency)
+    b.provide(SecretDependency)
+    c.provide(ServiceDependency)
 
-        assert self.deps.sorted_watt_keys() == ["secret", "service", "ingressclasses"]
+    assert deps.sorted_watt_keys() == ["secret", "service", "ingressclasses"]
 
 
 if __name__ == "__main__":
