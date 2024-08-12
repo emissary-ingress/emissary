@@ -65,6 +65,7 @@ dev-dependencies = [
     "mypy>=1",
     "retry2>=0.9",
     "pytest==8.*",
+    "awscli>=1.33",
     "pexpect>=4.9",
     "packaging>=24",
     "httpretty>=1.1",

@@ -73,7 +73,6 @@ jobs:
         env:
           PYTEST_ARGS: --cov-branch --cov=ambassador --cov-report=html:/tmp/cov_html
         run: |
-          source venv/bin/activate
           make pytest-unit-tests
       - name: Collect Job Logs
         uses: ./.github/actions/after-job
