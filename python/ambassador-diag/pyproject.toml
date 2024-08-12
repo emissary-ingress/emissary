@@ -14,8 +14,8 @@ dependencies = [
 ]
 
 
-#[project.entry-points]
-#console_scripts = { diagd = "ambassador_diag.diagd:main" }
+[project.scripts]
+diagd = "ambassador_diag.diagd:main"
 
 
 [build-system]
