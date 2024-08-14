@@ -32,6 +32,8 @@ from .ircluster import IRCluster
 from .irerrorresponse import IRErrorResponse
 from .irfilter import IRFilter
 from .irgofilter import IRGOFilter
+from .irwasm import IRWASMFilter
+from .irextproc import IRExtProcFilter
 from .irhost import HostFactory, IRHost
 from .irhttpmapping import IRHTTPMapping
 from .irlistener import IRListener, ListenerFactory
@@ -417,6 +419,8 @@ class IR:
 
         # We always add the Go filter calling to our filter plugin service if applicable before auth
         self.save_filter(IRGOFilter(ir=self, aconf=aconf))
+        self.save_filter(IRWASMFilter(ir=self, aconf=aconf))
+        self.save_filter(IRExtProcFilter(ir=self, aconf=aconf))
 
         # Next is auth...
         self.save_filter(IRAuth(self, aconf))

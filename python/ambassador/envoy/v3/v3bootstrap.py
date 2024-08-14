@@ -36,6 +36,7 @@ class V3Bootstrap(dict):
             }
         )
 
+        # Existing xds_cluster
         clusters = [
             {
                 "name": "xds_cluster",
@@ -52,7 +53,6 @@ class V3Bootstrap(dict):
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                # this should be kept in-sync with entrypoint.sh `ambex --ads-listen-address=...`
                                                 "address": "127.0.0.1",
                                                 "port_value": 8003,
                                                 "protocol": "TCP",
@@ -66,6 +66,37 @@ class V3Bootstrap(dict):
                 },
             }
         ]
+
+        # Add a new cluster for the ext_proc service
+        ext_proc_cluster = {
+            "name": "ext_proc_cluster",
+            "connect_timeout": "1s",
+            "dns_lookup_family": "V4_ONLY",
+            "http2_protocol_options": {},
+            "lb_policy": "ROUND_ROBIN",
+            "type": "STRICT_DNS",  # Use DNS resolution for the service name
+            "load_assignment": {
+                "cluster_name": "ext_proc_cluster",
+                "endpoints": [
+                    {
+                        "lb_endpoints": [
+                            {
+                                "endpoint": {
+                                    "address": {
+                                        "socket_address": {
+                                            "address": "ext-proc-test.default",  # Kubernetes service name
+                                            "port_value": 9315,  # Port of your ext_proc service
+                                            "protocol": "TCP",
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+            },
+        }
+        clusters.append(ext_proc_cluster)
 
         if config.tracing:
             self["tracing"] = dict(config.tracing)

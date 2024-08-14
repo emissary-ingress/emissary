@@ -22,6 +22,8 @@ from ...ir.ircluster import IRCluster
 from ...ir.irerrorresponse import IRErrorResponse
 from ...ir.irfilter import IRFilter
 from ...ir.irgofilter import IRGOFilter
+from ...ir.irwasm import IRWASMFilter
+from ...ir.irextproc import IRExtProcFilter
 from ...ir.irgzip import IRGzip
 from ...ir.iripallowdeny import IRIPAllowDeny
 from ...ir.irratelimit import IRRateLimit
@@ -476,6 +478,68 @@ def V3HTTPFilter_golang(irfilter: IRGOFilter, _: "V3Config") -> Optional[Dict[st
     # This should be a pretty rare case and probably the result of a programming error.
     # By returning None, the caller will omit this filter from the filter chain entirely,
     # which is not the usual way of handling filter config, but it's valid.
+    return None
+
+
+@V3HTTPFilter.register
+def V3HTTPFilter_ext_proc(
+    irextprocfilter: IRExtProcFilter, _: "V3Config"
+) -> Optional[Dict[str, Any]]:
+    enabled = irextprocfilter.config.enabled
+    if enabled:
+        return {
+            "name": "envoy.filters.http.ext_proc",
+            "typed_config": {
+                "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_proc.v3.ExternalProcessor",
+                "grpc_service": {
+                    "envoy_grpc": {"cluster_name": "ext_proc_cluster"}  # Example gRPC cluster name
+                },  # Configuration for the gRPC service
+                "processing_mode": {
+                    "request_header_mode": "SEND",  # Options: "NONE", "SEND", "SKIP"
+                    "request_body_mode": "BUFFERED",  # Options: "NONE", "SEND", "BUFFERED"
+                    "response_header_mode": "SEND",  # Options: "NONE", "SEND", "SKIP"
+                    "response_body_mode": "BUFFERED",  # Options: "NONE", "SEND", "BUFFERED"
+                },
+                "message_timeout": "30s",  # Optional: Timeout for processing messages
+                "failure_mode_allow": irextprocfilter.config.failure_mode_allow,  # Optional: Fail open if true, otherwise fail closed
+                "allow_mode_override": irextprocfilter.config.allow_mode_override,  # Optional: Allow overriding the processing mode via headers
+            },
+        }
+
+    # If no gRPC service is found, omit the filter
+    return None
+
+
+@V3HTTPFilter.register
+def V3HTTPFilter_wasm(irfilter: IRWASMFilter, _: "V3Config") -> Optional[Dict[str, Any]]:
+    enabled = irfilter.config.enabled
+    if enabled:
+        return {
+            "name": "envoy.filters.http.wasm",
+            "typed_config": {
+                "@type": "type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm",
+                "config": {
+                    "name": "plugin_name",
+                    "root_id": "my_root_id",
+                    "vm_config": {
+                        "vm_id": "vm_id",
+                        "runtime": "envoy.wasm.runtime.v8",  # Specify the WebAssembly runtime
+                        "code": {
+                            "local": {"filename": irfilter.config.wasm_file_path}
+                        },  # Path to your WASM binary
+                        # "configuration": {  # Optional: Configuration for the WASM filter
+                        #     "@type": "type.googleapis.com/xds.type.v3.TypedStruct",
+                        #     "value": {
+                        #         # Add any necessary filter configuration here
+                        #         "key": "value"
+                        #     },
+                        # },
+                    },
+                },
+            },
+        }
+
+    # If no WASM library path is found, omit the filter
     return None
 
 

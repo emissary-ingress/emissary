@@ -15,8 +15,6 @@ ENVOY_COMPILED_GO_BASE="${BASE_ENVOY_DIR}/build_go"
 EMISSARY_PROTO_API_BASE="${OSS_SOURCE}/api"
 EMISSARY_COMPILED_PROTO_GO_BASE="${OSS_SOURCE}/pkg/api"
 
-
-
 # envoy build container settings
 ENVOY_DOCKER_OPTIONS="--platform=${BUILD_ARCH}"
 export ENVOY_DOCKER_OPTIONS
@@ -45,7 +43,10 @@ rsync --recursive --delete --delete-excluded --prune-empty-dirs \
   --include='*/' \
   --include='*.proto' \
   --exclude='*' \
-  "${ENVOY_PROTO_API_BASE}/contrib/envoy/extensions/filters/http/golang" "${EMISSARY_PROTO_API_BASE}/contrib/envoy/extensions/filters/http"
+  "${ENVOY_PROTO_API_BASE}/contrib/envoy/extensions/filters/http/golang" \
+  "${ENVOY_PROTO_API_BASE}/contrib/envoy/extensions/filters/http/wasm" \
+  "${ENVOY_PROTO_API_BASE}/contrib/envoy/extensions/filters/http/ext_proc" \
+  "${EMISSARY_PROTO_API_BASE}/contrib/envoy/extensions/filters/http"
 
 ############### compile go protos ######################
 
@@ -55,7 +56,6 @@ rm -rf "${ENVOY_COMPILED_GO_BASE}"
 cd "${BASE_ENVOY_DIR}" || exit;
 ./ci/run_envoy_docker.sh "./ci/do_ci.sh 'api.go'";
 cd "${OSS_SOURCE}" || exit;
-
 
 ############## moving envoy compiled protos to emissary #################
 echo -e "${BLUE}removing existing compiled protos from: ${GREEN} $EMISSARY_COMPILED_PROTO_GO_BASE/envoy${NC}";
@@ -89,7 +89,10 @@ rsync --recursive --delete --delete-excluded --prune-empty-dirs \
   --include='*/' \
   --include='*.go' \
   --exclude='*' \
-  "${ENVOY_COMPILED_GO_BASE}/contrib/envoy/extensions/filters/http/golang" "${EMISSARY_COMPILED_PROTO_GO_BASE}/contrib/envoy/extensions/filters/http"
+  "${ENVOY_COMPILED_GO_BASE}/contrib/envoy/extensions/filters/http/golang" \
+  "${ENVOY_COMPILED_GO_BASE}/contrib/envoy/extensions/filters/http/wasm" \
+  "${ENVOY_COMPILED_GO_BASE}/contrib/envoy/extensions/filters/http/ext_proc" \
+  "${EMISSARY_COMPILED_PROTO_GO_BASE}/contrib/envoy/extensions/filters/http"
 
 echo -e "${BLUE}Updating import pkg references from: ${GREEN}github.com/envoyproxy/go-control-plane/envoy ${NC}--> ${GREEN}github.com/emissary-ingress/emissary/v3/pkg/api/envoy${NC}"
 find "${EMISSARY_COMPILED_PROTO_GO_BASE}/contrib" -type f \
